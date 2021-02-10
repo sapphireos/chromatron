@@ -92,6 +92,7 @@ typedef struct __attribute__((packed)){
 } consumer_state_t;
 
 
+#define LINK_FILE "links"
 
 static int32_t link_test_key;
 
@@ -200,8 +201,8 @@ static uint16_t remote_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t 
 }
 
 
-void link_v_init( void ){
-
+void link_v_init( void )
+{
 	list_v_init( &link_list );
     list_v_init( &consumer_list );
     list_v_init( &producer_list );
@@ -218,7 +219,7 @@ void link_v_init( void ){
     fs_f_create_virtual( PSTR("link_producers"), producer_vfile );
     fs_f_create_virtual( PSTR("link_remotes"), remote_vfile );
 
-    
+
     thread_t_create( link_server_thread,
                  PSTR("link_server"),
                  0,
@@ -333,10 +334,10 @@ bool link_b_compare( link_state_t *link1, link_state_t *link2 ){
 	return memcmp( link1, link2, sizeof(link_state_t) ) == 0;
 }
 
-uint64_t link_u64_hash( link_state_t *link ){
+uint64_t link_u64_hash( link_state_t *link_state ){
 
 	return hash_u64_data( 
-        (uint8_t *)link, 
+        (uint8_t *)link_state, 
         sizeof(link_state_t) - 
             ( sizeof(uint64_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(int16_t) + sizeof(int16_t) ) 
         );	
@@ -378,6 +379,175 @@ link_handle_t link_l_lookup_by_hash( uint64_t hash ){
     }
 
     return -1;
+}
+
+typedef struct{
+    uint32_t magic;
+    uint8_t version;
+    uint8_t padding[3];
+} link_file_header_t;
+
+
+typedef struct __attribute__((packed)){
+    catbus_hash_t32 source_key;
+    catbus_hash_t32 dest_key;
+    catbus_query_t query;
+    link_mode_t8 mode;
+    link_aggregation_t8 aggregation;
+    link_filter_t16 filter;
+    link_rate_t16 rate;
+    catbus_hash_t32 tag;
+    
+    uint64_t hash; // must be last!
+} link_file_entry_t;
+
+
+#define LINK_FILE_VERSION 1
+
+static file_t open_link_file(){
+
+    file_t f;
+
+retry: // yup.  sometimes goto is *exactly* what you need.
+
+    f = fs_f_open_P( PSTR(LINK_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    if( f < 0 ){
+
+        return f;
+    }
+
+    if( fs_i32_get_size( f ) == 0 ){
+
+        // write header
+        link_file_header_t header = {
+            LINK_MAGIC,
+            LINK_FILE_VERSION,
+        };
+
+        fs_i16_write( f, &header, sizeof(header) );
+    }
+    else{
+
+        link_file_header_t header = { 0 };
+
+        // verify header
+        fs_i16_read( f, &header, sizeof(header) );
+
+        if( ( header.magic != LINK_MAGIC ) ||
+            ( header.version != LINK_FILE_VERSION ) ){
+
+            log_v_warn_P( PSTR("link file corrupted") );
+
+            // file is.... wrong.  delete it and start over.
+            fs_v_delete( f );
+            fs_f_close( f );
+
+            goto retry;
+        }
+    }
+
+    return f;
+}
+
+static void load_links_from_file( void ){
+
+    file_t f = open_link_file();
+
+    if( f < 0 ){
+
+        return;
+    }
+
+    link_file_entry_t entry;
+
+    while( fs_i16_read( f, &entry, sizeof(entry) ) == sizeof(entry) ){
+
+        if( entry.hash == 0 ){
+            // empty entry
+        }
+        // verify hash
+        else if( hash_u64_data( (uint8_t *)&entry, sizeof(entry) - sizeof(uint64_t) ) == entry.hash ){
+
+            link_l_create(
+                entry.mode,
+                entry.source_key,
+                entry.dest_key,
+                &entry.query,
+                entry.tag,
+                entry.rate,
+                entry.aggregation,
+                entry.filter );   
+        }
+        else{
+
+            log_v_warn_P( PSTR("bad link entry") );
+        }
+    }
+
+    fs_f_close( f );
+
+    return;
+}
+
+static bool search_link_in_file( file_t f, uint64_t hash ){
+
+    link_file_entry_t entry;
+
+    while( fs_i16_read( f, &entry, sizeof(entry) ) == sizeof(entry) ){
+        
+        if( entry.hash == hash ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+static void save_link_to_file( link_handle_t link ){
+
+    file_t f = open_link_file();
+
+    if( f < 0 ){
+
+        return;
+    }
+
+    link_state_t *link_state = link_ls_get_data( link );
+
+    if( search_link_in_file( f, link_state->hash ) ){
+
+        fs_f_close( f );
+        return;
+    }
+
+    link_file_entry_t temp_entry;
+
+    // search for empty entry
+    while( fs_i16_read( f, &temp_entry, sizeof(temp_entry) ) == sizeof(temp_entry) ){
+        
+        if( temp_entry.hash == 0 ){
+
+            break;
+        }
+    }
+
+    link_file_entry_t entry = {
+        link_state->source_key,
+        link_state->dest_key,
+        link_state->query,
+        link_state->mode,
+        link_state->aggregation,
+        link_state->filter,
+        link_state->rate,
+        link_state->tag,
+        link_state->hash,
+    };
+
+    fs_i16_write( f, &entry, sizeof(entry) );
+
+    fs_f_close( f );
 }
 
 link_handle_t link_l_create( 
@@ -584,6 +754,28 @@ void link_v_delete_by_tag( catbus_hash_t32 tag ){
 
 		ln = next_ln;
 	}
+
+    // delete links in file
+    file_t f = open_link_file();
+
+    if( f < 0 ){
+
+        return;
+    }
+
+    link_file_entry_t entry;
+    while( fs_i16_read( f, &entry, sizeof(entry) ) == sizeof(entry) ){
+
+        if( entry.tag == tag ){
+
+            // rewind and overwrite
+            fs_v_seek( f, fs_i32_tell( f ) - sizeof(entry) );
+            memset( &entry, 0, sizeof(entry) );
+            fs_i16_write( f, &entry, sizeof(entry) );
+        }
+    }
+
+    fs_f_close( f );
 }
 
 void link_v_delete_by_hash( uint64_t hash ){
@@ -602,6 +794,28 @@ void link_v_delete_by_hash( uint64_t hash ){
 
         ln = next_ln;
     }
+
+    // delete links in file
+    file_t f = open_link_file();
+
+    if( f < 0 ){
+
+        return;
+    }
+
+    link_file_entry_t entry;
+    while( fs_i16_read( f, &entry, sizeof(entry) ) == sizeof(entry) ){
+
+        if( entry.hash == hash ){
+
+            // rewind and overwrite
+            fs_v_seek( f, fs_i32_tell( f ) - sizeof(entry) );
+            memset( &entry, 0, sizeof(entry) );
+            fs_i16_write( f, &entry, sizeof(entry) );
+        }
+    }
+
+    fs_f_close( f );
 }
 
 void link_v_handle_shutdown( ip_addr4_t ip ){
@@ -1308,6 +1522,55 @@ PT_BEGIN( pt );
             // update remote data and timeout
             update_remote( raddr.ipaddr, link, &msg->data.data, data_len );
         }
+        else if( header->msg_type == LINK_MSG_TYPE_ADD ){
+
+            link_msg_add_t *msg = (link_msg_add_t *)header;
+
+            link_handle_t link = link_l_create(
+                msg->mode,
+                msg->source_key,
+                msg->dest_key,
+                &msg->query,
+                msg->tag,
+                msg->rate,
+                msg->aggregation,
+                msg->filter );
+
+            link_msg_confirm_t reply;
+
+            if( link > 0 ){
+
+                save_link_to_file( link );
+                reply.status = 0;
+            }
+            else{
+
+                reply.status = -1;
+            }
+            
+            init_header( &reply.header, LINK_MSG_TYPE_CONFIRM );
+
+            sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );
+        }
+        else if( header->msg_type == LINK_MSG_TYPE_DELETE ){
+
+            link_msg_delete_t *msg = (link_msg_delete_t *)header;
+
+            if( msg->tag != 0 ){
+                
+                link_v_delete_by_tag( msg->tag );
+            }
+            else{
+
+                link_v_delete_by_hash( msg->hash );
+            }
+
+            link_msg_confirm_t reply;
+            init_header( &reply.header, LINK_MSG_TYPE_CONFIRM );
+            reply.status = 0;
+
+            sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );
+        }
 
 
 end:
@@ -1808,6 +2071,8 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    load_links_from_file();
 
     THREAD_WAIT_WHILE( pt, ( link_u8_count() == 0 ) &&
                            ( producer_count() == 0 ) );

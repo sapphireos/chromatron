@@ -40,15 +40,11 @@ DISCOVERY_TIMEOUT = 1.0
 import random
 
 
-class Client(object):
-    def __init__(self, host=None, universe=0):
+class BaseClient(object):
+    def __init__(self, host=None, universe=0, default_port=CATBUS_MAIN_PORT):
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        self.read_window_size = 1
-        self.write_window_size = 1
-
-        self.nodes = {}
-        self._meta = {}
+        self.default_port = default_port
         self.universe = universe
 
         try:
@@ -61,16 +57,9 @@ class Client(object):
         self._connected_host = host
         if host is not None:
             self.connect(host)
-    
+
     def __str__(self):
-        return f'Client({self._connected_host})'
-
-    @property
-    def meta(self):
-        if len(self._meta) == 0:
-            self.get_meta()
-
-        return self._meta
+        return f'BaseClient({self._connected_host})'
 
     def _exchange(self, msg, host=None, timeout=0.5, tries=16):
         msg.header.universe = self.universe
@@ -118,10 +107,6 @@ class Client(object):
 
         raise NoResponseFromHost(msg.header.msg_type, host)
 
-    def set_window(self, read, write):
-        self.read_window_size = read
-        self.write_window_size = write
-
     def flush(self):
         timeout = self.__sock.gettimeout()
         self.__sock.settimeout(0.1)
@@ -142,9 +127,34 @@ class Client(object):
     def connect(self, host):
         if isinstance(host, str):
             # if no port is specified, set default
-            host = (host, CATBUS_MAIN_PORT)
+            host = (host, self.default_port)
 
         self._connected_host = host
+
+
+class Client(BaseClient):
+    def __init__(self, host=None, universe=0):
+        super().__init__(host, universe)
+        
+        self.read_window_size = 1
+        self.write_window_size = 1
+
+        self.nodes = {}
+        self._meta = {}
+
+    def __str__(self):
+        return f'Client({self._connected_host})'
+
+    @property
+    def meta(self):
+        if len(self._meta) == 0:
+            self.get_meta()
+
+        return self._meta
+
+    def set_window(self, read, write):
+        self.read_window_size = read
+        self.write_window_size = write
 
     def ping(self):
         msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
@@ -796,75 +806,6 @@ class Client(object):
             d[response.filename] = {'size': response.filesize, 'flags': response.flags, 'filename': response.filename}
 
         return d
-
-    def get_links(self):
-        index = 0
-
-        exc = None
-
-        links = []
-
-        while True:
-            msg = LinkGetMsg(index=index)
-            index += 1
-
-            try:
-                response, host = self._exchange(msg)
-
-            except ProtocolErrorException as e:
-                exc = e
-                break
-
-            # check flags
-            if response.flags & CATBUS_LINK_FLAGS_VALID == 0:
-                continue
-
-            if response.flags & CATBUS_MSG_LINK_FLAGS_SOURCE:
-                source = True
-            else:
-                source = False
-
-            # look up hashes    
-            resolved_keys = self.lookup_hash(response.source_hash, response.dest_hash, response.tag, *response.query)
-
-            link = {
-                "source": source,
-                "source_key": resolved_keys[response.source_hash],
-                "dest_key": resolved_keys[response.dest_hash],
-                "query": [resolved_keys[a] for a in response.query],
-                "tag": resolved_keys[response.tag]
-            }
-
-            links.append(link)
-
-
-        if exc.error_code != CATBUS_ERROR_LINK_EOF:
-            raise exc
-
-        return links
-
-    def add_link(self, source, source_key, dest_key, query, tag):
-        if source:
-            flags = CATBUS_MSG_LINK_FLAGS_SOURCE
-
-        else:
-            flags = 0
-
-        flags |= CATBUS_LINK_FLAGS_VALID
-
-        msg = LinkAddMsg(
-                flags=flags,
-                source_key=source_key,
-                dest_key=dest_key,
-                query=query,
-                tag=tag)
-
-        response, host = self._exchange(msg)
-
-    def delete_link(self, tag):
-        msg = LinkDeleteMsg(tag=catbus_string_hash(tag))
-
-        response, host = self._exchange(msg)
 
 
 if __name__ == '__main__':

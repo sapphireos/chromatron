@@ -136,6 +136,46 @@ class ProducerDataMsg(StructField):
 
         self.header.type = LINK_MSG_TYPE_PRODUCER_DATA
 
+LINK_MSG_TYPE_ADD                   = 20
+class AddMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header"),
+                  CatbusHash(_name="source_key"),
+                  CatbusHash(_name="dest_key"),
+                  CatbusQuery(_name="query"),
+                  CatbusHash(_name="tag"),
+                  Uint8Field(_name="mode"),
+                  Uint8Field(_name="aggregation"),
+                  Uint16Field(_name="rate"),
+                  Uint16Field(_name="filter")]
+
+        super().__init__(_name="link_add", _fields=fields, **kwargs)
+
+        self.header.type = LINK_MSG_TYPE_ADD
+
+LINK_MSG_TYPE_DELETE                 = 21
+class DeleteMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header"),
+                  CatbusHash(_name="tag"),
+                  Uint64Field(_name="hash")]
+
+        super().__init__(_name="link_delete", _fields=fields, **kwargs)
+
+        self.header.type = LINK_MSG_TYPE_DELETE
+
+LINK_MSG_TYPE_CONFIRM                = 22
+class ConfirmMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header"),
+                  Int32Field(_name="status")]
+
+        super().__init__(_name="link_confirm", _fields=fields, **kwargs)
+
+        self.header.type = LINK_MSG_TYPE_CONFIRM
+
+
+
 LINK_MODE_SEND  = 0
 LINK_MODE_RECV  = 1
 LINK_MODE_SYNC  = 2
@@ -437,6 +477,38 @@ class _Remote(object):
         if self.timed_out:
             logging.info(f"{self} timed out")
             return
+
+
+class LinkClient(BaseClient):
+    def __init__(self, host=None, universe=0):
+        super().__init__(host, universe, default_port=CATBUS_LINK_PORT)
+
+    def add_link(self, mode, source_key, dest_key, query, aggregation=LINK_AGG_ANY, rate=1000, tag=''):
+        msg = AddMsg(
+                mode=mode,
+                source_key=source_key,
+                dest_key=dest_key,
+                query=query,
+                tag=tag,
+                aggregation=aggregation,
+                rate=rate)
+
+        response, host = self._exchange(msg)
+
+    def delete_link(self, tag=None, link_hash=None):
+        msg = LinkDeleteMsg()
+
+        if tag:
+            msg.tag = catbus_string_hash(tag)
+
+        elif link_hash:
+            msg.hash = link_hash
+
+        else:
+            assert False
+
+        response, host = self._exchange(msg)
+
 
 
 """

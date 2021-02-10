@@ -137,6 +137,32 @@ typedef struct __attribute__((packed)){
 #define LINK_MSG_TYPE_CONSUMER_DATA         10
 #define LINK_MSG_TYPE_PRODUCER_DATA         11
 
+typedef struct __attribute__((packed)){
+    link_msg_header_t header;
+    catbus_hash_t32 source_key;
+    catbus_hash_t32 dest_key;
+    catbus_query_t query;
+    catbus_hash_t32 tag;
+    link_mode_t8 mode;
+    link_aggregation_t8 aggregation;
+    link_rate_t16 rate;
+    link_filter_t16 filter;
+} link_msg_add_t;
+#define LINK_MSG_TYPE_ADD                   20
+
+typedef struct __attribute__((packed)){
+    link_msg_header_t header;
+    catbus_hash_t32 tag;
+    uint64_t hash;
+} link_msg_delete_t;
+#define LINK_MSG_TYPE_DELETE                21
+
+typedef struct __attribute__((packed)){
+    link_msg_header_t header;
+    int32_t status;
+} link_msg_confirm_t;
+#define LINK_MSG_TYPE_CONFIRM               22
+
 
 void link_v_init( void );
 
