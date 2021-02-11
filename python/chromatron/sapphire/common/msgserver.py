@@ -40,7 +40,7 @@ class InvalidVersion(Exception):
 
 
 class _Timer(Ribbon):
-    def __init__(self, name, interval, port, repeat=True):
+    def __init__(self, name, interval, port, handler, repeat=True):
         super().__init__(name=name, suppress_logs=True)
 
         self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -48,6 +48,7 @@ class _Timer(Ribbon):
         self.interval = interval    
         self.port = self._timer_sock.getsockname()[1]
         self.dest_port = port
+        self.handler = handler
         self.repeat = repeat
 
         self.start()
@@ -173,7 +174,7 @@ class MsgServer(Ribbon):
 
                         # run timers
                         elif host[1] in self._timers:    
-                            self._timers[host[1]]()
+                            self._timers[host[1]].handler()
 
                     except UnknownMessage as e:
                         raise
@@ -190,8 +191,8 @@ class MsgServer(Ribbon):
         
     @synchronized
     def start_timer(self, interval, handler, repeat=True):
-        timer = _Timer(f'{self.name}.timer', interval, self._timer_port)
-        self._timers[timer.port] = handler
+        timer = _Timer(f'{self.name}.timer', interval, self._timer_port, handler)
+        self._timers[timer.port] = timer
     
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
