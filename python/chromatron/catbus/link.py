@@ -550,7 +550,7 @@ class LinkManager(MsgServer):
             self.start_timer(1.0, self._process_link_test)
 
     def clean_up(self):
-        pass
+        self._service_manager.stop()
 
     def handle_shutdown(self, host):
         self._service_manager.handle_shutdown(host)

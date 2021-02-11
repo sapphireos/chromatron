@@ -46,7 +46,6 @@ def local_target():
 
 
 link_targets = ['network_target', 'local_target']
-# link_targets = ['local_target']
 
 @pytest.fixture(params=link_targets)
 def link_client(request):
