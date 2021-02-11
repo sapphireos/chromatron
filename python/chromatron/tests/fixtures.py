@@ -12,8 +12,10 @@ NETWORK_ADDR = '10.0.0.156'
 
 @pytest.fixture
 def local_server():
-    yield ('localhost', CatbusService(tags=['__TEST__'])._data_port)
-    stop_all()
+    c = CatbusService(tags=['__TEST__'])
+    yield ('localhost', c._data_port)
+    c.stop()
+    c.join()
 
 @pytest.fixture
 def network_server():

@@ -32,7 +32,7 @@ class Ribbon(threading.Thread):
     _ribbon_id = 0
     _ribbons = []
 
-    def __init__(self, name='ribbon', auto_start=False):
+    def __init__(self, name='ribbon', auto_start=False, suppress_logs=False):
         super().__init__()
 
         self._lock = threading.RLock()
@@ -45,8 +45,10 @@ class Ribbon(threading.Thread):
             Ribbon._ribbons.append(self)
 
         self.daemon = True
+        self._suppress_logs = suppress_logs
 
-        logging.debug(f"Started Ribbon {self.name}")
+        if not self._suppress_logs:
+            logging.debug(f"Started Ribbon {self.name}")
 
         if auto_start:
             self.start()
@@ -67,7 +69,8 @@ class Ribbon(threading.Thread):
 
         self.clean_up()
         
-        logging.debug(f"Ribbon {self.name}: shut down complete")
+        if not self._suppress_logs:
+            logging.debug(f"Ribbon {self.name}: shut down complete")
 
     def wait(self, interval):
         self._stop_event.wait(interval)
@@ -83,7 +86,8 @@ class Ribbon(threading.Thread):
     def stop(self):
         self._shutdown()
         
-        logging.debug(f"Ribbon {self.name}: shutting down")
+        if not self._suppress_logs:
+            logging.debug(f"Ribbon {self.name}: shutting down")
         
     def clean_up(self):
         pass

@@ -61,7 +61,7 @@ class _Timer(Ribbon):
 
 class MsgServer(Ribbon):
     def __init__(self, name='msg_server', port=0, listener_port=None, listener_mcast=None, ignore_unknown=True):
-        super().__init__(name)
+        super().__init__(name, suppress_logs=True)
 
         self._port = port
         self._listener_port = listener_port
