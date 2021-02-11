@@ -34,7 +34,8 @@ def local_target():
     c.stop()
 
 
-link_targets = ['network_target', 'local_target']
+# link_targets = ['network_target', 'local_target']
+link_targets = ['local_target']
 
 @pytest.fixture(params=link_targets)
 def link_client(request):
@@ -57,10 +58,11 @@ def test_send_link(send_link, link_client):
     for i in range(300):
         time.sleep(0.1)
 
-        if len(send_link._consumers) > 1: # hack because the network device shows up too
+        consumers = [c for c in send_link._consumers.values() if c.host[1] == link_client._connected_host[1]]
+        if len(consumers) > 0:
             break
-
-    assert len(send_link._consumers) > 1
+            
+    assert len(send_link._consumers) > 0
     time.sleep(2.0)
     assert link_client.get_key('kv_test_key') == 123
 

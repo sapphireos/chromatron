@@ -314,8 +314,8 @@ class Service(object):
                 # check if server is still better than we are
                 elif self._offer > offer:
                     # no, we are better
-                    logging.debug("{self} we are better server")
-                    logging.info("{self} -> SERVER")
+                    logging.debug(f"{self} we are better server")
+                    logging.info(f"{self} -> SERVER")
                     self._state = STATE_SERVER
 
             # update tracking
@@ -328,7 +328,7 @@ class Service(object):
             if self._state == STATE_LISTEN:
                 # check if server in packet is better than current tracking   
                 if (self._best_offer is None) or (offer > self._best_offer):
-                    logging.debug("{self} state: LISTEN")
+                    logging.debug(f"{self} state: LISTEN")
                     
                     # update tracking
                     self._best_offer = offer
@@ -340,7 +340,7 @@ class Service(object):
 
                 # check if packet is a better server than current tracking (and this packet is not from the current server)            
                 if (host != self._best_host) and offer > self._best_offer:
-                    logging.debug("{self} state: CONNECTED")
+                    logging.debug(f"{self} state: CONNECTED")
 
                     # update tracking
                     self._best_offer = offer
@@ -365,7 +365,7 @@ class Service(object):
                         if offer > self._offer:
 
                             logging.debug(f"{self} found a better server: {host}")
-                            logging.info("{self} -> CONNECTED")
+                            logging.info(f"{self} -> CONNECTED")
 
                             self._timeout = SERVICE_CONNECTED_TIMEOUT
                             self._state = STATE_CONNECTED
