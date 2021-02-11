@@ -210,7 +210,7 @@ def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
     if console:
         handler = colorlog.StreamHandler()
         handler.setLevel(level)
-        formatter = colorlog.ColoredFormatter('%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(purple)s%(module)s %(white)s%(message)s', 
+        formatter = colorlog.ColoredFormatter('%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(yellow)s[%(thread)d] %(purple)s%(module)s %(white)s%(message)s', 
                                                 datefmt=dt_format,
                                                 log_colors={
                                                     'DEBUG':    'cyan',

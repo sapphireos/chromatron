@@ -104,7 +104,11 @@ class CatbusService(Database):
 
     def stop(self):
         self._server.stop()
-        
+        self._link_manager.stop()
+     
+    def join(self):
+        self._server.join()
+        self._link_manager.join()
 
 
 def echo_name(name, host, left_align=True, nl=True):

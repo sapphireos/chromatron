@@ -8,6 +8,15 @@ from sapphire.devices.device import Device
 from fixtures import *
 
 
+class _TestClient(Client):
+    def assert_key(self, key, value, timeout=10.0):
+        start = time.time()
+        while (time.time() - start) < timeout:
+            if self.get_key(key) == value:
+                return value
+            time.sleep(0.1)
+
+        raise AssertionError
 
 
 @pytest.fixture
@@ -33,14 +42,15 @@ def local_target():
     c['link_test_key'] = 0
     yield ('localhost', c._data_port), c._link_manager._port
     c.stop()
+    c.join()
 
 
-# link_targets = ['network_target', 'local_target']
-link_targets = ['local_target']
+link_targets = ['network_target', 'local_target']
+# link_targets = ['local_target']
 
 @pytest.fixture(params=link_targets)
 def link_client(request):
-    return Client(request.getfixturevalue(request.param)[0]), request.getfixturevalue(request.param)[1]
+    return _TestClient(request.getfixturevalue(request.param)[0]), request.getfixturevalue(request.param)[1]
 
 @pytest.fixture
 def send_link():
@@ -66,8 +76,7 @@ def test_send_link(send_link, link_client):
             break
             
     assert len(send_link._consumers) > 0
-    time.sleep(2.0)
-    assert link_client.get_key('kv_test_key') == 123
+    link_client.assert_key('kv_test_key', 123)
 
 
 
