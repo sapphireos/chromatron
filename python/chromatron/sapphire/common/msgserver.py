@@ -84,14 +84,14 @@ class MsgServer(Ribbon):
 
         self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        try:
-            # this option may fail on some platforms
-            self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        # try:
+        #     # this option may fail on some platforms
+        #     self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 
-        except AttributeError:
-            pass
+        # except AttributeError:
+        #     pass
 
         if self._port is None:
             self.__server_sock.bind(('0.0.0.0', 0))
@@ -108,12 +108,12 @@ class MsgServer(Ribbon):
             self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-            try:
-                # this option may fail on some platforms
-                self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            # try:
+            #     # this option may fail on some platforms
+            #     self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 
-            except AttributeError:
-                pass
+            # except AttributeError:
+            #     pass
 
             self._listener_sock.bind(('0.0.0.0', self._listener_port))
 
