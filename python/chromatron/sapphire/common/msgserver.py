@@ -41,7 +41,7 @@ class InvalidVersion(Exception):
 
 class _Timer(Ribbon):
     def __init__(self, name, interval, port, repeat=True):
-        super().__init__(name=name)
+        super().__init__(name=name, suppress_logs=True)
 
         self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._timer_sock.bind(('localhost', 0))
@@ -116,16 +116,16 @@ class MsgServer(Ribbon):
 
             self._listener_sock.bind(('0.0.0.0', self._listener_port))
 
-            logging.info(f"MsgServer {self.name}: server on {self._port} listening on {self._listener_port}")
+            logging.info(f"{self.name}: server on {self._port} listening on {self._listener_port}")
 
-            logging.info(f'MsgServer {self.name}: joining multicast group {self._listener_mcast}')
+            logging.info(f'{self.name}: joining multicast group {self._listener_mcast}')
             mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
             self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
             self._inputs.append(self._listener_sock)
 
         else:  
-            logging.info(f"MsgServer {self.name}: server on {self._port}")
+            logging.info(f"{self.name}: server on {self._port}")
 
         self.start()
 
@@ -292,12 +292,17 @@ class MsgServer(Ribbon):
     def stop(self):
         super()._shutdown()
         
-        logging.info(f"MsgServer {self.name}: shutting down")
+        logging.info(f"{self.name}: shutting down")
+        
+        # shut down timers
+        for timer in self._timers.values():
+            timer.stop()
+
         self.clean_up()
 
         # leave multicast group
         if self._listener_port is not None and self._listener_mcast is not None:
-            logging.info(f'MsgServer {self.name}: leaving multicast group {self._listener_mcast}')
+            logging.info(f'{self.name}: leaving multicast group {self._listener_mcast}')
             mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
             try:
                 self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
@@ -307,7 +312,7 @@ class MsgServer(Ribbon):
                 # but we're shutting down anyway.
                 pass
 
-        logging.info(f"MsgServer {self.name}: shut down complete")
+        logging.info(f"{self.name}: shut down complete")
 
     def clean_up(self):
         pass

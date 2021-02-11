@@ -26,6 +26,8 @@ import logging
 import inspect
 from .util import synchronized
 
+class RibbonShutdown(Exception):
+    pass
 
 class Ribbon(threading.Thread):
     _global_lock = threading.Lock()
@@ -64,6 +66,9 @@ class Ribbon(threading.Thread):
             try:
                 self._process()
 
+            except RibbonShutdown:
+                break
+
             except Exception as e:
                 logging.exception("Unhandled exception in {self.name}: {e}")
 
@@ -74,6 +79,9 @@ class Ribbon(threading.Thread):
 
     def wait(self, interval):
         self._stop_event.wait(interval)
+
+        if self._stop_event.is_set():
+            raise RibbonShutdown # use an exception to make sure nothing happens in process
 
     @synchronized
     def _shutdown(self):
