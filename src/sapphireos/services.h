@@ -91,6 +91,7 @@ bool services_b_is_server( uint32_t id, uint64_t group );
 
 sock_addr_t services_a_get( uint32_t id, uint64_t group );
 ip_addr4_t services_a_get_ip( uint32_t id, uint64_t group );
+uint16_t services_u16_get_port( uint32_t id, uint64_t group );
 
 void service_v_handle_shutdown( ip_addr4_t ip );
 

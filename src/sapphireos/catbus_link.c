@@ -958,7 +958,7 @@ static void transmit_producer_query( link_state_t *link ){
     // trace_printf("LINK: %s()\n", __FUNCTION__);
 }
 
-static void transmit_consumer_match( uint64_t hash, ip_addr4_t ip ){
+static void transmit_consumer_match( uint64_t hash, sock_addr_t *raddr ){
 
     // this function assumes the destination is cached in the socket raddr
 
@@ -967,11 +967,7 @@ static void transmit_consumer_match( uint64_t hash, ip_addr4_t ip ){
 
     msg.hash    = hash;
 
-    sock_addr_t raddr;
-    raddr.ipaddr = ip;
-    raddr.port = LINK_PORT;    
-
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
 
     // trace_printf("LINK: %s()\n", __FUNCTION__);
 }
@@ -1372,7 +1368,7 @@ PT_BEGIN( pt );
             // we are a consumer for this link
             
             // transmit response
-            transmit_consumer_match( msg->hash, raddr.ipaddr );
+            transmit_consumer_match( msg->hash, &raddr );
         }
         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_QUERY ){
 
@@ -1614,8 +1610,9 @@ PT_BEGIN( pt );
                 if( link_state->mode == LINK_MODE_RECV ){
 
                     // we need to send consumer match to the leader
-
-                    transmit_consumer_match( link_state->hash, services_a_get_ip( LINK_SERVICE, link_state->hash ) );
+                    sock_addr_t raddr = services_a_get( LINK_SERVICE, link_state->hash );
+                        
+                    transmit_consumer_match( link_state->hash, &raddr );
                 }
             }   
             

@@ -647,6 +647,12 @@ ip_addr4_t services_a_get_ip( uint32_t id, uint64_t group ){
     return addr.ipaddr;
 }
 
+uint16_t services_u16_get_port( uint32_t id, uint64_t group ){
+
+    sock_addr_t addr = services_a_get( id, group );
+
+    return addr.port;
+}
 
 static void init_header( service_msg_header_t *header, uint8_t type ){
 
