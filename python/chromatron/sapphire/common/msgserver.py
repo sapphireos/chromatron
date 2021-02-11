@@ -157,13 +157,6 @@ class MsgServer(Ribbon):
 
                         # process data
                         if (s == self.__server_sock) or (s == self._listener_sock):
-                            # filter out messages from our own ports
-                            if (s == self.__server_sock) and (host[1] == self._listener_port):
-                                continue
-
-                            elif (s == self._listener_sock) and (host[1] == self._port):
-                                continue
-
                             msg = self._deserialize(data)
                             response = None                    
         
@@ -271,8 +264,8 @@ class MsgServer(Ribbon):
     def _process_msg(self, msg, host):     
         # check if receiving a message we sent
         # this can happen in multicast groups
-        if (host[0] in get_local_addresses()) and (host[1] == self._port):
-            return
+        if (host[0] in get_local_addresses()) and (host[1] in [self._port, self._listener_port]):
+            return None, None
    
         handler = self._handlers[type(msg)]
         tokens = handler(msg, host)
