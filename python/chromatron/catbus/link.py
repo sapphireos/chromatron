@@ -479,7 +479,7 @@ class _Remote(object):
             return
 
 
-class LinkClient(BaseClient):
+class LinkClient(Client):
     def __init__(self, host=None, universe=0):
         super().__init__(host, universe, default_port=CATBUS_LINK_PORT)
 

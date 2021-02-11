@@ -42,7 +42,7 @@ import random
 
 class BaseClient(object):
     def __init__(self, host=None, universe=0, default_port=CATBUS_MAIN_PORT):
-        self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         self.default_port = default_port
         self.universe = universe
@@ -64,7 +64,7 @@ class BaseClient(object):
     def _exchange(self, msg, host=None, timeout=0.5, tries=16):
         msg.header.universe = self.universe
 
-        self.__sock.settimeout(timeout)
+        self._sock.settimeout(timeout)
 
         if host == None:
             host = self._connected_host
@@ -76,11 +76,11 @@ class BaseClient(object):
             try:
                 # start = time.time()
                 # print 'send', type(msg), len(msg.pack())
-                self.__sock.sendto(msg.pack(), host)
+                self._sock.sendto(msg.pack(), host)
                 # logging.debug(f"Msg {type(msg)} sent to {host}")
 
                 while True:
-                    data, sender = self.__sock.recvfrom(4096)
+                    data, sender = self._sock.recvfrom(4096)
 
                     reply_msg = deserialize(data)
 
@@ -108,18 +108,18 @@ class BaseClient(object):
         raise NoResponseFromHost(msg.header.msg_type, host)
 
     def flush(self):
-        timeout = self.__sock.gettimeout()
-        self.__sock.settimeout(0.1)
+        timeout = self._sock.gettimeout()
+        self._sock.settimeout(0.1)
 
         while True:
             try:
-                data, host = self.__sock.recvfrom(4096)
+                data, host = self._sock.recvfrom(4096)
                 
             except socket.timeout:
                 break
 
         # reset timeout
-        self.__sock.settimeout(timeout)
+        self._sock.settimeout(timeout)
 
     def is_connected(self):
         return self._connected_host != None
@@ -133,8 +133,8 @@ class BaseClient(object):
 
 
 class Client(BaseClient):
-    def __init__(self, host=None, universe=0):
-        super().__init__(host, universe)
+    def __init__(self, host=None, universe=0, **kwargs):
+        super().__init__(host, universe, **kwargs)
         
         self.read_window_size = 1
         self.write_window_size = 1
@@ -626,7 +626,7 @@ class Client(BaseClient):
         ack_offset = 0
         page_size = response.page_size
 
-        self.__sock.settimeout(0.5)
+        self._sock.settimeout(0.5)
 
         max_window = self.read_window_size
         current_window = max_window
@@ -635,14 +635,14 @@ class Client(BaseClient):
             while current_window > 0:
                 msg = FileGetMsg(session_id=session_id, offset=requested_offset)
                 msg.header.universe = self.universe
-                self.__sock.sendto(msg.pack(), host)  
+                self._sock.sendto(msg.pack(), host)  
 
                 requested_offset += page_size
 
                 current_window -= 1
 
             try:
-                data, sender = self.__sock.recvfrom(4096)
+                data, sender = self._sock.recvfrom(4096)
                 data_msg = deserialize(data)
 
                 if data_msg.header.universe != self.universe:
@@ -772,7 +772,7 @@ class Client(BaseClient):
 
         # close session
         msg = FileCloseMsg(session_id=session_id)
-        self.__sock.sendto(msg.pack(), host)
+        self._sock.sendto(msg.pack(), host)
 
         return file_data
 
