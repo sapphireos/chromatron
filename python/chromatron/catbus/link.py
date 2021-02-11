@@ -413,7 +413,6 @@ class _Consumer(object):
 
         self.link_hash = link_hash
         self.host = host
-        print(host)
         
         self._timeout = LINK_CONSUMER_TIMEOUT
 

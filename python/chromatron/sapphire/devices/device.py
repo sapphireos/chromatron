@@ -712,7 +712,7 @@ class Device(object):
     def cli_echo(self, line):
         start = time.time()
 
-        self.echo(line)
+        self.echo()
 
         elapsed = time.time() - start
 

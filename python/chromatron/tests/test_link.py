@@ -9,6 +9,7 @@ from fixtures import *
 
 
 
+
 @pytest.fixture
 def network_target():
     d = Device(host=NETWORK_ADDR)
@@ -23,14 +24,14 @@ def network_target():
     d.set_key('kv_test_key', 0)
     d.set_key('link_test_key', 0)
         
-    yield (d.host, d.port)
+    yield (d.host, d.port), CATBUS_LINK_PORT
 
 @pytest.fixture
 def local_target():
     c = CatbusService(tags=['__TEST__'])
     c['kv_test_key'] = 0
     c['link_test_key'] = 0
-    yield ('localhost', c._data_port)
+    yield ('localhost', c._data_port), c._link_manager._port
     c.stop()
 
 
@@ -39,7 +40,7 @@ link_targets = ['local_target']
 
 @pytest.fixture(params=link_targets)
 def link_client(request):
-    return LinkClient(request.getfixturevalue(request.param))
+    return Client(request.getfixturevalue(request.param)[0]), request.getfixturevalue(request.param)[1]
 
 @pytest.fixture
 def send_link():
@@ -51,6 +52,8 @@ def send_link():
     lm.join()
 
 def test_send_link(send_link, link_client):
+    link_port = link_client[1]
+    link_client = link_client[0]
     assert link_client.get_key('kv_test_key') == 0
     send_link._database['kv_test_key'] = 0
     send_link._database['link_test_key'] = 123
@@ -58,7 +61,7 @@ def test_send_link(send_link, link_client):
     for i in range(300):
         time.sleep(0.1)
 
-        consumers = [c for c in send_link._consumers.values() if c.host[1] == link_client._connected_host[1]]
+        consumers = [c for c in send_link._consumers.values() if c.host[1] == link_port]
         if len(consumers) > 0:
             break
             

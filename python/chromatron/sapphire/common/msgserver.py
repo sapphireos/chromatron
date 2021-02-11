@@ -253,7 +253,7 @@ class MsgServer(Ribbon):
                 # are we multicasting:
                 if self._listener_mcast:
                     # send to multicast address
-                    self._listener_sock.sendto(msg.pack(), (self._listener_mcast, port))
+                    self.__server_sock.sendto(msg.pack(), (self._listener_mcast, port))
     
                 else:
                     # no, this is a normal broadcast.
