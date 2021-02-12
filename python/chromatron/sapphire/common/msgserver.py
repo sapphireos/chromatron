@@ -122,9 +122,10 @@ class MsgServer(Ribbon):
 
             logging.info(f"{self.name}: server on {self._port} listening on {self._listener_port}")
 
-            logging.info(f'{self.name}: joining multicast group {self._listener_mcast}')
-            mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
-            self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+            if self._listener_mcast is not None:
+                logging.info(f'{self.name}: joining multicast group {self._listener_mcast}')
+                mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
+                self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
             self._inputs.append(self._listener_sock)
 
