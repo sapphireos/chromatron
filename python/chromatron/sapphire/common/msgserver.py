@@ -170,7 +170,11 @@ class MsgServer(Ribbon):
                             self._timers[host[1]].handler()
 
                     except UnknownMessage as e:
-                        raise
+                        if self.ignore_unknown:
+                            self.unknown_handler(msg, host)
+
+                        else:
+                            raise
 
                     except Exception as e:
                         logging.exception(e)
@@ -189,6 +193,9 @@ class MsgServer(Ribbon):
     
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
+
+    def unknown_handler(self, data, host):
+        logging.debug(f"Unknown message from {host}")        
 
     @synchronized
     def register_message(self, msg, handler=None):    
@@ -226,7 +233,7 @@ class MsgServer(Ribbon):
             msg_id = int(buf[self._msg_type_offset])
 
         except TypeError:
-            raise Exception("No messages defined")
+            raise UnknownMessage("No messages defined")
 
         try:
             return self._messages[msg_id]().unpack(buf)
