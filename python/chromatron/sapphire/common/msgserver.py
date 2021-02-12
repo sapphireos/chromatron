@@ -170,10 +170,10 @@ class MsgServer(Ribbon):
         protocol_magic = int(buf[self._protocol_magic_offset])
 
         if protocol_version != self._protocol_version:
-            raise UnknownMessage(f{'Incorrect protocol version: {protocol_version}'})
+            raise UnknownMessage(f'Incorrect protocol version: {protocol_version}')
 
         elif protocol_magic != self._protocol_magic:
-            raise UnknownMessage(f{'Incorrect protocol magic: {protocol_magic}'})
+            raise UnknownMessage(f'Incorrect protocol magic: {protocol_magic}')
     
     def _process_msg(self, msg, host):     
         # check if receiving a message we sent
