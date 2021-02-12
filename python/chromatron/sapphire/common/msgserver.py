@@ -74,6 +74,9 @@ class MsgServer(Ribbon):
         self._msg_type_offset = None
         self._protocol_version = None
         self._protocol_version_offset = None
+        self._protocol_magic = None
+        self._protocol_magic_offset = None
+        
         self._timers = {}
 
         self.ignore_unknown = ignore_unknown
@@ -146,6 +149,54 @@ class MsgServer(Ribbon):
         else:
             return f'{self.name} @ {self._port} & {self._listener_port}'
 
+    def _deserialize(self, buf):
+        try:
+            msg_id = int(buf[self._msg_type_offset])
+
+        except TypeError:
+            raise UnknownMessage("No messages defined")
+
+        try:
+            return self._messages[msg_id]().unpack(buf)
+
+        except KeyError:
+            raise UnknownMessage(msg_id)
+
+        except (struct.error, UnicodeDecodeError) as e:
+            raise InvalidMessage(msg_id, len(buf), e)
+
+        # check protocol version and magic        
+        protocol_version = int(buf[self._protocol_version_offset])
+        protocol_magic = int(buf[self._protocol_magic_offset])
+
+        if protocol_version != self._protocol_version:
+            raise UnknownMessage(f{'Incorrect protocol version: {protocol_version}'})
+
+        elif protocol_magic != self._protocol_magic:
+            raise UnknownMessage(f{'Incorrect protocol magic: {protocol_magic}'})
+    
+    def _process_msg(self, msg, host):     
+        # check if receiving a message we sent
+        # this can happen in multicast groups
+        if (host[0] in get_local_addresses()) and (host[1] in [self._port, self._listener_port]):
+            return None, None
+
+        # run handler
+        handler = self._handlers[type(msg)]
+        tokens = handler(msg, host)
+
+        # normally, you'd just try to access the tuple and
+        # handle the exception. However, that will raise a TypeError, 
+        # and if we handle a TypeError here, then any TypeError generated
+        # in the message handler will essentially get eaten.
+        if not isinstance(tokens, tuple):
+            return None, None
+
+        if len(tokens) < 2:
+            return None, None
+
+        return tokens[0], tokens[1]
+
     def _process(self):
         try:
             readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
@@ -174,7 +225,7 @@ class MsgServer(Ribbon):
                             self.unknown_handler(msg, host)
 
                         else:
-                            raise
+                            logging.exception(e)
 
                     except Exception as e:
                         logging.exception(e)
@@ -219,6 +270,14 @@ class MsgServer(Ribbon):
             except KeyError:
                 pass
 
+        if self._protocol_magic is None:
+            try:
+                self._protocol_magic_offset = header.offsetof('magic')
+                self._protocol_magic = header.magic
+
+            except KeyError:
+                pass
+
         try:
             msg_type = header.type
 
@@ -228,22 +287,6 @@ class MsgServer(Ribbon):
         self._messages[msg_type] = msg
         self._handlers[msg] = handler
 
-    def _deserialize(self, buf):
-        try:
-            msg_id = int(buf[self._msg_type_offset])
-
-        except TypeError:
-            raise UnknownMessage("No messages defined")
-
-        try:
-            return self._messages[msg_id]().unpack(buf)
-
-        except KeyError:
-            raise UnknownMessage(msg_id)
-
-        except (struct.error, UnicodeDecodeError) as e:
-            raise InvalidMessage(msg_id, len(buf), e)
-    
     @synchronized
     def transmit(self, msg, host):
         try:
@@ -267,27 +310,6 @@ class MsgServer(Ribbon):
 
         except socket.error:
             pass
-
-    def _process_msg(self, msg, host):     
-        # check if receiving a message we sent
-        # this can happen in multicast groups
-        if (host[0] in get_local_addresses()) and (host[1] in [self._port, self._listener_port]):
-            return None, None
-   
-        handler = self._handlers[type(msg)]
-        tokens = handler(msg, host)
-
-        # normally, you'd just try to access the tuple and
-        # handle the exception. However, that will raise a TypeError, 
-        # and if we handle a TypeError here, then any TypeError generated
-        # in the message handler will essentially get eaten.
-        if not isinstance(tokens, tuple):
-            return None, None
-
-        if len(tokens) < 2:
-            return None, None
-
-        return tokens[0], tokens[1]
 
     @synchronized
     def stop(self):
