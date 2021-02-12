@@ -205,7 +205,7 @@ class MsgServer(Ribbon):
             with self._lock:
                 for s in readable:
                     try:
-                        data, host = s.recvfrom(1024)
+                        data, host = s.recvfrom(4096)
 
                         # process data
                         if (s == self.__server_sock) or (s == self._listener_sock):
