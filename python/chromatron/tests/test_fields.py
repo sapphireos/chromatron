@@ -185,6 +185,21 @@ class FieldTests(unittest.TestCase):
 
             self.assertEqual(b._value, a._value)   
 
+    def test_double(self):
+        a = DoubleField()
+        self.assertEqual(a.size(), 8)
+
+        for val in [-3.3999999521443642e+38, 0, 3.3999999521443642e+38]:
+            a._value = val
+            self.assertEqual(a._value, val)
+
+            packed = a.pack()
+            self.assertEqual(len(packed), a.size())        
+
+            b = DoubleField().unpack(packed)
+
+            self.assertEqual(b._value, a._value)   
+
     def test_fixed16(self):
         a = Fixed16Field()
         self.assertEqual(a.size(), 4)
