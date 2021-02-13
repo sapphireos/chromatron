@@ -448,7 +448,7 @@ int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
             wifi_get_ip_info( STATION_IF, &info );    
             
     ip_addr_t ipgroup;
-    ipgroup.addr = ip_u32_to_int( mcast_ip );
+    ipgroup.addr = HTONL(ip_u32_to_int( mcast_ip ));
 
     return espconn_igmp_join( &info.ip, &ipgroup );
 }
@@ -465,7 +465,7 @@ int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
             wifi_get_ip_info( STATION_IF, &info );    
             
     ip_addr_t ipgroup;
-    ipgroup.addr = ip_u32_to_int( mcast_ip );
+    ipgroup.addr = HTONL(ip_u32_to_int( mcast_ip ));
 
     return espconn_igmp_leave( &info.ip, &ipgroup );
 }
