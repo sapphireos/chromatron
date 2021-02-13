@@ -272,7 +272,7 @@ static void delete_cached_service( uint32_t id, uint64_t group ){
         // overwrite with 0s
         fs_i16_write( f, &entry, sizeof(entry) );
 
-        log_v_debug_P( PSTR("deleting cached service") );
+        // log_v_debug_P( PSTR("deleting cached service") );
 
         break;
     }
@@ -291,7 +291,7 @@ static void load_cached_service( service_state_t *service ){
         return;
     }
 
-    log_v_debug_P( PSTR("Loading cached services") );
+    // log_v_debug_P( PSTR("Loading cached services") );
 
     sock_addr_t raddr;
     if( get_cached_service( service->id, service->group, &raddr ) ){
@@ -306,14 +306,14 @@ static void load_cached_service( service_state_t *service ){
 
             service->state = STATE_SERVER;
 
-            log_v_debug_P( PSTR("loaded cached service: SERVER") );
+            // log_v_debug_P( PSTR("loaded cached service: SERVER") );
         }
         else{
 
             service->state = STATE_CONNECTED;
             service->timeout = SERVICE_CONNECTED_PING_THRESHOLD;
 
-            log_v_debug_P( PSTR("loaded cached service: CONNECTED") );
+            // log_v_debug_P( PSTR("loaded cached service: CONNECTED") );
         }
     }
 }
@@ -507,7 +507,7 @@ void services_v_join_team( uint32_t id, uint64_t group, uint16_t priority, uint1
     }
     else{
 
-        log_v_debug_P( PSTR("join: %x %llx priority: %d"), id, group, priority );
+        // log_v_debug_P( PSTR("join: %lx %lx priority: %d"), id, group, priority );
     }
 
     service_state_t service = {0};
