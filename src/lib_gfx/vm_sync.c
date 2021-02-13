@@ -237,6 +237,8 @@ PT_BEGIN( pt );
 
     THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
 
+    log_v_debug_P( PSTR("starting VM sync server") );
+
     sock = sock_s_create( SOS_SOCK_DGRAM ); 
 
     thread_t_create( vm_sync_thread,
@@ -411,6 +413,8 @@ PT_BEGIN( pt );
 
         vm_sync_v_reset();
 
+        TMR_WAIT( pt, 1000 );
+
         // wait until time sync
         THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
 
@@ -473,8 +477,6 @@ PT_BEGIN( pt );
                 break;
             }
         }
-
-        TMR_WAIT( pt, 1000 );
     }
 
 PT_END( pt );
