@@ -242,7 +242,8 @@ void link_v_init( void )
 
     if( test != 0 ){
 
-        catbus_query_t query = { 0 };
+        catbus_query_t query;
+        memset( &query, 0, sizeof(query) );
         query.tags[0] = __KV____TEST__;
 
 
