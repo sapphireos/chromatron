@@ -112,7 +112,7 @@ PT_BEGIN( pt );
 
             if( status != 0 ){
 
-                log_v_error_P( PSTR("IGMP join failed: %d"), status );
+                log_v_error_P( PSTR("IGMP join failed: %d group: %d.%d.%d.%d"), status, igmp_groups[i].ip3, igmp_groups[i].ip2, igmp_groups[i].ip1, igmp_groups[i].ip0 );
             }
         }
 
