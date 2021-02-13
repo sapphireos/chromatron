@@ -343,7 +343,10 @@ PT_BEGIN( pt );
 
                 int64_t sync_delta = (int64_t)msg->sync_tick - (int64_t)vm_state->tick;
 
-                log_v_debug_P( PSTR("%d"), (int32_t)sync_delta );
+                if( sync_delta != 0 ){
+
+                    log_v_debug_P( PSTR("sync delta: %d"), (int32_t)sync_delta );    
+                }
             }
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){

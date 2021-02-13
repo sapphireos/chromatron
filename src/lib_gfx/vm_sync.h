@@ -33,9 +33,7 @@
 
 #define SYNC_SERVICE                        __KV__vmsync
 
-// #define SYNC_INTERVAL                       8000
-#define SYNC_INTERVAL                       2000
-
+#define SYNC_INTERVAL                       8000
 
 #define SYNC_MAX_THREADS                    16
 

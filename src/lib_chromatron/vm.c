@@ -692,7 +692,14 @@ PT_BEGIN( pt );
 
                 state->delay_adjust = 0;
 
-                if( sync_delta > 100 ){
+
+                if( ( sync_delta > 4000 ) || ( sync_delta < -4000 ) ){
+
+                    log_v_debug_P( PSTR("lost sync: %d resetting"), sync_delta );        
+
+                    vm_sync_v_reset();
+                }
+                else if( sync_delta > 100 ){
 
                     state->delay_adjust = -100;
                 }
@@ -717,10 +724,10 @@ PT_BEGIN( pt );
                     state->delay_adjust = 1;
                 }
 
-                // if( state->delay_adjust != 0 ){
+                if( state->delay_adjust != 0 ){
 
-                //     log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
-                // }
+                    log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
+                }
             }
             #endif
         }
