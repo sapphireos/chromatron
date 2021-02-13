@@ -146,7 +146,7 @@ typedef struct __attribute__((packed)){
     // - data table
 } vm_program_header_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint16_t func_addr;
     uint16_t pc_offset;
     uint64_t tick;
