@@ -30,10 +30,14 @@ import time
 import os
 import json
 import logging
+from filelock import Timeout, FileLock
+
 
 from sapphire.buildtools import firmware_package
 DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.json')
 DATA_DIR_FILE_PATH_ALT = 'catbus_hashes.json'
+
+CACHE_LOCK = os.path.join(firmware_package.data_dir(), 'lockfile')
 
 DISCOVERY_TIMEOUT = 1.0
 
@@ -142,6 +146,8 @@ class Client(BaseClient):
         self.nodes = {}
         self._meta = {}
 
+        self._filelock = FileLock(CACHE_LOCK, timeout=1)
+
     def __str__(self):
         return f'Client({self._connected_host})'
 
@@ -167,11 +173,8 @@ class Client(BaseClient):
 
         return elapsed
 
-    def lookup_hash(self, *args, skip_cache=False):
-        cache = {}
-        
-        if not skip_cache:
-            # open cache file
+    def _get_cache_data(self):
+        with self._filelock:
             try:
                 try:
                     with open(DATA_DIR_FILE_PATH, 'r') as f:
@@ -181,24 +184,40 @@ class Client(BaseClient):
                     with open(DATA_DIR_FILE_PATH_ALT, 'r') as f:
                         file_data = f.read()
 
-                temp = json.loads(file_data)
-
-                cache = {}
-                # have to convert keys back to int because json only does string keys
-                for k, v in temp.items():
-                    cache[int(k)] = v
-
-            except ValueError as e:
-                # if the cache file has an error, or if it is
-                # being rewritten and has not fully synced to disk,
-                # we get an error here.
-
-                # just bypass and carryon with no cache
-                print(e)
-                # pass
+                return json.loads(file_data)
 
             except IOError:
-                pass
+                return {}
+
+    def _update_cache(self, cache):
+        with self._filelock:
+            # get current cache from file
+
+            try:
+                with open(DATA_DIR_FILE_PATH, 'w') as f:
+                    f.write(json.dumps(cache))
+
+                    # ensure file is committed to disk
+                    f.flush()
+
+            except (PermissionError, FileNotFoundError):
+                with open(DATA_DIR_FILE_PATH_ALT, 'w') as f:
+                    f.write(json.dumps(cache))
+
+                    # ensure file is committed to disk
+                    f.flush()
+
+    def lookup_hash(self, *args, skip_cache=False):
+        cache = {}
+        
+        if not skip_cache:
+            # open cache file
+            temp = self._get_cache_data()
+
+            cache = {}
+            # have to convert keys back to int because json only does string keys
+            for k, v in temp.items():
+                cache[int(k)] = v
 
         resolved_keys = {}
 
@@ -277,19 +296,7 @@ class Client(BaseClient):
 
             if changed:
                 # update cache file, if anything changed
-                try:
-                    with open(DATA_DIR_FILE_PATH, 'w') as f:
-                        f.write(json.dumps(cache))
-
-                        # ensure file is committed to disk
-                        f.flush()
-
-                except (PermissionError, FileNotFoundError):
-                    with open(DATA_DIR_FILE_PATH_ALT, 'w') as f:
-                        f.write(json.dumps(cache))
-
-                        # ensure file is committed to disk
-                        f.flush()
+                self._update_cache(cache)
 
         return resolved_keys
 

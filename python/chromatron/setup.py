@@ -71,6 +71,7 @@ setup(
         "python-logging-loki==0.3.1",
         "paho-mqtt==1.5.1",
         "ifaddr==0.1.6",
+        "filelock==3.0.12",
     ],
 
     entry_points='''
