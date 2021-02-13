@@ -29,7 +29,7 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	3
+#define SYNC_PROTOCOL_VERSION           	4
 
 #define SYNC_SERVICE                        __KV__vmsync
 
@@ -59,7 +59,7 @@ typedef struct __attribute__((packed)){
     
     uint16_t data_len;
 
-    uint8_t max_threads;
+    uint16_t max_threads; // 16 bits for alignment on threads
     vm_thread_t threads[SYNC_MAX_THREADS];
 } vm_sync_msg_sync_t;
 #define VM_SYNC_MSG_SYNC                        1
