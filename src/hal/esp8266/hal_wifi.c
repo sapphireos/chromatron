@@ -411,6 +411,12 @@ PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        log_v_debug_P( PSTR("ESP8266 SDK %s"), system_get_sdk_version() );    
+    }
+    
+    
     while(1){
 
         if( list_u8_count( &rx_list ) == 0 ){
