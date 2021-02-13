@@ -516,6 +516,19 @@ uint64_t vm_u64_get_sync_tick( void ){
 
     return vm0_sync_ticks;
 }
+
+uint64_t vm_u64_get_tick( void ){
+
+    vm_state_t *state = vm_p_get_state();
+
+    if( state == 0 ){
+
+        return 0;
+    }
+
+    return state->tick;
+}
+
 #endif
 
 uint16_t vm_u16_get_data_len( void ){

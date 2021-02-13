@@ -338,7 +338,13 @@ PT_BEGIN( pt );
                 }
 
                 // log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
-            }            
+            }
+            else if( sync_state == STATE_SYNC ){
+
+                int64_t sync_delta = (int64_t)msg->sync_tick - (int64_t)vm_state->tick;
+
+                log_v_debug_P( PSTR("%d"), (int32_t)sync_delta );
+            }
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
@@ -363,6 +369,15 @@ PT_BEGIN( pt );
                 uint16_t offset = 0;
                 uint16_t data_len = vm_u16_get_data_len();
 
+                // TODO
+                // need to split the chunk transmission with some delays.
+                // most VM programs only use a single chunk though.
+
+                if( data_len > VM_SYNC_MAX_DATA_LEN ){
+
+                    log_v_debug_P( PSTR("vm sync data too large: %d"), data_len );
+                }
+
                 while( offset < data_len ){
 
                     uint16_t chunk_size = VM_SYNC_MAX_DATA_LEN;
@@ -372,10 +387,7 @@ PT_BEGIN( pt );
                         chunk_size = data_len;
                     }
 
-                    // fix params!
-                    int32_t *data_ptr = vm_i32p_get_data();
-
-                    send_data( data_ptr, chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
+                    send_data( vm_i32p_get_data(), chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
 
                     offset += chunk_size;
                 } 
