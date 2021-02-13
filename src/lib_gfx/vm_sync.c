@@ -282,7 +282,7 @@ PT_BEGIN( pt );
 
         if( header->type == VM_SYNC_MSG_SYNC ){
 
-            log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC") );
+            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC") );
 
             // are we leader?
             if( vm_sync_b_is_leader() ){
@@ -337,12 +337,12 @@ PT_BEGIN( pt );
                     vm_state->threads[i] = msg->threads[i];
                 }
 
-                log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
+                // log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
             }            
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
-            log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_REQ") );
+            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_REQ") );
 
             // are we leader?
             if( !vm_sync_b_is_leader() ){
@@ -357,7 +357,7 @@ PT_BEGIN( pt );
 
             if( msg->request_data ){
 
-                log_v_debug_P( PSTR("msg->request_data") );
+                // log_v_debug_P( PSTR("msg->request_data") );
 
                 // send data
                 uint16_t offset = 0;
@@ -383,7 +383,7 @@ PT_BEGIN( pt );
         }
         else if( header->type == VM_SYNC_MSG_DATA ){
 
-            log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_DATA") );
+            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_DATA") );
 
             // are we leader?
             if( vm_sync_b_is_leader() ){
