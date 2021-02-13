@@ -191,6 +191,9 @@ PT_THREAD( cron_replay_thread( pt_t *pt, replay_state_t *state ) )
 {
 PT_BEGIN( pt ); 
 
+    // wait for time sync
+    THREAD_WAIT_WHILE( pt, !time_b_is_ntp_sync() );
+
     // init clock to 24 hours ago
     ntp_ts_t ntp_now = time_t_local_now();
     state->cron_seconds = ntp_now.seconds - ( 24 * 60 * 60 );
