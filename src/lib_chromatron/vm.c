@@ -809,8 +809,7 @@ PT_BEGIN( pt );
         //     (int32_t)state->vm_state.threads[0].tick, 
         //     (int32_t)state->vm_state.threads[1].tick );
 
-        // if( ( state->vm_id == 0 ) && ( vm_sync_b_is_synced() ) ){
-        if( state->vm_id == 0 ){
+        if( ( state->vm_id == 0 ) && ( state->vm_return == VM_STATUS_OK ) ){
 
             log_v_debug_P( PSTR("%d l:%d 0:%d 1:%d 2:%d 3:%d r: %x"), 
                 (int32_t)state->vm_state.tick, 

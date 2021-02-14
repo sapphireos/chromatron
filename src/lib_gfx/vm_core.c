@@ -2650,7 +2650,7 @@ int8_t vm_i8_run_tick(
 
     uint32_t elapsed_us = 0;
 
-    int8_t status = VM_STATUS_ERROR;
+    int8_t status = VM_STATUS_DID_NOT_RUN;
 
     if( state->loop_tick <= state->tick ){
 
@@ -2750,7 +2750,7 @@ int8_t vm_i8_run_threads(
 
     if( !threads_running ){
 
-        status = VM_STATUS_NO_THREADS;
+        status = VM_STATUS_DID_NOT_RUN;
     } 
     else{
 
