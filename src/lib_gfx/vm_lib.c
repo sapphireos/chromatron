@@ -190,7 +190,7 @@ int8_t vm_lib_i8_libcall_built_in(
             }
 
             // bounds check
-            if( temp0 < 0 ){
+            if( temp0 < VM_MIN_DELAY ){
 
                 temp0 = VM_MIN_DELAY;
             }
