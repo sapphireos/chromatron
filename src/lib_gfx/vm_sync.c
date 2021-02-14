@@ -339,15 +339,15 @@ PT_BEGIN( pt );
 
                 // log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
             }
-            else if( sync_state == STATE_SYNC ){
+            // else if( sync_state == STATE_SYNC ){
 
-                int64_t sync_delta = (int64_t)msg->sync_tick - (int64_t)vm_state->tick;
+            //     int64_t sync_delta = (int64_t)msg->sync_tick - (int64_t)vm_state->tick;
 
-                if( sync_delta != 0 ){
+            //     if( sync_delta != 0 ){
 
-                    log_v_debug_P( PSTR("sync delta: %d"), (int32_t)sync_delta );    
-                }
-            }
+            //         log_v_debug_P( PSTR("sync delta: %d"), (int32_t)sync_delta );    
+            //     }
+            // }
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
@@ -378,7 +378,7 @@ PT_BEGIN( pt );
 
                 if( data_len > VM_SYNC_MAX_DATA_LEN ){
 
-                    log_v_debug_P( PSTR("vm sync data too large: %d"), data_len );
+                    log_v_debug_P( PSTR("vm sync data multiple chunks: %d"), data_len );
                 }
 
                 while( offset < data_len ){
