@@ -2772,12 +2772,6 @@ uint64_t vm_u64_get_next_tick(
     uint64_t current_tick = state->tick;
     uint64_t next_tick = state->loop_tick;
 
-    if( next_tick < current_tick ){
-
-        // loop already ran
-        next_tick = 0;
-    }
-
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
         if( state->threads[i].func_addr == 0xffff ){
