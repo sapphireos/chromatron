@@ -2720,7 +2720,7 @@ int8_t vm_i8_run_threads(
         }
 
         state->current_thread = i;
-        // state->threads[i].tick = 0; // mark thread as run
+        
         status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
 
         elapsed_us += state->last_elapsed_us;
