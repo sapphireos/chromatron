@@ -75,7 +75,7 @@ PT_END( pt );
 
 void log_v_init( void ){
 
-    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         return;
     }
