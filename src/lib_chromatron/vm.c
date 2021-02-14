@@ -811,13 +811,13 @@ PT_BEGIN( pt );
 
         if( ( state->vm_id == 0 ) && ( state->vm_return == VM_STATUS_OK ) ){
 
-            log_v_debug_P( PSTR("%d l:%d 0:%d 1:%d 2:%d 3:%d r: %x"), 
+            log_v_debug_P( PSTR("%d l:%d 1:%d 2:%d 3:%d 4:%d r: %x"), 
                 (int32_t)state->vm_state.tick, 
                 (int32_t)state->vm_state.loop_tick, 
-                (int32_t)state->vm_state.threads[0].tick, 
                 (int32_t)state->vm_state.threads[1].tick,
                 (int32_t)state->vm_state.threads[2].tick,
                 (int32_t)state->vm_state.threads[3].tick,
+                (int32_t)state->vm_state.threads[4].tick, 
                 (uint32_t)state->vm_state.rng_seed );
         }
 
