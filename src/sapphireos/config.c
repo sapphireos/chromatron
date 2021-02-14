@@ -51,11 +51,42 @@
 #include <stddef.h>
 #include <string.h>
 
+
+int8_t _info_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+
+        if( hash == __KV__cfg_total_blocks ){
+
+            STORE16(data, cfg_u16_total_blocks());
+        }
+        else if( hash == __KV__cfg_free_blocks ){
+
+            STORE16(data, cfg_u16_free_blocks());
+        }
+    }
+    else if( op == KV_OP_SET ){
+
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    return 0;
+}
+
 // static uint32_t slowest_time;
 // static uint32_t slowest_id;
 
 KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "cfg_version" },
+    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, _info_kv_handler,   "cfg_total_blocks" },
+    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, _info_kv_handler,   "cfg_free_blocks" },
     { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip" },
     { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_subnet" },
     { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_dns_server" },
@@ -964,8 +995,6 @@ void cfg_v_init( void ){
     cfg_v_set( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );
     ee_v_commit(); // commit in case we crash after this point
     #endif
-
-    log_v_debug_P( PSTR("Cfg size:%d free:%d eeprom:%d"), cfg_u16_total_blocks(), cfg_u16_free_blocks(), CFG_FILE_MAIN_SIZE );
 }
 
 void cfg_v_write_error_log( cfg_error_log_t *log ){

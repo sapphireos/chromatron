@@ -130,12 +130,6 @@ int8_t sapphire_i8_init( void ){
     // init user file system
     fs_v_init();
 
-    // check if safe mode
-    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
-
-        // init logging module
-        log_v_init();
-    }
 trace_printf("event\n");
     // init event log
     event_v_init();
@@ -151,6 +145,9 @@ trace_printf("ee\n");
 trace_printf("cfg\n");
 	// init config manager
 	cfg_v_init();
+
+    // init logging module
+    log_v_init();
 
     // check if we need to go into recovery mode
     sys_v_check_recovery_mode();    

@@ -44,10 +44,15 @@
 
 static msgflow_t msgflow;
 
+static char buf[LOG_STR_BUF_SIZE];
+static file_t f = -1;
+static uint32_t max_log_size;
+
+
 PT_THREAD( msgflow_init_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+
     if( msgflow <= 0 ){
 
         msgflow = msgflow_m_listen( __KV__logserver, MSGFLOW_CODE_ANY, LOG_STR_BUF_SIZE );
@@ -68,13 +73,12 @@ PT_END( pt );
 
 #endif
 
-
-
-static char buf[LOG_STR_BUF_SIZE];
-static file_t f = -1;
-static uint32_t max_log_size;
-
 void log_v_init( void ){
+
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        return;
+    }
 
     if( f > 0 ){
 
@@ -84,7 +88,7 @@ void log_v_init( void ){
     f = fs_f_open_P( PSTR("log.txt"), FS_MODE_WRITE_APPEND | FS_MODE_CREATE_IF_NOT_FOUND );
 
     if( cfg_i8_get( CFG_PARAM_MAX_LOG_SIZE, &max_log_size ) < 0 ){
-
+        
         max_log_size = LOG_MAX_SIZE;
     }
 
