@@ -618,6 +618,8 @@ PT_BEGIN( pt );
 
     state->vm_state.rng_seed = rng_seed;
 
+    log_v_debug_P( PSTR("RNG seed: %lx %lx"), (uint32_t)(rng_seed >> 32), (uint32_t)rng_seed );
+
     // init database
     vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
 
@@ -810,10 +812,8 @@ PT_BEGIN( pt );
         // if( ( state->vm_id == 0 ) && ( vm_sync_b_is_synced() ) ){
         if( state->vm_id == 0 ){
 
-            log_v_debug_P( PSTR("%d d:%d a:%d l:%d 0:%d 1:%d 2:%d 3:%d r: %x"), 
+            log_v_debug_P( PSTR("%d l:%d 0:%d 1:%d 2:%d 3:%d r: %x"), 
                 (int32_t)state->vm_state.tick, 
-                (int32_t)delay,
-                (int32_t)state->delay_adjust,
                 (int32_t)state->vm_state.loop_tick, 
                 (int32_t)state->vm_state.threads[0].tick, 
                 (int32_t)state->vm_state.threads[1].tick,
