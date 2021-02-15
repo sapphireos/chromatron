@@ -225,10 +225,6 @@ int8_t vm_i8_run_loop(
     uint8_t *stream,
     vm_state_t *state );
 
-int8_t vm_i8_run_threads(
-    uint8_t *stream,
-    vm_state_t *state );
-
 uint64_t vm_u64_get_next_tick(
     uint8_t *stream,
     vm_state_t *state );

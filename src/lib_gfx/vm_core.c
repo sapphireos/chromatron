@@ -2668,9 +2668,46 @@ int8_t vm_i8_run_tick(
         }
     }
 
-    status = vm_i8_run_threads( stream, state );
+    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-    elapsed_us += state->last_elapsed_us;
+        if( state->threads[i].func_addr == 0xffff ){
+
+            continue;
+        }
+
+        // check thread tick
+        if( state->threads[i].tick > state->tick ){
+
+            continue;
+        }
+
+        state->current_thread = i;
+        
+        status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
+
+        elapsed_us += state->last_elapsed_us;
+
+        state->current_thread = -1;
+
+        if( status == VM_STATUS_OK ){
+
+            // thread returned, kill it
+            state->threads[i].func_addr = 0xffff;
+        }
+        else if( status == VM_STATUS_YIELDED ){
+
+            status = VM_STATUS_OK;
+        }
+        else if( status == VM_STATUS_HALT ){
+
+            goto exit;
+        }
+        else{
+
+            goto exit;
+        }
+    }
+
 
 exit:    
     
@@ -2694,75 +2731,6 @@ int8_t vm_i8_run_loop(
     vm_state_t *state ){
 
     return vm_i8_run( stream, state->loop_start, 0, state );
-}
-
-int8_t vm_i8_run_threads(
-    uint8_t *stream,
-    vm_state_t *state ){
-
-    bool threads_running = FALSE;
-
-    uint32_t elapsed_us = 0;
-    
-    int8_t status = VM_STATUS_ERROR;
-
-    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
-
-        if( state->threads[i].func_addr == 0xffff ){
-
-            continue;
-        }
-
-        // check thread tick
-        if( state->threads[i].tick > state->tick ){
-
-            continue;
-        }
-
-        state->current_thread = i;
-        
-        status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
-
-        elapsed_us += state->last_elapsed_us;
-
-        threads_running = TRUE;
-
-        state->current_thread = -1;
-
-        if( status == VM_STATUS_OK ){
-
-            // thread returned, kill it
-            state->threads[i].func_addr = 0xffff;
-        }
-        else if( status == VM_STATUS_YIELDED ){
-
-
-        }
-        else if( status == VM_STATUS_HALT ){
-
-            goto exit;
-        }
-        else{
-
-            goto exit;
-        }
-    }
-
-    if( !threads_running ){
-
-        status = VM_STATUS_DID_NOT_RUN;
-    } 
-    else{
-
-        status = VM_STATUS_OK;
-    }
-
-exit:
-        
-    // set total elapsed time
-    state->last_elapsed_us = elapsed_us;
-
-    return status;
 }
 
 uint64_t vm_u64_get_next_tick(
