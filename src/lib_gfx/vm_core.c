@@ -2641,6 +2641,59 @@ int8_t vm_i8_run(
     return status;
 }
 
+
+#define EVENT_LOOP 254
+#define EVENT_NONE 255
+static uint8_t _get_next_event( uint8_t *stream, vm_state_t *state, uint64_t *next_tick ){
+
+    uint8_t event = EVENT_LOOP;
+    uint64_t current_tick = state->tick;
+    *next_tick = state->loop_tick;
+
+    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+        if( state->threads[i].func_addr == 0xffff ){
+
+            continue;
+        }
+
+        // check thread tick
+        uint64_t thread_tick = state->threads[i].tick;
+
+        if( thread_tick == 0 ){
+            // thread is not running
+
+            continue;
+        }
+
+        // check if thread tick is sooner than last one we checked
+        if( thread_tick < *next_tick ){
+
+            *next_tick = thread_tick;
+            event = i;
+        }
+    }
+
+    // check if nothing is ready to run
+    if( *next_tick > current_tick ){
+        
+        event = EVENT_NONE;
+    }
+
+    return event;
+}
+
+uint64_t vm_u64_get_next_tick(
+    uint8_t *stream,
+    vm_state_t *state ){
+
+    uint64_t next_tick;
+
+    _get_next_event( stream, state, &next_tick );
+
+    return next_tick;
+}
+
 int8_t vm_i8_run_tick(
     uint8_t *stream,
     vm_state_t *state,
@@ -2652,59 +2705,54 @@ int8_t vm_i8_run_tick(
 
     int8_t status = VM_STATUS_DID_NOT_RUN;
 
-    if( state->loop_tick <= state->tick ){
+    while( elapsed_us < ( VM_MAX_RUN_TIME * 1000 ) ){
 
-        // run loop
-        status = vm_i8_run_loop( stream, state );
+        uint64_t next_tick;
+        uint8_t event = _get_next_event( stream, state, &next_tick );
 
-        // add frame rate to next loop delay
-        state->loop_tick += gfx_u16_get_vm_frame_rate();
+        if( event == EVENT_NONE ){
 
-        elapsed_us += state->last_elapsed_us;
-
-        if( status != VM_STATUS_OK ){
-
-            goto exit;
+            break;
         }
-    }
+        else if( event == EVENT_LOOP ){
 
-    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+            // run loop
+            status = vm_i8_run_loop( stream, state );
 
-        if( state->threads[i].func_addr == 0xffff ){
+            // add frame rate to next loop delay
+            state->loop_tick += gfx_u16_get_vm_frame_rate();
 
-            continue;
+            elapsed_us += state->last_elapsed_us;
+
+            if( status != VM_STATUS_OK ){
+
+                goto exit;
+            }
         }
+        else{ // threads
 
-        // check thread tick
-        if( state->threads[i].tick > state->tick ){
-
-            continue;
-        }
-
-        state->current_thread = i;
+            uint8_t thread = event;
+            state->current_thread = thread;
         
-        status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
+            status = vm_i8_run( stream, state->threads[thread].func_addr, state->threads[thread].pc_offset, state );
 
-        elapsed_us += state->last_elapsed_us;
+            elapsed_us += state->last_elapsed_us;
 
-        state->current_thread = -1;
+            state->current_thread = -1;
 
-        if( status == VM_STATUS_OK ){
+            if( status == VM_STATUS_OK ){
 
-            // thread returned, kill it
-            state->threads[i].func_addr = 0xffff;
-        }
-        else if( status == VM_STATUS_YIELDED ){
+                // thread returned, kill it
+                state->threads[thread].func_addr = 0xffff;
+            }
+            else if( status == VM_STATUS_YIELDED ){
 
-            status = VM_STATUS_OK;
-        }
-        else if( status == VM_STATUS_HALT ){
+                status = VM_STATUS_OK;
+            }
+            else{
 
-            goto exit;
-        }
-        else{
-
-            goto exit;
+                goto exit;
+            }
         }
     }
 
@@ -2731,50 +2779,6 @@ int8_t vm_i8_run_loop(
     vm_state_t *state ){
 
     return vm_i8_run( stream, state->loop_start, 0, state );
-}
-
-uint64_t vm_u64_get_next_tick(
-    uint8_t *stream,
-    vm_state_t *state ){
-
-    uint64_t current_tick = state->tick;
-    uint64_t next_tick = state->loop_tick;
-
-    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
-
-        if( state->threads[i].func_addr == 0xffff ){
-
-            continue;
-        }
-
-        // check thread tick
-        uint64_t thread_tick = state->threads[i].tick;
-
-        if( thread_tick == 0 ){
-            // thread is not running
-
-            continue;
-        }
-
-        // check if next tick is uninitialized
-        if( next_tick == 0 ){
-
-            next_tick = thread_tick;
-        }
-        // check if thread tick is sooner than last one we checked
-        else if( thread_tick < next_tick ){
-
-            next_tick = thread_tick;
-        }
-    }
-
-    // check if nothing is ready to run
-    if( next_tick < current_tick ){
-
-        next_tick = 0;
-    }
-
-    return next_tick;
 }
 
 int32_t vm_i32_get_data( 

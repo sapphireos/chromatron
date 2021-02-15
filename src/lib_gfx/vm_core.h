@@ -30,6 +30,8 @@
 
 #define VM_ISA_VERSION              12
 
+#define VM_MAX_RUN_TIME             500 // milliseconds
+
 #define RETURN_VAL_ADDR             0
 #define PIX_ARRAY_ADDR              1
 
