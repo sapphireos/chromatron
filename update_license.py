@@ -96,14 +96,11 @@ if __name__ == "__main__":
 
                 i = 0
                 for line in lines:
-                    if line.find(LICENSE_START) >= 0:
+                    if license_start < 0 and line.find(LICENSE_START) >= 0:
                         license_start = i
 
-                    if line.find(LICENSE_END) >= 0:
+                    if license_end < 0 and line.find(LICENSE_END) >= 0:
                         license_end = i
-
-                    if license_start and license_end:
-                        break
 
                     i += 1
 
@@ -122,7 +119,7 @@ if __name__ == "__main__":
                     print(f"{filepath} Updating old license")
 
                 else:
-                    # print(f"{filepath} license header not found - skipping")
+                    print(f"{filepath} license header not found - skipping")
                     continue
                     
                     # # add new license to top of file
@@ -134,6 +131,6 @@ if __name__ == "__main__":
                     # print "Adding license"
 
                 # now, rewrite the file
-                # f.truncate(0)
-                # f.seek(0)
-                # f.write(updated_lines)
+                f.truncate(0)
+                f.seek(0)
+                f.write(updated_lines)
