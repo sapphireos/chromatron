@@ -8,7 +8,7 @@ import sys
 license_text = """
     This file is part of the Sapphire Operating System.
 
-    Copyright (C) 2013-2020  Jeremy Billheimer
+    Copyright (C) 2013-2021  Jeremy Billheimer
 
 
     This program is free software: you can redistribute it and/or modify
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
         for filename in files:
             if filename in skip_files:
-                print "skipping", filename
+                print(f"skipping {filename}")
                 continue
 
             name, ext = os.path.splitext(filename)
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
             filepath = os.path.join(root, filename)
             with open(filepath, 'r+') as f:
-                print filepath,
+                print(filepath)
 
                 license_start = None
                 license_end = None
@@ -115,10 +115,10 @@ if __name__ == "__main__":
                     updated_lines = front + license + back
 
                     # print updated_lines
-                    print "Updating old license"
+                    print(f"{filepath} Updating old license")
 
                 else:
-                    print "license header not found - skipping"
+                    print(f"{filepath} license header not found - skipping")
                     continue
                     
                     # # add new license to top of file
