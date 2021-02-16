@@ -1048,5 +1048,19 @@ void sock_v_process_timeouts( void ){
     }
 }
 
+bool sock_b_addr_compare( sock_addr_t *addr1, sock_addr_t *addr2 ){
+
+    if( !ip_b_addr_compare( addr1->ipaddr, addr2->ipaddr ) ){
+
+        return FALSE;
+    }
+
+    if( addr1->port != addr2->port ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
 
 #endif

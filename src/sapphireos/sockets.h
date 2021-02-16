@@ -102,4 +102,6 @@ uint8_t sock_u8_count( void );
 
 void sock_v_process_timeouts( void );
 
+bool sock_b_addr_compare( sock_addr_t *addr1, sock_addr_t *addr2 );
+
 #endif

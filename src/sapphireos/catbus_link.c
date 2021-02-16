@@ -65,7 +65,7 @@ static socket_t sock;
 typedef struct __attribute__((packed)){
     catbus_hash_t32 source_key;
     uint64_t link_hash;
-    ip_addr4_t leader_ip;  // supplied via services (send mode) or via message (recv mode)
+    sock_addr_t leader_addr;  // supplied via services (send mode) or via message (recv mode)
     uint32_t data_hash;
     link_rate_t16 rate;
     int16_t ticks;
@@ -77,7 +77,7 @@ typedef struct __attribute__((packed)){
 // producer state tracked by the leader
 typedef struct __attribute__((packed)){
     link_handle_t link;
-    ip_addr4_t ip;
+    sock_addr_t addr;
     int32_t timeout;
     catbus_data_t data;
     // variable length data follows
@@ -87,7 +87,7 @@ typedef struct __attribute__((packed)){
 // stored on leader, tracks consumers to transmit data to
 typedef struct __attribute__((packed)){
     link_handle_t link;
-    ip_addr4_t ip;
+    sock_addr_t addr;
     int32_t timeout;
 } consumer_state_t;
 
@@ -819,7 +819,7 @@ void link_v_delete_by_hash( uint64_t hash ){
     fs_f_close( f );
 }
 
-void link_v_handle_shutdown( ip_addr4_t ip ){
+void link_v_handle_shutdown( sock_addr_t *addr ){
 
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -836,7 +836,7 @@ void link_v_handle_shutdown( ip_addr4_t ip ){
 
         producer_state_t *producer = list_vp_get_data( ln );
 
-        if( ip_b_addr_compare( ip, producer->leader_ip ) ){
+        if( sock_b_addr_compare( addr, &producer->leader_addr ) ){
 
             // remove producer
             list_v_remove( &producer_list, ln );
@@ -857,7 +857,7 @@ void link_v_handle_shutdown( ip_addr4_t ip ){
 
         remote_state_t *remote = list_vp_get_data( ln );
 
-        if( ip_b_addr_compare( ip, remote->ip ) ){
+        if( sock_b_addr_compare( addr, &remote->addr ) ){
 
             // remove remote
             list_v_remove( &remote_list, ln );
@@ -879,7 +879,7 @@ void link_v_handle_shutdown( ip_addr4_t ip ){
         consumer_state_t *consumer = list_vp_get_data( ln );
 
         // if timeout expires, or we are not link leader
-        if( ip_b_addr_compare( ip, consumer->ip ) ){
+        if( sock_b_addr_compare( addr, &consumer->addr ) ){
 
             // remove consumer
             list_v_remove( &consumer_list, ln );
@@ -994,7 +994,7 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
             goto next;
         }
 
-        if( !ip_b_addr_compare( raddr->ipaddr, consumer->ip ) ){
+        if( !sock_b_addr_compare( raddr, &consumer->addr ) ){
 
             goto next;
         }
@@ -1029,7 +1029,7 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
 
     consumer_state_t new_consumer = {
         link,
-        raddr->ipaddr,
+        *raddr,
         LINK_CONSUMER_TIMEOUT
     };
 
@@ -1124,7 +1124,7 @@ static void process_remote_timeouts( uint32_t elapsed_ms ){
     }
 }
 
-static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16_t data_len ){
+static void update_remote( sock_addr_t *raddr, link_handle_t link, void *data, uint16_t data_len ){
 
     // NOTE data len is checked by server routine,
     // we can assume it is good here.
@@ -1140,7 +1140,7 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
             goto next;
         }
 
-        if( !ip_b_addr_compare( ip, remote->ip ) ){
+        if( !sock_b_addr_compare( raddr, &remote->addr ) ){
 
             goto next;
         }
@@ -1184,7 +1184,7 @@ static void update_remote( ip_addr4_t ip, link_handle_t link, void *data, uint16
     remote_state_t *new_remote = list_vp_get_data( ln );
         
     new_remote->link        = link;
-    new_remote->ip          = ip;
+    new_remote->addr        = *raddr;
     new_remote->timeout     = LINK_REMOTE_TIMEOUT;
     // new_remote->data.meta   = meta;
     link_state_t *link_state = link_ls_get_data( link );
@@ -1224,7 +1224,7 @@ static void update_producer_from_query( link_msg_producer_query_t *msg, sock_add
         }
 
         // update state
-        producer->leader_ip = raddr->ipaddr;
+        producer->leader_addr = *raddr;
         producer->timeout = LINK_PRODUCER_TIMEOUT;
 
         // trace_printf("LINK: refreshed RECV producer: %d.%d.%d.%d\n",
@@ -1253,7 +1253,7 @@ static void update_producer_from_query( link_msg_producer_query_t *msg, sock_add
     producer_state_t new_producer = {
         msg->key,
         msg->hash,
-        raddr->ipaddr,
+        *raddr,
         0,
         msg->rate,
         msg->rate,
@@ -1517,7 +1517,7 @@ PT_BEGIN( pt );
             }
 
             // update remote data and timeout
-            update_remote( raddr.ipaddr, link, &msg->data.data, data_len );
+            update_remote( &raddr, link, &msg->data.data, data_len );
         }
         else if( header->msg_type == LINK_MSG_TYPE_ADD ){
 
@@ -1824,16 +1824,13 @@ static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_
 
         if( consumer->link == link ){
 
-            sock_addr_t raddr = {
-                .ipaddr = consumer->ip,
-                .port = LINK_PORT
-            };
+            sock_addr_t raddr = consumer->addr;
 
             trace_printf("LINK: TX consumer data %d.%d.%d.%d\n",
-                consumer->ip.ip3,
-                consumer->ip.ip2,
-                consumer->ip.ip1,
-                consumer->ip.ip0
+                consumer->addr.ipaddr.ip3,
+                consumer->addr.ipaddr.ip2,
+                consumer->addr.ipaddr.ip1,
+                consumer->addr.ipaddr.ip0
             );
 
             if( sock_i16_sendto( sock, (uint8_t *)&msg_buf->msg, msg_len, &raddr ) < 0 ){
@@ -1846,7 +1843,7 @@ static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_
     }
 }
 
-static void transmit_producer_data( uint64_t hash, catbus_meta_t *meta, uint8_t *data, uint16_t data_len, ip_addr4_t ip ){
+static void transmit_producer_data( uint64_t hash, catbus_meta_t *meta, uint8_t *data, uint16_t data_len, sock_addr_t *raddr ){
 
     // prepare data message
     uint16_t msg_len = ( sizeof(link_msg_data_t) - sizeof(uint8_t) ) + data_len; // subtract an extra byte to compensate for the catbus_data_t.data field
@@ -1866,14 +1863,9 @@ static void transmit_producer_data( uint64_t hash, catbus_meta_t *meta, uint8_t 
 
     memcpy( &msg->data.data, data, data_len );
 
-    sock_addr_t raddr = {
-        ip,
-        LINK_PORT
-    };
+    sock_i16_sendto_m( sock, h, raddr );
 
-    sock_i16_sendto_m( sock, h, &raddr );
-
-    trace_printf("LINK: transmit producer data: %d.%d.%d.%d\n", raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );   
+    trace_printf("LINK: transmit producer data: %d.%d.%d.%d\n", raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );   
 }
 
 static void process_link( link_handle_t link, uint32_t elapsed_ms ){
@@ -1955,7 +1947,8 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
             link_state->data_hash = data_hash;
             link_state->retransmit_timer = LINK_RETRANSMIT_RATE;
 
-            transmit_producer_data( link_state->hash, &meta, msg_buf.buf, data_len, services_a_get_ip( LINK_SERVICE, link_state->hash ) );
+            sock_addr_t raddr = services_a_get( LINK_SERVICE, link_state->hash );
+            transmit_producer_data( link_state->hash, &meta, msg_buf.buf, data_len, &raddr );
         }
     }
     else if( link_state->mode == LINK_MODE_RECV ){
@@ -2057,12 +2050,12 @@ static void process_producer( producer_state_t *producer, uint32_t elapsed_ms ){
     producer->retransmit_timer = LINK_RETRANSMIT_RATE;
 
     // check if leader IP is not available
-    if( ip_b_is_zeroes( producer->leader_ip ) ){
+    if( ip_b_is_zeroes( producer->leader_addr.ipaddr ) ){
 
         return;
     }
 
-    transmit_producer_data( producer->link_hash, &meta, buf, data_len, producer->leader_ip );
+    transmit_producer_data( producer->link_hash, &meta, buf, data_len, &producer->leader_addr );
 }
 
 

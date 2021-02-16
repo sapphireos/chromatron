@@ -26,7 +26,7 @@
 #define __CATBUS_LINK_H
 
 #include "list.h"
-#include "ip.h"
+#include "sockets.h"
 #include "catbus_common.h"
 
 #define LINK_PORT                           44634
@@ -199,7 +199,7 @@ uint8_t link_u8_count( void );
 void link_v_delete_by_tag( catbus_hash_t32 tag );
 void link_v_delete_by_hash( uint64_t hash );
 
-void link_v_handle_shutdown( ip_addr4_t ip );
+void link_v_handle_shutdown( sock_addr_t *addr );
 void link_v_shutdown( void );
 
 

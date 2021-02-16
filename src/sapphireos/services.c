@@ -1513,7 +1513,7 @@ PT_END( pt );
 }
 
 
-void service_v_handle_shutdown( ip_addr4_t ip ){
+void service_v_handle_shutdown( sock_addr_t *addr ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -1537,9 +1537,9 @@ void service_v_handle_shutdown( ip_addr4_t ip ){
             goto next;
         }
 
-        if( ip_b_addr_compare( service->server_ip, ip ) ){
+        if( ip_b_addr_compare( service->server_ip, addr->ipaddr ) ){
 
-            log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d"), ip.ip3, ip.ip2, ip.ip1, ip.ip0 );
+            log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d"), addr->ipaddr.ip3, addr->ipaddr.ip2, addr->ipaddr.ip1, addr->ipaddr.ip0 );
 
             reset_state( service );
         }

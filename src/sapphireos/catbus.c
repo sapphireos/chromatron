@@ -743,20 +743,16 @@ PT_BEGIN( pt );
             // catbus_msg_shutdown_t *msg = (catbus_msg_shutdown_t *)header;
 
             #ifdef ENABLE_CATBUS_LINK
-            // // delete cache entries for link system
-            // _catbus_v_delete_send_entry( &raddr );
-            // _catbus_v_delete_rx_entry( &raddr );
-            link_v_handle_shutdown( raddr.ipaddr );    
+            link_v_handle_shutdown( &raddr );    
             #endif
 
             #ifdef ENABLE_SERVICES
             // send shutdown notifications
-            service_v_handle_shutdown( raddr.ipaddr );
+            service_v_handle_shutdown( &raddr );
             #endif
 
             #ifdef ENABLE_TIME_SYNC
-            time_v_handle_shutdown( raddr.ipaddr );
-            // vm_sync_v_handle_shutdown( raddr.ipaddr );
+            time_v_handle_shutdown( &raddr );
             #endif
         }
 

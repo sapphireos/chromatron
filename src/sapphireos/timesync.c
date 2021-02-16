@@ -160,7 +160,7 @@ void time_v_init( void ){
                     0 );    
 }
 
-void time_v_handle_shutdown( ip_addr4_t ip ){
+void time_v_handle_shutdown( sock_addr_t *addr ){
 
     
 }
