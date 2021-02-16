@@ -82,13 +82,17 @@ if __name__ == "__main__":
 
             filepath = os.path.join(root, filename)
             with open(filepath, 'r+') as f:
-                print(filepath)
 
                 license_start = -1
                 license_end = -1
 
                 # search lines
-                lines = f.readlines()
+                try:
+                    lines = f.readlines()
+
+                except UnicodeDecodeError as e:
+                    print(f"ERROR {filename}: {e}")
+                    continue
 
                 i = 0
                 for line in lines:
@@ -118,7 +122,7 @@ if __name__ == "__main__":
                     print(f"{filepath} Updating old license")
 
                 else:
-                    print(f"{filepath} license header not found - skipping")
+                    # print(f"{filepath} license header not found - skipping")
                     continue
                     
                     # # add new license to top of file
@@ -130,6 +134,6 @@ if __name__ == "__main__":
                     # print "Adding license"
 
                 # now, rewrite the file
-                f.truncate(0)
-                f.seek(0)
-                f.write(updated_lines)
+                # f.truncate(0)
+                # f.seek(0)
+                # f.write(updated_lines)
