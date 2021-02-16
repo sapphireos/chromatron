@@ -28,6 +28,7 @@
 
 #include "bq25895.h"
 #include "util.h"
+#include "energy.h"
 
 static uint8_t batt_soc; // state of charge in percent
 static uint8_t batt_soc_startup; // state of charge at power on
@@ -41,32 +42,35 @@ static uint8_t batt_fault;
 static uint8_t vbus_status;
 static uint8_t charge_status;
 static bool dump_regs;
+static uint64_t capacity;
+static int64_t remaining;
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,   0, 0,                   &batt_soc,             0,  "batt_soc" },
-    { SAPPHIRE_TYPE_BOOL,    0, 0,                   &batt_charging,        0,  "batt_charging" },
-    { SAPPHIRE_TYPE_BOOL,    0, 0,                   &vbus_connected,       0,  "batt_external_power" },
-    { SAPPHIRE_TYPE_UINT16,  0, 0,                   &batt_volts,           0,  "batt_volts" },
-    { SAPPHIRE_TYPE_UINT16,  0, 0,                   &vbus_volts,           0,  "batt_vbus_volts" },
-    { SAPPHIRE_TYPE_UINT16,  0, 0,                   &sys_volts,            0,  "batt_sys_volts" },
-    { SAPPHIRE_TYPE_UINT8,   0, 0,                   &charge_status,        0,  "batt_charge_status" },
-    { SAPPHIRE_TYPE_UINT16,  0, 0,                   &batt_charge_current,  0,  "batt_charge_current" },
-    { SAPPHIRE_TYPE_UINT8,   0, 0,                   &batt_fault,           0,  "batt_fault" },
-    { SAPPHIRE_TYPE_UINT8,   0, 0,                   &vbus_status,          0,  "batt_vbus_status" },
-    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_PERSIST,    0,                     0,  "batt_capacity" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,             0,  "batt_soc" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,        0,  "batt_charging" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,       0,  "batt_external_power" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,           0,  "batt_volts" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,           0,  "batt_vbus_volts" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,            0,  "batt_sys_volts" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,        0,  "batt_charge_status" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,  0,  "batt_charge_current" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,           0,  "batt_fault" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,          0,  "batt_vbus_status" },
+    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_PERSIST,    &capacity,             0,  "batt_capacity" },
+    { SAPPHIRE_TYPE_INT64,   0, KV_FLAGS_READ_ONLY,  &remaining,            0,  "batt_remaining" },
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
 };
 
-#define SOC_MAX_VOLTS   4150
+#define SOC_MAX_VOLTS   4100
 #define SOC_MIN_VOLTS   3200
-
+#define SOC_FILTER      32
 
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
 
-static uint8_t calc_batt_soc( uint16_t volts ){
+static uint8_t _calc_batt_soc( uint16_t volts ){
 
     if( volts < SOC_MIN_VOLTS ){
 
@@ -79,6 +83,13 @@ static uint8_t calc_batt_soc( uint16_t volts ){
     }
 
     return util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 100 );
+}
+
+static uint8_t calc_batt_soc( uint16_t volts ){
+
+    uint8_t temp_soc = _calc_batt_soc( volts );
+
+    return util_u16_ewma( temp_soc, batt_soc, SOC_FILTER );
 }
 
 int8_t bq25895_i8_init( void ){
@@ -94,7 +105,7 @@ int8_t bq25895_i8_init( void ){
     }
 
     batt_volts = bq25895_u16_get_batt_voltage();
-    batt_soc = calc_batt_soc( batt_volts );
+    batt_soc = _calc_batt_soc( batt_volts );
     batt_soc_startup = batt_soc;
 
     thread_t_create( bat_mon_thread,
@@ -690,20 +701,19 @@ PT_BEGIN( pt );
         // check if battery just ran down to 0,
         // AND we've started from a full charge
         // this will auto-calibrate the battery capacity.
-        // if( ( batt_soc != 0 ) && 
-        //     ( new_batt_soc == 0 ) &&
-        //     ( batt_soc_startup >= 95 ) ){ // above 95% is close enough to full charge
+        if( ( batt_soc > 0 ) && 
+            ( new_batt_soc == 0 ) &&
+            ( batt_soc_startup >= 95 ) ){ // above 95% is close enough to full charge
 
-        //     // save energy usage as capacity
-        //     uint64_t energy_total = energy_u64_get_total();
+            // save energy usage as capacity
+            capacity = energy_u64_get_total();
 
-        //     kv_i8_set( BQ25895_KV_GROUP,
-        //                KV_ID_ENERGY_TOTAL,
-        //                &energy_total,
-        //                sizeof(energy_total) );
-        // }
+            kv_i8_persist( __KV__batt_capacity );
+        }
 
         batt_soc = new_batt_soc;
+
+        remaining = (int64_t)capacity - (int64_t)energy_u64_get_total();
 
         TMR_WAIT( pt, 1000 );
         // TMR_WAIT( pt, 10000 );
