@@ -84,8 +84,8 @@ if __name__ == "__main__":
             with open(filepath, 'r+') as f:
                 print(filepath)
 
-                license_start = None
-                license_end = None
+                license_start = -1
+                license_end = -1
 
                 # search lines
                 lines = f.readlines()
