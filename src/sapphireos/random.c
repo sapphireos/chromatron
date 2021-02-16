@@ -95,20 +95,17 @@ uint64_t rnd_u64_get_seed( void ){
 
 uint8_t rnd_u8_get_int_with_seed( uint64_t *seed ){
 
-    uint32_t *_lfsr31 = (uint32_t *)seed;
-    uint32_t *_lfsr32 = ((uint32_t *)seed) + 1;
-
-    uint16_t val = rand31_32( _lfsr31, _lfsr32 );
-
-    return val & 0xff;
+    return rnd_u16_get_int_with_seed( seed ) & 0xff;
 }
 
 uint16_t rnd_u16_get_int_with_seed( uint64_t *seed ){
 
-    uint32_t *_lfsr31 = (uint32_t *)seed;
-    uint32_t *_lfsr32 = ((uint32_t *)seed) + 1;
+    uint32_t _lfsr31 = *seed >> 32;
+    uint32_t _lfsr32 = *seed & 0xffffffff;
 
-    uint16_t val = rand31_32( _lfsr31, _lfsr32 );
+    uint16_t val = rand31_32( &_lfsr31, &_lfsr32 );
+
+    *seed = ( ( (uint64_t)_lfsr31 ) << 32 ) | _lfsr32;
 
     return val;
 }

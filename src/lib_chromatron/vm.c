@@ -618,8 +618,6 @@ PT_BEGIN( pt );
 
     state->vm_state.rng_seed = rng_seed;
 
-    log_v_debug_P( PSTR("RNG seed: %lx %lx"), (uint32_t)(rng_seed >> 32), (uint32_t)rng_seed );
-
     // init database
     vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
 
