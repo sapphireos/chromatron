@@ -2005,6 +2005,54 @@ uint16_t gfx_u16_noise( uint16_t x ){
 }
 
 
+uint32_t gfx_u32_get_pixel_r( void ){
+
+    uint32_t total = 0;
+
+    for( uint16_t i = 0; i < pix_count; i++ ){
+
+        total += array_red[i];
+    }
+
+    return total;
+}
+
+uint32_t gfx_u32_get_pixel_g( void ){
+
+    uint32_t total = 0;
+
+    for( uint16_t i = 0; i < pix_count; i++ ){
+
+        total += array_green[i];
+    }
+
+    return total;
+}
+
+uint32_t gfx_u32_get_pixel_b( void ){
+
+    uint32_t total = 0;
+
+    for( uint16_t i = 0; i < pix_count; i++ ){
+
+        total += array_blue[i];
+    }
+
+    return total;
+}
+
+
+uint32_t gfx_u32_get_pixel_w( void ){
+
+    uint32_t total = 0;
+
+    for( uint16_t i = 0; i < pix_count; i++ ){
+
+        total += array_misc[i];
+    }
+
+    return total;
+}
 
 
 /*

@@ -27,6 +27,7 @@
 #include "gfx_lib.h"
 #include "vm.h"
 
+#include "energy.h"
 #include "battery.h"
 
 #include "bq25895.h"
@@ -80,6 +81,8 @@ PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
 
 void batt_v_init( void ){
+
+    energy_v_init();
 
     if( !batt_enable ){
 

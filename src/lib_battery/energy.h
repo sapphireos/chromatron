@@ -26,6 +26,7 @@
 #define _ENERGY_H_
 
 void energy_v_init( void );
+void energy_v_reset( void );
 uint64_t energy_u64_get_total( void );
 
 #endif
