@@ -144,6 +144,10 @@
 #define LOAD16(ptr) (*ptr)
 #endif
 
+#ifndef STORE64
+#define STORE64(ptr, val) (*(uint64_t*)ptr = val)
+#endif
+
 #ifndef STORE32
 #define STORE32(ptr, val) (*(uint32_t*)ptr = val)
 #endif

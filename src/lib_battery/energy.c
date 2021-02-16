@@ -57,12 +57,52 @@ static uint64_t energy_wifi;
 static uint64_t energy_pix;
 static uint64_t energy_total;
 
+
+int8_t energy_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+
+        // convert raw counts to microamp-hours
+
+        if( hash == __KV__energy_cpu ){
+
+            STORE64(data, energy_cpu / ( 3600 * ( 1000 / FADER_RATE ) ) );
+        }
+        else if( hash == __KV__energy_wifi ){
+
+            STORE64(data, energy_wifi / ( 3600 * ( 1000 / FADER_RATE ) ) );
+        }
+        else if( hash == __KV__energy_pix ){
+
+            STORE64(data, energy_pix / ( 3600 * ( 1000 / FADER_RATE ) ) );
+        }
+        else if( hash == __KV__energy_total ){
+
+            STORE64(data, energy_total / ( 3600 * ( 1000 / FADER_RATE ) ) );
+        }
+    }
+    else if( op == KV_OP_SET ){
+
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    return 0;
+}
+
+
 KV_SECTION_META kv_meta_t energy_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT64,   0, 0,  &energy_cpu,        0,    "energy_cpu" },
-    { SAPPHIRE_TYPE_UINT64,   0, 0,  &energy_wifi,       0,    "energy_wifi" },
-    { SAPPHIRE_TYPE_UINT64,   0, 0,  &energy_pix,    	 0,    "energy_pix" },
-    { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_pix,         0,    "energy_pix_power" },
-    { SAPPHIRE_TYPE_UINT64,   0, 0,  &energy_total,      0,    "energy_total" },
+    { SAPPHIRE_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_cpu" },
+    { SAPPHIRE_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_wifi" },
+    { SAPPHIRE_TYPE_UINT64,   0, 0,  0,    	        energy_kv_handler,    "energy_pix" },
+    { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_pix,    0,                    "energy_pix_power" },
+    { SAPPHIRE_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total" },
 };
 
 
@@ -95,7 +135,7 @@ void energy_v_reset( void ){
 
 uint64_t energy_u64_get_total( void ){
 
-    return energy_total;
+    return energy_total / ( 3600 * ( 1000 / FADER_RATE ) );
 }
 
 PT_THREAD( energy_monitor_thread( pt_t *pt, void *state ) )
