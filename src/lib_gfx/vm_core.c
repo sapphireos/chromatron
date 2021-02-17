@@ -2657,14 +2657,7 @@ static uint8_t _get_next_event( uint8_t *stream, vm_state_t *state, uint64_t *ne
             continue;
         }
 
-        // check thread tick
         uint64_t thread_tick = state->threads[i].tick;
-
-        if( thread_tick == 0 ){
-            // thread is not running
-
-            continue;
-        }
 
         // check if thread tick is sooner than last one we checked
         if( thread_tick < *next_tick ){
