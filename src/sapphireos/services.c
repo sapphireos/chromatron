@@ -50,6 +50,7 @@ typedef struct __attribute__((packed)){
     uint32_t id;
     uint64_t group;   
 
+    uint64_t server_origin;
     uint16_t server_priority;
     uint32_t server_uptime;
     uint16_t server_port;
@@ -90,6 +91,7 @@ static void clear_tracking( service_state_t *service ){
     service->server_uptime         = 0;
     service->server_port           = 0;
     service->server_ip             = ip_a_addr(0,0,0,0);
+    service->server_origin         = 0;
     service->server_valid          = FALSE;
 }
 
@@ -658,9 +660,10 @@ static void init_header( service_msg_header_t *header, uint8_t type ){
 
     header->magic       = SERVICES_MAGIC;
     header->version     = SERVICES_VERSION;
-    header->type       = type;
+    header->type        = type;
     header->flags       = 0;
     header->reserved    = 0;
+    header->origin      = catbus_u64_get_origin_id();
 }
 
 static bool should_transmit( service_state_t *service ){
@@ -984,13 +987,10 @@ static bool compare_self( service_state_t *service ){
 
     // uptime is the same (within SERVICE_UPTIME_MIN_DIFF) or server is not valid
 
-    // compare IP addresses
-    ip_addr4_t our_addr;
-    cfg_i8_get( CFG_PARAM_IP_ADDRESS, &our_addr );
+    // compare origins
+    if( catbus_u64_get_origin_id() < service->server_origin ){
 
-    if( ip_u32_to_int( our_addr ) < ip_u32_to_int( service->server_ip ) ){
-
-        log_v_debug_P( PSTR("ip priority") );
+        log_v_debug_P( PSTR("origin priority") );
 
         return TRUE;
     }
@@ -999,7 +999,7 @@ static bool compare_self( service_state_t *service ){
 }
 
 // true if pkt is better than current leader
-static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip ){
+static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, uint64_t origin ){
 
     // check if a leader is being tracked.
     // if none, the packet wins by default.
@@ -1049,10 +1049,10 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
 
     // uptime is the same
 
-    // compare IP addresses
-    if( ip_u32_to_int( *ip ) < ip_u32_to_int( service->server_ip ) ){
+    // compare  origins
+    if( origin < service->server_origin ){
 
-        log_v_debug_P( PSTR("ip priority") );
+        log_v_debug_P( PSTR("origin priority") );
 
         return TRUE;
     }
@@ -1060,7 +1060,7 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
     return FALSE;
 }
 
-static void track_node( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip ){
+static void track_node( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip, uint64_t origin_id ){
 
     if( ( offer->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
 
@@ -1080,9 +1080,10 @@ static void track_node( service_state_t *service, service_msg_offer_hdr_t *heade
     service->server_uptime     = offer->uptime;
     service->server_port       = offer->port;
     service->server_ip         = *ip;
+    service->server_origin     = origin_id;
 }
 
-static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t *pkt, ip_addr4_t *ip ){
+static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t *pkt, ip_addr4_t *ip, uint64_t origin ){
 
     // look up matching service
     service_state_t *service = get_service( pkt->id, pkt->group );
@@ -1113,9 +1114,9 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 service->timeout   = SERVICE_CONNECTED_TIMEOUT;
             }
             // check priorities
-            else if( compare_server( service, header, pkt, ip ) ){
+            else if( compare_server( service, header, pkt, origin ) ){
 
-                track_node( service, header, pkt, ip );
+                track_node( service, header, pkt, ip, origin );
 
                 log_v_debug_P( PSTR("service switched to %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
             }
@@ -1130,7 +1131,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
         bool valid = service->server_valid;
 
-        track_node( service, header, pkt, ip );
+        track_node( service, header, pkt, ip, origin );
 
         if( !valid && service->server_valid ){
 
@@ -1177,22 +1178,22 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
         if( service->state == STATE_LISTEN ){
 
             // check if server in packet is better than current tracking
-            if( compare_server( service, header, pkt, ip ) ){
+            if( compare_server( service, header, pkt, origin ) ){
 
                 log_v_debug_P( PSTR("state: LISTEN") );
 
-                track_node( service, header, pkt, ip );    
+                track_node( service, header, pkt, ip, origin );    
             }
         }
         else if( service->state == STATE_CONNECTED ){
 
             // check if packet is a better server than current tracking (and this packet is not from the current server)
-            if( !ip_b_addr_compare( *ip, service->server_ip ) && 
-                compare_server( service, header, pkt, ip ) ){
+            if( ( service->server_origin != origin ) && 
+                compare_server( service, header, pkt, origin ) ){
                 
                 log_v_debug_P( PSTR("state: CONNECTED") );
 
-                track_node( service, header, pkt, ip );
+                track_node( service, header, pkt, ip, origin );
 
                 // if tracking is a server
                 if( service->server_valid ){
@@ -1209,13 +1210,13 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
         else if( service->state == STATE_SERVER ){
 
             // check if this packet is better than current tracking
-            if( compare_server( service, header, pkt, ip ) ){
+            if( compare_server( service, header, pkt, origin ) ){
 
                 // check if server is valid - we will only consider
                 // other valid servers, not candidates
                 if( ( pkt->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
 
-                    track_node( service, header, pkt, ip );
+                    track_node( service, header, pkt, ip, origin );
 
                     // now that we've updated tracking
                     // check if the tracked server is better than us
@@ -1349,6 +1350,13 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
+        if( header->origin == 0 ){
+
+            log_v_debug_P( PSTR("origin should not be 0: %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+
+            continue;
+        }
+
         if( header->type == SERVICE_MSG_TYPE_OFFERS ){
 
             service_msg_offer_hdr_t *offer_hdr = (service_msg_offer_hdr_t *)( header + 1 );
@@ -1367,7 +1375,7 @@ PT_BEGIN( pt );
 
             while( offer_hdr->count > 0 ){
 
-                process_offer( offer_hdr, offer, &raddr.ipaddr );
+                process_offer( offer_hdr, offer, &raddr.ipaddr, header->origin );
 
                 offer++;
                 offer_hdr->count--;
@@ -1513,7 +1521,7 @@ PT_END( pt );
 }
 
 
-void service_v_handle_shutdown( sock_addr_t *addr ){
+void service_v_handle_shutdown( uint64_t origin_id ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -1537,9 +1545,9 @@ void service_v_handle_shutdown( sock_addr_t *addr ){
             goto next;
         }
 
-        if( ip_b_addr_compare( service->server_ip, addr->ipaddr ) ){
+        if( service->server_origin == origin_id ){
 
-            log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d"), addr->ipaddr.ip3, addr->ipaddr.ip2, addr->ipaddr.ip1, addr->ipaddr.ip0 );
+            log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
 
             reset_state( service );
         }

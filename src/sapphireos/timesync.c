@@ -160,11 +160,6 @@ void time_v_init( void ){
                     0 );    
 }
 
-void time_v_handle_shutdown( sock_addr_t *addr ){
-
-    
-}
-
 bool time_b_is_local_sync( void ){
 
     return is_sync;

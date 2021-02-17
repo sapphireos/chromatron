@@ -29,7 +29,7 @@
 
 #define SERVICES_PORT                       32041
 #define SERVICES_MAGIC                      0x56524553 // 'SERV'
-#define SERVICES_VERSION                    2
+#define SERVICES_VERSION                    3
 
 #define SERVICES_MCAST_ADDR                 239,43,96,31
 
@@ -51,6 +51,7 @@ typedef struct __attribute__((packed)){
     uint8_t type;
     uint8_t flags;
     uint8_t reserved;
+    uint64_t origin;
 } service_msg_header_t;
 
 
@@ -93,7 +94,7 @@ sock_addr_t services_a_get( uint32_t id, uint64_t group );
 ip_addr4_t services_a_get_ip( uint32_t id, uint64_t group );
 uint16_t services_u16_get_port( uint32_t id, uint64_t group );
 
-void service_v_handle_shutdown( sock_addr_t *addr );
+void service_v_handle_shutdown( uint64_t origin_id );
 
 #endif
 

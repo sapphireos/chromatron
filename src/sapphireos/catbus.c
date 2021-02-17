@@ -743,16 +743,12 @@ PT_BEGIN( pt );
             // catbus_msg_shutdown_t *msg = (catbus_msg_shutdown_t *)header;
 
             #ifdef ENABLE_CATBUS_LINK
-            link_v_handle_shutdown( &raddr );    
+            link_v_handle_shutdown( header->origin_id );    
             #endif
 
             #ifdef ENABLE_SERVICES
             // send shutdown notifications
-            service_v_handle_shutdown( &raddr );
-            #endif
-
-            #ifdef ENABLE_TIME_SYNC
-            time_v_handle_shutdown( &raddr );
+            service_v_handle_shutdown( header->origin_id );
             #endif
         }
 
