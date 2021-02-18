@@ -171,6 +171,9 @@ static void send_sync( sock_addr_t *raddr ){
     msg.tick                    = state->tick;
     msg.loop_tick               = state->loop_tick;
     msg.rng_seed                = state->rng_seed;
+
+    msg.checkpoint              = vm_u64_get_checkpoint();
+    msg.checkpoint_hash         = vm_u32_get_checkpoint_hash();
     
     msg.data_len                = state->data_len;
     msg.max_threads             = VM_MAX_THREADS;
@@ -315,6 +318,8 @@ PT_BEGIN( pt );
 
             // sync VM
             vm_v_sync( msg->net_time, msg->sync_tick );
+
+            log_v_debug_P( PSTR("leader checkpoint: %u -> %x"), (uint32_t)msg->checkpoint, msg->checkpoint_hash );
 
             if( sync_state == STATE_SYNCING ){
 

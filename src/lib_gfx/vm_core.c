@@ -2581,6 +2581,8 @@ int8_t vm_i8_run(
     // reset yield
     state->yield = 0;
 
+    state->frame_number++;
+
     int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, data );
 
     cycles = VM_MAX_CYCLES - cycles;

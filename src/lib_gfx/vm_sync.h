@@ -29,11 +29,12 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	4
+#define SYNC_PROTOCOL_VERSION           	5
 
 #define SYNC_SERVICE                        __KV__vmsync
 
 #define SYNC_INTERVAL                       8000
+#define SYNC_CHECKPOINT                     1024
 
 #define SYNC_MAX_THREADS                    16
 
@@ -56,6 +57,9 @@ typedef struct __attribute__((packed)){
     uint64_t tick;
     uint64_t loop_tick;
     uint64_t rng_seed;
+
+    uint64_t checkpoint;
+    uint32_t checkpoint_hash;
     
     uint16_t data_len;
 

@@ -498,6 +498,8 @@ typedef struct{
 #ifdef ENABLE_TIME_SYNC
 static uint32_t vm0_sync_ts;
 static uint64_t vm0_sync_ticks;
+static uint64_t vm0_checkpoint;
+static uint32_t vm0_checkpoint_hash;
 
 void vm_v_sync( uint32_t ts, uint64_t ticks ){
 
@@ -517,6 +519,16 @@ uint64_t vm_u64_get_sync_tick( void ){
     return vm0_sync_ticks;
 }
 
+uint64_t vm_u64_get_checkpoint( void ){
+
+    return vm0_checkpoint;
+}
+
+uint32_t vm_u32_get_checkpoint_hash( void ){
+
+    return vm0_checkpoint_hash;
+}
+
 uint64_t vm_u64_get_tick( void ){
 
     vm_state_t *state = vm_p_get_state();
@@ -529,7 +541,31 @@ uint64_t vm_u64_get_tick( void ){
     return state->tick;
 }
 
-#endif
+uint64_t vm_u64_get_frame( void ){
+
+    vm_state_t *state = vm_p_get_state();
+
+    if( state == 0 ){
+
+        return 0;
+    }
+
+    return state->frame_number;
+}
+
+uint32_t vm_u32_get_data_hash( void ){
+
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );        
+
+    uint8_t *data = (uint8_t *)vm_i32p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+
+    return hash_u32_data( data, state->vm_state.data_len );
+}
 
 uint16_t vm_u16_get_data_len( void ){
 
@@ -554,6 +590,10 @@ int32_t* vm_i32p_get_data( void ){
 
     return vm_i32p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );   
 }
+
+
+#endif
+
 
 // return state for VM 0.
 // Use with caution!
@@ -630,6 +670,14 @@ PT_BEGIN( pt );
 
         goto exit;
     }
+
+    #ifdef ENABLE_TIME_SYNC
+    // set initial checkpoint
+    vm0_checkpoint = state->vm_state.frame_number;
+    vm0_checkpoint_hash = vm_u32_get_data_hash();
+
+    log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
+    #endif
 
     vm_status[state->vm_id] = VM_STATUS_OK;
 
@@ -792,6 +840,19 @@ PT_BEGIN( pt );
             vm0_sync_ts = time_u32_get_network_time();
             vm0_sync_ticks = state->vm_state.tick;   
         }
+
+        if( ( state->vm_id == 0 ) && ( vm_sync_b_is_synced() ) ){
+
+            // check if it is time for a checkpoint
+            if( ( state->vm_state.frame_number % SYNC_CHECKPOINT ) == 0 ){
+
+                vm0_checkpoint = state->vm_state.frame_number;
+                vm0_checkpoint_hash = vm_u32_get_data_hash();
+
+                log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
+            }
+        }
+
         #endif
         
         // update timestamp
