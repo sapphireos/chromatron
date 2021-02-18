@@ -12,12 +12,15 @@ class DeviceService(object):
     def __init__(self, host=NETWORK_ADDR):
         d = Device(host=host)
         d.scan()
-
-        d.set_key('test_service_mode', 0)
-        time.sleep(0.1)
-
         self.device = d
+
         self.host = self.device.host
+
+        self.reset()
+
+    def reset(self):
+        self.device.set_key('test_service_mode', 0)
+        time.sleep(0.1)
 
     def __str__(self):
         return f'Service@{self.device.host}'
@@ -93,7 +96,7 @@ class DeviceService(object):
 
         return self
 
-    def join_team(self, service_id=1234, group=5678, priority=99):
+    def join_team(self, service_id=1234, group=5678, port=1000, priority=99):
         self.device.set_key('test_service_priority', priority)
         self.device.set_key('test_service_mode', 3)
         time.sleep(0.1)
@@ -102,12 +105,18 @@ class DeviceService(object):
 
 
 @pytest.fixture()
+def local_idle():
+    s = ServiceManager()
+    yield s
+    s.stop()
+    s.join()
+
+@pytest.fixture()
 def local_listen():
     s = ServiceManager()
     yield s.listen(1234, 5678)
     s.stop()
     s.join()
-
 
 @pytest.fixture
 def local_offer():
@@ -139,35 +148,58 @@ def local_team_follower():
 
 
 @pytest.fixture
+def network_idle():
+    host = checkout_device()
+    d = DeviceService(host)
+    yield d
+    d.reset()
+    checkin_device(host)
+
+@pytest.fixture
 def network_listen():
-    d = checkout_device()
-    yield DeviceService(d).listen()
-    checkin_device(d)
+    host = checkout_device()
+    d = DeviceService(host).listen()
+    yield d
+    d.reset()
+    checkin_device(host)
     
 @pytest.fixture
 def network_offer():
-    d = checkout_device()
-    yield DeviceService(d).offer()
-    checkin_device(d)
+    host= checkout_device()
+    d = DeviceService(host).offer()
+    yield d
+    d.reset()
+    checkin_device(host)
 
 @pytest.fixture
 def network_team():
-    d = checkout_device()
-    yield DeviceService(d).join_team(priority=99)
-    checkin_device(d)
+    host= checkout_device()
+    d = DeviceService(host).join_team(priority=99)
+    yield d
+    d.reset()
+    checkin_device(host)
 
 @pytest.fixture
 def network_team2():
-    d = checkout_device()
-    yield DeviceService(d).join_team(priority=99)
-    checkin_device(d)
+    host= checkout_device()
+    d = DeviceService(host).join_team(priority=99)
+    yield d
+    d.reset()
+    checkin_device(host)
 
 @pytest.fixture
 def network_team_follower():
-    d = checkout_device()
-    yield DeviceService(d).join_team(priority=0)
-    checkin_device(d)
+    host= checkout_device()
+    d = DeviceService(host).join_team(priority=0)
+    yield d
+    d.reset()
+    checkin_device(host)
 
+
+idlers = ['local_idle', 'network_idle']
+@pytest.fixture(params=idlers)
+def idler(request):
+    return request.getfixturevalue(request.param)
 
 listeners = ['local_listen', 'network_listen']
 @pytest.fixture(params=listeners)
@@ -214,10 +246,10 @@ def test_team(team_leader, team_follower):
     assert not team_follower.is_server
     assert team_follower.connected
 
-
+# @pytest.mark.skip
 def test_team_2leaders(team_leader, team_leader2):
-    team_leader.wait_until_connected()
-    team_leader2.wait_until_connected()
+    team_leader.wait_until_state(STATE_SERVER)
+    team_leader2.wait_until_state(STATE_SERVER)
 
     assert team_leader.connected
     assert team_leader2.connected
@@ -227,3 +259,13 @@ def test_team_2leaders(team_leader, team_leader2):
     
     elif team_leader2.is_server:
         assert not team_leader.is_server
+
+# @pytest.mark.skip
+def test_team_leader_switch(team_leader, idler):
+    team_leader.wait_until_state(STATE_SERVER)
+
+    idler = idler.join_team(1234, 5678, 1000, priority=255)
+
+    idler.wait_until_state(STATE_SERVER)
+    team_leader.wait_until_state(STATE_CONNECTED)
+
