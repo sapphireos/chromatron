@@ -10,6 +10,19 @@ setup_basic_logging(level=logging.DEBUG)
 
 NETWORK_ADDR = '10.0.0.235'
 
+NETWORK_DEVICES = [NETWORK_ADDR, '10.0.0.242']
+
+AVAILABLE = NETWORK_DEVICES
+
+def checkout_device():
+	d = AVAILABLE.pop()
+	logging.debug(f'Checking OUT device @ {d}')
+	return d
+	
+def checkin_device(d):
+	logging.debug(f'Checking IN device @ {d}')
+	AVAILABLE.append(d)
+
 @pytest.fixture
 def local_server():
     c = CatbusService(tags=['__TEST__'])

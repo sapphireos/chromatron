@@ -102,6 +102,73 @@ class DeviceService(object):
 
 
 @pytest.fixture()
+def local_listen():
+    s = ServiceManager()
+    yield s.listen(1234, 5678)
+    s.stop()
+    s.join()
+
+
+@pytest.fixture
+def local_offer():
+    s = ServiceManager()
+    yield s.offer(1234, 5678, 1000, priority=99)
+    s.stop()
+    s.join()
+
+
+@pytest.fixture
+def network_listen():
+    d = checkout_device()
+    yield DeviceService(d).listen()
+    checkin_device(d)
+    
+@pytest.fixture
+def network_offer():
+    d = checkout_device()
+    yield DeviceService(d).offer()
+    checkin_device(d)
+
+@pytest.fixture
+def network_team():
+    d = checkout_device()
+    yield DeviceService(d).join_team()
+    checkin_device(d)
+
+@pytest.fixture
+def network_team_follower():
+    d = checkout_device()
+    yield DeviceService(d).join_team(priority=0)
+    checkin_device(d)
+
+
+listeners = ['local_listen', 'network_listen']
+# listeners = ['network_listen']
+@pytest.fixture(params=listeners)
+def listen(request):
+    return request.getfixturevalue(request.param)
+
+offers = ['local_offer', 'network_offer']
+# offers = ['network_offer']
+@pytest.fixture(params=offers)
+def offer(request):
+    return request.getfixturevalue(request.param)
+
+def test_basic(listen, offer):
+    listen.wait_until_state(STATE_CONNECTED, timeout=60.0)
+    offer.wait_until_state(STATE_SERVER, timeout=60.0)
+
+    assert offer.is_server
+    assert offer.connected
+    assert listen.connected
+    assert not listen.is_server
+
+
+
+
+
+
+@pytest.fixture()
 def listen_service():
     s = ServiceManager()
     yield s.listen(1234, 5678)
@@ -129,7 +196,6 @@ def team_service2():
     s.stop()
     s.join()
 
-
 @pytest.fixture
 def team_service_follower():
     s = ServiceManager()
@@ -138,21 +204,6 @@ def team_service_follower():
     s.join()
 
 
-@pytest.fixture
-def network_offer():
-    return DeviceService().offer()
-
-@pytest.fixture
-def network_listen():
-    return DeviceService().listen()
-    
-@pytest.fixture
-def network_team():
-    return DeviceService().join_team()
-
-@pytest.fixture
-def network_team_follower():
-    return DeviceService().join_team(priority=0)
 
 
 @pytest.mark.skip
@@ -180,7 +231,7 @@ def test_basic_team(team_service1, team_service2):
     assert not team_service2.is_server
     assert team_service2.connected
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_network_listen(listen_service, network_offer):
     listen_service.wait_until_state(STATE_CONNECTED, timeout=60.0)
     network_offer.wait_until_state(STATE_SERVER, timeout=60.0)
@@ -190,7 +241,7 @@ def test_network_listen(listen_service, network_offer):
     assert listen_service.server[0] == network_offer.host
     assert network_offer.is_server
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_network_offer(offer_service, network_listen):
     offer_service.wait_until_state(STATE_SERVER, timeout=60.0)
     network_listen.wait_until_state(STATE_CONNECTED, timeout=60.0)
@@ -199,7 +250,7 @@ def test_network_offer(offer_service, network_listen):
     assert not network_listen.is_server
     assert network_listen.connected
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_network_team(team_service1, network_team):
     team_service1.wait_until_state(STATE_SERVER, timeout=60.0)
     network_team.wait_until_state(STATE_CONNECTED, timeout=60.0)
@@ -209,7 +260,7 @@ def test_network_team(team_service1, network_team):
     assert team_service1.connected
     assert team_service1.is_server
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_network_team_local_follower(team_service_follower, network_team):
     network_team.wait_until_state(STATE_SERVER, timeout=60.0)
     assert network_team.is_server
