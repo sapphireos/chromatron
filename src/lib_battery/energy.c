@@ -42,13 +42,13 @@
 #define MICROAMPS_BLUE_PIX      10000
 #define MICROAMPS_WHITE_PIX     20000
 
-static uint16_t rate_cpu;
-static uint16_t rate_wifi;
 static uint16_t rate_pix_r;
 static uint16_t rate_pix_g;
 static uint16_t rate_pix_b;
 static uint16_t rate_pix_w;
 
+static uint32_t power_cpu;
+static uint32_t power_wifi;
 static uint32_t power_pix;
 
 // total energy recorded
@@ -101,8 +101,11 @@ KV_SECTION_META kv_meta_t energy_info_kv[] = {
     { SAPPHIRE_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_cpu" },
     { SAPPHIRE_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_wifi" },
     { SAPPHIRE_TYPE_UINT64,   0, 0,  0,    	        energy_kv_handler,    "energy_pix" },
-    { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_pix,    0,                    "energy_pix_power" },
     { SAPPHIRE_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total" },
+
+    { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_cpu,    0,                    "energy_power_cpu" },
+    { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_wifi,   0,                    "energy_power_wifi" },
+    { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_pix,    0,                    "energy_power_pix" },
 };
 
 
@@ -111,8 +114,8 @@ PT_THREAD( energy_monitor_thread( pt_t *pt, void *state ) );
 
 void energy_v_init( void ){
 
-    rate_cpu    = MICROAMPS_CPU;
-    rate_wifi   = MICROAMPS_WIFI;
+    power_cpu   = MICROAMPS_CPU;
+    power_wifi  = MICROAMPS_WIFI;
     rate_pix_r  = MICROAMPS_RED_PIX;
     rate_pix_g  = MICROAMPS_GREEN_PIX;
     rate_pix_b  = MICROAMPS_BLUE_PIX;
@@ -146,8 +149,8 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, FADER_RATE );
 
-        energy_cpu += rate_cpu;
-        energy_wifi += rate_wifi;
+        energy_cpu += power_cpu;
+        energy_wifi += power_wifi;
 
         power_pix = ( gfx_u32_get_pixel_r() * rate_pix_r ) / 256;
         power_pix += ( gfx_u32_get_pixel_g() * rate_pix_g ) / 256;
