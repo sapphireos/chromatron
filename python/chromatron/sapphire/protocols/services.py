@@ -22,6 +22,7 @@
 # </license>
 #
 
+import os
 import sys
 import time
 import logging
@@ -31,7 +32,7 @@ from ..common import MsgServer, run_all, util, catbus_string_hash, synchronized
 
 SERVICES_PORT               = 32041
 SERVICES_MAGIC              = 0x56524553 # 'SERV'
-SERVICES_VERSION            = 2
+SERVICES_VERSION            = 3
 
 SERVICES_MCAST_ADDR         = "239.43.96.31"
 
@@ -54,7 +55,8 @@ class ServiceMsgHeader(StructField):
                   Uint8Field(_name="version"),
                   Uint8Field(_name="type"),
                   Uint8Field(_name="flags"),
-                  Uint8Field(_name="reserved")]
+                  Uint8Field(_name="reserved"),
+                  Uint64Field(_name="origin")]
 
         super().__init__(_fields=fields, **kwargs)
 
@@ -87,7 +89,7 @@ def make_key(service_id, group):
     return (service_id << 64) + group
 
 class ServiceOffer(StructField):
-    def __init__(self, **kwargs):
+    def __init__(self, origin=None, **kwargs):
         fields = [Uint32Field(_name="id"),
                   Uint64Field(_name="group"),
                   Uint16Field(_name="priority"),
@@ -97,6 +99,8 @@ class ServiceOffer(StructField):
                   ArrayField(_name="reserved", _field=Uint8Field, _length=3)]
 
         super().__init__(_fields=fields, **kwargs)
+
+        self.origin = origin
 
     @property
     def key(self):
@@ -123,12 +127,9 @@ class ServiceOffer(StructField):
             # we are better
             return True
 
+        if self.origin > other.origin:
+            return True
 
-        # IP address priority is not supported for now.
-        # this is hard to do on a Python system since we might
-        # have multiple IP addresses.
-        # We are assuming our services are always talking to hardware
-        # which will have priority.
         return False
 
 class ServiceMsgOffers(StructField):
@@ -153,11 +154,12 @@ class ServiceMsgQuery(StructField):
 
 
 class Service(object):
-    def __init__(self, service_id, group, priority=0, port=0, _lock=None):
+    def __init__(self, service_id, group, priority=0, port=0, origin=os.getpid(), _lock=None):
         self._service_id = service_id
         self._group = group
         self._port = port
         self._priority = priority
+        self._origin = origin
 
         assert self._port is not None
 
@@ -204,6 +206,7 @@ class Service(object):
     @synchronized
     def _offer(self):
         offer = ServiceOffer(
+            origin=self._origin,
             id=self._service_id,
             group=self._group,
             priority=self._priority,
@@ -456,10 +459,11 @@ class Team(Service):
 
 
 class ServiceManager(MsgServer):
-    def __init__(self):
+    def __init__(self, origin=os.getpid()):
         super().__init__(name='service_manager', listener_port=SERVICES_PORT, listener_mcast=SERVICES_MCAST_ADDR)
         
         self._services = {}
+        self.origin = origin
         
         self.register_message(ServiceMsgOffers, self._handle_offers)
         self.register_message(ServiceMsgQuery, self._handle_query)
@@ -472,15 +476,15 @@ class ServiceManager(MsgServer):
             svc._shutdown()
 
     @synchronized
-    def handle_shutdown(self, host):
+    def handle_shutdown(self, origin):
         for svc in self._services.values():
             if svc.is_server:
                 continue
 
             try:
                 # check if host that is shutting down is a server
-                if svc.server == host:
-                    logging.debug(f'{svc} server {host} shutdown')
+                if svc.origin == origin:
+                    logging.debug(f'{svc} server {svc.host} shutdown')
                     svc._reset()
 
             except ServiceNotConnected:
@@ -497,7 +501,7 @@ class ServiceManager(MsgServer):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
 
-        team = Team(service_id, group, priority, port, _lock=self._lock)
+        team = Team(service_id, group, priority, port, origin=self.origin, _lock=self._lock)
 
         assert team.key not in self._services
 
@@ -516,7 +520,7 @@ class ServiceManager(MsgServer):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
 
-        service = Service(service_id, group, priority, port, _lock=self._lock)
+        service = Service(service_id, group, priority, port, origin=self.origin, _lock=self._lock)
 
         assert service.key not in self._services
 
@@ -531,7 +535,7 @@ class ServiceManager(MsgServer):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
 
-        service = Service(service_id, group, _lock=self._lock)
+        service = Service(service_id, group, origin=self.origin, _lock=self._lock)
 
         assert service.key not in self._services
         
@@ -563,6 +567,8 @@ class ServiceManager(MsgServer):
         msg = ServiceMsgQuery(
                 id=service_id,
                 group=group)
+
+        msg.header.origin = self.origin
         
         logging.debug(f"Send QUERY for {hex(service_id)}/{hex(group)} to {host}")
 
@@ -576,12 +582,13 @@ class ServiceManager(MsgServer):
                 offer_header=header,
                 offers=offers)
 
-        # logging.debug(f"Send OFFERS to {host}")
+        msg.header.origin = self.origin
         
         self.transmit(msg, host)
     
     def _handle_offers(self, msg, host):
         for offer in msg.offers:
+            offer.origin = msg.header.origin # attach origin to offer
             try:
                 svc = self._services[offer.key]
                 if svc._process_offer(offer, host) == 'transmit_service':
@@ -606,6 +613,8 @@ class ServiceManager(MsgServer):
         msg = ServiceMsgOffers(
                 offer_header=ServiceMsgOfferHeader(count=1),
                 offers=[self._services[key]._offer])
+        
+        msg.header.origin = self.origin
 
         self.transmit(msg, host)
 

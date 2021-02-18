@@ -270,6 +270,7 @@ class ServiceInfo(StructField):
         fields = [Uint32Field(_name="id"),
                   Uint64Field(_name="group"),
                   
+                  Uint64Field(_name="server_origin"),
                   Uint16Field(_name="server_priority"),
                   Uint32Field(_name="server_uptime"),
                   Uint16Field(_name="server_port"),
