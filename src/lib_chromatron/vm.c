@@ -676,7 +676,7 @@ PT_BEGIN( pt );
     vm0_checkpoint = state->vm_state.frame_number;
     vm0_checkpoint_hash = vm_u32_get_data_hash();
 
-    log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
+    // log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
     #endif
 
     vm_status[state->vm_id] = VM_STATUS_OK;
@@ -849,7 +849,7 @@ PT_BEGIN( pt );
                 vm0_checkpoint = state->vm_state.frame_number;
                 vm0_checkpoint_hash = vm_u32_get_data_hash();
 
-                log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
+                // log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
             }
         }
 

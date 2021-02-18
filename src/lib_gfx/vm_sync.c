@@ -320,7 +320,20 @@ PT_BEGIN( pt );
             // sync VM
             vm_v_sync( msg->net_time, msg->sync_tick );
 
-            log_v_debug_P( PSTR("leader checkpoint: %u -> %x"), (uint32_t)msg->checkpoint, msg->checkpoint_hash );
+            // verify checkpoint
+            if( vm_u32_get_checkpoint() == msg->checkpoint ){
+
+                if( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ){
+
+                    log_v_warn_P( PSTR("checkpoint hash mismatch!: %u -> %u"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash() );
+                }
+            }
+            else{
+
+                log_v_debug_P( PSTR("checkpoint frame mismatch: %u -> %u"), msg->checkpoint, vm_u32_get_checkpoint() );
+            }
+
+            // log_v_debug_P( PSTR("leader checkpoint: %u -> %x"), (uint32_t)msg->checkpoint, msg->checkpoint_hash );
 
             if( sync_state == STATE_SYNCING ){
 
