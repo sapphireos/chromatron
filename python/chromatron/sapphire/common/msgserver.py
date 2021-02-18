@@ -179,7 +179,7 @@ class MsgServer(Ribbon):
     def _process_msg(self, msg, host):     
         # check if receiving a message we sent
         # this can happen in multicast groups
-        if (host[0] in get_local_addresses()) and (host[1] in [self._port, self._listener_port]):
+        if (host[1] in [self._port, self._listener_port]) and (host[0] in get_local_addresses()):
             return None, None
 
         # run handler
