@@ -54,7 +54,6 @@ class DeviceService(object):
         
         return host
 
-
     def wait_until_state(self, state, timeout=60.0):
         logging.debug(f"{self} waiting for state {state}, timeout {timeout}")
         
@@ -134,14 +133,14 @@ def local_team():
 
 @pytest.fixture
 def local_team2():
-    s = ServiceManager(origin=1)
+    s = ServiceManager(origin=2)
     yield s.join_team(1234, 5678, 1000, priority=99)
     s.stop()
     s.join()
 
 @pytest.fixture
 def local_team_follower():
-    s = ServiceManager(origin=2)
+    s = ServiceManager(origin=3)
     yield s.join_team(1234, 5678, 1000, priority=0)
     s.stop()
     s.join()
@@ -246,19 +245,16 @@ def test_team(team_leader, team_follower):
     assert not team_follower.is_server
     assert team_follower.connected
 
-# @pytest.mark.skip
-def test_team_2leaders(team_leader, team_leader2):
-    team_leader.wait_until_state(STATE_SERVER)
-    team_leader2.wait_until_state(STATE_SERVER)
 
-    assert team_leader.connected
-    assert team_leader2.connected
-    
-    if team_leader.is_server:
-        assert not team_leader2.is_server
-    
-    elif team_leader2.is_server:
-        assert not team_leader.is_server
+# @pytest.mark.skip
+def test_team_leader_no_switch(team_leader, idler):
+    team_leader.wait_until_state(STATE_SERVER)
+
+    idler = idler.join_team(1234, 5678, 1000, priority=1)
+
+    idler.wait_until_state(STATE_CONNECTED)
+    team_leader.wait_until_state(STATE_SERVER)
+
 
 # @pytest.mark.skip
 def test_team_leader_switch(team_leader, idler):
