@@ -228,6 +228,10 @@ class MsgServer(Ribbon):
                         else:
                             logging.exception(e)
 
+                    except InvalidMessage as e:
+                        # logging.exception(e)
+                        pass
+
                     except Exception as e:
                         logging.exception(e)
 

@@ -379,6 +379,12 @@ void services_v_init( void ){
 
         services_v_listen(1234, 5678);     
     }
+    else if( test == 3 ){
+
+        log_v_debug_P( PSTR("services test mode enabled: JOIN") );
+
+        services_v_join_team(1234, 5678, 1, 0);     
+    }
 
     // debug
     // if( cfg_u64_get_device_id() == 93172270997720 ){

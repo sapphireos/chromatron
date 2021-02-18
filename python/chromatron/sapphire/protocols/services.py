@@ -593,7 +593,7 @@ class ServiceManager(MsgServer):
                 svc = self._services[offer.key]
                 if svc._process_offer(offer, host) == 'transmit_service':
                     # unicast offer for our server
-                    self._send_offers([svc.offer], host)
+                    self._send_offers([svc._offer], host)
 
             except KeyError:
                 continue
@@ -622,7 +622,7 @@ class ServiceManager(MsgServer):
     def _process_timers(self):
         for svc in self._services.values():
             if svc._process_timer(1.0) == 'ping':
-                self._send_query(svc.service_id, svc.group, host=svc.server)
+                self._send_query(svc._service_id, svc._group, host=svc.server)
 
     def _process_offer_timer(self):
         servers = [svc for svc in self._services.values() if svc.is_server]
@@ -642,6 +642,9 @@ def main():
 
     elif sys.argv[1] == 'offer':
         svc = s.offer(1234, 5678, 1000, priority=99)
+
+    elif sys.argv[1] == 'join':
+        svc = s.join_team(1234, 5678, 1000, priority=0)
 
     run_all()
 
