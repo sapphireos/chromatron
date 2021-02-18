@@ -246,7 +246,7 @@ class Service(object):
     def _shutdown(self):
         self._reset()
 
-    def wait_until_state(self, state, timeout=0.0):
+    def wait_until_state(self, state, timeout=60.0):
         logging.debug(f"{self} waiting for state {state}, timeout {timeout}")
         
         while self._state != state:
@@ -258,7 +258,7 @@ class Service(object):
                 if timeout < 0.0:
                     raise ServiceNotConnected
 
-    def wait_until_connected(self, timeout=0.0):
+    def wait_until_connected(self, timeout=60.0):
         if self.connected:
             return
 

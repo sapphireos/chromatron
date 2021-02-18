@@ -52,7 +52,7 @@ class DeviceService(object):
         return host
 
 
-    def wait_until_state(self, state, timeout=0.0):
+    def wait_until_state(self, state, timeout=60.0):
         logging.debug(f"{self} waiting for state {state}, timeout {timeout}")
         
         while self._state != state:
@@ -64,7 +64,7 @@ class DeviceService(object):
                 if timeout < 0.0:
                     raise ServiceNotConnected
 
-    def wait_until_connected(self, timeout=0.0):
+    def wait_until_connected(self, timeout=60.0):
         if self.connected:
             return
 
@@ -116,6 +116,20 @@ def local_offer():
     s.stop()
     s.join()
 
+@pytest.fixture
+def local_team():
+    s = ServiceManager(origin=1)
+    yield s.join_team(1234, 5678, 1000, priority=99)
+    s.stop()
+    s.join()
+
+@pytest.fixture
+def local_team_follower():
+    s = ServiceManager(origin=2)
+    yield s.join_team(1234, 5678, 1000, priority=0)
+    s.stop()
+    s.join()
+
 
 @pytest.fixture
 def network_listen():
@@ -132,7 +146,7 @@ def network_offer():
 @pytest.fixture
 def network_team():
     d = checkout_device()
-    yield DeviceService(d).join_team()
+    yield DeviceService(d).join_team(priority=99)
     checkin_device(d)
 
 @pytest.fixture
@@ -154,9 +168,21 @@ offers = ['local_offer', 'network_offer']
 def offer(request):
     return request.getfixturevalue(request.param)
 
+team_leaders = ['local_team', 'network_team']
+@pytest.fixture(params=team_leaders)
+def team_leader(request):
+    return request.getfixturevalue(request.param)
+
+team_followers = ['local_team_follower', 'network_team_follower']
+@pytest.fixture(params=team_followers)
+def team_follower(request):
+    return request.getfixturevalue(request.param)
+
+
+# @pytest.mark.skip
 def test_basic(listen, offer):
-    listen.wait_until_state(STATE_CONNECTED, timeout=60.0)
-    offer.wait_until_state(STATE_SERVER, timeout=60.0)
+    listen.wait_until_state(STATE_CONNECTED)
+    offer.wait_until_state(STATE_SERVER)
 
     assert offer.is_server
     assert offer.connected
@@ -164,108 +190,116 @@ def test_basic(listen, offer):
     assert not listen.is_server
 
 
+def test_team(team_leader, team_follower):
+    team_leader.wait_until_state(STATE_SERVER)
+    team_follower.wait_until_state(STATE_CONNECTED)
+
+    assert team_leader.is_server
+    assert not team_follower.is_server
+    assert team_follower.connected
+
+
+
+# @pytest.fixture()
+# def listen_service():
+#     s = ServiceManager()
+#     yield s.listen(1234, 5678)
+#     s.stop()
+#     s.join()
+
+# @pytest.fixture
+# def offer_service():
+#     s = ServiceManager()
+#     yield s.offer(1234, 5678, 1000, priority=99)
+#     s.stop()
+#     s.join()
+
+# @pytest.fixture
+# def team_service1():
+#     s = ServiceManager()
+#     yield s.join_team(1234, 5678, 1000, priority=99)
+#     s.stop()
+#     s.join()
+
+# @pytest.fixture
+# def team_service2():
+#     s = ServiceManager()
+#     yield s.join_team(1234, 5678, 1000, priority=98)
+#     s.stop()
+#     s.join()
+
+# @pytest.fixture
+# def team_service_follower():
+#     s = ServiceManager()
+#     yield s.join_team(1234, 5678, 1000, priority=0)
+#     s.stop()
+#     s.join()
 
 
 
 
-@pytest.fixture()
-def listen_service():
-    s = ServiceManager()
-    yield s.listen(1234, 5678)
-    s.stop()
-    s.join()
+# @pytest.mark.skip
+# def test_basic_service(listen_service, offer_service):
+#     listen_service.wait_until_connected(timeout=60.0)
+#     offer_service.wait_until_connected(timeout=60.0)
 
-@pytest.fixture
-def offer_service():
-    s = ServiceManager()
-    yield s.offer(1234, 5678, 1000, priority=99)
-    s.stop()
-    s.join()
+#     assert offer_service.is_server
+#     assert offer_service.connected
+#     assert listen_service.connected
+#     assert not listen_service.is_server
 
-@pytest.fixture
-def team_service1():
-    s = ServiceManager()
-    yield s.join_team(1234, 5678, 1000, priority=99)
-    s.stop()
-    s.join()
+# @pytest.mark.skip
+# def test_basic_team(team_service1, team_service2):
+#     team_service1.wait_until_state(STATE_SERVER, timeout=60.0)
+#     # wait for first service to set to server.
+#     # team_service1 should have the higher priority.
+#     assert team_service1.is_server
+#     assert team_service1.connected
 
-@pytest.fixture
-def team_service2():
-    s = ServiceManager()
-    yield s.join_team(1234, 5678, 1000, priority=98)
-    s.stop()
-    s.join()
+#     team_service2.wait_until_state(STATE_CONNECTED, timeout=60.0)
 
-@pytest.fixture
-def team_service_follower():
-    s = ServiceManager()
-    yield s.join_team(1234, 5678, 1000, priority=0)
-    s.stop()
-    s.join()
+#     assert team_service1.is_server
+#     assert team_service1.connected
+#     assert not team_service2.is_server
+#     assert team_service2.connected
+
+# @pytest.mark.skip
+# def test_network_listen(listen_service, network_offer):
+#     listen_service.wait_until_state(STATE_CONNECTED, timeout=60.0)
+#     network_offer.wait_until_state(STATE_SERVER, timeout=60.0)
+
+#     assert listen_service.connected
+#     assert not listen_service.is_server
+#     assert listen_service.server[0] == network_offer.host
+#     assert network_offer.is_server
+
+# @pytest.mark.skip
+# def test_network_offer(offer_service, network_listen):
+#     offer_service.wait_until_state(STATE_SERVER, timeout=60.0)
+#     network_listen.wait_until_state(STATE_CONNECTED, timeout=60.0)
+
+#     assert offer_service.is_server
+#     assert not network_listen.is_server
+#     assert network_listen.connected
+
+# @pytest.mark.skip
+# def test_network_team(team_service1, network_team):
+#     team_service1.wait_until_state(STATE_SERVER, timeout=60.0)
+#     network_team.wait_until_state(STATE_CONNECTED, timeout=60.0)
+
+#     assert network_team.connected
+#     assert not network_team.is_server
+#     assert team_service1.connected
+#     assert team_service1.is_server
+
+# @pytest.mark.skip
+# def test_network_team_local_follower(team_service_follower, network_team):
+#     network_team.wait_until_state(STATE_SERVER, timeout=60.0)
+#     assert network_team.is_server
+
+#     team_service_follower.wait_until_state(STATE_CONNECTED, timeout=60.0)
+#     assert team_service_follower.connected
+#     assert not team_service_follower.is_server
+#     assert network_team.is_server
 
 
-
-
-@pytest.mark.skip
-def test_basic_service(listen_service, offer_service):
-    listen_service.wait_until_connected(timeout=60.0)
-    offer_service.wait_until_connected(timeout=60.0)
-
-    assert offer_service.is_server
-    assert offer_service.connected
-    assert listen_service.connected
-    assert not listen_service.is_server
-
-@pytest.mark.skip
-def test_basic_team(team_service1, team_service2):
-    team_service1.wait_until_state(STATE_SERVER, timeout=60.0)
-    # wait for first service to set to server.
-    # team_service1 should have the higher priority.
-    assert team_service1.is_server
-    assert team_service1.connected
-
-    team_service2.wait_until_state(STATE_CONNECTED, timeout=60.0)
-
-    assert team_service1.is_server
-    assert team_service1.connected
-    assert not team_service2.is_server
-    assert team_service2.connected
-
-@pytest.mark.skip
-def test_network_listen(listen_service, network_offer):
-    listen_service.wait_until_state(STATE_CONNECTED, timeout=60.0)
-    network_offer.wait_until_state(STATE_SERVER, timeout=60.0)
-
-    assert listen_service.connected
-    assert not listen_service.is_server
-    assert listen_service.server[0] == network_offer.host
-    assert network_offer.is_server
-
-@pytest.mark.skip
-def test_network_offer(offer_service, network_listen):
-    offer_service.wait_until_state(STATE_SERVER, timeout=60.0)
-    network_listen.wait_until_state(STATE_CONNECTED, timeout=60.0)
-
-    assert offer_service.is_server
-    assert not network_listen.is_server
-    assert network_listen.connected
-
-@pytest.mark.skip
-def test_network_team(team_service1, network_team):
-    team_service1.wait_until_state(STATE_SERVER, timeout=60.0)
-    network_team.wait_until_state(STATE_CONNECTED, timeout=60.0)
-
-    assert network_team.connected
-    assert not network_team.is_server
-    assert team_service1.connected
-    assert team_service1.is_server
-
-@pytest.mark.skip
-def test_network_team_local_follower(team_service_follower, network_team):
-    network_team.wait_until_state(STATE_SERVER, timeout=60.0)
-    assert network_team.is_server
-
-    team_service_follower.wait_until_state(STATE_CONNECTED, timeout=60.0)
-    assert team_service_follower.connected
-    assert not team_service_follower.is_server
-    assert network_team.is_server
