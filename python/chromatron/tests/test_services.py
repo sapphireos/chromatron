@@ -9,8 +9,14 @@ from fixtures import *
 
 
 class DeviceService(object):
-    def __init__(self, device):
-        self.device = device
+    def __init__(self, host=NETWORK_ADDR):
+        d = Device(host=host)
+        d.scan()
+
+        d.set_key('test_service_mode', 0)
+        time.sleep(0.1)
+
+        self.device = d
         self.host = self.device.host
 
     def __str__(self):
@@ -73,6 +79,27 @@ class DeviceService(object):
                 if timeout < 0.0:
                     raise ServiceNotConnected
 
+    def listen(self, service_id=1234, group=5678):
+        self.device.set_key('test_service_priority', 0)
+        self.device.set_key('test_service_mode', 2)
+        time.sleep(0.1)
+
+        return self
+
+    def offer(self, service_id=1234, group=5678, priority=99):
+        self.device.set_key('test_service_priority', priority)
+        self.device.set_key('test_service_mode', 1)
+        time.sleep(0.1)
+
+        return self
+
+    def join_team(self, service_id=1234, group=5678, priority=99):
+        self.device.set_key('test_service_priority', priority)
+        self.device.set_key('test_service_mode', 3)
+        time.sleep(0.1)
+
+        return self
+
 
 @pytest.fixture()
 def listen_service():
@@ -111,32 +138,24 @@ def team_service_follower():
     s.join()
 
 
-def network_device(mode):
-    d = Device(host=NETWORK_ADDR)
-    d.scan()
-    if d.get_key('test_services') != mode:
-        logging.debug(f"resetting network device for mode {mode}...")
-        d.set_key('test_services', mode)
-        d.reboot()
-        d.wait()
-        logging.debug("network device ready!")
-        
-    return DeviceService(d)
-
 @pytest.fixture
 def network_offer():
-    return network_device(1)
+    return DeviceService().offer()
 
 @pytest.fixture
 def network_listen():
-    return network_device(2)
+    return DeviceService().listen()
     
 @pytest.fixture
 def network_team():
-    return network_device(3)
+    return DeviceService().join_team()
+
+@pytest.fixture
+def network_team_follower():
+    return DeviceService().join_team(priority=0)
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_basic_service(listen_service, offer_service):
     listen_service.wait_until_connected(timeout=60.0)
     offer_service.wait_until_connected(timeout=60.0)
@@ -146,7 +165,7 @@ def test_basic_service(listen_service, offer_service):
     assert listen_service.connected
     assert not listen_service.is_server
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_basic_team(team_service1, team_service2):
     team_service1.wait_until_state(STATE_SERVER, timeout=60.0)
     # wait for first service to set to server.
@@ -199,4 +218,3 @@ def test_network_team_local_follower(team_service_follower, network_team):
     assert team_service_follower.connected
     assert not team_service_follower.is_server
     assert network_team.is_server
-    

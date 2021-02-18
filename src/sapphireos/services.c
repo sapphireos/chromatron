@@ -33,11 +33,22 @@
 
 #include "services.h"
 
+#define TEST_MODE
+
 #if defined(ENABLE_NETWORK) && defined(ENABLE_SERVICES)
 
+
+#ifdef TEST_MODE
+static uint8_t test_service_priority;
+static uint8_t test_service_mode;
+
 KV_SECTION_META kv_meta_t services_kv[] = {
-    { SAPPHIRE_TYPE_UINT8, 0, KV_FLAGS_PERSIST, 0, 0,  "test_services" },
+    { SAPPHIRE_TYPE_UINT8,  0, 0, &test_service_priority,   0,  "test_service_priority" },
+    { SAPPHIRE_TYPE_UINT8,  0, 0, &test_service_mode,       0,  "test_service_mode" },
 };
+
+
+#endif
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -342,6 +353,45 @@ static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
     return len;
 }
 
+
+#ifdef TEST_MODE
+
+PT_THREAD( service_test_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        services_v_cancel( 1234, 5678 );
+
+        THREAD_WAIT_WHILE( pt, test_service_mode == 0 );
+
+        if( test_service_mode == 1 ){
+
+            services_v_offer( 1234, 5678, test_service_priority, 1000 );
+        }
+        else if( test_service_mode == 2 ){
+
+            services_v_listen( 1234, 5678 );
+        }
+        else if( test_service_mode == 3 ){
+
+            services_v_join_team( 1234, 5678, test_service_priority, 1000 );
+        }
+        else{
+
+            test_service_mode = 0;
+        }
+
+        THREAD_WAIT_WHILE( pt, test_service_mode != 0 );
+    }    
+    
+PT_END( pt );
+}
+
+
+#endif
+
 void services_v_init( void ){
 
     list_v_init( &service_list );
@@ -363,28 +413,35 @@ void services_v_init( void ){
     // create vfile
     fs_f_create_virtual( PSTR("serviceinfo"), vfile );
 
+    #ifdef TEST_MODE
+    thread_t_create( service_test_thread,
+                     PSTR("service_test"),
+                     0,
+                     0 );
 
-    uint8_t test = 0;
-    kv_i8_get( __KV__test_services, &test, sizeof(test) );
+    #endif
 
-    if( test == 1 ){
+    // uint8_t test = 0;
+    // kv_i8_get( __KV__test_services, &test, sizeof(test) );
 
-        log_v_debug_P( PSTR("services test mode enabled: OFFER") );
+    // if( test == 1 ){
 
-        services_v_offer(1234, 5678, 1, 1);     
-    }
-    else if( test == 2 ){
+    //     log_v_debug_P( PSTR("services test mode enabled: OFFER") );
 
-        log_v_debug_P( PSTR("services test mode enabled: LISTEN") );
+    //     services_v_offer(1234, 5678, 1, 1);     
+    // }
+    // else if( test == 2 ){
 
-        services_v_listen(1234, 5678);     
-    }
-    else if( test == 3 ){
+    //     log_v_debug_P( PSTR("services test mode enabled: LISTEN") );
 
-        log_v_debug_P( PSTR("services test mode enabled: JOIN") );
+    //     services_v_listen(1234, 5678);     
+    // }
+    // else if( test == 3 ){
 
-        services_v_join_team(1234, 5678, 1, 1);     
-    }
+    //     log_v_debug_P( PSTR("services test mode enabled: JOIN") );
+
+    //     services_v_join_team(1234, 5678, 1, 1);     
+    // }
 
     // debug
     // if( cfg_u64_get_device_id() == 93172270997720 ){
@@ -400,6 +457,7 @@ void services_v_init( void ){
     //     services_v_listen(1234, 5678);
     // }
 }
+
 
 void services_v_listen( uint32_t id, uint64_t group ){
 
