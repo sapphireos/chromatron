@@ -2,7 +2,7 @@ import time
 import pytest
 import logging
 from catbus import *
-from sapphire.protocols.services import ServiceManager, STATE_CONNECTED
+from sapphire.protocols.services import ServiceManager, STATE_CONNECTED, STATE_SERVER
 from sapphire.devices.device import Device
 
 from fixtures import *
@@ -36,33 +36,41 @@ def team_service2():
 	s.stop()
 	s.join()
 
+
 @pytest.fixture
-def network_offer():
+def team_service_follower():
+	s = ServiceManager()
+	yield s.join_team(1234, 5678, 1000, priority=0)
+	s.stop()
+	s.join()
+
+
+def network_device(mode):
 	d = Device(host=NETWORK_ADDR)
 	d.scan()
-	if d.get_key('test_services') != 1:
-		logging.debug("resetting network device...")
-		d.set_key('test_services', 1)
+	if d.get_key('test_services') != mode:
+		logging.debug(f"resetting network device for mode {mode}...")
+		d.set_key('test_services', mode)
 		d.reboot()
 		d.wait()
 		logging.debug("network device ready!")
 		
 	return d
+
+@pytest.fixture
+def network_offer():
+	return network_device(1)
 
 @pytest.fixture
 def network_listen():
-	d = Device(host=NETWORK_ADDR)
-	d.scan()
-	if d.get_key('test_services') != 2:
-		logging.debug("resetting network device...")
-		d.set_key('test_services', 2)
-		d.reboot()
-		d.wait()
-		logging.debug("network device ready!")
-		
-	return d
+	return network_device(2)
+	
+@pytest.fixture
+def network_team():
+	return network_device(3)
 
-@pytest.mark.skip
+
+# @pytest.mark.skip
 def test_basic_service(listen_service, offer_service):
 	listen_service.wait_until_connected(timeout=60.0)
 	offer_service.wait_until_connected(timeout=60.0)
@@ -72,6 +80,7 @@ def test_basic_service(listen_service, offer_service):
 	assert listen_service.connected
 	assert not listen_service.is_server
 
+# @pytest.mark.skip
 def test_basic_team(team_service1, team_service2):
 	team_service1.wait_until_connected(timeout=60.0)
 	# wait for first service to set to server.
@@ -86,7 +95,7 @@ def test_basic_team(team_service1, team_service2):
 	assert not team_service2.is_server
 	assert team_service2.connected
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_network_listen(listen_service, network_offer):
 	listen_service.wait_until_connected(timeout=60.0)
 
@@ -94,11 +103,34 @@ def test_network_listen(listen_service, network_offer):
 	assert not listen_service.is_server
 	assert listen_service.server[0] == network_offer.host
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_network_offer(offer_service, network_listen):
 	offer_service.wait_until_connected(timeout=60.0)
 
 	s = network_listen.wait_service(1234, 5678)
 	assert s
 	assert s.state == STATE_CONNECTED
+
+# @pytest.mark.skip
+def test_network_team(team_service1, network_team):
+	team_service1.wait_until_state(STATE_SERVER, timeout=60.0)
+
+	s = network_team.wait_service(1234, 5678)
+	assert s
+	assert s.state == STATE_CONNECTED
+
+	assert team_service1.connected
+	assert team_service1.is_server
+
+
+def test_network_team_local_follower(team_service_follower, network_team):
+	s = network_team.wait_service(1234, 5678)
+	assert s
+	assert s.state == STATE_SERVER
+
+	team_service_follower.wait_until_state(STATE_CONNECTED, timeout=60.0)
+	assert team_service_follower.connected
+	assert not team_service_follower.is_server
+	
+
 
