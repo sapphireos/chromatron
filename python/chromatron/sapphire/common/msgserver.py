@@ -251,7 +251,7 @@ class BaseServer(Ribbon):
 
 
 class MsgServer(BaseServer):
-    def __init__(self, name='msg_server', port=0, listener_port=None, listener_mcast=None, ignore_unknown=True):
+    def __init__(self, **kwargs):
         self._messages = {}
         self._handlers = {}
         self._msg_type_offset = None
