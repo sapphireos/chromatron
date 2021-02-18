@@ -498,7 +498,7 @@ typedef struct{
 #ifdef ENABLE_TIME_SYNC
 static uint32_t vm0_sync_ts;
 static uint64_t vm0_sync_ticks;
-static uint64_t vm0_checkpoint;
+static uint32_t vm0_checkpoint;
 static uint32_t vm0_checkpoint_hash;
 
 void vm_v_sync( uint32_t ts, uint64_t ticks ){
@@ -519,7 +519,7 @@ uint64_t vm_u64_get_sync_tick( void ){
     return vm0_sync_ticks;
 }
 
-uint64_t vm_u64_get_checkpoint( void ){
+uint32_t vm_u32_get_checkpoint( void ){
 
     return vm0_checkpoint;
 }

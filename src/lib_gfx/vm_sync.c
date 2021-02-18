@@ -171,8 +171,9 @@ static void send_sync( sock_addr_t *raddr ){
     msg.tick                    = state->tick;
     msg.loop_tick               = state->loop_tick;
     msg.rng_seed                = state->rng_seed;
+    msg.frame_number            = state->frame_number;
 
-    msg.checkpoint              = vm_u64_get_checkpoint();
+    msg.checkpoint              = vm_u32_get_checkpoint();
     msg.checkpoint_hash         = vm_u32_get_checkpoint_hash();
     
     msg.data_len                = state->data_len;
@@ -328,6 +329,7 @@ PT_BEGIN( pt );
                 vm_state->tick         = msg->tick;
                 vm_state->loop_tick    = msg->loop_tick;
                 vm_state->rng_seed     = msg->rng_seed;
+                vm_state->frame_number = msg->frame_number;
 
                 uint8_t thread_count = VM_MAX_THREADS;
 

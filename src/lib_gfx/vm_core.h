@@ -174,7 +174,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint64_t tick;
     uint32_t last_elapsed_us;
     uint64_t loop_tick;
-    uint64_t frame_number;
+    uint32_t frame_number;
 
     uint32_t program_name_hash;
 

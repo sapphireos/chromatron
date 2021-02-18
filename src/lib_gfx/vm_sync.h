@@ -34,7 +34,7 @@
 #define SYNC_SERVICE                        __KV__vmsync
 
 #define SYNC_INTERVAL                       8000
-#define SYNC_CHECKPOINT                     1024
+#define SYNC_CHECKPOINT                     256
 
 #define SYNC_MAX_THREADS                    16
 
@@ -57,8 +57,9 @@ typedef struct __attribute__((packed)){
     uint64_t tick;
     uint64_t loop_tick;
     uint64_t rng_seed;
+    uint32_t frame_number;
 
-    uint64_t checkpoint;
+    uint32_t checkpoint;
     uint32_t checkpoint_hash;
     
     uint16_t data_len;
