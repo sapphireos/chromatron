@@ -667,17 +667,23 @@ class Device(object):
         return None
 
     # helper for testing mostly
-    def wait_service(self, service_id, group, timeout=30.0):
+    def wait_service(self, service_id, group, state=None, timeout=30.0):
         start = time.time()
         while time.time() - start < timeout:
             time.sleep(0.2)
             s = self.get_service(service_id, group)
 
+            if s is None:
+                continue
+
             if s.state == 0:
                 continue
 
-            if s is not None:
-                return s
+            if state is not None:
+                if s.state != state:
+                    continue
+
+            return s
 
         return None
 

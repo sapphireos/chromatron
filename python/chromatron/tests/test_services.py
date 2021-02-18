@@ -124,7 +124,7 @@ def test_network_team(team_service1, network_team):
 
 
 def test_network_team_local_follower(team_service_follower, network_team):
-	s = network_team.wait_service(1234, 5678)
+	s = network_team.wait_service(1234, 5678, STATE_SERVER)
 	assert s
 	assert s.state == STATE_SERVER
 
