@@ -31,7 +31,7 @@ import os
 import json
 import logging
 from filelock import Timeout, FileLock
-
+logging.getLogger("filelock").setLevel(logging.WARNING)
 
 from sapphire.buildtools import firmware_package
 DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.json')

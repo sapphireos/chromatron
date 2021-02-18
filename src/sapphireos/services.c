@@ -371,7 +371,7 @@ void services_v_init( void ){
 
         log_v_debug_P( PSTR("services test mode enabled: OFFER") );
 
-        services_v_offer(1234, 5678, 1, 0);     
+        services_v_offer(1234, 5678, 1, 1);     
     }
     else if( test == 2 ){
 
@@ -383,7 +383,7 @@ void services_v_init( void ){
 
         log_v_debug_P( PSTR("services test mode enabled: JOIN") );
 
-        services_v_join_team(1234, 5678, 1, 0);     
+        services_v_join_team(1234, 5678, 1, 1);     
     }
 
     // debug

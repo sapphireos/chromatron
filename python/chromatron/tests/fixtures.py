@@ -8,7 +8,7 @@ import logging
 
 setup_basic_logging(level=logging.DEBUG)
 
-NETWORK_ADDR = '10.0.0.156'
+NETWORK_ADDR = '10.0.0.235'
 
 @pytest.fixture
 def local_server():

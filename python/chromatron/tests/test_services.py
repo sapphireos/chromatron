@@ -66,17 +66,8 @@ def test_network_listen(listen_service, network_offer):
 
 def test_network_offer(offer_service, network_listen):
 	offer_service.wait_until_connected(timeout=60.0)
-	
-	for i in range(300):
-		time.sleep(0.1)
 
-		s = network_listen.get_service(1234, 5678)
-
-		if s is None:
-			continue
-
-		if s.state == STATE_CONNECTED:
-			return
-
-	assert False
+	s = network_listen.wait_service(1234, 5678)
+	assert s
+	assert s.state == STATE_CONNECTED
 

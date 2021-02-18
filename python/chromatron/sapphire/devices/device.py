@@ -666,6 +666,21 @@ class Device(object):
 
         return None
 
+    # helper for testing mostly
+    def wait_service(self, service_id, group, timeout=30.0):
+        start = time.time()
+        while time.time() - start < timeout:
+            time.sleep(0.2)
+            s = self.get_service(service_id, group)
+
+            if s.state == 0:
+                continue
+
+            if s is not None:
+                return s
+
+        return None
+
     def get_event_log(self):
         data = self.get_file("event_log")
         info = sapphiredata.EventArray()
