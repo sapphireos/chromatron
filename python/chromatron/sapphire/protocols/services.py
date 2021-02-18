@@ -644,7 +644,7 @@ def main():
         svc = s.offer(1234, 5678, 1000, priority=99)
 
     elif sys.argv[1] == 'join':
-        svc = s.join_team(1234, 5678, 1000, priority=0)
+        svc = s.join_team(1234, 5678, 1000, priority=99)
 
     run_all()
 
