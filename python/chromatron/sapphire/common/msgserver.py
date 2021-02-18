@@ -60,8 +60,9 @@ class _Timer(Ribbon):
         if not self.repeat:
             self.stop()
 
-class MsgServer(Ribbon):
-    def __init__(self, name='msg_server', port=0, listener_port=None, listener_mcast=None, ignore_unknown=True):
+
+class BaseServer(Ribbon):
+    def __init__(self, name='base_server', port=0, listener_port=None, listener_mcast=None, ignore_unknown=True):
         super().__init__(name, suppress_logs=True)
 
         self._port = port
@@ -150,6 +151,127 @@ class MsgServer(Ribbon):
         else:
             return f'{self.name} @ {self._port} & {self._listener_port}'
 
+    def received_packet(self, data, host):
+        pass
+
+    @synchronized
+    def send_packet(self, data, host):
+        try:
+            if host[0] == '<broadcast>':
+                port = host[1]
+                    
+                # are we multicasting:
+                if self._listener_mcast:
+                    # send to multicast address
+                    self.__server_sock.sendto(data, (self._listener_mcast, port))
+    
+                else:
+                    # no, this is a normal broadcast.
+                    # transmit on all IP interfaces
+                    for addr in get_broadcast_addresses():
+                        self.__server_sock.sendto(data, (addr, port))
+
+            else:
+                self.__server_sock.sendto(data, host)
+
+        except socket.error:
+            pass
+
+    def _process(self):
+        try:
+            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
+
+            with self._lock:
+                for s in readable:
+                    try:
+                        data, host = s.recvfrom(4096)
+
+                        # process data
+                        if (s == self.__server_sock) or (s == self._listener_sock):
+                            self.received_packet(data, host)
+                            
+                        # run timers
+                        elif host[1] in self._timers:    
+                            self._timers[host[1]].handler()
+
+                    except UnknownMessage as e:
+                        if self.ignore_unknown:
+                            self.unknown_handler(msg, host)
+
+                        else:
+                            logging.exception(e)
+
+                    except InvalidMessage as e:
+                        # logging.exception(e)
+                        pass
+
+                    except Exception as e:
+                        logging.exception(e)
+
+
+        except select.error as e:
+            logging.exception(e)
+
+        except Exception as e:
+            logging.exception(e)
+        
+    @synchronized
+    def start_timer(self, interval, handler, repeat=True):
+        timer = _Timer(f'{self.name}.timer', interval, self._timer_port, handler)
+        self._timers[timer.port] = timer
+    
+    @synchronized
+    def stop(self):
+        super()._shutdown()
+        
+        logging.info(f"{self.name}: shutting down")
+        
+        # shut down timers
+        for timer in self._timers.values():
+            timer.stop()
+
+        self.clean_up()
+
+        # leave multicast group
+        if self._listener_port is not None and self._listener_mcast is not None:
+            logging.info(f'{self.name}: leaving multicast group {self._listener_mcast}')
+            mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
+            try:
+                self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
+
+            except OSError as e:
+                # can't find an explanation for why the socket occasionally gives this error,
+                # but we're shutting down anyway.
+                pass
+
+        logging.info(f"{self.name}: shut down complete")
+
+    def clean_up(self):
+        pass
+
+
+class MsgServer(BaseServer):
+    def __init__(self, name='msg_server', port=0, listener_port=None, listener_mcast=None, ignore_unknown=True):
+        self._messages = {}
+        self._handlers = {}
+        self._msg_type_offset = None
+        self._protocol_version = None
+        self._protocol_version_offset = None
+        self._protocol_magic = None
+        self._protocol_magic_offset = None
+        
+        super().__init__(**kwargs)
+
+    def received_packet(self, data, host):
+        msg = self._deserialize(data)
+
+        response = None                    
+
+        response, host = self._process_msg(msg, host)
+        
+        if response:
+            self.transmit(response, host)
+
     def _deserialize(self, buf):
         try:
             msg_id = int(buf[self._msg_type_offset])
@@ -197,55 +319,6 @@ class MsgServer(Ribbon):
             return None, None
 
         return tokens[0], tokens[1]
-
-    def _process(self):
-        try:
-            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
-
-            with self._lock:
-                for s in readable:
-                    try:
-                        data, host = s.recvfrom(4096)
-
-                        # process data
-                        if (s == self.__server_sock) or (s == self._listener_sock):
-                            msg = self._deserialize(data)
-                            response = None                    
-        
-                            response, host = self._process_msg(msg, host)
-                            
-                            if response:
-                                self.transmit(response, host)
-
-                        # run timers
-                        elif host[1] in self._timers:    
-                            self._timers[host[1]].handler()
-
-                    except UnknownMessage as e:
-                        if self.ignore_unknown:
-                            self.unknown_handler(msg, host)
-
-                        else:
-                            logging.exception(e)
-
-                    except InvalidMessage as e:
-                        # logging.exception(e)
-                        pass
-
-                    except Exception as e:
-                        logging.exception(e)
-
-
-        except select.error as e:
-            logging.exception(e)
-
-        except Exception as e:
-            logging.exception(e)
-        
-    @synchronized
-    def start_timer(self, interval, handler, repeat=True):
-        timer = _Timer(f'{self.name}.timer', interval, self._timer_port, handler)
-        self._timers[timer.port] = timer
     
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
@@ -294,54 +367,4 @@ class MsgServer(Ribbon):
 
     @synchronized
     def transmit(self, msg, host):
-        try:
-            if host[0] == '<broadcast>':
-                data = msg.pack()
-                port = host[1]
-                    
-                # are we multicasting:
-                if self._listener_mcast:
-                    # send to multicast address
-                    self.__server_sock.sendto(msg.pack(), (self._listener_mcast, port))
-    
-                else:
-                    # no, this is a normal broadcast.
-                    # transmit on all IP interfaces
-                    for addr in get_broadcast_addresses():
-                        self.__server_sock.sendto(data, (addr, port))
-
-            else:
-                self.__server_sock.sendto(msg.pack(), host)
-
-        except socket.error:
-            pass
-
-    @synchronized
-    def stop(self):
-        super()._shutdown()
-        
-        logging.info(f"{self.name}: shutting down")
-        
-        # shut down timers
-        for timer in self._timers.values():
-            timer.stop()
-
-        self.clean_up()
-
-        # leave multicast group
-        if self._listener_port is not None and self._listener_mcast is not None:
-            logging.info(f'{self.name}: leaving multicast group {self._listener_mcast}')
-            mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
-            try:
-                self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
-
-            except OSError as e:
-                # can't find an explanation for why the socket occasionally gives this error,
-                # but we're shutting down anyway.
-                pass
-
-        logging.info(f"{self.name}: shut down complete")
-
-    def clean_up(self):
-        pass
-
+        self.send_packet(msg.pack(), host)
