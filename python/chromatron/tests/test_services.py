@@ -23,6 +23,20 @@ def offer_service():
 	s.join()
 
 @pytest.fixture
+def team_service1():
+	s = ServiceManager()
+	yield s.join_team(1234, 5678, 1000, priority=99)
+	s.stop()
+	s.join()
+
+@pytest.fixture
+def team_service2():
+	s = ServiceManager()
+	yield s.join_team(1234, 5678, 1000, priority=98)
+	s.stop()
+	s.join()
+
+@pytest.fixture
 def network_offer():
 	d = Device(host=NETWORK_ADDR)
 	d.scan()
@@ -48,6 +62,7 @@ def network_listen():
 		
 	return d
 
+@pytest.mark.skip
 def test_basic_service(listen_service, offer_service):
 	listen_service.wait_until_connected(timeout=60.0)
 	offer_service.wait_until_connected(timeout=60.0)
@@ -57,6 +72,21 @@ def test_basic_service(listen_service, offer_service):
 	assert listen_service.connected
 	assert not listen_service.is_server
 
+def test_basic_team(team_service1, team_service2):
+	team_service1.wait_until_connected(timeout=60.0)
+	# wait for first service to set to server.
+	# team_service1 should have the higher priority.
+	assert team_service1.is_server
+	assert team_service1.connected
+
+	team_service2.wait_until_state(STATE_CONNECTED, timeout=60.0)
+
+	assert team_service1.is_server
+	assert team_service1.connected
+	assert not team_service2.is_server
+	assert team_service2.connected
+
+@pytest.mark.skip
 def test_network_listen(listen_service, network_offer):
 	listen_service.wait_until_connected(timeout=60.0)
 
@@ -64,6 +94,7 @@ def test_network_listen(listen_service, network_offer):
 	assert not listen_service.is_server
 	assert listen_service.server[0] == network_offer.host
 
+@pytest.mark.skip
 def test_network_offer(offer_service, network_listen):
 	offer_service.wait_until_connected(timeout=60.0)
 

@@ -102,6 +102,9 @@ class ServiceOffer(StructField):
 
         self.origin = origin
 
+    def __str__(self):
+        return f'Offer: {hex(self.id)}/{hex(self.group)} prio: {self.priority}'
+
     @property
     def key(self):
         return make_key(self.id, self.group)
@@ -243,6 +246,18 @@ class Service(object):
     def _shutdown(self):
         self._reset()
 
+    def wait_until_state(self, state, timeout=0.0):
+        logging.debug(f"{self} waiting for state {state}, timeout {timeout}")
+        
+        while self._state != state:
+            time.sleep(0.1)
+
+            if timeout > 0.0:
+                timeout -= 0.1
+
+                if timeout < 0.0:
+                    raise ServiceNotConnected
+
     def wait_until_connected(self, timeout=0.0):
         if self.connected:
             return
@@ -259,7 +274,7 @@ class Service(object):
                     raise ServiceNotConnected
 
     def _process_offer(self, offer, host):
-        # logging.debug(f"Received OFFER from {host}")
+        # logging.debug(f"Received OFFER from {host}: {offer}")
 
         # filter packet
         if isinstance(self, Team):
@@ -358,7 +373,7 @@ class Service(object):
                 if (self._best_offer is None) or (offer > self._best_offer):
                     # check if server is valid - we will only consider
                     # other valid servers, not candidates
-                    if offer.is_server:
+                    if offer.server_valid:
                         # update tracking
                         self._best_offer = offer
                         self._best_host = host
@@ -591,12 +606,13 @@ class ServiceManager(MsgServer):
             offer.origin = msg.header.origin # attach origin to offer
             try:
                 svc = self._services[offer.key]
-                if svc._process_offer(offer, host) == 'transmit_service':
+            except KeyError:
+                continue
+
+            if svc._process_offer(offer, host) == 'transmit_service':
                     # unicast offer for our server
                     self._send_offers([svc._offer], host)
 
-            except KeyError:
-                continue
 
     def _handle_query(self, msg, host):
         key = make_key(msg.id, msg.group)
