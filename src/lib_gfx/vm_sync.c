@@ -351,7 +351,7 @@ PT_BEGIN( pt );
 
                     if( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ){
 
-                        log_v_warn_P( PSTR("checkpoint hash mismatch!: %x -> %x"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash() );
+                        log_v_warn_P( PSTR("checkpoint hash mismatch!: %x -> %x @ %u"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash(), vm_u32_get_checkpoint() );
                     }
                 }
                 else{

@@ -311,7 +311,7 @@ static void time_v_set_ntp_master_clock_internal(
         ( abs64( delta_ntp_seconds ) > 60 ) ||
         !is_sync ){
 
-        log_v_debug_P( PSTR("clock synced") );
+        log_v_debug_P( PSTR("clock synced: prev sync: %d delta_master: %d delta_ntp: %d"), is_sync, (int32_t)delta_master_ms, (int32_t)delta_ntp_seconds );
         
         // hard sync
         master_ntp_time         = source_ts;
