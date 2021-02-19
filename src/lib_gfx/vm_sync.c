@@ -320,21 +320,6 @@ PT_BEGIN( pt );
             // sync VM
             vm_v_sync( msg->net_time, msg->sync_tick );
 
-            // verify checkpoint
-            if( vm_u32_get_checkpoint() == msg->checkpoint ){
-
-                if( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ){
-
-                    log_v_warn_P( PSTR("checkpoint hash mismatch!: %u -> %u"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash() );
-                }
-            }
-            else{
-
-                log_v_debug_P( PSTR("checkpoint frame mismatch: %u -> %u"), msg->checkpoint, vm_u32_get_checkpoint() );
-            }
-
-            // log_v_debug_P( PSTR("leader checkpoint: %u -> %x"), (uint32_t)msg->checkpoint, msg->checkpoint_hash );
-
             if( sync_state == STATE_SYNCING ){
 
                 sync_data_remaining = msg->data_len;
@@ -359,15 +344,21 @@ PT_BEGIN( pt );
 
                 // log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
             }
-            // else if( sync_state == STATE_SYNC ){
+            else if( sync_state == STATE_SYNC ){
 
-            //     int64_t sync_delta = (int64_t)msg->sync_tick - (int64_t)vm_state->tick;
+                // verify checkpoint
+                if( vm_u32_get_checkpoint() == msg->checkpoint ){
 
-            //     if( sync_delta != 0 ){
+                    if( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ){
 
-            //         log_v_debug_P( PSTR("sync delta: %d"), (int32_t)sync_delta );    
-            //     }
-            // }
+                        log_v_warn_P( PSTR("checkpoint hash mismatch!: %x -> %x"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash() );
+                    }
+                }
+                else{
+
+                    // log_v_debug_P( PSTR("checkpoint frame mismatch: %u -> %u"), msg->checkpoint, vm_u32_get_checkpoint() );
+                }
+            }
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
