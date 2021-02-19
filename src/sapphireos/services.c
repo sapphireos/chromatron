@@ -1182,7 +1182,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
                 track_node( service, header, pkt, ip, origin );
 
-                log_v_debug_P( PSTR("service switched to %d.%d.%d.%d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
+                log_v_debug_P( PSTR("service switched to %d.%d.%d.%d for %x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id );
             }
         }
         // NOTE servers have no processing here - they don't track other offers.
@@ -1199,7 +1199,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
         if( !valid && service->server_valid ){
 
-            log_v_debug_P( PSTR("%d.%d.%d.%d is now valid"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );            
+            log_v_debug_P( PSTR("%d.%d.%d.%d is now valid for %x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id );            
         }
 
         // are we connected to this node?
@@ -1215,7 +1215,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
                 // reset, maybe there is a better server available
 
-                log_v_debug_P( PSTR("%d.%d.%d.%d is no longer valid"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
+                log_v_debug_P( PSTR("%d.%d.%d.%d is no longer valid for %x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id );
 
                 reset_state( service );
 
@@ -1227,7 +1227,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 // no, we are better
                 log_v_debug_P( PSTR("we are a better server") );
 
-                log_v_info_P( PSTR("-> SERVER") );
+                log_v_info_P( PSTR("%x -> SERVER"), service->id );
                 service->state = STATE_SERVER;
 
                 cache_service( service->id, service->group, ip_a_addr(0,0,0,0), service->local_port );
@@ -1244,7 +1244,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
             // check if server in packet is better than current tracking
             if( compare_server( service, header, pkt, origin ) ){
 
-                log_v_debug_P( PSTR("state: LISTEN") );
+                log_v_debug_P( PSTR("%x state: LISTEN"), service->id );
 
                 track_node( service, header, pkt, ip, origin );    
             }
@@ -1255,14 +1255,14 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
             if( ( service->server_origin != origin ) && 
                 compare_server( service, header, pkt, origin ) ){
                 
-                log_v_debug_P( PSTR("state: CONNECTED") );
+                log_v_debug_P( PSTR("%x state: CONNECTED"), service->id );
 
                 track_node( service, header, pkt, ip, origin );
 
                 // if tracking is a server
                 if( service->server_valid ){
 
-                    log_v_debug_P( PSTR("hop to better server: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                    log_v_debug_P( PSTR("%x hop to better server: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
 
                     // reset timeout
                     service->timeout   = SERVICE_CONNECTED_TIMEOUT;
@@ -1287,7 +1287,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                     if( !compare_self( service ) ){
 
                         // tracked server is better
-                        log_v_debug_P( PSTR("found a better server: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        log_v_debug_P( PSTR("%x found a better server: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
 
                         log_v_info_P( PSTR("-> CONNECTED") );
 
@@ -1508,7 +1508,7 @@ PT_BEGIN( pt );
 
                     if( service->timeout == SERVICE_CONNECTED_WARN_THRESHOLD ){
 
-                        log_v_warn_P( PSTR("server unresponsive") );
+                        log_v_warn_P( PSTR("server unresponsive: %x"), service->id );
                     }
                 }
             }
@@ -1523,7 +1523,7 @@ PT_BEGIN( pt );
                     // do we have a leader?
                     if( service->server_valid && !ip_b_is_zeroes( service->server_ip ) ){
 
-                        log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        log_v_info_P( PSTR("%x -> CONNECTED to: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
                         service->state     = STATE_CONNECTED;   
                         service->timeout   = SERVICE_CONNECTED_TIMEOUT;
 
@@ -1541,7 +1541,7 @@ PT_BEGIN( pt );
                     // compare us to best server we've seen
                     if( compare_self( service ) ){
 
-                        log_v_info_P( PSTR("-> SERVER") );
+                        log_v_info_P( PSTR("%x -> SERVER"), service->id );
                         service->state = STATE_SERVER;
 
                         cache_service( service->id, service->group, ip_a_addr(0,0,0,0), service->local_port );
@@ -1550,7 +1550,7 @@ PT_BEGIN( pt );
                     else if( service->server_valid ){
 
                         // found a leader
-                        log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        log_v_info_P( PSTR("%x -> CONNECTED to: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
                         service->state     = STATE_CONNECTED;
                         service->timeout   = SERVICE_CONNECTED_TIMEOUT;
 
@@ -1570,7 +1570,7 @@ PT_BEGIN( pt );
             }
             else if( service->state == STATE_CONNECTED ){                    
 
-                log_v_info_P( PSTR("CONNECTED timeout: lost server") );
+                log_v_info_P( PSTR("%x CONNECTED timeout: lost server"), service->id );
 
                 reset_state( service );
 
