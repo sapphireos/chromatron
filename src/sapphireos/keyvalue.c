@@ -250,6 +250,9 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
     if( index >= 0 ){
 
+        // offset into dynamic
+        index += _kv_u16_fixed_count();
+
         // update cache
         _kv_v_add_to_cache( hash, index );
 
@@ -322,9 +325,9 @@ int8_t kv_i8_lookup_index_with_name( uint16_t index, kv_meta_t *meta ){
 
     // static KV already loads the name.
     // check if dynamic
-    if( index < kv_u16_count() ){
+    if( ( index >= _kv_u16_fixed_count() ) && ( index < kv_u16_count() ) ){
 
-        kvdb_i8_lookup_name( meta->hash, meta->name );    
+        status = kvdb_i8_lookup_name( meta->hash, meta->name );    
     }
 
     return status;

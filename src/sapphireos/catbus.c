@@ -781,7 +781,7 @@ PT_BEGIN( pt );
 
             _catbus_v_msg_init( &reply->header, CATBUS_MSG_TYPE_RESOLVED_HASH, header->transaction_id );
 
-            catbus_hash_t32 *hash = &msg->first_hash;
+            catbus_hash_t32 *hash_ptr = &msg->first_hash;
             catbus_string_t *str = &reply->first_string;
             reply->count = msg->count;
 
@@ -789,12 +789,16 @@ PT_BEGIN( pt );
 
                 msg->count--;
 
-                if( kv_i8_get_name( LOAD32(hash), str->str ) != KV_ERR_STATUS_OK ){
+                memset( str->str, 0, CATBUS_STRING_LEN );
+
+                uint32_t hash = LOAD32(hash_ptr);
+
+                if( kv_i8_get_name( hash, str->str ) != KV_ERR_STATUS_OK ){
 
                     // try query tags
                     for( uint8_t i = 0; i < cnt_of_array(meta_tag_hashes); i++ ){
 
-                        if( meta_tag_hashes[i] == LOAD32(hash) ){
+                        if( meta_tag_hashes[i] == hash ){
 
                             // retrieve string from config DB
                             cfg_i8_get( CFG_PARAM_META_TAG_0 + i, str->str );
@@ -804,7 +808,7 @@ PT_BEGIN( pt );
                     }
                 }
 
-                hash++;
+                hash_ptr++;
                 str++;
             }
 

@@ -4,7 +4,9 @@ import pytest
 from catbus import *
 from sapphire.common.util import setup_basic_logging
 from sapphire.common.msgserver import stop_all
+from sapphire.common import catbus_string_hash
 import logging
+from pprint import pprint
 
 setup_basic_logging(level=logging.DEBUG)
 

@@ -20,6 +20,7 @@
 # 
 # </license>
 
+import pytest
 import unittest
 from chromatron import code_gen
 from chromatron.vm import VM
@@ -3706,6 +3707,9 @@ class CGTestsOnDevice(CGTestsBase):
         while tries > 0:
             try:
                 # ct.load_vm(bin_data=program)
+                with open('test.fx', 'w') as f:
+                    f.write(program) # write out the program source for debug if it fails
+
                 builder = code_gen.compile_text(program, debug_print=False)
                 builder.assemble()
                 data = builder.generate_binary('test.fxb')

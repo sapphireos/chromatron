@@ -3,11 +3,13 @@ import os
 import pytest
 
 from fixtures import *
+from chromatron import code_gen, Chromatron
 
-
+@pytest.mark.skip
 def test_getkey(client):
     client.get_key('kv_test_key')
 
+@pytest.mark.skip
 def test_setkey(client):
     client.set_key('kv_test_key', 123)
     assert client.get_key('kv_test_key') == 123
@@ -15,9 +17,44 @@ def test_setkey(client):
     client.set_key('kv_test_key', 456)
     assert client.get_key('kv_test_key') == 456
 
+@pytest.mark.skip
 def test_resolve_hash(client):
     h = 0x3802fc29
     assert client.lookup_hash(h, skip_cache=True)[0x3802fc29] == 'kv_test_key'
+
+
+dynamic_test_program = """
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+
+def init():
+    pass
+"""
+def test_resolve_hash_dynamic_key(network_client):
+    client = network_client
+
+    ct = Chromatron(host=NETWORK_ADDR)
+    builder = code_gen.compile_text(dynamic_test_program, debug_print=False)
+    builder.assemble()
+    data = builder.generate_binary('test.fxb')
+
+    ct.stop_vm()
+    
+    # change vm program
+    ct.set_key('vm_prog', 'test.fxb')
+    ct.put_file('test.fxb', data)
+    ct.start_vm()
+    
+    time.sleep(0.5)
+
+    for k in ['a', 'b', 'c']:
+        h = catbus_string_hash(k)
+
+        check_key = client.lookup_hash(h, skip_cache=True)[h]
+
+        assert check_key == k
+
 
 @pytest.mark.skip
 def test_resolve_hash_from_tag(client):
@@ -25,7 +62,7 @@ def test_resolve_hash_from_tag(client):
     h = 0x75dd6565
     assert client.lookup_hash(h, skip_cache=True)[0x75dd6565] == '__TEST__'
 
-
+@pytest.mark.skip
 def test_ping(client):
     assert client.ping() < 2.0
 
@@ -37,7 +74,7 @@ def random_data():
     
     yield test_data
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_file_io(network_client, random_data):
     client = network_client
 
