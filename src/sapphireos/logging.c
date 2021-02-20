@@ -44,11 +44,6 @@
 
 static msgflow_t msgflow;
 
-static char buf[LOG_STR_BUF_SIZE];
-static file_t f = -1;
-static uint32_t max_log_size;
-
-
 PT_THREAD( msgflow_init_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -72,6 +67,11 @@ PT_END( pt );
 }
 
 #endif
+
+
+static char buf[LOG_STR_BUF_SIZE];
+static file_t f = -1;
+static uint32_t max_log_size;
 
 void log_v_init( void ){
 

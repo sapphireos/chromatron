@@ -57,6 +57,9 @@
 #define FADER_RATE              20
 // #define USE_GFX_LIB
 
+#define WIFI_MAX_IGMP           1
+
+
 // VM config
 // #define VM_TARGET_ESP
 // #define VM_ENABLE_GFX
