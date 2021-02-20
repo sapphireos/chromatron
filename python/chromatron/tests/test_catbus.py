@@ -31,6 +31,8 @@ c = Number(publish=True)
 def init():
     pass
 """
+
+# @pytest.mark.skip
 def test_resolve_hash_dynamic_key(network_client):
     client = network_client
 
@@ -54,6 +56,29 @@ def test_resolve_hash_dynamic_key(network_client):
         check_key = client.lookup_hash(h, skip_cache=True)[h]
 
         assert check_key == k
+
+def test_get_dynamic_key(network_client):
+    client = network_client
+
+    ct = Chromatron(host=NETWORK_ADDR)
+    builder = code_gen.compile_text(dynamic_test_program, debug_print=False)
+    builder.assemble()
+    data = builder.generate_binary('test.fxb')
+
+    ct.stop_vm()
+    
+    # change vm program
+    ct.set_key('vm_prog', 'test.fxb')
+    ct.put_file('test.fxb', data)
+    ct.start_vm()
+    
+    time.sleep(0.5)
+
+    keys = client.get_all_keys()
+
+    for k in ['a', 'b', 'c']:
+        assert k in keys
+        assert client.get_key(k) != None
 
 
 @pytest.mark.skip

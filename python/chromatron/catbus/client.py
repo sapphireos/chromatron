@@ -284,6 +284,9 @@ class Client(BaseClient):
                     # can't find anything, just return hash itself
                     resolved_keys[k] = k
 
+            if k != catbus_string_hash(v):
+                logging.critical(f"KV hash lookup failure: {v} -> {hex(k)}")
+
         if not skip_cache:
             changed = False
             # check if any keys were added
@@ -426,14 +429,14 @@ class Client(BaseClient):
         meta = {}
 
         keys = self.lookup_hash([a.hash for a in responses])
-                
+
         for response in responses:
             if response.hash != 0:
                 meta[keys[response.hash]] = response
 
 
         self._meta = meta
-
+        
         return meta
 
     def get_all_keys(self):
