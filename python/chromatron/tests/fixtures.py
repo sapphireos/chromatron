@@ -43,6 +43,12 @@ def client(request):
     return Client(request.getfixturevalue(request.param))
 
 @pytest.fixture
+def network_client(network_server):
+    # return Client(('localhost', server._data_port))
+    # return request.getfixturevalue(request.param)
+    return Client(network_server)
+
+@pytest.fixture
 def service_manager():
     return ServiceManager()
 
