@@ -5,11 +5,11 @@ import pytest
 from fixtures import *
 from chromatron import code_gen, Chromatron
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_getkey(client):
     client.get_key('kv_test_key')
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_setkey(client):
     client.set_key('kv_test_key', 123)
     assert client.get_key('kv_test_key') == 123
@@ -17,7 +17,7 @@ def test_setkey(client):
     client.set_key('kv_test_key', 456)
     assert client.get_key('kv_test_key') == 456
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_resolve_hash(client):
     h = 0x3802fc29
     assert client.lookup_hash(h, skip_cache=True)[0x3802fc29] == 'kv_test_key'
@@ -87,7 +87,7 @@ def test_resolve_hash_from_tag(client):
     h = 0x75dd6565
     assert client.lookup_hash(h, skip_cache=True)[0x75dd6565] == '__TEST__'
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_ping(client):
     assert client.ping() < 2.0
 
@@ -99,7 +99,7 @@ def random_data():
     
     yield test_data
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_file_io(network_client, random_data):
     client = network_client
 

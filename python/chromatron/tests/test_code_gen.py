@@ -3662,30 +3662,30 @@ class CGHSVArrayTests(unittest.TestCase):
         self.assertEqual(regs['d'], 0.399993896484375)
 
 
-# class CGTestsLocal(CGTestsBase):
-#     def run_test(self, program, expected={}):
+class CGTestsLocal(CGTestsBase):
+    def run_test(self, program, expected={}):
         
-#         builder = code_gen.compile_text(program)
-#         vm = VM(builder)
+        builder = code_gen.compile_text(program)
+        vm = VM(builder)
         
-#         vm.run_once()
-#         regs = vm.dump_registers()
+        vm.run_once()
+        regs = vm.dump_registers()
 
-#         for reg, value in expected.items():
-#             try:
-#                 try:
-#                     self.assertEqual(regs[reg], value)
+        for reg, value in expected.items():
+            try:
+                try:
+                    self.assertEqual(regs[reg], value)
 
-#                 except KeyError:
-#                     # try database
-#                     self.assertEqual(vm.db[reg], value)
+                except KeyError:
+                    # try database
+                    self.assertEqual(vm.db[reg], value)
 
-#             except AssertionError:
-#                 print('\n*******************************')
-#                 print(program)
-#                 print('Var: %s Expected: %s Actual: %s' % (reg, value, regs[reg]))
-#                 print('-------------------------------\n')
-#                 raise
+            except AssertionError:
+                print('\n*******************************')
+                print(program)
+                print('Var: %s Expected: %s Actual: %s' % (reg, value, regs[reg]))
+                print('-------------------------------\n')
+                raise
 
 
 from fixtures import *
