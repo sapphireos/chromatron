@@ -3454,7 +3454,7 @@ class Builder(object):
 
         if filename:
             # write to file
-            with open(filename, 'w') as f:
+            with open(filename, 'wb') as f:
                 f.write(stream)
 
         self.stream = stream
