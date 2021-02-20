@@ -62,7 +62,7 @@ class _Timer(Ribbon):
 
 
 class BaseServer(Ribbon):
-    def __init__(self, name='base_server', port=0, listener_port=None, listener_mcast=None, ignore_unknown=True):
+    def __init__(self, name='base_server', port=0, listener_port=None, listener_mcast=None):
         super().__init__(name, suppress_logs=True)
 
         self._port = port
@@ -79,8 +79,6 @@ class BaseServer(Ribbon):
         self._protocol_magic_offset = None
         
         self._timers = {}
-
-        self.ignore_unknown = ignore_unknown
 
         self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._timer_sock.bind(('0.0.0.0', 0))
@@ -194,17 +192,6 @@ class BaseServer(Ribbon):
                         elif host[1] in self._timers:    
                             self._timers[host[1]].handler()
 
-                    except UnknownMessage as e:
-                        if self.ignore_unknown:
-                            self.unknown_handler(msg, host)
-
-                        else:
-                            logging.exception(e)
-
-                    except InvalidMessage as e:
-                        # logging.exception(e)
-                        pass
-
                     except Exception as e:
                         logging.exception(e)
 
@@ -259,7 +246,7 @@ class MsgServer(BaseServer):
         self._protocol_version_offset = None
         self._protocol_magic = None
         self._protocol_magic_offset = None
-        
+
         super().__init__(**kwargs)
 
     def received_packet(self, data, host):
@@ -322,9 +309,6 @@ class MsgServer(BaseServer):
     
     def default_handler(self, msg, host):
         logging.debug(f"Unhandled message: {type(msg)} from {host}")        
-
-    def unknown_handler(self, data, host):
-        logging.debug(f"Unknown message from {host}")        
 
     @synchronized
     def register_message(self, msg, handler=None):    
