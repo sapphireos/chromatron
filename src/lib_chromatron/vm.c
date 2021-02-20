@@ -743,7 +743,7 @@ PT_BEGIN( pt );
 
                 if( ( sync_delta > 4000 ) || ( sync_delta < -4000 ) ){
 
-                    log_v_debug_P( PSTR("lost sync: %d resetting"), sync_delta );        
+                    log_v_debug_P( PSTR("lost sync: %d resetting %u %d %u %u %u"), sync_delta, net_time, elapsed, (uint32_t)current_vm_net_tick, vm0_sync_ts, vm0_sync_ticks );        
 
                     vm_sync_v_reset();
                 }

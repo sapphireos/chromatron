@@ -418,6 +418,12 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            // are we syncing?
+            if( sync_state != STATE_SYNCING ){
+
+                continue;
+            }
+
             vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)header;
             
             int16_t data_len = sock_i16_get_bytes_read( sock ) - sizeof(vm_sync_msg_data_t) + 1;
