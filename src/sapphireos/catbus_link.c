@@ -1423,6 +1423,18 @@ PT_BEGIN( pt );
                 goto end;
             }
 
+            #ifdef TEST_MODE
+            if( test_link_mode == 0 ){
+
+                if( ( msg->key == __KV__link_test_key ) ||
+                    ( msg->key == __KV__link_test_key2 ) ){
+
+                    goto end;
+                }
+
+            }
+            #endif
+
             // check key
             if( kv_i16_search_hash( msg->key ) < 0 ){
 
