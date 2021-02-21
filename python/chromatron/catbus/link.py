@@ -549,7 +549,7 @@ class LinkManager(MsgServer):
             # self.start_timer(1.0, self._process_link_test)
 
         self.start()
-        
+
     def clean_up(self):
         self._service_manager.stop()
 
@@ -828,6 +828,8 @@ def main():
     elif sys.argv[1] == 'send':
         c.send('link_test_key', 'link_test_key2', query=['__TEST__'])
 
+    elif sys.argv[1] == 'receive':
+        c.receive('link_test_key', 'link_test_key2', query=['__TEST__'])
     # lm.receive('link_test_key', 'kv_test_key', query=['__TEST__'])
 
     # import yappi
