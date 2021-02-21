@@ -191,6 +191,11 @@ PT_THREAD( cron_replay_thread( pt_t *pt, replay_state_t *state ) )
 {
 PT_BEGIN( pt ); 
 
+    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+
+        THREAD_EXIT( pt );
+    }
+
     // wait for time sync
     THREAD_WAIT_WHILE( pt, !time_b_is_ntp_sync() );
 
