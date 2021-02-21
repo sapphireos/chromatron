@@ -20,7 +20,7 @@ class DeviceService(object):
 
     def reset(self):
         self.device.set_key('test_service_mode', 0)
-        time.sleep(0.1)
+        time.sleep(0.5)
 
     def __str__(self):
         return f'Service@{self.device.host}'
