@@ -267,6 +267,28 @@ PT_BEGIN( pt );
 
             THREAD_WAIT_WHILE( pt, test_link_mode == 3 );
         }
+        else if( test_link_mode == 4 ){
+
+            catbus_query_t query;
+            memset( &query, 0, sizeof(query) );
+            query.tags[0] = __KV____TEST__;            
+
+            link_l_create(
+                LINK_MODE_RECV,
+                __KV__link_test_key,
+                __KV__link_test_key2,
+                &query,
+                TEST_LINK_TAG,
+                100,
+                LINK_AGG_ANY,
+                LINK_FILTER_OFF );
+
+            THREAD_WAIT_WHILE( pt, test_link_mode == 4 );
+        }
+        else if( test_link_mode == 5 ){
+
+            THREAD_WAIT_WHILE( pt, test_link_mode == 5 );
+        }
         else{
 
             test_link_mode = 0;

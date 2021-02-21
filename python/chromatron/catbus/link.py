@@ -389,11 +389,11 @@ class _Producer(object):
             return
 
         # check if data did not change and the retransmit timer has not expired
-        if (hashed_data == self._hashed_data) and \
+        if (hashed_data == self.data_hash) and \
            (self._retransmit_timer > 0):
             return
 
-        self._hashed_data = hashed_data
+        self.data_hash = hashed_data
         self._retransmit_timer = LINK_RETRANSMIT_RATE
 
         # check if leader is available
