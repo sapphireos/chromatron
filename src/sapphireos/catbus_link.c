@@ -112,9 +112,11 @@ typedef struct __attribute__((packed)){
 #define LINK_FILE "links"
 
 static int32_t link_test_key;
+static int32_t link_test_key2;
 
 KV_SECTION_META kv_meta_t link_kv[] = {
     { SAPPHIRE_TYPE_INT32,   0, 0,                   &link_test_key,        0,  "link_test_key" },
+    { SAPPHIRE_TYPE_INT32,   0, 0,                   &link_test_key2,       0,  "link_test_key2" },
 };
 
 PT_THREAD( test_thread( pt_t *pt, void *state ) )

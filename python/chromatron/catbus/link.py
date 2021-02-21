@@ -465,8 +465,6 @@ class _Remote(object):
         self._timeout = LINK_REMOTE_TIMEOUT
         self.data = data
 
-        print(data, host)
-
     @property
     def timed_out(self):
         return self._timeout < 0.0
@@ -546,8 +544,8 @@ class LinkManager(MsgServer):
         self._remotes = {}
 
         if test_mode:
-            database.add_item('link_test_key', os.getpid(), 'int32')
-            database.add_item('link_test_key2', os.getpid(), 'int32')
+            database.add_item('link_test_key', 0, 'int32')
+            database.add_item('link_test_key2', 0, 'int32')
             # self.start_timer(1.0, self._process_link_test)
 
     def clean_up(self):
@@ -634,7 +632,6 @@ class LinkManager(MsgServer):
             self.transmit(msg, c.host)
 
     def _handle_consumer_query(self, msg, host):
-        print(msg, host)
         if msg.mode == LINK_MODE_SEND:
             # check if we have this link, if so, we are part of the send group,
             # not the consumer group, even if we would otherwise match the query.
@@ -710,7 +707,6 @@ class LinkManager(MsgServer):
             return
 
         # UPDATE DATABASE
-        print(msg.data)
         self._database[msg.hash] = msg.data.value
         
     def _handle_producer_data(self, msg, host):
