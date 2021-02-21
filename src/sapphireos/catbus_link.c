@@ -231,6 +231,7 @@ PT_BEGIN( pt );
 
             link_v_delete_by_tag( TEST_LINK_TAG );
             link_test_key = 0;
+            link_test_key2 = 0;
         }
 
         THREAD_WAIT_WHILE( pt, test_link_mode == 0 );
@@ -243,6 +244,28 @@ PT_BEGIN( pt );
 
                 TMR_WAIT( pt, 100 );
             }
+        }
+        else if( test_link_mode == 2 ){
+
+            catbus_query_t query;
+            memset( &query, 0, sizeof(query) );
+            query.tags[0] = __KV____TEST__;            
+
+            link_l_create(
+                LINK_MODE_SEND,
+                __KV__link_test_key,
+                __KV__link_test_key2,
+                &query,
+                TEST_LINK_TAG,
+                100,
+                LINK_AGG_ANY,
+                LINK_FILTER_OFF );
+
+            THREAD_WAIT_WHILE( pt, test_link_mode == 2 );
+        }
+        else if( test_link_mode == 3 ){
+
+            THREAD_WAIT_WHILE( pt, test_link_mode == 3 );
         }
         else{
 

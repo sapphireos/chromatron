@@ -3,7 +3,6 @@ import pytest
 import logging
 from catbus import *
 from catbus.link import *
-from sapphire.devices.device import Device
 
 from fixtures import *
 
@@ -18,6 +17,24 @@ class _TestClient(Client):
 
         raise AssertionError(self.get_key(key), value)
 
+class _Device(_TestClient):
+    def __init__(self, host=NETWORK_ADDR):
+        super().__init__((host, CATBUS_MAIN_PORT))
+        self.reset()
+
+    def reset(self):
+        self.set_key('test_link_mode', 0)
+        time.sleep(0.5)
+
+    def __str__(self):
+        return f'Link@{self.device.host}'
+
+    def send(self):
+        self.set_key('test_link_mode', 2)
+
+    def consume(self):
+        self.set_key('test_link_mode', 3)
+
 
 
 @pytest.fixture
@@ -27,7 +44,17 @@ def local_sender():
     yield _TestClient(('localhost', c._data_port))
     c.stop()
     c.join()
-    
+
+@pytest.fixture
+def network_sender():
+    host= checkout_device()
+    c = _Device(host)
+    c.send()
+    yield c
+    c.reset()
+    checkin_device(host)
+
+
 @pytest.fixture
 def local_consumer():
     c = CatbusService(tags=['__TEST__'])
@@ -35,16 +62,23 @@ def local_consumer():
     c.stop()
     c.join()
 
+@pytest.fixture
+def network_consumer():
+    host= checkout_device()
+    c = _Device(host)
+    c.consume()
+    yield c
+    c.reset()
+    checkin_device(host)
 
 
 
-
-senders = ['local_sender']
+senders = ['local_sender', 'network_sender']
 @pytest.fixture(params=senders)
 def sender(request):
     return request.getfixturevalue(request.param)
 
-consumers = ['local_consumer']
+consumers = ['local_consumer', 'network_consumer']
 @pytest.fixture(params=consumers)
 def consumer(request):
     return request.getfixturevalue(request.param)
