@@ -202,7 +202,7 @@ class BaseServer(Ribbon):
         
     @synchronized
     def start_timer(self, interval, handler, repeat=True):
-        timer = _Timer(f'{self.name}.timer', interval, self._timer_port, handler)
+        timer = _Timer(f'{self.name}.timer', interval, self._timer_port, handler, repeat)
         self._timers[timer.port] = timer
     
     @synchronized
