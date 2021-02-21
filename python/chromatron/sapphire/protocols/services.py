@@ -266,17 +266,17 @@ class Service(object):
                 if timeout < 0.0:
                     raise ServiceNotConnected
 
-    def wait_until_connected(self, timeout=60.0):
-        logging.debug(f"{self} waiting for connected, timeout {timeout}")
+    # def wait_until_connected(self, timeout=60.0):
+    #     logging.debug(f"{self} waiting for connected, timeout {timeout}")
         
-        while self._state == STATE_LISTEN:
-            time.sleep(0.1)
+    #     while self._state == STATE_LISTEN:
+    #         time.sleep(0.1)
 
-            if timeout > 0.0:
-                timeout -= 0.1
+    #         if timeout > 0.0:
+    #             timeout -= 0.1
 
-                if timeout < 0.0:
-                    raise ServiceNotConnected
+    #             if timeout < 0.0:
+    #                 raise ServiceNotConnected
 
     def _process_offer(self, offer, host):
         # logging.debug(f"Received OFFER from {host}: {offer}")

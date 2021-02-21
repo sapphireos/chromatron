@@ -362,28 +362,35 @@ PT_BEGIN( pt );
     
     while(1){
 
-        services_v_cancel( 1234, 5678 );
+        if( test_service_mode == 0 ){
+
+            services_v_cancel( 1234, 5678 );
+        }
 
         THREAD_WAIT_WHILE( pt, test_service_mode == 0 );
 
         if( test_service_mode == 1 ){
 
             services_v_offer( 1234, 5678, test_service_priority, 1000 );
+
+            THREAD_WAIT_WHILE( pt, test_service_mode == 1 );
         }
         else if( test_service_mode == 2 ){
 
             services_v_listen( 1234, 5678 );
+
+            THREAD_WAIT_WHILE( pt, test_service_mode == 2 );
         }
         else if( test_service_mode == 3 ){
 
             services_v_join_team( 1234, 5678, test_service_priority, 1000 );
+
+            THREAD_WAIT_WHILE( pt, test_service_mode == 3 );
         }
         else{
 
             test_service_mode = 0;
         }
-
-        THREAD_WAIT_WHILE( pt, test_service_mode != 0 );
     }    
     
 PT_END( pt );

@@ -54,6 +54,18 @@ class DeviceService(object):
         
         return host
 
+    @property
+    def _priority(self):
+        return self.device.get_key('test_service_priority')
+
+    @_priority.setter
+    def _priority(self, value):
+        self.device.set_key('test_service_priority', value)
+        mode = self.device.get_key('test_service_mode')
+        self.device.set_key('test_service_mode', 255)
+        time.sleep(0.5)
+        self.device.set_key('test_service_mode', mode)
+
     def wait_until_state(self, state, timeout=60.0):
         logging.debug(f"{self} waiting for state {state}, timeout {timeout}")
         
@@ -66,20 +78,20 @@ class DeviceService(object):
                 if timeout < 0.0:
                     raise ServiceNotConnected
 
-    def wait_until_connected(self, timeout=60.0):
-        if self.connected:
-            return
+    # def wait_until_connected(self, timeout=60.0):
+    #     if self.connected:
+    #         return
 
-        logging.debug(f"{self} waiting for connection, timeout {timeout}")
+    #     logging.debug(f"{self} waiting for connection, timeout {timeout}")
         
-        while not self.connected:
-            time.sleep(0.1)
+    #     while not self.connected:
+    #         time.sleep(0.1)
 
-            if timeout > 0.0:
-                timeout -= 0.1
+    #         if timeout > 0.0:
+    #             timeout -= 0.1
 
-                if timeout < 0.0:
-                    raise ServiceNotConnected
+    #             if timeout < 0.0:
+    #                 raise ServiceNotConnected
 
     def _cancel(self):
         self.reset()
@@ -229,7 +241,7 @@ def team_follower(request):
     return request.getfixturevalue(request.param)
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_basic(listen, offer):
     listen.wait_until_state(STATE_CONNECTED)
     offer.wait_until_state(STATE_SERVER)
@@ -239,7 +251,7 @@ def test_basic(listen, offer):
     assert listen.connected
     assert not listen.is_server
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_team(team_leader, team_follower):
     team_leader.wait_until_state(STATE_SERVER)
     team_follower.wait_until_state(STATE_CONNECTED)
@@ -249,7 +261,7 @@ def test_team(team_leader, team_follower):
     assert team_follower.connected
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_team_leader_no_switch(team_leader, idler):
     team_leader.wait_until_state(STATE_SERVER)
 
@@ -259,7 +271,7 @@ def test_team_leader_no_switch(team_leader, idler):
     team_leader.wait_until_state(STATE_SERVER)
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_team_leader_switch(team_leader, idler):
     team_leader.wait_until_state(STATE_SERVER)
 
@@ -268,7 +280,7 @@ def test_team_leader_switch(team_leader, idler):
     idler.wait_until_state(STATE_SERVER)
     team_leader.wait_until_state(STATE_CONNECTED)
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_lost_server(listen, offer):
     offer.wait_until_state(STATE_SERVER)
     listen.wait_until_state(STATE_CONNECTED)
@@ -297,4 +309,15 @@ def test_better_team_server(team_leader, team_follower, network_idler):
 
     assert idler.host == team_follower.server[0]
     assert idler.host == team_leader.server[0]
+
+
+# @pytest.mark.skip
+def test_server_becomes_better(team_leader, team_follower):
+    team_leader.wait_until_state(STATE_SERVER)
+    team_follower.wait_until_state(STATE_CONNECTED)
+
+    team_follower._priority = 255
+
+    team_follower.wait_until_state(STATE_SERVER)
+    team_leader.wait_until_state(STATE_CONNECTED)
 
