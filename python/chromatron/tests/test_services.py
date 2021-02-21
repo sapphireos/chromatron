@@ -47,10 +47,10 @@ class DeviceService(object):
             raise ServiceNotConnected
 
         if self.is_server:
-            host = ('127.0.0.1', self._port) # local server is on loopback
+            host = (self.host, self._port) # local server is on loopback
 
         else:
-            host = (self._best_host[0], self._best_offer.port)
+            host = (self._service.server_ip, self._service.server_port)
         
         return host
 
@@ -107,7 +107,7 @@ class DeviceService(object):
 
 
 @pytest.fixture()
-def local_idle():
+def local_idler():
     s = ServiceManager()
     yield s
     s.stop()
@@ -150,7 +150,7 @@ def local_team_follower():
 
 
 @pytest.fixture
-def network_idle():
+def network_idler():
     host = checkout_device()
     d = DeviceService(host)
     yield d
@@ -198,7 +198,7 @@ def network_team_follower():
     checkin_device(host)
 
 
-idlers = ['local_idle', 'network_idle']
+idlers = ['local_idler', 'network_idler']
 @pytest.fixture(params=idlers)
 def idler(request):
     return request.getfixturevalue(request.param)
@@ -229,7 +229,7 @@ def team_follower(request):
     return request.getfixturevalue(request.param)
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_basic(listen, offer):
     listen.wait_until_state(STATE_CONNECTED)
     offer.wait_until_state(STATE_SERVER)
@@ -239,7 +239,7 @@ def test_basic(listen, offer):
     assert listen.connected
     assert not listen.is_server
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_team(team_leader, team_follower):
     team_leader.wait_until_state(STATE_SERVER)
     team_follower.wait_until_state(STATE_CONNECTED)
@@ -249,7 +249,7 @@ def test_team(team_leader, team_follower):
     assert team_follower.connected
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_team_leader_no_switch(team_leader, idler):
     team_leader.wait_until_state(STATE_SERVER)
 
@@ -259,7 +259,7 @@ def test_team_leader_no_switch(team_leader, idler):
     team_leader.wait_until_state(STATE_SERVER)
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_team_leader_switch(team_leader, idler):
     team_leader.wait_until_state(STATE_SERVER)
 
@@ -268,7 +268,7 @@ def test_team_leader_switch(team_leader, idler):
     idler.wait_until_state(STATE_SERVER)
     team_leader.wait_until_state(STATE_CONNECTED)
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_lost_server(listen, offer):
     offer.wait_until_state(STATE_SERVER)
     listen.wait_until_state(STATE_CONNECTED)
@@ -277,4 +277,24 @@ def test_lost_server(listen, offer):
 
     listen.wait_until_state(STATE_LISTEN)
 
-    
+# @pytest.mark.skip
+def test_better_team_server(team_leader, team_follower, network_idler):
+    idler = network_idler
+
+    team_leader.wait_until_state(STATE_SERVER)
+    team_follower.wait_until_state(STATE_CONNECTED)
+
+    idler = idler.join_team(1234, 5678, 1000, priority=255)
+
+    for i in range(600):
+        time.sleep(0.1)
+        try:
+            if (idler.host == team_follower.server[0]) and (idler.host == team_leader.server[0]):
+                break
+
+        except ServiceNotConnected:
+            pass
+
+    assert idler.host == team_follower.server[0]
+    assert idler.host == team_leader.server[0]
+
