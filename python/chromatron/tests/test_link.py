@@ -60,6 +60,7 @@ def send_link():
     lm.stop()
     lm.join()
 
+@pytest.mark.skip
 def test_send_link(send_link, link_client):
     link_port = link_client[1]
     link_client = link_client[0]
