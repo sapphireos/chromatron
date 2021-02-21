@@ -15,7 +15,7 @@ class _TestClient(Client):
                 return value
             time.sleep(0.1)
 
-        raise AssertionError(self.get_key(key), value)
+        assert self.get_key(key) == value
 
 class _Device(_TestClient):
     def __init__(self, host=NETWORK_ADDR):
@@ -25,15 +25,19 @@ class _Device(_TestClient):
     def reset(self):
         self.set_key('test_link_mode', 0)
         time.sleep(0.5)
+        self.set_key('link_test_key', 0)
+        self.set_key('link_test_key2', 0)
 
     def __str__(self):
         return f'Link@{self.device.host}'
 
     def send(self):
         self.set_key('test_link_mode', 2)
+        time.sleep(0.5)
 
     def consume(self):
         self.set_key('test_link_mode', 3)
+        time.sleep(0.5)
 
 
 
@@ -74,11 +78,13 @@ def network_consumer():
 
 
 senders = ['local_sender', 'network_sender']
+# senders = ['network_sender']
 @pytest.fixture(params=senders)
 def sender(request):
     return request.getfixturevalue(request.param)
 
 consumers = ['local_consumer', 'network_consumer']
+# consumers = ['local_consumer']
 @pytest.fixture(params=consumers)
 def consumer(request):
     return request.getfixturevalue(request.param)
