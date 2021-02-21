@@ -102,6 +102,12 @@ class CatbusService(Database):
     def register_shutdown_handler(self, handler):
         self._server.register_shutdown_handler(handler)
 
+    def send(self, *args, **kwargs):
+        self._link_manager.send(*args, **kwargs)
+
+    def receive(self, *args, **kwargs):
+        self._link_manager.send(*args, **kwargs)
+
     def stop(self):
         self._server.stop()
         self._link_manager.stop()

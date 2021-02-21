@@ -42,6 +42,10 @@
 // #define NO_LOGGING
 #include "logging.h"
 
+
+#define TEST_MODE
+
+
 #ifdef ENABLE_CATBUS_LINK
 
 static uint16_t link_process_tick_rate = LINK_MAX_TICK_RATE;
@@ -55,6 +59,19 @@ static list_t consumer_list;
 static list_t producer_list;
 static list_t remote_list;
 static socket_t sock;
+
+
+#ifdef TEST_MODE
+static uint8_t test_link_mode;
+
+#define TEST_LINK_TAG __KV__TEST_LINK
+
+KV_SECTION_META kv_meta_t link_test_kv[] = {
+    { SAPPHIRE_TYPE_UINT8,  0, 0, &test_link_mode,       0,  "test_link_mode" },
+};
+
+
+#endif
 
 
 // producer:
@@ -98,7 +115,6 @@ static int32_t link_test_key;
 
 KV_SECTION_META kv_meta_t link_kv[] = {
     { SAPPHIRE_TYPE_INT32,   0, 0,                   &link_test_key,        0,  "link_test_key" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    0,                     0,  "test_link" },
 };
 
 PT_THREAD( test_thread( pt_t *pt, void *state ) )
@@ -201,6 +217,43 @@ static uint16_t remote_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t 
 }
 
 
+#ifdef TEST_MODE
+
+PT_THREAD( link_test_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        if( test_link_mode == 0 ){
+
+            link_v_delete_by_tag( TEST_LINK_TAG );
+            link_test_key = 0;
+        }
+
+        THREAD_WAIT_WHILE( pt, test_link_mode == 0 );
+
+        if( test_link_mode == 1 ){
+
+            while( test_link_mode == 1 ){
+
+                link_test_key++;
+
+                TMR_WAIT( pt, 100 );
+            }
+        }
+        else{
+
+            test_link_mode = 0;
+        }
+    }    
+    
+PT_END( pt );
+}
+
+
+#endif
+
 void link_v_init( void )
 {
 	list_v_init( &link_list );
@@ -237,68 +290,78 @@ void link_v_init( void )
 
     wifi_i8_igmp_join( ip_a_addr(LINK_MCAST_ADDR) );
 
-    uint8_t test = 0;
-    kv_i8_get( __KV__test_link, &test, sizeof(test) );
 
-    if( test != 0 ){
+    #ifdef TEST_MODE
 
-        catbus_query_t query;
-        memset( &query, 0, sizeof(query) );
-        query.tags[0] = __KV____TEST__;
+    thread_t_create( link_test_thread,
+                 PSTR("link_test"),
+                 0,
+                 0 );
+
+    #endif
+
+    // uint8_t test = 0;
+    // kv_i8_get( __KV__test_link, &test, sizeof(test) );
+
+    // if( test != 0 ){
+
+    //     catbus_query_t query;
+    //     memset( &query, 0, sizeof(query) );
+    //     query.tags[0] = __KV____TEST__;
 
 
-        if( test == 1 ){
+    //     if( test == 1 ){
 
-            log_v_debug_P( PSTR("link test mode enabled: idle") );
-        }
-        else if( test == 2 ){
+    //         log_v_debug_P( PSTR("link test mode enabled: idle") );
+    //     }
+    //     else if( test == 2 ){
 
-            log_v_debug_P( PSTR("link test mode enabled: test thread only") );
+    //         log_v_debug_P( PSTR("link test mode enabled: test thread only") );
 
-            thread_t_create( test_thread,
-                     PSTR("test_thread"),
-                     0,
-                     0 );
-        }
-        else if( test == 3 ){
+    //         thread_t_create( test_thread,
+    //                  PSTR("test_thread"),
+    //                  0,
+    //                  0 );
+    //     }
+    //     else if( test == 3 ){
 
-            log_v_debug_P( PSTR("link test mode enabled: send") );
+    //         log_v_debug_P( PSTR("link test mode enabled: send") );
             
-            link_l_create( 
-                LINK_MODE_SEND, 
-                __KV__link_test_key, // source 
-                __KV__kv_test_key,   // dest
-                &query,
-                __KV__test,
-                1000,
-                LINK_AGG_ANY,
-                LINK_FILTER_OFF );        
+    //         link_l_create( 
+    //             LINK_MODE_SEND, 
+    //             __KV__link_test_key, // source 
+    //             __KV__kv_test_key,   // dest
+    //             &query,
+    //             __KV__test,
+    //             1000,
+    //             LINK_AGG_ANY,
+    //             LINK_FILTER_OFF );        
 
-            thread_t_create( test_thread,
-                     PSTR("test_thread"),
-                     0,
-                     0 );
-        }
-        else if( test == 4 ){
+    //         thread_t_create( test_thread,
+    //                  PSTR("test_thread"),
+    //                  0,
+    //                  0 );
+    //     }
+    //     else if( test == 4 ){
 
-            log_v_debug_P( PSTR("link test mode enabled: recv") );
+    //         log_v_debug_P( PSTR("link test mode enabled: recv") );
             
-            link_l_create( 
-                LINK_MODE_RECV, 
-                __KV__link_test_key, // source
-                __KV__kv_test_key,   // dest
-                &query,
-                __KV__test,
-                1000,
-                LINK_AGG_ANY,
-                LINK_FILTER_OFF );        
+    //         link_l_create( 
+    //             LINK_MODE_RECV, 
+    //             __KV__link_test_key, // source
+    //             __KV__kv_test_key,   // dest
+    //             &query,
+    //             __KV__test,
+    //             1000,
+    //             LINK_AGG_ANY,
+    //             LINK_FILTER_OFF );        
 
-            thread_t_create( test_thread,
-                     PSTR("test_thread"),
-                     0,
-                     0 );
-        }
-    }
+    //         thread_t_create( test_thread,
+    //                  PSTR("test_thread"),
+    //                  0,
+    //                  0 );
+    //     }
+    // }
 }
 
 link_state_t link_ls_assemble(

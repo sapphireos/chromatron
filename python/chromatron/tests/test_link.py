@@ -9,19 +9,59 @@ from fixtures import *
 
 
 class _TestClient(Client):
-    def assert_key(self, key, value, timeout=10.0):
+    def assert_key(self, key, value, timeout=30.0):
         start = time.time()
         while (time.time() - start) < timeout:
             if self.get_key(key) == value:
                 return value
             time.sleep(0.1)
 
-        raise AssertionError
+        raise AssertionError(self.get_key(key), value)
+
+
+
+@pytest.fixture
+def local_device():
+    c = CatbusService(tags=['__TEST__'])
+    c['link_test_key'] = 0
+    c['link_test_key2'] = 0
+    yield c
+    c.stop()
+    c.join()
+
+@pytest.fixture
+def local_send(local_device):
+    local_device.send('link_test_key', 'link_test_key2', ['__TEST__'], rate=100)
+    yield _TestClient(('localhost', local_device._data_port))
+    
+@pytest.fixture
+def local_consumer(local_device):
+    yield _TestClient(('localhost', local_device._data_port))
+
+
+
+def test_send(local_send, local_consumer):
+    local_send.set_key('link_test_key', 123)
+
+    local_consumer.assert_key('link_test_key', 0)
+    local_consumer.assert_key('link_test_key2', 123)
+
+
+
+
+
+
+
+
+
+
+
 
 
 @pytest.fixture
 def network_target():
-    d = Device(host=NETWORK_ADDR)
+    host = checkout_device()
+    d = Device(host=host)
     d.scan()
     if d.get_key('test_link') != 2:
         logging.debug("resetting network device...")
@@ -34,6 +74,8 @@ def network_target():
     d.set_key('link_test_key', 0)
         
     yield (d.host, d.port), CATBUS_LINK_PORT
+
+    checkin_device(host)
 
 @pytest.fixture
 def local_target():
