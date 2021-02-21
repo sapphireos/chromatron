@@ -685,20 +685,16 @@ class LinkManager(MsgServer):
 
     def _handle_consumer_match(self, msg, host):
         # UPDATE CONSUMER STATE
-
-        if msg.hash in self._consumers:
-            return
-
-        if msg.hash not in self._consumers:
+        if host not in self._consumers:
             c = _Consumer(
                     msg.hash,
                     host)
 
-            self._consumers[msg.hash] = c
+            self._consumers[host] = c
 
             logging.debug(f"Create {c} at {host}")
 
-        self._consumers[msg.hash]._refresh(host)
+        self._consumers[host]._refresh(host)
 
     def _handle_consumer_data(self, msg, host):
         # check if we have this key
