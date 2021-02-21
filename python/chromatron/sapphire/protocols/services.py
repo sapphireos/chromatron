@@ -491,6 +491,8 @@ class ServiceManager(MsgServer):
         self.start_timer(1.0, self._process_timers)
         self.start_timer(4.0, self._process_offer_timer)
 
+        self.start()
+
     def clean_up(self):
         for svc in self._services.values():
             svc._shutdown()

@@ -68,6 +68,8 @@ class Server(MsgServer):
 
         self._shutdown_handlers = []
 
+        self.start()
+
     @synchronized
     def register_shutdown_handler(self, handler):
         self._shutdown_handlers.append(handler)

@@ -548,6 +548,8 @@ class LinkManager(MsgServer):
             database.add_item('link_test_key2', 0, 'int32')
             # self.start_timer(1.0, self._process_link_test)
 
+        self.start()
+        
     def clean_up(self):
         self._service_manager.stop()
 

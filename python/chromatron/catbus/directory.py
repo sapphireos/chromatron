@@ -57,6 +57,8 @@ class Directory(MsgServer):
 
         self.start_timer(4.0, self._process_ttl)
 
+        self.start()
+
     @synchronized
     def get_directory(self):    
         return copy(self._directory)

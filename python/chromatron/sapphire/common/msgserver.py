@@ -131,8 +131,6 @@ class BaseServer(Ribbon):
         else:  
             logging.info(f"{self.name}: server on {self._port}")
 
-        self.start()
-
     @property
     @synchronized
     def port(self):
