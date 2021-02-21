@@ -292,7 +292,8 @@ class Link(object):
             if self.is_leader:
                 data = link_manager._aggregate(self)
 
-                link_manager._send_consumer_data(self, data)
+                if data is not None:
+                    link_manager._send_consumer_data(self, data)
 
             elif self.is_follower:
                 if self.source_key not in database:
@@ -318,20 +319,21 @@ class Link(object):
             if self.is_leader:
                 data = link_manager._aggregate(self)
 
-                link_manager._send_consumer_data(self, data)
+                if data is not None:
+                    link_manager._send_consumer_data(self, data)
 
 
 class _Producer(object):
     def __init__(self,
         source_key=None,
         link_hash=None,
-        leader_ip=None,
+        leader_addr=None,
         data_hash=None,
         rate=None):
 
         self.source_key = source_key
         self.link_hash = link_hash
-        self.leader_ip = leader_ip
+        self.leader_addr = leader_addr
         self.data_hash = data_hash
         self.rate = rate
         
@@ -343,7 +345,7 @@ class _Producer(object):
         return f'PRODUCER: {self.link_hash}'
 
     def _refresh(self, host):
-        self.leader_ip = host[0]
+        self.leader_addr = host
         self._timeout = LINK_PRODUCER_TIMEOUT
 
     @property
@@ -397,13 +399,13 @@ class _Producer(object):
         self._retransmit_timer = LINK_RETRANSMIT_RATE
 
         # check if leader is available
-        if self.leader_ip is None:
+        if self.leader_addr is None:
             return
 
         # TRANSMIT PRODUCER DATA
-        msg = ProducerDataMsg(hash=self.hash, data=data)
+        msg = ProducerDataMsg(hash=self.link_hash, data=data)
 
-        link_manager.transmit(msg, self.server)
+        link_manager.transmit(msg, self.leader_addr)
 
 
 class _Consumer(object):
@@ -564,14 +566,20 @@ class LinkManager(MsgServer):
         
         assert isinstance(local_data, int) or isinstance(local_data, float)
 
-        remote_data = [r.data for r in self._remotes.values()]
+        remote_data = [r.data.value for r in self._remotes.values()]
 
         if link.mode == LINK_MODE_SEND:
             data_set = [local_data]
             data_set.extend(remote_data)
 
+        elif link.mode == LINK_MODE_RECV:
+            if len(self._remotes) == 0:
+                return None
+
+            data_set = remote_data
+
         else:
-            return None
+            raise NotImplementedError(link.mode)
 
         if link.aggregation == LINK_AGG_ANY:
             value = data_set[0]
@@ -589,7 +597,7 @@ class LinkManager(MsgServer):
             value = sum(data_set) / len(data_set)
 
         else:
-            raise Exception('WTF')
+            raise Exception('WTF', link.aggregation)
 
         data_item.value = value
         return data_item
@@ -676,7 +684,7 @@ class LinkManager(MsgServer):
             p = _Producer(
                     msg.key,
                     msg.hash,
-                    host[0], # ADD DATA PORT!
+                    host,
                     rate=msg.rate)
 
             self._producers[msg.hash] = p
