@@ -37,9 +37,9 @@ SERVICES_VERSION            = 3
 SERVICES_MCAST_ADDR         = "239.43.96.31"
 
 SERVICE_LISTEN_TIMEOUT              = 10.0
-SERVICE_CONNECTED_TIMEOUT           = 64.0
-SERVICE_CONNECTED_PING_THRESHOLD    = 48.0
-SERVICE_CONNECTED_WARN_THRESHOLD    = 16.0
+SERVICE_CONNECTED_TIMEOUT           = 32.0
+SERVICE_CONNECTED_PING_THRESHOLD    = 16.0
+SERVICE_CONNECTED_WARN_THRESHOLD    = 4.0
 
 
 class ServiceNotConnected(Exception):
@@ -169,6 +169,8 @@ class Service(object):
         self._lock = _lock
         assert self._lock is not None
 
+        self._cancelled = False
+
         self._reset()
 
         self._init_server()
@@ -184,6 +186,7 @@ class Service(object):
     def __eq__(self, other):
         return self.key == other.key
 
+    @synchronized
     def _reset(self):
         self._uptime = 0
         self._state = STATE_LISTEN
@@ -246,7 +249,12 @@ class Service(object):
     def _shutdown(self):
         self._reset()
 
-    def wait_until_state(self, state, timeout=0.0):
+    @synchronized
+    def _cancel(self):
+        self._cancelled = True
+        self._reset()
+
+    def wait_until_state(self, state, timeout=60.0):
         logging.debug(f"{self} waiting for state {state}, timeout {timeout}")
         
         while self._state != state:
@@ -258,7 +266,7 @@ class Service(object):
                 if timeout < 0.0:
                     raise ServiceNotConnected
 
-    def wait_until_connected(self, timeout=0.0):
+    def wait_until_connected(self, timeout=60.0):
         logging.debug(f"{self} waiting for connected, timeout {timeout}")
         
         while self._state == STATE_LISTEN:
@@ -633,6 +641,9 @@ class ServiceManager(MsgServer):
 
 
     def _process_timers(self):
+        # check if cancelled
+        self._services = {k: v for k, v in self._services.items() if not v._cancelled}
+
         for svc in self._services.values():
             if svc._process_timer(1.0) == 'ping':
                 self._send_query(svc._service_id, svc._group, host=svc.server)

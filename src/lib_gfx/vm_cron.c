@@ -30,6 +30,7 @@
 #include "timesync.h"
 #include "datetime.h"
 #include "util.h"
+#include "config.h"
 
 #include "vm_core.h"
 #include "vm_cron.h"

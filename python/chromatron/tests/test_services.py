@@ -81,6 +81,9 @@ class DeviceService(object):
                 if timeout < 0.0:
                     raise ServiceNotConnected
 
+    def _cancel(self):
+        self.reset()
+
     def listen(self, service_id=1234, group=5678):
         self.device.set_key('test_service_priority', 0)
         self.device.set_key('test_service_mode', 2)
@@ -265,3 +268,13 @@ def test_team_leader_switch(team_leader, idler):
     idler.wait_until_state(STATE_SERVER)
     team_leader.wait_until_state(STATE_CONNECTED)
 
+# @pytest.mark.skip
+def test_lost_server(listen, offer):
+    offer.wait_until_state(STATE_SERVER)
+    listen.wait_until_state(STATE_CONNECTED)
+
+    offer._cancel()
+
+    listen.wait_until_state(STATE_LISTEN)
+
+    
