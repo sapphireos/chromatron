@@ -59,6 +59,16 @@ int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
     for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
 
+        if( ip_b_addr_compare( mcast_ip, igmp_groups[i] ) ){
+
+            // already joined
+            return 0;
+        }
+    }
+
+    // add new group
+    for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
+
         if( ip_b_is_zeroes( igmp_groups[i] ) ){
 
             igmp_groups[i] = mcast_ip;
@@ -81,6 +91,8 @@ int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
 
         if( ip_b_addr_compare( mcast_ip, igmp_groups[i] ) ){
 
+            hal_wifi_i8_igmp_leave( mcast_ip );
+
             igmp_groups[i] = ip_a_addr(0,0,0,0);
 
             break;
@@ -99,7 +111,7 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
-        TMR_WAIT( pt, 500 );
+        TMR_WAIT( pt, 1000 );
 
         for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
 
@@ -116,9 +128,24 @@ PT_BEGIN( pt );
             }
         }
 
-        THREAD_WAIT_WHILE( pt, wifi_b_connected() );
+        THREAD_WAIT_WHILE( pt, wifi_b_connected() && !sys_b_shutdown() );
 
-        TMR_WAIT( pt, 1000 );
+        // if shutting down, or lost connection, leave all groups so we'll rejoin later
+        
+        for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
+
+            if( ip_b_is_zeroes( igmp_groups[i] ) ){
+
+                continue;
+            }
+
+            hal_wifi_i8_igmp_leave( igmp_groups[i] );
+        }
+
+        if( sys_b_shutdown() ){
+
+            THREAD_EXIT( pt );
+        }
     }
 
 PT_END( pt );

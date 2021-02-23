@@ -139,8 +139,7 @@ receivers = ['local_receiver', 'network_receiver']
 def receiver(request):
     return request.getfixturevalue(request.param)
 
-# producers = ['local_producer', 'network_producer']
-producers = ['network_producer']
+producers = ['local_producer', 'network_producer']
 @pytest.fixture(params=producers)
 def producer(request):
     return request.getfixturevalue(request.param)
