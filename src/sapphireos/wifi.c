@@ -73,6 +73,13 @@ int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
             igmp_groups[i] = mcast_ip;
 
+            // check if wifi is connected, if so, join here
+            // if not, we'll join in the igmp_thread.
+            if( wifi_b_connected() ){
+
+                hal_wifi_i8_igmp_join( igmp_groups[i] );   
+            }
+
             break;
         }
     }
