@@ -323,6 +323,7 @@ class LinkProducerInfo(StructField):
         fields = [Uint32Field(_name="source_key"),
                   Uint64Field(_name="link_hash"),
                   Ipv4Field(_name="leader_ip"),
+                  Uint16Field(_name="leader_port"),
                   Uint32Field(_name="data_hash"),
                   Uint16Field(_name="rate"),
                   Int16Field(_name="ticks"),
@@ -341,6 +342,7 @@ class LinkConsumerInfo(StructField):
     def __init__(self, **kwargs):
         fields = [Int16Field(_name="link"),
                   Ipv4Field(_name="ip"),
+                  Uint16Field(_name="port"),
                   Int32Field(_name="timeout")]
 
         super().__init__(_fields=fields, **kwargs)

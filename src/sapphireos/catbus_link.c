@@ -1525,7 +1525,7 @@ PT_BEGIN( pt );
 
             update_producer_from_query( msg, &raddr );
 
-            
+            // log_v_debug_P("LINK: %s() producer match\n", __FUNCTION__);
             // trace_printf("LINK: %s() producer match\n", __FUNCTION__);
         }
         else if( header->msg_type == LINK_MSG_TYPE_CONSUMER_MATCH ){
