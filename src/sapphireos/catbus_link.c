@@ -1509,6 +1509,18 @@ PT_BEGIN( pt );
                 goto end;
             }
 
+             #ifdef TEST_MODE
+            if( test_link_mode == 0 ){
+
+                if( ( msg->key == __KV__link_test_key ) ||
+                    ( msg->key == __KV__link_test_key2 ) ){
+
+                    goto end;
+                }
+
+            }
+            #endif
+
             // we are a producer for this link
 
             update_producer_from_query( msg, &raddr );

@@ -320,6 +320,10 @@ class Link(object):
                 data = link_manager._aggregate(self)
 
                 if data is not None:
+                    # set our own database
+                    database[self.dest_key] = data.value
+
+                    # transmit to consumers
                     link_manager._send_consumer_data(self, data)
 
 
@@ -371,7 +375,7 @@ class _Producer(object):
         # timer has expired, process data
 
         # update the timer
-        self._ticks += self.rate
+        self._ticks += self.rate / 1000.0
 
         if self.source_key not in database:
             logging.warn("source key not found!")
