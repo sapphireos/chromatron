@@ -29,7 +29,7 @@
 #include "hal_io.h"
 
 
-// #define ADC_CHANNEL_VSUPPLY     (IO_PIN_ANALOG_COUNT) 	   // divided VIN measurement
+#define ADC_CHANNEL_VSUPPLY     (IO_PIN_COUNT) 	   // divided VIN measurement
 // #define ADC_CHANNEL_REF         (IO_PIN_ANALOG_COUNT + 1) // ADC reference
 
 
