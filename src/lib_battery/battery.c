@@ -162,7 +162,9 @@ PT_BEGIN( pt );
 
         pca9536_v_set_output( BATT_IO_BOOST );
 
-        pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // disable BOOST output
+        //pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // disable BOOST output
+
+        pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
     }
 
     while(1){
@@ -171,7 +173,7 @@ PT_BEGIN( pt );
 
         buttons = 0;
         if( pca9536_enabled ){
-            
+
             if( pca9536_b_gpio_read( BATT_IO_QON ) ){
 
                 buttons |= ( 1 << BATT_IO_QON );
