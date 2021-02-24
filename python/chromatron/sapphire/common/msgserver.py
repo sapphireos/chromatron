@@ -119,17 +119,17 @@ class BaseServer(Ribbon):
 
             self._listener_sock.bind(('0.0.0.0', self._listener_port))
 
-            logging.info(f"{self.name}: server on {self._port} listening on {self._listener_port}")
+            logging.debug(f"{self.name}: server on {self._port} listening on {self._listener_port}")
 
             if self._listener_mcast is not None:
-                logging.info(f'{self.name}: joining multicast group {self._listener_mcast}')
+                logging.debug(f'{self.name}: joining multicast group {self._listener_mcast}')
                 mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
                 self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
             self._inputs.append(self._listener_sock)
 
         else:  
-            logging.info(f"{self.name}: server on {self._port}")
+            logging.debug(f"{self.name}: server on {self._port}")
 
     @property
     @synchronized
@@ -209,7 +209,7 @@ class BaseServer(Ribbon):
     def stop(self):
         super()._shutdown()
         
-        logging.info(f"{self.name}: shutting down")
+        logging.debug(f"{self.name}: shutting down")
         
         # shut down timers
         for timer in self._timers.values():
@@ -219,7 +219,7 @@ class BaseServer(Ribbon):
 
         # leave multicast group
         if self._listener_port is not None and self._listener_mcast is not None:
-            logging.info(f'{self.name}: leaving multicast group {self._listener_mcast}')
+            logging.debug(f'{self.name}: leaving multicast group {self._listener_mcast}')
             mreq = struct.pack("4sl", socket.inet_aton(self._listener_mcast), socket.INADDR_ANY)
             try:
                 self._listener_sock.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq)
@@ -229,7 +229,7 @@ class BaseServer(Ribbon):
                 # but we're shutting down anyway.
                 pass
 
-        logging.info(f"{self.name}: shut down complete")
+        logging.debug(f"{self.name}: shut down complete")
 
     def clean_up(self):
         pass

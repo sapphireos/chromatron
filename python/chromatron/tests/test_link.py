@@ -144,7 +144,7 @@ producers = ['local_producer', 'network_producer']
 def producer(request):
     return request.getfixturevalue(request.param)
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_send(sender, consumer):
     for v in [123, 456, 999]:
         sender.set_key('link_test_key', v)

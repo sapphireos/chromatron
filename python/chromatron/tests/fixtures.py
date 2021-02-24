@@ -8,7 +8,7 @@ from sapphire.common import catbus_string_hash
 import logging
 from pprint import pprint
 
-setup_basic_logging(level=logging.DEBUG)
+setup_basic_logging(level=logging.INFO)
 
 NETWORK_ADDR = '10.0.0.235'
 
