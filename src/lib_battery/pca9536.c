@@ -31,22 +31,22 @@
 int8_t pca9536_i8_init( void ){
 
     // write test pattern and then check
-    i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0xff );
-    i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0xf6 );
+    i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0x0f );
+    i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0x06 );
 
-    if( i2c_u8_read_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT ) != 0xf6 ){
+    if( i2c_u8_read_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT ) != 0x06 ){
 
         return -1;
     }
 
     // reset inversion
-    i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0xf0 );
+    i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0x00 );
 
     // set all bits to input
     i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_CONFIG, 0xff );
 
     // set all low
-    i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_OUTPUT, 0x00 );
+    i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_OUTPUT, 0xf0 );
 
     return 0;
 }
@@ -54,14 +54,14 @@ int8_t pca9536_i8_init( void ){
 void pca9536_v_set_output( uint8_t ch ){
 
     uint8_t temp = i2c_u8_read_reg8( PCA9536_I2C_ADDR, PCA9536_REG_CONFIG );
-    temp |= ( 1 << ch );
+    temp &= ~( 1 << ch );
     i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_CONFIG, temp );
 }
 
 void pca9536_v_set_input( uint8_t ch ){
 
     uint8_t temp = i2c_u8_read_reg8( PCA9536_I2C_ADDR, PCA9536_REG_CONFIG );
-    temp &= ~( 1 << ch );
+    temp |= ( 1 << ch );
     i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_CONFIG, temp );
 }
 

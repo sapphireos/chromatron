@@ -170,17 +170,20 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
 
         buttons = 0;
-        if( pca9536_b_gpio_read( BATT_IO_QON ) ){
+        if( pca9536_enabled ){
+            
+            if( pca9536_b_gpio_read( BATT_IO_QON ) ){
 
-            buttons |= ( 1 << BATT_IO_QON );
-        }
-        if( pca9536_b_gpio_read( BATT_IO_S2 ) ){
+                buttons |= ( 1 << BATT_IO_QON );
+            }
+            if( pca9536_b_gpio_read( BATT_IO_S2 ) ){
 
-            buttons |= ( 1 << BATT_IO_S2 );
-        }
-        if( pca9536_b_gpio_read( BATT_IO_SPARE ) ){
+                buttons |= ( 1 << BATT_IO_S2 );
+            }
+            if( pca9536_b_gpio_read( BATT_IO_SPARE ) ){
 
-            buttons |= ( 1 << BATT_IO_SPARE );
+                buttons |= ( 1 << BATT_IO_SPARE );
+            }
         }
 
         uint8_t charge_status = bq25895_u8_get_charge_status();
