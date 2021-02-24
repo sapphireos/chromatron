@@ -138,15 +138,17 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, wifi_b_connected() && !sys_b_shutdown() );
 
         // if shutting down, or lost connection, leave all groups so we'll rejoin later
-        
-        for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
+        if( !wifi_b_connected() || sys_b_shutdown() ){
 
-            if( ip_b_is_zeroes( igmp_groups[i] ) ){
+            for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
 
-                continue;
+                if( ip_b_is_zeroes( igmp_groups[i] ) ){
+
+                    continue;
+                }
+
+                hal_wifi_i8_igmp_leave( igmp_groups[i] );
             }
-
-            hal_wifi_i8_igmp_leave( igmp_groups[i] );
         }
 
         if( sys_b_shutdown() ){
