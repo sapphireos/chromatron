@@ -32,6 +32,7 @@
 
 #ifndef BOOTLOADER
 static io_mode_t8 io_modes[IO_PIN_COUNT];
+#endif
 
 static const gpio_num_t gpios[IO_PIN_COUNT] = {
     // feather pinout - need to change this
@@ -64,7 +65,6 @@ static const gpio_num_t gpios[IO_PIN_COUNT] = {
 
     // note that v0.1 changes connections!
 };
-#endif
 
 int32_t hal_io_i32_get_gpio_num( uint8_t pin ){
 
@@ -150,12 +150,17 @@ io_mode_t8 io_u8_get_mode( uint8_t pin ){
 
 void io_v_digital_write( uint8_t pin, bool state ){
 
+    gpio_num_t gpio = gpios[pin];
+
     #ifndef BOOTLOADER
     ASSERT( pin < IO_PIN_COUNT );
-
-    gpio_num_t gpio = gpios[pin];
     
     gpio_set_level( gpio, state );	
+    #else
+
+    gpio_pad_select_gpio( gpio );
+    GPIO_OUTPUT_SET( gpio, state );
+
     #endif
 }
 

@@ -136,7 +136,9 @@ void cpu_v_init( void ){
     trace_printf("CPU: 2 cores\n");
     #endif    
 
+    #ifndef BOOTLOADER
     vTaskDelay(10);
+    #endif
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
