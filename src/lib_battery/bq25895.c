@@ -42,8 +42,8 @@ static uint8_t batt_fault;
 static uint8_t vbus_status;
 static uint8_t charge_status;
 static bool dump_regs;
-static uint64_t capacity;
-static int64_t remaining;
+static uint32_t capacity;
+static int32_t remaining;
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
@@ -57,8 +57,8 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,  0,  "batt_charge_current" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,           0,  "batt_fault" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,          0,  "batt_vbus_status" },
-    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_PERSIST,    &capacity,             0,  "batt_capacity" },
-    { SAPPHIRE_TYPE_INT64,   0, KV_FLAGS_READ_ONLY,  &remaining,            0,  "batt_remaining" },
+    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,             0,  "batt_capacity" },
+    { SAPPHIRE_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,            0,  "batt_remaining" },
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
 };
@@ -706,15 +706,20 @@ PT_BEGIN( pt );
             ( batt_soc_startup >= 95 ) ){ // above 95% is close enough to full charge
 
             // save energy usage as capacity
-            capacity = energy_u64_get_total();
+            capacity = energy_u32_get_total();
 
             kv_i8_persist( __KV__batt_capacity );
+
+            log_v_info_P( PSTR("Battery capacity calibrated to %u"), capacity );
         }
 
         batt_soc = new_batt_soc;
 
-        remaining = (int64_t)capacity - (int64_t)energy_u64_get_total();
+        if( capacity != 0 ){
 
+            remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
+        }
+        
         TMR_WAIT( pt, 1000 );
         // TMR_WAIT( pt, 10000 );
     }

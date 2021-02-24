@@ -136,9 +136,9 @@ void energy_v_reset( void ){
 	energy_total = 0;
 }
 
-uint64_t energy_u64_get_total( void ){
+uint32_t energy_u32_get_total( void ){
 
-    return energy_total / ( 3600 * ( 1000 / FADER_RATE ) );
+    return energy_total / ( 3600 * ( 1000 / FADER_RATE ) ); // convert to microamp hours
 }
 
 PT_THREAD( energy_monitor_thread( pt_t *pt, void *state ) )

@@ -27,6 +27,6 @@
 
 void energy_v_init( void );
 void energy_v_reset( void );
-uint64_t energy_u64_get_total( void );
+uint32_t energy_u32_get_total( void );
 
 #endif
