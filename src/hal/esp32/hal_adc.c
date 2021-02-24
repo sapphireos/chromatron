@@ -79,9 +79,6 @@ PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    log_v_debug_P( PSTR("%u"), adc_u16_read_raw( ADC_CHANNEL_VSUPPLY ) );
-    log_v_debug_P( PSTR("%u"), adc_u16_read_raw( ADC_CHANNEL_VSUPPLY ) );
-    log_v_debug_P( PSTR("%u"), adc_u16_read_raw( ADC_CHANNEL_VSUPPLY ) );
 
 PT_END( pt );
 }
