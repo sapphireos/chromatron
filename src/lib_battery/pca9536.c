@@ -34,7 +34,7 @@ int8_t pca9536_i8_init( void ){
     i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0xff );
     i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0xf6 );
 
-    if( i2c_u8_read_reg8( PCA9536_I2C_ADDR, PCA9536_REG_CONFIG ) != 0xf6 ){
+    if( i2c_u8_read_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT ) != 0xf6 ){
 
         return -1;
     }

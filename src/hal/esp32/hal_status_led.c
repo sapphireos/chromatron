@@ -222,16 +222,16 @@ void reset_all( void ){
     io_v_set_mode( IO_PIN_LED1, IO_MODE_OUTPUT );
     io_v_set_mode( IO_PIN_LED2, IO_MODE_OUTPUT );
 
-    io_v_digital_write( IO_PIN_LED0, FALSE );
-    io_v_digital_write( IO_PIN_LED1, FALSE );
-    io_v_digital_write( IO_PIN_LED2, FALSE );
+    io_v_digital_write( IO_PIN_LED0, TRUE );
+    io_v_digital_write( IO_PIN_LED1, TRUE );
+    io_v_digital_write( IO_PIN_LED2, TRUE );
 }
 
 
 // this will also change on v0.1.....
-#define LED_BLUE IO_PIN_LED0
-#define LED_GREEN IO_PIN_LED1
-#define LED_RED IO_PIN_LED2
+#define LED_BLUE        IO_PIN_LED1
+#define LED_GREEN       IO_PIN_LED2
+#define LED_RED         IO_PIN_LED0
 
 
 void status_led_v_init( void ){
@@ -268,36 +268,36 @@ void status_led_v_set( uint8_t state, uint8_t led ){
 
     switch( led ){
         case STATUS_LED_BLUE:
-            io_v_digital_write( LED_BLUE, TRUE );
+            io_v_digital_write( LED_BLUE, FALSE );
             break;
 
         case STATUS_LED_GREEN:
-            io_v_digital_write( LED_GREEN, TRUE );
+            io_v_digital_write( LED_GREEN, FALSE );
             break;
 
         case STATUS_LED_RED:
-            io_v_digital_write( LED_RED, TRUE );
+            io_v_digital_write( LED_RED, FALSE );
             break;
 
         case STATUS_LED_YELLOW:
-            io_v_digital_write( LED_GREEN, TRUE );
-            io_v_digital_write( LED_RED, TRUE );
+            io_v_digital_write( LED_GREEN, FALSE );
+            io_v_digital_write( LED_RED, FALSE );
             break;
 
         case STATUS_LED_PURPLE:
-            io_v_digital_write( LED_BLUE, TRUE );
-            io_v_digital_write( LED_RED, TRUE );
+            io_v_digital_write( LED_BLUE, FALSE );
+            io_v_digital_write( LED_RED, FALSE );
             break;
 
         case STATUS_LED_TEAL:
-            io_v_digital_write( LED_BLUE, TRUE );
-            io_v_digital_write( LED_GREEN, TRUE );
+            io_v_digital_write( LED_BLUE, FALSE );
+            io_v_digital_write( LED_GREEN, FALSE );
             break;
 
         case STATUS_LED_WHITE:
-            io_v_digital_write( LED_RED,  TRUE );
-            io_v_digital_write( LED_GREEN, TRUE );
-            io_v_digital_write( LED_BLUE, TRUE );
+            io_v_digital_write( LED_RED,  FALSE );
+            io_v_digital_write( LED_GREEN, FALSE );
+            io_v_digital_write( LED_BLUE, FALSE );
             break;
 
         default:

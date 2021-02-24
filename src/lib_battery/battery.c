@@ -35,10 +35,12 @@
 
 static bool batt_enable;
 static int8_t batt_ui_state;
+static uint8_t buttons;
 
 KV_SECTION_META kv_meta_t ui_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST, &batt_enable, 0,            "batt_enable" },
-    { SAPPHIRE_TYPE_INT8,   0, 0,                &batt_ui_state, 0,        "batt_ui_state" },
+    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable, 0,          "batt_enable" },
+    { SAPPHIRE_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state, 0,        "batt_ui_state" },
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &buttons,       0,        "batt_button_state" },
 };
 
 
@@ -96,6 +98,8 @@ void batt_v_init( void ){
         return;
     }
 
+    log_v_info_P( PSTR("BQ25895 detected") );
+
     if( pca9536_i8_init() == 0 ){
 
         log_v_info_P( PSTR("PCA9536 detected") );
@@ -121,9 +125,19 @@ static bool _ui_b_button_down( void ){
     // some filtering on button pin
     for( uint8_t i = 0; i < BUTTON_IO_CHECKS; i++){
 
-        if( io_b_digital_read( UI_BUTTON ) ){
+        if( pca9536_enabled ){
 
-            return FALSE;
+            if( pca9536_b_gpio_read( BATT_IO_QON ) ){
+
+                return FALSE;
+            }
+        }
+        else{
+
+            if( io_b_digital_read( UI_BUTTON ) ){
+
+                return FALSE;
+            }
         }
     }
 
@@ -138,10 +152,36 @@ PT_BEGIN( pt );
     // gfx_v_set_submaster_dimmer( 65535 );
 
     // last_dimmer = gfx_u16_get_submaster_dimmer();
+    
+    // charger2 board, setup IO
+    if( pca9536_enabled ){
+        
+        pca9536_v_set_input( BATT_IO_QON );
+        pca9536_v_set_input( BATT_IO_S2 );
+        pca9536_v_set_input( BATT_IO_SPARE );
+
+        pca9536_v_set_output( BATT_IO_BOOST );
+
+        pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // disable BOOST output
+    }
 
     while(1){
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
+
+        buttons = 0;
+        if( pca9536_b_gpio_read( BATT_IO_QON ) ){
+
+            buttons |= ( 1 << BATT_IO_QON );
+        }
+        if( pca9536_b_gpio_read( BATT_IO_S2 ) ){
+
+            buttons |= ( 1 << BATT_IO_S2 );
+        }
+        if( pca9536_b_gpio_read( BATT_IO_SPARE ) ){
+
+            buttons |= ( 1 << BATT_IO_SPARE );
+        }
 
         uint8_t charge_status = bq25895_u8_get_charge_status();
 
