@@ -31,6 +31,7 @@
 #include "battery.h"
 
 #include "bq25895.h"
+#include "pca9536.h"
 
 static bool batt_enable;
 static int8_t batt_ui_state;
@@ -78,6 +79,7 @@ static bool dimming_direction_down;
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
+static bool pca9536_enabled;
 
 
 void batt_v_init( void ){
@@ -94,7 +96,15 @@ void batt_v_init( void ){
         return;
     }
 
-    io_v_set_mode( UI_BUTTON, IO_MODE_INPUT_PULLUP );
+    if( pca9536_i8_init() == 0 ){
+
+        log_v_info_P( PSTR("PCA9536 detected") );
+        pca9536_enabled = TRUE;
+    }
+    else{
+
+        io_v_set_mode( UI_BUTTON, IO_MODE_INPUT_PULLUP );    
+    }
 
     thread_t_create( ui_thread,
                      PSTR("ui"),
