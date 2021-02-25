@@ -82,7 +82,7 @@ static bool dimming_direction_down;
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
 static bool pca9536_enabled;
-
+static bool pixels_enabled = TRUE;
 
 void batt_v_init( void ){
 
@@ -144,6 +144,30 @@ static bool _ui_b_button_down( void ){
     return TRUE;
 }
 
+void batt_v_enable_pixels( void ){
+
+    if( pca9536_enabled ){
+
+        pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
+    }
+
+    pixels_enabled = TRUE;
+}
+
+void batt_v_disable_pixels( void ){
+
+    if( pca9536_enabled ){
+
+        pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
+
+        pixels_enabled = FALSE;
+    }
+}
+
+bool batt_b_pixels_enabled( void ){
+
+    return pixels_enabled;
+}
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) )
 {
@@ -162,9 +186,7 @@ PT_BEGIN( pt );
 
         pca9536_v_set_output( BATT_IO_BOOST );
 
-        //pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // disable BOOST output
-
-        pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
+        batt_v_enable_pixels();
     }
 
     while(1){

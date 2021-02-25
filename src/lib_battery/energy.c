@@ -30,6 +30,7 @@
 #include "graphics.h"
 #include "pixel.h"
 
+#include "battery.h"
 #include "energy.h"
 
 
@@ -41,6 +42,7 @@
 #define MICROAMPS_GREEN_PIX     10000
 #define MICROAMPS_BLUE_PIX      10000
 #define MICROAMPS_WHITE_PIX     20000
+#define MICROAMPS_IDLE_PIX       1000 // idle power for an unlit pixel
 
 static uint16_t rate_pix_r;
 static uint16_t rate_pix_g;
@@ -152,11 +154,21 @@ PT_BEGIN( pt );
         energy_cpu += power_cpu;
         energy_wifi += power_wifi;
 
-        power_pix = ( gfx_u32_get_pixel_r() * rate_pix_r ) / 256;
-        power_pix += ( gfx_u32_get_pixel_g() * rate_pix_g ) / 256;
-        power_pix += ( gfx_u32_get_pixel_b() * rate_pix_b ) / 256;
-        power_pix += ( gfx_u32_get_pixel_w() * rate_pix_w ) / 256;
-            
+        // update pixel power
+        if( batt_b_pixels_enabled() ){
+
+            power_pix = gfx_u16_get_pix_count() * MICROAMPS_IDLE_PIX;
+            power_pix += ( gfx_u32_get_pixel_r() * rate_pix_r ) / 256;
+            power_pix += ( gfx_u32_get_pixel_g() * rate_pix_g ) / 256;
+            power_pix += ( gfx_u32_get_pixel_b() * rate_pix_b ) / 256;
+            power_pix += ( gfx_u32_get_pixel_w() * rate_pix_w ) / 256;
+        }
+        else{
+
+            power_pix = 0;
+        }
+        
+
         energy_pix += power_pix;
 
         energy_total = 0;
