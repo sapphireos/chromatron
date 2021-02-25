@@ -194,20 +194,6 @@ PT_BEGIN( pt );
             }
 
             TMR_WAIT( pt, 1000 );
-
-
-            #ifdef ENABLE_WIFI
-            if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
-
-                status_led_v_set( 0, STATUS_LED_RED );
-
-                TMR_WAIT( pt, 500 );
-
-                status_led_v_set( 1, STATUS_LED_RED );
-
-                TMR_WAIT( pt, 500 );
-            }
-            #endif
         }
     }
 

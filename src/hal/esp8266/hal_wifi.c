@@ -589,6 +589,11 @@ void wifi_v_shutdown( void ){
 
 }
 
+uint16_t wifi_u16_get_power( void ){
+
+    return 50000;
+}
+
 bool wifi_b_connected( void ){
 
 	return connected;

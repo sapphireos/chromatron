@@ -235,3 +235,7 @@ void hal_cpu_v_delay_ms( uint16_t ms ){
 	}
 }
 
+uint16_t cpu_u16_get_power( void ){
+
+    return 5000;
+}

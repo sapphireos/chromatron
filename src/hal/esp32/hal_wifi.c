@@ -496,6 +496,11 @@ bool wifi_b_shutdown( void ){
     return FALSE;
 }
 
+uint16_t wifi_u16_get_power( void ){
+
+    return 50000;
+}
+
 int8_t wifi_i8_get_status( void ){
 
     return 0;

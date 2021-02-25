@@ -23,10 +23,31 @@
 #ifndef _WIFI_H
 #define _WIFI_H
 
-#include "esp8266.h"
+#include "ip.h"
+#include "netmsg.h"
+
+
+// maximum power setting the hardware will support.
+// technically this is 20.5 dbm.
+// however, 20.5 dbm is only spec'd for 802.11b.
+// if we use 802.11n, the radio is only spec'd for 17.5 dbm.
+// since we are using an integer, we will set to 17 for our max.
+#define WIFI_MAX_HW_TX_POWER    17 // this is for the ESP8266.  The ESP32 may be able to run a bit higher.
+
+#define WIFI_CONNECT_TIMEOUT    20000
+
+#define WIFI_STATE_ERROR        -2
+#define WIFI_STATE_BOOT         -1
+#define WIFI_STATE_UNKNOWN      0
+#define WIFI_STATE_ALIVE        1
+#define WIFI_STATE_SHUTDOWN     2
+
+#define WIFI_AP_MIN_PASS_LEN    8
 
 #define WIFI_SSID_LEN               32
 #define WIFI_PASS_LEN               32
+
+
 
 
 void wifi_v_init( void );
@@ -51,6 +72,8 @@ int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip );
 void hal_wifi_v_init( void );
 int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip );
 int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip );
+
+uint16_t wifi_u16_get_power( void );
 
 #endif
 

@@ -32,10 +32,10 @@
 
 #include "battery.h"
 #include "energy.h"
+#include "wifi.h"
 
 
 #define MICROAMPS_CPU           5000
-#define MICROAMPS_WIFI          50000
 
 // pixel calibrations for a single pixel at full power
 #define MICROAMPS_RED_PIX       10000
@@ -116,8 +116,6 @@ PT_THREAD( energy_monitor_thread( pt_t *pt, void *state ) );
 
 void energy_v_init( void ){
 
-    power_cpu   = MICROAMPS_CPU;
-    power_wifi  = MICROAMPS_WIFI;
     rate_pix_r  = MICROAMPS_RED_PIX;
     rate_pix_g  = MICROAMPS_GREEN_PIX;
     rate_pix_b  = MICROAMPS_BLUE_PIX;
@@ -151,6 +149,9 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, FADER_RATE );
 
+        power_wifi = wifi_u16_get_power();
+        power_cpu = cpu_u16_get_power();
+
         energy_cpu += power_cpu;
         energy_wifi += power_wifi;
 
@@ -167,7 +168,6 @@ PT_BEGIN( pt );
 
             power_pix = 0;
         }
-        
 
         energy_pix += power_pix;
 
