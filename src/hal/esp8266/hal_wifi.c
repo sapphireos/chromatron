@@ -643,11 +643,6 @@ bool wifi_b_ap_mode( void ){
 	return FALSE;
 }
 
-bool wifi_b_shutdown( void ){
-
-    return FALSE;
-}
-
 int8_t wifi_i8_get_status( void ){
 
     return 0;

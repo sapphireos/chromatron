@@ -62,6 +62,7 @@ static uint32_t wifi_arp_hits;
 static uint32_t wifi_arp_misses;
 
 static bool connected;
+static bool wifi_shutdown;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
@@ -444,7 +445,12 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 void wifi_v_shutdown( void ){
 
+    wifi_shutdown = TRUE;
+}
 
+void wifi_v_powerup( void ){
+
+    wifi_shutdown = FALSE;
 }
 
 bool wifi_b_connected( void ){
@@ -489,11 +495,6 @@ void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
 bool wifi_b_ap_mode( void ){
 
 	return FALSE;
-}
-
-bool wifi_b_shutdown( void ){
-
-    return FALSE;
 }
 
 uint16_t wifi_u16_get_power( void ){
@@ -808,9 +809,15 @@ PT_BEGIN( pt );
     static uint8_t scan_timeout;
 
     connected = FALSE;
+    wifi_rssi = -127;
+
+    esp_wifi_disconnect();
+    esp_wifi_stop();    
+
+    THREAD_WAIT_WHILE( pt, wifi_shutdown );
     
     // check if we are connected
-    while( !wifi_b_connected() ){
+    while( !wifi_b_connected() && !wifi_shutdown ){
 
         wifi_rssi = -127;
         
@@ -1034,7 +1041,7 @@ end:
         }
     }
 
-    THREAD_WAIT_WHILE( pt, wifi_b_connected() );
+    THREAD_WAIT_WHILE( pt, wifi_b_connected() && !wifi_shutdown );
     
     log_v_debug_P( PSTR("Wifi disconnected") );
 

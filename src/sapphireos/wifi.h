@@ -52,6 +52,8 @@
 
 void wifi_v_init( void );
 void wifi_v_shutdown( void );
+void wifi_v_powerup( void );
+
 bool wifi_b_connected( void );
 bool wifi_b_attached( void );
 
@@ -59,7 +61,6 @@ int8_t wifi_i8_rssi( void );
 void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] );
 bool wifi_b_ap_mode( void );
 
-bool wifi_b_shutdown( void );
 int8_t wifi_i8_get_status( void );
 int8_t wifi_i8_get_channel( void );
 uint32_t wifi_u32_get_received( void );
