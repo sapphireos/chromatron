@@ -589,6 +589,11 @@ void wifi_v_shutdown( void ){
 
 }
 
+void wifi_v_powerup( void ){
+
+    
+}
+
 uint16_t wifi_u16_get_power( void ){
 
     return 50000;
