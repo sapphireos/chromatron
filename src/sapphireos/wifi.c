@@ -135,10 +135,10 @@ PT_BEGIN( pt );
             }
         }
 
-        THREAD_WAIT_WHILE( pt, wifi_b_connected() && !sys_b_shutdown() );
+        THREAD_WAIT_WHILE( pt, wifi_b_connected() && !sys_b_is_shutting_down() );
 
         // if shutting down, or lost connection, leave all groups so we'll rejoin later
-        if( !wifi_b_connected() || sys_b_shutdown() ){
+        if( !wifi_b_connected() || sys_b_is_shutting_down() ){
 
             for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
 
@@ -151,7 +151,7 @@ PT_BEGIN( pt );
             }
         }
 
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             THREAD_EXIT( pt );
         }

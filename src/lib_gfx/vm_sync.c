@@ -256,10 +256,10 @@ PT_BEGIN( pt );
 
     	THREAD_WAIT_WHILE( pt, 
             ( sock_i8_recvfrom( sock ) < 0 ) &&
-             ( !sys_b_shutdown() ) );
+             ( !sys_b_is_shutting_down() ) );
 
     	// check if shutting down
-    	if( sys_b_shutdown() ){
+    	if( sys_b_is_shutting_down() ){
 
     		THREAD_EXIT( pt );
     	}

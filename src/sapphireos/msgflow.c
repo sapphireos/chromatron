@@ -337,7 +337,7 @@ bool msgflow_b_send( msgflow_t msgflow, void *data, uint16_t len ){
         return FALSE;
     }
 
-    if( sys_b_shutdown() ){
+    if( sys_b_is_shutting_down() ){
 
         return FALSE;
     }
@@ -584,10 +584,10 @@ PT_BEGIN( pt );
 
         // listen for message
         THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) && 
-                               ( !sys_b_shutdown() ) );
+                               ( !sys_b_is_shutting_down() ) );
 
         // are we shutting down?
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             goto shutdown;
         }
@@ -658,7 +658,7 @@ shutdown:
     // block while system is shutting down.
     // this prevents crashes from the message flow state being freed 
     // while open handles are still present.
-    THREAD_WAIT_WHILE( pt, sys_b_shutdown() );
+    THREAD_WAIT_WHILE( pt, sys_b_is_shutting_down() );
     
 PT_END( pt );
 }
@@ -678,7 +678,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, list_u8_count( &state->tx_q ) == 0 );
 
         // are we shutting down?
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             THREAD_EXIT( pt );
         }

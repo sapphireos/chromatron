@@ -143,7 +143,7 @@ PT_BEGIN( pt );
             #endif
         }
 
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
             
             THREAD_EXIT( pt );
         }

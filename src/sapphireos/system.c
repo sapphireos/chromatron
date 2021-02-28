@@ -70,6 +70,7 @@ static uint8_t reboot_delay;
 static bool is_rebooting;
 
 static bool shutting_down;
+static int8_t shut_down_state;
 
 #ifndef BOOTLOADER
 FW_INFO_SECTION fw_info_t fw_info;
@@ -563,10 +564,43 @@ void reboot( void ){
 	for(;;);
 }
 
+void sys_v_initiate_shutdown( uint8_t delay_seconds ){
+
+    if( is_rebooting ){
+
+        return;
+    }
+
+    is_rebooting = TRUE;
+    shut_down_state = 1;
+
+    reboot_delay = delay_seconds;
+
+    if( thread_t_create( THREAD_CAST(sys_reboot_thread),
+                         PSTR("shutdown"),
+                         0,
+                         0 ) < 0 ){
+
+        log_v_critical_P( PSTR("shutdown thread failed") );
+
+        reboot();
+    }
+}
+
 // return TRUE if system is about to shut down
-bool sys_b_shutdown( void ){
+bool sys_b_is_shutting_down( void ){
 
     return shutting_down;
+}
+
+bool sys_b_shutdown_complete( void ){
+
+    if( shut_down_state >= 2 ){
+
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 
@@ -764,8 +798,22 @@ PT_BEGIN( pt );
 
 	TMR_WAIT( pt, 1000 );
 
-	reboot();
+    if( shut_down_state <= 0 ){
 
+        reboot();    
+    }
+    else{
+
+        shut_down_state = 2;
+
+        // it is expected that another module will power off the system
+        // or otherwise initiate a reset.
+        // in case that does not happen, we will delay and then force a reboot.
+        TMR_WAIT( pt, 20000 );
+
+        reboot();
+    }
+	
 PT_END( pt );
 }
 

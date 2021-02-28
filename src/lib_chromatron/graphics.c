@@ -89,7 +89,7 @@ PT_BEGIN( pt );
 
         uint32_t start = tmr_u32_get_system_time_us();
 
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             gfx_v_shutdown_graphic();
             

@@ -995,7 +995,7 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, rnd_u16_get_int() >> 6 ); // add 1 second of random delay
 
         // check if shutting down
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             THREAD_EXIT( pt );
         }

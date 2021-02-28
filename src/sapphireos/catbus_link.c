@@ -1401,7 +1401,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
         // check if shutting down
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             THREAD_EXIT( pt );
         }
@@ -1756,7 +1756,7 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, LINK_DISCOVER_RATE + ( rnd_u16_get_int() >> 7 ) );
 
         // check if shutting down
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             THREAD_EXIT( pt );
         }
@@ -2220,7 +2220,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         // check if shutting down
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             THREAD_EXIT( pt );
         }

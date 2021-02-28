@@ -308,7 +308,7 @@ bool catbus_b_query_self( catbus_query_t *query ){
 #ifdef ENABLE_NETWORK
 static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id ){
 
-    if( sys_b_shutdown() ){
+    if( sys_b_is_shutting_down() ){
 
         return;
     }
@@ -1456,7 +1456,7 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, ( CATBUS_ANNOUNCE_INTERVAL * 1000 ) + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
 
         // are we shutting down?
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             // we can terminate the thread, since sending announcements and links
             // is counter productive if we're about to turn off.

@@ -238,7 +238,9 @@ PT_BEGIN( pt );
 
                 batt_ui_state = -2;
 
-                TMR_WAIT( pt, 5000 );
+                sys_v_initiate_shutdown( 5 );
+
+                THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
                 bq25895_v_enable_ship_mode( FALSE );
             }
