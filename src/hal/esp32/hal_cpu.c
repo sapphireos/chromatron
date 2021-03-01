@@ -113,11 +113,13 @@ void cpu_v_init( void ){
     // }
     #endif    
 
+    #ifndef BOOTLOADER
     #ifdef CONFIG_FREERTOS_UNICORE
     trace_printf("CPU: 1 core\n");
     #else
     trace_printf("CPU: 2 cores\n");
     #endif    
+    #endif
 
     #ifndef BOOTLOADER
     vTaskDelay(10);
