@@ -64,7 +64,7 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
 };
 
 #define SOC_MAX_VOLTS   4100
-#define SOC_MIN_VOLTS   3200
+#define SOC_MIN_VOLTS   3000
 #define SOC_FILTER      32
 
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
