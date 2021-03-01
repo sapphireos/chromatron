@@ -524,7 +524,7 @@ on the same machine!
 """
 
 class LinkManager(MsgServer):
-    def __init__(self, database=None, test_mode=True):
+    def __init__(self, database=None, service_manager=None, test_mode=True):
         super().__init__(name='link_manager', listener_port=CATBUS_LINK_PORT, listener_mcast=LINK_MCAST_ADDR)
 
         if database is None:
@@ -533,7 +533,11 @@ class LinkManager(MsgServer):
             database.add_item('kv_test_key', os.getpid(), 'uint32')
 
         self._database = database
-        self._service_manager = services.ServiceManager()
+        
+        if service_manager is None:
+            service_manager = services.ServiceManager()
+
+        self._service_manager = service_manager
 
         self.register_message(ConsumerQueryMsg, self._handle_consumer_query)
         self.register_message(ConsumerMatchMsg, self._handle_consumer_match)

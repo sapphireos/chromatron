@@ -45,6 +45,7 @@ import time
 import sys
 import os
 
+from sapphire.protocols import services
 from sapphire.common import catbus_string_hash, run_all, synchronized
 from sapphire.common.util import setup_basic_logging
 
@@ -69,6 +70,7 @@ class CatbusService(Database):
 
         self._server = Server(data_port=data_port, database=self, visible=visible)
         self.__link_manager = None
+        self.__service_manager = None
 
         self._data_port = self._server._port
 
@@ -98,20 +100,29 @@ class CatbusService(Database):
     def _link_manager(self):
         # automatically create link manager if it is accessed.
         # this way if the link manager isn't used, resources aren't created for it.
-        if self.__link_manager is None:
-            self.__link_manager = LinkManager(database=self)
+        with self._lock:
+            if self.__link_manager is None:
+                self.__link_manager = LinkManager(database=self, service_manager=self._service_manager)
 
         return self.__link_manager
+
+    @property
+    def _service_manager(self):
+        # automatically create service manager if it is accessed.
+        # this way if the service manager isn't used, resources aren't created for it.
+        with self._lock:
+            if self.__service_manager is None:
+                self.__service_manager = services.ServiceManager()
+
+        return self.__service_manager
 
     @synchronized
     def register(self, key, callback):
         self._callbacks[key] = callback
 
-    @synchronized
     def register_announce_handler(self, handler):
         self._server.register_announce_handler(handler)
 
-    @synchronized
     def register_shutdown_handler(self, handler):
         self._server.register_shutdown_handler(handler)
 
