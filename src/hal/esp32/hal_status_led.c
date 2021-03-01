@@ -178,6 +178,8 @@ PT_BEGIN( pt );
 
                 status_led_v_set( 1, STATUS_LED_GREEN );
             }
+
+            TMR_WAIT( pt, 500 );
         }
     }
 
