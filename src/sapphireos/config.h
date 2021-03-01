@@ -109,6 +109,8 @@
 #define CFG_PARAM_META_TAG_6                    __KV__meta_tag_4
 #define CFG_PARAM_META_TAG_7                    __KV__meta_tag_5
 
+#define CFG_PARAM_BATT_ENABLE					__KV__batt_enable
+
 #define CFG_PARAM_RECOVERY_MODE_BOOTS          __KV__cfg_recovery_boot_count
 
 // DO NOT ASSIGN IDs >= CFG_TOTAL_BLOCKS!!!!

@@ -159,10 +159,23 @@ void hal_wifi_v_init( void ){
     esp_wifi_set_max_tx_power( tx_power * 4 );
 
     // set power state
-    esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
-    // esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
-    // esp_wifi_set_ps( WIFI_PS_MAX_MODEM );
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
+        // safe mode, we're not going to do anything fancy
+        esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
+    }
+    else if( cfg_b_get_boolean( CFG_PARAM_BATT_ENABLE ) ){
+
+        // battery enabled, set wifi to modem sleep
+
+        esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
+        // esp_wifi_set_ps( WIFI_PS_MAX_MODEM );
+    }
+    else{
+
+        esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
+    }
+        
 	thread_t_create_critical( 
                  wifi_connection_manager_thread,
                  PSTR("wifi_connection_manager"),
