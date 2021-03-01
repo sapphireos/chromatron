@@ -1535,12 +1535,18 @@ bool gfx_b_enabled( void ){
         return FALSE;
     }
 
-    if( gfx_enable && ( current_dimmer > 0 ) ){
+    // if( gfx_enable && ( current_dimmer > 0 ) ){
 
-        return TRUE;
-    }   
+    //     return TRUE;
+    // }   
 
-    return FALSE;
+    // return FALSE;
+    if( !gfx_enable && ( current_dimmer == 0 ) ){
+
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 void gfx_v_set_pixel_power( bool enabled ){

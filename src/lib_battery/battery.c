@@ -35,11 +35,13 @@
 
 static bool batt_enable;
 static int8_t batt_ui_state;
+static bool pixels_enabled = TRUE;
 // static uint8_t buttons;
 
 KV_SECTION_META kv_meta_t ui_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable, 0,          "batt_enable" },
     { SAPPHIRE_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state, 0,        "batt_ui_state" },
+    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled, 0,       "batt_pixel_power" },
     // { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &buttons,       0,        "batt_button_state" },
 };
 
@@ -82,7 +84,6 @@ static bool dimming_direction_down;
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
 static bool pca9536_enabled;
-static bool pixels_enabled = TRUE;
 
 void batt_v_init( void ){
 
