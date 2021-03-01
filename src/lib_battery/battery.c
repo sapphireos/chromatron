@@ -110,6 +110,15 @@ void batt_v_init( void ){
         io_v_set_mode( UI_BUTTON, IO_MODE_INPUT_PULLUP );    
     }
 
+    trace_printf("Battery controller enabled\n");
+
+    // if pixels are below the low power threshold,
+    // set the CPU to low speed
+    if( gfx_u16_get_pix_count() < BATT_PIX_COUNT_LOW_POWER_THRESHOLD ){
+
+        cpu_v_set_clock_speed_low();
+    }
+
     thread_t_create( ui_thread,
                      PSTR("ui"),
                      0,
@@ -206,6 +215,7 @@ PT_BEGIN( pt );
 
                 if( !batt_b_pixels_enabled() ){
                     
+                    trace_printf("Pixel power enabled\n");
                     batt_v_enable_pixels();
                 }
             }
@@ -213,6 +223,7 @@ PT_BEGIN( pt );
 
                 if( batt_b_pixels_enabled() ){
                     
+                    trace_printf("Pixel power disabled\n");
                     batt_v_disable_pixels();   
                 }
             }

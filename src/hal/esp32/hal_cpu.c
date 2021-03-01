@@ -201,7 +201,6 @@ void cpu_v_set_clock_speed_low( void ){
 
 void cpu_v_set_clock_speed_high( void ){
 
-
     esp_pm_config_esp32_t pm_config = { 0 };
     #ifdef ESP32_MAX_CPU_160M
     pm_config.max_freq_mhz = 160;

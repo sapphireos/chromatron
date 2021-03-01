@@ -33,6 +33,8 @@
 #define UI_BUTTON   IO_PIN_21
 #endif
 
+#define BATT_PIX_COUNT_LOW_POWER_THRESHOLD		100
+
 // PCA9536 connections on Charger2
 #define BATT_IO_QON     0
 #define BATT_IO_S2      1
