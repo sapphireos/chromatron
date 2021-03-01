@@ -78,27 +78,11 @@ PT_BEGIN( pt );
 
             status_led_v_set( 0, STATUS_LED_RED );
 
-            TMR_WAIT( pt, 100 );
+            TMR_WAIT( pt, 500 );
 
             status_led_v_set( 1, STATUS_LED_RED );
 
-            TMR_WAIT( pt, 100 );
-
-            status_led_v_set( 0, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 100 );
-
-            status_led_v_set( 1, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 100 );
-
-            status_led_v_set( 0, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 100 );
-
-            status_led_v_set( 1, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 1000 );
+            TMR_WAIT( pt, 500 );
         }
         else if( sys_b_is_shutting_down() ){
 
