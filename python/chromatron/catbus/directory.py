@@ -32,6 +32,7 @@ import json
 import struct
 import sys
 
+from .catbus import CatbusService
 from .options import *
 from .messages import *
 from .data_structures import *
@@ -43,8 +44,22 @@ from sapphire.common import util, MsgServer, run_all, synchronized, Ribbon
 
 TTL = 240
 
+class Directory(CatbusService):
+    def __init__(self):
+        super().__init__()
 
-class Directory(MsgServer):
+        self.register_announce_handler(self._handle_announce)
+        self.register_shutdown_handler(self._handle_shutdown)
+
+    def _handle_shutdown(self, msg, host):
+        print(msg, host)
+  
+    def _handle_announce(self, msg, host):
+        print(msg, host)
+        
+
+
+class Directory2(MsgServer):
     def __init__(self):
         super().__init__(name='catbus_directory', port=0, listener_port=CATBUS_ANNOUNCE_PORT, listener_mcast=CATBUS_ANNOUNCE_MCAST_ADDR)
 
