@@ -66,9 +66,14 @@ class Server(MsgServer):
         if self.visible:
             self.start_timer(0.1, self._send_announce, repeat=False)
 
+        self._announce_handlers = []
         self._shutdown_handlers = []
 
         self.start()
+
+    @synchronized
+    def register_announce_handler(self, handler):
+        self._announce_handlers.append(handler)
 
     @synchronized
     def register_shutdown_handler(self, handler):
@@ -145,7 +150,8 @@ class Server(MsgServer):
                 self._send_announce(host=host, discovery_id=msg.header.transaction_id)
 
     def _handle_announce(self, msg, host):
-        pass
+        for handler in self._announce_handlers:
+            handler(msg, host)
 
     def _handle_lookup_hash(self, msg, host):
         resolved_hashes = []
@@ -239,7 +245,7 @@ class Server(MsgServer):
 
     def _handle_shutdown(self, msg, host):
         for handler in self._shutdown_handlers:
-            handler(host)
+            handler(msg, host)
         
     def _process_announce(self):
         self._database['uptime'] += 4

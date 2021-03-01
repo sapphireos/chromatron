@@ -68,7 +68,7 @@ class CatbusService(Database):
         super(CatbusService, self).__init__(**kwargs)
 
         self._server = Server(data_port=data_port, database=self, visible=visible)
-        self._link_manager = LinkManager(database=self)
+        self.__link_manager = None
 
         self._data_port = self._server._port
 
@@ -94,9 +94,22 @@ class CatbusService(Database):
         except AttributeError:
             pass
 
+    @property
+    def _link_manager(self):
+        # automatically create link manager if it is accessed.
+        # this way if the link manager isn't used, resources aren't created for it.
+        if self.__link_manager is None:
+            self.__link_manager = LinkManager(database=self)
+
+        return self.__link_manager
+
     @synchronized
     def register(self, key, callback):
         self._callbacks[key] = callback
+
+    @synchronized
+    def register_announce_handler(self, handler):
+        self._server.register_announce_handler(handler)
 
     @synchronized
     def register_shutdown_handler(self, handler):
