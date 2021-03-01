@@ -553,7 +553,7 @@ class ServiceManager(MsgServer):
         return service
     
     @synchronized
-    def listen(self, service_id, group):
+    def listen(self, service_id, group, queries=1):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
 
@@ -565,7 +565,13 @@ class ServiceManager(MsgServer):
 
         logging.info(f"Added LISTEN for {hex(service_id)}/{hex(group)}")
 
-        self._send_query(service_id, group)
+        while queries > 0:
+            self._send_query(service_id, group)
+
+            queries -= 1
+
+            if queries > 0:
+                time.sleep(0.1)
 
         return service
 
