@@ -114,6 +114,11 @@ PT_BEGIN( pt );
         // check if LEDs are no longer enabled
         if( !gfx_b_enabled() ){
 
+            // signal the pixel thread.
+            // if the pixel driver supports power controls, it
+            // will shutdown the IO drivers (so they don't backfeed the pixels)
+            pixel_v_signal();        
+
             THREAD_WAIT_WHILE( pt, !gfx_b_enabled() );
 
             // reset alarm

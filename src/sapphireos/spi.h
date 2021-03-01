@@ -29,6 +29,7 @@
 #include "hal_spi.h"
 
 void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode );
+void spi_v_release( void );
 void spi_v_set_freq( uint8_t channel, uint32_t freq );
 uint32_t spi_u32_get_freq( uint8_t channel );
 void spi_v_set_mode( uint8_t channel, uint8_t mode );

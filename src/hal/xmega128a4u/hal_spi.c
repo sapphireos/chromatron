@@ -61,6 +61,11 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
     SPI_USER_PORT.CTRLB = USART_RXEN_bm | USART_TXEN_bm;
 }
 
+void spi_v_release( void ){
+
+    
+}
+
 uint32_t spi_u32_get_freq( uint8_t channel ){
 
 	uint8_t bsel = SPI_USER_PORT.BAUDCTRLA;

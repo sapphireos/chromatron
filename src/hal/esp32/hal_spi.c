@@ -70,6 +70,14 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
     ESP_ERROR_CHECK(spi_bus_add_device( HAL_SPI_PORT, &devcfg, &spi ));   
 }
 
+void spi_v_release( void ){
+
+	// tristate all IO
+	io_v_set_mode( HAL_SPI_MISO, IO_MODE_INPUT );
+    io_v_set_mode( HAL_SPI_MOSI, IO_MODE_INPUT );
+    io_v_set_mode( HAL_SPI_SCK, IO_MODE_INPUT );
+}
+
 void spi_v_set_freq( uint8_t channel, uint32_t freq ){
 
     ASSERT( channel < N_SPI_PORTS );
