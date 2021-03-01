@@ -156,7 +156,8 @@ uint16_t gfx_u16_get_pix0_blue( void );
 
 void gfx_v_clear( void );
 void gfx_v_shutdown_graphic( void );
-void gfx_v_reset_faders( void );
+
+bool gfx_b_enabled( void );
 
 void gfxlib_v_init( void );
 
@@ -176,5 +177,6 @@ uint32_t gfx_u32_get_pixel_w( void );
 
 // implemented by VM to signal frame rate changes
 void gfx_vm_v_update_frame_rate( uint16_t new_frame_rate );
+
 
 #endif

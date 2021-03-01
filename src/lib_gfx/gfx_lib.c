@@ -61,6 +61,7 @@ static int16_t hue_step[MAX_PIXELS];
 static int16_t sat_step[MAX_PIXELS];
 static int16_t val_step[MAX_PIXELS];
 
+static bool gfx_enable = TRUE;
 static uint16_t pix_master_dimmer = 0;
 static uint16_t pix_sub_dimmer = 0;
 static uint16_t target_dimmer = 0;
@@ -264,6 +265,7 @@ int8_t gfx_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,                   "pix_size_x" },
@@ -328,6 +330,11 @@ static void setup_master_array( void ){
     pix_arrays[0].size_y = pix_size_y;    
 }
 
+static uint16_t calc_dimmer( void ){
+
+    return ( (uint32_t)pix_master_dimmer * (uint32_t)pix_sub_dimmer ) / 65536;    
+}
+
 static void update_master_fader( void ){
 
     uint16_t fade_steps = global_v_fade / FADER_RATE;
@@ -337,7 +344,14 @@ static void update_master_fader( void ){
         fade_steps = 2;
     }
 
-    target_dimmer = ( (uint32_t)pix_master_dimmer * (uint32_t)pix_sub_dimmer ) / 65536;
+    if( gfx_enable ){
+
+        target_dimmer = calc_dimmer();
+    }
+    else{
+
+        target_dimmer = 0;
+    }
 
     int32_t diff = (int32_t)target_dimmer - (int32_t)current_dimmer;
     int32_t step = diff / fade_steps;
@@ -1501,6 +1515,16 @@ void gfx_v_shutdown_graphic( void ){
     array_red[0] = 16;
     array_green[0] = 16;
     array_blue[0] = 16;    
+}
+
+bool gfx_b_enabled( void ){
+
+    if( gfx_enable && current_dimmer > 0 ){
+
+        return TRUE;
+    }   
+
+    return FALSE;
 }
 
 void gfx_v_reset( void ){
