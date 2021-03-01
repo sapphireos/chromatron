@@ -33,6 +33,8 @@
 #include "config.h"
 
 #include <driver/adc.h>
+
+#ifndef BOOTLOADER
 #include <esp_adc_cal.h>
 
 static int8_t hal_adc_kv_handler(
@@ -63,7 +65,11 @@ static esp_adc_cal_characteristics_t characteristics;
 
 PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) );
 
+#endif
+
 void adc_v_init( void ){
+
+    #ifndef BOOTLOADER
 
     adc1_config_width( ADC_WIDTH_BIT_12 );
 
@@ -73,6 +79,8 @@ void adc_v_init( void ){
                      PSTR("hal_adc"),
                      0,
                      0 );
+
+    #endif
 }
 
 PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) )
@@ -134,13 +142,15 @@ uint16_t adc_u16_read_vcc( void ){
 
 uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
 
-    // uint32_t millivolts = (uint32_t)raw_value * 2600;
-    // millivolts /= 4096;
+    #ifndef BOOTLOADER
 
     return esp_adc_cal_raw_to_voltage( raw_value, &characteristics );
 
-	// return millivolts;
-    return raw_value;
+    #else
+
+    return 0;
+
+    #endif
 }
 
 

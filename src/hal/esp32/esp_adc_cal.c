@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+#ifndef BOOTLOADER
+
 #include <stdint.h>
 #include "esp_types.h"
 #include "driver/adc.h"
@@ -410,3 +413,4 @@ uint32_t adc1_to_voltage(adc1_channel_t channel, const esp_adc_cal_characteristi
 }
 
 
+#endif
