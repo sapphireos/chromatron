@@ -154,6 +154,14 @@ bool cpu_b_osc_fail( void ){
     return ( OSC.XOSCFAIL & OSC_XOSCFDIF_bm ) != 0;
 }
 
+void cpu_v_set_clock_speed_low( void ){
+
+}
+
+void cpu_v_set_clock_speed_high( void ){
+
+}
+
 uint32_t cpu_u32_get_clock_speed( void ){
 
     return 32000000;

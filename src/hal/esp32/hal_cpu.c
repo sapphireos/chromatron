@@ -103,26 +103,9 @@ void cpu_v_init( void ){
     #ifndef BOOTLOADER
     DISABLE_INTERRUPTS;
 
-    esp_pm_config_esp32_t pm_config = { 0 };
-    #ifdef ESP32_MAX_CPU_160M
-    pm_config.max_freq_mhz = 160;
-    pm_config.min_freq_mhz = 160;
-    #else
-    pm_config.max_freq_mhz = 240;
-    pm_config.min_freq_mhz = 240;
-    #endif
-
-    pm_config.light_sleep_enable = FALSE;
-
-    // pm_config.max_freq_mhz = 240;
-    // pm_config.min_freq_mhz = 240;
-    // pm_config.light_sleep_enable = TRUE;
-
-    esp_pm_configure( &pm_config );
+    cpu_v_set_clock_speed_high();
 
     vTaskDelay(10);
-
-    trace_printf("Setting frequency to %d MHz...\n", pm_config.max_freq_mhz);
 
     // this loop will hang forever if light_sleep_enable is TRUE
     // while (esp_clk_cpu_freq() / 1000000 != pm_config.max_freq_mhz) {
@@ -196,6 +179,43 @@ void cpu_v_sleep( void ){
 bool cpu_b_osc_fail( void ){
 
     return 0;
+}
+
+void cpu_v_set_clock_speed_low( void ){
+
+    esp_pm_config_esp32_t pm_config = { 0 };
+    #ifdef ESP32_MAX_CPU_160M
+    pm_config.max_freq_mhz = 80;
+    pm_config.min_freq_mhz = 80;
+    #else
+    pm_config.max_freq_mhz = 80;
+    pm_config.min_freq_mhz = 80;
+    #endif
+
+    pm_config.light_sleep_enable = FALSE;
+
+    esp_pm_configure( &pm_config );    
+
+    trace_printf("Setting frequency to %d MHz...\n", pm_config.max_freq_mhz);
+}
+
+void cpu_v_set_clock_speed_high( void ){
+
+
+    esp_pm_config_esp32_t pm_config = { 0 };
+    #ifdef ESP32_MAX_CPU_160M
+    pm_config.max_freq_mhz = 160;
+    pm_config.min_freq_mhz = 160;
+    #else
+    pm_config.max_freq_mhz = 240;
+    pm_config.min_freq_mhz = 240;
+    #endif
+
+    pm_config.light_sleep_enable = FALSE;
+
+    esp_pm_configure( &pm_config );    
+
+    trace_printf("Setting frequency to %d MHz...\n", pm_config.max_freq_mhz);
 }
 
 uint32_t cpu_u32_get_clock_speed( void ){

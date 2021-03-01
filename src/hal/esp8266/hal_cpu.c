@@ -198,6 +198,14 @@ bool cpu_b_osc_fail( void ){
     return 0;
 }
 
+void cpu_v_set_clock_speed_low( void ){
+
+}
+
+void cpu_v_set_clock_speed_high( void ){
+
+}
+
 uint32_t cpu_u32_get_clock_speed( void ){
 
     return system_get_cpu_freq() * 1000000;
