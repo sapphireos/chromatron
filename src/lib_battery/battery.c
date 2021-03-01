@@ -35,12 +35,12 @@
 
 static bool batt_enable;
 static int8_t batt_ui_state;
-static uint8_t buttons;
+// static uint8_t buttons;
 
 KV_SECTION_META kv_meta_t ui_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable, 0,          "batt_enable" },
     { SAPPHIRE_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state, 0,        "batt_ui_state" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &buttons,       0,        "batt_button_state" },
+    // { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &buttons,       0,        "batt_button_state" },
 };
 
 
@@ -152,6 +152,7 @@ void batt_v_enable_pixels( void ){
     }
 
     pixels_enabled = TRUE;
+    gfx_v_set_pixel_power( pixels_enabled );
 }
 
 void batt_v_disable_pixels( void ){
@@ -162,6 +163,8 @@ void batt_v_disable_pixels( void ){
 
         pixels_enabled = FALSE;
     }
+
+    gfx_v_set_pixel_power( pixels_enabled );
 }
 
 bool batt_b_pixels_enabled( void ){
@@ -193,21 +196,39 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
 
-        buttons = 0;
+        // buttons = 0;
         if( pca9536_enabled ){
 
-            if( pca9536_b_gpio_read( BATT_IO_QON ) ){
+            // check if LEDs enabled.
+            // this will automatically shutdown the pixel strip
+            // if LED graphics are not enabled.
+            if( gfx_b_enabled() ){
 
-                buttons |= ( 1 << BATT_IO_QON );
+                if( !batt_b_pixels_enabled() ){
+                    
+                    batt_v_enable_pixels();
+                }
             }
-            if( pca9536_b_gpio_read( BATT_IO_S2 ) ){
+            else{
 
-                buttons |= ( 1 << BATT_IO_S2 );
+                if( batt_b_pixels_enabled() ){
+                    
+                    batt_v_disable_pixels();   
+                }
             }
-            if( pca9536_b_gpio_read( BATT_IO_SPARE ) ){
 
-                buttons |= ( 1 << BATT_IO_SPARE );
-            }
+            // if( pca9536_b_gpio_read( BATT_IO_QON ) ){
+
+            //     buttons |= ( 1 << BATT_IO_QON );
+            // }
+            // if( pca9536_b_gpio_read( BATT_IO_S2 ) ){
+
+            //     buttons |= ( 1 << BATT_IO_S2 );
+            // }
+            // if( pca9536_b_gpio_read( BATT_IO_SPARE ) ){
+
+            //     buttons |= ( 1 << BATT_IO_SPARE );
+            // }
         }
 
         uint8_t charge_status = bq25895_u8_get_charge_status();

@@ -40,6 +40,7 @@
 #include "kvdb.h"
 #include "hash.h"
 
+
 static uint16_t vm_fader_time;
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
@@ -85,7 +86,7 @@ PT_BEGIN( pt );
     while(1){
 
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
-        THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         uint32_t start = tmr_u32_get_system_time_us();
 
@@ -109,6 +110,15 @@ PT_BEGIN( pt );
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
         vm_fader_time = elapsed;
+
+        // check if LEDs are no longer enabled
+        if( !gfx_b_enabled() ){
+
+            THREAD_WAIT_WHILE( pt, !gfx_b_enabled() );
+
+            // reset alarm
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+        }
     }
 
 PT_END( pt );
