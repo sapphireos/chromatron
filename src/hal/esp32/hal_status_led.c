@@ -159,7 +159,7 @@ PT_BEGIN( pt );
 
             status_led_v_set( 0, STATUS_LED_GREEN );
 
-            TMR_WAIT( pt, 200 );
+            TMR_WAIT( pt, 500 );
 
             if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
                   ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
@@ -167,19 +167,17 @@ PT_BEGIN( pt );
                 status_led_v_set( 1, STATUS_LED_GREEN );
             }
 
-            TMR_WAIT( pt, 200 );
+            TMR_WAIT( pt, 500 );
 
             status_led_v_set( 0, STATUS_LED_GREEN );
 
-            TMR_WAIT( pt, 200 );
+            TMR_WAIT( pt, 500 );
 
             if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
                   ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
 
                 status_led_v_set( 1, STATUS_LED_GREEN );
             }
-
-            TMR_WAIT( pt, 1000 );
         }
     }
 
