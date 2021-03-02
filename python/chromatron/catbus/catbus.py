@@ -173,7 +173,7 @@ def cli(ctx, query, verbose):
     client = Client()
     ctx.obj['CLIENT'] = client
 
-    verbose = True
+    verbose = False
     ctx.obj['VERBOSE'] = verbose
     if verbose:
         setup_basic_logging()

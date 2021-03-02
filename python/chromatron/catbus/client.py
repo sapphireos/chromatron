@@ -348,15 +348,19 @@ class Client(BaseClient):
         if host[0] is None:
             matches = self._discover("DIRECTORY")
 
-            server = list(matches.values())[0]['host']
+            if len(matches) > 0:
+                server = list(matches.values())[0]['host']
 
-            # get directory port (using a new client so we don't stomp on the connected host)
-            c = Client(server)
-            port = c.get_key('directory_port')
-            host = (server[0], port)
+                # get directory port (using a new client so we don't stomp on the connected host)
+                c = Client(server)
+                port = c.get_key('directory_port')
+                host = (server[0], port)
 
-            # cache server
-            self._update_directory(host)
+                # cache server
+                self._update_directory(host)
+
+            else:
+                return None
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

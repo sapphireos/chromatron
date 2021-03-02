@@ -240,7 +240,6 @@ def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
     if console:
         logging.debug("Console logging enabled")
 
-
     # create a network logger
     # socket_handler = logging.handlers.SocketHandler('localhost',
     #                     logging.handlers.DEFAULT_TCP_LOGGING_PORT)
