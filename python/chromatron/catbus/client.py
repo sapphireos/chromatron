@@ -284,7 +284,7 @@ class Client(BaseClient):
                     # can't find anything, just return hash itself
                     resolved_keys[k] = k
 
-            if k != catbus_string_hash(v):
+            elif k != catbus_string_hash(v):
                 logging.critical(f"KV hash lookup failure: {v} -> {hex(k)}")
 
         if not skip_cache:

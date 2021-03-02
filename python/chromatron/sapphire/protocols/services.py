@@ -266,17 +266,17 @@ class Service(object):
                 if timeout < 0.0:
                     raise ServiceNotConnected
 
-    # def wait_until_connected(self, timeout=60.0):
-    #     logging.debug(f"{self} waiting for connected, timeout {timeout}")
+    def wait_until_connected(self, timeout=60.0):
+        logging.debug(f"{self} waiting for connected, timeout {timeout}")
         
-    #     while self._state == STATE_LISTEN:
-    #         time.sleep(0.1)
+        while self._state == STATE_LISTEN:
+            time.sleep(0.1)
 
-    #         if timeout > 0.0:
-    #             timeout -= 0.1
+            if timeout > 0.0:
+                timeout -= 0.1
 
-    #             if timeout < 0.0:
-    #                 raise ServiceNotConnected
+                if timeout < 0.0:
+                    raise ServiceNotConnected
 
     def _process_offer(self, offer, host):
         # logging.debug(f"Received OFFER from {host}: {offer}")
@@ -519,7 +519,7 @@ class ServiceManager(MsgServer):
         return n
 
     @synchronized
-    def join_team(self, service_id, group, port, priority=0):
+    def join_team(self, service_id, group=0, port=0, priority=0):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
 
@@ -536,7 +536,7 @@ class ServiceManager(MsgServer):
         return team
 
     @synchronized
-    def offer(self, service_id, group, port, priority=1):
+    def offer(self, service_id, group=0, port=0, priority=1):
         assert priority != 0
 
         service_id = self._convert_catbus_hash(service_id)
@@ -553,7 +553,7 @@ class ServiceManager(MsgServer):
         return service
     
     @synchronized
-    def listen(self, service_id, group, queries=1):
+    def listen(self, service_id, group=0, queries=1):
         service_id = self._convert_catbus_hash(service_id)
         group = self._convert_catbus_hash(group)
 
@@ -668,7 +668,6 @@ def main():
 
     s = ServiceManager()
 
-    # team = s.join_team(0x1234, 0, 0, 0)
     if sys.argv[1] == 'listen':
         svc = s.listen(1234, 5678)
 
@@ -677,6 +676,15 @@ def main():
 
     elif sys.argv[1] == 'join':
         svc = s.join_team(1234, 5678, 1000, priority=99)
+
+    elif sys.argv[1] == 'listen_directory':
+        svc = s.listen("directory")
+
+        svc.wait_until_connected()
+
+        print(svc.server)
+
+        sys.exit(0)
 
     run_all()
 
