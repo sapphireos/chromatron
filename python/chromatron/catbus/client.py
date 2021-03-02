@@ -304,10 +304,19 @@ class Client(BaseClient):
         return resolved_keys
 
     def get_directory(self):
+        matches = self._discover("DIRECTORY")
+
+        server = list(matches.values())[0]['host']
+
+        # get directory port (using a new client so we don't stomp on the connected host)
+        c = Client(server)
+        port = c.get_key('directory_port')
+        host = (server[0], port)
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
-            sock.connect(('localhost', CATBUS_DIRECTORY_PORT))
+            sock.connect(host)
 
         except ConnectionRefusedError:
              return None
@@ -328,9 +337,14 @@ class Client(BaseClient):
 
         return directory
 
-    def discover(self, *args, **kwargs):
-        """Discover KV nodes on the network"""
-        self.nodes = {}
+    def _discover(self, *args, **kwargs):
+        # note we're creating a new socket for discovery.
+        # the reason to do this is we may get a stray response after
+        # we've completed discovery, and that may interfere with
+        # other communications (you receive an announce when you
+        # were expecting a data message, etc).
+
+        nodes = {}
 
         if len(args) > 0:
             tags = [catbus_string_hash(a) for a in args]
@@ -342,56 +356,65 @@ class Client(BaseClient):
             tags = []
             msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
 
+
+        discover_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        discover_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+        discover_sock.settimeout(DISCOVERY_TIMEOUT)
+
+        for i in range(3):
+            send_udp_broadcast(discover_sock, CATBUS_MAIN_PORT, msg.pack())
+            send_udp_broadcast(discover_sock, CATBUS_ANNOUNCE_PORT, msg.pack())
+
+            start = time.time()
+
+            while (time.time() - start) < DISCOVERY_TIMEOUT:
+                try:
+                    data, sender = discover_sock.recvfrom(1024)
+
+                    response = deserialize(data)
+                    
+                    if not isinstance(response, AnnounceMsg):
+                        continue
+
+                    elif response.header.universe != self.universe:
+                        continue
+
+                    if response.header.transaction_id == msg.header.transaction_id and \
+                        query_tags(tags, response.query):
+
+                        # add to node list
+                        nodes[response.header.origin_id] = \
+                            {'host': (sender[0], response.data_port),
+                             'tags': response.query}
+
+                except InvalidMessageException as e:
+                    logging.exception(e)
+
+                except socket.timeout:
+                    pass
+
+        discover_sock.close()
+
+        return nodes
+
+    def discover(self, *args, **kwargs):
+        """Discover KV nodes on the network"""
+        self.nodes = {}
+
+        if len(args) > 0:
+            tags = [catbus_string_hash(a) for a in args]
+
+        else:
+            tags = []
+
         msg.header.universe = self.universe
 
         # try to contact directory server
         directory = self.get_directory()
 
         if directory == None:
-            # note we're creating a new socket for discovery.
-            # the reason to do this is we may get a stray response after
-            # we've completed discovery, and that may interfere with
-            # other communications (you receive an announce when you
-            # were expecting a data message, etc).
-
-            discover_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            discover_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
-            discover_sock.settimeout(DISCOVERY_TIMEOUT)
-
-            for i in range(3):
-                send_udp_broadcast(discover_sock, CATBUS_MAIN_PORT, msg.pack())
-                send_udp_broadcast(discover_sock, CATBUS_ANNOUNCE_PORT, msg.pack())
-
-                start = time.time()
-
-                while (time.time() - start) < DISCOVERY_TIMEOUT:
-                    try:
-                        data, sender = discover_sock.recvfrom(1024)
-
-                        response = deserialize(data)
-                        
-                        if not isinstance(response, AnnounceMsg):
-                            continue
-
-                        elif response.header.universe != self.universe:
-                            continue
-
-                        if response.header.transaction_id == msg.header.transaction_id and \
-                            query_tags(tags, response.query):
-
-                            # add to node list
-                            self.nodes[response.header.origin_id] = \
-                                {'host': (sender[0], response.data_port),
-                                 'tags': response.query}
-
-                    except InvalidMessageException as e:
-                        logging.exception(e)
-
-                    except socket.timeout:
-                        pass
-
-            discover_sock.close()
+            self.nodes = self._discover(*args, **kwargs)
         
         else:
             for origin_id, v in directory.items():
