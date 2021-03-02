@@ -500,11 +500,17 @@ class ServiceManager(MsgServer):
         for svc in self._services.values():
             svc._shutdown()
 
-        self._send_offers(shutdown=True)
+        servers = [svc for svc in self._services.values() if svc.is_server]
+        offers = [svc._offer for svc in servers]
+
+        if len(offers) == 0:
+            return
+
+        self._send_offers(offers, shutdown=True)
         time.sleep(0.1)
-        self._send_offers(shutdown=True)
+        self._send_offers(offers, shutdown=True)
         time.sleep(0.1)
-        self._send_offers(shutdown=True)
+        self._send_offers(offers, shutdown=True)
 
     def _convert_catbus_hash(self, n):
         if isinstance(n, str):
