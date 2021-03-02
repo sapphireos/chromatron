@@ -15,6 +15,7 @@ class DeviceService(object):
         self.device = d
 
         self.host = self.device.host
+        self.port = self.device.port
 
         self.reset()
 
@@ -47,7 +48,7 @@ class DeviceService(object):
             raise ServiceNotConnected
 
         if self.is_server:
-            host = (self.host, self._port) # local server is on loopback
+            host = (self.host, self.port) # local server is on loopback
 
         else:
             host = (self._service.server_ip, self._service.server_port)
@@ -77,21 +78,6 @@ class DeviceService(object):
 
                 if timeout < 0.0:
                     raise ServiceNotConnected
-
-    # def wait_until_connected(self, timeout=60.0):
-    #     if self.connected:
-    #         return
-
-    #     logging.debug(f"{self} waiting for connection, timeout {timeout}")
-        
-    #     while not self.connected:
-    #         time.sleep(0.1)
-
-    #         if timeout > 0.0:
-    #             timeout -= 0.1
-
-    #             if timeout < 0.0:
-    #                 raise ServiceNotConnected
 
     def _cancel(self):
         self.reset()

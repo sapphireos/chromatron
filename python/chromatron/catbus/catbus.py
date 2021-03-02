@@ -69,9 +69,9 @@ class CatbusService(Database):
         super(CatbusService, self).__init__(**kwargs)
 
         self._server = Server(data_port=data_port, database=self, visible=visible)
-        self.__link_manager = None
-        self.__service_manager = None
-
+        self._service_manager = services.ServiceManager()
+        self._link_manager = LinkManager(database=self, service_manager=self._service_manager)
+        
         self._data_port = self._server._port
 
         self._callbacks = {}
@@ -96,25 +96,25 @@ class CatbusService(Database):
         except AttributeError:
             pass
 
-    @property
-    def _link_manager(self):
-        # automatically create link manager if it is accessed.
-        # this way if the link manager isn't used, resources aren't created for it.
-        with self._lock:
-            if self.__link_manager is None:
-                self.__link_manager = LinkManager(database=self, service_manager=self._service_manager)
+    # @property
+    # def _link_manager(self):
+    #     # automatically create link manager if it is accessed.
+    #     # this way if the link manager isn't used, resources aren't created for it.
+    #     with self._lock:
+    #         if self.__link_manager is None:
+    #             self.__link_manager = LinkManager(database=self, service_manager=self._service_manager)
 
-        return self.__link_manager
+    #     return self.__link_manager
 
-    @property
-    def _service_manager(self):
-        # automatically create service manager if it is accessed.
-        # this way if the service manager isn't used, resources aren't created for it.
-        with self._lock:
-            if self.__service_manager is None:
-                self.__service_manager = services.ServiceManager()
+    # @property
+    # def _service_manager(self):
+    #     # automatically create service manager if it is accessed.
+    #     # this way if the service manager isn't used, resources aren't created for it.
+    #     with self._lock:
+    #         if self.__service_manager is None:
+    #             self.__service_manager = services.ServiceManager()
 
-        return self.__service_manager
+    #     return self.__service_manager
 
     @synchronized
     def register(self, key, callback):
@@ -128,6 +128,15 @@ class CatbusService(Database):
 
     def start_timer(self, *args, **kwargs):
         self._server.start_timer(*args, **kwargs)
+
+    def join_team(self, *args, **kwargs):
+        self._service_manager.join_team(*args, **kwargs)
+
+    def offer(self, *args, **kwargs):
+        self._service_manager.offer(*args, **kwargs)
+
+    def listen(self, *args, **kwargs):
+        self._service_manager.listen(*args, **kwargs)
 
     def send(self, *args, **kwargs):
         self._link_manager.send(*args, **kwargs)
