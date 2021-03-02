@@ -990,10 +990,15 @@ PT_BEGIN( pt );
         ln = next_ln;
     }
 
-
     while(1){
         
-        TMR_WAIT( pt, SERVICE_RATE );
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + SERVICE_RATE );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
+
+        if( sys_b_is_shutting_down() ){
+
+            goto shutdown;
+        }
 
         THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) || ( transmit_count() == 0 ) );
 
@@ -1002,11 +1007,19 @@ PT_BEGIN( pt );
         // check if shutting down
         if( sys_b_is_shutting_down() ){
 
-            THREAD_EXIT( pt );
+            goto shutdown;
         }
 
         transmit_service( 0, 0 );
     }    
+
+shutdown:
+
+    transmit_service( 0, 0 );
+    TMR_WAIT( pt, 100 );
+    transmit_service( 0, 0 );
+    TMR_WAIT( pt, 100 );
+    transmit_service( 0, 0 );
     
 PT_END( pt );
 }
@@ -1616,43 +1629,6 @@ PT_BEGIN( pt );
     }    
     
 PT_END( pt );
-}
-
-
-void service_v_handle_shutdown( uint64_t origin_id ){
-
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        return;
-    }
-
-    // look for any elections with this IP as a leader, and reset them
-
-    list_node_t ln = service_list.head;
-
-    while( ln > 0 ){
-
-        list_node_t next_ln = list_ln_next( ln );
-
-        service_state_t *service = (service_state_t *)list_vp_get_data( ln );
-
-        // if we are server, then obviously we are not shutting down
-        // this routine is for other nodes sending their shutdown message
-        if( service->state == STATE_SERVER ){
-
-            goto next;
-        }
-
-        if( service->server_origin == origin_id ){
-
-            log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
-
-            reset_state( service );
-        }
-
-next:
-        ln = next_ln;
-    }
 }
 
 #endif
