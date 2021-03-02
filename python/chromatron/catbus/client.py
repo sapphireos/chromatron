@@ -37,6 +37,9 @@ from sapphire.buildtools import firmware_package
 DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.json')
 DATA_DIR_FILE_PATH_ALT = 'catbus_hashes.json'
 
+DIRECTORY_INFO_FILE_PATH = os.path.join(firmware_package.data_dir(), 'directory_server.json')
+DIRECTORY_INFO_FILE_PATH_ALT = 'directory_server.json'
+
 CACHE_LOCK = os.path.join(firmware_package.data_dir(), 'lockfile')
 
 DISCOVERY_TIMEOUT = 1.0
@@ -207,6 +210,41 @@ class Client(BaseClient):
                     # ensure file is committed to disk
                     f.flush()
 
+    def _get_directory(self):
+        with self._filelock:
+            try:
+                try:
+                    with open(DIRECTORY_INFO_FILE_PATH, 'r') as f:
+                        file_data = f.read()
+
+                except PermissionError:
+                    with open(DIRECTORY_INFO_FILE_PATH_ALT, 'r') as f:
+                        file_data = f.read()
+
+                data = json.loads(file_data)
+                return (data[0], data[1])
+
+            except IOError:
+                return (None, None)
+
+    def _update_directory(self, host):
+        with self._filelock:
+            # get current cache from file
+
+            try:
+                with open(DIRECTORY_INFO_FILE_PATH, 'w') as f:
+                    f.write(json.dumps(host))
+
+                    # ensure file is committed to disk
+                    f.flush()
+
+            except (PermissionError, FileNotFoundError):
+                with open(DIRECTORY_INFO_FILE_PATH_ALT, 'w') as f:
+                    f.write(json.dumps(host))
+
+                    # ensure file is committed to disk
+                    f.flush()
+
     def lookup_hash(self, *args, skip_cache=False):
         cache = {}
         
@@ -304,14 +342,21 @@ class Client(BaseClient):
         return resolved_keys
 
     def get_directory(self):
-        matches = self._discover("DIRECTORY")
+        # try to load server from cache
+        host = self._get_directory()
 
-        server = list(matches.values())[0]['host']
+        if host[0] is None:
+            matches = self._discover("DIRECTORY")
 
-        # get directory port (using a new client so we don't stomp on the connected host)
-        c = Client(server)
-        port = c.get_key('directory_port')
-        host = (server[0], port)
+            server = list(matches.values())[0]['host']
+
+            # get directory port (using a new client so we don't stomp on the connected host)
+            c = Client(server)
+            port = c.get_key('directory_port')
+            host = (server[0], port)
+
+            # cache server
+            self._update_directory(host)
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -319,7 +364,8 @@ class Client(BaseClient):
             sock.connect(host)
 
         except ConnectionRefusedError:
-             return None
+            self._update_directory((None, None))
+            return None
 
         data = sock.recv(4)
         length = struct.unpack('<L', data)[0]
