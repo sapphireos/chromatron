@@ -358,13 +358,6 @@ static void _catbus_v_transmit_shutdown( sock_addr_t *raddr ){
 }
 
 static void _catbus_v_send_shutdown( void ){
-
-    mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_shutdown_t) );
-
-    if( h < 0 ){
-
-        return;
-    }
     
     sock_addr_t raddr;
     
