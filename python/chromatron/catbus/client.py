@@ -402,6 +402,7 @@ class Client(BaseClient):
             tags = []
             msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
 
+        msg.header.universe = self.universe
 
         discover_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         discover_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -453,8 +454,6 @@ class Client(BaseClient):
 
         else:
             tags = []
-
-        msg.header.universe = self.universe
 
         # try to contact directory server
         directory = self.get_directory()

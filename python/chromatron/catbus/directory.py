@@ -57,7 +57,7 @@ class Directory(CatbusService):
         self._directory_server = DirectoryServer(directory=self)
 
         self.add_item('directory_port', self._directory_server._port)
-        
+
         logging.info(f'DirectoryServer on port {self._directory_server.port}')
 
         self.start_timer(4.0, self._process_ttl)
