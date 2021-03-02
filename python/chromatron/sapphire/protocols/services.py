@@ -63,6 +63,9 @@ class ServiceMsgHeader(StructField):
         self.magic          = SERVICES_MAGIC
         self.version        = SERVICES_VERSION
 
+SERVICE_FLAGS_SHUTDOWN      = 0x80
+
+
 class ServiceMsgOfferHeader(StructField):
     def __init__(self, **kwargs):
         fields = [Uint8Field(_name="count"),
@@ -497,20 +500,11 @@ class ServiceManager(MsgServer):
         for svc in self._services.values():
             svc._shutdown()
 
-    @synchronized
-    def handle_shutdown(self, origin):
-        for svc in self._services.values():
-            if svc.is_server:
-                continue
-
-            try:
-                # check if host that is shutting down is a server
-                if svc.origin == origin:
-                    logging.debug(f'{svc} server {svc.host} shutdown')
-                    svc._reset()
-
-            except ServiceNotConnected:
-                pass
+        self._send_offers(shutdown=True)
+        time.sleep(0.1)
+        self._send_offers(shutdown=True)
+        time.sleep(0.1)
+        self._send_offers(shutdown=True)
 
     def _convert_catbus_hash(self, n):
         if isinstance(n, str):
@@ -602,9 +596,12 @@ class ServiceManager(MsgServer):
 
         self.transmit(msg, host)
 
-    def _send_offers(self, offers, host=('<broadcast>', SERVICES_PORT)):
+    def _send_offers(self, offers, host=('<broadcast>', SERVICES_PORT), shutdown=False):
         header = ServiceMsgOfferHeader(
             count=len(offers))
+
+        if shutdown:
+            header.flags |= SERVICE_FLAGS_SHUTDOWN
 
         msg = ServiceMsgOffers(
                 offer_header=header,
@@ -615,14 +612,29 @@ class ServiceManager(MsgServer):
         self.transmit(msg, host)
     
     def _handle_offers(self, msg, host):
-        for offer in msg.offers:
-            offer.origin = msg.header.origin # attach origin to offer
-            try:
-                svc = self._services[offer.key]
-            except KeyError:
-                continue
+        if msg.header.flags & SERVICE_FLAGS_SHUTDOWN:
+            for svc in self._services.values():
+                if svc.is_server:
+                    continue
 
-            if svc._process_offer(offer, host) == 'transmit_service':
+                try:
+                    # check if host that is shutting down is a server
+                    if svc.origin == origin:
+                        logging.debug(f'{svc} server {svc.host} shutdown')
+                        svc._reset()
+
+                except ServiceNotConnected:
+                    pass
+
+        else:
+            for offer in msg.offers:
+                offer.origin = msg.header.origin # attach origin to offer
+                try:
+                    svc = self._services[offer.key]
+                except KeyError:
+                    continue
+
+                if svc._process_offer(offer, host) == 'transmit_service':
                     # unicast offer for our server
                     self._send_offers([svc._offer], host)
 

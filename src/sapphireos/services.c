@@ -821,6 +821,11 @@ static void transmit_service( service_state_t *service, ip_addr4_t *ip ){
 
     init_header( msg_header, SERVICE_MSG_TYPE_OFFERS );
 
+    if( sys_b_is_shutting_down() ){
+
+        msg_header->flags |= SERVICE_FLAGS_SHUTDOWN;
+    }
+
     service_msg_offer_hdr_t *header = (service_msg_offer_hdr_t *)( msg_header + 1 );
     service_msg_offer_t *pkt = (service_msg_offer_t *)( header + 1 );
 
@@ -854,7 +859,7 @@ static void transmit_service( service_state_t *service, ip_addr4_t *ip ){
             
                 pkt->flags |= SERVICE_OFFER_FLAGS_SERVER;
             }
-            
+
             header->count++;
 
             pkt++;
@@ -1444,9 +1449,31 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            if( header->flags & SERVICE_FLAGS_SHUTDOWN ){
+
+                log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d:%u"), 
+                    raddr.ipaddr.ip3, 
+                    raddr.ipaddr.ip2, 
+                    raddr.ipaddr.ip1, 
+                    raddr.ipaddr.ip0,
+                    raddr.port );    
+            }
+
             while( offer_hdr->count > 0 ){
 
-                process_offer( offer_hdr, offer, &raddr.ipaddr, header->origin );
+                if( header->flags & SERVICE_FLAGS_SHUTDOWN ){
+
+                    service_state_t *service = get_service( offer->id, offer->group );
+
+                    if( service != 0 ){
+
+                        reset_state( service );
+                    }
+                }
+                else{
+
+                    process_offer( offer_hdr, offer, &raddr.ipaddr, header->origin );    
+                }
 
                 offer++;
                 offer_hdr->count--;

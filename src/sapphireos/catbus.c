@@ -734,15 +734,6 @@ PT_BEGIN( pt );
         else if( header->msg_type == CATBUS_MSG_TYPE_SHUTDOWN ){
 
             // catbus_msg_shutdown_t *msg = (catbus_msg_shutdown_t *)header;
-
-            #ifdef ENABLE_CATBUS_LINK
-            link_v_handle_shutdown( header->origin_id );    
-            #endif
-
-            #ifdef ENABLE_SERVICES
-            // send shutdown notifications
-            service_v_handle_shutdown( header->origin_id );
-            #endif
         }
 
         // DATABASE ACCESS MESSAGES

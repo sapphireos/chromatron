@@ -53,6 +53,7 @@ typedef struct __attribute__((packed)){
     uint8_t reserved;
     uint64_t origin;
 } service_msg_header_t;
+#define SERVICE_FLAGS_SHUTDOWN          0x80
 
 
 #define SERVICE_MSG_TYPE_OFFERS     1
@@ -70,8 +71,8 @@ typedef struct __attribute__((packed)){
     uint8_t flags;
     uint8_t reserved[3];
 } service_msg_offer_t;
-#define SERVICE_OFFER_FLAGS_TEAM    0x01
-#define SERVICE_OFFER_FLAGS_SERVER  0x02
+#define SERVICE_OFFER_FLAGS_TEAM        0x01
+#define SERVICE_OFFER_FLAGS_SERVER      0x02
 
 #define SERVICE_MSG_TYPE_QUERY      2
 typedef struct __attribute__((packed)){
@@ -94,7 +95,6 @@ sock_addr_t services_a_get( uint32_t id, uint64_t group );
 ip_addr4_t services_a_get_ip( uint32_t id, uint64_t group );
 uint16_t services_u16_get_port( uint32_t id, uint64_t group );
 
-void service_v_handle_shutdown( uint64_t origin_id );
 
 #endif
 

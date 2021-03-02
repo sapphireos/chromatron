@@ -564,8 +564,6 @@ class LinkManager(MsgServer):
         self._service_manager.stop()
 
     def handle_shutdown(self, host):
-        self._service_manager.handle_shutdown(host)
-
         print('shutdown', host)
 
     def _aggregate(self, link):
