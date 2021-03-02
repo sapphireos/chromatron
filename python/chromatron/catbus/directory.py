@@ -93,7 +93,7 @@ class DirectoryServer(Ribbon):
 
 class Directory(CatbusService):
     def __init__(self):
-        super().__init__()
+        super().__init__(tags=['DIRECTORY'])
 
         self.register_announce_handler(self._handle_announce)
         self.register_shutdown_handler(self._handle_shutdown)

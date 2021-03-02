@@ -201,13 +201,17 @@ def discover(ctx):
     s = 'Name                                        Location                Tags'
     click.echo(s)
 
+    nodes = []
+
     for node in matches.values():
         host = node['host']
 
         client.connect(host)
 
         name, location, *tags = client.get_keys(META_TAGS).values()
+        nodes.append((name, location, host, tags))
 
+    for name, location, host, tags in sorted(nodes, key=lambda a: a[0]):
         name_s = '%32s @ %20s:%5s' % (click.style('%s' % (name), fg=NAME_COLOR), click.style('%s' % (host[0]), fg=HOST_COLOR), click.style('%5d' % (host[1]), fg=HOST_COLOR))
 
         location_s = click.style('%16s' % (location), fg=VAL_COLOR)

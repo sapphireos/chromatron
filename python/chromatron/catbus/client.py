@@ -361,6 +361,7 @@ class Client(BaseClient):
 
             for i in range(3):
                 send_udp_broadcast(discover_sock, CATBUS_MAIN_PORT, msg.pack())
+                send_udp_broadcast(discover_sock, CATBUS_ANNOUNCE_PORT, msg.pack())
 
                 start = time.time()
 
