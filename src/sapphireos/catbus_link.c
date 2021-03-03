@@ -929,77 +929,6 @@ void link_v_delete_by_hash( uint64_t hash ){
     fs_f_close( f );
 }
 
-void link_v_handle_shutdown( uint64_t origin_id ){
-
-	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-		return;
-	}
-
-    // list_node_t ln = producer_list.head;
-
-    // while( ln >= 0 ){
-
-    //     list_node_t next_ln = list_ln_next( ln );
-
-    //     producer_state_t *producer = list_vp_get_data( ln );
-
-    //     if( sock_b_addr_compare( addr, &producer->leader_addr ) ){
-
-    //         // remove producer
-    //         list_v_remove( &producer_list, ln );
-    //         list_v_release_node( ln );
-
-    //         trace_printf("LINK: producer leader shutdown\n");
-    //     }
-
-    //     ln = next_ln;
-    // }   
-
-
-    // ln = remote_list.head;
-
-    // while( ln >= 0 ){
-
-    //     list_node_t next_ln = list_ln_next( ln );
-
-    //     remote_state_t *remote = list_vp_get_data( ln );
-
-    //     if( sock_b_addr_compare( addr, &remote->addr ) ){
-
-    //         // remove remote
-    //         list_v_remove( &remote_list, ln );
-    //         list_v_release_node( ln );
-
-    //         trace_printf("LINK: remote shutdown\n");
-    //     }
-
-    //     ln = next_ln;
-    // }
-
-
-    // ln = consumer_list.head;
-
-    // while( ln >= 0 ){
-
-    //     list_node_t next_ln = list_ln_next( ln );
-
-    //     consumer_state_t *consumer = list_vp_get_data( ln );
-
-    //     // if timeout expires, or we are not link leader
-    //     if( sock_b_addr_compare( addr, &consumer->addr ) ){
-
-    //         // remove consumer
-    //         list_v_remove( &consumer_list, ln );
-    //         list_v_release_node( ln );
-
-    //         trace_printf("LINK: consumer shutdown\n");
-    //     }
-
-    //     ln = next_ln;
-    // }
-}
-
 void link_v_shutdown( void ){
 
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -1700,6 +1629,72 @@ PT_BEGIN( pt );
 
             sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );
         }
+        else if( header->msg_type == LINK_MSG_TYPE_SHUTDOWN ){
+
+            list_node_t ln = producer_list.head;
+
+            while( ln >= 0 ){
+
+                list_node_t next_ln = list_ln_next( ln );
+
+                producer_state_t *producer = list_vp_get_data( ln );
+
+                if( sock_b_addr_compare( &raddr, &producer->leader_addr ) ){
+
+                    // remove producer
+                    list_v_remove( &producer_list, ln );
+                    list_v_release_node( ln );
+
+                    trace_printf("LINK: producer leader shutdown\n");
+                }
+
+                ln = next_ln;
+            }   
+
+
+            ln = remote_list.head;
+
+            while( ln >= 0 ){
+
+                list_node_t next_ln = list_ln_next( ln );
+
+                remote_state_t *remote = list_vp_get_data( ln );
+
+                if( sock_b_addr_compare( &raddr, &remote->addr ) ){
+
+                    // remove remote
+                    list_v_remove( &remote_list, ln );
+                    list_v_release_node( ln );
+
+                    trace_printf("LINK: remote shutdown\n");
+                }
+
+                ln = next_ln;
+            }
+
+
+            ln = consumer_list.head;
+
+            while( ln >= 0 ){
+
+                list_node_t next_ln = list_ln_next( ln );
+
+                consumer_state_t *consumer = list_vp_get_data( ln );
+
+                // if timeout expires, or we are not link leader
+                if( sock_b_addr_compare( &raddr, &consumer->addr ) ){
+
+                    // remove consumer
+                    list_v_remove( &consumer_list, ln );
+                    list_v_release_node( ln );
+
+                    trace_printf("LINK: consumer shutdown\n");
+                }
+
+                ln = next_ln;
+            }
+
+        }
 
 
 end:
@@ -1998,6 +1993,18 @@ static void transmit_producer_data( uint64_t hash, catbus_meta_t *meta, uint8_t 
     sock_i16_sendto_m( sock, h, raddr );
 
     trace_printf("LINK: transmit producer data: %d.%d.%d.%d\n", raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );   
+}
+
+static void transmit_shutdown( void ){
+
+    link_msg_header_t header;
+    init_header( &header, LINK_MSG_TYPE_SHUTDOWN );
+
+    sock_addr_t raddr;
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
+    raddr.port = LINK_PORT;
+
+    sock_i16_sendto( sock, (uint8_t *)&header, sizeof(header), &raddr );
 }
 
 static void process_link( link_handle_t link, uint32_t elapsed_ms ){

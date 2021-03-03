@@ -163,6 +163,8 @@ typedef struct __attribute__((packed)){
 } link_msg_confirm_t;
 #define LINK_MSG_TYPE_CONFIRM               22
 
+#define LINK_MSG_TYPE_SHUTDOWN              30
+
 
 void link_v_init( void );
 
