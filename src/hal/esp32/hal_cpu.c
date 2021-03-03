@@ -43,7 +43,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-extern boot_data_t BOOTDATA boot_data;
 uint32_t FW_START_OFFSET;
 
 static void spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){

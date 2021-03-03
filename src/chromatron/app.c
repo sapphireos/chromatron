@@ -29,7 +29,6 @@
 #include "graphics.h"
 #include "vm.h"
 #include "energy.h"
-// #include "io_kv.h"
 #include "battery.h"
 
 #ifdef ESP8266_UPGRADE
@@ -41,14 +40,10 @@ SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"
 
 void app_v_init( void ){
 
-    // iokv_v_init();
-
     gfx_v_init();
 
     vm_v_init();
 
     batt_v_init();
-
-    // svr_v_init();
 }
 

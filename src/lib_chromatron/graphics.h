@@ -28,6 +28,5 @@
 #include "keyvalue.h"
 
 void gfx_v_init( void );
-bool gfx_b_running( void );
 
 #endif
