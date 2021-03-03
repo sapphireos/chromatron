@@ -28,6 +28,13 @@
 #include "watchdog.h"
 #include "esp_task_wdt.h"
 
+void esp_task_wdt_isr_user_handler( void ){
+
+    // we can't assert here because it will take too long
+    // and the *interrupt* watchdog will trigger.
+    
+    // ASSERT( 0 );
+}
 
 void wdg_v_reset( void ){
 
@@ -39,7 +46,7 @@ void wdg_v_reset( void ){
 void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
 
     #ifndef BOOTLOADER
-    esp_task_wdt_init( 2, TRUE );
+    esp_task_wdt_init( 4, TRUE );
     esp_task_wdt_add( NULL );
     #endif
 }

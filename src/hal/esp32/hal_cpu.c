@@ -26,6 +26,7 @@
 #include "watchdog.h"
 #include "flash25.h"
 #include "system.h"
+#include "keyvalue.h"
 
 #include "esp_image_format.h"
 
@@ -42,6 +43,12 @@
 #include "rom/rtc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
+static uint8_t esp_reset;
+
+KV_SECTION_META kv_meta_t hal_cpu_kv[] = {
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &esp_reset,                       0,  "esp_reset_reason" }
+};
 
 uint32_t FW_START_OFFSET;
 
@@ -148,6 +155,8 @@ uint8_t cpu_u8_get_reset_source( void ){
     #else
 	esp_reset_reason_t reason = esp_reset_reason();
 
+    esp_reset = reason;
+
 	if( reason == ESP_RST_POWERON ){
 
 		return RESET_SOURCE_POWER_ON;
@@ -160,7 +169,7 @@ uint8_t cpu_u8_get_reset_source( void ){
 
 		return RESET_SOURCE_BROWNOUT;
 	}
-
+    
 	return 0;
     #endif
 }
