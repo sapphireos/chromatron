@@ -613,7 +613,7 @@ PT_BEGIN( pt );
 
             bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
             bq25895_v_enable_adc_continuous();
-            bq25895_v_set_boost_voltage( 5100 );
+            bq25895_v_set_boost_voltage( 4600 );
 
             // charge config for NCR18650B
             bq25895_v_set_inlim( 2000 );
