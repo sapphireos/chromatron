@@ -123,8 +123,8 @@
 #define INCLUDE_ASSERTS
 
 // recovery mode
-#define DISABLE_RECOVERY_MODE
+// #define DISABLE_RECOVERY_MODE
 
-#define HALT_ON_ASSERT
+// #define HALT_ON_ASSERT
 
 #endif

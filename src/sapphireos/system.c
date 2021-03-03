@@ -78,6 +78,7 @@ FW_INFO_SECTION fw_info_t fw_info;
 
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
+static uint8_t startup_boot_mode;
 
 // local functions:
 void reboot( void ) __attribute__((noreturn));
@@ -186,12 +187,12 @@ PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) );
 KV_SECTION_META kv_meta_t sys_info_kv[] = {
     { SAPPHIRE_TYPE_INT8,   0, 0,                   0, sys_kv_reboot_handler,            "reboot" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &sys_mode,                       0,  "sys_mode" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.boot_mode,            0,  "boot_mode" },
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &startup_boot_mode,              0,  "sys_boot_mode" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_minor, 0,  "loader_version_minor" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_major, 0,  "loader_version_major" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_status,        0,  "loader_status" },
     { SAPPHIRE_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &warnings,                       0,  "sys_warnings" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &reset_source,                   0,  "reset_source" },
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &reset_source,                   0,  "sys_reset_source" },
     { SAPPHIRE_TYPE_KEY128,    0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_id" },
     { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_name" },
     { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_version" },
@@ -219,6 +220,8 @@ void sys_v_init( void ){
 	// check reset source
 	reset_source = cpu_u8_get_reset_source();
     cpu_v_clear_reset_source();
+
+    startup_boot_mode = boot_data.boot_mode;
 
 	// power on reset (or JTAG)
 	if( ( reset_source & RESET_SOURCE_POWER_ON ) ||  // power on
