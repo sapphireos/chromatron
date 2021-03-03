@@ -53,13 +53,13 @@ PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 void gfx_v_init( void ){
 
     gfxlib_v_init();
-return;
+
     pixel_v_init();
 
     #ifdef ENABLE_TIME_SYNC
     vm_sync_v_init();
     #endif
-
+return;
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),
                 0,
