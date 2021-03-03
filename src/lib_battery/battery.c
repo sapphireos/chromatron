@@ -265,7 +265,7 @@ PT_BEGIN( pt );
                 // last_dimmer = gfx_u16_get_submaster_dimmer();
                 // gfx_v_set_submaster_dimmer( MIN_DIMMER );
             }
-            else if( bq25895_u8_get_soc() <= 2 ){
+            else if( bq25895_u8_get_soc() <= 2 ){ // NOTE!!!!!!!!! THIS WILL NEVER RUN!!!!!!
 
                 log_v_debug_P( PSTR("Low batt, shutting down: %u"), bq25895_u16_get_batt_voltage() );
 
@@ -294,7 +294,7 @@ PT_BEGIN( pt );
                     // vm_v_shutdown();
                     batt_ui_state = -1;
 
-                    TMR_WAIT( pt, 5000 );
+                    sys_v_initiate_shutdown( 5 );
 
                     bq25895_v_enable_ship_mode( FALSE );
                 }

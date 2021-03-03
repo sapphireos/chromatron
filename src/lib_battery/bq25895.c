@@ -560,6 +560,19 @@ PT_BEGIN( pt );
 
 
         // set MINSYS to 3.0V for ADC accuracy.  VBAT must be greater than MINSYS.
+        // NOTE set MINSYS to 3.0V for ADC accuracy when on battery power.
+        // the chip won't actually regulate UP to MINSYS anyway so on battery it doesn't
+        // matter, we will basically just get whatever the battery is on SYS.
+        // when charging, we can set it to 3.5V (or 3.7V) so we are above 3.3V SYS.
+
+        // NOTE below 10 C (check thermistor!), reduce charging to 0.25C.
+        // don't forget max otherwise is 0.5C.  Need a config option for this.
+
+        // NOTE Reduce boost voltage to minimum (4.55V)
+
+        // NOTE reduce battery charge.  Charge to 4.0 or 4.1V and discharge to 
+        // 3.0 to 3.2V to increase cycle life.
+        
 
         if( bq25895_b_get_vbus_good() && !vbus_connected ){
 
