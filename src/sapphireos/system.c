@@ -499,14 +499,7 @@ void sys_v_load_recovery( void ){
     sys_v_reboot_delay( SYS_MODE_NORMAL );
 }
 
-// start reboot delay thread
-void sys_v_reboot_delay( sys_mode_t8 mode ){
-
-    // check if reboot is already initiated
-    if( is_rebooting ){
-
-        return;
-    }
+void set_reboot_mode( sys_mode_t8 mode ){
 
     is_rebooting = TRUE;
 
@@ -526,7 +519,19 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
     else{
 
         boot_data.boot_mode = BOOT_MODE_REBOOT;
-	}
+    }
+}
+
+// start reboot delay thread
+void sys_v_reboot_delay( sys_mode_t8 mode ){
+
+    // check if reboot is already initiated
+    if( is_rebooting ){
+
+        return;
+    }
+
+    set_reboot_mode( mode );
 
     reboot_delay = 2;
 
@@ -574,7 +579,8 @@ void sys_v_initiate_shutdown( uint8_t delay_seconds ){
         return;
     }
 
-    is_rebooting = TRUE;
+    set_reboot_mode( SYS_MODE_NORMAL );
+
     shut_down_state = 1;
 
     reboot_delay = delay_seconds;
