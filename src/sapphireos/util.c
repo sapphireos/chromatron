@@ -204,15 +204,29 @@ int16_t util_i16_ewma( int16_t new, int16_t old, uint8_t ratio ){
     int16_t temp = ( ( (int32_t)ratio * new ) / 256 ) +  
                    ( ( (int32_t)( 256 - ratio ) * old ) / 256 );
 
+    // check if filter is unchanging
+    if( temp == old ){
+
+        // adjust by minimum
+        if( new > old ){
+
+            temp++;
+        }
+        else if( new < old ){
+
+            temp--;
+        }
+    }   
+
     // check for rounding errors
-    if( ( new > old ) && ( temp < old ) ){
+    // if( ( new > old ) && ( temp < old ) ){
 
-        temp = old;
-    }
-    else if( ( new < old ) && ( temp > old ) ){
+    //     temp = old;
+    // }
+    // else if( ( new < old ) && ( temp > old ) ){
 
-        temp = old;
-    }
+    //     temp = old;
+    // }
 
     return temp;
 }
@@ -222,15 +236,29 @@ uint16_t util_u16_ewma( uint16_t new, uint16_t old, uint8_t ratio ){
     uint16_t temp = ( ( (uint32_t)ratio * new ) / 256 ) +  
                     ( ( (uint32_t)( 256 - ratio ) * old ) / 256 );
 
+    // check if filter is unchanging
+    if( temp == old ){
+
+        // adjust by minimum
+        if( new > old ){
+
+            temp++;
+        }
+        else if( new < old ){
+
+            temp--;
+        }
+    }   
+
     // check for rounding errors
-    if( ( new > old ) && ( temp < old ) ){
+    // if( ( new > old ) && ( temp < old ) ){
 
-        temp = old;
-    }
-    else if( ( new < old ) && ( temp > old ) ){
+    //     temp = old;
+    // }
+    // else if( ( new < old ) && ( temp > old ) ){
 
-        temp = old;
-    }
+    //     temp = old;
+    // }
 
     return temp;
 }

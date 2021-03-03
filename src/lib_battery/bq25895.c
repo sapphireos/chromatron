@@ -623,7 +623,7 @@ PT_BEGIN( pt );
             // bq25895_v_set_fast_charge_current( 250 );
             // bq25895_v_set_fast_charge_current( 3000 );
             bq25895_v_set_termination_current( 65 );
-            bq25895_v_set_charge_voltage( BQ25895_CHARGE_FLOAT_VOLTAGE );
+            bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
 
 
             // disable ILIM pin
