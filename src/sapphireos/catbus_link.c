@@ -2224,10 +2224,16 @@ PT_BEGIN( pt );
         uint32_t prev_alarm = thread_u32_get_alarm();
 
         thread_v_set_alarm( prev_alarm + link_process_tick_rate );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
 
         // check if shutting down
         if( sys_b_is_shutting_down() ){
+
+            transmit_shutdown();
+            TMR_WAIT( pt, 100 );
+            transmit_shutdown();
+            TMR_WAIT( pt, 100 );
+            transmit_shutdown();
 
             THREAD_EXIT( pt );
         }
