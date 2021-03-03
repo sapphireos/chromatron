@@ -63,8 +63,8 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
 };
 
-#define SOC_MAX_VOLTS   4100
-#define SOC_MIN_VOLTS   3000
+#define SOC_MAX_VOLTS   ( BQ25895_FLOAT_VOLTAGE - 100 )
+#define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
 #define SOC_FILTER      32
 
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
@@ -226,6 +226,12 @@ void bq25895_v_force_dpdm( void ){
     bq25895_v_set_reg_bits( BQ25895_REG_FORCE_DPDM, BQ25895_BIT_FORCE_DPDM );
 }
 
+void bq25895_v_set_minsys( uint8_t sysmin ){
+
+    bq25895_v_clr_reg_bits( BQ25895_REG_MINSYS_EN, BQ25895_MASK_MINSYS ); 
+
+    bq25895_v_set_reg_bits( BQ25895_REG_MINSYS_EN, ( sysmin << BQ25895_SHIFT_MINSYS ) & BQ25895_MASK_MINSYS );
+}
 
 // current in is mA!
 void bq25895_v_set_fast_charge_current( uint16_t current ){
@@ -617,7 +623,7 @@ PT_BEGIN( pt );
             // bq25895_v_set_fast_charge_current( 250 );
             // bq25895_v_set_fast_charge_current( 3000 );
             bq25895_v_set_termination_current( 65 );
-            bq25895_v_set_charge_voltage( 4200 );
+            bq25895_v_set_charge_voltage( BQ25895_CHARGE_FLOAT_VOLTAGE );
 
 
             // disable ILIM pin
@@ -625,6 +631,9 @@ PT_BEGIN( pt );
 
             // run auto DPDM (which can override the current limits)
             // bq25895_v_force_dpdm();
+
+            // set min sys
+            bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );
@@ -646,6 +655,9 @@ PT_BEGIN( pt );
 
                 vbus_connected = FALSE;
                 log_v_debug_P( PSTR("VBUS disconnected") );
+
+                // set min sys to 3.0V for ADC accuracy
+                bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
             }
         }
 
