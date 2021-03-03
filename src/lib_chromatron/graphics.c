@@ -59,7 +59,7 @@ void gfx_v_init( void ){
     #ifdef ENABLE_TIME_SYNC
     vm_sync_v_init();
     #endif
-return;
+
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),
                 0,
@@ -77,8 +77,8 @@ PT_BEGIN( pt );
     // init pixel arrays
     gfx_v_process_faders();
     gfx_v_sync_array();
-    thread_v_signal( PIX_SIGNAL_0 );
-        
+    pixel_v_signal();
+
     while(1){
 
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
