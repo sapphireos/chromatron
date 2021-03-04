@@ -44,10 +44,12 @@ static uint8_t charge_status;
 static bool dump_regs;
 static uint32_t capacity;
 static int32_t remaining;
+static uint8_t therm;
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,             0,  "batt_soc" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &therm,                0,  "batt_temp" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,        0,  "batt_charging" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,       0,  "batt_external_power" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,           0,  "batt_volts" },
@@ -458,6 +460,147 @@ uint16_t bq25895_u16_get_charge_current( void ){
     return mv;
 }
 
+static const int8_t temp_table[128] = {
+    -18 , // 127
+    -16 ,
+    -15 ,
+    -13 ,
+    -11 ,
+    -10 ,
+    -9  ,
+    -7  ,
+    -6  ,
+    -5  ,
+    -4  ,
+    -3  ,
+    -2  ,
+    -1  ,
+    0   ,
+    1   ,
+    2   ,
+    3   ,
+    4   ,
+    5   ,
+    6   ,
+    7   ,
+    8   ,
+    9   ,
+    10  ,
+    10  ,
+    11  ,
+    12  ,
+    13  ,
+    13  ,
+    14  ,
+    15  ,
+    16  ,
+    16  ,
+    17  ,
+    18  ,
+    19  ,
+    19  ,
+    20  ,
+    21  ,
+    22  ,
+    23  ,
+    23  ,
+    24  ,
+    24  ,
+    25  ,
+    25  ,
+    26  ,
+    27  ,
+    27  ,
+    28  ,
+    29  ,
+    29  ,
+    30  ,
+    31  ,
+    31  ,
+    32  ,
+    32  ,
+    33  ,
+    34  ,
+    34  ,
+    35  ,
+    36  ,
+    36  ,
+    37  ,
+    38  ,
+    38  ,
+    39  ,
+    39  ,
+    40  ,
+    41  ,
+    41  ,
+    42  ,
+    43  ,
+    43  ,
+    44  ,
+    45  ,
+    45  ,
+    46  ,
+    46  ,
+    47  ,
+    48  ,
+    49  ,
+    49  ,
+    50  ,
+    51  ,
+    51  ,
+    52  ,
+    53  ,
+    53  ,
+    54  ,
+    54  ,
+    55  ,
+    56  ,
+    57  ,
+    57  ,
+    58  ,
+    59  ,
+    59  ,
+    60  ,
+    61  ,
+    62  ,
+    62  ,
+    63  ,
+    64  ,
+    65  ,
+    66  ,
+    66  ,
+    67  ,
+    68  ,
+    69  ,
+    70  ,
+    70  ,
+    71  ,
+    72  ,
+    73  ,
+    74  ,
+    75  ,
+    76  ,
+    77  ,
+    78  ,
+    79  ,
+    80  ,
+    81  ,
+    82  ,
+    83  ,
+    84  ,
+    85  , // 0
+};
+
+uint8_t bq25895_u8_get_therm( void ){
+
+    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
+
+    float temp = 0.465 * data;
+    temp += 21.0;
+
+    return temp_table[127 - (uint8_t)temp];
+}
+
 void bq25895_v_set_watchdog( uint8_t setting ){
 
     setting <<= BQ25895_SHIFT_WATCHDOG;
@@ -551,6 +694,7 @@ PT_BEGIN( pt );
         batt_charge_current = bq25895_u16_get_charge_current();
         batt_fault = bq25895_u8_get_faults();
         vbus_status = bq25895_u8_get_vbus_status();
+        therm = bq25895_u8_get_therm();
 
         /*
 
