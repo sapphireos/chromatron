@@ -251,14 +251,22 @@ PT_BEGIN( pt );
             // vm_v_stop();
             // last_dimmer = gfx_u16_get_submaster_dimmer();
             // gfx_v_set_submaster_dimmer( MIN_DIMMER );
+
+            gfx_b_disable();
         }
         else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
             // gfx_v_set_submaster_dimmer( MIN_DIMMER );
 
             // TMR_WAIT( pt, 5000 );
+
+            gfx_b_enable();
+            batt_v_enable_pixels();
         }
         else{
+
+            gfx_b_enable();
+            batt_v_enable_pixels();
 
             if( bq25895_u8_get_soc() <= 5 ){
 
