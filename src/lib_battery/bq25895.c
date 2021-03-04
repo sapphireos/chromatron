@@ -44,12 +44,12 @@ static uint8_t charge_status;
 static bool dump_regs;
 static uint32_t capacity;
 static int32_t remaining;
-static uint8_t therm;
+static int8_t therm;
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,             0,  "batt_soc" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &therm,                0,  "batt_temp" },
+    { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                0,  "batt_temp" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,        0,  "batt_charging" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,       0,  "batt_external_power" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,           0,  "batt_volts" },
@@ -591,14 +591,16 @@ static const int8_t temp_table[128] = {
     85  , // 0
 };
 
-uint8_t bq25895_u8_get_therm( void ){
+int8_t bq25895_i8_get_therm( void ){
 
     uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
 
-    float temp = 0.465 * data;
-    temp += 21.0;
+    // percent conversion from datasheet.
+    // we don't need this, our table includes it.
+    // float temp = 0.465 * data;
+    // temp += 21.0;
 
-    return temp_table[127 - (uint8_t)temp];
+    return temp_table[127 - data];
 }
 
 void bq25895_v_set_watchdog( uint8_t setting ){
@@ -694,7 +696,7 @@ PT_BEGIN( pt );
         batt_charge_current = bq25895_u16_get_charge_current();
         batt_fault = bq25895_u8_get_faults();
         vbus_status = bq25895_u8_get_vbus_status();
-        therm = bq25895_u8_get_therm();
+        therm = bq25895_i8_get_therm();
 
         /*
 

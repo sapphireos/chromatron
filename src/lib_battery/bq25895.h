@@ -203,7 +203,7 @@ uint16_t bq25895_u16_get_batt_voltage( void );
 uint16_t bq25895_u16_get_vbus_voltage( void );
 uint16_t bq25895_u16_get_sys_voltage( void );
 uint16_t bq25895_u16_get_charge_current( void );
-uint8_t bq25895_u8_get_therm( void );
+int8_t bq25895_8_get_therm( void );
 void bq25895_v_set_watchdog( uint8_t setting );
 void bq25895_v_kick_watchdog( void );
 void bq25895_v_set_charger( bool enable );
