@@ -174,6 +174,14 @@ class ConfirmMsg(StructField):
 
         self.header.type = LINK_MSG_TYPE_CONFIRM
 
+LINK_MSG_TYPE_SHUTDOWN                = 30
+class ShutdownMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MsgHeader(_name="header")]
+
+        super().__init__(_name="link_shutdown", _fields=fields, **kwargs)
+
+        self.header.type = LINK_MSG_TYPE_SHUTDOWN
 
 
 LINK_MODE_SEND  = 0
@@ -544,14 +552,17 @@ class LinkManager(MsgServer):
         self.register_message(ProducerQueryMsg, self._handle_producer_query)
         self.register_message(ConsumerDataMsg, self._handle_consumer_data)
         self.register_message(ProducerDataMsg, self._handle_producer_data)
+        self.register_message(ShutdownMsg, self._handle_shutdown)
             
         self.start_timer(LINK_MIN_TICK_RATE, self._process_all)
+        # self.start_timer(1.0, self._process_seconds)
         self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
         self._links = {}
         self._producers = {}
         self._consumers = {}
         self._remotes = {}
+        self._subscriptions = {}
 
         if test_mode:
             database.add_item('link_test_key', 0, 'int32')
@@ -563,7 +574,15 @@ class LinkManager(MsgServer):
     def clean_up(self):
         self._service_manager.stop()
 
-    def handle_shutdown(self, host):
+        msg = ShutdownMsg()
+
+        self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
+        time.sleep(0.1)
+        self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
+        time.sleep(0.1)
+        self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
+
+    def _handle_shutdown(self, msg, host):
         print('shutdown', host)
 
     def _aggregate(self, link):
@@ -635,6 +654,18 @@ class LinkManager(MsgServer):
 
     def send(self, *args, **kwargs):
         self.link(LINK_MODE_SEND, *args, **kwargs)
+
+    def subscribe(self, key, host, rate=1000): # will accept a single host, or a list of hosts
+        hosts = util.coerce_to_list(host)
+
+        for host in hosts:
+            if isinstance(host, str):
+                host = (host, CATBUS_LINK_PORT)
+
+            if host not in self._subscriptions:
+                self._subscriptions[host] = []
+
+            self._subscriptions[host].append((key, rate))
 
     def _send_consumer_data(self, link, data):
         link_hash = link.hash
@@ -770,7 +801,6 @@ class LinkManager(MsgServer):
                     msg = ProducerQueryMsg(
                             key=catbus_string_hash(link.source_key),
                             query=link.query_tags,
-                            mode=link.mode,
                             rate=link.rate,
                             hash=link.hash)
 
@@ -782,7 +812,15 @@ class LinkManager(MsgServer):
 
                     self.transmit(msg, (link.server, CATBUS_LINK_PORT))
 
-    
+        for host, subs in self._subscriptions.items():
+            for key, rate in subs:
+                msg = ProducerQueryMsg(
+                                key=catbus_string_hash(key),
+                                rate=rate,
+                                hash=0)
+
+                self.transmit(msg, host)
+        
     def _process_producers(self):
         for p in self._producers.values():
             p._process_timer(LINK_MIN_TICK_RATE, self)
@@ -810,6 +848,12 @@ class LinkManager(MsgServer):
     def _process_links(self):
         for link in self._links.values():
             link._process_timer(LINK_MIN_TICK_RATE, self)
+
+    # def _process_subscriptions(self):
+    #     pass
+
+    # def _process_seconds(self):
+    #     self._process_subscriptions()
 
     def _process_all(self):
         self._process_producers()
@@ -844,6 +888,10 @@ def main():
 
     elif sys.argv[1] == 'receive':
         c.receive('link_test_key', 'link_test_key2', query=['__TEST__'])
+
+    elif sys.argv[1] == 'subscribe':
+        c.subscribe('link_test_key', sys.argv[2])
+
     # lm.receive('link_test_key', 'kv_test_key', query=['__TEST__'])
 
     # import yappi

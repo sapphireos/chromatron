@@ -71,7 +71,7 @@ def iso_to_datetime(iso):
     raise ValueError
 
 def coerce_to_list(obj):
-    if not hasattr(obj, '__iter__'):
+    if isinstance(obj ,str):
         return [obj]
 
     return obj
