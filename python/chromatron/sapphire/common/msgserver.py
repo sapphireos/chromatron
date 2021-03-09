@@ -82,6 +82,7 @@ class BaseServer(Ribbon):
 
         self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._timer_sock.bind(('0.0.0.0', 0))
+        self._timer_sock.setblocking(0)
         self._timer_port = self._timer_sock.getsockname()[1]
 
         self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -101,6 +102,7 @@ class BaseServer(Ribbon):
         else:
             self.__server_sock.bind(('0.0.0.0', self._port))
 
+        self.__server_sock.setblocking(0)
         self._port = self.__server_sock.getsockname()[1]
 
         self._inputs = [self.__server_sock, self._timer_sock]
@@ -109,6 +111,7 @@ class BaseServer(Ribbon):
             self._listener_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             self._listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self._listener_sock.setblocking(0)
 
             # try:
             #     # this option may fail on some platforms
@@ -173,9 +176,9 @@ class BaseServer(Ribbon):
         except socket.error:
             pass
 
-    def _process(self):
+    def _process(self, timeout=1.0):
         try:
-            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
+            readable, writable, exceptional = select.select(self._inputs, [], [], timeout)
 
             with self._lock:
                 for s in readable:
