@@ -760,25 +760,27 @@ class LinkManager(MsgServer):
         self._database[msg.hash] = msg.data.value
         
     def _handle_producer_data(self, msg, host):
-        # check if we have this link
+        # check if we have this link, or if this is from a subscription
         try:
             link = self._links[msg.hash]
 
+            if not link.is_leader:
+                logging.error("link is not a leader!")
+                return
+
+            if link.dest_key not in self._database:
+                logging.error("dest key not found!")
+                return
+
+            if msg.data.meta.hash != catbus_string_hash(link.source_key):
+                logging.error("producer sent wrong source key!")
+                return
+
+
         except KeyError:
-            logging.error(f"link not found for producer data!")
-            return
-
-        if not link.is_leader:
-            logging.error("link is not a leader!")
-            return
-
-        if link.dest_key not in self._database:
-            logging.error("dest key not found!")
-            return
-
-        if msg.data.meta.hash != catbus_string_hash(link.source_key):
-            logging.error("producer sent wrong source key!")
-            return
+            if host not in self._subscriptions:
+                logging.error(f"link or subscription not found for producer data!")
+                return
 
         # UPDATE REMOTE STATE
         if msg.hash not in self._remotes:
