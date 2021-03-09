@@ -529,9 +529,10 @@ class LinkClient(Client):
 
 
 class Subscription(object):
-    def __init__(self, key, host):
+    def __init__(self, key, host, callback):
         self.key = key
         self.host = host
+        self.callback = callback
 
         self._lock = threading.Lock()
 
@@ -542,9 +543,12 @@ class Subscription(object):
     def data(self):
         return self._data
 
-    @synchronized
     def _set(self, data):
-        self._data = data
+        with self._lock:
+            self._data = data
+
+        if self.callback:
+            self.callback(self.key, data, self.host)
 
 
 def sub_hash(key, host):
@@ -681,7 +685,7 @@ class LinkManager(MsgServer):
     def send(self, *args, **kwargs):
         self.link(LINK_MODE_SEND, *args, **kwargs)
 
-    def subscribe(self, key, host, rate=1000):
+    def subscribe(self, key, host, rate=1000, callback=None):
         if isinstance(host, str):
             host = (host, CATBUS_LINK_PORT)
 
@@ -691,7 +695,7 @@ class LinkManager(MsgServer):
             'host': host,
             'key': key,
             'rate': rate,
-            'item': Subscription(host, key)
+            'item': Subscription(key, host, callback)
         }
 
         self._subscriptions[h] = sub
@@ -927,16 +931,19 @@ def main():
         c.receive('link_test_key', 'link_test_key2', query=['__TEST__'])
 
     elif sys.argv[1] == 'subscribe':
-        item = c.subscribe('link_test_key', sys.argv[2])
+        def callback(key, data, host):
+            print(key, data, host)
+            
+        item = c.subscribe('link_test_key', sys.argv[2], callback=callback)
 
-        try:
-            while True:
-                time.sleep(1.0)
-                print(item.data)
+        # try:
+        #     while True:
+        #         time.sleep(1.0)
+        #         print(item.data)
 
 
-        except KeyboardInterrupt:
-            pass
+        # except KeyboardInterrupt:
+        #     pass
 
 
     # lm.receive('link_test_key', 'kv_test_key', query=['__TEST__'])
