@@ -932,8 +932,13 @@ def main():
         c.receive('link_test_key', 'link_test_key2', query=['__TEST__'])
 
     elif sys.argv[1] == 'subscribe':
+        from prometheus_client import start_http_server, Gauge
+        start_http_server(8000)
+        g = Gauge('meow', 'this is meow')
+
         def callback(key, data, host):
             print(key, data, host)
+            g.set(data)
 
         item = c.subscribe('link_test_key', sys.argv[2], callback=callback)
 
