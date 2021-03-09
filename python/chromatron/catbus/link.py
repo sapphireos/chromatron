@@ -555,7 +555,6 @@ class LinkManager(MsgServer):
         self.register_message(ShutdownMsg, self._handle_shutdown)
             
         self.start_timer(LINK_MIN_TICK_RATE, self._process_all)
-        # self.start_timer(1.0, self._process_seconds)
         self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
         self._links = {}
@@ -665,7 +664,15 @@ class LinkManager(MsgServer):
             if host not in self._subscriptions:
                 self._subscriptions[host] = []
 
-            self._subscriptions[host].append((key, rate))
+            sub = {
+                'key': key,
+                'rate': rate,
+                'data': None
+            }
+
+            self._subscriptions[host].append(sub)
+
+            self._send_subscription(sub, host)
 
     def _send_consumer_data(self, link, data):
         link_hash = link.hash
@@ -758,6 +765,7 @@ class LinkManager(MsgServer):
             link = self._links[msg.hash]
 
         except KeyError:
+            logging.error(f"link not found for producer data!")
             return
 
         if not link.is_leader:
@@ -813,13 +821,16 @@ class LinkManager(MsgServer):
                     self.transmit(msg, (link.server, CATBUS_LINK_PORT))
 
         for host, subs in self._subscriptions.items():
-            for key, rate in subs:
-                msg = ProducerQueryMsg(
-                                key=catbus_string_hash(key),
-                                rate=rate,
-                                hash=0)
+            for sub in subs:
+                self._send_subscription(sub, host)
 
-                self.transmit(msg, host)
+    def _send_subscription(self, sub, host):
+        msg = ProducerQueryMsg(
+                        key=catbus_string_hash(sub['key']),
+                        rate=sub['rate'],
+                        hash=0)
+
+        self.transmit(msg, host)
         
     def _process_producers(self):
         for p in self._producers.values():
@@ -848,12 +859,6 @@ class LinkManager(MsgServer):
     def _process_links(self):
         for link in self._links.values():
             link._process_timer(LINK_MIN_TICK_RATE, self)
-
-    # def _process_subscriptions(self):
-    #     pass
-
-    # def _process_seconds(self):
-    #     self._process_subscriptions()
 
     def _process_all(self):
         self._process_producers()
