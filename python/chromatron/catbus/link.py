@@ -614,6 +614,7 @@ class LinkManager(MsgServer):
 
     def _handle_shutdown(self, msg, host):
         print('shutdown', host)
+        logging.warning("shutdown handling unfinished!")
 
     def _aggregate(self, link):
         data_item = self._database.get_item(link.source_key)
@@ -933,17 +934,8 @@ def main():
     elif sys.argv[1] == 'subscribe':
         def callback(key, data, host):
             print(key, data, host)
-            
+
         item = c.subscribe('link_test_key', sys.argv[2], callback=callback)
-
-        # try:
-        #     while True:
-        #         time.sleep(1.0)
-        #         print(item.data)
-
-
-        # except KeyboardInterrupt:
-        #     pass
 
 
     # lm.receive('link_test_key', 'kv_test_key', query=['__TEST__'])
