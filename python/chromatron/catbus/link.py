@@ -32,6 +32,7 @@ from sapphire.common import MsgServer, util, catbus_string_hash, run_all, synchr
 from sapphire.protocols import services
 from .database import *
 from .catbus import *
+import threading
 
 from fnvhash import fnv1a_64
 
@@ -462,12 +463,14 @@ class _Consumer(object):
 class _Remote(object):
     def __init__(self,
         link_hash=None,
-        ip=None,
-        data=None):
+        host=None,
+        data=None,
+        sub=None):
 
         self.link_hash = link_hash
-        self.ip = ip
+        self.host = host
         self.data = data
+        self.sub = sub
         
         self._timeout = LINK_REMOTE_TIMEOUT
 
@@ -475,9 +478,12 @@ class _Remote(object):
         return f'REMOTE: {self.link_hash}'    
 
     def _refresh(self, host, data):
-        self.leader_ip = host[0]
+        self.host = host
         self._timeout = LINK_REMOTE_TIMEOUT
         self.data = data
+
+        if self.sub:
+            self.sub._set(data.value)
 
     @property
     def timed_out(self):
@@ -522,6 +528,27 @@ class LinkClient(Client):
         response, host = self._exchange(msg)
 
 
+class Subscription(object):
+    def __init__(self, key, host):
+        self.key = key
+        self.host = host
+
+        self._lock = threading.Lock()
+
+        self._data = None
+
+    @property
+    @synchronized
+    def data(self):
+        return self._data
+
+    @synchronized
+    def _set(self, data):
+        self._data = data
+
+
+def sub_hash(key, host):
+    return (catbus_string_hash(key) << 32) + catbus_string_hash(str(host))
 
 """
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -654,25 +681,26 @@ class LinkManager(MsgServer):
     def send(self, *args, **kwargs):
         self.link(LINK_MODE_SEND, *args, **kwargs)
 
-    def subscribe(self, key, host, rate=1000): # will accept a single host, or a list of hosts
-        hosts = util.coerce_to_list(host)
+    def subscribe(self, key, host, rate=1000):
+        if isinstance(host, str):
+            host = (host, CATBUS_LINK_PORT)
 
-        for host in hosts:
-            if isinstance(host, str):
-                host = (host, CATBUS_LINK_PORT)
+        h = sub_hash(key, host)
 
-            if host not in self._subscriptions:
-                self._subscriptions[host] = []
+        sub = {
+            'host': host,
+            'key': key,
+            'rate': rate,
+            'item': Subscription(host, key)
+        }
 
-            sub = {
-                'key': key,
-                'rate': rate,
-                'data': None
-            }
+        self._subscriptions[h] = sub
 
-            self._subscriptions[host].append(sub)
+        # send a query now to try and link the target faster
+        self._send_subscription(sub, host)
 
-            self._send_subscription(sub, host)
+        return sub['item']
+
 
     def _send_consumer_data(self, link, data):
         link_hash = link.hash
@@ -760,6 +788,7 @@ class LinkManager(MsgServer):
         self._database[msg.hash] = msg.data.value
         
     def _handle_producer_data(self, msg, host):
+        sub = None
         # check if we have this link, or if this is from a subscription
         try:
             link = self._links[msg.hash]
@@ -776,17 +805,19 @@ class LinkManager(MsgServer):
                 logging.error("producer sent wrong source key!")
                 return
 
-
         except KeyError:
-            if host not in self._subscriptions:
+            if msg.hash not in self._subscriptions:
                 logging.error(f"link or subscription not found for producer data!")
                 return
+
+            sub = self._subscriptions[msg.hash]
 
         # UPDATE REMOTE STATE
         if msg.hash not in self._remotes:
             r = _Remote(
                     msg.hash,
-                    host[0]) # ADD DATA PORT!
+                    host,
+                    sub=sub['item'])
 
             self._remotes[msg.hash] = r
 
@@ -822,16 +853,15 @@ class LinkManager(MsgServer):
 
                     self.transmit(msg, (link.server, CATBUS_LINK_PORT))
 
-        for host, subs in self._subscriptions.items():
-            for sub in subs:
-                self._send_subscription(sub, host)
+        for sub in self._subscriptions.values():
+            self._send_subscription(sub, sub['host'])
 
     def _send_subscription(self, sub, host):
         msg = ProducerQueryMsg(
                         key=catbus_string_hash(sub['key']),
                         rate=sub['rate'],
-                        hash=0)
-
+                        hash=sub_hash(sub['key'], host))
+        
         self.transmit(msg, host)
         
     def _process_producers(self):
@@ -897,7 +927,17 @@ def main():
         c.receive('link_test_key', 'link_test_key2', query=['__TEST__'])
 
     elif sys.argv[1] == 'subscribe':
-        c.subscribe('link_test_key', sys.argv[2])
+        item = c.subscribe('link_test_key', sys.argv[2])
+
+        try:
+            while True:
+                time.sleep(1.0)
+                print(item.data)
+
+
+        except KeyboardInterrupt:
+            pass
+
 
     # lm.receive('link_test_key', 'kv_test_key', query=['__TEST__'])
 

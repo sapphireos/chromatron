@@ -130,22 +130,22 @@ class CatbusService(Database):
         self._server.start_timer(*args, **kwargs)
 
     def join_team(self, *args, **kwargs):
-        self._service_manager.join_team(*args, **kwargs)
+        return self._service_manager.join_team(*args, **kwargs)
 
     def offer(self, *args, **kwargs):
-        self._service_manager.offer(*args, **kwargs)
+        return self._service_manager.offer(*args, **kwargs)
 
     def listen(self, *args, **kwargs):
-        self._service_manager.listen(*args, **kwargs)
+        return self._service_manager.listen(*args, **kwargs)
 
     def send(self, *args, **kwargs):
-        self._link_manager.send(*args, **kwargs)
+        return self._link_manager.send(*args, **kwargs)
 
     def receive(self, *args, **kwargs):
-        self._link_manager.receive(*args, **kwargs)
+        return self._link_manager.receive(*args, **kwargs)
 
     def subscribe(self, *args, **kwargs):
-        self._link_manager.subscribe(*args, **kwargs)
+        return self._link_manager.subscribe(*args, **kwargs)
 
     def stop(self):
         self._server.stop()
