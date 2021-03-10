@@ -613,9 +613,10 @@ class LinkManager(MsgServer):
         self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
 
     def _handle_shutdown(self, msg, host):
-        print('shutdown', host)
-        logging.warning("shutdown handling unfinished!")
-
+        # print('shutdown', host)
+        # logging.warning("shutdown handling unfinished!")
+        pass
+        
     def _aggregate(self, link):
         data_item = self._database.get_item(link.source_key)
         local_data = data_item.value

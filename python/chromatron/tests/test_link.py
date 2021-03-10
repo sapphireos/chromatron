@@ -56,6 +56,13 @@ class _Device(_TestClient):
 
 
 @pytest.fixture
+def catbus_service():
+    c = CatbusService(tags=['__TEST__'])
+    yield c
+    c.stop()
+    c.join()
+
+@pytest.fixture
 def local_sender():
     c = CatbusService(tags=['__TEST__'])
     c.send('link_test_key', 'link_test_key2', ['__TEST__'], rate=100)
@@ -144,6 +151,9 @@ producers = ['local_producer', 'network_producer']
 def producer(request):
     return request.getfixturevalue(request.param)
 
+
+
+
 # @pytest.mark.skip
 def test_send(sender, consumer):
     for v in [123, 456, 999]:
@@ -165,5 +175,14 @@ def test_receive(receiver, producer):
         producer.assert_key('link_test_key', v)
         producer.assert_key('link_test_key2', 0)
 
+
+# @pytest.mark.skip
+def test_subscribe(catbus_service, consumer):
+    sub = catbus_service.subscribe('link_test_key', local_consumer._connected_host[0], rate=100)
+
+    for v in [123, 456, 999]:
+        consumer.set_key('link_test_key', v)    
+        time.sleep(1.0)
+        assert sub.data == v
 
 
