@@ -147,6 +147,9 @@ class CatbusService(Database):
     def subscribe(self, *args, **kwargs):
         return self._link_manager.subscribe(*args, **kwargs)
 
+    def publish(self, *args, **kwargs):
+        return self._link_manager.publish(*args, **kwargs)
+
     def stop(self):
         self._server.stop()
         self._link_manager.stop()

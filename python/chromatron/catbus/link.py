@@ -528,7 +528,7 @@ class LinkClient(Client):
         response, host = self._exchange(msg)
 
 
-class Subscription(object):
+
     def __init__(self, key, host, callback):
         self.key = key
         self.host = host
@@ -593,6 +593,7 @@ class LinkManager(MsgServer):
         self._consumers = {}
         self._remotes = {}
         self._subscriptions = {}
+        self._meta = {} # used for publish
 
         if test_mode:
             database.add_item('link_test_key', 0, 'int32')
@@ -616,7 +617,7 @@ class LinkManager(MsgServer):
         # print('shutdown', host)
         # logging.warning("shutdown handling unfinished!")
         pass
-        
+
     def _aggregate(self, link):
         data_item = self._database.get_item(link.source_key)
         local_data = data_item.value
@@ -707,6 +708,35 @@ class LinkManager(MsgServer):
 
         return sub['item']
 
+    def publish(self, key, value, host):
+        if isinstance(host, str):
+            host = (host, CATBUS_LINK_PORT)
+
+        data_hash = catbus_string_hash(key)
+
+        # # check if we have meta data for this host/key
+        # if (host, key) not in self._meta:
+        #     c = Client(host[0])
+
+        if isinstance(value, int):
+            data_type = CATBUS_TYPE_INT64
+        
+        elif isinstance(value, float):
+            data_type = CATBUS_TYPE_FLOAT
+
+        else:
+            assert False
+
+        meta = CatbusMeta(
+            hash=data_hash, 
+            type=data_type,
+            array_len=0)
+
+        data = CatbusData(meta=meta, value=value)
+
+        msg = ConsumerDataMsg(hash=data.meta.hash, data=data)
+
+        self.transmit(msg, host)
 
     def _send_consumer_data(self, link, data):
         link_hash = link.hash
@@ -933,16 +963,17 @@ def main():
         c.receive('link_test_key', 'link_test_key2', query=['__TEST__'])
 
     elif sys.argv[1] == 'subscribe':
-        from prometheus_client import start_http_server, Gauge
-        start_http_server(8000)
-        g = Gauge('meow', 'this is meow')
+        # from prometheus_client import start_http_server, Gauge
+        # start_http_server(8000)
+        # g = Gauge('meow', 'this is meow')
 
-        def callback(key, data, host):
-            print(key, data, host)
-            g.set(data)
+        # def callback(key, data, host):
+        #     print(key, data, host)
+        #     g.set(data)
 
         item = c.subscribe('link_test_key', sys.argv[2], callback=callback)
-
+    elif sys.argv[1] == 'publish':
+        c.publish('link_test_key', int(sys.argv[3]), sys.argv[2])
 
     # lm.receive('link_test_key', 'kv_test_key', query=['__TEST__'])
 
