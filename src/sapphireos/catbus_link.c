@@ -1481,27 +1481,27 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            if( memcmp( &meta, &msg->data.meta, sizeof(meta) ) != 0 ){
+            // if( memcmp( &meta, &msg->data.meta, sizeof(meta) ) != 0 ){
 
-                log_v_error_P( PSTR("rx meta does not match!") );
+            //     log_v_error_P( PSTR("rx meta does not match!") );
 
-                goto end;
-            }
+            //     goto end;
+            // }
 
             // verify data lengths
             uint16_t msg_data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(link_msg_data_t) - 1 );
             uint16_t array_len = meta.count + 1;
-            uint16_t type_len = type_u16_size( meta.type );
-            uint16_t data_len = array_len * type_len;
+            // uint16_t type_len = type_u16_size( meta.type );
+            // uint16_t data_len = array_len * type_len;
 
-            if( data_len != msg_data_len ){
+            // if( data_len != msg_data_len ){
 
-                log_v_error_P( PSTR("rx len does not match!") );
+            //     log_v_error_P( PSTR("rx len does not match!") );
 
-                goto end;
-            }
+            //     goto end;
+            // }
 
-            if( kv_i8_set( msg->hash, &msg->data.data, data_len ) < 0 ){
+            if( catbus_i8_array_set( msg->hash, msg->data.meta.type, 0, array_len, &msg->data.data, msg_data_len ) < 0 ){
 
                 log_v_error_P( PSTR("data fail") );
 
