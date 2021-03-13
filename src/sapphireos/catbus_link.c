@@ -929,15 +929,6 @@ void link_v_delete_by_hash( uint64_t hash ){
     fs_f_close( f );
 }
 
-void link_v_shutdown( void ){
-
-	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-		return;
-	}
-
-}
-
 
 /***********************************************
                 LINK PROCESSING
