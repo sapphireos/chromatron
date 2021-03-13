@@ -434,8 +434,7 @@ class _Consumer(object):
     def __str__(self):
         return f'CONSUMER: {self.link_hash}'    
 
-    def _refresh(self, host):
-        self.leader_ip = host[0]
+    def _refresh(self):
         self._timeout = LINK_CONSUMER_TIMEOUT
 
     @property
@@ -614,9 +613,12 @@ class LinkManager(MsgServer):
         self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
 
     def _handle_shutdown(self, msg, host):
-        # print('shutdown', host)
-        # logging.warning("shutdown handling unfinished!")
-        pass
+        self._producers = {k: v for k, v in self._producers.items() if v.leader_addr != host}
+        
+        if host in self._consumers:
+            del self._consumers[host]
+
+        self._remotes = {k: v for k, v in self._remotes.items() if v.host != host}
 
     def _aggregate(self, link):
         data_item = self._database.get_item(link.source_key)
@@ -812,7 +814,7 @@ class LinkManager(MsgServer):
 
             logging.debug(f"Create {c} at {host}")
 
-        self._consumers[host]._refresh(host)
+        self._consumers[host]._refresh()
 
     def _handle_consumer_data(self, msg, host):
         # check if we have this key
