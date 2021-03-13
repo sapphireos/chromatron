@@ -940,19 +940,10 @@ def main():
     from .catbus import CatbusService
 
     c = CatbusService(tags=['__TEST__'])
-    # lm = LinkManager(database=c, test_mode=True)
-    # c.register_shutdown_handler(lm.handle_shutdown)
+    
 
-    # l = Link(
-    #         mode=LINK_MODE_RECV, 
-    #         source_key='link_test_key', 
-    #         dest_key='kv_test_key', 
-    #         query=['__TEST__'], 
-    #         aggregation=LINK_AGG_AVG)
     import sys
-    # print(hex(l.hash))
-    # s.add_link(l)
-
+    
     if len(sys.argv) <= 1:
         pass
 
@@ -963,19 +954,9 @@ def main():
         c.receive('link_test_key', 'link_test_key2', query=['__TEST__'])
 
     elif sys.argv[1] == 'subscribe':
-        # from prometheus_client import start_http_server, Gauge
-        # start_http_server(8000)
-        # g = Gauge('meow', 'this is meow')
-
-        # def callback(key, data, host):
-        #     print(key, data, host)
-        #     g.set(data)
-
         item = c.subscribe('link_test_key', sys.argv[2], callback=callback)
     elif sys.argv[1] == 'publish':
         c.publish('link_test_key', int(sys.argv[3]), sys.argv[2])
-
-    # lm.receive('link_test_key', 'kv_test_key', query=['__TEST__'])
 
     # import yappi
     # yappi.start()
