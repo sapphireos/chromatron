@@ -22,12 +22,17 @@
 
 #include <stdint.h>
 #include "hsv_to_rgb.h"
-
+#include "keyvalue.h"
 
 // #define HSV_DEBUG
 
+static bool max_power_sat;
+
+KV_SECTION_META kv_meta_t max_power_sat_kv[] = {
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &max_power_sat,        0,                   "gfx_enable_max_power_sat" },
+};
+
 #ifndef GEN_HUE_CURVE
-#include "keyvalue.h"
 
 #ifdef ENABLE_BG_CAL
 
@@ -37,6 +42,7 @@ static uint16_t blue_cal = 65535;
 KV_SECTION_META kv_meta_t bg_cal_kv[] = {
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &green_cal,              0,                   "gfx_green_cal" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &blue_cal,               0,                   "gfx_blue_cal" },
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &max_power_white,        0,                   "gfx_enable_max_power_white" },
 };
 #endif
 
@@ -200,10 +206,36 @@ void gfx_v_hsv_to_rgbw(
     hsv_to_rgb_core( h, &temp_r, &temp_g, &temp_b );
 
     // apply saturation to RGB
-    temp_r = ( (uint32_t)temp_r * s ) / 65536;
-    temp_g = ( (uint32_t)temp_g * s ) / 65536;
-    temp_b = ( (uint32_t)temp_b * s ) / 65536;
 
+    // if max power sat is enabled, there will be no RGB attenuation
+    if( !max_power_sat ){
+
+        // attenuate RGB channels with increasing saturation
+        temp_r = ( (uint32_t)temp_r * s ) / 65536;
+        temp_g = ( (uint32_t)temp_g * s ) / 65536;
+        temp_b = ( (uint32_t)temp_b * s ) / 65536;
+    }
+    else{
+
+        // max power sat mode
+
+        // floor saturation
+        if( temp_r < temp_s ){
+
+            temp_r = temp_s;
+        }
+
+        if( temp_g < temp_s ){
+
+            temp_g = temp_s;
+        }
+
+        if( temp_b < temp_s ){
+
+            temp_b = temp_s;
+        }
+    }
+    
     #ifdef ENABLE_BG_CAL
     // apply cal
     temp_g = ( temp_g * green_cal ) / 65536;
@@ -215,6 +247,7 @@ void gfx_v_hsv_to_rgbw(
     *g = ( (uint32_t)temp_g * v ) / 65536;
     *b = ( (uint32_t)temp_b * v ) / 65536;
     *w = ( (uint32_t)temp_s * v ) / 65536;
+    *w = 0;
 }
 
 
