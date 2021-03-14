@@ -121,6 +121,7 @@ typedef struct{
 
 static esp_conn_t esp_conn[WIFI_MAX_PORTS];
 
+static char hostname[32];
 
 
 void hal_wifi_v_init( void ){
@@ -175,6 +176,20 @@ void hal_wifi_v_init( void ){
 
         esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
     }
+
+    // set up hostname
+    char mac_str[16];
+    memset( mac_str, 0, sizeof(mac_str) );
+    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
+    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
+    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
+
+    memset( hostname, 0, sizeof(hostname) );
+    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
+
+    strlcat( hostname, mac_str, sizeof(hostname) );
+
+    tcpip_adapter_set_hostname( TCPIP_ADAPTER_IF_STA, hostname );
         
 	thread_t_create_critical( 
                  wifi_connection_manager_thread,
