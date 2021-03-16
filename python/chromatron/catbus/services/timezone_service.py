@@ -30,10 +30,13 @@ from sapphire.common import util, run_all, Ribbon
 
 class TimeZoneService(Ribbon):
     def __init__(self):
+        super().__init__()
         self.kv = CatbusService(name='timezoneservice2', visible=True, tags=[])
 
         self.client = Client()
         self.directory = None
+
+        self.start()
 
     def _process(self):
         self.directory = self.client.get_directory()
