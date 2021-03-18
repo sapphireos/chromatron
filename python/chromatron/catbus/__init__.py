@@ -26,4 +26,4 @@ from .options import *
 from .client import Client
 from .catbus import CatbusService
 from .directory import *
-
+from .link import *
