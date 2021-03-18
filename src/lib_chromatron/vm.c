@@ -659,7 +659,7 @@ PT_BEGIN( pt );
     state->vm_state.rng_seed = rng_seed;
 
     // init database
-    vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
+    // vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
 
     // run VM init
     state->vm_return = vm_i8_run_init( mem2_vp_get_ptr( state->handle ), &state->vm_state );

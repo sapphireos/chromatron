@@ -3017,44 +3017,44 @@ int8_t vm_i8_load_program(
     return VM_STATUS_OK;
 }
 
-void vm_v_init_db(
-    uint8_t *stream,
-    vm_state_t *state,
-    uint8_t tag ){
+// void vm_v_init_db(
+//     uint8_t *stream,
+//     vm_state_t *state,
+//     uint8_t tag ){
 
-    int32_t *data = (int32_t *)( stream + state->data_start );
+//     int32_t *data = (int32_t *)( stream + state->data_start );
 
-    // add published vars to DB
-    uint32_t count = state->publish_count;
-    vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
+//     // add published vars to DB
+//     uint32_t count = state->publish_count;
+//     vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
 
-    while( count > 0 ){
+//     while( count > 0 ){
 
-        int32_t *ptr = &data[publish->addr];
-        uint32_t len = type_u16_size(publish->type);
+//         int32_t *ptr = &data[publish->addr];
+//         uint32_t len = type_u16_size(publish->type);
 
-        // check if string
-        // TODO
-        // hack to deal with poor string handling between compiler, VM, and DB
-        if( publish->type == CATBUS_TYPE_STRING512 ){
+//         // check if string
+//         // TODO
+//         // hack to deal with poor string handling between compiler, VM, and DB
+//         if( publish->type == CATBUS_TYPE_STRING512 ){
 
-            publish->type = CATBUS_TYPE_STRING64;
+//             publish->type = CATBUS_TYPE_STRING64;
 
-            ptr = &data[*ptr]; // dereference string
-            len = ( *ptr & 0xffff0000 ) >> 16; // second half of first word of string is length
-            ptr++;
-            len++; // add null terminator
+//             ptr = &data[*ptr]; // dereference string
+//             len = ( *ptr & 0xffff0000 ) >> 16; // second half of first word of string is length
+//             ptr++;
+//             len++; // add null terminator
 
-            len = 64;
-        }
+//             len = 64;
+//         }
 
-        kvdb_i8_add( publish->hash, publish->type, 1, ptr, len );
-        kvdb_v_set_tag( publish->hash, tag );
+//         kvdb_i8_add( publish->hash, publish->type, 1, ptr, len );
+//         kvdb_v_set_tag( publish->hash, tag );
 
-        publish++;
-        count--;
-    }
-}
+//         publish++;
+//         count--;
+//     }
+// }
 
 
 void vm_v_clear_db( uint8_t tag ){

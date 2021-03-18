@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include "catbus_common.h"
+#include "catbus_link.h"
 #include "datetime_struct.h"
 #include "target.h"
 
@@ -102,8 +103,9 @@ typedef struct __attribute__((packed)){
 
 
 typedef struct __attribute__((packed)){
-    bool send;
-    uint8_t padding[3];
+    link_mode_t8 mode;
+    link_aggregation_t8 aggregation;
+    link_rate_t16 rate;
     catbus_hash_t32 source_hash;
     catbus_hash_t32 dest_hash;
     catbus_query_t query;
@@ -260,11 +262,11 @@ int8_t vm_i8_load_program(
     uint16_t len,
     vm_state_t *state );
 
-void vm_v_init_db(
+/*void vm_v_init_db(
     uint8_t *stream,
     vm_state_t *state,
     uint8_t tag );
-
+*/
 void vm_v_clear_db( uint8_t tag );
 
 #endif
