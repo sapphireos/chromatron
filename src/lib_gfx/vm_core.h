@@ -106,8 +106,8 @@ typedef struct __attribute__((packed)){
     link_mode_t8 mode;
     link_aggregation_t8 aggregation;
     link_rate_t16 rate;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
+    catbus_hash_t32 source_key;
+    catbus_hash_t32 dest_key;
     catbus_query_t query;
 } link_t;
 
