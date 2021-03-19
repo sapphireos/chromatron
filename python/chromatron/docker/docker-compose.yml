@@ -7,6 +7,29 @@ services:
       context: ../
       dockerfile: docker/directory/Dockerfile
     restart: always
+    network_mode: host
 
+  # logserver:
+  #   container_name: logserver
+  #   build:
+  #     context: ../
+  #     dockerfile: docker/logserver/Dockerfile
+  #   restart: always
+  # network_mode: host
+
+  timezone:
+    container_name: timezone
+    build:
+      context: ../
+      dockerfile: docker/timezone_service/Dockerfile
+    restart: always
+    network_mode: host
+
+  weather:
+    container_name: weather
+    build:
+      context: ../
+      dockerfile: docker/weather/Dockerfile
+    restart: always
     network_mode: host
 
