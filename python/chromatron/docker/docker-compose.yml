@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  catbus_directory:
+    container_name: catbus_directory
+    build:
+      context: ../
+      dockerfile: docker/directory/Dockerfile
+    restart: always
+
+    network_mode: host
+
