@@ -24,7 +24,10 @@ services:
       dockerfile: docker/timezone_service/Dockerfile
     restart: always
     network_mode: host
-
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      
   weather:
     container_name: weather
     build:

@@ -17,4 +17,4 @@ RUN python3 setup.py install
 
 USER sapphire
 
-ENTRYPOINT ["python3", "timezone_server_main.py"]
+ENTRYPOINT ["python3", "timezone_service_main.py"]
