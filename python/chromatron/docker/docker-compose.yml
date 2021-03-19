@@ -15,7 +15,7 @@ services:
       context: ../
       dockerfile: docker/logserver/Dockerfile
     restart: always
-  network_mode: host
+    network_mode: host
 
   timezone:
     container_name: timezone
