@@ -50,19 +50,20 @@ class _Timer(Ribbon):
         self.dest_port = port
         self.handler = handler
         self.repeat = repeat
+        self.check_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=32))
 
         self.start()
 
     def _process(self):
         self.wait(self.interval)
-        self._timer_sock.sendto(''.encode(), ('localhost', self.dest_port))
+        self._timer_sock.sendto(self.check_code.encode(), ('localhost', self.dest_port))
 
         if not self.repeat:
             self.stop()
 
 
 class BaseServer(Ribbon):
-    def __init__(self, name='base_server', port=0, listener_port=None, listener_mcast=None):
+    def __init__(self, name='base_server', port=0, listener_port=None, listener_mcast=None, mode='udp'):
         super().__init__(name, suppress_logs=True)
 
         self._port = port
@@ -81,20 +82,29 @@ class BaseServer(Ribbon):
         self._timers = {}
 
         self._timer_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._timer_sock.bind(('0.0.0.0', 0))
+        self._timer_sock.bind(('localhost', 0))
         self._timer_sock.setblocking(0)
         self._timer_port = self._timer_sock.getsockname()[1]
 
-        self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        # self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.mode = mode
 
-        # try:
-        #     # this option may fail on some platforms
-        #     self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        if mode == 'udp':
+            self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            # self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        # except AttributeError:
-        #     pass
+            # try:
+            #     # this option may fail on some platforms
+            #     self.__server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+            # except AttributeError:
+            #     pass
+
+        elif mode == 'tcp':
+            self.__server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        else:
+            assert False
 
         if self._port is None:
             self.__server_sock.bind(('0.0.0.0', 0))
@@ -191,7 +201,13 @@ class BaseServer(Ribbon):
                             
                         # run timers
                         elif host[1] in self._timers:    
-                            self._timers[host[1]].handler()
+                            timer = self._timers[host[1]]
+
+                            if data == timer.check_code: 
+                                timer.handler()
+
+                            else:
+                                raise ValueError("Invalid check code in timer!")
 
                     except Exception as e:
                         logging.exception(e)
