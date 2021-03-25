@@ -83,7 +83,7 @@ class LokiHandler(Ribbon):
         self.start()
     
     def post_msg(self, msg):
-        create_task(synchronous_call(self.q.put, msg))
+        self.q.put(msg)
 
     def _process(self):
         msg = self.q.get()
