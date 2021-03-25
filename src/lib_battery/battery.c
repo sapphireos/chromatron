@@ -246,7 +246,8 @@ PT_BEGIN( pt );
         uint8_t charge_status = bq25895_u8_get_charge_status();
 
         if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
+            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
+            ( bq25895_u8_get_faults() != 0 ) ){
 
             // vm_v_stop();
             // last_dimmer = gfx_u16_get_submaster_dimmer();
