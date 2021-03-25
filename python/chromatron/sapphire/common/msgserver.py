@@ -28,6 +28,7 @@ from .broadcast import get_broadcast_addresses, get_local_addresses
 from .util import synchronized
 from .ribbon import Ribbon, run_all, stop_all
 import select
+import random
 
 class UnknownMessage(Exception):
     pass
