@@ -29,6 +29,8 @@ from .util import synchronized
 from .ribbon import Ribbon, run_all, stop_all
 import select
 import random
+import string
+
 
 class UnknownMessage(Exception):
     pass
@@ -51,13 +53,14 @@ class _Timer(Ribbon):
         self.dest_port = port
         self.handler = handler
         self.repeat = repeat
-        self.check_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=32))
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=32))
+        self.check_code = code.encode()
 
         self.start()
 
     def _process(self):
         self.wait(self.interval)
-        self._timer_sock.sendto(self.check_code.encode(), ('localhost', self.dest_port))
+        self._timer_sock.sendto(self.check_code, ('localhost', self.dest_port))
 
         if not self.repeat:
             self.stop()
