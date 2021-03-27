@@ -244,7 +244,7 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
             elapsed_ms = ( UINT32_MAX - temp ) * -1;
 
-            log_v_debug_P( PSTR("negative elapsed time: %ld"), elapsed_ms ); 
+            // log_v_debug_P( PSTR("negative elapsed time: %ld"), elapsed_ms ); 
         }
     }
 
@@ -537,7 +537,7 @@ PT_BEGIN( pt );
                 // check id
                 if( msg->id != sync_id ){
 
-                    log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
+                    // log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
 
                     rejected_syncs++;
                     continue;
