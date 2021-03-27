@@ -176,7 +176,7 @@ static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 static void reset_published_data( uint8_t vm_id ){
 
     kvdb_v_clear_tag( 0, 1 << vm_id );
-    // catbus_v_purge_links( get_link_tag( vm_id ) );
+    link_v_delete_by_tag( get_link_tag( vm_id ) );
 } 
 
 static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
