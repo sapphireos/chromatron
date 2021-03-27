@@ -1610,8 +1610,14 @@ class Builder(object):
             'avg': LINK_AGG_AVG,
         }
 
-        new_link = {'mode': mode,
-                    'aggregation': aggregation,
+        modes = {
+            'send': LINK_MODE_SEND,
+            'receive': LINK_MODE_RECV,
+            'sync': LINK_MODE_SYNC,
+        }
+
+        new_link = {'mode': modes[mode],
+                    'aggregation': aggregations[aggregation],
                     'rate': int(rate),
                     'source': source,
                     'dest': dest,

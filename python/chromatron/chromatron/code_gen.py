@@ -256,8 +256,17 @@ class cg1Module(cg1Node):
                     src = node.params[1].s
                     dest = node.params[0].s
                     query = [a.s for a in node.params[2].items]
-                    rate = node.params[3].s
-                    aggregation = node.params[4].s
+                    try:
+                        rate = node.params[3].s
+                    
+                    except IndexError:
+                        rate = 1000
+
+                    try:
+                        aggregation = node.params[4].s
+
+                    except IndexError:
+                        aggregation = 'any'
 
                     builder.link(node.target, src, dest, query, aggregation, rate, lineno=node.lineno)
 
