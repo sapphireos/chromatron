@@ -9,13 +9,13 @@ services:
     restart: always
     network_mode: host
 
-  # logserver:
-  #   container_name: logserver
-  #   build:
-  #     context: ../
-  #     dockerfile: docker/logserver/Dockerfile
-  #   restart: always
-  #   network_mode: host
+  logserver:
+    container_name: logserver
+    build:
+      context: ../
+      dockerfile: docker/logserver/Dockerfile
+    restart: always
+    network_mode: host
 
   timezone:
     container_name: timezone

@@ -92,12 +92,12 @@ class Directory(CatbusService):
 
     def _handle_shutdown(self, msg, host):
         try:
-            info = self._directory[tuple(host)]
+            info = self._directory[str(tuple(host))]
 
             logging.info(f"Shutdown: {info['name']:32} @ {info['host']}")
 
             # remove entry
-            del self._directory[tuple(host)]
+            del self._directory[str(tuple(host))]
 
         except KeyError:
             pass
@@ -132,19 +132,19 @@ class Directory(CatbusService):
                         'universe': msg.header.universe,
                         'ttl': TTL}
 
-                self._directory[tuple(host)] = info
+                self._directory[str(tuple(host))] = info
 
                 return info
 
             try:
                 # check if we have this node already
-                if tuple(host) not in self._directory:
+                if str(tuple(host)) not in self._directory:
                     info = update_info(msg, host)
 
                     logging.info(f"Added   : {info['name']:32} @ {info['host']}")
 
                 else:
-                    info = self._directory[tuple(host)]
+                    info = self._directory[str(tuple(host))]
 
                     # check if query tags have changed
                     if msg.query != info['hashes']:
@@ -156,13 +156,13 @@ class Directory(CatbusService):
                         logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
 
                     # update data port (in case a service restarted on another port)
-                    if msg.data_port != self._directory[tuple(host)]['data_port']:
+                    if msg.data_port != self._directory[str(tuple(host))]['data_port']:
                         logging.info(f"Changed data port: {info['name']:32} @ {info['host']} to {msg.data_port}")
-                        self._directory[tuple(host)]['host'] = host
-                        self._directory[tuple(host)]['data_port'] = msg.data_port
+                        self._directory[str(tuple(host))]['host'] = host
+                        self._directory[str(tuple(host))]['data_port'] = msg.data_port
 
                     # reset ttl
-                    self._directory[tuple(host)]['ttl'] = TTL
+                    self._directory[str(tuple(host))]['ttl'] = TTL
 
             except NoResponseFromHost as e:
                 logging.warn(f"No response from: {host}")
