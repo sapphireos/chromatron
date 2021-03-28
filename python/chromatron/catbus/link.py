@@ -716,10 +716,6 @@ class LinkManager(MsgServer):
 
         data_hash = catbus_string_hash(key)
 
-        # # check if we have meta data for this host/key
-        # if (host, key) not in self._meta:
-        #     c = Client(host[0])
-
         if isinstance(value, int):
             data_type = CATBUS_TYPE_INT64
         
