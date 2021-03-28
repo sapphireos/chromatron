@@ -703,10 +703,11 @@ class LinkManager(MsgServer):
             'item': Subscription(key, host, callback)
         }
 
-        self._subscriptions[h] = sub
+        if h not in self._subscriptions:
+            # send a query now to try and link the target faster
+            self._send_subscription(sub, host)
 
-        # send a query now to try and link the target faster
-        self._send_subscription(sub, host)
+        self._subscriptions[h] = sub
 
         return sub['item']
 
