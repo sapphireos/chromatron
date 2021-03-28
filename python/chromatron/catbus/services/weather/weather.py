@@ -40,7 +40,7 @@ class WeatherService(Ribbon):
                 else:
                     self.kv[key]          = float(props[source]['value'])
 
-                logging.info("Update successful")
+                # logging.info("Update successful")
 
             except TypeError:
                 # sometimes the weather API returns nulls for some reason.
