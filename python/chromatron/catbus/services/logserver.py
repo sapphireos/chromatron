@@ -52,31 +52,31 @@ class LokiHandler(Ribbon):
     def __init__(self):
         super().__init__(name='loki_handler')
 
-        # loki_handler = logging_loki.LokiHandler(
-        #     url=f"{LOKI_SERVER}/loki/api/v1/push", 
-        #     tags={"application": "chromatron-logserver"},
-        #     # auth=("username", "password"),
-        #     version="1",
-        # )
+        loki_handler = logging_loki.LokiHandler(
+            url=f"{LOKI_SERVER}/loki/api/v1/push", 
+            tags={"application": "chromatron-logserver"},
+            # auth=("username", "password"),
+            version="1",
+        )
 
-        # self.logger = logging.getLogger('loki')
-        # self.logger.addHandler(loki_handler)
+        self.logger = logging.getLogger('loki')
+        self.logger.addHandler(loki_handler)
 
-        # self.logger.info("Loki handler started")
+        self.logger.info("Loki handler started")
 
-        # device_handler = logging_loki.LokiHandler(
-        #     url=f"{LOKI_SERVER}/loki/api/v1/push", 
-        #     tags={"application": "chromatron-logserver"},
-        #     # auth=("username", "password"),
-        #     version="1",
-        # )
+        device_handler = logging_loki.LokiHandler(
+            url=f"{LOKI_SERVER}/loki/api/v1/push", 
+            tags={"application": "chromatron-logserver"},
+            # auth=("username", "password"),
+            version="1",
+        )
 
-        # device_handler.setLevel(logging.DEBUG)
-        # formatter = logging.Formatter('%(levelname)s %(message)s')
-        # device_handler.setFormatter(formatter)
+        device_handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(levelname)s %(message)s')
+        device_handler.setFormatter(formatter)
 
-        # self.device_logger = logging.getLogger('chromatron')
-        # self.device_logger.addHandler(device_handler)
+        self.device_logger = logging.getLogger('chromatron')
+        self.device_logger.addHandler(device_handler)
 
         self.q = Queue()
 
@@ -127,7 +127,7 @@ class LokiHandler(Ribbon):
 
         full_log_msg = f"{now.isoformat(timespec='milliseconds')} {info['device_id']:18} {host[0]:15} {info['name']:16} = {log}"
 
-        # self.device_logger.log(LOG_LEVEL[level], full_log_msg, extra={'tags': tags})
+        self.device_logger.log(LOG_LEVEL[level], full_log_msg, extra={'tags': tags})
 
 class LogServer(MsgFlowReceiver):
     def __init__(self):
@@ -181,11 +181,10 @@ class LogServer(MsgFlowReceiver):
     def on_connect(self, host, device_id=None):
         self.update_directory()
 
-        # self.loki.logger.info(f"Connected: {host[0]}:{host[1]} from {device_id}")
+        self.loki.logger.info(f"Connected: {host[0]}:{host[1]} from {device_id}")
         
     def on_disconnect(self, host):
-        # self.loki.logger.info(f"Disconnected: {host[0]}:{host[1]}")
-        pass
+        self.loki.logger.info(f"Disconnected: {host[0]}:{host[1]}")
 
 
 def main():
