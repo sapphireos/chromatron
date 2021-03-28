@@ -46,7 +46,7 @@ TTL = 240
 
 class Directory(CatbusService):
     def __init__(self):
-        super().__init__(tags=['DIRECTORY'])
+        super().__init__(name='DIRECTORY')
 
         self.register_announce_handler(self._handle_announce)
         self.register_shutdown_handler(self._handle_shutdown)
@@ -148,6 +148,9 @@ class Directory(CatbusService):
 
                     # check if query tags have changed
                     if msg.query != info['hashes']:
+                        logging.debug(msg.query)
+                        logging.debug(info['hashes'])
+
                         update_info(msg, host)
 
                         logging.info(f"Updated   : {info['name']:32} @ {info['host']}")

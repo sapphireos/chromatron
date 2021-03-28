@@ -250,7 +250,7 @@ class MsgFlowReceiver(MsgServer):
                 except Exception as e:
                     logging.exception(e)
 
-                logging.info(f"Msg {msg.sequence} len: {len(msg.data)} host: {host}")
+                logging.debug(f"Msg {msg.sequence} len: {len(msg.data)} host: {host}")
 
             elif msg.sequence <= self._connections[host]['sequence']:
                 # TODO assuming ARQ!
