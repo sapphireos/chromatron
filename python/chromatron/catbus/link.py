@@ -549,6 +549,27 @@ class LinkClient(Client):
         if self.callback:
             self.callback(self.key, data, self.host)
 
+class Subscription(object):
+    def __init__(self, key, host, callback):
+        self.key = key
+        self.host = host
+        self.callback = callback
+
+        self._lock = threading.Lock()
+
+        self._data = None
+
+    @property
+    @synchronized
+    def data(self):
+        return self._data
+
+    def _set(self, data):
+        with self._lock:
+            self._data = data
+
+        if self.callback:
+            self.callback(self.key, data, self.host)
 
 def sub_hash(key, host):
     return (catbus_string_hash(key) << 32) + catbus_string_hash(str(host))
