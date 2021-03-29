@@ -36,3 +36,14 @@ services:
     restart: always
     network_mode: host
 
+
+  datalogger:
+    container_name: datalogger
+    build:
+      context: ../
+      dockerfile: docker/timezone_service/Dockerfile
+    restart: always
+    network_mode: host
+    volumes:
+      - /etc/chromatron/datalogger.cfg:/app
+      

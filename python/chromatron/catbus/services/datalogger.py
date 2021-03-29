@@ -75,6 +75,8 @@ class Datalogger(Ribbon):
 
             logging.info("Config changed")
 
+            self.config = []
+
             for line in data.splitlines():
                 tokens = line.split(maxsplit=1)
 
