@@ -728,6 +728,8 @@ class LinkManager(MsgServer):
             # send a query now to try and link the target faster
             self._send_subscription(sub, host)
 
+            logging.info(f'Subscribe to {key} on {host}')
+
         self._subscriptions[h] = sub
 
         return sub['item']

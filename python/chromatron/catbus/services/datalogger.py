@@ -26,7 +26,7 @@
 import sys
 import time
 from datetime import datetime
-from catbus import CatbusService, Client, CATBUS_MAIN_PORT
+from catbus import CatbusService, Client, CATBUS_MAIN_PORT, query_tags
 from sapphire.protocols.msgflow import MsgFlowReceiver
 from sapphire.common import util, run_all, Ribbon
 import logging
@@ -35,20 +35,79 @@ from influxdb import InfluxDBClient
 
 from queue import Queue
 
+CONFIG_FILE = 'datalogger.cfg'
 
 class Datalogger(Ribbon):
     def __init__(self, influx_server='omnomnom.local'):
         super().__init__()
 
-        self.kv = CatbusService(name='datalogger', visible=True, tags=[])
+        self.kv = None
         self.client = Client()
         self.influx = InfluxDBClient(influx_server, 8086, 'root', 'root', 'chromatron')
 
-        self.keys = ['wifi_rssi']
+        # self.keys = ['wifi_rssi']
+        self.config = []
+        self.file_data = None
 
         self.directory = None
 
+        self.reset()
+
         self.start()
+
+    def reset(self):
+        if self.kv is not None:
+            self.kv.stop()
+
+        self.kv = CatbusService(name='datalogger', visible=True, tags=[])
+
+    def load_config(self):
+        try:
+            with open(CONFIG_FILE, 'r') as f:
+                data = f.read()
+
+            # check if file data changed
+            if data == self.file_data:
+                # no change
+                return False
+
+            self.file_data = data
+
+            logging.info("Config changed")
+
+            for line in data.splitlines():
+                tokens = line.split(maxsplit=1)
+
+                key = tokens[0]
+
+                try:
+                    query_token = tokens[1]
+                    
+                    if not query_token.startswith('[') or not query_token.endswith(']'):
+                        raise Exception("Malformed query config")
+
+                    query_token = query_token[1:-1] # strip brackets
+                    query = [q.strip() for q in query_token.split(',')]
+                    
+                except IndexError:
+                    query = []
+
+                except Exception as e:
+                    logging.exception(e)
+
+                    return False
+
+                logging.info(f"Subscribe to {key} from {query}")
+                self.config.append((key, query))
+
+        except FileNotFoundError:
+            logging.error(f"{CONFIG_FILE} not found")
+
+            return False
+
+        # config changed
+        return True
+
 
     def received_data(self, key, data, host):
         timestamp = datetime.utcnow()
@@ -79,15 +138,23 @@ class Datalogger(Ribbon):
         self.directory = self.client.get_directory()
 
         if self.directory is None:
+            logging.warning("Directory not available")
             self.wait(10.0)
             return
 
+        if self.load_config():
+            # config changed, reset services
+            self.reset()
+
         for dev in self.directory.values():
             host = dev['host'][0]
-            
-            for k in self.keys:
-                self.kv.subscribe(k, host, rate=1000, callback=self.received_data)
+                
+            for config in self.config:
+                key = config[0]
+                query = config[1]
 
+                if query_tags(query, dev['query']):
+                    self.kv.subscribe(key, host, rate=1000, callback=self.received_data)
 
         self.wait(10.0)
 
