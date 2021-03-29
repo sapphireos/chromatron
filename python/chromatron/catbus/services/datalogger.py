@@ -30,34 +30,65 @@ from catbus import CatbusService, Client
 from sapphire.protocols.msgflow import MsgFlowReceiver
 from sapphire.common import util, run_all, Ribbon
 
+from influxdb import InfluxDBClient
+
 from queue import Queue
 
+
 class Datalogger(Ribbon):
-    def __init__(self):
+    def __init__(self, influx_server='omnomnom.local'):
         super().__init__()
 
         self.kv = CatbusService(name='datalogger', visible=True, tags=[])
         self.client = Client()
+        self.influx = InfluxDBClient(influx_server, 8086, 'root', 'root', 'chromatron')
 
         self.keys = ['wifi_rssi']
+
+        self.directory = None
 
         self.start()
 
     def received_data(self, key, data, host):
         print(key, data, host)
+        # from pprint import pprint
+        # pprint(self.directory)
+
+        # info = self.directory[str(host)]
+
+        # print(info)
+
+        # for info in self.directory.values():
+            # if 
+
+        # tags = {'name': query[0],
+        #         'location': query[1]}
+
+        # json_body = [
+        #     {
+        #         "measurement": key,
+        #         "tags": tags,
+        #         "time": timestamp.isoformat(),
+        #         "fields": {
+        #             "value": value
+        #         }
+        #     }
+        # ]
+
+        # self.influx.write_points(json_body)
 
     def _process(self):
-        directory = self.client.get_directory()
+        self.directory = self.client.get_directory()
 
-        if directory is None:
+        if self.directory is None:
             self.wait(10.0)
             return
 
-        for dev in directory.values():
+        for dev in self.directory.values():
             host = dev['host'][0]
             
             for k in self.keys:
-                self.kv.subscribe(k, host, rate=100, callback=self.received_data)
+                self.kv.subscribe(k, host, rate=1000, callback=self.received_data)
 
 
         self.wait(10.0)
