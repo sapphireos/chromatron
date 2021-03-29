@@ -78,6 +78,11 @@ class Datalogger(Ribbon):
             self.config = []
 
             for line in data.splitlines():
+                line = line.strip()
+                if line.startswith('#'):
+                    # skip comment lines
+                    continue
+
                 tokens = line.split(maxsplit=1)
 
                 key = tokens[0]
