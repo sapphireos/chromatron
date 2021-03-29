@@ -85,7 +85,11 @@ class Datalogger(Ribbon):
 
                 tokens = line.split(maxsplit=1)
 
-                key = tokens[0]
+                try:
+                    key = tokens[0]
+
+                except IndexError:
+                    continue
 
                 try:
                     query_token = tokens[1]
