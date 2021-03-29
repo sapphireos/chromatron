@@ -26,9 +26,10 @@
 import sys
 import time
 from datetime import datetime
-from catbus import CatbusService, Client
+from catbus import CatbusService, Client, CATBUS_MAIN_PORT
 from sapphire.protocols.msgflow import MsgFlowReceiver
 from sapphire.common import util, run_all, Ribbon
+import logging
 
 from influxdb import InfluxDBClient
 
@@ -50,32 +51,29 @@ class Datalogger(Ribbon):
         self.start()
 
     def received_data(self, key, data, host):
-        print(key, data, host)
-        # from pprint import pprint
-        # pprint(self.directory)
+        timestamp = datetime.utcnow()
+        host = (host[0], CATBUS_MAIN_PORT)
 
-        # info = self.directory[str(host)]
+        # note this will only work with services running on 
+        # port 44632, generally only devices, not Python servers.
 
-        # print(info)
+        info = self.directory[str(host)]
 
-        # for info in self.directory.values():
-            # if 
+        tags = {'name': info['name'],
+                'location': info['location']}
 
-        # tags = {'name': query[0],
-        #         'location': query[1]}
+        json_body = [
+            {
+                "measurement": key,
+                "tags": tags,
+                "time": timestamp.isoformat(),
+                "fields": {
+                    "value": data
+                }
+            }
+        ]
 
-        # json_body = [
-        #     {
-        #         "measurement": key,
-        #         "tags": tags,
-        #         "time": timestamp.isoformat(),
-        #         "fields": {
-        #             "value": value
-        #         }
-        #     }
-        # ]
-
-        # self.influx.write_points(json_body)
+        self.influx.write_points(json_body)
 
     def _process(self):
         self.directory = self.client.get_directory()
@@ -94,7 +92,7 @@ class Datalogger(Ribbon):
         self.wait(10.0)
 
 def main():
-    util.setup_basic_logging(console=True)
+    util.setup_basic_logging(console=True, level=logging.INFO)
 
     d = Datalogger()
 
