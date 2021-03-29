@@ -45,5 +45,5 @@ services:
     restart: always
     network_mode: host
     volumes:
-      - /etc/chromatron/datalogger.cfg:/app
+      - /etc/chromatron/datalogger.cfg:/app/datalogger.cfg
       
