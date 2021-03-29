@@ -41,7 +41,7 @@ services:
     container_name: datalogger
     build:
       context: ../
-      dockerfile: docker/timezone_service/Dockerfile
+      dockerfile: docker/datalogger/Dockerfile
     restart: always
     network_mode: host
     volumes:
