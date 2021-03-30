@@ -42,7 +42,10 @@ setup(
             
     py_modules=['chromatron'],
 
-    package_data={'chromatron': ['*.fx']},
+    package_data={
+        'chromatron': ['*.fx'],
+        'sapphire.buildtools': ['settings.json', 'linker.x', 'project_template/*'],
+        },
 
     scripts=[],
 
