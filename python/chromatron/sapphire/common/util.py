@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -26,10 +26,19 @@ import logging.handlers
 import socket
 import os
 import colorlog
-
+from functools import wraps
 
 EPOCH = datetime.utcfromtimestamp(0)
 NTP_EPOCH = datetime(1900, 1, 1)
+
+
+def synchronized(f):
+    """Synchronization decorator for methods"""
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return f(self, *args, **kwargs)
+    return wrapper
 
 
 def memoize(f):
@@ -62,7 +71,7 @@ def iso_to_datetime(iso):
     raise ValueError
 
 def coerce_to_list(obj):
-    if not hasattr(obj, '__iter__'):
+    if isinstance(obj ,str):
         return [obj]
 
     return obj
@@ -179,14 +188,10 @@ def is_wildcard(key):
 
         return False
 
+
 logging_initalized = False
 
-def setup_basic_logging(console=True, filename=None):
-    # dt_format = '%Y-%m-%dT%H:%M:%S'
-    # logging.basicConfig(format='%(asctime)s >>> %(levelname)s (%(threadName)s) %(message)s',
-    #                     datefmt=dt_format,
-    #                     level=logging.DEBUG)
-
+def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
     global logging_initalized
 
     if logging_initalized:
@@ -194,16 +199,18 @@ def setup_basic_logging(console=True, filename=None):
 
     logging_initalized = True
 
+    import colored_traceback
+    colored_traceback.add_hook()
 
     dt_format = '%Y-%m-%dT%H:%M:%S'
 
     root = colorlog.getLogger('')
-    root.setLevel(logging.DEBUG)
+    root.setLevel(level)
 
     if console:
         handler = colorlog.StreamHandler()
-        handler.setLevel(logging.DEBUG)
-        formatter = colorlog.ColoredFormatter('%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(purple)s%(threadName)s %(white)s%(message)s', 
+        handler.setLevel(level)
+        formatter = colorlog.ColoredFormatter('%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(yellow)s[%(thread)d] %(purple)s%(module)s %(white)s%(message)s', 
                                                 datefmt=dt_format,
                                                 log_colors={
                                                     'DEBUG':    'cyan',
@@ -225,11 +232,13 @@ def setup_basic_logging(console=True, filename=None):
                 os.makedirs(path)
 
         handler = logging.handlers.RotatingFileHandler(filename, maxBytes=32*1048576, backupCount=4)
-        handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(levelname)s %(asctime)s.%(msecs)03d %(threadName)s %(message)s', datefmt=dt_format)
+        handler.setLevel(level)
+        formatter = logging.Formatter('%(levelname)s %(asctime)s.%(msecs)03d %(module)s %(message)s', datefmt=dt_format)
         handler.setFormatter(formatter)
         root.addHandler(handler)
 
+    if console:
+        logging.debug("Console logging enabled")
 
     # create a network logger
     # socket_handler = logging.handlers.SocketHandler('localhost',

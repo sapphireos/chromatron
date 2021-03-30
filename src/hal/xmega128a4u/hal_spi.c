@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -59,6 +59,11 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
     // enable TX and RX
     SPI_USER_PORT.CTRLB = USART_RXEN_bm | USART_TXEN_bm;
+}
+
+void spi_v_release( void ){
+
+    
 }
 
 uint32_t spi_u32_get_freq( uint8_t channel ){

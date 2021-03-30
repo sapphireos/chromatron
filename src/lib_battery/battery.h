@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2019  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -33,6 +33,20 @@
 #define UI_BUTTON   IO_PIN_21
 #endif
 
+#define BATT_PIX_COUNT_LOW_POWER_THRESHOLD		100
+
+// PCA9536 connections on Charger2
+#define BATT_IO_QON     0
+#define BATT_IO_S2      1
+#define BATT_IO_SPARE   2
+#define BATT_IO_BOOST   3
+
+
 void batt_v_init( void );
+
+// APIs to control pixel strip power switch
+void batt_v_enable_pixels( void );
+void batt_v_disable_pixels( void );
+bool batt_b_pixels_enabled( void );
 
 #endif

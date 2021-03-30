@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2019  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -41,6 +41,8 @@
 #include "lwip/err.h"
 #include "lwip/sockets.h"
 #include "lwip/sys.h"
+#include "lwip/igmp.h"
+
 
 #ifdef ENABLE_WIFI
 
@@ -60,6 +62,7 @@ static uint32_t wifi_arp_hits;
 static uint32_t wifi_arp_misses;
 
 static bool connected;
+static bool wifi_shutdown;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
@@ -82,9 +85,12 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
 KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { SAPPHIRE_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY,   &wifi_mac,                         0,   "wifi_mac" },
     { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY,   &wifi_rssi,                        0,   "wifi_rssi" },
-    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY,   &wifi_channel,                     0,   "wifi_channel" },
     { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,   &wifi_uptime,                      0,   "wifi_uptime" },
     { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_connects,                    0,   "wifi_connects" },
+
+    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_channel,  0,   "wifi_channel" },
+    { SAPPHIRE_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_bssid,    0,   "wifi_bssid" },
+    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_router,   0,   "wifi_router" },
 
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_received,                0,   "wifi_udp_received" },
     { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_sent,                    0,   "wifi_udp_sent" },
@@ -115,9 +121,10 @@ typedef struct{
 
 static esp_conn_t esp_conn[WIFI_MAX_PORTS];
 
+static char hostname[32];
 
 
-void wifi_v_init( void ){
+void hal_wifi_v_init( void ){
 
     tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
@@ -153,10 +160,37 @@ void wifi_v_init( void ){
     esp_wifi_set_max_tx_power( tx_power * 4 );
 
     // set power state
-    // esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
-    // esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
-    esp_wifi_set_ps( WIFI_PS_MAX_MODEM );
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
+        // safe mode, we're not going to do anything fancy
+        esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
+    }
+    else if( cfg_b_get_boolean( CFG_PARAM_BATT_ENABLE ) ){
+
+        // battery enabled, set wifi to modem sleep
+
+        esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
+        // esp_wifi_set_ps( WIFI_PS_MAX_MODEM );
+    }
+    else{
+
+        esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
+    }
+
+    // set up hostname
+    char mac_str[16];
+    memset( mac_str, 0, sizeof(mac_str) );
+    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
+    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
+    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
+
+    memset( hostname, 0, sizeof(hostname) );
+    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
+
+    strlcat( hostname, mac_str, sizeof(hostname) );
+
+    tcpip_adapter_set_hostname( TCPIP_ADAPTER_IF_STA, hostname );
+        
 	thread_t_create_critical( 
                  wifi_connection_manager_thread,
                  PSTR("wifi_connection_manager"),
@@ -301,6 +335,39 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    tcpip_adapter_ip_info_t info;
+        memset( &info, 0, sizeof(info) );
+        tcpip_adapter_get_ip_info( TCPIP_ADAPTER_IF_STA, &info );
+            
+    ip4_addr_t ipgroup;
+    ipgroup.addr = HTONL(ip_u32_to_int( mcast_ip ));
+
+    return igmp_joingroup( &info.ip, &ipgroup );
+}
+
+int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    tcpip_adapter_ip_info_t info;
+        memset( &info, 0, sizeof(info) );
+        tcpip_adapter_get_ip_info( TCPIP_ADAPTER_IF_STA, &info );
+            
+    ip4_addr_t ipgroup;
+    ipgroup.addr = HTONL(ip_u32_to_int( mcast_ip ));
+
+    return igmp_leavegroup( &info.ip, &ipgroup );
+}
 
 esp_conn_t* get_conn( uint16_t lport ){
 
@@ -406,7 +473,12 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 void wifi_v_shutdown( void ){
 
+    wifi_shutdown = TRUE;
+}
 
+void wifi_v_powerup( void ){
+
+    wifi_shutdown = FALSE;
 }
 
 bool wifi_b_connected( void ){
@@ -453,9 +525,9 @@ bool wifi_b_ap_mode( void ){
 	return FALSE;
 }
 
-bool wifi_b_shutdown( void ){
+uint16_t wifi_u16_get_power( void ){
 
-    return FALSE;
+    return 50000;
 }
 
 int8_t wifi_i8_get_status( void ){
@@ -737,8 +809,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         esp_wifi_connect();
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
-        ESP_LOGI(TAG, "got ip:%s",
-                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+        trace_printf("wifi connected, IP:%s\n", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
         connect_done = TRUE;
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
@@ -766,9 +837,15 @@ PT_BEGIN( pt );
     static uint8_t scan_timeout;
 
     connected = FALSE;
+    wifi_rssi = -127;
+
+    esp_wifi_disconnect();
+    esp_wifi_stop();    
+
+    THREAD_WAIT_WHILE( pt, wifi_shutdown );
     
     // check if we are connected
-    while( !wifi_b_connected() ){
+    while( !wifi_b_connected() && !wifi_shutdown ){
 
         wifi_rssi = -127;
         
@@ -789,40 +866,50 @@ station_mode:
 
             ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
 
-            // scan first
-            wifi_router = -1;
-            log_v_debug_P( PSTR("Scanning...") );
-            
             esp_wifi_disconnect();
             ESP_ERROR_CHECK(esp_wifi_start());
-            scan_done = FALSE;
-            
-            if( esp_wifi_scan_start(NULL, FALSE) != 0 ){
 
-            	log_v_error_P( PSTR("Scan error") );
+            // check if we can try a fast connect with the last connected router
+            if( wifi_router >= 0 ){
+
+                log_v_debug_P( PSTR("Fast connect...") );
             }
+            else{
 
-            scan_timeout = 200;
-            while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
+                // scan first
+                wifi_router = -1;
+                log_v_debug_P( PSTR("Scanning...") );
+                
+                scan_done = FALSE;
+                
+                if( esp_wifi_scan_start(NULL, FALSE) != 0 ){
 
-                scan_timeout--;
+                	log_v_error_P( PSTR("Scan error") );
+                }
 
-                TMR_WAIT( pt, 50 );
-            }
+                scan_timeout = 200;
+                while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
 
-            if( scan_done ){
+                    scan_timeout--;
 
-                scan_cb();
-            }
+                    TMR_WAIT( pt, 50 );
+                }
 
-            if( wifi_router < 0 ){
+                if( scan_done ){
 
-                goto end;
+                    scan_cb();
+                }
+
+                if( wifi_router < 0 ){
+
+                    goto end;
+                }
+
+                log_v_debug_P( PSTR("Connecting...") );
             }
 
             connect_done = FALSE;
-            log_v_debug_P( PSTR("Connecting...") );
-
+            
             wifi_config_t wifi_config = {0};
             wifi_config.sta.bssid_set = 1;
             memcpy( wifi_config.sta.bssid, wifi_bssid, sizeof(wifi_config.sta.bssid) );
@@ -863,6 +950,19 @@ station_mode:
                     wifi_rssi = wifi_info.rssi;
                 }
            	}
+            else{
+
+                // connection failed
+                wifi_router = -1;
+                wifi_channel = -1;
+                memset( wifi_bssid, 0, sizeof(wifi_bssid) );
+
+                log_v_debug_P( PSTR("Connection failed") );
+            }
+
+            kv_i8_persist( __KV__wifi_channel );
+            kv_i8_persist( __KV__wifi_bssid );
+            kv_i8_persist( __KV__wifi_router );
         }
         // AP mode
         else{
@@ -969,7 +1069,7 @@ end:
         }
     }
 
-    THREAD_WAIT_WHILE( pt, wifi_b_connected() );
+    THREAD_WAIT_WHILE( pt, wifi_b_connected() && !wifi_shutdown );
     
     log_v_debug_P( PSTR("Wifi disconnected") );
 

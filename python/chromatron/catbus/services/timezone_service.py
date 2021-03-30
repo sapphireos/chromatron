@@ -3,7 +3,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -26,29 +26,29 @@ import sys
 import time
 import logging
 from catbus import CatbusService, Client, NoResponseFromHost
-from sapphire.common import util, wait_for_signal, Ribbon
+from sapphire.common import util, run_all, Ribbon
 
 class TimeZoneService(Ribbon):
-    def initialize(self, settings={}):
-        self.name = 'timezoneservice'
-        self.settings = settings
-        
-        self.kv = CatbusService(name=self.name, visible=True, tags=[])
+    def __init__(self):
+        super().__init__()
+        self.kv = CatbusService(name='timezoneservice', visible=True, tags=[])
 
         self.client = Client()
-        self.directory = {}
+        self.directory = None
 
-    def loop(self):
+        self.start()
+
+    def _process(self):
         self.directory = self.client.get_directory()
 
         if self.directory == None:
-            self.wait(10.0)
             return
 
         current_tz_offset = time.localtime().tm_gmtoff / 60
 
         logging.info(f"Current TZ Offset: {current_tz_offset}")
 
+        updated = False
         for device_id, device in self.directory.items():
             self.client.connect(device['host'])
             
@@ -65,30 +65,20 @@ class TimeZoneService(Ribbon):
             if tz_offset != current_tz_offset:
                 logging.info(f"Setting datetime_tz_offset on {device_id}@{device['host']} from {tz_offset} to {current_tz_offset}")            
                 self.client.set_key('datetime_tz_offset', current_tz_offset)
+                updated = True
+
+        if not updated:
+            logging.info("All devices up to date")
 
         self.wait(600.0)
-
-    def clean_up(self):
-        self.kv.stop()
-
 
 def main():
     util.setup_basic_logging(console=True)
 
-    settings = {}
-    try:
-        with open('settings.json', 'r') as f:
-            settings = json.loads(f.read())
+    tz_service = TimeZoneService()
 
-    except FileNotFoundError:
-        pass
+    run_all()
 
-    tz_service = TimeZoneService(settings=settings)
-
-    wait_for_signal()
-
-    tz_service.stop()
-    tz_service.join()
 
 if __name__ == '__main__':
     main()

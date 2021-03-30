@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -25,10 +25,13 @@
 
 #include <stdint.h>
 #include "catbus_common.h"
+#include "catbus_link.h"
 #include "datetime_struct.h"
 #include "target.h"
 
 #define VM_ISA_VERSION              12
+
+#define VM_MAX_RUN_TIME             500 // milliseconds
 
 #define RETURN_VAL_ADDR             0
 #define PIX_ARRAY_ADDR              1
@@ -83,9 +86,9 @@
 #define VM_STATUS_NOT_RUNNING           -127
 #define VM_STATUS_HALT                  1
 #define VM_STATUS_YIELDED               2
-#define VM_STATUS_NO_THREADS            3
+#define VM_STATUS_DID_NOT_RUN           3
 #define VM_STATUS_READY                 4
-#define VM_STATUS_WAIT_SYNC             5
+
 
 
 #define VM_LOAD_FLAGS_CHECK_HEADER      1
@@ -100,10 +103,11 @@ typedef struct __attribute__((packed)){
 
 
 typedef struct __attribute__((packed)){
-    bool send;
-    uint8_t padding[3];
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
+    link_mode_t8 mode;
+    link_aggregation_t8 aggregation;
+    link_rate_t16 rate;
+    catbus_hash_t32 source_key;
+    catbus_hash_t32 dest_key;
     catbus_query_t query;
 } link_t;
 
@@ -146,7 +150,7 @@ typedef struct __attribute__((packed)){
     // - data table
 } vm_program_header_t;
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint16_t func_addr;
     uint16_t pc_offset;
     uint64_t tick;
@@ -172,6 +176,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint64_t tick;
     uint32_t last_elapsed_us;
     uint64_t loop_tick;
+    uint32_t frame_number;
 
     uint32_t program_name_hash;
 
@@ -225,10 +230,6 @@ int8_t vm_i8_run_loop(
     uint8_t *stream,
     vm_state_t *state );
 
-int8_t vm_i8_run_threads(
-    uint8_t *stream,
-    vm_state_t *state );
-
 uint64_t vm_u64_get_next_tick(
     uint8_t *stream,
     vm_state_t *state );
@@ -261,11 +262,11 @@ int8_t vm_i8_load_program(
     uint16_t len,
     vm_state_t *state );
 
-void vm_v_init_db(
+/*void vm_v_init_db(
     uint8_t *stream,
     vm_state_t *state,
     uint8_t tag );
-
+*/
 void vm_v_clear_db( uint8_t tag );
 
 #endif

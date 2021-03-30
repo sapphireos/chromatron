@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -52,14 +52,16 @@
 #define IO_PIN_34_A2 		18
 #define IO_PIN_25_A1 		19
 #define IO_PIN_26_A0 		20
-#define IO_PIN_COUNT        21
 
-#define IO_PIN_LED			IO_PIN_13_A12
+#define IO_PIN_LED0			21
+#define IO_PIN_LED1			22
+#define IO_PIN_LED2			23
+
+#define IO_PIN_COUNT        24
+
 #define IO_PIN_DEBUG        IO_PIN_26_A0
 
 int32_t hal_io_i32_get_gpio_num( uint8_t pin );
-
-void hal_io_v_set_esp_led( bool state );
 
 #endif
 

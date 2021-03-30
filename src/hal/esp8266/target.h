@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -51,6 +51,7 @@
 #define WIFI_MAX_PORTS          16
 #define WIFI_MAX_RX_NETMSGS		64
 #define WIFI_MAX_RX_SIZE        2048
+#define WIFI_MAX_IGMP           8
 
 // pixel config
 #define FADER_RATE              20
@@ -75,6 +76,8 @@
 #define VM_MAX_CALL_DEPTH           8
 #define VM_MAX_THREADS              8
 
+// KV
+#define KV_CACHE_SIZE 16
 
 // list
 // #define ENABLE_LIST_ATOMIC

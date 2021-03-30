@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -176,7 +176,9 @@ void sys_v_load_fw( void );
 void sys_v_load_recovery( void );
 void sys_v_reboot_delay( sys_mode_t8 mode );
 
-bool sys_b_shutdown( void );
+void sys_v_initiate_shutdown( uint8_t delay_seconds );
+bool sys_b_is_shutting_down( void );
+bool sys_b_shutdown_complete( void );
 
 void sys_v_wdt_reset( void );
 void sys_v_init_watchdog( void );

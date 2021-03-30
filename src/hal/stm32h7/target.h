@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -78,6 +78,8 @@
 #define VM_MAX_THREADS              4
 #define VM_MIN_DELAY				10
 
+// KV
+#define KV_CACHE_SIZE 16
 
 // list
 // #define ENABLE_LIST_ATOMIC

@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -61,6 +61,8 @@ static int16_t hue_step[MAX_PIXELS];
 static int16_t sat_step[MAX_PIXELS];
 static int16_t val_step[MAX_PIXELS];
 
+static bool gfx_enable = TRUE;
+static bool pixels_powered = TRUE;
 static uint16_t pix_master_dimmer = 0;
 static uint16_t pix_sub_dimmer = 0;
 static uint16_t target_dimmer = 0;
@@ -264,6 +266,7 @@ int8_t gfx_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
+    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,                   "pix_size_x" },
@@ -328,6 +331,11 @@ static void setup_master_array( void ){
     pix_arrays[0].size_y = pix_size_y;    
 }
 
+static uint16_t calc_dimmer( void ){
+
+    return ( (uint32_t)pix_master_dimmer * (uint32_t)pix_sub_dimmer ) / 65536;    
+}
+
 static void update_master_fader( void ){
 
     uint16_t fade_steps = global_v_fade / FADER_RATE;
@@ -337,7 +345,14 @@ static void update_master_fader( void ){
         fade_steps = 2;
     }
 
-    target_dimmer = ( (uint32_t)pix_master_dimmer * (uint32_t)pix_sub_dimmer ) / 65536;
+    if( gfx_enable ){
+
+        target_dimmer = calc_dimmer();
+    }
+    else{
+
+        target_dimmer = 0;
+    }
 
     int32_t diff = (int32_t)target_dimmer - (int32_t)current_dimmer;
     int32_t step = diff / fade_steps;
@@ -1503,6 +1518,42 @@ void gfx_v_shutdown_graphic( void ){
     array_blue[0] = 16;    
 }
 
+void gfx_b_enable( void ){
+
+    gfx_enable = TRUE;    
+}
+
+void gfx_b_disable( void ){
+
+    gfx_enable = FALSE;    
+}
+
+bool gfx_b_enabled( void ){
+
+    if( !pixels_powered ){
+
+        return FALSE;
+    }
+
+    // if( gfx_enable && ( current_dimmer > 0 ) ){
+
+    //     return TRUE;
+    // }   
+
+    // return FALSE;
+    if( !gfx_enable && ( current_dimmer == 0 ) ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+void gfx_v_set_pixel_power( bool enabled ){
+
+    pixels_powered = enabled;
+}
+
 void gfx_v_reset( void ){
 
     // initialize pixel arrays to defaults    
@@ -2005,6 +2056,54 @@ uint16_t gfx_u16_noise( uint16_t x ){
 }
 
 
+uint32_t gfx_u32_get_pixel_r( void ){
+
+    uint32_t total = 0;
+
+    for( uint16_t i = 0; i < pix_count; i++ ){
+
+        total += array_red[i];
+    }
+
+    return total;
+}
+
+uint32_t gfx_u32_get_pixel_g( void ){
+
+    uint32_t total = 0;
+
+    for( uint16_t i = 0; i < pix_count; i++ ){
+
+        total += array_green[i];
+    }
+
+    return total;
+}
+
+uint32_t gfx_u32_get_pixel_b( void ){
+
+    uint32_t total = 0;
+
+    for( uint16_t i = 0; i < pix_count; i++ ){
+
+        total += array_blue[i];
+    }
+
+    return total;
+}
+
+
+uint32_t gfx_u32_get_pixel_w( void ){
+
+    uint32_t total = 0;
+
+    for( uint16_t i = 0; i < pix_count; i++ ){
+
+        total += array_misc[i];
+    }
+
+    return total;
+}
 
 
 /*

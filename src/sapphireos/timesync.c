@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -160,11 +160,6 @@ void time_v_init( void ){
                     0 );    
 }
 
-void time_v_handle_shutdown( ip_addr4_t ip ){
-
-    
-}
-
 bool time_b_is_local_sync( void ){
 
     return is_sync;
@@ -249,7 +244,7 @@ ntp_ts_t time_t_from_system_time( uint32_t end_time ){
 
             elapsed_ms = ( UINT32_MAX - temp ) * -1;
 
-            log_v_debug_P( PSTR("negative elapsed time: %ld"), elapsed_ms ); 
+            // log_v_debug_P( PSTR("negative elapsed time: %ld"), elapsed_ms ); 
         }
     }
 
@@ -316,7 +311,7 @@ static void time_v_set_ntp_master_clock_internal(
         ( abs64( delta_ntp_seconds ) > 60 ) ||
         !is_sync ){
 
-        log_v_debug_P( PSTR("clock synced") );
+        log_v_debug_P( PSTR("clock synced: prev sync: %d delta_master: %d delta_ntp: %d"), is_sync, (int32_t)delta_master_ms, (int32_t)delta_ntp_seconds );
         
         // hard sync
         master_ntp_time         = source_ts;
@@ -542,7 +537,7 @@ PT_BEGIN( pt );
                 // check id
                 if( msg->id != sync_id ){
 
-                    log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
+                    // log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
 
                     rejected_syncs++;
                     continue;

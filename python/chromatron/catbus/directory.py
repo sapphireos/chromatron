@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,6 @@
 import logging
 import time
 import os
-import threading
 import select
 from .client import Client
 from copy import copy
@@ -33,6 +32,7 @@ import json
 import struct
 import sys
 
+from .catbus import CatbusService
 from .options import *
 from .messages import *
 from .data_structures import *
@@ -40,125 +40,84 @@ from .data_structures import *
 from sapphire.buildtools import firmware_package
 LOG_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_directory.log')
 
-from sapphire.common import Ribbon, MsgQueueEmptyException, util
-
+from sapphire.common import util, MsgServer, run_all, synchronized, Ribbon
 
 TTL = 240
 
+class Directory(CatbusService):
+    def __init__(self):
+        super().__init__(name='DIRECTORY')
 
-class Directory(Ribbon):
-    def initialize(self):
-        self.name = '%s' % ('catbus_directory')
+        self.register_announce_handler(self._handle_announce)
+        self.register_shutdown_handler(self._handle_shutdown)
 
-        self.__announce_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__announce_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__announce_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        try:
-            # this option may fail on some platforms
-            self.__announce_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-        except AttributeError:
-            pass
-
-        self.__announce_sock.setblocking(0)
-        self.__announce_sock.bind(('', CATBUS_ANNOUNCE_PORT))
-
-        self.__main_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__main_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.__main_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        try:
-            # this option may fail on some platforms
-            self.__main_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-
-        except AttributeError:
-            pass
-
-        self.__main_sock.setblocking(0)
-        self.__main_sock.bind(('', CATBUS_MAIN_PORT))
-
-        self._inputs = [self.__announce_sock, self.__main_sock]
-
-        self._hash_lookup = {}
         self._directory = {}
+        self._hash_lookup = {}
 
-        self._msg_handlers = {
-            ErrorMsg: self._handle_error,
-            AnnounceMsg: self._handle_announce,
-            ShutdownMsg: self._handle_shutdown,
-            LinkMsg: self._handle_link,
-        }
+        self._directory_server = DirectoryServer(directory=self)
 
-        self._last_ttl = time.time()
+        self.add_item('directory_port', self._directory_server._port)
 
-        self.__lock = threading.Lock()
+        logging.info(f'DirectoryServer on port {self._directory_server.port}')
 
-    def get_directory(self):
-        with self.__lock:
-            return copy(self._directory)
-   
+        self.start_timer(4.0, self._process_ttl)
+
+    @synchronized
+    def get_directory(self):    
+        return copy(self._directory)
+
+    @synchronized
     def resolve_hash(self, hashed_key, host=None):
         if hashed_key == 0:
             return ''
 
-        with self.__lock:
-            try:
+        try:
+            return self._hash_lookup[hashed_key]
+
+        except KeyError:
+            if host:
+                c = Client(host)
+
+                key = c.lookup_hash(hashed_key)
+
+                if len(key) == 0:
+                    raise KeyError(hashed_key)
+
+                self._hash_lookup[hashed_key] = key[hashed_key]
+
                 return self._hash_lookup[hashed_key]
 
-            except KeyError:
-                if host:
-                    c = Client()
-                    c.connect(host)
-
-                    key = c.lookup_hash(hashed_key)
-
-                    if len(key) == 0:
-                        raise KeyError(hashed_key)
-
-                    self._hash_lookup[hashed_key] = key[hashed_key]
-
-                    return self._hash_lookup[hashed_key]
-
-                else:
-                    raise
-
-    def _handle_link(self, msg, host):
-        pass
+            else:
+                raise
 
     def _handle_shutdown(self, msg, host):
-        with self.__lock:
-            try:
-                info = self._directory[msg.header.origin_id]
+        try:
+            info = self._directory[str(tuple(host))]
 
-                logging.info(f"Shutdown: {info['name']:32} @ {info['host']}")
+            logging.info(f"Shutdown: {info['name']:32} @ {info['host']}")
 
-                # remove entry
-                del self._directory[msg.header.origin_id]
+            # remove entry
+            del self._directory[str(tuple(host))]
 
-            except KeyError:
-                pass
-
-    def _handle_error(self, msg, host):
-        print(msg)
-
+        except KeyError:
+            pass
+  
     def _handle_announce(self, msg, host):
         # update host port with advertised data port
         host = (host[0], msg.data_port)
 
-        try:
-            resolved_query = [self.resolve_hash(a, host=host) for a in msg.query if a != 0]
+        def query_device():
+            try:
+                resolved_query = [self.resolve_hash(a, host=host) for a in msg.query if a != 0]
 
-        except NoResponseFromHost:
-            logging.warn(f"No response from: {host}")
+            except NoResponseFromHost:
+                logging.warn(f"No response from: {host}")
 
-            return
-
-        with self.__lock:
+                return
 
             def update_info(msg, host):
-                c = Client()
-                c.connect(host)
+                c = Client(host)
+
                 name = c.get_key(META_TAG_NAME)
                 location = c.get_key(META_TAG_LOC)
 
@@ -173,96 +132,85 @@ class Directory(Ribbon):
                         'universe': msg.header.universe,
                         'ttl': TTL}
 
-                self._directory[msg.header.origin_id] = info
+                self._directory[str(tuple(host))] = info
 
                 return info
 
-            # check if we have this node already
-            if msg.header.origin_id not in self._directory:
-                info = update_info(msg, host)
+            try:
+                # check if we have this node already
+                if str(tuple(host)) not in self._directory:
+                    info = update_info(msg, host)
 
-                logging.info(f"Added   : {info['name']:32} @ {info['host']}")
+                    logging.info(f"Added   : {info['name']:32} @ {info['host']}")
 
-            else:
-                info = self._directory[msg.header.origin_id]
+                else:
+                    info = self._directory[str(tuple(host))]
 
-                # check if query tags have changed
-                if msg.query != info['hashes']:
-                    update_info(msg, host)
+                    # check if query tags have changed
+                    if msg.query != info['hashes']:
+                        logging.debug(msg.query)
+                        logging.debug(info['hashes'])
 
-                    logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
+                        update_info(msg, host)
 
-                # reset ttl
-                self._directory[msg.header.origin_id]['ttl'] = TTL
+                        logging.info(f"Updated   : {info['name']:32} @ {info['host']}")
 
-    def _process_msg(self, msg, host):
-        try:
-            response = self._msg_handlers[type(msg)](msg, host)
+                    # update data port (in case a service restarted on another port)
+                    if msg.data_port != self._directory[str(tuple(host))]['data_port']:
+                        logging.info(f"Changed data port: {info['name']:32} @ {info['host']} to {msg.data_port}")
+                        self._directory[str(tuple(host))]['host'] = host
+                        self._directory[str(tuple(host))]['data_port'] = msg.data_port
 
-        except KeyError:
-            raise UnknownMessageException
+                    # reset ttl
+                    self._directory[str(tuple(host))]['ttl'] = TTL
 
-        return response
+            except NoResponseFromHost as e:
+                logging.warn(f"No response from: {host}")
 
-    def loop(self):
-        try:
-            readable, writable, exceptional = select.select(self._inputs, [], [], 1.0)
+        query_device()
+    
+    def _process_ttl(self):
+        for key, info in self._directory.items():
+            info['ttl'] -= 4.0
 
-            for s in readable:
-                try:
-                    data, host = s.recvfrom(1024)
+            if info['ttl'] < 0.0:
+                logging.info(f"Timed out: {info['name']:32} @ {info['host']}")
 
-                    msg = deserialize(data)
+        self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}    
 
-                    self._process_msg(msg, host)
-
-                except UnknownMessageException as e:
-                    pass
-
-                except Exception as e:
-                    logging.exception(e)
-
-        except select.error as e:
-            logging.exception(e)
-
-        except Exception as e:
-            logging.exception(e)
-
-
-        if time.time() - self._last_ttl > 4.0:
-            self._last_ttl = time.time()
-
-            with self.__lock:
-                for key, info in self._directory.items():
-                    info['ttl'] -= 4.0
-
-                    if info['ttl'] < 0.0:
-                        logging.info(f"Timed out: {info['name']:32} @ {info['host']}")
-
-                self._directory = {k: v for k, v in self._directory.items() if v['ttl'] >= 0.0}
 
 class DirectoryServer(Ribbon):
-    def initialize(self, directory=None):
-        self.name = '%s' % ('directory_server')
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    def __init__(self, directory=None):
+        super().__init__('directory_server')
+        
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         try:
             # this option may fail on some platforms
-            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 
         except AttributeError:
             pass
 
-        self.sock.bind(('localhost', CATBUS_DIRECTORY_PORT))
-        self.sock.settimeout(1.0)
-        self.sock.listen(1)
+        self._sock.bind(('0.0.0.0', 0))
+        self._sock.settimeout(1.0)
+        self._sock.listen(1)
+
+        self._port = self._sock.getsockname()[1]    
 
         self.directory = directory
+
+        self.start()
+
+    @property
+    @synchronized
+    def port(self):
+        return self._port
         
-    def loop(self):
+    def _process(self):
         try:
-            conn, addr = self.sock.accept()
+            conn, addr = self._sock.accept()
 
             data = json.dumps(self.directory.get_directory())
 
@@ -275,7 +223,8 @@ class DirectoryServer(Ribbon):
             pass
 
     def clean_up(self):
-        self.sock.close()
+        self._sock.close()
+
 
 def main():
     try:
@@ -283,18 +232,12 @@ def main():
     except IndexError:
         LOG_FILE_PATH = "catbus_directory.log"
 
-    util.setup_basic_logging(console=False, filename=LOG_FILE_PATH)
+    util.setup_basic_logging(console=True, filename=LOG_FILE_PATH)
 
-    d = Directory()
-    svr = DirectoryServer(directory=d)
+    d = Directory()    
     
+    run_all()
 
-    try:
-        while True:
-            time.sleep(1.0)
-
-    except KeyboardInterrupt:
-        pass
 
 if __name__ == '__main__':
     main()

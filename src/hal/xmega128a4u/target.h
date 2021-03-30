@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -57,6 +57,9 @@
 #define FADER_RATE              20
 // #define USE_GFX_LIB
 
+#define WIFI_MAX_IGMP           1
+
+
 // VM config
 // #define VM_TARGET_ESP
 // #define VM_ENABLE_GFX
@@ -76,6 +79,8 @@
 // software max power limiter - per platform power limit in dbm
 #define WIFI_MAX_SW_TX_POWER    17
 
+// KV
+#define KV_CACHE_SIZE 1
 
 // list
 // #define ENABLE_LIST_ATOMIC

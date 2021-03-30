@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -27,6 +27,7 @@
 #include "system.h"
 #include "sockets.h"
 #include "udp.h"
+#include "config.h"
 
 #include "list.h"
 #include "memory.h"
@@ -868,6 +869,14 @@ void sock_v_recv( netmsg_t netmsg ){
 
     // if we got here, we have the appropriate socket
 
+
+    // check if remote address is us.
+    // with multicasting we could receive our own messages.
+    if( ip_b_addr_compare( state->raddr.ipaddr, cfg_ip_get_ipaddr() ) ){
+
+        return;
+    }
+
     // check if send only
     if( dgram->raw.options & SOCK_OPTIONS_SEND_ONLY ){
 
@@ -1039,5 +1048,19 @@ void sock_v_process_timeouts( void ){
     }
 }
 
+bool sock_b_addr_compare( sock_addr_t *addr1, sock_addr_t *addr2 ){
+
+    if( !ip_b_addr_compare( addr1->ipaddr, addr2->ipaddr ) ){
+
+        return FALSE;
+    }
+
+    if( addr1->port != addr2->port ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
 
 #endif

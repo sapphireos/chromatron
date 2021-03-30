@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -152,6 +152,14 @@ void cpu_v_sleep( void ){
 bool cpu_b_osc_fail( void ){
 
     return ( OSC.XOSCFAIL & OSC_XOSCFDIF_bm ) != 0;
+}
+
+void cpu_v_set_clock_speed_low( void ){
+
+}
+
+void cpu_v_set_clock_speed_high( void ){
+
 }
 
 uint32_t cpu_u32_get_clock_speed( void ){

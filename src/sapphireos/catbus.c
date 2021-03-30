@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -33,56 +33,6 @@
 
 // #define NO_LOGGING
 #include "logging.h"
-
-#ifdef ENABLE_CATBUS_LINK
-typedef struct __attribute__((packed)){
-    catbus_hash_t32 tag;
-    uint8_t flags;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
-    catbus_query_t query;
-    uint8_t reserved[7];
-    uint32_t check_hash;
-} catbus_link_state_t;
-#define CATBUS_LINK_FLAGS_SEND          0x01
-#define CATBUS_LINK_FLAGS_RECEIVE       0x02
-#define CATBUS_LINK_FLAGS_DATA          0x04
-#define CATBUS_LINK_FLAGS_VALID         0x80
-
-typedef struct{
-    uint32_t magic;
-    uint8_t version;
-    uint8_t reserved[11];
-} catbus_link_file_header_t;
-#define CATBUS_LINK_FILE_MAGIC          0x4b4e494c // 'LINK'
-#define CATBUS_LINK_FILE_VERSION        1
-
-typedef struct __attribute__((packed)){
-    sock_addr_t raddr;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
-    uint16_t sequence;
-    ntp_ts_t ntp_timestamp;
-    int8_t ttl;
-    uint8_t flags;
-} catbus_send_data_entry_t;
-#define SEND_ENTRY_FLAGS_PUBLISH        0x01
-
-typedef struct __attribute__((packed)){
-    sock_addr_t raddr;
-    catbus_hash_t32 dest_hash;
-    uint16_t sequence;
-    int8_t ttl;
-} catbus_receive_data_entry_t;
-
-static bool link_enable;
-static list_t send_list;
-static list_t receive_cache;
-
-static bool run_publish;
-
-PT_THREAD( publish_thread( pt_t *pt, void *state ) );
-#endif
 
 #ifdef ENABLE_NETWORK
 static uint64_t origin_id;
@@ -132,66 +82,6 @@ static const PROGMEM catbus_hash_t32 meta_tag_names[CATBUS_QUERY_LEN] = {
     CFG_PARAM_META_TAG_6,
     CFG_PARAM_META_TAG_7,
 };
-
-#ifdef ENABLE_CATBUS_LINK
-static uint16_t sendlist_vfile_handler(
-    vfile_op_t8 op,
-    uint32_t pos,
-    void *ptr,
-    uint16_t len )
-{
-
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
-
-        case FS_VFILE_OP_READ:
-            list_u16_flatten( &send_list, pos, ptr, len );
-            break;
-
-        case FS_VFILE_OP_SIZE:
-            len = list_u16_size( &send_list );
-            break;
-
-        case FS_VFILE_OP_DELETE:
-            break;
-
-        default:
-            len = 0;
-            break;
-    }
-
-    return len;
-}
-
-static uint16_t receive_cache_vfile_handler(
-    vfile_op_t8 op,
-    uint32_t pos,
-    void *ptr,
-    uint16_t len )
-{
-
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
-
-        case FS_VFILE_OP_READ:
-            list_u16_flatten( &receive_cache, pos, ptr, len );
-            break;
-
-        case FS_VFILE_OP_SIZE:
-            len = list_u16_size( &receive_cache );
-            break;
-
-        case FS_VFILE_OP_DELETE:
-            break;
-
-        default:
-            len = 0;
-            break;
-    }
-
-    return len;
-}
-#endif
 
 static void _catbus_v_setup_tag_hashes( void ){
     
@@ -321,56 +211,15 @@ static int8_t _catbus_i8_meta_handler(
 void catbus_v_init( void ){
 
     #ifdef ENABLE_CATBUS_LINK
-    list_v_init( &send_list );
-    list_v_init( &receive_cache );
+    // list_v_init( &send_list );
+    // list_v_init( &receive_cache );
     
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        link_enable = FALSE;
     }
     else{
 
-        link_enable = TRUE;
-
-        file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_CREATE_IF_NOT_FOUND );
-
-        if( f > 0 ){
-
-            catbus_link_file_header_t header;
-            memset( &header, 0, sizeof(header) );
-            fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
-
-            if( ( header.magic != CATBUS_LINK_FILE_MAGIC ) ||
-                ( header.version != CATBUS_LINK_FILE_VERSION ) ){
-
-                fs_v_delete( f );
-                fs_f_close( f );
-
-                f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_CREATE_IF_NOT_FOUND );
-
-                if( f > 0 ){
-
-                    header.magic = CATBUS_LINK_FILE_MAGIC;
-                    header.version = CATBUS_LINK_FILE_VERSION;
-                    memset( header.reserved, 0, sizeof(header.reserved) );
-
-                    fs_i16_write( f, (uint8_t *)&header, sizeof(header) );
-                }
-            }
-        }
-
-        if( f > 0 ){
-
-            f = fs_f_close( f );
-        }
-
-        fs_f_create_virtual( PSTR("kvrxcache"), receive_cache_vfile_handler );
-        fs_f_create_virtual( PSTR("kvsend"), sendlist_vfile_handler );
-
-        thread_t_create( publish_thread,
-                         PSTR("catbus_publish"),
-                         0,
-                         0 );
+        link_v_init();
     }
     #endif
 
@@ -391,16 +240,6 @@ void catbus_v_init( void ){
 
 void catbus_v_set_options( uint32_t options ){
 
-    #ifdef ENABLE_CATBUS_LINK
-    if( options & CATBUS_OPTION_LINK_DISABLE ){
-        
-        link_enable = FALSE;
-    }
-    else{
-
-        link_enable = TRUE;
-    }
-    #endif
 }
 
 #ifdef ENABLE_NETWORK
@@ -446,7 +285,9 @@ static bool _catbus_b_has_tag( catbus_hash_t32 hash ){
     return FALSE;
 }
 
-static bool _catbus_b_query_self( catbus_query_t *query ){
+#endif
+
+bool catbus_b_query_self( catbus_query_t *query ){
 
     for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
 
@@ -463,48 +304,11 @@ static bool _catbus_b_query_self( catbus_query_t *query ){
 
     return TRUE;
 }
-#endif
-
-#ifdef ENABLE_CATBUS_LINK
-static bool _catbus_b_hash_in_query( catbus_hash_t32 hash, catbus_query_t *query ){
-
-    for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
-
-        if( hash == query->tags[i] ){
-
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
-
-static bool _catbus_b_compare_queries( catbus_query_t *query1, catbus_query_t *query2 ){
-
-    for( uint8_t i = 0; i < cnt_of_array(query1->tags); i++ ){
-        
-        if( !_catbus_b_hash_in_query( query1->tags[i], query2 ) ){
-
-            return FALSE;
-        }
-    }
-
-    for( uint8_t i = 0; i < cnt_of_array(query2->tags); i++ ){
-        
-        if( !_catbus_b_hash_in_query( query2->tags[i], query1 ) ){
-
-            return FALSE;
-        }
-    }
-
-    return TRUE;
-}
-#endif
 
 #ifdef ENABLE_NETWORK
 static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id ){
 
-    if( sys_b_shutdown() ){
+    if( sys_b_is_shutting_down() ){
 
         return;
     }
@@ -530,13 +334,13 @@ static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id )
 static void _catbus_v_broadcast_announce( void ){
 
     sock_addr_t raddr;
-    raddr.ipaddr = ip_a_addr(255,255,255,255);
+    raddr.ipaddr = ip_a_addr(CATBUS_ANNOUNCE_MCAST_ADDR);
     raddr.port = CATBUS_ANNOUNCE_PORT;
 
     _catbus_v_send_announce( &raddr, 0 );
 }
 
-static void _catbus_v_send_shutdown( void ){
+static void _catbus_v_transmit_shutdown( sock_addr_t *raddr ){
 
     mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_shutdown_t) );
 
@@ -549,234 +353,24 @@ static void _catbus_v_send_shutdown( void ){
     _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_SHUTDOWN, 0 );
 
     msg->flags = 0;
-        
+            
+    sock_i16_sendto_m( sock, h, raddr );
+}
+
+static void _catbus_v_send_shutdown( void ){
+    
     sock_addr_t raddr;
+    
+    // broadcast shutdown to main port
     raddr.port = CATBUS_MAIN_PORT;
     raddr.ipaddr = ip_a_addr(255,255,255,255);
+    _catbus_v_transmit_shutdown( &raddr );
 
-    sock_i16_sendto_m( sock, h, &raddr );
+    // multicast shutdown to announce port
+    raddr.port = CATBUS_ANNOUNCE_PORT;
+    raddr.ipaddr = ip_a_addr(CATBUS_ANNOUNCE_MCAST_ADDR);
+    _catbus_v_transmit_shutdown( &raddr );
 }
-#endif
-
-#ifdef ENABLE_CATBUS_LINK
-static void _catbus_v_add_to_send_list( catbus_hash_t32 source_hash, catbus_hash_t32 dest_hash, sock_addr_t *raddr ){
-
-    // check if entry already exists
-    list_node_t ln = send_list.head;
-
-    while( ln >= 0 ){
-
-        catbus_send_data_entry_t *entry = (catbus_send_data_entry_t *)list_vp_get_data( ln );
-
-        if( ( entry->source_hash == source_hash ) && 
-            ( entry->dest_hash == dest_hash ) && 
-            ( memcmp( raddr, &entry->raddr, sizeof(sock_addr_t) ) == 0 ) ){
-
-            // reset TTL
-            entry->ttl = CATBUS_LINK_TIMEOUT;
-
-            return;
-        }
-
-        ln = list_ln_next( ln );
-    }
-
-    // bounds check
-    if( list_u8_count( &send_list ) >= CATBUS_MAX_SEND_LINKS ){
-
-        return;
-    }
-
-    // create new entry
-    catbus_send_data_entry_t entry;
-    entry.source_hash   = source_hash;
-    entry.dest_hash     = dest_hash;
-    entry.raddr         = *raddr;
-    entry.ttl           = CATBUS_LINK_TIMEOUT;
-
-    ln = list_ln_create_node2( &entry, sizeof(entry), MEM_TYPE_CATBUS_SEND );
-
-    if( ln < 0 ){
-
-        return;
-    }
-
-    log_v_debug_P( PSTR("Adding %d.%d.%d.%d to send list"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
-
-    list_v_insert_tail( &send_list, ln );
-}
-
-static void _catbus_v_delete_send_entry( sock_addr_t *raddr ){
-
-    list_node_t ln = send_list.head;
-
-    while( ln >= 0 ){
-
-        list_node_t next_ln = list_ln_next( ln );
-
-        catbus_send_data_entry_t *entry = (catbus_send_data_entry_t *)list_vp_get_data( ln );
-
-        // check if entry matches
-        if( ( memcmp( raddr, &entry->raddr, sizeof(sock_addr_t) ) == 0 ) ){
-
-            log_v_debug_P( PSTR("Remove %d.%d.%d.%d from send list"), entry->raddr.ipaddr.ip3, entry->raddr.ipaddr.ip2, entry->raddr.ipaddr.ip1, entry->raddr.ipaddr.ip0 );
-
-            // kill ttl and set publisher to run.
-            // the publisher will delete the entry.
-            entry->ttl = -1;
-            run_publish = TRUE;
-
-            // We can't delete here, we can get a race condition 
-            // with the publisher and crash:
-            // delete entry
-            // list_v_remove( &send_list, ln );
-            // list_v_release_node( ln );
-        }
-
-        ln = next_ln;
-    }
-}
-
-static void _catbus_v_delete_rx_entry( sock_addr_t *raddr ){
-
-    list_node_t ln = receive_cache.head;
-
-    while( ln > 0 ){
-
-        list_node_t next_ln = list_ln_next( ln );
-
-        catbus_receive_data_entry_t *entry = (catbus_receive_data_entry_t *)list_vp_get_data( ln );
-
-        // check if entry matches
-        if( ( memcmp( raddr, &entry->raddr, sizeof(sock_addr_t) ) == 0 ) ){
-
-            log_v_debug_P( PSTR("Remove %d.%d.%d.%d from RX list"), entry->raddr.ipaddr.ip3, entry->raddr.ipaddr.ip2, entry->raddr.ipaddr.ip1, entry->raddr.ipaddr.ip0 );
-
-            // delete entry
-            list_v_remove( &receive_cache, ln );
-            list_v_release_node( ln );
-        }
-        
-        ln = next_ln;
-    }   
-}
-
-static bool _catbus_b_compare_links( catbus_link_state_t *state, catbus_link_state_t *state2 ){
-
-    if( state->flags != state2->flags ){
-
-        return FALSE;
-    }
-
-    if( state->source_hash != state2->source_hash ){
-
-        return FALSE;
-    }
-
-    if( state->dest_hash != state2->dest_hash ){
-
-        return FALSE;
-    }
-
-    if( !_catbus_b_compare_queries( &state->query, &state2->query ) ){
-
-        return FALSE;
-    }
-
-
-    return TRUE;
-}
-
-static catbus_link_t _catbus_l_create_link( 
-    bool source, 
-    catbus_hash_t32 source_hash, 
-    catbus_hash_t32 dest_hash, 
-    catbus_query_t *query,
-    catbus_hash_t32 tag ){
-
-    file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_WRITE_OVERWRITE );
-
-    if( f < 0 ){
-
-        return -1;
-    }
-
-    fs_v_seek( f, sizeof(catbus_link_file_header_t) );
-
-    catbus_link_state_t state;
-
-    state.tag = tag;
-    state.flags = CATBUS_LINK_FLAGS_VALID;
-
-    if( source ){
-
-        state.flags |= CATBUS_LINK_FLAGS_SEND;
-
-        // check if we have this item
-        if( kv_i16_search_hash( source_hash ) < 0 ){
-
-            // this isn't an error, this hash may get added dynamically later.
-            // however, make a note of it in the log.
-            log_v_debug_P( PSTR("Source hash: 0x%0lx not found"), source_hash );
-        }
-    }
-    else{
-
-        state.flags |= CATBUS_LINK_FLAGS_RECEIVE;
-
-        // check if we have this item
-        if( kv_i16_search_hash( dest_hash ) < 0 ){
-
-            // this isn't an error, this hash may get added dynamically later.
-            // however, make a note of it in the log.
-            log_v_debug_P( PSTR("Dest hash: 0x%0lx not found"), dest_hash );
-        }
-    }
-
-    state.source_hash       = source_hash;
-    state.dest_hash         = dest_hash;
-    state.query             = *query;
-    memset( state.reserved, 0, sizeof(state.reserved) );
-
-    state.check_hash = hash_u32_data( (uint8_t *)&state, sizeof(state) - sizeof(state.check_hash) );
-    
-    // check if we already have this link
-    catbus_link_state_t state2;
-    int32_t free_pos = -1;
-
-    while( fs_i16_read( f, (uint8_t *)&state2, sizeof(state2) ) == sizeof(state2) ){
-
-        if( ( state2.flags & CATBUS_LINK_FLAGS_VALID ) == 0 ){
-
-            if( free_pos < 0 ){
-
-                // mark this location as free
-                free_pos = fs_i32_tell( f ) - sizeof(state2);
-            }
-
-            continue;
-        }
-
-        if( _catbus_b_compare_links( &state, &state2 ) ){
-
-            // link already exists
-            return 0;
-        }
-    }
-
-    // new link
-    if( free_pos >= 0 ){
-
-        fs_v_seek( f, free_pos );
-    }
-
-    fs_i16_write( f, (uint8_t *)&state, sizeof(state) );
-
-    fs_f_close( f );
-
-    return 0;
-}
-
 #endif
 
 
@@ -829,11 +423,6 @@ int8_t _catbus_i8_internal_set(
         }
 
         data += type_u16_size( meta.type );
-    }
-
-    if( status == 0 ){
-
-        catbus_i8_publish( hash );
     }
 
     if( changed ){
@@ -930,363 +519,6 @@ int8_t catbus_i8_array_get(
 
     return 0;
 }
-
-#ifdef ENABLE_CATBUS_LINK
-catbus_link_t catbus_l_send( 
-    catbus_hash_t32 source_hash, 
-    catbus_hash_t32 dest_hash, 
-    catbus_query_t *dest_query,
-    catbus_hash_t32 tag,
-    uint8_t flags ){
-
-    if( !link_enable ){
-
-        return -1;
-    }
-
-    return _catbus_l_create_link( TRUE, source_hash, dest_hash, dest_query, tag );
-}
-
-catbus_link_t catbus_l_recv( 
-    catbus_hash_t32 dest_hash, 
-    catbus_hash_t32 source_hash, 
-    catbus_query_t *source_query,
-    catbus_hash_t32 tag,
-    uint8_t flags ){
-
-    if( !link_enable ){
-
-        return -1;
-    }
-
-    return _catbus_l_create_link( FALSE, source_hash, dest_hash, source_query, tag );
-}
-
-// destroy all links created on this node
-void catbus_v_purge_links( catbus_hash_t32 tag ){
-
-    if( !link_enable ){
-
-        return;
-    }
-
-    file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_WRITE_OVERWRITE );
-
-    if( f < 0 ){
-
-        return;
-    }
-
-    fs_v_seek( f, sizeof(catbus_link_file_header_t) );
-
-    catbus_link_state_t state;
-    while( fs_i16_read( f, (uint8_t *)&state, sizeof(state) ) == sizeof(state) ){
-
-        if( state.tag == tag ){
-
-            // back up 
-            fs_v_seek( f, fs_i32_tell( f ) - sizeof(state) );
-
-            // write 0s
-            memset( &state, 0, sizeof(state) );
-            fs_i16_write( f, (uint8_t *)&state, sizeof(state) );
-        }    
-    }
-
-    fs_f_close( f );
-}
-
-
-PT_THREAD( publish_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-    static list_node_t sender_ln;
-    
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, run_publish == FALSE );
-
-        run_publish = FALSE;
-
-        sender_ln = send_list.head;    
-
-        while( sender_ln >= 0 ){
-
-            catbus_send_data_entry_t *send_state = (catbus_send_data_entry_t *)list_vp_get_data( sender_ln );
-
-            // check if expired
-            if( send_state->ttl < 0 ){
-
-                log_v_debug_P( PSTR("Timed out %d.%d.%d.%d from send list"), send_state->raddr.ipaddr.ip3, send_state->raddr.ipaddr.ip2, send_state->raddr.ipaddr.ip1, send_state->raddr.ipaddr.ip0 );
-
-                // get next
-                list_node_t remove_ln = sender_ln;
-                sender_ln = list_ln_next( sender_ln );
-
-                // now we can remove this entry
-                list_v_remove( &send_list, remove_ln );
-                list_v_release_node( remove_ln );
-
-                continue;
-            }
-
-            // check if sending
-            if( ( send_state->flags & SEND_ENTRY_FLAGS_PUBLISH ) == 0 ){
-
-                goto next;
-            }
-
-            // clear flag
-            send_state->flags &= ~SEND_ENTRY_FLAGS_PUBLISH;
-
-            catbus_meta_t meta;
-            if( kv_i8_get_meta( send_state->source_hash, &meta ) < 0 ){
-
-                goto next;
-            }
-
-            uint16_t data_len = type_u16_size_meta( &meta );
-
-            if( data_len > CATBUS_MAX_DATA ){
-
-                goto next;
-            }
-
-            // allocate memory
-            mem_handle_t h = mem2_h_alloc( data_len + sizeof(catbus_msg_link_data_t) - 1 );
-
-            if( h < 0 ){
-
-                // alloc fail, this is bad news.
-                TMR_WAIT( pt, 500 ); // long delay, hopefully we can recover
-
-                goto next;
-            }
-
-            // set up message
-            catbus_msg_link_data_t *msg = (catbus_msg_link_data_t *)mem2_vp_get_ptr( h );
-
-            _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_LINK_DATA, 0 );
-
-            msg->flags = 0;
-
-            msg->ntp_timestamp = send_state->ntp_timestamp;
-
-            #ifdef ENABLE_TIME_SYNC
-            if( time_b_is_ntp_sync() ){
-                
-                msg->flags |= CATBUS_MSG_DATA_FLAG_TIME_SYNC;
-            }
-            #endif
-
-            _catbus_v_get_query( &msg->source_query );
-            msg->source_hash    = send_state->source_hash;
-            msg->dest_hash      = send_state->dest_hash;
-            msg->sequence       = send_state->sequence;
-            msg->data.meta      = meta;
-            
-            catbus_i8_array_get( 
-                send_state->source_hash, 
-                msg->data.meta.type, 
-                0, 
-                msg->data.meta.count + 1, 
-                &msg->data.data );
-
-            // send message
-            if( sock_i16_sendto_m( sock, h, &send_state->raddr ) < 0 ){
-
-                // send failed!
-
-                // set flag so we try again
-                send_state->flags |= SEND_ENTRY_FLAGS_PUBLISH;
-
-                // log_v_debug_P( PSTR("publish failed") );
-
-                // delay, hopefully the tx queue will be less busy
-                TMR_WAIT( pt, 20 );                
-
-                // send us back to top of loop, so we try this again
-                continue;
-            }
-
-
-            TMR_WAIT( pt, 10 );
-            // NOTE!
-            // if anything deleted items from the send list while we yielded,
-            // we can crash here when we get the next list entry.
-
-    next:
-            sender_ln = list_ln_next( sender_ln );
-        }
-    }
-
-    
-PT_END( pt );
-}
-
-
-int8_t _catbus_i8_get_link( uint16_t index, catbus_link_state_t *link ){
-
-    file_t f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_READ_ONLY );
-
-    if( f < 0 ){
-
-        return -1;
-    }
-
-    fs_v_seek( f, sizeof(catbus_link_file_header_t) + ( index * sizeof(catbus_link_state_t) ) );
-
-    if( fs_i16_read( f, (uint8_t *)link, sizeof(catbus_link_state_t) ) < (int16_t)sizeof(catbus_link_state_t) ){
-
-        fs_f_close( f );
-        return -2;
-    }
-
-    // check link
-    uint32_t hash = hash_u32_data( (uint8_t *)link, sizeof(catbus_link_state_t) - sizeof(uint32_t) );
-
-    if( hash != link->check_hash ){
-
-        // mark as invalid
-        link->flags &= ~CATBUS_LINK_FLAGS_VALID;
-    }
-
-    fs_f_close( f );
-
-    return 0;
-}
-
-
-
-typedef struct{
-    file_t f;
-} link_broadcast_thread_state_t;
-
-PT_THREAD( link_broadcast_thread( pt_t *pt, link_broadcast_thread_state_t *state ) )
-{
-PT_BEGIN( pt );
-
-    state->f = fs_f_open_P( PSTR("kvlinks"), FS_MODE_WRITE_OVERWRITE );
-
-    if( state->f < 0 ){
-
-        goto cleanup;
-    }
-
-    fs_v_seek( state->f, sizeof(catbus_link_file_header_t) );
-
-    while(1){
-
-        catbus_link_state_t link_state;
-        if( fs_i16_read( state->f, (uint8_t *)&link_state, sizeof(link_state) ) < (int16_t)sizeof(link_state) ){
-
-            // end of file
-            goto cleanup;
-        }
-
-        // check if link is valid
-        if( ( link_state.flags & CATBUS_LINK_FLAGS_VALID ) == 0 ){
-
-            continue;
-        }
-
-        // check link hash
-        uint32_t hash = hash_u32_data( (uint8_t *)&link_state, sizeof(link_state) - sizeof(link_state.check_hash) );
-        if( link_state.check_hash != hash ){
-
-            log_v_debug_P( PSTR("skipping broken link") );
-
-            continue;
-        }
-
-        // set up link message
-        catbus_msg_link_t msg;
-
-        _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_LINK, 0 );
-
-        msg.source_hash    = link_state.source_hash;
-        msg.dest_hash      = link_state.dest_hash;
-        msg.flags          = link_state.flags;
-        msg.query          = link_state.query;
-        msg.tag            = link_state.tag;
-        msg.data_port      = sock_u16_get_lport( sock );
-
-        sock_addr_t raddr;
-        raddr.ipaddr    = ip_a_addr(255,255,255,255);
-        raddr.port      = CATBUS_MAIN_PORT;
-
-        // broadcast to network
-        sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
-
-        TMR_WAIT( pt, 10 );
-    }
-
-cleanup:
-
-    if( state->f > 0 ){
-        
-        fs_f_close( state->f );
-    }
-
-PT_END( pt );
-}
-
-#endif
-
-int8_t catbus_i8_publish( catbus_hash_t32 hash ){
-
-    #ifdef ENABLE_CATBUS_LINK
-    if( !link_enable ){
-
-        return 0;
-    }
-
-    // check if safe mode
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){    
-
-        return 0;
-    }
-
-    if( kv_v_notify_hash_set != 0 ){ 
-    
-        kv_v_notify_hash_set( hash );
-    }
-
-    #ifdef ENABLE_TIME_SYNC
-    ntp_ts_t ntp_timestamp = time_t_now();
-    #else
-    ntp_ts_t ntp_timestamp;
-    memset( &ntp_timestamp, 0, sizeof(ntp_timestamp) );
-    #endif
-
-    list_node_t sender_ln = send_list.head;    
-
-    while( sender_ln >= 0 ){
-
-        catbus_send_data_entry_t *send_state = (catbus_send_data_entry_t *)list_vp_get_data( sender_ln );
-
-        if( send_state->source_hash != hash ){
-
-            goto next;
-        }
-
-        send_state->ntp_timestamp = ntp_timestamp;
-
-        send_state->sequence++;
-        send_state->flags |= SEND_ENTRY_FLAGS_PUBLISH;
-
-        run_publish = TRUE;
-
-next:
-        sender_ln = list_ln_next( sender_ln );
-    }
-
-    #endif
-
-    return 0;   
-}
-
 
 #ifdef ENABLE_NETWORK
 typedef struct{
@@ -1492,7 +724,7 @@ PT_BEGIN( pt );
 
             // check query
             if( ( ( msg->flags & CATBUS_DISC_FLAG_QUERY_ALL ) == 0 ) &&
-                ( !_catbus_b_query_self( &msg->query ) ) ){
+                ( !catbus_b_query_self( &msg->query ) ) ){
 
                 goto end;
             }
@@ -1502,22 +734,6 @@ PT_BEGIN( pt );
         else if( header->msg_type == CATBUS_MSG_TYPE_SHUTDOWN ){
 
             // catbus_msg_shutdown_t *msg = (catbus_msg_shutdown_t *)header;
-
-            #ifdef ENABLE_CATBUS_LINK
-            // delete cache entries for link system
-            _catbus_v_delete_send_entry( &raddr );
-            _catbus_v_delete_rx_entry( &raddr );
-            #endif
-
-            #ifdef ENABLE_SERVICES
-            // send shutdown notifications
-            service_v_handle_shutdown( raddr.ipaddr );
-            #endif
-
-            #ifdef ENABLE_TIME_SYNC
-            time_v_handle_shutdown( raddr.ipaddr );
-            // vm_sync_v_handle_shutdown( raddr.ipaddr );
-            #endif
         }
 
         // DATABASE ACCESS MESSAGES
@@ -1549,7 +765,7 @@ PT_BEGIN( pt );
 
             _catbus_v_msg_init( &reply->header, CATBUS_MSG_TYPE_RESOLVED_HASH, header->transaction_id );
 
-            catbus_hash_t32 *hash = &msg->first_hash;
+            catbus_hash_t32 *hash_ptr = &msg->first_hash;
             catbus_string_t *str = &reply->first_string;
             reply->count = msg->count;
 
@@ -1557,12 +773,16 @@ PT_BEGIN( pt );
 
                 msg->count--;
 
-                if( kv_i8_get_name( LOAD32(hash), str->str ) != KV_ERR_STATUS_OK ){
+                memset( str->str, 0, CATBUS_STRING_LEN );
+
+                uint32_t hash = LOAD32(hash_ptr);
+
+                if( kv_i8_get_name( hash, str->str ) != KV_ERR_STATUS_OK ){
 
                     // try query tags
                     for( uint8_t i = 0; i < cnt_of_array(meta_tag_hashes); i++ ){
 
-                        if( meta_tag_hashes[i] == LOAD32(hash) ){
+                        if( meta_tag_hashes[i] == hash ){
 
                             // retrieve string from config DB
                             cfg_i8_get( CFG_PARAM_META_TAG_0 + i, str->str );
@@ -1572,7 +792,7 @@ PT_BEGIN( pt );
                     }
                 }
 
-                hash++;
+                hash_ptr++;
                 str++;
             }
 
@@ -1806,299 +1026,6 @@ PT_BEGIN( pt );
             // transmit
             sock_i16_sendto_m( sock, h, 0 );
         }
-
-        #ifdef ENABLE_CATBUS_LINK
-        // LINK SYSTEM MESSAGES
-        else if( header->msg_type == CATBUS_MSG_TYPE_LINK ){
-
-            if( !link_enable ){
-
-                goto end;
-            }
-
-            catbus_msg_link_t *msg = (catbus_msg_link_t *)header;
-            
-            // check link type
-
-            // source link 
-            if( msg->flags & CATBUS_LINK_FLAGS_SEND ){
-
-                // Send Link
-                // A device is requesting to SEND data TO this node
-
-                if( ( msg->flags & CATBUS_LINK_FLAGS_RECEIVE ) ||
-                    ( msg->flags & CATBUS_LINK_FLAGS_DATA ) ){
-
-                    // bad flag combination
-                    goto end;
-                }
-
-
-                // check if we match query
-                if( !_catbus_b_query_self( &msg->query ) ){
-
-                    goto end;
-                }
-
-                // check if we have the destination key
-                if( kv_i16_search_hash( msg->dest_hash ) < 0 ){
-
-                    goto end;
-                }
-
-                // change link flags to request data and echo message back to sender
-                msg->flags = CATBUS_LINK_FLAGS_DATA;
-
-                // set up destination
-                raddr.port = msg->data_port;
-
-                msg->data_port = sock_u16_get_lport( sock );
-
-                // update header
-                _catbus_v_msg_init( header, CATBUS_MSG_TYPE_LINK, header->transaction_id );
-
-                // send reply message
-                sock_i16_sendto( sock, (uint8_t *)msg, sizeof(catbus_msg_link_t), &raddr );   
-            }
-            // receiver link
-            else if( msg->flags & CATBUS_LINK_FLAGS_RECEIVE ){
-
-                // Receive Link
-                // A device is request to RECEIVE data FROM this node
-                
-                if( ( msg->flags & CATBUS_LINK_FLAGS_SEND ) ||
-                    ( msg->flags & CATBUS_LINK_FLAGS_DATA ) ){
-
-                    // bad flag combination
-                    goto end;
-                }
-
-                // check if we match query
-                if( !_catbus_b_query_self( &msg->query ) ){
-
-                    goto end;
-                }
-
-                // check if we have the source key:
-                if( kv_i16_search_hash( msg->source_hash ) < 0 ){
-
-                    goto end;
-                }
-
-                // set up destination
-                raddr.port = msg->data_port;
-
-                _catbus_v_add_to_send_list( msg->source_hash, msg->dest_hash, &raddr );
-            }
-            // data link
-            else if( msg->flags & CATBUS_LINK_FLAGS_DATA ){
-
-                // Data Link
-                // A device is requesting the link data be transmitted to it.
-                // This is not conditional on a query, only that the source
-                // key is available.
-                // Data Links are only sent in response to a Send Link.
-
-                if( ( msg->flags & CATBUS_LINK_FLAGS_RECEIVE ) ||
-                    ( msg->flags & CATBUS_LINK_FLAGS_SEND ) ){
-
-                    // bad flag combination
-                    goto end;
-                }
-
-                // check if we have the source key:
-                if( kv_i16_search_hash( msg->source_hash ) < 0 ){
-
-                    goto end;
-                }
-                
-                // set up destination
-                raddr.port = msg->data_port;
-
-                _catbus_v_add_to_send_list( msg->source_hash, msg->dest_hash, &raddr );
-            }
-            else{
-
-                log_v_debug_P( PSTR("invalid link flags: 0x%02x"), msg->flags );
-
-                goto end;
-            }
-        }
-        else if( header->msg_type == CATBUS_MSG_TYPE_LINK_DATA ){
-
-            if( !link_enable ){
-
-                goto end;
-            }
-
-            catbus_msg_link_data_t *msg = (catbus_msg_link_data_t *)header;
-
-            // look for cache entry
-            list_node_t ln = receive_cache.head;
-            catbus_receive_data_entry_t *entry = 0;
-            bool update = FALSE;
-
-            while( ln > 0 ){
-
-                entry = (catbus_receive_data_entry_t *)list_vp_get_data( ln );
-
-                // check for match
-                if( ip_b_addr_compare( entry->raddr.ipaddr, raddr.ipaddr ) &&
-                    ( entry->raddr.port == raddr.port ) &&
-                    ( entry->dest_hash == msg->dest_hash ) ){
-
-                    // reset ttl
-                    entry->ttl = CATBUS_LINK_TIMEOUT;
-
-                    update = TRUE;
-
-                    break;
-                }
-                
-
-                ln = list_ln_next( ln );
-            }
-
-            // no entry exists and there is space in the list
-            if( ( ln < 0 ) && ( list_u8_count( &receive_cache ) < CATBUS_MAX_RECEIVE_LINKS ) ){
-
-                // create entry
-                catbus_receive_data_entry_t new_entry;
-                new_entry.raddr         = raddr;
-                new_entry.dest_hash     = msg->dest_hash;
-                new_entry.sequence      = 0;
-                new_entry.ttl           = CATBUS_LINK_TIMEOUT;
-
-                entry = &new_entry;
-
-                log_v_debug_P( PSTR("Add %d.%d.%d.%d to RX list. Hash: 0x%0lx"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0, msg->dest_hash );
-
-                ln = list_ln_create_node2( &new_entry, sizeof(new_entry), MEM_TYPE_CATBUS_RX_CACHE );     
-                
-                if( ln > 0 ){           
-
-                    list_v_insert_tail( &receive_cache, ln );
-                }
-
-                update = TRUE;
-            }   
-
-            if( update ){
-
-                int8_t status = _catbus_i8_internal_set( 
-                                    msg->dest_hash, 
-                                    msg->data.meta.type, 
-                                    0, 
-                                    msg->data.meta.count + 1, 
-                                    (void *)&msg->data.data,
-                                    0 );
-                    
-                if( status == CATBUS_STATUS_CHANGED ){
-
-                    entry->sequence = 1;
-                }
-
-                if( kv_v_notify_hash_set != 0 ){
-
-                    kv_v_notify_hash_set( msg->dest_hash );                    
-                }
-            }
-        }
-        else if( header->msg_type == CATBUS_MSG_TYPE_LINK_GET ){
-
-            if( !link_enable ){
-
-                goto end;
-            }
-
-            catbus_msg_link_get_t *msg = (catbus_msg_link_get_t *)header;
-
-            catbus_link_state_t link;
-
-            if( _catbus_i8_get_link( msg->index, &link ) < 0 ){
-
-                error = CATBUS_ERROR_LINK_EOF;
-                goto end;
-            }
-
-            catbus_msg_link_t reply_msg;
-            _catbus_v_msg_init( &reply_msg.header, CATBUS_MSG_TYPE_LINK_META, header->transaction_id );
-
-            reply_msg.flags       = link.flags;
-            reply_msg.data_port   = 0; // this field is unused in this message
-            reply_msg.source_hash = link.source_hash;
-            reply_msg.dest_hash   = link.dest_hash;
-            reply_msg.query       = link.query;
-            reply_msg.tag         = link.tag;
-
-            sock_i16_sendto( sock, (uint8_t *)&reply_msg, sizeof(reply_msg), 0 );
-        }
-        else if( header->msg_type == CATBUS_MSG_TYPE_LINK_DELETE ){
-
-            if( !link_enable ){
-
-                goto end;
-            }
-
-            catbus_msg_link_delete_t *msg = (catbus_msg_link_delete_t *)header;
-
-            catbus_v_purge_links( msg->tag );
-
-            catbus_header_t reply_hdr;
-            _catbus_v_msg_init( &reply_hdr, CATBUS_MSG_TYPE_LINK_OK, header->transaction_id );
-
-            sock_i16_sendto( sock, (uint8_t *)&reply_hdr, sizeof(reply_hdr), 0 );
-        }
-        else if( header->msg_type == CATBUS_MSG_TYPE_LINK_ADD ){
-
-            if( !link_enable ){
-
-                goto end;
-            }
-
-            catbus_msg_link_add_t *msg = (catbus_msg_link_add_t *)header;
-
-            bool source = FALSE;
-            if( msg->flags & CATBUS_LINK_FLAGS_SEND ){
-
-                source = TRUE;
-            }
-
-            catbus_query_t query;
-            for( uint8_t i = 0; i < cnt_of_array(query.tags); i++ ){
-
-                query.tags[i] = hash_u32_string( msg->query[i].str );
-
-                // add names to hash lookup
-                kvdb_v_set_name( msg->query[i].str );
-            }
-
-            // add names to hash lookup
-            kvdb_v_set_name( msg->source_key.str );
-            kvdb_v_set_name( msg->dest_key.str );
-            kvdb_v_set_name( msg->tag.str );
-
-            catbus_link_t l = _catbus_l_create_link( 
-                                source, 
-                                hash_u32_string( msg->source_key.str ), 
-                                hash_u32_string( msg->dest_key.str ),
-                                &query,
-                                hash_u32_string( msg->tag.str ) );
-
-            if( l < 0 ){
-
-                error = CATBUS_ERROR_ALLOC_FAIL;
-                goto end;
-            }
-
-            catbus_header_t reply_hdr;
-            _catbus_v_msg_init( &reply_hdr, CATBUS_MSG_TYPE_LINK_OK, header->transaction_id );
-            
-            sock_i16_sendto( sock, (uint8_t *)&reply_hdr, sizeof(reply_hdr), 0 );
-        }
-
-        #endif
-
         // FILE SYSTEM MESSAGES
         else if( header->msg_type == CATBUS_MSG_TYPE_FILE_OPEN ){
 
@@ -2466,15 +1393,14 @@ end:
         if( error != CATBUS_STATUS_OK ){
 
             if( ( error != CATBUS_ERROR_FILE_NOT_FOUND ) &&
-                ( error != CATBUS_ERROR_LINK_EOF ) ){
+                ( ( header->msg_type < CATBUS_MSG_DATABASE_GROUP_OFFSET ) ||
+                  ( header->msg_type >= CATBUS_MSG_FILE_GROUP_OFFSET ) ) ){
+
                 // file not found is a normal condition, so lets not log it.
                 // also don't log unknown messages, it creates a lot of noise when
                 // this is a normal condition when adding new protocol features
 
-                if( header->msg_type != CATBUS_MSG_TYPE_LINK ){
-                    
-                    log_v_debug_P( PSTR("error: 0x%x msg: %u"), error, header->msg_type );
-                }
+                log_v_debug_P( PSTR("error: 0x%x msg: %u"), error, header->msg_type );
             }
 
             // don't send unknown message errors. it just causes a ton of extra traffic
@@ -2514,7 +1440,7 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, ( CATBUS_ANNOUNCE_INTERVAL * 1000 ) + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
 
         // are we shutting down?
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             // we can terminate the thread, since sending announcements and links
             // is counter productive if we're about to turn off.
@@ -2522,79 +1448,9 @@ PT_BEGIN( pt );
             THREAD_EXIT ( pt );
         }
 
-        sock_addr_t raddr;
-        raddr.ipaddr = ip_a_addr(255,255,255,255);
-        raddr.port = CATBUS_MAIN_PORT;
-
         _catbus_v_broadcast_announce();
         TMR_WAIT( pt, 100 );
         _catbus_v_broadcast_announce();
-
-        #ifdef ENABLE_CATBUS_LINK
-        TMR_WAIT( pt, 2 );
-
-        if( !link_enable ){
-
-            continue;
-        }
-
-        // process link system periodic tasks  
-
-        // expire any send entries, also mark for transmission
-        list_node_t ln = send_list.head;
-        list_node_t next_ln = -1;
-
-        while( ln > 0 ){
-
-            next_ln = list_ln_next( ln );
-
-            catbus_send_data_entry_t *entry = (catbus_send_data_entry_t *)list_vp_get_data( ln );
-
-            entry->ttl -= CATBUS_ANNOUNCE_INTERVAL;
-
-            if( entry->ttl < 0 ){
-
-                // run the publish thread, it will take care of cleaning up expired entries
-                run_publish = TRUE;
-            } 
-            else{
-
-                catbus_i8_publish( entry->source_hash );
-            }
-
-            ln = next_ln;
-        }  
-
-        // expire any cache entries
-        ln = receive_cache.head;
-        next_ln = -1;
-
-        while( ln > 0 ){
-
-            next_ln = list_ln_next( ln );
-
-            catbus_receive_data_entry_t *entry = (catbus_receive_data_entry_t *)list_vp_get_data( ln );
-
-            entry->ttl -= CATBUS_ANNOUNCE_INTERVAL;
-
-            if( entry->ttl < 0 ){
-
-                log_v_debug_P( PSTR("Timed out %d.%d.%d.%d from RX list"), entry->raddr.ipaddr.ip3, entry->raddr.ipaddr.ip2, entry->raddr.ipaddr.ip1, entry->raddr.ipaddr.ip0 );
-
-                list_v_remove( &receive_cache, ln );
-                list_v_release_node( ln );
-            } 
-
-            ln = next_ln;
-        }        
-
-        // broadcast links to network
-        thread_t_create( THREAD_CAST(link_broadcast_thread),
-                         PSTR("catbus_link_broadcast"),
-                         0,
-                         sizeof(link_broadcast_thread_state_t) );
-        
-        #endif
     }
 
 PT_END( pt );
@@ -2643,4 +1499,14 @@ void catbus_v_shutdown( void ){
                      0,
                      0 );
 
+}
+
+uint64_t catbus_u64_get_origin_id( void ){
+
+    return origin_id;
+}
+
+const catbus_hash_t32* catbus_hp_get_tag_hashes( void ){
+
+    return meta_tag_hashes;
 }

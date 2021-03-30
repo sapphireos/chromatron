@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -45,10 +45,14 @@ import time
 import sys
 import os
 
-from sapphire.common import catbus_string_hash
+from sapphire.protocols import services
+from sapphire.common import catbus_string_hash, run_all, synchronized
+from sapphire.common.util import setup_basic_logging
+
 from .database import *
 from .server import *
 from .client import *
+from .link import *
 
 
 import click
@@ -65,9 +69,10 @@ class CatbusService(Database):
         super(CatbusService, self).__init__(**kwargs)
 
         self._server = Server(data_port=data_port, database=self, visible=visible)
-
-        self._data_port = self._server._data_port
-        self.host = self._server._host
+        self._service_manager = services.ServiceManager()
+        self._link_manager = LinkManager(database=self, service_manager=self._service_manager)
+        
+        self._data_port = self._server._port
 
         self._callbacks = {}
 
@@ -75,7 +80,6 @@ class CatbusService(Database):
 
         self._server._default_callback = self._default_callback
 
-        # self.add_item('ip', self.host[0], 'ipv4', readonly=True) # getting source IP is not reliable
         self.add_item('process_name', sys.argv[0], 'string64', readonly=True)
         self.add_item('process_id', os.getpid(), 'uint32', readonly=True)
         self.add_item('kv_test_key', os.getpid(), 'uint32')
@@ -86,42 +90,73 @@ class CatbusService(Database):
 
     def _item_notify(self, key, value):
         try:
-            self._server._publish(key)
-
             if key in self._callbacks:
                 self._callbacks[key](key, value)
 
         except AttributeError:
             pass
 
-    def _send_msg(self, msg, host):
-        self._server.send_data_msg(msg, host)
+    # @property
+    # def _link_manager(self):
+    #     # automatically create link manager if it is accessed.
+    #     # this way if the link manager isn't used, resources aren't created for it.
+    #     with self._lock:
+    #         if self.__link_manager is None:
+    #             self.__link_manager = LinkManager(database=self, service_manager=self._service_manager)
 
-    def send(self, source_key, dest_key, dest_query=[]):
-        self._server.send(source_key, dest_key, dest_query)
+    #     return self.__link_manager
 
-    def receive(self, dest_key, source_key, source_query=[], callback=None):
-        self._server.receive(dest_key, source_key, source_query, callback)
+    # @property
+    # def _service_manager(self):
+    #     # automatically create service manager if it is accessed.
+    #     # this way if the service manager isn't used, resources aren't created for it.
+    #     with self._lock:
+    #         if self.__service_manager is None:
+    #             self.__service_manager = services.ServiceManager()
 
+    #     return self.__service_manager
+
+    @synchronized
     def register(self, key, callback):
         self._callbacks[key] = callback
 
+    def register_announce_handler(self, handler):
+        self._server.register_announce_handler(handler)
+
+    def register_shutdown_handler(self, handler):
+        self._server.register_shutdown_handler(handler)
+
+    def start_timer(self, *args, **kwargs):
+        self._server.start_timer(*args, **kwargs)
+
+    def join_team(self, *args, **kwargs):
+        return self._service_manager.join_team(*args, **kwargs)
+
+    def offer(self, *args, **kwargs):
+        return self._service_manager.offer(*args, **kwargs)
+
+    def listen(self, *args, **kwargs):
+        return self._service_manager.listen(*args, **kwargs)
+
+    def send(self, *args, **kwargs):
+        return self._link_manager.send(*args, **kwargs)
+
+    def receive(self, *args, **kwargs):
+        return self._link_manager.receive(*args, **kwargs)
+
+    def subscribe(self, *args, **kwargs):
+        return self._link_manager.subscribe(*args, **kwargs)
+
+    def publish(self, *args, **kwargs):
+        return self._link_manager.publish(*args, **kwargs)
+
     def stop(self):
         self._server.stop()
+        self._link_manager.stop()
+     
+    def join(self):
         self._server.join()
-        del self._server
-
-    # block wait until service is terminated
-    def wait(self):
-        try:
-            while True:
-                time.sleep(1.0)
-
-        except KeyboardInterrupt:
-            pass
-
-        self.stop()
-
+        self._link_manager.join()
 
 
 def echo_name(name, host, left_align=True, nl=True):
@@ -136,12 +171,18 @@ def echo_name(name, host, left_align=True, nl=True):
 
 @click.group()
 @click.option('--query', '-q', default=None, multiple=True, help="Query for tag match. Type 'all' to retrieve all matches.")
+@click.option('--verbose', '-v', default=False, help="Verbose logging")
 @click.pass_context
-def cli(ctx, query):
-    """Catbus Key-Value Pub-Sub System CLI"""
+def cli(ctx, query, verbose):
+    """Catbus Key-Value System CLI"""
 
     client = Client()
     ctx.obj['CLIENT'] = client
+
+    verbose = False
+    ctx.obj['VERBOSE'] = verbose
+    if verbose:
+        setup_basic_logging()
 
     if ctx.invoked_subcommand not in ['hash', 'directory']:
         if query == None:
@@ -166,13 +207,17 @@ def discover(ctx):
     s = 'Name                                        Location                Tags'
     click.echo(s)
 
+    nodes = []
+
     for node in matches.values():
         host = node['host']
 
         client.connect(host)
 
         name, location, *tags = client.get_keys(META_TAGS).values()
+        nodes.append((name, location, host, tags))
 
+    for name, location, host, tags in sorted(nodes, key=lambda a: a[0]):
         name_s = '%32s @ %20s:%5s' % (click.style('%s' % (name), fg=NAME_COLOR), click.style('%s' % (host[0]), fg=HOST_COLOR), click.style('%5d' % (host[1]), fg=HOST_COLOR))
 
         location_s = click.style('%16s' % (location), fg=VAL_COLOR)
@@ -183,22 +228,18 @@ def discover(ctx):
         click.echo(s)
 
 @cli.command()
+@click.option('--name', '-n', default=None, help="Server name")
+@click.option('--location', '-l', default=None, help="Server location")
+@click.option('--tag', '-t', default=None, multiple=True, help="Query tags for server")
 @click.pass_context
-def server(ctx):
+def server(ctx, name, location, tag):
     """Run a test server"""
     client = ctx.obj['CLIENT']
     matches = ctx.obj['MATCHES']
-    query = ctx.obj['QUERY']
-
-    kv = CatbusService()
     
-    try:
-        while True:
-            time.sleep(1.0)
-
-    except KeyboardInterrupt:
-        pass
-
+    kv = CatbusService(name=name, location=location, tags=tag)
+    
+    run_all()
 
 
 @cli.command()
@@ -323,32 +364,32 @@ def set(ctx, key, value):
 
         click.echo('%s %s' % (name_s, val_s))
 
-@cli.command()
-@click.pass_context
-@click.argument('key')
-def listen(ctx, key):
-    """Stream updates from a key"""
-    client = ctx.obj['CLIENT']
-    matches = ctx.obj['MATCHES']
-    query = ctx.obj['QUERY']
+# @cli.command()
+# @click.pass_context
+# @click.argument('key')
+# def listen(ctx, key):
+#     """Stream updates from a key"""
+#     client = ctx.obj['CLIENT']
+#     matches = ctx.obj['MATCHES']
+#     query = ctx.obj['QUERY']
 
-    kv = CatbusService()
-    kv[key] = 0
+#     kv = CatbusService()
+#     kv[key] = 0
 
-    def callback(key, value, query, timestamp):
-        name = query[0]
-        location = query[1]
+#     def callback(key, value, query, timestamp):
+#         name = query[0]
+#         location = query[1]
 
-        click.echo('%s %24s %12d %24s @ %24s' % (timestamp, key, value, name, location))
+#         click.echo('%s %24s %12d %24s @ %24s' % (timestamp, key, value, name, location))
 
-    kv.receive(key, key, query, callback)
+#     kv.receive(key, key, query, callback)
 
-    try:
-        while True:
-            time.sleep(1.0)
+#     try:
+#         while True:
+#             time.sleep(1.0)
 
-    except KeyboardInterrupt:
-        pass
+#     except KeyboardInterrupt:
+#         pass
 
 
 @cli.command()

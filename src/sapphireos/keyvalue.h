@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -154,7 +154,6 @@ int8_t kv_i8_array_get(
 int16_t kv_i16_search_hash( catbus_hash_t32 hash );
 int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] );
 uint16_t kv_u16_count( void );
-int8_t kv_i8_publish( catbus_hash_t32 hash );
 int8_t kv_i8_lookup_index( uint16_t index, kv_meta_t *meta );
 int8_t kv_i8_lookup_index_with_name( uint16_t index, kv_meta_t *meta );
 int8_t kv_i8_lookup_hash(
@@ -163,7 +162,7 @@ int8_t kv_i8_lookup_hash(
 int8_t kv_i8_lookup_hash_with_name(
     catbus_hash_t32 hash,
     kv_meta_t *meta );
-int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
+int8_t kv_i8_get_catbus_meta( catbus_hash_t32 hash, catbus_meta_t *meta );
 
 int8_t kv_i8_internal_get(
     kv_meta_t *meta,

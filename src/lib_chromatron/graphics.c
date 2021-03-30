@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -40,6 +40,7 @@
 #include "kvdb.h"
 #include "hash.h"
 
+
 static uint16_t vm_fader_time;
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
@@ -55,7 +56,9 @@ void gfx_v_init( void ){
 
     pixel_v_init();
 
+    #ifdef ENABLE_TIME_SYNC
     vm_sync_v_init();
+    #endif
 
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),
@@ -63,10 +66,6 @@ void gfx_v_init( void ){
                 0 );
 }
 
-bool gfx_b_running( void ){
-
-    return TRUE;
-}
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
@@ -78,16 +77,16 @@ PT_BEGIN( pt );
     // init pixel arrays
     gfx_v_process_faders();
     gfx_v_sync_array();
-    thread_v_signal( PIX_SIGNAL_0 );
-        
+    pixel_v_signal();
+
     while(1){
 
         thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
-        THREAD_WAIT_WHILE( pt,  thread_b_alarm_set() );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         uint32_t start = tmr_u32_get_system_time_us();
 
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
             gfx_v_shutdown_graphic();
             
@@ -107,6 +106,20 @@ PT_BEGIN( pt );
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
         vm_fader_time = elapsed;
+
+        // check if LEDs are no longer enabled
+        if( !gfx_b_enabled() ){
+
+            // signal the pixel thread.
+            // if the pixel driver supports power controls, it
+            // will shutdown the IO drivers (so they don't backfeed the pixels)
+            pixel_v_signal();        
+
+            THREAD_WAIT_WHILE( pt, !gfx_b_enabled() );
+
+            // reset alarm
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+        }
     }
 
 PT_END( pt );

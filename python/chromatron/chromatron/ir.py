@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -102,8 +102,9 @@ class VMPublishVar(StructField):
 
 class Link(StructField):
     def __init__(self, **kwargs):
-        fields = [BooleanField(_name="send"),
-                  ArrayField(_name="padding", _length=3, _field=Uint8Field),
+        fields = [Uint8Field(_name="mode"),
+                  Uint8Field(_name="aggregation"),
+                  Uint16Field(_name="rate"),
                   CatbusHash(_name="source_hash"),
                   CatbusHash(_name="dest_hash"),
                   CatbusQuery(_name="query")]
@@ -1600,8 +1601,24 @@ class Builder(object):
                         prev_line = ir.lineno
         return self
 
-    def link(self, send, source, dest, query, lineno=None):
-        new_link = {'send': send,
+    def link(self, mode, source, dest, query, aggregation, rate, lineno=None):
+        aggregations = {
+            'any': LINK_AGG_ANY,
+            'min': LINK_AGG_MIN,
+            'max': LINK_AGG_MAX,
+            'sum': LINK_AGG_SUM,
+            'avg': LINK_AGG_AVG,
+        }
+
+        modes = {
+            'send': LINK_MODE_SEND,
+            'receive': LINK_MODE_RECV,
+            'sync': LINK_MODE_SYNC,
+        }
+
+        new_link = {'mode': modes[mode],
+                    'aggregation': aggregations[aggregation],
+                    'rate': int(rate),
                     'source': source,
                     'dest': dest,
                     'query': query}
@@ -3256,7 +3273,9 @@ class Builder(object):
             for q in link['query']:
                 meta_names.append(q)
 
-            packed_links += Link(send=link['send'],
+            packed_links += Link(mode=link['mode'],
+                                 aggregation=link['aggregation'],
+                                 rate=link['rate'],
                                  source_hash=source_hash, 
                                  dest_hash=dest_hash, 
                                  query=query).pack()
@@ -3454,7 +3473,7 @@ class Builder(object):
 
         if filename:
             # write to file
-            with open(filename, 'w') as f:
+            with open(filename, 'wb') as f:
                 f.write(stream)
 
         self.stream = stream

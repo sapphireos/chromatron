@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -108,6 +108,8 @@
 #define CFG_PARAM_META_TAG_6                    __KV__meta_tag_4
 #define CFG_PARAM_META_TAG_7                    __KV__meta_tag_5
 
+#define CFG_PARAM_BATT_ENABLE					__KV__batt_enable
+
 #define CFG_PARAM_RECOVERY_MODE_BOOTS          __KV__cfg_recovery_boot_count
 
 // DO NOT ASSIGN IDs >= CFG_TOTAL_BLOCKS!!!!
@@ -153,6 +155,7 @@ extern bool cfg_b_is_gateway( void ) __attribute__((weak));
 
 bool cfg_b_get_boolean( catbus_hash_t32 parameter );
 uint64_t cfg_u64_get_device_id( void );
+ip_addr4_t cfg_ip_get_ipaddr( void );
 
 void cfg_v_reset_on_next_boot( void );
 void cfg_v_default_all( void );

@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -39,6 +39,12 @@ void vm_v_sync( uint32_t ts, uint64_t ticks );
 
 uint32_t vm_u32_get_sync_time( void );
 uint64_t vm_u64_get_sync_tick( void );
+uint32_t vm_u32_get_checkpoint( void );
+uint32_t vm_u32_get_checkpoint_hash( void );
+
+uint64_t vm_u64_get_tick( void );
+uint64_t vm_u64_get_frame( void );
+uint32_t vm_u32_get_data_hash( void );
 uint16_t vm_u16_get_data_len( void );
 int32_t* vm_i32p_get_data( void ); 
 vm_state_t* vm_p_get_state( void );

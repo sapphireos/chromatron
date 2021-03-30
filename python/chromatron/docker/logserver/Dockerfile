@@ -1,9 +1,20 @@
-FROM sapphire_base
+FROM ubuntu:20.04
+
+USER root
+RUN apt update
+RUN apt install -y python3 python3-pip
+
+RUN useradd -ms /bin/bash sapphire
+
+WORKDIR /app
+
+COPY . .
+
+RUN chown -R sapphire /app
+RUN chmod 777 /app
+
+RUN python3 setup.py install
 
 USER sapphire
 
-WORKDIR /home/sapphire
-
-COPY logserver /home/sapphire/
-
-ENTRYPOINT ["./logserver"]
+ENTRYPOINT ["python3", "logserver_main.py"]

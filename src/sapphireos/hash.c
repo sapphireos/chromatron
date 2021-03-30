@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -87,6 +87,73 @@ uint32_t hash_u32_single( uint32_t hash, uint8_t data ){
 
     hash ^= data;
     hash *= FNV_32BIT_PRIME;
+
+    return hash;
+}   
+
+
+
+#define FNV_64BIT_OFFSET_BASIS    (uint64_t)14695981039346656037UL
+#define FNV_64BIT_PRIME           (uint64_t)1099511628211UL
+
+
+static uint64_t fnv1a64( uint64_t base, uint8_t *data, uint16_t len ){
+
+    uint64_t hash = base;
+
+    while( len > 0 ){
+
+        hash ^= *data;
+        hash *= FNV_64BIT_PRIME;
+
+        len--;
+        data++;
+    }
+
+    return hash;
+}
+
+uint64_t hash_u64_data( uint8_t *data, uint16_t len ){
+    
+    if( len == 0 ){
+
+        return 0;
+    }
+
+    return fnv1a64( FNV_64BIT_OFFSET_BASIS, data, len );
+}
+
+uint64_t hash_u64_string( char *src ){
+
+    uint8_t len = strnlen( src, 255 );
+
+    return hash_u64_data( (uint8_t *)src, len );
+}
+
+#ifdef PGM_P
+uint64_t hash_u64_string_P( PGM_P src ){
+
+    char buf[64];
+    strlcpy_P( buf, src, sizeof(buf) );
+
+    return hash_u64_string( buf );
+}
+#endif
+
+uint64_t hash_u64_start( void ){
+
+    return FNV_64BIT_OFFSET_BASIS;
+}
+
+uint64_t hash_u64_partial( uint64_t hash, uint8_t *data, uint16_t len ){
+
+    return fnv1a64( hash, data, len );
+}
+
+uint64_t hash_u64_single( uint64_t hash, uint8_t data ){
+
+    hash ^= data;
+    hash *= FNV_64BIT_PRIME;
 
     return hash;
 }   

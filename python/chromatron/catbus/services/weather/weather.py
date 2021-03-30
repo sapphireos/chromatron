@@ -2,38 +2,51 @@
 import sys
 import time
 from catbus import CatbusService
-from sapphire.common import util, wait_for_signal, Ribbon
-
+from sapphire.common import util, run_all, Ribbon
+import logging
 import json
 import requests
 from pprint import pprint
 
-
 class WeatherService(Ribbon):
-    def initialize(self, settings={}):
-        self.name = 'weather'
-        self.station = settings['station']
-        
+    def __init__(self, settings={}):
+        super().__init__()
+
         self.kv = CatbusService(name='weather', visible=True, tags=[])
+        self.kv['station'] = settings['station']
 
-        self.kv['station'] = self.station
+        self.start()
 
-    def loop(self):
-        result = requests.get(f"https://api.weather.gov/stations/{self.station}/observations/latest").json()
+    def _process(self):
+        logging.info("Fetching weather")
+
+        result = requests.get(f"https://api.weather.gov/stations/{self.kv['station']}/observations/latest")
         
-        props = result['properties']
+        props = result.json()['properties']
         # pprint(props)
 
-        self.kv['weather_temperature']          = float(props['temperature']['value'])
-        self.kv['weather_wind_direction']       = float(props['windDirection']['value'])
-        self.kv['weather_wind_speed']           = float(props['windSpeed']['value'])
-        self.kv['weather_relative_humidity']    = float(props['relativeHumidity']['value'])
-        self.kv['weather_pressure']             = float(props['barometricPressure']['value']) / 1000.0 # convert to kPa
+        for kv, source in [('temperature', 'temperature'), 
+                           ('wind_direction', 'windDirection'),
+                           ('wind_speed', 'windSpeed'),
+                           ('relative_humidity', 'relativeHumidity'),
+                           ('pressure', 'barometricPressure')]:
+
+            try:
+                key = 'weather_' + kv
+                if key == 'pressure':
+                    # convert to kPa
+                    self.kv[key]          = float(props[source]['value']) / 1000.0
+
+                else:
+                    self.kv[key]          = float(props[source]['value'])
+
+                # logging.info("Update successful")
+
+            except TypeError:
+                # sometimes the weather API returns nulls for some reason.
+                logging.warning(f'api returned nulls for {source}')
 
         self.wait(60.0)
-
-    def clean_up(self):
-        self.kv.stop()
 
 
 def main():
@@ -49,10 +62,7 @@ def main():
 
     w = WeatherService(settings=settings)
 
-    wait_for_signal()
-
-    w.stop()
-    w.join()
+    run_all()
 
     
 

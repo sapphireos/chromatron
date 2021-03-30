@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -249,25 +249,26 @@ class cg1Module(cg1Node):
                     raise SyntaxError("Unknown declaration in module body: %s" % (node.target.name), lineno=node.lineno)
 
             elif isinstance(node, cg1Call):
-                if node.target == 'send':
-                    send = True
-                    src = node.params[0].s
-                    dest = node.params[1].s
-                    query = [a.s for a in node.params[2].items]
+                if node.target == 'db':
+                    builder.db(node.params[0].s, node.params[1].s, node.params[2].name, lineno=node.lineno)
 
-                    builder.link(send, src, dest, query, lineno=node.lineno)
-
-                elif node.target == 'receive':
-                    send = False
+                elif node.target in ['send', 'receive']:
                     src = node.params[1].s
                     dest = node.params[0].s
                     query = [a.s for a in node.params[2].items]
+                    try:
+                        rate = node.params[3].s
+                    
+                    except IndexError:
+                        rate = 1000
 
-                    builder.link(send, src, dest, query, lineno=node.lineno)
+                    try:
+                        aggregation = node.params[4].s
 
-                elif node.target == 'db':
-                    builder.db(node.params[0].s, node.params[1].s, node.params[2].name, lineno=node.lineno)
+                    except IndexError:
+                        aggregation = 'any'
 
+                    builder.link(node.target, src, dest, query, aggregation, rate, lineno=node.lineno)
 
         # collect funcs
         funcs = [a for a in self.body if isinstance(a, cg1Func)]

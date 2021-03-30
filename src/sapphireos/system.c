@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -70,6 +70,7 @@ static uint8_t reboot_delay;
 static bool is_rebooting;
 
 static bool shutting_down;
+static int8_t shut_down_state;
 
 #ifndef BOOTLOADER
 FW_INFO_SECTION fw_info_t fw_info;
@@ -77,6 +78,7 @@ FW_INFO_SECTION fw_info_t fw_info;
 
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
+static uint8_t startup_boot_mode;
 
 // local functions:
 void reboot( void ) __attribute__((noreturn));
@@ -185,12 +187,12 @@ PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) );
 KV_SECTION_META kv_meta_t sys_info_kv[] = {
     { SAPPHIRE_TYPE_INT8,   0, 0,                   0, sys_kv_reboot_handler,            "reboot" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &sys_mode,                       0,  "sys_mode" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.boot_mode,            0,  "boot_mode" },
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &startup_boot_mode,              0,  "sys_boot_mode" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_minor, 0,  "loader_version_minor" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_major, 0,  "loader_version_major" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_status,        0,  "loader_status" },
     { SAPPHIRE_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &warnings,                       0,  "sys_warnings" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &reset_source,                   0,  "reset_source" },
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &reset_source,                   0,  "sys_reset_source" },
     { SAPPHIRE_TYPE_KEY128,    0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_id" },
     { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_name" },
     { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_version" },
@@ -218,6 +220,8 @@ void sys_v_init( void ){
 	// check reset source
 	reset_source = cpu_u8_get_reset_source();
     cpu_v_clear_reset_source();
+
+    startup_boot_mode = boot_data.boot_mode;
 
 	// power on reset (or JTAG)
 	if( ( reset_source & RESET_SOURCE_POWER_ON ) ||  // power on
@@ -495,14 +499,7 @@ void sys_v_load_recovery( void ){
     sys_v_reboot_delay( SYS_MODE_NORMAL );
 }
 
-// start reboot delay thread
-void sys_v_reboot_delay( sys_mode_t8 mode ){
-
-    // check if reboot is already initiated
-    if( is_rebooting ){
-
-        return;
-    }
+void set_reboot_mode( sys_mode_t8 mode ){
 
     is_rebooting = TRUE;
 
@@ -522,7 +519,19 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
     else{
 
         boot_data.boot_mode = BOOT_MODE_REBOOT;
-	}
+    }
+}
+
+// start reboot delay thread
+void sys_v_reboot_delay( sys_mode_t8 mode ){
+
+    // check if reboot is already initiated
+    if( is_rebooting ){
+
+        return;
+    }
+
+    set_reboot_mode( mode );
 
     reboot_delay = 2;
 
@@ -563,10 +572,44 @@ void reboot( void ){
 	for(;;);
 }
 
+void sys_v_initiate_shutdown( uint8_t delay_seconds ){
+
+    if( is_rebooting ){
+
+        return;
+    }
+
+    set_reboot_mode( SYS_MODE_NORMAL );
+
+    shut_down_state = 1;
+
+    reboot_delay = delay_seconds;
+
+    if( thread_t_create( THREAD_CAST(sys_reboot_thread),
+                         PSTR("shutdown"),
+                         0,
+                         0 ) < 0 ){
+
+        log_v_critical_P( PSTR("shutdown thread failed") );
+
+        reboot();
+    }
+}
+
 // return TRUE if system is about to shut down
-bool sys_b_shutdown( void ){
+bool sys_b_is_shutting_down( void ){
 
     return shutting_down;
+}
+
+bool sys_b_shutdown_complete( void ){
+
+    if( shut_down_state >= 2 ){
+
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 
@@ -743,9 +786,6 @@ PT_BEGIN( pt );
     kv_v_shutdown();
     log_v_info_P( PSTR("Shutting down...") );
     
-    // notify boot mode
-    kv_i8_publish( __KV__boot_mode );
-
     while( reboot_delay > 0 ){
 
 	   TMR_WAIT( pt, 1000 );
@@ -767,8 +807,22 @@ PT_BEGIN( pt );
 
 	TMR_WAIT( pt, 1000 );
 
-	reboot();
+    if( shut_down_state <= 0 ){
 
+        reboot();    
+    }
+    else{
+
+        shut_down_state = 2;
+
+        // it is expected that another module will power off the system
+        // or otherwise initiate a reset.
+        // in case that does not happen, we will delay and then force a reboot.
+        TMR_WAIT( pt, 20000 );
+
+        reboot();
+    }
+	
 PT_END( pt );
 }
 

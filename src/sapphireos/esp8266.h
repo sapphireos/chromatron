@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -22,25 +22,6 @@
 
 #ifndef _ESP8266_H
 #define _ESP8266_H
-
-
-// maximum power setting the hardware will support.
-// technically this is 20.5 dbm.
-// however, 20.5 dbm is only spec'd for 802.11b.
-// if we use 802.11n, the radio is only spec'd for 17.5 dbm.
-// since we are using an integer, we will set to 17 for our max.
-#define WIFI_MAX_HW_TX_POWER    17
-
-#define WIFI_CONNECT_TIMEOUT    20000
-
-#define WIFI_STATE_ERROR        -2
-#define WIFI_STATE_BOOT         -1
-#define WIFI_STATE_UNKNOWN      0
-#define WIFI_STATE_ALIVE        1
-#define WIFI_STATE_SHUTDOWN     2
-
-#define WIFI_AP_MIN_PASS_LEN    8
-
 
 #include "netmsg.h"
 

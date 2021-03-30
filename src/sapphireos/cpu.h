@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -144,6 +144,10 @@
 #define LOAD16(ptr) (*ptr)
 #endif
 
+#ifndef STORE64
+#define STORE64(ptr, val) (*(uint64_t*)ptr = val)
+#endif
+
 #ifndef STORE32
 #define STORE32(ptr, val) (*(uint32_t*)ptr = val)
 #endif
@@ -159,7 +163,11 @@ void cpu_v_remap_isrs( void );
 void cpu_v_sleep( void );
 void cpu_v_clear_reset_source( void );
 bool cpu_b_osc_fail( void );
+void cpu_v_set_clock_speed_low( void );
+void cpu_v_set_clock_speed_high( void );
 uint32_t cpu_u32_get_clock_speed( void );
 void cpu_reboot( void );
+
+uint16_t cpu_u16_get_power( void );
 
 #endif

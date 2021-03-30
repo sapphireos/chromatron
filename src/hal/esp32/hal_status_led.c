@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -76,37 +76,23 @@ PT_BEGIN( pt );
         }
         else if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-            // status_led_v_set( 0, STATUS_LED_RED );
-
-            // TMR_WAIT( pt, 500 );
-
-            // status_led_v_set( 1, STATUS_LED_RED );
-
-            // TMR_WAIT( pt, 500 );
-
             status_led_v_set( 0, STATUS_LED_RED );
 
-            TMR_WAIT( pt, 100 );
+            TMR_WAIT( pt, 500 );
 
             status_led_v_set( 1, STATUS_LED_RED );
 
-            TMR_WAIT( pt, 100 );
+            TMR_WAIT( pt, 500 );
+        }
+        else if( sys_b_is_shutting_down() ){
 
-            status_led_v_set( 0, STATUS_LED_RED );
+            status_led_v_set( 0, STATUS_LED_GREEN );
 
-            TMR_WAIT( pt, 100 );
+            TMR_WAIT( pt, 200 );
 
-            status_led_v_set( 1, STATUS_LED_RED );
+            status_led_v_set( 1, STATUS_LED_GREEN );
 
-            TMR_WAIT( pt, 100 );
-
-            status_led_v_set( 0, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 100 );
-
-            status_led_v_set( 1, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 1000 );
+            TMR_WAIT( pt, 200 );
         }
         #ifdef ENABLE_WIFI
         else if( wifi_b_connected() ){
@@ -173,7 +159,7 @@ PT_BEGIN( pt );
 
             status_led_v_set( 0, STATUS_LED_GREEN );
 
-            TMR_WAIT( pt, 200 );
+            TMR_WAIT( pt, 500 );
 
             if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
                   ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
@@ -181,11 +167,11 @@ PT_BEGIN( pt );
                 status_led_v_set( 1, STATUS_LED_GREEN );
             }
 
-            TMR_WAIT( pt, 200 );
+            TMR_WAIT( pt, 500 );
 
             status_led_v_set( 0, STATUS_LED_GREEN );
 
-            TMR_WAIT( pt, 200 );
+            TMR_WAIT( pt, 500 );
 
             if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
                   ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
@@ -193,21 +179,7 @@ PT_BEGIN( pt );
                 status_led_v_set( 1, STATUS_LED_GREEN );
             }
 
-            TMR_WAIT( pt, 1000 );
-
-
-            #ifdef ENABLE_WIFI
-            if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
-
-                status_led_v_set( 0, STATUS_LED_RED );
-
-                TMR_WAIT( pt, 500 );
-
-                status_led_v_set( 1, STATUS_LED_RED );
-
-                TMR_WAIT( pt, 500 );
-            }
-            #endif
+            TMR_WAIT( pt, 500 );
         }
     }
 
@@ -218,12 +190,25 @@ PT_END( pt );
 
 void reset_all( void ){
 
-    hal_io_v_set_esp_led( FALSE ); 
+    io_v_set_mode( IO_PIN_LED0, IO_MODE_OUTPUT );
+    io_v_set_mode( IO_PIN_LED1, IO_MODE_OUTPUT );
+    io_v_set_mode( IO_PIN_LED2, IO_MODE_OUTPUT );
+
+    io_v_digital_write( IO_PIN_LED0, TRUE );
+    io_v_digital_write( IO_PIN_LED1, TRUE );
+    io_v_digital_write( IO_PIN_LED2, TRUE );
 }
+
+
+// this will also change on v0.1.....
+#define LED_BLUE        IO_PIN_LED1
+#define LED_GREEN       IO_PIN_LED2
+#define LED_RED         IO_PIN_LED0
+
 
 void status_led_v_init( void ){
 
-	enabled = TRUE;
+    enabled = TRUE;
 
     reset_all();
 
@@ -255,31 +240,36 @@ void status_led_v_set( uint8_t state, uint8_t led ){
 
     switch( led ){
         case STATUS_LED_BLUE:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_BLUE, FALSE );
             break;
 
         case STATUS_LED_GREEN:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_GREEN, FALSE );
             break;
 
         case STATUS_LED_RED:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_RED, FALSE );
             break;
 
         case STATUS_LED_YELLOW:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_GREEN, FALSE );
+            io_v_digital_write( LED_RED, FALSE );
             break;
 
         case STATUS_LED_PURPLE:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_BLUE, FALSE );
+            io_v_digital_write( LED_RED, FALSE );
             break;
 
         case STATUS_LED_TEAL:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_BLUE, FALSE );
+            io_v_digital_write( LED_GREEN, FALSE );
             break;
 
         case STATUS_LED_WHITE:
-            hal_io_v_set_esp_led( TRUE );
+            io_v_digital_write( LED_RED,  FALSE );
+            io_v_digital_write( LED_GREEN, FALSE );
+            io_v_digital_write( LED_BLUE, FALSE );
             break;
 
         default:

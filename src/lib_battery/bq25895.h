@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2019  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -25,6 +25,9 @@
 #ifndef _BQ25895_H_
 #define _BQ25895_H_
 
+
+#define BQ25895_FLOAT_VOLTAGE		4100
+#define BQ25895_CUTOFF_VOLTAGE		3100
 
 // NOTE! The datasheet lists the address as 0x6B in the serial Interface
 // overview, but then lists it as 0x6A in the register description.
@@ -67,6 +70,10 @@
 
 #define BQ25895_REG_BOOST_EN                0x03
 #define BQ25895_BIT_BOOST_EN                ( 1 << 5 )
+
+#define BQ25895_REG_MINSYS_EN               0x03
+#define BQ25895_MASK_MINSYS            		0x0E
+#define BQ25895_SHIFT_MINSYS           		1
 
 #define BQ25895_REG_FAST_CHARGE_CURRENT     0x04
 #define BQ25895_MASK_FAST_CHARGE            0x7F
@@ -121,6 +128,8 @@
 #define BQ25895_REG_SYS_VOLTAGE             0x0F
 #define BQ25895_MASK_SYS_VOLTAGE            0x7F
 
+#define BQ25895_REG_THERM                   0x10
+
 #define BQ25895_REG_VBUS_GOOD               0x11
 #define BQ25895_BIT_VBUS_GOOD               ( 1 << 7 )
 
@@ -152,6 +161,14 @@
 #define BQ25895_CHARGE_STATUS_FAST_CHARGE   2
 #define BQ25895_CHARGE_STATUS_CHARGE_DONE   3
 
+#define BQ25895_SYSMIN_3_0V					0
+#define BQ25895_SYSMIN_3_1V					1
+#define BQ25895_SYSMIN_3_2V					2
+#define BQ25895_SYSMIN_3_3V					3
+#define BQ25895_SYSMIN_3_4V					4
+#define BQ25895_SYSMIN_3_5V					5
+#define BQ25895_SYSMIN_3_6V					6
+#define BQ25895_SYSMIN_3_7V					6
 
 int8_t bq25895_i8_init( void );
 
@@ -168,6 +185,7 @@ void bq25895_v_enable_adc_continuous( void );
 void bq25895_v_set_boost_1500khz( void );
 void bq25895_v_set_boost_mode( bool enable );
 void bq25895_v_force_dpdm( void );
+void bq25895_v_set_minsys( uint8_t sysmin );
 void bq25895_v_set_fast_charge_current( uint16_t current );
 void bq25895_v_set_pre_charge_current( uint16_t current );
 void bq25895_v_set_termination_current( uint16_t current );
@@ -185,6 +203,7 @@ uint16_t bq25895_u16_get_batt_voltage( void );
 uint16_t bq25895_u16_get_vbus_voltage( void );
 uint16_t bq25895_u16_get_sys_voltage( void );
 uint16_t bq25895_u16_get_charge_current( void );
+int8_t bq25895_8_get_therm( void );
 void bq25895_v_set_watchdog( uint8_t setting );
 void bq25895_v_kick_watchdog( void );
 void bq25895_v_set_charger( bool enable );

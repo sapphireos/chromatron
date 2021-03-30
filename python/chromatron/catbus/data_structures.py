@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -200,12 +200,6 @@ CATBUS_FLAGS_DYNAMIC                    = 0x0008
 
 CATBUS_MSG_DISC_FLAG_QUERY_ALL          = 0x01
 
-CATBUS_MSG_DATA_FLAG_TIME_SYNC          = 0x01
-
-CATBUS_MSG_LINK_FLAGS_SEND              = 0x01
-CATBUS_MSG_LINK_FLAGS_RECEIVE           = 0x02
-CATBUS_MSG_LINK_FLAGS_DATA              = 0x04
-
 META_TAG_NAME = 'meta_tag_name'
 META_TAG_LOC = 'meta_tag_location'
 META_TAG_GROUP_COUNT = 8 - 2
@@ -220,8 +214,6 @@ META_TAGS = [
     'meta_tag_4',
     'meta_tag_5',
 ]
-
-
 
 META_TAG_NAME = 'meta_tag_name'
 META_TAG_LOC = 'meta_tag_location'

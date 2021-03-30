@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -50,5 +50,8 @@ typedef uint8_t mem_type_t8;
 #define MEM_TYPE_MSGFLOW            24
 #define MEM_TYPE_MSGFLOW_ARQ_BUF    25
 #define MEM_TYPE_SERVICE            26
+#define MEM_TYPE_LINK_CONSUMER      27
+#define MEM_TYPE_LINK_PRODUCER      28
+#define MEM_TYPE_LINK_REMOTE        29
 
 #endif

@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2019  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -174,7 +174,7 @@ void wifi_handle_event_cb(System_Event_t *evt)
     }
 }
 
-void wifi_v_init( void ){
+void hal_wifi_v_init( void ){
 	
 	wifi_station_disconnect();
 
@@ -411,6 +411,12 @@ PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        log_v_debug_P( PSTR("ESP8266 SDK %s"), system_get_sdk_version() );    
+    }
+    
+    
     while(1){
 
         if( list_u8_count( &rx_list ) == 0 ){
@@ -430,6 +436,39 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+            
+    struct ip_info info;
+            memset( &info, 0, sizeof(info) );
+            wifi_get_ip_info( STATION_IF, &info );    
+            
+    ip_addr_t ipgroup;
+    ipgroup.addr = HTONL(ip_u32_to_int( mcast_ip ));
+
+    return espconn_igmp_join( &info.ip, &ipgroup );
+}
+
+int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    struct ip_info info;
+            memset( &info, 0, sizeof(info) );
+            wifi_get_ip_info( STATION_IF, &info );    
+            
+    ip_addr_t ipgroup;
+    ipgroup.addr = HTONL(ip_u32_to_int( mcast_ip ));
+
+    return espconn_igmp_leave( &info.ip, &ipgroup );
+}
 
 struct espconn* get_conn( uint8_t protocol, uint16_t lport ){
 
@@ -550,6 +589,16 @@ void wifi_v_shutdown( void ){
 
 }
 
+void wifi_v_powerup( void ){
+
+    
+}
+
+uint16_t wifi_u16_get_power( void ){
+
+    return 50000;
+}
+
 bool wifi_b_connected( void ){
 
 	return connected;
@@ -597,11 +646,6 @@ bool wifi_b_ap_mode( void ){
     }
 
 	return FALSE;
-}
-
-bool wifi_b_shutdown( void ){
-
-    return FALSE;
 }
 
 int8_t wifi_i8_get_status( void ){

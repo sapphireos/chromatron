@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,7 @@ from collections import UserDict
 import random
 import time
 import logging
+from copy import deepcopy
 
 from sapphire.common import catbus_string_hash
 
@@ -85,8 +86,8 @@ class Database(UserDict):
                 self._hashes[catbus_string_hash(item.key)] = item.key
 
     def _persist(self):
+        return
         # raise NotImplementedError
-        pass
         
         # items = [CatbusData(data=v, key=k) for k, v in self._kv_items.iteritems() if v.meta.flags & CATBUS_FLAGS_PERSIST]
 
@@ -153,13 +154,10 @@ class Database(UserDict):
             return 'bool'
 
         elif isinstance(value, int):
-            return 'int32'
+            return 'int64'
 
         elif isinstance(value, float):
             return 'float'
-
-        elif isinstance(value, int):
-            return 'int64'
 
         elif isinstance(value, str):
             return 'string128'
@@ -221,7 +219,7 @@ class Database(UserDict):
 
     def get_item(self, key):
         with self._lock:
-            return self._get_item_no_lock(key)
+            return deepcopy(self._get_item_no_lock(key))
 
     def lookup_hash(self, hashed_key):
         return self._hashes[hashed_key]

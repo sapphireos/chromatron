@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,6 @@
 #include "catbus_common.h"
 #include "udp.h"
 
-#define MSGFLOW_LISTEN_PORT             32039
 #define MSGFLOW_TIMEOUT                 16
 #define MSGFLOW_KEEPALIVE               4
 
@@ -61,13 +60,6 @@ typedef struct __attribute__((packed, aligned(4))){
 
 #define MSGFLOW_ARQ_TRIES               8
 
-
-typedef struct __attribute__((packed)){
-    catbus_hash_t32 service;
-    uint8_t codebook[8]; // list of supported codes
-} msgflow_msg_sink_t;
-#define MSGFLOW_TYPE_SINK               1
-
 typedef struct __attribute__((packed)){
     uint16_t max_data_len; // set maximum data for each message.  useful to limit mem usage for parity.
     uint8_t code;
@@ -94,9 +86,14 @@ typedef struct __attribute__((packed)){
 } msgflow_msg_data_t;
 #define MSGFLOW_TYPE_DATA               5
 
-// empty message
+// empty messages
 #define MSGFLOW_TYPE_STOP               6
+#define MSGFLOW_TYPE_QUERY_CODEBOOK     7
 
+typedef struct __attribute__((packed)){
+    uint8_t codebook[8]; // list of supported codes
+} msgflow_msg_codebook_t;
+#define MSGFLOW_TYPE_CODEBOOK           8
 
 #define MSGFLOW_MAX_LEN                 ( UDP_MAX_LEN - ( sizeof(msgflow_header_t) + sizeof(msgflow_msg_data_t) ) )
 

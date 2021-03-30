@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2019  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 
 #include "bq25895.h"
 #include "util.h"
+#include "energy.h"
 
 static uint8_t batt_soc; // state of charge in percent
 static uint8_t batt_soc_startup; // state of charge at power on
@@ -41,32 +42,37 @@ static uint8_t batt_fault;
 static uint8_t vbus_status;
 static uint8_t charge_status;
 static bool dump_regs;
+static uint32_t capacity;
+static int32_t remaining;
+static int8_t therm;
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,   0, 0,                   &batt_soc,             0,  "batt_soc" },
-    { SAPPHIRE_TYPE_BOOL,    0, 0,                   &batt_charging,        0,  "batt_charging" },
-    { SAPPHIRE_TYPE_BOOL,    0, 0,                   &vbus_connected,       0,  "batt_external_power" },
-    { SAPPHIRE_TYPE_UINT16,  0, 0,                   &batt_volts,           0,  "batt_volts" },
-    { SAPPHIRE_TYPE_UINT16,  0, 0,                   &vbus_volts,           0,  "batt_vbus_volts" },
-    { SAPPHIRE_TYPE_UINT16,  0, 0,                   &sys_volts,            0,  "batt_sys_volts" },
-    { SAPPHIRE_TYPE_UINT8,   0, 0,                   &charge_status,        0,  "batt_charge_status" },
-    { SAPPHIRE_TYPE_UINT16,  0, 0,                   &batt_charge_current,  0,  "batt_charge_current" },
-    { SAPPHIRE_TYPE_UINT8,   0, 0,                   &batt_fault,           0,  "batt_fault" },
-    { SAPPHIRE_TYPE_UINT8,   0, 0,                   &vbus_status,          0,  "batt_vbus_status" },
-    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_PERSIST,    0,                     0,  "batt_capacity" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,             0,  "batt_soc" },
+    { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                0,  "batt_temp" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,        0,  "batt_charging" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,       0,  "batt_external_power" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,           0,  "batt_volts" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,           0,  "batt_vbus_volts" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,            0,  "batt_sys_volts" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,        0,  "batt_charge_status" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,  0,  "batt_charge_current" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,           0,  "batt_fault" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,          0,  "batt_vbus_status" },
+    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,             0,  "batt_capacity" },
+    { SAPPHIRE_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,            0,  "batt_remaining" },
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
 };
 
-#define SOC_MAX_VOLTS   4150
-#define SOC_MIN_VOLTS   3200
-
+#define SOC_MAX_VOLTS   ( BQ25895_FLOAT_VOLTAGE - 100 )
+#define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
+#define SOC_FILTER      32
 
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
 
-static uint8_t calc_batt_soc( uint16_t volts ){
+static uint8_t _calc_batt_soc( uint16_t volts ){
 
     if( volts < SOC_MIN_VOLTS ){
 
@@ -79,6 +85,13 @@ static uint8_t calc_batt_soc( uint16_t volts ){
     }
 
     return util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 100 );
+}
+
+static uint8_t calc_batt_soc( uint16_t volts ){
+
+    uint8_t temp_soc = _calc_batt_soc( volts );
+
+    return util_u16_ewma( temp_soc, batt_soc, SOC_FILTER );
 }
 
 int8_t bq25895_i8_init( void ){
@@ -94,7 +107,7 @@ int8_t bq25895_i8_init( void ){
     }
 
     batt_volts = bq25895_u16_get_batt_voltage();
-    batt_soc = calc_batt_soc( batt_volts );
+    batt_soc = _calc_batt_soc( batt_volts );
     batt_soc_startup = batt_soc;
 
     thread_t_create( bat_mon_thread,
@@ -215,6 +228,12 @@ void bq25895_v_force_dpdm( void ){
     bq25895_v_set_reg_bits( BQ25895_REG_FORCE_DPDM, BQ25895_BIT_FORCE_DPDM );
 }
 
+void bq25895_v_set_minsys( uint8_t sysmin ){
+
+    bq25895_v_clr_reg_bits( BQ25895_REG_MINSYS_EN, BQ25895_MASK_MINSYS ); 
+
+    bq25895_v_set_reg_bits( BQ25895_REG_MINSYS_EN, ( sysmin << BQ25895_SHIFT_MINSYS ) & BQ25895_MASK_MINSYS );
+}
 
 // current in is mA!
 void bq25895_v_set_fast_charge_current( uint16_t current ){
@@ -441,6 +460,149 @@ uint16_t bq25895_u16_get_charge_current( void ){
     return mv;
 }
 
+static const int8_t temp_table[128] = {
+    -18 , // 127
+    -16 ,
+    -15 ,
+    -13 ,
+    -11 ,
+    -10 ,
+    -9  ,
+    -7  ,
+    -6  ,
+    -5  ,
+    -4  ,
+    -3  ,
+    -2  ,
+    -1  ,
+    0   ,
+    1   ,
+    2   ,
+    3   ,
+    4   ,
+    5   ,
+    6   ,
+    7   ,
+    8   ,
+    9   ,
+    10  ,
+    10  ,
+    11  ,
+    12  ,
+    13  ,
+    13  ,
+    14  ,
+    15  ,
+    16  ,
+    16  ,
+    17  ,
+    18  ,
+    19  ,
+    19  ,
+    20  ,
+    21  ,
+    22  ,
+    23  ,
+    23  ,
+    24  ,
+    24  ,
+    25  ,
+    25  ,
+    26  ,
+    27  ,
+    27  ,
+    28  ,
+    29  ,
+    29  ,
+    30  ,
+    31  ,
+    31  ,
+    32  ,
+    32  ,
+    33  ,
+    34  ,
+    34  ,
+    35  ,
+    36  ,
+    36  ,
+    37  ,
+    38  ,
+    38  ,
+    39  ,
+    39  ,
+    40  ,
+    41  ,
+    41  ,
+    42  ,
+    43  ,
+    43  ,
+    44  ,
+    45  ,
+    45  ,
+    46  ,
+    46  ,
+    47  ,
+    48  ,
+    49  ,
+    49  ,
+    50  ,
+    51  ,
+    51  ,
+    52  ,
+    53  ,
+    53  ,
+    54  ,
+    54  ,
+    55  ,
+    56  ,
+    57  ,
+    57  ,
+    58  ,
+    59  ,
+    59  ,
+    60  ,
+    61  ,
+    62  ,
+    62  ,
+    63  ,
+    64  ,
+    65  ,
+    66  ,
+    66  ,
+    67  ,
+    68  ,
+    69  ,
+    70  ,
+    70  ,
+    71  ,
+    72  ,
+    73  ,
+    74  ,
+    75  ,
+    76  ,
+    77  ,
+    78  ,
+    79  ,
+    80  ,
+    81  ,
+    82  ,
+    83  ,
+    84  ,
+    85  , // 0
+};
+
+int8_t bq25895_i8_get_therm( void ){
+
+    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
+
+    // percent conversion from datasheet.
+    // we don't need this, our table includes it.
+    // float temp = 0.465 * data;
+    // temp += 21.0;
+
+    return temp_table[127 - data];
+}
+
 void bq25895_v_set_watchdog( uint8_t setting ){
 
     setting <<= BQ25895_SHIFT_WATCHDOG;
@@ -523,7 +685,7 @@ PT_BEGIN( pt );
     bq25895_v_set_boost_voltage( 5100 );
     bq25895_v_set_charger( FALSE );
 
-    bq25895_v_print_regs();
+    // bq25895_v_print_regs();
 
     while(1){
 
@@ -534,9 +696,35 @@ PT_BEGIN( pt );
         batt_charge_current = bq25895_u16_get_charge_current();
         batt_fault = bq25895_u8_get_faults();
         vbus_status = bq25895_u8_get_vbus_status();
+        therm = bq25895_i8_get_therm();
+
+        /*
+
+        Charger notes:
+
+        If not using USB, need to short USB data lines to enable DCP mode (1.5A and beyond).
+        Otherwise may get limited to 500 mA by DPDM.
+
+        OR turn AUTO_DPDM off.  Remember force DPDM will run even if auto is off, so bypass
+        that as well if you don't want DPDM at all.
+
+        */
 
 
         // set MINSYS to 3.0V for ADC accuracy.  VBAT must be greater than MINSYS.
+        // NOTE set MINSYS to 3.0V for ADC accuracy when on battery power.
+        // the chip won't actually regulate UP to MINSYS anyway so on battery it doesn't
+        // matter, we will basically just get whatever the battery is on SYS.
+        // when charging, we can set it to 3.5V (or 3.7V) so we are above 3.3V SYS.
+
+        // NOTE below 10 C (check thermistor!), reduce charging to 0.25C.
+        // don't forget max otherwise is 0.5C.  Need a config option for this.
+
+        // NOTE Reduce boost voltage to minimum (4.55V)
+
+        // NOTE reduce battery charge.  Charge to 4.0 or 4.1V and discharge to 
+        // 3.0 to 3.2V to increase cycle life.
+        
 
         if( bq25895_b_get_vbus_good() && !vbus_connected ){
 
@@ -556,10 +744,10 @@ PT_BEGIN( pt );
             // bq25895_v_set_reg_bits( BQ25895_REG_VINDPM, BQ25895_BIT_FORCE_VINDPM );
 
             // turn on auto dpdm
-            bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+            // bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
 
             // turn OFF auto dpdm
-            // bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+            bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
 
             bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
             // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
@@ -571,7 +759,7 @@ PT_BEGIN( pt );
 
             bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
             bq25895_v_enable_adc_continuous();
-            bq25895_v_set_boost_voltage( 5100 );
+            bq25895_v_set_boost_voltage( 4600 );
 
             // charge config for NCR18650B
             bq25895_v_set_inlim( 2000 );
@@ -581,14 +769,17 @@ PT_BEGIN( pt );
             // bq25895_v_set_fast_charge_current( 250 );
             // bq25895_v_set_fast_charge_current( 3000 );
             bq25895_v_set_termination_current( 65 );
-            bq25895_v_set_charge_voltage( 4200 );
+            bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
 
 
             // disable ILIM pin
             bq25895_v_set_inlim_pin( FALSE );
 
             // run auto DPDM (which can override the current limits)
-            bq25895_v_force_dpdm();
+            // bq25895_v_force_dpdm();
+
+            // set min sys
+            bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );
@@ -610,6 +801,9 @@ PT_BEGIN( pt );
 
                 vbus_connected = FALSE;
                 log_v_debug_P( PSTR("VBUS disconnected") );
+
+                // set min sys to 3.0V for ADC accuracy
+                bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
             }
         }
 
@@ -678,21 +872,25 @@ PT_BEGIN( pt );
         // check if battery just ran down to 0,
         // AND we've started from a full charge
         // this will auto-calibrate the battery capacity.
-        // if( ( batt_soc != 0 ) && 
-        //     ( new_batt_soc == 0 ) &&
-        //     ( batt_soc_startup >= 95 ) ){ // above 95% is close enough to full charge
+        if( ( batt_soc > 0 ) && 
+            ( new_batt_soc == 0 ) &&
+            ( batt_soc_startup >= 95 ) ){ // above 95% is close enough to full charge
 
-        //     // save energy usage as capacity
-        //     uint64_t energy_total = energy_u64_get_total();
+            // save energy usage as capacity
+            capacity = energy_u32_get_total();
 
-        //     kv_i8_set( BQ25895_KV_GROUP,
-        //                KV_ID_ENERGY_TOTAL,
-        //                &energy_total,
-        //                sizeof(energy_total) );
-        // }
+            kv_i8_persist( __KV__batt_capacity );
+
+            log_v_info_P( PSTR("Battery capacity calibrated to %u"), capacity );
+        }
 
         batt_soc = new_batt_soc;
 
+        if( capacity != 0 ){
+
+            remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
+        }
+        
         TMR_WAIT( pt, 1000 );
         // TMR_WAIT( pt, 10000 );
     }

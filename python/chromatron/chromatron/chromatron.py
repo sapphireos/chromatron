@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -2723,91 +2723,91 @@ def version(ctx):
 
         click.echo(s)
 
-@cli.group()
-@click.pass_context
-def link(ctx):
-    """Link system commands"""
+# @cli.group()
+# @click.pass_context
+# def link(ctx):
+#     """Link system commands"""
 
-@link.command('show')
-@click.pass_context
-def link_show(ctx):
-    """Show links"""
-    group = ctx.obj['GROUP']()
+# @link.command('show')
+# @click.pass_context
+# def link_show(ctx):
+#     """Show links"""
+#     group = ctx.obj['GROUP']()
 
-    for ct in group.values():
-        name_s = ct.get_formatted_name()
-        click.echo(name_s)
+#     for ct in group.values():
+#         name_s = ct.get_formatted_name()
+#         click.echo(name_s)
 
-        links = ct.client.get_links()
+#         links = ct.client.get_links()
 
-        for link in links:
-            tag_s = '%s' % (click.style('%s' % (link['tag']), fg='white'))
-            source_key_s = '%s' % (click.style('%s' % (link['source_key']), fg='green'))
-            dest_key_s = '%s' % (click.style('%s' % (link['dest_key']), fg='cyan'))
+#         for link in links:
+#             tag_s = '%s' % (click.style('%s' % (link['tag']), fg='white'))
+#             source_key_s = '%s' % (click.style('%s' % (link['source_key']), fg='green'))
+#             dest_key_s = '%s' % (click.style('%s' % (link['dest_key']), fg='cyan'))
 
-            query_s = ''
-            for tag in link['query']:
-                if tag == None:
-                    continue
+#             query_s = ''
+#             for tag in link['query']:
+#                 if tag == None:
+#                     continue
 
-                query_s += '%s, ' % (click.style('%s' % (tag), fg='magenta'))
+#                 query_s += '%s, ' % (click.style('%s' % (tag), fg='magenta'))
 
-            # print link
-            if link['source']:
-                s = '%32s: Send %32s -> %32s @ [%s]' % (tag_s, source_key_s, dest_key_s, query_s)
-            else:
-                s = '%32s: Recv %32s <- %32s @ [%s]' % (tag_s, dest_key_s, source_key_s, query_s)
+#             # print link
+#             if link['source']:
+#                 s = '%32s: Send %32s -> %32s @ [%s]' % (tag_s, source_key_s, dest_key_s, query_s)
+#             else:
+#                 s = '%32s: Recv %32s <- %32s @ [%s]' % (tag_s, dest_key_s, source_key_s, query_s)
             
-            click.echo(s)
+#             click.echo(s)
 
-@link.command('send')
-@click.pass_context
-@click.argument('source')
-@click.argument('dest')
-@click.option('--target', '-t', default=None, multiple=True, help="Target query tags")
-def link_send(ctx, source, dest, target):
-    """Add a sender link"""
-    group = ctx.obj['GROUP']()
+# @link.command('send')
+# @click.pass_context
+# @click.argument('source')
+# @click.argument('dest')
+# @click.option('--target', '-t', default=None, multiple=True, help="Target query tags")
+# def link_send(ctx, source, dest, target):
+#     """Add a sender link"""
+#     group = ctx.obj['GROUP']()
 
-    for ct in group.values():
-        name_s = ct.get_formatted_name()
-        click.echo(name_s)
+#     for ct in group.values():
+#         name_s = ct.get_formatted_name()
+#         click.echo(name_s)
 
-        ct.client.add_link(True, source, dest, target, 'manual')
+#         ct.client.add_link(True, source, dest, target, 'manual')
 
 
-@link.command('receive')
-@click.pass_context
-@click.argument('source')
-@click.argument('dest')
-@click.option('--target', '-t', default=None, multiple=True, help="Target query tags")
-def link_receive(ctx, source, dest, target):
-    """Add a receiver link"""
-    group = ctx.obj['GROUP']()
+# @link.command('receive')
+# @click.pass_context
+# @click.argument('source')
+# @click.argument('dest')
+# @click.option('--target', '-t', default=None, multiple=True, help="Target query tags")
+# def link_receive(ctx, source, dest, target):
+#     """Add a receiver link"""
+#     group = ctx.obj['GROUP']()
 
-    link = automaton_code_gen.receive.parseString('receive ' + link, parseAll=True).asDict()['receive'][0]
+#     link = automaton_code_gen.receive.parseString('receive ' + link, parseAll=True).asDict()['receive'][0]
 
-    source = False
+#     source = False
 
-    for ct in group.values():
-        name_s = ct.get_formatted_name()
-        click.echo(name_s)
+#     for ct in group.values():
+#         name_s = ct.get_formatted_name()
+#         click.echo(name_s)
 
-        ct.client.add_link(False, source, dest, target, 'manual')
+#         ct.client.add_link(False, source, dest, target, 'manual')
     
-@link.command('delete')
-@click.pass_context
-@click.argument('tag')
-def link_delete(ctx, tag):
-    """Delete links matching tag"""
+# @link.command('delete')
+# @click.pass_context
+# @click.argument('tag')
+# def link_delete(ctx, tag):
+#     """Delete links matching tag"""
 
-    group = ctx.obj['GROUP']()
+#     group = ctx.obj['GROUP']()
 
-    for ct in group.values():
-        name_s = ct.get_formatted_name()
-        click.echo(name_s)
+#     for ct in group.values():
+#         name_s = ct.get_formatted_name()
+#         click.echo(name_s)
 
-        ct.client.delete_link(tag)
+#         ct.client.delete_link(tag)
 
 @cli.group("time")
 @click.pass_context

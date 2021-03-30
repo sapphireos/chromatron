@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -1326,7 +1326,7 @@ opcode_dbcall:
         #ifdef VM_ENABLE_KV
         catbus_meta_t meta;
         
-        if( kv_i8_get_meta( db_hash, &meta ) < 0 ){
+        if( kv_i8_get_catbus_meta( db_hash, &meta ) < 0 ){
 
             data[result] = 0;
         }
@@ -2581,6 +2581,8 @@ int8_t vm_i8_run(
     // reset yield
     state->yield = 0;
 
+    state->frame_number++;
+
     int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, data );
 
     cycles = VM_MAX_CYCLES - cycles;
@@ -2641,6 +2643,52 @@ int8_t vm_i8_run(
     return status;
 }
 
+
+#define EVENT_LOOP 254
+#define EVENT_NONE 255
+static uint8_t _get_next_event( uint8_t *stream, vm_state_t *state, uint64_t *next_tick ){
+
+    uint8_t event = EVENT_LOOP;
+    uint64_t current_tick = state->tick;
+    *next_tick = state->loop_tick;
+
+    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+        if( state->threads[i].func_addr == 0xffff ){
+
+            continue;
+        }
+
+        uint64_t thread_tick = state->threads[i].tick;
+
+        // check if thread tick is sooner than last one we checked
+        if( thread_tick < *next_tick ){
+
+            *next_tick = thread_tick;
+            event = i;
+        }
+    }
+
+    // check if nothing is ready to run
+    if( *next_tick > current_tick ){
+        
+        event = EVENT_NONE;
+    }
+
+    return event;
+}
+
+uint64_t vm_u64_get_next_tick(
+    uint8_t *stream,
+    vm_state_t *state ){
+
+    uint64_t next_tick;
+
+    _get_next_event( stream, state, &next_tick );
+
+    return next_tick;
+}
+
 int8_t vm_i8_run_tick(
     uint8_t *stream,
     vm_state_t *state,
@@ -2650,27 +2698,59 @@ int8_t vm_i8_run_tick(
 
     uint32_t elapsed_us = 0;
 
-    int8_t status = VM_STATUS_ERROR;
+    int8_t status = VM_STATUS_DID_NOT_RUN;
 
-    if( state->loop_tick <= state->tick ){
+    while( elapsed_us < ( VM_MAX_RUN_TIME * 1000 ) ){
 
-        // run loop
-        status = vm_i8_run_loop( stream, state );
+        uint64_t next_tick;
+        uint8_t event = _get_next_event( stream, state, &next_tick );
 
-        // add frame rate to next loop delay
-        state->loop_tick += gfx_u16_get_vm_frame_rate();
+        if( event == EVENT_NONE ){
 
-        elapsed_us += state->last_elapsed_us;
+            break;
+        }
+        else if( event == EVENT_LOOP ){
 
-        if( status != VM_STATUS_OK ){
+            // run loop
+            status = vm_i8_run_loop( stream, state );
 
-            goto exit;
+            // add frame rate to next loop delay
+            state->loop_tick += gfx_u16_get_vm_frame_rate();
+
+            elapsed_us += state->last_elapsed_us;
+
+            if( status != VM_STATUS_OK ){
+
+                goto exit;
+            }
+        }
+        else{ // threads
+
+            uint8_t thread = event;
+            state->current_thread = thread;
+        
+            status = vm_i8_run( stream, state->threads[thread].func_addr, state->threads[thread].pc_offset, state );
+
+            elapsed_us += state->last_elapsed_us;
+
+            state->current_thread = -1;
+
+            if( status == VM_STATUS_OK ){
+
+                // thread returned, kill it
+                state->threads[thread].func_addr = 0xffff;
+            }
+            else if( status == VM_STATUS_YIELDED ){
+
+                status = VM_STATUS_OK;
+            }
+            else{
+
+                goto exit;
+            }
         }
     }
 
-    status = vm_i8_run_threads( stream, state );
-
-    elapsed_us += state->last_elapsed_us;
 
 exit:    
     
@@ -2694,125 +2774,6 @@ int8_t vm_i8_run_loop(
     vm_state_t *state ){
 
     return vm_i8_run( stream, state->loop_start, 0, state );
-}
-
-int8_t vm_i8_run_threads(
-    uint8_t *stream,
-    vm_state_t *state ){
-
-    bool threads_running = FALSE;
-
-    uint32_t elapsed_us = 0;
-    
-    int8_t status = VM_STATUS_ERROR;
-
-    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
-
-        if( state->threads[i].func_addr == 0xffff ){
-
-            continue;
-        }
-
-        // check thread tick
-        if( state->threads[i].tick > state->tick ){
-
-            continue;
-        }
-
-        state->current_thread = i;
-        // state->threads[i].tick = 0; // mark thread as run
-        status = vm_i8_run( stream, state->threads[i].func_addr, state->threads[i].pc_offset, state );
-
-        elapsed_us += state->last_elapsed_us;
-
-        threads_running = TRUE;
-
-        state->current_thread = -1;
-
-        if( status == VM_STATUS_OK ){
-
-            // thread returned, kill it
-            state->threads[i].func_addr = 0xffff;
-        }
-        else if( status == VM_STATUS_YIELDED ){
-
-
-        }
-        else if( status == VM_STATUS_HALT ){
-
-            goto exit;
-        }
-        else{
-
-            goto exit;
-        }
-    }
-
-    if( !threads_running ){
-
-        status = VM_STATUS_NO_THREADS;
-    } 
-    else{
-
-        status = VM_STATUS_OK;
-    }
-
-exit:
-        
-    // set total elapsed time
-    state->last_elapsed_us = elapsed_us;
-
-    return status;
-}
-
-uint64_t vm_u64_get_next_tick(
-    uint8_t *stream,
-    vm_state_t *state ){
-
-    uint64_t current_tick = state->tick;
-    uint64_t next_tick = state->loop_tick;
-
-    if( next_tick < current_tick ){
-
-        // loop already ran
-        next_tick = 0;
-    }
-
-    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
-
-        if( state->threads[i].func_addr == 0xffff ){
-
-            continue;
-        }
-
-        // check thread tick
-        uint64_t thread_tick = state->threads[i].tick;
-
-        if( thread_tick == 0 ){
-            // thread is not running
-
-            continue;
-        }
-
-        // check if next tick is uninitialized
-        if( next_tick == 0 ){
-
-            next_tick = thread_tick;
-        }
-        // check if thread tick is sooner than last one we checked
-        else if( thread_tick < next_tick ){
-
-            next_tick = thread_tick;
-        }
-    }
-
-    // check if nothing is ready to run
-    if( next_tick < current_tick ){
-
-        next_tick = 0;
-    }
-
-    return next_tick;
 }
 
 int32_t vm_i32_get_data( 
@@ -3056,53 +3017,44 @@ int8_t vm_i8_load_program(
     return VM_STATUS_OK;
 }
 
-void kv_notifier(
-    catbus_hash_t32 hash,
-    catbus_type_t8 type,
-    const void *data ){
+// void vm_v_init_db(
+//     uint8_t *stream,
+//     vm_state_t *state,
+//     uint8_t tag ){
 
-    catbus_i8_publish( hash );
-}
+//     int32_t *data = (int32_t *)( stream + state->data_start );
 
-void vm_v_init_db(
-    uint8_t *stream,
-    vm_state_t *state,
-    uint8_t tag ){
+//     // add published vars to DB
+//     uint32_t count = state->publish_count;
+//     vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
 
-    int32_t *data = (int32_t *)( stream + state->data_start );
+//     while( count > 0 ){
 
-    // add published vars to DB
-    uint32_t count = state->publish_count;
-    vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
+//         int32_t *ptr = &data[publish->addr];
+//         uint32_t len = type_u16_size(publish->type);
 
-    while( count > 0 ){
+//         // check if string
+//         // TODO
+//         // hack to deal with poor string handling between compiler, VM, and DB
+//         if( publish->type == CATBUS_TYPE_STRING512 ){
 
-        int32_t *ptr = &data[publish->addr];
-        uint32_t len = type_u16_size(publish->type);
+//             publish->type = CATBUS_TYPE_STRING64;
 
-        // check if string
-        // TODO
-        // hack to deal with poor string handling between compiler, VM, and DB
-        if( publish->type == CATBUS_TYPE_STRING512 ){
+//             ptr = &data[*ptr]; // dereference string
+//             len = ( *ptr & 0xffff0000 ) >> 16; // second half of first word of string is length
+//             ptr++;
+//             len++; // add null terminator
 
-            publish->type = CATBUS_TYPE_STRING64;
+//             len = 64;
+//         }
 
-            ptr = &data[*ptr]; // dereference string
-            len = ( *ptr & 0xffff0000 ) >> 16; // second half of first word of string is length
-            ptr++;
-            len++; // add null terminator
+//         kvdb_i8_add( publish->hash, publish->type, 1, ptr, len );
+//         kvdb_v_set_tag( publish->hash, tag );
 
-            len = 64;
-        }
-
-        kvdb_i8_add( publish->hash, publish->type, 1, ptr, len );
-        kvdb_v_set_tag( publish->hash, tag );
-        kvdb_v_set_notifier( publish->hash, kv_notifier );
-
-        publish++;
-        count--;
-    }
-}
+//         publish++;
+//         count--;
+//     }
+// }
 
 
 void vm_v_clear_db( uint8_t tag ){

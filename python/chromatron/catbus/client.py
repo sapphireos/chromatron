@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -29,27 +29,30 @@ from sapphire.common.broadcast import send_udp_broadcast
 import time
 import os
 import json
+import logging
+from filelock import Timeout, FileLock
+logging.getLogger("filelock").setLevel(logging.WARNING)
 
 from sapphire.buildtools import firmware_package
 DATA_DIR_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_hashes.json')
 DATA_DIR_FILE_PATH_ALT = 'catbus_hashes.json'
+
+DIRECTORY_INFO_FILE_PATH = os.path.join(firmware_package.data_dir(), 'directory_server.json')
+DIRECTORY_INFO_FILE_PATH_ALT = 'directory_server.json'
+
+CACHE_LOCK = os.path.join(firmware_package.data_dir(), 'lockfile')
 
 DISCOVERY_TIMEOUT = 1.0
 
 import random
 
 
-class Client(object):
-    def __init__(self):
-        self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+class BaseClient(object):
+    def __init__(self, host=None, universe=0, default_port=CATBUS_MAIN_PORT):
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        self._connected_host = None
-
-        self.read_window_size = 1
-        self.write_window_size = 1
-
-        self.nodes = {}
-        self._meta = {}
+        self.default_port = default_port
+        self.universe = universe
 
         try:
             os.makedirs(firmware_package.data_dir())
@@ -57,16 +60,18 @@ class Client(object):
             pass
         except PermissionError:
             pass
-            
-    @property
-    def meta(self):
-        if len(self._meta) == 0:
-            self.get_meta()
 
-        return self._meta
+        self._connected_host = host
+        if host is not None:
+            self.connect(host)
 
-    def _exchange(self, msg, host=None, timeout=1.0, tries=5):
-        self.__sock.settimeout(timeout)
+    def __str__(self):
+        return f'BaseClient({self._connected_host})'
+
+    def _exchange(self, msg, host=None, timeout=0.5, tries=16):
+        msg.header.universe = self.universe
+
+        self._sock.settimeout(timeout)
 
         if host == None:
             host = self._connected_host
@@ -78,23 +83,27 @@ class Client(object):
             try:
                 # start = time.time()
                 # print 'send', type(msg), len(msg.pack())
-                self.__sock.sendto(msg.pack(), host)
+                self._sock.sendto(msg.pack(), host)
+                # logging.debug(f"Msg {type(msg)} sent to {host}")
 
                 while True:
-                    data, sender = self.__sock.recvfrom(4096)
+                    data, sender = self._sock.recvfrom(4096)
 
                     reply_msg = deserialize(data)
+
+                    # logging.debug(f"Reply {type(reply_msg)} received from {sender}")
                     # elapsed = time.time() - start
                     # print int(elapsed*1000), 'recv', type(reply_msg), len(data), '\n'
-
-                    if reply_msg.header.transaction_id != msg.header.transaction_id:
-                        # bad transaction IDs coming in, this doesn't count
-                        # against our retries.
-                        i -= 1
-                        
+                    
+                    # check universe
+                    if reply_msg.header.universe != self.universe:
                         continue
 
-                    elif isinstance(reply_msg, ErrorMsg):
+                    elif reply_msg.header.transaction_id != msg.header.transaction_id:
+                        # logging.warning(f"Bad transaction_id! Expected {msg.header.transaction_id} received {reply_msg.header.transaction_id} from {sender} type: {reply_msg.header.msg_type}")
+                        continue
+
+                    if isinstance(reply_msg, ErrorMsg):
                         self.flush()
                         raise ProtocolErrorException(reply_msg.error_code, lookup_error_msg(reply_msg.error_code))
 
@@ -105,23 +114,19 @@ class Client(object):
 
         raise NoResponseFromHost(msg.header.msg_type, host)
 
-    def set_window(self, read, write):
-        self.read_window_size = read
-        self.write_window_size = write
-
     def flush(self):
-        timeout = self.__sock.gettimeout()
-        self.__sock.settimeout(0.1)
+        timeout = self._sock.gettimeout()
+        self._sock.settimeout(0.1)
 
         while True:
             try:
-                data, host = self.__sock.recvfrom(4096)
+                data, host = self._sock.recvfrom(4096)
                 
             except socket.timeout:
                 break
 
         # reset timeout
-        self.__sock.settimeout(timeout)
+        self._sock.settimeout(timeout)
 
     def is_connected(self):
         return self._connected_host != None
@@ -129,9 +134,36 @@ class Client(object):
     def connect(self, host):
         if isinstance(host, str):
             # if no port is specified, set default
-            host = (host, CATBUS_MAIN_PORT)
+            host = (host, self.default_port)
 
         self._connected_host = host
+
+
+class Client(BaseClient):
+    def __init__(self, host=None, universe=0, **kwargs):
+        super().__init__(host, universe, **kwargs)
+        
+        self.read_window_size = 1
+        self.write_window_size = 1
+
+        self.nodes = {}
+        self._meta = {}
+
+        self._filelock = FileLock(CACHE_LOCK, timeout=1)
+
+    def __str__(self):
+        return f'Client({self._connected_host})'
+
+    @property
+    def meta(self):
+        if len(self._meta) == 0:
+            self.get_meta()
+
+        return self._meta
+
+    def set_window(self, read, write):
+        self.read_window_size = read
+        self.write_window_size = write
 
     def ping(self):
         msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
@@ -144,36 +176,86 @@ class Client(object):
 
         return elapsed
 
-    def lookup_hash(self, *args):
-        # open cache file
-        cache = {}
-        try:
+    def _get_cache_data(self):
+        with self._filelock:
             try:
-                with open(DATA_DIR_FILE_PATH, 'r') as f:
-                    file_data = f.read()
+                try:
+                    with open(DATA_DIR_FILE_PATH, 'r') as f:
+                        file_data = f.read()
 
-            except PermissionError:
-                with open(DATA_DIR_FILE_PATH_ALT, 'r') as f:
-                    file_data = f.read()
+                except PermissionError:
+                    with open(DATA_DIR_FILE_PATH_ALT, 'r') as f:
+                        file_data = f.read()
 
-            temp = json.loads(file_data)
+                return json.loads(file_data)
+
+            except IOError:
+                return {}
+
+    def _update_cache(self, cache):
+        with self._filelock:
+            # get current cache from file
+
+            try:
+                with open(DATA_DIR_FILE_PATH, 'w') as f:
+                    f.write(json.dumps(cache))
+
+                    # ensure file is committed to disk
+                    f.flush()
+
+            except (PermissionError, FileNotFoundError):
+                with open(DATA_DIR_FILE_PATH_ALT, 'w') as f:
+                    f.write(json.dumps(cache))
+
+                    # ensure file is committed to disk
+                    f.flush()
+
+    def _get_directory(self):
+        with self._filelock:
+            try:
+                try:
+                    with open(DIRECTORY_INFO_FILE_PATH, 'r') as f:
+                        file_data = f.read()
+
+                except PermissionError:
+                    with open(DIRECTORY_INFO_FILE_PATH_ALT, 'r') as f:
+                        file_data = f.read()
+
+                data = json.loads(file_data)
+                return (data[0], data[1])
+
+            except IOError:
+                return (None, None)
+
+    def _update_directory(self, host):
+        with self._filelock:
+            # get current cache from file
+
+            try:
+                with open(DIRECTORY_INFO_FILE_PATH, 'w') as f:
+                    f.write(json.dumps(host))
+
+                    # ensure file is committed to disk
+                    f.flush()
+
+            except (PermissionError, FileNotFoundError):
+                with open(DIRECTORY_INFO_FILE_PATH_ALT, 'w') as f:
+                    f.write(json.dumps(host))
+
+                    # ensure file is committed to disk
+                    f.flush()
+
+    def lookup_hash(self, *args, skip_cache=False):
+        cache = {}
+        
+        if not skip_cache:
+            # open cache file
+            temp = self._get_cache_data()
 
             cache = {}
             # have to convert keys back to int because json only does string keys
             for k, v in temp.items():
                 cache[int(k)] = v
-
-        except ValueError as e:
-            # if the cache file has an error, or if it is
-            # being rewritten and has not fully synced to disk,
-            # we get an error here.
-
-            # just bypass and carryon with no cache
-            print(e)
-            # pass
-
-        except IOError:
-            pass
 
         resolved_keys = {}
 
@@ -240,41 +322,54 @@ class Client(object):
                     # can't find anything, just return hash itself
                     resolved_keys[k] = k
 
-        changed = False
-        # check if any keys were added
-        for k in resolved_keys:
-            if k not in cache:
-                cache.update(resolved_keys)
+            elif k != catbus_string_hash(v):
+                logging.critical(f"KV hash lookup failure: {v} -> {hex(k)}")
 
-                changed = True
-                break
+        if not skip_cache:
+            changed = False
+            # check if any keys were added
+            for k in resolved_keys:
+                if k not in cache:
+                    cache.update(resolved_keys)
 
-        if changed:
-            # update cache file, if anything changed
-            try:
-                with open(DATA_DIR_FILE_PATH, 'w') as f:
-                    f.write(json.dumps(cache))
+                    changed = True
+                    break
 
-                    # ensure file is committed to disk
-                    f.flush()
-
-            except (PermissionError, FileNotFoundError):
-                with open(DATA_DIR_FILE_PATH_ALT, 'w') as f:
-                    f.write(json.dumps(cache))
-
-                    # ensure file is committed to disk
-                    f.flush()
+            if changed:
+                # update cache file, if anything changed
+                self._update_cache(cache)
 
         return resolved_keys
 
     def get_directory(self):
+        # try to load server from cache
+        host = self._get_directory()
+
+        if host[0] is None:
+            matches = self._discover("DIRECTORY")
+
+            if len(matches) > 0:
+                server = list(matches.values())[0]['host']
+
+                # get directory port (using a new client so we don't stomp on the connected host)
+                c = Client(server)
+                port = c.get_key('directory_port')
+                host = (server[0], port)
+
+                # cache server
+                self._update_directory(host)
+
+            else:
+                return None
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
-            sock.connect(('localhost', CATBUS_DIRECTORY_PORT))
+            sock.connect(host)
 
         except ConnectionRefusedError:
-             return None
+            self._update_directory((None, None))
+            return None
 
         data = sock.recv(4)
         length = struct.unpack('<L', data)[0]
@@ -292,9 +387,14 @@ class Client(object):
 
         return directory
 
-    def discover(self, *args, **kwargs):
-        """Discover KV nodes on the network"""
-        self.nodes = {}
+    def _discover(self, *args, **kwargs):
+        # note we're creating a new socket for discovery.
+        # the reason to do this is we may get a stray response after
+        # we've completed discovery, and that may interfere with
+        # other communications (you receive an announce when you
+        # were expecting a data message, etc).
+
+        nodes = {}
 
         if len(args) > 0:
             tags = [catbus_string_hash(a) for a in args]
@@ -306,50 +406,64 @@ class Client(object):
             tags = []
             msg = DiscoverMsg(flags=CATBUS_DISC_FLAG_QUERY_ALL)
 
+        msg.header.universe = self.universe
+
+        discover_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        discover_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+        discover_sock.settimeout(DISCOVERY_TIMEOUT)
+
+        for i in range(3):
+            send_udp_broadcast(discover_sock, CATBUS_MAIN_PORT, msg.pack())
+            send_udp_broadcast(discover_sock, CATBUS_ANNOUNCE_PORT, msg.pack())
+
+            start = time.time()
+
+            while (time.time() - start) < DISCOVERY_TIMEOUT:
+                try:
+                    data, sender = discover_sock.recvfrom(1024)
+
+                    response = deserialize(data)
+                    
+                    if not isinstance(response, AnnounceMsg):
+                        continue
+
+                    elif response.header.universe != self.universe:
+                        continue
+
+                    if response.header.transaction_id == msg.header.transaction_id and \
+                        query_tags(tags, response.query):
+
+                        # add to node list
+                        nodes[response.header.origin_id] = \
+                            {'host': (sender[0], response.data_port),
+                             'tags': response.query}
+
+                except InvalidMessageException as e:
+                    logging.exception(e)
+
+                except socket.timeout:
+                    pass
+
+        discover_sock.close()
+
+        return nodes
+
+    def discover(self, *args, **kwargs):
+        """Discover KV nodes on the network"""
+        self.nodes = {}
+
+        if len(args) > 0:
+            tags = [catbus_string_hash(a) for a in args]
+
+        else:
+            tags = []
+
         # try to contact directory server
         directory = self.get_directory()
 
         if directory == None:
-            # note we're creating a new socket for discovery.
-            # the reason to do this is we may get a stray response after
-            # we've completed discovery, and that may interfere with
-            # other communications (you receive an announce when you
-            # were expecting a data message, etc).
-
-            discover_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            discover_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
-            discover_sock.settimeout(DISCOVERY_TIMEOUT)
-
-            for i in range(3):
-                send_udp_broadcast(discover_sock, CATBUS_MAIN_PORT, msg.pack())
-
-                start = time.time()
-
-                while (time.time() - start) < DISCOVERY_TIMEOUT:
-                    try:
-                        data, sender = discover_sock.recvfrom(1024)
-
-                        response = deserialize(data)
-                        
-                        if not isinstance(response, AnnounceMsg):
-                            continue
-
-                        if response.header.transaction_id == msg.header.transaction_id and \
-                            query_tags(tags, response.query):
-
-                            # add to node list
-                            self.nodes[response.header.origin_id] = \
-                                {'host': (sender[0], response.data_port),
-                                 'tags': response.query}
-
-                    except InvalidMessageException as e:
-                        logging.exception(e)
-
-                    except socket.timeout:
-                        pass
-
-            discover_sock.close()
+            self.nodes = self._discover(*args, **kwargs)
         
         else:
             for origin_id, v in directory.items():
@@ -388,14 +502,14 @@ class Client(object):
         meta = {}
 
         keys = self.lookup_hash([a.hash for a in responses])
-                
+
         for response in responses:
             if response.hash != 0:
                 meta[keys[response.hash]] = response
 
 
         self._meta = meta
-
+        
         return meta
 
     def get_all_keys(self):
@@ -595,7 +709,7 @@ class Client(object):
         ack_offset = 0
         page_size = response.page_size
 
-        self.__sock.settimeout(0.5)
+        self._sock.settimeout(0.5)
 
         max_window = self.read_window_size
         current_window = max_window
@@ -603,17 +717,21 @@ class Client(object):
         while True:
             while current_window > 0:
                 msg = FileGetMsg(session_id=session_id, offset=requested_offset)
-                self.__sock.sendto(msg.pack(), host)  
+                msg.header.universe = self.universe
+                self._sock.sendto(msg.pack(), host)  
 
                 requested_offset += page_size
 
                 current_window -= 1
 
             try:
-                data, sender = self.__sock.recvfrom(4096)
+                data, sender = self._sock.recvfrom(4096)
                 data_msg = deserialize(data)
 
-                if isinstance(data_msg, ErrorMsg):
+                if data_msg.header.universe != self.universe:
+                    continue
+
+                elif isinstance(data_msg, ErrorMsg):
                     self.flush()
                     raise ProtocolErrorException(data_msg.error_code, lookup_error_msg(data_msg.error_code))
 
@@ -649,9 +767,12 @@ class Client(object):
 
 
         # close session
-        msg = FileCloseMsg(session_id=session_id)
-        self.__sock.sendto(msg.pack(), host)
+        try:
+            self._exchange(FileCloseMsg(session_id=session_id), host, tries=1)
 
+        except (ProtocolErrorException, NoResponseFromHost):
+            pass
+        
         # f = open(filename, 'w')
         # f.write(file_data)
         # f.close()
@@ -734,7 +855,7 @@ class Client(object):
 
         # close session
         msg = FileCloseMsg(session_id=session_id)
-        self.__sock.sendto(msg.pack(), host)
+        self._sock.sendto(msg.pack(), host)
 
         return file_data
 
@@ -768,75 +889,6 @@ class Client(object):
             d[response.filename] = {'size': response.filesize, 'flags': response.flags, 'filename': response.filename}
 
         return d
-
-    def get_links(self):
-        index = 0
-
-        exc = None
-
-        links = []
-
-        while True:
-            msg = LinkGetMsg(index=index)
-            index += 1
-
-            try:
-                response, host = self._exchange(msg)
-
-            except ProtocolErrorException as e:
-                exc = e
-                break
-
-            # check flags
-            if response.flags & CATBUS_LINK_FLAGS_VALID == 0:
-                continue
-
-            if response.flags & CATBUS_MSG_LINK_FLAGS_SOURCE:
-                source = True
-            else:
-                source = False
-
-            # look up hashes    
-            resolved_keys = self.lookup_hash(response.source_hash, response.dest_hash, response.tag, *response.query)
-
-            link = {
-                "source": source,
-                "source_key": resolved_keys[response.source_hash],
-                "dest_key": resolved_keys[response.dest_hash],
-                "query": [resolved_keys[a] for a in response.query],
-                "tag": resolved_keys[response.tag]
-            }
-
-            links.append(link)
-
-
-        if exc.error_code != CATBUS_ERROR_LINK_EOF:
-            raise exc
-
-        return links
-
-    def add_link(self, source, source_key, dest_key, query, tag):
-        if source:
-            flags = CATBUS_MSG_LINK_FLAGS_SOURCE
-
-        else:
-            flags = 0
-
-        flags |= CATBUS_LINK_FLAGS_VALID
-
-        msg = LinkAddMsg(
-                flags=flags,
-                source_key=source_key,
-                dest_key=dest_key,
-                query=query,
-                tag=tag)
-
-        response, host = self._exchange(msg)
-
-    def delete_link(self, tag):
-        msg = LinkDeleteMsg(tag=catbus_string_hash(tag))
-
-        response, host = self._exchange(msg)
 
 
 if __name__ == '__main__':

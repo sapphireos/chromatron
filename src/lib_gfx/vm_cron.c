@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@
 #include "timesync.h"
 #include "datetime.h"
 #include "util.h"
+#include "config.h"
 
 #include "vm_core.h"
 #include "vm_cron.h"
@@ -190,6 +191,14 @@ typedef struct{
 PT_THREAD( cron_replay_thread( pt_t *pt, replay_state_t *state ) )
 {
 PT_BEGIN( pt ); 
+
+    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+
+        THREAD_EXIT( pt );
+    }
+
+    // wait for time sync
+    THREAD_WAIT_WHILE( pt, !time_b_is_ntp_sync() );
 
     // init clock to 24 hours ago
     ntp_ts_t ntp_now = time_t_local_now();

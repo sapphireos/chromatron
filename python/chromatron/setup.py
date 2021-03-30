@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -42,7 +42,10 @@ setup(
             
     py_modules=['chromatron'],
 
-    package_data={'chromatron': ['*.fx']},
+    package_data={
+        'chromatron': ['*.fx'],
+        'sapphire.buildtools': ['settings.json', 'linker.x', 'project_template/*'],
+        },
 
     scripts=[],
 
@@ -57,18 +60,22 @@ setup(
         "click == 7.1.2",
         "appdirs==1.4.3",
         "requests==2.22.0",
-        "setuptools >= 50.3.2",
+        # "setuptools >= 50.3.2",
         "pyserial == 3.4.0",
         "cmd2 == 0.6.9",
         "click == 7.1.2",
         "crcmod == 1.7",
-        "pyparsing == 2.2.0",
         "intelhex == 2.1",
         "fnvhash==0.1.0",
         "zeroconf==0.24.4",
         "colorlog==4.1.0",
+        "colored-traceback==0.3.0",
         "python-logging-loki==0.3.1",
+        "prometheus-client==0.8.0",
         "paho-mqtt==1.5.1",
+        "ifaddr==0.1.6",
+        "filelock==3.0.12",
+        "influxdb==5.3.1",
     ],
 
     entry_points='''

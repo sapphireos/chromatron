@@ -3,7 +3,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -25,11 +25,11 @@
 import sys
 import time
 from datetime import datetime
-from catbus import CatbusService, Directory
-from sapphire.common.ribbon import wait_for_signal
+from catbus import CatbusService, Directory, Client
 from sapphire.protocols.msgflow import MsgFlowReceiver
-from sapphire.protocols.zeroconf_service import ZeroconfService
-from sapphire.common import util, Ribbon
+from sapphire.common import util, run_all, Ribbon
+
+from queue import Queue
 
 import logging
 import logging_loki
@@ -49,10 +49,8 @@ LOGSERVER_PORT = None
 
 
 class LokiHandler(Ribbon):
-    def initialize(self, settings={}):
-        super().initialize()
-        self.name = 'lokihandler'
-        self.settings = settings
+    def __init__(self):
+        super().__init__(name='loki_handler')
 
         loki_handler = logging_loki.LokiHandler(
             url=f"{LOKI_SERVER}/loki/api/v1/push", 
@@ -79,9 +77,16 @@ class LokiHandler(Ribbon):
 
         self.device_logger = logging.getLogger('chromatron')
         self.device_logger.addHandler(device_handler)
+
+        self.q = Queue()
+
+        self.start()
     
-    def loop(self):
-        msg = self.recv_msg()
+    def post_msg(self, msg):
+        self.q.put(msg)
+
+    def _process(self):
+        msg = self.q.get()
 
         if msg is None:
             return
@@ -124,41 +129,31 @@ class LokiHandler(Ribbon):
 
         self.device_logger.log(LOG_LEVEL[level], full_log_msg, extra={'tags': tags})
 
-
-    def clean_up(self):
-        super().clean_up()        
-
-        self.logger.info("Loki handler stopped")
-
-
 class LogServer(MsgFlowReceiver):
-    def initialize(self, settings={}):
-        super().initialize(name='logserver', service='logserver', port=LOGSERVER_PORT)
-        self.settings = settings
+    def __init__(self):
+        super().__init__(service='logserver', port=LOGSERVER_PORT)
         
-        self.kv = CatbusService(name=self.name, visible=True, tags=[])
+        self.kv = CatbusService(name='logserver', visible=True, tags=[])
 
-        self.zeroconf = ZeroconfService("_logserver._tcp.local.", "Chromatron LogServer", port=12345)
-
-        self.loki = LokiHandler(settings=settings)
-
-        # run local catbus directory
-        self._catbus_directory = Directory()
+        self.loki = LokiHandler()
 
         self.update_directory()
 
+        self.start_timer(DIRECTORY_UPDATE_INTERVAL, self.update_directory)
+
     def update_directory(self):
-        self.directory = self._catbus_directory.get_directory()
+        c = Client()
+        self.directory = c.get_directory()
 
         self._last_directory_update = time.time()
 
     def clean_up(self):
         self.loki.stop()
-        self.zeroconf.stop()
+        
         self.kv.stop()
         
         super().clean_up()
-
+        
         self.loki.join()
 
     def lookup_by_host(self, host):
@@ -183,7 +178,6 @@ class LogServer(MsgFlowReceiver):
 
         self.loki.post_msg((host, info, now, log))
 
-
     def on_connect(self, host, device_id=None):
         self.update_directory()
 
@@ -192,30 +186,13 @@ class LogServer(MsgFlowReceiver):
     def on_disconnect(self, host):
         self.loki.logger.info(f"Disconnected: {host[0]}:{host[1]}")
 
-    def loop(self):
-        super().loop()
-
-        if time.time() - self._last_directory_update > DIRECTORY_UPDATE_INTERVAL:
-            self.update_directory()
-
 
 def main():
-    util.setup_basic_logging(console=True)
+    util.setup_basic_logging(console=True, level=logging.INFO)
 
-    settings = {}
-    try:
-        with open('settings.json', 'r') as f:
-            settings = json.loads(f.read())
+    logserver = LogServer()
 
-    except FileNotFoundError:
-        pass
-
-    logserver = LogServer(settings=settings)
-
-    wait_for_signal()
-
-    logserver.stop()
-    logserver.join()    
+    run_all()
 
 
 if __name__ == '__main__':

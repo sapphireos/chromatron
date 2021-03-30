@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,7 @@
 #include "watchdog.h"
 #include "flash25.h"
 #include "system.h"
+#include "keyvalue.h"
 
 #include "esp_image_format.h"
 
@@ -43,7 +44,12 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-extern boot_data_t BOOTDATA boot_data;
+static uint8_t esp_reset;
+
+KV_SECTION_META kv_meta_t hal_cpu_kv[] = {
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &esp_reset,                       0,  "esp_reset_reason" }
+};
+
 uint32_t FW_START_OFFSET;
 
 static void spi_read( uint32_t address, uint32_t *ptr, uint32_t size ){
@@ -100,26 +106,30 @@ void cpu_v_init( void ){
 
     trace_printf("FW_START_OFFSET: 0x%0x\n", FW_START_OFFSET);
     
-#ifndef BOOTLOADER
+    #ifndef BOOTLOADER
     DISABLE_INTERRUPTS;
 
-    esp_pm_config_esp32_t pm_config = { 0 };
-    pm_config.max_freq_mhz = 240;
-    pm_config.min_freq_mhz = 240;
-    pm_config.light_sleep_enable = FALSE;
+    cpu_v_set_clock_speed_high();
 
-    // pm_config.max_freq_mhz = 240;
-    // pm_config.min_freq_mhz = 240;
-    // pm_config.light_sleep_enable = TRUE;
-
-    esp_pm_configure( &pm_config );
-    trace_printf("Setting frequency to %d MHz...\n", pm_config.max_freq_mhz);
+    vTaskDelay(10);
 
     // this loop will hang forever if light_sleep_enable is TRUE
     // while (esp_clk_cpu_freq() / 1000000 != pm_config.max_freq_mhz) {
     //     vTaskDelay(10);
     // }
     #endif    
+
+    #ifndef BOOTLOADER
+    #ifdef CONFIG_FREERTOS_UNICORE
+    trace_printf("CPU: 1 core\n");
+    #else
+    trace_printf("CPU: 2 cores\n");
+    #endif    
+    #endif
+
+    #ifndef BOOTLOADER
+    vTaskDelay(10);
+    #endif
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
@@ -145,6 +155,8 @@ uint8_t cpu_u8_get_reset_source( void ){
     #else
 	esp_reset_reason_t reason = esp_reset_reason();
 
+    esp_reset = reason;
+
 	if( reason == ESP_RST_POWERON ){
 
 		return RESET_SOURCE_POWER_ON;
@@ -157,7 +169,7 @@ uint8_t cpu_u8_get_reset_source( void ){
 
 		return RESET_SOURCE_BROWNOUT;
 	}
-
+    
 	return 0;
     #endif
 }
@@ -177,6 +189,42 @@ void cpu_v_sleep( void ){
 bool cpu_b_osc_fail( void ){
 
     return 0;
+}
+
+void cpu_v_set_clock_speed_low( void ){
+
+    esp_pm_config_esp32_t pm_config = { 0 };
+    #ifdef ESP32_MAX_CPU_160M
+    pm_config.max_freq_mhz = 80;
+    pm_config.min_freq_mhz = 80;
+    #else
+    pm_config.max_freq_mhz = 80;
+    pm_config.min_freq_mhz = 80;
+    #endif
+
+    pm_config.light_sleep_enable = FALSE;
+
+    esp_pm_configure( &pm_config );    
+
+    trace_printf("Setting frequency to %d MHz...\n", pm_config.max_freq_mhz);
+}
+
+void cpu_v_set_clock_speed_high( void ){
+
+    esp_pm_config_esp32_t pm_config = { 0 };
+    #ifdef ESP32_MAX_CPU_160M
+    pm_config.max_freq_mhz = 160;
+    pm_config.min_freq_mhz = 160;
+    #else
+    pm_config.max_freq_mhz = 240;
+    pm_config.min_freq_mhz = 240;
+    #endif
+
+    pm_config.light_sleep_enable = FALSE;
+
+    esp_pm_configure( &pm_config );    
+
+    trace_printf("Setting frequency to %d MHz...\n", pm_config.max_freq_mhz);
 }
 
 uint32_t cpu_u32_get_clock_speed( void ){
@@ -202,4 +250,9 @@ void hal_cpu_v_delay_ms( uint16_t ms ){
 		
 		hal_cpu_v_delay_us( 1000 );
 	}
+}
+
+uint16_t cpu_u16_get_power( void ){
+
+    return 5000;
 }

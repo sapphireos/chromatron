@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -29,10 +29,26 @@
 #include "threading.h"
 #include "random.h"
 #include "list.h"
+#include "hash.h"
 
 #include "services.h"
 
+#define TEST_MODE
+
 #if defined(ENABLE_NETWORK) && defined(ENABLE_SERVICES)
+
+
+#ifdef TEST_MODE
+static uint8_t test_service_priority;
+static uint8_t test_service_mode;
+
+KV_SECTION_META kv_meta_t services_test_kv[] = {
+    { SAPPHIRE_TYPE_UINT8,  0, 0, &test_service_priority,   0,  "test_service_priority" },
+    { SAPPHIRE_TYPE_UINT8,  0, 0, &test_service_mode,       0,  "test_service_mode" },
+};
+
+
+#endif
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -43,8 +59,9 @@
 
 typedef struct __attribute__((packed)){
     uint32_t id;
-    uint32_t group;   
+    uint64_t group;   
 
+    uint64_t server_origin;
     uint16_t server_priority;
     uint32_t server_uptime;
     uint16_t server_port;
@@ -64,8 +81,9 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint32_t id;
-    uint32_t group;
+    uint64_t group;
     sock_addr_t addr;
+    uint32_t hash;
 } service_cache_entry_t;
 
 static socket_t sock;
@@ -84,6 +102,7 @@ static void clear_tracking( service_state_t *service ){
     service->server_uptime         = 0;
     service->server_port           = 0;
     service->server_ip             = ip_a_addr(0,0,0,0);
+    service->server_origin         = 0;
     service->server_valid          = FALSE;
 }
 
@@ -96,10 +115,10 @@ static void _reset_state( service_state_t *service ){
     clear_tracking( service );
 }
 
-// #define reset_state(a) log_v_info_P( PSTR("Reset to LISTEN") ); _reset_state( a )
+// #define reset_state(a) log_v_debug_P( PSTR("Reset to LISTEN") ); _reset_state( a )
 #define reset_state(a) _reset_state( a )
 
-static service_state_t* get_service( uint32_t id, uint32_t group ){
+static service_state_t* get_service( uint32_t id, uint64_t group ){
 
     list_node_t ln = service_list.head;
 
@@ -119,7 +138,7 @@ static service_state_t* get_service( uint32_t id, uint32_t group ){
     return 0;
 }
 
-static bool search_cached_service( file_t f, uint32_t id, uint32_t group, sock_addr_t *raddr ){
+static bool search_cached_service( file_t f, uint32_t id, uint64_t group, sock_addr_t *raddr ){
     
     ASSERT( f > 0 );
 
@@ -137,6 +156,11 @@ static bool search_cached_service( file_t f, uint32_t id, uint32_t group, sock_a
             continue;
         }
 
+        if( entry.hash != hash_u32_data( (uint8_t *)&entry, sizeof(entry) - sizeof(uint32_t) ) ){
+
+            continue;
+        }
+
         // match!
 
         if( raddr != 0 ){
@@ -150,7 +174,7 @@ static bool search_cached_service( file_t f, uint32_t id, uint32_t group, sock_a
     return FALSE;
 }
 
-static bool get_cached_service( uint32_t id, uint32_t group, sock_addr_t *raddr ){
+static bool get_cached_service( uint32_t id, uint64_t group, sock_addr_t *raddr ){
 
     file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
 
@@ -166,7 +190,7 @@ static bool get_cached_service( uint32_t id, uint32_t group, sock_addr_t *raddr 
     return found;
 }
 
-static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t port ){
+static void cache_service( uint32_t id, uint64_t group, ip_addr4_t ip, uint16_t port ){
 
     file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
 
@@ -192,6 +216,8 @@ static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t 
         group,
         raddr,
     };
+
+    entry.hash = hash_u32_data( (uint8_t *)&entry, sizeof(entry) - sizeof(uint32_t) );
 
     if( search_cached_service( f, id, group, 0 ) ){
 
@@ -226,7 +252,7 @@ static void cache_service( uint32_t id, uint32_t group, ip_addr4_t ip, uint16_t 
     log_v_debug_P( PSTR( "cached service") );
 }
 
-static void delete_cached_service( uint32_t id, uint32_t group ){
+static void delete_cached_service( uint32_t id, uint64_t group ){
 
     file_t f = fs_f_open_P( PSTR(SERVICE_FILE), FS_MODE_CREATE_IF_NOT_FOUND );
 
@@ -259,7 +285,7 @@ static void delete_cached_service( uint32_t id, uint32_t group ){
         // overwrite with 0s
         fs_i16_write( f, &entry, sizeof(entry) );
 
-        log_v_debug_P( PSTR("deleting cached service") );
+        // log_v_debug_P( PSTR("deleting cached service") );
 
         break;
     }
@@ -269,6 +295,42 @@ static void delete_cached_service( uint32_t id, uint32_t group ){
 
     return;
 }
+
+
+static void load_cached_service( service_state_t *service ){
+
+    if( !wifi_b_connected() ){
+
+        return;
+    }
+
+    // log_v_debug_P( PSTR("Loading cached services") );
+
+    sock_addr_t raddr;
+    if( get_cached_service( service->id, service->group, &raddr ) ){
+
+        service->server_ip = raddr.ipaddr;
+        service->server_port = raddr.port;
+
+        ip_addr4_t ip;
+        cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
+
+        if( ip_b_addr_compare( ip, service->server_ip ) ){
+
+            service->state = STATE_SERVER;
+
+            // log_v_debug_P( PSTR("loaded cached service: SERVER") );
+        }
+        else{
+
+            service->state = STATE_CONNECTED;
+            service->timeout = SERVICE_CONNECTED_PING_THRESHOLD;
+
+            // log_v_debug_P( PSTR("loaded cached service: CONNECTED") );
+        }
+    }
+}
+
 
 static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
 
@@ -291,6 +353,52 @@ static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
     return len;
 }
 
+
+#ifdef TEST_MODE
+
+PT_THREAD( service_test_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        if( test_service_mode == 0 ){
+
+            services_v_cancel( 1234, 5678 );
+        }
+
+        THREAD_WAIT_WHILE( pt, test_service_mode == 0 );
+
+        if( test_service_mode == 1 ){
+
+            services_v_offer( 1234, 5678, test_service_priority, 1000 );
+
+            THREAD_WAIT_WHILE( pt, test_service_mode == 1 );
+        }
+        else if( test_service_mode == 2 ){
+
+            services_v_listen( 1234, 5678 );
+
+            THREAD_WAIT_WHILE( pt, test_service_mode == 2 );
+        }
+        else if( test_service_mode == 3 ){
+
+            services_v_join_team( 1234, 5678, test_service_priority, 1000 );
+
+            THREAD_WAIT_WHILE( pt, test_service_mode == 3 );
+        }
+        else{
+
+            test_service_mode = 0;
+        }
+    }    
+    
+PT_END( pt );
+}
+
+
+#endif
+
 void services_v_init( void ){
 
     list_v_init( &service_list );
@@ -311,13 +419,54 @@ void services_v_init( void ){
 
     // create vfile
     fs_f_create_virtual( PSTR("serviceinfo"), vfile );
-        
+
+    #ifdef TEST_MODE
+    thread_t_create( service_test_thread,
+                     PSTR("service_test"),
+                     0,
+                     0 );
+
+    #endif
+
+    // uint8_t test = 0;
+    // kv_i8_get( __KV__test_services, &test, sizeof(test) );
+
+    // if( test == 1 ){
+
+    //     log_v_debug_P( PSTR("services test mode enabled: OFFER") );
+
+    //     services_v_offer(1234, 5678, 1, 1);     
+    // }
+    // else if( test == 2 ){
+
+    //     log_v_debug_P( PSTR("services test mode enabled: LISTEN") );
+
+    //     services_v_listen(1234, 5678);     
+    // }
+    // else if( test == 3 ){
+
+    //     log_v_debug_P( PSTR("services test mode enabled: JOIN") );
+
+    //     services_v_join_team(1234, 5678, 1, 1);     
+    // }
+
     // debug
-    // services_v_listen( 0x5678, 0 );
-    // services_v_join_team( 0x1234, 0, 10, 1000 );
+    // if( cfg_u64_get_device_id() == 93172270997720 ){
+
+    //     // services_v_join_team( 0x1234, 0, 11, 1000 );
+
+    //     services_v_offer(1234, 5678, 1, 0);
+    // }
+    // else{
+
+    //     // services_v_join_team( 0x1234, 0, 10, 1000 );
+
+    //     services_v_listen(1234, 5678);
+    // }
 }
 
-void services_v_listen( uint32_t id, uint32_t group ){
+
+void services_v_listen( uint32_t id, uint64_t group ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -344,18 +493,46 @@ void services_v_listen( uint32_t id, uint32_t group ){
     }
 
     list_v_insert_tail( &service_list, ln );    
+
+    delete_cached_service( id, group );
 }
 
-// void services_v_offer( uint32_t id, uint32_t group, uint16_t priority, uint16_t port ){
+void services_v_offer( uint32_t id, uint64_t group, uint16_t priority, uint16_t port ){
+
+    ASSERT( priority > 0 );
     
-    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-    //     return;
-    // }
+        return;
+    }
 
-// }
+    services_v_cancel( id, group );
 
-void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint16_t port ){
+    service_state_t service = {0};
+    service.id                  = id;
+    service.group               = group;
+    service.is_team             = FALSE;
+    service.local_priority      = priority;
+    service.local_port          = port;
+
+    reset_state( &service );
+
+    // offers become server automatically
+    service.state = STATE_SERVER;
+
+    list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+    list_v_insert_tail( &service_list, ln );   
+     
+    delete_cached_service( id, group );
+}
+
+void services_v_join_team( uint32_t id, uint64_t group, uint16_t priority, uint16_t port ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -403,7 +580,7 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
     }
     else{
 
-        log_v_debug_P( PSTR("join: %x %x priority: %d"), id, group, priority );
+        // log_v_debug_P( PSTR("join: %lx %lx priority: %d"), id, group, priority );
     }
 
     service_state_t service = {0};
@@ -415,29 +592,7 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
 
     reset_state( &service );
 
-    sock_addr_t raddr;
-    if( get_cached_service( id, group, &raddr ) ){
-
-        service.server_ip = raddr.ipaddr;
-        service.server_port = raddr.port;
-
-        ip_addr4_t ip;
-        cfg_i8_get( CFG_PARAM_IP_ADDRESS, &ip );
-
-        if( ip_b_addr_compare( ip, service.server_ip ) ){
-
-            service.state = STATE_SERVER;
-
-            log_v_debug_P( PSTR("loaded cached service: SERVER") );
-        }
-        else{
-
-            service.state = STATE_CONNECTED;
-            service.timeout = SERVICE_CONNECTED_PING_THRESHOLD;
-
-            log_v_debug_P( PSTR("loaded cached service: CONNECTED") );
-        }
-    }
+    load_cached_service( &service );
 
     list_node_t ln = list_ln_create_node2( &service, sizeof(service), MEM_TYPE_SERVICE );
 
@@ -449,7 +604,7 @@ void services_v_join_team( uint32_t id, uint32_t group, uint16_t priority, uint1
     list_v_insert_tail( &service_list, ln );    
 }
 
-void services_v_cancel( uint32_t id, uint32_t group ){
+void services_v_cancel( uint32_t id, uint64_t group ){
     
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -480,7 +635,7 @@ void services_v_cancel( uint32_t id, uint32_t group ){
     }
 }
 
-bool services_b_is_available( uint32_t id, uint32_t group ){
+bool services_b_is_available( uint32_t id, uint64_t group ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -508,7 +663,7 @@ bool services_b_is_available( uint32_t id, uint32_t group ){
     return FALSE;
 }
 
-bool services_b_is_server( uint32_t id, uint32_t group ){
+bool services_b_is_server( uint32_t id, uint64_t group ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -530,7 +685,7 @@ bool services_b_is_server( uint32_t id, uint32_t group ){
     return FALSE;
 }
 
-sock_addr_t services_a_get( uint32_t id, uint32_t group ){
+sock_addr_t services_a_get( uint32_t id, uint64_t group ){
 
     sock_addr_t addr;
     memset( &addr, 0, sizeof(addr) );
@@ -558,21 +713,28 @@ sock_addr_t services_a_get( uint32_t id, uint32_t group ){
     return addr;
 }
 
-ip_addr4_t services_a_get_ip( uint32_t id, uint32_t group ){
+ip_addr4_t services_a_get_ip( uint32_t id, uint64_t group ){
 
     sock_addr_t addr = services_a_get( id, group );
 
     return addr.ipaddr;
 }
 
+uint16_t services_u16_get_port( uint32_t id, uint64_t group ){
+
+    sock_addr_t addr = services_a_get( id, group );
+
+    return addr.port;
+}
 
 static void init_header( service_msg_header_t *header, uint8_t type ){
 
     header->magic       = SERVICES_MAGIC;
     header->version     = SERVICES_VERSION;
-    header->type       = type;
+    header->type        = type;
     header->flags       = 0;
     header->reserved    = 0;
+    header->origin      = catbus_u64_get_origin_id();
 }
 
 static bool should_transmit( service_state_t *service ){
@@ -659,6 +821,11 @@ static void transmit_service( service_state_t *service, ip_addr4_t *ip ){
 
     init_header( msg_header, SERVICE_MSG_TYPE_OFFERS );
 
+    if( sys_b_is_shutting_down() ){
+
+        msg_header->flags |= SERVICE_FLAGS_SHUTDOWN;
+    }
+
     service_msg_offer_hdr_t *header = (service_msg_offer_hdr_t *)( msg_header + 1 );
     service_msg_offer_t *pkt = (service_msg_offer_t *)( header + 1 );
 
@@ -692,7 +859,7 @@ static void transmit_service( service_state_t *service, ip_addr4_t *ip ){
             
                 pkt->flags |= SERVICE_OFFER_FLAGS_SERVER;
             }
-            
+
             header->count++;
 
             pkt++;
@@ -727,7 +894,7 @@ static void transmit_service( service_state_t *service, ip_addr4_t *ip ){
     
     if( ip == 0 ){
     
-        raddr.ipaddr = ip_a_addr(255,255,255,255);    
+        raddr.ipaddr = ip_a_addr(SERVICES_MCAST_ADDR);    
     }
     else{
 
@@ -766,7 +933,7 @@ static void transmit_query( service_state_t *service ){
 
         // no server IP, broadcast
 
-        raddr.ipaddr = ip_a_addr(255,255,255,255);
+        raddr.ipaddr = ip_a_addr(SERVICES_MCAST_ADDR);    
     }
     else{
 
@@ -787,6 +954,20 @@ PT_BEGIN( pt );
     
     THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) || ( transmit_count() == 0 ) );
 
+    // load cached services
+    list_node_t ln = service_list.head;
+
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        service_state_t *service = (service_state_t *)list_vp_get_data( ln );
+
+        load_cached_service( service );
+
+        ln = next_ln;
+    }    
+
     TMR_WAIT( pt, rnd_u16_get_int() >> 6 ); // add 1 second of random delay
 
     // initial broadcast offer
@@ -796,7 +977,7 @@ PT_BEGIN( pt );
     
     // initial broadcast query
 
-    list_node_t ln = service_list.head;
+    ln = service_list.head;
 
     while( ln > 0 ){
 
@@ -809,23 +990,36 @@ PT_BEGIN( pt );
         ln = next_ln;
     }
 
-
     while(1){
         
-        TMR_WAIT( pt, SERVICE_RATE );
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + SERVICE_RATE );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
+
+        if( sys_b_is_shutting_down() ){
+
+            goto shutdown;
+        }
 
         THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) || ( transmit_count() == 0 ) );
 
         TMR_WAIT( pt, rnd_u16_get_int() >> 6 ); // add 1 second of random delay
 
         // check if shutting down
-        if( sys_b_shutdown() ){
+        if( sys_b_is_shutting_down() ){
 
-            THREAD_EXIT( pt );
+            goto shutdown;
         }
 
         transmit_service( 0, 0 );
     }    
+
+shutdown:
+
+    transmit_service( 0, 0 );
+    TMR_WAIT( pt, 100 );
+    transmit_service( 0, 0 );
+    TMR_WAIT( pt, 100 );
+    transmit_service( 0, 0 );
     
 PT_END( pt );
 }
@@ -882,13 +1076,10 @@ static bool compare_self( service_state_t *service ){
 
     // uptime is the same (within SERVICE_UPTIME_MIN_DIFF) or server is not valid
 
-    // compare IP addresses
-    ip_addr4_t our_addr;
-    cfg_i8_get( CFG_PARAM_IP_ADDRESS, &our_addr );
+    // compare origins
+    if( catbus_u64_get_origin_id() < service->server_origin ){
 
-    if( ip_u32_to_int( our_addr ) < ip_u32_to_int( service->server_ip ) ){
-
-        log_v_debug_P( PSTR("ip priority") );
+        log_v_debug_P( PSTR("origin priority") );
 
         return TRUE;
     }
@@ -897,7 +1088,7 @@ static bool compare_self( service_state_t *service ){
 }
 
 // true if pkt is better than current leader
-static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip ){
+static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, uint64_t origin ){
 
     // check if a leader is being tracked.
     // if none, the packet wins by default.
@@ -947,10 +1138,10 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
 
     // uptime is the same
 
-    // compare IP addresses
-    if( ip_u32_to_int( *ip ) < ip_u32_to_int( service->server_ip ) ){
+    // compare  origins
+    if( origin < service->server_origin ){
 
-        log_v_debug_P( PSTR("ip priority") );
+        log_v_debug_P( PSTR("origin priority") );
 
         return TRUE;
     }
@@ -958,7 +1149,7 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
     return FALSE;
 }
 
-static void track_node( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip ){
+static void track_node( service_state_t *service, service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip, uint64_t origin_id ){
 
     if( ( offer->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
 
@@ -978,9 +1169,10 @@ static void track_node( service_state_t *service, service_msg_offer_hdr_t *heade
     service->server_uptime     = offer->uptime;
     service->server_port       = offer->port;
     service->server_ip         = *ip;
+    service->server_origin     = origin_id;
 }
 
-static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t *pkt, ip_addr4_t *ip ){
+static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t *pkt, ip_addr4_t *ip, uint64_t origin ){
 
     // look up matching service
     service_state_t *service = get_service( pkt->id, pkt->group );
@@ -1011,11 +1203,14 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 service->timeout   = SERVICE_CONNECTED_TIMEOUT;
             }
             // check priorities
-            else if( compare_server( service, header, pkt, ip ) ){
+            else if( compare_server( service, header, pkt, origin ) ){
 
-                track_node( service, header, pkt, ip );
+                track_node( service, header, pkt, ip, origin );
+
+                log_v_debug_P( PSTR("service switched to %d.%d.%d.%d for %x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id );
             }
         }
+        // NOTE servers have no processing here - they don't track other offers.
     }
     // TEAM:
     // are we already tracking this node?
@@ -1025,11 +1220,11 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
         bool valid = service->server_valid;
 
-        track_node( service, header, pkt, ip );
+        track_node( service, header, pkt, ip, origin );
 
         if( !valid && service->server_valid ){
 
-            log_v_debug_P( PSTR("%d.%d.%d.%d is now valid"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );            
+            log_v_debug_P( PSTR("%d.%d.%d.%d is now valid for %x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id );            
         }
 
         // are we connected to this node?
@@ -1040,12 +1235,12 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
             // did the server reboot and we didn't notice?
             // OR did the server change to invalid?
-            if( ( service->server_uptime > pkt->uptime ) ||
+            if( ( ( (int64_t)service->server_uptime - (int64_t)pkt->uptime ) > SERVICE_UPTIME_MIN_DIFF ) ||
                 ( ( pkt->flags & SERVICE_OFFER_FLAGS_SERVER ) == 0 ) ){
 
                 // reset, maybe there is a better server available
 
-                log_v_debug_P( PSTR("%d.%d.%d.%d is no longer valid"), ip->ip3, ip->ip2, ip->ip1, ip->ip0 );
+                log_v_debug_P( PSTR("%d.%d.%d.%d is no longer valid for %x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id );
 
                 reset_state( service );
 
@@ -1057,7 +1252,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 // no, we are better
                 log_v_debug_P( PSTR("we are a better server") );
 
-                log_v_info_P( PSTR("-> SERVER") );
+                log_v_info_P( PSTR("%x -> SERVER"), service->id );
                 service->state = STATE_SERVER;
 
                 cache_service( service->id, service->group, ip_a_addr(0,0,0,0), service->local_port );
@@ -1072,27 +1267,27 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
         if( service->state == STATE_LISTEN ){
 
             // check if server in packet is better than current tracking
-            if( compare_server( service, header, pkt, ip ) ){
+            if( compare_server( service, header, pkt, origin ) ){
 
-                log_v_debug_P( PSTR("state: LISTEN") );
+                log_v_debug_P( PSTR("%x state: LISTEN"), service->id );
 
-                track_node( service, header, pkt, ip );    
+                track_node( service, header, pkt, ip, origin );    
             }
         }
         else if( service->state == STATE_CONNECTED ){
 
             // check if packet is a better server than current tracking (and this packet is not from the current server)
-            if( !ip_b_addr_compare( *ip, service->server_ip ) && 
-                compare_server( service, header, pkt, ip ) ){
+            if( ( service->server_origin != origin ) && 
+                compare_server( service, header, pkt, origin ) ){
                 
-                log_v_debug_P( PSTR("state: CONNECTED") );
+                log_v_debug_P( PSTR("%x state: CONNECTED"), service->id );
 
-                track_node( service, header, pkt, ip );
+                track_node( service, header, pkt, ip, origin );
 
                 // if tracking is a server
                 if( service->server_valid ){
 
-                    log_v_debug_P( PSTR("hop to better server: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                    log_v_debug_P( PSTR("%x hop to better server: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
 
                     // reset timeout
                     service->timeout   = SERVICE_CONNECTED_TIMEOUT;
@@ -1104,20 +1299,20 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
         else if( service->state == STATE_SERVER ){
 
             // check if this packet is better than current tracking
-            if( compare_server( service, header, pkt, ip ) ){
+            if( compare_server( service, header, pkt, origin ) ){
 
                 // check if server is valid - we will only consider
                 // other valid servers, not candidates
                 if( ( pkt->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
 
-                    track_node( service, header, pkt, ip );
+                    track_node( service, header, pkt, ip, origin );
 
                     // now that we've updated tracking
                     // check if the tracked server is better than us
                     if( !compare_self( service ) ){
 
                         // tracked server is better
-                        log_v_debug_P( PSTR("found a better server: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        log_v_debug_P( PSTR("%x found a better server: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
 
                         log_v_info_P( PSTR("-> CONNECTED") );
 
@@ -1207,6 +1402,7 @@ PT_BEGIN( pt );
 
     sock_v_bind( sock, SERVICES_PORT );
 
+    wifi_i8_igmp_join( ip_a_addr(SERVICES_MCAST_ADDR) );
 
     // start sender
     thread_t_create( service_sender_thread,
@@ -1243,6 +1439,13 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
+        if( header->origin == 0 ){
+
+            log_v_debug_P( PSTR("origin should not be 0: %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+
+            continue;
+        }
+
         if( header->type == SERVICE_MSG_TYPE_OFFERS ){
 
             service_msg_offer_hdr_t *offer_hdr = (service_msg_offer_hdr_t *)( header + 1 );
@@ -1259,9 +1462,31 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            if( header->flags & SERVICE_FLAGS_SHUTDOWN ){
+
+                log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d:%u"), 
+                    raddr.ipaddr.ip3, 
+                    raddr.ipaddr.ip2, 
+                    raddr.ipaddr.ip1, 
+                    raddr.ipaddr.ip0,
+                    raddr.port );    
+            }
+
             while( offer_hdr->count > 0 ){
 
-                process_offer( offer_hdr, offer, &raddr.ipaddr );
+                if( header->flags & SERVICE_FLAGS_SHUTDOWN ){
+
+                    service_state_t *service = get_service( offer->id, offer->group );
+
+                    if( service != 0 ){
+
+                        reset_state( service );
+                    }
+                }
+                else{
+
+                    process_offer( offer_hdr, offer, &raddr.ipaddr, header->origin );    
+                }
 
                 offer++;
                 offer_hdr->count--;
@@ -1330,7 +1555,7 @@ PT_BEGIN( pt );
 
                     if( service->timeout == SERVICE_CONNECTED_WARN_THRESHOLD ){
 
-                        log_v_warn_P( PSTR("server unresponsive") );
+                        log_v_warn_P( PSTR("server unresponsive: %x"), service->id );
                     }
                 }
             }
@@ -1345,7 +1570,7 @@ PT_BEGIN( pt );
                     // do we have a leader?
                     if( service->server_valid && !ip_b_is_zeroes( service->server_ip ) ){
 
-                        log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        log_v_info_P( PSTR("%x -> CONNECTED to: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
                         service->state     = STATE_CONNECTED;   
                         service->timeout   = SERVICE_CONNECTED_TIMEOUT;
 
@@ -1363,7 +1588,7 @@ PT_BEGIN( pt );
                     // compare us to best server we've seen
                     if( compare_self( service ) ){
 
-                        log_v_info_P( PSTR("-> SERVER") );
+                        log_v_info_P( PSTR("%x -> SERVER"), service->id );
                         service->state = STATE_SERVER;
 
                         cache_service( service->id, service->group, ip_a_addr(0,0,0,0), service->local_port );
@@ -1372,7 +1597,7 @@ PT_BEGIN( pt );
                     else if( service->server_valid ){
 
                         // found a leader
-                        log_v_info_P( PSTR("-> CONNECTED to: %d.%d.%d.%d"), service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        log_v_info_P( PSTR("%x -> CONNECTED to: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
                         service->state     = STATE_CONNECTED;
                         service->timeout   = SERVICE_CONNECTED_TIMEOUT;
 
@@ -1392,7 +1617,7 @@ PT_BEGIN( pt );
             }
             else if( service->state == STATE_CONNECTED ){                    
 
-                log_v_info_P( PSTR("CONNECTED timeout: lost server") );
+                log_v_info_P( PSTR("%x CONNECTED timeout: lost server"), service->id );
 
                 reset_state( service );
 
@@ -1404,43 +1629,6 @@ PT_BEGIN( pt );
     }    
     
 PT_END( pt );
-}
-
-
-void service_v_handle_shutdown( ip_addr4_t ip ){
-
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        return;
-    }
-
-    // look for any elections with this IP as a leader, and reset them
-
-    list_node_t ln = service_list.head;
-
-    while( ln > 0 ){
-
-        list_node_t next_ln = list_ln_next( ln );
-
-        service_state_t *service = (service_state_t *)list_vp_get_data( ln );
-
-        // if we are server, then obviously we are not shutting down
-        // this routine is for other nodes sending their shutdown message
-        if( service->state == STATE_SERVER ){
-
-            goto next;
-        }
-
-        if( ip_b_addr_compare( service->server_ip, ip ) ){
-
-            log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d"), ip.ip3, ip.ip2, ip.ip1, ip.ip0 );
-
-            reset_state( service );
-        }
-
-next:
-        ln = next_ln;
-    }
 }
 
 #endif

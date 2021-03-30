@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -65,6 +65,7 @@ int8_t vmsync_i8_kv_handler(
 
 KV_SECTION_META kv_meta_t vm_sync_kv[] = {
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, vmsync_i8_kv_handler,   "gfx_sync_group" },
+    { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, &sync_state, 0,            "gfx_sync_state" },
 };
 
 
@@ -170,6 +171,10 @@ static void send_sync( sock_addr_t *raddr ){
     msg.tick                    = state->tick;
     msg.loop_tick               = state->loop_tick;
     msg.rng_seed                = state->rng_seed;
+    msg.frame_number            = state->frame_number;
+
+    msg.checkpoint              = vm_u32_get_checkpoint();
+    msg.checkpoint_hash         = vm_u32_get_checkpoint_hash();
     
     msg.data_len                = state->data_len;
     msg.max_threads             = VM_MAX_THREADS;
@@ -237,6 +242,8 @@ PT_BEGIN( pt );
 
     THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
 
+    log_v_debug_P( PSTR("starting VM sync server") );
+
     sock = sock_s_create( SOS_SOCK_DGRAM ); 
 
     thread_t_create( vm_sync_thread,
@@ -249,10 +256,10 @@ PT_BEGIN( pt );
 
     	THREAD_WAIT_WHILE( pt, 
             ( sock_i8_recvfrom( sock ) < 0 ) &&
-             ( !sys_b_shutdown() ) );
+             ( !sys_b_is_shutting_down() ) );
 
     	// check if shutting down
-    	if( sys_b_shutdown() ){
+    	if( sys_b_is_shutting_down() ){
 
     		THREAD_EXIT( pt );
     	}
@@ -278,6 +285,8 @@ PT_BEGIN( pt );
         sock_v_get_raddr( sock, &raddr );
 
         if( header->type == VM_SYNC_MSG_SYNC ){
+
+            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC") );
 
             // are we leader?
             if( vm_sync_b_is_leader() ){
@@ -318,6 +327,7 @@ PT_BEGIN( pt );
                 vm_state->tick         = msg->tick;
                 vm_state->loop_tick    = msg->loop_tick;
                 vm_state->rng_seed     = msg->rng_seed;
+                vm_state->frame_number = msg->frame_number;
 
                 uint8_t thread_count = VM_MAX_THREADS;
 
@@ -333,9 +343,27 @@ PT_BEGIN( pt );
                 }
 
                 // log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
-            }            
+            }
+            else if( sync_state == STATE_SYNC ){
+
+                // verify checkpoint
+                if( vm_u32_get_checkpoint() == msg->checkpoint ){
+
+                    if( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ){
+
+                        log_v_warn_P( PSTR("checkpoint hash mismatch!: %x -> %x @ %u"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash(), vm_u32_get_checkpoint() );
+                        vm_sync_v_reset();
+                    }
+                }
+                else{
+
+                    // log_v_debug_P( PSTR("checkpoint frame mismatch: %u -> %u"), msg->checkpoint, vm_u32_get_checkpoint() );
+                }
+            }
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
+
+            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_REQ") );
 
             // are we leader?
             if( !vm_sync_b_is_leader() ){
@@ -350,9 +378,20 @@ PT_BEGIN( pt );
 
             if( msg->request_data ){
 
+                // log_v_debug_P( PSTR("msg->request_data") );
+
                 // send data
                 uint16_t offset = 0;
                 uint16_t data_len = vm_u16_get_data_len();
+
+                // TODO
+                // need to split the chunk transmission with some delays.
+                // most VM programs only use a single chunk though.
+
+                if( data_len > VM_SYNC_MAX_DATA_LEN ){
+
+                    log_v_debug_P( PSTR("vm sync data multiple chunks: %d"), data_len );
+                }
 
                 while( offset < data_len ){
 
@@ -363,10 +402,7 @@ PT_BEGIN( pt );
                         chunk_size = data_len;
                     }
 
-                    // fix params!
-                    int32_t *data_ptr = vm_i32p_get_data();
-
-                    send_data( data_ptr, chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
+                    send_data( vm_i32p_get_data(), chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
 
                     offset += chunk_size;
                 } 
@@ -374,8 +410,16 @@ PT_BEGIN( pt );
         }
         else if( header->type == VM_SYNC_MSG_DATA ){
 
+            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_DATA") );
+
             // are we leader?
             if( vm_sync_b_is_leader() ){
+
+                continue;
+            }
+
+            // are we syncing?
+            if( sync_state != STATE_SYNCING ){
 
                 continue;
             }
@@ -410,6 +454,8 @@ PT_BEGIN( pt );
     while( TRUE ){
 
         vm_sync_v_reset();
+
+        TMR_WAIT( pt, 1000 );
 
         // wait until time sync
         THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
@@ -473,8 +519,6 @@ PT_BEGIN( pt );
                 break;
             }
         }
-
-        TMR_WAIT( pt, 1000 );
     }
 
 PT_END( pt );

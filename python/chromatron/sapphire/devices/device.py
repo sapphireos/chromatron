@@ -3,7 +3,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -440,7 +440,7 @@ class Device(object):
     def set_security_key(self, key_id, key):
         raise NotImplementedError
         
-    def echo(self, data='\0' * 32):
+    def echo(self):
         try:
             return self._client.ping()
 
@@ -449,6 +449,20 @@ class Device(object):
 
     def reboot(self):    
         return self.set_key('reboot', SYS_REBOOT_NORMAL)
+
+    def wait(self, timeout=60.0):    
+        start = time.time()
+
+        while (time.time() - start) < timeout:
+            try:
+                self.echo()
+
+                return
+
+            except DeviceUnreachableException:
+                pass
+
+        raise DeviceUnreachableException
 
     def safe_mode(self):
         return self.set_key('reboot', SYS_REBOOT_SAFE)
@@ -643,9 +657,60 @@ class Device(object):
 
         return info
 
+    def get_service(self, service_id, group):
+        services = self.get_service_info()
+
+        for s in services:
+            if s.id == service_id and s.group == group:
+                return s
+
+        return None
+
+    # helper for testing mostly
+    def wait_service(self, service_id, group, state=None, timeout=30.0):
+        start = time.time()
+        while time.time() - start < timeout:
+            time.sleep(0.2)
+            s = self.get_service(service_id, group)
+
+            if s is None:
+                continue
+
+            if s.state == 0:
+                continue
+
+            if state is not None:
+                if s.state != state:
+                    continue
+
+            return s
+
+        return None
+
     def get_event_log(self):
         data = self.get_file("event_log")
         info = sapphiredata.EventArray()
+        info.unpack(data)
+
+        return info
+
+    def get_link_info(self):
+        data = self.get_file("link_info")
+        info = sapphiredata.LinkInfoArray()
+        info.unpack(data)
+
+        return info
+
+    def get_link_consumer_info(self):
+        data = self.get_file("link_consumers")
+        info = sapphiredata.LinkConsumerInfoArray()
+        info.unpack(data)
+
+        return info
+
+    def get_link_producer_info(self):
+        data = self.get_file("link_producers")
+        info = sapphiredata.LinkProducerInfoArray()
         info.unpack(data)
 
         return info
@@ -668,7 +733,7 @@ class Device(object):
     def cli_echo(self, line):
         start = time.time()
 
-        self.echo(line)
+        self.echo()
 
         elapsed = time.time() - start
 
@@ -1074,7 +1139,7 @@ class Device(object):
                 2: 'server',
             }
         
-        s = "\nService     Group      IP          Port  Priority    Uptime   Timeout | State\n"
+        s = "\nService  Group               IP           Port  Priority    Uptime    Timeout | State\n"
 
         # iterate over service cache entries
         for e in serviceinfo:
@@ -1085,7 +1150,7 @@ class Device(object):
                 uptime = e.server_uptime
                 port = e.server_port
 
-            s += "%8x %8x %15s %5d %3d     %7d     %3d         %-10s\n" % \
+            s += "%8x %16x %15s %5d %3d     %7d     %3d         %-10s\n" % \
                 (e.id,
                  e.group,
                  e.server_ip,
@@ -1096,6 +1161,37 @@ class Device(object):
                  states[e.state])
 
         return s
+
+    def cli_linkinfo(self, line):
+        s = 'Links:\n'
+        try:
+            linkinfo = self.get_link_info()
+            for info in linkinfo:
+                s += str(info) + '\n'
+
+        except IOError:
+            pass
+
+        s += 'Producers:\n'
+        try:
+            linkinfo = self.get_link_producer_info()
+            for info in linkinfo:
+                s += str(info) + '\n'
+
+        except IOError:
+            pass
+
+        s += 'Consumers:\n'
+        try:
+            linkinfo = self.get_link_consumer_info()
+            for info in linkinfo:
+                s += str(info) + '\n'
+
+        except IOError:
+            pass
+        
+        return s
+    
 
     def cli_eventlog(self, line):
         events = sorted(self.get_event_log(), key=lambda evt: evt.timestamp)

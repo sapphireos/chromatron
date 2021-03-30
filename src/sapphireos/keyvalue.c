@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -48,8 +48,8 @@ static uint32_t kv_persist_writes;
 static int32_t kv_test_key;
 static int32_t kv_test_array[4];
 
-static int16_t cached_index = -1;
-static catbus_hash_t32 cached_hash;
+static uint8_t kv_cache_index;
+static kv_hash_index_t kv_cache[KV_CACHE_SIZE];
 
 static const PROGMEM char kv_data_fname[] = "kv_data";
 
@@ -156,6 +156,33 @@ uint16_t kv_u16_count( void ){
     return count;
 }
 
+
+int16_t _kv_i16_search_cache( catbus_hash_t32 hash ){
+
+    for( uint8_t i = 0; i < cnt_of_array(kv_cache); i++ ){
+
+        if( kv_cache[i].hash == hash ){
+
+            return kv_cache[i].index;
+        }
+    }
+
+    return -1;
+}
+
+void _kv_v_add_to_cache( catbus_hash_t32 hash, int16_t index ){
+
+    kv_cache[kv_cache_index].hash = hash;
+    kv_cache[kv_cache_index].index = index;
+
+    kv_cache_index++;
+
+    if( kv_cache_index >= cnt_of_array(kv_cache) ){
+
+        kv_cache_index = 0;
+    }
+}
+
 int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
     // check if hash exists
@@ -165,7 +192,9 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     }
 
     // check cache
-    if( cached_hash == hash ){
+    int16_t cached_index = _kv_i16_search_cache( hash );
+
+    if( cached_index >= 0 ){
 
         return cached_index;
     }
@@ -204,10 +233,9 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
         else if( index_entry.hash == hash ){
 
             // update cache
-            cached_hash = hash;
-            cached_index = index_entry.index;
+            _kv_v_add_to_cache( index_entry.hash, index_entry.index );
 
-            return cached_index;
+            return index_entry.index;
         }
         else{
 
@@ -222,11 +250,13 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
     if( index >= 0 ){
 
-        // update cache
-        cached_hash = hash;
-        cached_index = _kv_u16_fixed_count() + index;
+        // offset into dynamic
+        index += _kv_u16_fixed_count();
 
-        return cached_index;
+        // update cache
+        _kv_v_add_to_cache( hash, index );
+
+        return index;
     }
 
     return KV_ERR_STATUS_NOT_FOUND;
@@ -234,7 +264,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
 void kv_v_reset_cache( void ){
 
-    cached_hash = 0;
+    memset( kv_cache, 0, sizeof(kv_cache) );
 }
 
 int8_t lookup_index( uint16_t index, kv_meta_t *meta )
@@ -295,9 +325,9 @@ int8_t kv_i8_lookup_index_with_name( uint16_t index, kv_meta_t *meta ){
 
     // static KV already loads the name.
     // check if dynamic
-    if( index < kv_u16_count() ){
+    if( ( index >= _kv_u16_fixed_count() ) && ( index < kv_u16_count() ) ){
 
-        kvdb_i8_lookup_name( meta->hash, meta->name );    
+        status = kvdb_i8_lookup_name( meta->hash, meta->name );    
     }
 
     return status;
@@ -307,9 +337,9 @@ uint16_t kv_u16_get_size_meta( kv_meta_t *meta ){
 
     uint16_t type_len = type_u16_size( meta->type );
 
-    if( type_len == CATBUS_TYPE_INVALID ){
+    if( type_len == CATBUS_TYPE_SIZE_INVALID ){
 
-        return CATBUS_TYPE_INVALID;
+        return CATBUS_TYPE_SIZE_INVALID;
     }
 
     type_len *= ( (uint16_t)meta->array_len + 1 );
@@ -345,7 +375,7 @@ int8_t kv_i8_lookup_hash_with_name(
     return kv_i8_lookup_index_with_name( index, meta );
 }
 
-int8_t kv_i8_get_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
+int8_t kv_i8_get_catbus_meta( catbus_hash_t32 hash, catbus_meta_t *meta ){
 
     kv_meta_t kv_meta;
     if( kv_i8_lookup_hash( hash, &kv_meta ) < 0 ){
@@ -1038,12 +1068,6 @@ end:
 
 PT_END( pt );
 }
-
-int8_t kv_i8_publish( catbus_hash_t32 hash ){
-    
-    return catbus_i8_publish( hash );
-}
-
 
 uint8_t kv_u8_get_dynamic_count( void ){
 

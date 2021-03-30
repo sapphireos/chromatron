@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -80,6 +80,7 @@ uint32_t flash25_u32_read_capacity_from_info( void ){
 
 			break;
 
+        case FLASH_MFG_ST:
         case FLASH_MFG_WINBOND:
         case FLASH_MFG_BERG:
         case FLASH_MFG_GIGADEVICE:

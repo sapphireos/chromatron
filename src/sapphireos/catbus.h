@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -27,6 +27,7 @@
 
 #include "catbus_common.h"
 #include "catbus_types.h"
+#include "catbus_link.h"
 #include "ntp.h"
 #include "list.h"
 
@@ -35,20 +36,10 @@
 #define CATBUS_VERSION                      1
 #define CATBUS_MEOW                         0x574f454d // 'MEOW'
 
-#define CATBUS_ANNOUNCE_INTERVAL            8
-#define CATBUS_MAX_RECEIVE_LINKS            16
-#define CATBUS_MAX_SEND_LINKS               16
+#define CATBUS_ANNOUNCE_MCAST_ADDR          239,43,96,30
+
+#define CATBUS_ANNOUNCE_INTERVAL            24
 #define CATBUS_MAX_FILE_SESSIONS            4
-#define CATBUS_LINK_TIMEOUT                 64            
-
-
-typedef struct __attribute__((packed)){
-    catbus_meta_t meta;
-    // variable length data follows
-    uint8_t data; // convenient dereferencing point to first byte
-} catbus_data_t;
-
-typedef int16_t catbus_link_t;
 
 typedef struct __attribute__((packed)){
     uint32_t meow;
@@ -64,7 +55,6 @@ typedef struct __attribute__((packed)){
 #define CATBUS_MSG_GENERAL_GROUP_OFFSET         1
 #define CATBUS_MSG_DISCOVERY_GROUP_OFFSET       10
 #define CATBUS_MSG_DATABASE_GROUP_OFFSET        20
-#define CATBUS_MSG_LINK_GROUP_OFFSET            40
 #define CATBUS_MSG_FILE_GROUP_OFFSET            60
 
 #define CATBUS_STATUS_CHANGED                   1
@@ -81,8 +71,6 @@ typedef struct __attribute__((packed)){
 #define CATBUS_ERROR_FILESYSTEM_FULL            0x0102
 #define CATBUS_ERROR_FILESYSTEM_BUSY            0x0103
 #define CATBUS_ERROR_INVALID_FILE_SESSION       0x0104
-
-#define CATBUS_ERROR_LINK_EOF                   0x0201
 
 
 // GENERAL
@@ -174,63 +162,6 @@ typedef struct __attribute__((packed)){
     catbus_data_t first_data; // additional data may follows
 } catbus_msg_key_data_t;
 #define CATBUS_MSG_TYPE_KEY_DATA                ( 7 + CATBUS_MSG_DATABASE_GROUP_OFFSET )
-
-
-// LINK
-#define CATBUS_MSG_DATA_FLAG_TIME_SYNC          0x01
-
-typedef struct __attribute__((packed)){
-    catbus_header_t header;
-    uint8_t flags;
-    uint16_t data_port;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
-    catbus_query_t query;
-    catbus_hash_t32 tag;
-} catbus_msg_link_t;
-#define CATBUS_MSG_TYPE_LINK                    ( 1 + CATBUS_MSG_LINK_GROUP_OFFSET )
-
-typedef struct __attribute__((packed)){
-    catbus_header_t header;
-    uint8_t flags;
-    ntp_ts_t ntp_timestamp;
-    catbus_query_t source_query;
-    catbus_hash_t32 source_hash;
-    catbus_hash_t32 dest_hash;
-    uint16_t sequence;
-    catbus_data_t data;
-} catbus_msg_link_data_t;
-#define CATBUS_MSG_TYPE_LINK_DATA               ( 2 + CATBUS_MSG_LINK_GROUP_OFFSET )
-
-typedef struct __attribute__((packed)){
-    catbus_header_t header;
-    uint16_t index;
-} catbus_msg_link_get_t;
-#define CATBUS_MSG_TYPE_LINK_GET                ( 3 + CATBUS_MSG_LINK_GROUP_OFFSET )
-
-// same message as catbus_msg_link_t
-#define CATBUS_MSG_TYPE_LINK_META               ( 4 + CATBUS_MSG_LINK_GROUP_OFFSET )
-
-typedef struct __attribute__((packed)){
-    catbus_header_t header;
-    catbus_hash_t32 tag;
-} catbus_msg_link_delete_t;
-#define CATBUS_MSG_TYPE_LINK_DELETE             ( 5 + CATBUS_MSG_LINK_GROUP_OFFSET )
-
-typedef struct __attribute__((packed)){
-    catbus_header_t header;
-    uint8_t flags;
-    catbus_string_t source_key;
-    catbus_string_t dest_key;
-    catbus_string_t query[CATBUS_QUERY_LEN];
-    catbus_string_t tag;
-} catbus_msg_link_add_t;
-#define CATBUS_MSG_TYPE_LINK_ADD                ( 6 + CATBUS_MSG_LINK_GROUP_OFFSET )
-
-// empty message
-#define CATBUS_MSG_TYPE_LINK_OK                 ( 7 + CATBUS_MSG_LINK_GROUP_OFFSET )
-
-
 
 // FILE
 typedef struct __attribute__((packed)){
@@ -326,19 +257,6 @@ typedef struct __attribute__((packed)){
 
 void catbus_v_init( void );
 
-catbus_link_t catbus_l_send( catbus_hash_t32 source_hash, 
-                             catbus_hash_t32 dest_hash, 
-                             catbus_query_t *dest_query,
-                             catbus_hash_t32 tag,
-                             uint8_t flags );
-catbus_link_t catbus_l_recv( catbus_hash_t32 dest_hash, 
-                             catbus_hash_t32 source_hash, 
-                             catbus_query_t *source_query,
-                             catbus_hash_t32 tag,
-                             uint8_t flags );
-
-void catbus_v_purge_links( catbus_hash_t32 tag );
-
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
     catbus_type_t8 type,
@@ -365,12 +283,13 @@ int8_t catbus_i8_array_get(
     uint16_t count,
     void *data );
 
-int8_t catbus_i8_publish( catbus_hash_t32 hash );
-
 void catbus_v_set_options( uint32_t options );
-#define CATBUS_OPTION_LINK_DISABLE      0x00000001
 
 void catbus_v_shutdown( void );
+
+uint64_t catbus_u64_get_origin_id( void );
+const catbus_hash_t32* catbus_hp_get_tag_hashes( void );
+bool catbus_b_query_self( catbus_query_t *query );
 
 #endif
 

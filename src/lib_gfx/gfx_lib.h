@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -156,7 +156,12 @@ uint16_t gfx_u16_get_pix0_blue( void );
 
 void gfx_v_clear( void );
 void gfx_v_shutdown_graphic( void );
-void gfx_v_reset_faders( void );
+
+void gfx_b_enable( void );
+void gfx_b_disable( void );
+
+bool gfx_b_enabled( void );
+void gfx_v_set_pixel_power( bool enabled );
 
 void gfxlib_v_init( void );
 
@@ -169,7 +174,13 @@ void gfx_v_delete_pixel_arrays( void );
 void gfx_v_init_noise( void );
 uint16_t gfx_u16_noise( uint16_t x );
 
+uint32_t gfx_u32_get_pixel_r( void );
+uint32_t gfx_u32_get_pixel_g( void );
+uint32_t gfx_u32_get_pixel_b( void );
+uint32_t gfx_u32_get_pixel_w( void );
+
 // implemented by VM to signal frame rate changes
 void gfx_vm_v_update_frame_rate( uint16_t new_frame_rate );
+
 
 #endif

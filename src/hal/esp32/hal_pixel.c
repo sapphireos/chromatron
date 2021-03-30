@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -254,6 +254,20 @@ PT_BEGIN( pt );
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
+
+        if( !gfx_b_enabled() ){
+
+            // shut down pixel driver IO
+            spi_v_release();
+
+            THREAD_WAIT_WHILE( pt, !gfx_b_enabled() );
+
+            // re-enable pixel drivers
+            hal_pixel_v_configure();
+            
+            // restart loop
+            continue;
+        }
 
         uint16_t *h = gfx_u16p_get_hue();
         uint16_t *s = gfx_u16p_get_sat();

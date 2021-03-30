@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -138,13 +138,10 @@ static const char* vm_names[VM_MAX_VMS] = {
 static const PROGMEM uint32_t restricted_keys[] = {
     __KV__reboot,
     __KV__wifi_enable_ap,
-    __KV__wifi_fw_len,
-    __KV__wifi_md5,
     __KV__wifi_router,
     __KV__pix_clock,
     __KV__pix_count,
-    __KV__pix_mode,
-    __KV__catbus_data_port,    
+    __KV__pix_mode,    
 };
 
 static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
@@ -179,7 +176,7 @@ static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 static void reset_published_data( uint8_t vm_id ){
 
     kvdb_v_clear_tag( 0, 1 << vm_id );
-    catbus_v_purge_links( get_link_tag( vm_id ) );
+    link_v_delete_by_tag( get_link_tag( vm_id ) );
 } 
 
 static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
@@ -222,8 +219,7 @@ static bool is_vm_running( uint8_t vm_id ){
 static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle ){
 
     uint32_t start_time = tmr_u32_get_system_time_ms();
-    catbus_hash_t32 link_tag = get_link_tag( vm_id );
-
+    
     *handle = -1;
     
 
@@ -441,6 +437,7 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
     // set up links
     fs_v_seek( f, sizeof(vm_size) + state.link_start );
+    catbus_hash_t32 link_tag = get_link_tag( vm_id );
 
     for( uint8_t i = 0; i < state.link_count; i++ ){
 
@@ -448,14 +445,15 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
         fs_i16_read( f, (uint8_t *)&link, sizeof(link) );
 
-        if( link.send ){
-
-            catbus_l_send( link.source_hash, link.dest_hash, &link.query, link_tag, 0 );
-        }
-        else{
-
-            catbus_l_recv( link.dest_hash, link.source_hash, &link.query, link_tag, 0 );
-        }
+        link_l_create( 
+            link.mode,
+            link.source_key,
+            link.dest_key,
+            &link.query,
+            link_tag,
+            link.rate,
+            link.aggregation,
+            LINK_FILTER_OFF );            
     }
 
     // load cron jobs
@@ -498,7 +496,8 @@ typedef struct{
 #ifdef ENABLE_TIME_SYNC
 static uint32_t vm0_sync_ts;
 static uint64_t vm0_sync_ticks;
-#endif
+static uint32_t vm0_checkpoint;
+static uint32_t vm0_checkpoint_hash;
 
 void vm_v_sync( uint32_t ts, uint64_t ticks ){
 
@@ -516,6 +515,54 @@ uint32_t vm_u32_get_sync_time( void ){
 uint64_t vm_u64_get_sync_tick( void ){
 
     return vm0_sync_ticks;
+}
+
+uint32_t vm_u32_get_checkpoint( void ){
+
+    return vm0_checkpoint;
+}
+
+uint32_t vm_u32_get_checkpoint_hash( void ){
+
+    return vm0_checkpoint_hash;
+}
+
+uint64_t vm_u64_get_tick( void ){
+
+    vm_state_t *state = vm_p_get_state();
+
+    if( state == 0 ){
+
+        return 0;
+    }
+
+    return state->tick;
+}
+
+uint64_t vm_u64_get_frame( void ){
+
+    vm_state_t *state = vm_p_get_state();
+
+    if( state == 0 ){
+
+        return 0;
+    }
+
+    return state->frame_number;
+}
+
+uint32_t vm_u32_get_data_hash( void ){
+
+    if( vm_threads[0] <= 0 ){
+
+        return 0;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );        
+
+    uint8_t *data = (uint8_t *)vm_i32p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+
+    return hash_u32_data( data, state->vm_state.data_len );
 }
 
 uint16_t vm_u16_get_data_len( void ){
@@ -541,6 +588,10 @@ int32_t* vm_i32p_get_data( void ){
 
     return vm_i32p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );   
 }
+
+
+#endif
+
 
 // return state for VM 0.
 // Use with caution!
@@ -606,7 +657,7 @@ PT_BEGIN( pt );
     state->vm_state.rng_seed = rng_seed;
 
     // init database
-    vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
+    // vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
 
     // run VM init
     state->vm_return = vm_i8_run_init( mem2_vp_get_ptr( state->handle ), &state->vm_state );
@@ -618,6 +669,14 @@ PT_BEGIN( pt );
         goto exit;
     }
 
+    #ifdef ENABLE_TIME_SYNC
+    // set initial checkpoint
+    vm0_checkpoint = state->vm_state.frame_number;
+    vm0_checkpoint_hash = vm_u32_get_data_hash();
+
+    // log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
+    #endif
+
     vm_status[state->vm_id] = VM_STATUS_OK;
 
     state->last_run = tmr_u32_get_system_time_ms();
@@ -627,6 +686,7 @@ PT_BEGIN( pt );
 
         state->delay_adjust = 0;
         
+        #ifdef ENABLE_TIME_SYNC
         if( state->vm_id == 0 ){
 
             // check if syncing VM and hold if so
@@ -637,6 +697,7 @@ PT_BEGIN( pt );
                 // we will run immediately.
             }
         }
+        #endif
 
         uint64_t next_tick = vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state );
         state->vm_delay = (int64_t)next_tick - (int64_t)state->vm_state.tick;
@@ -666,7 +727,7 @@ PT_BEGIN( pt );
         }        
         // VM sync stuff, only for VM 0
         else if( state->vm_id == 0 ){
-            
+            #ifdef ENABLE_TIME_SYNC
             // check if vm is a synced follower
             if( vm_sync_b_is_follower() ){
 
@@ -677,7 +738,14 @@ PT_BEGIN( pt );
 
                 state->delay_adjust = 0;
 
-                if( sync_delta > 100 ){
+
+                if( ( sync_delta > 4000 ) || ( sync_delta < -4000 ) ){
+
+                    log_v_debug_P( PSTR("lost sync: %d resetting %u %d %u %u %u"), sync_delta, net_time, elapsed, (uint32_t)current_vm_net_tick, vm0_sync_ts, vm0_sync_ticks );        
+
+                    vm_sync_v_reset();
+                }
+                else if( sync_delta > 100 ){
 
                     state->delay_adjust = -100;
                 }
@@ -702,11 +770,12 @@ PT_BEGIN( pt );
                     state->delay_adjust = 1;
                 }
 
-                // if( state->delay_adjust != 0 ){
+                if( state->delay_adjust != 0 ){
 
-                //     log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
-                // }
+                    // log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
+                }
             }
+            #endif
         }
 
         if( state->vm_id == 0 ){
@@ -734,6 +803,7 @@ PT_BEGIN( pt );
             goto exit;
         }
 
+        #ifdef ENABLE_TIME_SYNC
         // check if syncing
         if( ( state->vm_id == 0 ) && vm_sync_b_in_progress() ){
 
@@ -742,6 +812,7 @@ PT_BEGIN( pt );
 
             continue;
         }
+        #endif
 
         if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
 
@@ -760,12 +831,27 @@ PT_BEGIN( pt );
         // run VM
         state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
 
+        #ifdef ENABLE_TIME_SYNC
         if( ( state->vm_id == 0 ) && ( vm_sync_b_is_leader() ) ){
 
             // record network timestamp and current VM tick
             vm0_sync_ts = time_u32_get_network_time();
             vm0_sync_ticks = state->vm_state.tick;   
         }
+
+        if( ( state->vm_id == 0 ) && ( vm_sync_b_is_synced() ) ){
+
+            // check if it is time for a checkpoint
+            if( ( state->vm_state.frame_number % SYNC_CHECKPOINT ) == 0 ){
+
+                vm0_checkpoint = state->vm_state.frame_number;
+                vm0_checkpoint_hash = vm_u32_get_data_hash();
+
+                // log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
+            }
+        }
+
+        #endif
         
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
@@ -780,6 +866,17 @@ PT_BEGIN( pt );
         //     (int32_t)state->vm_state.threads[0].tick, 
         //     (int32_t)state->vm_state.threads[1].tick );
 
+        // if( ( state->vm_id == 0 ) && ( state->vm_return == VM_STATUS_OK ) ){
+
+        //     log_v_debug_P( PSTR("%d l:%d 1:%d 2:%d 3:%d 4:%d r: %x"), 
+        //         (int32_t)state->vm_state.tick, 
+        //         (int32_t)state->vm_state.loop_tick, 
+        //         (int32_t)state->vm_state.threads[1].tick,
+        //         (int32_t)state->vm_state.threads[2].tick,
+        //         (int32_t)state->vm_state.threads[3].tick,
+        //         (int32_t)state->vm_state.threads[4].tick, 
+        //         (uint32_t)state->vm_state.rng_seed );
+        // }
 
         // clear all run flags
         vm_run_flags[state->vm_id] = 0;        

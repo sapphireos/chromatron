@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -150,20 +150,83 @@ void util_v_bubble_sort_u16( uint16_t *array, uint8_t len ){
     } while( swapped );
 }
 
+void util_v_bubble_sort_u32( uint32_t *array, uint8_t len ){
+
+    // bubble sort
+    bool swapped;
+    do{
+
+        swapped = FALSE;
+    
+        for( uint8_t i = 1; i < len; i++ ){            
+
+            if( array[i - 1] > array[i] ){
+
+                // swap values
+                uint32_t temp = array[i];
+                array[i] = array[i - 1];
+                array[i - 1] = temp;
+
+                swapped = TRUE;
+            }
+        }                
+
+    } while( swapped );
+}
+
+
+void util_v_bubble_sort_reversed_u32( uint32_t *array, uint8_t len ){
+
+    // bubble sort
+    bool swapped;
+    do{
+
+        swapped = FALSE;
+    
+        for( uint8_t i = 1; i < len; i++ ){            
+
+            if( array[i - 1] < array[i] ){
+
+                // swap values
+                uint32_t temp = array[i];
+                array[i] = array[i - 1];
+                array[i - 1] = temp;
+
+                swapped = TRUE;
+            }
+        }                
+
+    } while( swapped );
+}
+
 int16_t util_i16_ewma( int16_t new, int16_t old, uint8_t ratio ){
 
     int16_t temp = ( ( (int32_t)ratio * new ) / 256 ) +  
                    ( ( (int32_t)( 256 - ratio ) * old ) / 256 );
 
+    // check if filter is unchanging
+    if( temp == old ){
+
+        // adjust by minimum
+        if( new > old ){
+
+            temp++;
+        }
+        else if( new < old ){
+
+            temp--;
+        }
+    }   
+
     // check for rounding errors
-    if( ( new > old ) && ( temp < old ) ){
+    // if( ( new > old ) && ( temp < old ) ){
 
-        temp = old;
-    }
-    else if( ( new < old ) && ( temp > old ) ){
+    //     temp = old;
+    // }
+    // else if( ( new < old ) && ( temp > old ) ){
 
-        temp = old;
-    }
+    //     temp = old;
+    // }
 
     return temp;
 }
@@ -173,15 +236,29 @@ uint16_t util_u16_ewma( uint16_t new, uint16_t old, uint8_t ratio ){
     uint16_t temp = ( ( (uint32_t)ratio * new ) / 256 ) +  
                     ( ( (uint32_t)( 256 - ratio ) * old ) / 256 );
 
+    // check if filter is unchanging
+    if( temp == old ){
+
+        // adjust by minimum
+        if( new > old ){
+
+            temp++;
+        }
+        else if( new < old ){
+
+            temp--;
+        }
+    }   
+
     // check for rounding errors
-    if( ( new > old ) && ( temp < old ) ){
+    // if( ( new > old ) && ( temp < old ) ){
 
-        temp = old;
-    }
-    else if( ( new < old ) && ( temp > old ) ){
+    //     temp = old;
+    // }
+    // else if( ( new < old ) && ( temp > old ) ){
 
-        temp = old;
-    }
+    //     temp = old;
+    // }
 
     return temp;
 }

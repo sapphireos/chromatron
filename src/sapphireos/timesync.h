@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -85,7 +85,6 @@ typedef struct __attribute__((packed)){
 
 
 void time_v_init( void );
-void time_v_handle_shutdown( ip_addr4_t ip );
 
 bool time_b_is_local_sync( void );
 bool time_b_is_ntp_sync( void );

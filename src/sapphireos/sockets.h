@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -101,5 +101,7 @@ void sock_v_init( void );
 uint8_t sock_u8_count( void );
 
 void sock_v_process_timeouts( void );
+
+bool sock_b_addr_compare( sock_addr_t *addr1, sock_addr_t *addr2 );
 
 #endif

@@ -5,11 +5,6 @@ import uuid
 import json
 import binascii
 import inspect
-try:
-    from builtins import range
-
-except ImportError:
-    from builtins import range
 
 from string import printable
 from collections import OrderedDict
@@ -268,6 +263,17 @@ class FloatField(Field):
     def pack(self):
         return struct.pack('<f', self._value)
 
+class DoubleField(FloatField):
+    def size(self):
+        return struct.calcsize('<d')
+
+    def unpack(self, buffer):
+        self._value = struct.unpack_from('<d', buffer)[0]
+
+        return self
+
+    def pack(self):
+        return struct.pack('<d', self._value)
 
 class Fixed16Field(FloatField):
     def __init__(self, _value=0.0, **kwargs):
@@ -549,6 +555,9 @@ class StructField(Field):
 
         return d
 
+    def get_field(self, name):
+        return self._fields[name]
+
     # deepcopy will break on structfields without this
     def __deepcopy__(self, memo):
         cls = self.__class__
@@ -587,6 +596,20 @@ class StructField(Field):
         s = 0
 
         for field in list(self._fields.values()):
+            s += field.size()
+
+        return s
+
+    def offsetof(self, fieldname):
+        if fieldname not in self._fields:
+            raise KeyError(fieldname)
+
+        s = 0
+
+        for name, field in self._fields.items():
+            if name == fieldname:
+                break
+
             s += field.size()
 
         return s

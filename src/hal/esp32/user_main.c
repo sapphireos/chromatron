@@ -37,9 +37,11 @@ void app_main()
     ESP_ERROR_CHECK(ret);
     
     // set run time logging
-    // esp_log_level_set("*", ESP_LOG_INFO);
+    #ifdef ENABLE_TRACE
+    esp_log_level_set("*", ESP_LOG_INFO);
     // esp_log_level_set("*", ESP_LOG_VERBOSE);
     // esp_log_level_set("*", ESP_LOG_DEBUG);
+    #endif
 
     // sapphireos init
     if( sapphire_i8_init() == 0 ){
@@ -68,7 +70,7 @@ void app_main()
         // esp_sleep_enable_timer_wakeup( 10000 );
         // esp_light_sleep_start();    
     }
-    
+
     #if 0
     /* Print chip information */
     esp_chip_info_t chip_info;

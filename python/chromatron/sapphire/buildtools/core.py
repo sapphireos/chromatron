@@ -3,7 +3,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -1295,13 +1295,20 @@ class AppBuilder(HexBuilder):
             # print(image_info)
 
             # get checksum
+            
             for line in image_info.split('\n'):
                 if not line.startswith('Checksum'):
                     continue
 
-                line = line.replace('(', '')
-                line = line.replace(')', '')
-                checksum = int(line.split()[5], 16)
+                
+                if line.find('invalid') >= 0:
+                    line = line.replace('(', '')
+                    line = line.replace(')', '')
+                    checksum = int(line.split()[5], 16)
+                    
+                else:
+                    checksum = int(line.split()[1], 16)
+
                 break
 
             firmware_image[checksum_location] = checksum
@@ -1785,6 +1792,7 @@ def main():
     parser.add_argument("--load_esp32", action="store_true", help="Load to ESP32")
     parser.add_argument("--load_esp32_loader", action="store_true", help="Load bootloader to ESP32")
     parser.add_argument("--monitor", action="store_true", help="Run serial monitor")
+    parser.add_argument("--port", action="store", default=None, help="Set serial port")
 
     args = vars(parser.parse_args())
 
@@ -1934,16 +1942,57 @@ def main():
 
             return
 
+        # redirect stdout to buffer so we can capture esptool output
+        from io import StringIO
+        old_stdout = sys.stdout
+        temp_stdout = StringIO()
+        sys.stdout = temp_stdout
+
+        # get chip info
+        esptool_cmd = f'--chip esp32 --baud 2000000 chip_id'
+        if args['port'] is not None:
+            esptool_cmd = f'--port {args["port"]} ' + esptool_cmd
+
+        esptool.main(esptool_cmd.split())
+
+        # restore stdout
+        sys.stdout = old_stdout
+
+        chip_info = temp_stdout.getvalue()
+
+        # check if single or dual core chip
+        single_core = False
+        if chip_info.find('Single Core') >= 0:
+            single_core = True
+
+        target = 'esp32'
+        if single_core:
+            target = 'esp32_single'
+
+            print("ESP32 single core")
+
+        else:
+            print("ESP32 dual core")
+
         # extract firmware image and write to file
-        image = package.images['esp32']['firmware.bin']
+        image = package.images[target]['firmware.bin']
         temp_filename = '__temp_firmware.bin'
         with open(temp_filename, 'wb') as f:
             f.write(image)
 
-        esptool.main(f'--chip esp32 --baud 2000000 write_flash 0x10000 {temp_filename}'.split())
+        esptool_cmd = f'--chip esp32 --baud 2000000 write_flash 0x10000 {temp_filename}'
+
+        if args['port'] is not None:
+            esptool_cmd = f'--port {args["port"]} ' + esptool_cmd
+
+        esptool.main(esptool_cmd.split())
 
         # remove temp file
-        os.remove(temp_filename)
+        try:
+            os.remove(temp_filename)
+
+        except FileNotFoundError:
+            pass
         
         if not args["monitor"]:
             return
@@ -1962,7 +2011,7 @@ def main():
             return
 
     if args["monitor"]:
-        serial_monitor.monitor()
+        serial_monitor.monitor(portname=args['port'])
         return
 
     # check if setting target

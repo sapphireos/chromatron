@@ -8,7 +8,7 @@ import sys
 license_text = """
     This file is part of the Sapphire Operating System.
 
-    Copyright (C) 2013-2020  Jeremy Billheimer
+    Copyright (C) 2013-2021  Jeremy Billheimer
 
 
     This program is free software: you can redistribute it and/or modify
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
         for filename in files:
             if filename in skip_files:
-                print "skipping", filename
+                print(f"skipping {filename}")
                 continue
 
             name, ext = os.path.splitext(filename)
@@ -82,24 +82,25 @@ if __name__ == "__main__":
 
             filepath = os.path.join(root, filename)
             with open(filepath, 'r+') as f:
-                print filepath,
 
-                license_start = None
-                license_end = None
+                license_start = -1
+                license_end = -1
 
                 # search lines
-                lines = f.readlines()
+                try:
+                    lines = f.readlines()
+
+                except UnicodeDecodeError as e:
+                    print(f"ERROR {filename}: {e}")
+                    continue
 
                 i = 0
                 for line in lines:
-                    if line.find(LICENSE_START) >= 0:
+                    if license_start < 0 and line.find(LICENSE_START) >= 0:
                         license_start = i
 
-                    if line.find(LICENSE_END) >= 0:
+                    if license_end < 0 and line.find(LICENSE_END) >= 0:
                         license_end = i
-
-                    if license_start and license_end:
-                        break
 
                     i += 1
 
@@ -115,10 +116,10 @@ if __name__ == "__main__":
                     updated_lines = front + license + back
 
                     # print updated_lines
-                    print "Updating old license"
+                    print(f"{filepath} Updating old license")
 
                 else:
-                    print "license header not found - skipping"
+                    print(f"{filepath} license header not found - skipping")
                     continue
                     
                     # # add new license to top of file

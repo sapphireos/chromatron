@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2019  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -27,16 +27,22 @@
 #include "gfx_lib.h"
 #include "vm.h"
 
+#include "energy.h"
 #include "battery.h"
 
 #include "bq25895.h"
+#include "pca9536.h"
 
 static bool batt_enable;
 static int8_t batt_ui_state;
+static bool pixels_enabled = TRUE;
+// static uint8_t buttons;
 
 KV_SECTION_META kv_meta_t ui_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST, &batt_enable, 0,            "batt_enable" },
-    { SAPPHIRE_TYPE_INT8,   0, 0,                &batt_ui_state, 0,        "batt_ui_state" },
+    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable, 0,          "batt_enable" },
+    { SAPPHIRE_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state, 0,        "batt_ui_state" },
+    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled, 0,       "batt_pixel_power" },
+    // { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &buttons,       0,        "batt_button_state" },
 };
 
 
@@ -77,9 +83,11 @@ static bool dimming_direction_down;
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
-
+static bool pca9536_enabled;
 
 void batt_v_init( void ){
+
+    energy_v_init();
 
     if( !batt_enable ){
 
@@ -91,7 +99,26 @@ void batt_v_init( void ){
         return;
     }
 
-    io_v_set_mode( UI_BUTTON, IO_MODE_INPUT_PULLUP );
+    log_v_info_P( PSTR("BQ25895 detected") );
+
+    if( pca9536_i8_init() == 0 ){
+
+        log_v_info_P( PSTR("PCA9536 detected") );
+        pca9536_enabled = TRUE;
+    }
+    else{
+
+        io_v_set_mode( UI_BUTTON, IO_MODE_INPUT_PULLUP );    
+    }
+
+    trace_printf("Battery controller enabled\n");
+
+    // if pixels are below the low power threshold,
+    // set the CPU to low speed
+    if( gfx_u16_get_pix_count() < BATT_PIX_COUNT_LOW_POWER_THRESHOLD ){
+
+        cpu_v_set_clock_speed_low();
+    }
 
     thread_t_create( ui_thread,
                      PSTR("ui"),
@@ -108,15 +135,52 @@ static bool _ui_b_button_down( void ){
     // some filtering on button pin
     for( uint8_t i = 0; i < BUTTON_IO_CHECKS; i++){
 
-        if( io_b_digital_read( UI_BUTTON ) ){
+        if( pca9536_enabled ){
 
-            return FALSE;
+            if( pca9536_b_gpio_read( BATT_IO_QON ) ){
+
+                return FALSE;
+            }
+        }
+        else{
+
+            if( io_b_digital_read( UI_BUTTON ) ){
+
+                return FALSE;
+            }
         }
     }
 
     return TRUE;
 }
 
+void batt_v_enable_pixels( void ){
+
+    if( pca9536_enabled ){
+
+        pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
+    }
+
+    pixels_enabled = TRUE;
+    gfx_v_set_pixel_power( pixels_enabled );
+}
+
+void batt_v_disable_pixels( void ){
+
+    if( pca9536_enabled ){
+
+        pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
+
+        pixels_enabled = FALSE;
+    }
+
+    gfx_v_set_pixel_power( pixels_enabled );
+}
+
+bool batt_b_pixels_enabled( void ){
+
+    return pixels_enabled;
+}
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) )
 {
@@ -125,42 +189,100 @@ PT_BEGIN( pt );
     // gfx_v_set_submaster_dimmer( 65535 );
 
     // last_dimmer = gfx_u16_get_submaster_dimmer();
+    
+    // charger2 board, setup IO
+    if( pca9536_enabled ){
+        
+        pca9536_v_set_input( BATT_IO_QON );
+        pca9536_v_set_input( BATT_IO_S2 );
+        pca9536_v_set_input( BATT_IO_SPARE );
+
+        pca9536_v_set_output( BATT_IO_BOOST );
+
+        batt_v_enable_pixels();
+    }
 
     while(1){
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
 
+        // buttons = 0;
+        if( pca9536_enabled ){
+
+            // check if LEDs enabled.
+            // this will automatically shutdown the pixel strip
+            // if LED graphics are not enabled.
+            if( gfx_b_enabled() ){
+
+                if( !batt_b_pixels_enabled() ){
+                    
+                    trace_printf("Pixel power enabled\n");
+                    batt_v_enable_pixels();
+                }
+            }
+            else{
+
+                if( batt_b_pixels_enabled() ){
+                    
+                    trace_printf("Pixel power disabled\n");
+                    batt_v_disable_pixels();   
+                }
+            }
+
+            // if( pca9536_b_gpio_read( BATT_IO_QON ) ){
+
+            //     buttons |= ( 1 << BATT_IO_QON );
+            // }
+            // if( pca9536_b_gpio_read( BATT_IO_S2 ) ){
+
+            //     buttons |= ( 1 << BATT_IO_S2 );
+            // }
+            // if( pca9536_b_gpio_read( BATT_IO_SPARE ) ){
+
+            //     buttons |= ( 1 << BATT_IO_SPARE );
+            // }
+        }
+
         uint8_t charge_status = bq25895_u8_get_charge_status();
 
         if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
+            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
+            ( bq25895_u8_get_faults() != 0 ) ){
 
             // vm_v_stop();
             // last_dimmer = gfx_u16_get_submaster_dimmer();
             // gfx_v_set_submaster_dimmer( MIN_DIMMER );
+
+            gfx_b_disable();
         }
         else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
             // gfx_v_set_submaster_dimmer( MIN_DIMMER );
 
             // TMR_WAIT( pt, 5000 );
+
+            gfx_b_enable();
+            batt_v_enable_pixels();
         }
         else{
+
+            gfx_b_enable();
+            batt_v_enable_pixels();
 
             if( bq25895_u8_get_soc() <= 5 ){
 
                 // last_dimmer = gfx_u16_get_submaster_dimmer();
                 // gfx_v_set_submaster_dimmer( MIN_DIMMER );
             }
-            else if( bq25895_u8_get_soc() <= 2 ){
+            else if( bq25895_u8_get_soc() <= 2 ){ // NOTE!!!!!!!!! THIS WILL NEVER RUN!!!!!!
 
                 log_v_debug_P( PSTR("Low batt, shutting down: %u"), bq25895_u16_get_batt_voltage() );
 
                 batt_ui_state = -2;
 
-                catbus_i8_publish( __KV__batt_ui_state );
+                sys_v_initiate_shutdown( 5 );
 
-                TMR_WAIT( pt, 5000 );
+                THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
                 bq25895_v_enable_ship_mode( FALSE );
             }
@@ -180,9 +302,10 @@ PT_BEGIN( pt );
 
                     // vm_v_shutdown();
                     batt_ui_state = -1;
-                    catbus_i8_publish( __KV__batt_ui_state );
 
-                    TMR_WAIT( pt, 5000 );
+                    sys_v_initiate_shutdown( 5 );
+
+                    THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
                     bq25895_v_enable_ship_mode( FALSE );
                 }

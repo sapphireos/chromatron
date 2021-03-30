@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -25,6 +25,8 @@
 #ifndef _TARGET_H
 #define _TARGET_H
 
+#include "esp_task.h"
+
 // modules
 #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC
@@ -42,6 +44,7 @@
 
 // wifi
 #define WIFI_MAX_PORTS          16
+#define WIFI_MAX_IGMP           8
 
 // pixel config
 #define FADER_RATE              20
@@ -61,15 +64,17 @@
 #define VM_MIN_DELAY                10
 #define VM_MAX_VMS                  4
 #define VM_MAX_CALL_DEPTH           8
-#define VM_MAX_THREADS              4
+#define VM_MAX_THREADS              8
 
+// KV
+#define KV_CACHE_SIZE 16
 
 // list
 // #define ENABLE_LIST_ATOMIC
 
 // memory
 #define MAX_MEM_HANDLES         512
-#define MEM_MAX_STACK           4096
+#define MEM_MAX_STACK           ESP_TASK_MAIN_STACK
 #define MEM_HEAP_SIZE			65535
 
 // flash fs
@@ -121,8 +126,8 @@
 #define INCLUDE_ASSERTS
 
 // recovery mode
-#define DISABLE_RECOVERY_MODE
+// #define DISABLE_RECOVERY_MODE
 
-#define HALT_ON_ASSERT
+// #define HALT_ON_ASSERT
 
 #endif

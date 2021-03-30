@@ -1,3 +1,4 @@
 from catbus.services.timezone_service import main
 
-main()
+if __name__ == '__main__':
+	main()

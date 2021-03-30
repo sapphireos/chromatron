@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -52,10 +52,10 @@ typedef int8_t catbus_type_t8;
 #define CATBUS_TYPE_STRING32          46
 #define CATBUS_TYPE_STRING64          47
 
-#define CATBUS_TYPE_ARRAY             0x80
+#define CATBUS_TYPE_INVALID           255
 
 
-#define CATBUS_TYPE_INVALID           65535
+#define CATBUS_TYPE_SIZE_INVALID      65535
 uint16_t type_u16_size( catbus_type_t8 type );
 bool type_b_is_string( catbus_type_t8 type );
 

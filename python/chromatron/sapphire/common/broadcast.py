@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2019  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -21,32 +21,52 @@
 # </license>
 
 import socket
+import ifaddr
+import ipaddress
+
+def get_local_addresses():
+    addrs = []    
+
+    adapters = ifaddr.get_adapters()
+
+    for adapter in adapters:
+        for ip in adapter.ips:
+            try:
+                host = ipaddress.IPv4Address(ip.ip)
+
+                addrs.append(str(host))
+
+            except ipaddress.AddressValueError:
+                pass
+
+    return addrs
 
 def get_broadcast_addresses():
-    # addrs = []
-    # for interface in netifaces.interfaces():
-    #     try:
-    #         for addr in netifaces.ifaddresses(interface)[socket.AF_INET]:
-    #             try:
-    #                 addrs.append(addr['broadcast'])
+    addrs = []    
 
-    #             except KeyError:
-    #                 pass
+    adapters = ifaddr.get_adapters()
 
-    #     except KeyError:
-    #         pass
+    for adapter in adapters:
+        for ip in adapter.ips:
+            try:
+                host = ipaddress.IPv4Address(ip.ip)
+                net = ipaddress.IPv4Network(ip.ip + '/' + str(ip.network_prefix), False)
 
+                addrs.append(str(net.broadcast_address))
 
-    # return addrs
-    raise NameError
+            except ipaddress.AddressValueError:
+                pass
+
+    return addrs
 
 
 def send_udp_broadcast(sock, port, data):
     try:
-        for addr in get_broadcast_addresses():
+        for addr in get_broadcast_addresses():            
             sock.sendto(data, (addr, port))
 
-    except NameError:
+    except Exception:
+        raise
         sock.sendto(data, ('<broadcast>', port))
 
 

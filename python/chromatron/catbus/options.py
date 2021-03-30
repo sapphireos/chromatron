@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2020  Jeremy Billheimer
+#     Copyright (C) 2013-2021  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -22,7 +22,10 @@
 
 CATBUS_ANNOUNCE_PORT     = 44631
 CATBUS_MAIN_PORT    	 = 44632
-CATBUS_DIRECTORY_PORT    = 44633
+# CATBUS_DIRECTORY_PORT    = 44633
+CATBUS_LINK_PORT		 = 44634
+
+CATBUS_ANNOUNCE_MCAST_ADDR         = '239.43.96.30'
 
 CATBUS_VERSION           = 1
 

@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -84,6 +84,16 @@ PT_BEGIN( pt );
             status_led_v_set( 1, STATUS_LED_RED );
 
             TMR_WAIT( pt, 500 );
+        }
+        else if( sys_b_is_shutting_down() ){
+
+            status_led_v_set( 0, STATUS_LED_GREEN );
+
+            TMR_WAIT( pt, 200 );
+
+            status_led_v_set( 1, STATUS_LED_GREEN );
+
+            TMR_WAIT( pt, 200 );
         }
         #ifdef ENABLE_WIFI
         else if( wifi_b_connected() ){

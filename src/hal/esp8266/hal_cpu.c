@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2021  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -198,6 +198,14 @@ bool cpu_b_osc_fail( void ){
     return 0;
 }
 
+void cpu_v_set_clock_speed_low( void ){
+
+}
+
+void cpu_v_set_clock_speed_high( void ){
+
+}
+
 uint32_t cpu_u32_get_clock_speed( void ){
 
     return system_get_cpu_freq() * 1000000;
@@ -235,3 +243,7 @@ void hal_cpu_v_delay_ms( uint16_t ms ){
 	}
 }
 
+uint16_t cpu_u16_get_power( void ){
+
+    return 5000;
+}
