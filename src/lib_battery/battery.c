@@ -33,6 +33,11 @@
 #include "bq25895.h"
 #include "pca9536.h"
 
+
+
+#include "motor.h"
+
+
 static bool batt_enable;
 static int8_t batt_ui_state;
 static bool pixels_enabled = TRUE;
@@ -86,6 +91,8 @@ PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 static bool pca9536_enabled;
 
 void batt_v_init( void ){
+
+    motor_v_init();
 
     energy_v_init();
 
