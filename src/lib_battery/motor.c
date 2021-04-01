@@ -24,15 +24,19 @@
 
 #include "motor.h"
 
-static bool drive0;
-static bool drive1;
+static uint8_t motor_state;
+static uint8_t prev_dir;
+static uint16_t target_position;
+static volatile uint16_t position;
 
-static uint16_t position;
+static int32_t diff;
 
 KV_SECTION_META kv_meta_t motor_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,   0, 0,    &drive0, 0,          "motor_drive_0" },
-    { SAPPHIRE_TYPE_BOOL,   0, 0,    &drive1, 0,          "motor_drive_1" },
-    { SAPPHIRE_TYPE_UINT16, 0, 0,    &position, 0,        "motor_position" },
+    { SAPPHIRE_TYPE_UINT8,  0, 0,    &motor_state,              0,        "motor_state" },
+    { SAPPHIRE_TYPE_UINT16, 0, 0,    &target_position,          0,        "motor_target" },
+    { SAPPHIRE_TYPE_UINT16, 0, 0,    (uint16_t *)&position,     0,        "motor_position" },
+
+    { SAPPHIRE_TYPE_INT32,  0, 0,    &diff,                     0,        "motor_diff" },
 };
 
 #define MOTOR_IO_0 	IO_PIN_16_RX
@@ -40,9 +44,30 @@ KV_SECTION_META kv_meta_t motor_info_kv[] = {
 
 #define MOTOR_IRQ	GPIO_NUM_27
 
+
+#define MOTOR_STATE_OFF     0
+#define MOTOR_STATE_UP      1 // the actual directions don't matter
+#define MOTOR_STATE_DOWN    2
+
+
 static void IRAM_ATTR motor_irq_handler(void* arg){
 
-	position++;
+    if( prev_dir == MOTOR_STATE_UP ){
+
+        position++;    
+    }
+    else{
+
+        position--;
+    }
+	
+    if( position == target_position ){
+
+        motor_state = MOTOR_STATE_OFF;
+
+        io_v_digital_write( MOTOR_IO_0, 0 );
+        io_v_digital_write( MOTOR_IO_1, 0 );
+    }
 }
 
 
@@ -64,24 +89,59 @@ PT_BEGIN( pt );
 	io_v_set_mode( MOTOR_IO_0, IO_MODE_OUTPUT );
 	io_v_set_mode( MOTOR_IO_1, IO_MODE_OUTPUT );
 
+    io_v_digital_write( MOTOR_IO_0, 0 );
+    io_v_digital_write( MOTOR_IO_1, 0 );
+
+    TMR_WAIT( pt, 200 );
+
+    position = 0;
+
+
 	while(1){
+		
+        // diff = (int32_t)target_position - (int32_t)position;
+        diff = util_i8_compare_sequence_u16( target_position, position );
 
-		TMR_WAIT( pt, 100 );
+        if( diff == 0 ){
 
-		io_v_digital_write( MOTOR_IO_0, 0 );
-		io_v_digital_write( MOTOR_IO_1, 0 );
+            motor_state = MOTOR_STATE_OFF;
+        }
+        else if( diff > 0 ){
 
-		if( drive0 ){
+            motor_state = MOTOR_STATE_UP;
+        }
+        else if( diff < 0 ){
 
-			io_v_digital_write( MOTOR_IO_0, 1 );
-		}
+            motor_state = MOTOR_STATE_DOWN;
+        }
 
-		if( drive1 ){
+        if( motor_state == MOTOR_STATE_OFF ){
 
-			io_v_digital_write( MOTOR_IO_1, 1 );
-		}
+            io_v_digital_write( MOTOR_IO_0, 0 );
+            io_v_digital_write( MOTOR_IO_1, 0 );
+        }
+        else if( motor_state == MOTOR_STATE_UP ){
+
+            prev_dir = MOTOR_STATE_UP;
+
+            io_v_digital_write( MOTOR_IO_0, 1 );
+            io_v_digital_write( MOTOR_IO_1, 0 );
+        }
+        else if( motor_state == MOTOR_STATE_DOWN ){
+
+            prev_dir = MOTOR_STATE_DOWN;
+
+            io_v_digital_write( MOTOR_IO_0, 0 );
+            io_v_digital_write( MOTOR_IO_1, 1 );
+        }
+        else{
+
+            motor_state = MOTOR_STATE_OFF;
+        }
+
+
+        TMR_WAIT( pt, 100 );
 	}
-
 
 PT_END( pt );	
 }
