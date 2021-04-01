@@ -118,6 +118,11 @@ PT_BEGIN( pt );
 
 
 	while(1){
+
+        if( target_position >= ( COUNTS_PER_CYCLE  - 1 ) ){
+
+            target_position %= COUNTS_PER_CYCLE;
+        }
 		
         diff = (int32_t)target_position - (int32_t)position;
         // diff = util_i8_compare_sequence_u16( target_position, position );
@@ -137,7 +142,7 @@ PT_BEGIN( pt );
             }
         }
 
-        if( abs_diff < 2 ){
+        if( abs_diff < 4 ){
 
         // }
         // else if( diff == 0 ){
