@@ -38,11 +38,6 @@
 #define HIGH ( TRUE )
 #define LOW  ( FALSE )
 
-#define IO_TYPE_INPUT       0x01
-#define IO_TYPE_OUTPUT      0x02
-#define IO_TYPE_ANALOG_IN   0x04
-#define IO_TYPE_ANALOG_OUT  0x08
-
 typedef uint8_t io_mode_t8;
 #define IO_MODE_INPUT               0
 #define IO_MODE_INPUT_PULLUP        1
