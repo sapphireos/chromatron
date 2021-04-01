@@ -29,7 +29,7 @@ static uint8_t prev_dir;
 static uint16_t target_position;
 static volatile uint16_t position;
 
-static int32_t diff;
+static int16_t diff;
 
 KV_SECTION_META kv_meta_t motor_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,  0, 0,    &motor_state,              0,        "motor_state" },
@@ -50,15 +50,28 @@ KV_SECTION_META kv_meta_t motor_info_kv[] = {
 #define MOTOR_STATE_DOWN    2
 
 
+#define COUNTS_PER_CYCLE    171
+
+
 static void IRAM_ATTR motor_irq_handler(void* arg){
 
     if( prev_dir == MOTOR_STATE_UP ){
 
         position++;    
+
+        if( position >= COUNTS_PER_CYCLE ){
+
+           position = 0;
+        }
     }
     else{
 
         position--;
+
+        if( position >= COUNTS_PER_CYCLE ){
+
+            position = COUNTS_PER_CYCLE - 1;
+        }
     }
 	
     if( position == target_position ){
@@ -71,6 +84,13 @@ static void IRAM_ATTR motor_irq_handler(void* arg){
 }
 
 
+// gear train:
+// motor encoder: 8 counts per turn
+// motor output: 6 -> 24
+// drive: 12 -> 64
+// reduction: 4 * 5.3333333
+// total reduction: 1:21.3333333
+// counts per cycle: approx 171
 
 PT_THREAD( motor_thread( pt_t *pt, void *state ) )
 {       	
@@ -99,10 +119,28 @@ PT_BEGIN( pt );
 
 	while(1){
 		
-        // diff = (int32_t)target_position - (int32_t)position;
-        diff = util_i8_compare_sequence_u16( target_position, position );
+        diff = (int32_t)target_position - (int32_t)position;
+        // diff = util_i8_compare_sequence_u16( target_position, position );
 
-        if( diff == 0 ){
+        int16_t abs_diff = abs16( diff );
+
+        // compute shortest distance by direction
+        if( abs_diff > COUNTS_PER_CYCLE / 2 ){
+
+            if( diff > 0 ){
+
+                diff -= COUNTS_PER_CYCLE;
+            }
+            else if( diff < 0 ){
+
+                diff += COUNTS_PER_CYCLE;
+            }
+        }
+
+        if( abs_diff < 2 ){
+
+        // }
+        // else if( diff == 0 ){
 
             motor_state = MOTOR_STATE_OFF;
         }
