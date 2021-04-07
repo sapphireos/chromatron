@@ -1068,6 +1068,10 @@ class Device(object):
             23: "dns_query",
             24: "msgflow",
             25: "msgflow_arq_buf",
+            26: "service",
+            27: "link_consumer",
+            28: "link_producer",
+            29: "link_remote",
         }
 
         total_size = 0
