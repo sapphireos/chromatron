@@ -1003,8 +1003,6 @@ station_mode:
                 goto end;
             }
 
-            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-
             esp_wifi_disconnect();
 
             log_v_debug_P( PSTR("Starting AP: %s"), ap_ssid );
@@ -1027,7 +1025,10 @@ station_mode:
 
                 memcpy( ap_config.ap.ssid, ap_ssid, sizeof(ap_ssid) );
                 memcpy( ap_config.ap.password, ap_pass, sizeof(ap_pass) );
- 
+                ap_config.ap.ssid_len = strlen( ap_ssid );
+
+                ESP_ERROR_CHECK(esp_wifi_set_mode( WIFI_MODE_AP ));
+
                 ESP_ERROR_CHECK(esp_wifi_set_config( WIFI_IF_AP, &ap_config ));
 
                 if( esp_wifi_start() != ESP_OK ){
