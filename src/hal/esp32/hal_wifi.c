@@ -522,7 +522,7 @@ void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
 
 bool wifi_b_ap_mode( void ){
 
-	return FALSE;
+	return connected && ap_mode;
 }
 
 uint16_t wifi_u16_get_power( void ){
@@ -538,11 +538,6 @@ int8_t wifi_i8_get_status( void ){
 int8_t wifi_i8_get_channel( void ){
 
     return wifi_channel;
-}
-
-uint32_t wifi_u32_get_received( void ){
-
-    return 0;
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){

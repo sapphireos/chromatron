@@ -63,7 +63,6 @@ bool wifi_b_ap_mode( void );
 
 int8_t wifi_i8_get_status( void );
 int8_t wifi_i8_get_channel( void );
-uint32_t wifi_u32_get_received( void );
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg );
 
