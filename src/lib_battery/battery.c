@@ -137,21 +137,47 @@ void batt_v_init( void ){
     // last_dimmer = gfx_u16_get_submaster_dimmer();
 }
 
-static bool _ui_b_button_down( void ){
+static bool _ui_b_button_down( uint8_t ch ){
+
+    uint8_t btn = 255;
+
+    if( ch == 0 ){
+
+        if( pca9536_enabled ){    
+
+            btn = BATT_IO_QON;
+        }
+        else{
+
+            btn = UI_BUTTON;
+        }
+    }    
+    else if( ch == 1 ){
+
+        if( pca9536_enabled ){    
+
+            btn = BATT_IO_S2;
+        }
+    }    
+    
+    if( btn == 255 ){
+
+        return FALSE;
+    }
 
     // some filtering on button pin
     for( uint8_t i = 0; i < BUTTON_IO_CHECKS; i++){
 
         if( pca9536_enabled ){
 
-            if( pca9536_b_gpio_read( BATT_IO_QON ) ){
+            if( pca9536_b_gpio_read( btn ) ){
 
                 return FALSE;
             }
         }
         else{
 
-            if( io_b_digital_read( UI_BUTTON ) ){
+            if( io_b_digital_read( btn ) ){
 
                 return FALSE;
             }
@@ -299,7 +325,7 @@ PT_BEGIN( pt );
             }
         }
 
-        if( _ui_b_button_down() ){
+        if( _ui_b_button_down( 0 ) ){
 
             // check for hold
             if( ( button_hold_duration >= BUTTON_HOLD_TIME ) &&
