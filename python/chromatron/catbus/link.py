@@ -645,7 +645,13 @@ class LinkManager(MsgServer):
         data_item = self._database.get_item(link.source_key)
         local_data = data_item.value
         
-        assert isinstance(local_data, int) or isinstance(local_data, float)
+        try:
+            v0 = local_data[0]
+
+        except TypeError:
+            v0 = local_data
+
+        assert isinstance(v0, int) or isinstance(v0, float)
 
         remote_data = [r.data.value for r in self._remotes.values()]
 
