@@ -59,6 +59,7 @@ bool wifi_b_attached( void );
 
 int8_t wifi_i8_rssi( void );
 void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] );
+void wifi_v_switch_to_ap( void );
 bool wifi_b_ap_mode( void );
 
 int8_t wifi_i8_get_status( void );

@@ -56,11 +56,11 @@ static uint8_t wifi_connects;
 static uint32_t wifi_udp_received;
 static uint32_t wifi_udp_sent;
 static uint32_t wifi_udp_dropped;
-static bool default_ap_mode;
 
 static uint32_t wifi_arp_hits;
 static uint32_t wifi_arp_misses;
 
+static bool default_ap_mode;
 static bool ap_mode;
 static bool connected;
 static bool wifi_shutdown;
@@ -519,6 +519,12 @@ void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
 
         memset( ssid, 0, WIFI_SSID_LEN );
     }
+}
+
+void wifi_v_switch_to_ap( void ){
+
+    connected = FALSE;
+    default_ap_mode = TRUE;
 }
 
 bool wifi_b_ap_mode( void ){

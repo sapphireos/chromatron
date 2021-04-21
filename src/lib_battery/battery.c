@@ -33,8 +33,6 @@
 #include "bq25895.h"
 #include "pca9536.h"
 
-
-
 #include "motor.h"
 
 
@@ -61,15 +59,23 @@ over the network.
 Interface:
 
 single tap - dimming control, in steps. up then down.
+- not yet implemented
 
 hold - 2-3 seconds, battery system turns on
-       5 seconds - shuts down system
+       3 seconds - shuts down system
+
+enable wifi AP:
+hold btn 0 for 3 seconds and btn 1 for 6 seconds
+
 
 */
 
-static uint8_t button_hold_duration;
-static bool dimming_direction_down;
-// static uint16_t last_dimmer;
+#define MAX_BUTTONS 2
+
+static uint8_t button_hold_duration[2];
+
+static bool pca9536_enabled;
+
 
 #define BUTTON_IO_CHECKS            4
 
@@ -80,6 +86,7 @@ static bool dimming_direction_down;
 
 #define BUTTON_HOLD_TIME            20
 #define BUTTON_SHUTDOWN_TIME        60
+#define BUTTON_WIFI_TIME            120
 
 #define BUTTON_WAIT_FOR_RELEASE     255
 #define DIMMER_RATE                 5000
@@ -87,8 +94,6 @@ static bool dimming_direction_down;
 
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
-
-static bool pca9536_enabled;
 
 void batt_v_init( void ){
 
@@ -133,7 +138,7 @@ void batt_v_init( void ){
                      0 );
 
 
-    dimming_direction_down = TRUE;
+    // dimming_direction_down = TRUE;
     // last_dimmer = gfx_u16_get_submaster_dimmer();
 }
 
@@ -218,10 +223,6 @@ bool batt_b_pixels_enabled( void ){
 PT_THREAD( ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    // gfx_v_set_submaster_dimmer( 65535 );
-
-    // last_dimmer = gfx_u16_get_submaster_dimmer();
     
     // charger2 board, setup IO
     if( pca9536_enabled ){
@@ -282,17 +283,9 @@ PT_BEGIN( pt );
             ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
             ( bq25895_u8_get_faults() != 0 ) ){
 
-            // vm_v_stop();
-            // last_dimmer = gfx_u16_get_submaster_dimmer();
-            // gfx_v_set_submaster_dimmer( MIN_DIMMER );
-
             gfx_b_disable();
         }
         else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
-
-            // gfx_v_set_submaster_dimmer( MIN_DIMMER );
-
-            // TMR_WAIT( pt, 5000 );
 
             gfx_b_enable();
             batt_v_enable_pixels();
@@ -304,8 +297,6 @@ PT_BEGIN( pt );
 
             if( bq25895_u8_get_soc() <= 5 ){
 
-                // last_dimmer = gfx_u16_get_submaster_dimmer();
-                // gfx_v_set_submaster_dimmer( MIN_DIMMER );
             }
             else if( bq25895_u8_get_soc() <= 2 ){ // NOTE!!!!!!!!! THIS WILL NEVER RUN!!!!!!
 
@@ -321,67 +312,44 @@ PT_BEGIN( pt );
             }
             else{
 
-                // gfx_v_set_submaster_dimmer( last_dimmer );
+                
             }
         }
 
-        if( _ui_b_button_down( 0 ) ){
 
-            // check for hold
-            if( ( button_hold_duration >= BUTTON_HOLD_TIME ) &&
-                ( button_hold_duration < BUTTON_WAIT_FOR_RELEASE ) ){
+        for( uint8_t i = 0; i < MAX_BUTTONS; i++ ){
 
-                if( button_hold_duration >= BUTTON_SHUTDOWN_TIME ){
+            if( _ui_b_button_down( i ) ){
 
-                    // vm_v_shutdown();
-                    batt_ui_state = -1;
+                if( button_hold_duration[i] < 255 ){
 
-                    sys_v_initiate_shutdown( 5 );
-
-                    THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
-
-                    bq25895_v_enable_ship_mode( FALSE );
+                    button_hold_duration[i]++;
                 }
             }
+            else{
 
-            if( button_hold_duration < 255 ){
-
-                button_hold_duration++;
+                button_hold_duration[i] = 0;
             }
         }
-        else{
 
-            // check for single tap
-            if( ( button_hold_duration <= BUTTON_TAP_TIME ) &&
-                ( button_hold_duration > BUTTON_MIN_TIME ) ){
 
-                // int32_t dimmer = gfx_u16_get_submaster_dimmer();
-                //
-                // if( dimming_direction_down ){
-                //
-                //     dimmer -= DIMMER_RATE;
-                // }
-                // else{
-                //
-                //     dimmer += DIMMER_RATE;
-                // }
-                //
-                // if( dimmer > 65535 ){
-                //
-                //     dimmer = 65535;
-                //     dimming_direction_down = TRUE;
-                // }
-                // else if( dimmer < MIN_DIMMER ){
-                //
-                //     dimmer = MIN_DIMMER;
-                //     dimming_direction_down = FALSE;
-                // }
-                //
-                // last_dimmer = dimmer;
-                // gfx_v_set_submaster_dimmer( dimmer );
+        // check for shutdown
+        if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){
+
+            if( button_hold_duration[1] < BUTTON_WIFI_TIME ){
+
+                batt_ui_state = -1;
+
+                sys_v_initiate_shutdown( 5 );
+
+                THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+
+                bq25895_v_enable_ship_mode( FALSE );
             }
+            else{
 
-            button_hold_duration = 0;
+                wifi_v_switch_to_ap();
+            }
         }
     }
 
