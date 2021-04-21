@@ -422,7 +422,7 @@ int8_t _catbus_i8_internal_set(
             break;
         }
 
-        data += type_u16_size( meta.type );
+        data += type_u16_size( type );
     }
 
     if( changed ){
