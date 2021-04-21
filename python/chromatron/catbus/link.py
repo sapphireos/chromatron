@@ -738,21 +738,27 @@ class LinkManager(MsgServer):
         if isinstance(host, str):
             host = (host, CATBUS_LINK_PORT)
 
-        data_hash = catbus_string_hash(key)
+        key_hash = catbus_string_hash(key)
 
-        if isinstance(value, int):
+        array_len = 0
+        v0 = value
+        if isinstance(value, list):
+            array_len = len(value) - 1
+            v0 = value[0]
+
+        if isinstance(v0, int):
             data_type = CATBUS_TYPE_INT64
         
-        elif isinstance(value, float):
+        elif isinstance(v0, float):
             data_type = CATBUS_TYPE_FLOAT
 
         else:
             assert False
 
         meta = CatbusMeta(
-            hash=data_hash, 
+            hash=key_hash, 
             type=data_type,
-            array_len=0)
+            array_len=array_len)
 
         data = CatbusData(meta=meta, value=value)
 
