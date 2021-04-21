@@ -61,6 +61,7 @@ static bool default_ap_mode;
 static uint32_t wifi_arp_hits;
 static uint32_t wifi_arp_misses;
 
+static bool ap_mode;
 static bool connected;
 static bool wifi_shutdown;
 
@@ -844,7 +845,7 @@ PT_BEGIN( pt );
 
         wifi_rssi = -127;
         
-        bool ap_mode = _wifi_b_ap_mode_enabled();
+        ap_mode = _wifi_b_ap_mode_enabled();
 
         // check if no APs are configured
         if( !is_ssid_configured() ){
