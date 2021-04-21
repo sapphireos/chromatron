@@ -686,10 +686,32 @@ class ArrayField(Field):
         self._fields[key]._value = value
 
     def get_value(self):
-        # return [field._value for field in self._fields]
         return self
 
+    def _parse_value(self, value):
+        try:
+            temp = value.strip()
+
+        except AttributeError:
+            return value
+
+        if temp.startswith('[') and temp.endswith(']'):
+            temp = temp[1:]
+            temp = temp[:-1]
+
+            tokens = temp.split(',')
+
+            try:
+                return [int(v) for v in tokens]
+
+            except ValueError:
+                return value
+
+        else:
+            return value
+
     def set_value(self, value):
+        value = self._parse_value(value)
         self._fields = [self._field(_value=v) for v in value]
 
     _value = property(get_value, set_value)
@@ -742,6 +764,7 @@ class FixedArrayField(ArrayField):
         return [field._value for field in self._fields]
 
     def set_value(self, value):
+        value = self._parse_value(value)
         fields = [self._field(_value=v) for v in value]
 
         if len(fields) > self._array_length:

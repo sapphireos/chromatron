@@ -511,6 +511,11 @@ class FieldTests(unittest.TestCase):
         self.assertEqual(len(a), 4)
         self.assertEqual(a[3], 4)
 
+        a.set_value('[9,8,7,6]')
+        self.assertEqual(a[0], 9)
+        self.assertEqual(a[1], 8)
+        self.assertEqual(a[2], 7)
+        self.assertEqual(a[3], 6)
 
     def test_fixedarray(self):
         a = FixedArrayField(_field=Uint8Field, _length=4)
