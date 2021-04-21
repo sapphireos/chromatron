@@ -83,6 +83,7 @@ class CatbusService(Database):
         self.add_item('process_name', sys.argv[0], 'string64', readonly=True)
         self.add_item('process_id', os.getpid(), 'uint32', readonly=True)
         self.add_item('kv_test_key', os.getpid(), 'uint32')
+        self.add_item('kv_test_array', [0,1,2,3], 'uint32')
 
     def _default_callback(self, key, value, query, timestamp):    
         if self.default_callback != None:
