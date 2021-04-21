@@ -610,7 +610,7 @@ class LinkManager(MsgServer):
 
         self._links = {}
         self._producers = {}
-        self._consumers = {}
+        self._consumers = []
         self._remotes = {}
         self._subscriptions = {}
         self._meta = {} # used for publish
@@ -636,8 +636,7 @@ class LinkManager(MsgServer):
     def _handle_shutdown(self, msg, host):
         self._producers = {k: v for k, v in self._producers.items() if v.leader_addr != host}
         
-        if host in self._consumers:
-            del self._consumers[host]
+        self._consumers = [c for c in self._consumers if c.host != host]
 
         self._remotes = {k: v for k, v in self._remotes.items() if v.host != host}
 
@@ -775,7 +774,7 @@ class LinkManager(MsgServer):
     def _send_consumer_data(self, link, data):
         link_hash = link.hash
         
-        consumers = [c for c in self._consumers.values() if c.link_hash == link_hash]
+        consumers = [c for c in self._consumers if c.link_hash == link_hash]
 
         data.meta.hash = catbus_string_hash(link.dest_key)
         msg = ConsumerDataMsg(hash=data.meta.hash, data=data)
@@ -837,16 +836,24 @@ class LinkManager(MsgServer):
 
     def _handle_consumer_match(self, msg, host):
         # UPDATE CONSUMER STATE
-        if host not in self._consumers:
+        found = False
+        for consumer in self._consumers:
+            if consumer.host == host and consumer.link_hash == msg.hash:
+                found = True
+                break
+
+        if not found:
             c = _Consumer(
                     msg.hash,
                     host)
 
-            self._consumers[host] = c
+            self._consumers.append(c)
 
             logging.debug(f"Create {c} at {host}")
 
-        self._consumers[host]._refresh()
+        for consumer in self._consumers:
+            if consumer.host == host and consumer.link_hash == msg.hash:
+                consumer._refresh()
 
     def _handle_consumer_data(self, msg, host):
         # check if we have this key
@@ -942,11 +949,11 @@ class LinkManager(MsgServer):
         self._producers = {k: v for k, v in self._producers.items() if not v.timed_out}
 
     def _process_consumers(self):
-        for c in self._consumers.values():
+        for c in self._consumers:
             c._process_timer(LINK_MIN_TICK_RATE, self)
 
         # prune
-        self._consumers = {k: v for k, v in self._consumers.items() if not v.timed_out}
+        self._consumers = [v for v in self._consumers if not v.timed_out]
 
     def _process_remotes(self):
         for r in self._remotes.values():
