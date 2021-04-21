@@ -22,6 +22,8 @@
 
 #include "sapphire.h"
 
+#ifndef ESP8266
+
 #include "motor.h"
 
 static uint8_t motor_state;
@@ -198,3 +200,11 @@ void motor_v_init( void ){
                      0 );
 }
 
+#else
+
+
+void motor_v_init( void ){
+
+}
+
+#endif
