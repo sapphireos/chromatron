@@ -45,7 +45,7 @@ typedef struct __attribute__((aligned(4))){
     ffs_page_t page;
     uint16_t page_number;
     ffs_file_t file_id;
-    int32_t page_addr;
+    // int32_t page_addr;
 } page_cache_t;
 
 typedef struct{
@@ -519,7 +519,7 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page ){
 
             // set up cache
             page_cache.page_number = page;
-            page_cache.page_addr = page_addr;
+            // page_cache.page_addr = page_addr;
             page_cache.file_id = file_id;
 
             return FFS_STATUS_OK;
