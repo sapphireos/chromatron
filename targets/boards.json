@@ -77,8 +77,5 @@
 	"stm32h7":
 	{
 		"target": "stm32h7"
-	},
-	"legacy_wifi":
-	{
 	}
 }
