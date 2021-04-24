@@ -1431,7 +1431,7 @@ class Device(object):
         return ntp_now.isoformat()
 
     # def cli_loadwifi(self, line):
-    #     def progress(length):
+    #     def progress(length, filename=None):
     #         sys.stdout.write("\rWrite: %5d bytes" % (length))
     #         sys.stdout.flush()
 
@@ -1439,10 +1439,8 @@ class Device(object):
     #     with open(filename, 'rb') as f:
     #         data = f.read()
 
-    #     data_bytes = [ord(c) for c in data]
-
     #     # verify first byte (quick sanity check)
-    #     if data_bytes[0] != 0xE9:
+    #     if data[0] != 0xE9:
     #         print("Invalid firmware image!")
     #         return
 
@@ -1458,17 +1456,15 @@ class Device(object):
     #         print("Invalid firmware image!")
     #         return
 
-
-
     #     # preprocessing should already be done by build script,
     #     # but leaving this here for now in case we need it.
 
     #     # # we override bytes 2 and 3 in the ESP8266 image
-    #     # data_bytes[2] = 0
-    #     # data_bytes[3] = 0
+    #     # data[2] = 0
+    #     # data[3] = 0
     #     #
     #     # # convert back to string
-    #     # data = ''.join(map(chr, data_bytes))
+    #     # data = ''.join(map(chr, data))
     #     #
     #     # # need to pad to sector length
     #     # padding_len = 4096 - (len(data) % 4096)
@@ -1482,10 +1478,8 @@ class Device(object):
     #     # with open('wifi_firmware_padded.bin', 'w') as f:
     #     #     f.write(data)
 
-
-
-    #     print("\nLoading firmware image")
-
+        
+    #     print("\nErasing old firmware...")
     #     try:
     #         self.delete_file(filename)
 
@@ -1495,6 +1489,8 @@ class Device(object):
     #     # calculate crc of file data
     #     filehash = catbus_string_hash(data)
 
+    #     print("\nLoading firmware image")
+
     #     try:
     #         self.put_file(filename, data, progress=progress)
 
@@ -1502,9 +1498,8 @@ class Device(object):
     #         print(type(e), e)
     #         raise
 
-    #     print("\nVerifying firmware image...")
-
-    #     self.check_file(filename, data)
+    #     # print("\nVerifying firmware image...")
+    #     # self.check_file(filename, data)
 
     #     print("Setting firmware length...")
     #     self.set_key('wifi_fw_len', fw_len)
