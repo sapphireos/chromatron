@@ -111,7 +111,7 @@ void batt_v_init( void ){
 
     log_v_info_P( PSTR("BQ25895 detected") );
 
-    motor_v_init();
+    // motor_v_init();
 
     if( pca9536_i8_init() == 0 ){
 

@@ -968,6 +968,15 @@ station_mode:
         }
         // AP mode
         else{
+
+            // ESP32 soft AP.... basically doesn't work.
+            // provide a safe mode bail out.
+
+            if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+                goto station_mode;
+            }
+
             // should have gotten the MAC by now
             ASSERT( wifi_mac[0] != 0 );
 
@@ -1014,8 +1023,7 @@ station_mode:
 
             log_v_debug_P( PSTR("Starting AP: %s"), ap_ssid );
 
-            // set bandwidth to 20 MHz
-            esp_wifi_set_bandwidth( WIFI_IF_AP, WIFI_BW_HT20 );
+            esp_err_t err;
 
             // check if wifi settings were present
             if( ap_ssid[0] != 0 ){     
@@ -1034,9 +1042,31 @@ station_mode:
                 memcpy( ap_config.ap.password, ap_pass, sizeof(ap_pass) );
                 ap_config.ap.ssid_len = strlen( ap_ssid );
 
-                ESP_ERROR_CHECK(esp_wifi_set_mode( WIFI_MODE_AP ));
+                err = esp_wifi_set_mode( WIFI_MODE_AP );
 
-                ESP_ERROR_CHECK(esp_wifi_set_config( WIFI_IF_AP, &ap_config ));
+                if( err != ESP_OK ){
+
+                    log_v_error_P( PSTR("Wifi error: %d"), err );
+                    goto station_mode;
+                }
+
+                err = esp_wifi_set_config( WIFI_IF_AP, &ap_config );
+
+                if( err != ESP_OK ){
+
+                    log_v_error_P( PSTR("Wifi error: %d"), err );
+                    goto station_mode;
+                }
+
+                // set bandwidth to 20 MHz
+                // this does not work.  ESP-IDF bug.
+                err = esp_wifi_set_bandwidth( WIFI_IF_AP, WIFI_BW_HT20 );
+
+                if( err != ESP_OK ){
+
+                    log_v_error_P( PSTR("Wifi error: %d"), err );
+                    goto station_mode;
+                }
 
                 if( esp_wifi_start() != ESP_OK ){
 
