@@ -97,8 +97,6 @@ PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
 void batt_v_init( void ){
 
-    motor_v_init();
-
     energy_v_init();
 
     if( !batt_enable ){
@@ -112,6 +110,8 @@ void batt_v_init( void ){
     }
 
     log_v_info_P( PSTR("BQ25895 detected") );
+
+    motor_v_init();
 
     if( pca9536_i8_init() == 0 ){
 
