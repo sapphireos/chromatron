@@ -29,6 +29,8 @@
 #include "threading.h"
 #include "logging.h"
 
+#if defined(ENABLE_WIFI) && !defined(AVR)
+
 static ip_addr4_t igmp_groups[WIFI_MAX_IGMP];
 
 
@@ -159,3 +161,5 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+#endif

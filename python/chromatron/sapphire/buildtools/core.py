@@ -204,13 +204,14 @@ class Builder(object):
                 boards = json.loads(f.read())
 
         except FileNotFoundError:
+            print("No board targets found!")
             boards = {}
 
         try:
             self.board = boards[self.board_type]
 
         except KeyError:
-            raise
+            self.board = {}
 
         try:
             self.settings = self.get_settings()
