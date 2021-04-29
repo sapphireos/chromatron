@@ -56,11 +56,12 @@ static uint8_t wifi_connects;
 static uint32_t wifi_udp_received;
 static uint32_t wifi_udp_sent;
 static uint32_t wifi_udp_dropped;
-static bool default_ap_mode;
 
 static uint32_t wifi_arp_hits;
 static uint32_t wifi_arp_misses;
 
+static bool default_ap_mode;
+static bool ap_mode;
 static bool connected;
 static bool wifi_shutdown;
 
@@ -520,9 +521,15 @@ void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
     }
 }
 
+void wifi_v_switch_to_ap( void ){
+
+    connected = FALSE;
+    default_ap_mode = TRUE;
+}
+
 bool wifi_b_ap_mode( void ){
 
-	return FALSE;
+	return connected && ap_mode;
 }
 
 uint16_t wifi_u16_get_power( void ){
@@ -538,11 +545,6 @@ int8_t wifi_i8_get_status( void ){
 int8_t wifi_i8_get_channel( void ){
 
     return wifi_channel;
-}
-
-uint32_t wifi_u32_get_received( void ){
-
-    return 0;
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){
@@ -849,7 +851,7 @@ PT_BEGIN( pt );
 
         wifi_rssi = -127;
         
-        bool ap_mode = _wifi_b_ap_mode_enabled();
+        ap_mode = _wifi_b_ap_mode_enabled();
 
         // check if no APs are configured
         if( !is_ssid_configured() ){
@@ -966,6 +968,15 @@ station_mode:
         }
         // AP mode
         else{
+
+            // ESP32 soft AP.... basically doesn't work.
+            // provide a safe mode bail out.
+
+            if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+                goto station_mode;
+            }
+
             // should have gotten the MAC by now
             ASSERT( wifi_mac[0] != 0 );
 
@@ -1008,14 +1019,11 @@ station_mode:
                 goto end;
             }
 
-            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-
             esp_wifi_disconnect();
 
             log_v_debug_P( PSTR("Starting AP: %s"), ap_ssid );
 
-            // set bandwidth to 20 MHz
-            esp_wifi_set_bandwidth( WIFI_IF_AP, WIFI_BW_HT20 );
+            esp_err_t err;
 
             // check if wifi settings were present
             if( ap_ssid[0] != 0 ){     
@@ -1032,8 +1040,33 @@ station_mode:
 
                 memcpy( ap_config.ap.ssid, ap_ssid, sizeof(ap_ssid) );
                 memcpy( ap_config.ap.password, ap_pass, sizeof(ap_pass) );
- 
-                ESP_ERROR_CHECK(esp_wifi_set_config( WIFI_IF_AP, &ap_config ));
+                ap_config.ap.ssid_len = strlen( ap_ssid );
+
+                err = esp_wifi_set_mode( WIFI_MODE_AP );
+
+                if( err != ESP_OK ){
+
+                    log_v_error_P( PSTR("Wifi error: %d"), err );
+                    goto station_mode;
+                }
+
+                err = esp_wifi_set_config( WIFI_IF_AP, &ap_config );
+
+                if( err != ESP_OK ){
+
+                    log_v_error_P( PSTR("Wifi error: %d"), err );
+                    goto station_mode;
+                }
+
+                // set bandwidth to 20 MHz
+                // this does not work.  ESP-IDF bug.
+                err = esp_wifi_set_bandwidth( WIFI_IF_AP, WIFI_BW_HT20 );
+
+                if( err != ESP_OK ){
+
+                    log_v_error_P( PSTR("Wifi error: %d"), err );
+                    goto station_mode;
+                }
 
                 if( esp_wifi_start() != ESP_OK ){
 

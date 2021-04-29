@@ -285,8 +285,6 @@ static bool _catbus_b_has_tag( catbus_hash_t32 hash ){
     return FALSE;
 }
 
-#endif
-
 bool catbus_b_query_self( catbus_query_t *query ){
 
     for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
@@ -305,7 +303,6 @@ bool catbus_b_query_self( catbus_query_t *query ){
     return TRUE;
 }
 
-#ifdef ENABLE_NETWORK
 static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id ){
 
     if( sys_b_is_shutting_down() ){
@@ -422,7 +419,7 @@ int8_t _catbus_i8_internal_set(
             break;
         }
 
-        data += type_u16_size( meta.type );
+        data += type_u16_size( type );
     }
 
     if( changed ){
@@ -1501,6 +1498,7 @@ void catbus_v_shutdown( void ){
 
 }
 
+#ifdef ENABLE_NETWORK
 uint64_t catbus_u64_get_origin_id( void ){
 
     return origin_id;
@@ -1510,3 +1508,4 @@ const catbus_hash_t32* catbus_hp_get_tag_hashes( void ){
 
     return meta_tag_hashes;
 }
+#endif

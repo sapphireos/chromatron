@@ -759,15 +759,20 @@ PT_BEGIN( pt );
 
             bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
             bq25895_v_enable_adc_continuous();
-            bq25895_v_set_boost_voltage( 4600 );
+            bq25895_v_set_boost_voltage( 4700 );
 
             // charge config for NCR18650B
-            bq25895_v_set_inlim( 2000 );
+
+
+            bq25895_v_set_inlim( 3250 );
+
             // bq25895_v_set_inlim( 3000 );
             bq25895_v_set_pre_charge_current( 160 );
-            bq25895_v_set_fast_charge_current( 1625 );
+            
+            // bq25895_v_set_fast_charge_current( 1625 );
             // bq25895_v_set_fast_charge_current( 250 );
-            // bq25895_v_set_fast_charge_current( 3000 );
+            bq25895_v_set_fast_charge_current( 1625 * 4 ); // 4-cell configuration
+
             bq25895_v_set_termination_current( 65 );
             bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
 

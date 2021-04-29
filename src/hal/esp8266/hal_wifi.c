@@ -638,6 +638,11 @@ void wifi_v_get_ssid( char ssid[WIFI_SSID_LEN] ){
     }
 }
 
+void wifi_v_switch_to_ap( void ){
+
+    // no-op on the ESP8266
+}
+
 bool wifi_b_ap_mode( void ){
 
     if( wifi_get_opmode() == SOFTAP_MODE ){
@@ -656,11 +661,6 @@ int8_t wifi_i8_get_status( void ){
 int8_t wifi_i8_get_channel( void ){
 
     return wifi_channel;
-}
-
-uint32_t wifi_u32_get_received( void ){
-
-    return 0;
 }
 
 int8_t wifi_i8_send_udp( netmsg_t netmsg ){

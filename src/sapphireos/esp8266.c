@@ -1208,15 +1208,18 @@ PT_BEGIN( pt );
 
         if( watchdog == 0 ){
 
-            log_v_debug_P( PSTR("Wifi watchdog triggered") );
+            if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-            // reboot to safe mode
-            sys_v_reboot_delay( SYS_MODE_SAFE );
-            
-            // delay on this thread until reboot
-            TMR_WAIT( pt, 100000 );
+                log_v_debug_P( PSTR("Wifi watchdog triggered") );
 
-            ASSERT( FALSE );
+                // reboot to safe mode
+                sys_v_reboot_delay( SYS_MODE_SAFE );
+                
+                // delay on this thread until reboot
+                TMR_WAIT( pt, 100000 );
+
+                ASSERT( FALSE );
+            }
         }
 
         if( wifi_b_connected() ){
@@ -1408,11 +1411,6 @@ bool wifi_b_shutdown( void ){
 int8_t wifi_i8_get_status( void ){
 
     return wifi_status;
-}
-
-uint32_t wifi_u32_get_received( void ){
-
-    return wifi_udp_received;
 }
 
 #elif !defined(ESP8266) && !defined(ESP32)
