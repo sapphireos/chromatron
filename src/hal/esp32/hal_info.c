@@ -90,12 +90,12 @@ static int8_t hal_info_kv_handler(
 
             uint32_t rev = LOAD32(data);
 
-            if( ffs_u32_read_board_rev() == FLASH_FS_HW_REV_UNSET ){
+            // if( ffs_u32_read_board_rev() == FLASH_FS_HW_REV_UNSET ){
 
                 ffs_v_write_board_rev( rev );    
 
                 return 0;
-            }
+            // }
 
             return -1; // cannot set board rev (already set)
         }

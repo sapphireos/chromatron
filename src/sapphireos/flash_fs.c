@@ -124,11 +124,7 @@ void ffs_v_format( void ){
 
         trace_printf("Setting FFS version in block 0\r\n");
 
-        // backup board rev
-        // NOTE the board rev will be destroyed if power is lost during the write.
-        // this should be rare, once the FFS is formatted for the time, a reformat
-        // should not touch block 0 because it does not alter the version code.
-        uint32_t rev = ffs_u32_read_board_rev();
+        // note this will destroy the board rev
 
         // erase block 0
         flash25_v_unlock_block0();
@@ -137,9 +133,6 @@ void ffs_v_format( void ){
         // write version
         flash25_v_unlock_block0();
         flash25_v_write_byte( FLASH_FS_VERSION_ADDR, FFS_VERSION );
-
-        // write board rev
-        ffs_v_write_board_rev( rev );
     }
 
     // re-mount
@@ -161,10 +154,10 @@ void ffs_v_write_board_rev( uint32_t rev ){
     uint32_t current_rev = ffs_u32_read_board_rev();
 
     // we can only write the rev if it has not been set
-    if( current_rev != FLASH_FS_HW_REV_UNSET ){
+    // if( current_rev != FLASH_FS_HW_REV_UNSET ){
 
-        return;
-    }
+    //     return;
+    // }
 
     flash25_v_unlock_block0();
 
