@@ -71,6 +71,7 @@ Generic mode:
 #include "crc.h"
 #include "hal_status_led.h"
 #include "watchdog.h"
+#include "io.h"
 
 #include "bootloader_config.h"
 #include "bootloader_init.h"
@@ -91,6 +92,8 @@ void main( void ){
     crc_v_init();
 
     rtc_wdt_disable();
+
+    io_v_init();
 
     ldr_v_set_yellow_led();
 
