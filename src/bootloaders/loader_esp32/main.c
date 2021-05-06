@@ -121,6 +121,8 @@ void main( void ){
     if( FW_START_OFFSET == 0xffffffff ){
 
         trace_printf("Internal image fail\n");
+
+        goto fatal_error;
     }
 
     // check integrity of internal firmware
