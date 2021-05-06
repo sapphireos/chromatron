@@ -27,6 +27,7 @@
 
 #include "system.h"
 #include "target.h"
+#include "flash_fs.h"
 
 #include "hal_io.h"
 
@@ -113,7 +114,9 @@ int32_t hal_io_i32_get_gpio_num( uint8_t pin ){
 void io_v_init( void ){
 
     // check board revision
+    uint32_t rev = ffs_u32_read_board_rev();
 
+    trace_printf("Board rev: 0x%0x\r\n", rev);
 
 }
 

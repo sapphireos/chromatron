@@ -119,19 +119,57 @@ void ffs_v_format( void ){
 	// wait until finished
 	SAFE_BUSY_WAIT( flash25_b_busy() );
 
-    // erase block 0
-    flash25_v_unlock_block0();
-    flash25_v_erase_4k( 0 );
+    // check if version has not been set
+    if( flash25_u8_read_byte( FLASH_FS_VERSION_ADDR ) != FFS_VERSION ){
 
-    // write version
-    flash25_v_unlock_block0();
-    flash25_v_write_byte( FLASH_FS_VERSION_ADDR, FFS_VERSION );
+        trace_printf("Setting FFS version in block 0\r\n");
+
+        // backup board rev
+        // NOTE the board rev will be destroyed if power is lost during the write.
+        // this should be rare, once the FFS is formatted for the time, a reformat
+        // should not touch block 0 because it does not alter the version code.
+        uint32_t rev = ffs_u32_read_board_rev();
+
+        // erase block 0
+        flash25_v_unlock_block0();
+        flash25_v_erase_4k( 0 );
+
+        // write version
+        flash25_v_unlock_block0();
+        flash25_v_write_byte( FLASH_FS_VERSION_ADDR, FFS_VERSION );
+
+        // write board rev
+        ffs_v_write_board_rev( rev );
+    }
 
     // re-mount
     ffs_v_mount();
     #endif
 }
 
+uint32_t ffs_u32_read_board_rev( void ){
+
+    uint32_t rev = FLASH_FS_HW_REV_UNSET;
+
+    flash25_v_read( FLASH_FS_HW_REV_ADDR, (uint8_t *)&rev, sizeof(rev) );
+
+    return rev;
+}
+
+void ffs_v_write_board_rev( uint32_t rev ){
+
+    uint32_t current_rev = ffs_u32_read_board_rev();
+
+    // we can only write the rev if it has not been set
+    if( current_rev != FLASH_FS_HW_REV_UNSET ){
+
+        return;
+    }
+
+    flash25_v_unlock_block0();
+
+    flash25_v_write( FLASH_FS_HW_REV_ADDR, (uint8_t *)&rev, sizeof(rev) );
+}
 
 uint32_t ffs_u32_get_file_count( void ){
     #ifdef ENABLE_FFS

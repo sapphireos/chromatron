@@ -48,6 +48,9 @@ void ffs_v_init( void );
 void ffs_v_mount( void );
 void ffs_v_format( void );
 
+uint32_t ffs_u32_read_board_rev( void );
+void ffs_v_write_board_rev( uint32_t rev );
+
 uint32_t ffs_u32_get_file_count( void );
 uint32_t ffs_u32_get_dirty_space( void );
 uint32_t ffs_u32_get_free_space( void );

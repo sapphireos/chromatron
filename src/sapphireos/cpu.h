@@ -137,11 +137,11 @@
 #endif
 
 #ifndef LOAD32
-#define LOAD32(ptr) (*ptr)
+#define LOAD32(ptr) (*(uint32_t*)ptr)
 #endif
 
 #ifndef LOAD16
-#define LOAD16(ptr) (*ptr)
+#define LOAD16(ptr) (*(uint16_t*)ptr)
 #endif
 
 #ifndef STORE64
