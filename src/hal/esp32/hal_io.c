@@ -28,6 +28,7 @@
 #include "system.h"
 #include "target.h"
 #include "flash_fs.h"
+#include "hal_boards.h"
 
 #include "hal_io.h"
 
@@ -118,6 +119,14 @@ void io_v_init( void ){
 
     trace_printf("Board rev: 0x%0x\r\n", rev);
 
+    if( rev == BOARD_TYPE_CHROMATRON32_v0_0 ){
+
+        gpios = gpios_v0_0;
+    }
+    else if( rev == BOARD_TYPE_CHROMATRON32_v0_1 ){
+
+        gpios = gpios_v0_1;
+    }
 }
 
 uint8_t io_u8_get_board_rev( void ){

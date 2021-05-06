@@ -25,5 +25,11 @@
 #ifndef _HAL_BOARDS_H
 #define _HAL_BOARDS_H
 
+#define BOARD_TYPE_UNKNOWN                  0
+#define BOARD_TYPE_CHROMATRON32_v0_0        1
+#define BOARD_TYPE_CHROMATRON32_v0_1        2
+
+#define BOARD_TYPE_UNSET                    0xffffffff
+
 
 #endif
