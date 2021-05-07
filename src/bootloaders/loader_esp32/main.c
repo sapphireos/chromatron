@@ -72,6 +72,7 @@ Generic mode:
 #include "hal_status_led.h"
 #include "watchdog.h"
 #include "io.h"
+#include "flash_fs.h"
 
 #include "bootloader_config.h"
 #include "bootloader_init.h"
@@ -114,11 +115,11 @@ void main( void ){
     // initialize external flash
     flash25_v_init();
 
+    trace_printf("Board type: %d\n", ffs_u8_read_board_type() );
+
     io_v_init();
 
     ldr_v_set_yellow_led();
-
-    
 
     if( FW_START_OFFSET == 0xffffffff ){
 
