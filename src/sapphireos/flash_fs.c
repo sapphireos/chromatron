@@ -121,7 +121,7 @@ void ffs_v_format( void ){
 	SAFE_BUSY_WAIT( flash25_b_busy() );
 
     // check if version has not been set
-    // if( flash25_u8_read_byte( FLASH_FS_VERSION_ADDR ) != FFS_VERSION ){
+    if( flash25_u8_read_byte( FLASH_FS_VERSION_ADDR ) != FFS_VERSION ){
 
         trace_printf("Setting FFS version in block 0\r\n");
 
@@ -134,7 +134,7 @@ void ffs_v_format( void ){
         // write version
         flash25_v_unlock_block0();
         flash25_v_write_byte( FLASH_FS_VERSION_ADDR, FFS_VERSION );
-    // }
+    }
 
     // re-mount
     ffs_v_mount();
