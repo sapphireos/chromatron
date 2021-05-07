@@ -41,7 +41,7 @@
 #include "event_log.h"
 
 static bool ffs_fail;
-
+static uint8_t board_type;
 
 void ffs_v_init( void ){
 
@@ -62,8 +62,9 @@ void ffs_v_init( void ){
     }
 
     uint8_t fs_version = flash25_u8_read_byte( FLASH_FS_VERSION_ADDR );
+    board_type = flash25_u8_read_byte( FLASH_FS_HW_TYPE_ADDR );
 
-    trace_printf("FlashFS version: %d\r\n", fs_version);
+    trace_printf("FlashFS version: %d board type: %d\r\n", (int)fs_version, (int)board_type);
 
     // check system mode and version
     if( ( sys_u8_get_mode() == SYS_MODE_FORMAT ) ||
@@ -140,28 +141,32 @@ void ffs_v_format( void ){
     #endif
 }
 
-uint32_t ffs_u32_read_board_rev( void ){
+uint8_t ffs_u8_read_board_type( void ){
 
-    uint32_t rev = FLASH_FS_HW_REV_UNSET;
+    // trace_printf("0x%x\r\n", ( FLASH_FS_FIRMWARE_0_PARTITION_SIZE + FW_SPI_START_OFFSET ) + FLASH_FS_HW_TYPE_ADDR);
 
-    flash25_v_read( FLASH_FS_HW_REV_ADDR, (uint8_t *)&rev, sizeof(rev) );
-
-    return rev;
+    #ifdef BOOTLOADER
+    return flash25_u8_read_byte( FLASH_FS_HW_TYPE_ADDR );
+    #else
+    return board_type;
+    #endif
 }
 
-void ffs_v_write_board_rev( uint32_t rev ){
+void ffs_v_write_board_type( uint8_t board ){
 
-    uint32_t current_rev = ffs_u32_read_board_rev();
+    uint8_t current_type = ffs_u8_read_board_type();
 
-    // we can only write the rev if it has not been set
-    // if( current_rev != FLASH_FS_HW_REV_UNSET ){
+    // we can only write the board if it has not been set
+    // if( current_type != FLASH_FS_HW_TYPE_UNSET ){
 
     //     return;
     // }
 
     flash25_v_unlock_block0();
 
-    flash25_v_write( FLASH_FS_HW_REV_ADDR, (uint8_t *)&rev, sizeof(rev) );
+    flash25_v_write_byte( FLASH_FS_HW_TYPE_ADDR, board );
+
+    board_type = board;
 }
 
 uint32_t ffs_u32_get_file_count( void ){

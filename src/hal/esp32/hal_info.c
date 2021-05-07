@@ -43,11 +43,9 @@ static int8_t hal_info_kv_handler(
 
             strlcpy_P( data, PSTR("ChromatronESP32"), len );
     	}
-        else if( hash == __KV__hw_board_rev ){
-
-            uint32_t rev = ffs_u32_read_board_rev();
-
-            STORE32(data, rev);
+        else if( hash == __KV__hw_board_type ){
+            
+            *(uint8_t *)data = ffs_u8_read_board_type();
         }
     	else if( hash == __KV__cpu_clock ){
 
@@ -86,13 +84,11 @@ static int8_t hal_info_kv_handler(
     }
     else if( op == KV_OP_SET ){
 
-        if( hash == __KV__hw_board_rev ){
+        if( hash == __KV__hw_board_type ){
 
-            uint32_t rev = LOAD32(data);
+            // if( ffs_u8_read_board_type() == FLASH_FS_HW_REV_UNSET ){
 
-            // if( ffs_u32_read_board_rev() == FLASH_FS_HW_REV_UNSET ){
-
-                ffs_v_write_board_rev( rev );    
+                ffs_v_write_board_type( *(uint8_t *)data );    
 
                 return 0;
             // }
@@ -107,7 +103,7 @@ static int8_t hal_info_kv_handler(
 
 KV_SECTION_META kv_meta_t hal_info_kv[] = {
     { SAPPHIRE_TYPE_STRING32,     0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "hw_type" },
-    { SAPPHIRE_TYPE_UINT32,       0, 0,                   0, hal_info_kv_handler,  "hw_board_rev" },
+    { SAPPHIRE_TYPE_UINT8,        0, 0,                   0, hal_info_kv_handler,  "hw_board_type" },
     { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "cpu_clock" },
     { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "esp_heap_free" },
     { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "esp_heap_min_free" },

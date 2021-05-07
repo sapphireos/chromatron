@@ -93,8 +93,14 @@ int8_t sapphire_i8_init( void ){
 	// Must be called third!
 	mem2_v_init();
 
+    // init CRC module
+    crc_v_init();
+
     // init flash driver
     flash25_v_init();
+
+    // init flash file system
+    ffs_v_init();
 
 	// init analog module
 	adc_v_init();
@@ -118,14 +124,8 @@ int8_t sapphire_i8_init( void ){
         status_led_v_set( 1, STATUS_LED_RED );
     }
 
-	// init CRC module
-	crc_v_init();
-
     // init serial port
     cmd_usart_v_init();
-
-    // init flash file system
-    ffs_v_init();
 
     // init user file system
     fs_v_init();

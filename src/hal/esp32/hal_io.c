@@ -114,18 +114,20 @@ int32_t hal_io_i32_get_gpio_num( uint8_t pin ){
 
 void io_v_init( void ){
 
-    // check board revision
-    uint32_t rev = ffs_u32_read_board_rev();
+    // check board type
+    uint8_t board = ffs_u8_read_board_type();
 
-    trace_printf("Board rev: 0x%0x\r\n", rev);
-
-    if( rev == BOARD_TYPE_CHROMATRON32_v0_0 ){
+    if( board == BOARD_TYPE_CHROMATRON32_v0_0 ){
 
         gpios = gpios_v0_0;
     }
-    else if( rev == BOARD_TYPE_CHROMATRON32_v0_1 ){
+    else if( board == BOARD_TYPE_CHROMATRON32_v0_1 ){
 
         gpios = gpios_v0_1;
+    }
+    else{
+
+        trace_printf("Unknown board type, setting default IO map.\r\n");
     }
 }
 

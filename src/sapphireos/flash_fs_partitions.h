@@ -30,9 +30,9 @@
 #define FLASH_FS_ERASE_BLOCK_SIZE		4096
 
 #define FLASH_FS_VERSION_ADDR           16
-#define FLASH_FS_HW_REV_ADDR            32
+#define FLASH_FS_HW_TYPE_ADDR           32
 
-#define FLASH_FS_HW_REV_UNSET           0xffffffff
+#define FLASH_FS_HW_TYPE_UNSET          0xff
 
 // Partitions:
 #define PARTITON_FIRMWARE       0

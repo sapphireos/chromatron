@@ -51,6 +51,8 @@
 
 esp_err_t spi_flash_read( size_t src, void *dest, size_t size ){
 
+    // trace_printf("0x%0x\n", src);
+
     return bootloader_flash_read( src, dest, size, false );
 }
 
@@ -66,6 +68,10 @@ void ldr_v_erase_app( void ){
 	}
 	// trace_printf("Done\n");
 }
+// 0x110020 // bootloader type read addr
+// 0x110020 // bootloader addr
+// 0x110020 // main addr
+
 
 void ldr_v_copy_partition_to_internal( void ){
 

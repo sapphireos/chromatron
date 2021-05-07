@@ -93,10 +93,6 @@ void main( void ){
 
     rtc_wdt_disable();
 
-    io_v_init();
-
-    ldr_v_set_yellow_led();
-
     // check reset source
     uint8_t reset_source = cpu_u8_get_reset_source();
 
@@ -117,6 +113,12 @@ void main( void ){
 
     // initialize external flash
     flash25_v_init();
+
+    io_v_init();
+
+    ldr_v_set_yellow_led();
+
+    
 
     if( FW_START_OFFSET == 0xffffffff ){
 
