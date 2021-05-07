@@ -86,12 +86,12 @@ static int8_t hal_info_kv_handler(
 
         if( hash == __KV__hw_board_type ){
 
-            // if( ffs_u8_read_board_type() == FLASH_FS_HW_REV_UNSET ){
+            if( ffs_u8_read_board_type() == FLASH_FS_HW_TYPE_UNSET ){
 
                 ffs_v_write_board_type( *(uint8_t *)data );    
 
                 return 0;
-            // }
+            }
 
             return -1; // cannot set board rev (already set)
         }

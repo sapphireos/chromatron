@@ -155,10 +155,10 @@ void ffs_v_write_board_type( uint8_t board ){
     uint8_t current_type = ffs_u8_read_board_type();
 
     // we can only write the board if it has not been set
-    // if( current_type != FLASH_FS_HW_TYPE_UNSET ){
+    if( current_type != FLASH_FS_HW_TYPE_UNSET ){
 
-    //     return;
-    // }
+        return;
+    }
 
     flash25_v_unlock_block0();
 
