@@ -1579,7 +1579,7 @@ void gfx_v_reset( void ){
     // reset pixel objects
     pix_array_count = 0;
 
-    gfx_v_init_noise( 0 );
+    gfx_v_init_noise();
 }
 
 void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count ){
@@ -2029,18 +2029,16 @@ void gfx_v_sync_array( void ){
 
 // Value noise implementation
 
-void gfx_v_init_noise( uint64_t *seed ){
+void gfx_v_init_noise( void ){
+
+    // use a fixed seed for the noise table.
+    // this ensures synced programs to have synced noise without
+    // needing to exchange another RNG seed.
+    uint64_t seed = 0x3145761340987315;
 
     for( uint32_t i = 0; i < NOISE_TABLE_SIZE; i++ ){
 
-        if( seed == 0 ){
-
-            noise_table[i] = rnd_u8_get_int();    
-        } 
-        else{
-
-            noise_table[i] = rnd_u8_get_int_with_seed( seed );      
-        }
+        noise_table[i] = rnd_u8_get_int_with_seed( &seed );      
     }
 }
 

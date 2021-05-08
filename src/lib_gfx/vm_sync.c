@@ -329,11 +329,6 @@ PT_BEGIN( pt );
                 vm_state->rng_seed     = msg->rng_seed;
                 vm_state->frame_number = msg->frame_number;
 
-                // init noise table
-                // note, the noise table currently is global, so this will alter
-                // the noise characteristics of all VMs
-                gfx_v_init_noise( &vm_state->rng_seed );
-
                 uint8_t thread_count = VM_MAX_THREADS;
 
                 if( thread_count > msg->max_threads ){
