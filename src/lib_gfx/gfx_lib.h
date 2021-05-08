@@ -171,7 +171,7 @@ void gfx_v_reset( void );
 void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count );
 void gfx_v_delete_pixel_arrays( void );
 
-void gfx_v_init_noise( void );
+void gfx_v_init_noise( uint64_t *seed );
 uint16_t gfx_u16_noise( uint16_t x );
 
 uint32_t gfx_u32_get_pixel_r( void );

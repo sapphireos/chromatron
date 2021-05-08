@@ -1579,7 +1579,7 @@ void gfx_v_reset( void ){
     // reset pixel objects
     pix_array_count = 0;
 
-    gfx_v_init_noise();
+    gfx_v_init_noise( 0 );
 }
 
 void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count ){
@@ -2029,11 +2029,18 @@ void gfx_v_sync_array( void ){
 
 // Value noise implementation
 
-void gfx_v_init_noise( void ){
+void gfx_v_init_noise( uint64_t *seed ){
 
     for( uint32_t i = 0; i < NOISE_TABLE_SIZE; i++ ){
 
-        noise_table[i] = rnd_u8_get_int();
+        if( seed == 0 ){
+
+            noise_table[i] = rnd_u8_get_int();    
+        } 
+        else{
+
+            noise_table[i] = rnd_u8_get_int_with_seed( seed );      
+        }
     }
 }
 
