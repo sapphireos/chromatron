@@ -112,7 +112,7 @@ PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 static const char *TAG = "wifi station";
 
 static esp_err_t event_handler(void *ctx, system_event_t *event);
-static bool scan_done;
+static volatile bool scan_done;
 static bool connect_done;
 
 typedef struct{
@@ -838,7 +838,7 @@ PT_BEGIN( pt );
 
     log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
 
-    static uint8_t scan_timeout;
+    static uint16_t scan_timeout;
 
     connected = FALSE;
     wifi_rssi = -127;
@@ -891,7 +891,7 @@ station_mode:
                 	log_v_error_P( PSTR("Scan error") );
                 }
 
-                scan_timeout = 200;
+                scan_timeout = 500;
                 while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
 
                     scan_timeout--;
