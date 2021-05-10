@@ -771,7 +771,7 @@ static void scan_cb( void ){
 
     for( uint32_t i = 0; i < ap_count; i++ ){
 
-        log_v_debug_P( PSTR("%s %u %d\n"), ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
+        log_v_debug_P( PSTR("%s %u %d"), ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
 
         int8_t router = has_ssid( (char *)ap_info[i].ssid );
         if( router < 0 ){
