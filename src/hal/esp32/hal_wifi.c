@@ -771,7 +771,7 @@ static void scan_cb( void ){
 
     for( uint32_t i = 0; i < ap_count; i++ ){
 
-        trace_printf("%s %u %d\n", ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi);
+        log_v_debug_P( PSTR("%s %u %d\n"), ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
 
         int8_t router = has_ssid( (char *)ap_info[i].ssid );
         if( router < 0 ){
@@ -791,6 +791,8 @@ static void scan_cb( void ){
     mem2_v_free( h );
 
     if( best_rssi == -127 ){
+
+        log_v_debug_P( PSTR("no routers found") );
 
         return;
     }
@@ -900,6 +902,10 @@ station_mode:
                 if( scan_done ){
 
                     scan_cb();
+                }
+                else{
+
+                    log_v_error_P( PSTR("scan timeout!") );
                 }
 
                 if( wifi_router < 0 ){
