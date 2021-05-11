@@ -867,11 +867,14 @@ PT_BEGIN( pt );
         // station mode
         if( !ap_mode ){
 station_mode:            
+    
+            esp_wifi_disconnect();
+            esp_wifi_stop();    
 
             ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
 
-            esp_wifi_disconnect();
             ESP_ERROR_CHECK(esp_wifi_start());
+
 
             // check if we can try a fast connect with the last connected router
             if( wifi_router >= 0 ){
@@ -885,10 +888,13 @@ station_mode:
                 log_v_debug_P( PSTR("Scanning...") );
                 
                 scan_done = FALSE;
-                
-                if( esp_wifi_scan_start(NULL, FALSE) != 0 ){
+                    
+                esp_err_t err = esp_wifi_scan_start(NULL, FALSE);
+                if( err != 0 ){
 
-                	log_v_error_P( PSTR("Scan error") );
+                	log_v_error_P( PSTR("Scan error: %d"), err );
+
+                    goto end;
                 }
 
                 scan_timeout = 500;
@@ -906,7 +912,14 @@ station_mode:
                 else{
 
                     log_v_error_P( PSTR("scan timeout!") );
+
+                    // call the scan callback anyway.
+                    // the ESP32 seems to sometimes fail to signal scan completion so we timeout.
+                    // or maybe it fails to scan entirely? can't tell so far.
+                    scan_cb();
                 }
+
+                esp_wifi_scan_stop();
 
                 if( wifi_router < 0 ){
 
