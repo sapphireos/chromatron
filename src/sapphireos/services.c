@@ -1287,7 +1287,9 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 // if tracking is a server
                 if( service->server_valid ){
 
-                    log_v_debug_P( PSTR("%x hop to better server: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                    log_v_debug_P( PSTR("%x hop to better server: %d.%d.%d.%d uptime local: %lu remote: %lu"), 
+                        service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0,
+                        service->local_uptime, service->server_uptime );
 
                     // reset timeout
                     service->timeout   = SERVICE_CONNECTED_TIMEOUT;
@@ -1312,7 +1314,9 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                     if( !compare_self( service ) ){
 
                         // tracked server is better
-                        log_v_debug_P( PSTR("%x found a better server: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        log_v_debug_P( PSTR("%x found a better server: %d.%d.%d.%d uptime local: %lu remote: %lu"), 
+                            service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0,
+                            service->local_uptime, service->server_uptime );
 
                         log_v_info_P( PSTR("-> CONNECTED") );
 
