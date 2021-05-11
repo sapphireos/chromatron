@@ -357,6 +357,16 @@ SECTIONS
     *(.tbss)
     *(.tbss.*)
     _thread_local_end = ABSOLUTE(.);
+
+
+    /* Routing table entry sections */
+    *(.routing_start)
+    KEEP(*(.routing_start))
+    *(.routing)
+    KEEP(*(.routing))
+    *(.routing_end)
+    KEEP(*(.routing_end))
+
     . = ALIGN(4);
   } >drom0_0_seg
 
@@ -364,6 +374,26 @@ SECTIONS
   {
     _stext = .;
     _text_start = ABSOLUTE(.);
+
+    /* Sapphire firmware info section */
+    *(.fwinfo)
+    KEEP(*(.fwinfo))
+
+    /* Key-value service meta data sections */
+    *(.kv_meta_start)
+    KEEP(*(.kv_meta_start))
+    *(.kv_meta)
+    KEEP(*(.kv_meta))
+    *(.kv_meta_end)
+    KEEP(*(.kv_meta_end))
+
+    /* Presence service meta data sections */
+    *(.service_start)
+    KEEP(*(.service_start))
+    *(.service)
+    KEEP(*(.service))
+    *(.service_end)
+    KEEP(*(.service_end))
 
     *(EXCLUDE_FILE(*libsoc.a:cpu_util.* *libsoc.a:rtc_time.* *libsoc.a:rtc_wdt.* *libsoc.a:rtc_periph.* *libsoc.a:rtc_clk_init.* *libsoc.a:rtc_init.* *libsoc.a:rtc_pm.* *libsoc.a:rtc_clk.* *libsoc.a:rtc_sleep.* *libheap.a:multi_heap.* *libheap.a:multi_heap_poisoning.* *libxtensa-debug-module.a:eri.* *libapp_trace.a *libfreertos.a *libesp_ringbuf.a *libspi_flash.a:spi_flash_rom_patch.* *libespcoredump.a:core_dump_flash.* *libespcoredump.a:core_dump_common.* *libespcoredump.a:core_dump_uart.* *libespcoredump.a:core_dump_port.* *libesp32.a:panic.* *libhal.a *librtc.a *libgcc.a:lib2funcs.* *libgcov.a) .literal EXCLUDE_FILE(*libsoc.a:cpu_util.* *libsoc.a:rtc_time.* *libsoc.a:rtc_wdt.* *libsoc.a:rtc_periph.* *libsoc.a:rtc_clk_init.* *libsoc.a:rtc_init.* *libsoc.a:rtc_pm.* *libsoc.a:rtc_clk.* *libsoc.a:rtc_sleep.* *libheap.a:multi_heap.* *libheap.a:multi_heap_poisoning.* *libxtensa-debug-module.a:eri.* *libapp_trace.a *libfreertos.a *libesp_ringbuf.a *libspi_flash.a:spi_flash_rom_patch.* *libespcoredump.a:core_dump_flash.* *libespcoredump.a:core_dump_common.* *libespcoredump.a:core_dump_uart.* *libespcoredump.a:core_dump_port.* *libesp32.a:panic.* *libhal.a *librtc.a *libgcc.a:lib2funcs.* *libgcov.a) .literal.*  .phyiram  .phyiram.* EXCLUDE_FILE(*libsoc.a:cpu_util.* *libsoc.a:rtc_time.* *libsoc.a:rtc_wdt.* *libsoc.a:rtc_periph.* *libsoc.a:rtc_clk_init.* *libsoc.a:rtc_init.* *libsoc.a:rtc_pm.* *libsoc.a:rtc_clk.* *libsoc.a:rtc_sleep.* *libheap.a:multi_heap.* *libheap.a:multi_heap_poisoning.* *libxtensa-debug-module.a:eri.* *libapp_trace.a *libfreertos.a *libesp_ringbuf.a *libspi_flash.a:spi_flash_rom_patch.* *libespcoredump.a:core_dump_flash.* *libespcoredump.a:core_dump_common.* *libespcoredump.a:core_dump_uart.* *libespcoredump.a:core_dump_port.* *libesp32.a:panic.* *libhal.a *librtc.a *libgcc.a:lib2funcs.* *libgcov.a) .text EXCLUDE_FILE(*libsoc.a:cpu_util.* *libsoc.a:rtc_time.* *libsoc.a:rtc_wdt.* *libsoc.a:rtc_periph.* *libsoc.a:rtc_clk_init.* *libsoc.a:rtc_init.* *libsoc.a:rtc_pm.* *libsoc.a:rtc_clk.* *libsoc.a:rtc_sleep.* *libheap.a:multi_heap.* *libheap.a:multi_heap_poisoning.* *libxtensa-debug-module.a:eri.* *libapp_trace.a *libfreertos.a *libesp_ringbuf.a *libspi_flash.a:spi_flash_rom_patch.* *libespcoredump.a:core_dump_flash.* *libespcoredump.a:core_dump_common.* *libespcoredump.a:core_dump_uart.* *libespcoredump.a:core_dump_port.* *libesp32.a:panic.* *libhal.a *librtc.a *libgcc.a:lib2funcs.* *libgcov.a) .text.* EXCLUDE_FILE(*libpp.a *libnet80211.a) .wifi0iram EXCLUDE_FILE(*libpp.a *libnet80211.a) .wifi0iram.* EXCLUDE_FILE(*libpp.a *libnet80211.a) .wifirxiram EXCLUDE_FILE(*libpp.a *libnet80211.a) .wifirxiram.*)
 
