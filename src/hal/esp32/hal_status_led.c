@@ -210,8 +210,11 @@ void status_led_v_init( void ){
 
     enabled = TRUE;
 
-    reset_all();
+    if( hal_io_b_is_board_type_known() ){
 
+        reset_all();    
+    }
+    
     thread_t_create( status_led_thread,
                      PSTR("status_led"),
                      0,
@@ -230,6 +233,11 @@ void status_led_v_disable( void ){
 }
 
 void status_led_v_set( uint8_t state, uint8_t led ){
+
+    if( !hal_io_b_is_board_type_known() ){
+
+        return;
+    }
 
     reset_all();
  
