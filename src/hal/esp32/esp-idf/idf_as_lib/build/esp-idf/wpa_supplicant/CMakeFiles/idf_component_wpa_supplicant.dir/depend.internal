@@ -7,6 +7,7 @@ esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtens
  ../../../../../components/esp32/include/esp_assert.h
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -637,6 +638,7 @@ esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/cr
  ../../../../../components/esp32/include/esp_assert.h
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h

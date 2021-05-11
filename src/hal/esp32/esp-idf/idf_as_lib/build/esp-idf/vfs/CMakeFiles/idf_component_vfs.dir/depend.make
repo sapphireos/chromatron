@@ -7,6 +7,7 @@ esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.obj: ../../../../../component
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -116,6 +117,7 @@ esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj: ../../../../../comp
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj: ../../../../../components/esp32/include/esp_sleep.h

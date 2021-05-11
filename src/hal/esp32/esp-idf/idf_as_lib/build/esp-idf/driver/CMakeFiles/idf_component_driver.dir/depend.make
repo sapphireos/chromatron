@@ -11,6 +11,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.obj: ../../../../../com
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.obj: ../../../../../components/esp32/include/esp_pm.h
@@ -105,6 +106,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.obj: ../../../../../co
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.obj: ../../../../../components/esp32/include/esp_ipc.h
@@ -194,6 +196,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.obj: ../../../../../com
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.obj: ../../../../../components/esp32/include/esp_pm.h
@@ -300,6 +303,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.obj: ../../../../../com
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.obj: ../../../../../components/esp32/include/esp_pm.h
@@ -408,6 +412,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.obj: ../../../../../co
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -502,6 +507,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.obj: ../../../../../c
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -597,6 +603,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.obj: ../../../../../co
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -688,6 +695,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.obj: ../../../.
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -776,6 +784,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.obj: ../../../../../com
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -872,6 +881,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.obj: ../../../..
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -977,6 +987,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.obj: ../../../..
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1080,6 +1091,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.obj: ../../../..
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1180,6 +1192,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.obj: ../.
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.obj: ../../../../../components/esp32/include/esp_pm.h
@@ -1289,6 +1302,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.obj: ../../../..
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1390,6 +1404,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.obj: ../.
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1550,6 +1565,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.obj: ../../../..
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1650,6 +1666,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.obj: ../../../..
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.obj: ../../../../../components/esp32/include/esp_pm.h
@@ -1755,6 +1772,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.obj: ../../../../
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.obj: ../../../../../components/esp32/include/esp_pm.h
@@ -1857,6 +1875,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.obj: ../../../../../c
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1951,6 +1970,7 @@ esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.obj: ../../../../../co
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.obj: ../../../../../components/esp32/include/esp_sleep.h

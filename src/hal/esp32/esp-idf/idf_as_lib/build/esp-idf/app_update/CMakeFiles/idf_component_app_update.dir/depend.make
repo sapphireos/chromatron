@@ -55,6 +55,7 @@ esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.obj: ..
 esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.obj: ../../../../../components/esp32/include/esp_err.h
 esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.obj: ../../../../../components/esp32/include/esp_flash_data_types.h
+esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.obj: ../../../../../components/esp32/include/esp_sleep.h

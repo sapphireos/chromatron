@@ -20,7 +20,7 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
   "ESP_PLATFORM"
   "GCC_NOT_5_2_0=0"
   "HAVE_CONFIG_H"
-  "IDF_VER=\"v3.3.2-12-ga3a5fe81f\""
+  "IDF_VER=\"v3.3.5-15-g1ae94da2c\""
   "MBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\""
   )
 
@@ -37,6 +37,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "../../../../../components/lwip/port/esp32/include"
   "../../../../../components/lwip/port/esp32/include/arch"
   "../../../../../components/lwip/include_compat"
+  "../../../../../components/lwip/port/esp32/tcp_isn"
   "../../../../../components/vfs/include"
   "../../../../../components/esp32/include"
   "../../../../../components/driver/include"

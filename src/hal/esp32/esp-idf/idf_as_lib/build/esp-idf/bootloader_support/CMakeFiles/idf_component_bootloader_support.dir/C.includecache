@@ -166,6 +166,8 @@ assert.h
 stdint.h
 -
 
+../../../../../components/esp32/include/esp_idf_version.h
+
 ../../../../../components/esp32/include/esp_intr.h
 rom/ets_sys.h
 ../../../../../components/esp32/include/rom/ets_sys.h
@@ -199,6 +201,8 @@ esp_err.h
 ../../../../../components/esp32/include/esp_err.h
 esp_sleep.h
 ../../../../../components/esp32/include/esp_sleep.h
+esp_idf_version.h
+../../../../../components/esp32/include/esp_idf_version.h
 
 ../../../../../components/esp32/include/esp_types.h
 sys/cdefs.h
@@ -825,6 +829,10 @@ bootloader_flash.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support/src/bootloader_flash.h
 bootloader_common.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support/src/bootloader_common.h
+bootloader_config.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support/src/bootloader_config.h
+bootloader_utility.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support/src/bootloader_utility.h
 soc/gpio_periph.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support/src/soc/gpio_periph.h
 soc/efuse_reg.h

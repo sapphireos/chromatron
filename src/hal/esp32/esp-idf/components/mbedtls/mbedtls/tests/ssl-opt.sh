@@ -2,9 +2,49 @@
 
 # ssl-opt.sh
 #
-# This file is part of mbed TLS (https://tls.mbed.org)
-#
 # Copyright (c) 2016, ARM Limited, All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+#
+# This file is provided under the Apache License 2.0, or the
+# GNU General Public License v2.0 or later.
+#
+# **********
+# Apache License 2.0:
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# **********
+#
+# **********
+# GNU General Public License v2.0 or later:
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# **********
+#
+# This file is part of Mbed TLS (https://tls.mbed.org)
 #
 # Purpose
 #
@@ -21,12 +61,16 @@
 
 set -u
 
+# Limit the size of each log to 10 GiB, in case of failures with this script
+# where it may output seemingly unlimited length error logs.
+ulimit -f 20971520
+
 if cd $( dirname $0 ); then :; else
     echo "cd $( dirname $0 ) failed" >&2
     exit 1
 fi
 
-# default values, can be overriden by the environment
+# default values, can be overridden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
 : ${P_PXY:=../programs/test/udp_proxy}
@@ -416,9 +460,9 @@ has_mem_err() {
     fi
 }
 
-# Wait for process $2 to be listening on port $1
+# Wait for process $2 named $3 to be listening on port $1. Print error to $4.
 if type lsof >/dev/null 2>/dev/null; then
-    wait_server_start() {
+    wait_app_start() {
         START_TIME=$(date +%s)
         if [ "$DTLS" -eq 1 ]; then
             proto=UDP
@@ -428,8 +472,8 @@ if type lsof >/dev/null 2>/dev/null; then
         # Make a tight loop, server normally takes less than 1s to start.
         while ! lsof -a -n -b -i "$proto:$1" -p "$2" >/dev/null 2>/dev/null; do
               if [ $(( $(date +%s) - $START_TIME )) -gt $DOG_DELAY ]; then
-                  echo "SERVERSTART TIMEOUT"
-                  echo "SERVERSTART TIMEOUT" >> $SRV_OUT
+                  echo "$3 START TIMEOUT"
+                  echo "$3 START TIMEOUT" >> $4
                   break
               fi
               # Linux and *BSD support decimal arguments to sleep. On other
@@ -438,11 +482,21 @@ if type lsof >/dev/null 2>/dev/null; then
         done
     }
 else
-    echo "Warning: lsof not available, wait_server_start = sleep"
-    wait_server_start() {
+    echo "Warning: lsof not available, wait_app_start = sleep"
+    wait_app_start() {
         sleep "$START_DELAY"
     }
 fi
+
+# Wait for server process $2 to be listening on port $1.
+wait_server_start() {
+    wait_app_start $1 $2 "SERVER" $SRV_OUT
+}
+
+# Wait for proxy process $2 to be listening on port $1.
+wait_proxy_start() {
+    wait_app_start $1 $2 "PROXY" $PXY_OUT
+}
 
 # Given the client or server debug output, parse the unix timestamp that is
 # included in the first 4 bytes of the random bytes and check that it's within
@@ -596,7 +650,7 @@ run_test() {
             echo "$PXY_CMD" > $PXY_OUT
             $PXY_CMD >> $PXY_OUT 2>&1 &
             PXY_PID=$!
-            # assume proxy starts faster than server
+            wait_proxy_start "$PXY_PORT" "$PXY_PID"
         fi
 
         check_osrv_dtls
@@ -697,7 +751,7 @@ run_test() {
 
                 # The filtering in the following two options (-u and -U) do the following
                 #   - ignore valgrind output
-                #   - filter out everything but lines right after the pattern occurances
+                #   - filter out everything but lines right after the pattern occurrences
                 #   - keep one of each non-unique line
                 #   - count how many lines remain
                 # A line with '--' will remain in the result from previous outputs, so the number of lines in the result will be 1
@@ -890,6 +944,18 @@ run_test    "Default, DTLS" \
             0 \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
+
+requires_config_enabled MBEDTLS_ZLIB_SUPPORT
+run_test    "Default (compression enabled)" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -s "Allocating compression buffer" \
+            -c "Allocating compression buffer" \
+            -s "Record expansion is unknown (compression)" \
+            -c "Record expansion is unknown (compression)" \
+            -S "error" \
+            -C "error"
 
 # Test current time in ServerHello
 requires_config_enabled MBEDTLS_HAVE_TIME
@@ -1361,7 +1427,7 @@ run_test    "Encrypt then MAC: empty application data record" \
             -s "dumping 'input payload after decrypt' (0 bytes)" \
             -c "0 bytes written in 1 fragments"
 
-run_test    "Default, no Encrypt then MAC: empty application data record" \
+run_test    "Encrypt then MAC: disabled, empty application data record" \
             "$P_SRV auth_mode=none debug_level=4 etm=0" \
             "$P_CLI auth_mode=none etm=0 request_size=0" \
             0 \
@@ -1376,7 +1442,7 @@ run_test    "Encrypt then MAC, DTLS: empty application data record" \
             -s "dumping 'input payload after decrypt' (0 bytes)" \
             -c "0 bytes written in 1 fragments"
 
-run_test    "Default, no Encrypt then MAC, DTLS: empty application data record" \
+run_test    "Encrypt then MAC, DTLS: disabled, empty application data record" \
             "$P_SRV auth_mode=none debug_level=4 etm=0 dtls=1" \
             "$P_CLI auth_mode=none etm=0 request_size=0 dtls=1" \
             0 \
@@ -1549,7 +1615,7 @@ run_test    "Session resume using tickets: openssl client" \
 
 run_test    "Session resume using tickets, DTLS: basic" \
             "$P_SRV debug_level=3 dtls=1 tickets=1" \
-            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1" \
+            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -1563,7 +1629,7 @@ run_test    "Session resume using tickets, DTLS: basic" \
 
 run_test    "Session resume using tickets, DTLS: cache disabled" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0" \
-            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1" \
+            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -1577,7 +1643,7 @@ run_test    "Session resume using tickets, DTLS: cache disabled" \
 
 run_test    "Session resume using tickets, DTLS: timeout" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0 ticket_timeout=1" \
-            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 reco_delay=2" \
+            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1 reco_delay=2" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -1709,7 +1775,7 @@ run_test    "Session resume using cache: openssl server" \
 
 run_test    "Session resume using cache, DTLS: tickets enabled on client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
-            "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1 skip_close_notify=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -1723,7 +1789,7 @@ run_test    "Session resume using cache, DTLS: tickets enabled on client" \
 
 run_test    "Session resume using cache, DTLS: tickets enabled on server" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1" \
             0 \
             -C "client hello, adding session ticket extension" \
             -S "found session ticket extension" \
@@ -1737,7 +1803,7 @@ run_test    "Session resume using cache, DTLS: tickets enabled on server" \
 
 run_test    "Session resume using cache, DTLS: cache_max=0" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_max=0" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1" \
             0 \
             -S "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -1746,7 +1812,7 @@ run_test    "Session resume using cache, DTLS: cache_max=0" \
 
 run_test    "Session resume using cache, DTLS: cache_max=1" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_max=1" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -1755,7 +1821,7 @@ run_test    "Session resume using cache, DTLS: cache_max=1" \
 
 run_test    "Session resume using cache, DTLS: timeout > delay" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=0" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1 reco_delay=0" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -1764,7 +1830,7 @@ run_test    "Session resume using cache, DTLS: timeout > delay" \
 
 run_test    "Session resume using cache, DTLS: timeout < delay" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_timeout=1" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1 reco_delay=2" \
             0 \
             -S "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -1773,7 +1839,7 @@ run_test    "Session resume using cache, DTLS: timeout < delay" \
 
 run_test    "Session resume using cache, DTLS: no timeout" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_timeout=0" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1 reco_delay=2" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -2766,7 +2832,7 @@ run_test    "Authentication: server max_int chain, client default" \
                     key_file=data_files/dir-maxpath/09.key" \
             "$P_CLI server_name=CA09 ca_file=data_files/dir-maxpath/00.crt" \
             0 \
-            -C "X509 - A fatal error occured"
+            -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client default" \
@@ -2774,7 +2840,7 @@ run_test    "Authentication: server max_int+1 chain, client default" \
                     key_file=data_files/dir-maxpath/10.key" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt" \
             1 \
-            -c "X509 - A fatal error occured"
+            -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client optional" \
@@ -2783,7 +2849,7 @@ run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     auth_mode=optional" \
             1 \
-            -c "X509 - A fatal error occured"
+            -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client none" \
@@ -2792,7 +2858,7 @@ run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     auth_mode=none" \
             0 \
-            -C "X509 - A fatal error occured"
+            -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server default" \
@@ -2800,7 +2866,7 @@ run_test    "Authentication: client max_int+1 chain, server default" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             0 \
-            -S "X509 - A fatal error occured"
+            -S "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server optional" \
@@ -2808,7 +2874,7 @@ run_test    "Authentication: client max_int+1 chain, server optional" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             1 \
-            -s "X509 - A fatal error occured"
+            -s "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server required" \
@@ -2816,7 +2882,7 @@ run_test    "Authentication: client max_int+1 chain, server required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             1 \
-            -s "X509 - A fatal error occured"
+            -s "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int chain, server required" \
@@ -2824,7 +2890,7 @@ run_test    "Authentication: client max_int chain, server required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
             0 \
-            -S "X509 - A fatal error occured"
+            -S "X509 - A fatal error occurred"
 
 # Tests for CA list in CertificateRequest messages
 
@@ -3322,19 +3388,19 @@ run_test    "Event-driven I/O, DTLS: ticket + client auth" \
 
 run_test    "Event-driven I/O, DTLS: ticket + client auth + resume" \
             "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
-            "$P_CLI dtls=1 event=1 tickets=1 reconnect=1" \
+            "$P_CLI dtls=1 event=1 tickets=1 reconnect=1 skip_close_notify=1" \
             0 \
             -c "Read from server: .* bytes read"
 
 run_test    "Event-driven I/O, DTLS: ticket + resume" \
             "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
-            "$P_CLI dtls=1 event=1 tickets=1 reconnect=1" \
+            "$P_CLI dtls=1 event=1 tickets=1 reconnect=1 skip_close_notify=1" \
             0 \
             -c "Read from server: .* bytes read"
 
 run_test    "Event-driven I/O, DTLS: session-id resume" \
             "$P_SRV dtls=1 event=1 tickets=0 auth_mode=none" \
-            "$P_CLI dtls=1 event=1 tickets=0 reconnect=1" \
+            "$P_CLI dtls=1 event=1 tickets=0 reconnect=1 skip_close_notify=1" \
             0 \
             -c "Read from server: .* bytes read"
 
@@ -3346,7 +3412,7 @@ run_test    "Event-driven I/O, DTLS: session-id resume" \
 run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
             -p "$P_PXY pack=50" \
             "$P_SRV dtls=1 event=1 tickets=0 auth_mode=required" \
-            "$P_CLI dtls=1 event=1 tickets=0 reconnect=1" \
+            "$P_CLI dtls=1 event=1 tickets=0 reconnect=1 skip_close_notify=1" \
             0 \
             -c "Read from server: .* bytes read"
 
@@ -4045,15 +4111,8 @@ run_test    "Per-version suites: TLS 1.2" \
 # Test for ClientHello without extensions
 
 requires_gnutls
-run_test    "ClientHello without extensions, SHA-1 allowed" \
-            "$P_SRV debug_level=3 key_file=data_files/server2.key crt_file=data_files/server2.crt" \
-            "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION localhost" \
-            0 \
-            -s "dumping 'client hello extensions' (0 bytes)"
-
-requires_gnutls
-run_test    "ClientHello without extensions, SHA-1 forbidden in certificates on server" \
-            "$P_SRV debug_level=3 key_file=data_files/server2.key crt_file=data_files/server2.crt allow_sha1=0" \
+run_test    "ClientHello without extensions" \
+            "$P_SRV debug_level=3" \
             "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION localhost" \
             0 \
             -s "dumping 'client hello extensions' (0 bytes)"
@@ -5740,8 +5799,8 @@ run_test    "DTLS cookie: enabled, nbio" \
 
 not_with_valgrind # spurious resend
 run_test    "DTLS client reconnect from same port: reference" \
-            "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
-            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=20000 hs_timeout=10000-20000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=10000-20000" \
             0 \
             -C "resend" \
             -S "The operation timed out" \
@@ -5749,8 +5808,8 @@ run_test    "DTLS client reconnect from same port: reference" \
 
 not_with_valgrind # spurious resend
 run_test    "DTLS client reconnect from same port: reconnect" \
-            "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
-            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=20000 hs_timeout=10000-20000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=10000-20000 reconnect_hard=1" \
             0 \
             -C "resend" \
             -S "The operation timed out" \
@@ -5777,6 +5836,14 @@ run_test    "DTLS client reconnect from same port: no cookies" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-8000 reconnect_hard=1" \
             0 \
             -s "The operation timed out" \
+            -S "Client initiated reconnection from same port"
+
+run_test    "DTLS client reconnect from same port: attacker-injected" \
+            -p "$P_PXY inject_clihlo=1" \
+            "$P_SRV dtls=1 exchanges=2 debug_level=1" \
+            "$P_CLI dtls=1 exchanges=2" \
+            0 \
+            -s "possible client reconnect from the same port" \
             -S "Client initiated reconnection from same port"
 
 # Tests for various cases of client authentication with DTLS
@@ -6359,7 +6426,7 @@ run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
              key_file=data_files/server8.key \
              hs_timeout=10000-60000 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
-             mtu=1450 reconnect=1 reco_delay=1" \
+             mtu=1450 reconnect=1 skip_close_notify=1 reco_delay=1" \
             0 \
             -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
@@ -6848,8 +6915,8 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.0" \
 not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: reference" \
             -p "$P_PXY" \
-            "$P_SRV dtls=1 debug_level=2" \
-            "$P_CLI dtls=1 debug_level=2" \
+            "$P_SRV dtls=1 debug_level=2 hs_timeout=10000-20000" \
+            "$P_CLI dtls=1 debug_level=2 hs_timeout=10000-20000" \
             0 \
             -C "replayed record" \
             -S "replayed record" \
@@ -6864,8 +6931,8 @@ run_test    "DTLS proxy: reference" \
 not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: duplicate every packet" \
             -p "$P_PXY duplicate=1" \
-            "$P_SRV dtls=1 dgram_packing=0 debug_level=2" \
-            "$P_CLI dtls=1 dgram_packing=0 debug_level=2" \
+            "$P_SRV dtls=1 dgram_packing=0 debug_level=2 hs_timeout=10000-20000" \
+            "$P_CLI dtls=1 dgram_packing=0 debug_level=2 hs_timeout=10000-20000" \
             0 \
             -c "replayed record" \
             -s "replayed record" \
@@ -7206,7 +7273,7 @@ run_test    "DTLS proxy: 3d, min handshake, resumption" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
              psk=abc123 debug_level=3" \
             "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
-             debug_level=3 reconnect=1 read_timeout=1000 max_resend=10 \
+             debug_level=3 reconnect=1 skip_close_notify=1 read_timeout=1000 max_resend=10 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
             -s "a session has been resumed" \
@@ -7220,7 +7287,7 @@ run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
              psk=abc123 debug_level=3 nbio=2" \
             "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
-             debug_level=3 reconnect=1 read_timeout=1000 max_resend=10 \
+             debug_level=3 reconnect=1 skip_close_notify=1 read_timeout=1000 max_resend=10 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 nbio=2" \
             0 \
             -s "a session has been resumed" \

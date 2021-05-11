@@ -79,6 +79,7 @@ esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj: ../../..
 esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj: ../../../../../components/esp32/include/esp_err.h
 esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj: ../../../../../components/esp32/include/esp_event_legacy.h
+esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj: ../../../../../components/esp32/include/esp_interface.h
 esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h

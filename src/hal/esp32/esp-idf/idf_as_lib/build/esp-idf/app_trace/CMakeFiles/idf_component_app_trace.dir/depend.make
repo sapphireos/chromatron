@@ -10,6 +10,7 @@ esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.obj: ../../
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -107,6 +108,7 @@ esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.obj: .
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.obj: ../../../../../components/esp32/include/esp_clk.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -192,6 +194,7 @@ esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.obj: .
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.obj: ../../../../../components/esp32/include/esp_dbg_stubs.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -281,6 +284,7 @@ esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.obj: ../
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.obj: ../../../../../components/esp32/include/esp_sleep.h

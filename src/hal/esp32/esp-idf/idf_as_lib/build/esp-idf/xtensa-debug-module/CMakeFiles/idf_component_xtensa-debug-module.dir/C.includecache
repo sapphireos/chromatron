@@ -316,12 +316,6 @@ xtensa-debug-module.h
 
 ../../../../../components/xtensa-debug-module/include/xtensa-debug-module.h
 
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa-debug-module/eri.c
-stdint.h
--
-eri.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa-debug-module/eri.h
-
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa-debug-module/trax.c
 stdio.h
 -

@@ -14,26 +14,31 @@
 
 #include <errno.h>
 
+#include "btc_ble_mesh_time_scene_model.h"
+
+#include "mesh_config.h"
 #include "access.h"
 #include "transport.h"
 #include "model_opcode.h"
 #include "state_transition.h"
 
-#include "btc_ble_mesh_time_scene_model.h"
+#if CONFIG_BLE_MESH_TIME_SCENE_SERVER
 
 static bt_mesh_mutex_t time_scene_server_lock;
 
-static void bt_mesh_time_scene_server_mutex_new(void)
+static inline void bt_mesh_time_scene_server_mutex_new(void)
 {
     if (!time_scene_server_lock.mutex) {
         bt_mesh_mutex_create(&time_scene_server_lock);
     }
 }
 
-static void bt_mesh_time_scene_server_mutex_free(void)
+#if CONFIG_BLE_MESH_DEINIT
+static inline void bt_mesh_time_scene_server_mutex_free(void)
 {
     bt_mesh_mutex_free(&time_scene_server_lock);
 }
+#endif /* CONFIG_BLE_MESH_DEINIT */
 
 void bt_mesh_time_scene_server_lock(void)
 {
@@ -64,7 +69,7 @@ static void send_time_status(struct bt_mesh_model *model,
     if (publish == false) {
         msg = bt_mesh_alloc_buf(length + BLE_MESH_SERVER_TRANS_MIC_SIZE);
         if (msg == NULL) {
-            BT_ERR("%s, Failed to allocate memory", __func__);
+            BT_ERR("%s, Out of memory", __func__);
             return;
         }
     } else {
@@ -138,7 +143,7 @@ static void send_time_status(struct bt_mesh_model *model,
         break;
     }
     default:
-        BT_WARN("%s, Unknown Time status opcode 0x%04x", __func__, opcode);
+        BT_WARN("Unknown Time status opcode 0x%04x", opcode);
         if (publish == false) {
             bt_mesh_free_buf(msg);
         }
@@ -164,7 +169,7 @@ static void time_get(struct bt_mesh_model *model,
     u8_t prev_ttl = 0U;
 
     if (model->user_data == NULL) {
-        BT_ERR("%s, Invalid model user_data", __func__);
+        BT_ERR("%s, Invalid model user data", __func__);
         return;
     }
 
@@ -172,7 +177,7 @@ static void time_get(struct bt_mesh_model *model,
     case BLE_MESH_MODEL_ID_TIME_SRV: {
         struct bt_mesh_time_srv *srv = model->user_data;
         if (srv->state == NULL) {
-            BT_ERR("%s, Invalid Time Server state", __func__);
+            BT_ERR("Invalid Time Server state");
             return;
         }
         rsp_ctrl = &srv->rsp_ctrl;
@@ -181,14 +186,14 @@ static void time_get(struct bt_mesh_model *model,
     case BLE_MESH_MODEL_ID_TIME_SETUP_SRV: {
         struct bt_mesh_time_setup_srv *srv = model->user_data;
         if (srv->state == NULL) {
-            BT_ERR("%s, Invalid Time Setup Server state", __func__);
+            BT_ERR("Invalid Time Setup Server state");
             return;
         }
         rsp_ctrl = &srv->rsp_ctrl;
         break;
     }
     default:
-        BT_ERR("%s, Invalid Time Server 0x%04x", __func__, model->id);
+        BT_ERR("Invalid Time Server, model id 0x%04x", model->id);
         return;
     }
 
@@ -207,7 +212,7 @@ static void time_get(struct bt_mesh_model *model,
     case BLE_MESH_MODEL_OP_TIME_STATUS: {
         struct bt_mesh_time_srv *srv = model->user_data;
         if (srv->state == NULL) {
-            BT_ERR("%s, Invalid Time Server state", __func__);
+            BT_ERR("Invalid Time Server state");
             return;
         }
         if (srv->state->time_role != TIME_RELAY &&
@@ -224,7 +229,7 @@ static void time_get(struct bt_mesh_model *model,
             net_buf_simple_pull(buf, TAI_SECONDS_LEN);
             if (memcmp(status.time_status.tai_seconds, zero, TAI_SECONDS_LEN)) {
                 if (buf->len != TAI_SECONDS_LEN) {
-                    BT_ERR("%s, Invalid Time Status length %d", __func__, buf->len + TAI_SECONDS_LEN);
+                    BT_ERR("Invalid Time Status length %d", buf->len + TAI_SECONDS_LEN);
                     return;
                 }
                 status.time_status.subsecond = net_buf_simple_pull_u8(buf);
@@ -247,7 +252,7 @@ static void time_get(struct bt_mesh_model *model,
          */
         if (memcmp(srv->state->time.tai_seconds, zero, TAI_SECONDS_LEN)) {
             if (buf->len != TAI_SECONDS_LEN) {
-                BT_ERR("%s, Invalid Time Status length %d", __func__, buf->len + TAI_SECONDS_LEN);
+                BT_ERR("Invalid Time Status length %d", buf->len + TAI_SECONDS_LEN);
                 return;
             }
             srv->state->time.subsecond = net_buf_simple_pull_u8(buf);
@@ -294,7 +299,7 @@ static void time_get(struct bt_mesh_model *model,
         opcode = BLE_MESH_MODEL_OP_TIME_ROLE_STATUS;
         break;
     default:
-        BT_WARN("%s, Unknown Time Get opcode 0x%04x", __func__, ctx->recv_op);
+        BT_WARN("Unknown Time Get opcode 0x%04x", ctx->recv_op);
         return;
     }
 
@@ -312,7 +317,7 @@ static void time_set(struct bt_mesh_model *model,
     u8_t role = 0U;
 
     if (srv == NULL || srv->state == NULL) {
-        BT_ERR("%s, Invalid model user_data", __func__);
+        BT_ERR("%s, Invalid model user data", __func__);
         return;
     }
 
@@ -360,7 +365,7 @@ static void time_set(struct bt_mesh_model *model,
     case BLE_MESH_MODEL_OP_TAI_UTC_DELTA_SET:
         val = net_buf_simple_pull_le16(buf);
         if ((val >> 15) & BIT(0)) {
-            BT_ERR("%s, Invalid Padding value 1", __func__);
+            BT_ERR("Invalid Padding value 1");
             return;
         }
         if (srv->rsp_ctrl.set_auto_rsp == BLE_MESH_SERVER_RSP_BY_APP) {
@@ -380,7 +385,7 @@ static void time_set(struct bt_mesh_model *model,
     case BLE_MESH_MODEL_OP_TIME_ROLE_SET:
         role = net_buf_simple_pull_u8(buf);
         if (role > TIME_CLINET) {
-            BT_ERR("%s, Invalid Time Role 0x%02x", __func__, role);
+            BT_ERR("Invalid Time Role 0x%02x", role);
             return;
         }
         if (srv->rsp_ctrl.set_auto_rsp == BLE_MESH_SERVER_RSP_BY_APP) {
@@ -395,7 +400,7 @@ static void time_set(struct bt_mesh_model *model,
         opcode = BLE_MESH_MODEL_OP_TIME_ROLE_STATUS;
         break;
     default:
-        BT_ERR("%s, Unknown Time Set opcode 0x%04x", __func__, ctx->recv_op);
+        BT_ERR("Unknown Time Set opcode 0x%04x", ctx->recv_op);
         return;
     }
 
@@ -442,7 +447,7 @@ static void send_scene_status(struct bt_mesh_model *model,
     if (publish == false) {
         msg = bt_mesh_alloc_buf(length + BLE_MESH_SERVER_TRANS_MIC_SIZE);
         if (msg == NULL) {
-            BT_ERR("%s, Failed to allocate memory", __func__);
+            BT_ERR("%s, Out of memory", __func__);
             return;
         }
     } else {
@@ -504,7 +509,7 @@ static void send_scene_register_status(struct bt_mesh_model *model,
     if (publish == false) {
         msg = bt_mesh_alloc_buf(MIN(BLE_MESH_TX_SDU_MAX, BLE_MESH_SERVER_RSP_MAX_LEN));
         if (msg == NULL) {
-            BT_ERR("%s, Failed to allocate memory", __func__);
+            BT_ERR("%s, Out of memory", __func__);
             return;
         }
     } else {
@@ -525,6 +530,7 @@ static void send_scene_register_status(struct bt_mesh_model *model,
             if ((publish == false && total_len > MIN(BLE_MESH_TX_SDU_MAX, BLE_MESH_SERVER_RSP_MAX_LEN)) ||
                     (publish == true && total_len > msg->size + BLE_MESH_SERVER_TRANS_MIC_SIZE)) {
                 /* Add this in case the message is too long */
+                BT_WARN("Too large scene register status");
                 break;
             }
             net_buf_simple_add_le16(msg, scene->scene_number);
@@ -547,7 +553,7 @@ static void scene_get(struct bt_mesh_model *model,
     struct bt_mesh_scene_srv *srv = model->user_data;
 
     if (srv == NULL || srv->state == NULL) {
-        BT_ERR("%s, Invalid model user_data", __func__);
+        BT_ERR("%s, Invalid model user data", __func__);
         return;
     }
 
@@ -570,7 +576,7 @@ static void scene_get(struct bt_mesh_model *model,
         send_scene_register_status(model, ctx, SCENE_SUCCESS, false);
         return;
     default:
-        BT_WARN("%s, Unknown Scene Get opcode 0x%04x", __func__, ctx->recv_op);
+        BT_WARN("Unknown Scene Get opcode 0x%04x", ctx->recv_op);
         return;
     }
 }
@@ -580,7 +586,7 @@ void scene_publish(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, u16
     struct bt_mesh_scene_srv *srv = model->user_data;
 
     if (srv == NULL || srv->state == NULL) {
-        BT_ERR("%s, Invalid model user_data", __func__);
+        BT_ERR("%s, Invalid model user data", __func__);
         return;
     }
 
@@ -601,13 +607,13 @@ static void scene_recall(struct bt_mesh_model *model,
     int i;
 
     if (srv == NULL || srv->state == NULL) {
-        BT_ERR("%s, Invalid model user_data", __func__);
+        BT_ERR("%s, Invalid model user data", __func__);
         return;
     }
 
     scene_number = net_buf_simple_pull_le16(buf);
     if (scene_number == INVALID_SCENE_NUMBER) {
-        BT_ERR("%s, Invalid Scene Number 0x0000", __func__);
+        BT_ERR("Invalid Scene Number 0x0000");
         return;
     }
     tid = net_buf_simple_pull_u8(buf);
@@ -636,7 +642,7 @@ static void scene_recall(struct bt_mesh_model *model,
         }
     }
     if (i == srv->state->scene_count) {
-        BT_WARN("%s, Scene Number 0x%04x not exist", __func__, scene_number);
+        BT_WARN("Scene Number 0x%04x not exists", scene_number);
         srv->state->status_code = SCENE_NOT_FOUND;
         if (ctx->recv_op == BLE_MESH_MODEL_OP_SCENE_RECALL) {
             send_scene_status(model, ctx, false);
@@ -730,13 +736,13 @@ static void scene_action(struct bt_mesh_model *model,
     int i;
 
     if (srv == NULL || srv->state == NULL) {
-        BT_ERR("%s, Invalid model user_data", __func__);
+        BT_ERR("%s, Invalid model user data", __func__);
         return;
     }
 
     scene_number = net_buf_simple_pull_le16(buf);
     if (scene_number == INVALID_SCENE_NUMBER) {
-        BT_ERR("%s, Invalid Scene number 0x0000", __func__);
+        BT_ERR("Invalid Scene number 0x0000");
         return;
     }
 
@@ -762,7 +768,7 @@ static void scene_action(struct bt_mesh_model *model,
         }
         /* Try to find a unset entry if no matching Scene Number is found */
         if (i == srv->state->scene_count) {
-            BT_DBG("%s, No matching Scene Number 0x%04x found", __func__, scene_number);
+            BT_DBG("No matching Scene Number 0x%04x found", scene_number);
             for (i = 0; i < srv->state->scene_count; i++) {
                 scene = &srv->state->scenes[i];
                 if (scene->scene_number == INVALID_SCENE_NUMBER) {
@@ -773,7 +779,7 @@ static void scene_action(struct bt_mesh_model *model,
                 }
             }
             if (i == srv->state->scene_count) {
-                BT_WARN("%s, Scene Register full", __func__);
+                BT_WARN("Scene Register is full!");
                 srv->state->status_code = SCENE_REG_FULL;
                 /* Get the Scene Number of the currently active scene */
                 for (i = 0; i < srv->state->scene_count; i++) {
@@ -825,7 +831,7 @@ static void scene_action(struct bt_mesh_model *model,
             }
         }
         if (i == srv->state->scene_count) {
-            BT_WARN("%s, Scene Number 0x%04x not exist", __func__, scene_number);
+            BT_WARN("Scene Number 0x%04x not exists", scene_number);
             /**
              * When a Scene Server receives a Scene Delete message with the Scene
              * Number value that does not match a Scene Number stored within the
@@ -880,13 +886,13 @@ static void scene_action(struct bt_mesh_model *model,
 
             scene_model = bt_mesh_model_find(bt_mesh_model_elem(model), BLE_MESH_MODEL_ID_SCENE_SRV);
             if (scene_model == NULL) {
-                BT_ERR("%s, Scene Server is not present in the element", __func__);
+                BT_ERR("Scene Server not present in the element");
                 break;
             }
 
             scene_srv = scene_model->user_data;
             if (scene_srv == NULL || scene_srv->state == NULL) {
-                BT_ERR("%s, Invalid Scene Server parameter", __func__);
+                BT_ERR("Invalid Scene Server user data");
                 break;
             }
 
@@ -895,7 +901,7 @@ static void scene_action(struct bt_mesh_model *model,
                  * Add this in case the Scene Setup Server is extending the Scene
                  * Server in another element.
                  */
-                BT_WARN("%s, Different Scene state in Scene Server & Scene Setup Server", __func__);
+                BT_WARN("Different Scene state in Scene Server & Scene Setup Server");
                 break;
             }
 
@@ -911,7 +917,7 @@ static void scene_action(struct bt_mesh_model *model,
         break;
     }
     default:
-        BT_ERR("%s, Unknown Scene setup action opcode 0x%04x", __func__, ctx->recv_op);
+        BT_ERR("Unknown Scene setup action opcode 0x%04x", ctx->recv_op);
         return;
     }
 
@@ -978,7 +984,7 @@ static void send_scheduler_act_status(struct bt_mesh_model *model,
         break;
     }
     default:
-        BT_ERR("%s, Invalid Scheduler Server 0x%04x", __func__, model->id);
+        BT_ERR("Invalid Scheduler Server, model id 0x%04x", model->id);
         return;
     }
 
@@ -994,7 +1000,7 @@ static void scheduler_get(struct bt_mesh_model *model,
     NET_BUF_SIMPLE_DEFINE(msg, 2 + 2 + BLE_MESH_SERVER_TRANS_MIC_SIZE);
 
     if (srv == NULL || srv->state == NULL) {
-        BT_ERR("%s, Invalid model user_data", __func__);
+        BT_ERR("%s, Invalid model user data", __func__);
         return;
     }
 
@@ -1014,7 +1020,7 @@ static void scheduler_get(struct bt_mesh_model *model,
     case BLE_MESH_MODEL_OP_SCHEDULER_ACT_GET: {
         u8_t index = net_buf_simple_pull_u8(buf);
         if (index > SCHEDULE_ENTRY_MAX_INDEX) {
-            BT_ERR("%s, Invalid Scheduler Register Entry index 0x%02x", __func__, index);
+            BT_ERR("Invalid Scheduler Register Entry index 0x%02x", index);
             return;
         }
 
@@ -1031,7 +1037,7 @@ static void scheduler_get(struct bt_mesh_model *model,
         return;
     }
     default:
-        BT_WARN("%s, Unknown Scheduler Get opcode 0x%04x", __func__, ctx->recv_op);
+        BT_WARN("Unknown Scheduler Get opcode 0x%04x", ctx->recv_op);
         return;
     }
 }
@@ -1057,7 +1063,7 @@ static void scheduler_act_set(struct bt_mesh_model *model,
     u64_t value = 0U;
 
     if (srv == NULL || srv->state == NULL) {
-        BT_ERR("%s, Invalid model user_data", __func__);
+        BT_ERR("%s, Invalid model user data", __func__);
         return;
     }
 
@@ -1076,22 +1082,22 @@ static void scheduler_act_set(struct bt_mesh_model *model,
     trans_time = (value >> 56) & BIT_MASK(8);
 
     if (index > SCHEDULE_ENTRY_MAX_INDEX) {
-        BT_ERR("%s, Invalid Scheduler Register Entry index 0x%02x", __func__, index);
+        BT_ERR("Invalid Scheduler Register Entry index 0x%02x", index);
         return;
     }
 
     if (year > SCHEDULE_YEAR_ANY_YEAR) {
-        BT_ERR("%s, Invalid Scheduler Register year 0x%02x", __func__, year);
+        BT_ERR("Invalid Scheduler Register year 0x%02x", year);
         return;
     }
 
     if (hour > SCHEDULE_HOUR_ONCE_A_DAY) {
-        BT_ERR("%s, Invalid Scheduler Register hour 0x%02x", __func__, hour);
+        BT_ERR("Invalid Scheduler Register hour 0x%02x", hour);
         return;
     }
 
     if (action > SCHEDULE_ACT_SCENE_RECALL && action != SCHEDULE_ACT_NO_ACTION) {
-        BT_ERR("%s, Invalid Scheduler Register action 0x%02x", __func__, action);
+        BT_ERR("Invalid Scheduler Register action 0x%02x", action);
         return;
     }
 
@@ -1154,7 +1160,7 @@ static void scheduler_act_set(struct bt_mesh_model *model,
 /* message handlers (End) */
 
 /* Mapping of message handlers for Time Server (0x1200) */
-const struct bt_mesh_model_op time_srv_op[] = {
+const struct bt_mesh_model_op bt_mesh_time_srv_op[] = {
     { BLE_MESH_MODEL_OP_TIME_GET,          0, time_get },
     { BLE_MESH_MODEL_OP_TIME_STATUS,       5, time_get },
     { BLE_MESH_MODEL_OP_TIME_ZONE_GET,     0, time_get },
@@ -1163,7 +1169,7 @@ const struct bt_mesh_model_op time_srv_op[] = {
 };
 
 /* Mapping of message handlers for Time Setup Server (0x1201) */
-const struct bt_mesh_model_op time_setup_srv_op[] = {
+const struct bt_mesh_model_op bt_mesh_time_setup_srv_op[] = {
     { BLE_MESH_MODEL_OP_TIME_SET,          10, time_set },
     { BLE_MESH_MODEL_OP_TIME_ZONE_SET,      6, time_set },
     { BLE_MESH_MODEL_OP_TAI_UTC_DELTA_SET,  7, time_set },
@@ -1173,7 +1179,7 @@ const struct bt_mesh_model_op time_setup_srv_op[] = {
 };
 
 /* Mapping of message handlers for Scene Server (0x1203) */
-const struct bt_mesh_model_op scene_srv_op[] = {
+const struct bt_mesh_model_op bt_mesh_scene_srv_op[] = {
     { BLE_MESH_MODEL_OP_SCENE_GET,          0, scene_get    },
     { BLE_MESH_MODEL_OP_SCENE_RECALL,       3, scene_recall },
     { BLE_MESH_MODEL_OP_SCENE_RECALL_UNACK, 3, scene_recall },
@@ -1182,7 +1188,7 @@ const struct bt_mesh_model_op scene_srv_op[] = {
 };
 
 /* Mapping of message handlers for Scene Setup Server (0x1204) */
-const struct bt_mesh_model_op scene_setup_srv_op[] = {
+const struct bt_mesh_model_op bt_mesh_scene_setup_srv_op[] = {
     { BLE_MESH_MODEL_OP_SCENE_STORE,        2, scene_action },
     { BLE_MESH_MODEL_OP_SCENE_STORE_UNACK,  2, scene_action },
     { BLE_MESH_MODEL_OP_SCENE_DELETE,       2, scene_action },
@@ -1191,14 +1197,14 @@ const struct bt_mesh_model_op scene_setup_srv_op[] = {
 };
 
 /* Mapping of message handlers for Scheduler Server (0x1206) */
-const struct bt_mesh_model_op scheduler_srv_op[] = {
+const struct bt_mesh_model_op bt_mesh_scheduler_srv_op[] = {
     { BLE_MESH_MODEL_OP_SCHEDULER_GET,     0, scheduler_get },
     { BLE_MESH_MODEL_OP_SCHEDULER_ACT_GET, 1, scheduler_get },
     BLE_MESH_MODEL_OP_END,
 };
 
 /* Mapping of message handlers for Scheduler Setup Server (0x1207) */
-const struct bt_mesh_model_op scheduler_setup_srv_op[] = {
+const struct bt_mesh_model_op bt_mesh_scheduler_setup_srv_op[] = {
     { BLE_MESH_MODEL_OP_SCHEDULER_ACT_SET,       10, scheduler_act_set },
     { BLE_MESH_MODEL_OP_SCHEDULER_ACT_SET_UNACK, 10, scheduler_act_set },
     BLE_MESH_MODEL_OP_END,
@@ -1209,13 +1215,13 @@ static int check_scene_server_init(struct bt_mesh_scenes_state *state)
     int i;
 
     if (state->scene_count == 0U || state->scenes == NULL) {
-        BT_ERR("%s, Invalid Scene state", __func__);
+        BT_ERR("Invalid Scene state");
         return -EINVAL;
     }
 
     for (i = 0; i < state->scene_count; i++) {
         if (state->scenes[i].scene_value == NULL) {
-            BT_ERR("%s, Invalid Scene value, index %d", __func__, i);
+            BT_ERR("Invalid Scene value, index %d", i);
             return -EINVAL;
         }
     }
@@ -1226,7 +1232,7 @@ static int check_scene_server_init(struct bt_mesh_scenes_state *state)
 static int time_scene_server_init(struct bt_mesh_model *model)
 {
     if (model->user_data == NULL) {
-        BT_ERR("%s, No Time Scene Server context provided, model_id 0x%04x", __func__, model->id);
+        BT_ERR("Invalid Time Scene Server user data, model id 0x%04x", model->id);
         return -EINVAL;
     }
 
@@ -1234,7 +1240,7 @@ static int time_scene_server_init(struct bt_mesh_model *model)
     case BLE_MESH_MODEL_ID_TIME_SRV: {
         struct bt_mesh_time_srv *srv = model->user_data;
         if (srv->state == NULL) {
-            BT_ERR("%s, NULL Time State", __func__);
+            BT_ERR("Invalid Time State");
             return -EINVAL;
         }
         srv->model = model;
@@ -1243,7 +1249,7 @@ static int time_scene_server_init(struct bt_mesh_model *model)
     case BLE_MESH_MODEL_ID_TIME_SETUP_SRV: {
         struct bt_mesh_time_setup_srv *srv = model->user_data;
         if (srv->state == NULL) {
-            BT_ERR("%s, NULL Time State", __func__);
+            BT_ERR("Invalid Time State");
             return -EINVAL;
         }
         srv->model = model;
@@ -1252,7 +1258,7 @@ static int time_scene_server_init(struct bt_mesh_model *model)
     case BLE_MESH_MODEL_ID_SCENE_SRV: {
         struct bt_mesh_scene_srv *srv = model->user_data;
         if (srv->state == NULL) {
-            BT_ERR("%s, NULL Scene State", __func__);
+            BT_ERR("Invalid Scene State");
             return -EINVAL;
         }
         if (check_scene_server_init(srv->state)) {
@@ -1268,7 +1274,7 @@ static int time_scene_server_init(struct bt_mesh_model *model)
     case BLE_MESH_MODEL_ID_SCENE_SETUP_SRV: {
         struct bt_mesh_scene_setup_srv *srv = model->user_data;
         if (srv->state == NULL) {
-            BT_ERR("%s, NULL Scene State", __func__);
+            BT_ERR("Invalid Scene State");
             return -EINVAL;
         }
         if (check_scene_server_init(srv->state)) {
@@ -1280,11 +1286,11 @@ static int time_scene_server_init(struct bt_mesh_model *model)
     case BLE_MESH_MODEL_ID_SCHEDULER_SRV: {
         struct bt_mesh_scheduler_srv *srv = model->user_data;
         if (srv->state == NULL) {
-            BT_ERR("%s, NULL Scheduler State", __func__);
+            BT_ERR("Invalid Scheduler State");
             return -EINVAL;
         }
         if (srv->state->schedule_count == 0U || srv->state->schedules == NULL) {
-            BT_ERR("%s, NULL Register Schedule", __func__);
+            BT_ERR("Invalid Register Schedule");
             return -EINVAL;
         }
         srv->model = model;
@@ -1293,18 +1299,18 @@ static int time_scene_server_init(struct bt_mesh_model *model)
     case BLE_MESH_MODEL_ID_SCHEDULER_SETUP_SRV: {
         struct bt_mesh_scheduler_setup_srv *srv = model->user_data;
         if (srv->state == NULL) {
-            BT_ERR("%s, NULL Scheduler State", __func__);
+            BT_ERR("Invalid Scheduler State");
             return -EINVAL;
         }
         if (srv->state->schedule_count == 0U || srv->state->schedules == NULL) {
-            BT_ERR("%s, NULL Register Schedule", __func__);
+            BT_ERR("Invalid Register Schedule");
             return -EINVAL;
         }
         srv->model = model;
         break;
     }
     default:
-        BT_WARN("%s, Unknown Time Scene Server Model, model_id 0x%04x", __func__, model->id);
+        BT_WARN("Unknown Time Scene Server, model id 0x%04x", model->id);
         return -EINVAL;
     }
 
@@ -1313,10 +1319,10 @@ static int time_scene_server_init(struct bt_mesh_model *model)
     return 0;
 }
 
-int bt_mesh_time_srv_init(struct bt_mesh_model *model, bool primary)
+static int time_srv_init(struct bt_mesh_model *model)
 {
     if (model->pub == NULL) {
-        BT_ERR("%s, Time Server has no publication support", __func__);
+        BT_ERR("Time Server has no publication support");
         return -EINVAL;
     }
 
@@ -1326,33 +1332,33 @@ int bt_mesh_time_srv_init(struct bt_mesh_model *model, bool primary)
      */
     struct bt_mesh_elem *element = bt_mesh_model_elem(model);
     if (bt_mesh_model_find(element, BLE_MESH_MODEL_ID_TIME_SETUP_SRV) == NULL) {
-        BT_WARN("%s, Time Setup Server is not present", __func__);
+        BT_WARN("Time Setup Server not present");
         /* Just give a warning here, continue with the initialization */
     }
     return time_scene_server_init(model);
 }
 
-int bt_mesh_time_setup_srv_init(struct bt_mesh_model *model, bool primary)
+static int time_setup_srv_init(struct bt_mesh_model *model)
 {
     /* This model does not support subscribing nor publishing */
     if (model->pub) {
-        BT_ERR("%s, Time Setup Server shall not support publication", __func__);
+        BT_ERR("Time Setup Server shall not support publication");
         return -EINVAL;
     }
 
     return time_scene_server_init(model);
 }
 
-int bt_mesh_scene_srv_init(struct bt_mesh_model *model, bool primary)
+static int scene_srv_init(struct bt_mesh_model *model)
 {
     if (model->pub == NULL) {
-        BT_ERR("%s, Scene Server has no publication support", __func__);
+        BT_ERR("Scene Server has no publication support");
         return -EINVAL;
     }
 
     /* The model may be present only on the Primary element of a node. */
-    if (primary == false) {
-        BT_WARN("%s, Scene Server is not on the Primary element", __func__);
+    if (!bt_mesh_model_in_primary(model)) {
+        BT_WARN("Scene Server not on the Primary element");
         /* Just give a warning here, continue with the initialization */
     }
     /**
@@ -1361,32 +1367,32 @@ int bt_mesh_scene_srv_init(struct bt_mesh_model *model, bool primary)
      */
     struct bt_mesh_elem *element = bt_mesh_model_elem(model);
     if (bt_mesh_model_find(element, BLE_MESH_MODEL_ID_SCENE_SETUP_SRV) == NULL) {
-        BT_WARN("%s, Scene Setup Server is not present", __func__);
+        BT_WARN("Scene Setup Server not present");
         /* Just give a warning here, continue with the initialization */
     }
     return time_scene_server_init(model);
 }
 
-int bt_mesh_scene_setup_srv_init(struct bt_mesh_model *model, bool primary)
+static int scene_setup_srv_init(struct bt_mesh_model *model)
 {
     /* The model may be present only on the Primary element of a node. */
-    if (primary == false) {
-        BT_WARN("%s, Scene Setup Server is not on the Primary element", __func__);
+    if (!bt_mesh_model_in_primary(model)) {
+        BT_WARN("Scene Setup Server not on the Primary element");
         /* Just give a warning here, continue with the initialization */
     }
     return time_scene_server_init(model);
 }
 
-int bt_mesh_scheduler_srv_init(struct bt_mesh_model *model, bool primary)
+static int scheduler_srv_init(struct bt_mesh_model *model)
 {
     if (model->pub == NULL) {
-        BT_ERR("%s, Scheduler Server has no publication support", __func__);
+        BT_ERR("Scheduler Server has no publication support");
         return -EINVAL;
     }
 
     /* The model may be present only on the Primary element of a node. */
-    if (primary == false) {
-        BT_WARN("%s, Scheduler Server is not on the Primary element", __func__);
+    if (!bt_mesh_model_in_primary(model)) {
+        BT_WARN("Scheduler Server not on the Primary element");
         /* Just give a warning here, continue with the initialization */
     }
     /**
@@ -1396,30 +1402,31 @@ int bt_mesh_scheduler_srv_init(struct bt_mesh_model *model, bool primary)
      */
     struct bt_mesh_elem *element = bt_mesh_model_elem(model);
     if (bt_mesh_model_find(element, BLE_MESH_MODEL_ID_SCHEDULER_SETUP_SRV) == NULL) {
-        BT_WARN("%s, Scheduler Setup Server is not present", __func__);
+        BT_WARN("Scheduler Setup Server not present");
         /* Just give a warning here, continue with the initialization */
     }
     if (bt_mesh_model_find(element, BLE_MESH_MODEL_ID_TIME_SRV) == NULL) {
-        BT_WARN("%s, Time Server is not present", __func__);
+        BT_WARN("Time Server not present");
         /* Just give a warning here, continue with the initialization */
     }
     return time_scene_server_init(model);
 }
 
-int bt_mesh_scheduler_setup_srv_init(struct bt_mesh_model *model, bool primary)
+static int scheduler_setup_srv_init(struct bt_mesh_model *model)
 {
     /* The model may be present only on the Primary element of a node. */
-    if (primary == false) {
-        BT_WARN("%s, Scheduler Setup Server is not on the Primary element", __func__);
+    if (!bt_mesh_model_in_primary(model)) {
+        BT_WARN("Scheduler Setup Server not on the Primary element");
         /* Just give a warning here, continue with the initialization */
     }
     return time_scene_server_init(model);
 }
 
+#if CONFIG_BLE_MESH_DEINIT
 static int time_scene_server_deinit(struct bt_mesh_model *model)
 {
     if (model->user_data == NULL) {
-        BT_ERR("%s, No Time Scene Server context provided, model_id 0x%04x", __func__, model->id);
+        BT_ERR("Invalid Time Scene Server user data, model id 0x%04x", model->id);
         return -EINVAL;
     }
 
@@ -1427,7 +1434,7 @@ static int time_scene_server_deinit(struct bt_mesh_model *model)
     case BLE_MESH_MODEL_ID_SCENE_SRV: {
         struct bt_mesh_scene_srv *srv = model->user_data;
         if (srv->state == NULL) {
-            BT_ERR("%s, NULL Scene State", __func__);
+            BT_ERR("Invalid Scene State");
             return -EINVAL;
         }
         if (check_scene_server_init(srv->state)) {
@@ -1440,7 +1447,7 @@ static int time_scene_server_deinit(struct bt_mesh_model *model)
         break;
     }
     default:
-        BT_WARN("%s, Unknown Time Scene Server Model, model_id 0x%04x", __func__, model->id);
+        BT_WARN("Unknown Time Scene Server, model id 0x%04x", model->id);
         return -EINVAL;
     }
 
@@ -1449,52 +1456,97 @@ static int time_scene_server_deinit(struct bt_mesh_model *model)
     return 0;
 }
 
-int bt_mesh_time_srv_deinit(struct bt_mesh_model *model, bool primary)
+static int time_srv_deinit(struct bt_mesh_model *model)
 {
     if (model->pub == NULL) {
-        BT_ERR("%s, Time Server has no publication support", __func__);
+        BT_ERR("Time Server has no publication support");
         return -EINVAL;
     }
 
     return time_scene_server_deinit(model);
 }
 
-int bt_mesh_time_setup_srv_deinit(struct bt_mesh_model *model, bool primary)
+static int time_setup_srv_deinit(struct bt_mesh_model *model)
 {
     if (model->pub) {
-        BT_ERR("%s, Time Setup Server shall not support publication", __func__);
+        BT_ERR("Time Setup Server shall not support publication");
         return -EINVAL;
     }
 
     return time_scene_server_deinit(model);
 }
 
-int bt_mesh_scene_srv_deinit(struct bt_mesh_model *model, bool primary)
+static int scene_srv_deinit(struct bt_mesh_model *model)
 {
     if (model->pub == NULL) {
-        BT_ERR("%s, Scene Server has no publication support", __func__);
+        BT_ERR("Scene Server has no publication support");
         return -EINVAL;
     }
 
     return time_scene_server_deinit(model);
 }
 
-int bt_mesh_scene_setup_srv_deinit(struct bt_mesh_model *model, bool primary)
+static int scene_setup_srv_deinit(struct bt_mesh_model *model)
 {
     return time_scene_server_deinit(model);
 }
 
-int bt_mesh_scheduler_srv_deinit(struct bt_mesh_model *model, bool primary)
+static int scheduler_srv_deinit(struct bt_mesh_model *model)
 {
     if (model->pub == NULL) {
-        BT_ERR("%s, Scheduler Server has no publication support", __func__);
+        BT_ERR("Scheduler Server has no publication support");
         return -EINVAL;
     }
 
     return time_scene_server_deinit(model);
 }
 
-int bt_mesh_scheduler_setup_srv_deinit(struct bt_mesh_model *model, bool primary)
+static int scheduler_setup_srv_deinit(struct bt_mesh_model *model)
 {
     return time_scene_server_deinit(model);
 }
+#endif /* CONFIG_BLE_MESH_DEINIT */
+
+const struct bt_mesh_model_cb bt_mesh_time_srv_cb = {
+    .init = time_srv_init,
+#if CONFIG_BLE_MESH_DEINIT
+    .deinit = time_srv_deinit,
+#endif /* CONFIG_BLE_MESH_DEINIT */
+};
+
+const struct bt_mesh_model_cb bt_mesh_time_setup_srv_cb = {
+    .init = time_setup_srv_init,
+#if CONFIG_BLE_MESH_DEINIT
+    .deinit = time_setup_srv_deinit,
+#endif /* CONFIG_BLE_MESH_DEINIT */
+};
+
+const struct bt_mesh_model_cb bt_mesh_scene_srv_cb = {
+    .init = scene_srv_init,
+#if CONFIG_BLE_MESH_DEINIT
+    .deinit = scene_srv_deinit,
+#endif /* CONFIG_BLE_MESH_DEINIT */
+};
+
+const struct bt_mesh_model_cb bt_mesh_scene_setup_srv_cb = {
+    .init = scene_setup_srv_init,
+#if CONFIG_BLE_MESH_DEINIT
+    .deinit = scene_setup_srv_deinit,
+#endif /* CONFIG_BLE_MESH_DEINIT */
+};
+
+const struct bt_mesh_model_cb bt_mesh_scheduler_srv_cb = {
+    .init = scheduler_srv_init,
+#if CONFIG_BLE_MESH_DEINIT
+    .deinit = scheduler_srv_deinit,
+#endif /* CONFIG_BLE_MESH_DEINIT */
+};
+
+const struct bt_mesh_model_cb bt_mesh_scheduler_setup_srv_cb = {
+    .init = scheduler_setup_srv_init,
+#if CONFIG_BLE_MESH_DEINIT
+    .deinit = scheduler_setup_srv_deinit,
+#endif /* CONFIG_BLE_MESH_DEINIT */
+};
+
+#endif /* CONFIG_BLE_MESH_TIME_SCENE_SERVER */

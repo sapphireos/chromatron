@@ -48,6 +48,7 @@ esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_fields.c.obj: con
 
 esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.obj: ../../../../../../components/efuse/include/esp_efuse.h
 esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.obj: ../../../../../../components/esp32/include/esp_assert.h
+esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.obj: ../../../../../../components/esp32/include/esp_clk.h
 esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.obj: ../../../../../../components/esp32/include/esp_err.h
 esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.obj: ../../../../../../components/esp32/include/esp_types.h
 esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.obj: ../../../../../../components/esp32/include/rom/ets_sys.h

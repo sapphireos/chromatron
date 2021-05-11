@@ -16,87 +16,91 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
   5 .literal.esp_rom_spiflash_write_status 00000014  00000000  00000000  0000009c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
-  6 .literal.esp_rom_spiflash_unlock 00000028  00000000  00000000  000000b0  2**2
+  6 .literal.esp_rom_spiflash_unlock 00000030  00000000  00000000  000000b0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
-  7 .literal.esp_rom_spiflash_lock 00000018  00000000  00000000  000000d8  2**2
+  7 .literal.esp_rom_spiflash_lock 00000018  00000000  00000000  000000e0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
-  8 .literal.esp_rom_spiflash_config_readmode 00000054  00000000  00000000  000000f0  2**2
+  8 .literal.esp_rom_spiflash_config_readmode 00000054  00000000  00000000  000000f8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
-  9 .literal.esp_rom_spiflash_erase_chip 00000018  00000000  00000000  00000144  2**2
+  9 .literal.esp_rom_spiflash_erase_chip 00000018  00000000  00000000  0000014c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 10 .literal.esp_rom_spiflash_erase_block 00000034  00000000  00000000  0000015c  2**2
+ 10 .literal.esp_rom_spiflash_erase_block 00000034  00000000  00000000  00000164  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 11 .literal.esp_rom_spiflash_erase_sector 00000034  00000000  00000000  00000190  2**2
+ 11 .literal.esp_rom_spiflash_erase_sector 00000034  00000000  00000000  00000198  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 12 .literal.esp_rom_spiflash_write 00000024  00000000  00000000  000001c4  2**2
+ 12 .literal.esp_rom_spiflash_write 00000024  00000000  00000000  000001cc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 13 .literal.esp_rom_spiflash_write_encrypted 00000010  00000000  00000000  000001e8  2**2
+ 13 .literal.esp_rom_spiflash_write_encrypted 00000010  00000000  00000000  000001f0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 14 .literal.esp_rom_spiflash_read 00000070  00000000  00000000  000001f8  2**2
+ 14 .literal.esp_rom_spiflash_read 00000070  00000000  00000000  00000200  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 15 .literal.esp_rom_spiflash_erase_area 00000018  00000000  00000000  00000268  2**2
+ 15 .literal.esp_rom_spiflash_erase_area 00000018  00000000  00000000  00000270  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 16 .text         00000000  00000000  00000000  00000280  2**0
+ 16 .literal.esp_rom_spiflash_write_disable 00000008  00000000  00000000  00000288  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 17 .data         00000000  00000000  00000000  00000280  2**0
+ 17 .text         00000000  00000000  00000000  00000290  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 18 .data         00000000  00000000  00000000  00000290  2**0
                   CONTENTS, ALLOC, LOAD, DATA
- 18 .bss          00000000  00000000  00000000  00000280  2**0
+ 19 .bss          00000000  00000000  00000000  00000290  2**0
                   ALLOC
- 19 .text.esp_rom_spiflash_read_status 0000005b  00000000  00000000  00000280  2**2
+ 20 .text.esp_rom_spiflash_read_status 0000005b  00000000  00000000  00000290  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 20 .text.esp_rom_spiflash_wait_idle 00000030  00000000  00000000  000002dc  2**2
+ 21 .text.esp_rom_spiflash_wait_idle 00000030  00000000  00000000  000002ec  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 21 .text.esp_rom_spiflash_enable_write$constprop$6 00000041  00000000  00000000  0000030c  2**2
+ 22 .text.esp_rom_spiflash_enable_write$constprop$6 00000041  00000000  00000000  0000031c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 22 .text.esp_rom_spiflash_program_page_internal$constprop$4 000000ce  00000000  00000000  00000350  2**2
+ 23 .text.esp_rom_spiflash_program_page_internal$constprop$4 000000ce  00000000  00000000  00000360  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 23 .text.esp_rom_spiflash_read_statushigh 00000021  00000000  00000000  00000420  2**2
+ 24 .text.esp_rom_spiflash_read_statushigh 00000021  00000000  00000000  00000430  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 24 .text.esp_rom_spiflash_write_status 00000033  00000000  00000000  00000444  2**2
+ 25 .text.esp_rom_spiflash_write_status 00000033  00000000  00000000  00000454  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 25 .text.esp_rom_spiflash_unlock 00000072  00000000  00000000  00000478  2**2
+ 26 .text.esp_rom_spiflash_unlock 00000086  00000000  00000000  00000488  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 26 .text.esp_rom_spiflash_lock 0000004c  00000000  00000000  000004ec  2**2
+ 27 .text.esp_rom_spiflash_lock 0000004c  00000000  00000000  00000510  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 27 .text.esp_rom_spiflash_config_readmode 0000029b  00000000  00000000  00000538  2**2
+ 28 .text.esp_rom_spiflash_config_readmode 0000029b  00000000  00000000  0000055c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 28 .text.esp_rom_spiflash_erase_chip 0000003a  00000000  00000000  000007d4  2**2
+ 29 .text.esp_rom_spiflash_erase_chip 0000003a  00000000  00000000  000007f8  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 29 .text.esp_rom_spiflash_erase_block 00000088  00000000  00000000  00000810  2**2
+ 30 .text.esp_rom_spiflash_erase_block 00000088  00000000  00000000  00000834  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 30 .text.esp_rom_spiflash_erase_sector 0000008d  00000000  00000000  00000898  2**2
+ 31 .text.esp_rom_spiflash_erase_sector 0000008d  00000000  00000000  000008bc  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 31 .text.esp_rom_spiflash_write 000000a2  00000000  00000000  00000928  2**2
+ 32 .text.esp_rom_spiflash_write 000000a2  00000000  00000000  0000094c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 32 .text.esp_rom_spiflash_write_encrypted 00000051  00000000  00000000  000009cc  2**2
+ 33 .text.esp_rom_spiflash_write_encrypted 00000051  00000000  00000000  000009f0  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 33 .text.esp_rom_spiflash_read 000002e9  00000000  00000000  00000a20  2**2
+ 34 .text.esp_rom_spiflash_read 000002e9  00000000  00000000  00000a44  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 34 .text.esp_rom_spiflash_erase_area 00000096  00000000  00000000  00000d0c  2**2
+ 35 .text.esp_rom_spiflash_erase_area 00000096  00000000  00000000  00000d30  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 35 .rodata.CSWTCH$38 00000018  00000000  00000000  00000da4  2**2
+ 36 .text.esp_rom_spiflash_write_disable 00000018  00000000  00000000  00000dc8  2**2
+                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
+ 37 .rodata.CSWTCH$38 00000018  00000000  00000000  00000de0  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 36 .debug_frame  00000190  00000000  00000000  00000dbc  2**2
+ 38 .debug_frame  000001a8  00000000  00000000  00000df8  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 37 .debug_info   00000bbe  00000000  00000000  00000f4c  2**0
+ 39 .debug_info   00000bf7  00000000  00000000  00000fa0  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 38 .debug_abbrev 000002e1  00000000  00000000  00001b0a  2**0
+ 40 .debug_abbrev 0000030a  00000000  00000000  00001b97  2**0
                   CONTENTS, READONLY, DEBUGGING
- 39 .debug_loc    00000785  00000000  00000000  00001deb  2**0
+ 41 .debug_loc    00000798  00000000  00000000  00001ea1  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 40 .debug_aranges 00000098  00000000  00000000  00002570  2**0
+ 42 .debug_aranges 000000a0  00000000  00000000  00002639  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 41 .debug_ranges 000000d8  00000000  00000000  00002608  2**0
+ 43 .debug_ranges 000000e0  00000000  00000000  000026d9  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 42 .debug_line   00000acc  00000000  00000000  000026e0  2**0
+ 44 .debug_line   00000af7  00000000  00000000  000027b9  2**0
                   CONTENTS, RELOC, READONLY, DEBUGGING
- 43 .debug_str    0000076c  00000000  00000000  000031ac  2**0
+ 45 .debug_str    0000078b  00000000  00000000  000032b0  2**0
                   CONTENTS, READONLY, DEBUGGING
- 44 .comment      0000003b  00000000  00000000  00003918  2**0
+ 46 .comment      0000003b  00000000  00000000  00003a3b  2**0
                   CONTENTS, READONLY
- 45 .xtensa.info  00000038  00000000  00000000  00003953  2**0
+ 47 .xtensa.info  00000038  00000000  00000000  00003a76  2**0
                   CONTENTS, READONLY
- 46 .xt.lit       00000080  00000000  00000000  0000398b  2**0
+ 48 .xt.lit       00000088  00000000  00000000  00003aae  2**0
                   CONTENTS, RELOC, READONLY
- 47 .xt.prop      0000078c  00000000  00000000  00003a0b  2**0
+ 49 .xt.prop      000007d4  00000000  00000000  00003b36  2**0
                   CONTENTS, RELOC, READONLY

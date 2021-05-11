@@ -20,6 +20,10 @@
  * @{
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
     BLE_MESH_NO_OUTPUT       = 0,
     BLE_MESH_BLINK           = BIT(0),
@@ -57,6 +61,10 @@ typedef enum {
     BLE_MESH_PROV_OOB_IN_MANUAL = BIT(14),
     BLE_MESH_PROV_OOB_ON_DEV    = BIT(15),
 } bt_mesh_prov_oob_info_t;
+
+#define BLE_MESH_PROV_STATIC_OOB_MAX_LEN    16
+#define BLE_MESH_PROV_OUTPUT_OOB_MAX_LEN    8
+#define BLE_MESH_PROV_INPUT_OOB_MAX_LEN     8
 
 /** Provisioning properties & capabilities. */
 struct bt_mesh_prov {
@@ -351,17 +359,6 @@ int bt_mesh_prov_enable(bt_mesh_prov_bearer_t bearers);
  */
 int bt_mesh_prov_disable(bt_mesh_prov_bearer_t bearers);
 
-/* The following API is for BLE Mesh Fast Provisioning */
-
-/** @brief Change the device action
- *
- *  @param[IN] action: role of device to be set
- *                     0x01 - enter, 0x02 - suspend, 0x03 - exit
- *
- *  @return status
- */
-u8_t bt_mesh_set_fast_prov_action(u8_t action);
-
 /* The following APIs are for BLE Mesh Provisioner */
 
 /** @brief Provide provisioning input OOB string.
@@ -385,14 +382,6 @@ int bt_mesh_prov_input_string(const char *str);
  *  @return Zero on success or (negative) error code otherwise.
  */
 int bt_mesh_prov_input_number(u32_t num);
-
-/** @brief Enable Provisioner corresponding functionalities, e.g. scan, etc.
- *
- *  @param bearers Bit-wise OR of provisioning bearers.
- *
- *  @return Zero on success or (negative) error code otherwise.
- */
-int bt_mesh_provisioner_net_start(bt_mesh_prov_bearer_t bearers);
 
 /** @brief Enable specific provisioning bearers
  *
@@ -457,6 +446,12 @@ int bt_mesh_provisioner_disable(bt_mesh_prov_bearer_t bearers);
                                               BLE_MESH_FEAT_FRIEND |    \
                                               BLE_MESH_FEAT_LOW_POWER)
 
+/** @brief Check if the mesh stack is initialized.
+ *
+ *  @return true - yes, false - no.
+ */
+bool bt_mesh_is_initialized(void);
+
 /** @brief Initialize Mesh support
  *
  *  After calling this API, the node will not automatically advertise as
@@ -494,7 +489,7 @@ int bt_mesh_deinit(struct bt_mesh_deinit_param *param);
  *  to enable unprovisioned advertising on one or more provisioning bearers.
  *
  */
-void bt_mesh_reset(void);
+void bt_mesh_node_reset(void);
 
 /** @brief Suspend the Mesh network temporarily.
  *
@@ -628,6 +623,10 @@ void bt_mesh_lpn_set_cb(void (*cb)(u16_t friend_addr, bool established));
  *  @param cb Function to call when the Friendship status of friend node changes.
  */
 void bt_mesh_friend_set_cb(void (*cb)(bool establish, u16_t lpn_addr, u8_t reason));
+
+#ifdef __cplusplus
+}
+#endif
 
 /**
  * @}

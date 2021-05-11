@@ -102,11 +102,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
  48 .text.heap_caps_dump_all 0000000e  00000000  00000000  00000a14  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 49 .rodata.__func__$5170 00000012  00000000  00000000  00000a22  2**0
+ 49 .rodata.__func__$5174 00000012  00000000  00000000  00000a22  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 50 .rodata.__func__$5163 0000000f  00000000  00000000  00000a34  2**0
+ 50 .rodata.__func__$5167 0000000f  00000000  00000000  00000a34  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 51 .rodata.__func__$5084 00000018  00000000  00000000  00000a43  2**0
+ 51 .rodata.__func__$5088 00000018  00000000  00000000  00000a43  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
  52 .data.malloc_alwaysinternal_limit 00000004  00000000  00000000  00000a5c  2**2
                   CONTENTS, ALLOC, LOAD, DATA
@@ -167,11 +167,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
  13 .text.heap_caps_add_region 00000054  00000000  00000000  000004a4  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 14 .bss.registered_heaps_write_lock$5410 00000004  00000000  00000000  000004f8  2**2
+ 14 .bss.registered_heaps_write_lock$5414 00000004  00000000  00000000  000004f8  2**2
                   ALLOC
- 15 .rodata.__func__$5375 0000000f  00000000  00000000  000004f8  2**0
+ 15 .rodata.__func__$5379 0000000f  00000000  00000000  000004f8  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 16 .rodata.__func__$5346 0000000e  00000000  00000000  00000507  2**0
+ 16 .rodata.__func__$5350 0000000e  00000000  00000000  00000507  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
  17 .debug_frame  00000088  00000000  00000000  00000518  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING
@@ -403,19 +403,19 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
  44 .text.multi_heap_get_info_impl 000000a2  00000000  00000000  00000f20  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 45 .rodata.__func__$5245 00000010  00000000  00000000  00000fc2  2**0
+ 45 .rodata.__func__$5249 00000010  00000000  00000000  00000fc2  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 46 .rodata.__func__$5233 00000011  00000000  00000000  00000fd2  2**0
+ 46 .rodata.__func__$5237 00000011  00000000  00000000  00000fd2  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 47 .rodata.__func__$5221 00000018  00000000  00000000  00000fe3  2**0
+ 47 .rodata.__func__$5225 00000018  00000000  00000000  00000fe3  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 48 .rodata.__func__$5143 0000000f  00000000  00000000  00000ffb  2**0
+ 48 .rodata.__func__$5147 0000000f  00000000  00000000  00000ffb  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 49 .rodata.__func__$5133 00000014  00000000  00000000  0000100a  2**0
+ 49 .rodata.__func__$5137 00000014  00000000  00000000  0000100a  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 50 .rodata.__func__$5154 00000013  00000000  00000000  0000101e  2**0
+ 50 .rodata.__func__$5158 00000013  00000000  00000000  0000101e  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 51 .rodata.__func__$5108 0000000f  00000000  00000000  00001031  2**0
+ 51 .rodata.__func__$5112 0000000f  00000000  00000000  00001031  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
  52 .debug_frame  00000268  00000000  00000000  00001040  2**2
                   CONTENTS, RELOC, READONLY, DEBUGGING

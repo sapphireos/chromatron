@@ -153,6 +153,8 @@ platform_time.h
 ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform_time.h
 time.h
 -
+assert.h
+-
 
 ../../../../../components/mbedtls/mbedtls/include/mbedtls/rsa.h
 config.h

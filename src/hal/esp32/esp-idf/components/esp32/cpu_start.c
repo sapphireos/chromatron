@@ -176,6 +176,12 @@ void IRAM_ATTR call_start_cpu0()
     }
 #endif
 
+#ifdef CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ
+    ESP_EARLY_LOGI(TAG, "cpu freq: %d", CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ);
+#else
+    ESP_EARLY_LOGI(TAG, "cpu freq: %d", CONFIG_ESP32S2_DEFAULT_CPU_FREQ_MHZ);
+#endif
+
     ESP_EARLY_LOGI(TAG, "Pro cpu up.");
     if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO) {
         const esp_app_desc_t *app_desc = esp_ota_get_app_description();
@@ -346,14 +352,19 @@ void start_cpu0_default(void)
 #if CONFIG_BROWNOUT_DET
     esp_brownout_init();
 #endif
-#if CONFIG_DISABLE_BASIC_ROM_CONSOLE
-    esp_efuse_disable_basic_rom_console();
-#endif
 #ifdef CONFIG_FLASH_ENCRYPTION_DISABLE_PLAINTEXT
     if (esp_flash_encryption_enabled()) {
         esp_flash_write_protect_crypt_cnt();
     }
 #endif
+
+#if CONFIG_DISABLE_BASIC_ROM_CONSOLE
+    esp_efuse_disable_basic_rom_console();
+#endif
+#if CONFIG_SECURE_DISABLE_ROM_DL_MODE
+    esp_efuse_disable_rom_download_mode();
+#endif
+
     rtc_gpio_force_hold_dis_all();
     esp_vfs_dev_uart_register();
     esp_reent_init(_GLOBAL_REENT);
@@ -387,6 +398,10 @@ void start_cpu0_default(void)
     esp_int_wdt_init();
     //Initialize the interrupt watch dog for CPU0.
     esp_int_wdt_cpu_init();
+#else
+#if CONFIG_ESP32_ECO3_CACHE_LOCK_FIX
+    assert(!soc_has_cache_lock_bug() && "ESP32 Rev 3 + Dual Core + PSRAM requires INT WDT enabled in project config!");
+#endif
 #endif
     esp_cache_err_int_init();
     esp_crosscore_int_init();

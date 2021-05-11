@@ -7,6 +7,7 @@ esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.obj: ../../../../../c
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -92,6 +93,7 @@ esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.obj: ../../../../../co
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -219,6 +221,7 @@ esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.obj: ../../../../../
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.obj: ../../../../../components/esp32/include/esp_assert.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -318,6 +321,7 @@ esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.obj: ../../../../../
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -444,6 +448,7 @@ esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.obj: ../../..
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -546,6 +551,7 @@ esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.obj: ../../../../.
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -659,6 +665,7 @@ esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.obj: ../../../../../co
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.obj: ../../../../../components/esp32/include/esp_clk.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -753,6 +760,7 @@ esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.obj: ../../../../../c
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.obj: ../../../../../components/esp32/include/esp_sleep.h

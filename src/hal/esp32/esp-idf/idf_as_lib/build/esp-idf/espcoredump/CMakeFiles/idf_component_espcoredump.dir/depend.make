@@ -7,6 +7,7 @@ esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_commo
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_common.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_common.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_common.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_common.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_common.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_common.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_common.c.obj: ../../../../../components/esp32/include/esp_panic.h
@@ -98,6 +99,7 @@ esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -188,6 +190,7 @@ esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.obj: ../../../../../components/esp32/include/esp_panic.h
@@ -277,6 +280,7 @@ esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.obj: ../../../../../components/esp32/include/esp_clk.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.obj: ../../../../../components/esp32/include/esp_sleep.h

@@ -240,6 +240,7 @@ esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.obj: .
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -319,6 +320,7 @@ esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.obj: ../../../
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -402,6 +404,7 @@ esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.obj: ../..
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -486,6 +489,7 @@ esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.obj: ../../../../.
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -566,6 +570,7 @@ esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.obj: ../../../../.
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.obj: ../../../../../components/esp32/include/esp_panic.h
@@ -657,6 +662,7 @@ esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.obj: ../../../../
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -743,6 +749,7 @@ esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.obj: ../../../../
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.obj: ../../../../../components/esp32/include/esp_panic.h
@@ -835,6 +842,7 @@ esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.obj: ../../../..
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -964,6 +972,7 @@ esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.obj: ../../
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1043,6 +1052,7 @@ esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.obj: ../../../../../components/esp32/include/esp_sleep.h

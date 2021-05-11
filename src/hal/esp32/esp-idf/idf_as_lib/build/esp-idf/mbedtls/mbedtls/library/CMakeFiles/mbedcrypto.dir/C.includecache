@@ -473,6 +473,8 @@ platform_time.h
 ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform_time.h
 time.h
 -
+assert.h
+-
 
 ../../../../../components/mbedtls/mbedtls/include/mbedtls/poly1305.h
 config.h
@@ -1233,6 +1235,14 @@ stdio.h
 -
 mbedtls/ecp_internal.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/ecp_internal.h
+mbedtls/hmac_drbg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/hmac_drbg.h
+mbedtls/ctr_drbg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/ctr_drbg.h
+mbedtls/sha512.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/sha512.h
+mbedtls/sha256.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/sha256.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/ecp_curves.c
 mbedtls/config.h
@@ -1311,6 +1321,8 @@ mbedtls/arc4.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/arc4.h
 mbedtls/aria.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/aria.h
+mbedtls/asn1.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/asn1.h
 mbedtls/base64.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/base64.h
 mbedtls/bignum.h
@@ -1417,6 +1429,8 @@ mbedtls/timing.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/timing.h
 mbedtls/platform_util.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/platform_util.h
+limits.h
+-
 string.h
 -
 
@@ -1735,8 +1749,12 @@ string.h
 -
 mbedtls/rsa.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/rsa.h
+mbedtls/bignum.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/bignum.h
 mbedtls/ecp.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/ecp.h
+mbedtls/platform_util.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/platform_util.h
 mbedtls/ecdsa.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/ecdsa.h
 mbedtls/pem.h
@@ -1900,8 +1918,6 @@ stdio.h
 mbedtls/timing.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/timing.h
 windows.h
--
-winbase.h
 -
 process.h
 -

@@ -56,8 +56,6 @@ void SPIFlashModeConfig(uint32_t a, uint32_t b);
 void SPIReadModeCnfig(uint32_t a);
 uint32_t SPIParamCfg(uint32_t deviceId, uint32_t chip_size, uint32_t block_size, uint32_t sector_size, uint32_t page_size, uint32_t status_mask);
 
-void memset(void *addr, uint8_t c, uint32_t len);
-
 void ets_delay_us(uint32_t delay_micros);
 
 void ets_isr_mask(uint32_t ints);
@@ -90,7 +88,7 @@ typedef void (*int_handler_t)(void *arg);
 int_handler_t ets_isr_attach(uint32_t int_num, int_handler_t handler,
                              void *arg);
 /* Some ESP32-only ROM functions */
-#ifdef ESP32
+#if defined(ESP32) || defined(ESP32S2)
 uint32_t ets_get_detected_xtal_freq(void);
 void uart_tx_flush(int uart);
 uint32_t ets_efuse_get_spiconfig(void);
@@ -98,7 +96,11 @@ SpiFlashOpResult esp_rom_spiflash_write_encrypted(uint32_t addr, const uint8_t *
 
 /* Note: this is a static function whose first argument was elided by the
    compiler. */
+#ifdef ESP32S2
+SpiFlashOpResult SPI_read_status_high(esp_rom_spiflash_chip_t *spi, uint32_t *status);
+#else
 SpiFlashOpResult SPI_read_status_high(uint32_t *status);
+#endif
 
 SpiFlashOpResult SPI_write_status(esp_rom_spiflash_chip_t *spi, uint32_t status_value);
 

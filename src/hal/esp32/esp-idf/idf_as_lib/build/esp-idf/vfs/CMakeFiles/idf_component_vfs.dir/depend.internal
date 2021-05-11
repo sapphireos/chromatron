@@ -8,6 +8,7 @@ esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.obj
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -117,6 +118,7 @@ esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h

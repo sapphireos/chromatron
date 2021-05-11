@@ -29,6 +29,8 @@ assert.h
 ../../../../../components/esp32/include/esp_panic.h
 esp_err.h
 ../../../../../components/esp32/include/esp_err.h
+soc/soc.h
+../../../../../components/esp32/include/soc/soc.h
 
 ../../../../../components/esp32/include/rom/ets_sys.h
 stdint.h

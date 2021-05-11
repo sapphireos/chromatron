@@ -2373,6 +2373,33 @@ port/esp32/netif/wlanif.c.s:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/build.make esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.s
 .PHONY : port/esp32/netif/wlanif.c.s
 
+port/esp32/tcp_isn/tcp_isn.obj: port/esp32/tcp_isn/tcp_isn.c.obj
+
+.PHONY : port/esp32/tcp_isn/tcp_isn.obj
+
+# target to build an object file
+port/esp32/tcp_isn/tcp_isn.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/build.make esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj
+.PHONY : port/esp32/tcp_isn/tcp_isn.c.obj
+
+port/esp32/tcp_isn/tcp_isn.i: port/esp32/tcp_isn/tcp_isn.c.i
+
+.PHONY : port/esp32/tcp_isn/tcp_isn.i
+
+# target to preprocess a source file
+port/esp32/tcp_isn/tcp_isn.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/build.make esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.i
+.PHONY : port/esp32/tcp_isn/tcp_isn.c.i
+
+port/esp32/tcp_isn/tcp_isn.s: port/esp32/tcp_isn/tcp_isn.c.s
+
+.PHONY : port/esp32/tcp_isn/tcp_isn.s
+
+# target to generate assembly for a file
+port/esp32/tcp_isn/tcp_isn.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/build.make esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.s
+.PHONY : port/esp32/tcp_isn/tcp_isn.c.s
+
 port/esp32/vfs_lwip.obj: port/esp32/vfs_lwip.c.obj
 
 .PHONY : port/esp32/vfs_lwip.obj
@@ -2657,6 +2684,9 @@ help:
 	@echo "... port/esp32/netif/wlanif.obj"
 	@echo "... port/esp32/netif/wlanif.i"
 	@echo "... port/esp32/netif/wlanif.s"
+	@echo "... port/esp32/tcp_isn/tcp_isn.obj"
+	@echo "... port/esp32/tcp_isn/tcp_isn.i"
+	@echo "... port/esp32/tcp_isn/tcp_isn.s"
 	@echo "... port/esp32/vfs_lwip.obj"
 	@echo "... port/esp32/vfs_lwip.i"
 	@echo "... port/esp32/vfs_lwip.s"

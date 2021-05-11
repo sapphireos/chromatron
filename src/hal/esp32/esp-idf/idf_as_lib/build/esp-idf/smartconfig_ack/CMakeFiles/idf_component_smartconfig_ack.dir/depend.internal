@@ -9,6 +9,7 @@ esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h

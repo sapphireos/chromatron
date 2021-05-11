@@ -70,6 +70,8 @@ esp_wifi_types.h
 tcpip_adapter.h
 ../../../../../components/esp32/include/tcpip_adapter.h
 
+../../../../../components/esp32/include/esp_idf_version.h
+
 ../../../../../components/esp32/include/esp_interface.h
 stdint.h
 -
@@ -127,6 +129,8 @@ esp_err.h
 ../../../../../components/esp32/include/esp_err.h
 esp_sleep.h
 ../../../../../components/esp32/include/esp_sleep.h
+esp_idf_version.h
+../../../../../components/esp32/include/esp_idf_version.h
 
 ../../../../../components/esp32/include/esp_task.h
 sdkconfig.h
@@ -221,6 +225,10 @@ soc/gpio_reg.h
 ../../../../../components/esp32/include/rom/soc/gpio_reg.h
 soc/gpio_pins.h
 ../../../../../components/esp32/include/rom/soc/gpio_pins.h
+
+../../../../../components/esp32/include/rom/md5_hash.h
+stdint.h
+-
 
 ../../../../../components/esp32/include/rom/queue.h
 sys/cdefs.h
@@ -1691,6 +1699,8 @@ sntp.h
 ../../../../../components/lwip/port/esp32/include/sntp.h
 netif/dhcp_state.h
 ../../../../../components/lwip/port/esp32/include/netif/dhcp_state.h
+lwip/arch.h
+-
 
 ../../../../../components/lwip/port/esp32/include/netdb.h
 lwip/netdb.h
@@ -2261,6 +2271,20 @@ esp_ping.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/apps/ping/esp_ping.h
 lwip/ip_addr.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/apps/ping/lwip/ip_addr.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/apps/sntp/sntp.c
+stdlib.h
+-
+time.h
+-
+unistd.h
+-
+sys/time.h
+-
+esp_log.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/apps/sntp/esp_log.h
+sntp.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/apps/sntp/sntp.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/lwip/src/api/api_lib.c
 lwip/opt.h
@@ -4101,6 +4125,26 @@ string.h
 -
 tcpip_adapter.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/netif/tcpip_adapter.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/tcp_isn/tcp_isn.c
+tcp_isn.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/tcp_isn/tcp_isn.h
+lwip/ip_addr.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/tcp_isn/lwip/ip_addr.h
+lwip/sys.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/tcp_isn/lwip/sys.h
+string.h
+-
+rom/md5_hash.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/tcp_isn/rom/md5_hash.h
+soc/soc_memory_layout.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/tcp_isn/soc/soc_memory_layout.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/tcp_isn/tcp_isn.h
+lwip/opt.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/tcp_isn/lwip/opt.h
+lwip/ip_addr.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/tcp_isn/lwip/ip_addr.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/port/esp32/vfs_lwip.c
 string.h

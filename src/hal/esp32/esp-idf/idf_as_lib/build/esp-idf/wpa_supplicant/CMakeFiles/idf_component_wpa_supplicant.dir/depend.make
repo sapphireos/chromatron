@@ -6,6 +6,7 @@ esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtens
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtensa.c.obj: ../../../../../components/esp32/include/esp_assert.h
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtensa.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtensa.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtensa.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtensa.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtensa.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtensa.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -636,6 +637,7 @@ esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/cr
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj: ../../../../../components/esp32/include/esp_assert.h
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj: ../../../../../components/esp32/include/esp_sleep.h

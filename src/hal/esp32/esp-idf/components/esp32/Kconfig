@@ -6,6 +6,11 @@ menu "ESP32-specific"
         default "y" if IDF_TARGET="esp32"
         default "n"
 
+    config ESP32_ECO3_CACHE_LOCK_FIX
+        bool
+        default y
+        depends on !FREERTOS_UNICORE && SPIRAM_SUPPORT
+
     choice ESP32_REV_MIN
         prompt "Minimum Supported ESP32 Revision"
         default ESP32_REV_MIN_0
@@ -21,6 +26,7 @@ menu "ESP32-specific"
             bool "Rev 2"
         config ESP32_REV_MIN_3
             bool "Rev 3"
+            select INT_WDT if ESP32_ECO3_CACHE_LOCK_FIX
     endchoice
 
     config ESP32_REV_MIN
@@ -180,6 +186,9 @@ menu "ESP32-specific"
                 #Note that this is limited to 62 banks, as esp_spiram_writeback_cache needs some kind of mapping of
                 #some banks below that mark to work. We cannot at this moment guarantee this to exist when himem is
                 #enabled.
+
+                If spiram 2T mode is enabled, the size of 64Mbit psram will be changed as 32Mbit, so himem will be
+                unusable.
         config SPIRAM_BANKSWITCH_RESERVE
             int "Amount of 32K pages to reserve for bank switching"
             depends on SPIRAM_BANKSWITCH_ENABLE
@@ -348,6 +357,20 @@ menu "ESP32-specific"
                 bootloader.
 
                 For ESP32-PICO chip, the default value of this config should be 7.
+
+        config SPIRAM_2T_MODE
+            bool "Enable SPI PSRAM 2T mode"
+            depends on SPIRAM_SUPPORT
+            default "n"
+            help
+                Enable this option to fix single bit errors inside 64Mbit PSRAM.
+
+                Some 64Mbit PSRAM chips have a hardware issue in the RAM which causes bit errors at multiple
+                fixed bit positions.
+
+                Note: If this option is enabled, the 64Mbit PSRAM chip will appear to be 32Mbit in size.
+                Applications will not be affected unless the use the esp_himem APIs, which are not supported
+                in 2T mode.
 
     endmenu # "SPI RAM config"
 
@@ -911,6 +934,16 @@ menu "ESP32-specific"
               In case more value will help improve the definition of the launch of the crystal.
               If the crystal could not start, it will be switched to internal RC.
 
+    config ESP32_RTC_XTAL_CAL_RETRY
+        int "Number of attempts to repeat 32k XTAL calibration"
+        default 1
+        depends on ESP32_RTC_CLOCK_SOURCE_EXTERNAL_CRYSTAL
+        help
+            Number of attempts to repeat 32k XTAL calibration
+            before giving up and switching to the internal RC.
+            Increase this option if the 32k crystal oscillator
+            does not start and switches to internal RC.
+
     config ESP32_RTC_XTAL_BOOTSTRAP_CYCLES
         int "Bootstrap cycles for external 32kHz crystal"
         depends on ESP32_RTC_CLOCK_SOURCE_EXTERNAL_CRYSTAL
@@ -1067,8 +1100,8 @@ menu Wi-Fi
 
     config ESP32_WIFI_STATIC_RX_BUFFER_NUM
         int "Max number of WiFi static RX buffers"
-        range 2 25 if !WIFI_LWIP_ALLOCATION_FROM_SPIRAM_FIRST
-        range 8 25 if WIFI_LWIP_ALLOCATION_FROM_SPIRAM_FIRST
+        range 2 25
+
         default 10 if !WIFI_LWIP_ALLOCATION_FROM_SPIRAM_FIRST
         default 16 if WIFI_LWIP_ALLOCATION_FROM_SPIRAM_FIRST
         help
@@ -1132,7 +1165,7 @@ menu Wi-Fi
     config ESP32_WIFI_STATIC_TX_BUFFER_NUM
         int "Max number of WiFi static TX buffers"
         depends on ESP32_WIFI_STATIC_TX_BUFFER
-        range 6 64
+        range 1 64
         default 16
         help
             Set the number of WiFi static TX buffers. Each buffer takes approximately 1.6KB of RAM.
@@ -1147,7 +1180,7 @@ menu Wi-Fi
     config ESP32_WIFI_DYNAMIC_TX_BUFFER_NUM
         int "Max number of WiFi dynamic TX buffers"
         depends on ESP32_WIFI_DYNAMIC_TX_BUFFER
-        range 16 128
+        range 1 128
         default 32
         help
             Set the number of WiFi dynamic TX buffers. The size of each dynamic TX buffer is not fixed,
@@ -1385,7 +1418,7 @@ menu PHY
 
     config ESP32_PHY_MAX_WIFI_TX_POWER
         int "Max WiFi TX power (dBm)"
-        range 0 20
+        range 10 20
         default 20
         help
             Set maximum transmit power for WiFi radio. Actual transmit power for high

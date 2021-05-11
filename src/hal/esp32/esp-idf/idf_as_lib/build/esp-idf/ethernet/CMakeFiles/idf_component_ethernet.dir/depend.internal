@@ -80,6 +80,7 @@ esp-idf/ethernet/CMakeFiles/idf_component_ethernet.dir/emac_main.c.obj
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h

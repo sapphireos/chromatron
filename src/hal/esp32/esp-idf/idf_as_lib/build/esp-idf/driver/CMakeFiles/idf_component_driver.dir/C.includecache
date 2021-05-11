@@ -410,6 +410,8 @@ stdio.h
 assert.h
 -
 
+../../../../../components/esp32/include/esp_idf_version.h
+
 ../../../../../components/esp32/include/esp_intr.h
 rom/ets_sys.h
 ../../../../../components/esp32/include/rom/ets_sys.h
@@ -457,6 +459,8 @@ esp_err.h
 ../../../../../components/esp32/include/esp_err.h
 esp_sleep.h
 ../../../../../components/esp32/include/esp_sleep.h
+esp_idf_version.h
+../../../../../components/esp32/include/esp_idf_version.h
 
 ../../../../../components/esp32/include/esp_timer.h
 stdint.h
@@ -474,10 +478,6 @@ stdint.h
 stdbool.h
 -
 stddef.h
--
-
-../../../../../components/esp32/include/rom/crc.h
-stdint.h
 -
 
 ../../../../../components/esp32/include/rom/ets_sys.h
@@ -1441,6 +1441,10 @@ esp_intr_alloc.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/esp_intr_alloc.h
 esp_pm.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/esp_pm.h
+esp_attr.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/esp_attr.h
+esp_heap_caps.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/esp_heap_caps.h
 soc/dport_reg.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/soc/dport_reg.h
 soc/can_struct.h
@@ -1839,14 +1843,6 @@ driver/sdmmc_host.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/driver/sdmmc_host.h
 sdmmc_private.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/sdmmc_private.h
-
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/sdspi_crc.c
-stdint.h
--
-rom/crc.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/rom/crc.h
-sdspi_crc.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/sdspi_crc.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/sdspi_crc.h
 stdint.h

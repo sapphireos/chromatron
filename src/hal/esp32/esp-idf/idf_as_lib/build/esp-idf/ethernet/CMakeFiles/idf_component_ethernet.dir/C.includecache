@@ -94,6 +94,8 @@ esp_wifi_types.h
 tcpip_adapter.h
 ../../../../../components/esp32/include/tcpip_adapter.h
 
+../../../../../components/esp32/include/esp_idf_version.h
+
 ../../../../../components/esp32/include/esp_interface.h
 stdint.h
 -
@@ -157,6 +159,8 @@ esp_err.h
 ../../../../../components/esp32/include/esp_err.h
 esp_sleep.h
 ../../../../../components/esp32/include/esp_sleep.h
+esp_idf_version.h
+../../../../../components/esp32/include/esp_idf_version.h
 
 ../../../../../components/esp32/include/esp_task.h
 sdkconfig.h
@@ -321,6 +325,24 @@ esp_types.h
 ../../../../../components/ethernet/include/esp_types.h
 esp_err.h
 ../../../../../components/ethernet/include/esp_err.h
+
+../../../../../components/ethernet/include/eth_phy/phy.h
+esp_eth.h
+../../../../../components/ethernet/include/eth_phy/esp_eth.h
+
+../../../../../components/ethernet/include/eth_phy/phy_ip101.h
+phy.h
+../../../../../components/ethernet/include/eth_phy/phy.h
+
+../../../../../components/ethernet/include/eth_phy/phy_lan8720.h
+phy.h
+../../../../../components/ethernet/include/eth_phy/phy.h
+
+../../../../../components/ethernet/include/eth_phy/phy_reg.h
+
+../../../../../components/ethernet/include/eth_phy/phy_tlk110.h
+phy.h
+../../../../../components/ethernet/include/eth_phy/phy.h
 
 ../../../../../components/freertos/include/freertos/FreeRTOS.h
 stddef.h
@@ -729,6 +751,8 @@ sntp.h
 ../../../../../components/lwip/port/esp32/include/sntp.h
 netif/dhcp_state.h
 ../../../../../components/lwip/port/esp32/include/netif/dhcp_state.h
+lwip/arch.h
+-
 
 ../../../../../components/lwip/port/esp32/include/netif/dhcp_state.h
 
@@ -1114,6 +1138,38 @@ emac_dev.h
 soc/soc.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/soc/soc.h
 
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/emac_dev.c
+stdio.h
+-
+string.h
+-
+rom/ets_sys.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/rom/ets_sys.h
+rom/gpio.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/rom/gpio.h
+soc/dport_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/soc/dport_reg.h
+soc/io_mux_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/soc/io_mux_reg.h
+soc/rtc_cntl_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/soc/rtc_cntl_reg.h
+soc/gpio_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/soc/gpio_reg.h
+soc/gpio_sig_map.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/soc/gpio_sig_map.h
+soc/emac_reg_v2.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/soc/emac_reg_v2.h
+soc/emac_ex_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/soc/emac_ex_reg.h
+esp_log.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/esp_log.h
+driver/gpio.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/driver/gpio.h
+sdkconfig.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/sdkconfig.h
+emac_common.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/emac_common.h
+
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/emac_dev.h
 esp_types.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/esp_types.h
@@ -1191,6 +1247,46 @@ freertos/timers.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/freertos/timers.h
 lwip/err.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/lwip/err.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/phy_common.c
+eth_phy/phy.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/eth_phy/phy.h
+eth_phy/phy_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/eth_phy/phy_reg.h
+driver/gpio.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/driver/gpio.h
+esp_log.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/esp_log.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/phy_ip101.c
+esp_log.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/esp_log.h
+esp_eth.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/esp_eth.h
+eth_phy/phy_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/eth_phy/phy_reg.h
+eth_phy/phy_ip101.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/eth_phy/phy_ip101.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/phy_lan8720.c
+esp_log.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/esp_log.h
+esp_eth.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/esp_eth.h
+eth_phy/phy_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/eth_phy/phy_reg.h
+eth_phy/phy_lan8720.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/eth_phy/phy_lan8720.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/phy_tlk110.c
+esp_log.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/esp_log.h
+esp_eth.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/esp_eth.h
+eth_phy/phy_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/eth_phy/phy_reg.h
+eth_phy/phy_tlk110.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/ethernet/eth_phy/eth_phy/phy_tlk110.h
 
 config/sdkconfig.h
 

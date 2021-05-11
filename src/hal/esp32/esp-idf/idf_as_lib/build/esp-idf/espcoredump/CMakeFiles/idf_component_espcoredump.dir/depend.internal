@@ -8,6 +8,7 @@ esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_commo
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_panic.h
@@ -99,6 +100,7 @@ esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -189,6 +191,7 @@ esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_panic.h
@@ -278,6 +281,7 @@ esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.
  ../../../../../components/esp32/include/esp_clk.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h

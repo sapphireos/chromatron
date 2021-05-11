@@ -56,8 +56,10 @@ esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/b
  ../../../../../components/bootloader_support/include/esp_flash_partitions.h
  ../../../../../components/bootloader_support/include/esp_image_format.h
  ../../../../../components/bootloader_support/include/esp_secure_boot.h
+ ../../../../../components/bootloader_support/include_bootloader/bootloader_config.h
  ../../../../../components/bootloader_support/include_bootloader/bootloader_flash.h
  ../../../../../components/bootloader_support/include_bootloader/bootloader_sha.h
+ ../../../../../components/bootloader_support/include_bootloader/bootloader_utility.h
  ../../../../../components/esp32/include/esp_assert.h
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_err.h
@@ -229,6 +231,7 @@ esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/b
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h

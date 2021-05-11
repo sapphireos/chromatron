@@ -8,6 +8,7 @@ esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h

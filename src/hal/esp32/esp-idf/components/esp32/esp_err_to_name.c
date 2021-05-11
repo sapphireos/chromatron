@@ -329,7 +329,7 @@ static const esp_err_msg_t esp_err_msg_table[] = {
     ERR_TBL_IT(ESP_ERR_WIFI_POST),                          /* 12306 0x3012 Failed to post the event to WiFi task */
 #   endif
 #   ifdef      ESP_ERR_WIFI_INIT_STATE
-    ERR_TBL_IT(ESP_ERR_WIFI_INIT_STATE),                    /* 12307 0x3013 Invalod WiFi state when init/deinit is called */
+    ERR_TBL_IT(ESP_ERR_WIFI_INIT_STATE),                    /* 12307 0x3013 Invalid WiFi state when init/deinit is called */
 #   endif
 #   ifdef      ESP_ERR_WIFI_STOP_STATE
     ERR_TBL_IT(ESP_ERR_WIFI_STOP_STATE),                    /* 12308 0x3014 Returned when WiFi is stopping */
@@ -442,6 +442,15 @@ static const esp_err_msg_t esp_err_msg_table[] = {
 #   endif
 #   ifdef      ESP_ERR_MESH_VOTING
     ERR_TBL_IT(ESP_ERR_MESH_VOTING),                        /* 16406 0x4016 */
+#   endif
+#   ifdef      ESP_ERR_MESH_XMIT
+    ERR_TBL_IT(ESP_ERR_MESH_XMIT),                          /* 16407 0x4017 */
+#   endif
+#   ifdef      ESP_ERR_MESH_QUEUE_READ
+    ERR_TBL_IT(ESP_ERR_MESH_QUEUE_READ),                    /* 16408 0x4018 */
+#   endif
+#   ifdef      ESP_ERR_MESH_RECV_RELEASE
+    ERR_TBL_IT(ESP_ERR_MESH_RECV_RELEASE),                  /* 16410 0x401a */
 #   endif
     // components/tcpip_adapter/include/tcpip_adapter.h
 #   ifdef      ESP_ERR_TCPIP_ADAPTER_BASE

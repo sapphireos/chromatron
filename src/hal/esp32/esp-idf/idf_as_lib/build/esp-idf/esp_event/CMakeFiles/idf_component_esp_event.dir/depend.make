@@ -8,6 +8,7 @@ esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.ob
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj: ../../../../../components/esp32/include/esp_err.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj: ../../../../../components/esp32/include/esp_event_legacy.h
+esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj: ../../../../../components/esp32/include/esp_interface.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -128,6 +129,7 @@ esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: ../../
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: ../../../../../components/esp32/include/esp_err.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: ../../../../../components/esp32/include/esp_event_legacy.h
+esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: ../../../../../components/esp32/include/esp_interface.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -253,6 +255,7 @@ esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj: ../../../../../components/esp32/include/esp_err.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj: ../../../../../components/esp32/include/esp_event_legacy.h
+esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj: ../../../../../components/esp32/include/esp_interface.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
