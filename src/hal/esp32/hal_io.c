@@ -112,6 +112,22 @@ int32_t hal_io_i32_get_gpio_num( uint8_t pin ){
     #endif
 }
 
+bool hal_io_b_is_board_type_known( void ){
+
+    uint8_t board = ffs_u8_read_board_type();
+
+    if( board == BOARD_TYPE_UNKNOWN ){
+
+        return FALSE;
+    }
+    else if( board >= BOARD_TYPE_COUNT ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 void io_v_init( void ){
 
     // check board type

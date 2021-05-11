@@ -63,6 +63,8 @@
 
 int32_t hal_io_i32_get_gpio_num( uint8_t pin );
 
+bool hal_io_b_is_board_type_known( void );
+
 #endif
 
 
