@@ -199,6 +199,18 @@ SECTIONS
 
   ASSERT(((_iram_text_end - ORIGIN(iram0_0_seg)) <= LENGTH(iram0_0_seg)),
           "IRAM0 segment data does not fit.")
+  
+  /* Boot data section */
+  .bootdata (NOLOAD):
+  {
+    . = ALIGN(8);
+    _sbootdata = .;        /* create a global symbol at bootdata start */
+    *(.bootdata)           /* .bootdata sections */
+    *(.bootdata*)          /* .bootdata* sections */
+
+    . = ALIGN(4);
+    _ebootdata = .;        /* define a global symbol at bootdata end */
+  } > dram0_boot_seg
 
   .dram0.data :
   {
