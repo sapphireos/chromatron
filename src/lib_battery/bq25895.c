@@ -45,6 +45,7 @@ static bool dump_regs;
 static uint32_t capacity;
 static int32_t remaining;
 static int8_t therm;
+static uint8_t batt_cells; // number of cells in system
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
@@ -61,6 +62,8 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,          0,  "batt_vbus_status" },
     { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,             0,  "batt_capacity" },
     { SAPPHIRE_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,            0,  "batt_remaining" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,           0,  "batt_cells" },
+
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
 };
@@ -765,13 +768,23 @@ PT_BEGIN( pt );
 
 
             bq25895_v_set_inlim( 3250 );
-
-            // bq25895_v_set_inlim( 3000 );
             bq25895_v_set_pre_charge_current( 160 );
             
-            // bq25895_v_set_fast_charge_current( 1625 );
-            // bq25895_v_set_fast_charge_current( 250 );
-            bq25895_v_set_fast_charge_current( 1625 * 4 ); // 4-cell configuration
+            uint8_t n_cells = batt_cells;
+
+            if( n_cells < 1 ){
+
+                n_cells = 1;
+            }
+
+            uint32_t fast_charge_current = 1625 * n_cells;
+
+            if( fast_charge_current > 5000 ){
+
+                fast_charge_current = 5000;
+            }
+
+            bq25895_v_set_fast_charge_current( fast_charge_current );
 
             bq25895_v_set_termination_current( 65 );
             bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
