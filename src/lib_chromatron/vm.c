@@ -144,6 +144,7 @@ static const PROGMEM uint32_t restricted_keys[] = {
     __KV__pix_mode,    
 };
 
+#ifdef ENABLE_CATBUS_LINK
 static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
     catbus_hash_t32 link_tag = 0;
@@ -171,12 +172,15 @@ static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
     return link_tag;
 }
-
+#endif
 
 static void reset_published_data( uint8_t vm_id ){
 
     kvdb_v_clear_tag( 0, 1 << vm_id );
+
+    #ifdef ENABLE_CATBUS_LINK
     link_v_delete_by_tag( get_link_tag( vm_id ) );
+    #endif
 } 
 
 static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
@@ -437,7 +441,9 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
     // set up links
     fs_v_seek( f, sizeof(vm_size) + state.link_start );
+    #ifdef ENABLE_CATBUS_LINK
     catbus_hash_t32 link_tag = get_link_tag( vm_id );
+    #endif
 
     for( uint8_t i = 0; i < state.link_count; i++ ){
 
@@ -445,6 +451,7 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
         fs_i16_read( f, (uint8_t *)&link, sizeof(link) );
 
+        #ifdef ENABLE_CATBUS_LINK
         link_l_create( 
             link.mode,
             link.source_key,
@@ -453,7 +460,8 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
             link_tag,
             link.rate,
             link.aggregation,
-            LINK_FILTER_OFF );            
+            LINK_FILTER_OFF );   
+        #endif         
     }
 
     // load cron jobs
