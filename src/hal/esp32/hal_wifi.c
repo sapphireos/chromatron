@@ -178,20 +178,6 @@ void hal_wifi_v_init( void ){
         esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
     }
 
-    // set up hostname
-    char mac_str[16];
-    memset( mac_str, 0, sizeof(mac_str) );
-    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
-    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
-    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
-
-    memset( hostname, 0, sizeof(hostname) );
-    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
-
-    strlcat( hostname, mac_str, sizeof(hostname) );
-
-    tcpip_adapter_set_hostname( TCPIP_ADAPTER_IF_STA, hostname );
-        
 	thread_t_create_critical( 
                  wifi_connection_manager_thread,
                  PSTR("wifi_connection_manager"),
@@ -830,6 +816,28 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
     return ESP_OK;
 }
 
+static void set_hostname( void ){
+
+    // set up hostname
+    char mac_str[16];
+    memset( mac_str, 0, sizeof(mac_str) );
+    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
+    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
+    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
+
+    memset( hostname, 0, sizeof(hostname) );
+    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
+
+    strlcat( hostname, mac_str, sizeof(hostname) );
+
+    esp_err_t err = tcpip_adapter_set_hostname( TCPIP_ADAPTER_IF_STA, hostname );
+
+    if( err != ESP_OK ){
+
+        log_v_error_P( PSTR("fail to set hostname: %d"), err );
+    }
+}
+
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
@@ -934,6 +942,8 @@ station_mode:
             }
 
             connect_done = FALSE;
+
+            set_hostname();
             
             wifi_config_t wifi_config = {0};
             wifi_config.sta.bssid_set = 1;
