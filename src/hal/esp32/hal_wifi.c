@@ -795,15 +795,15 @@ static void scan_cb( void ){
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     switch(event->event_id) {
-        
+
         case SYSTEM_EVENT_STA_START:
 
             break;
 
         case SYSTEM_EVENT_STA_GOT_IP:
-            
-            log_v_debug_P("wifi connected, IP:%s\n", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+            trace_printf("wifi connected, IP:%s\n", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
             connect_done = TRUE;
+            connected = TRUE;
 
             break;
 
@@ -811,6 +811,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 
             log_v_debug_P( PSTR("disconnected: %d"), event->event_info.disconnected.reason );
             connected = FALSE;
+            connect_done = TRUE;
 
             break;
         
@@ -884,7 +885,10 @@ PT_BEGIN( pt );
  
         // station mode
         if( !ap_mode ){
-station_mode:            
+station_mode:          
+
+            connected = FALSE;  
+
     
             esp_wifi_disconnect();
             esp_wifi_stop();    
@@ -895,9 +899,6 @@ station_mode:
 
 
             // check if we can try a fast connect with the last connected router
-
-            wifi_router = -1; // !!!!!!!! fast connect seems to be not working, so bypass for now.
-
             if( wifi_router >= 0 ){
 
                 log_v_debug_P( PSTR("Fast connect...") );
@@ -963,6 +964,16 @@ station_mode:
             wifi_v_get_ssid( (char *)wifi_config.sta.ssid );
             get_pass( wifi_router, (char *)wifi_config.sta.password );
 
+            log_v_debug_P( PSTR("BSSID: %02x:%02x:%02x:%02x:%02x:%02x ch: %d"), 
+                wifi_bssid[0],
+                wifi_bssid[1],
+                wifi_bssid[2],
+                wifi_bssid[3],
+                wifi_bssid[4],
+                wifi_bssid[5],
+                wifi_channel
+            );
+
             ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
             
             esp_wifi_connect();
@@ -972,9 +983,7 @@ station_mode:
                                    ( thread_b_alarm_set() ) );
 
            	// check if we're connected
-           	if( connect_done ){
-
-                connected = TRUE;
+           	if( connect_done && connected ){
 
            		// get IP info
            		tcpip_adapter_ip_info_t info;
