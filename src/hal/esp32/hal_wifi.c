@@ -795,24 +795,35 @@ static void scan_cb( void ){
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     switch(event->event_id) {
-    case SYSTEM_EVENT_STA_START:
-        break;
-    case SYSTEM_EVENT_STA_GOT_IP:
-        trace_printf("wifi connected, IP:%s\n", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
-        connect_done = TRUE;
-        break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-        {
-            connected = FALSE;
-            ESP_LOGI(TAG,"disconnect\n");
+        
+        case SYSTEM_EVENT_STA_START:
+
             break;
-        }
-    case SYSTEM_EVENT_SCAN_DONE:
-        scan_done = TRUE;
-        break;
-    default:
-        break;
+
+        case SYSTEM_EVENT_STA_GOT_IP:
+            
+            log_v_debug_P("wifi connected, IP:%s\n", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+            connect_done = TRUE;
+
+            break;
+
+        case SYSTEM_EVENT_STA_DISCONNECTED:
+
+            log_v_debug_P( PSTR("disconnected: %d"), event->event_info.disconnected.reason );
+            connected = FALSE;
+
+            break;
+        
+        case SYSTEM_EVENT_SCAN_DONE:
+
+            scan_done = TRUE;
+
+            break;
+
+        default:
+            break;
     }
+
     return ESP_OK;
 }
 
@@ -878,9 +889,9 @@ station_mode:
             esp_wifi_disconnect();
             esp_wifi_stop();    
 
-            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
 
-            ESP_ERROR_CHECK(esp_wifi_start());
+            esp_wifi_set_mode( WIFI_MODE_STA );
+            esp_wifi_start();
 
 
             // check if we can try a fast connect with the last connected router
