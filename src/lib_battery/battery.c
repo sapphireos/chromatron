@@ -46,16 +46,18 @@ static uint8_t batt_state;
 #define BATT_STATE_LOW          1
 #define BATT_STATE_CRITICAL     2
 #define BATT_STATE_CUTOFF       3
+static uint8_t batt_request_shutdown;
 
 
 #define EMERGENCY_CUTOFF_VOLTAGE ( BQ25895_CUTOFF_VOLTAGE - 100 ) // set 100 mv below the main cutoff, to give a little headroom
 
 
 KV_SECTION_META kv_meta_t ui_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable, 0,          "batt_enable" },
-    { SAPPHIRE_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state, 0,        "batt_ui_state" },
-    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled, 0,       "batt_pixel_power" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,    0,        "batt_state" },
+    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable,           0,   "batt_enable" },
+    { SAPPHIRE_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,         0,   "batt_ui_state" },
+    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,        0,   "batt_pixel_power" },
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,            0,   "batt_state" },
+    { SAPPHIRE_TYPE_BOOL,   0, 0,                   &batt_request_shutdown, 0,   "batt_request_shutdown" },
     // { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &buttons,       0,        "batt_button_state" },
 };
 
@@ -338,7 +340,7 @@ PT_BEGIN( pt );
                 }
             }
 
-            if( batt_state == BATT_STATE_CUTOFF ){
+            if( ( batt_state == BATT_STATE_CUTOFF ) || ( batt_request_shutdown ) ){
 
                 gfx_b_disable();
 
@@ -351,11 +353,11 @@ PT_BEGIN( pt );
                 bq25895_v_enable_ship_mode( FALSE );
             }
             else if( batt_state == BATT_STATE_CRITICAL ){
-                
+
                 
             }
             else if( batt_state == BATT_STATE_LOW ){
-                
+
                 
             }
         }
