@@ -876,6 +876,9 @@ station_mode:
 
 
             // check if we can try a fast connect with the last connected router
+
+            wifi_router = -1; // !!!!!!!! fast connect seems to be not working, so bypass for now.
+
             if( wifi_router >= 0 ){
 
                 log_v_debug_P( PSTR("Fast connect...") );
@@ -1114,7 +1117,7 @@ end:
 
             char ssid[WIFI_SSID_LEN];
             wifi_v_get_ssid( ssid );
-            log_v_debug_P( PSTR("Wifi connected to: %s"), ssid );
+            log_v_debug_P( PSTR("Wifi connected to: %s ch: %d"), ssid, wifi_channel );
         }
         else{
 
