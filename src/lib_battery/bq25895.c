@@ -49,7 +49,8 @@ static uint8_t batt_cells; // number of cells in system
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,             0,  "batt_soc" },
+    // { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,             0,  "batt_soc" },
+    { SAPPHIRE_TYPE_UINT8,   0, 0,  &batt_soc,             0,  "batt_soc" },
     { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                0,  "batt_temp" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,        0,  "batt_charging" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,       0,  "batt_external_power" },
@@ -68,14 +69,16 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
 };
 
-#define SOC_MAX_VOLTS   ( BQ25895_FLOAT_VOLTAGE - 100 )
+static uint16_t soc_state;
+
+#define SOC_MAX_VOLTS   ( BQ25895_FLOAT_VOLTAGE - 200 )
 #define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
-#define SOC_FILTER      32
+#define SOC_FILTER      16
 
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
 
-static uint8_t _calc_batt_soc( uint16_t volts ){
+static uint16_t _calc_batt_soc( uint16_t volts ){
 
     if( volts < SOC_MIN_VOLTS ){
 
@@ -84,17 +87,19 @@ static uint8_t _calc_batt_soc( uint16_t volts ){
 
     if( volts > SOC_MAX_VOLTS ){
 
-        return 100;
+        return 10000;
     }
 
-    return util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 100 );
+    return util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
 }
 
 static uint8_t calc_batt_soc( uint16_t volts ){
 
-    uint8_t temp_soc = _calc_batt_soc( volts );
+    uint16_t temp_soc = _calc_batt_soc( volts );
 
-    return util_u16_ewma( temp_soc, batt_soc, SOC_FILTER );
+    soc_state = util_u16_ewma( temp_soc, soc_state, SOC_FILTER );
+
+    return soc_state / 100;
 }
 
 int8_t bq25895_i8_init( void ){
@@ -108,10 +113,6 @@ int8_t bq25895_i8_init( void ){
 
         return -1;
     }
-
-    batt_volts = bq25895_u16_get_batt_voltage();
-    batt_soc = _calc_batt_soc( batt_volts );
-    batt_soc_startup = batt_soc;
 
     thread_t_create( bat_mon_thread,
                      PSTR("bat_mon"),
@@ -672,6 +673,12 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    // init battery SOC state
+    batt_volts = bq25895_u16_get_batt_voltage();
+    soc_state = _calc_batt_soc( batt_volts );
+    batt_soc = calc_batt_soc( batt_volts );
+    batt_soc_startup = batt_soc;
+
     TMR_WAIT( pt, 500 );
 
     // reconfigure
@@ -689,6 +696,7 @@ PT_BEGIN( pt );
     bq25895_v_set_charger( FALSE );
 
     // bq25895_v_print_regs();
+
 
     while(1){
 
@@ -900,9 +908,11 @@ PT_BEGIN( pt );
             kv_i8_persist( __KV__batt_capacity );
 
             log_v_info_P( PSTR("Battery capacity calibrated to %u"), capacity );
+
+            batt_soc_startup = 0; // this prevents this from running again until the device has been restarted with a full charge
         }
 
-        batt_soc = new_batt_soc;
+        // batt_soc = new_batt_soc;
 
         if( capacity != 0 ){
 

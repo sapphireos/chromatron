@@ -41,10 +41,21 @@ static int8_t batt_ui_state;
 static bool pixels_enabled = TRUE;
 // static uint8_t buttons;
 
+static uint8_t batt_state;
+#define BATT_STATE_OK           0
+#define BATT_STATE_LOW          1
+#define BATT_STATE_CRITICAL     2
+#define BATT_STATE_CUTOFF       3
+
+
+#define EMERGENCY_CUTOFF_VOLTAGE ( BQ25895_CUTOFF_VOLTAGE - 100 ) // set 100 mv below the main cutoff, to give a little headroom
+
+
 KV_SECTION_META kv_meta_t ui_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable, 0,          "batt_enable" },
     { SAPPHIRE_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state, 0,        "batt_ui_state" },
     { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled, 0,       "batt_pixel_power" },
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,    0,        "batt_state" },
     // { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &buttons,       0,        "batt_button_state" },
 };
 
@@ -91,7 +102,6 @@ static bool pca9536_enabled;
 #define BUTTON_WAIT_FOR_RELEASE     255
 #define DIMMER_RATE                 5000
 #define MIN_DIMMER                  20000
-
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
@@ -283,10 +293,12 @@ PT_BEGIN( pt );
             ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
             ( bq25895_u8_get_faults() != 0 ) ){
 
+            batt_state = BATT_STATE_OK;
             gfx_b_disable();
         }
         else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
+            batt_state = BATT_STATE_OK;
             gfx_b_enable();
             batt_v_enable_pixels();
         }
@@ -295,12 +307,40 @@ PT_BEGIN( pt );
             gfx_b_enable();
             batt_v_enable_pixels();
 
-            if( bq25895_u8_get_soc() <= 5 ){
+            // the low battery states are latching, so that a temporary increase in SOC due to voltage fluctuations will not
+            // toggle between states.  States only flow towards lower SOC, unless the charger is activated.
+            if( ( bq25895_u8_get_soc() <= 0 ) || ( bq25895_u16_get_batt_voltage() < EMERGENCY_CUTOFF_VOLTAGE ) ){
+                // for cutoff, we also check voltage as a backup, in case the SOC calculation has a problem.
 
+                if( batt_state != BATT_STATE_CUTOFF ){
+
+                    log_v_debug_P( PSTR("Batt cutoff, shutting down: %u"), bq25895_u16_get_batt_voltage() );
+                }
+
+                batt_state = BATT_STATE_CUTOFF;
             }
-            else if( bq25895_u8_get_soc() <= 2 ){ // NOTE!!!!!!!!! THIS WILL NEVER RUN!!!!!!
+            else if( bq25895_u8_get_soc() <= 3 ){
 
-                log_v_debug_P( PSTR("Low batt, shutting down: %u"), bq25895_u16_get_batt_voltage() );
+                if( batt_state < BATT_STATE_CRITICAL ){
+
+                    log_v_debug_P( PSTR("Batt critical: %u"), bq25895_u16_get_batt_voltage() );
+                    
+                    batt_state = BATT_STATE_CRITICAL;
+                }
+            }
+            else if( bq25895_u8_get_soc() <= 10 ){
+
+                if( batt_state < BATT_STATE_LOW ){
+
+                    log_v_debug_P( PSTR("Batt low: %u"), bq25895_u16_get_batt_voltage() );
+
+                    batt_state = BATT_STATE_LOW;
+                }
+            }
+
+            if( batt_state == BATT_STATE_CUTOFF ){
+
+                gfx_b_disable();
 
                 batt_ui_state = -2;
 
@@ -310,8 +350,12 @@ PT_BEGIN( pt );
 
                 bq25895_v_enable_ship_mode( FALSE );
             }
-            else{
-
+            else if( batt_state == BATT_STATE_CRITICAL ){
+                
+                
+            }
+            else if( batt_state == BATT_STATE_LOW ){
+                
                 
             }
         }
