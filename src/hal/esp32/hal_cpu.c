@@ -125,6 +125,8 @@ void cpu_v_init( void ){
     #else
     trace_printf("CPU: 2 cores\n");
     #endif    
+
+    trace_printf("Running on core: %d\n", xPortGetCoreID());
     #endif
 
     #ifndef BOOTLOADER
