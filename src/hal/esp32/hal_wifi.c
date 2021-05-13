@@ -887,16 +887,26 @@ PT_BEGIN( pt );
         if( !ap_mode ){
 station_mode:          
 
+trace_printf("tiger\r\n");
+
+
             connected = FALSE;  
             connect_done = FALSE;
             disconnect_reason = 0;
     
             esp_wifi_disconnect();
-            esp_wifi_stop();    
+            // trace_printf("snake\r\n");
+            // esp_wifi_stop();    
+
+            trace_printf("owl\r\n");
 
 
             esp_wifi_set_mode( WIFI_MODE_STA );
+            
+            trace_printf("rabbit\r\n");
             esp_wifi_start();
+
+            trace_printf("mouse\r\n");
 
 
             // check if we can try a fast connect with the last connected router
@@ -975,7 +985,7 @@ station_mode:
                 wifi_channel
             );
 
-            ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
+            esp_wifi_set_config( ESP_IF_WIFI_STA, &wifi_config );
             
             esp_wifi_connect();
 
@@ -1019,6 +1029,8 @@ station_mode:
             kv_i8_persist( __KV__wifi_channel );
             kv_i8_persist( __KV__wifi_bssid );
             kv_i8_persist( __KV__wifi_router );
+
+            trace_printf("meow\r\n");
         }
         // AP mode
         else{
@@ -1132,11 +1144,15 @@ station_mode:
                 connected = TRUE;
             }
         }
-
+trace_printf("woof\r\n");
 end:
         if( !wifi_b_connected() ){
 
+            trace_printf("cat\r\n");
+
             TMR_WAIT( pt, 500 );
+
+            trace_printf("dog\r\n");
         }
     }
 
