@@ -888,7 +888,8 @@ PT_BEGIN( pt );
 station_mode:          
 
             connected = FALSE;  
-
+            connect_done = FALSE;
+            disconnect_reason = 0;
     
             esp_wifi_disconnect();
             esp_wifi_stop();    

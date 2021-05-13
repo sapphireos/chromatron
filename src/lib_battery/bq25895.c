@@ -673,29 +673,16 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
+    bq25895_v_enable_adc_continuous();
+    bq25895_v_set_charger( FALSE );
+
     // init battery SOC state
     batt_volts = bq25895_u16_get_batt_voltage();
     soc_state = _calc_batt_soc( batt_volts );
     batt_soc = calc_batt_soc( batt_volts );
     batt_soc_startup = batt_soc;
 
-    TMR_WAIT( pt, 500 );
-
-    // reconfigure
-
-    // bq25895_v_enable_ship_mode();
-    // bq25895_v_leave_ship_mode();
-
-    // bq25895_v_force_dpdm();
-
-    // bq25895_v_print_regs();
-
-    bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-    bq25895_v_enable_adc_continuous();
-    bq25895_v_set_boost_voltage( 5100 );
-    bq25895_v_set_charger( FALSE );
-
-    // bq25895_v_print_regs();
 
 
     while(1){
