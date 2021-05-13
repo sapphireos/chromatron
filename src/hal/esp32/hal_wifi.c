@@ -64,6 +64,7 @@ static bool default_ap_mode;
 static bool ap_mode;
 static bool connected;
 static bool wifi_shutdown;
+static uint8_t disconnect_reason;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
@@ -808,8 +809,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
             break;
 
         case SYSTEM_EVENT_STA_DISCONNECTED:
-
-            log_v_debug_P( PSTR("disconnected: %d"), event->event_info.disconnected.reason );
+            disconnect_reason = event->event_info.disconnected.reason;
             connected = FALSE;
             connect_done = TRUE;
 
@@ -855,7 +855,7 @@ PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
+    // log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
 
     static uint16_t scan_timeout;
 
@@ -1012,7 +1012,7 @@ station_mode:
                 wifi_channel = -1;
                 memset( wifi_bssid, 0, sizeof(wifi_bssid) );
 
-                log_v_debug_P( PSTR("Connection failed") );
+                log_v_debug_P( PSTR("Connection failed: %d"), disconnect_reason );
             }
 
             kv_i8_persist( __KV__wifi_channel );
