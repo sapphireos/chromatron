@@ -27,7 +27,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/.git/modules/components/spiffs/spiffs/HEAD"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/.git/modules/components/unity/unity/HEAD"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/.git/modules/examples/build_system/cmake/import_lib/main/lib/tinyxml2/HEAD"
-  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/.git/refs/heads/chromatron_esp_v3.3.2"
+  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/.git/refs/heads/chromatron_esp_v3.3.5"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/CMakeLists.txt"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/app_trace/CMakeLists.txt"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/app_trace/Kconfig"
