@@ -873,6 +873,8 @@ PT_BEGIN( pt );
     wifi_rssi = -127;
 
     esp_wifi_disconnect();
+    TMR_WAIT( pt, 100 );
+    
     esp_wifi_stop();    
 
     THREAD_WAIT_WHILE( pt, wifi_shutdown );
@@ -901,18 +903,18 @@ station_mode:
             connect_done = FALSE;
             disconnect_reason = 0;
         
-            trace_printf("esp_wifi_disconnect\r\n");   
+            // trace_printf("esp_wifi_disconnect\r\n");   
             esp_wifi_disconnect();
+            TMR_WAIT( pt, 100 ); // this delay seems to be important
+            // without it, esp_wifi_stop might hang for as many as 5 seconds.
 
-            sys_v_wdt_reset();
-
-            trace_printf("esp_wifi_stop\r\n");
+            // trace_printf("esp_wifi_stop\r\n");
             esp_wifi_stop();    
 
-            trace_printf("esp_wifi_set_mode\r\n");
+            // trace_printf("esp_wifi_set_mode\r\n");
             esp_wifi_set_mode( WIFI_MODE_STA );
 
-            trace_printf("esp_wifi_start\r\n");
+            // trace_printf("esp_wifi_start\r\n");
             esp_wifi_start();
 
 
