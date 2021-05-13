@@ -34,10 +34,17 @@
 #include "gfx_lib.h"
 #include "vm.h"
 
-static uint8_t array_red[MAX_PIXELS];
-static uint8_t array_green[MAX_PIXELS];
-static uint8_t array_blue[MAX_PIXELS];
-static uint8_t array_misc[MAX_PIXELS];
+#ifdef PIXEL_USE_MALLOC
+static uint8_t *array_red __attribute__((aligned(4)));
+static uint8_t *array_green __attribute__((aligned(4)));
+static uint8_t *array_blue __attribute__((aligned(4)));
+static uint8_t *array_misc __attribute__((aligned(4)));
+#else
+static uint8_t array_red[MAX_PIXELS] __attribute__((aligned(4)));
+static uint8_t array_green[MAX_PIXELS] __attribute__((aligned(4)));
+static uint8_t array_blue[MAX_PIXELS] __attribute__((aligned(4)));
+static uint8_t array_misc[MAX_PIXELS] __attribute__((aligned(4)));
+#endif
 
 static uint16_t pix0_16bit_red;
 static uint16_t pix0_16bit_green;
@@ -1508,10 +1515,10 @@ void gfx_v_clear( void ){
 
 void gfx_v_shutdown_graphic( void ){
 
-    memset( array_red, 0, sizeof(array_red) );
-    memset( array_green, 0, sizeof(array_green) );
-    memset( array_blue, 0, sizeof(array_blue) );
-    memset( array_misc, 0, sizeof(array_misc) );
+    memset( array_red, 0, MAX_PIXELS );
+    memset( array_green, 0, MAX_PIXELS );
+    memset( array_blue, 0, MAX_PIXELS );
+    memset( array_misc, 0, MAX_PIXELS );
 
     array_red[0] = 16;
     array_green[0] = 16;
@@ -1902,6 +1909,20 @@ void gfx_v_process_faders( void ){
 
 void gfxlib_v_init( void ){
 
+    #ifdef PIXEL_USE_MALLOC
+
+    array_red = malloc( MAX_PIXELS );
+    array_green = malloc( MAX_PIXELS );
+    array_blue = malloc( MAX_PIXELS );
+    array_misc = malloc( MAX_PIXELS );
+
+    ASSERT( array_red != 0 );
+    ASSERT( array_green != 0 );
+    ASSERT( array_blue != 0 );
+    ASSERT( array_misc != 0 );
+
+    #endif
+
     param_error_check();
 
     compute_dimmer_lookup();
@@ -2006,22 +2027,22 @@ void gfx_v_sync_array( void ){
     #ifdef ENABLE_CHANNEL_MASK
     if( channel_mask & 1 ){
 
-        memset( array_red, 0, sizeof(array_red) );
+        memset( array_red, 0, MAX_PIXELS );
     }
 
     if( channel_mask & 2 ){
 
-        memset( array_green, 0, sizeof(array_green) );
+        memset( array_green, 0, MAX_PIXELS );
     }
 
     if( channel_mask & 4 ){
 
-        memset( array_blue, 0, sizeof(array_blue) );
+        memset( array_blue, 0, MAX_PIXELS );
     }
 
     if( channel_mask & 8 ){
 
-        memset( array_misc, 0, sizeof(array_misc) );
+        memset( array_misc, 0, MAX_PIXELS );
     }
     #endif
 }
