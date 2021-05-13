@@ -26,6 +26,7 @@
 
 #include "gfx_lib.h"
 #include "vm.h"
+#include "pixel.h"
 
 #include "energy.h"
 #include "battery.h"
@@ -89,6 +90,8 @@ static uint8_t button_hold_duration[2];
 
 static bool pca9536_enabled;
 
+static uint8_t graphic_brightness;
+static bool graphics_dir;
 
 #define BUTTON_IO_CHECKS            4
 
@@ -354,11 +357,53 @@ PT_BEGIN( pt );
             }
             else if( batt_state == BATT_STATE_CRITICAL ){
 
+                vm_v_hold();
+
+                uint8_t *r = gfx_u8p_get_red();
+                uint8_t *g = gfx_u8p_get_green();
+                uint8_t *b = gfx_u8p_get_blue();
+
+                memset( r, 0, gfx_u16_get_pix_count() );
+                memset( g, 0, gfx_u16_get_pix_count() );
+                memset( b, 0, gfx_u16_get_pix_count() );
+
+                r[0] = 32;
+                r[gfx_u16_get_pix_count() - 1] = r[0];
                 
+                pixel_v_signal();
             }
             else if( batt_state == BATT_STATE_LOW ){
 
-                
+                vm_v_hold();    
+
+                uint8_t *r = gfx_u8p_get_red();
+                uint8_t *g = gfx_u8p_get_green();
+                uint8_t *b = gfx_u8p_get_blue();
+
+                memset( r, graphic_brightness, gfx_u16_get_pix_count() );
+                memset( g, 0, gfx_u16_get_pix_count() );
+                memset( b, 0, gfx_u16_get_pix_count() );
+
+                pixel_v_signal();
+
+                if( !graphics_dir ){
+                    
+                    graphic_brightness++;
+
+                    if( graphic_brightness == 32 ){
+
+                        graphics_dir = TRUE;
+                    }
+                }
+                else{
+
+                    graphic_brightness--;
+
+                    if( graphic_brightness == 0 ){
+
+                        graphics_dir = FALSE;
+                    }
+                }
             }
         }
 

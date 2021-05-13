@@ -31,6 +31,8 @@ void vm_v_init( void );
 void vm_v_start( void );
 void vm_v_stop( void );
 void vm_v_reset( void );
+void vm_v_hold( void );
+void vm_v_unhold( void );
 
 bool vm_b_running( void );
 bool vm_b_is_vm_running( uint8_t i );

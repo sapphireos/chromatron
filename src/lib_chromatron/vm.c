@@ -53,6 +53,8 @@ static uint8_t vm_timing_status;
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
 
+static bool hold_vms;
+
 
 int8_t vm_i8_kv_handler(
     kv_op_t8 op,
@@ -692,6 +694,8 @@ PT_BEGIN( pt );
     // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
 
+        THREAD_WAIT_WHILE( pt, hold_vms );
+
         state->delay_adjust = 0;
         
         #ifdef ENABLE_TIME_SYNC
@@ -1092,8 +1096,22 @@ void vm_v_reset( void ){
     vm_reset[0] = TRUE;
 }
 
+void vm_v_hold( void ){
+
+    hold_vms = TRUE;
+}
+
+void vm_v_unhold( void ){
+
+    hold_vms = FALSE;
+}
 
 bool vm_b_running( void ){
+
+    if( hold_vms ){
+
+        return FALSE;
+    }
 
     for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
 

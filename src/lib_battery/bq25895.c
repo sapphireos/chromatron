@@ -49,8 +49,8 @@ static uint8_t batt_cells; // number of cells in system
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
-    // { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,             0,  "batt_soc" },
-    { SAPPHIRE_TYPE_UINT8,   0, 0,  &batt_soc,             0,  "batt_soc" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,             0,  "batt_soc" },
+    // { SAPPHIRE_TYPE_UINT8,   0, 0,  &batt_soc,             0,  "batt_soc" },
     { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                0,  "batt_temp" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,        0,  "batt_charging" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,       0,  "batt_external_power" },
@@ -899,7 +899,7 @@ PT_BEGIN( pt );
             batt_soc_startup = 0; // this prevents this from running again until the device has been restarted with a full charge
         }
 
-        // batt_soc = new_batt_soc;
+        batt_soc = new_batt_soc;
 
         if( capacity != 0 ){
 
