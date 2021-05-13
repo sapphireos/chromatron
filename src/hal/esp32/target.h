@@ -125,7 +125,7 @@
 
 
 // recovery mode
-// #define DISABLE_SAFE_MODE
+#define DISABLE_SAFE_MODE
 
 // #define DISABLE_RECOVERY_MODE
 

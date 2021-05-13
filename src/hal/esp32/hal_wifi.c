@@ -798,7 +798,11 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
     switch(event->event_id) {
 
         case SYSTEM_EVENT_STA_START:
+            trace_printf("SYSTEM_EVENT_STA_START\r\n");
+            break;
 
+        case SYSTEM_EVENT_STA_STOP:
+            trace_printf("SYSTEM_EVENT_STA_STOP\r\n");
             break;
 
         case SYSTEM_EVENT_STA_GOT_IP:
@@ -808,7 +812,12 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 
             break;
 
+        case SYSTEM_EVENT_STA_CONNECTED:
+            trace_printf("SYSTEM_EVENT_STA_CONNECTED\r\n");
+            break;
+
         case SYSTEM_EVENT_STA_DISCONNECTED:
+            trace_printf("SYSTEM_EVENT_STA_DISCONNECTED\r\n");
             disconnect_reason = event->event_info.disconnected.reason;
             connected = FALSE;
             connect_done = TRUE;
@@ -816,12 +825,13 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
             break;
         
         case SYSTEM_EVENT_SCAN_DONE:
-
+            trace_printf("SYSTEM_EVENT_SCAN_DONE\r\n");
             scan_done = TRUE;
 
             break;
 
         default:
+            trace_printf("event: %d\r\n", event->event_id);
             break;
     }
 
@@ -890,12 +900,19 @@ station_mode:
             connected = FALSE;  
             connect_done = FALSE;
             disconnect_reason = 0;
-    
+        
+            trace_printf("esp_wifi_disconnect\r\n");   
             esp_wifi_disconnect();
+
+            sys_v_wdt_reset();
+
+            trace_printf("esp_wifi_stop\r\n");
             esp_wifi_stop();    
 
-
+            trace_printf("esp_wifi_set_mode\r\n");
             esp_wifi_set_mode( WIFI_MODE_STA );
+
+            trace_printf("esp_wifi_set_mode\r\n");
             esp_wifi_start();
 
 
