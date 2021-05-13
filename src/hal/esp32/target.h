@@ -74,7 +74,7 @@
 
 // memory
 #define MAX_MEM_HANDLES         512
-#define MEM_MAX_STACK           ESP_TASK_MAIN_STACK
+#define MEM_MAX_STACK           4096
 #define MEM_HEAP_SIZE			65535
 
 // flash fs
