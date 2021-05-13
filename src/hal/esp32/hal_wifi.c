@@ -912,7 +912,7 @@ station_mode:
             trace_printf("esp_wifi_set_mode\r\n");
             esp_wifi_set_mode( WIFI_MODE_STA );
 
-            trace_printf("esp_wifi_set_mode\r\n");
+            trace_printf("esp_wifi_start\r\n");
             esp_wifi_start();
 
 
