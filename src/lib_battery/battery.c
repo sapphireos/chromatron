@@ -245,7 +245,7 @@ PT_BEGIN( pt );
 
         pca9536_v_set_output( BATT_IO_BOOST );
 
-        batt_v_enable_pixels();
+        batt_v_disable_pixels();
     }
 
     while(1){
