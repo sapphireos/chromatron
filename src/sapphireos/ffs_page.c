@@ -109,10 +109,17 @@ static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
 
 static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
 
+    // random replacement
     uint8_t i = rnd_u8_get_int() % CACHE_SIZE;
 
+    // set cache lookup data
     page_cache[i].file_id = file_id;
     page_cache[i].page_number = page;
+
+    // initialize page
+    memset( page_cache[i].page.data, 0xff, sizeof(page_cache[i].page.data) );
+    page_cache[i].page.len = 0;
+    page_cache[i].page.crc = 0;
 
     return &page_cache[i].page;
 }
@@ -130,17 +137,17 @@ static ffs_page_t *search_cache( ffs_file_t file_id, uint16_t page ){
     return 0;
 }
 
-static int8_t flush_page( ffs_page_t *ffs_page ){
+// static int8_t flush_page( ffs_page_t *ffs_page ){
 
 
-    return 0;
+//     return 0;
     
-}
+// }
 
-static void flush_cache( ffs_file_t file_id, uint16_t page ){
+// static void flush_cache( ffs_file_t file_id, uint16_t page ){
 
     
-}
+// }
 
 void ffs_page_v_reset( void ){
 
@@ -711,8 +718,6 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         if( page_read_status == FFS_STATUS_EOF ){
 
             ffs_page = allocate_cache( file_id, page );
-
-            memset( &ffs_page->data, 0xff, sizeof(ffs_page->data) );
         }
 
         // copy data into page
