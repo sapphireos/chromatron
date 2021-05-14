@@ -104,6 +104,16 @@ static ffs_page_t* allocate_cache( void ){
     return &page_cache.page;
 }
 
+static ffs_page_t *search_cache( ffs_file_t file_id, uint16_t page ){
+
+    if( ( page_cache.file_id == file_id ) && ( page_cache.page_number == page ) ){    
+
+        return &page_cache.page;
+    }
+
+    return 0;
+}
+
 void ffs_page_v_reset( void ){
 
     // initialize data structures
@@ -486,14 +496,12 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
     // trace_printf("ffs_page_i8_read %d %d\r\n", file_id, page);    
 
-    *ptr = 0;
+    *ptr = search_cache( file_id, page );
 
     // check cache
-    if( ( page_cache.file_id == file_id ) && ( page_cache.page_number == page ) ){
+    if( *ptr != 0 ){
 
         flash_fs_page_cache_hits++;
-
-        *ptr = &page_cache.page;
 
         return FFS_STATUS_OK;
     }
