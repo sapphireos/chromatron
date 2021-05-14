@@ -352,14 +352,15 @@ int8_t ffs_i8_read_filename( ffs_file_t file_id, char *dst, uint8_t max_len ){
 
     ASSERT( file_id < FFS_MAX_FILES );
 
+    ffs_page_t *ffs_page;
+
     // read meta0
-    if( ffs_page_i8_read( file_id, FFS_FILE_PAGE_META_0 ) < 0 ){
+    if( ffs_page_i8_read( file_id, FFS_FILE_PAGE_META_0, &ffs_page ) < 0 ){
 
         return FFS_STATUS_ERROR;
     }
 
-    ffs_page_t *page = ffs_page_p_get_cached_page();
-    ffs_file_meta0_t *meta0 = (ffs_file_meta0_t *)page->data;
+    ffs_file_meta0_t *meta0 = (ffs_file_meta0_t *)ffs_page->data;
 
     // copy filename
     strlcpy( dst, meta0->filename, max_len );
@@ -530,13 +531,13 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
         // calculate offset
         uint8_t offset = position % FFS_PAGE_DATA_SIZE;
 
+        ffs_page_t *ffs_page;
+
         // read page
-        if( ffs_page_i8_read( file_id, file_page ) < 0 ){
+        if( ffs_page_i8_read( file_id, file_page, &ffs_page ) < 0 ){
 
             return FFS_STATUS_ERROR;
         }
-
-        ffs_page_t *page = ffs_page_p_get_cached_page();
 
         uint8_t read_len = FFS_PAGE_DATA_SIZE;
 
@@ -548,15 +549,15 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
 
         // check that the computed offset fits within the page
         // if not, the page is corrupt
-        if( offset > page->len ){
+        if( offset > ffs_page->len ){
 
             return FFS_STATUS_ERROR;
         }
 
         // bounds check on page size and offset
-        if( read_len > ( page->len - offset ) ){
+        if( read_len > ( ffs_page->len - offset ) ){
 
-            read_len = ( page->len - offset );
+            read_len = ( ffs_page->len - offset );
         }
 
         // bounds check on end of file
@@ -572,7 +573,7 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
         }
 
         // copy data
-        memcpy( data, &page->data[offset], read_len );
+        memcpy( data, &ffs_page->data[offset], read_len );
 
         total_read  += read_len;
         data        += read_len;

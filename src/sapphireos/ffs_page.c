@@ -310,7 +310,9 @@ int8_t ffs_page_i8_file_scan( ffs_file_t file_id ){
     // iterate over all pages and verify all data
     for( uint16_t i = 0; i < pages; i++ ){
 
-        if( ffs_page_i8_read( file_id, i ) < 0 ){
+        ffs_page_t *ffs_page;
+
+        if( ffs_page_i8_read( file_id, i, &ffs_page ) < 0 ){
 
             return FFS_STATUS_ERROR;
         }
@@ -318,7 +320,7 @@ int8_t ffs_page_i8_file_scan( ffs_file_t file_id ){
         // check length (except on last page)
         if( i < ( pages - 1 ) ){
 
-            if( page_cache.page.len != FFS_PAGE_DATA_SIZE ){
+            if( ffs_page->len != FFS_PAGE_DATA_SIZE ){
 
                 return FFS_STATUS_ERROR;
             }
@@ -385,13 +387,15 @@ int32_t ffs_page_i32_scan_file_size( ffs_file_t file_id ){
     // calculate logical file page number
     uint16_t last_page = ( file_block_number * FFS_DATA_PAGES_PER_BLOCK ) + index_info.logical_last_page;
 
-    if( ffs_page_i8_read( file_id, last_page ) < 0 ){
+    ffs_page_t *ffs_page;
+
+    if( ffs_page_i8_read( file_id, last_page, &ffs_page ) < 0 ){
 
         return FFS_STATUS_ERROR;
     }
 
     // return calculated file size
-    return ( (uint32_t)last_page * (uint32_t)FFS_PAGE_DATA_SIZE ) + (uint32_t)page_cache.page.len;
+    return ( (uint32_t)last_page * (uint32_t)FFS_PAGE_DATA_SIZE ) + (uint32_t)ffs_page->len;
 }
 
 
@@ -465,20 +469,24 @@ int32_t ffs_page_i32_file_size( ffs_file_t file_id ){
     return files[file_id].size;
 }
 
-ffs_page_t* ffs_page_p_get_cached_page( void ){
+// ffs_page_t* ffs_page_p_get_cached_page( void ){
 
-    // ensure page is valid
-    ASSERT( page_cache.file_id >= 0 );
+//     // ensure page is valid
+//     ASSERT( page_cache.file_id >= 0 );
 
-    return &page_cache.page;
-}
+//     return &page_cache.page;
+// }
 
-int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page ){
+int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
+
+    *ptr = 0;
 
     // check cache
     if( ( page_cache.file_id == file_id ) && ( page_cache.page_number == page ) ){
 
         flash_fs_page_cache_hits++;
+
+        *ptr = &page_cache.page;
 
         return FFS_STATUS_OK;
     }
@@ -519,6 +527,8 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page ){
             // set up cache
             page_cache.page_number = page;
             page_cache.file_id = file_id;
+
+            *ptr = &page_cache.page;
 
             return FFS_STATUS_OK;
         }
@@ -616,8 +626,10 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         // index update succeeded,
         int32_t page_addr = page_address( phy_block, index_info.phy_next_free );
 
+        ffs_page_t *ffs_page;
+
         // read page into cache
-        int8_t page_read_status = ffs_page_i8_read( file_id, page );
+        int8_t page_read_status = ffs_page_i8_read( file_id, page, &ffs_page );
 
         // check for errors, but filter on EOF.  EOF is ok.
         if( ( page_read_status < 0 ) &&
@@ -645,23 +657,23 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         // page.  we want to prefill with 1s.
         if( page_read_status == FFS_STATUS_EOF ){
 
-            memset( &page_cache.page.data, 0xff, sizeof(page_cache.page.data) );
+            memset( &ffs_page->data, 0xff, sizeof(ffs_page->data) );
         }
 
         // copy data into page
-        memcpy( &page_cache.page.data[offset], data, write_len );
+        memcpy( &ffs_page->data[offset], data, write_len );
 
         // check if page is increasing in size
-        if( page_cache.page.len < ( offset + write_len ) ){
+        if( ffs_page->len < ( offset + write_len ) ){
 
-            page_cache.page.len = offset + write_len;
+            ffs_page->len = offset + write_len;
         }
 
         // calculate CRC
-        page_cache.page.crc = crc_u16_block( page_cache.page.data, page_cache.page.len );
+        ffs_page->crc = crc_u16_block( ffs_page->data, ffs_page->len );
 
         // write to flash
-        flash25_v_write( page_addr, &page_cache.page, sizeof(ffs_page_t) );
+        flash25_v_write( page_addr, &ffs_page, sizeof(ffs_page_t) );
 
         // update index
         if( ffs_block_i8_set_index_entry( phy_block, page_index, index_info.phy_next_free ) < 0 ){
@@ -672,10 +684,10 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         // trash the cache so we force a reread and CRC check
         invalidate_cache();
 
-        if( ffs_page_i8_read( file_id, page ) == FFS_STATUS_OK ){
+        if( ffs_page_i8_read( file_id, page, &ffs_page ) == FFS_STATUS_OK ){
 
             // calculate file length up to this page plus the data in it
-            uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + page_cache.page.len;
+            uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + ffs_page->len;
 
             // check file size
             if( file_length_to_here > (uint32_t)files[file_id].size ){
@@ -794,8 +806,10 @@ static int8_t ffs_page_i8_block_copy( block_t source_block, block_t dest_block )
     // iterate through source pages
     for( uint8_t i = 0; i < FFS_DATA_PAGES_PER_BLOCK; i++ ){
 
+        ffs_page_t *ffs_page;
+
         // read page
-        int8_t status = ffs_page_i8_read( meta.file_id, base_page + i );
+        int8_t status = ffs_page_i8_read( meta.file_id, base_page + i, &ffs_page );
 
         // check EOF
         if( status == FFS_STATUS_EOF ){
@@ -816,10 +830,10 @@ static int8_t ffs_page_i8_block_copy( block_t source_block, block_t dest_block )
         }
         
         // write page data
-        flash25_v_write( page_address( dest_block, i ), &page_cache.page, sizeof(page_cache.page) );
+        flash25_v_write( page_address( dest_block, i ), ffs_page, sizeof(ffs_page_t) );
 
         // read back to verify
-        if( ffs_page_i8_read( meta.file_id, base_page + i ) != FFS_STATUS_OK ){
+        if( ffs_page_i8_read( meta.file_id, base_page + i, &ffs_page ) != FFS_STATUS_OK ){
 
             return FFS_STATUS_ERROR;
         }

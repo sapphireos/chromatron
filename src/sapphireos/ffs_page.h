@@ -54,9 +54,8 @@ int32_t ffs_page_i32_scan_file_size( ffs_file_t file_id );
 ffs_file_t ffs_page_i8_create_file( void );
 int8_t ffs_page_i8_delete_file( ffs_file_t file_id );
 int32_t ffs_page_i32_file_size( ffs_file_t file_id );
-ffs_page_t* ffs_page_p_get_cached_page( void );
-int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page );
-// int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page );
+// ffs_page_t* ffs_page_p_get_cached_page( void );
+int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr );
 int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, const void *data, uint8_t len );
 block_t ffs_page_i16_replace_block( ffs_file_t file_id, uint8_t file_block );
 
