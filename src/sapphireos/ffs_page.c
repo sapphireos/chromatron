@@ -130,6 +130,18 @@ static ffs_page_t *search_cache( ffs_file_t file_id, uint16_t page ){
     return 0;
 }
 
+static int8_t flush_page( ffs_page_t *ffs_page ){
+
+
+    return 0;
+    
+}
+
+static void flush_cache( ffs_file_t file_id, uint16_t page ){
+
+    
+}
+
 void ffs_page_v_reset( void ){
 
     // initialize data structures
@@ -583,14 +595,8 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
     ASSERT( file_id < FFS_MAX_FILES );
     ASSERT( page < ffs_page_u16_total_pages() );
 
-    // calculate logical block number
-    block_t block = page / FFS_DATA_PAGES_PER_BLOCK;
-    uint8_t page_index = page % FFS_DATA_PAGES_PER_BLOCK;
-
-    // get list size
-    uint8_t block_count = ffs_block_u8_list_size( &files[file_id].start_block );
-
     // set page count, if file has a size greater than 0
+    // this is just for the assertion check below.
     uint16_t page_count = 0;
 
     if( files[file_id].size > 0 ){
@@ -600,6 +606,14 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
 
     ASSERT( page <= page_count );
 
+
+
+    // calculate logical block number
+    block_t block = page / FFS_DATA_PAGES_PER_BLOCK;
+    uint8_t page_index = page % FFS_DATA_PAGES_PER_BLOCK;
+
+    // get list size
+    uint8_t block_count = ffs_block_u8_list_size( &files[file_id].start_block );
 
     // set up retry loop
     uint8_t tries = FFS_IO_ATTEMPTS;
