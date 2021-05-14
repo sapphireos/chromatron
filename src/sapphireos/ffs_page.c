@@ -99,7 +99,10 @@ static void invalidate_cache( void ){
     page_cache.page.len = 0;
 }
 
-static ffs_page_t* allocate_cache( void ){
+static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
+
+    page_cache.file_id = file_id;
+    page_cache.page_number = page;
 
     return &page_cache.page;
 }
@@ -686,7 +689,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         // page.  we want to prefill with 1s.
         if( page_read_status == FFS_STATUS_EOF ){
 
-            ffs_page = allocate_cache();
+            ffs_page = allocate_cache( file_id, page );
 
             memset( &ffs_page->data, 0xff, sizeof(ffs_page->data) );
         }
