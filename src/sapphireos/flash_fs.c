@@ -384,6 +384,8 @@ ffs_file_t ffs_i8_create_file( char filename[] ){
     // check status
     if( file < 0 ){
 
+        trace_printf("ffs_i8_create_file fail: %d\r\n", file);
+
         // return error code
         return file;
     }

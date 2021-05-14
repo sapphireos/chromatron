@@ -99,6 +99,11 @@ static void invalidate_cache( void ){
     page_cache.page.len = 0;
 }
 
+static ffs_page_t* allocate_cache( void ){
+
+    return &page_cache.page;
+}
+
 void ffs_page_v_reset( void ){
 
     // initialize data structures
@@ -122,7 +127,7 @@ void ffs_page_v_init( void ){
 
     ffs_block_meta_t meta;
 
-    trace_printf("Scanning for files...\r\n");
+    // trace_printf("Scanning for files...\r\n");
 
     // scan for files
     for( uint16_t i = 0; i < ffs_block_u16_total_blocks(); i++ ){
@@ -153,7 +158,7 @@ void ffs_page_v_init( void ){
         // ignore invalid blocks, the block driver will handle those
     }
 
-    trace_printf("File data scan...\r\n");
+    // trace_printf("File data scan...\r\n");
 
     // file data scan
     for( uint8_t file = 0; file < FFS_MAX_FILES; file++ ){
@@ -479,6 +484,8 @@ int32_t ffs_page_i32_file_size( ffs_file_t file_id ){
 
 int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
+    // trace_printf("ffs_page_i8_read %d %d\r\n", file_id, page);    
+
     *ptr = 0;
 
     // check cache
@@ -499,12 +506,18 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
     // seek to page
     int32_t page_addr = ffs_page_i32_seek_page( file_id, page );
 
+    // trace_printf("ffs_page_i32_seek_page addr: %d\r\n", page_addr);
+
     // check error codes
     if( page_addr == FFS_STATUS_EOF ){
+
+        // trace_printf("ffs_page_i8_read addr FFS_STATUS_EOF\r\n");
 
         return FFS_STATUS_EOF;
     }
     else if( page_addr < 0 ){
+
+        // trace_printf("ffs_page_i8_read addr FFS_STATUS_ERROR\r\n");
 
         return FFS_STATUS_ERROR;
     }
@@ -530,6 +543,8 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
             *ptr = &page_cache.page;
 
+            // trace_printf("ffs_page_i8_read addr FFS_STATUS_OK\r\n");
+
             return FFS_STATUS_OK;
         }
 
@@ -538,10 +553,14 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
     ffs_block_v_hard_error();
 
+    // trace_printf("ffs_page_i8_read fail\r\n");
+
     return FFS_STATUS_ERROR;
 }
 
 int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, const void *data, uint8_t len ){
+
+    // trace_printf("ffs_page_i8_write %d %d\r\n", file_id, page);
 
     ASSERT( file_id < FFS_MAX_FILES );
     ASSERT( page < ffs_page_u16_total_pages() );
@@ -635,6 +654,8 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         if( ( page_read_status < 0 ) &&
             ( page_read_status != FFS_STATUS_EOF ) ){
 
+            // trace_printf("read fail: %d\r\n");
+
             continue;
         }
 
@@ -657,6 +678,8 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         // page.  we want to prefill with 1s.
         if( page_read_status == FFS_STATUS_EOF ){
 
+            ffs_page = allocate_cache();
+
             memset( &ffs_page->data, 0xff, sizeof(ffs_page->data) );
         }
 
@@ -672,11 +695,15 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         // calculate CRC
         ffs_page->crc = crc_u16_block( ffs_page->data, ffs_page->len );
 
+        // trace_printf("ffs_page_i8_write flash25 write\r\n");
+
         // write to flash
-        flash25_v_write( page_addr, &ffs_page, sizeof(ffs_page_t) );
+        flash25_v_write( page_addr, ffs_page, sizeof(ffs_page_t) );
 
         // update index
         if( ffs_block_i8_set_index_entry( phy_block, page_index, index_info.phy_next_free ) < 0 ){
+
+            // trace_printf("index set fail\r\n");
 
             continue;
         }
@@ -684,7 +711,9 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         // trash the cache so we force a reread and CRC check
         invalidate_cache();
 
-        if( ffs_page_i8_read( file_id, page, &ffs_page ) == FFS_STATUS_OK ){
+        int8_t status = ffs_page_i8_read( file_id, page, &ffs_page );
+
+        if( status == FFS_STATUS_OK ){
 
             // calculate file length up to this page plus the data in it
             uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + ffs_page->len;
@@ -700,10 +729,14 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
             return FFS_STATUS_OK;
         }
 
+        // trace_printf("ffs_page_i8_write error: %d\r\n", status);
+
         ffs_block_v_soft_error();
     }
 
     ffs_block_v_hard_error();
+
+    // trace_printf("ffs_page_i8_write fail\r\n");
 
     return FFS_STATUS_ERROR;
 }
@@ -854,6 +887,8 @@ done:
 
 
 static int32_t ffs_page_i32_seek_page( ffs_file_t file_id, uint16_t page ){
+
+    // trace_printf("ffs_page_i32_seek_page %d %d\r\n", file_id, page);
 
     ASSERT( file_id < FFS_MAX_FILES );
     ASSERT( page < ffs_page_u16_total_pages() );
