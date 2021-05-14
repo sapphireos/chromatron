@@ -26,6 +26,7 @@
 #include "cpu.h"
 #include "crc.h"
 #include "system.h"
+#include "random.h"
 
 #include "flash25.h"
 #include "ffs_global.h"
@@ -53,8 +54,8 @@ typedef struct{
 } file_info_t;
 
 static file_info_t files[FFS_MAX_FILES];
-
-static page_cache_t page_cache;
+#define CACHE_SIZE 4
+static page_cache_t page_cache[CACHE_SIZE];
 
 static uint32_t flash_fs_block_copies;
 static uint32_t flash_fs_page_allocs;
@@ -93,25 +94,37 @@ static int32_t page_address( block_t block, uint8_t page_index ){
     return addr;
 }
 
-static void invalidate_cache( void ){
+static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
 
-    page_cache.file_id = -1;
-    page_cache.page.len = 0;
+    for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
+
+        if( ( page_cache[i].file_id == file_id ) && ( page_cache[i].page_number == page ) ){    
+
+            page_cache[i].file_id = -1;
+            page_cache[i].page.len = 0;
+        }
+    }
+
 }
 
 static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
 
-    page_cache.file_id = file_id;
-    page_cache.page_number = page;
+    uint8_t i = rnd_u8_get_int() % CACHE_SIZE;
 
-    return &page_cache.page;
+    page_cache[i].file_id = file_id;
+    page_cache[i].page_number = page;
+
+    return &page_cache[i].page;
 }
 
 static ffs_page_t *search_cache( ffs_file_t file_id, uint16_t page ){
 
-    if( ( page_cache.file_id == file_id ) && ( page_cache.page_number == page ) ){    
+    for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
 
-        return &page_cache.page;
+        if( ( page_cache[i].file_id == file_id ) && ( page_cache[i].page_number == page ) ){    
+
+            return &page_cache[i].page;
+        }
     }
 
     return 0;
@@ -129,14 +142,13 @@ void ffs_page_v_reset( void ){
 
 void ffs_page_v_init( void ){
 
-    invalidate_cache();
+    for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
+
+        page_cache[i].page.len = 0;
+        page_cache[i].file_id = -1;
+    }
 
     ffs_page_v_reset();
-
-    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-    //     return;
-    // }
 
     ffs_block_meta_t meta;
 
@@ -511,9 +523,6 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
     flash_fs_page_cache_misses++;
 
-    // trash the cache
-    invalidate_cache();
-
     // seek to page
     int32_t page_addr = ffs_page_i32_seek_page( file_id, page );
 
@@ -533,6 +542,9 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
         return FFS_STATUS_ERROR;
     }
 
+    // set up cache
+    ffs_page_t *ffs_page = allocate_cache( file_id, page );
+
     // ok, we have the correct page address
 
     // set up retry loop
@@ -543,17 +555,12 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
         tries--;
 
         // read page
-        flash25_v_read( page_addr, &page_cache.page, sizeof(ffs_page_t) );
+        flash25_v_read( page_addr, ffs_page->data, sizeof(ffs_page_t) );
 
         // check crc
-        if( crc_u16_block( page_cache.page.data, page_cache.page.len ) == page_cache.page.crc ){
+        if( crc_u16_block( ffs_page->data, ffs_page->len ) == ffs_page->crc ){
 
-            // set up cache
-            page_cache.page_number = page;
-            page_cache.file_id = file_id;
-
-            *ptr = &page_cache.page;
-
+            *ptr = ffs_page;
             // trace_printf("ffs_page_i8_read addr FFS_STATUS_OK\r\n");
 
             return FFS_STATUS_OK;
@@ -720,7 +727,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         }
 
         // trash the cache so we force a reread and CRC check
-        invalidate_cache();
+        invalidate_cache( file_id, page );
 
         int8_t status = ffs_page_i8_read( file_id, page, &ffs_page );
 
