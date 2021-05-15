@@ -539,6 +539,7 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
         return FFS_STATUS_OK;
     }
+    // *ptr == 0 at this point
 
     flash_fs_page_cache_misses++;
 
@@ -615,6 +616,61 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
 
 
 
+
+    // read page into cache
+    ffs_page_t *ffs_page;
+
+    int8_t page_read_status = ffs_page_i8_read( file_id, page, &ffs_page );
+
+    // check for errors, but filter on EOF.  EOF is ok.
+    if( ( page_read_status < 0 ) &&
+        ( page_read_status != FFS_STATUS_EOF ) ){
+
+        trace_printf("read fail: %d\r\n");
+
+        return page_read_status;
+    }
+
+    if( ffs_page == 0 ){
+
+        // page not found in cache, let's get one
+        ffs_page = allocate_cache( file_id, page );
+    }
+
+
+    // bounds check and set write length
+    uint8_t write_len = FFS_PAGE_DATA_SIZE;
+
+    // bounds check on requested length
+    if( (uint32_t)write_len > len ){
+
+        write_len = len;
+    }
+
+    // bounds check on page size and offset
+    if( write_len > ( FFS_PAGE_DATA_SIZE - offset ) ){
+
+        write_len = ( FFS_PAGE_DATA_SIZE - offset );
+    }
+
+    // copy data into page
+    memcpy( &ffs_page->data[offset], data, write_len );
+
+    // check if page is increasing in size
+    if( ffs_page->len < ( offset + write_len ) ){
+
+        ffs_page->len = offset + write_len;
+    }
+
+    // calculate CRC
+    ffs_page->crc = crc_u16_block( ffs_page->data, ffs_page->len );
+
+
+
+
+
+
+
     // calculate logical block number
     block_t block = page / FFS_DATA_PAGES_PER_BLOCK;
     uint8_t page_index = page % FFS_DATA_PAGES_PER_BLOCK;
@@ -683,56 +739,6 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
 
         // index update succeeded,
         int32_t page_addr = page_address( phy_block, index_info.phy_next_free );
-
-        ffs_page_t *ffs_page;
-
-        // read page into cache
-        int8_t page_read_status = ffs_page_i8_read( file_id, page, &ffs_page );
-
-        // check for errors, but filter on EOF.  EOF is ok.
-        if( ( page_read_status < 0 ) &&
-            ( page_read_status != FFS_STATUS_EOF ) ){
-
-            // trace_printf("read fail: %d\r\n");
-
-            continue;
-        }
-
-        uint8_t write_len = FFS_PAGE_DATA_SIZE;
-
-        // bounds check on requested length
-        if( (uint32_t)write_len > len ){
-
-            write_len = len;
-        }
-
-        // bounds check on page size and offset
-        if( write_len > ( FFS_PAGE_DATA_SIZE - offset ) ){
-
-            write_len = ( FFS_PAGE_DATA_SIZE - offset );
-        }
-
-
-        // check if EOF, in this case, we're writing to a new
-        // page.  we want to prefill with 1s.
-        if( page_read_status == FFS_STATUS_EOF ){
-
-            ffs_page = allocate_cache( file_id, page );
-        }
-
-        // copy data into page
-        memcpy( &ffs_page->data[offset], data, write_len );
-
-        // check if page is increasing in size
-        if( ffs_page->len < ( offset + write_len ) ){
-
-            ffs_page->len = offset + write_len;
-        }
-
-        // calculate CRC
-        ffs_page->crc = crc_u16_block( ffs_page->data, ffs_page->len );
-
-        // trace_printf("ffs_page_i8_write flash25 write\r\n");
 
         // write to flash
         flash25_v_write( page_addr, ffs_page, sizeof(ffs_page_t) );
