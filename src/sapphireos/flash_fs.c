@@ -630,9 +630,12 @@ int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, 
         return FFS_STATUS_INVALID_FILE;
     }
 
+    trace_printf("ffs_i32_write: %d %d\r\n", position, file_size);
+
     // check position is within file bounds
     if( position > (uint32_t)file_size ){
 
+        trace_printf("FFS_STATUS_EOF: %d %d\r\n", position, file_size);
         return FFS_STATUS_EOF;
     }
 

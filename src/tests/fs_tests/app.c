@@ -25,19 +25,70 @@
 #include "app.h"
 	
 
+#define TEST_FILE PSTR("test_file")
 
-PT_THREAD( app_thread( pt_t *pt, void *state ) )
+static file_t f;
+static uint32_t count;
+static uint32_t start_time;
+static uint32_t elapsed;
+
+#define TEST_SIZE 100000
+
+
+PT_THREAD( byte_append( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
 
+	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
+	trace_printf("START byte_append\r\n");
+	
+	f = fs_f_open_P( TEST_FILE, 
+			  		 FS_MODE_CREATE_IF_NOT_FOUND |
+                      FS_MODE_WRITE_APPEND );
+	
+	count = TEST_SIZE;
+	start_time = tmr_u32_get_system_time_ms();
+
+	while( count > 0 ){
+
+		uint8_t byte = 0x43;
+
+		int16_t status = fs_i16_write( f, &byte, sizeof(byte) );
+		if( status != sizeof(byte) ){
+
+			trace_printf("FAIL: %d\r\n", status);
+
+			goto end;
+		}
+
+		count--;
+	}
+
+	elapsed = tmr_u32_elapsed_time_ms( start_time );
+
+	trace_printf("END byte_append\r\n");
+	trace_printf("Elapsed: %d ms Bps: %d\r\n", elapsed, ( TEST_SIZE / elapsed ) * 10000 );
+
+
+end:
+	f = fs_f_close( f );
+	
 PT_END( pt );	
 }
 
 
 void app_v_init( void ){
 
-    thread_t_create( app_thread,
+	f = fs_f_open_P( TEST_FILE, 
+			  		 FS_MODE_CREATE_IF_NOT_FOUND |
+                      FS_MODE_WRITE_APPEND );
+
+	fs_v_delete( f );
+
+	f = fs_f_close( f );
+
+    thread_t_create( byte_append,
                      PSTR("app"),
                      0,
                      0 );
