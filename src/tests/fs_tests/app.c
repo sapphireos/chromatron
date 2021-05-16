@@ -34,7 +34,7 @@ static uint32_t start_time;
 static uint32_t elapsed;
 static uint32_t idx;
 
-#define BYTE_TEST_SIZE 2000
+#define BYTE_TEST_SIZE 4000
 #define TEST_SIZE 16384
 static uint8_t test_buf[TEST_SIZE];
 
@@ -62,10 +62,10 @@ static void test_finished( char *test_name, uint32_t test_len ){
 
 	fs_v_seek( f, 0 );
 
-	memset( test_buf, 0, sizeof(test_buf) );
-	fs_i16_read( f, test_buf, sizeof(test_buf) );
+	memset( test_buf, 0, test_len );
+	fs_i16_read( f, test_buf, test_len );
 
-	for( uint32_t i = 0; i < sizeof(test_buf); i++ ){
+	for( uint32_t i = 0; i < test_len; i++ ){
 
 		if( test_buf[i] != (uint8_t)i ){
 
