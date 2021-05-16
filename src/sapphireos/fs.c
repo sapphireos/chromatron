@@ -119,8 +119,8 @@ void fs_v_mount( void );
 #ifdef ENABLE_FFS
 static int8_t create_file_on_media( char *fname );
 #endif
-static uint16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr, uint16_t len );
-static uint16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len );
+static int16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr, uint16_t len );
+static int16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len );
 static int8_t read_fname_from_media( file_id_t8 file_id, void *ptr, uint16_t max_len );
 static uint32_t get_free_space_on_media( file_id_t8 file_id );
 static bool media_busy( void );
@@ -769,7 +769,7 @@ int16_t fs_i16_read_id( file_id_t8 id, uint32_t pos, void *dst, uint16_t len ){
         return -1;
     }
 
-    uint16_t bytes_read = 0;
+    int16_t bytes_read = 0;
 
     // check if virtual
     if( FS_FILE_IS_VIRTUAL( id ) ){
@@ -813,7 +813,7 @@ int16_t fs_i16_write_id( file_id_t8 id, uint32_t pos, const void *src, uint16_t 
         return -1;
     }
 
-    uint16_t bytes_written = 0;
+    int16_t bytes_written = 0;
 
     // check if virtual
     if( FS_FILE_IS_VIRTUAL( id ) ){
@@ -866,7 +866,7 @@ static int8_t create_file_on_media( char *fname ){
 // returns number of bytes committed to the device driver's write buffers,
 // NOT the number that have actually been written to the device!  The drivers
 // will stream data to the device as needed.
-static uint16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr, uint16_t len ){
+static int16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr, uint16_t len ){
 
     // check free space on media and limit to available space
     // this must be done even if the file size won't be changing, since the
@@ -892,7 +892,7 @@ static uint16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *pt
     return write_len;
 }
 
-static uint16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len ){
+static int16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len ){
 
 	// bounds check file
 	if( (int32_t)( pos + len ) >= fs_i32_get_size_id( file_id ) ){
