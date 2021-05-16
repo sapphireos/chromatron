@@ -438,7 +438,7 @@ int16_t fs_i16_write( file_t file, const void *src, uint16_t len ){
         return -1;
     }
 
-    uint16_t bytes_written = fs_i16_write_id( state->file_id, state->current_pos, src, len );
+    int16_t bytes_written = fs_i16_write_id( state->file_id, state->current_pos, src, len );
 
     if( bytes_written > 0 ){
 
