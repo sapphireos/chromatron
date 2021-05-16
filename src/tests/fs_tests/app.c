@@ -24,6 +24,7 @@
 
 #include "app.h"
 
+#include "system.h"
 #include "ffs_gc.h"	
 #include "ffs_page.h"	
 
@@ -124,6 +125,8 @@ PT_BEGIN( pt );
 			goto end;
 		}
 
+		sys_v_wdt_reset();
+
 		count--;
 
 		if( ( count % 512 ) == 0 ){
@@ -169,6 +172,8 @@ PT_BEGIN( pt );
 
 			goto end;
 		}
+
+		sys_v_wdt_reset();
 
 		idx += FFS_PAGE_DATA_SIZE;
 		count -= FFS_PAGE_DATA_SIZE;;
@@ -218,6 +223,8 @@ PT_BEGIN( pt );
 			goto end;
 		}
 
+		sys_v_wdt_reset();
+
 		idx += DATA_LEN;
 		count -= DATA_LEN;;
 
@@ -255,8 +262,9 @@ PT_BEGIN( pt );
 
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
-
 	trace_printf("FS tests START\r\n");
+
+
 
 	TMR_WAIT( pt, 2000 );
 	done = FALSE;
@@ -286,6 +294,7 @@ PT_BEGIN( pt );
                      0 );
 	
 	THREAD_WAIT_WHILE( pt, !done );
+
 
 
 	trace_printf("FS tests END\r\n");
