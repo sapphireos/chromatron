@@ -25,6 +25,7 @@
 #include "app.h"
 
 #include "ffs_gc.h"	
+#include "ffs_page.h"	
 
 #define TEST_FILE PSTR("test_file")
 
@@ -44,6 +45,7 @@ static void setup( char *test_name ){
 
 	trace_printf("START %s\r\n", test_name);
 
+	ffs_page_v_stats_reset();
 
 	// ffs_gc_v_suspend_gc( TRUE );
 
@@ -77,6 +79,11 @@ static void test_finished( char *test_name, uint32_t test_len ){
 
 	trace_printf("END %s\r\n", test_name);
 	trace_printf("Elapsed: %d ms Bps: %8.0f\r\n", elapsed, TEST_SIZE / elapsed_f );
+	trace_printf("Block copies: %d  Page allocs: %d Cache hits: %d misses: %d\r\n",
+		ffs_page_u32_get_block_copies(),
+		ffs_page_u32_get_page_allocs(),
+		ffs_page_u32_get_cache_hits(),
+		ffs_page_u32_get_cache_misses() );		
 }
 
 static void clean_up( void ){
@@ -166,7 +173,7 @@ PT_BEGIN( pt );
 		idx += FFS_PAGE_DATA_SIZE;
 		count -= FFS_PAGE_DATA_SIZE;;
 
-		if( ( count % 2048 ) == 0 ){
+		if( ( count % 512 ) == 0 ){
 
 			THREAD_YIELD( pt );
 			THREAD_YIELD( pt );
@@ -183,6 +190,53 @@ end:
 PT_END( pt );	
 }
 
+PT_THREAD( page_plus_one_byte_append( pt_t *pt, void *state ) )
+{       	
+PT_BEGIN( pt );
+	
+	#define DATA_LEN ( FFS_PAGE_DATA_SIZE + 1 )
+
+	idx = 0;
+	
+	for( uint32_t i = 0; i < sizeof(test_buf); i++ ){
+
+		test_buf[i] = idx++;
+	}
+
+	setup("page_plus_one_byte_append");
+	
+	count = TEST_SIZE;
+	idx = 0;
+
+	while( count > 0 ){
+		
+		int16_t status = fs_i16_write( f, &test_buf[idx], DATA_LEN );
+		if( status != DATA_LEN ){
+
+			trace_printf("FAIL: %d\r\n", status);
+
+			goto end;
+		}
+
+		idx += DATA_LEN;
+		count -= DATA_LEN;;
+
+		if( ( count % 512 ) == 0 ){
+
+			THREAD_YIELD( pt );
+			THREAD_YIELD( pt );
+			THREAD_YIELD( pt );
+			THREAD_YIELD( pt );
+		}
+	}
+
+	test_finished("page_plus_one_byte_append", TEST_SIZE);
+
+end:
+	clean_up();
+	
+PT_END( pt );	
+}
 
 
 
@@ -201,18 +255,19 @@ PT_BEGIN( pt );
 
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
-	TMR_WAIT( pt, 2000 );
 
+	trace_printf("FS tests START\r\n");
+
+	TMR_WAIT( pt, 2000 );
 	done = FALSE;
 	thread_t_create( byte_append,
                      PSTR("test"),
                      0,
-                     0 );
-	
+                     0 );	
 	THREAD_WAIT_WHILE( pt, !done );
 
-	TMR_WAIT( pt, 2000 );
 
+	TMR_WAIT( pt, 2000 );
 	done = FALSE;
 	thread_t_create( page_append,
                      PSTR("test"),
@@ -220,6 +275,20 @@ PT_BEGIN( pt );
                      0 );
 	
 	THREAD_WAIT_WHILE( pt, !done );
+
+
+
+	TMR_WAIT( pt, 2000 );
+	done = FALSE;
+	thread_t_create( page_plus_one_byte_append,
+                     PSTR("test"),
+                     0,
+                     0 );
+	
+	THREAD_WAIT_WHILE( pt, !done );
+
+
+	trace_printf("FS tests END\r\n");
 
 PT_END( pt );	
 }
