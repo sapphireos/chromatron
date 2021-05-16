@@ -826,7 +826,9 @@ int16_t fs_i16_write_id( file_id_t8 id, uint32_t pos, const void *src, uint16_t 
         // bounds check!
         if( pos > size ){
 
-            return 0;
+            trace_printf("bad position\r\n");
+
+            return FFS_STATUS_EOF;
         }
 
         uint32_t write_len = len;
