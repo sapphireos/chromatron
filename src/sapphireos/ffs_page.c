@@ -764,6 +764,8 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
             // check file size
             if( file_length_to_here > (uint32_t)files[file_id].size ){
 
+                trace_printf("file len: %d\r\n", file_length_to_here);
+
                 // adjust file size
                 files[file_id].size = file_length_to_here;
             }
