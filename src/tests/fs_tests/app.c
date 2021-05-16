@@ -34,7 +34,7 @@ static uint32_t start_time;
 static uint32_t elapsed;
 static uint32_t idx;
 
-#define TEST_SIZE 16384
+#define TEST_SIZE 8192
 static uint8_t test_buf[TEST_SIZE];
 
 static bool done;
@@ -44,16 +44,7 @@ static void setup( char *test_name ){
 	trace_printf("START %s\r\n", test_name);
 
 
-	f = fs_f_open_P( TEST_FILE, 
-			  		 FS_MODE_CREATE_IF_NOT_FOUND |
-                      FS_MODE_WRITE_APPEND );
-
-	fs_v_delete( f );
-
-	f = fs_f_close( f );
-
-
-	ffs_gc_v_suspend_gc( TRUE );
+	// ffs_gc_v_suspend_gc( TRUE );
 
 	f = fs_f_open_P( TEST_FILE, 
 			  		 FS_MODE_CREATE_IF_NOT_FOUND |
@@ -92,7 +83,16 @@ static void clean_up( void ){
 	f = fs_f_close( f );
 	done = TRUE;
 
-	ffs_gc_v_suspend_gc( FALSE );
+
+	f = fs_f_open_P( TEST_FILE, 
+			  		 FS_MODE_CREATE_IF_NOT_FOUND |
+                      FS_MODE_WRITE_APPEND );
+
+	fs_v_delete( f );
+
+	f = fs_f_close( f );
+
+	// ffs_gc_v_suspend_gc( FALSE );
 }
 
 PT_THREAD( byte_append( pt_t *pt, void *state ) )
@@ -190,6 +190,15 @@ PT_END( pt );
 PT_THREAD( test_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );
+
+	f = fs_f_open_P( TEST_FILE, 
+			  		 FS_MODE_CREATE_IF_NOT_FOUND |
+                      FS_MODE_WRITE_APPEND );
+
+	fs_v_delete( f );
+
+	f = fs_f_close( f );
+
 
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
