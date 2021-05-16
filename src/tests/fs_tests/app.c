@@ -23,7 +23,8 @@
 #include "sapphire.h"
 
 #include "app.h"
-	
+
+#include "ffs_gc.h"	
 
 #define TEST_FILE PSTR("test_file")
 
@@ -33,9 +34,8 @@ static uint32_t start_time;
 static uint32_t elapsed;
 static uint32_t idx;
 
-#define TEST_SIZE 10000
+#define TEST_SIZE 16384
 static uint8_t test_buf[TEST_SIZE];
-static uint8_t buf[64];
 
 static bool done;
 
@@ -53,6 +53,8 @@ static void setup( char *test_name ){
 	f = fs_f_close( f );
 
 
+	ffs_gc_v_suspend_gc( TRUE );
+
 	f = fs_f_open_P( TEST_FILE, 
 			  		 FS_MODE_CREATE_IF_NOT_FOUND |
                       FS_MODE_WRITE_APPEND );
@@ -62,8 +64,7 @@ static void setup( char *test_name ){
 
 static void test_finished( char *test_name ){
 
-	elapsed = tmr_u32_elapsed_time_ms( start_time );
-
+	elapsed = tmr_u32_elapsed_time_ms( start_time );	
 
 	float elapsed_f = (float)elapsed / 1000.0;
 
@@ -74,9 +75,9 @@ static void test_finished( char *test_name ){
 
 	for( uint32_t i = 0; i < sizeof(test_buf); i++ ){
 
-		if( test_buf[i] != i ){
+		if( test_buf[i] != (uint8_t)i ){
 
-			trace_printf("FAIL: read back error at index: %d\r\n", i);
+			trace_printf("FAIL: read back error at index: %d -> %d != %d\r\n", i, test_buf[i], i);
 
 			break;
 		}
@@ -90,6 +91,8 @@ static void clean_up( void ){
 
 	f = fs_f_close( f );
 	done = TRUE;
+
+	ffs_gc_v_suspend_gc( FALSE );
 }
 
 PT_THREAD( byte_append( pt_t *pt, void *state ) )
@@ -98,8 +101,6 @@ PT_BEGIN( pt );
 
 	setup("byte_append");
 
-	TMR_WAIT( pt, 500 );
-	
 	idx = 0;	
 	count = TEST_SIZE;
 
@@ -118,6 +119,8 @@ PT_BEGIN( pt );
 		count--;
 
 		if( ( count % 512 ) == 0 ){
+
+			trace_printf("%d\r\n", count);
 
 			THREAD_YIELD( pt );
 			THREAD_YIELD( pt );
@@ -138,31 +141,33 @@ PT_END( pt );
 PT_THREAD( page_append( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );
-	
-	for( uint8_t i = 0; i < sizeof(buf); i++ ){
 
-		buf[i] = i;
+	idx = 0;
+	
+	for( uint32_t i = 0; i < sizeof(test_buf); i++ ){
+
+		test_buf[i] = idx++;
 	}
 
 	setup("page_append");
 	
-	TMR_WAIT( pt, 500 );
-
 	count = TEST_SIZE;
+	idx = 0;
 
 	while( count > 0 ){
 		
-		int16_t status = fs_i16_write( f, buf, sizeof(buf) );
-		if( status != sizeof(buf) ){
+		int16_t status = fs_i16_write( f, &test_buf[idx], FFS_PAGE_DATA_SIZE );
+		if( status != FFS_PAGE_DATA_SIZE ){
 
 			trace_printf("FAIL: %d\r\n", status);
 
 			goto end;
 		}
 
-		count -= sizeof(buf);
+		idx += FFS_PAGE_DATA_SIZE;
+		count -= FFS_PAGE_DATA_SIZE;;
 
-		if( ( count % 512 ) == 0 ){
+		if( ( count % 2048 ) == 0 ){
 
 			THREAD_YIELD( pt );
 			THREAD_YIELD( pt );
@@ -188,6 +193,8 @@ PT_BEGIN( pt );
 
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
+	TMR_WAIT( pt, 2000 );
+
 	done = FALSE;
 	thread_t_create( byte_append,
                      PSTR("test"),
@@ -195,6 +202,8 @@ PT_BEGIN( pt );
                      0 );
 	
 	THREAD_WAIT_WHILE( pt, !done );
+
+	TMR_WAIT( pt, 2000 );
 
 	done = FALSE;
 	thread_t_create( page_append,
