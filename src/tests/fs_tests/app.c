@@ -34,7 +34,8 @@ static uint32_t start_time;
 static uint32_t elapsed;
 static uint32_t idx;
 
-#define TEST_SIZE 8192
+#define BYTE_TEST_SIZE 2000
+#define TEST_SIZE 16384
 static uint8_t test_buf[TEST_SIZE];
 
 static bool done;
@@ -53,7 +54,7 @@ static void setup( char *test_name ){
 	start_time = tmr_u32_get_system_time_ms();
 }
 
-static void test_finished( char *test_name ){
+static void test_finished( char *test_name, uint32_t test_len ){
 
 	elapsed = tmr_u32_elapsed_time_ms( start_time );	
 
@@ -102,7 +103,7 @@ PT_BEGIN( pt );
 	setup("byte_append");
 
 	idx = 0;	
-	count = TEST_SIZE;
+	count = BYTE_TEST_SIZE;
 
 	while( count > 0 ){
 
@@ -120,8 +121,6 @@ PT_BEGIN( pt );
 
 		if( ( count % 512 ) == 0 ){
 
-			trace_printf("%d\r\n", count);
-
 			THREAD_YIELD( pt );
 			THREAD_YIELD( pt );
 			THREAD_YIELD( pt );
@@ -129,7 +128,7 @@ PT_BEGIN( pt );
 		}
 	}
 
-	test_finished("byte_append");
+	test_finished("byte_append", BYTE_TEST_SIZE);
 
 end:
 	clean_up();
@@ -176,7 +175,7 @@ PT_BEGIN( pt );
 		}
 	}
 
-	test_finished("page_append");
+	test_finished("page_append", TEST_SIZE);
 
 end:
 	clean_up();
