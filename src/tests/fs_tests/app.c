@@ -48,6 +48,13 @@ static void setup( char *test_name ){
 
 	ffs_page_v_stats_reset();
 
+	idx = 0;
+	
+	for( uint32_t i = 0; i < sizeof(test_buf); i++ ){
+
+		test_buf[i] = idx++;
+	}
+
 	// ffs_gc_v_suspend_gc( TRUE );
 
 	f = fs_f_open_P( TEST_FILE, 
@@ -151,13 +158,6 @@ PT_THREAD( page_append( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );
 
-	idx = 0;
-	
-	for( uint32_t i = 0; i < sizeof(test_buf); i++ ){
-
-		test_buf[i] = idx++;
-	}
-
 	setup("page_append");
 	
 	count = TEST_SIZE;
@@ -201,13 +201,6 @@ PT_BEGIN( pt );
 	
 	#define DATA_LEN ( FFS_PAGE_DATA_SIZE + 1 )
 
-	idx = 0;
-	
-	for( uint32_t i = 0; i < sizeof(test_buf); i++ ){
-
-		test_buf[i] = idx++;
-	}
-
 	setup("page_plus_one_byte_append");
 	
 	count = TEST_SIZE;
@@ -233,13 +226,7 @@ PT_BEGIN( pt );
 		idx += len;
 		count -= len;
 
-		if( ( count % 512 ) == 0 ){
-
-			THREAD_YIELD( pt );
-			THREAD_YIELD( pt );
-			THREAD_YIELD( pt );
-			THREAD_YIELD( pt );
-		}
+		THREAD_YIELD( pt );
 	}
 
 	test_finished("page_plus_one_byte_append", TEST_SIZE);
@@ -250,6 +237,143 @@ end:
 PT_END( pt );	
 }
 
+
+PT_THREAD( large_write( pt_t *pt, void *state ) )
+{       	
+PT_BEGIN( pt );
+	
+	setup("large_write");
+	
+	count = TEST_SIZE;
+	uint32_t len = count;
+	
+	int16_t status = fs_i16_write( f, test_buf, len );
+	if( status != len ){
+
+		trace_printf("FAIL: %d\r\n", status);
+
+		goto end;
+	}
+
+	sys_v_wdt_reset();
+
+	test_finished("large_write", TEST_SIZE);
+
+end:
+	clean_up();
+	
+PT_END( pt );	
+}
+
+
+PT_THREAD( random_len_append( pt_t *pt, void *state ) )
+{       	
+PT_BEGIN( pt );
+	
+	#define DATA_LEN ( FFS_PAGE_DATA_SIZE + 1 )
+
+	setup("random_len_append");
+	
+	count = TEST_SIZE;
+	idx = 0;
+
+	while( count > 0 ){
+
+		uint16_t len = rnd_u8_get_int();
+
+		if( len > count ){
+			len = count;
+		}
+		
+		int16_t status = fs_i16_write( f, &test_buf[idx], len );
+		if( status != len ){
+
+			trace_printf("FAIL: %d\r\n", status);
+
+			goto end;
+		}
+
+		sys_v_wdt_reset();
+
+		idx += len;
+		count -= len;
+
+		THREAD_YIELD( pt );
+	}
+
+	test_finished("random_len_append", TEST_SIZE);
+
+end:
+	clean_up();
+	
+PT_END( pt );	
+}
+
+
+
+PT_THREAD( random_len_overwrite( pt_t *pt, void *state ) )
+{       	
+PT_BEGIN( pt );
+
+	memset( test_buf, 0, sizeof(test_buf) );
+
+
+	f = fs_f_open_P( TEST_FILE, 
+			  		 FS_MODE_CREATE_IF_NOT_FOUND |
+                      FS_MODE_WRITE_APPEND );
+
+	int16_t status = fs_i16_write( f, test_buf, sizeof(test_buf) );
+	if( status != sizeof(test_buf) ){
+
+		trace_printf("FAIL: %d\r\n", status);
+
+		goto end;
+	}
+
+	f = fs_f_close( f );
+
+	TMR_WAIT( pt, 2000 );
+	
+	#define DATA_LEN ( FFS_PAGE_DATA_SIZE + 1 )
+
+	setup("random_len_overwrite");
+	
+	fs_v_seek( f, 0 );
+
+	count = TEST_SIZE;
+	idx = 0;
+
+	while( count > 0 ){
+
+		uint16_t len = rnd_u8_get_int();
+
+		if( len > count ){
+			len = count;
+		}
+		
+		int16_t status = fs_i16_write( f, &test_buf[idx], len );
+		if( status != len ){
+
+			trace_printf("FAIL: %d\r\n", status);
+
+			goto end;
+		}
+
+		sys_v_wdt_reset();
+
+		idx += len;
+		count -= len;
+
+		THREAD_YIELD( pt );
+	}
+
+	test_finished("random_len_overwrite", TEST_SIZE);
+
+end:
+	clean_up();
+	
+PT_END( pt );	
+}
 
 
 PT_THREAD( test_thread( pt_t *pt, void *state ) )
@@ -294,6 +418,40 @@ PT_BEGIN( pt );
 	TMR_WAIT( pt, 2000 );
 	done = FALSE;
 	thread_t_create( page_plus_one_byte_append,
+                     PSTR("test"),
+                     0,
+                     0 );
+	
+	THREAD_WAIT_WHILE( pt, !done );
+
+
+
+
+	TMR_WAIT( pt, 2000 );
+	done = FALSE;
+	thread_t_create( large_write,
+                     PSTR("test"),
+                     0,
+                     0 );
+	
+	THREAD_WAIT_WHILE( pt, !done );
+
+
+
+	TMR_WAIT( pt, 2000 );
+	done = FALSE;
+	thread_t_create( random_len_append,
+                     PSTR("test"),
+                     0,
+                     0 );
+	
+	THREAD_WAIT_WHILE( pt, !done );
+
+
+
+	TMR_WAIT( pt, 2000 );
+	done = FALSE;
+	thread_t_create( random_len_overwrite,
                      PSTR("test"),
                      0,
                      0 );

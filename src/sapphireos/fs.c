@@ -445,10 +445,6 @@ int16_t fs_i16_write( file_t file, const void *src, uint16_t len ){
 	    // increment current position
 	    state->current_pos += bytes_written;
 	}
-    else if( bytes_written == 0 ){
-
-        trace_printf("!!! *** !!! debug 0000\r\n");
-    }
 
 	return bytes_written;
 }

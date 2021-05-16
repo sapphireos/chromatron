@@ -115,6 +115,7 @@ PT_BEGIN( pt );
             ASSERT( block != FFS_BLOCK_INVALID );
 
             // erase block
+            // trace_printf("erase block: %d\r\n", block);
             ffs_block_i8_erase( block );
 
             // open data file
