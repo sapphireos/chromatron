@@ -214,9 +214,14 @@ PT_BEGIN( pt );
 	idx = 0;
 
 	while( count > 0 ){
+
+		uint16_t len = DATA_LEN;
+		if( len > count ){
+			len = count;
+		}
 		
-		int16_t status = fs_i16_write( f, &test_buf[idx], DATA_LEN );
-		if( status != DATA_LEN ){
+		int16_t status = fs_i16_write( f, &test_buf[idx], len );
+		if( status != len ){
 
 			trace_printf("FAIL: %d\r\n", status);
 
@@ -225,8 +230,8 @@ PT_BEGIN( pt );
 
 		sys_v_wdt_reset();
 
-		idx += DATA_LEN;
-		count -= DATA_LEN;;
+		idx += len;
+		count -= len;
 
 		if( ( count % 512 ) == 0 ){
 
