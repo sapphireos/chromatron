@@ -40,6 +40,7 @@
 static const PROGMEM char gc_data_fname[] = "gc_data";
 
 static uint16_t gc_passes;
+static bool suspend_gc;
 
 KV_SECTION_META kv_meta_t ffs_gc_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &gc_passes,        0,  "flash_fs_gc_passes" },
@@ -62,6 +63,10 @@ void ffs_gc_v_init( void ){
                      0 );
 }
 
+void ffs_gc_v_suspend_gc( bool suspend ){
+
+    suspend_gc = suspend;
+}
 
 PT_THREAD( garbage_collector_thread( pt_t *pt, void *state ) )
 {
@@ -97,7 +102,8 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, ffs_block_u16_dirty_blocks() < FFS_DIRTY_THRESHOLD );
 
-        //stats_v_increment( STAT_FLASH_FS_GC_PASSES );
+        THREAD_WAIT_WHILE( pt, suspend_gc );
+
         gc_passes++;
 
         while( ffs_block_u16_dirty_blocks() > 0 ){
@@ -109,6 +115,7 @@ PT_BEGIN( pt );
             ASSERT( block != FFS_BLOCK_INVALID );
 
             // erase block
+            // trace_printf("erase block: %d\r\n", block);
             ffs_block_i8_erase( block );
 
             // open data file
@@ -198,8 +205,6 @@ PT_BEGIN( pt );
 
                     goto wear_done;
                 }
-
-                // stats_v_increment( STAT_FLASH_FS_WEAR_LEVELER_PASSES );
 
                 // get meta data for lowest block
                 ffs_block_meta_t meta;

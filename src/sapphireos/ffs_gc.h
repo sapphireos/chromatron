@@ -31,5 +31,7 @@
 
 void ffs_gc_v_init( void );
 
+void ffs_gc_v_suspend_gc( bool suspend );
+
 #endif
 

@@ -159,6 +159,34 @@ void ffs_page_v_reset( void ){
     }
 }
 
+void ffs_page_v_stats_reset( void ){
+
+     flash_fs_block_copies = 0;   
+     flash_fs_page_allocs = 0;
+     flash_fs_page_cache_hits = 0;
+     flash_fs_page_cache_misses = 0;
+}
+
+uint32_t ffs_page_u32_get_block_copies( void ){
+
+    return flash_fs_block_copies;
+}
+
+uint32_t ffs_page_u32_get_page_allocs( void ){
+
+    return flash_fs_page_allocs;
+}
+
+uint32_t ffs_page_u32_get_cache_hits( void ){
+
+    return flash_fs_page_cache_hits;
+}
+
+uint32_t ffs_page_u32_get_cache_misses( void ){
+
+    return flash_fs_page_cache_misses;
+}
+
 void ffs_page_v_init( void ){
 
     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){

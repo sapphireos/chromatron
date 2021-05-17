@@ -880,18 +880,7 @@ static int16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr
         len = free_space;
     }
 
-    int32_t write_len;
-
-    write_len = ffs_i32_write( file_id, pos, ptr, len );
-
-    if( write_len < 0 ){
-
-        trace_printf("fs write error: %d\r\n", write_len);
-
-        return write_len;
-    }
-
-    return write_len;
+    return ffs_i32_write( file_id, pos, ptr, len );
 }
 
 static int16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len ){
@@ -902,11 +891,7 @@ static int16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uin
 		len = fs_i32_get_size_id( file_id ) - pos;
 	}
 
-    int16_t readlen;
-
-    readlen = ffs_i32_read( file_id, pos, ptr, len );
-
-    return readlen;
+    return ffs_i32_read( file_id, pos, ptr, len );
 }
 
 static int8_t read_fname_from_media( file_id_t8 file_id, void *ptr, uint16_t max_len ){
