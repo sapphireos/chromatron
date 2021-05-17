@@ -1470,7 +1470,8 @@ class Builder(object):
 
         # load source code for debug
         source_code = source
-        
+        if isinstance(source_code, str):
+            source_code = source_code.splitlines()
 
         self.funcs = {}
         self.locals = {}
