@@ -144,10 +144,134 @@ static ffs_page_t *search_cache( ffs_file_t file_id, uint16_t page ){
     
 // }
 
-// static void flush_cache( ffs_file_t file_id, uint16_t page ){
+static void flush_cache( ffs_file_t file_id, uint16_t page ){
 
-    
-// }
+    ffs_page_t *ffs_page = search_cache( file_id, page );
+
+    // check if page not found in cache
+    if( ffs_page == 0 ){
+
+        return;
+    }
+
+    // calculate CRC
+    ffs_page->crc = crc_u16_block( ffs_page->data, ffs_page->len );
+
+    trace_printf("flushing page: %d file: %d\r\n", page, file_id);
+
+    // calculate logical block number
+    block_t block = page / FFS_DATA_PAGES_PER_BLOCK;
+    uint8_t page_index = page % FFS_DATA_PAGES_PER_BLOCK;
+
+    // get list size
+    uint8_t block_count = ffs_block_u8_list_size( &files[file_id].start_block );
+
+    // set up retry loop
+    uint8_t tries = FFS_IO_ATTEMPTS;
+
+    while( tries > 0 ){
+
+        tries--;
+
+        flash_fs_page_allocs++;
+
+
+        // check if we're trying to write the next logical block
+        if( block_count == block ){
+            // Ex: we have 2 blocks, and we want a 3rd block (number 2)
+
+            // allocate a new block
+            if( ffs_page_i8_alloc_block( file_id ) != FFS_STATUS_OK ){
+
+                continue;
+            }
+        }
+
+        // seek physical block number in file block list
+        block_t phy_block = ffs_block_fb_get_block( &files[file_id].start_block, block );
+
+        ASSERT( phy_block != FFS_BLOCK_INVALID );
+
+        // get index info for block
+        ffs_index_info_t index_info;
+
+        if( ffs_block_i8_get_index_info( phy_block, &index_info ) < 0 ){
+
+            continue;
+        }
+
+        // check for free page
+        if( index_info.phy_next_free < 0 ){
+
+            // this block is full
+            // try replacing with a new block
+            phy_block = ffs_page_i16_replace_block( file_id, block );
+
+            // check error code
+            if( phy_block == FFS_BLOCK_INVALID ){
+
+                continue;
+            }
+
+            // get new index info
+            if( ffs_block_i8_get_index_info( phy_block, &index_info ) < 0 ){
+
+                continue;
+            }
+        }
+
+        // check if index is still full
+        if( index_info.phy_next_free < 0 ){
+
+            continue;
+        }
+
+        // index update succeeded,
+
+        // get physical page address in flash
+        int32_t page_addr = page_address( phy_block, index_info.phy_next_free );
+
+        // write to flash
+        flash25_v_write( page_addr, ffs_page, sizeof(ffs_page_t) );
+
+        // update index
+        if( ffs_block_i8_set_index_entry( phy_block, page_index, index_info.phy_next_free ) < 0 ){
+
+            // trace_printf("index set fail\r\n");
+
+            continue;
+        }
+
+        // trash the cache so we force a reread and CRC check
+        invalidate_cache( file_id, page );
+
+        int8_t status = ffs_page_i8_read( file_id, page, &ffs_page );
+
+        if( status == FFS_STATUS_OK ){
+
+            // calculate file length up to this page plus the data in it
+            uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + ffs_page->len;
+
+            // check file size
+            if( file_length_to_here > (uint32_t)files[file_id].size ){
+
+                trace_printf("file len: %d\r\n", file_length_to_here);
+
+                // adjust file size
+                files[file_id].size = file_length_to_here;
+            }
+
+            // success
+            return;
+        }
+
+        trace_printf("flush_cache err: %d\r\n", status);
+
+        ffs_block_v_soft_error();
+    }
+
+    ffs_block_v_hard_error();
+}
 
 void ffs_page_v_reset( void ){
 
@@ -690,128 +814,129 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         ffs_page->len = offset + write_len;
     }
 
-    // calculate CRC
-    ffs_page->crc = crc_u16_block( ffs_page->data, ffs_page->len );
+    // // calculate CRC
+    // ffs_page->crc = crc_u16_block( ffs_page->data, ffs_page->len );
+
+
+    flush_cache( file_id, page );
 
 
 
+    // // calculate logical block number
+    // block_t block = page / FFS_DATA_PAGES_PER_BLOCK;
+    // uint8_t page_index = page % FFS_DATA_PAGES_PER_BLOCK;
+
+    // // get list size
+    // uint8_t block_count = ffs_block_u8_list_size( &files[file_id].start_block );
+
+    // // set up retry loop
+    // uint8_t tries = FFS_IO_ATTEMPTS;
+
+    // while( tries > 0 ){
+
+    //     tries--;
+
+    //     flash_fs_page_allocs++;
 
 
+    //     // check if we're trying to write the next logical block
+    //     if( block_count == block ){
+    //         // Ex: we have 2 blocks, and we want a 3rd block (number 2)
 
+    //         // allocate a new block
+    //         if( ffs_page_i8_alloc_block( file_id ) != FFS_STATUS_OK ){
 
-    // calculate logical block number
-    block_t block = page / FFS_DATA_PAGES_PER_BLOCK;
-    uint8_t page_index = page % FFS_DATA_PAGES_PER_BLOCK;
+    //             continue;
+    //         }
+    //     }
 
-    // get list size
-    uint8_t block_count = ffs_block_u8_list_size( &files[file_id].start_block );
+    //     // seek physical block number in file block list
+    //     block_t phy_block = ffs_block_fb_get_block( &files[file_id].start_block, block );
 
-    // set up retry loop
-    uint8_t tries = FFS_IO_ATTEMPTS;
+    //     ASSERT( phy_block != FFS_BLOCK_INVALID );
 
-    while( tries > 0 ){
+    //     // get index info for block
+    //     ffs_index_info_t index_info;
 
-        tries--;
+    //     if( ffs_block_i8_get_index_info( phy_block, &index_info ) < 0 ){
 
-        flash_fs_page_allocs++;
+    //         continue;
+    //     }
 
+    //     // check for free page
+    //     if( index_info.phy_next_free < 0 ){
 
-        // check if we're trying to write the next logical block
-        if( block_count == block ){
-            // Ex: we have 2 blocks, and we want a 3rd block (number 2)
+    //         // this block is full
+    //         // try replacing with a new block
+    //         phy_block = ffs_page_i16_replace_block( file_id, block );
 
-            // allocate a new block
-            if( ffs_page_i8_alloc_block( file_id ) != FFS_STATUS_OK ){
+    //         // check error code
+    //         if( phy_block == FFS_BLOCK_INVALID ){
 
-                continue;
-            }
-        }
+    //             continue;
+    //         }
 
-        // seek physical block number in file block list
-        block_t phy_block = ffs_block_fb_get_block( &files[file_id].start_block, block );
+    //         // get new index info
+    //         if( ffs_block_i8_get_index_info( phy_block, &index_info ) < 0 ){
 
-        ASSERT( phy_block != FFS_BLOCK_INVALID );
+    //             continue;
+    //         }
+    //     }
 
-        // get index info for block
-        ffs_index_info_t index_info;
+    //     if( index_info.phy_next_free < 0 ){
 
-        if( ffs_block_i8_get_index_info( phy_block, &index_info ) < 0 ){
+    //         continue;
+    //     }
 
-            continue;
-        }
+    //     // index update succeeded,
+    //     int32_t page_addr = page_address( phy_block, index_info.phy_next_free );
 
-        // check for free page
-        if( index_info.phy_next_free < 0 ){
+    //     // write to flash
+    //     flash25_v_write( page_addr, ffs_page, sizeof(ffs_page_t) );
 
-            // this block is full
-            // try replacing with a new block
-            phy_block = ffs_page_i16_replace_block( file_id, block );
+    //     // update index
+    //     if( ffs_block_i8_set_index_entry( phy_block, page_index, index_info.phy_next_free ) < 0 ){
 
-            // check error code
-            if( phy_block == FFS_BLOCK_INVALID ){
+    //         // trace_printf("index set fail\r\n");
 
-                continue;
-            }
+    //         continue;
+    //     }
 
-            // get new index info
-            if( ffs_block_i8_get_index_info( phy_block, &index_info ) < 0 ){
+    //     // trash the cache so we force a reread and CRC check
+    //     invalidate_cache( file_id, page );
 
-                continue;
-            }
-        }
+    //     int8_t status = ffs_page_i8_read( file_id, page, &ffs_page );
 
-        if( index_info.phy_next_free < 0 ){
+    //     if( status == FFS_STATUS_OK ){
 
-            continue;
-        }
+    //         // calculate file length up to this page plus the data in it
+    //         uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + ffs_page->len;
 
-        // index update succeeded,
-        int32_t page_addr = page_address( phy_block, index_info.phy_next_free );
+    //         // check file size
+    //         if( file_length_to_here > (uint32_t)files[file_id].size ){
 
-        // write to flash
-        flash25_v_write( page_addr, ffs_page, sizeof(ffs_page_t) );
+    //             trace_printf("file len: %d\r\n", file_length_to_here);
 
-        // update index
-        if( ffs_block_i8_set_index_entry( phy_block, page_index, index_info.phy_next_free ) < 0 ){
+    //             // adjust file size
+    //             files[file_id].size = file_length_to_here;
+    //         }
 
-            // trace_printf("index set fail\r\n");
+    //         // success
+    //         return FFS_STATUS_OK;
+    //     }
 
-            continue;
-        }
+    //     // trace_printf("ffs_page_i8_write error: %d\r\n", status);
 
-        // trash the cache so we force a reread and CRC check
-        invalidate_cache( file_id, page );
+    //     ffs_block_v_soft_error();
+    // }
 
-        int8_t status = ffs_page_i8_read( file_id, page, &ffs_page );
+    // ffs_block_v_hard_error();
 
-        if( status == FFS_STATUS_OK ){
+    // // trace_printf("ffs_page_i8_write fail\r\n");
 
-            // calculate file length up to this page plus the data in it
-            uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + ffs_page->len;
+    // return FFS_STATUS_ERROR;
 
-            // check file size
-            if( file_length_to_here > (uint32_t)files[file_id].size ){
-
-                trace_printf("file len: %d\r\n", file_length_to_here);
-
-                // adjust file size
-                files[file_id].size = file_length_to_here;
-            }
-
-            // success
-            return FFS_STATUS_OK;
-        }
-
-        // trace_printf("ffs_page_i8_write error: %d\r\n", status);
-
-        ffs_block_v_soft_error();
-    }
-
-    ffs_block_v_hard_error();
-
-    // trace_printf("ffs_page_i8_write fail\r\n");
-
-    return FFS_STATUS_ERROR;
+    return FFS_STATUS_OK;
 }
 
 
