@@ -46,6 +46,50 @@ static list_t cron_list;
 PT_THREAD( cron_thread( pt_t *pt, void *state ) );
 
 
+/*
+
+Cron mods:
+
+Add libcall function to get current time in NTP seconds.
+Compile has a built in conversion of an NTP 8601 time string
+to a 32 bit NTP seconds value.  ntptime() or somesuch.
+
+Also have a function to check for at a specific date and time, 
+with repeating granularity down to the second (like cron is now),
+and also for range checks, for instance, between 2 times of day.
+The times compute to whenever the next alarm is, and these 2 values
+are compared against the current time.
+
+@condition(fx_expression)
+
+expressions are the comparison part of an if statement:
+
+time() < '2021-08-19T03:45:59' # this will trigger once on this time and then never again
+time() < Cron(hour=3) # run every day at 3:00a (24 hour time)
+time() < Cron(day_of_week='Monday' hour=3) # run at 3 am on mondays
+
+or:
+
+assign to var:
+c = Cron()
+
+time() in between(cron1(), cron2())
+
+These can compile in any way, including generating smaller units
+of FX code to implement.  For instance, doing the time
+calculations with 32 bit integers.  I'd prefer not to have
+to implement variables longer than 32 bits for now.
+
+
+Need to implement the syntax in the compiler, then look
+at the timing system.
+Also check why the current cron doesn't sync within 1-2 seconds.
+
+
+
+*/
+
+
 static bool job_ready( datetime_t *now, cron_job_t *job ){
 
     if( ( job->cron.seconds >= 0 ) && ( job->cron.seconds != now->seconds ) ){
