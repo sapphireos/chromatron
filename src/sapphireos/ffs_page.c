@@ -27,6 +27,7 @@
 #include "crc.h"
 #include "system.h"
 #include "random.h"
+#include "timers.h"
 
 #include "flash25.h"
 #include "ffs_global.h"
@@ -98,6 +99,22 @@ static int32_t page_address( block_t block, uint8_t page_index ){
 static void flush_cache( ffs_file_t file_id, uint16_t page );
 
 
+static void flush_file( ffs_file_t file_id ){
+
+    for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
+
+        if( page_cache[i].file_id == file_id ){    
+
+            if( page_cache[i].dirty ){
+
+                flush_cache( file_id, page_cache[i].page_number );
+            }
+
+            ASSERT( !page_cache->dirty );
+        }
+    }
+}
+
 static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
 
     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
@@ -115,7 +132,6 @@ static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
             page_cache[i].page.len = 0;
         }
     }
-
 }
 
 static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
@@ -142,8 +158,8 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
     // check if page is not empty
     if( page_cache[entry].file_id >= 0 ){
 
-        // flush the page
-        flush_cache( file_id, page );
+        // flush all cached pages for this file
+        flush_file( file_id );
     }
 
     ASSERT( !page_cache->dirty );
@@ -213,7 +229,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
     // clear dirty flag
     cache_entry->dirty = FALSE;
 
-    
+
     ffs_page_t *ffs_page = &cache_entry->page;
 
     // calculate CRC
@@ -373,6 +389,35 @@ uint32_t ffs_page_u32_get_cache_misses( void ){
     return flash_fs_page_cache_misses;
 }
 
+// flush every cached page
+void ffs_page_v_flush( void ){
+
+    for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
+
+        if( page_cache[i].file_id < 0 ){
+
+            continue;
+        }
+
+        flush_cache( page_cache[i].file_id, page_cache[i].page_number );
+    }
+}
+
+PT_THREAD( page_flush_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while(1){
+
+        TMR_WAIT( pt, 1000 );
+
+        ffs_page_v_flush();
+    }
+
+PT_END( pt );
+}
+
+
 void ffs_page_v_init( void ){
 
     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
@@ -528,7 +573,11 @@ scan_start:
 
             goto scan_start;
         }
-    }
+    
+        thread_t_create( page_flush_thread,
+                     PSTR("ffs_page_flush"),
+                     0,
+                     0 );}
 }
 
 uint8_t ffs_page_u8_count_files( void ){
@@ -880,7 +929,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
 
 
     
-    flush_cache( file_id, page );
+    // flush_cache( file_id, page );
 
 
 

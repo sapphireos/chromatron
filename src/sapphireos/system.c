@@ -42,6 +42,7 @@
 #include "catbus.h"
 #include "keyvalue.h"
 #include "wifi.h"
+#include "ffs_page.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -563,6 +564,8 @@ void reboot( void ){
 
     // make sure interrupts are disabled
     DISABLE_INTERRUPTS;
+
+    ffs_page_v_flush();
 
     ee_v_commit();
     

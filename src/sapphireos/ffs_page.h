@@ -52,6 +52,8 @@ uint32_t ffs_page_u32_get_page_allocs( void );
 uint32_t ffs_page_u32_get_cache_hits( void );
 uint32_t ffs_page_u32_get_cache_misses( void );
 
+void ffs_page_v_flush( void );
+
 void ffs_page_v_init( void );
 
 uint8_t ffs_page_u8_count_files( void );
