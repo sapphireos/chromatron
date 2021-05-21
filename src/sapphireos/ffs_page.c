@@ -100,7 +100,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page );
 
 
 static void flush_file( ffs_file_t file_id ){
-    trace_printf("flush_file %d\r\n", file_id);
+    // trace_printf("flush_file %d\r\n", file_id);
 
     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
 
@@ -189,6 +189,8 @@ static page_cache_t *search_cache_entry( ffs_file_t file_id, uint16_t page ){
     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
 
         if( ( page_cache[i].file_id == file_id ) && ( page_cache[i].page_number == page ) ){    
+
+            trace_printf("cache hit: %d/%d\r\n", file_id, page );
 
             return &page_cache[i];
         }
