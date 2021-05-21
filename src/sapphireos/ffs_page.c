@@ -100,6 +100,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page );
 
 
 static void flush_file( ffs_file_t file_id ){
+    trace_printf("flush_file %d\r\n", file_id);
 
     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
 
@@ -116,6 +117,8 @@ static void flush_file( ffs_file_t file_id ){
 }
 
 static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
+
+    trace_printf("invalidate_cache %d/%d\r\n", file_id, page);
 
     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
 
@@ -154,6 +157,8 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
         // random replacement
         entry = rnd_u8_get_int() % CACHE_SIZE;
     }
+
+    trace_printf("alloc cache %d/%d\r\n", file_id, page);
 
     // check if page is not empty
     if( page_cache[entry].file_id >= 0 ){
@@ -861,10 +866,11 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
 int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, const void *data, uint8_t len ){
 
-    trace_printf("ffs_page_i8_write %d %d\r\n", file_id, page);
+    trace_printf("ffs_page_i8_write %d %d len: %d\r\n", file_id, page, len);
 
     ASSERT( file_id < FFS_MAX_FILES );
     ASSERT( page < ffs_page_u16_total_pages() );
+    ASSERT( len <= FFS_PAGE_DATA_SIZE ); // we can only write a single page here
 
     // set page count, if file has a size greater than 0
     // this is just for the assertion check below.
@@ -925,6 +931,18 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
     if( ffs_page->len < ( offset + write_len ) ){
 
         ffs_page->len = offset + write_len;
+    }
+
+    // calculate file length up to this page plus the data in it
+    uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + ffs_page->len;
+
+    // check file size
+    if( file_length_to_here > (uint32_t)files[file_id].size ){
+
+        trace_printf("new file len: %d\r\n", file_length_to_here);
+
+        // adjust file size
+        files[file_id].size = file_length_to_here;
     }
 
     set_dirty( file_id, page );
