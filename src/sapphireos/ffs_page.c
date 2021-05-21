@@ -104,7 +104,12 @@ static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
 
         if( ( page_cache[i].file_id == file_id ) && ( page_cache[i].page_number == page ) ){    
 
-            flush_cache( file_id, page );
+            if( page_cache[i].dirty ){
+
+                flush_cache( file_id, page );
+            }
+
+            ASSERT( !page_cache->dirty );
 
             page_cache[i].file_id = -1;
             page_cache[i].page.len = 0;
@@ -193,11 +198,8 @@ static void set_dirty( ffs_file_t file_id, uint16_t page ){
 static void flush_cache( ffs_file_t file_id, uint16_t page ){
 
     page_cache_t *cache_entry = search_cache_entry( file_id, page );
-
-    ffs_page_t *ffs_page = &cache_entry->page;
-
     // check if page not found in cache
-    if( ffs_page == 0 ){
+    if( cache_entry == 0 ){
 
         return;
     }
@@ -210,6 +212,9 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
 
     // clear dirty flag
     cache_entry->dirty = FALSE;
+
+    
+    ffs_page_t *ffs_page = &cache_entry->page;
 
     // calculate CRC
     ffs_page->crc = crc_u16_block( ffs_page->data, ffs_page->len );
