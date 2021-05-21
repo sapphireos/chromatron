@@ -392,6 +392,8 @@ ffs_file_t ffs_i8_create_file( char filename[] ){
 
     // we have a valid file
 
+    trace_printf("create file: %d\r\n", file );
+
     uint8_t buf[FFS_PAGE_DATA_SIZE];
     ffs_file_meta0_t *meta0 = (ffs_file_meta0_t *)buf;
     memset( meta0, 0xff, sizeof(ffs_file_meta0_t) );
@@ -630,7 +632,7 @@ int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, 
         return FFS_STATUS_INVALID_FILE;
     }
 
-    trace_printf("ffs_i32_write: %d %d\r\n", position, file_size);
+    trace_printf("ffs_i32_write: file %d %d/%d len: %d\r\n", file_id, position, file_size, len);
 
     // check position is within file bounds
     if( position > (uint32_t)file_size ){

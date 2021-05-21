@@ -861,7 +861,7 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
 int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, const void *data, uint8_t len ){
 
-    // trace_printf("ffs_page_i8_write %d %d\r\n", file_id, page);
+    trace_printf("ffs_page_i8_write %d %d\r\n", file_id, page);
 
     ASSERT( file_id < FFS_MAX_FILES );
     ASSERT( page < ffs_page_u16_total_pages() );
@@ -875,7 +875,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         page_count = ( files[file_id].size / FFS_PAGE_DATA_SIZE ) + 1;
     }
 
-    trace_printf("%d %d\r\n", page, page_count);
+    trace_printf("%d %d %d %d\r\n", file_id, page, page_count, files[file_id].size);
 
     ASSERT( page <= page_count );
 
@@ -928,6 +928,8 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
     }
 
     set_dirty( file_id, page );
+
+    trace_printf("file: %d dirty page: %d len: %d\r\n", file_id, page, ffs_page->len );
 
 
     
