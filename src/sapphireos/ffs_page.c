@@ -158,7 +158,7 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
         entry = rnd_u8_get_int() % CACHE_SIZE;
     }
 
-    trace_printf("alloc cache %d/%d\r\n", file_id, page);
+    trace_printf("alloc cache %d/%d entry: %d\r\n", file_id, page, entry);
 
     // check if page is not empty
     if( page_cache[entry].file_id >= 0 ){
@@ -312,6 +312,8 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
         // check if index is still full
         if( index_info.phy_next_free < 0 ){
 
+            trace_printf("index is full\r\n");
+
             continue;
         }
 
@@ -326,7 +328,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
         // update index
         if( ffs_block_i8_set_index_entry( phy_block, page_index, index_info.phy_next_free ) < 0 ){
 
-            // trace_printf("index set fail\r\n");
+            trace_printf("index set fail\r\n");
 
             continue;
         }
@@ -338,17 +340,17 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
 
         if( status == FFS_STATUS_OK ){
 
-            // calculate file length up to this page plus the data in it
-            uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + ffs_page->len;
+            // // calculate file length up to this page plus the data in it
+            // uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + ffs_page->len;
 
-            // check file size
-            if( file_length_to_here > (uint32_t)files[file_id].size ){
+            // // check file size
+            // if( file_length_to_here > (uint32_t)files[file_id].size ){
 
-                trace_printf("file len: %d\r\n", file_length_to_here);
+            //     trace_printf("file len: %d\r\n", file_length_to_here);
 
-                // adjust file size
-                files[file_id].size = file_length_to_here;
-            }
+            //     // adjust file size
+            //     files[file_id].size = file_length_to_here;
+            // }
 
             // success
             return;
@@ -815,7 +817,7 @@ int32_t ffs_page_i32_file_size( ffs_file_t file_id ){
 
 int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
-    // trace_printf("ffs_page_i8_read %d %d\r\n", file_id, page);    
+    trace_printf("ffs_page_i8_read %d %d\r\n", file_id, page);    
 
     *ptr = search_cache( file_id, page );
 
@@ -874,6 +876,8 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
         }
 
         ffs_block_v_soft_error();
+
+        trace_printf("ffs_page_i8_read ERR\r\n");
     }
 
     ffs_block_v_hard_error();
