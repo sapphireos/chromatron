@@ -214,6 +214,8 @@ PT_BEGIN( pt );
                     goto wear_done;
                 }
 
+                trace_printf("WEAR LEVEL\r\n");
+
                 // replace block
                 ffs_page_i16_replace_block( meta.file_id, meta.block );
 

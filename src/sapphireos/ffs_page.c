@@ -100,7 +100,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page );
 
 
 static void flush_file( ffs_file_t file_id ){
-    trace_printf("flush_file %d\r\n", file_id);
+    // trace_printf("flush_file %d\r\n", file_id);
 
     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
 
@@ -118,7 +118,7 @@ static void flush_file( ffs_file_t file_id ){
 
 static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
 
-    trace_printf("invalidate_cache %d/%d\r\n", file_id, page);
+    // trace_printf("invalidate_cache %d/%d\r\n", file_id, page);
 
     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
 
@@ -158,7 +158,7 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
         entry = rnd_u8_get_int() % CACHE_SIZE;
     }
 
-    trace_printf("alloc cache %d/%d entry: %d prev file: %d page: %d\r\n", file_id, page, entry, page_cache[entry].file_id, page_cache[entry].page_number);
+    // trace_printf("alloc cache %d/%d entry: %d prev file: %d page: %d\r\n", file_id, page, entry, page_cache[entry].file_id, page_cache[entry].page_number);
 
     // check if page is not empty
     if( page_cache[entry].file_id >= 0 ){
@@ -188,13 +188,13 @@ static page_cache_t *search_cache_entry( ffs_file_t file_id, uint16_t page ){
 
         if( ( page_cache[i].file_id == file_id ) && ( page_cache[i].page_number == page ) ){    
 
-            trace_printf("cache hit: %d/%d entry: %d\r\n", file_id, page, i );
+            // trace_printf("cache hit: %d/%d entry: %d\r\n", file_id, page, i );
 
             return &page_cache[i];
         }
     }
 
-    trace_printf("cache MISS: %d/%d\r\n", file_id, page );
+    // trace_printf("cache MISS: %d/%d\r\n", file_id, page );
 
     return 0;
 }
@@ -217,30 +217,44 @@ static void set_dirty( ffs_file_t file_id, uint16_t page ){
 
     cache_entry->dirty = TRUE;    
 
-    trace_printf("set dirty: %d/%d\r\n", file_id, page);
+    // trace_printf("set dirty: %d/%d\r\n", file_id, page);
 }
 
+static bool flush_busy;
+
 static void flush_cache( ffs_file_t file_id, uint16_t page ){
+
+    ASSERT( !flush_busy );
+
+    flush_busy = TRUE;
+
 
     page_cache_t *cache_entry = search_cache_entry( file_id, page );
     // check if page not found in cache
     if( cache_entry == 0 ){
 
-        trace_printf("flush: page not found: %d/%d\r\n", file_id, page);
+        // trace_printf("flush: page not found: %d/%d\r\n", file_id, page);
 
-        return;
+        goto done;
     }
 
     // check if page is clean
     if( !cache_entry->dirty ){
 
-        trace_printf("flush: page not dirty: %d/%d\r\n", file_id, page);
+        // trace_printf("flush: page not dirty: %d/%d\r\n", file_id, page);
 
-        return;
+        goto done;
     }
 
     // clear dirty flag
     cache_entry->dirty = FALSE;
+
+    /*
+    
+    Can't set dirty here.
+    Flushing a page will result in a read, which can then result in a flush, which then kinda breaks in all sorts of ways.
+
+    */
 
 
     ffs_page_t *ffs_page = &cache_entry->page;
@@ -297,6 +311,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
             // this block is full
             // try replacing with a new block
             phy_block = ffs_page_i16_replace_block( file_id, block );
+            trace_printf("phy_block: %d\r\n", phy_block);
 
             // check error code
             if( phy_block == FFS_BLOCK_INVALID ){
@@ -314,7 +329,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
         // check if index is still full
         if( index_info.phy_next_free < 0 ){
 
-            trace_printf("index is full\r\n");
+            // trace_printf("index is full\r\n");
 
             continue;
         }
@@ -330,7 +345,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
         // update index
         if( ffs_block_i8_set_index_entry( phy_block, page_index, index_info.phy_next_free ) < 0 ){
 
-            trace_printf("index set fail\r\n");
+            // trace_printf("index set fail\r\n");
 
             continue;
         }
@@ -355,15 +370,18 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
             // }
 
             // success
-            return;
+            goto done;
         }
 
-        trace_printf("flush_cache err: %d\r\n", status);
+        // trace_printf("flush_cache err: %d\r\n", status);
 
         ffs_block_v_soft_error();
     }
 
     ffs_block_v_hard_error();
+
+done:
+    flush_busy = FALSE;
 }
 
 void ffs_page_v_reset( void ){
@@ -819,7 +837,7 @@ int32_t ffs_page_i32_file_size( ffs_file_t file_id ){
 
 int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
-    trace_printf("ffs_page_i8_read %d %d\r\n", file_id, page);    
+    // trace_printf("ffs_page_i8_read %d %d\r\n", file_id, page);    
 
     *ptr = search_cache( file_id, page );
 
@@ -879,7 +897,7 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
         ffs_block_v_soft_error();
 
-        trace_printf("ffs_page_i8_read ERR\r\n");
+        // trace_printf("ffs_page_i8_read ERR\r\n");
     }
 
     ffs_block_v_hard_error();
@@ -891,7 +909,7 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
 int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, const void *data, uint8_t len ){
 
-    trace_printf("ffs_page_i8_write %d %d len: %d\r\n", file_id, page, len);
+    // trace_printf("ffs_page_i8_write %d %d len: %d\r\n", file_id, page, len);
 
     ASSERT( file_id < FFS_MAX_FILES );
     ASSERT( page < ffs_page_u16_total_pages() );
@@ -906,7 +924,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         page_count = ( files[file_id].size / FFS_PAGE_DATA_SIZE ) + 1;
     }
 
-    trace_printf("%d %d %d %d\r\n", file_id, page, page_count, files[file_id].size);
+    // trace_printf("%d %d %d %d\r\n", file_id, page, page_count, files[file_id].size);
 
     ASSERT( page <= page_count );
 
@@ -922,7 +940,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
     if( ( page_read_status < 0 ) &&
         ( page_read_status != FFS_STATUS_EOF ) ){
 
-        trace_printf("read fail: %d\r\n");
+        // trace_printf("read fail: %d\r\n");
 
         return page_read_status;
     }
@@ -964,7 +982,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
     // check file size
     if( file_length_to_here > (uint32_t)files[file_id].size ){
 
-        trace_printf("new file len: %d\r\n", file_length_to_here);
+        // trace_printf("new file len: %d\r\n", file_length_to_here);
 
         // adjust file size
         files[file_id].size = file_length_to_here;
@@ -972,7 +990,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
 
     set_dirty( file_id, page );
 
-    trace_printf("file: %d dirty page: %d len: %d\r\n", file_id, page, ffs_page->len );
+    // trace_printf("file: %d dirty page: %d len: %d\r\n", file_id, page, ffs_page->len );
 
 
     
@@ -1027,6 +1045,8 @@ static int8_t ffs_page_i8_alloc_block( ffs_file_t file_id ){
 
 block_t ffs_page_i16_replace_block( ffs_file_t file_id, uint8_t file_block ){
 
+    trace_printf("ffs_page_i16_replace_block: %d/%d\r\n", file_id, file_block);
+
     ASSERT( file_id < FFS_MAX_FILES );
 
     // map logical file block to physical block
@@ -1063,6 +1083,8 @@ block_t ffs_page_i16_replace_block( ffs_file_t file_id, uint8_t file_block ){
 
 
 static int8_t ffs_page_i8_block_copy( block_t source_block, block_t dest_block ){
+
+    trace_printf("ffs_page_i8_block_copy: %d -> %d\r\n", source_block, dest_block);
 
     ffs_block_meta_t meta;
 
