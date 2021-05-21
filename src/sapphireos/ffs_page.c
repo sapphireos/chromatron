@@ -414,6 +414,19 @@ void ffs_page_v_flush( void ){
     }
 }
 
+void ffs_page_v_flush_file( ffs_file_t file_id ){
+
+    for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
+
+        if( page_cache[i].file_id != file_id ){
+
+            continue;
+        }
+
+        flush_cache( page_cache[i].file_id, page_cache[i].page_number );
+    }
+}
+
 PT_THREAD( page_flush_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );

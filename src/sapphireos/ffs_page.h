@@ -53,6 +53,7 @@ uint32_t ffs_page_u32_get_cache_hits( void );
 uint32_t ffs_page_u32_get_cache_misses( void );
 
 void ffs_page_v_flush( void );
+void ffs_page_v_flush_file( ffs_file_t file_id );
 
 void ffs_page_v_init( void );
 
