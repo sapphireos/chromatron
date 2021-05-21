@@ -158,7 +158,7 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
         entry = rnd_u8_get_int() % CACHE_SIZE;
     }
 
-    trace_printf("alloc cache %d/%d entry: %d\r\n", file_id, page, entry);
+    trace_printf("alloc cache %d/%d entry: %d prev file: %d\r\n", file_id, page, entry, page_cache[entry].file_id);
 
     // check if page is not empty
     if( page_cache[entry].file_id >= 0 ){
@@ -188,11 +188,13 @@ static page_cache_t *search_cache_entry( ffs_file_t file_id, uint16_t page ){
 
         if( ( page_cache[i].file_id == file_id ) && ( page_cache[i].page_number == page ) ){    
 
-            trace_printf("cache hit: %d/%d\r\n", file_id, page );
+            trace_printf("cache hit: %d/%d entry: %d\r\n", file_id, page, i );
 
             return &page_cache[i];
         }
     }
+
+    trace_printf("cache MISS: %d/%d\r\n", file_id, page );
 
     return 0;
 }
