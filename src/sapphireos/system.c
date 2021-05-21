@@ -725,14 +725,16 @@ void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
     // this is dangerous, because if we assert from an IRQ
     // we will be calling file system and memory manager code
     // in an unsafe way.
-    EVENT( EVENT_ID_SYS_ASSERT, 0 );
-    event_v_flush();
+    // EVENT( EVENT_ID_SYS_ASSERT, 0 );
+    // event_v_flush();
 
     // dump threadinfo
     // dangerous, see above.
-    thread_v_dump();
+    // thread_v_dump();
 
     #ifdef HALT_ON_ASSERT
+    trace_printf("HALT\r\n");
+    
     while(1){
 
         wdg_v_reset();

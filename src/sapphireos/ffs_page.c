@@ -875,6 +875,8 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         page_count = ( files[file_id].size / FFS_PAGE_DATA_SIZE ) + 1;
     }
 
+    trace_printf("%d %d\r\n", page, page_count);
+
     ASSERT( page <= page_count );
 
 
