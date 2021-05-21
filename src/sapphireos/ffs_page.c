@@ -100,7 +100,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page );
 
 
 static void flush_file( ffs_file_t file_id ){
-    // trace_printf("flush_file %d\r\n", file_id);
+    trace_printf("flush_file %d\r\n", file_id);
 
     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
 
@@ -158,13 +158,13 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
         entry = rnd_u8_get_int() % CACHE_SIZE;
     }
 
-    trace_printf("alloc cache %d/%d entry: %d prev file: %d\r\n", file_id, page, entry, page_cache[entry].file_id);
+    trace_printf("alloc cache %d/%d entry: %d prev file: %d page: %d\r\n", file_id, page, entry, page_cache[entry].file_id, page_cache[entry].page_number);
 
     // check if page is not empty
     if( page_cache[entry].file_id >= 0 ){
 
-        // flush all cached pages for this file
-        flush_file( file_id );
+        // flush all cached pages for the previously cached file
+        flush_file( page_cache[entry].file_id );
     }
 
     ASSERT( !page_cache[entry].dirty );
