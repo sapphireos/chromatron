@@ -111,7 +111,7 @@ static void flush_file( ffs_file_t file_id ){
                 flush_cache( file_id, page_cache[i].page_number );
             }
 
-            ASSERT( !page_cache->dirty );
+            ASSERT( !page_cache[i].dirty );
         }
     }
 }
@@ -129,7 +129,7 @@ static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
                 flush_cache( file_id, page );
             }
 
-            ASSERT( !page_cache->dirty );
+            ASSERT( !page_cache[i].dirty );
 
             page_cache[i].file_id = -1;
             page_cache[i].page.len = 0;
@@ -216,6 +216,8 @@ static void set_dirty( ffs_file_t file_id, uint16_t page ){
     page_cache_t *cache_entry = search_cache_entry( file_id, page );
 
     cache_entry->dirty = TRUE;    
+
+    trace_printf("set dirty: %d/%d\r\n", file_id, page);
 }
 
 static void flush_cache( ffs_file_t file_id, uint16_t page ){
