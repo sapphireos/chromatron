@@ -167,7 +167,7 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
         flush_file( file_id );
     }
 
-    ASSERT( !page_cache->dirty );
+    ASSERT( !page_cache[entry].dirty );
 
     // set cache lookup data
     page_cache[entry].file_id = file_id;
