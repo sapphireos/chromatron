@@ -173,8 +173,6 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
     page_cache[entry].file_id = file_id;
     page_cache[entry].page_number = page;
 
-    page_cache[entry].dirty = FALSE;
-
     // initialize page
     memset( page_cache[entry].page.data, 0xff, sizeof(page_cache[entry].page.data) );
     page_cache[entry].page.len = 0;
@@ -226,11 +224,15 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
     // check if page not found in cache
     if( cache_entry == 0 ){
 
+        trace_printf("flush: page not found: %d/%d\r\n", file_id, page);
+
         return;
     }
 
     // check if page is clean
     if( !cache_entry->dirty ){
+
+        trace_printf("flush: page not dirty: %d/%d\r\n", file_id, page);
 
         return;
     }
