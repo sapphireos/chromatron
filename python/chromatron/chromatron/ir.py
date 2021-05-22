@@ -46,6 +46,7 @@ DATA_LEN = 4
 
 ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
 THREAD_FUNCS = ['start_thread', 'stop_thread', 'thread_running']
+I32_FUNCS = ['time', 'within', 'cron']
 
 DAY_OF_WEEK = {'sunday':    0,
                'monday':    1,
@@ -2186,9 +2187,9 @@ class Builder(object):
         return ir
         
     def call(self, func_name, params, lineno=None):
-        result = self.add_temp(data_type='gfx16', lineno=lineno)
-
         try:
+            result = self.add_temp(data_type='gfx16', lineno=lineno)
+
             args = self.funcs[func_name].params
 
             for i in range(len(params)):
@@ -2214,6 +2215,8 @@ class Builder(object):
 
                     # check if function is array length
                     if func_name == 'len':
+                        result = self.add_temp(data_type='i32', lineno=lineno)
+                        
                         # since arrays are fixed length, we don't need a libcall, we 
                         # can just do an assignment.
                         self.assign(result, array_len, lineno=lineno)
@@ -2228,7 +2231,13 @@ class Builder(object):
             
             if func_name == 'pix_count':
                 raise SyntaxError("pix_count() is deprecated, use pixels.count", lineno=lineno)        
-                
+            
+            if func_name in I32_FUNCS:
+                result = self.add_temp(data_type='i32', lineno=lineno)
+
+            else:
+                result = self.add_temp(data_type='gfx16', lineno=lineno)
+
             ir = irLibCall(func_name, params, result, lineno=lineno)
         
         self.append_node(ir)        
