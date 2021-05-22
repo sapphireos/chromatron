@@ -312,6 +312,19 @@ class cg1Func(cg1CodeNode):
             if dec.target == 'schedule':
                 builder.schedule(self.name, dec.keywords, lineno=self.lineno)
 
+            elif dec.target == 'event':
+                if len(dec.params) == 0:
+                    raise SyntaxError("Event has no args (takes 1)" , lineno=self.lineno)
+                elif len(dec.params) > 1:
+                    raise SyntaxError("Event has too many args (takes 1)" , lineno=self.lineno)
+
+                condition_func = dec.params[0].name
+
+                builder.event(self.name, condition_func, lineno=self.lineno)
+
+            else:
+                raise SyntaxError("Unknown decorator: %s" % (dec.target), lineno=self.lineno)                
+
         return func
 
 

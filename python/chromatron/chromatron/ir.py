@@ -2489,6 +2489,8 @@ class Builder(object):
         else:
             return self.add_const(val, lineno=lineno)
 
+    def event(self, func, condition, lineno=None):
+        print('event', func, condition)
 
     def schedule(self, func, params, lineno=None):
         if func not in self.cron_tab:
