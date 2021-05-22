@@ -512,7 +512,7 @@ PT_BEGIN( pt );
 		}
 	}
 
-	test_finished("contiguous_read_single_byte", TEST_SIZE);
+	test_finished("contiguous_read_single_byte", TEST_SIZE, FALSE);
 
 end:
 	clean_up();
@@ -583,7 +583,7 @@ PT_BEGIN( pt );
 		}
 	}
 
-	test_finished("contiguous_read_single_page", TEST_SIZE);
+	test_finished("contiguous_read_single_page", TEST_SIZE, FALSE);
 
 end:
 	clean_up();
