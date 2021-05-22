@@ -231,6 +231,8 @@ static void set_dirty( ffs_file_t file_id, uint16_t page ){
     
     page_cache_t *cache_entry = search_cache_entry( file_id, page );
 
+    ASSERT( !cache_entry->read_only );
+
     cache_entry->dirty = TRUE;    
 
     // trace_printf("set dirty: %d/%d\r\n", file_id, page);
@@ -260,15 +262,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
         goto done;
     }
 
-    // clear dirty flag
-    cache_entry->dirty = FALSE;
-
-    /*
-    
-    Can't set dirty here.
-    Flushing a page will result in a read, which can then result in a flush, which then kinda breaks in all sorts of ways.
-
-    */
+    ASSERT( !cache_entry->read_only );
 
 
     ffs_page_t *ffs_page = &cache_entry->page;
@@ -394,7 +388,11 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
 
     ffs_block_v_hard_error();
 
+
 done:
+    // clear dirty flag
+    cache_entry->dirty = FALSE;
+
     flush_busy = FALSE;
 }
 
@@ -943,8 +941,6 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
     ASSERT( page <= page_count );
 
 
-
-
     // read page into cache
     ffs_page_t *ffs_page;
 
@@ -1005,11 +1001,8 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
     set_dirty( file_id, page );
 
     // trace_printf("file: %d dirty page: %d len: %d\r\n", file_id, page, ffs_page->len );
-
-
-    
+        
     // flush_cache( file_id, page );
-
 
 
     return FFS_STATUS_OK;
