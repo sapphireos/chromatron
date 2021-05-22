@@ -37,6 +37,7 @@ static uint32_t elapsed;
 static uint32_t idx;
 
 #define BYTE_TEST_SIZE 4000
+#define BYTE_OVERWRITE_TEST_SIZE 2000
 #define TEST_SIZE 16384
 static uint8_t test_buf[TEST_SIZE];
 
@@ -402,13 +403,11 @@ PT_BEGIN( pt );
 
 	TMR_WAIT( pt, 2000 );
 	
-	#define DATA_LEN ( FFS_PAGE_DATA_SIZE + 1 )
-
 	setup("single_byte_overwrite");
 	
 	fs_v_seek( f, 0 );
 
-	count = TEST_SIZE;
+	count = BYTE_OVERWRITE_TEST_SIZE;
 	idx = 0;
 
 	while( count > 0 ){
@@ -422,7 +421,7 @@ PT_BEGIN( pt );
 		int16_t status = fs_i16_write( f, &test_buf[idx], len );
 		if( status != len ){
 
-			trace_printf("FAIL: %d\r\n", status);
+			trace_printf("FAIL: %d len: %d\r\n", status, len);
 
 			goto end;
 		}
@@ -441,7 +440,7 @@ PT_BEGIN( pt );
 		}
 	}
 
-	test_finished("single_byte_overwrite", TEST_SIZE, FALSE);
+	test_finished("single_byte_overwrite", BYTE_OVERWRITE_TEST_SIZE, FALSE);
 
 end:
 	clean_up();
