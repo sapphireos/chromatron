@@ -257,10 +257,24 @@ PT_BEGIN( pt );
         }
 
         uint16_t data_length = setup_pixel_buffer();
-        
-        // initiate SPI transfer
+        uint16_t index = 0;
+
+        // initiate SPI transfers
         // this is blocking!
-        spi_v_write_block( PIXEL_SPI_CHANNEL, outputs, data_length );
+
+        // note the ESP32 can only send just under 4K of data in a single transaction, so we split it up here.
+
+        while( data_length > ESP32_MAX_SPI_XFER ){
+
+            uint16_t transfer_length = ESP32_MAX_SPI_XFER;
+
+            spi_v_write_block( PIXEL_SPI_CHANNEL, &outputs[index], transfer_length );
+
+            data_length -= ESP32_MAX_SPI_XFER;
+            index += ESP32_MAX_SPI_XFER;
+        }
+        
+        spi_v_write_block( PIXEL_SPI_CHANNEL, &outputs[index], data_length );
 
         THREAD_YIELD( pt );
     }

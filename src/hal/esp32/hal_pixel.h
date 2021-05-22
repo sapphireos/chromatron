@@ -23,6 +23,8 @@
 #ifndef _HAL_PIXEL_H
 #define _HAL_PIXEL_H
 
+#define ESP32_MAX_SPI_XFER  4048
+
 void hal_pixel_v_init( void );
 void hal_pixel_v_configure( void );
 
