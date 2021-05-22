@@ -138,7 +138,7 @@ int8_t vm_lib_i8_libcall_built_in(
         
         case __KV__time_synced:
             
-            if( time_b_is_local_sync() ){
+            if( time_b_is_ntp_sync() ){
 
                 *result = 1;
             }
