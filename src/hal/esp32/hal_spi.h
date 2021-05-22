@@ -31,7 +31,7 @@
 
 #define N_SPI_PORTS 1
 
-#define HAL_SPI_PORT 	HSPI_HOST
+#define HAL_SPI_PORT 	HSPI_HOST // HSPI is SPI2 on the ESP32
 
 
 #define HAL_SPI_MISO IO_PIN_19_MISO

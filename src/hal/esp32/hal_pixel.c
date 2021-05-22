@@ -28,6 +28,7 @@
 #include "hal_pixel.h"
 #include "os_irq.h"
 #include "spi.h"
+#include "timers.h"
 
 #include "pixel.h"
 #include "pixel_vars.h"
@@ -267,6 +268,8 @@ PT_BEGIN( pt );
 
         // note the ESP32 can only send just under 4K of data in a single transaction, so we split it up here.
 
+        spi_device_acquire_bus( hal_spi_s_get_handle(), 200 );
+
         while( data_length > 0 ){
 
             uint32_t transfer_length = ESP32_MAX_SPI_XFER;
@@ -300,12 +303,15 @@ PT_BEGIN( pt );
             transaction_index++;
         }
 
+        TMR_WAIT( pt, 5 );
+
         THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &last_transaction, 0 ) != ESP_OK );
 
+        spi_device_release_bus( hal_spi_s_get_handle() );
 
         // spi_v_write_block( PIXEL_SPI_CHANNEL, &outputs[index], data_length );
 
-        THREAD_YIELD( pt );
+        // THREAD_YIELD( pt );
     }
 
 PT_END( pt );
