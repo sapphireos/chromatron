@@ -105,23 +105,6 @@ static int32_t page_address( block_t block, uint8_t page_index ){
 static void flush_cache( ffs_file_t file_id, uint16_t page );
 
 
-static void flush_file( ffs_file_t file_id ){
-    // trace_printf("flush_file %d\r\n", file_id);
-
-    for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
-
-        if( page_cache[i].file_id == file_id ){    
-
-            if( page_cache[i].dirty ){
-
-                flush_cache( file_id, page_cache[i].page_number );
-            }
-
-            ASSERT( !page_cache[i].dirty );
-        }
-    }
-}
-
 static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
 
     // trace_printf("invalidate_cache %d/%d\r\n", file_id, page);
@@ -177,8 +160,7 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page, bool read_
     // check if page is not empty
     if( page_cache[entry].file_id >= 0 ){
 
-        // we need to flush this page, but we'll flush the entire file so the page writes
-        // will be in order.
+        // we need to flush this page so we can reuse it.
 
         // however, if we are already flushing a page, we can't do another flush.
         // in that case, we need to make sure this is a read only allocation,
@@ -190,8 +172,7 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page, bool read_
         }   
         else{
 
-            // flush all cached pages for the previously cached file
-            flush_file( page_cache[entry].file_id );
+            flush_cache( page_cache[entry].file_id, page_cache[entry].page_number );
         }
     }
 
