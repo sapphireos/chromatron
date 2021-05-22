@@ -58,6 +58,8 @@ static const uint8_t ws2811_lookup[256][4] __attribute__((aligned(4))) = {
     #include "ws2811_lookup.txt"
 };
 
+static spi_transaction_t transactions[8];
+static spi_transaction_t* last_transaction;
 
 static uint16_t setup_pixel_buffer( void ){
 
@@ -258,23 +260,50 @@ PT_BEGIN( pt );
 
         uint16_t data_length = setup_pixel_buffer();
         uint16_t index = 0;
+        uint8_t transaction_index = 0;
 
         // initiate SPI transfers
         // this is blocking!
 
         // note the ESP32 can only send just under 4K of data in a single transaction, so we split it up here.
 
-        while( data_length > ESP32_MAX_SPI_XFER ){
+        while( data_length > 0 ){
 
-            uint16_t transfer_length = ESP32_MAX_SPI_XFER;
+            uint32_t transfer_length = ESP32_MAX_SPI_XFER;
 
-            spi_v_write_block( PIXEL_SPI_CHANNEL, &outputs[index], transfer_length );
+            if( transfer_length > data_length ){
 
-            data_length -= ESP32_MAX_SPI_XFER;
-            index += ESP32_MAX_SPI_XFER;
+                transfer_length = data_length;
+            }
+
+            spi_transaction_t *transaction = &transactions[transaction_index];
+            memset( transaction, 0, sizeof(spi_transaction_t) );
+
+            transaction->length = transfer_length * 8;
+            transaction->tx_buffer = &outputs[index];
+
+            last_transaction = transaction;
+
+            esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), transaction, 200 );
+            if( err != ESP_OK ){
+
+                log_v_error_P( PSTR("pixel error: %d transaction: %d"), err, transaction_index );
+
+                THREAD_EXIT( pt );
+            }
+
+            // spi_v_write_block( PIXEL_SPI_CHANNEL, &outputs[index], transfer_length );
+
+            data_length -= transfer_length;
+            index += transfer_length;
+
+            transaction_index++;
         }
-        
-        spi_v_write_block( PIXEL_SPI_CHANNEL, &outputs[index], data_length );
+
+        THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &last_transaction, 0 ) != ESP_OK );
+
+
+        // spi_v_write_block( PIXEL_SPI_CHANNEL, &outputs[index], data_length );
 
         THREAD_YIELD( pt );
     }

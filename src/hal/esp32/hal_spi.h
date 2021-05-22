@@ -41,5 +41,6 @@
 
 #define ESP32_MAX_SPI_XFER  SPI_MAX_DMA_LEN
 
+spi_device_handle_t hal_spi_s_get_handle( void );
 
 #endif
