@@ -48,6 +48,7 @@ typedef struct __attribute__((aligned(4))){
     uint16_t page_number;
     ffs_file_t file_id;
     bool dirty;
+    bool read_only;
 } page_cache_t;
 
 typedef struct{
@@ -58,6 +59,11 @@ typedef struct{
 static file_info_t files[FFS_MAX_FILES];
 #define CACHE_SIZE 4
 static page_cache_t page_cache[CACHE_SIZE];
+
+static uint8_t cache_index;
+
+static bool flush_busy;
+
 
 static uint32_t flash_fs_block_copies;
 static uint32_t flash_fs_page_allocs;
@@ -137,7 +143,7 @@ static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
     }
 }
 
-static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
+static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page, bool read_only ){
 
     int8_t entry = -1;
 
@@ -154,8 +160,16 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
 
     if( entry < 0 ){
 
-        // random replacement
-        entry = rnd_u8_get_int() % CACHE_SIZE;
+        // round robin replacement
+        entry = cache_index % CACHE_SIZE;
+        cache_index++;
+    }
+
+    // check if write is enabled.
+    // if so, we cannot use entry 0, which is reserved for read only
+    if( !read_only && ( entry == 0 ) ){
+
+        entry++;
     }
 
     // trace_printf("alloc cache %d/%d entry: %d prev file: %d page: %d\r\n", file_id, page, entry, page_cache[entry].file_id, page_cache[entry].page_number);
@@ -163,8 +177,22 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
     // check if page is not empty
     if( page_cache[entry].file_id >= 0 ){
 
-        // flush all cached pages for the previously cached file
-        flush_file( page_cache[entry].file_id );
+        // we need to flush this page, but we'll flush the entire file so the page writes
+        // will be in order.
+
+        // however, if we are already flushing a page, we can't do another flush.
+        // in that case, we need to make sure this is a read only allocation,
+        // and that if the selected cache entry is dirty, we need to switch to
+        // the reserved read only entry (which is 0).
+        if( page_cache[entry].dirty && flush_busy ){
+
+            entry = 0;
+        }   
+        else{
+
+            // flush all cached pages for the previously cached file
+            flush_file( page_cache[entry].file_id );
+        }
     }
 
     ASSERT( !page_cache[entry].dirty );
@@ -172,6 +200,13 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
     // set cache lookup data
     page_cache[entry].file_id = file_id;
     page_cache[entry].page_number = page;
+    page_cache[entry].read_only = read_only; // apply read only flag 
+
+    if( entry == 0 ){
+
+        // entry 0 must be read only
+        ASSERT( page_cache[entry].read_only );
+    }
 
     // initialize page
     memset( page_cache[entry].page.data, 0xff, sizeof(page_cache[entry].page.data) );
@@ -219,8 +254,6 @@ static void set_dirty( ffs_file_t file_id, uint16_t page ){
 
     // trace_printf("set dirty: %d/%d\r\n", file_id, page);
 }
-
-static bool flush_busy;
 
 static void flush_cache( ffs_file_t file_id, uint16_t page ){
 
@@ -872,7 +905,7 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
     }
 
     // set up cache
-    ffs_page_t *ffs_page = allocate_cache( file_id, page );
+    ffs_page_t *ffs_page = allocate_cache( file_id, page, TRUE );
 
     // ok, we have the correct page address
 
@@ -948,7 +981,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
     if( ffs_page == 0 ){
 
         // page not found in cache, let's get one
-        ffs_page = allocate_cache( file_id, page );
+        ffs_page = allocate_cache( file_id, page, FALSE );
     }
 
 
