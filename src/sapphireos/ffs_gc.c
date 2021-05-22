@@ -46,7 +46,17 @@ KV_SECTION_META kv_meta_t ffs_gc_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &gc_passes,        0,  "flash_fs_gc_passes" },
 };
 
+/*
 
+GC mods:
+
+Make clean block a function that we can call from the file system, if we immediately need a clean block.
+
+GC meta data goes into a static FIFO data structure and is periodically flushed to the gc_info file
+after the periodic block clean.  This way we minimize additional writes, and we can safely call the block clean
+without it hitting the file system.
+
+*/
 
 PT_THREAD( garbage_collector_thread( pt_t *pt, void *state ) );
 
