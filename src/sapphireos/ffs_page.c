@@ -986,6 +986,8 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
         ffs_page->len = offset + write_len;
     }
 
+    set_dirty( file_id, page );
+
     // calculate file length up to this page plus the data in it
     uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + ffs_page->len;
 
@@ -996,15 +998,20 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
 
         // adjust file size
         files[file_id].size = file_length_to_here;
-    }
 
-    set_dirty( file_id, page );
+        // we've increased the size of the file, which means we've appended.
+        
+        // did we jush fill out the final page?
+        if( ffs_page->len == FFS_PAGE_DATA_SIZE ){
+
+            // final page is full.  let's flush now, that way we write newly appended pages
+            // in order.  this way we don't end up with holes in the index.
+            flush_cache( file_id, page );   
+        }
+    }
 
     // trace_printf("file: %d dirty page: %d len: %d\r\n", file_id, page, ffs_page->len );
         
-    // flush_cache( file_id, page );
-
-
     return FFS_STATUS_OK;
 }
 
