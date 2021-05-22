@@ -42,6 +42,9 @@
 #define DATA_MAGIC      0x41544144  // 'DATA'
 #define META_MAGIC      0x4154454d  // 'META'
 
+// The FX Epoch starts a midnight, January 1, 2020, UTC
+#define FX_NTP_EPOCH                3786825600
+
 #define DATA_LEN                    4
 
 #define VM_STATUS_OK                    0

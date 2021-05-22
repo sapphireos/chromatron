@@ -28,6 +28,7 @@
 #include "cnt_of_array.h"
 #include "vm_lib.h"
 #include "io.h"
+#include "timesync.h"
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
@@ -76,13 +77,76 @@ int8_t vm_lib_i8_libcall_built_in(
 
             break;
 
-		case __KV__test_lib_call:
-            if( param_len != 2 ){
+        case __KV__yield:
 
-                break;
+            state->yield = 1;
+            break;
+
+        case __KV__delay:
+            // default to yield (no delay) if no parameters
+            if( param_len < 1 ){
+
+                temp0 = 0;
+            }
+            else{
+                // first parameter is delay time, all other params ignored
+                temp0 = data[params[0]];
             }
 
-            *result = data[params[0]] + data[params[1]];
+            // bounds check
+            if( temp0 < VM_MIN_DELAY ){
+
+                temp0 = VM_MIN_DELAY;
+            }
+
+            // set up delay
+            state->threads[state->current_thread].tick += temp0;
+
+            // delay also yields
+            state->yield = 1;
+
+            break;
+
+        case __KV__time:
+
+            if( !time_b_is_local_sync() ){
+
+                *result = -1;
+            }
+            else{
+
+                uint32_t local_now_seconds = time_u32_local_now();
+
+                // NTP, in the era in which this was written, will have bit 32 set
+                // in the integer.  However, the FX VM that will call this function
+                // is expecting a signed int32, not a uint32.  So we need to convert
+                // to an epoch that makes sense.
+                int32_t corrected_seconds = (int64_t)local_now_seconds - FX_NTP_EPOCH;
+
+                if( corrected_seconds < 0 ){
+
+                    // this is a synchronization error, the NTP timestamp is way off
+                    // or we are out of epoch.
+
+                    corrected_seconds = -1;
+                }
+
+                *result = corrected_seconds;
+            }
+
+            break;    
+        
+        case __KV__time_synced:
+            
+            if( time_b_is_local_sync() ){
+
+                *result = 1;
+            }
+            else{
+
+                *result = 0;
+            }
+
             break;
 
       	case __KV__min:
@@ -173,36 +237,6 @@ int8_t vm_lib_i8_libcall_built_in(
 
             break;
 
-        case __KV__yield:
-
-            state->yield = 1;
-            break;
-
-        case __KV__delay:
-            // default to yield (no delay) if no parameters
-            if( param_len < 1 ){
-
-                temp0 = 0;
-            }
-            else{
-                // first parameter is delay time, all other params ignored
-                temp0 = data[params[0]];
-            }
-
-            // bounds check
-            if( temp0 < VM_MIN_DELAY ){
-
-                temp0 = VM_MIN_DELAY;
-            }
-
-            // set up delay
-            state->threads[state->current_thread].tick += temp0;
-
-            // delay also yields
-            state->yield = 1;
-
-            break;
-
         case __KV__start_thread:
             if( param_len != 1 ){
 
@@ -265,6 +299,15 @@ int8_t vm_lib_i8_libcall_built_in(
                 }
             }
 
+            break;
+
+        case __KV__test_lib_call:
+            if( param_len != 2 ){
+
+                break;
+            }
+
+            *result = data[params[0]] + data[params[1]];
             break;
 
         // perform a short strobe on the debug pin

@@ -126,7 +126,8 @@ void hal_rtc_v_irq( void ){
 void time_v_init( void ){
 
     // January 1, 2018, midnight
-    master_ntp_time.seconds = 1514786400 + 2208988800 - 21600;
+    //master_ntp_time.seconds = 1514786400 + 2208988800 - 21600;
+    master_ntp_time.seconds = 0;
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -375,6 +376,22 @@ ntp_ts_t time_t_local_now( void ){
     ntp.seconds += tz_seconds;
 
     return ntp;
+}
+
+// NTP seconds
+uint32_t time_u32_now( void ){
+
+    ntp_ts_t ntp = time_t_now();  
+
+    return ntp.seconds;
+}
+
+// NTP seconds in local timezone
+uint32_t time_u32_local_now( void ){
+
+    ntp_ts_t ntp = time_t_local_now();  
+
+    return ntp.seconds;
 }
 
 static uint8_t get_best_local_source( void ){

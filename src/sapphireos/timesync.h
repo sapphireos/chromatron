@@ -101,6 +101,8 @@ void time_v_set_ntp_master_clock(
     uint8_t source );
 ntp_ts_t time_t_now( void );
 ntp_ts_t time_t_local_now( void );
+uint32_t time_u32_now( void );
+uint32_t time_u32_local_now( void );
 
 #endif
 #endif
