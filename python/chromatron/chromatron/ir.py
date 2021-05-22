@@ -2186,8 +2186,8 @@ class Builder(object):
 
         return ir
         
-    def call(self, func_name, params, lineno=None):
-        try:
+    def call(self, func_name, params, keywords={}, lineno=None):
+        if func_name in self.funcs:
             result = self.add_temp(data_type='gfx16', lineno=lineno)
 
             args = self.funcs[func_name].params
@@ -2197,41 +2197,46 @@ class Builder(object):
 
             ir = irCall(func_name, params, args, result, lineno=lineno)
 
-        except KeyError:
-            if func_name in ARRAY_FUNCS and not isinstance(params[0], irDBAttr):
-                # note we skip this check for DB items, we don't know their
-                # length beforehand.
+        elif func_name in ARRAY_FUNCS and not isinstance(params[0], irDBAttr):
+            # note we skip this check for DB items, we don't know their
+            # length beforehand.
 
-                if len(params) == 1:
-                    try:
-                        # array function.
-                        # we have the array address in the first parameter.
-                        # we'll put the array length in the second.
-                        array_len = self.add_const(params[0].count, lineno=lineno)
+            if len(params) == 1:
+                try:
+                    # array function.
+                    # we have the array address in the first parameter.
+                    # we'll put the array length in the second.
+                    array_len = self.add_const(params[0].count, lineno=lineno)
 
-                    except AttributeError:
-                        array_len = self.add_const(1, lineno=lineno)
-                    
+                except AttributeError:
+                    array_len = self.add_const(1, lineno=lineno)
+                
 
-                    # check if function is array length
-                    if func_name == 'len':
-                        result = self.add_temp(data_type='i32', lineno=lineno)
-                        
-                        # since arrays are fixed length, we don't need a libcall, we 
-                        # can just do an assignment.
-                        self.assign(result, array_len, lineno=lineno)
+                # check if function is array length
+                if func_name == 'len':
+                    result = self.add_temp(data_type='i32', lineno=lineno)
 
-                        return result
+                    # since arrays are fixed length, we don't need a libcall, we 
+                    # can just do an assignment.
+                    self.assign(result, array_len, lineno=lineno)
 
-                    else:
-                        params.append(array_len)
+                    return result
 
                 else:
-                    raise SyntaxError("Array functions take one argument", lineno=lineno)                    
-            
-            if func_name == 'pix_count':
-                raise SyntaxError("pix_count() is deprecated, use pixels.count", lineno=lineno)        
-            
+                    params.append(array_len)
+
+            else:
+                raise SyntaxError("Array functions take one argument", lineno=lineno)                    
+        
+        elif func_name == 'pix_count':
+            raise SyntaxError("pix_count() is deprecated, use pixels.count", lineno=lineno)        
+        
+        elif func_name == 'cron':
+            result = self.add_temp(data_type='i32', lineno=lineno)
+            ir = self.cron(keywords, result, lineno=lineno)
+
+        else:
+            # library call
             if func_name in I32_FUNCS:
                 result = self.add_temp(data_type='i32', lineno=lineno)
 
@@ -2240,6 +2245,7 @@ class Builder(object):
 
             ir = irLibCall(func_name, params, result, lineno=lineno)
         
+
         self.append_node(ir)        
 
         return result
@@ -2500,6 +2506,57 @@ class Builder(object):
 
     def event(self, func, condition, lineno=None):
         print('event', func, condition)
+
+    def cron(self, params, result, lineno=None):
+        # convert parameters from const objects into raw integers
+        for k, v in list(params.items()):
+            try:
+                params[k] = v.name
+
+            except AttributeError:
+                params[k] = v.s                
+
+        # check parameters
+        if 'seconds' in params:
+            if params['seconds'] < 0 or params['seconds'] > 59:
+                raise SyntaxError("Seconds must be within 0 - 59, got %d" % (params['seconds']), lineno=lineno)
+        
+        if 'minutes' in params:
+            if params['minutes'] < 0 or params['minutes'] > 59:
+                raise SyntaxError("Minutes must be within 0 - 59, got %d" % (params['minutes']), lineno=lineno)
+
+        if 'hours' in params:
+            if params['hours'] < 0 or params['hours'] > 23:
+                raise SyntaxError("Hours must be within 0 - 23, got %d" % (params['hours']), lineno=lineno)
+        
+        if 'day_of_month' in params:
+            if params['day_of_month'] < 0 or params['day_of_month'] > 31:
+                raise SyntaxError("Day of month must be within 0 - 31, got %d" % (params['day_of_month']), lineno=lineno)
+        
+        if 'day_of_week' in params:
+            if isinstance(params['day_of_week'], str):
+                params['day_of_week'] = DAY_OF_WEEK[params['day_of_week'].lower()]
+
+            if params['day_of_week'] < 1 or params['day_of_week'] > 7:
+                raise SyntaxError("Day of week must be within 1 - 7, got %d" % (params['day_of_week']), lineno=lineno)
+        
+        if 'month' in params:
+            if isinstance(params['month'], str):
+                params['month'] = MONTHS[params['month'].lower()]
+
+            if params['month'] < 1 or params['month'] > 12:
+                raise SyntaxError("Month must be within 1 - 12, got %d" % (params['month']), lineno=lineno)
+                        
+
+        for i in ['seconds', 'minutes', 'hours', 'day_of_month', 'day_of_week', 'month']:
+            if i not in params:
+                params[i] = -1
+
+        print(params)
+
+        ir = irLibCall('cron', [], result, lineno=lineno)
+
+        return ir
 
     def schedule(self, func, params, lineno=None):
         if func not in self.cron_tab:
