@@ -876,6 +876,8 @@ static int16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr
     // bounds check requested space
     if( len > free_space ){
 
+        trace_printf("Insufficient free space! %d < %d\r\n", free_space, len);
+
         // limit to free space available
         len = free_space;
     }

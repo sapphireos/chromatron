@@ -679,8 +679,6 @@ int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, 
         data            += write_len;
         len             -= write_len;
         position        += write_len;
-
-        // trace_printf("%d %d %d\r\n", len, write_len, total_written);
     }
 
 	return total_written;
