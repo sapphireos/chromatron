@@ -243,9 +243,6 @@ PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    // signal transfer thread to start
-    thread_v_signal( PIX_SIGNAL_0 );
-
     while(1){
 
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
