@@ -62,6 +62,7 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
         .quadwp_io_num 		= -1,
         .quadhd_io_num 		= -1,
         .max_transfer_sz 	= 0, // sets default
+        .intr_flags         = ESP_INTR_FLAG_IRAM,
     };
 
 	ESP_ERROR_CHECK(spi_bus_initialize( HAL_SPI_PORT, &buscfg, 1 )); // DMA channel 1
