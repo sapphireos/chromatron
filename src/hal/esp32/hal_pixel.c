@@ -41,16 +41,12 @@
 #define FADE_TIMER_VALUE_WS2811     1 // 1 ms
 #define FADE_TIMER_LOW_POWER        20 // 20 ms
 
-#define MAX_BYTES_PER_PIXEL 16
 
-#define HEADER_LENGTH       2
-#define TRAILER_LENGTH      32
-#define ZERO_PADDING (N_PIXEL_OUTPUTS * (TRAILER_LENGTH + HEADER_LENGTH))
 
 #ifdef PIXEL_USE_MALLOC
 static uint8_t *outputs __attribute__((aligned(4)));
 #else
-static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING] __attribute__((aligned(4)));
+static uint8_t outputs[PIXEL_BUF_SIZE] __attribute__((aligned(4)));
 #endif
 
 static uint8_t dither_cycle;
@@ -59,8 +55,8 @@ static const uint8_t ws2811_lookup[256][4] __attribute__((aligned(4))) = {
     #include "ws2811_lookup.txt"
 };
 
-static spi_transaction_t transactions[8];
-static spi_transaction_t* last_transaction;
+static spi_transaction_t spi_transaction;
+static spi_transaction_t* transaction_ptr = &spi_transaction;
 
 static uint16_t setup_pixel_buffer( void ){
 
@@ -260,58 +256,25 @@ PT_BEGIN( pt );
         }
 
         uint16_t data_length = setup_pixel_buffer();
-        uint16_t index = 0;
-        uint8_t transaction_index = 0;
 
         // initiate SPI transfers
-        // this is blocking!
 
-        // note the ESP32 can only send just under 4K of data in a single transaction, so we split it up here.
+        // this will transmit using interrupt/DMA mode
 
-        spi_device_acquire_bus( hal_spi_s_get_handle(), 200 );
+        spi_transaction.length = data_length * 8;
+        spi_transaction.tx_buffer = outputs;
+        
+        esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), &spi_transaction, 200 );
+        if( err != ESP_OK ){
 
-        while( data_length > 0 ){
+            log_v_error_P( PSTR("pixel spi bus error: %d"), err );
 
-            uint32_t transfer_length = ESP32_MAX_SPI_XFER;
+            THREAD_EXIT( pt );
+        }        
 
-            if( transfer_length > data_length ){
-
-                transfer_length = data_length;
-            }
-
-            spi_transaction_t *transaction = &transactions[transaction_index];
-            memset( transaction, 0, sizeof(spi_transaction_t) );
-
-            transaction->length = transfer_length * 8;
-            transaction->tx_buffer = &outputs[index];
-
-            last_transaction = transaction;
-
-            esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), transaction, 200 );
-            if( err != ESP_OK ){
-
-                log_v_error_P( PSTR("pixel error: %d transaction: %d"), err, transaction_index );
-
-                THREAD_EXIT( pt );
-            }
-
-            // spi_v_write_block( PIXEL_SPI_CHANNEL, &outputs[index], transfer_length );
-
-            data_length -= transfer_length;
-            index += transfer_length;
-
-            transaction_index++;
-        }
+        THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
 
         TMR_WAIT( pt, 5 );
-
-        THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &last_transaction, 0 ) != ESP_OK );
-
-        spi_device_release_bus( hal_spi_s_get_handle() );
-
-        // spi_v_write_block( PIXEL_SPI_CHANNEL, &outputs[index], data_length );
-
-        // THREAD_YIELD( pt );
     }
 
 PT_END( pt );
@@ -321,7 +284,7 @@ void hal_pixel_v_init( void ){
 
     #ifdef PIXEL_USE_MALLOC
     
-    outputs = malloc( MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING );
+    outputs = malloc( PIXEL_BUF_SIZE );
     
     ASSERT( outputs != 0 );
 
