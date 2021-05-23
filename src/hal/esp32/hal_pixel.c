@@ -267,9 +267,11 @@ PT_BEGIN( pt );
         esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), &spi_transaction, 200 );
         if( err != ESP_OK ){
 
-            log_v_error_P( PSTR("pixel spi bus error: %d"), err );
+            log_v_critical_P( PSTR("pixel spi bus error: 0x%03x"), err );
 
-            THREAD_EXIT( pt );
+            // this is bad, but log and we will try on the next frame
+
+            continue;
         }        
 
         THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
