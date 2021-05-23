@@ -471,9 +471,9 @@ void flash25_v_erase_4k( uint32_t address ){
     spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
     
     uint32_t elapsed = tmr_u32_elapsed_time_ms( start );
-    if( ( elaspsed > flash_erase_time ) && ( elaspsed < 255 ) ){
+    if( ( elapsed > flash_erase_time ) && ( elapsed < 255 ) ){
 
-        flash_erase_time = elaspsed;
+        flash_erase_time = elapsed;
     }
 }
 

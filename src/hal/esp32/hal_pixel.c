@@ -57,6 +57,7 @@ static const uint8_t ws2811_lookup[256][4] __attribute__((aligned(4))) = {
 
 static spi_transaction_t spi_transaction;
 static spi_transaction_t* transaction_ptr = &spi_transaction;
+static bool request_reconfigure;
 
 static uint16_t setup_pixel_buffer( void ){
 
@@ -227,6 +228,16 @@ static uint16_t setup_pixel_buffer( void ){
     return buf_index;
 }
 
+static void _pixel_v_configure( void ){
+
+    if( pix_mode == PIX_MODE_OFF ){
+
+        return;
+    }
+
+    spi_v_init( PIXEL_SPI_CHANNEL, pix_clock, 0 );
+}
+
 
 PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
@@ -249,10 +260,17 @@ PT_BEGIN( pt );
             THREAD_WAIT_WHILE( pt, !gfx_b_enabled() );
 
             // re-enable pixel drivers
-            hal_pixel_v_configure();
+            _pixel_v_configure();
             
             // restart loop
             continue;
+        }
+
+        if( request_reconfigure ){
+
+            _pixel_v_configure();
+
+            request_reconfigure = FALSE;
         }
 
         uint16_t data_length = setup_pixel_buffer();
@@ -260,6 +278,7 @@ PT_BEGIN( pt );
         // initiate SPI transfers
 
         // this will transmit using interrupt/DMA mode
+        memset( &spi_transaction, 0, sizeof(spi_transaction) );
 
         spi_transaction.length = data_length * 8;
         spi_transaction.tx_buffer = outputs;
@@ -267,7 +286,7 @@ PT_BEGIN( pt );
         esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), &spi_transaction, 200 );
         if( err != ESP_OK ){
 
-            log_v_critical_P( PSTR("pixel spi bus error: 0x%03x"), err );
+            log_v_critical_P( PSTR("pixel spi bus error: 0x%03x handle: 0x%x len: %u"), err, hal_spi_s_get_handle(), data_length );
 
             // this is bad, but log and we will try on the next frame
 
@@ -297,7 +316,7 @@ void hal_pixel_v_init( void ){
                      0,
                      0 );
 
-	hal_pixel_v_configure();
+	_pixel_v_configure();
 }
 
 void hal_pixel_v_configure( void ){
@@ -307,6 +326,6 @@ void hal_pixel_v_configure( void ){
         return;
     }
 
-	spi_v_init( PIXEL_SPI_CHANNEL, pix_clock, 0 );
+    request_reconfigure = TRUE;
 }
 
