@@ -48,6 +48,9 @@ static uint32_t kv_persist_writes;
 static int32_t kv_test_key;
 static int32_t kv_test_array[4];
 
+static uint64_t kv_cache_hits;
+static uint64_t kv_cache_misses;
+
 static uint8_t kv_cache_index;
 static kv_hash_index_t kv_cache[KV_CACHE_SIZE];
 
@@ -103,6 +106,8 @@ KV_SECTION_META kv_meta_t kv_cfg[] = {
     { SAPPHIRE_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
+    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_hits,      0,           "kv_cache_hits" },
+    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_misses,    0,           "kv_cache_misses" },
 };
 
 #ifdef __SIM__
@@ -163,9 +168,13 @@ int16_t _kv_i16_search_cache( catbus_hash_t32 hash ){
 
         if( kv_cache[i].hash == hash ){
 
+            kv_cache_hits++;
+
             return kv_cache[i].index;
         }
     }
+
+    kv_cache_misses++;
 
     return -1;
 }
