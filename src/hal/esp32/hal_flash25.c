@@ -35,9 +35,11 @@
 #ifdef ENABLE_FFS
 
 static uint32_t flash_id;
+static uint8_t flash_erase_time;
 
 KV_SECTION_META kv_meta_t flash_id_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,  "flash_id" },
+    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,          "flash_id" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_erase_time, 0,  "flash_erase_time" },
 };
 
 
@@ -464,7 +466,15 @@ void flash25_v_erase_4k( uint32_t address ){
 
     address += START_ADDRESS;
         
+    uint32_t start = tmr_u32_get_system_time_ms();
+
     spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
+    
+    uint32_t elapsed = tmr_u32_elapsed_time_ms( start );
+    if( ( elapsed > flash_erase_time ) && ( elapsed < 255 ) ){
+
+        flash_erase_time = elapsed;
+    }
 }
 
 // erase the entire array

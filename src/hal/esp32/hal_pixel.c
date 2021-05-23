@@ -28,6 +28,7 @@
 #include "hal_pixel.h"
 #include "os_irq.h"
 #include "spi.h"
+#include "timers.h"
 
 #include "pixel.h"
 #include "pixel_vars.h"
@@ -40,16 +41,12 @@
 #define FADE_TIMER_VALUE_WS2811     1 // 1 ms
 #define FADE_TIMER_LOW_POWER        20 // 20 ms
 
-#define MAX_BYTES_PER_PIXEL 16
 
-#define HEADER_LENGTH       2
-#define TRAILER_LENGTH      32
-#define ZERO_PADDING (N_PIXEL_OUTPUTS * (TRAILER_LENGTH + HEADER_LENGTH))
 
 #ifdef PIXEL_USE_MALLOC
 static uint8_t *outputs __attribute__((aligned(4)));
 #else
-static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING] __attribute__((aligned(4)));
+static uint8_t outputs[PIXEL_BUF_SIZE] __attribute__((aligned(4)));
 #endif
 
 static uint8_t dither_cycle;
@@ -58,6 +55,9 @@ static const uint8_t ws2811_lookup[256][4] __attribute__((aligned(4))) = {
     #include "ws2811_lookup.txt"
 };
 
+static spi_transaction_t spi_transaction;
+static spi_transaction_t* transaction_ptr = &spi_transaction;
+static bool request_reconfigure;
 
 static uint16_t setup_pixel_buffer( void ){
 
@@ -228,14 +228,21 @@ static uint16_t setup_pixel_buffer( void ){
     return buf_index;
 }
 
+static void _pixel_v_configure( void ){
+
+    if( pix_mode == PIX_MODE_OFF ){
+
+        return;
+    }
+
+    spi_v_init( PIXEL_SPI_CHANNEL, pix_clock, 0 );
+}
+
 
 PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    // signal transfer thread to start
-    thread_v_signal( PIX_SIGNAL_0 );
-
     while(1){
 
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
@@ -250,19 +257,42 @@ PT_BEGIN( pt );
             THREAD_WAIT_WHILE( pt, !gfx_b_enabled() );
 
             // re-enable pixel drivers
-            hal_pixel_v_configure();
+            _pixel_v_configure();
             
             // restart loop
             continue;
         }
 
-        uint16_t data_length = setup_pixel_buffer();
-        
-        // initiate SPI transfer
-        // this is blocking!
-        spi_v_write_block( PIXEL_SPI_CHANNEL, outputs, data_length );
+        if( request_reconfigure ){
 
-        THREAD_YIELD( pt );
+            _pixel_v_configure();
+
+            request_reconfigure = FALSE;
+        }
+
+        uint16_t data_length = setup_pixel_buffer();
+
+        // initiate SPI transfers
+
+        // this will transmit using interrupt/DMA mode
+        memset( &spi_transaction, 0, sizeof(spi_transaction) );
+
+        spi_transaction.length = data_length * 8;
+        spi_transaction.tx_buffer = outputs;
+        
+        esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), &spi_transaction, 200 );
+        if( err != ESP_OK ){
+
+            log_v_critical_P( PSTR("pixel spi bus error: 0x%03x handle: 0x%x len: %u"), err, hal_spi_s_get_handle(), data_length );
+
+            // this is bad, but log and we will try on the next frame
+
+            continue;
+        }        
+
+        THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
+
+        TMR_WAIT( pt, 5 );
     }
 
 PT_END( pt );
@@ -272,7 +302,7 @@ void hal_pixel_v_init( void ){
 
     #ifdef PIXEL_USE_MALLOC
     
-    outputs = malloc( MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING );
+    outputs = malloc( PIXEL_BUF_SIZE );
     
     ASSERT( outputs != 0 );
 
@@ -283,7 +313,7 @@ void hal_pixel_v_init( void ){
                      0,
                      0 );
 
-	hal_pixel_v_configure();
+	_pixel_v_configure();
 }
 
 void hal_pixel_v_configure( void ){
@@ -293,6 +323,6 @@ void hal_pixel_v_configure( void ){
         return;
     }
 
-	spi_v_init( PIXEL_SPI_CHANNEL, pix_clock, 0 );
+    request_reconfigure = TRUE;
 }
 

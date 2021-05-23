@@ -26,11 +26,12 @@
 #ifndef _HAL_SPI_H
 #define _HAL_SPI_H
 
+#include "driver/spi_master.h"
 #include "hal_io.h"
 
 #define N_SPI_PORTS 1
 
-#define HAL_SPI_PORT 	HSPI_HOST
+#define HAL_SPI_PORT 	HSPI_HOST // HSPI is SPI2 on the ESP32
 
 
 #define HAL_SPI_MISO IO_PIN_19_MISO
@@ -38,5 +39,8 @@
 #define HAL_SPI_SCK  IO_PIN_5_SCK
 
 
+#define ESP32_MAX_SPI_XFER  SPI_MAX_DMA_LEN
+
+spi_device_handle_t hal_spi_s_get_handle( void );
 
 #endif
