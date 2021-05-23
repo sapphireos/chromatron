@@ -467,8 +467,14 @@ void flash25_v_erase_4k( uint32_t address ){
     address += START_ADDRESS;
         
     uint32_t start = tmr_u32_get_system_time_ms();
+
     spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
-    flash_erase_time = tmr_u32_elapsed_time_ms( start );
+    
+    uint32_t elapsed = tmr_u32_elapsed_time_ms( start );
+    if( ( elaspsed > flash_erase_time ) && ( elaspsed < 255 ) ){
+
+        flash_erase_time = elaspsed;
+    }
 }
 
 // erase the entire array
