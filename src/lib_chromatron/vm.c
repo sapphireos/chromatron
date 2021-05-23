@@ -33,6 +33,7 @@
 #include "config.h"
 #include "timesync.h"
 #include "vm_sync.h"
+#include "util.h"
 
 #include "vm.h"
 #include "vm_core.h"
@@ -45,8 +46,7 @@ static bool vm_reset[VM_MAX_VMS];
 static bool vm_run[VM_MAX_VMS];
 
 static int8_t vm_status[VM_MAX_VMS];
-static uint16_t vm_loop_time[VM_MAX_VMS];
-static uint16_t vm_thread_time[VM_MAX_VMS];
+static uint16_t vm_run_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
 static uint8_t vm_timing_status;
 
@@ -79,8 +79,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[0],            0,                  "vm_run" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[0],         0,                  "vm_status" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[0],      0,                  "vm_loop_time" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[0],    0,                  "vm_thread_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[0],       0,                  "vm_run_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &vm_timing_status,     0,                  "vm_timing" },
 
@@ -89,8 +88,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[1],            0,                  "vm_run_1" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_1" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[1],         0,                  "vm_status_1" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[1],      0,                  "vm_loop_time_1" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[1],    0,                  "vm_thread_time_1" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[1],       0,                  "vm_run_time_1" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[1],     0,                  "vm_peak_cycles_1" },
     #endif
 
@@ -99,8 +97,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[2],            0,                  "vm_run_2" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_2" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[2],         0,                  "vm_status_2" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[2],      0,                  "vm_loop_time_2" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[2],    0,                  "vm_thread_time_2" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[2],       0,                  "vm_run_time_2" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[2],     0,                  "vm_peak_cycles_2" },
     #endif
 
@@ -109,8 +106,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[3],            0,                  "vm_run_3" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_3" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[3],         0,                  "vm_status_3" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[3],      0,                  "vm_loop_time_3" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[3],    0,                  "vm_thread_time_3" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[3],       0,                  "vm_run_time_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_peak_cycles_3" },
     #endif
 
@@ -472,8 +468,7 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
     fs_f_close( f );
 
     vm_status[vm_id]        = VM_STATUS_READY;
-    vm_loop_time[vm_id]     = 0;
-    vm_thread_time[vm_id]   = 0;
+    vm_run_time[vm_id]      = 0;
     vm_max_cycles[vm_id]    = 0;
 
     log_v_debug_P( PSTR("VM loaded in: %lu ms"), tmr_u32_elapsed_time_ms( start_time ) );
@@ -628,8 +623,7 @@ PT_BEGIN( pt );
         state->handle = -1;
     }
     
-    vm_loop_time[state->vm_id]     = 0;
-    vm_thread_time[state->vm_id]   = 0;
+    vm_run_time[state->vm_id]      = 0;
     vm_max_cycles[state->vm_id]    = 0;
 
     get_program_fname( state->vm_id, state->program_fname );
@@ -868,6 +862,23 @@ PT_BEGIN( pt );
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
 
+        // update timing
+        uint32_t elapsed_us = state->vm_state.last_elapsed_us;
+
+        if( elapsed_us > 65535 ){
+
+            elapsed_us = 65535;
+        }
+
+        if( vm_run_time[state->vm_id] == 0 ){
+
+            vm_run_time[state->vm_id] = elapsed_us;
+        }
+        else{
+
+            vm_run_time[state->vm_id] = util_u16_ewma( elapsed_us, vm_run_time[state->vm_id], 16 );    
+        }
+
         // log_v_debug_P( PSTR("net: %d delay: %d tick: %d next: %d cur: %d loop: %d thread: %d thread2: %d"), 
         //     time_u32_get_network_time(), 
         //     delay,
@@ -1037,8 +1048,7 @@ PT_BEGIN( pt );
                 log_v_debug_P( PSTR("Stopping VM: %d"), i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
 
-                vm_loop_time[i]     = 0;
-                vm_thread_time[i]   = 0;
+                vm_run_time[i]      = 0;
                 vm_max_cycles[i]    = 0;
             }
             
