@@ -23,6 +23,15 @@
 #ifndef _HAL_PIXEL_H
 #define _HAL_PIXEL_H
 
+#define MAX_BYTES_PER_PIXEL 16
+
+#define HEADER_LENGTH       2
+#define TRAILER_LENGTH      32
+#define ZERO_PADDING (N_PIXEL_OUTPUTS * (TRAILER_LENGTH + HEADER_LENGTH))
+
+#define PIXEL_BUF_SIZE (MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING)
+
+
 void hal_pixel_v_init( void );
 void hal_pixel_v_configure( void );
 
