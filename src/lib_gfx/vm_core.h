@@ -115,7 +115,7 @@ typedef struct __attribute__((packed)){
 } link_t;
 
 typedef struct __attribute__((packed)){
-    uint16_t func_addr;
+    uint16_t reserved;
     int8_t seconds;
     int8_t minutes;
     int8_t hours;

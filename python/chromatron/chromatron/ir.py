@@ -115,7 +115,7 @@ class Link(StructField):
 
 class CronItem(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint16Field(_name="func"),
+        fields = [Uint16Field(_name="reserved"),
                   Int8Field(_name="second"),
                   Int8Field(_name="minute"),
                   Int8Field(_name="hour"),
@@ -1501,7 +1501,8 @@ class Builder(object):
         self.links = []
         self.db_entries = {}
 
-        self.cron_tab = {}
+        # self.cron_tab = {}
+        self.cron = []
 
         self.loop_top = []
         self.loop_end = []
@@ -2232,8 +2233,8 @@ class Builder(object):
             raise SyntaxError("pix_count() is deprecated, use pixels.count", lineno=lineno)        
         
         elif func_name == 'cron':
-            result = self.add_temp(data_type='i32', lineno=lineno)
-            ir = self.cron(keywords, result, lineno=lineno)
+            result = self.add_cron(keywords, lineno=lineno)
+            ir = None
 
         else:
             # library call
@@ -2245,8 +2246,8 @@ class Builder(object):
 
             ir = irLibCall(func_name, params, result, lineno=lineno)
         
-
-        self.append_node(ir)        
+        if ir:
+            self.append_node(ir)        
 
         return result
 
@@ -2507,7 +2508,7 @@ class Builder(object):
     def event(self, func, condition, lineno=None):
         print('event', func, condition)
 
-    def cron(self, params, result, lineno=None):
+    def add_cron(self, params, lineno=None):
         # convert parameters from const objects into raw integers
         for k, v in list(params.items()):
             try:
@@ -2552,61 +2553,60 @@ class Builder(object):
             if i not in params:
                 params[i] = -1
 
-        print(params)
+        index = len(self.cron)
+        self.cron.append(params)
 
-        ir = irLibCall('cron', [], result, lineno=lineno)
+        return self.add_const(index, lineno=lineno)
 
-        return ir
+    # def schedule(self, func, params, lineno=None):
+    #     if func not in self.cron_tab:
+    #         self.cron_tab[func] = []
 
-    def schedule(self, func, params, lineno=None):
-        if func not in self.cron_tab:
-            self.cron_tab[func] = []
+    #     # convert parameters from const objects into raw integers
+    #     for k, v in list(params.items()):
+    #         try:
+    #             params[k] = v.name
 
-        # convert parameters from const objects into raw integers
-        for k, v in list(params.items()):
-            try:
-                params[k] = v.name
+    #         except AttributeError:
+    #             params[k] = v.s                
 
-            except AttributeError:
-                params[k] = v.s                
-
-        # check parameters
-        if 'seconds' in params:
-            if params['seconds'] < 0 or params['seconds'] > 59:
-                raise SyntaxError("Seconds must be within 0 - 59, got %d" % (params['seconds']), lineno=lineno)
+    #     # check parameters
+    #     if 'seconds' in params:
+    #         if params['seconds'] < 0 or params['seconds'] > 59:
+    #             raise SyntaxError("Seconds must be within 0 - 59, got %d" % (params['seconds']), lineno=lineno)
         
-        if 'minutes' in params:
-            if params['minutes'] < 0 or params['minutes'] > 59:
-                raise SyntaxError("Minutes must be within 0 - 59, got %d" % (params['minutes']), lineno=lineno)
+    #     if 'minutes' in params:
+    #         if params['minutes'] < 0 or params['minutes'] > 59:
+    #             raise SyntaxError("Minutes must be within 0 - 59, got %d" % (params['minutes']), lineno=lineno)
 
-        if 'hours' in params:
-            if params['hours'] < 0 or params['hours'] > 23:
-                raise SyntaxError("Hours must be within 0 - 23, got %d" % (params['hours']), lineno=lineno)
+    #     if 'hours' in params:
+    #         if params['hours'] < 0 or params['hours'] > 23:
+    #             raise SyntaxError("Hours must be within 0 - 23, got %d" % (params['hours']), lineno=lineno)
         
-        if 'day_of_month' in params:
-            if params['day_of_month'] < 0 or params['day_of_month'] > 31:
-                raise SyntaxError("Day of month must be within 0 - 31, got %d" % (params['day_of_month']), lineno=lineno)
+    #     if 'day_of_month' in params:
+    #         if params['day_of_month'] < 0 or params['day_of_month'] > 31:
+    #             raise SyntaxError("Day of month must be within 0 - 31, got %d" % (params['day_of_month']), lineno=lineno)
         
-        if 'day_of_week' in params:
-            if isinstance(params['day_of_week'], str):
-                params['day_of_week'] = DAY_OF_WEEK[params['day_of_week'].lower()]
+    #     if 'day_of_week' in params:
+    #         if isinstance(params['day_of_week'], str):
+    #             params['day_of_week'] = DAY_OF_WEEK[params['day_of_week'].lower()]
 
-            if params['day_of_week'] < 1 or params['day_of_week'] > 7:
-                raise SyntaxError("Day of week must be within 1 - 7, got %d" % (params['day_of_week']), lineno=lineno)
+    #         if params['day_of_week'] < 1 or params['day_of_week'] > 7:
+    #             raise SyntaxError("Day of week must be within 1 - 7, got %d" % (params['day_of_week']), lineno=lineno)
         
-        if 'month' in params:
-            if isinstance(params['month'], str):
-                params['month'] = MONTHS[params['month'].lower()]
+    #     if 'month' in params:
+    #         if isinstance(params['month'], str):
+    #             params['month'] = MONTHS[params['month'].lower()]
 
-            if params['month'] < 1 or params['month'] > 12:
-                raise SyntaxError("Month must be within 1 - 12, got %d" % (params['month']), lineno=lineno)
+    #         if params['month'] < 1 or params['month'] > 12:
+    #             raise SyntaxError("Month must be within 1 - 12, got %d" % (params['month']), lineno=lineno)
                         
 
-        for i in ['seconds', 'minutes', 'hours', 'day_of_month', 'day_of_week', 'month']:
-            if i not in params:
-                params[i] = -1
+    #     for i in ['seconds', 'minutes', 'hours', 'day_of_month', 'day_of_week', 'month']:
+    #         if i not in params:
+    #             params[i] = -1
 
-        self.cron_tab[func].append(params)
+    #     self.cron_tab[func].append(params)
 
     def usedef(self, func):
         use = []
@@ -3356,21 +3356,34 @@ class Builder(object):
 
             meta_names.append(name)
         
+        # # set up cron entries
+        # packed_cron = bytes()
+        # for func_name, entries in list(self.cron_tab.items()):
+            
+        #     for entry in entries:
+        #         item = CronItem(
+        #                 func=self.function_addrs[func_name],
+        #                 second=entry['seconds'],
+        #                 minute=entry['minutes'],
+        #                 hour=entry['hours'],
+        #                 day_of_month=entry['day_of_month'],
+        #                 day_of_week=entry['day_of_week'],
+        #                 month=entry['month'])
+
+        #         packed_cron += item.pack()
+
         # set up cron entries
         packed_cron = bytes()
-        for func_name, entries in list(self.cron_tab.items()):
-            
-            for entry in entries:
-                item = CronItem(
-                        func=self.function_addrs[func_name],
-                        second=entry['seconds'],
-                        minute=entry['minutes'],
-                        hour=entry['hours'],
-                        day_of_month=entry['day_of_month'],
-                        day_of_week=entry['day_of_week'],
-                        month=entry['month'])
+        for func_name, entry in self.cron:
+            item = CronItem(
+                    second=entry['seconds'],
+                    minute=entry['minutes'],
+                    hour=entry['hours'],
+                    day_of_month=entry['day_of_month'],
+                    day_of_week=entry['day_of_week'],
+                    month=entry['month'])
 
-                packed_cron += item.pack()
+            packed_cron += item.pack()
 
 
         # build program header
