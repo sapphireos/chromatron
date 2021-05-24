@@ -1033,7 +1033,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         print("Pixel arrays:    %d"         % (len(builder.pixel_arrays)))
         print("Links:           %d"         % (len(builder.links)))
         print("DB entries:      %d"         % (len(builder.db_entries)))
-        print("Cron entries:    %d"         % (len(builder.cron_tab)))
+        print("Cron entries:    %d"         % (len(builder.cron)))
         print("Stream hash:     0x%08x"     % (builder.stream_hash))
 
     return builder

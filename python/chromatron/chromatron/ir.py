@@ -2904,6 +2904,21 @@ class Builder(object):
             pix_array.fields['mirror'] = self.pixel_arrays[mirror].array_list_index
             pix_array_records[name].fields['mirror'].default_value = int(pix_array.fields['mirror'])
 
+
+        # allocate cron entries
+        for entry in self.cron:
+            print("CRON", entry)
+
+            item = CronItem(
+                    second=entry['seconds'],
+                    minute=entry['minutes'],
+                    hour=entry['hours'],
+                    day_of_month=entry['day_of_month'],
+                    day_of_week=entry['day_of_week'],
+                    month=entry['month'])
+
+            self.data_table.append(item)
+
         # allocate all other globals
         for i in list(self.globals.values()):
             if isinstance(i, irRecord) and i.type == 'PixelArray':
@@ -3374,7 +3389,7 @@ class Builder(object):
 
         # set up cron entries
         packed_cron = bytes()
-        for func_name, entry in self.cron:
+        for entry in self.cron:
             item = CronItem(
                     second=entry['seconds'],
                     minute=entry['minutes'],

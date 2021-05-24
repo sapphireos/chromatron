@@ -135,6 +135,22 @@ int8_t vm_lib_i8_libcall_built_in(
             }
 
             break;    
+
+        case __KV__within:
+
+            if( param_len != 2 ){
+
+                *result = 0;
+                
+                break;
+            }
+
+            temp0 = data[params[0]];
+            temp1 = data[params[1]];
+
+            // cron_t *cron0 = state->
+
+            break;
         
         case __KV__time_synced:
             
