@@ -403,6 +403,8 @@ int8_t _catbus_i8_internal_set(
 
     for( uint16_t i = 0; i < count; i++ ){
 
+        // NOTE: we do an internal read before we do the conversion.
+        // this is so the conversion will also check if the value is changing.
         kv_i8_internal_get( &meta, hash, index, 1, buf, sizeof(buf) );
 
         if( type_i8_convert( meta.type, buf, type, data, data_len ) != 0 ){
