@@ -434,18 +434,6 @@ class irStrLiteral(irVar_str):
         assert self.addr != None
         return insAddr(self.ref, self)
 
-class irField(IR):
-    def __init__(self, name, obj, **kwargs):
-        super(irField, self).__init__(**kwargs)
-        self.name = name
-        self.obj = obj
-        
-    def __str__(self):
-        return "Field(%s.%s)" % (self.obj.name, self.name)
-
-    def generate(self):
-        return insAddr(self.obj.offsets[self.name].addr)
-
 class irObject(IR):
     def __init__(self, name, data_type, args=[], kw={}, **kwargs):
         super(irObject, self).__init__(**kwargs)
