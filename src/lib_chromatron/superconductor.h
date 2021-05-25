@@ -25,8 +25,20 @@
 #ifndef __SUPERCONDUCTOR_H
 #define __SUPERCONDUCTOR_H
 
+#define SC_SYNC_INTERVAL	1000
 
+#define SC_MAX_BANKS		4
 
+typedef struct{
+	uint8_t msg_type;
+	uint8_t reserved[3];
+} sc_msg_hdr_t;
+
+typedef struct{
+	sc_msg_hdr_t hdr;
+	catbus_hash_t32 banks[SC_MAX_BANKS];
+} sc_msg_init_t;
+#define SC_MSG_TYPE_INIT	1
 
 void sc_v_init( void );
 
