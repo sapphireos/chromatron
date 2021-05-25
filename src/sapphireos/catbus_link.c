@@ -1833,6 +1833,10 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
 
         log_v_error_P( PSTR("float not supported") );
     }
+    else if( array_len > 1 ){
+
+        log_v_error_P( PSTR("arrays not supported") );
+    }
     // integer types
     else{
 
