@@ -903,6 +903,11 @@ PT_BEGIN( pt );
                 error = CATBUS_ERROR_PROTOCOL_ERROR;
                 goto end;
             }
+            else if( reply_count == 0 ){
+
+                error = CATBUS_ERROR_KEY_NOT_FOUND;
+                goto end;
+            }
 
             mem_handle_t h = mem2_h_alloc( reply_len + sizeof(catbus_msg_key_data_t) - sizeof(catbus_data_t) );
 
@@ -943,6 +948,10 @@ PT_BEGIN( pt );
                     uint8_t *ptr = (uint8_t *)data;
                     ptr += ( sizeof(catbus_data_t) + ( type_len - 1 ) );
                     data = (catbus_data_t *)ptr;
+                }
+                else{
+
+                    ASSERT( FALSE ); // all requested keys were already checked, so they must exist here
                 }
 
                 hash++;
