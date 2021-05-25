@@ -27,16 +27,55 @@
 
 #include "superconductor.h"
 
+
 #ifdef ENABLE_SERVICES
 
-static catbus_hash_t32 banks[SC_MAX_BANKS];
+static bool sc_enable;
+
+// static catbus_hash_t32 banks[SC_MAX_BANKS];
+static catbus_string_t banks[SC_MAX_BANKS];
+
+// int8_t _sc_kv_handler(
+//     kv_op_t8 op,
+//     catbus_hash_t32 hash,
+//     void *data,
+//     uint16_t len )
+// {
+//     if( op == KV_OP_GET ){
+
+//         // if( hash == __KV__cfg_total_blocks ){
+
+//         //     STORE16(data, cfg_u16_total_blocks());
+//         // }
+//         // else if( hash == __KV__cfg_free_blocks ){
+
+//         //     STORE16(data, cfg_u16_free_blocks());
+//         // }
+//     }
+//     else if( op == KV_OP_SET ){
+
+//     	char *s = (char *data);	
+
+//     	if( hash == __KV__sc_bank0 ){
+
+
+//     	}
+//     }
+//     else{
+
+//         ASSERT( FALSE );
+//     }
+
+//     return 0;
+// }
+
 
 KV_SECTION_META kv_meta_t superconductor_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST,  0, 				0, "sc_enable" },
-    { SAPPHIRE_TYPE_UINT32, 0, 0,  				  &banks[0], 		0, "sc_bank0" },
-    { SAPPHIRE_TYPE_UINT32, 0, 0,  				  &banks[1], 		0, "sc_bank1" },
-    { SAPPHIRE_TYPE_UINT32, 0, 0,  				  &banks[2], 		0, "sc_bank2" },
-    { SAPPHIRE_TYPE_UINT32, 0, 0,  				  &banks[3], 		0, "sc_bank3" },
+    { SAPPHIRE_TYPE_BOOL,   	0, 0,  				  &sc_enable, 	0,               "sc_enable" },
+    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[0],    0,  "sc_bank0" },
+    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[1],    0,  "sc_bank1" },
+    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[2],    0,  "sc_bank2" },
+    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[3],    0,  "sc_bank3" },
 };
 
 
@@ -49,6 +88,7 @@ static void send_init_msg( void ){
 	sc_msg_init_t msg;
 	memset( &msg, 0, sizeof(msg) );
 
+	msg.hdr.magic    = SC_MAGIC;
 	msg.hdr.msg_type = SC_MSG_TYPE_INIT;
 
 	for( uint8_t i = 0; i < SC_MAX_BANKS; i++ ){
@@ -64,6 +104,8 @@ static void send_init_msg( void ){
 PT_THREAD( superconductor_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    THREAD_WAIT_WHILE( pt, !sc_enable );
 
 	log_v_info_P( PSTR("SuperConductor server is waiting") );
   
@@ -83,7 +125,7 @@ PT_BEGIN( pt );
 		THREAD_EXIT( pt );    	
     }
 
-    sock_v_set_timeout( sock, 4 );
+    sock_v_set_timeout( sock, 1 );
 
     log_v_info_P( PSTR("SuperConductor is connected") );
 
@@ -100,18 +142,62 @@ PT_BEGIN( pt );
 			goto cleanup;
 		}
 
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
-
-            continue;
-        }
-
         if( tmr_u32_elapsed_time_ms( timer ) > SC_SYNC_INTERVAL ){
 
         	send_init_msg();
         	timer = tmr_u32_get_system_time_ms();
         }
 
-        
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            continue;
+        }
+
+        sc_msg_hdr_t *header = sock_vp_get_data( sock );
+
+        if( header->magic != SC_MAGIC ){
+
+            continue;
+        }
+		
+		if( header->msg_type == SC_MSG_TYPE_BANK ){
+
+			sc_msg_bank_t *msg = (sc_msg_bank_t *)header;
+
+			// look up matching bank
+			bool found = FALSE;
+			for( uint8_t i = 0; i < SC_MAX_BANKS; i++ ){
+
+				if( strncmp( msg->bank.str, banks[i].str, CATBUS_STRING_LEN ) == 0 ){
+
+					found = TRUE;
+					break;
+				}
+			}		
+
+			if( !found ){
+
+				continue;
+			}
+
+            uint16_t data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(sc_msg_bank_t) - 1 );
+
+            uint32_t hash = hash_u32_string( msg->bank.str );
+
+            // add. and set if already added:
+            int8_t status = kvdb_i8_add( 
+                                hash, 
+                                msg->data.meta.type, 
+                                (uint16_t)msg->data.meta.count + 1, 
+                                &msg->data.data, 
+                                data_len
+                            );
+
+            if( status != KVDB_STATUS_OK ){
+
+                log_v_error_P( PSTR("kvdb failed to set: %d %s 0x%0x len: %d"), status, msg->bank.str, hash, data_len );
+            }
+		}        
 	}
 
 
@@ -132,15 +218,6 @@ PT_END( pt );
 void sc_v_init( void ){
 
 	#ifdef ENABLE_SERVICES
-
-	bool enable = FALSE;
-
-	kv_i8_get( __KV__sc_enable, &enable, sizeof(enable) );
-
-	if( !enable ){
-
-		return;
-	}
 
 	thread_t_create( superconductor_thread,
                 PSTR("superconductor"),

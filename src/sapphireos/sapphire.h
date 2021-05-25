@@ -55,6 +55,6 @@
 #include "wifi.h"
 #include "i2s.h"
 #include "services.h"
-
+#include "hash.h"
 
 #endif
