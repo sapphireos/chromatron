@@ -35,47 +35,38 @@ static bool sc_enable;
 // static catbus_hash_t32 banks[SC_MAX_BANKS];
 static catbus_string_t banks[SC_MAX_BANKS];
 
-// int8_t _sc_kv_handler(
-//     kv_op_t8 op,
-//     catbus_hash_t32 hash,
-//     void *data,
-//     uint16_t len )
-// {
-//     if( op == KV_OP_GET ){
+int8_t _sc_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+        
+    }
+    else if( op == KV_OP_SET ){
 
-//         // if( hash == __KV__cfg_total_blocks ){
+    	char *s = (char *)data;	
 
-//         //     STORE16(data, cfg_u16_total_blocks());
-//         // }
-//         // else if( hash == __KV__cfg_free_blocks ){
+        // set DB name for KV lookups
+        kvdb_v_set_name( s );
+        // this really needs to be done in the KVDB add function.
+    }
+    else{
 
-//         //     STORE16(data, cfg_u16_free_blocks());
-//         // }
-//     }
-//     else if( op == KV_OP_SET ){
+        ASSERT( FALSE );
+    }
 
-//     	char *s = (char *data);	
-
-//     	if( hash == __KV__sc_bank0 ){
-
-
-//     	}
-//     }
-//     else{
-
-//         ASSERT( FALSE );
-//     }
-
-//     return 0;
-// }
+    return 0;
+}
 
 
 KV_SECTION_META kv_meta_t superconductor_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,   	0, 0,  				  &sc_enable, 	0,               "sc_enable" },
-    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[0],    0,  "sc_bank0" },
-    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[1],    0,  "sc_bank1" },
-    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[2],    0,  "sc_bank2" },
-    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[3],    0,  "sc_bank3" },
+    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[0],    _sc_kv_handler,  "sc_bank0" },
+    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[1],    _sc_kv_handler,  "sc_bank1" },
+    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[2],    _sc_kv_handler,  "sc_bank2" },
+    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[3],    _sc_kv_handler,  "sc_bank3" },
 };
 
 

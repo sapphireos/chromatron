@@ -182,6 +182,9 @@ uint16_t kvdb_u16_db_size( void ){
     return list_u16_size( &db_list );
 }
 
+
+// TODO:
+// require adding the name to the DB, otherwise lookups will fail!
 int8_t kvdb_i8_add( 
     catbus_hash_t32 hash, 
     catbus_type_t8 type,
@@ -681,7 +684,7 @@ int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] )
 
     if( kv_names_f < 0 ){
 
-        return status;
+        goto end;
     }
 
     fs_v_seek( kv_names_f, 0 );
@@ -703,6 +706,7 @@ int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] )
         }
     }
 
+end:
     return status;
 }
 #endif

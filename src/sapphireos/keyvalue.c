@@ -685,6 +685,8 @@ static int8_t _kv_i8_internal_set(
         return KV_ERR_STATUS_TYPE_MISMATCH;
     }
 
+    void *ptr = data;
+
     // check if parameter has a pointer
     if( meta->ptr != 0 ){
 
@@ -698,14 +700,14 @@ static int8_t _kv_i8_internal_set(
 
             if( diff == 0 ){
 
-                diff = memcmp( meta->ptr, data, copy_len );
+                diff = memcmp( meta->ptr, ptr, copy_len );
             }
 
             // set data
-            memcpy( meta->ptr, data, copy_len );
+            memcpy( meta->ptr, ptr, copy_len );
 
             meta->ptr += copy_len;
-            data += copy_len;
+            ptr += copy_len;
             index++;
 
             // check for overflow
