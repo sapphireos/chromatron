@@ -1165,7 +1165,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, catbus_data_t
         return;
     }
 
-    uint16_t dest_data_len = type_u16_size_meta( &dest_meta );
+    uint16_t dest_data_len = type_u16_size( dest_meta.type );
     uint16_t dest_count = dest_meta.count + 1;
 
     remote_state_t *remote;
@@ -1224,6 +1224,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, catbus_data_t
     }
 
     remote = list_vp_get_data( ln );
+    memset( remote, 0, remote_len );
         
     remote->link        = link;
     remote->addr        = *raddr;
