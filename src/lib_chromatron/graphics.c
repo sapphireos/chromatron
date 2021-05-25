@@ -39,6 +39,7 @@
 #include "vm_sync.h"
 #include "kvdb.h"
 #include "hash.h"
+#include "superconductor.h"
 
 
 static uint16_t vm_fader_time;
@@ -59,6 +60,8 @@ void gfx_v_init( void ){
     #ifdef ENABLE_TIME_SYNC
     vm_sync_v_init();
     #endif
+
+    sc_v_init();
 
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),
