@@ -207,7 +207,8 @@ int8_t kvdb_i8_add(
 
     // check if this hash is already in another part of the database:
     catbus_meta_t meta;
-    if( kv_i8_get_catbus_meta( hash, &meta ) >= 0 ){
+    int8_t status = kv_i8_get_catbus_meta( hash, &meta );
+    if( status >= 0 ){
 
         return KVDB_STATUS_HASH_CONFLICT;
     }
@@ -403,7 +404,7 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
 
     if( len != data_len ){
 
-        return KVDB_STATUS_NOT_ENOUGH_SPACE;
+        return KVDB_STATUS_LENGTH_MISMATCH;
     }
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
