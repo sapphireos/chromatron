@@ -66,6 +66,7 @@ typedef struct __attribute__((packed)){
 #define CATBUS_ERROR_INVALID_TYPE               0x0004
 #define CATBUS_ERROR_READ_ONLY                  0x0005
 #define CATBUS_ERROR_GENERIC_ERROR              0x0006
+#define CATBUS_ERROR_DATA_TOO_LARGE             0x0007
 
 #define CATBUS_ERROR_FILE_NOT_FOUND             0x0101
 #define CATBUS_ERROR_FILESYSTEM_FULL            0x0102

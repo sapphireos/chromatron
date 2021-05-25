@@ -414,6 +414,8 @@ error_codes = {
     CATBUS_ERROR_INVALID_TYPE:      "Invalid type",
     CATBUS_ERROR_READ_ONLY:         "Read only",
     CATBUS_ERROR_GENERIC_ERROR:     "Generic error",
+    CATBUS_ERROR_DATA_TOO_LARGE:    "Data too large",
+
     CATBUS_ERROR_FILE_NOT_FOUND:    "File not found",
     CATBUS_ERROR_FILESYSTEM_FULL:   "Filesystem full",
     CATBUS_ERROR_FILESYSTEM_BUSY:   "Filesystem busy",

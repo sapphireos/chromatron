@@ -685,7 +685,7 @@ static int8_t _kv_i8_internal_set(
         return KV_ERR_STATUS_TYPE_MISMATCH;
     }
 
-    void *ptr = data;
+    const void *ptr = data;
 
     // check if parameter has a pointer
     if( meta->ptr != 0 ){

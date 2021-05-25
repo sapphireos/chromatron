@@ -882,25 +882,25 @@ PT_BEGIN( pt );
 
                     uint16_t data_len = kv_u16_get_size_meta( &meta ) + sizeof(catbus_data_t) - 1;
                     
-                    if( ( reply_len + data_len ) > CATBUS_MAX_DATA ){
+                    reply_len += data_len;
+
+                    if( reply_len > CATBUS_MAX_DATA ){
 
                         break;
                     }
-
-                    reply_len += data_len;
                     reply_count++;
                 }       
                 else{
 
-                    log_v_debug_P( PSTR("%lu not found from: %d.%d.%d.%d"), hash, raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
-                }         
+                    log_v_warn_P( PSTR("%lu not found from: %d.%d.%d.%d"), hash, raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+                }
 
                 hash++;
             }
 
             if( reply_len > CATBUS_MAX_DATA ){
 
-                error = CATBUS_ERROR_PROTOCOL_ERROR;
+                error = CATBUS_ERROR_DATA_TOO_LARGE;
                 goto end;
             }
             else if( reply_count == 0 ){
