@@ -1835,7 +1835,7 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
     }
     else if( array_len > 1 ){
 
-        log_v_error_P( PSTR("arrays not supported") );
+        log_v_error_P( PSTR("arrays not supported: 0x%x -> %d"), hash, array_len );
     }
     // integer types
     else{
