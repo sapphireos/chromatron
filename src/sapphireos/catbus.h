@@ -30,6 +30,7 @@
 #include "catbus_link.h"
 #include "ntp.h"
 #include "list.h"
+#include "udp.h"
 
 #define CATBUS_ANNOUNCE_PORT                44631
 #define CATBUS_MAIN_PORT                    44632
@@ -72,6 +73,8 @@ typedef struct __attribute__((packed)){
 #define CATBUS_ERROR_FILESYSTEM_FULL            0x0102
 #define CATBUS_ERROR_FILESYSTEM_BUSY            0x0103
 #define CATBUS_ERROR_INVALID_FILE_SESSION       0x0104
+
+#define CATBUS_MAX_DATA                     ( UDP_MAX_LEN - ( sizeof(catbus_header_t) ) - 4 )
 
 
 // GENERAL

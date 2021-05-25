@@ -210,6 +210,8 @@ static int8_t _catbus_i8_meta_handler(
 
 void catbus_v_init( void ){
 
+    trace_printf("Catbus max data len: %d\r\n", CATBUS_MAX_DATA);
+
     #ifdef ENABLE_CATBUS_LINK
     // list_v_init( &send_list );
     // list_v_init( &receive_cache );

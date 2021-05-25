@@ -35,7 +35,7 @@ CATBUS_MSG_TYPE_OFFSET             = 4
 CATBUS_MAX_HASH_LOOKUPS            = 16
 CATBUS_MAX_GET_KEY_ITEM_COUNT      = 32
 CATBUS_MAX_KEY_META                = 64
-CATBUS_MAX_DATA                    = 512
+CATBUS_MAX_DATA                    = 520 # see the computation in catbus.h
 
 CATBUS_MSG_GENERAL_GROUP_OFFSET    = 1
 CATBUS_MSG_DISCOVERY_GROUP_OFFSET  = 10

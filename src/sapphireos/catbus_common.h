@@ -34,7 +34,6 @@ typedef uint8_t catbus_flags_t8;
 #define CATBUS_FLAGS_PERSIST                0x04
 #define CATBUS_FLAGS_DYNAMIC                0x08
 
-#define CATBUS_MAX_DATA                     512
 #define CATBUS_STRING_LEN                   32
 #define CATBUS_QUERY_LEN                    8
 
