@@ -1814,10 +1814,9 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
     // also need the catbus version of meta data
     kv_i8_get_catbus_meta( hash, &msg_buf->msg.data.meta );
 
-    uint16_t type_size = kv_u16_get_size_meta( &meta );
     uint16_t array_len = meta.array_len + 1;
-    uint16_t data_len = type_size * array_len;
-
+    uint16_t data_len = kv_u16_get_size_meta( &meta );
+    
     if( link_state->mode == LINK_MODE_SEND ){
         
         // get data from database.
@@ -1954,7 +1953,7 @@ done:
     // receiver leaders need to set their own data
     if( link_state->mode == LINK_MODE_RECV ){
 
-        // kv_i8_set( hash, &msg_buf->msg.data.data, data_len );
+        kv_i8_set( hash, &msg_buf->msg.data.data, data_len );
     }
 
     return data_len;
