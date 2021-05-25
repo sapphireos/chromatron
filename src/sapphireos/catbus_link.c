@@ -1166,6 +1166,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, catbus_data_t
     }
 
     uint16_t dest_data_len = type_u16_size_meta( &dest_meta );
+    uint16_t dest_count = dest_meta.count + 1;
 
     remote_state_t *remote;
 
@@ -1213,7 +1214,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, catbus_data_t
     }
 
     // remote was not found, create one
-    uint16_t remote_len = ( sizeof(remote_state_t) - sizeof(uint8_t) ) + dest_data_len; // subtract an extra byte to compensate for the catbus_data_t.data field
+    uint16_t remote_len = ( sizeof(remote_state_t) - sizeof(uint8_t) ) + ( dest_data_len * dest_count ); // subtract an extra byte to compensate for the catbus_data_t.data field
 
     ln = list_ln_create_node2( 0, remote_len, MEM_TYPE_LINK_REMOTE );
 
@@ -1254,9 +1255,14 @@ update_data:
     uint16_t src_data_len = type_u16_size( src_data->meta.type );
     uint8_t *src_ptr = &src_data->data;
 
-    uint16_t count = dest_meta.count + 1;
+    uint16_t src_count = src_data->meta.count + 1;
 
-    for( uint16_t i = 0; i < count; i++ ){
+    if( dest_count > src_count ){
+
+        dest_count = src_count;
+    }
+
+    for( uint16_t i = 0; i < dest_count; i++ ){
 
         if( type_i8_convert( dest_meta.type, dest_ptr, src_data->meta.type, src_ptr, src_data_len ) != 0 ){
             // value changed
