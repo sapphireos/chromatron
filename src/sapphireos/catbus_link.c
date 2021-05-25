@@ -1257,9 +1257,6 @@ update_data:
 
     uint16_t src_count = src_data->meta.count + 1;
 
-    // trace_printf("%d %d %d | %d\r\n", src_data->meta.type, src_data_len, src_count, dest_meta.type);
-
-
     if( dest_count > src_count ){
 
         dest_count = src_count;
@@ -1274,8 +1271,6 @@ update_data:
         src_ptr += src_data_len;
         dest_ptr += dest_data_len;
     }
-
-    // kv_i8_set( dest_meta.hash, &remote->data.data, data_len );
 }
 
 static void update_producer_from_query( link_msg_producer_query_t *msg, sock_addr_t *raddr ){
