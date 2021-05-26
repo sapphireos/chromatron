@@ -848,6 +848,17 @@ PT_BEGIN( pt );
                     goto end;
                 }
 
+                uint16_t data_len = kv_u16_get_size_meta( &meta ) + sizeof(catbus_data_t) - 1;
+
+                // check data len - if too large, log an error and skip
+                // this prevents clients from requesting an item that will fail
+                if( data_len > CATBUS_MAX_DATA ){
+
+                    log_v_critical_P( PSTR("%s is too large for packet: %d bytes. Skipping."), meta.name, data_len );
+
+                    continue;
+                }
+
                 item->hash      = hash_u32_string( meta.name );
                 item->type      = meta.type;
                 item->flags     = meta.flags;
