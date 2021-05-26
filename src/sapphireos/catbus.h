@@ -74,7 +74,7 @@ typedef struct __attribute__((packed)){
 #define CATBUS_ERROR_FILESYSTEM_BUSY            0x0103
 #define CATBUS_ERROR_INVALID_FILE_SESSION       0x0104
 
-#define CATBUS_MAX_DATA                     ( UDP_MAX_LEN - ( sizeof(catbus_header_t) + 4 + ( sizeof(catbus_data_t) - 1 ) ) )
+#define CATBUS_MAX_DATA                     ( UDP_MAX_LEN - ( sizeof(catbus_header_t) + 1 + ( sizeof(catbus_data_t) - 1 ) ) )
 
 
 // GENERAL

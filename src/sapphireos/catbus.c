@@ -854,7 +854,7 @@ PT_BEGIN( pt );
                 // this prevents clients from requesting an item that will fail
                 if( data_len > CATBUS_MAX_DATA ){
 
-                    log_v_critical_P( PSTR("%s is too large for packet: %d bytes. Skipping."), meta.name, data_len );
+                    log_v_critical_P( PSTR("%s is too large for packet: %d bytes. Max: %d Skipping."), meta.name, data_len, CATBUS_MAX_DATA );
 
                     continue;
                 }
