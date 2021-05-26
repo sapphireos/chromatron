@@ -499,7 +499,7 @@ int8_t catbus_i8_array_get(
 
         for( uint16_t i = 0; i < count; i++ ){
        
-            status = kv_i8_array_get( hash, index, 1, buf, sizeof(buf) );         
+            status = kv_i8_internal_get( &meta, hash, index, 1, buf, sizeof(buf) );         
             type_i8_convert( type, data, meta.type, buf, 0 );
             
             index++;
@@ -515,7 +515,7 @@ int8_t catbus_i8_array_get(
     // conversion not necessary, so we don't need our own loop
     else{
 
-        status = kv_i8_array_get( hash, index, count, data, type_size );
+        status = kv_i8_internal_get( &meta, hash, index, count, data, type_size );
     }
 
     return 0;
