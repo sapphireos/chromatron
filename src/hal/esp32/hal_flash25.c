@@ -367,7 +367,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         return;
     }
 
-    ASSERT( ( address % 4 ) == 0 );
+    ASSERT( ( address % 4 ) == 0 ); // odd address fw file writes can hit this!
 
     uint32_t block_len = ( len / 4 ) * 4;
 

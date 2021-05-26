@@ -210,6 +210,8 @@ static int8_t _catbus_i8_meta_handler(
 
 void catbus_v_init( void ){
 
+    COMPILER_ASSERT( CATBUS_FILE_PAGE_SIZE <= CATBUS_MAX_DATA );
+
     trace_printf("Catbus max data len: %d\r\n", CATBUS_MAX_DATA);
 
     #ifdef ENABLE_CATBUS_LINK
@@ -1114,7 +1116,7 @@ PT_BEGIN( pt );
             memcpy( reply.filename, msg->filename, sizeof(reply.filename) );
             reply.status        = 0;
             reply.session_id    = session_id;
-            reply.page_size     = CATBUS_MAX_DATA;
+            reply.page_size     = CATBUS_FILE_PAGE_SIZE;
 
             sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );
         }
