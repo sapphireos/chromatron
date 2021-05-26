@@ -903,7 +903,7 @@ PT_BEGIN( pt );
                         error = CATBUS_ERROR_DATA_TOO_LARGE;
                         goto end;
                     }
-                    else if( ( reply_len + data_len ) >= CATBUS_MAX_DATA ){
+                    else if( ( reply_len + data_len ) > CATBUS_MAX_DATA ){
 
                         // this is ok - catbus can request more items that the reply message can contain.
                         // the client is expected to handle this.
