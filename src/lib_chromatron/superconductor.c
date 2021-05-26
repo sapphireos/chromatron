@@ -30,9 +30,6 @@
 
 #ifdef ENABLE_SERVICES
 
-static bool sc_enable;
-
-// static catbus_hash_t32 banks[SC_MAX_BANKS];
 static catbus_string_t banks[SC_MAX_BANKS];
 
 int8_t _sc_kv_handler(
@@ -62,7 +59,6 @@ int8_t _sc_kv_handler(
 
 
 KV_SECTION_META kv_meta_t superconductor_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,   	0, 0,  				  &sc_enable, 	0,               "sc_enable" },
     { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[0],    _sc_kv_handler,  "sc_bank0" },
     { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[1],    _sc_kv_handler,  "sc_bank1" },
     { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[2],    _sc_kv_handler,  "sc_bank2" },
@@ -92,11 +88,24 @@ static void send_init_msg( void ){
 	sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );
 }
 
+static bool sc_enabled( void ){
+
+    for( uint8_t i = 0; i < SC_MAX_BANKS; i++ ){
+
+        if( banks[i].str[0] != 0 ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 PT_THREAD( superconductor_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    THREAD_WAIT_WHILE( pt, !sc_enable );
+    THREAD_WAIT_WHILE( pt, !sc_enabled() );
 
 	log_v_info_P( PSTR("SuperConductor server is waiting") );
   
