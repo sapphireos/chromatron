@@ -883,13 +883,24 @@ PT_BEGIN( pt );
                 if( kv_i8_lookup_hash( LOAD32(hash), &meta ) == 0 ){
 
                     uint16_t data_len = kv_u16_get_size_meta( &meta ) + sizeof(catbus_data_t) - 1;
-                    
-                    reply_len += data_len;
 
-                    if( reply_len > CATBUS_MAX_DATA ){
+                    // check if this item is too large for a single packet:
+                    if( data_len > CATBUS_MAX_DATA ){
+
+                        log_v_critical_P( PSTR("0x%0x is too large for packet: %d bytes"), LOAD32(hash), data_len );
+
+                        error = CATBUS_ERROR_DATA_TOO_LARGE;
+                        goto end;
+                    }
+                    else if( ( reply_len + data_len ) >= CATBUS_MAX_DATA ){
+
+                        // this is ok - catbus can request more items that the reply message can contain.
+                        // the client is expected to handle this.
 
                         break;
                     }
+                    
+                    reply_len += data_len;
                     reply_count++;
                 }       
                 else{
@@ -900,12 +911,7 @@ PT_BEGIN( pt );
                 hash++;
             }
 
-            if( reply_len > CATBUS_MAX_DATA ){
-
-                error = CATBUS_ERROR_DATA_TOO_LARGE;
-                goto end;
-            }
-            else if( reply_count == 0 ){
+            if( reply_count == 0 ){
 
                 error = CATBUS_ERROR_KEY_NOT_FOUND;
                 goto end;
