@@ -10,7 +10,7 @@ from pprint import pprint
 
 setup_basic_logging(level=logging.INFO)
 
-NETWORK_ADDR = '10.0.0.159'
+NETWORK_ADDR = '10.0.0.250'
 
 NETWORK_DEVICES = [NETWORK_ADDR, '10.0.0.160', '10.0.0.161']
 

@@ -1,51 +1,17 @@
-# honeycomb.fx
 
+a = Number(5, publish=True)
+# b = Fixed16(1.23, publish=True)
 
-array1 = PixelArray(0, 4, reverse=False)
-array2 = PixelArray(4, 4, reverse=True)
+# ary = Array(2, type=Number, init_val=[1, 2])
+# ary2 = Array(2, type=Fixed16, init_val=[1.1, 2.1])
 
+# ary1_0 = Number(publish=True)
+# ary1_1 = Number(publish=True)
+# ary2_0 = Fixed16(publish=True)
+# ary2_1 = Fixed16(publish=True)
 
-# declare a global variable for current hue
-current_hue = Fixed16()
-
-# init - runs once when script is loaded
-def init():
-    # set pixels to full colors (maximum saturation)
-    pixels.sat = 1.0
-
-    # set to maximum brightness
-    pixels.val = 1.0
-
-    bright()
-
-
-# runs periodically, frame rate is configurable
-def loop():
-    # increment the base hue so the rainbow pattern
-    # shifts across the pixels as we go from one frame
-    # to the next.
-    current_hue += 0.003
-
-    # declare a local variable
-    a = Fixed16()
-    a = current_hue
-
-    # loop over all pixels in array
-    for i in pixels.count:
-        array1[i].hue = a
-        array2[i].hue = a
-        
-        # shift color for next pixel.
-        # this will distribute the rainbow pattern
-        # across the entire array.
-        a += 0.3 / array1.count
-
-
-@schedule(hours=8, minutes=0, seconds=0)
-def bright():
-    db.gfx_sub_dimmer = 65535
-
-@schedule(hours=0, minutes=0, seconds=0)
-def dim():
-    db.gfx_sub_dimmer = 16384
-
+# def init():
+#     ary1_0 = ary[0]
+#     ary1_1 = ary[1]
+#     ary2_0 = ary2[0]
+#     ary2_1 = ary2[1]
