@@ -46,11 +46,7 @@
 #error "VM_OPTIMIZED_DECODE does not work on ESP8266!"
 #endif
 
-#if !defined(AVR) // very slight speed boost using 32 bit numbers on Xtensa
 static uint32_t cycles;
-#else
-static uint16_t cycles;
-#endif
 
 #ifdef VM_OPTIMIZED_DECODE
 typedef struct __attribute__((packed)){
@@ -433,38 +429,21 @@ static int8_t _vm_i8_run_stream(
     #endif
 
 
-    #if !defined(AVR)
-        #define DISPATCH cycles--; \
-                         if( cycles == 0 ){ \
-                            return VM_STATUS_ERR_MAX_CYCLES; \
-                        } \
-                        opcode = *pc++; \
-                        goto *opcode_table[opcode]
 
 
-        DISPATCH;
 
-    #else
-        #define DISPATCH goto dispatch
-        dispatch:
-            cycles--;
+    #define DISPATCH cycles--; \
+                     if( cycles == 0 ){ \
+                        return VM_STATUS_ERR_MAX_CYCLES; \
+                    } \
+                    opcode = *pc++; \
+                    goto *opcode_table[opcode]
 
-            if( cycles == 0 ){
 
-                return VM_STATUS_ERR_MAX_CYCLES;
-            }
+    DISPATCH;
 
-            opcode = *pc++;
 
-        #if !defined(AVR)
-            goto *opcode_table[opcode];
-        #else
-            void *target = (void*)pgm_read_word( &opcode_table[opcode] );
-            goto *target;
-        #endif
-
-    #endif
-
+    
 
 opcode_mov:
 #ifdef VM_OPTIMIZED_DECODE
