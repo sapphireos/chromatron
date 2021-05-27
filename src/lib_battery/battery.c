@@ -86,7 +86,7 @@ hold btn 0 for 3 seconds and btn 1 for 6 seconds
 
 #define MAX_BUTTONS 2
 
-static uint8_t button_hold_duration[2];
+static uint8_t button_hold_duration[MAX_BUTTONS];
 
 static bool pca9536_enabled;
 

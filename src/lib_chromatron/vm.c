@@ -975,6 +975,7 @@ PT_BEGIN( pt );
         THREAD_EXIT( pt );
     }
 
+    TMR_WAIT( pt, 100 ); // delay so pixel drivers have a chance to zero out the array
 
     while(1){
 

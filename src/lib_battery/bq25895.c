@@ -36,6 +36,7 @@ static uint16_t batt_volts;
 static uint16_t vbus_volts;
 static uint16_t sys_volts;
 static uint16_t batt_charge_current;
+static uint16_t batt_max_charge_current;
 static bool batt_charging;
 static bool vbus_connected;
 static uint8_t batt_fault;
@@ -49,21 +50,21 @@ static uint8_t batt_cells; // number of cells in system
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,             0,  "batt_soc" },
-    // { SAPPHIRE_TYPE_UINT8,   0, 0,  &batt_soc,             0,  "batt_soc" },
-    { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                0,  "batt_temp" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,        0,  "batt_charging" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,       0,  "batt_external_power" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,           0,  "batt_volts" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,           0,  "batt_vbus_volts" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,            0,  "batt_sys_volts" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,        0,  "batt_charge_status" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,  0,  "batt_charge_current" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,           0,  "batt_fault" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,          0,  "batt_vbus_status" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,             0,  "batt_capacity" },
-    { SAPPHIRE_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,            0,  "batt_remaining" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,           0,  "batt_cells" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                 0,  "batt_soc" },
+    { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                    0,  "batt_temp" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,            0,  "batt_charging" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,           0,  "batt_external_power" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,               0,  "batt_volts" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,               0,  "batt_vbus_volts" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                0,  "batt_sys_volts" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,            0,  "batt_charge_status" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,      0,  "batt_charge_current" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,               0,  "batt_fault" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,              0,  "batt_vbus_status" },
+    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                 0,  "batt_capacity" },
+    { SAPPHIRE_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                0,  "batt_remaining" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
 
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
@@ -684,7 +685,6 @@ PT_BEGIN( pt );
     batt_soc_startup = batt_soc;
 
 
-
     while(1){
 
         charge_status = bq25895_u8_get_charge_status();
@@ -777,6 +777,17 @@ PT_BEGIN( pt );
             if( fast_charge_current > 5000 ){
 
                 fast_charge_current = 5000;
+            }
+
+            // set default max current to the cell count setting
+            if( batt_max_charge_current == 0 ){
+
+                batt_max_charge_current = fast_charge_current;
+            }
+            // apply maximum charge current, if the allowable cell current would exceed it
+            else if( fast_charge_current > batt_max_charge_current ){
+
+                fast_charge_current = batt_max_charge_current;
             }
 
             bq25895_v_set_fast_charge_current( fast_charge_current );
