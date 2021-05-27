@@ -2325,11 +2325,8 @@ int8_t vm_i8_run(
 
     while( count > 0 ){
 
-        if( ( publish->type == CATBUS_TYPE_STRING512 ) ||
-            ( publish->type == CATBUS_TYPE_STRING64 ) ){
+        if( !type_b_is_string( publish->type ) ){
 
-        }
-        else{
             kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
         }
 
@@ -2774,11 +2771,30 @@ int8_t vm_i8_load_program(
         return VM_STATUS_ERR_BAD_LENGTH;        
     }
 
+    int32_t *data_table = (int32_t *)( stream + state->data_start );
+
     // init RNG seed
     state->rng_seed = 1;
 
     state->tick = 0;
     state->loop_tick = 10; // start loop tick with a slight delay
+
+
+    // init database entries for published var default values
+    vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
+
+    uint32_t count = state->publish_count;
+
+    while( count > 0 ){
+
+        if( !type_b_is_string( publish->type ) ){
+
+            kvdb_i8_set( publish->hash, publish->type, &data_table[publish->addr], sizeof(data_table[publish->addr]) );
+        }
+
+        publish++;
+        count--;
+    }
 
     return VM_STATUS_OK;
 }
