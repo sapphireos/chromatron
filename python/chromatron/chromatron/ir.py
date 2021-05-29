@@ -2404,7 +2404,7 @@ class Builder(object):
         
     def call(self, func_name, params, keywords={}, lineno=None):
         ir = None
-        
+
         if func_name in self.funcs:
             result = self.add_temp(data_type='gfx16', lineno=lineno)
 
@@ -2464,6 +2464,8 @@ class Builder(object):
         
         if ir:
             self.append_node(ir)        
+
+        assert result is not None
 
         return result
 
