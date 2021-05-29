@@ -2403,6 +2403,8 @@ class Builder(object):
         return ir
         
     def call(self, func_name, params, keywords={}, lineno=None):
+        ir = None
+        
         if func_name in self.funcs:
             result = self.add_temp(data_type='gfx16', lineno=lineno)
 
@@ -2449,7 +2451,6 @@ class Builder(object):
         
         elif func_name == 'cron':
             result = self.add_cron(keywords, lineno=lineno)
-            ir = None
 
         else:
             # library call
