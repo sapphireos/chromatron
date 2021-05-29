@@ -17,3 +17,9 @@ def func3():
 
 		global_b = func2(i)
 
+
+	if 1 == 1:
+		global_b += 1
+
+	else:
+		global_a += 1
