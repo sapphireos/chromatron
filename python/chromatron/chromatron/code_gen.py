@@ -844,9 +844,13 @@ class CodeGenPass1(ast.NodeVisitor):
         else:
             raise NotImplementedError(node)    
 
-    def visit_Num(self, node):
-        return self.get_const(node.n, node)
-        
+    def visit_Constant(self, node):
+        if isinstance(node.value, str):
+            return cg1StrLiteral(node.value, lineno=node.lineno)
+
+        else:
+            return self.get_const(node.value, node)
+
     def visit_Name(self, node):
         return cg1Var(node.id, lineno=node.lineno)
 
@@ -978,9 +982,6 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def visit_Import(self, node):
         return cg1Import([a.name for a in node.names], lineno=node.lineno)
-
-    def visit_Str(self, node):
-        return cg1StrLiteral(node.s, lineno=node.lineno)
 
     def visit_Tuple(self, node):
         items = [self.visit(a) for a in node.elts]
