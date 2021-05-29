@@ -3117,7 +3117,7 @@ class Builder(object):
 
     def remove_unreachable(self):
         if self.optimizations['remove_unreachable_code']:
-            for func in list(self.funcs.values()):
+            for func in self.funcs.values():
                 unreachable = self.unreachable(func.name)
 
                 new_code = []
