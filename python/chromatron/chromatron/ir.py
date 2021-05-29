@@ -237,7 +237,7 @@ class irVar(IR):
         if self.addr == None:
             raise CompilerFatal("%s does not have an address. Line: %d" % (self, self.lineno))
 
-        return insAddr(self.addr, self)
+        return insAddr(self.addr, self, lineno=self.lineno)
 
     def lookup(self, indexes):
         assert len(indexes) == 0
@@ -301,7 +301,7 @@ class irAddress(irVar):
     
     def generate(self):
         assert self.addr != None
-        return insAddr(self.addr, self.target)
+        return insAddr(self.addr, self.target, lineno=self.lineno)
 
     def get_base_type(self):
         return self.target.get_base_type()
@@ -436,7 +436,7 @@ class irStrLiteral(irVar_str):
 
     def generate(self):
         assert self.addr != None
-        return insAddr(self.ref, self)
+        return insAddr(self.ref, self, lineno=self.lineno)
 
 class irField(IR):
     def __init__(self, name, obj, **kwargs):
@@ -448,7 +448,7 @@ class irField(IR):
         return "Field(%s.%s)" % (self.obj.name, self.name)
 
     def generate(self):
-        return insAddr(self.obj.offsets[self.name].addr)
+        return insAddr(self.obj.offsets[self.name].addr, lineno=self.lineno)
 
 class irObject(IR):
     def __init__(self, name, data_type, args=[], kw={}, **kwargs):
@@ -687,7 +687,7 @@ class irFunc(IR):
 
     def generate(self):
         params = [a.generate() for a in self.params]
-        func = insFunction(self.name, params)
+        func = insFunction(self.name, params, lineno=self.lineno)
         ins = [func]
         for ir in self.body:
             code = ir.generate()
@@ -922,7 +922,7 @@ class irReturn(IR):
         return "RET %s" % (self.ret_var)
 
     def generate(self):
-        return insReturn(self.ret_var.generate())
+        return insReturn(self.ret_var.generate(), lineno=self.lineno)
 
     def get_input_vars(self):
         return [self.ret_var]
@@ -932,7 +932,7 @@ class irNop(IR):
         return "NOP" 
 
     def generate(self):
-        return insNop()
+        return insNop(lineno=self.lineno)
 
 class irBinop(IR):
     def __init__(self, result, op, left, right, **kwargs):
@@ -995,7 +995,7 @@ class irBinop(IR):
                 'mod': insBinop} # formatted output
         }
 
-        return ops[self.data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
+        return ops[self.data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
 
 
 class irUnaryNot(IR):
@@ -1008,7 +1008,7 @@ class irUnaryNot(IR):
         return "%s = NOT %s" % (self.target, self.value)
 
     def generate(self):
-        return insNot(self.target.generate(), self.value.generate())
+        return insNot(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
     def get_input_vars(self):
         return [self.value]
@@ -1054,10 +1054,10 @@ class irConvertType(IR):
             if self.skip_conversion():
                 raise KeyError
 
-            return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate())
+            return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate(), lineno=self.lineno)
 
         except KeyError:
-            ins = insConvMov(self.result.generate(), self.value.generate())
+            ins = insConvMov(self.result.generate(), self.value.generate(), lineno=self.lineno)
             return ins
 
 class irConvertTypeInPlace(IR):
@@ -1083,7 +1083,7 @@ class irConvertTypeInPlace(IR):
 
     def generate(self):
         try:
-            return type_conversions[(self.dest_type, self.target.type)](self.target.generate(), self.target.generate())
+            return type_conversions[(self.dest_type, self.target.type)](self.target.generate(), self.target.generate(), lineno=self.lineno)
 
         except KeyError:
             raise CompilerFatal("Invalid conversion: '%s' to '%s' on line: %d" % (self.target.type, self.dest_type, self.lineno))
@@ -1133,10 +1133,10 @@ class irVectorOp(IR):
 
         if isinstance(self.target, irPixelAttr):
             target = self.target.generate()
-            return pixel_ops[self.op](target.name, target.attr, self.value.generate())
+            return pixel_ops[self.op](target.name, target.attr, self.value.generate(), lineno=self.lineno)
 
         else:
-            return ops[self.op](self.target.generate(), self.value.generate())
+            return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 class irClear(IR):
     def __init__(self, target, **kwargs):
@@ -1152,7 +1152,7 @@ class irClear(IR):
         return [self.target]
 
     def generate(self):
-        return insClr(self.target.generate())
+        return insClr(self.target.generate(), lineno=self.lineno)
 
 
 class irAssign(IR):
@@ -1173,7 +1173,7 @@ class irAssign(IR):
         return [self.target]
 
     def generate(self):
-        return insMov(self.target.generate(), self.value.generate())
+        return insMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 class irVectorAssign(IR):
     def __init__(self, target, value, **kwargs):
@@ -1200,10 +1200,10 @@ class irVectorAssign(IR):
     def generate(self):
         if isinstance(self.target, irPixelAttr):
             target = self.target.generate()
-            return insPixelVectorMov(target.name, target.attr, self.value.generate())
+            return insPixelVectorMov(target.name, target.attr, self.value.generate(), lineno=self.lineno)
 
         else:
-            return insVectorMov(self.target.generate(), self.value.generate())
+            return insVectorMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 class irCall(IR):
     def __init__(self, target, params, args, result, **kwargs):
@@ -1230,10 +1230,10 @@ class irCall(IR):
         args = [a.generate() for a in self.args]
 
         # call func
-        call_ins = insCall(self.target, params, args)
+        call_ins = insCall(self.target, params, args, lineno=self.lineno)
 
         # move return value to result register
-        mov_ins = insMov(self.result.generate(), insAddr(0))
+        mov_ins = insMov(self.result.generate(), insAddr(0), lineno=self.lineno)
 
         return [call_ins, mov_ins]
 
@@ -1258,13 +1258,13 @@ class irLibCall(IR):
 
     def generate(self):    
         if self.target == 'halt':
-            return insHalt()
+            return insHalt(lineno=self.lineno)
 
         params = [a.generate() for a in self.params]
 
         if len(self.params) > 0 and isinstance(self.params[0], irDBAttr):
             db_item = params.pop(0)
-            call_ins = insDBCall(self.target, db_item, self.result.generate(), params)
+            call_ins = insDBCall(self.target, db_item, self.result.generate(), params, lineno=self.lineno)
 
         else:
             # if calling a thread function, remap the first parameter to a Python string,
@@ -1273,7 +1273,7 @@ class irLibCall(IR):
             if self.target in THREAD_FUNCS:
                 params[0] = self.params[0].name
 
-            call_ins = insLibCall(self.target, self.result.generate(), params)
+            call_ins = insLibCall(self.target, self.result.generate(), params, lineno=self.lineno)
 
         return call_ins
 
@@ -1289,7 +1289,7 @@ class irLabel(IR):
         return s
 
     def generate(self):
-        return insLabel(self.name)
+        return insLabel(self.name, lineno=self.lineno)
 
 
 class irBranchConditional(IR):
@@ -1314,7 +1314,7 @@ class irBranchZero(irBranchConditional):
         return s    
 
     def generate(self):
-        return insJmpIfZero(self.value.generate(), self.target.generate())
+        return insJmpIfZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
         
 
 
@@ -1328,7 +1328,7 @@ class irBranchNotZero(irBranchConditional):
         return s    
 
     def generate(self):
-        return insJmpIfNotZero(self.value.generate(), self.target.generate())
+        return insJmpIfNotZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
     
 
 class irJump(IR):
@@ -1342,7 +1342,7 @@ class irJump(IR):
         return s    
 
     def generate(self):
-        return insJmp(self.target.generate())
+        return insJmp(self.target.generate(), lineno=self.lineno)
 
     def get_jump_target(self):
         return self.target
@@ -1363,7 +1363,7 @@ class irJumpLessPreInc(IR):
         return [self.op1, self.op2]
 
     def generate(self):
-        return insJmpIfLessThanPreInc(self.op1.generate(), self.op2.generate(), self.target.generate())
+        return insJmpIfLessThanPreInc(self.op1.generate(), self.op2.generate(), self.target.generate(), lineno=self.lineno)
 
     def get_jump_target(self):
         return self.target
@@ -1430,7 +1430,7 @@ class irIndex(IR):
             strides.append(stride)
         
 
-        return insIndex(self.result.generate(), self.target.generate(), indexes, counts, strides)
+        return insIndex(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
 
 class irPixelIndex(IR):
@@ -1519,7 +1519,7 @@ class irDBStore(IR):
     def generate(self):
         indexes = [a.generate() for a in self.indexes]
 
-        return insDBStore(self.target.attr, indexes, self.value.generate())
+        return insDBStore(self.target.attr, indexes, self.value.generate(), lineno=self.lineno)
 
 
 class irDBLoad(IR):
@@ -1549,7 +1549,7 @@ class irDBLoad(IR):
 
     def generate(self):
         indexes = [a.generate() for a in self.indexes]
-        return insDBLoad(self.target.generate(), self.value.attr, indexes)
+        return insDBLoad(self.target.generate(), self.value.attr, indexes, lineno=self.lineno)
 
 
 
@@ -1586,7 +1586,7 @@ class irPixelStore(IR):
         for index in self.target.indexes:
             indexes.append(index.generate())
 
-        return ins[self.target.attr](self.target.name, self.target.attr, indexes, self.value.generate())
+        return ins[self.target.attr](self.target.name, self.target.attr, indexes, self.value.generate(), lineno=self.lineno)
 
 
 class irPixelLoad(IR):
@@ -1631,7 +1631,7 @@ class irPixelLoad(IR):
             while len(indexes) < 2:
                 indexes.append(CONST65535.generate())
 
-        return ins(self.target.generate(), self.value.name, self.value.attr, indexes)
+        return ins(self.target.generate(), self.value.name, self.value.attr, indexes, lineno=self.lineno)
 
 
 class irIndexLoad(IR):
@@ -1652,7 +1652,7 @@ class irIndexLoad(IR):
         return [self.result]
 
     def generate(self):
-        return insIndirectLoad(self.result.generate(), self.address.generate())
+        return insIndirectLoad(self.result.generate(), self.address.generate(), lineno=self.lineno)
 
 class irIndexStore(IR):
     def __init__(self, address, value, **kwargs):
@@ -1672,7 +1672,7 @@ class irIndexStore(IR):
         return [self.value]
 
     def generate(self):
-        return insIndirectStore(self.value.generate(), self.address.generate())
+        return insIndirectStore(self.value.generate(), self.address.generate(), lineno=self.lineno)
 
 
 CONST65535 = irConst(65535, lineno=0)
