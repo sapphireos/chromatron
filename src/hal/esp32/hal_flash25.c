@@ -219,11 +219,18 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         return;
     }
 
-    ASSERT( ( address % 4 ) == 0 );
+    // fix odd address alignment
+    while( ( address % 4 ) != 0 ){
+
+        *(uint8_t *)ptr = flash25_u8_read_byte( address );
+
+        address++;
+        ptr++;
+        len--;
+    }
 
     uint32_t block_len = ( len / 4 ) * 4;
 
-    
     // misaligned pointers will cause an exception!
     // if our alignment is off, we'll copy into an aligned buffer
     // and do the flash write from there.
@@ -367,12 +374,20 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         return;
     }
 
-    ASSERT( ( address % 4 ) == 0 );
+    // fix odd address alignment
+    while( ( address % 4 ) != 0 ){
 
-    uint32_t block_len = ( len / 4 ) * 4;
+        flash25_v_write_byte( address, *(uint8_t *)ptr );
+
+        address++;
+        ptr++;
+        len--;
+    }
 
     // enable writes
     flash25_v_write_enable();
+
+    uint32_t block_len = ( len / 4 ) * 4;
 
     // misaligned pointers will cause an exception!
     // if our alignment is off, we'll copy into an aligned buffer

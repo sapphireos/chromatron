@@ -1564,6 +1564,19 @@ def init():
 
 """
 
+test_expr_db_f16 = """
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+
+def init():
+    db.kv_test_key = 123
+    
+    a = db.kv_test_key + 1.0 # note that since we don't really do DB type conversion, db.kv_test_key gets treated as an f16 here.  this is ok for now.
+    b = db.kv_test_key + db.kv_test_key
+
+"""
+
 test_db_augassign = """
 
 a = Number(publish=True)
@@ -2058,6 +2071,13 @@ class CGTestsBase(unittest.TestCase):
             expected={
                 'a': 124,
                 'b': 246,
+            })
+
+    def test_expr_db_f16(self):
+        self.run_test(test_expr_db_f16,
+            expected={
+                'a': 1.0018768310546875,
+                'b': 246.0,
             })
 
     def test_db_augassign(self):

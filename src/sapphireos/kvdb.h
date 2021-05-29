@@ -89,6 +89,7 @@ extern void kvdb_v_notify_set( catbus_hash_t32 hash, catbus_meta_t *meta, const 
 #define KVDB_STATUS_INVALID_HASH        -3
 #define KVDB_STATUS_HASH_CONFLICT       -4
 #define KVDB_STATUS_DATA_TOO_LARGE      -5
+#define KVDB_STATUS_LENGTH_MISMATCH     -6
 
 
 #endif

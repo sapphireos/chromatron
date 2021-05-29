@@ -46,11 +46,7 @@
 #error "VM_OPTIMIZED_DECODE does not work on ESP8266!"
 #endif
 
-#if !defined(AVR) // very slight speed boost using 32 bit numbers on Xtensa
 static uint32_t cycles;
-#else
-static uint16_t cycles;
-#endif
 
 #ifdef VM_OPTIMIZED_DECODE
 typedef struct __attribute__((packed)){
@@ -433,38 +429,21 @@ static int8_t _vm_i8_run_stream(
     #endif
 
 
-    #if !defined(AVR)
-        #define DISPATCH cycles--; \
-                         if( cycles == 0 ){ \
-                            return VM_STATUS_ERR_MAX_CYCLES; \
-                        } \
-                        opcode = *pc++; \
-                        goto *opcode_table[opcode]
 
 
-        DISPATCH;
 
-    #else
-        #define DISPATCH goto dispatch
-        dispatch:
-            cycles--;
+    #define DISPATCH cycles--; \
+                     if( cycles == 0 ){ \
+                        return VM_STATUS_ERR_MAX_CYCLES; \
+                    } \
+                    opcode = *pc++; \
+                    goto *opcode_table[opcode]
 
-            if( cycles == 0 ){
 
-                return VM_STATUS_ERR_MAX_CYCLES;
-            }
+    DISPATCH;
 
-            opcode = *pc++;
 
-        #if !defined(AVR)
-            goto *opcode_table[opcode];
-        #else
-            void *target = (void*)pgm_read_word( &opcode_table[opcode] );
-            goto *target;
-        #endif
-
-    #endif
-
+    
 
 opcode_mov:
 #ifdef VM_OPTIMIZED_DECODE
@@ -528,6 +507,7 @@ opcode_not:
 
 
 opcode_compeq:
+opcode_f16_compeq:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -547,6 +527,7 @@ opcode_compeq:
 
 
 opcode_compneq:
+opcode_f16_compneq:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -566,6 +547,7 @@ opcode_compneq:
 
 
 opcode_compgt:
+opcode_f16_compgt:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -585,6 +567,7 @@ opcode_compgt:
 
 
 opcode_compgte:
+opcode_f16_compgte:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -604,6 +587,7 @@ opcode_compgte:
 
 
 opcode_complt:
+opcode_f16_complt:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -623,6 +607,7 @@ opcode_complt:
 
 
 opcode_complte:
+opcode_f16_complte:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -643,6 +628,7 @@ opcode_complte:
 
 
 opcode_and:
+opcode_f16_and:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -662,6 +648,7 @@ opcode_and:
 
 
 opcode_or:
+opcode_f16_or:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -681,6 +668,7 @@ opcode_or:
 
 
 opcode_add:
+opcode_f16_add:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -700,6 +688,7 @@ opcode_add:
 
     
 opcode_sub:
+opcode_f16_sub:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -770,6 +759,7 @@ opcode_div:
 
 
 opcode_mod:
+opcode_f16_mod:
 #ifdef VM_OPTIMIZED_DECODE
     decode3 = (decode3_t *)pc;
     pc += sizeof(decode3_t);
@@ -798,197 +788,6 @@ opcode_mod:
 
         data[dest] = 0;
     }
-#endif
-    DISPATCH;
-
-
-opcode_f16_compeq:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] == data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] == data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_f16_compneq:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] != data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] != data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_f16_compgt:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] > data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] > data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_f16_compgte:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] >= data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] >= data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_f16_complt:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] < data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] < data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_f16_complte:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] <= data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] <= data[op2];
-#endif
-    DISPATCH;
-
-
-
-opcode_f16_and:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] && data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] && data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_f16_or:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] || data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] || data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_f16_add:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] + data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] + data[op2];
-#endif
-    DISPATCH;
-
-    
-opcode_f16_sub:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] - data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] - data[op2];
 #endif
     DISPATCH;
 
@@ -1036,39 +835,6 @@ opcode_f16_div:
     if( data[op2] != 0 ){
 
         data[dest] = ( (int64_t)data[op1] * 65536 ) / data[op2];
-    }
-    else{
-
-        data[dest] = 0;
-    }
-#endif
-    DISPATCH;
-
-
-opcode_f16_mod:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    if( data[decode3->op2] != 0 ){
-
-        data[decode3->dest] = data[decode3->op1] % data[decode3->op2];
-    }
-    else{
-
-        data[decode3->dest] = 0;
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    if( data[op2] != 0 ){
-
-        data[dest] = data[op1] % data[op2];
     }
     else{
 
@@ -2559,11 +2325,8 @@ int8_t vm_i8_run(
 
     while( count > 0 ){
 
-        if( ( publish->type == CATBUS_TYPE_STRING512 ) ||
-            ( publish->type == CATBUS_TYPE_STRING64 ) ){
+        if( !type_b_is_string( publish->type ) ){
 
-        }
-        else{
             kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
         }
 
@@ -3008,11 +2771,30 @@ int8_t vm_i8_load_program(
         return VM_STATUS_ERR_BAD_LENGTH;        
     }
 
+    int32_t *data_table = (int32_t *)( stream + state->data_start );
+
     // init RNG seed
     state->rng_seed = 1;
 
     state->tick = 0;
     state->loop_tick = 10; // start loop tick with a slight delay
+
+
+    // init database entries for published var default values
+    vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
+
+    uint32_t count = state->publish_count;
+
+    while( count > 0 ){
+
+        if( !type_b_is_string( publish->type ) ){
+
+            kvdb_i8_set( publish->hash, publish->type, &data_table[publish->addr], sizeof(data_table[publish->addr]) );
+        }
+
+        publish++;
+        count--;
+    }
 
     return VM_STATUS_OK;
 }

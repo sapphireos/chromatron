@@ -35,7 +35,7 @@ CATBUS_MSG_TYPE_OFFSET             = 4
 CATBUS_MAX_HASH_LOOKUPS            = 16
 CATBUS_MAX_GET_KEY_ITEM_COUNT      = 32
 CATBUS_MAX_KEY_META                = 64
-CATBUS_MAX_DATA                    = 512
+CATBUS_MAX_DATA                    = 520 # see the computation in catbus.h
 
 CATBUS_MSG_GENERAL_GROUP_OFFSET    = 1
 CATBUS_MSG_DISCOVERY_GROUP_OFFSET  = 10
@@ -399,6 +399,7 @@ CATBUS_ERROR_KEY_NOT_FOUND                  = 0x0003
 CATBUS_ERROR_INVALID_TYPE                   = 0x0004
 CATBUS_ERROR_READ_ONLY                      = 0x0005
 CATBUS_ERROR_GENERIC_ERROR                  = 0x0006
+CATBUS_ERROR_DATA_TOO_LARGE                 = 0x0007
 
 CATBUS_ERROR_FILE_NOT_FOUND                 = 0x0101
 CATBUS_ERROR_FILESYSTEM_FULL                = 0x0102
@@ -414,6 +415,8 @@ error_codes = {
     CATBUS_ERROR_INVALID_TYPE:      "Invalid type",
     CATBUS_ERROR_READ_ONLY:         "Read only",
     CATBUS_ERROR_GENERIC_ERROR:     "Generic error",
+    CATBUS_ERROR_DATA_TOO_LARGE:    "Data too large",
+
     CATBUS_ERROR_FILE_NOT_FOUND:    "File not found",
     CATBUS_ERROR_FILESYSTEM_FULL:   "Filesystem full",
     CATBUS_ERROR_FILESYSTEM_BUSY:   "Filesystem busy",

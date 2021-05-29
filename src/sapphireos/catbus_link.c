@@ -1152,7 +1152,23 @@ static void process_remote_timeouts( uint32_t elapsed_ms ){
     }
 }
 
-static void update_remote( sock_addr_t *raddr, link_handle_t link, void *data, uint16_t data_len ){
+static void update_remote( sock_addr_t *raddr, link_handle_t link, catbus_data_t *src_data, uint16_t data_len ){
+
+    link_state_t *link_state = link_ls_get_data( link );
+
+    // get dest data len
+    catbus_meta_t dest_meta;
+    if( kv_i8_get_catbus_meta( link_state->dest_key, &dest_meta ) != 0 ){
+
+        log_v_error_P( PSTR("dest key not found") );
+
+        return;
+    }
+
+    uint16_t dest_data_len = type_u16_size( dest_meta.type );
+    uint16_t dest_count = dest_meta.count + 1;
+
+    remote_state_t *remote;
 
     // NOTE data len is checked by server routine,
     // we can assume it is good here.
@@ -1161,7 +1177,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, void *data, u
 
     while( ln >= 0 ){
 
-        remote_state_t *remote = list_vp_get_data( ln );
+        remote = list_vp_get_data( ln );
         
         if( remote->link != link ){
 
@@ -1176,8 +1192,6 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, void *data, u
         // update state
         remote->timeout = LINK_REMOTE_TIMEOUT;
 
-        memcpy( &remote->data.data, data, data_len );
-
         // trace_printf("LINK: refreshed remote: %d.%d.%d.%d\n",
         //     ip.ip3,
         //     ip.ip2,
@@ -1185,7 +1199,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, void *data, u
         //     ip.ip0
         // );
 
-        return;
+        goto update_data;
         
     next:
         ln = list_ln_next( ln );
@@ -1200,7 +1214,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, void *data, u
     }
 
     // remote was not found, create one
-    uint16_t remote_len = ( sizeof(remote_state_t) - sizeof(uint8_t) ) + data_len; // subtract an extra byte to compensate for the catbus_data_t.data field
+    uint16_t remote_len = ( sizeof(remote_state_t) - sizeof(uint8_t) ) + ( dest_data_len * dest_count ); // subtract an extra byte to compensate for the catbus_data_t.data field
 
     ln = list_ln_create_node2( 0, remote_len, MEM_TYPE_LINK_REMOTE );
 
@@ -1209,14 +1223,13 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, void *data, u
         return;
     }
 
-    remote_state_t *new_remote = list_vp_get_data( ln );
+    remote = list_vp_get_data( ln );
+    memset( remote, 0, remote_len );
         
-    new_remote->link        = link;
-    new_remote->addr        = *raddr;
-    new_remote->timeout     = LINK_REMOTE_TIMEOUT;
-    // new_remote->data.meta   = meta;
-    link_state_t *link_state = link_ls_get_data( link );
-
+    remote->link        = link;
+    remote->addr        = *raddr;
+    remote->timeout     = LINK_REMOTE_TIMEOUT;
+    
     // set which key we care about
     catbus_hash_t32 key = 0;
     if( link_state->mode == LINK_MODE_SEND ){
@@ -1229,13 +1242,35 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, void *data, u
     }
 
 
-    ASSERT( kv_i8_get_catbus_meta( key, &new_remote->data.meta ) >= 0 );
-
-    memcpy( &new_remote->data.data, data, data_len );
+    ASSERT( kv_i8_get_catbus_meta( key, &remote->data.meta ) >= 0 );
 
     list_v_insert_tail( &remote_list, ln );
 
     trace_printf("LINK: add remote\n");
+
+update_data:
+    {}
+
+    uint8_t *dest_ptr = &remote->data.data;
+    uint16_t src_data_len = type_u16_size( src_data->meta.type );
+    uint8_t *src_ptr = &src_data->data;
+
+    uint16_t src_count = src_data->meta.count + 1;
+
+    if( dest_count > src_count ){
+
+        dest_count = src_count;
+    }
+
+    for( uint16_t i = 0; i < dest_count; i++ ){
+
+        if( type_i8_convert( dest_meta.type, dest_ptr, src_data->meta.type, src_ptr, src_data_len ) != 0 ){
+            // value changed
+        }
+    
+        src_ptr += src_data_len;
+        dest_ptr += dest_data_len;
+    }
 }
 
 static void update_producer_from_query( link_msg_producer_query_t *msg, sock_addr_t *raddr ){
@@ -1548,28 +1583,29 @@ PT_BEGIN( pt );
             msg->data.meta.hash = link_state->dest_key;
 
             // compare meta data, all producers need to match the leader
-            if( memcmp( &meta, &msg->data.meta, sizeof(meta) ) != 0 ){
+            // if( memcmp( &meta, &msg->data.meta, sizeof(meta) ) != 0 ){
 
-                log_v_error_P( PSTR("meta data mismatch!") );
+            //     log_v_error_P( PSTR("meta data mismatch!") );
 
-                goto end;
-            }
+            //     goto end;
+            // }
 
             // verify data lengths
             uint16_t msg_data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(link_msg_data_t) - 1 );
-            uint16_t array_len = meta.count + 1;
-            uint16_t type_len = type_u16_size( meta.type );
-            uint16_t data_len = array_len * type_len;
+            // uint16_t array_len = meta.count + 1;
+            // uint16_t type_len = type_u16_size( meta.type );
+            // uint16_t data_len = array_len * type_len;
 
-            if( data_len != msg_data_len ){
+            // if( data_len != msg_data_len ){
 
-                log_v_error_P( PSTR("rx len does not match!") );
+            //     log_v_error_P( PSTR("rx len does not match!") );
 
-                goto end;
-            }
+            //     goto end;
+            // }
 
             // update remote data and timeout
-            update_remote( &raddr, link, &msg->data.data, data_len );
+            // update_remote( &raddr, link, &msg->data.data, data_len );
+            update_remote( &raddr, link, &msg->data, msg_data_len );
         }
         else if( header->msg_type == LINK_MSG_TYPE_ADD ){
 
@@ -1773,10 +1809,9 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
     // also need the catbus version of meta data
     kv_i8_get_catbus_meta( hash, &msg_buf->msg.data.meta );
 
-    uint16_t type_size = kv_u16_get_size_meta( &meta );
     uint16_t array_len = meta.array_len + 1;
-    uint16_t data_len = type_size * array_len;
-
+    uint16_t data_len = kv_u16_get_size_meta( &meta );
+    
     if( link_state->mode == LINK_MODE_SEND ){
         
         // get data from database.
@@ -1794,13 +1829,13 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
     remote_state_t *remote = 0;
     uint16_t count = 1;
 
-    if( meta.type == CATBUS_TYPE_BOOL ){
-
-        log_v_error_P( PSTR("bool not supported") );
-    }
-    else if( meta.type == CATBUS_TYPE_FLOAT ){
+    if( meta.type == CATBUS_TYPE_FLOAT ){
 
         log_v_error_P( PSTR("float not supported") );
+    }
+    else if( array_len > 1 ){
+
+        log_v_error_P( PSTR("arrays not supported: 0x%x -> %d"), hash, array_len );
     }
     // integer types
     else{
