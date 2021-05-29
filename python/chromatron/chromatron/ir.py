@@ -711,7 +711,9 @@ class irBinop(IR):
         self.op = op
         self.left = left
         self.right = right
-    
+
+        self.data_type = self.result.type
+
     def __str__(self):
         s = '%s = %s %s %s' % (self.result, self.left, self.op, self.right)
 
@@ -763,13 +765,7 @@ class irBinop(IR):
                 'mod': insBinop} # formatted output
         }
 
-        data_type = self.left.type
-
-        # gfx16 type can just default to f16
-        if isinstance(self.left, irVar_gfx16):
-            data_type = 'f16'
-        
-        return ops[data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
+        return ops[self.data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
 
 
 class irUnaryNot(IR):

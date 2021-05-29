@@ -1,7 +1,4 @@
 
-
-
-
 a = Number()
 # b = Number()
 # c = Number()
@@ -26,4 +23,3 @@ def my_func():
 
     # if should_run2():
         # db.gfx_master_dimmer = 65535
-    
