@@ -194,7 +194,7 @@ class insAddr(BaseInstruction):
 
     def __str__(self):
         if self.var != None:
-            return "Addr(%s, %s)" % (self.addr, self.var.type)
+            return "%s(%s @ %s)" % (self.var.name, self.var.type, self.addr)
 
         else:
             return "Addr(%s)" % (self.addr)
