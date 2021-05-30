@@ -345,6 +345,9 @@ class cg1Call(cg1CodeNode):
             if self.target in THREAD_FUNCS:
                 raise SyntaxError("Parameter '%s' not found for function '%s'.  Thread functions require string parameters." % (e.var, self.target), self.lineno)
 
+            else:
+                raise
+
         return builder.call(self.target, params, lineno=self.lineno)
 
 class cg1If(cg1CodeNode):
