@@ -990,8 +990,8 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     cg1 = CodeGenPass1()
     cg1_data = cg1(source)
 
-    # if debug_print:
-    #     print(pformat_ast(cg1_data))
+    if debug_print:
+        print(pformat_ast(cg1_data))
 
     builder = cg1_data.build(script_name=script_name, source=source)
     if debug_print:
