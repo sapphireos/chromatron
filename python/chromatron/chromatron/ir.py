@@ -1732,10 +1732,10 @@ class Builder(object):
 
         # optimizations
         self.optimizations = {
-            'fold_constants': True,
-            'optimize_register_usage': True,
-            'remove_unreachable_code': True,
-            'optimize_assign_targets': True,
+            'fold_constants': False,
+            'optimize_register_usage': False,
+            'remove_unreachable_code': False,
+            'optimize_assign_targets': False,
         }
 
         # make sure we always have 0 and 65535 const, and a few others
