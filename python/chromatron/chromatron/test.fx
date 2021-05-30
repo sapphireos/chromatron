@@ -7,7 +7,12 @@ def func1():
 
 def func2(b: Number):
 	temp_a = Number()
+
+	b += 2
+	
 	temp_a = global_a + 2 + b
+
+	
 
 	return temp_a
 

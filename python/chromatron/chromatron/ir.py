@@ -2078,8 +2078,8 @@ class Builder(object):
             raise SyntaxError("Binary operand must be scalar: %s" % (right.name), lineno=lineno)
 
         # if both types are gfx16, use i32
+        # if either type is fixed16, we do the whole thing as fixed16.
         if left.type == 'gfx16' and right.type == 'gfx16':
-            # if either type is fixed16, we do the whole thing as fixed16.
             data_type = 'i32'
 
         else:
