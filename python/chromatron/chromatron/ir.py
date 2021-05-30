@@ -773,9 +773,7 @@ class irFunc(IR):
                     if v.target.name not in self.builder.globals:
                         used.append(v.target)
 
-            # use.append([a.name for a in used])
             use.append([a for a in used])
-
 
             defined = ins.get_output_vars()
 
@@ -787,15 +785,10 @@ class irFunc(IR):
                 if isinstance(v, irAddress):
                     if v.target.name not in self.builder.globals:
                         defined.append(v.target)
-
-            # define.append([a.name for a in defined])
             define.append([a for a in defined])
 
         # attach function params
-        # define[0].extend([a.name for a in self.funcs[func].params])
         define[0].extend([a for a in self.params])
-
-        # define[0].extend(self.globals.keys())
 
         return use, define
 
