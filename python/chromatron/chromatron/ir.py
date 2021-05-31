@@ -1131,23 +1131,6 @@ class irVectorOp(IR):
         else:
             return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
 
-class irClear(IR):
-    def __init__(self, target, **kwargs):
-        super(irClear, self).__init__(**kwargs)
-        self.target = target
-
-        assert self.target.length == 1
-        
-    def __str__(self):
-        return '%s = 0' % (self.target)
-
-    def get_output_vars(self):
-        return [self.target]
-
-    def generate(self):
-        return insClr(self.target.generate(), lineno=self.lineno)
-
-
 class irAssign(IR):
     def __init__(self, target, value, **kwargs):
         super(irAssign, self).__init__(**kwargs)
@@ -1905,7 +1888,7 @@ class Builder(object):
 
         else:
             # add init to 0
-            self.clear(ir, lineno=lineno)
+            self.assign(ir, self.get_var(0), lineno=lineno)
 
         return ir
 
@@ -2138,16 +2121,6 @@ class Builder(object):
         self.append_node(ir)
 
         return result
-
-    def clear(self, target, lineno=None):   
-        # check that we aren't clearing a string, which makes no sense
-        assert not isinstance(target, irVar_str)
-        
-        if target.length == 1:
-            ir = irClear(target, lineno=lineno)
-            self.append_node(ir)
-        else:
-            self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
     
     def load_value(self, value, dest_hint='gfx16', lineno=None):
         # check if pixel attr
