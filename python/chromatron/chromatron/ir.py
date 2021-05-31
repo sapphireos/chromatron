@@ -264,8 +264,8 @@ class irVar_simple(irVar):
         if self.temp:
             return self._name
         
-        # return f'{self._name}_v{self.ssa_version}'
-        return self._name
+        return f'{self._name}_v{self.ssa_version}'
+        # return self._name
 
     @name.setter
     def name(self, value):
@@ -640,6 +640,7 @@ class irBlock(IR):
         irBlock.block_number += 1
         self.code = []
         self.locals = {}
+        self.ssa_stack = {}
         self.blocks = []
         self.parent = parent
 
@@ -727,18 +728,24 @@ class irBlock(IR):
         self.code.append(code)
 
     def add_local(self, ir):
-        # if name in self.locals:
-        #     print(name, ir)
-
         ir.ssa_version = self.func.get_ssa_version(ir._name, inc=True)
 
         self.locals[ir.name] = ir
+
+        if ir._name not in self.ssa_stack:
+            self.ssa_stack[ir._name] = []            
+
+        self.ssa_stack[ir._name].append(ir)
 
     def append_block(self, block):
         self.blocks.append(block)
         self.code.append(block)
 
     def get_local(self, name, _check_parents=True):
+        # check SSA stack:
+        if name in self.ssa_stack:
+            return self.ssa_stack[name][-1]
+
         # check if local is within this block:
         if name in self.locals:
             return self.locals[name]
