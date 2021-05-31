@@ -635,34 +635,29 @@ class irBlock(IR):
                 if label != None:
                     s += '\t\t\t%s (Line %d)\n' % (node, label.lineno)
 
+                elif isinstance(node, irBlock):
+                    s += '%s\n' % (node)
+
                 else:
                     s += '\t\t\t%s\n' % (node)
 
-
         return s    
 
-    def remove_dead_labels(self):
-        labels = self.labels()
+    def remove_dead_labels(self, dead_labels=[]):
+        new_code = []
+        for node in self.code:
+            if isinstance(node, irLabel):
+                if node.name not in dead_labels:
+                    new_code.append(node)
 
-        keep = []
+            elif isinstance(node, irBlock):
+                node.remove_dead_labels(dead_labels)    
+                new_code.append(node)
 
-        # get list of labels that are used
-        for label in labels:
-            for node in self.code:
-                target = node.get_jump_target()
+            else:
+                new_code.append(node)
 
-                if target != None:
-                    if target.name == label:
-                        keep.append(label)
-                        break
-
-        # remove unused labels from instruction list
-        self.code = [a for a in self.code \
-                        if not isinstance(a, irLabel) or 
-                        (a.name in keep)]
-
-        for block in self.blocks:
-            block.remove_dead_labels()
+        self.code = new_code
 
     def labels(self):
         labels = {}
@@ -735,7 +730,24 @@ class irFunc(IR):
         self.root_block = None
 
     def remove_dead_labels(self):
-        self.root_block.remove_dead_labels()
+        labels = self.labels()
+
+        keep = []
+        code = self.code()
+
+        # get list of labels that are used
+        for label in labels:
+            for node in code:
+                target = node.get_jump_target()
+
+                if target != None:
+                    if target.name == label:
+                        keep.append(label)
+                        break
+
+        dead_labels = [l for l in labels if l not in keep]
+
+        self.root_block.remove_dead_labels(dead_labels)
 
     def __str__(self):
         global source_code
@@ -744,6 +756,14 @@ class irFunc(IR):
 
         s = "\n######## Line %4d       ########\n" % (self.lineno)
         s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
+        s += "--------------------------------\n"
+        s += "Func blocks:\n"
+        s += "--------------------------------\n"
+
+        s += str(self.root_block)
+
+        s += "--------------------------------\n"
+        s += "Func code:\n"
         s += "--------------------------------\n"
 
         labels = self.labels()
@@ -2607,7 +2627,7 @@ class Builder(object):
         return ir
 
     def ifelse(self, test, lineno=None):
-        self.open_block('if', lineno=lineno)
+        # self.open_block('if', lineno=lineno)
 
         body_label = self.label('if.then', lineno=lineno)
         else_label = self.label('if.else', lineno=lineno)
@@ -2620,6 +2640,8 @@ class Builder(object):
 
         branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
+
+        self.open_block('if', lineno=lineno)
 
         return body_label, else_label, end_label
 
