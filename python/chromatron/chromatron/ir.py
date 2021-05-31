@@ -732,6 +732,11 @@ class irBlock(IR):
 
         self.locals[ir.name] = ir
 
+        if ir.temp:
+            return
+
+        # update SSA, but not for temp vars (they are already SSA)
+
         if ir._name not in self.ssa_stack:
             self.ssa_stack[ir._name] = []            
 
@@ -777,6 +782,11 @@ class irBlock(IR):
         else:
             raise KeyError(name)
 
+    def phi(self):
+        print('PHI', self.lineno)
+        print(self.ssa_stack)
+        for block in self.blocks:
+            print(block.ssa_stack)        
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
@@ -2177,6 +2187,9 @@ class Builder(object):
         except KeyError:
             raise VariableNotDeclared(name, "Variable '%s' not declared" % (name), lineno=lineno)
 
+    def phi(self):
+        self.current_block.phi()
+
     def get_obj_var(self, obj_name, attr, lineno=None):
         name = '%s.%s' % (obj_name, attr)
         if name in self.globals:
@@ -2695,6 +2708,7 @@ class Builder(object):
 
     def end_ifelse(self, lineno=None):
         self.close_block()
+        self.phi()
 
     def position_label(self, label):
         self.append_node(label)

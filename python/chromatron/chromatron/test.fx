@@ -37,6 +37,8 @@ def func2(b: Number):
 		elif b == 1:
 			b = 2
 
+		# phi(b)
+
 	else:
 		b = 4 + b
 
