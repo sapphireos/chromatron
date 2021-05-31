@@ -611,7 +611,6 @@ class irBlock(IR):
         global source_code
         s =  '%s####################################################\n' % ('\t' * self.depth)
         s += '%sBlock: %16s.%d (%8s) d:%d Line: %d\n' % ('\t' * self.depth, self.func, self.block_number, self.hint, self.depth, self.lineno)
-        s += '%s----------------------------------------------------\n' % ('\t' * self.depth)
         labels = self.labels()
 
         current_line = 0
@@ -621,7 +620,9 @@ class irBlock(IR):
             if node.lineno > current_line:
                 current_line = node.lineno
                 try:
+                    s += '%s----------------------------------------------------\n' % ('\t' * self.depth)
                     s += "%s%d\t%s\n" % ('\t' * self.depth,current_line, source_code[current_line - 1].strip())
+                    s += '%s----------------------------------------------------\n' % ('\t' * self.depth)
 
                 except IndexError:
                     print("Source interleave from imported files not yet supported")
@@ -634,13 +635,13 @@ class irBlock(IR):
                 label = node.get_jump_target()
 
                 if label != None:
-                    s += '%s\t\t\t%s (Line %d)\n' % ('\t' * self.depth,node, label.lineno)
+                    s += '%s\t%s (Line %d)\n' % ('\t' * self.depth,node, label.lineno)
 
                 elif isinstance(node, irBlock):
                     s += '%s\n' % (node)
 
                 else:
-                    s += '%s\t\t\t%s\n' % ('\t' * self.depth,node)
+                    s += '%s\t%s\n' % ('\t' * self.depth,node)
 
         return s    
 
