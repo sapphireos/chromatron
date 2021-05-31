@@ -195,10 +195,11 @@ class IR(object):
         return None
 
 class irPhi(IR):
-    def __init__(self, name, joins, **kwargs):
+    def __init__(self, name, joins, target, **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.joins = joins
+        self.target = target
 
     def __str__(self):
         s = ''
@@ -208,7 +209,7 @@ class irPhi(IR):
         
         s = s[:-2]
 
-        return f'PHI({self.name}) = [{s}]'
+        return f'{self.target} = PHI({self.name})[{s}]'
 
 class irVar(IR):
     def __init__(self, name, type='i32', options=None, **kwargs):
@@ -646,7 +647,7 @@ class irDBAttr(irVar):
 class irBlock(IR):
     block_number = 0
 
-    def __init__(self, func, hint, depth, parent, **kwargs):
+    def __init__(self, func, hint, depth, parent, builder, **kwargs):
         super(irBlock, self).__init__(**kwargs)
         self.func = func
         self.hint = hint
@@ -659,6 +660,7 @@ class irBlock(IR):
         self.ssa_stack = {}
         self.blocks = []
         self.parent = parent
+        self.builder = builder
         self.phi_blocks = []
 
     def __str__(self):
@@ -800,7 +802,7 @@ class irBlock(IR):
         else:
             raise KeyError(name)
 
-    def phi(self):
+    def phi(self, lineno=None):
         joins = {}
 
         for block in self.phi_blocks:        
@@ -811,7 +813,9 @@ class irBlock(IR):
                 joins[k].append(v[-1])
 
         for k, v in joins.items():
-            self.code.append(irPhi(k, v, lineno=0))
+            v0 = v[0]
+            target = self.builder._add_local_var(v0._name, v0.type, lineno=lineno)
+            self.code.append(irPhi(k, v, target, lineno=0))
         
         self.phi_blocks = []
 
@@ -2012,7 +2016,7 @@ class Builder(object):
         return s
 
     def open_block(self, hint, lineno=None):
-        block = irBlock(self.funcs[self.current_func], hint, len(self.block_stack), self.current_block, lineno=lineno)
+        block = irBlock(self.funcs[self.current_func], hint, len(self.block_stack), self.current_block, self, lineno=lineno)
         if self.current_block != None:
             self.current_block.append_block(block)
 
@@ -2214,8 +2218,8 @@ class Builder(object):
         except KeyError:
             raise VariableNotDeclared(name, "Variable '%s' not declared" % (name), lineno=lineno)
 
-    def phi(self):
-        self.current_block.phi()
+    def phi(self, lineno=None):
+        self.current_block.phi(lineno=lineno)
 
     def get_obj_var(self, obj_name, attr, lineno=None):
         name = '%s.%s' % (obj_name, attr)
@@ -2735,7 +2739,7 @@ class Builder(object):
 
     def end_ifelse(self, lineno=None):
         self.close_block()
-        self.phi()
+        self.phi(lineno=lineno)
 
     def position_label(self, label):
         self.append_node(label)

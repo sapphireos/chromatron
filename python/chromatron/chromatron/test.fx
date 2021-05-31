@@ -13,7 +13,7 @@ def func(b: Number):
 
 
 	if temp_a > 5:
-		b = 3
+		b = 3 + b
 		
 	else:
 		b = 1 + 2
