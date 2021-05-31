@@ -202,7 +202,7 @@ class irPhi(IR):
 
     def __str__(self):
         s = ''
-        
+
         for join in self.joins:
             s += f'{join.name}, '
         
@@ -659,6 +659,7 @@ class irBlock(IR):
         self.ssa_stack = {}
         self.blocks = []
         self.parent = parent
+        self.phi_blocks = []
 
     def __str__(self):
         global source_code
@@ -761,6 +762,7 @@ class irBlock(IR):
     def append_block(self, block):
         self.blocks.append(block)
         self.code.append(block)
+        self.phi_blocks.append(block)
 
     def get_local(self, name, _check_parents=True):
         # check SSA stack:
@@ -801,7 +803,7 @@ class irBlock(IR):
     def phi(self):
         joins = {}
 
-        for block in self.blocks:        
+        for block in self.phi_blocks:        
             for k, v in block.ssa_stack.items():
                 if k not in joins:
                     joins[k] = []
@@ -811,13 +813,7 @@ class irBlock(IR):
         for k, v in joins.items():
             self.code.append(irPhi(k, v, lineno=0))
         
-        # print('PHI', self.lineno)
-        # for k, v in self.ssa_stack.items():
-        #     for a in v:
-        #         print(k, a)
-
-        # for block in self.blocks:
-        #     print(block.ssa_stack)        
+        self.phi_blocks = []
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
