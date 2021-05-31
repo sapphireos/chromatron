@@ -1,21 +1,37 @@
 
+def init():
+    for i in 4:
+        pass
+    
+    for i in 4:
+        pass
 
-def func2(b: Number):
-	temp_a = Number()
 
-	b += 1
 
-	temp_a = b + 2
 
-	if temp_a > 0:
-		b = temp_a + 3
 
-	else:
-		b = 4 + b
 
-	temp_a = b
 
-	return temp_a
+
+
+
+
+# def func2(b: Number):
+# 	temp_a = Number()
+
+# 	b += 1
+
+# 	temp_a = b + 2
+
+# 	if temp_a > 0:
+# 		b = temp_a + 3
+
+# 	else:
+# 		b = 4 + b
+
+# 	temp_a = b
+
+# 	return temp_a
 
 
 

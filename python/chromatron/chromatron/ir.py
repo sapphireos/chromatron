@@ -613,7 +613,7 @@ class irBlock(IR):
         s += '########################################\n'
         labels = self.labels()
 
-        current_line = -1
+        current_line = 0
         for node in self.code:
 
             # interleave source code
@@ -667,6 +667,9 @@ class irBlock(IR):
 
             if isinstance(ins, irLabel):
                 labels[ins.name] = i
+
+            elif isinstance(ins, irBlock):
+                labels.update(ins.labels())
 
         return labels
 
@@ -746,7 +749,7 @@ class irFunc(IR):
                         break
 
         dead_labels = [l for l in labels if l not in keep]
-
+        
         self.root_block.remove_dead_labels(dead_labels)
 
     def __str__(self):
@@ -765,8 +768,6 @@ class irFunc(IR):
         s += "--------------------------------\n"
         s += "Func code:\n"
         s += "--------------------------------\n"
-
-        labels = self.labels()
 
         current_line = -1
         for node in self.code():
@@ -2082,7 +2083,7 @@ class Builder(object):
         try:
             self.current_block.get_local(name)
 
-            raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
+            # raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
 
         except KeyError:
             pass # this is ok
