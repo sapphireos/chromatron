@@ -1,4 +1,22 @@
-global_a = Number()
+
+
+def func2(b: Number):
+	temp_a = Number()
+
+	b += 1
+
+	temp_a = b + 2
+
+	if temp_a > 0:
+		b = temp_a + 3
+
+	temp_a = b
+
+	return temp_a
+
+
+
+# global_a = Number()
 # global_b = Number()
 
 # def func1():
@@ -6,18 +24,18 @@ global_a = Number()
 #     global_a = global_a + 1
     
 
-def func2(b: Number):
-	temp_a = Number()
+# def func2(b: Number):
+# 	temp_a = Number()
 
-	b += 2
+# 	b += 2
 	
-	temp_a = global_a + 2 + b
+# 	temp_a = global_a + 2 + b
 
-	b = temp_a + 3
+# 	b = temp_a + 3
 
-	temp_a = b
+# 	temp_a = b
 
-	return temp_a
+# 	return temp_a
 
 # compile error here!
 

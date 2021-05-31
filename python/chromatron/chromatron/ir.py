@@ -1732,10 +1732,10 @@ class Builder(object):
 
         # optimizations
         self.optimizations = {
-            'fold_constants': False,
-            'optimize_register_usage': False,
-            'remove_unreachable_code': False,
-            'optimize_assign_targets': False,
+            'fold_constants': True,
+            'optimize_register_usage': True,
+            'remove_unreachable_code': True,
+            'optimize_assign_targets': True,
         }
 
         # make sure we always have 0 and 65535 const, and a few others
@@ -1938,6 +1938,12 @@ class Builder(object):
         self.locals[self.current_func][name] = ir
 
         return ir
+
+    def declare_var(self, name, data_type='i32', dimensions=[], keywords=None, is_global=False, lineno=None):
+        if is_global:
+            return self.add_global(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)
+        else:
+            return self.add_local(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)        
 
     def get_var(self, name, lineno=None):
         name = str(name)

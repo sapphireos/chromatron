@@ -103,12 +103,9 @@ class cg1DeclarationBase(cg1Node):
             elif self.keywords[key] == 'False':
                 self.keywords[key] = False
 
-    def build(self, builder, is_global=False):
-        if is_global:
-            return builder.add_global(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)
-        else:
-            return builder.add_local(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)
-
+    def build(self, builder, is_global=False):    
+        return builder.declare_var(self.name, self.type, self.dimensions, keywords=self.keywords, is_global=is_global, lineno=self.lineno)
+    
 class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
         super(cg1DeclareVar, self).__init__(**kwargs)
