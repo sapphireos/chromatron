@@ -2715,12 +2715,12 @@ class Builder(object):
         return ir
 
     def ifelse(self, test, lineno=None):
-        # self.open_block('if', lineno=lineno)
-
         body_label = self.label('if.then', lineno=lineno)
         else_label = self.label('if.else', lineno=lineno)
         end_label = self.label('if.end', lineno=lineno)
 
+        # this is here so we can do a type conversion,
+        # if needed
         if not isinstance(test, irBinop):
             result = self.add_temp(lineno=lineno)
             self.assign(result, test, lineno=lineno)
