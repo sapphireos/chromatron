@@ -28,6 +28,11 @@ def func2(b: Number):
 
 		if b < 0:
 			b = 1
+			b = 2
+
+			temp_a = 6
+
+			b = b + temp_a # should reduce to 2 + 6
 
 		elif b == 1:
 			b = 2
