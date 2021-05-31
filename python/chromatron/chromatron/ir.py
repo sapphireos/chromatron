@@ -264,7 +264,8 @@ class irVar_simple(irVar):
         if self.temp:
             return self._name
         
-        return f'{self._name}_v{self.ssa_version}'
+        # return f'{self._name}_v{self.ssa_version}'
+        return self._name
 
     @name.setter
     def name(self, value):
@@ -735,19 +736,19 @@ class irBlock(IR):
         self.blocks.append(block)
         self.code.append(block)
 
-    def get_local(self, name):
+    def get_local(self, name, _check_parents=True):
         # check if local is within this block:
         if name in self.locals:
             return self.locals[name]
 
         # if not, check parent, if we have one
-        # if self.parent != None:
-            # return self.parent.get_local(name)
+        if _check_parents and self.parent != None:
+            return self.parent.get_local(name)
 
         # check child nodes
         for block in self.blocks:
             try:
-                return block.get_local(name)
+                return block.get_local(name, _check_parents=False)
 
             except KeyError:
                 pass
@@ -3175,7 +3176,6 @@ class Builder(object):
         else:
             for block in self.blocks:
                 for i in block.locals.values():
-                    print(i)
                     i.addr = addr
                     addr += i.length
 
