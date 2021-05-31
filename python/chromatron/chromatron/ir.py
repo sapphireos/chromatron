@@ -197,7 +197,7 @@ class IR(object):
 class irVar(IR):
     def __init__(self, name, type='i32', options=None, **kwargs):
         super(irVar, self).__init__(**kwargs)
-        self.name = name
+        self._name = name
         self.type = type
         self.type_str = type
         self.length = 1
@@ -218,7 +218,14 @@ class irVar(IR):
                 self.persist = True
 
             if 'init_val' in options:
-                self.default_value = options['init_val']
+                self.default_value = options['init_val'] 
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     def __str__(self):
         if self.is_global:
@@ -247,7 +254,31 @@ class irVar(IR):
         return self.type
 
 class irVar_simple(irVar):
-    pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.ssa_version = 0
+
+    @property
+    def name(self):
+        if self.temp:
+            return self._name
+        
+        return f'{self._name}_v{self.ssa_version}'
+
+    @name.setter
+    def name(self, value):
+        self._name = value        
+
+    def __str__(self):
+        if self.is_global:
+            return super().__str__()
+
+        elif self.temp:
+            return "Var(%s, %s)" % (self.name, self.type_str)
+
+        else:
+            return "Var(%s_v%d, %s)" % (self._name, self.ssa_version, self.type_str)            
 
 class irVar_i32(irVar_simple):
     def __init__(self, *args, **kwargs):
@@ -326,6 +357,10 @@ class irConst(irVar_simple):
         self.default_value = self.value
 
         self.is_const = True
+
+    @property
+    def name(self):
+        return self._name    
 
     def __str__(self):
         return "Const(%s, %s)" % (self.name, self.type)
@@ -690,8 +725,11 @@ class irBlock(IR):
     def append_code(self, code):
         self.code.append(code)
 
-    def append_local(self, name, data):
-        self.locals[name] = data
+    def add_local(self, name, ir):
+        # if name in self.locals:
+        #     print(name, ir)
+
+        self.locals[name] = ir
 
     def append_block(self, block):
         self.blocks.append(block)
@@ -703,8 +741,16 @@ class irBlock(IR):
             return self.locals[name]
 
         # if not, check parent, if we have one
-        if self.parent != None:
-            return self.parent.get_local(name)
+        # if self.parent != None:
+            # return self.parent.get_local(name)
+
+        # check child nodes
+        for block in self.blocks:
+            try:
+                return block.get_local(name)
+
+            except KeyError:
+                pass
 
         raise KeyError(name)
 
@@ -806,7 +852,7 @@ class irFunc(IR):
         return self.root_block.get_code()
 
     def generate(self):
-        params = [a.generate() for a in self.params]
+        params = [self.root_block.get_local(a.name).generate() for a in self.params]
         func = insFunction(self.name, params, lineno=self.lineno)
         ins = [func]
         for ir in self.code():
@@ -1785,7 +1831,6 @@ class Builder(object):
             source_code = source_code.splitlines()
 
         self.funcs = {}
-        self.locals = {}
         self.globals = {}
         self.objects = {}
         self.pixel_arrays = {}
@@ -2033,18 +2078,6 @@ class Builder(object):
 
         return ir
 
-    def add_local(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
-        ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
-
-        if isinstance(ir, irVar_str):
-            self.assign(ir, ir.default_value, lineno=lineno)
-
-        else:
-            # add init to 0
-            self.assign(ir, self.get_var(0), lineno=lineno)
-
-        return ir
-
     def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
         ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
         
@@ -2057,13 +2090,13 @@ class Builder(object):
         if name in self.globals:
             raise VariableAlreadyDeclared("Variable '%s' already declared as global" % (name), lineno=lineno)
 
-        try:
-            self.current_block.get_local(name)
+        # try:
+        #     self.current_block.get_local(name)
 
-            # raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
+        #     # raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
 
-        except KeyError:
-            pass # this is ok
+        # except KeyError:
+        #     pass # this is ok
 
         if keywords != None:
             if 'publish' in keywords:
@@ -2076,18 +2109,28 @@ class Builder(object):
 
         try:
             for v in ir:
-                self.current_block.append_local(v.name, v)
+                self.current_block.add_local(v.name, v)
 
         except TypeError:
-            self.current_block.append_local(name, ir)
+            self.current_block.add_local(name, ir)
 
         return ir
 
     def declare_var(self, name, data_type='i32', dimensions=[], keywords=None, is_global=False, lineno=None):
         if is_global:
             return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
-        else:
-            return self.add_local(name, data_type, dimensions, keywords=keywords, lineno=lineno)        
+
+        else: # local
+            ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
+
+            if isinstance(ir, irVar_str):
+                self.assign(ir, ir.default_value, lineno=lineno)
+
+            else:
+                # add init to 0
+                self.assign(ir, self.get_var(0), lineno=lineno)
+
+            return ir
 
     def get_var(self, name, lineno=None):
         name = str(name)
@@ -2163,7 +2206,7 @@ class Builder(object):
         ir = self.build_var(name, data_type, [], lineno=lineno)
         
         ir.temp = True
-        self.current_block.append_local(name, ir)
+        self.current_block.add_local(name, ir)
 
         return ir
 
@@ -2366,7 +2409,11 @@ class Builder(object):
                 except AttributeError:
                     # no result, don't do anything
                     pass
-                    
+
+            is_temp = target.temp
+            target = self._add_local_var(target._name, target.type, lineno=lineno)
+            target.temp = is_temp    
+
             ir = irAssign(target, value, lineno=lineno)
             
             self.append_node(ir)
@@ -3128,11 +3175,12 @@ class Builder(object):
         else:
             for block in self.blocks:
                 for i in block.locals.values():
+                    print(i)
                     i.addr = addr
                     addr += i.length
 
                     # assign block name to var
-                    i.name = '%s.%s' % (block.name, i.name)
+                    i.name = '%s.%s' % (block.name, i._name)
 
                     self.data_table.append(i)
 
