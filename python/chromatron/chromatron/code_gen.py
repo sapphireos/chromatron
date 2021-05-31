@@ -979,6 +979,9 @@ class CodeGenPass1(ast.NodeVisitor):
 
 
 def compile_text(source, debug_print=False, summarize=False, script_name=''):
+    import colored_traceback
+    colored_traceback.add_hook()
+    
     tree = ast.parse(source)
 
     if debug_print:
