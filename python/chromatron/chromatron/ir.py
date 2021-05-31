@@ -591,29 +591,55 @@ class irDBAttr(irVar):
     def lookup(self, indexes):
         return self
 
-class irFunc(IR):
-    def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
-        super(irFunc, self).__init__(**kwargs)
-        self.name = name
-        self.ret_type = ret_type
-        self.params = params
-        self.body = body
-        self.builder = builder
+class irBlock(IR):
+    block_number = 0
 
-        if self.params == None:
-            self.params = []
+    def __init__(self, func, hint, depth, parent, **kwargs):
+        super(irBlock, self).__init__(**kwargs)
+        self.func = func
+        self.hint = hint
+        self.depth = depth
+        self.block_number = irBlock.block_number
+        self.name = '%s.%d' % (self.func, self.block_number)
+        irBlock.block_number += 1
+        self.code = []
+        self.locals = {}
+        self.blocks = []
+        self.parent = parent
 
-        if self.body == None:
-            self.body = []
+    def __str__(self):
+        global source_code
+        s = 'Block: %16s.%d (%8s) d:%d Line: %d\n' % (self.func, self.block_number, self.hint, self.depth, self.lineno)
+        s += '########################################\n'
+        labels = self.labels()
 
-    def append(self, node):
-        self.body.append(node)
+        current_line = -1
+        for node in self.code:
 
-    def insert(self, index, node):
-        self.body.insert(index, node)
+            # interleave source code
+            if node.lineno > current_line:
+                current_line = node.lineno
+                try:
+                    s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
 
-    def get(self, index):
-        return self.body[index]
+                except IndexError:
+                    print("Source interleave from imported files not yet supported")
+                    pass
+
+            if isinstance(node, irLabel):
+                s += '%s\n' % (node)
+
+            else:    
+                label = node.get_jump_target()
+
+                if label != None:
+                    s += '\t\t\t%s (Line %d)\n' % (node, label.lineno)
+
+                else:
+                    s += '\t\t\t%s\n' % (node)
+
+
+        return s    
 
     def remove_dead_labels(self):
         labels = self.labels()
@@ -622,7 +648,7 @@ class irFunc(IR):
 
         # get list of labels that are used
         for label in labels:
-            for node in self.body:
+            for node in self.code:
                 target = node.get_jump_target()
 
                 if target != None:
@@ -631,9 +657,85 @@ class irFunc(IR):
                         break
 
         # remove unused labels from instruction list
-        self.body = [a for a in self.body \
+        self.code = [a for a in self.code \
                         if not isinstance(a, irLabel) or 
                         (a.name in keep)]
+
+        for block in self.blocks:
+            block.remove_dead_labels()
+
+    def labels(self):
+        labels = {}
+
+        for i in range(len(self.code)):
+            ins = self.code[i]
+
+            if isinstance(ins, irLabel):
+                labels[ins.name] = i
+
+        return labels
+
+    def get_code(self):
+        code = []
+
+        for ir in self.code:
+            if isinstance(ir, irBlock):
+                code.extend(ir.get_code())
+
+            else:
+                code.append(ir)
+
+        return code
+
+    def append_code(self, code):
+        self.code.append(code)
+
+    def append_local(self, name, data):
+        self.locals[name] = data
+
+    def append_block(self, block):
+        self.blocks.append(block)
+        self.code.append(block)
+
+    def get_local(self, name):
+        # check if local is within this block:
+        if name in self.locals:
+            return self.locals[name]
+
+        # if not, check parent, if we have one
+        if self.parent != None:
+            return self.parent.get_local(name)
+
+        raise KeyError(name)
+
+    def remove_local(self, name):
+        # check if local is within this block:
+        if name in self.locals:
+            del self.locals[name]
+            return
+
+        # if not, check parent, if we have one
+        if self.parent != None:
+            self.parent.remove_local(name)
+
+        else:
+            raise KeyError(name)
+
+
+class irFunc(IR):
+    def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
+        super(irFunc, self).__init__(**kwargs)
+        self.name = name
+        self.ret_type = ret_type
+        self.params = params
+        
+        if self.params == None:
+            self.params = []
+
+        self.root_block = None
+
+    def remove_dead_labels(self):
+        self.root_block.remove_dead_labels()
 
     def __str__(self):
         global source_code
@@ -647,7 +749,7 @@ class irFunc(IR):
         labels = self.labels()
 
         current_line = -1
-        for node in self.body:
+        for node in self.code():
             
             # interleave source code
             if node.lineno > current_line:
@@ -675,21 +777,16 @@ class irFunc(IR):
         return s
 
     def labels(self):
-        labels = {}
+        return self.root_block.labels()
 
-        for i in range(len(self.body)):
-            ins = self.body[i]
-
-            if isinstance(ins, irLabel):
-                labels[ins.name] = i
-
-        return labels
+    def code(self):
+        return self.root_block.get_code()
 
     def generate(self):
         params = [a.generate() for a in self.params]
         func = insFunction(self.name, params, lineno=self.lineno)
         ins = [func]
-        for ir in self.body:
+        for ir in self.code():
             code = ir.generate()
 
             try:
@@ -1696,6 +1793,10 @@ class Builder(object):
         self.palettes = {}
         self.labels = {}
 
+        self.blocks = []
+        self.current_block = None
+        self.block_stack = []
+
         self.data_table = []
         self.data_count = 0
         self.code = []
@@ -1739,10 +1840,10 @@ class Builder(object):
 
         # optimizations
         self.optimizations = {
-            'fold_constants': True,
-            'optimize_register_usage': True,
-            'remove_unreachable_code': True,
-            'optimize_assign_targets': True,
+            'fold_constants': False,
+            'optimize_register_usage': False,
+            'remove_unreachable_code': False,
+            'optimize_assign_targets': False,
         }
 
         # make sure we always have 0 and 65535 const, and a few others
@@ -1783,13 +1884,19 @@ class Builder(object):
             s += '%d\t%s\n' % (i.lineno, i)
 
         s += 'Locals:\n'
-        for fname in sorted(self.locals.keys()):
-            if len(list(self.locals[fname].values())) > 0:
+        block_locals = {}
+        for block in self.blocks:
+            if block.func not in block_locals:
+                block_locals[block.func] = {}
+            block_locals[block.func].update(block.locals)
+
+        for fname in sorted(block_locals.keys()):
+            if len(block_locals[fname].values()) > 0:
                 s += '\t%s\n' % (fname)
 
-                for l in self.locals[fname].values():
+                for l in block_locals[fname].values():
                     s += '%d\t\t%s\n' % (l.lineno, l)
-
+        
         s += 'PixelArrays:\n'
         for i in list(self.pixel_arrays.values()):
             s += '%d\t%s\n' % (i.lineno, i)
@@ -1800,15 +1907,38 @@ class Builder(object):
 
         return s
 
+    def open_block(self, hint, lineno=None):
+        block = irBlock(self.current_func, hint, len(self.block_stack), self.current_block, lineno=lineno)
+        if self.current_block != None:
+            self.current_block.append_block(block)
+
+        self.block_stack.append(block)
+        self.blocks.append(block)
+
+        debug_print("open  %s" % block)
+
+        self.current_block = block
+
+        return block
+
+    def close_block(self, lineno=None):
+        debug_print("close %s" % self.current_block)
+        self.block_stack.pop(-1)
+        try:
+            self.current_block = self.block_stack[-1]
+
+        except IndexError:
+            self.current_block = None
+
     def finish_module(self):
         # clean up stuff after first pass is done
 
         for func in list(self.funcs.values()):
             func.remove_dead_labels()
 
-        for func in list(self.funcs.values()):
+        for block in self.blocks:
             prev_line = 0
-            for ir in func.body:
+            for ir in block.code:
                 if isinstance(ir, irLabel):
                     ir.lineno = prev_line
 
@@ -1929,9 +2059,13 @@ class Builder(object):
         if name in self.globals:
             raise VariableAlreadyDeclared("Variable '%s' already declared as global" % (name), lineno=lineno)
 
-        # local var redeclaration is allowed
-        if name in self.locals[self.current_func]:
-            return self.locals[self.current_func][name]
+        try:
+            self.current_block.get_local(name)
+
+            raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
+
+        except KeyError:
+            pass # this is ok
 
         if keywords != None:
             if 'publish' in keywords:
@@ -1942,7 +2076,12 @@ class Builder(object):
 
         ir = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
-        self.locals[self.current_func][name] = ir
+        try:
+            for v in ir:
+                self.current_block.append_local(v.name, v)
+
+        except TypeError:
+            self.current_block.append_local(name, ir)
 
         return ir
 
@@ -1963,7 +2102,7 @@ class Builder(object):
             return self.globals[name]
 
         try:
-            return self.locals[self.current_func][name]
+            return self.current_block.get_local(name)
 
         except KeyError:
             raise VariableNotDeclared(name, "Variable '%s' not declared" % (name), lineno=lineno)
@@ -2018,9 +2157,9 @@ class Builder(object):
         self.next_temp += 1
 
         ir = self.build_var(name, data_type, [], lineno=lineno)
-        self.locals[self.current_func][name] = ir
-
+        
         ir.temp = True
+        self.current_block.append_local(name, ir)
 
         return ir
 
@@ -2036,22 +2175,27 @@ class Builder(object):
         return ir
 
     def remove_local_var(self, var):
-        del self.locals[self.current_func][var.name]
+        debug_print('remove %s' % var)
+        self.current_block.remove_local(var.name)
 
     def func(self, *args, **kwargs):
         func = irFunc(*args, builder=self, **kwargs)
         self.funcs[func.name] = func
-        self.locals[func.name] = {}
         self.current_func = func.name
-        self.next_temp = 0 
+        self.next_temp = 0
+
+        if len(self.block_stack) > 0:
+            self.close_block()
+
+        func.root_block = self.open_block('func', lineno=kwargs['lineno'])
 
         return func
 
     def append_node(self, node):
-        self.funcs[self.current_func].append(node)
+        self.current_block.append_code(node)
 
     def get_current_node(self):
-        return self.funcs[self.current_func].get(-1)
+        return self.current_block.code[-1]
 
     def ret(self, value, lineno=None):
         ir = irReturn(value, lineno=lineno)
@@ -2463,6 +2607,8 @@ class Builder(object):
         return ir
 
     def ifelse(self, test, lineno=None):
+        self.open_block('if', lineno=lineno)
+
         body_label = self.label('if.then', lineno=lineno)
         else_label = self.label('if.else', lineno=lineno)
         end_label = self.label('if.end', lineno=lineno)
@@ -2477,10 +2623,18 @@ class Builder(object):
 
         return body_label, else_label, end_label
 
+    def do_else(self, lineno=None):
+        self.close_block()
+        self.open_block('else', lineno=lineno)
+
+    def end_ifelse(self, lineno=None):
+        self.close_block()
+
     def position_label(self, label):
         self.append_node(label)
         
     def begin_while(self, lineno=None):
+        self.open_block('while', lineno=lineno)
         top_label = self.label('while.top', lineno=lineno)
         end_label = self.label('while.end', lineno=lineno)
         self.position_label(top_label)
@@ -2502,6 +2656,7 @@ class Builder(object):
         self.loop_end.pop(-1)
 
     def begin_for(self, iterator, lineno=None):
+        self.open_block('for', lineno=lineno)
         begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR
         self.position_label(begin_label)
         top_label = self.label('for.top', lineno=lineno)
@@ -2966,29 +3121,29 @@ class Builder(object):
                         a.addr = trash_var.addr
 
                     
-            for func_name, local in list(self.locals.items()):
-                for i in list(local.values()):
-                    # assign func name to var
-                    i.name = '%s.%s' % (func_name, i.name)
+            for block in self.blocks:
+                for i in block.locals.values():
+                    # assign block name to var
+                    i.name = '%s.%s' % (block.name, i.name)
 
                     self.data_table.append(i)
 
         # NOT optimizing registers
         else:
-            for func_name, local in list(self.locals.items()):
-                for i in list(local.values()):
+            for block in self.blocks:
+                for i in block.locals.values():
                     i.addr = addr
                     addr += i.length
 
-                    # assign func name to var
-                    i.name = '%s.%s' % (func_name, i.name)
+                    # assign block name to var
+                    i.name = '%s.%s' % (block.name, i.name)
 
                     self.data_table.append(i)
 
         # scan instructions for referenced string literals
         used_strings = []
         for func in self.funcs:
-            for ins in self.funcs[func].body:
+            for ins in self.funcs[func].code():
                 for var in ins.get_input_vars():
                     if isinstance(var, irStrLiteral) and var not in used_strings:
                         used_strings.append(var)
