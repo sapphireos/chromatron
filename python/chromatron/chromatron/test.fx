@@ -1,50 +1,55 @@
 
-# def init():
-#     for i in 4:
-#         pass
-    
-#     for i in 4:
-#         pass
-
-
-
-
-
-
-
-
-
-
-
-def func2(b: Number):
+def func(b: Number):
 	temp_a = Number()
 
 	b += 1
 
-	temp_a = b + 2
-
 	if temp_a > 0:
 		b = temp_a + 3
-
-		if b < 0:
-			b = 1
-			b = 2
-
-			temp_a = 6
-
-			b = b + temp_a # should reduce to 2 + 6
-
-		elif b == 1:
-			b = 2
-
-		# phi(b)
-
+		
 	else:
-		b = 4 + b
+		if temp_a == 2:
+			b = 4 + b
 
-	temp_a = b
+	return b
 
-	return temp_a
+
+# def func2(b: Number):
+# 	temp_a = Number() # temp_a_v1
+
+# 	b += 1  # b_v1 = b_v0 + 1
+
+# 	temp_a = b + 2 # temp_a_v2 = b_v1 + 2
+
+# 	if temp_a > 0: # temp_v2
+# 		b = temp_a + 3 # b_v2 = temp_a_v2 + 3
+
+# 		if b < 0: # b_v2
+# 			b = 1 # b_v3
+# 			b = 2 # b_v4
+
+# 			temp_a = 6 # temp_a_v3
+
+# 			b = b + temp_a # b_v5 = b_v4 + temp_a_v3
+# 			# should reduce to 2 + 6
+
+# 		# elif b == 1:
+# 		# 	b = 2
+
+# 		else: # equivalent to elif
+# 			if b == 1: # b_v2
+# 				b = 2 # b_v6
+
+# 			# phi(b_v6)
+
+# 		# phi(b_v5, b_v6)
+
+# 	else:
+# 		b = 4 + b
+
+# 	temp_a = b
+
+# 	return temp_a
 
 
 

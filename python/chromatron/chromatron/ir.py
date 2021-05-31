@@ -194,6 +194,22 @@ class IR(object):
     def get_jump_target(self):
         return None
 
+class irPhi(IR):
+    def __init__(self, name, joins, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.joins = joins
+
+    def __str__(self):
+        s = ''
+        
+        for join in self.joins:
+            s += f'{join.name}, '
+        
+        s = s[:-2]
+
+        return f'PHI({self.name}) = [{s}]'
+
 class irVar(IR):
     def __init__(self, name, type='i32', options=None, **kwargs):
         super(irVar, self).__init__(**kwargs)
@@ -783,10 +799,25 @@ class irBlock(IR):
             raise KeyError(name)
 
     def phi(self):
-        print('PHI', self.lineno)
-        print(self.ssa_stack)
-        for block in self.blocks:
-            print(block.ssa_stack)        
+        joins = {}
+
+        for block in self.blocks:        
+            for k, v in block.ssa_stack.items():
+                if k not in joins:
+                    joins[k] = []
+
+                joins[k].append(v[-1])
+
+        for k, v in joins.items():
+            self.code.append(irPhi(k, v, lineno=0))
+        
+        # print('PHI', self.lineno)
+        # for k, v in self.ssa_stack.items():
+        #     for a in v:
+        #         print(k, a)
+
+        # for block in self.blocks:
+        #     print(block.ssa_stack)        
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
