@@ -1894,8 +1894,7 @@ class Builder(object):
 
     def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
         ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
-
-        ir.name = '$%s.%s' % (func.name, name)
+        
         func.params.append(ir)
 
         return ir
