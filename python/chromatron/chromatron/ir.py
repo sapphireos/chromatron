@@ -892,9 +892,7 @@ class irFunc(IR):
                     if v.target.name not in self.builder.globals:
                         used.append(v.target)
 
-            # use.append([a.name for a in used])
             use.append([a for a in used])
-
 
             defined = ins.get_output_vars()
 
@@ -906,15 +904,10 @@ class irFunc(IR):
                 if isinstance(v, irAddress):
                     if v.target.name not in self.builder.globals:
                         defined.append(v.target)
-
-            # define.append([a.name for a in defined])
             define.append([a for a in defined])
 
         # attach function params
-        # define[0].extend([a.name for a in self.funcs[func].params])
         define[0].extend([a for a in self.params])
-
-        # define[0].extend(self.globals.keys())
 
         return use, define
 
@@ -1256,23 +1249,6 @@ class irVectorOp(IR):
 
         else:
             return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
-
-class irClear(IR):
-    def __init__(self, target, **kwargs):
-        super(irClear, self).__init__(**kwargs)
-        self.target = target
-
-        assert self.target.length == 1
-        
-    def __str__(self):
-        return '%s = 0' % (self.target)
-
-    def get_output_vars(self):
-        return [self.target]
-
-    def generate(self):
-        return insClr(self.target.generate(), lineno=self.lineno)
-
 
 class irAssign(IR):
     def __init__(self, target, value, **kwargs):
@@ -2064,14 +2040,13 @@ class Builder(object):
 
         else:
             # add init to 0
-            self.clear(ir, lineno=lineno)
+            self.assign(ir, self.get_var(0), lineno=lineno)
 
         return ir
 
     def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
         ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
-
-        ir.name = '$%s.%s' % (func.name, name)
+        
         func.params.append(ir)
 
         return ir
@@ -2106,6 +2081,12 @@ class Builder(object):
             self.current_block.append_local(name, ir)
 
         return ir
+
+    def declare_var(self, name, data_type='i32', dimensions=[], keywords=None, is_global=False, lineno=None):
+        if is_global:
+            return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
+        else:
+            return self.add_local(name, data_type, dimensions, keywords=keywords, lineno=lineno)        
 
     def get_var(self, name, lineno=None):
         name = str(name)
@@ -2251,8 +2232,8 @@ class Builder(object):
             raise SyntaxError("Binary operand must be scalar: %s" % (right.name), lineno=lineno)
 
         # if both types are gfx16, use i32
+        # if either type is fixed16, we do the whole thing as fixed16.
         if left.type == 'gfx16' and right.type == 'gfx16':
-            # if either type is fixed16, we do the whole thing as fixed16.
             data_type = 'i32'
 
         else:
@@ -2305,16 +2286,6 @@ class Builder(object):
         self.append_node(ir)
 
         return result
-
-    def clear(self, target, lineno=None):   
-        # check that we aren't clearing a string, which makes no sense
-        assert not isinstance(target, irVar_str)
-        
-        if target.length == 1:
-            ir = irClear(target, lineno=lineno)
-            self.append_node(ir)
-        else:
-            self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
     
     def load_value(self, value, dest_hint='gfx16', lineno=None):
         # check if pixel attr
