@@ -1941,9 +1941,9 @@ class Builder(object):
 
     def declare_var(self, name, data_type='i32', dimensions=[], keywords=None, is_global=False, lineno=None):
         if is_global:
-            return self.add_global(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)
+            return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
         else:
-            return self.add_local(self.name, self.type, self.dimensions, keywords=self.keywords, lineno=self.lineno)        
+            return self.add_local(name, data_type, dimensions, keywords=keywords, lineno=lineno)        
 
     def get_var(self, name, lineno=None):
         name = str(name)
