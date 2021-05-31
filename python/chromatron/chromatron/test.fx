@@ -1,10 +1,10 @@
 
-def init():
-    for i in 4:
-        pass
+# def init():
+#     for i in 4:
+#         pass
     
-    for i in 4:
-        pass
+#     for i in 4:
+#         pass
 
 
 
@@ -16,22 +16,28 @@ def init():
 
 
 
-# def func2(b: Number):
-# 	temp_a = Number()
+def func2(b: Number):
+	temp_a = Number()
 
-# 	b += 1
+	b += 1
 
-# 	temp_a = b + 2
+	temp_a = b + 2
 
-# 	if temp_a > 0:
-# 		b = temp_a + 3
+	if temp_a > 0:
+		b = temp_a + 3
 
-# 	else:
-# 		b = 4 + b
+		if b < 0:
+			b = 1
 
-# 	temp_a = b
+		elif b == 1:
+			b = 2
 
-# 	return temp_a
+	else:
+		b = 4 + b
+
+	temp_a = b
+
+	return temp_a
 
 
 
