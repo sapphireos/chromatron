@@ -998,6 +998,8 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     if debug_print:
         print(builder)
 
+    sys.exit(0)
+
     builder.allocate()
     builder.generate_instructions()
 

@@ -636,7 +636,7 @@ class irBlock(IR):
         self.hint = hint
         self.depth = depth
         self.block_number = irBlock.block_number
-        self.name = '%s.%d' % (self.func, self.block_number)
+        self.name = '%s.%d' % (self.func.name, self.block_number)
         irBlock.block_number += 1
         self.code = []
         self.locals = {}
@@ -646,7 +646,7 @@ class irBlock(IR):
     def __str__(self):
         global source_code
         s =  '%s####################################################\n' % ('\t' * self.depth)
-        s += '%sBlock: %16s.%d (%8s) d:%d Line: %d\n' % ('\t' * self.depth, self.func, self.block_number, self.hint, self.depth, self.lineno)
+        s += '%sBlock: %16s.%d (%8s) d:%d Line: %d\n' % ('\t' * self.depth, self.func.name, self.block_number, self.hint, self.depth, self.lineno)
         labels = self.labels()
 
         current_line = 0
@@ -726,11 +726,13 @@ class irBlock(IR):
     def append_code(self, code):
         self.code.append(code)
 
-    def add_local(self, name, ir):
+    def add_local(self, ir):
         # if name in self.locals:
         #     print(name, ir)
 
-        self.locals[name] = ir
+        ir.ssa_version = self.func.get_ssa_version(ir._name, inc=True)
+
+        self.locals[ir.name] = ir
 
     def append_block(self, block):
         self.blocks.append(block)
@@ -775,11 +777,23 @@ class irFunc(IR):
         self.name = name
         self.ret_type = ret_type
         self.params = params
+        self.ssa_versions = {}
         
         if self.params == None:
             self.params = []
 
         self.root_block = None
+
+    def get_ssa_version(self, name, inc=False):
+        if name not in self.ssa_versions:
+            self.ssa_versions[name] = 0
+
+        ssa = self.ssa_versions[name]
+
+        if inc:
+            self.ssa_versions[name] += 1
+
+        return ssa
 
     def remove_dead_labels(self):
         labels = self.labels()
@@ -808,15 +822,15 @@ class irFunc(IR):
 
         s = "\n######## Line %4d       ########\n" % (self.lineno)
         s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
-        s += "--------------------------------\n"
+        s += "********************************\n"
         s += "Func blocks:\n"
-        s += "--------------------------------\n"
+        s += "********************************\n"
 
         s += str(self.root_block)
 
-        s += "--------------------------------\n"
+        s += "********************************\n"
         s += "Func code:\n"
-        s += "--------------------------------\n"
+        s += "********************************\n"
 
         current_line = -1
         for node in self.code():
@@ -1837,6 +1851,7 @@ class Builder(object):
         self.pixel_arrays = {}
         self.palettes = {}
         self.labels = {}
+        self.ssa_versions = {}
 
         self.blocks = []
         self.current_block = None
@@ -1931,9 +1946,9 @@ class Builder(object):
         s += 'Locals:\n'
         block_locals = {}
         for block in self.blocks:
-            if block.func not in block_locals:
-                block_locals[block.func] = {}
-            block_locals[block.func].update(block.locals)
+            if block.func.name not in block_locals:
+                block_locals[block.func.name] = {}
+            block_locals[block.func.name].update(block.locals)
 
         for fname in sorted(block_locals.keys()):
             if len(block_locals[fname].values()) > 0:
@@ -1953,7 +1968,7 @@ class Builder(object):
         return s
 
     def open_block(self, hint, lineno=None):
-        block = irBlock(self.current_func, hint, len(self.block_stack), self.current_block, lineno=lineno)
+        block = irBlock(self.funcs[self.current_func], hint, len(self.block_stack), self.current_block, lineno=lineno)
         if self.current_block != None:
             self.current_block.append_block(block)
 
@@ -2110,10 +2125,10 @@ class Builder(object):
 
         try:
             for v in ir:
-                self.current_block.add_local(v.name, v)
+                self.current_block.add_local(v)
 
         except TypeError:
-            self.current_block.add_local(name, ir)
+            self.current_block.add_local(ir)
 
         return ir
 
@@ -2207,7 +2222,7 @@ class Builder(object):
         ir = self.build_var(name, data_type, [], lineno=lineno)
         
         ir.temp = True
-        self.current_block.add_local(name, ir)
+        self.current_block.add_local(ir)
 
         return ir
 
@@ -2412,8 +2427,8 @@ class Builder(object):
                     pass
 
             is_temp = target.temp
-            target = self._add_local_var(target._name, target.type, lineno=lineno)
-            target.temp = is_temp    
+            if not is_temp:
+                target = self._add_local_var(target._name, target.type, lineno=lineno)
 
             ir = irAssign(target, value, lineno=lineno)
             
