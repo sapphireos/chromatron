@@ -56,7 +56,7 @@ typedef struct{
 } file_info_t;
 
 static file_info_t files[FFS_MAX_FILES];
-#define CACHE_SIZE 4
+#define CACHE_SIZE 16
 static page_cache_t page_cache[CACHE_SIZE];
 
 static uint8_t cache_index;
@@ -897,8 +897,14 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
 
     if( ffs_page == 0 ){
 
+        flash_fs_page_cache_misses++;
+
         // page not found in cache, let's get one
         ffs_page = allocate_cache( file_id, page );
+    }
+    else{
+
+        flash_fs_page_cache_hits++;
     }
 
 
