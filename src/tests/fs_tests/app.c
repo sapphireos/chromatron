@@ -67,6 +67,8 @@ static void setup( char *test_name ){
 
 static void test_finished( char *test_name, uint32_t test_len, bool read_back ){
 
+	ffs_page_v_flush();
+
 	elapsed = tmr_u32_elapsed_time_ms( start_time );	
 
 	float elapsed_f = (float)elapsed / 1000.0;
@@ -83,7 +85,7 @@ static void test_finished( char *test_name, uint32_t test_len, bool read_back ){
 
 		if( test_buf[i] != (uint8_t)i ){
 
-			trace_printf("FAIL: read back error at index: %d -> %d != %d\r\n", i, test_buf[i], i);
+			trace_printf("*** FAIL *** : read back error at index: %d -> %d != %d\r\n", i, test_buf[i], i);
 
 			break;
 		}
@@ -131,7 +133,7 @@ PT_BEGIN( pt );
 		int16_t status = fs_i16_write( f, &byte, sizeof(byte) );
 		if( status != sizeof(byte) ){
 
-			trace_printf("FAIL: %d\r\n", status);
+			trace_printf("***FAIL*** : %d\r\n", status);
 
 			goto end;
 		}
@@ -172,7 +174,7 @@ PT_BEGIN( pt );
 		int16_t status = fs_i16_write( f, &test_buf[idx], FFS_PAGE_DATA_SIZE );
 		if( status != FFS_PAGE_DATA_SIZE ){
 
-			trace_printf("FAIL: %d\r\n", status);
+			trace_printf("***FAIL*** : %d\r\n", status);
 
 			goto end;
 		}
@@ -220,7 +222,7 @@ PT_BEGIN( pt );
 		int16_t status = fs_i16_write( f, &test_buf[idx], len );
 		if( status != len ){
 
-			trace_printf("FAIL: %d\r\n", status);
+			trace_printf("***FAIL*** : %d\r\n", status);
 
 			goto end;
 		}
@@ -254,7 +256,7 @@ PT_BEGIN( pt );
 	int16_t status = fs_i16_write( f, test_buf, len );
 	if( status != len ){
 
-		trace_printf("FAIL: %d\r\n", status);
+		trace_printf("***FAIL*** : %d\r\n", status);
 
 		goto end;
 	}
@@ -292,7 +294,7 @@ PT_BEGIN( pt );
 		int16_t status = fs_i16_write( f, &test_buf[idx], len );
 		if( status != len ){
 
-			trace_printf("FAIL: %d\r\n", status);
+			trace_printf("***FAIL*** : %d\r\n", status);
 
 			goto end;
 		}
@@ -329,7 +331,7 @@ PT_BEGIN( pt );
 	int16_t status = fs_i16_write( f, test_buf, sizeof(test_buf) );
 	if( status != sizeof(test_buf) ){
 
-		trace_printf("FAIL: %d\r\n", status);
+		trace_printf("***FAIL*** : %d\r\n", status);
 
 		goto end;
 	}
@@ -358,7 +360,7 @@ PT_BEGIN( pt );
 		int16_t status = fs_i16_write( f, &test_buf[idx], len );
 		if( status != len ){
 
-			trace_printf("FAIL: %d\r\n", status);
+			trace_printf("***FAIL*** : %d\r\n", status);
 
 			goto end;
 		}
@@ -394,7 +396,7 @@ PT_BEGIN( pt );
 	int16_t status = fs_i16_write( f, test_buf, sizeof(test_buf) );
 	if( status != sizeof(test_buf) ){
 
-		trace_printf("FAIL: %d\r\n", status);
+		trace_printf("***FAIL*** : %d\r\n", status);
 
 		goto end;
 	}
@@ -421,7 +423,7 @@ PT_BEGIN( pt );
 		int16_t status = fs_i16_write( f, &test_buf[idx], len );
 		if( status != len ){
 
-			trace_printf("FAIL: %d len: %d\r\n", status, len);
+			trace_printf("***FAIL*** : %d len: %d\r\n", status, len);
 
 			goto end;
 		}
@@ -465,7 +467,7 @@ PT_BEGIN( pt );
 	int16_t status = fs_i16_write( f, test_buf, sizeof(test_buf) );
 	if( status != sizeof(test_buf) ){
 
-		trace_printf("FAIL: %d\r\n", status);
+		trace_printf("***FAIL*** : %d\r\n", status);
 
 		goto end;
 	}
@@ -492,7 +494,7 @@ PT_BEGIN( pt );
 		int16_t status = fs_i16_read( f, &test_buf[idx], len );
 		if( status != len ){
 
-			trace_printf("FAIL: %d\r\n", status);
+			trace_printf("***FAIL*** : %d\r\n", status);
 
 			goto end;
 		}
@@ -536,7 +538,7 @@ PT_BEGIN( pt );
 	int16_t status = fs_i16_write( f, test_buf, sizeof(test_buf) );
 	if( status != sizeof(test_buf) ){
 
-		trace_printf("FAIL: %d\r\n", status);
+		trace_printf("***FAIL*** : %d\r\n", status);
 
 		goto end;
 	}
@@ -563,7 +565,7 @@ PT_BEGIN( pt );
 		int16_t status = fs_i16_read( f, &test_buf[idx], len );
 		if( status != len ){
 
-			trace_printf("FAIL: %d\r\n", status);
+			trace_printf("***FAIL*** : %d\r\n", status);
 
 			goto end;
 		}
