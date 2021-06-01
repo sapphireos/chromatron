@@ -690,6 +690,7 @@ class irBlock(IR):
         s += '%s| Start block: %16s.%d (%8s) d:%d Line: %d\n' % ('\t' * self.depth, self.func.name, self.block_number, self.hint, self.depth, self.lineno)
         s += '%s| In : %s\n' % ('\t' * self.depth, [v.name for v in self.get_input_vars() if not v.temp and not v.is_const])
         s += '%s| Out: %s\n' % ('\t' * self.depth, [v.name for v in self.get_output_vars() if not v.temp and not v.is_const])
+        s += '%s|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n' % ('\t' * self.depth)
 
         current_line = 0
         for node in self.code:
