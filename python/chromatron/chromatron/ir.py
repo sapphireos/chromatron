@@ -195,9 +195,10 @@ class IR(object):
         return None
 
 class irPhi(IR):
-    def __init__(self, name, joins, target, **kwargs):
+    def __init__(self, name, blocks, joins, target, **kwargs):
         super().__init__(**kwargs)
         self.name = name
+        self.blocks = blocks
         self.joins = joins
         self.target = target
 
@@ -858,45 +859,92 @@ class irBlock(IR):
         else:
             raise KeyError(name)
 
-    def phi(self, lineno=None):
-        joins = {}
+    def phi(self, blocks=[], lineno=None):
+        used_vars = {}
 
-        # note join from current block in case the var
-        # is not modified in some of the blocks we are transferring
-        # control to
-        root_joins = {}
-        for k, v in self.ssa_stack.items():
-            count = 0
-            # check that at least one sub block uses this var
-            # if not, then we don't need a phi for it
-            for block in self.phi_blocks:
-                if k in block.ssa_stack:
-                    count += 1
-                    break
+        # get outputs for this block up to when the phi blocks start
+        outputs = {}
+        for node in self.code:            
+            if node in self.phi_blocks:
+                break
 
-            if count > 0:
-                root_joins[k] = v[-1]
+            out = [o for o in node.get_output_vars() if not o.temp and not o.is_const]
 
+            for o in out:
+                outputs[o._name] = o
+
+        # get vars used by blocks
         for block in self.phi_blocks:
-            for k, v in block.ssa_stack.items():
-                if k not in joins:
-                    joins[k] = []
+            for o in block.get_output_vars():
+                if o.temp or o.is_const:
+                    continue
 
-                joins[k].append(v[-1])
+                if o._name not in used_vars:
+                    used_vars[o._name] = []
 
-            for k, v in root_joins.items():
-                if k not in block.ssa_stack:
-                    if k not in joins:
-                        joins[k] = []
+                used_vars[o._name].append(o)
 
-                    joins[k].append(v)
+        # for all vars in this block up to the sub blocks,
+        # are there any vars that are not used (written to) in every
+        # sub block?
+        # if not, then there is a path to phi where a sub block doesn't
+        # touch it. 
+        # in that case, we add the version from this block to the list
+        # so we can generate code for it.
+        for k, v in outputs.items():
+            if k in used_vars and len(used_vars[k]) < len(self.phi_blocks):
+                used_vars[k].append(v)
 
-        for k, v in joins.items():
+        for k, v in used_vars.items():
             v0 = v[0]
             target = self.builder._add_local_var(v0._name, v0.type, lineno=lineno)
-            self.code.append(irPhi(k, v, target, lineno=lineno))
-        
+            self.code.append(irPhi(k, self.phi_blocks, v, target, lineno=lineno))
+
         self.phi_blocks = []
+
+
+        # return
+
+
+        # joins = {}
+
+        # # note join from current block in case the var
+        # # is not modified in some of the blocks we are transferring
+        # # control to
+        # used_vars = {}
+        # for k, v in self.ssa_stack.items():
+        #     count = 0
+        #     # check that at least one sub block uses this var
+        #     # if not, then we don't need a phi for it
+        #     for block in self.phi_blocks:
+        #         if k in block.ssa_stack:
+        #             count += 1
+        #             break
+
+        #     if count > 0:
+        #         used_vars[k] = v[-1]
+
+
+        # for block in self.phi_blocks:
+        #     for k, v in block.ssa_stack.items():
+        #         if k not in joins:
+        #             joins[k] = []
+
+        #         joins[k].append(v[-1])
+
+        #     for k, v in used_vars.items():
+        #         if k not in block.ssa_stack:
+        #             if k not in joins:
+        #                 joins[k] = []
+
+        #             joins[k].append(v)
+
+        # for k, v in joins.items():
+        #     v0 = v[0]
+        #     target = self.builder._add_local_var(v0._name, v0.type, lineno=lineno)
+        #     self.code.append(irPhi(k, v, target, lineno=lineno))
+        
+        # self.phi_blocks = []
 
     def resolve_phi(self):
         # record phis and their indexes
@@ -909,8 +957,11 @@ class irBlock(IR):
                 self.code[i].resolve_phi()
 
 
+        if len(phis) > 0:
+            p = list(phis.values())[0]
+            print(p)
 
-        #return
+        return
 
 
         for index, phi in phis.items():
@@ -2347,8 +2398,8 @@ class Builder(object):
         except KeyError:
             raise VariableNotDeclared(name, "Variable '%s' not declared" % (name), lineno=lineno)
 
-    def phi(self, lineno=None):
-        self.current_block.phi(lineno=lineno)
+    def phi(self, blocks=[], lineno=None):
+        self.current_block.phi(blocks, lineno=lineno)
 
     def get_obj_var(self, obj_name, attr, lineno=None):
         name = '%s.%s' % (obj_name, attr)
@@ -2858,9 +2909,9 @@ class Builder(object):
         branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
 
-        self.open_block('if', lineno=lineno)
+        block = self.open_block('if', lineno=lineno)
 
-        return body_label, else_label, end_label
+        return body_label, else_label, end_label, block
 
     def end_if(self, end_label, lineno=None):
         self.close_block()
@@ -2868,12 +2919,12 @@ class Builder(object):
 
     def do_else(self, lineno=None):
         # self.close_block()
-        self.open_block('else', lineno=lineno)
+        return self.open_block('else', lineno=lineno)
 
-    def end_ifelse(self, end_label, lineno=None):
+    def end_ifelse(self, end_label, blocks=[], lineno=None):
         self.close_block()
         self.position_label(end_label)
-        self.phi(lineno=lineno)
+        self.phi(blocks, lineno=lineno)
 
     def position_label(self, label):
         self.append_node(label)

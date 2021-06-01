@@ -359,7 +359,7 @@ class cg1If(cg1CodeNode):
     def build(self, builder):
         test = self.test.build(builder)
 
-        body_label, else_label, end_label = builder.ifelse(test, lineno=self.lineno)
+        body_label, else_label, end_label, if_block = builder.ifelse(test, lineno=self.lineno)
 
         builder.position_label(body_label)    
         for node in self.body:
@@ -369,12 +369,12 @@ class cg1If(cg1CodeNode):
         # builder.jump(end_label, lineno=self.lineno)
         # builder.position_label(else_label)
 
-        builder.do_else(lineno=self.lineno)
+        else_block = builder.do_else(lineno=self.lineno)
         builder.position_label(else_label)
         for node in self.orelse:
             node.build(builder)
         
-        builder.end_ifelse(end_label, lineno=self.lineno)
+        builder.end_ifelse(end_label, [if_block, else_block], lineno=self.lineno)
         # builder.position_label(end_label)
         
 
@@ -1000,6 +1000,9 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     builder = cg1_data.build(script_name=script_name, source=source)
     if debug_print:
         print(builder)
+
+
+    sys.exit(0)
 
     builder.resolve_phi()
     if debug_print:
