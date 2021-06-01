@@ -195,10 +195,9 @@ class IR(object):
         return None
 
 class irPhi(IR):
-    def __init__(self, name, blocks, joins, target, **kwargs):
+    def __init__(self, name, joins, target, **kwargs):
         super().__init__(**kwargs)
         self.name = name
-        self.blocks = blocks
         self.joins = joins
         self.target = target
 
@@ -213,7 +212,8 @@ class irPhi(IR):
         return f'{self.target} = PHI({self.name})[{s}]'
 
     def get_input_vars(self):
-        return self.joins
+        # return self.joins
+        return []
 
     def get_output_vars(self):
         return [self.target]
@@ -860,10 +860,8 @@ class irBlock(IR):
             raise KeyError(name)
 
     def phi(self, blocks=[], lineno=None):
-        used_vars = {}
-
         # get outputs for this block up to when the phi blocks start
-        outputs = {}
+        root_outputs = {}
         for node in self.code:            
             if node in self.phi_blocks:
                 break
@@ -871,36 +869,81 @@ class irBlock(IR):
             out = [o for o in node.get_output_vars() if not o.temp and not o.is_const]
 
             for o in out:
-                outputs[o._name] = o
+                root_outputs[o._name] = o
 
-        # get vars used by blocks
+
+        block_vars = {}
+        used = []
         for block in self.phi_blocks:
+            block_vars[block] = []
+
             for o in block.get_output_vars():
                 if o.temp or o.is_const:
                     continue
 
-                if o._name not in used_vars:
-                    used_vars[o._name] = []
+                block_vars[block].append(o)
+                used.append(o)
 
-                used_vars[o._name].append(o)
+        # prune root outputs if they are not used by any sub block
+        root_outputs = {k: v for k, v in root_outputs.items() if k in [a._name for a in used]}
 
-        # for all vars in this block up to the sub blocks,
-        # are there any vars that are not used (written to) in every
-        # sub block?
-        # if not, then there is a path to phi where a sub block doesn't
-        # touch it. 
-        # in that case, we add the version from this block to the list
-        # so we can generate code for it.
-        for k, v in outputs.items():
-            if k in used_vars and len(used_vars[k]) < len(self.phi_blocks):
-                used_vars[k].append(v)
 
-        for k, v in used_vars.items():
-            v0 = v[0]
-            target = self.builder._add_local_var(v0._name, v0.type, lineno=lineno)
-            self.code.append(irPhi(k, self.phi_blocks, v, target, lineno=lineno))
+        # assign root outputs to blocks that don't already use that var
+        for k, v in root_outputs.items():
+            for block, used_vars in block_vars.items():
+                if k in [a._name for a in used_vars]:
+                    continue
 
-        self.phi_blocks = []
+                used_vars.append(v)
+
+        for u in used:
+            target = self.builder._add_local_var(u._name, u.type, lineno=lineno)
+
+            blocks = []
+            for k, v in block_vars.items():
+                for a in v:
+                    if a._name in [a._name for a in used]:
+                        blocks.append(k)
+                        break
+
+            self.code.append(irPhi(u._name, blocks, target, lineno=lineno))
+
+
+        return
+
+
+        # # get vars used by blocks
+        # used_vars = {}
+        # for block in self.phi_blocks:
+        #     for o in block.get_output_vars():
+        #         if o.temp or o.is_const:
+        #             continue
+
+        #         if o._name not in used_vars:
+        #             used_vars[o._name] = []
+
+        #         used_vars[o._name].append((o, block))
+
+        # # for all vars in this block up to the sub blocks,
+        # # are there any vars that are not used (written to) in every
+        # # sub block?
+        # # if not, then there is a path to phi where a sub block doesn't
+        # # touch it. 
+        # # in that case, we add the version from this block to the list
+        # # so we can generate code for it.
+        # for k, v in outputs.items():
+        #     if k in used_vars and len(used_vars[k]) < len(self.phi_blocks):
+        #         used_vars[k].append((v, None))
+
+
+
+
+        # for k, v in used_vars.items():
+        #     v0 = v[0]
+        #     target = self.builder._add_local_var(v0._name, v0.type, lineno=lineno)
+        #     self.code.append(irPhi(k, self.phi_blocks, v, target, lineno=lineno))
+
+        # self.phi_blocks = []
 
 
         # return
@@ -957,9 +1000,27 @@ class irBlock(IR):
                 self.code[i].resolve_phi()
 
 
-        if len(phis) > 0:
-            p = list(phis.values())[0]
-            print(p)
+        return
+
+
+        for index, phi in phis.items():
+            assert len(phi.joins) > 0
+
+            for join in phi.joins:
+                ir = irAssign(phi.target, join, lineno=phi.lineno)
+
+                for block in phi.blocks:
+                    # if join in block.get_output_vars():
+                    block.append_code(ir)
+
+                # find which block this translated phi can fit into
+
+
+
+
+        # if len(phis) > 0:
+        #     p = list(phis.values())[0]
+        #     print(p)
 
         return
 

@@ -1002,7 +1002,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         print(builder)
 
 
-    sys.exit(0)
+    # sys.exit(0)
 
     builder.resolve_phi()
     if debug_print:
