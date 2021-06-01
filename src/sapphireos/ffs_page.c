@@ -104,27 +104,6 @@ static int32_t page_address( block_t block, uint8_t page_index ){
     return addr;
 }
 
-// static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
-
-//     // trace_printf("invalidate_cache %d/%d\r\n", file_id, page);
-
-//     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
-
-//         if( ( page_cache[i].file_id == file_id ) && ( page_cache[i].page_number == page ) ){    
-
-//             if( page_cache[i].dirty ){
-
-//                 flush_cache( file_id, page );
-//             }
-
-//             ASSERT( !page_cache[i].dirty );
-
-//             page_cache[i].file_id = -1;
-//             page_cache[i].page.len = 0;
-//         }
-//     }
-// }
-
 static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page ){
 
     int8_t entry = -1;
@@ -329,24 +308,10 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
             continue;
         }
 
-        // trash the cache so we force a reread and CRC check
-        // invalidate_cache( file_id, page );
-
+        // read back to test written page
         int8_t status = _page_i8_read_internal( page_addr, ffs_page );
 
         if( status == FFS_STATUS_OK ){
-
-            // // calculate file length up to this page plus the data in it
-            // uint32_t file_length_to_here = ( (uint32_t)page * (uint32_t)FFS_PAGE_DATA_SIZE ) + ffs_page->len;
-
-            // // check file size
-            // if( file_length_to_here > (uint32_t)files[file_id].size ){
-
-            //     trace_printf("file len: %d\r\n", file_length_to_here);
-
-            //     // adjust file size
-            //     files[file_id].size = file_length_to_here;
-            // }
 
             // success
             goto done;

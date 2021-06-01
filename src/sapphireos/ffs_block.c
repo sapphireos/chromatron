@@ -315,7 +315,7 @@ void ffs_block_v_add_to_list( block_t *head, block_t block ){
 
 void ffs_block_v_replace_in_list( block_t *head, block_t old_block, block_t new_block ){
 
-    trace_printf("ffs_block_v_replace_in_list %d -> %d\r\n", old_block, new_block);
+    // trace_printf("ffs_block_v_replace_in_list %d -> %d\r\n", old_block, new_block);
 
 	ASSERT( old_block < (block_t)_total_blocks );
 	ASSERT( new_block < (block_t)_total_blocks );
