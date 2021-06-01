@@ -211,6 +211,7 @@ class irPhi(IR):
 
         return f'{self.target} = PHI({self.name})[{s}]'
 
+
 class irVar(IR):
     def __init__(self, name, type='i32', options=None, **kwargs):
         super(irVar, self).__init__(**kwargs)
@@ -3250,7 +3251,11 @@ class Builder(object):
                     addr += i.length
 
                     # assign block name to var
-                    i.name = '%s.%s' % (block.name, i._name)
+                    # i.name = '%s.%s' % (block.name, i._name)
+
+                    # TODO it'll be nice to have block naming
+                    # but for now, it breaks some of the code gen
+                    # to change the name here
 
                     self.data_table.append(i)
 
