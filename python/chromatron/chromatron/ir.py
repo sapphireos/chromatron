@@ -211,6 +211,12 @@ class irPhi(IR):
 
         return f'{self.target} = PHI({self.name})[{s}]'
 
+    def generate(self):
+        # for join in self.joins:
+            # print(join, join.block)
+
+        return insNop()
+
 
 class irVar(IR):
     def __init__(self, name, type='i32', options=None, **kwargs):
@@ -224,6 +230,7 @@ class irVar(IR):
         self.is_const = False
         self.default_value = 0
         self.temp = False
+        self.block = None
 
         self.publish = False
         self.persist = False
@@ -749,6 +756,7 @@ class irBlock(IR):
 
     def add_local(self, ir):
         ir.ssa_version = self.func.get_ssa_version(ir._name, inc=True)
+        ir.block = self
 
         self.locals[ir.name] = ir
 
@@ -806,8 +814,21 @@ class irBlock(IR):
     def phi(self, lineno=None):
         joins = {}
 
+        # note join from current block in case the var
+        # is not modified in some of the blocks we are transferring
+        # control to
+        root_joins = {}
         for k, v in self.ssa_stack.items():
-            joins[k] = [v[-1]]
+            count = 0
+            # check that at least one sub block uses this var
+            # if not, then we don't need a phi for it
+            for block in self.phi_blocks:
+                if k in block.ssa_stack:
+                    count += 1
+                    break
+
+            if count > 0:
+                root_joins[k] = v[-1]
 
         for block in self.phi_blocks:
             for k, v in block.ssa_stack.items():
@@ -815,6 +836,10 @@ class irBlock(IR):
                     joins[k] = []
 
                 joins[k].append(v[-1])
+
+            for k, v in root_joins.items():
+                if k not in block.ssa_stack:
+                    joins[k].append(v)
 
         for k, v in joins.items():
             v0 = v[0]

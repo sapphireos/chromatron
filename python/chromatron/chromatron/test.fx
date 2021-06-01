@@ -6,13 +6,13 @@ def func(b: Number):
 
 	if temp_a > 0:
 		b = temp_a + 3
-		temp_a = 1
+		# temp_a = 1
 		
 	else:
-		temp_a += 1
+		# temp_a += 1
 		# pass
-		# if temp_a == 2:
-			# b = 4 + b
+		if temp_a == 2:
+			b = 4 + b
 
 
 	# if temp_a > 5:
