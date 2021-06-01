@@ -291,7 +291,6 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
             // this block is full
             // try replacing with a new block
             phy_block = ffs_page_i16_replace_block( file_id, block );
-            trace_printf("phy_block: %d\r\n", phy_block);
 
             // check error code
             if( phy_block == FFS_BLOCK_INVALID ){
@@ -1035,7 +1034,7 @@ static int8_t ffs_page_i8_alloc_block( ffs_file_t file_id ){
 
 block_t ffs_page_i16_replace_block( ffs_file_t file_id, uint8_t file_block ){
 
-    trace_printf("ffs_page_i16_replace_block: %d/%d\r\n", file_id, file_block);
+    // trace_printf("ffs_page_i16_replace_block: %d/%d\r\n", file_id, file_block);
 
     ASSERT( file_id < FFS_MAX_FILES );
 
@@ -1074,7 +1073,7 @@ block_t ffs_page_i16_replace_block( ffs_file_t file_id, uint8_t file_block ){
 
 static int8_t ffs_page_i8_block_copy( block_t source_block, block_t dest_block ){
 
-    trace_printf("ffs_page_i8_block_copy: %d -> %d\r\n", source_block, dest_block);
+    // trace_printf("ffs_page_i8_block_copy: %d -> %d\r\n", source_block, dest_block);
 
     ffs_block_meta_t meta;
 
@@ -1088,13 +1087,12 @@ static int8_t ffs_page_i8_block_copy( block_t source_block, block_t dest_block )
     }
 
     // calc base page number
-    // uint16_t base_page = meta.block * FFS_DATA_PAGES_PER_BLOCK;
+    uint16_t base_page = meta.block * FFS_DATA_PAGES_PER_BLOCK;
 
     // iterate through source pages
     for( uint8_t i = 0; i < FFS_DATA_PAGES_PER_BLOCK; i++ ){
 
-        int32_t page_addr = //ffs_page_i32_seek_page( meta.file_id, base_page + i );
-            page_address( source_block, i );
+        int32_t page_addr = ffs_page_i32_seek_page( meta.file_id, base_page + i );
 
         // check EOF
         if( page_addr == FFS_STATUS_EOF ){
@@ -1126,6 +1124,7 @@ static int8_t ffs_page_i8_block_copy( block_t source_block, block_t dest_block )
         flash25_v_write( dest_page_addr, &ffs_page, sizeof(ffs_page_t) );
 
         // read back to verify
+        memset( &ffs_page, 0, sizeof(ffs_page) );
         if( _page_i8_read_internal( dest_page_addr, &ffs_page ) != FFS_STATUS_OK ){
 
             return FFS_STATUS_ERROR;
