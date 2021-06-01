@@ -592,7 +592,7 @@ PT_END( pt );
 
 
 
-PT_THREAD( test_thread( pt_t *pt, void *state ) )
+PT_THREAD( fs_test_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );
 
@@ -720,7 +720,7 @@ PT_END( pt );
 void app_v_init( void ){
 
 
-    thread_t_create( test_thread,
+    thread_t_create( fs_test_thread,
                      PSTR("test"),
                      0,
                      0 );
