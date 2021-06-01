@@ -879,7 +879,7 @@ class irBlock(IR):
                     index = (len(join.block.code) - 1) - i
 
                     if join in join.block.code[i].get_output_vars():
-                        join.block.code.insert(index + 1, ir)
+                        join.block.code.insert(index, ir)
                         break
 
                 # join.block.code.insert(index, ir)
