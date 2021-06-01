@@ -166,14 +166,16 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page, bool read_
         // in that case, we need to make sure this is a read only allocation,
         // and that if the selected cache entry is dirty, we need to switch to
         // the reserved read only entry (which is 0).
-        if( page_cache[entry].dirty && flush_busy ){
+        // if( page_cache[entry].dirty && flush_busy ){
 
-            entry = 0;
-        }   
-        else{
-
+        //     entry = 0;
+        // }   
+        // else{
+        if( page_cache[entry].dirty ){
+            
             flush_cache( page_cache[entry].file_id, page_cache[entry].page_number );
         }
+        // }
     }
 
     ASSERT( !page_cache[entry].dirty );
@@ -183,11 +185,11 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page, bool read_
     page_cache[entry].page_number = page;
     page_cache[entry].read_only = read_only; // apply read only flag 
 
-    if( entry == 0 ){
+    // if( entry == 0 ){
 
-        // entry 0 must be read only
-        ASSERT( page_cache[entry].read_only );
-    }
+    //     // entry 0 must be read only
+    //     ASSERT( page_cache[entry].read_only );
+    // }
 
     // initialize page
     memset( page_cache[entry].page.data, 0xff, sizeof(page_cache[entry].page.data) );
@@ -231,7 +233,7 @@ static void set_dirty( ffs_file_t file_id, uint16_t page ){
     
     page_cache_t *cache_entry = search_cache_entry( file_id, page );
 
-    ASSERT( !cache_entry->read_only );
+    // ASSERT( !cache_entry->read_only );
 
     cache_entry->dirty = TRUE;    
 
@@ -262,7 +264,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
         goto done;
     }
 
-    ASSERT( !cache_entry->read_only );
+    // ASSERT( !cache_entry->read_only );
 
 
     ffs_page_t *ffs_page = &cache_entry->page;
@@ -358,6 +360,9 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
             continue;
         }
 
+        // clear dirty flag
+        cache_entry->dirty = FALSE;
+
         // trash the cache so we force a reread and CRC check
         invalidate_cache( file_id, page );
 
@@ -390,9 +395,6 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
 
 
 done:
-    // clear dirty flag
-    cache_entry->dirty = FALSE;
-
     flush_busy = FALSE;
 }
 
