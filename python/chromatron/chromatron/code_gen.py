@@ -365,7 +365,8 @@ class cg1If(cg1CodeNode):
         for node in self.body:
             node.build(builder)
         # jump to end
-        builder.jump(end_label, lineno=self.lineno)
+        builder.end_if(end_label, lineno=self.lineno)
+        # builder.jump(end_label, lineno=self.lineno)
         # builder.position_label(else_label)
 
         builder.do_else(lineno=self.lineno)

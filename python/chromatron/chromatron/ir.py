@@ -689,7 +689,6 @@ class irBlock(IR):
         s =  '%s####################################################\n' % ('\t' * self.depth)
         s += '%s| Start block: %16s.%d (%8s) d:%d Line: %d\n' % ('\t' * self.depth, self.func.name, self.block_number, self.hint, self.depth, self.lineno)
         s += '%s| In : %s\n' % ('\t' * self.depth, [v.name for v in self.get_input_vars() if not v.temp and not v.is_const])
-        s += '%s| Out: %s\n' % ('\t' * self.depth, [v.name for v in self.get_output_vars() if not v.temp and not v.is_const])
         s += '%s|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n' % ('\t' * self.depth)
 
         current_line = 0
@@ -722,6 +721,8 @@ class irBlock(IR):
                 else:
                     s += '%s| \t%s\n' % ('\t' * self.depth,node)
 
+        s += '%s|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n' % ('\t' * self.depth)
+        s += '%s| Out: %s\n' % ('\t' * self.depth, [v.name for v in self.get_output_vars() if not v.temp and not v.is_const])
         s += '%s| End block: %16s.%d\n' % ('\t' * self.depth, self.func.name, self.block_number)
         s += '%s####################################################\n' % ('\t' * self.depth)
 
@@ -906,6 +907,11 @@ class irBlock(IR):
 
             elif isinstance(self.code[i], irBlock):
                 self.code[i].resolve_phi()
+
+
+
+        #return
+
 
         for index, phi in phis.items():
             assert len(phi.joins) > 0
@@ -2856,8 +2862,12 @@ class Builder(object):
 
         return body_label, else_label, end_label
 
-    def do_else(self, lineno=None):
+    def end_if(self, end_label, lineno=None):
         self.close_block()
+        self.jump(end_label, lineno=lineno)
+
+    def do_else(self, lineno=None):
+        # self.close_block()
         self.open_block('else', lineno=lineno)
 
     def end_ifelse(self, end_label, lineno=None):
