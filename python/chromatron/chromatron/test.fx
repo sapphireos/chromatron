@@ -10,9 +10,9 @@ def func(b: Number):
 		
 	else:
 		# temp_a += 1
-		pass
-		# if temp_a == 2:
-			# b = 4 + b
+		# pass
+		if temp_a == 2:
+			b = 4 + b
 
 
 	# if temp_a > 5:

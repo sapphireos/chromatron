@@ -681,9 +681,8 @@ class irBlock(IR):
     def __str__(self):
         global source_code
         s =  '%s####################################################\n' % ('\t' * self.depth)
-        s += '%sBlock: %16s.%d (%8s) d:%d Line: %d\n' % ('\t' * self.depth, self.func.name, self.block_number, self.hint, self.depth, self.lineno)
-        labels = self.labels()
-
+        s += '%s| Start block: %16s.%d (%8s) d:%d Line: %d\n' % ('\t' * self.depth, self.func.name, self.block_number, self.hint, self.depth, self.lineno)
+        
         current_line = 0
         for node in self.code:
 
@@ -691,30 +690,47 @@ class irBlock(IR):
             if node.lineno > current_line:
                 current_line = node.lineno
                 try:
-                    s += '%s----------------------------------------------------\n' % ('\t' * self.depth)
-                    s += "%s%d\t%s\n" % ('\t' * self.depth,current_line, source_code[current_line - 1].strip())
-                    s += '%s----------------------------------------------------\n' % ('\t' * self.depth)
+                    s += '%s| ----------------------------------------------------\n' % ('\t' * self.depth)
+                    s += "%s| %d\t%s\n" % ('\t' * self.depth,current_line, source_code[current_line - 1].strip())
+                    s += '%s| ----------------------------------------------------\n' % ('\t' * self.depth)
 
                 except IndexError:
                     print("Source interleave from imported files not yet supported")
                     pass
 
             if isinstance(node, irLabel):
-                s += '%s%s\n' % ('\t' * self.depth,node)
+                s += '%s| %s\n' % ('\t' * self.depth, node)
 
             else:    
                 label = node.get_jump_target()
 
                 if label != None:
-                    s += '%s\t%s (Line %d)\n' % ('\t' * self.depth,node, label.lineno)
+                    s += '%s| \t%s (Line %d)\n' % ('\t' * self.depth, node, label.lineno)
 
                 elif isinstance(node, irBlock):
                     s += '%s\n' % (node)
 
                 else:
-                    s += '%s\t%s\n' % ('\t' * self.depth,node)
+                    s += '%s| \t%s\n' % ('\t' * self.depth,node)
+
+        s += '%s| End block: %16s.%d\n' % ('\t' * self.depth, self.func.name, self.block_number)
+        s += '%s####################################################\n' % ('\t' * self.depth)
 
         return s    
+
+    def get_input_vars(self):
+        l = []
+        for node in self.code:
+            l.extend(node.get_input_vars())
+
+        return l
+
+    def get_output_vars(self):
+        l = []
+        for node in self.code:
+            l.extend(node.get_output_vars())
+            
+        return l
 
     def remove_dead_labels(self, dead_labels=[]):
         new_code = []
