@@ -885,6 +885,9 @@ class irBlock(IR):
 
             for k, v in root_joins.items():
                 if k not in block.ssa_stack:
+                    if k not in joins:
+                        joins[k] = []
+                        
                     joins[k].append(v)
 
         for k, v in joins.items():
@@ -918,7 +921,7 @@ class irBlock(IR):
                     index = (len(join.block.code) - 1) - i
 
                     if join in join.block.code[i].get_output_vars():
-                        # join.block.code.insert(index, ir)
+                        join.block.code.insert(index, ir)
                         break
 
                 # join.block.code.insert(index, ir)
