@@ -9,9 +9,9 @@ def func(b: Number):
 		# temp_a = 1
 		
 	else:
-		b += 2
+		# b += 2
 		# temp_a += 1
-		# pass
+		pass
 		# if temp_a == 2:
 			# b = 4 + b
 

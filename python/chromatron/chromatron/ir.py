@@ -963,6 +963,7 @@ class irFunc(IR):
         return ssa
 
     def remove_dead_labels(self):
+        return
         labels = self.labels()
 
         keep = []
@@ -2859,8 +2860,9 @@ class Builder(object):
         self.close_block()
         self.open_block('else', lineno=lineno)
 
-    def end_ifelse(self, lineno=None):
+    def end_ifelse(self, end_label, lineno=None):
         self.close_block()
+        self.position_label(end_label)
         self.phi(lineno=lineno)
 
     def position_label(self, label):
