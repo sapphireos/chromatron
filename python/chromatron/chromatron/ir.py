@@ -887,13 +887,13 @@ class irBlock(IR):
                 if k not in block.ssa_stack:
                     if k not in joins:
                         joins[k] = []
-                        
+
                     joins[k].append(v)
 
         for k, v in joins.items():
             v0 = v[0]
             target = self.builder._add_local_var(v0._name, v0.type, lineno=lineno)
-            self.code.append(irPhi(k, v, target, lineno=0))
+            self.code.append(irPhi(k, v, target, lineno=lineno))
         
         self.phi_blocks = []
 
@@ -920,8 +920,8 @@ class irBlock(IR):
                 for i in range(len(join.block.code)):
                     index = (len(join.block.code) - 1) - i
 
-                    if join in join.block.code[i].get_output_vars():
-                        join.block.code.insert(index, ir)
+                    if join in join.block.code[index].get_output_vars():
+                        join.block.code.insert(index + 1, ir)
                         break
 
                 # join.block.code.insert(index, ir)
