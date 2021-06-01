@@ -212,8 +212,15 @@ class irPhi(IR):
         return f'{self.target} = PHI({self.name})[{s}]'
 
     def generate(self):
-        # for join in self.joins:
-            # print(join, join.block)
+
+        # assert len(self.joins) > 0
+
+        # if len(self.joins) == 1:
+        #     return insMov(self.target.generate(), self.joins[0].generate(), lineno=self.lineno)
+
+        # else:
+        #     for join in self.joins:
+        #         print(join, join.block)
 
         return insNop()
 
@@ -848,6 +855,47 @@ class irBlock(IR):
         
         self.phi_blocks = []
 
+    def resolve_phi(self):
+        # record phis and their indexes
+        phis = {}
+        for i in range(len(self.code)):
+            if isinstance(self.code[i], irPhi):
+                phis[i] = self.code[i]
+
+            elif isinstance(self.code[i], irBlock):
+                self.code[i].resolve_phi()
+
+        for index, phi in phis.items():
+            assert len(phi.joins) > 0
+
+            for join in phi.joins:
+                ir = irAssign(phi.target, join, lineno=phi.lineno)
+
+                # walk backwards through code and find the last place 
+                # the joined var is written to
+                # since we are walking backwards, this will be the first one
+                # we find
+                for i in range(len(join.block.code)):
+                    index = (len(join.block.code) - 1) - i
+
+                    if join in join.block.code[i].get_output_vars():
+                        join.block.code.insert(index + 1, ir)
+                        break
+
+                # join.block.code.insert(index, ir)
+
+            # if len(phi.joins) == 1:
+            #     ir = irAssign(phi.target, phi.joins[0], lineno=phi.lineno)
+            #     self.code.insert(index, ir)
+
+            # else:
+            #     for join in phi.joins:
+            #         ir = irAssign(phi.target, join, lineno=phi.lineno)
+            #         join.block.code.insert(index, ir)
+
+            # replace phi with nop
+            # self.code[index] = irNop(lineno=phi.lineno)            
+
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
         super(irFunc, self).__init__(**kwargs)
@@ -942,6 +990,9 @@ class irFunc(IR):
 
     def code(self):
         return self.root_block.get_code()
+
+    def resolve_phi(self):
+        self.root_block.resolve_phi()
 
     def generate(self):
         params = [self.root_block.get_local(a.name).generate() for a in self.params]
@@ -3049,6 +3100,10 @@ class Builder(object):
                 params[i] = -1
 
         self.cron_tab[func].append(params)
+
+    def resolve_phi(self):
+        for func in self.funcs.values():
+            func.resolve_phi()        
 
     def allocate(self):
         self.remove_unreachable()        
