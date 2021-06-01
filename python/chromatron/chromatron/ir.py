@@ -805,7 +805,10 @@ class irBlock(IR):
     def phi(self, lineno=None):
         joins = {}
 
-        for block in self.phi_blocks:        
+        for k, v in self.ssa_stack.items():
+            joins[k] = [v[-1]]
+
+        for block in self.phi_blocks:
             for k, v in block.ssa_stack.items():
                 if k not in joins:
                     joins[k] = []

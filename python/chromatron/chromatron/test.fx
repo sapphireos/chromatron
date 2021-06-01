@@ -8,15 +8,18 @@ def func(b: Number):
 		b = temp_a + 3
 		
 	else:
+		temp_a += 1
+		# pass
 		# if temp_a == 2:
-		b = 4 + b
+			# b = 4 + b
 
 
-	if temp_a > 5:
-		b = 3 + b
+	# if temp_a > 5:
+	# 	b = 3 + b
 		
-	else:
-		b = 1 + 2
+	# else:
+	# 	# b = 1 + 2
+	# 	temp_a = 5
 
 	return b
 
