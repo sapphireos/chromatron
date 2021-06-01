@@ -513,7 +513,7 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
     // get file size
     int32_t file_size = ffs_i32_get_file_size( file_id );
 
-    trace_printf("ffs_i32_read: file %d %d/%d len: %d\r\n", file_id, position, file_size, len);
+    // trace_printf("ffs_i32_read: file %d %d/%d len: %d\r\n", file_id, position, file_size, len);
     
     if( file_size < 0 ){
 
@@ -634,7 +634,7 @@ int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, 
         return FFS_STATUS_INVALID_FILE;
     }
 
-    trace_printf("ffs_i32_write: file %d %d/%d len: %d\r\n", file_id, position, file_size, len);
+    // trace_printf("ffs_i32_write: file %d %d/%d len: %d\r\n", file_id, position, file_size, len);
 
     // check position is within file bounds
     if( position > (uint32_t)file_size ){

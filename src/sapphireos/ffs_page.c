@@ -83,6 +83,9 @@ static int8_t ffs_page_i8_alloc_block( ffs_file_t file_id );
 static int32_t ffs_page_i32_seek_page( ffs_file_t file_id, uint16_t page );
 
 
+static int8_t _page_i8_read_internal( int32_t page_addr, ffs_page_t *ffs_page );
+static void flush_cache( ffs_file_t file_id, uint16_t page );
+
 
 // returns TRUE if seq1 is newer than seq2
 static bool compare_sequences( uint8_t seq1, uint8_t seq2 ){
@@ -102,29 +105,26 @@ static int32_t page_address( block_t block, uint8_t page_index ){
     return addr;
 }
 
-static void flush_cache( ffs_file_t file_id, uint16_t page );
+// static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
 
+//     // trace_printf("invalidate_cache %d/%d\r\n", file_id, page);
 
-static void invalidate_cache( ffs_file_t file_id, uint16_t page ){
+//     for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
 
-    // trace_printf("invalidate_cache %d/%d\r\n", file_id, page);
+//         if( ( page_cache[i].file_id == file_id ) && ( page_cache[i].page_number == page ) ){    
 
-    for( uint8_t i = 0; i < CACHE_SIZE; i++ ){
+//             if( page_cache[i].dirty ){
 
-        if( ( page_cache[i].file_id == file_id ) && ( page_cache[i].page_number == page ) ){    
+//                 flush_cache( file_id, page );
+//             }
 
-            if( page_cache[i].dirty ){
+//             ASSERT( !page_cache[i].dirty );
 
-                flush_cache( file_id, page );
-            }
-
-            ASSERT( !page_cache[i].dirty );
-
-            page_cache[i].file_id = -1;
-            page_cache[i].page.len = 0;
-        }
-    }
-}
+//             page_cache[i].file_id = -1;
+//             page_cache[i].page.len = 0;
+//         }
+//     }
+// }
 
 static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page, bool read_only ){
 
@@ -172,7 +172,7 @@ static ffs_page_t* allocate_cache( ffs_file_t file_id, uint16_t page, bool read_
         // }   
         // else{
         if( page_cache[entry].dirty ){
-            
+
             flush_cache( page_cache[entry].file_id, page_cache[entry].page_number );
         }
         // }
@@ -272,7 +272,7 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
     // calculate CRC
     ffs_page->crc = crc_u16_block( ffs_page->data, ffs_page->len );
 
-    trace_printf("flushing page: %d file: %d\r\n", page, file_id);
+    // trace_printf("flushing page: %d file: %d\r\n", page, file_id);
 
     // calculate logical block number
     block_t block = page / FFS_DATA_PAGES_PER_BLOCK;
@@ -360,13 +360,10 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
             continue;
         }
 
-        // clear dirty flag
-        cache_entry->dirty = FALSE;
-
         // trash the cache so we force a reread and CRC check
-        invalidate_cache( file_id, page );
+        // invalidate_cache( file_id, page );
 
-        int8_t status = ffs_page_i8_read( file_id, page, &ffs_page );
+        int8_t status = _page_i8_read_internal( page_addr, ffs_page );
 
         if( status == FFS_STATUS_OK ){
 
@@ -395,6 +392,9 @@ static void flush_cache( ffs_file_t file_id, uint16_t page ){
 
 
 done:
+    // clear dirty flag
+    cache_entry->dirty = FALSE;
+
     flush_busy = FALSE;
 }
 
@@ -841,13 +841,37 @@ int32_t ffs_page_i32_file_size( ffs_file_t file_id ){
     return files[file_id].size;
 }
 
-// ffs_page_t* ffs_page_p_get_cached_page( void ){
 
-//     // ensure page is valid
-//     ASSERT( page_cache.file_id >= 0 );
+static int8_t _page_i8_read_internal( int32_t page_addr, ffs_page_t *ffs_page ){
 
-//     return &page_cache.page;
-// }
+    // set up retry loop
+    uint8_t tries = FFS_IO_ATTEMPTS;
+
+    while( tries > 0 ){
+
+        tries--;
+
+        // read page
+        flash25_v_read( page_addr, ffs_page->data, sizeof(ffs_page_t) );
+
+        // check crc
+        if( crc_u16_block( ffs_page->data, ffs_page->len ) == ffs_page->crc ){
+            // trace_printf("ffs_page_i8_read addr FFS_STATUS_OK\r\n");
+
+            return FFS_STATUS_OK;
+        }
+
+        ffs_block_v_soft_error();
+
+        // trace_printf("ffs_page_i8_read ERR\r\n");
+    }
+
+    ffs_block_v_hard_error();
+
+    // trace_printf("ffs_page_i8_read fail\r\n");
+
+    return FFS_STATUS_ERROR;
+}
 
 int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
@@ -887,38 +911,18 @@ int8_t ffs_page_i8_read( ffs_file_t file_id, uint16_t page, ffs_page_t **ptr ){
 
     // set up cache
     ffs_page_t *ffs_page = allocate_cache( file_id, page, TRUE );
+    
 
     // ok, we have the correct page address
 
-    // set up retry loop
-    uint8_t tries = FFS_IO_ATTEMPTS;
+    int8_t status = _page_i8_read_internal( page_addr, ffs_page );
 
-    while( tries > 0 ){
+    if( status == FFS_STATUS_OK ){
 
-        tries--;
-
-        // read page
-        flash25_v_read( page_addr, ffs_page->data, sizeof(ffs_page_t) );
-
-        // check crc
-        if( crc_u16_block( ffs_page->data, ffs_page->len ) == ffs_page->crc ){
-
-            *ptr = ffs_page;
-            // trace_printf("ffs_page_i8_read addr FFS_STATUS_OK\r\n");
-
-            return FFS_STATUS_OK;
-        }
-
-        ffs_block_v_soft_error();
-
-        // trace_printf("ffs_page_i8_read ERR\r\n");
+        *ptr = ffs_page;    
     }
 
-    ffs_block_v_hard_error();
-
-    // trace_printf("ffs_page_i8_read fail\r\n");
-
-    return FFS_STATUS_ERROR;
+    return status;
 }
 
 int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, const void *data, uint8_t len ){
@@ -1114,24 +1118,29 @@ static int8_t ffs_page_i8_block_copy( block_t source_block, block_t dest_block )
     }
 
     // calc base page number
-    uint16_t base_page = meta.block * FFS_DATA_PAGES_PER_BLOCK;
+    // uint16_t base_page = meta.block * FFS_DATA_PAGES_PER_BLOCK;
 
     // iterate through source pages
     for( uint8_t i = 0; i < FFS_DATA_PAGES_PER_BLOCK; i++ ){
 
-        ffs_page_t *ffs_page;
-
-        // read page
-        int8_t status = ffs_page_i8_read( meta.file_id, base_page + i, &ffs_page );
+        int32_t page_addr = //ffs_page_i32_seek_page( meta.file_id, base_page + i );
+            page_address( source_block, i );
 
         // check EOF
-        if( status == FFS_STATUS_EOF ){
+        if( page_addr == FFS_STATUS_EOF ){
 
             goto done;
         }
 
         // check error
-        if( status < 0 ){
+        if( page_addr < 0 ){
+
+            return FFS_STATUS_ERROR;
+        }
+
+        // read page
+        ffs_page_t ffs_page;
+        if( _page_i8_read_internal( page_addr, &ffs_page ) < 0 ){
 
             return FFS_STATUS_ERROR;
         }
@@ -1143,10 +1152,11 @@ static int8_t ffs_page_i8_block_copy( block_t source_block, block_t dest_block )
         }
         
         // write page data
-        flash25_v_write( page_address( dest_block, i ), ffs_page, sizeof(ffs_page_t) );
+        int32_t dest_page_addr = page_address( dest_block, i );
+        flash25_v_write( dest_page_addr, &ffs_page, sizeof(ffs_page_t) );
 
         // read back to verify
-        if( ffs_page_i8_read( meta.file_id, base_page + i, &ffs_page ) != FFS_STATUS_OK ){
+        if( _page_i8_read_internal( dest_page_addr, &ffs_page ) != FFS_STATUS_OK ){
 
             return FFS_STATUS_ERROR;
         }
