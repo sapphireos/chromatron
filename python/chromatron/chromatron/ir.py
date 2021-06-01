@@ -211,6 +211,12 @@ class irPhi(IR):
 
         return f'{self.target} = PHI({self.name})[{s}]'
 
+    def get_input_vars(self):
+        return self.joins
+
+    def get_output_vars(self):
+        return [self.target]
+
     def generate(self):
 
         # assert len(self.joins) > 0
@@ -682,7 +688,9 @@ class irBlock(IR):
         global source_code
         s =  '%s####################################################\n' % ('\t' * self.depth)
         s += '%s| Start block: %16s.%d (%8s) d:%d Line: %d\n' % ('\t' * self.depth, self.func.name, self.block_number, self.hint, self.depth, self.lineno)
-        
+        s += '%s| In : %s\n' % ('\t' * self.depth, [v.name for v in self.get_input_vars() if not v.temp and not v.is_const])
+        s += '%s| Out: %s\n' % ('\t' * self.depth, [v.name for v in self.get_output_vars() if not v.temp and not v.is_const])
+
         current_line = 0
         for node in self.code:
 
@@ -719,18 +727,32 @@ class irBlock(IR):
         return s    
 
     def get_input_vars(self):
-        l = []
+        v = {}
         for node in self.code:
-            l.extend(node.get_input_vars())
+            inputs = node.get_input_vars()
 
-        return l
+            for i in inputs:
+                if i._name not in v:
+                    v[i._name] = i
+
+                if i.ssa_version < v[i._name].ssa_version:
+                    v[i._name] = i
+
+        return list(v.values())
 
     def get_output_vars(self):
-        l = []
+        v = {}
         for node in self.code:
-            l.extend(node.get_output_vars())
-            
-        return l
+            outputs = node.get_output_vars()
+
+            for o in outputs:
+                if o._name not in v:
+                    v[o._name] = o
+
+                if o.ssa_version > v[o._name].ssa_version:
+                    v[o._name] = o
+
+        return list(v.values())
 
     def remove_dead_labels(self, dead_labels=[]):
         new_code = []
@@ -895,7 +917,7 @@ class irBlock(IR):
                     index = (len(join.block.code) - 1) - i
 
                     if join in join.block.code[i].get_output_vars():
-                        join.block.code.insert(index, ir)
+                        # join.block.code.insert(index, ir)
                         break
 
                 # join.block.code.insert(index, ir)
