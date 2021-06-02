@@ -2967,16 +2967,18 @@ class Builder(object):
             self.assign(result, test, lineno=lineno)
             test = result
 
+        block = self.open_block('if', lineno=lineno)
+
         branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
 
-        block = self.open_block('if', lineno=lineno)
+        block = self.open_block('then', lineno=lineno)
 
         return body_label, else_label, end_label, block
 
     def end_if(self, end_label, lineno=None):
-        self.close_block()
         self.jump(end_label, lineno=lineno)
+        self.close_block()
 
     def do_else(self, lineno=None):
         # self.close_block()
