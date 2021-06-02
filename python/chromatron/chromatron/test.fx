@@ -6,24 +6,147 @@ def func(b: Number):
 
 	if temp_a > 0:
 		b = temp_a + 3
-		# temp_a = 1
 		
 	else:
-		# b += 2
-		# temp_a += 1
 		pass
-		# if temp_a == 2:
-			# b = 4 + b
-
-
-	# if temp_a > 5:
-	# 	b = 3 + b
 		
-	# else:
-	# 	# b = 1 + 2
-	# 	temp_a = 5
-
 	return b
+
+"""
+********************************
+Func code:
+********************************
+3	temp_a = Number()
+			Var(temp_a_v1, i32) = Const(0, i32)
+5	b += 1
+			Var(%0, i32) = Var(b_v0, i32) add Const(1, i32)
+			Var(b_v1, i32) = Var(%0, i32)
+7	if temp_a > 0:
+			Var(%1, i32) = Var(temp_a_v1, i32) gt Const(0, i32)
+			Var(%2, i32) = Var(%1, i32)
+			BR Z Var(%2, i32) -> if.else.0 (Line 0)
+LABEL if.then.0
+8	b = temp_a + 3
+			Var(%3, i32) = Var(temp_a_v1, i32) add Const(3, i32)
+			Var(b_v2, i32) = Var(%3, i32)
+			JMP -> if.end.0 (Line 7)
+LABEL if.else.0
+LABEL if.end.0
+			Var(b_v3, i32) = PHI(b)[func.2]
+26	return b
+			RET Var(b_v3, i32)
+
+Control flow for this simple function:
+
+| * BLOCK START
+| * In: b_v0. temp_a_v1
+| * Out: b_v1, temp_a_v1
+| # 3 temp_a = Number()
+| Var(temp_a_v1, i32) = Const(0, i32)
+| # 5 b += 1
+| Var(%0, i32) = Var(b_v0, i32) add Const(1, i32)
+| Var(b_v1, i32) = Var(%0, i32)
+| # 7 if temp_a > 0:
+| Var(%1, i32) = Var(temp_a_v1, i32) gt Const(0, i32)
+| Var(%2, i32) = Var(%1, i32)
+| BR Z Var(%2, i32) -> if.else.0 (Line 0)
+
+	| * BLOCK START
+	| * In: b_v1. temp_a_v1
+	| * Out: b_v2
+	| LABEL if.then.0
+	| # 8 b = temp_a + 3
+	| Var(%3, i32) = Var(temp_a_v1, i32) add Const(3, i32)
+	| Var(b_v2, i32) = Var(%3, i32)
+	| JMP -> if.end.0
+
+	| * BLOCK START
+	| * In: 
+	| * Out: 
+	| LABEL if.else.0
+
+| * BLOCK START
+| * In: b_v1. b_v2, temp_a_v1
+| * Out: b_v3, temp_a_v1
+| LABEL if.end.0
+| Var(b_v3, i32) = PHI(b)[b_v1, b_v2]
+| # 26 return b
+| RET Var(b_v3, i32)
+
+
+
+
+After phi is resolved:
+
+| * BLOCK START
+| * In: b_v0. temp_a_v1
+| * Out: b_v1, temp_a_v1
+| # 3 temp_a = Number()
+| Var(temp_a_v1, i32) = Const(0, i32)
+| # 5 b += 1
+| Var(%0, i32) = Var(b_v0, i32) add Const(1, i32)
+| Var(b_v1, i32) = Var(%0, i32)
+| # 7 if temp_a > 0:
+| Var(%1, i32) = Var(temp_a_v1, i32) gt Const(0, i32)
+| Var(%2, i32) = Var(%1, i32)
+| BR Z Var(%2, i32) -> if.else.0 (Line 0)
+
+	| * BLOCK START
+	| * In: b_v1. temp_a_v1
+	| * Out: b_v2
+	| LABEL if.then.0
+	| # 8 b = temp_a + 3
+	| Var(%3, i32) = Var(temp_a_v1, i32) add Const(3, i32)
+	| Var(b_v2, i32) = Var(%3, i32)
+	| Var(b_v3, i32) = Var(b_v2, i32)
+	| JMP -> if.end.0
+
+	| * BLOCK START
+	| * In: 
+	| * Out: 
+	| LABEL if.else.0
+	| Var(b_v3, i32) = Var(b_v1, i32)
+
+| * BLOCK START
+| * In: b_v1. b_v2, temp_a_v1
+| * Out: b_v3, temp_a_v1
+| LABEL if.end.0
+| # 26 return b
+| RET Var(b_v3, i32)
+
+"""
+
+
+
+
+
+
+
+# def func(b: Number):
+# 	temp_a = Number()
+
+# 	b += 1
+
+# 	if temp_a > 0:
+# 		b = temp_a + 3
+# 		# temp_a = 1
+		
+# 	else:
+# 		# b += 2
+# 		# temp_a += 1
+# 		pass
+# 		# if temp_a == 2:
+# 			# b = 4 + b
+
+
+# 	# if temp_a > 5:
+# 	# 	b = 3 + b
+		
+# 	# else:
+# 	# 	# b = 1 + 2
+# 	# 	temp_a = 5
+
+# 	return b
 
 
 # def func2(b: Number):
