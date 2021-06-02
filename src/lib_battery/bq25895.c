@@ -679,6 +679,14 @@ PT_BEGIN( pt );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
     bq25895_v_enable_adc_continuous();
     bq25895_v_set_charger( FALSE );
+    
+    // set min sys
+    // on battery only mode, the battery voltage must be above MINSYS for the ADC
+    // to read correctly.
+    // since MINSYS can only regulate the SYS voltage when plugged in to a power source,
+    // it otherwise isn't very important for our designs other than this ADC consideration.
+    bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+
 
     // init battery SOC state
     batt_volts = bq25895_u16_get_batt_voltage();
@@ -818,9 +826,6 @@ PT_BEGIN( pt );
 
             // run auto DPDM (which can override the current limits)
             // bq25895_v_force_dpdm();
-
-            // set min sys
-            bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );
