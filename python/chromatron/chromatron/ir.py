@@ -1189,24 +1189,25 @@ class irFunc(IR):
         cfg.append(sequence)
 
         while True:
-            ins = self.body[pc]
+            ir = self.code()[pc]
 
-            sequence.append(pc)
+            # sequence.append(pc)
+            sequence.append(str(ir))
             
-            if isinstance(ins, irReturn):
+            if isinstance(ir, irReturn):
                 break
 
-            jump = ins.get_jump_target()
+            jump = ir.get_jump_target()
 
             # check if unconditional jump
-            if isinstance(ins, irJump) and ins not in jumps_taken:
+            if isinstance(ir, irJump) and ir not in jumps_taken:
                 pc = labels[jump.name]
 
-                jumps_taken.append(ins)
+                jumps_taken.append(ir)
 
             elif jump != None:
-                if ins not in jumps_taken:
-                    jumps_taken.append(ins)
+                if ir not in jumps_taken:
+                    jumps_taken.append(ir)
 
                     self.control_flow(sequence=copy(sequence), cfg=cfg, pc=labels[jump.name], jumps_taken=jumps_taken)
 
@@ -3638,11 +3639,11 @@ class Builder(object):
     def print_control_flow(self):
         print("CONTROL FLOW: ")
         
-        for func in self.funcs:
-            cfg = self.control_flow(func)
+        for func in self.funcs.values():
+            cfg = func.control_flow()
 
-            print(func)
-            print(cfg)
+            print(func.name)
+            pprint.pprint(cfg)
 
     def print_func_addrs(self):
         print("FUNCTION ADDRS: ")
