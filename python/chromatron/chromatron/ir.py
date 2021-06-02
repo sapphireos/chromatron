@@ -1764,17 +1764,17 @@ class irBranchZero(irBranchConditional):
         
 
 
-class irBranchNotZero(irBranchConditional):
-    def __init__(self, *args, **kwargs):
-        super(irBranchNotZero, self).__init__(*args, **kwargs)        
+# class irBranchNotZero(irBranchConditional):
+#     def __init__(self, *args, **kwargs):
+#         super(irBranchNotZero, self).__init__(*args, **kwargs)        
 
-    def __str__(self):
-        s = 'BR NZ %s -> %s' % (self.value, self.target.name)
+#     def __str__(self):
+#         s = 'BR NZ %s -> %s' % (self.value, self.target.name)
 
-        return s    
+#         return s    
 
-    def generate(self):
-        return insJmpIfNotZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
+#     def generate(self):
+#         return insJmpIfNotZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
     
 
 class irJump(IR):
