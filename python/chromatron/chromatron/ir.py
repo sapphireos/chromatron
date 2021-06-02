@@ -1062,44 +1062,15 @@ class irFunc(IR):
         self.name = name
         self.ret_type = ret_type
         self.params = params
+        self.body = []
         self.ssa_versions = {}
+        self.locals = {}
+        self.ssa_stack = {}
         
         if self.params == None:
             self.params = []
 
         self.root_block = None
-
-    def get_ssa_version(self, name, inc=False):
-        if name not in self.ssa_versions:
-            self.ssa_versions[name] = 0
-
-        ssa = self.ssa_versions[name]
-
-        if inc:
-            self.ssa_versions[name] += 1
-
-        return ssa
-
-    def remove_dead_labels(self):
-        return
-        labels = self.labels()
-
-        keep = []
-        code = self.code()
-
-        # get list of labels that are used
-        for label in labels:
-            for node in code:
-                target = node.get_jump_target()
-
-                if target != None:
-                    if target.name == label:
-                        keep.append(label)
-                        break
-
-        dead_labels = [l for l in labels if l not in keep]
-        
-        self.root_block.remove_dead_labels(dead_labels)
 
     def __str__(self):
         global source_code
@@ -1108,11 +1079,11 @@ class irFunc(IR):
 
         s = "\n######## Line %4d       ########\n" % (self.lineno)
         s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
-        s += "********************************\n"
-        s += "Func blocks:\n"
-        s += "********************************\n"
+        # s += "********************************\n"
+        # s += "Func blocks:\n"
+        # s += "********************************\n"
 
-        s += str(self.root_block)
+        # s += str(self.root_block)
 
         s += "********************************\n"
         s += "Func code:\n"
@@ -1146,11 +1117,99 @@ class irFunc(IR):
 
         return s
 
+    def get_ssa_version(self, name, inc=False):
+        if name not in self.ssa_versions:
+            self.ssa_versions[name] = 0
+
+        ssa = self.ssa_versions[name]
+
+        if inc:
+            self.ssa_versions[name] += 1
+
+        return ssa
+
+    def remove_dead_labels(self):
+        return
+        labels = self.labels()
+
+        keep = []
+        code = self.code()
+
+        # get list of labels that are used
+        for label in labels:
+            for node in code:
+                target = node.get_jump_target()
+
+                if target != None:
+                    if target.name == label:
+                        keep.append(label)
+                        break
+
+        dead_labels = [l for l in labels if l not in keep]
+        
+        self.root_block.remove_dead_labels(dead_labels)
+
+    def add_local(self, ir):
+        ir.ssa_version = self.get_ssa_version(ir._name, inc=True)
+
+        self.locals[ir.name] = ir
+
+        if ir.temp:
+            return
+
+        # update SSA, but not for temp vars (they are already SSA)
+
+        if ir._name not in self.ssa_stack:
+            self.ssa_stack[ir._name] = []            
+
+        self.ssa_stack[ir._name].append(ir)
+
+    def get_local(self, name, _check_parents=True):
+        # check SSA stack:
+        if name in self.ssa_stack:
+            return self.ssa_stack[name][-1]
+
+        # check if local is within this block:
+        if name in self.locals:
+            return self.locals[name]
+
+        # if not, check parent, if we have one
+        if _check_parents and self.parent != None:
+            return self.parent.get_local(name)
+
+        # check child nodes
+        for block in self.blocks:
+            try:
+                return block.get_local(name, _check_parents=False)
+
+            except KeyError:
+                pass
+
+        raise KeyError(name)
+
+    # def labels(self):
+        # return self.root_block.labels()
+
     def labels(self):
-        return self.root_block.labels()
+        labels = {}
+
+        for i in range(len(self.body)):
+            ins = self.body[i]
+
+            if isinstance(ins, irLabel):
+                labels[ins.name] = i
+
+            elif isinstance(ins, irBlock):
+                labels.update(ins.labels())
+
+        return labels
 
     def code(self):
-        return self.root_block.get_code()
+        # return self.root_block.get_code()
+        return self.body
+
+    def append_node(self, ir):
+        self.body.append(ir)
 
     def resolve_phi(self):
         self.root_block.resolve_phi()
@@ -2258,6 +2317,7 @@ class Builder(object):
         return s
 
     def open_block(self, hint, lineno=None):
+        return
         block = irBlock(self.funcs[self.current_func], hint, len(self.block_stack), self.current_block, self, lineno=lineno)
         if self.current_block != None:
             self.current_block.append_block(block)
@@ -2272,6 +2332,7 @@ class Builder(object):
         return block
 
     def close_block(self, lineno=None):
+        return
         debug_print("close %s" % self.current_block)
         self.block_stack.pop(-1)
         try:
@@ -2415,10 +2476,12 @@ class Builder(object):
 
         try:
             for v in ir:
-                self.current_block.add_local(v)
+                # self.current_block.add_local(v)
+                self.current_func.add_local(v)
 
         except TypeError:
-            self.current_block.add_local(ir)
+            # self.current_block.add_local(ir)
+            self.current_func.add_local(ir)
 
         return ir
 
@@ -2455,13 +2518,15 @@ class Builder(object):
             return self.globals[name]
 
         try:
-            return self.current_block.get_local(name)
+            # return self.current_block.get_local(name)
+            return self.current_func.get_local(name)
 
         except KeyError:
             raise VariableNotDeclared(name, "Variable '%s' not declared" % (name), lineno=lineno)
 
     def phi(self, blocks=[], lineno=None):
-        self.current_block.phi(blocks, lineno=lineno)
+        pass
+        # self.current_block.phi(blocks, lineno=lineno)
 
     def get_obj_var(self, obj_name, attr, lineno=None):
         name = '%s.%s' % (obj_name, attr)
@@ -2515,7 +2580,8 @@ class Builder(object):
         ir = self.build_var(name, data_type, [], lineno=lineno)
         
         ir.temp = True
-        self.current_block.add_local(ir)
+        # self.current_block.add_local(ir)
+        self.current_func.add_local(ir)
 
         return ir
 
@@ -2537,7 +2603,7 @@ class Builder(object):
     def func(self, *args, **kwargs):
         func = irFunc(*args, builder=self, **kwargs)
         self.funcs[func.name] = func
-        self.current_func = func.name
+        self.current_func = func
         self.next_temp = 0
 
         if len(self.block_stack) > 0:
@@ -2548,7 +2614,8 @@ class Builder(object):
         return func
 
     def append_node(self, node):
-        self.current_block.append_code(node)
+        # self.current_block.append_code(node)
+        self.current_func.append_node(node)
 
     def get_current_node(self):
         return self.current_block.code[-1]
