@@ -1086,6 +1086,14 @@ class irFunc(IR):
         # s += str(self.root_block)
 
         s += "********************************\n"
+        s += "Locals:\n"
+        s += "********************************\n"
+
+        for v in self.locals.values():
+            s += f'{v.lineno:3}\t{v.name:16}:{v.type}\n'
+
+
+        s += "********************************\n"
         s += "Func code:\n"
         s += "********************************\n"
 
@@ -2292,19 +2300,19 @@ class Builder(object):
         for i in list(self.globals.values()):
             s += '%d\t%s\n' % (i.lineno, i)
 
-        s += 'Locals:\n'
-        block_locals = {}
-        for block in self.blocks:
-            if block.func.name not in block_locals:
-                block_locals[block.func.name] = {}
-            block_locals[block.func.name].update(block.locals)
+        # s += 'Locals:\n'
+        # block_locals = {}
+        # for block in self.blocks:
+        #     if block.func.name not in block_locals:
+        #         block_locals[block.func.name] = {}
+        #     block_locals[block.func.name].update(block.locals)
 
-        for fname in sorted(block_locals.keys()):
-            if len(block_locals[fname].values()) > 0:
-                s += '\t%s\n' % (fname)
+        # for fname in sorted(block_locals.keys()):
+        #     if len(block_locals[fname].values()) > 0:
+        #         s += '\t%s\n' % (fname)
 
-                for l in block_locals[fname].values():
-                    s += '%d\t\t%s\n' % (l.lineno, l)
+        #         for l in block_locals[fname].values():
+        #             s += '%d\t\t%s\n' % (l.lineno, l)
         
         s += 'PixelArrays:\n'
         for i in list(self.pixel_arrays.values()):
