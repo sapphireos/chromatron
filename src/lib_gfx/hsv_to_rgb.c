@@ -247,7 +247,6 @@ void gfx_v_hsv_to_rgbw(
     *g = ( (uint32_t)temp_g * v ) / 65536;
     *b = ( (uint32_t)temp_b * v ) / 65536;
     *w = ( (uint32_t)temp_s * v ) / 65536;
-    *w = 0;
 }
 
 
