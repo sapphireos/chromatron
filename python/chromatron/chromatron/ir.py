@@ -1056,6 +1056,22 @@ class irBlock(IR):
             # replace phi with nop
             # self.code[index] = irNop(lineno=phi.lineno)            
 
+class Block():
+    def __init__(self):
+        self.predecessors = []
+        self.successors = []
+        self.code = []
+
+        self.entry_label = None
+        self.jump_target = None
+
+    def __str__(self):
+        return '\n'.join([str(ir) for ir in self.code])
+
+    def append(self, node):
+        self.code.append(node)
+
+
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
         super(irFunc, self).__init__(**kwargs)
@@ -1124,6 +1140,26 @@ class irFunc(IR):
                     s += '\t\t\t%s\n' % (node)
 
         return s
+
+    def analyze_blocks(self):
+        block = Block()
+        leader_block = block
+
+        for ir in self.body:
+            block.append(ir)
+
+            if isinstance(ir, irUnconditionalJump) or \
+               isinstance(ir, irConditionalJump) or \
+               isinstance(ir, irReturn):
+
+                next_block = Block()
+                next_block.predecessors.append(block)
+                block.successors.append(next_block)
+                block = next_block
+
+
+        print(leader_block)
+
 
     def get_ssa_version(self, name, inc=False):
         if name not in self.ssa_versions:
@@ -1806,7 +1842,10 @@ class irLabel(IR):
         return insLabel(self.name, lineno=self.lineno)
 
 
-class irBranchConditional(IR):
+class irConditionalJump(IR):
+    pass    
+
+class irBranchConditional(irConditionalJump):
     def __init__(self, value, target, **kwargs):
         super(irBranchConditional, self).__init__(**kwargs)        
         self.value = value
@@ -1829,8 +1868,6 @@ class irBranchZero(irBranchConditional):
 
     def generate(self):
         return insJmpIfZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
-        
-
 
 # class irBranchNotZero(irBranchConditional):
 #     def __init__(self, *args, **kwargs):
@@ -1843,9 +1880,12 @@ class irBranchZero(irBranchConditional):
 
 #     def generate(self):
 #         return insJmpIfNotZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
-    
 
-class irJump(IR):
+
+class irUnconditionalJump(IR):
+    pass
+
+class irJump(irUnconditionalJump):
     def __init__(self, target, **kwargs):
         super(irJump, self).__init__(**kwargs)        
         self.target = target
@@ -1861,7 +1901,7 @@ class irJump(IR):
     def get_jump_target(self):
         return self.target
 
-class irJumpLessPreInc(IR):
+class irJumpLessPreInc(irUnconditionalJump):
     def __init__(self, target, op1, op2, **kwargs):
         super(irJumpLessPreInc, self).__init__(**kwargs)        
         self.target = target
@@ -2323,6 +2363,10 @@ class Builder(object):
             s += '%s\n' % (func)
 
         return s
+
+    def analyze_blocks(self):
+        for func in self.funcs.values():
+            func.analyze_blocks()
 
     def open_block(self, hint, lineno=None):
         return

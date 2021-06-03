@@ -8,7 +8,7 @@ def func(b: Number):
 		b = temp_a + 3
 		
 	else:
-		pass
+		temp_a += 2
 		
 	return b
 
