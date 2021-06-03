@@ -633,6 +633,7 @@ class Builder(object):
 
         for fx in fx_files:
             d, f = os.path.split(fx)
+            output_file = f + 'b'
 
             os.chdir(d)
 
@@ -640,6 +641,14 @@ class Builder(object):
 
             cmd = f'{FX_COMPILER_COMMAND} {f}'
             os.system(cmd)
+
+            # convert to C array
+            with open(output_file, 'rb') as fxb:
+                data = fxb.read()
+
+            with open(f'{f}.carray', 'w') as fxb:
+                for b in data:
+                    fxb.write(f'{hex(b)},\n')
 
         os.chdir(current_dir)
 

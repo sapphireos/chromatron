@@ -50,10 +50,10 @@ static uint16_t vm_run_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
 static uint8_t vm_timing_status;
 
+static uint8_t vm_pause;
+
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
-
-static bool hold_vms;
 
 
 int8_t vm_i8_kv_handler(
@@ -688,7 +688,7 @@ PT_BEGIN( pt );
     // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
 
-        THREAD_WAIT_WHILE( pt, hold_vms );
+        THREAD_WAIT_WHILE( pt, vm_pause & ( 1 << state->vm_id ) );
 
         state->delay_adjust = 0;
         
@@ -1107,22 +1107,49 @@ void vm_v_reset( void ){
     vm_reset[0] = TRUE;
 }
 
-void vm_v_hold( void ){
+void vm_v_pause( void ){
 
-    hold_vms = TRUE;
+    vm_pause |= ( 1 << 0 );
 }
 
-void vm_v_unhold( void ){
+void vm_v_resume( void ){
 
-    hold_vms = FALSE;
+    vm_pause &= ~( 1 << 0 );
+}
+
+void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
+
+    catbus_hash_t32 hash;
+
+    if( vm_id == 0 ){
+
+        hash = __KV__vm_prog;
+    }
+    else if( vm_id == 1 ){
+
+        hash = __KV__vm_prog_1;
+    }
+    else if( vm_id == 2 ){
+
+        hash = __KV__vm_prog_2;
+    }
+    else if( vm_id == 3 ){
+
+        hash = __KV__vm_prog_3;
+    }
+    else{
+
+        hash = 0;
+
+        ASSERT( FALSE );
+    }    
+
+    kv_i8_set( hash, name, FFS_FILENAME_LEN );
+
+    vm_reset[vm_id] = TRUE;
 }
 
 bool vm_b_running( void ){
-
-    if( hold_vms ){
-
-        return FALSE;
-    }
 
     for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
 
