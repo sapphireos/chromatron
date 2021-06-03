@@ -137,6 +137,30 @@ static void update_pix_count( void ){
     }
 }
 
+static void compute_dimmer_lookup( void ){
+
+    float curve_exp = (float)dimmer_curve / 64.0;
+
+    for( uint32_t i = 0; i < DIMMER_LOOKUP_SIZE; i++ ){
+
+        float input = ( (float)( i << 8 ) ) / 65535.0;
+
+        dimmer_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
+    }
+}
+
+static void compute_sat_lookup( void ){
+
+    float curve_exp = (float)sat_curve / 64.0;
+
+    for( uint32_t i = 0; i < DIMMER_LOOKUP_SIZE; i++ ){
+
+        float input = ( (float)( i << 8 ) ) / 65535.0;
+
+        sat_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
+    }
+}
+
 
 static void param_error_check( void ){
 
@@ -267,6 +291,14 @@ int8_t gfx_i8_kv_handler(
                 v_fade[i] = global_v_fade;   
             }
         }
+        else if( hash == __KV__gfx_dimmer_curve ){
+
+            compute_dimmer_lookup();
+        }
+        else if( hash == __KV__gfx_sat_curve ){
+
+            compute_sat_lookup();
+        }
     }
 
     return 0;
@@ -283,8 +315,8 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                0,                   "gfx_dimmer_curve" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   0,                   "gfx_sat_curve" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
         
     #ifdef ENABLE_VIRTUAL_ARRAY
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
@@ -297,30 +329,6 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
     #endif
 };
-
-static void compute_dimmer_lookup( void ){
-
-    float curve_exp = (float)dimmer_curve / 64.0;
-
-    for( uint32_t i = 0; i < DIMMER_LOOKUP_SIZE; i++ ){
-
-        float input = ( (float)( i << 8 ) ) / 65535.0;
-
-        dimmer_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
-    }
-}
-
-static void compute_sat_lookup( void ){
-
-    float curve_exp = (float)sat_curve / 64.0;
-
-    for( uint32_t i = 0; i < DIMMER_LOOKUP_SIZE; i++ ){
-
-        float input = ( (float)( i << 8 ) ) / 65535.0;
-
-        sat_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
-    }
-}
 
 static void setup_master_array( void ){
 
@@ -404,85 +412,85 @@ uint16_t gfx_u16_get_vm_frame_rate( void ){
     return gfx_frame_rate;
 }
 
-void gfx_v_set_params( gfx_params_t *params ){
+// void gfx_v_set_params( gfx_params_t *params ){
 
-    // version check
-    if( params->version != GFX_VERSION ){
+//     // version check
+//     if( params->version != GFX_VERSION ){
 
-        return;
-    }
+//         return;
+//     }
 
-    uint8_t old_dimmer_curve = dimmer_curve;
-    uint8_t old_sat_curve = sat_curve;
+//     uint8_t old_dimmer_curve = dimmer_curve;
+//     uint8_t old_sat_curve = sat_curve;
 
-    dimmer_curve            = params->dimmer_curve;
-    sat_curve               = params->sat_curve;
-    pix_count               = params->pix_count;
-    pix_size_x              = params->pix_size_x;
-    pix_size_y              = params->pix_size_y;
-    gfx_interleave_x        = params->interleave_x;
-    gfx_invert_x            = params->invert_x;
-    gfx_transpose           = params->transpose;
-    pix_mode                = params->pix_mode;
-    global_hs_fade          = params->hs_fade;
-    global_v_fade           = params->v_fade;
-    pix_master_dimmer       = params->master_dimmer;
-    pix_sub_dimmer          = params->sub_dimmer;
-    gfx_frame_rate          = params->frame_rate;
+//     dimmer_curve            = params->dimmer_curve;
+//     sat_curve               = params->sat_curve;
+//     pix_count               = params->pix_count;
+//     pix_size_x              = params->pix_size_x;
+//     pix_size_y              = params->pix_size_y;
+//     gfx_interleave_x        = params->interleave_x;
+//     gfx_invert_x            = params->invert_x;
+//     gfx_transpose           = params->transpose;
+//     pix_mode                = params->pix_mode;
+//     global_hs_fade          = params->hs_fade;
+//     global_v_fade           = params->v_fade;
+//     pix_master_dimmer       = params->master_dimmer;
+//     pix_sub_dimmer          = params->sub_dimmer;
+//     gfx_frame_rate          = params->frame_rate;
 
-    #ifdef ENABLE_VIRTUAL_ARRAY
-    virtual_array_start     = params->virtual_array_start;
-    virtual_array_length    = params->virtual_array_length;
-    #endif
+//     #ifdef ENABLE_VIRTUAL_ARRAY
+//     virtual_array_start     = params->virtual_array_start;
+//     virtual_array_length    = params->virtual_array_length;
+//     #endif
 
-    param_error_check();
+//     param_error_check();
 
-    // only run if dimmer curve is changing
-    if( old_dimmer_curve != dimmer_curve ){
+//     // only run if dimmer curve is changing
+//     if( old_dimmer_curve != dimmer_curve ){
         
-        compute_dimmer_lookup();
-    }
+//         compute_dimmer_lookup();
+//     }
 
-    // only run if sat curve is changing
-    if( old_sat_curve != sat_curve ){
+//     // only run if sat curve is changing
+//     if( old_sat_curve != sat_curve ){
         
-        compute_sat_lookup();
-    }
+//         compute_sat_lookup();
+//     }
 
-    update_master_fader();
+//     update_master_fader();
 
-    // sync_db();
+//     // sync_db();
 
-    #ifdef ENABLE_VIRTUAL_ARRAY
-    virtual_array_sub_position      = virtual_array_start / pix_count;
-    scaled_pix_count                = (uint32_t)pix_count * 65536;
-    scaled_virtual_array_length     = (uint32_t)virtual_array_length * 65536;
-    #endif
-}
+//     #ifdef ENABLE_VIRTUAL_ARRAY
+//     virtual_array_sub_position      = virtual_array_start / pix_count;
+//     scaled_pix_count                = (uint32_t)pix_count * 65536;
+//     scaled_virtual_array_length     = (uint32_t)virtual_array_length * 65536;
+//     #endif
+// }
 
-void gfx_v_get_params( gfx_params_t *params ){
+// void gfx_v_get_params( gfx_params_t *params ){
 
-    params->version                 = GFX_VERSION;
-    params->pix_count               = pix_count;
-    params->pix_size_x              = pix_size_x;
-    params->pix_size_y              = pix_size_y;
-    params->interleave_x            = gfx_interleave_x;
-    params->invert_x                = gfx_invert_x;
-    params->transpose               = gfx_transpose;
-    params->pix_mode                = pix_mode;
-    params->hs_fade                 = global_hs_fade;
-    params->v_fade                  = global_v_fade;
-    params->master_dimmer           = pix_master_dimmer;
-    params->sub_dimmer              = pix_sub_dimmer;
-    params->frame_rate              = gfx_frame_rate;
-    params->dimmer_curve            = dimmer_curve;
-    params->sat_curve               = sat_curve;
+//     params->version                 = GFX_VERSION;
+//     params->pix_count               = pix_count;
+//     params->pix_size_x              = pix_size_x;
+//     params->pix_size_y              = pix_size_y;
+//     params->interleave_x            = gfx_interleave_x;
+//     params->invert_x                = gfx_invert_x;
+//     params->transpose               = gfx_transpose;
+//     params->pix_mode                = pix_mode;
+//     params->hs_fade                 = global_hs_fade;
+//     params->v_fade                  = global_v_fade;
+//     params->master_dimmer           = pix_master_dimmer;
+//     params->sub_dimmer              = pix_sub_dimmer;
+//     params->frame_rate              = gfx_frame_rate;
+//     params->dimmer_curve            = dimmer_curve;
+//     params->sat_curve               = sat_curve;
 
-    #ifdef ENABLE_VIRTUAL_ARRAY
-    params->virtual_array_start     = virtual_array_start;
-    params->virtual_array_length    = virtual_array_length;
-    #endif
-}
+//     #ifdef ENABLE_VIRTUAL_ARRAY
+//     params->virtual_array_start     = virtual_array_start;
+//     params->virtual_array_length    = virtual_array_length;
+//     #endif
+// }
 
 uint16_t urand( int32_t *params, uint16_t param_len ){
 
