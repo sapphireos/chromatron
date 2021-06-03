@@ -626,12 +626,32 @@ class Builder(object):
 
         save_project_info(self.proj_name, self.target_dir)
 
+    def compile_fx(self):
+        fx_files = self.list_fx_source()
+
+        current_dir = os.getcwd()
+
+        for fx in fx_files:
+            d, f = os.path.split(fx)
+
+            os.chdir(d)
+
+            logging.info("Compiling FX: %s" % (f))            
+
+            cmd = f'{FX_COMPILER_COMMAND} {f}'
+            os.system(cmd)
+
+        os.chdir(current_dir)
+
     def pre_process(self):
         # get KV hashes and add to defines
         hashes = self.create_kv_hashes()
 
         for k, v in hashes.items():
             self.defines.append('%s=((catbus_hash_t32)%s)' % (k, v))
+
+        # compile source FX files
+        self.compile_fx()
 
     def get_libraries(self, current_libs={}):
         libs = current_libs
