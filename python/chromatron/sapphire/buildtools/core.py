@@ -92,6 +92,7 @@ BOARDS_FILE                 = os.path.join(TARGETS_DIR, 'boards.json')
 MASTER_HASH_DB_FILE         = os.path.join(PROJECTS_FILE_PATH, 'kv_hashes.json')
 TOOLS_DIR                   = os.path.join(PROJECTS_FILE_PATH, 'tools')
 LIB_INIT_FILENAME           = '__libs.c'
+FX_COMPILER_COMMAND         = 'chromatron compile'
 
 
 tools_linux = [
@@ -405,6 +406,19 @@ class Builder(object):
         except OSError:
             return []
 
+    def list_fx_source(self):
+        fx_files = []
+
+        for d in self.source_dirs:
+            for f in self.listdir(d):
+                if f.endswith('.fx'):
+                    fpath = os.path.join(d, f)
+                    # prevent duplicates
+                    if fpath not in fx_files:
+                        fx_files.append(fpath)
+            
+        return fx_files
+
     def list_source(self):
         source_files = []
 
@@ -463,28 +477,12 @@ class Builder(object):
             return {}
 
     def get_buildnumber(self):
-        # try:
-        #     f = open(os.path.join(self.target_dir, self.settings["BUILD_NUMBER_FILE"]), 'r')
-        #     build_number = f.read()
-        #     f.close()
-
-        # except IOError:
-        #     f = open(os.path.join(self.target_dir, self.settings["BUILD_NUMBER_FILE"]), 'w')
-        #     build_number = "0"
-        #     f.write(build_number)
-        #     f.close()
-
-        # return int(build_number)
-    
         return runcmd('git rev-parse --short HEAD', tolog=False).strip()
 
 
     def set_buildnumber(self, value):
         pass
-        # f = open(os.path.join(self.target_dir, self.settings["BUILD_NUMBER_FILE"]), 'w')
-        # f.write("%d" % (value))
-        # f.close()
-
+       
     buildnumber = property(get_buildnumber, set_buildnumber)
 
     def get_version(self):
@@ -629,16 +627,11 @@ class Builder(object):
         save_project_info(self.proj_name, self.target_dir)
 
     def pre_process(self):
-        # inc build number
-        # self.buildnumber += 1
-            
         # get KV hashes and add to defines
         hashes = self.create_kv_hashes()
 
         for k, v in hashes.items():
             self.defines.append('%s=((catbus_hash_t32)%s)' % (k, v))
-
-        # self.settings["C_FLAGS"].append('-fdollars-in-identifiers')
 
     def get_libraries(self, current_libs={}):
         libs = current_libs
@@ -838,7 +831,6 @@ class ConfigBuilder(Builder):
             self.app_builder.libraries.append(builder.proj_name)
 
 
-        # self.app_builder.build_libs()
         self.app_builder.clean()
 
         lib_init_filename = os.path.join(self.app_builder.target_dir, LIB_INIT_FILENAME)
@@ -892,38 +884,6 @@ class LibBuilder(Builder):
             self.includes.append(self.settings["OS_PROJECT"])
         except KeyError:
             pass
-
-    # def link(self):
-    #     logging.info("Linking %s" % (self.proj_name))
-    #
-    #     # save working dir
-    #     cwd = os.getcwd()
-    #
-    #     # change to target dir
-    #     os.chdir(self.target_dir)
-    #
-    #     # build command string
-    #     cmd = self.settings["AR"] + ' '
-    #
-    #     for flag in self.settings["AR_FLAGS"]:
-    #         cmd += flag + ' '
-    #
-    #     cmd += self.proj_name + '.a' + ' '
-    #
-    #     obj_dir = self.settings["OBJ_DIR"]
-    #
-    #     for source in self.list_source():
-    #         source_path, source_fname = os.path.split(source)
-    #         cmd += obj_dir + '/' + source_fname + '.o' + ' '
-    #
-    #     # replace windows path separators with unix
-    #     cmd = cmd.replace('\\', '/')
-    #
-    #     runcmd(cmd)
-    #
-    #     # change back to working dir
-    #     os.chdir(cwd)
-
 
 class OSBuilder(LibBuilder):
     def __init__(self, *args, **kwargs):
