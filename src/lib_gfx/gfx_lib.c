@@ -2140,6 +2140,49 @@ uint32_t gfx_u32_get_pixel_w( void ){
 }
 
 
+
+#include "fs.h"
+void gfx_v_log_value_curve( void ){
+
+    pix_master_dimmer = 65535;
+    pix_sub_dimmer = 65535;
+    target_dimmer = 65535;
+    current_dimmer = 65535;
+
+    // init output arrays
+    gfx_v_reset();
+
+    hue[0] = 0;
+    sat[0] = 0;
+    val[0] = 65535;
+
+    // set fades to something slow
+    _gfx_v_set_hs_fade_1d( 4000, 0 );
+    _gfx_v_set_v_fade_1d( 4000, 0 );
+
+    // set full white at zero brightness on index 0
+    gfx_v_set_hsv( 0, 0, 0, 0 );
+
+    file_t f = fs_f_open_P( PSTR("fader_log"), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    while( gfx_u16_get_is_v_fading( 0, 0, 0 ) ){
+
+        gfx_v_process_faders();
+        gfx_v_sync_array();
+
+        char buf[64];
+
+        int16_t len = snprintf_P( buf, sizeof(buf), PSTR("%d,%d,%d,%d\n"), val[0], array_red[0], array_green[0], array_blue[0] );
+
+        fs_i16_write( f, buf, len );
+
+        sys_v_wdt_reset();
+    }
+
+    f = fs_f_close( f );
+}
+
+
 /*
 Other HSV to RGB code for reference
 */

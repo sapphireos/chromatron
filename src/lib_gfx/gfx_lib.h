@@ -182,5 +182,8 @@ uint32_t gfx_u32_get_pixel_w( void );
 // implemented by VM to signal frame rate changes
 void gfx_vm_v_update_frame_rate( uint16_t new_frame_rate );
 
+// logs the value -> RGB curve to a file
+// debug only!
+void gfx_v_log_value_curve( void );
 
 #endif
