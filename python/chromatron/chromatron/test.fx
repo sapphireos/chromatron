@@ -9,6 +9,7 @@ def func(b: Number):
 		
 	else:
 		temp_a += 2
+		# b = 3
 		
 	return b
 
