@@ -2329,10 +2329,6 @@ class Builder(object):
         self.labels = {}
         self.ssa_versions = {}
 
-        self.blocks = []
-        self.current_block = None
-        self.block_stack = []
-
         self.data_table = []
         self.data_count = 0
         self.code = []
@@ -2447,46 +2443,9 @@ class Builder(object):
         for func in self.funcs.values():
             func.analyze_blocks()
 
-    def open_block(self, hint, lineno=None):
-        return
-        block = irBlock(self.funcs[self.current_func], hint, len(self.block_stack), self.current_block, self, lineno=lineno)
-        if self.current_block != None:
-            self.current_block.append_block(block)
-
-        self.block_stack.append(block)
-        self.blocks.append(block)
-
-        debug_print("open  %s" % block)
-
-        self.current_block = block
-
-        return block
-
-    def close_block(self, lineno=None):
-        return
-        debug_print("close %s" % self.current_block)
-        self.block_stack.pop(-1)
-        try:
-            self.current_block = self.block_stack[-1]
-
-        except IndexError:
-            self.current_block = None
-
     def finish_module(self):
         # clean up stuff after first pass is done
 
-        for func in list(self.funcs.values()):
-            func.remove_dead_labels()
-
-        for block in self.blocks:
-            prev_line = 0
-            for ir in block.code:
-                if isinstance(ir, irLabel):
-                    ir.lineno = prev_line
-
-                else:
-                    if ir.lineno > prev_line:
-                        prev_line = ir.lineno
         return self
 
     def link(self, mode, source, dest, query, aggregation, rate, lineno=None):
@@ -2588,14 +2547,6 @@ class Builder(object):
         if name in self.globals:
             raise VariableAlreadyDeclared("Variable '%s' already declared as global" % (name), lineno=lineno)
 
-        # try:
-        #     self.current_block.get_local(name)
-
-        #     # raise VariableAlreadyDeclared("Local variable '%s' already declared" % (name), lineno=lineno)
-
-        # except KeyError:
-        #     pass # this is ok
-
         if keywords != None:
             if 'publish' in keywords:
                 raise SyntaxError("Cannot publish a local variable: %s" % (name), lineno=lineno)            
@@ -2607,11 +2558,9 @@ class Builder(object):
 
         try:
             for v in ir:
-                # self.current_block.add_local(v)
                 self.current_func.add_local(v)
 
         except TypeError:
-            # self.current_block.add_local(ir)
             self.current_func.add_local(ir)
 
         return ir
@@ -2649,7 +2598,6 @@ class Builder(object):
             return self.globals[name]
 
         try:
-            # return self.current_block.get_local(name)
             return self.current_func.get_local(name)
 
         except KeyError:
@@ -2657,7 +2605,6 @@ class Builder(object):
 
     def phi(self, blocks=[], lineno=None):
         pass
-        # self.current_block.phi(blocks, lineno=lineno)
 
     def get_obj_var(self, obj_name, attr, lineno=None):
         name = '%s.%s' % (obj_name, attr)
@@ -2711,7 +2658,6 @@ class Builder(object):
         ir = self.build_var(name, data_type, [], lineno=lineno)
         
         ir.temp = True
-        # self.current_block.add_local(ir)
         self.current_func.add_local(ir)
 
         return ir
@@ -2729,7 +2675,7 @@ class Builder(object):
 
     def remove_local_var(self, var):
         debug_print('remove %s' % var)
-        self.current_block.remove_local(var.name)
+        raise NotImplementedError
 
     def func(self, *args, **kwargs):
         func = irFunc(*args, builder=self, **kwargs)
@@ -2737,22 +2683,13 @@ class Builder(object):
         self.current_func = func
         self.next_temp = 0
 
-        if len(self.block_stack) > 0:
-            self.close_block()
-
-        func.root_block = self.open_block('func', lineno=kwargs['lineno'])
-
         func_label = self.label(f'function:{func.name}', lineno=kwargs['lineno'])
         self.position_label(func_label)
 
         return func
 
     def append_node(self, node):
-        # self.current_block.append_code(node)
         self.current_func.append_node(node)
-
-    def get_current_node(self):
-        return self.current_block.code[-1]
 
     def ret(self, value, lineno=None):
         ir = irReturn(value, lineno=lineno)
@@ -3169,34 +3106,25 @@ class Builder(object):
             self.assign(result, test, lineno=lineno)
             test = result
 
-        block = self.open_block('if', lineno=lineno)
-
         branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
 
-        block = self.open_block('then', lineno=lineno)
-
-        return body_label, else_label, end_label, block
+        return body_label, else_label, end_label
 
     def end_if(self, end_label, lineno=None):
         self.jump(end_label, lineno=lineno)
-        self.close_block()
 
     def do_else(self, lineno=None):
-        # self.close_block()
-        return self.open_block('else', lineno=lineno)
+        pass
 
-    def end_ifelse(self, end_label, blocks=[], lineno=None):
-        self.close_block()
+    def end_ifelse(self, end_label, lineno=None):
         self.jump(end_label, lineno=lineno)
         self.position_label(end_label)
-        self.phi(blocks, lineno=lineno)
 
     def position_label(self, label):
         self.append_node(label)
         
     def begin_while(self, lineno=None):
-        self.open_block('while', lineno=lineno)
         top_label = self.label('while.top', lineno=lineno)
         end_label = self.label('while.end', lineno=lineno)
         self.position_label(top_label)
@@ -3218,7 +3146,6 @@ class Builder(object):
         self.loop_end.pop(-1)
 
     def begin_for(self, iterator, lineno=None):
-        self.open_block('for', lineno=lineno)
         begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR
         self.position_label(begin_label)
         top_label = self.label('for.top', lineno=lineno)
@@ -3687,28 +3614,29 @@ class Builder(object):
                         a.addr = trash_var.addr
 
                     
-            for block in self.blocks:
-                for i in block.locals.values():
-                    # assign block name to var
-                    i.name = '%s.%s' % (block.name, i.name)
+            # for block in self.blocks:
+            #     for i in block.locals.values():
+            #         # assign block name to var
+            #         i.name = '%s.%s' % (block.name, i.name)
 
-                    self.data_table.append(i)
+            #         self.data_table.append(i)
 
         # NOT optimizing registers
         else:
-            for block in self.blocks:
-                for i in block.locals.values():
-                    i.addr = addr
-                    addr += i.length
+            pass
+            # for block in self.blocks:
+            #     for i in block.locals.values():
+            #         i.addr = addr
+            #         addr += i.length
 
-                    # assign block name to var
-                    # i.name = '%s.%s' % (block.name, i._name)
+            #         # assign block name to var
+            #         # i.name = '%s.%s' % (block.name, i._name)
 
-                    # TODO it'll be nice to have block naming
-                    # but for now, it breaks some of the code gen
-                    # to change the name here
+            #         # TODO it'll be nice to have block naming
+            #         # but for now, it breaks some of the code gen
+            #         # to change the name here
 
-                    self.data_table.append(i)
+            #         self.data_table.append(i)
 
         # scan instructions for referenced string literals
         used_strings = []

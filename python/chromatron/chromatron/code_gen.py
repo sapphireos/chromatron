@@ -359,23 +359,21 @@ class cg1If(cg1CodeNode):
     def build(self, builder):
         test = self.test.build(builder)
 
-        body_label, else_label, end_label, if_block = builder.ifelse(test, lineno=self.lineno)
+        body_label, else_label, end_label = builder.ifelse(test, lineno=self.lineno)
 
         builder.position_label(body_label)    
         for node in self.body:
             node.build(builder)
+
         # jump to end
         builder.end_if(end_label, lineno=self.lineno)
-        # builder.jump(end_label, lineno=self.lineno)
-        # builder.position_label(else_label)
-
+        
         else_block = builder.do_else(lineno=self.lineno)
         builder.position_label(else_label)
         for node in self.orelse:
             node.build(builder)
         
-        builder.end_ifelse(end_label, [if_block, else_block], lineno=self.lineno)
-        # builder.position_label(end_label)
+        builder.end_ifelse(end_label, lineno=self.lineno)
         
 
 class cg1BinOpNode(cg1CodeNode):
