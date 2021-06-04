@@ -179,6 +179,7 @@ def params_to_string(params):
 class IR(object):
     def __init__(self, lineno=None):
         self.lineno = lineno
+        self.block = None
 
         assert self.lineno != None
 
@@ -1066,9 +1067,34 @@ class Block():
         self.jump_target = None
 
     def __str__(self):
-        return '\n'.join([str(ir) for ir in self.code])
+        s = f'{self.name}\n'
+        # s += 'Predecessors:\n'
+        # for pre in self.predecessors:
+        #     s += f'\t{pre.name}\n'
+
+        # s += 'Successors:\n'
+        # for suc in self.successors:
+        #     s += f'\t{suc.name}\n'
+
+        # s += '\n'.join([str(ir) for ir in self.code])
+        return s
+
+    @property
+    def name(self):
+        if isinstance(self.code[0], irLabel):
+            return f'BLOCK: {self.code[0].name}'
+        else:
+            # return self._name
+            assert False
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     def append(self, node):
+        # ensure that each node only belongs to one block:
+        assert node.block is None
+        node.block = self
         self.code.append(node)
 
 
@@ -1086,7 +1112,11 @@ class irFunc(IR):
         if self.params == None:
             self.params = []
 
-        self.root_block = None
+        #self.root_block = None
+
+        self.blocks = {}
+        self.leader_block = None
+
 
     def __str__(self):
         global source_code
@@ -1141,24 +1171,73 @@ class irFunc(IR):
 
         return s
 
-    def analyze_blocks(self):
-        block = Block()
-        leader_block = block
+    def create_block_from_code_at_label(self, label, prev_block=None):
+        labels = self.labels()
+        index = labels[label.name]
 
-        for ir in self.body:
+        # verify instruction at index is actually our label:
+        assert self.body[index].name == label.name
+        assert isinstance(self.body[index], irLabel)
+
+        return self.create_block_from_code_at_index(index, prev_block=prev_block)
+
+    def create_block_from_code_at_index(self, index, prev_block=None):
+        # check if we already have a block starting at this index
+        if index in self.blocks:
+            block = self.blocks[index]
+            # check if prev_block is not already as predecessor:
+            if prev_block not in block.predecessors:
+                block.predecessors.append(prev_block)
+
+            return block
+
+        block = Block()
+        self.blocks[index] = block
+
+        if prev_block:
+            block.predecessors.append(prev_block)
+        
+        while True:
+            ir = self.body[index]
+            index += 1
+
             block.append(ir)
 
-            if isinstance(ir, irUnconditionalJump) or \
-               isinstance(ir, irConditionalJump) or \
-               isinstance(ir, irReturn):
+            if isinstance(ir, irConditionalJump):
+                # we are branching to two locations:
+                # 1. Fallthrough
+                # This is the next instruction in the list.
+                # 2. Jump target
+                # This code be anywhere, even behind.
+                fallthrough_block = self.create_block_from_code_at_index(index, prev_block=block)
+                target_block = self.create_block_from_code_at_label(ir.target, prev_block=block)
 
-                next_block = Block()
-                next_block.predecessors.append(block)
-                block.successors.append(next_block)
-                block = next_block
+                block.successors.append(fallthrough_block)
+                block.successors.append(target_block)
+
+                break
+
+            elif isinstance(ir, irUnconditionalJump):
+                # jump to a single location
+                target_block = self.create_block_from_code_at_label(ir.target, prev_block=block)
+                block.successors.append(target_block)
+                break
+
+            elif isinstance(ir, irReturn):
+                # return from function
+                break
+
+        return block
 
 
-        print(leader_block)
+    def analyze_blocks(self):
+        self.leader_block = self.create_block_from_code_at_index(0)
+
+        # verify all instructions are assigned to a block:
+        for ir in self.body:
+            assert ir.block is not None
+
+        print(self.leader_block)
 
 
     def get_ssa_version(self, name, inc=False):
@@ -2663,6 +2742,9 @@ class Builder(object):
 
         func.root_block = self.open_block('func', lineno=kwargs['lineno'])
 
+        func_label = self.label(f'function:{func.name}', lineno=kwargs['lineno'])
+        self.position_label(func_label)
+
         return func
 
     def append_node(self, node):
@@ -3106,6 +3188,7 @@ class Builder(object):
 
     def end_ifelse(self, end_label, blocks=[], lineno=None):
         self.close_block()
+        self.jump(end_label, lineno=lineno)
         self.position_label(end_label)
         self.phi(blocks, lineno=lineno)
 
