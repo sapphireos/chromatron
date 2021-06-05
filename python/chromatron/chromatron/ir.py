@@ -1057,7 +1057,7 @@ class irDBAttr(irVar):
 #             # replace phi with nop
 #             # self.code[index] = irNop(lineno=phi.lineno)            
 
-class Block():
+class irBlock():
     def __init__(self):
         self.predecessors = []
         self.successors = []
@@ -1097,6 +1097,40 @@ class Block():
         assert node.block is None
         node.block = self
         self.code.append(node)
+
+    @property
+    def params(self):
+        return [v for v in self.input_vars if not v.temp and not v.is_const]
+
+    @property
+    def input_vars(self):
+        v = {}
+        for node in self.code:
+            inputs = node.get_input_vars()
+
+            for i in inputs:
+                if i._name not in v:
+                    v[i._name] = i
+
+                if i.ssa_version < v[i._name].ssa_version:
+                    v[i._name] = i
+
+        return list(v.values())
+
+    @property
+    def output_vars(self):
+        v = {}
+        for node in self.code:
+            outputs = node.get_output_vars()
+
+            for o in outputs:
+                if o._name not in v:
+                    v[o._name] = o
+
+                if o.ssa_version > v[o._name].ssa_version:
+                    v[o._name] = o
+
+        return list(v.values())
 
 
 class irFunc(IR):
@@ -1196,7 +1230,7 @@ class irFunc(IR):
 
             return block
 
-        block = Block()
+        block = irBlock()
         self.blocks[index] = block
 
         if prev_block:
@@ -1224,6 +1258,8 @@ class irFunc(IR):
                 # to load our values to those parameters
                 # what if we don't use those values at all?
                 # need a method to ask for them from predecessors.
+                # fallthrough_block_params = fallthrough_block.get_params()
+                # target_block_params = target_block.params()
 
                 break
 
