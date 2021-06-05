@@ -7,9 +7,11 @@ def func(b: Number):
 	# b = 1.0 + 2
 
 	if temp_a > 0:
+		temp_b = Number()
 		b = temp_a + 3
 		
 	else:
+		temp_b += 1
 		temp_a += 2
 		# b = 3
 		

@@ -1057,8 +1057,9 @@ class irDBAttr(irVar):
 #             # replace phi with nop
 #             # self.code[index] = irNop(lineno=phi.lineno)            
 
-class irBlock():
-    def __init__(self):
+class irBlock(IR):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.predecessors = []
         self.successors = []
         self.code = []
@@ -1067,7 +1068,7 @@ class irBlock():
         self.jump_target = None
 
     def __str__(self):
-        s = f'{self.name}'
+        s = f'{self.name} @ {self.lineno}'
         if self.is_leader:
             s += ': LEADER'
 
@@ -1254,7 +1255,7 @@ class irFunc(IR):
 
             return block
 
-        block = irBlock()
+        block = irBlock(lineno=self.body[index].lineno)
         self.blocks[index] = block
 
         if prev_block:
