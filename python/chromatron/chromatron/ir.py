@@ -3171,10 +3171,12 @@ class Builder(object):
 
         # this is here so we can do a type conversion,
         # if needed
-        if not isinstance(test, irBinop):
-            result = self.add_temp(lineno=lineno)
-            self.assign(result, test, lineno=lineno)
-            test = result
+        # if not isinstance(test, irBinop):
+        #     result = self.add_temp(lineno=lineno)
+        #     self.assign(result, test, lineno=lineno)
+        #     test = result
+
+        assert not isinstance(test, irBinop)
 
         branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)

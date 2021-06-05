@@ -4,6 +4,8 @@ def func(b: Number):
 
 	b += 1
 
+	# b = 1.0 + 2
+
 	if temp_a > 0:
 		b = temp_a + 3
 		
