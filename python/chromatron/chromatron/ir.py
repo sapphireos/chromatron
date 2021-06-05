@@ -306,6 +306,7 @@ class irVar_simple(irVar):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.next_ssa_version = 0
         self.ssa_version = None
 
     @property
@@ -1128,6 +1129,11 @@ class irBlock(IR):
     def name(self, value):
         self._name = value
 
+    def add_local(self, ir):
+        self.locals[ir.name] = ir
+        ir.ssa_version = ir.next_ssa_version
+        ir.next_ssa_version += 1
+
     def append(self, node):
         # ensure that each node only belongs to one block:
         assert node.block is None
@@ -1145,7 +1151,9 @@ class irBlock(IR):
                 # variable is not defined already, this is what we want
                 pass
 
-            self.locals[node.var.name] = node.var
+            self.add_local(node.var)            
+            # self.locals[node.var.name] = node.var
+            # node.var.ssa_version = 0
 
     def get_local(self, name, search_depth=None):
         if search_depth is not None:
@@ -1158,7 +1166,11 @@ class irBlock(IR):
 
                     if var:
                         return var        
-                        
+
+        # check SSA stack:
+        if name in self.ssa_stack:
+            return self.ssa_stack[name][-1]
+
         if name in self.locals:
             return self.locals[name]
 
@@ -1191,13 +1203,15 @@ class irBlock(IR):
             for i in outputs:
                 try:
                     local = self.get_local(i.name)
+                    new_local = copy(local)
+                    local.next_ssa_version += 1
+                    self.add_local(new_local)
 
                 except KeyError:
                     raise SyntaxError(f'Variable: {i.name} is not declared', lineno=ir.lineno)
 
                 # assign type
-                i.__dict__ = local.__dict__
-                
+                i.__dict__ = new_local.__dict__
 
 
     @property
@@ -1452,6 +1466,7 @@ class irFunc(IR):
         self.ssa_stack[ir._name].append(ir)
 
     def get_local(self, name, _check_parents=True):
+        return
         # check SSA stack:
         if name in self.ssa_stack:
             return self.ssa_stack[name][-1]

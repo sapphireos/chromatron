@@ -10,14 +10,14 @@ def func():
 	# temp_b = Number()
 
 	if temp_a > 0:
-		temp_b = Number()
-		temp_b = 1
+		# temp_b = Fixed16()
+		# temp_b = 1.0 + b
 		b = temp_a + 3
 		
 	else:
 		
-		temp_a += 2
-		# b = 3
+		# temp_a += 2
+		b = 3
 
 	# temp_b += 1
 		
