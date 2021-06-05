@@ -180,6 +180,7 @@ class IR(object):
     def __init__(self, lineno=None):
         self.lineno = lineno
         self.block = None
+        self.scope_depth = None
 
         assert self.lineno != None
 
@@ -195,42 +196,42 @@ class IR(object):
     def get_jump_target(self):
         return None
 
-class irPhi(IR):
-    def __init__(self, name, joins, target, **kwargs):
-        super().__init__(**kwargs)
-        self.name = name
-        self.joins = joins
-        self.target = target
+# class irPhi(IR):
+#     def __init__(self, name, joins, target, **kwargs):
+#         super().__init__(**kwargs)
+#         self.name = name
+#         self.joins = joins
+#         self.target = target
 
-    def __str__(self):
-        s = ''
+#     def __str__(self):
+#         s = ''
 
-        for join in self.joins:
-            s += f'{join.name}, '
+#         for join in self.joins:
+#             s += f'{join.name}, '
         
-        s = s[:-2]
+#         s = s[:-2]
 
-        return f'{self.target} = PHI({self.name})[{s}]'
+#         return f'{self.target} = PHI({self.name})[{s}]'
 
-    def get_input_vars(self):
-        # return self.joins
-        return []
+#     def get_input_vars(self):
+#         # return self.joins
+#         return []
 
-    def get_output_vars(self):
-        return [self.target]
+#     def get_output_vars(self):
+#         return [self.target]
 
-    def generate(self):
+#     def generate(self):
 
-        # assert len(self.joins) > 0
+#         # assert len(self.joins) > 0
 
-        # if len(self.joins) == 1:
-        #     return insMov(self.target.generate(), self.joins[0].generate(), lineno=self.lineno)
+#         # if len(self.joins) == 1:
+#         #     return insMov(self.target.generate(), self.joins[0].generate(), lineno=self.lineno)
 
-        # else:
-        #     for join in self.joins:
-        #         print(join, join.block)
+#         # else:
+#         #     for join in self.joins:
+#         #         print(join, join.block)
 
-        return insNop()
+#         return insNop()
 
 
 class irVar(IR):
@@ -1068,7 +1069,9 @@ class irBlock(IR):
         self.jump_target = None
 
     def __str__(self):
-        s = f'{self.name} @ {self.lineno}'
+        tab = '\t'
+        depth = f'{self.scope_depth * tab}'
+        s = f'{depth}BLOCK: {self.name} @ {self.lineno}'
         if self.is_leader:
             s += ': LEADER'
 
@@ -1077,12 +1080,16 @@ class irBlock(IR):
 
         s += '\n'
 
-        s += '\tIn:\n'
+        s += f'{depth}In:\n'
         for i in self.input_vars:
-            s += f'\t\t{i.name}: {i.type}\n'
-        s += '\tOut:\n'
+            s += f'{depth}\t{i.name}: {i.type}\n'
+        s += f'{depth}Out:\n'
         for i in self.output_vars:
-            s += f'\t\t{i.name}: {i.type}\n'
+            s += f'{depth}\t{i.name}: {i.type}\n'
+
+        s += f'{depth}Code:\n'
+        for ir in self.code:
+            s += f'{depth}\t{ir}\n'
             
         # s += 'Predecessors:\n'
         # for pre in self.predecessors:
@@ -1098,7 +1105,7 @@ class irBlock(IR):
     @property
     def name(self):
         if isinstance(self.code[0], irLabel):
-            return f'BLOCK: {self.code[0].name}'
+            return f'{self.code[0].name}'
         else:
             # return self._name
             assert False
@@ -1256,6 +1263,7 @@ class irFunc(IR):
             return block
 
         block = irBlock(lineno=self.body[index].lineno)
+        block.scope_depth = self.body[index].scope_depth
         self.blocks[index] = block
 
         if prev_block:
@@ -2398,7 +2406,7 @@ class Builder(object):
         self.pixel_arrays = {}
         self.palettes = {}
         self.labels = {}
-        self.ssa_versions = {}
+        self.scope_depth = 0
 
         self.data_table = []
         self.data_count = 0
@@ -2626,6 +2634,7 @@ class Builder(object):
                 raise SyntaxError("Cannot persist a local variable: %s" % (name), lineno=lineno)            
 
         ir = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
+        ir.scope_depth = self.scope_depth
 
         try:
             for v in ir:
@@ -2753,6 +2762,7 @@ class Builder(object):
         self.funcs[func.name] = func
         self.current_func = func
         self.next_temp = 0
+        self.scope_depth = 0
 
         func_label = self.label(f'function:{func.name}', lineno=kwargs['lineno'])
         self.position_label(func_label)
@@ -2760,6 +2770,7 @@ class Builder(object):
         return func
 
     def append_node(self, node):
+        node.scope_depth = self.scope_depth
         self.current_func.append_node(node)
 
     def ret(self, value, lineno=None):
@@ -3182,6 +3193,8 @@ class Builder(object):
         branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
 
+        self.scope_depth += 1
+
         return body_label, else_label, end_label
 
     def end_if(self, end_label, lineno=None):
@@ -3192,8 +3205,9 @@ class Builder(object):
 
     def end_ifelse(self, end_label, lineno=None):
         self.jump(end_label, lineno=lineno)
+        self.scope_depth -= 1
         self.position_label(end_label)
-
+        
     def position_label(self, label):
         self.append_node(label)
         
