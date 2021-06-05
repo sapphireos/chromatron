@@ -297,11 +297,11 @@ class irVar_simple(irVar):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.ssa_version = 0
+        self.ssa_version = None
 
     @property
     def name(self):
-        if self.temp:
+        if self.temp or self.ssa_version is None:
             return self._name
         
         return f'{self._name}_v{self.ssa_version}'
@@ -315,7 +315,7 @@ class irVar_simple(irVar):
         if self.is_global:
             return super().__str__()
 
-        elif self.temp:
+        elif self.temp or self.ssa_version is None:
             return "Var(%s, %s)" % (self.name, self.type_str)
 
         else:
@@ -1062,13 +1062,27 @@ class irBlock():
         self.predecessors = []
         self.successors = []
         self.code = []
-        self.depth = 0
 
         self.entry_label = None
         self.jump_target = None
 
     def __str__(self):
-        s = f'{self.name}\n'
+        s = f'{self.name}'
+        if self.is_leader:
+            s += ': LEADER'
+
+        if self.is_terminator:
+            s += ': TERMINATOR'
+
+        s += '\n'
+
+        s += '\tIn:\n'
+        for i in self.input_vars:
+            s += f'\t\t{i.name}: {i.type}\n'
+        s += '\tOut:\n'
+        for i in self.output_vars:
+            s += f'\t\t{i.name}: {i.type}\n'
+            
         # s += 'Predecessors:\n'
         # for pre in self.predecessors:
         #     s += f'\t{pre.name}\n'
@@ -1083,7 +1097,7 @@ class irBlock():
     @property
     def name(self):
         if isinstance(self.code[0], irLabel):
-            return f'BLOCK: {self.code[0].name} {self.depth}'
+            return f'BLOCK: {self.code[0].name}'
         else:
             # return self._name
             assert False
@@ -1099,6 +1113,14 @@ class irBlock():
         self.code.append(node)
 
     @property
+    def is_leader(self):
+        return len(self.predecessors) == 0
+
+    @property
+    def is_terminator(self):
+        return len(self.successors) == 0    
+
+    @property
     def params(self):
         return [v for v in self.input_vars if not v.temp and not v.is_const]
 
@@ -1112,10 +1134,11 @@ class irBlock():
                 if i._name not in v:
                     v[i._name] = i
 
-                if i.ssa_version < v[i._name].ssa_version:
+                if i.ssa_version and (i.ssa_version < v[i._name].ssa_version):
                     v[i._name] = i
 
-        return list(v.values())
+        # return list(v.values())
+        return [a for a in v.values() if not a.temp and not a.is_const]
 
     @property
     def output_vars(self):
@@ -1127,10 +1150,11 @@ class irBlock():
                 if o._name not in v:
                     v[o._name] = o
 
-                if o.ssa_version > v[o._name].ssa_version:
+                if o.ssa_version and (o.ssa_version > v[o._name].ssa_version):
                     v[o._name] = o
 
-        return list(v.values())
+        # return list(v.values())
+        return [a for a in v.values() if not a.temp and not a.is_const]
 
 
 class irFunc(IR):
@@ -1318,9 +1342,10 @@ class irFunc(IR):
         self.root_block.remove_dead_labels(dead_labels)
 
     def add_local(self, ir):
-        ir.ssa_version = self.get_ssa_version(ir._name)
+        # ir.ssa_version = self.get_ssa_version(ir._name)
 
         self.locals[ir.name] = ir
+        return
 
         if ir.temp:
             return
