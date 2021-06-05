@@ -996,10 +996,12 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         print(pformat_ast(cg1_data))
 
     builder = cg1_data.build(script_name=script_name, source=source)
-    if debug_print:
-        print(builder)
 
     builder.analyze_blocks()
+
+
+    if debug_print:
+        print(builder)
 
     sys.exit(0)
 

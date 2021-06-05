@@ -233,6 +233,14 @@ class IR(object):
 
 #         return insNop()
 
+class irDefine(IR):
+    def __init__(self, var, **kwargs):
+        super().__init__(**kwargs)
+        self.var = var
+    
+    def __str__(self):
+        return f'DEF: {self.var}'
+
 
 class irVar(IR):
     def __init__(self, name, type='i32', options=None, **kwargs):
@@ -321,6 +329,11 @@ class irVar_simple(irVar):
 
         else:
             return "Var(%s_v%d, %s)" % (self._name, self.ssa_version, self.type_str)            
+
+class irVar_undefined(irVar_simple):
+    def __init__(self, *args, **kwargs):
+        kwargs['type'] = 'var'
+        super().__init__(*args, **kwargs)
 
 class irVar_i32(irVar_simple):
     def __init__(self, *args, **kwargs):
@@ -1064,6 +1077,7 @@ class irBlock(IR):
         self.predecessors = []
         self.successors = []
         self.code = []
+        self.locals = {}
 
         self.entry_label = None
         self.jump_target = None
@@ -1119,6 +1133,72 @@ class irBlock(IR):
         assert node.block is None
         node.block = self
         self.code.append(node)
+
+        if isinstance(node, irDefine):
+            # see if this variable is already defined in this scope
+            try:
+                var = self.get_local(node.var.name)
+
+                raise SyntaxError(f'Variable: {node.var.name} is already declared in enclosing scope (shadowing not allowed)', lineno=node.lineno)
+
+            except KeyError:
+                # variable is not defined already, this is what we want
+                pass
+
+            self.locals[node.var.name] = node.var
+
+    def get_local(self, name, search_depth=None):
+        if search_depth is not None:
+            if search_depth < self.scope_depth:
+                # we do not have the correct scope to satisfy the request 
+                # for this variable.
+                # however, we may have a predecessor that can.
+                for pre in self.predecessors:
+                    var = pre.get_local(name, search_depth=search_depth)
+
+                    if var:
+                        return var        
+                        
+        if name in self.locals:
+            return self.locals[name]
+
+        # search predecessors at this scope level or below
+        for pre in self.predecessors:
+            var = pre.get_local(name, search_depth=self.scope_depth)
+
+            if var:
+                return var
+
+        raise KeyError(name)
+
+    def convert_to_ssa(self):
+        # first, resolve data types for undefined vars
+        for ir in self.code:
+            inputs = [a for a in ir.get_input_vars() if not a.temp and not a.is_const]
+
+            for i in inputs:
+                try:
+                    local = self.get_local(i.name)
+
+                except KeyError:
+                    raise SyntaxError(f'Variable: {i.name} is not declared', lineno=ir.lineno)
+
+                # assign type
+                i.__dict__ = local.__dict__
+
+            outputs = [a for a in ir.get_output_vars() if not a.temp and not a.is_const]
+
+            for i in outputs:
+                try:
+                    local = self.get_local(i.name)
+
+                except KeyError:
+                    raise SyntaxError(f'Variable: {i.name} is not declared', lineno=ir.lineno)
+
+                # assign type
+                i.__dict__ = local.__dict__
+                
+
 
     @property
     def is_leader(self):
@@ -1192,15 +1272,6 @@ class irFunc(IR):
 
         s = "\n######## Line %4d       ########\n" % (self.lineno)
         s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
-        s += "********************************\n"
-        s += "Func blocks:\n"
-        s += "********************************\n"
-
-        blocks = [self.blocks[k] for k in sorted(self.blocks.keys())]
-        for block in blocks:
-            s += f'{block}\n'
-
-        # s += str(self.root_block)
 
         s += "********************************\n"
         s += "Locals:\n"
@@ -1211,34 +1282,42 @@ class irFunc(IR):
 
 
         s += "********************************\n"
-        s += "Func code:\n"
+        s += "Func blocks:\n"
         s += "********************************\n"
 
-        current_line = -1
-        for node in self.code():
+        blocks = [self.blocks[k] for k in sorted(self.blocks.keys())]
+        for block in blocks:
+            s += f'{block}\n'
+    
+        # s += "********************************\n"
+        # s += "Func code:\n"
+        # s += "********************************\n"
+
+        # current_line = -1
+        # for node in self.code():
             
-            # interleave source code
-            if node.lineno > current_line:
-                current_line = node.lineno
-                try:
-                    s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
+        #     # interleave source code
+        #     if node.lineno > current_line:
+        #         current_line = node.lineno
+        #         try:
+        #             s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
 
-                except IndexError:
-                    raise
-                    print("Source interleave from imported files not yet supported")
-                    pass
+        #         except IndexError:
+        #             raise
+        #             print("Source interleave from imported files not yet supported")
+        #             pass
 
-            if isinstance(node, irLabel):
-                s += '%s\n' % (node)
+        #     if isinstance(node, irLabel):
+        #         s += '%s\n' % (node)
 
-            else:    
-                label = node.get_jump_target()
+        #     else:    
+        #         label = node.get_jump_target()
 
-                if label != None:
-                    s += '\t\t\t%s (Line %d)\n' % (node, label.lineno)
+        #         if label != None:
+        #             s += '\t\t\t%s (Line %d)\n' % (node, label.lineno)
 
-                else:
-                    s += '\t\t\t%s\n' % (node)
+        #         else:
+        #             s += '\t\t\t%s\n' % (node)
 
         return s
 
@@ -1310,14 +1389,19 @@ class irFunc(IR):
 
 
     def analyze_blocks(self):
+        self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
 
         # verify all instructions are assigned to a block:
         for ir in self.body:
             assert ir.block is not None
 
-        print(self.leader_block)
-        print(self)
+        # print(self.leader_block)
+        # print(self)
+
+        for block in self.blocks.values():
+            block.convert_to_ssa()
+
 
 
     def get_ssa_version(self, name):
@@ -1351,6 +1435,7 @@ class irFunc(IR):
         self.root_block.remove_dead_labels(dead_labels)
 
     def add_local(self, ir):
+        return
         # ir.ssa_version = self.get_ssa_version(ir._name)
 
         self.locals[ir.name] = ir
@@ -2439,6 +2524,7 @@ class Builder(object):
         self.current_func = None
 
         self.data_types = {
+            'var': irVar_undefined,
             'i32': irVar_i32,
             'f16': irVar_f16,
             'gfx16': irVar_gfx16,
@@ -2586,7 +2672,7 @@ class Builder(object):
 
         return self.data_types[name]
 
-    def build_var(self, name, data_type, dimensions=[], keywords=None, lineno=None):
+    def build_var(self, name, data_type='var', dimensions=[], keywords=None, lineno=None):
         data_type = self.get_type(data_type, lineno=lineno)
 
         if len(dimensions) == 0:
@@ -2594,6 +2680,8 @@ class Builder(object):
 
         else:
             ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, options=keywords, lineno=lineno)
+
+        ir.scope_depth = self.scope_depth
 
         return ir
 
@@ -2621,17 +2709,16 @@ class Builder(object):
 
         return ir
 
-    def _add_local_var(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
+    def _add_local_var(self, name, data_type='i32', dimensions=[], keywords={}, lineno=None):
         # check if this is already in the globals
         if name in self.globals:
             raise VariableAlreadyDeclared("Variable '%s' already declared as global" % (name), lineno=lineno)
 
-        if keywords != None:
-            if 'publish' in keywords:
-                raise SyntaxError("Cannot publish a local variable: %s" % (name), lineno=lineno)            
+        if 'publish' in keywords:
+            raise SyntaxError("Cannot publish a local variable: %s" % (name), lineno=lineno)            
 
-            if 'persist' in keywords:
-                raise SyntaxError("Cannot persist a local variable: %s" % (name), lineno=lineno)            
+        if 'persist' in keywords:
+            raise SyntaxError("Cannot persist a local variable: %s" % (name), lineno=lineno)            
 
         ir = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
         ir.scope_depth = self.scope_depth
@@ -2645,21 +2732,33 @@ class Builder(object):
 
         return ir
 
-    def declare_var(self, name, data_type='i32', dimensions=[], keywords=None, is_global=False, lineno=None):
+    def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
         if is_global:
             return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
         else: # local
-            ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
+            if len(keywords) > 0:
+                raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
 
-            if isinstance(ir, irVar_str):
-                self.assign(ir, ir.default_value, lineno=lineno)
+            var = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
+            
+            ir = irDefine(var, lineno=lineno)
 
-            else:
-                # add init to 0
-                self.assign(ir, self.get_var(0), lineno=lineno)
+            self.append_node(ir)
 
-            return ir
+            return var
+
+
+            # ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
+
+            # if isinstance(ir, irVar_str):
+            #     self.assign(ir, ir.default_value, lineno=lineno)
+
+            # else:
+            #     # add init to 0
+            #     self.assign(ir, self.get_var(0), lineno=lineno)
+
+            # return ir
 
     def get_var(self, name, lineno=None):
         name = str(name)
@@ -2677,11 +2776,13 @@ class Builder(object):
         if name in self.globals:
             return self.globals[name]
 
-        try:
-            return self.current_func.get_local(name)
+        return self.build_var(name, lineno=lineno)
 
-        except KeyError:
-            raise VariableNotDeclared(name, "Variable '%s' not declared" % (name), lineno=lineno)
+        # try:
+        #     return self.current_func.get_local(name)
+
+        # except KeyError:
+        #     raise VariableNotDeclared(name, "Variable '%s' not declared" % (name), lineno=lineno)
 
     def phi(self, blocks=[], lineno=None):
         pass
@@ -2977,6 +3078,7 @@ class Builder(object):
 
 
     def convert_type(self, target, value, lineno=None):
+        return value
         # in normal expressions, f16 will take precedence over i32.
         # however, for the assign, the assignment target will 
         # have priority.

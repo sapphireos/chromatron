@@ -1,19 +1,25 @@
 
-def func(b: Number):
+# def func(b: Number):
+def func():
+	b = Number()
 	temp_a = Number()
 
 	b += 1
 
 	# b = 1.0 + 2
+	# temp_b = Number()
 
 	if temp_a > 0:
 		temp_b = Number()
+		temp_b = 1
 		b = temp_a + 3
 		
 	else:
-		temp_b += 1
+		
 		temp_a += 2
 		# b = 3
+
+	# temp_b += 1
 		
 	return b
 
