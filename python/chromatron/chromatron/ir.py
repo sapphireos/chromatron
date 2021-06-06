@@ -1414,6 +1414,12 @@ class irFunc(IR):
         for ir in self.body:
             assert ir.block is not None
 
+        # verify all blocks start with a label and end
+        # with an unconditional jump or return
+        for block in self.blocks.values():
+            assert isinstance(block.code[0], irLabel)
+            assert isinstance(block.code[-1], irUnconditionalJump) or isinstance(block.code[-1], irReturn)
+
         # record jump sources for each label
         for ir in self.body:
             target = ir.get_jump_target()
