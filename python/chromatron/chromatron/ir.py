@@ -1130,7 +1130,7 @@ class irBlock(IR):
         self._name = value
 
     def add_local(self, ir):
-        self.locals[ir.name] = ir
+        self.locals[ir._name] = ir
         ir.ssa_version = ir.next_ssa_version
         ir.next_ssa_version += 1
 
@@ -1141,11 +1141,13 @@ class irBlock(IR):
         self.code.append(node)
 
         if isinstance(node, irDefine):
+            node.var.ssa_version = 0
+
             # see if this variable is already defined in this scope
             try:
-                var = self.get_local(node.var.name)
+                var = self.get_local(node.var._name)
 
-                raise SyntaxError(f'Variable: {node.var.name} is already declared in enclosing scope (shadowing not allowed)', lineno=node.lineno)
+                raise SyntaxError(f'Variable: {node.var._name} is already declared in enclosing scope (shadowing not allowed)', lineno=node.lineno)
 
             except KeyError:
                 # variable is not defined already, this is what we want
@@ -1167,10 +1169,6 @@ class irBlock(IR):
                     if var:
                         return var        
 
-        # check SSA stack:
-        if name in self.ssa_stack:
-            return self.ssa_stack[name][-1]
-
         if name in self.locals:
             return self.locals[name]
 
@@ -1190,10 +1188,10 @@ class irBlock(IR):
 
             for i in inputs:
                 try:
-                    local = self.get_local(i.name)
+                    local = self.get_local(i._name)
 
                 except KeyError:
-                    raise SyntaxError(f'Variable: {i.name} is not declared', lineno=ir.lineno)
+                    raise SyntaxError(f'Variable: {i._name} is not declared', lineno=ir.lineno)
 
                 # assign type
                 i.__dict__ = local.__dict__
@@ -1202,13 +1200,13 @@ class irBlock(IR):
 
             for i in outputs:
                 try:
-                    local = self.get_local(i.name)
+                    local = self.get_local(i._name)
                     new_local = copy(local)
                     local.next_ssa_version += 1
                     self.add_local(new_local)
 
                 except KeyError:
-                    raise SyntaxError(f'Variable: {i.name} is not declared', lineno=ir.lineno)
+                    raise SyntaxError(f'Variable: {i._name} is not declared', lineno=ir.lineno)
 
                 # assign type
                 i.__dict__ = new_local.__dict__
