@@ -1372,10 +1372,10 @@ class irFunc(IR):
                 # This is the next instruction in the list.
                 # 2. Jump target
                 # This code be anywhere, even behind.
-                fallthrough_block = self.create_block_from_code_at_index(index, prev_block=block)
+                # fallthrough_block = self.create_block_from_code_at_index(index, prev_block=block)
                 target_block = self.create_block_from_code_at_label(ir.target, prev_block=block)
 
-                block.successors.append(fallthrough_block)
+                # block.successors.append(fallthrough_block)
                 block.successors.append(target_block)
 
                 # get successor parameters and add move instructions
@@ -1385,7 +1385,7 @@ class irFunc(IR):
                 # fallthrough_block_params = fallthrough_block.get_params()
                 # target_block_params = target_block.params()
 
-                break
+                # break
 
             elif isinstance(ir, irUnconditionalJump):
                 # jump to a single location
@@ -1401,12 +1401,28 @@ class irFunc(IR):
 
 
     def analyze_blocks(self):
+        # ensure conditional branches are always followed by an
+        # unconditional jump
+        for i in range(len(self.body)):
+            if isinstance(self.body[i], irConditionalJump):
+                assert isinstance(self.body[i + 1], irUnconditionalJump)
+
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
 
         # verify all instructions are assigned to a block:
         for ir in self.body:
             assert ir.block is not None
+
+        # record jump sources for each label
+        for ir in self.body:
+            target = ir.get_jump_target()
+
+            if target is None:
+                continue
+
+            target.sources.append(ir)
+
 
         # print(self.leader_block)
         # print(self)
@@ -2088,6 +2104,8 @@ class irLabel(IR):
     def __init__(self, name, **kwargs):
         super(irLabel, self).__init__(**kwargs)        
         self.name = name
+        # list of jumps that arrive at this label
+        self.sources = []
 
     def __str__(self):
         s = 'LABEL %s' % (self.name)
@@ -3307,6 +3325,8 @@ class Builder(object):
 
         branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
+        jump = irJump(body_label, lineno=lineno)
+        self.append_node(jump)
 
         self.scope_depth += 1
 
