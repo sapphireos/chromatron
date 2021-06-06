@@ -241,6 +241,8 @@ class irDefine(IR):
     def __str__(self):
         return f'DEF: {self.var}'
 
+    def get_output_vars(self):
+        return [self.var]
 
 class irVar(IR):
     def __init__(self, name, type='i32', options=None, **kwargs):
@@ -306,7 +308,7 @@ class irVar_simple(irVar):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.next_ssa_version = 0
+        # self.next_ssa_version = 0
         self.ssa_version = None
 
     @property
@@ -1131,8 +1133,8 @@ class irBlock(IR):
 
     def add_local(self, ir):
         self.locals[ir._name] = ir
-        ir.ssa_version = ir.next_ssa_version
-        ir.next_ssa_version += 1
+        # ir.ssa_version = ir.next_ssa_version
+        # ir.next_ssa_version += 1
 
     def append(self, node):
         # ensure that each node only belongs to one block:
@@ -1140,20 +1142,21 @@ class irBlock(IR):
         node.block = self
         self.code.append(node)
 
-        if isinstance(node, irDefine):
-            node.var.ssa_version = 0
+        # if isinstance(node, irDefine):
+        #     node.var.ssa_version = 0
 
-            # see if this variable is already defined in this scope
-            try:
-                var = self.get_local(node.var._name)
+        #     # see if this variable is already defined in this scope
+        #     try:
+        #         var = self.get_local(node.var._name)
 
-                raise SyntaxError(f'Variable: {node.var._name} is already declared in enclosing scope (shadowing not allowed)', lineno=node.lineno)
+        #         raise SyntaxError(f'Variable: {node.var._name} is already declared in enclosing scope (shadowing not allowed)', lineno=node.lineno)
 
-            except KeyError:
-                # variable is not defined already, this is what we want
-                pass
+        #     except KeyError:
+        #         # variable is not defined already, this is what we want
+        #         pass
 
-            self.add_local(node.var)            
+        #     self.add_local(node.var)            
+        
             # self.locals[node.var.name] = node.var
             # node.var.ssa_version = 0
 
@@ -1180,6 +1183,46 @@ class irBlock(IR):
                 return var
 
         raise KeyError(name)
+
+    def convert_to_ssa2(self, ssa_vars={}, visited=[]):
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        for ir in self.code:
+            # look for defines and set their version to 0
+            if isinstance(ir, irDefine):
+                ir.var.ssa_version = 0
+
+                # set current SSA version of this variable
+                ssa_vars[ir.var._name] = ir.var
+
+            else:
+                # look for writes to current set of vars and increment versions
+                outputs = ir.get_output_vars()
+
+                for o in outputs:
+                    if o._name in ssa_vars:
+                        o.ssa_version = ssa_vars[o._name].ssa_version + 1
+                        ssa_vars[o._name] = o
+
+        print(self.name)
+        for k, v in ssa_vars.items():
+            print(k, v)
+
+        for suc in self.successors:
+            suc.convert_to_ssa2(ssa_vars, visited)
+
+
+        # inputs = [a for a in self.input_vars if not a.temp and not a.is_const]
+        # outputs = [a for a in self.output_vars if not a.temp and not a.is_const]        
+
+        # for i in inputs:
+        #     print(i)
+
+        # for o in outputs:
+        #     print(o)
 
     def convert_to_ssa(self):
         # first, resolve data types for undefined vars
@@ -1231,11 +1274,11 @@ class irBlock(IR):
             inputs = node.get_input_vars()
 
             for i in inputs:
-                if i._name not in v:
-                    v[i._name] = i
+                if i.name not in v:
+                    v[i.name] = i
 
-                if i.ssa_version and (i.ssa_version < v[i._name].ssa_version):
-                    v[i._name] = i
+                # if i.ssa_version and (i.ssa_version < v[i._name].ssa_version):
+                    # v[i._name] = i
 
         # return list(v.values())
         return [a for a in v.values() if not a.temp and not a.is_const]
@@ -1247,11 +1290,11 @@ class irBlock(IR):
             outputs = node.get_output_vars()
 
             for o in outputs:
-                if o._name not in v:
-                    v[o._name] = o
+                if o.name not in v:
+                    v[o.name] = o
 
-                if o.ssa_version and (o.ssa_version > v[o._name].ssa_version):
-                    v[o._name] = o
+                # if o.ssa_version and (o.ssa_version > v[o._name].ssa_version):
+                    # v[o._name] = o
 
         # return list(v.values())
         return [a for a in v.values() if not a.temp and not a.is_const]
@@ -1433,8 +1476,10 @@ class irFunc(IR):
         # print(self.leader_block)
         # print(self)
 
-        for block in self.blocks.values():
-            block.convert_to_ssa()
+        self.leader_block.convert_to_ssa2()
+
+        # for block in self.blocks.values():
+            # block.convert_to_ssa()
 
 
 
