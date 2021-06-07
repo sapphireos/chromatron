@@ -1074,6 +1074,23 @@ class irDBAttr(irVar):
 #             # replace phi with nop
 #             # self.code[index] = irNop(lineno=phi.lineno)            
 
+class irPhi(IR):
+    def __init__(self, target, defines=[], **kwargs):
+        super().__init__(**kwargs)
+
+        self.target = target
+        self.defines = defines
+
+    def resolve(self):
+        for d in self.defines:
+            d.block.add_define(d, self.target)
+
+    def __str__(self):
+        s = '%s = PHI(%s)' % (self.target, [str(d) for d in self.defines])
+
+        return s
+
+
 class irBlock(IR):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1236,7 +1253,9 @@ class irBlock(IR):
         self.defines = {}
         self.uses = {}
 
-        for ir in self.code:
+        for index in range(len(self.code)):
+            ir = self.code[index]
+
             # look for defines and set their version to 0
             if isinstance(ir, irDefine):
                 if ir.var._name in ssa_vars:
@@ -1285,18 +1304,32 @@ class irBlock(IR):
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
                     
                     if len(ds) == 1:
+                        # take previous definition for the input
                         i.__dict__ = copy(ds[0].__dict__)
 
                     else:
+                        # we have multiple live definitions available.
+                        # create a new defintion:
                         i.__dict__ = copy(ssa_vars[i._name].__dict__)
                         i.ssa_version = ssa_vars[i._name].ssa_version + 1
                         ssa_vars[i._name] = i
+                        i.block = self
 
-                        for d in ds:
-                            d.block.add_define(d, i)
+                        if i._name not in self.defines:
+                            self.defines[i._name] = []
+
+                        self.defines[i._name].append(i)
+
+                        # then use a phi node to reconcile them:
+                        phi = irPhi(i, ds, lineno=ir.lineno)
+
+                        self.code.insert(index, phi)
+                        # for d in ds:
+                            # d.block.add_define(d, i)
 
 
                     self.uses[i._name].append(i)
+
 
 
         print(self.name)
@@ -1315,6 +1348,22 @@ class irBlock(IR):
 
         # for o in outputs:
         #     print(o)
+
+    def resolve_phi(self, visited=[]):
+        return
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        for ir in self.code:
+            if not isinstance(ir, irPhi):
+                continue
+
+            ir.resolve()
+
+        for suc in self.successors:
+            suc.resolve_phi(visited=visited)
 
     def convert_to_ssa(self):
         # first, resolve data types for undefined vars
@@ -1577,6 +1626,8 @@ class irFunc(IR):
         # print(self)
 
         self.leader_block.convert_to_ssa2()
+
+        self.leader_block.resolve_phi()
 
         # for block in self.blocks.values():
             # block.convert_to_ssa()
