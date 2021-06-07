@@ -709,6 +709,8 @@ class irBlock(IR):
         self.successors = []
         self.code = []
         self.locals = {}
+        self.defines = {}
+        self.uses = {}
 
         self.entry_label = None
         self.jump_target = None
@@ -799,7 +801,7 @@ class irBlock(IR):
         return ds
 
     def convert_to_ssa(self, ssa_vars={}, visited=[]):
-        # make search breadth-first instead
+        # make search breadth-first:
         for pre in self.predecessors:
             if pre not in visited:
                 return
@@ -808,10 +810,6 @@ class irBlock(IR):
             return
 
         visited.append(self)
-
-
-        self.defines = {}
-        self.uses = {}
 
         for index in range(len(self.code)):
             ir = self.code[index]
@@ -1099,9 +1097,7 @@ class irFunc(IR):
 
         #     target.sources.append(ir)
 
-
-
-        # self.leader_block.convert_to_ssa()
+        self.leader_block.convert_to_ssa()
         # self.leader_block.resolve_phi()
 
 
