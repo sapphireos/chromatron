@@ -5,10 +5,10 @@ def func():
 	b += 1 # uses b0 and defines b1
 
 	if b > 0: # uses B1
-		b = 1 + 4 # defines b2
+		b = b + 4 # defines b2
 		
-	else:
-		b = 3 # defines b3
+	# else:
+		# b = 3 # defines b3
 
 	return b # uses b
 	# need to define b4 and use b4 here

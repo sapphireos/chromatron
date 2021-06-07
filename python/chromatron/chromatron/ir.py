@@ -1187,6 +1187,11 @@ class irBlock(IR):
     def add_define(self, var, target):
         # add a define for new variable target at var
 
+        # check if source and dest are the same
+        # if so, we don't need to add an assignment here
+        # it would just get optimized out, but it would also
+        # break SSA form (since the target will)
+
         for i in range(len(self.code)):
             ir = self.code[i]
 
@@ -1254,7 +1259,6 @@ class irBlock(IR):
                     self.defines[o._name].append(o)
 
                     if o._name in ssa_vars:
-                        o.__dict__ = ssa_vars[o._name].__dict__
                         o.ssa_version = ssa_vars[o._name].ssa_version + 1
                         ssa_vars[o._name] = o
 
@@ -1272,16 +1276,15 @@ class irBlock(IR):
                     assert len(ds) != 0
                     
                     if len(ds) == 1:
-                        i.__dict__ = ds[0].__dict__
+                        i.__dict__ = copy(ds[0].__dict__)
 
                     else:
-                        i.__dict__ = ssa_vars[i._name].__dict__
+                        i.__dict__ = copy(ssa_vars[i._name].__dict__)
                         i.ssa_version = ssa_vars[i._name].ssa_version + 1
                         ssa_vars[i._name] = i
 
                         for d in ds:
                             d.block.add_define(d, i)
-
 
 
                     self.uses[i._name].append(i)
