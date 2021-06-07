@@ -1104,8 +1104,14 @@ class irBlock(IR):
         for i in self.output_vars:
             s += f'{depth}\t{i.name}: {i.type}\n'
 
+        lines_printed = []
         s += f'{depth}Code:\n'
         for ir in self.code:
+            if ir.lineno not in lines_printed and not isinstance(ir, irLabel):
+                s += f'________________________________________________________\n'
+                s += f'{ir.lineno}: {depth}{source_code[ir.lineno - 1].strip()}\n'
+                lines_printed.append(ir.lineno)
+
             s += f'{depth}\t{ir}\n'
             
         # s += 'Predecessors:\n'
@@ -1116,7 +1122,7 @@ class irBlock(IR):
         # for suc in self.successors:
         #     s += f'\t{suc.name}\n'
 
-        # s += '\n'.join([str(ir) for ir in self.code])
+        # s += '\n'.join([str(ir) for ir in self.code])irBlock
         return s
 
     @property
