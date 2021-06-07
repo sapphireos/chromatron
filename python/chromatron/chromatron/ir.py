@@ -684,395 +684,6 @@ class irDBAttr(irVar):
     def lookup(self, indexes):
         return self
 
-# class irBlock(IR):
-#     block_number = 0
-
-#     def __init__(self, func, hint, depth, parent, builder, **kwargs):
-#         super(irBlock, self).__init__(**kwargs)
-#         self.func = func
-#         self.hint = hint
-#         self.depth = depth
-#         self.block_number = irBlock.block_number
-#         self.name = '%s.%d' % (self.func.name, self.block_number)
-#         irBlock.block_number += 1
-#         self.code = []
-#         self.locals = {}
-#         self.ssa_stack = {}
-#         self.blocks = []
-#         self.parent = parent
-#         self.builder = builder
-#         self.phi_blocks = []
-
-#     def __str__(self):
-#         global source_code
-#         s =  '%s####################################################\n' % ('\t' * self.depth)
-#         s += '%s| Start block: %16s.%d (%8s) d:%d Line: %d\n' % ('\t' * self.depth, self.func.name, self.block_number, self.hint, self.depth, self.lineno)
-#         s += '%s| In : %s\n' % ('\t' * self.depth, [v.name for v in self.get_input_vars() if not v.temp and not v.is_const])
-#         s += '%s|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n' % ('\t' * self.depth)
-
-#         current_line = 0
-#         for node in self.code:
-
-#             # interleave source code
-#             if node.lineno > current_line:
-#                 current_line = node.lineno
-#                 try:
-#                     s += '%s| ----------------------------------------------------\n' % ('\t' * self.depth)
-#                     s += "%s| %d\t%s\n" % ('\t' * self.depth,current_line, source_code[current_line - 1].strip())
-#                     s += '%s| ----------------------------------------------------\n' % ('\t' * self.depth)
-
-#                 except IndexError:
-#                     print("Source interleave from imported files not yet supported")
-#                     pass
-
-#             if isinstance(node, irLabel):
-#                 s += '%s| %s\n' % ('\t' * self.depth, node)
-
-#             else:    
-#                 label = node.get_jump_target()
-
-#                 if label != None:
-#                     s += '%s| \t%s (Line %d)\n' % ('\t' * self.depth, node, label.lineno)
-
-#                 elif isinstance(node, irBlock):
-#                     s += '%s\n' % (node)
-
-#                 else:
-#                     s += '%s| \t%s\n' % ('\t' * self.depth,node)
-
-#         s += '%s|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n' % ('\t' * self.depth)
-#         s += '%s| Out: %s\n' % ('\t' * self.depth, [v.name for v in self.get_output_vars() if not v.temp and not v.is_const])
-#         s += '%s| End block: %16s.%d\n' % ('\t' * self.depth, self.func.name, self.block_number)
-#         s += '%s####################################################\n' % ('\t' * self.depth)
-
-#         return s    
-
-#     def get_input_vars(self):
-#         v = {}
-#         for node in self.code:
-#             inputs = node.get_input_vars()
-
-#             for i in inputs:
-#                 if i._name not in v:
-#                     v[i._name] = i
-
-#                 if i.ssa_version < v[i._name].ssa_version:
-#                     v[i._name] = i
-
-#         return list(v.values())
-
-#     def get_output_vars(self):
-#         v = {}
-#         for node in self.code:
-#             outputs = node.get_output_vars()
-
-#             for o in outputs:
-#                 if o._name not in v:
-#                     v[o._name] = o
-
-#                 if o.ssa_version > v[o._name].ssa_version:
-#                     v[o._name] = o
-
-#         return list(v.values())
-
-#     def remove_dead_labels(self, dead_labels=[]):
-#         new_code = []
-#         for node in self.code:
-#             if isinstance(node, irLabel):
-#                 if node.name not in dead_labels:
-#                     new_code.append(node)
-
-#             elif isinstance(node, irBlock):
-#                 node.remove_dead_labels(dead_labels)    
-#                 new_code.append(node)
-
-#             else:
-#                 new_code.append(node)
-
-#         self.code = new_code
-
-#     def labels(self):
-#         labels = {}
-
-#         for i in range(len(self.code)):
-#             ins = self.code[i]
-
-#             if isinstance(ins, irLabel):
-#                 labels[ins.name] = i
-
-#             elif isinstance(ins, irBlock):
-#                 labels.update(ins.labels())
-
-#         return labels
-
-#     def get_code(self):
-#         code = []
-
-#         for ir in self.code:
-#             if isinstance(ir, irBlock):
-#                 code.extend(ir.get_code())
-
-#             else:
-#                 code.append(ir)
-
-#         return code
-
-#     def append_code(self, code):
-#         self.code.append(code)
-
-#     def add_local(self, ir):
-#         ir.ssa_version = self.func.get_ssa_version(ir._name, inc=True)
-#         ir.block = self
-
-#         self.locals[ir.name] = ir
-
-#         if ir.temp:
-#             return
-
-#         # update SSA, but not for temp vars (they are already SSA)
-
-#         if ir._name not in self.ssa_stack:
-#             self.ssa_stack[ir._name] = []            
-
-#         self.ssa_stack[ir._name].append(ir)
-
-#     def append_block(self, block):
-#         self.blocks.append(block)
-#         self.code.append(block)
-#         self.phi_blocks.append(block)
-
-#     def get_local(self, name, _check_parents=True):
-#         # check SSA stack:
-#         if name in self.ssa_stack:
-#             return self.ssa_stack[name][-1]
-
-#         # check if local is within this block:
-#         if name in self.locals:
-#             return self.locals[name]
-
-#         # if not, check parent, if we have one
-#         if _check_parents and self.parent != None:
-#             return self.parent.get_local(name)
-
-#         # check child nodes
-#         for block in self.blocks:
-#             try:
-#                 return block.get_local(name, _check_parents=False)
-
-#             except KeyError:
-#                 pass
-
-#         raise KeyError(name)
-
-#     def remove_local(self, name):
-#         # check if local is within this block:
-#         if name in self.locals:
-#             del self.locals[name]
-#             return
-
-#         # if not, check parent, if we have one
-#         if self.parent != None:
-#             self.parent.remove_local(name)
-
-#         else:
-#             raise KeyError(name)
-
-#     def phi(self, blocks=[], lineno=None):
-#         # get outputs for this block up to when the phi blocks start
-#         root_outputs = {}
-#         for node in self.code:            
-#             if node in self.phi_blocks:
-#                 break
-
-#             out = [o for o in node.get_output_vars() if not o.temp and not o.is_const]
-
-#             for o in out:
-#                 root_outputs[o._name] = o
-
-
-#         block_vars = {}
-#         used = []
-#         for block in self.phi_blocks:
-#             block_vars[block] = []
-
-#             for o in block.get_output_vars():
-#                 if o.temp or o.is_const:
-#                     continue
-
-#                 block_vars[block].append(o)
-#                 used.append(o)
-
-#         # prune root outputs if they are not used by any sub block
-#         root_outputs = {k: v for k, v in root_outputs.items() if k in [a._name for a in used]}
-
-
-#         # assign root outputs to blocks that don't already use that var
-#         for k, v in root_outputs.items():
-#             for block, used_vars in block_vars.items():
-#                 if k in [a._name for a in used_vars]:
-#                     continue
-
-#                 used_vars.append(v)
-
-#         for u in used:
-#             target = self.builder._add_local_var(u._name, u.type, lineno=lineno)
-
-#             blocks = []
-#             for k, v in block_vars.items():
-#                 for a in v:
-#                     if a._name in [a._name for a in used]:
-#                         blocks.append(k)
-#                         break
-
-#             self.code.append(irPhi(u._name, blocks, target, lineno=lineno))
-
-
-#         return
-
-
-#         # # get vars used by blocks
-#         # used_vars = {}
-#         # for block in self.phi_blocks:
-#         #     for o in block.get_output_vars():
-#         #         if o.temp or o.is_const:
-#         #             continue
-
-#         #         if o._name not in used_vars:
-#         #             used_vars[o._name] = []
-
-#         #         used_vars[o._name].append((o, block))
-
-#         # # for all vars in this block up to the sub blocks,
-#         # # are there any vars that are not used (written to) in every
-#         # # sub block?
-#         # # if not, then there is a path to phi where a sub block doesn't
-#         # # touch it. 
-#         # # in that case, we add the version from this block to the list
-#         # # so we can generate code for it.
-#         # for k, v in outputs.items():
-#         #     if k in used_vars and len(used_vars[k]) < len(self.phi_blocks):
-#         #         used_vars[k].append((v, None))
-
-
-
-
-#         # for k, v in used_vars.items():
-#         #     v0 = v[0]
-#         #     target = self.builder._add_local_var(v0._name, v0.type, lineno=lineno)
-#         #     self.code.append(irPhi(k, self.phi_blocks, v, target, lineno=lineno))
-
-#         # self.phi_blocks = []
-
-
-#         # return
-
-
-#         # joins = {}
-
-#         # # note join from current block in case the var
-#         # # is not modified in some of the blocks we are transferring
-#         # # control to
-#         # used_vars = {}
-#         # for k, v in self.ssa_stack.items():
-#         #     count = 0
-#         #     # check that at least one sub block uses this var
-#         #     # if not, then we don't need a phi for it
-#         #     for block in self.phi_blocks:
-#         #         if k in block.ssa_stack:
-#         #             count += 1
-#         #             break
-
-#         #     if count > 0:
-#         #         used_vars[k] = v[-1]
-
-
-#         # for block in self.phi_blocks:
-#         #     for k, v in block.ssa_stack.items():
-#         #         if k not in joins:
-#         #             joins[k] = []
-
-#         #         joins[k].append(v[-1])
-
-#         #     for k, v in used_vars.items():
-#         #         if k not in block.ssa_stack:
-#         #             if k not in joins:
-#         #                 joins[k] = []
-
-#         #             joins[k].append(v)
-
-#         # for k, v in joins.items():
-#         #     v0 = v[0]
-#         #     target = self.builder._add_local_var(v0._name, v0.type, lineno=lineno)
-#         #     self.code.append(irPhi(k, v, target, lineno=lineno))
-        
-#         # self.phi_blocks = []
-
-#     def resolve_phi(self):
-#         # record phis and their indexes
-#         phis = {}
-#         for i in range(len(self.code)):
-#             if isinstance(self.code[i], irPhi):
-#                 phis[i] = self.code[i]
-
-#             elif isinstance(self.code[i], irBlock):
-#                 self.code[i].resolve_phi()
-
-
-#         return
-
-
-#         for index, phi in phis.items():
-#             assert len(phi.joins) > 0
-
-#             for join in phi.joins:
-#                 ir = irAssign(phi.target, join, lineno=phi.lineno)
-
-#                 for block in phi.blocks:
-#                     # if join in block.get_output_vars():
-#                     block.append_code(ir)
-
-#                 # find which block this translated phi can fit into
-
-
-
-
-#         # if len(phis) > 0:
-#         #     p = list(phis.values())[0]
-#         #     print(p)
-
-#         return
-
-
-#         for index, phi in phis.items():
-#             assert len(phi.joins) > 0
-
-#             for join in phi.joins:
-#                 ir = irAssign(phi.target, join, lineno=phi.lineno)
-
-#                 # walk backwards through code and find the last place 
-#                 # the joined var is written to
-#                 # since we are walking backwards, this will be the first one
-#                 # we find
-#                 for i in range(len(join.block.code)):
-#                     index = (len(join.block.code) - 1) - i
-
-#                     if join in join.block.code[index].get_output_vars():
-#                         join.block.code.insert(index + 1, ir)
-#                         break
-
-#                 # join.block.code.insert(index, ir)
-
-#             # if len(phi.joins) == 1:
-#             #     ir = irAssign(phi.target, phi.joins[0], lineno=phi.lineno)
-#             #     self.code.insert(index, ir)
-
-#             # else:
-#             #     for join in phi.joins:
-#             #         ir = irAssign(phi.target, join, lineno=phi.lineno)
-#             #         join.block.code.insert(index, ir)
-
-#             # replace phi with nop
-#             # self.code[index] = irNop(lineno=phi.lineno)            
 
 class irPhi(IR):
     def __init__(self, target, defines=[], **kwargs):
@@ -1131,15 +742,6 @@ class irBlock(IR):
 
             s += f'{depth}\t{ir}\n'
             
-        # s += 'Predecessors:\n'
-        # for pre in self.predecessors:
-        #     s += f'\t{pre.name}\n'
-
-        # s += 'Successors:\n'
-        # for suc in self.successors:
-        #     s += f'\t{suc.name}\n'
-
-        # s += '\n'.join([str(ir) for ir in self.code])irBlock
         return s
 
     @property
@@ -1147,7 +749,6 @@ class irBlock(IR):
         if isinstance(self.code[0], irLabel):
             return f'{self.code[0].name}'
         else:
-            # return self._name
             assert False
 
     @name.setter
@@ -1165,55 +766,9 @@ class irBlock(IR):
         node.block = self
         self.code.append(node)
 
-        # if isinstance(node, irDefine):
-        #     node.var.ssa_version = 0
-
-        #     # see if this variable is already defined in this scope
-        #     try:
-        #         var = self.get_local(node.var._name)
-
-        #         raise SyntaxError(f'Variable: {node.var._name} is already declared in enclosing scope (shadowing not allowed)', lineno=node.lineno)
-
-        #     except KeyError:
-        #         # variable is not defined already, this is what we want
-        #         pass
-
-        #     self.add_local(node.var)            
-
-            # self.locals[node.var.name] = node.var
-            # node.var.ssa_version = 0
-
-    # def get_local(self, name, search_depth=None):
-    #     if search_depth is not None:
-    #         if search_depth < self.scope_depth:
-    #             # we do not have the correct scope to satisfy the request 
-    #             # for this variable.
-    #             # however, we may have a predecessor that can.
-    #             for pre in self.predecessors:
-    #                 var = pre.get_local(name, search_depth=search_depth)
-
-    #                 if var:
-    #                     return var        
-
-    #     if name in self.locals:
-    #         return self.locals[name]
-
-    #     # search predecessors at this scope level or below
-    #     for pre in self.predecessors:
-    #         var = pre.get_local(name, search_depth=self.scope_depth)
-
-    #         if var:
-    #             return var
-
-    #     raise KeyError(name)
-
     def add_define(self, var, target):
         # add a define for new variable target at var
-
-        # check if source and dest are the same
-        # if so, we don't need to add an assignment here
-        # it would just get optimized out, but it would also
-        # break SSA form (since the target will)
+        # note this can set the IR out of SSA form
 
         for i in range(len(self.code)):
             ir = self.code[i]
@@ -1234,9 +789,7 @@ class irBlock(IR):
 
         return ds
 
-    def convert_to_ssa2(self, ssa_vars={}, visited=[]):
-        # return
-
+    def convert_to_ssa(self, ssa_vars={}, visited=[]):
         # make search breadth-first instead
         for pre in self.predecessors:
             if pre not in visited:
@@ -1290,6 +843,7 @@ class irBlock(IR):
                     else:
                         assert False
 
+                # look for used vars that need to be updated
                 inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
 
                 for i in inputs:
@@ -1322,33 +876,18 @@ class irBlock(IR):
                         phi = irPhi(i, ds, lineno=ir.lineno)
 
                         self.code.insert(index, phi)
-                        # for d in ds:
-                            # d.block.add_define(d, i)
-
+                        
 
                     self.uses[i._name].append(i)
 
-
-
-        print(self.name)
-        for k, v in ssa_vars.items():
-            print(k, v)
-
+        # continue with successors:
         for suc in self.successors:
-            suc.convert_to_ssa2(ssa_vars, visited)
+            suc.convert_to_ssa(ssa_vars, visited)
 
-
-        # inputs = [a for a in self.input_vars if not a.temp and not a.is_const]
-        # outputs = [a for a in self.output_vars if not a.temp and not a.is_const]        
-
-        # for i in inputs:
-        #     print(i)
-
-        # for o in outputs:
-        #     print(o)
-
+    # resolve phi nodes by inserting an assignment
+    # from each define to the target variable.
+    # this will take the IR out of SSA form.
     def resolve_phi(self, visited=[]):
-        return
         if self in visited:
             return
 
@@ -1362,37 +901,6 @@ class irBlock(IR):
 
         for suc in self.successors:
             suc.resolve_phi(visited=visited)
-
-    def convert_to_ssa(self):
-        # first, resolve data types for undefined vars
-        for ir in self.code:
-            inputs = [a for a in ir.get_input_vars() if not a.temp and not a.is_const]
-
-            for i in inputs:
-                try:
-                    local = self.get_local(i._name)
-
-                except KeyError:
-                    raise SyntaxError(f'Variable: {i._name} is not declared', lineno=ir.lineno)
-
-                # assign type
-                i.__dict__ = local.__dict__
-
-            outputs = [a for a in ir.get_output_vars() if not a.temp and not a.is_const]
-
-            for i in outputs:
-                try:
-                    local = self.get_local(i._name)
-                    new_local = copy(local)
-                    local.next_ssa_version += 1
-                    self.add_local(new_local)
-
-                except KeyError:
-                    raise SyntaxError(f'Variable: {i._name} is not declared', lineno=ir.lineno)
-
-                # assign type
-                i.__dict__ = new_local.__dict__
-
 
     @property
     def is_leader(self):
@@ -1416,10 +924,6 @@ class irBlock(IR):
                 if i.name not in v:
                     v[i.name] = i
 
-                # if i.ssa_version and (i.ssa_version < v[i._name].ssa_version):
-                    # v[i._name] = i
-
-        # return list(v.values())
         return [a for a in v.values() if not a.temp and not a.is_const]
 
     @property
@@ -1432,10 +936,6 @@ class irBlock(IR):
                 if o.name not in v:
                     v[o.name] = o
 
-                # if o.ssa_version and (o.ssa_version > v[o._name].ssa_version):
-                    # v[o._name] = o
-
-        # return list(v.values())
         return [a for a in v.values() if not a.temp and not a.is_const]
 
 
@@ -1446,14 +946,9 @@ class irFunc(IR):
         self.ret_type = ret_type
         self.params = params
         self.body = []
-        self.ssa_versions = {}
-        self.locals = {}
-        self.ssa_stack = {}
         
         if self.params == None:
             self.params = []
-
-        #self.root_block = None
 
         self.blocks = {}
         self.leader_block = None
@@ -1467,12 +962,12 @@ class irFunc(IR):
         s = "\n######## Line %4d       ########\n" % (self.lineno)
         s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
 
-        s += "********************************\n"
-        s += "Locals:\n"
-        s += "********************************\n"
+        # s += "********************************\n"
+        # s += "Locals:\n"
+        # s += "********************************\n"
 
-        for v in self.locals.values():
-            s += f'{v.lineno:3}\t{v.name:16}:{v.type}\n'
+        # for v in self.locals.values():
+        #     s += f'{v.lineno:3}\t{v.name:16}:{v.type}\n'
 
 
         s += "********************************\n"
@@ -1483,36 +978,6 @@ class irFunc(IR):
         for block in blocks:
             s += f'{block}\n'
     
-        # s += "********************************\n"
-        # s += "Func code:\n"
-        # s += "********************************\n"
-
-        # current_line = -1
-        # for node in self.code():
-            
-        #     # interleave source code
-        #     if node.lineno > current_line:
-        #         current_line = node.lineno
-        #         try:
-        #             s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
-
-        #         except IndexError:
-        #             raise
-        #             print("Source interleave from imported files not yet supported")
-        #             pass
-
-        #     if isinstance(node, irLabel):
-        #         s += '%s\n' % (node)
-
-        #     else:    
-        #         label = node.get_jump_target()
-
-        #         if label != None:
-        #             s += '\t\t\t%s (Line %d)\n' % (node, label.lineno)
-
-        #         else:
-        #             s += '\t\t\t%s\n' % (node)
-
         return s
 
     def create_block_from_code_at_label(self, label, prev_block=None):
@@ -1581,15 +1046,6 @@ class irFunc(IR):
 
         return block
 
-    def rename_vars(self):
-        pass
-
-        # rename all vars into SSA form
-        # this requires we do Phi functions first.
-
-
-
-
     def analyze_blocks(self):
         # ensure conditional branches are always followed by an
         # unconditional jump
@@ -1619,92 +1075,30 @@ class irFunc(IR):
 
             target.sources.append(ir)
 
-
-        # print(self.leader_block)
-        # print(self)
-
-        self.leader_block.convert_to_ssa2()
-
+        self.leader_block.convert_to_ssa()
         self.leader_block.resolve_phi()
 
-        # for block in self.blocks.values():
-            # block.convert_to_ssa()
 
+    # def remove_dead_labels(self):
+    #     return
+    #     labels = self.labels()
 
+    #     keep = []
+    #     code = self.code()
 
-    def get_ssa_version(self, name):
-        if name not in self.ssa_versions:
-            self.ssa_versions[name] = 0
+    #     # get list of labels that are used
+    #     for label in labels:
+    #         for node in code:
+    #             target = node.get_jump_target()
 
-        ssa = self.ssa_versions[name]
-        self.ssa_versions[name] += 1
+    #             if target != None:
+    #                 if target.name == label:
+    #                     keep.append(label)
+    #                     break
 
-        return ssa
-
-    def remove_dead_labels(self):
-        return
-        labels = self.labels()
-
-        keep = []
-        code = self.code()
-
-        # get list of labels that are used
-        for label in labels:
-            for node in code:
-                target = node.get_jump_target()
-
-                if target != None:
-                    if target.name == label:
-                        keep.append(label)
-                        break
-
-        dead_labels = [l for l in labels if l not in keep]
+    #     dead_labels = [l for l in labels if l not in keep]
         
-        self.root_block.remove_dead_labels(dead_labels)
-
-    def add_local(self, ir):
-        return
-        # ir.ssa_version = self.get_ssa_version(ir._name)
-
-        self.locals[ir.name] = ir
-        return
-
-        if ir.temp:
-            return
-
-        # update SSA, but not for temp vars (they are already SSA)
-
-        if ir._name not in self.ssa_stack:
-            self.ssa_stack[ir._name] = []            
-
-        self.ssa_stack[ir._name].append(ir)
-
-    def get_local(self, name, _check_parents=True):
-        return
-        # check SSA stack:
-        if name in self.ssa_stack:
-            return self.ssa_stack[name][-1]
-
-        # check if local is within this block:
-        if name in self.locals:
-            return self.locals[name]
-
-        # if not, check parent, if we have one
-        # if _check_parents and self.parent != None:
-        #     return self.parent.get_local(name)
-
-        # # check child nodes
-        # for block in self.blocks:
-        #     try:
-        #         return block.get_local(name, _check_parents=False)
-
-        #     except KeyError:
-        #         pass
-
-        raise KeyError(name)
-
-    # def labels(self):
-        # return self.root_block.labels()
+    #     self.root_block.remove_dead_labels(dead_labels)
 
     def labels(self):
         labels = {}
@@ -1715,13 +1109,9 @@ class irFunc(IR):
             if isinstance(ins, irLabel):
                 labels[ins.name] = i
 
-            # elif isinstance(ins, irBlock):
-            #     labels.update(ins.labels())
-
         return labels
 
     def code(self):
-        # return self.root_block.get_code()
         return self.body
 
     def append_node(self, ir):
@@ -2954,13 +2344,6 @@ class Builder(object):
         ir = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
         ir.scope_depth = self.scope_depth
 
-        try:
-            for v in ir:
-                self.current_func.add_local(v)
-
-        except TypeError:
-            self.current_func.add_local(ir)
-
         return ir
 
     def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
@@ -3008,15 +2391,6 @@ class Builder(object):
             return self.globals[name]
 
         return self.build_var(name, lineno=lineno)
-
-        # try:
-        #     return self.current_func.get_local(name)
-
-        # except KeyError:
-        #     raise VariableNotDeclared(name, "Variable '%s' not declared" % (name), lineno=lineno)
-
-    def phi(self, blocks=[], lineno=None):
-        pass
 
     def get_obj_var(self, obj_name, attr, lineno=None):
         name = '%s.%s' % (obj_name, attr)
@@ -3068,10 +2442,8 @@ class Builder(object):
         self.next_temp += 1
 
         ir = self.build_var(name, data_type, [], lineno=lineno)
-        
         ir.temp = True
-        self.current_func.add_local(ir)
-
+    
         return ir
 
     def add_string(self, string, lineno=None):
@@ -3820,10 +3192,6 @@ class Builder(object):
                 params[i] = -1
 
         self.cron_tab[func].append(params)
-
-    def resolve_phi(self):
-        for func in self.funcs.values():
-            func.resolve_phi()        
 
     def allocate(self):
         self.remove_unreachable()        
