@@ -749,10 +749,14 @@ class irBlock(IR):
 
     @property
     def name(self):
-        if isinstance(self.code[0], irLabel):
-            return f'{self.code[0].name}'
-        else:
-            assert False
+        try:
+            if isinstance(self.code[0], irLabel):
+                return f'{self.code[0].name}'
+            else:
+                assert False
+
+        except IndexError:
+            return 'UNKNOWN BLOCK'
 
     @name.setter
     def name(self, value):
@@ -765,7 +769,9 @@ class irBlock(IR):
 
     def append(self, node):
         # ensure that each node only belongs to one block:
+
         assert node.block is None
+ 
         node.block = self
         self.code.append(node)
 
@@ -1012,6 +1018,21 @@ class irFunc(IR):
         
         while True:
             ir = self.body[index]
+
+            # check if label,
+            # if so, this is an entry point for a new block,
+            # possibly a backwards jump
+            if isinstance(ir, irLabel) and (len(block.code) > 0):
+                new_block = self.create_block_from_code_at_label(ir, prev_block=block)
+                block.successors.append(new_block)
+
+                # add a jump to this label in this block, this creates a clean
+                # end point for this block
+                jump = irJump(ir, lineno=ir.lineno)
+                block.append(jump)
+
+                break
+
             index += 1
 
             block.append(ir)
@@ -1078,8 +1099,12 @@ class irFunc(IR):
 
         #     target.sources.append(ir)
 
-        self.leader_block.convert_to_ssa()
-        self.leader_block.resolve_phi()
+
+
+        # self.leader_block.convert_to_ssa()
+        # self.leader_block.resolve_phi()
+
+
 
 
     # def remove_dead_labels(self):
@@ -2929,9 +2954,15 @@ class Builder(object):
         self.loop_top.append(top_label)
         self.loop_end.append(end_label)
 
+        self.scope_depth += 1
+
     def test_while(self, test, lineno=None):
         ir = irBranchZero(test, self.loop_end[-1], lineno=lineno)
         self.append_node(ir)
+        body_label = self.label('while.body', lineno=lineno)
+        jump = irJump(body_label, lineno=lineno)
+        self.append_node(jump)
+        self.position_label(body_label)
 
     def end_while(self, lineno=None):
         ir = irJump(self.loop_top[-1], lineno=lineno)
@@ -2941,6 +2972,8 @@ class Builder(object):
 
         self.loop_top.pop(-1)
         self.loop_end.pop(-1)
+
+        self.scope_depth -= 1
 
     def begin_for(self, iterator, lineno=None):
         begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR
