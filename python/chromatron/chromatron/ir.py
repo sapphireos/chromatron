@@ -239,7 +239,7 @@ class irDefine(IR):
         self.var = var
     
     def __str__(self):
-        return f'DEF: {self.var}'
+        return f'DEF: {self.var} depth: {self.scope_depth}'
 
     def get_output_vars(self):
         return [self.var]
@@ -1156,56 +1156,134 @@ class irBlock(IR):
         #         pass
 
         #     self.add_local(node.var)            
-        
+
             # self.locals[node.var.name] = node.var
             # node.var.ssa_version = 0
 
-    def get_local(self, name, search_depth=None):
-        if search_depth is not None:
-            if search_depth < self.scope_depth:
-                # we do not have the correct scope to satisfy the request 
-                # for this variable.
-                # however, we may have a predecessor that can.
-                for pre in self.predecessors:
-                    var = pre.get_local(name, search_depth=search_depth)
+    # def get_local(self, name, search_depth=None):
+    #     if search_depth is not None:
+    #         if search_depth < self.scope_depth:
+    #             # we do not have the correct scope to satisfy the request 
+    #             # for this variable.
+    #             # however, we may have a predecessor that can.
+    #             for pre in self.predecessors:
+    #                 var = pre.get_local(name, search_depth=search_depth)
 
-                    if var:
-                        return var        
+    #                 if var:
+    #                     return var        
 
-        if name in self.locals:
-            return self.locals[name]
+    #     if name in self.locals:
+    #         return self.locals[name]
 
-        # search predecessors at this scope level or below
+    #     # search predecessors at this scope level or below
+    #     for pre in self.predecessors:
+    #         var = pre.get_local(name, search_depth=self.scope_depth)
+
+    #         if var:
+    #             return var
+
+    #     raise KeyError(name)
+
+    def get_defined(self, name):
+        if name in self.defines:
+            return [self.defines[name][-1]]
+
+        ds = []
         for pre in self.predecessors:
-            var = pre.get_local(name, search_depth=self.scope_depth)
+            ds.extend(pre.get_defined(name))
 
-            if var:
-                return var
+        assert len(ds) == len(self.predecessors)
 
-        raise KeyError(name)
+        return ds
+
+        # if search_depth is not None:
+        #     if search_depth < self.scope_depth:
+        #         # we do not have the correct scope to satisfy the request 
+        #         # for this variable.
+        #         # however, we may have a predecessor that can.
+        #         for pre in self.predecessors:
+        #             var = pre.get_local(name, search_depth=search_depth)
+
+        #             if var:
+        #                 return var        
+
+        # if name in self.locals:
+        #     return self.locals[name]
+
+        # # search predecessors at this scope level or below
+        # for pre in self.predecessors:
+        #     var = pre.get_local(name, search_depth=self.scope_depth)
+
+        #     if var:
+        #         return var
+
+        # raise KeyError(name)
 
     def convert_to_ssa2(self, ssa_vars={}, visited=[]):
+        # make search breadth-first instead
+        for pre in self.predecessors:
+            if pre not in visited:
+                return
+
+
         if self in visited:
             return
+
+        self.defines = {}
+        self.uses = {}
 
         visited.append(self)
 
         for ir in self.code:
             # look for defines and set their version to 0
             if isinstance(ir, irDefine):
+                assert ir.var._name not in ssa_vars
+                assert ir.var.ssa_version is None
+
                 ir.var.ssa_version = 0
 
                 # set current SSA version of this variable
                 ssa_vars[ir.var._name] = ir.var
 
+                if ir.var._name not in self.defines:
+                    self.defines[ir.var._name] = []
+
+                self.defines[ir.var._name].append(ir.var)
+
             else:
                 # look for writes to current set of vars and increment versions
-                outputs = ir.get_output_vars()
+                outputs = [o for o in ir.get_output_vars() if not o.temp and not o.is_const]
 
                 for o in outputs:
+                    if o._name not in self.defines:
+                        self.defines[o._name] = []
+
+                    self.defines[o._name].append(o)
+
+
                     if o._name in ssa_vars:
                         o.ssa_version = ssa_vars[o._name].ssa_version + 1
                         ssa_vars[o._name] = o
+
+                    else:
+                        assert False
+
+                inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
+
+                for i in inputs:
+                    if i._name not in self.uses:
+                        self.uses[i._name] = []
+
+                    ds = self.get_defined(i._name)
+                    assert len(ds) != 0
+                    if len(ds) == 1:
+                        i.__dict__ = ds[0].__dict__
+
+                    else:
+                        raise Exception
+
+                    self.uses[i._name].append(i)
+
 
         print(self.name)
         for k, v in ssa_vars.items():
@@ -1441,6 +1519,14 @@ class irFunc(IR):
                 break
 
         return block
+
+    def rename_vars(self):
+        pass
+
+        # rename all vars into SSA form
+        # this requires we do Phi functions first.
+
+
 
 
     def analyze_blocks(self):

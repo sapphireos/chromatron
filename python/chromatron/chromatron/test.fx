@@ -1,27 +1,45 @@
 
-# def func(b: Number):
 def func():
-	b = Number()
-	temp_a = Number()
+	b = Number() # defines b0
 
-	b += 1
+	b += 1 # uses b0 and defines b1
 
-	# b = 1.0 + 2
-	# temp_b = Number()
-
-	if temp_a > 0:
-		# temp_b = Fixed16()
-		# temp_b = 1.0 + b
-		b = temp_a + 3
+	if b > 0: # uses B1
+		b = 1 + 4 # defines b2
 		
 	else:
-		
-		# temp_a += 2
-		b = 3
+		b = 3 # defines b3
 
-	# temp_b += 1
+	return b # uses b
+	# need to define b4 and use b4 here
+
+
+
+
+# def func(b: Number):
+# def func():
+# 	b = Number() 
+# 	temp_a = Number()
+
+# 	b += 1
+
+# 	# b = 1.0 + 2
+# 	# temp_b = Number()
+
+# 	if temp_a > 0:
+# 		# temp_b = Fixed16()
+# 		# temp_b = 1.0 + b
+# 		b = temp_a + 3
 		
-	return b
+# 	else:
+# 		# temp_b = Fixed16()
+		
+# 		# temp_a += 2
+# 		b = 3
+
+# 	# temp_b += 1
+		
+# 	return b
 
 
 # ********************************
