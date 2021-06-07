@@ -716,7 +716,8 @@ class irBlock(IR):
     def __str__(self):
         tab = '\t'
         depth = f'{self.scope_depth * tab}'
-        s = f'{depth}BLOCK: {self.name} @ {self.lineno}'
+        s =  f'{depth}||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n'
+        s += f'{depth}| BLOCK: {self.name} @ {self.lineno}'
         if self.is_leader:
             s += ': LEADER'
 
@@ -725,23 +726,25 @@ class irBlock(IR):
 
         s += '\n'
 
-        s += f'{depth}In:\n'
+        s += f'{depth}| In:\n'
         for i in self.input_vars:
-            s += f'{depth}\t{i.name}: {i.type}\n'
-        s += f'{depth}Out:\n'
+            s += f'{depth}|\t{i.name}: {i.type}\n'
+        s += f'{depth}| Out:\n'
         for i in self.output_vars:
-            s += f'{depth}\t{i.name}: {i.type}\n'
+            s += f'{depth}|\t{i.name}: {i.type}\n'
 
         lines_printed = []
-        s += f'{depth}Code:\n'
+        s += f'{depth}| Code:\n'
         for ir in self.code:
             if ir.lineno not in lines_printed and not isinstance(ir, irLabel):
-                s += f'________________________________________________________\n'
-                s += f'{ir.lineno}: {depth}{source_code[ir.lineno - 1].strip()}\n'
+                s += f'{depth}|________________________________________________________\n'
+                s += f'{depth}| {ir.lineno}: {depth}{source_code[ir.lineno - 1].strip()}\n'
                 lines_printed.append(ir.lineno)
 
-            s += f'{depth}\t{ir}\n'
-            
+            s += f'{depth}|\t{ir}\n'
+
+        s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
+
         return s
 
     @property
@@ -1057,8 +1060,8 @@ class irFunc(IR):
         self.leader_block = self.create_block_from_code_at_index(0)
 
         # verify all instructions are assigned to a block:
-        for ir in self.body:
-            assert ir.block is not None
+        # for ir in self.body:
+            # assert ir.block is not None
 
         # verify all blocks start with a label and end
         # with an unconditional jump or return
@@ -1067,13 +1070,13 @@ class irFunc(IR):
             assert isinstance(block.code[-1], irUnconditionalJump) or isinstance(block.code[-1], irReturn)
 
         # record jump sources for each label
-        for ir in self.body:
-            target = ir.get_jump_target()
+        # for ir in self.body:
+        #     target = ir.get_jump_target()
 
-            if target is None:
-                continue
+        #     if target is None:
+        #         continue
 
-            target.sources.append(ir)
+        #     target.sources.append(ir)
 
         self.leader_block.convert_to_ssa()
         self.leader_block.resolve_phi()

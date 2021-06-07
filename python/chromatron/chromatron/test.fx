@@ -1,53 +1,67 @@
 
-# def func():
-# 	b = Number() # defines b0
-
-# 	# b = Number()
-
-# 	b += 1 # uses b0 and defines b1
-
-# 	if b > 0: # uses B1
-# 		b = b + 4 # defines b2
-	
-# 	# b = Number()
-
-# 	# else:
-# 		# b = 3 # defines b3
-
-# 	return b # uses b
-# 	# need to define b4 and use b4 here
-
-
-
-
-# def func(b: Number):
 def func():
-	b = Number() 
-	temp_a = Number()
+	b = Number() # defines b0
 
-	b += 1
+	# b = Number()
 
-	# b = 1.0 + 2
-	# temp_b = Number()
+	b += 1 # uses b0 and defines b1
 
-	if temp_a > 0:
-		# temp_b = Fixed16()
-		# temp_b = 1.0 + b
-		b = temp_a + 3
+	if b > 0: # uses B1
+		b = b + 4 # defines b2
+
+		return b
+	
+	# b = Number()
+
+	# else:
+		# b = 3 # defines b3
+
+	return b # uses b
+	# need to define b4 and use b4 here
+
+# def func():
+# 	b = Number()
+# 	i = Number()
+# 	i = 4
+
+# 	while i > 0:
+# 		i -=1
+
+# 		b += 1
+
+
+# 	return b
+
+
+
+# # def func(b: Number):
+# def func():
+# 	b = Number() 
+# 	temp_a = Number()
+
+# 	b += 1
+
+# 	# b = 1.0 + 2
+# 	# temp_b = Number()
+
+# 	if temp_a > 0:
+# 		# temp_b = Fixed16()
+# 		# temp_b = 1.0 + b
+# 		b = temp_a + 3
 		
-	else:
-		if temp_a > 0:
-			# temp_a += 1
-			b = 1
+# 	else:
+# 		if temp_a > 0:
+# 			# temp_a += 1
+# 			b = 1
 
-		# temp_b = Fixed16()
+# 		# temp_b = Fixed16()
 		
-		# temp_a += 2
-		# b += 3
+# 		# temp_a += 2
+# 		# b += 3
 
-	# temp_b += 1
+# 	# temp_b += 1
 		
-	return b
+# 	return b
 
 
 # ********************************
