@@ -1232,8 +1232,6 @@ class irBlock(IR):
         for pre in self.predecessors:
             ds.extend(pre.get_defined(name))
 
-        assert len(ds) == len(self.predecessors)
-
         return ds
 
     def convert_to_ssa2(self, ssa_vars={}, visited=[]):

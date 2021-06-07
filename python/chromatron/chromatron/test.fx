@@ -43,7 +43,7 @@ def func():
 		# temp_b = Fixed16()
 		
 		# temp_a += 2
-		b += 3
+		# b += 3
 
 	# temp_b += 1
 		
