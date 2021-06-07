@@ -1209,7 +1209,7 @@ class irBlock(IR):
         return ds
 
     def convert_to_ssa2(self, ssa_vars={}, visited=[]):
-        return
+        # return
 
         # make search breadth-first instead
         for pre in self.predecessors:
@@ -1254,6 +1254,7 @@ class irBlock(IR):
                     self.defines[o._name].append(o)
 
                     if o._name in ssa_vars:
+                        o.__dict__ = ssa_vars[o._name].__dict__
                         o.ssa_version = ssa_vars[o._name].ssa_version + 1
                         ssa_vars[o._name] = o
 
