@@ -1233,7 +1233,9 @@ class irBlock(IR):
         for ir in self.code:
             # look for defines and set their version to 0
             if isinstance(ir, irDefine):
-                assert ir.var._name not in ssa_vars
+                if ir.var._name in ssa_vars:
+                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+
                 assert ir.var.ssa_version is None
 
                 ir.var.ssa_version = 0
@@ -1273,7 +1275,8 @@ class irBlock(IR):
 
                     ds = self.get_defined(i._name)
 
-                    assert len(ds) != 0
+                    if len(ds) == 0:
+                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
                     
                     if len(ds) == 1:
                         i.__dict__ = copy(ds[0].__dict__)

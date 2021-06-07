@@ -2,11 +2,15 @@
 def func():
 	b = Number() # defines b0
 
+	# b = Number()
+
 	b += 1 # uses b0 and defines b1
 
 	if b > 0: # uses B1
 		b = b + 4 # defines b2
-		
+	
+	# b = Number()
+
 	# else:
 		# b = 3 # defines b3
 
