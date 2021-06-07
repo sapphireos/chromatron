@@ -1184,6 +1184,18 @@ class irBlock(IR):
 
     #     raise KeyError(name)
 
+    def add_define(self, var, target):
+        # add a define for new variable target at var
+
+        for i in range(len(self.code)):
+            ir = self.code[i]
+
+            if var in ir.get_output_vars():
+                assign = irAssign(target, var, lineno=var.lineno)
+                self.code.insert(i + 1, assign)
+
+                return
+
     def get_defined(self, name):
         if name in self.defines:
             return [self.defines[name][-1]]
@@ -1196,43 +1208,22 @@ class irBlock(IR):
 
         return ds
 
-        # if search_depth is not None:
-        #     if search_depth < self.scope_depth:
-        #         # we do not have the correct scope to satisfy the request 
-        #         # for this variable.
-        #         # however, we may have a predecessor that can.
-        #         for pre in self.predecessors:
-        #             var = pre.get_local(name, search_depth=search_depth)
-
-        #             if var:
-        #                 return var        
-
-        # if name in self.locals:
-        #     return self.locals[name]
-
-        # # search predecessors at this scope level or below
-        # for pre in self.predecessors:
-        #     var = pre.get_local(name, search_depth=self.scope_depth)
-
-        #     if var:
-        #         return var
-
-        # raise KeyError(name)
-
     def convert_to_ssa2(self, ssa_vars={}, visited=[]):
+        return
+
         # make search breadth-first instead
         for pre in self.predecessors:
             if pre not in visited:
                 return
 
-
         if self in visited:
             return
 
+        visited.append(self)
+
+
         self.defines = {}
         self.uses = {}
-
-        visited.append(self)
 
         for ir in self.code:
             # look for defines and set their version to 0
@@ -1248,6 +1239,7 @@ class irBlock(IR):
                 if ir.var._name not in self.defines:
                     self.defines[ir.var._name] = []
 
+                ir.var.block = self
                 self.defines[ir.var._name].append(ir.var)
 
             else:
@@ -1258,8 +1250,8 @@ class irBlock(IR):
                     if o._name not in self.defines:
                         self.defines[o._name] = []
 
+                    o.block = self
                     self.defines[o._name].append(o)
-
 
                     if o._name in ssa_vars:
                         o.ssa_version = ssa_vars[o._name].ssa_version + 1
@@ -1275,12 +1267,21 @@ class irBlock(IR):
                         self.uses[i._name] = []
 
                     ds = self.get_defined(i._name)
+
                     assert len(ds) != 0
+                    
                     if len(ds) == 1:
                         i.__dict__ = ds[0].__dict__
 
                     else:
-                        raise Exception
+                        i.__dict__ = ssa_vars[i._name].__dict__
+                        i.ssa_version = ssa_vars[i._name].ssa_version + 1
+                        ssa_vars[i._name] = i
+
+                        for d in ds:
+                            d.block.add_define(d, i)
+
+
 
                     self.uses[i._name].append(i)
 
