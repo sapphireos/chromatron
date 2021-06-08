@@ -791,16 +791,30 @@ class irBlock(IR):
                 return
 
     def get_defined(self, ir, var):
-        name = var._name
+        try:
+            defines = self.defines[ir]    
+            
+            return [defines[var._name]]
 
-        if name in self.defines:
-            return [self.defines[name][-1]]
+        except KeyError:
+            pass
 
         ds = []
         for pre in self.predecessors:
-            ds.extend(pre.get_defined(name))
+            ds.extend(pre.get_defined(ir, var))
 
         return ds
+
+        # name = var._name
+
+        # if name in self.defines:
+        #     return [self.defines[name][-1]]
+
+        # ds = []
+        # for pre in self.predecessors:
+        #     ds.extend(pre.get_defined(name))
+
+        # return ds
 
     # def convert_to_ssa(self, ssa_vars={}, visited=[]):
     #     # make search breadth-first:
