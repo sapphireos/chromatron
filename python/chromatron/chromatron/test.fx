@@ -15,7 +15,8 @@ def func():
 
 	else:
 		# b = 3 # defines b3
-		pass
+		b += 3
+		# pass
 
 	return b # uses b
 	# need to define b4 and use b4 here
