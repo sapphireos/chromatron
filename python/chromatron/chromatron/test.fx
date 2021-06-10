@@ -2,8 +2,6 @@
 def func():
 	b = Number() # defines b0
 
-	# b = Number()
-
 	b += 1 # uses b0 and defines b1
 
 	if b > 0: # uses B1
@@ -11,8 +9,6 @@ def func():
 
 		# return b
 	
-	# b = Number()
-
 	else:
 		# b = 3 # defines b3
 		b += 3

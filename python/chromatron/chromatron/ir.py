@@ -967,7 +967,11 @@ class irBlock(IR):
                     if i._name not in self.uses:
                         self.uses[i._name] = []
 
-                    d = self.get_defined2(i._name)
+                    try:
+                        d = self.get_defined2(i._name)
+
+                    except KeyError:
+                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
                     # take previous definition for the input
                     i.__dict__ = copy(d.__dict__)
