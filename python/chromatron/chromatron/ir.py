@@ -790,7 +790,7 @@ class irBlock(IR):
 
                 return
 
-    def get_defined(self, ir, var):
+    def get_defined(self, var, ir=None):
         try:
             defines = self.defines[ir]    
             
@@ -805,16 +805,20 @@ class irBlock(IR):
 
         return ds
 
-        # name = var._name
+    def get_defined2(self, name):
+        try:
+            return self.defines[name]
 
-        # if name in self.defines:
-        #     return [self.defines[name][-1]]
+        except KeyError:
+            pass
 
-        # ds = []
-        # for pre in self.predecessors:
-        #     ds.extend(pre.get_defined(name))
+        for pre in self.predecessors:
+            d = pre.get_defined2(name)
 
-        # return ds
+            if d is not None:
+                return d
+
+        raise KeyError(name)
 
     # def convert_to_ssa(self, ssa_vars={}, visited=[]):
     #     # make search breadth-first:
@@ -908,18 +912,21 @@ class irBlock(IR):
     #         suc.convert_to_ssa(ssa_vars, visited)
 
 
-    def rename_vars(self, ssa_vars={}, visited=[]):
+    def rename_vars(self, ssa_vars={}, visited=[], defines={}):
         if self in visited:
             return
 
         visited.append(self)
-        prev_defines = {}
+        # prev_defines = {}
+        # self.defines = defines
+        self.defines = {} # variables available at the end of the block
+        self.params = {} # variables required at the beginning of the block
 
         for index in range(len(self.code)):
             ir = self.code[index]
 
-            assert ir not in self.defines
-            defines = copy(prev_defines)
+            # assert ir not in self.defines
+            # ir_defines = copy(prev_defines)
 
             # look for defines and set their version to 0
             if isinstance(ir, irDefine):
@@ -934,7 +941,8 @@ class irBlock(IR):
                 ssa_vars[ir.var._name] = ir.var
 
                 ir.var.block = self
-                defines[ir.var._name] = ir.var
+                # ir_defines[ir.var._name] = ir.var
+                self.defines[ir.var._name] = ir.var
 
             else:
                 # look for writes to current set of vars and increment versions
@@ -942,7 +950,8 @@ class irBlock(IR):
 
                 for o in outputs:
                     o.block = self
-                    defines[o._name] = o
+                    # ir_defines[o._name] = o
+                    self.defines[o._name] = o
 
                     if o._name in ssa_vars:
                         o.ssa_version = ssa_vars[o._name].ssa_version + 1
@@ -951,14 +960,61 @@ class irBlock(IR):
                     else:
                         assert False
 
-            self.defines[ir] = defines
-            prev_defines = defines
+                # set block parameters
+                # unless we are a leader block
+                if len(self.predecessors) > 0:
+                    inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
+
+                    for i in inputs:
+                        if i._name in self.params:
+                            continue
+
+                        # set SSA version for param
+                        if i._name in ssa_vars:
+                            i.ssa_version = ssa_vars[i._name].ssa_version + 1
+                            ssa_vars[i._name] = i
+
+                        else:
+                            assert False
+
+                        self.params[i._name] = i
+
+            # self.defines[ir] = ir_defines
+            # prev_defines = ir_defines
+
+
 
         # continue with successors:
         for suc in self.successors:
-            suc.rename_vars(ssa_vars, visited)
+            suc.rename_vars(ssa_vars, visited, defines=defines)
 
         return ssa_vars
+
+    def convert_to_ssa3(self, ssa_vars={}, visited=[]):
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        insertion_point = None
+        for i in range(len(self.code)):
+            index = (len(self.code) - 1) - i
+
+            if not isinstance(self.code[index], irUnconditionalJump) and not isinstance(self.code[index], irConditionalJump):
+                insertion_point = index + 1
+                break
+
+        assert insertion_point is not None
+
+        for suc in self.successors:
+            for k, v in suc.params.items():
+                d = self.get_defined2(k)
+
+                ir = irAssign(v, d, lineno=0)
+
+                self.code.insert(insertion_point, ir)
+
+            suc.convert_to_ssa3(ssa_vars, visited)
 
     def convert_to_ssa2(self, ssa_vars={}, visited=[]):
         # # make search breadth-first:
@@ -984,7 +1040,7 @@ class irBlock(IR):
                 if i._name not in self.uses:
                     self.uses[i._name] = []
 
-                ds = self.get_defined(ir, i)
+                ds = self.get_defined(i, ir)
 
                 if len(ds) == 0:
                     raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
@@ -1045,9 +1101,9 @@ class irBlock(IR):
     def is_terminator(self):
         return len(self.successors) == 0    
 
-    @property
-    def params(self):
-        return [v for v in self.input_vars if not v.temp and not v.is_const]
+    # @property
+    # def params(self):
+        # return [v for v in self.input_vars if not v.temp and not v.is_const]
 
     @property
     def input_vars(self):
@@ -1227,7 +1283,8 @@ class irFunc(IR):
         #     target.sources.append(ir)
 
         ssa_vars = self.leader_block.rename_vars()
-        self.leader_block.convert_to_ssa2(ssa_vars)
+        self.leader_block.convert_to_ssa3(ssa_vars)
+        # self.leader_block.convert_to_ssa2(ssa_vars)
         # self.leader_block.convert_to_ssa()
         # self.leader_block.resolve_phi()
 
