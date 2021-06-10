@@ -729,10 +729,10 @@ class irBlock(IR):
         s += '\n'
 
         s += f'{depth}| In:\n'
-        for i in self.input_vars:
+        for i in self.params.values():
             s += f'{depth}|\t{i.name}: {i.type}\n'
         s += f'{depth}| Out:\n'
-        for i in self.output_vars:
+        for i in self.defines.values():
             s += f'{depth}|\t{i.name}: {i.type}\n'
 
         lines_printed = []
@@ -921,6 +921,7 @@ class irBlock(IR):
         # self.defines = defines
         self.defines = {} # variables available at the end of the block
         self.params = {} # variables required at the beginning of the block
+        self.uses = {}
 
         for index in range(len(self.code)):
             ir = self.code[index]
@@ -959,6 +960,18 @@ class irBlock(IR):
 
                     else:
                         assert False
+
+                inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
+
+                for i in inputs:
+                    if i._name not in self.uses:
+                        self.uses[i._name] = []
+
+                    d = self.get_defined2(i._name)
+
+                    # take previous definition for the input
+                    i.__dict__ = copy(d.__dict__)
+
 
                 # set block parameters
                 # unless we are a leader block
@@ -1005,6 +1018,19 @@ class irBlock(IR):
                 break
 
         assert insertion_point is not None
+
+
+        # self.uses = {}
+
+        # for i in self.input_vars:
+        #     if i._name not in self.uses:
+        #         self.uses[i._name] = []
+
+        #     d = self.get_defined2(i._name)
+
+        #     # take previous definition for the input
+        #     i.__dict__ = copy(d.__dict__)
+
 
         for suc in self.successors:
             for k, v in suc.params.items():
