@@ -692,12 +692,8 @@ class irPhi(IR):
         self.target = target
         self.defines = defines
 
-    # def resolve(self):
-    #     for d in self.defines:
-    #         d.block.add_define(d, self.target)
-
     def __str__(self):
-        s = '%s = PHI(%s)' % (self.target, [str(d) for d in self.defines])
+        s = f'{self.target} = PHI({[str(d) for d in self.defines]})'
 
         return s
 
@@ -1034,7 +1030,12 @@ class irBlock(IR):
                 ds = pre.get_defined2(k)
                 sources.extend(ds)
 
-            ir = irPhi(v, sources, lineno=-1)
+            if len(sources) == 1:
+                # if a single source, just use an assign
+                ir = irAssign(v, sources[0], lineno=-1)
+
+            else:
+                ir = irPhi(v, sources, lineno=-1)
             
             self.code.insert(insertion_point, ir)
 
