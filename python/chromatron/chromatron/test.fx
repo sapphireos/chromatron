@@ -1,34 +1,34 @@
 
-# def func():
-# 	b = Number() # defines b0
+def func():
+	b = Number() # defines b0
 
-# 	b += 1 # uses b0 and defines b1
+	b += 1 # uses b0 and defines b1
 
-# 	if b > 0: # uses B1
-# 		b = b + 4 # defines b2
+	if b > 0: # uses B1
+		b = b + 4 # defines b2
 
-# 		# return b
+		# return b
 	
-# 	else:
-# 		# b = 3 # defines b3
-# 		b += 3
-# 		# pass
+	# else:
+		# b = 3 # defines b3
+		# b += 3
+		# pass
 
-# 	return b # uses b
+	return b # uses b
 # 	# need to define b4 and use b4 here
 
-def func():
-	# b = Number()
-	i = Number()
-	i = 4
+# def func():
+# 	# b = Number()
+# 	i = Number()
+# 	i = 4
 
-	while i > 0:
-		i -= 1
+# 	while i > 0:
+# 		i -= 1
 
-		# b += 1
+# 		# b += 1
 
-		if i < 2:
-			i = 3
+# 		if i < 2:
+# 			i = 3
 		
 
 	# if b == 0:

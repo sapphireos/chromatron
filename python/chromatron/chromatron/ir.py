@@ -808,7 +808,7 @@ class irBlock(IR):
     def get_defined2(self, name, visited=None):
         if visited is None:
             visited = []
-            
+
         if self in visited:
             return []
 
@@ -822,7 +822,9 @@ class irBlock(IR):
 
         ds = []
         for pre in self.predecessors:
-            ds.extend(pre.get_defined2(name, visited=visited))
+            for d in pre.get_defined2(name, visited=visited):
+                if d not in ds:
+                    ds.append(d)
 
         return ds
 
@@ -978,7 +980,9 @@ class irBlock(IR):
                         i.__dict__ = copy(ds[0].__dict__)
 
                     else:
-                        assert False
+                        # this indicates we'll need a phi to reconcile the 
+                        # values, but we'll get that on the phi conversion step
+                        pass
 
                 # set block parameters
                 # unless we are a leader block
@@ -1006,35 +1010,13 @@ class irBlock(IR):
 
         return ssa_vars
 
-    def convert_to_ssa3(self, visited=[]):
+    def insert_phi(self, visited=[]):
         if self in visited:
             return
 
-        # make sure all predecessors have been analyzed
-        # for pre in self.predecessors:
-            # unless they are also successors, in which
-            # case it doesn't count, since we will
-            # hvae executed first.
-            # if pre in self.successors:
-                # continue
-
-            # if pre not in visited:
-                # return
-
-
-                # if this predecessor is also a successor,
-                # but has not been analyzed, analyze it.
-
-                # if pre in self.successors:
-                #     pre.convert_to_ssa3(ssa_vars, visited)
-
-                # else:
-                #     return
-
+        
         visited.append(self)
 
-        # for suc in self.successors:
-            # suc.convert_to_ssa3(ssa_vars, visited)
 
         insertion_point = None
         for i in range(len(self.code)):
@@ -1057,14 +1039,7 @@ class irBlock(IR):
             self.code.insert(insertion_point, ir)
 
         for suc in self.successors:
-        #     # for k, v in suc.params.items():
-        #     #     d = self.get_defined2(k)
-
-        #     #     ir = irAssign(v, d, lineno=-1)
-
-        #     #     self.code.insert(insertion_point, ssair)
-
-            suc.convert_to_ssa3(visited)
+            suc.insert_phi(visited)
 
     # def convert_to_ssa2(self, ssa_vars={}, visited=[]):
     #     # # make search breadth-first:
@@ -1333,7 +1308,7 @@ class irFunc(IR):
         #     target.sources.append(ir)
 
         ssa_vars = self.leader_block.rename_vars()
-        self.leader_block.convert_to_ssa3()
+        self.leader_block.insert_phi()
         # self.leader_block.convert_to_ssa2(ssa_vars)
         # self.leader_block.convert_to_ssa()
         # self.leader_block.resolve_phi()
