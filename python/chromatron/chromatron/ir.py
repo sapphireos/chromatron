@@ -692,9 +692,9 @@ class irPhi(IR):
         self.target = target
         self.defines = defines
 
-    def resolve(self):
-        for d in self.defines:
-            d.block.add_define(d, self.target)
+    # def resolve(self):
+    #     for d in self.defines:
+    #         d.block.add_define(d, self.target)
 
     def __str__(self):
         s = '%s = PHI(%s)' % (self.target, [str(d) for d in self.defines])
@@ -1001,25 +1001,46 @@ class irBlock(IR):
         if self in visited:
             return
 
+        # make sure all predecessors have been analyzed
+        for pre in self.predecessors:
+            # unless they are also successors, in which
+            # case it doesn't count, since we will
+            # hvae executed first.
+            if pre in self.successors:
+                continue
+
+            if pre not in visited:
+                return
+
         visited.append(self)
 
         insertion_point = None
         for i in range(len(self.code)):
-            index = (len(self.code) - 1) - i
+            index = i
 
-            if not isinstance(self.code[index], irUnconditionalJump) and not isinstance(self.code[index], irConditionalJump):
-                insertion_point = index + 1
+            if not isinstance(self.code[index], irLabel):
+                insertion_point = index
                 break
 
         assert insertion_point is not None
 
+        for k, v in self.params.items():
+            sources = []
+            for pre in self.predecessors:
+                d = pre.get_defined2(k)
+                sources.append(d)
+
+            ir = irPhi(v, sources, lineno=-1)
+            
+            self.code.insert(insertion_point, ir)
+
         for suc in self.successors:
-            for k, v in suc.params.items():
-                d = self.get_defined2(k)
+            # for k, v in suc.params.items():
+            #     d = self.get_defined2(k)
 
-                ir = irAssign(v, d, lineno=-1)
+            #     ir = irAssign(v, d, lineno=-1)
 
-                self.code.insert(insertion_point, ir)
+            #     self.code.insert(insertion_point, ssair)
 
             suc.convert_to_ssa3(ssa_vars, visited)
 

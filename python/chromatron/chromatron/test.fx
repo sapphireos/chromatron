@@ -15,7 +15,7 @@
 # 		# pass
 
 # 	return b # uses b
-	# need to define b4 and use b4 here
+# 	# need to define b4 and use b4 here
 
 def func():
 	# b = Number()
@@ -27,10 +27,14 @@ def func():
 
 		# b += 1
 
+		if i < 2:
+			i = 3
+		
+
 	# if b == 0:
 	# 	b = 2
 
-# 	return b
+	# return b
 
 
 
