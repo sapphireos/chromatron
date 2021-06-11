@@ -760,11 +760,6 @@ class irBlock(IR):
     def name(self, value):
         self._name = value
 
-    def add_local(self, ir):
-        self.locals[ir._name] = ir
-        # ir.ssa_version = ir.next_ssa_version
-        # ir.next_ssa_version += 1
-
     def append(self, node):
         # ensure that each node only belongs to one block:
 
@@ -773,35 +768,7 @@ class irBlock(IR):
         node.block = self
         self.code.append(node)
 
-    def add_define(self, var, target):
-        # add a define for new variable target at var
-        # note this can set the IR out of SSA form
-
-        for i in range(len(self.code)):
-            ir = self.code[i]
-
-            if var in ir.get_output_vars():
-                assign = irAssign(target, var, lineno=var.lineno)
-                self.code.insert(i + 1, assign)
-
-                return
-
-    def get_defined(self, var, ir=None):
-        try:
-            defines = self.defines[ir]    
-            
-            return [defines[var._name]]
-
-        except KeyError:
-            pass
-
-        ds = []
-        for pre in self.predecessors:
-            ds.extend(pre.get_defined(ir, var))
-
-        return ds
-
-    def get_defined2(self, name, visited=None):
+    def get_defined(self, name, visited=None):
         if visited is None:
             visited = []
 
@@ -818,103 +785,11 @@ class irBlock(IR):
 
         ds = []
         for pre in self.predecessors:
-            for d in pre.get_defined2(name, visited=visited):
+            for d in pre.get_defined(name, visited=visited):
                 if d not in ds:
                     ds.append(d)
 
         return ds
-
-    # def convert_to_ssa(self, ssa_vars={}, visited=[]):
-    #     # make search breadth-first:
-    #     for pre in self.predecessors:
-    #         if pre not in visited:
-    #             return
-
-    #     if self in visited:
-    #         return
-
-    #     visited.append(self)
-
-    #     for index in range(len(self.code)):
-    #         ir = self.code[index]
-
-    #         # look for defines and set their version to 0
-    #         if isinstance(ir, irDefine):
-    #             if ir.var._name in ssa_vars:
-    #                 raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
-
-    #             assert ir.var.ssa_version is None
-
-    #             ir.var.ssa_version = 0
-
-    #             # set current SSA version of this variable
-    #             ssa_vars[ir.var._name] = ir.var
-
-    #             if ir.var._name not in self.defines:
-    #                 self.defines[ir.var._name] = []
-
-    #             ir.var.block = self
-    #             self.defines[ir.var._name].append(ir.var)
-
-    #         else:
-    #             # look for writes to current set of vars and increment versions
-    #             outputs = [o for o in ir.get_output_vars() if not o.temp and not o.is_const]
-
-    #             for o in outputs:
-    #                 if o._name not in self.defines:
-    #                     self.defines[o._name] = []
-
-    #                 o.block = self
-    #                 self.defines[o._name].append(o)
-
-    #                 if o._name in ssa_vars:
-    #                     o.ssa_version = ssa_vars[o._name].ssa_version + 1
-    #                     ssa_vars[o._name] = o
-
-    #                 else:
-    #                     assert False
-
-    #             # look for used vars that need to be updated
-    #             inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
-
-    #             for i in inputs:
-    #                 if i._name not in self.uses:
-    #                     self.uses[i._name] = []
-
-    #                 ds = self.get_defined(i._name)
-
-    #                 if len(ds) == 0:
-    #                     raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
-                    
-    #                 if len(ds) == 1:
-    #                     # take previous definition for the input
-    #                     i.__dict__ = copy(ds[0].__dict__)
-
-    #                 else:
-    #                     # we have multiple live definitions available.
-    #                     # create a new defintion:
-    #                     i.__dict__ = copy(ssa_vars[i._name].__dict__)
-    #                     i.ssa_version = ssa_vars[i._name].ssa_version + 1
-    #                     ssa_vars[i._name] = i
-    #                     i.block = self
-
-    #                     if i._name not in self.defines:
-    #                         self.defines[i._name] = []
-
-    #                     self.defines[i._name].append(i)
-
-    #                     # then use a phi node to reconcile them:
-    #                     phi = irPhi(i, ds, lineno=ir.lineno)
-
-    #                     self.code.insert(index, phi)
-                        
-
-    #                 self.uses[i._name].append(i)
-
-    #     # continue with successors:
-    #     for suc in self.successors:
-    #         suc.convert_to_ssa(ssa_vars, visited)
-
 
     def rename_vars(self, ssa_vars={}, visited=[], defines={}):
         if self in visited:
@@ -922,7 +797,6 @@ class irBlock(IR):
 
         visited.append(self)
         
-        # self.defines = copy(defines) # variables available at the end of the block
         self.defines = {}
         self.params = {} # variables required at the beginning of the block
         self.uses = {}
@@ -966,7 +840,7 @@ class irBlock(IR):
                     if i._name not in self.uses:
                         self.uses[i._name] = []
 
-                    ds = self.get_defined2(i._name)
+                    ds = self.get_defined(i._name)
 
                     if len(ds) == 0:
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
@@ -1027,7 +901,7 @@ class irBlock(IR):
         for k, v in self.params.items():
             sources = []
             for pre in self.predecessors:
-                ds = pre.get_defined2(k)
+                ds = pre.get_defined(k)
                 sources.extend(ds)
 
             if len(sources) == 1:
@@ -1041,83 +915,6 @@ class irBlock(IR):
 
         for suc in self.successors:
             suc.insert_phi(visited)
-
-    # def convert_to_ssa2(self, ssa_vars={}, visited=[]):
-    #     # # make search breadth-first:
-    #     # for pre in self.predecessors:
-    #     #     if pre not in visited:
-    #     #         return
-
-    #     if self in visited:
-    #         return
-
-    #     visited.append(self)
-
-    #     for index in range(len(self.code)):
-    #         ir = self.code[index]
-
-    #         if isinstance(ir, irDefine):
-    #             continue
-
-    #         # look for used vars that need to be updated
-    #         inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
-
-    #         for i in inputs:
-    #             if i._name not in self.uses:
-    #                 self.uses[i._name] = []
-
-    #             ds = self.get_defined(i, ir)
-
-    #             if len(ds) == 0:
-    #                 raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
-                
-    #             if len(ds) == 1:
-    #                 # take previous definition for the input
-    #                 i.__dict__ = copy(ds[0].__dict__)
-
-    #             else:
-    #                 # we have multiple live definitions available.
-    #                 # create a new definition:
-    #                 i.__dict__ = copy(ssa_vars[i._name].__dict__)
-    #                 i.ssa_version = ssa_vars[i._name].ssa_version + 1
-    #                 ssa_vars[i._name] = i
-    #                 i.block = self
-
-    #                 if i._name not in self.defines:
-    #                     self.defines[i._name] = []
-
-    #                 self.defines[i._name].append(i)
-
-    #                 # then use a phi node to reconcile them:
-    #                 phi = irPhi(i, ds, lineno=ir.lineno)
-
-    #                 self.code.insert(index, phi)
-                    
-
-    #             self.uses[i._name].append(i)
-
-    #     # continue with successors:
-    #     for suc in self.successors:
-    #         suc.convert_to_ssa2(ssa_vars, visited)
-
-
-    # # resolve phi nodes by inserting an assignment
-    # # from each define to the target variable.
-    # # this will take the IR out of SSA form.
-    # def resolve_phi(self, visited=[]):
-    #     if self in visited:
-    #         return
-
-    #     visited.append(self)
-
-    #     for ir in self.code:
-    #         if not isinstance(ir, irPhi):
-    #             continue
-
-    #         ir.resolve()
-
-    #     for suc in self.successors:
-    #         suc.resolve_phi(visited=visited)
 
     @property
     def is_leader(self):
@@ -2599,18 +2396,6 @@ class Builder(object):
             self.append_node(ir)
 
             return var
-
-
-            # ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
-
-            # if isinstance(ir, irVar_str):
-            #     self.assign(ir, ir.default_value, lineno=lineno)
-
-            # else:
-            #     # add init to 0
-            #     self.assign(ir, self.get_var(0), lineno=lineno)
-
-            # return ir
 
     def get_var(self, name, lineno=None):
         name = str(name)
