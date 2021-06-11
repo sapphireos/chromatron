@@ -18,14 +18,14 @@
 	# need to define b4 and use b4 here
 
 def func():
-	b = Number()
+	# b = Number()
 	i = Number()
 	i = 4
 
 	while i > 0:
-		i -=1
+		i -= 1
 
-		b += 1
+		# b += 1
 
 	# if b == 0:
 	# 	b = 2

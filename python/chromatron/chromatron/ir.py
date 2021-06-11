@@ -989,6 +989,7 @@ class irBlock(IR):
                             assert False
 
                         self.params[i._name] = i
+                        self.defines[i._name] = i
 
         # continue with successors:
         for suc in self.successors:
