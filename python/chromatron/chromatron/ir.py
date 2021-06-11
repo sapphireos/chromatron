@@ -738,7 +738,7 @@ class irBlock(IR):
         lines_printed = []
         s += f'{depth}| Code:\n'
         for ir in self.code:
-            if ir.lineno not in lines_printed and not isinstance(ir, irLabel):
+            if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
                 s += f'{depth}|________________________________________________________\n'
                 s += f'{depth}| {ir.lineno}: {depth}{source_code[ir.lineno - 1].strip()}\n'
                 lines_printed.append(ir.lineno)
@@ -912,22 +912,18 @@ class irBlock(IR):
     #         suc.convert_to_ssa(ssa_vars, visited)
 
 
-    def rename_vars(self, ssa_vars={}, visited=[], defines={}):
+    def rename_vars(self, ssa_vars={}, visited=[]):
         if self in visited:
             return
 
         visited.append(self)
-        # prev_defines = {}
-        # self.defines = defines
+        
         self.defines = {} # variables available at the end of the block
         self.params = {} # variables required at the beginning of the block
         self.uses = {}
 
         for index in range(len(self.code)):
             ir = self.code[index]
-
-            # assert ir not in self.defines
-            # ir_defines = copy(prev_defines)
 
             # look for defines and set their version to 0
             if isinstance(ir, irDefine):
@@ -942,7 +938,6 @@ class irBlock(IR):
                 ssa_vars[ir.var._name] = ir.var
 
                 ir.var.block = self
-                # ir_defines[ir.var._name] = ir.var
                 self.defines[ir.var._name] = ir.var
 
             else:
@@ -951,7 +946,6 @@ class irBlock(IR):
 
                 for o in outputs:
                     o.block = self
-                    # ir_defines[o._name] = o
                     self.defines[o._name] = o
 
                     if o._name in ssa_vars:
@@ -996,14 +990,9 @@ class irBlock(IR):
 
                         self.params[i._name] = i
 
-            # self.defines[ir] = ir_defines
-            # prev_defines = ir_defines
-
-
-
         # continue with successors:
         for suc in self.successors:
-            suc.rename_vars(ssa_vars, visited, defines=defines)
+            suc.rename_vars(ssa_vars, visited)
 
         return ssa_vars
 
@@ -1023,105 +1012,92 @@ class irBlock(IR):
 
         assert insertion_point is not None
 
-
-        # self.uses = {}
-
-        # for i in self.input_vars:
-        #     if i._name not in self.uses:
-        #         self.uses[i._name] = []
-
-        #     d = self.get_defined2(i._name)
-
-        #     # take previous definition for the input
-        #     i.__dict__ = copy(d.__dict__)
-
-
         for suc in self.successors:
             for k, v in suc.params.items():
                 d = self.get_defined2(k)
 
-                ir = irAssign(v, d, lineno=0)
+                ir = irAssign(v, d, lineno=-1)
 
                 self.code.insert(insertion_point, ir)
 
             suc.convert_to_ssa3(ssa_vars, visited)
 
-    def convert_to_ssa2(self, ssa_vars={}, visited=[]):
-        # # make search breadth-first:
-        # for pre in self.predecessors:
-        #     if pre not in visited:
-        #         return
+    # def convert_to_ssa2(self, ssa_vars={}, visited=[]):
+    #     # # make search breadth-first:
+    #     # for pre in self.predecessors:
+    #     #     if pre not in visited:
+    #     #         return
 
-        if self in visited:
-            return
+    #     if self in visited:
+    #         return
 
-        visited.append(self)
+    #     visited.append(self)
 
-        for index in range(len(self.code)):
-            ir = self.code[index]
+    #     for index in range(len(self.code)):
+    #         ir = self.code[index]
 
-            if isinstance(ir, irDefine):
-                continue
+    #         if isinstance(ir, irDefine):
+    #             continue
 
-            # look for used vars that need to be updated
-            inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
+    #         # look for used vars that need to be updated
+    #         inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
 
-            for i in inputs:
-                if i._name not in self.uses:
-                    self.uses[i._name] = []
+    #         for i in inputs:
+    #             if i._name not in self.uses:
+    #                 self.uses[i._name] = []
 
-                ds = self.get_defined(i, ir)
+    #             ds = self.get_defined(i, ir)
 
-                if len(ds) == 0:
-                    raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+    #             if len(ds) == 0:
+    #                 raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
                 
-                if len(ds) == 1:
-                    # take previous definition for the input
-                    i.__dict__ = copy(ds[0].__dict__)
+    #             if len(ds) == 1:
+    #                 # take previous definition for the input
+    #                 i.__dict__ = copy(ds[0].__dict__)
 
-                else:
-                    # we have multiple live definitions available.
-                    # create a new definition:
-                    i.__dict__ = copy(ssa_vars[i._name].__dict__)
-                    i.ssa_version = ssa_vars[i._name].ssa_version + 1
-                    ssa_vars[i._name] = i
-                    i.block = self
+    #             else:
+    #                 # we have multiple live definitions available.
+    #                 # create a new definition:
+    #                 i.__dict__ = copy(ssa_vars[i._name].__dict__)
+    #                 i.ssa_version = ssa_vars[i._name].ssa_version + 1
+    #                 ssa_vars[i._name] = i
+    #                 i.block = self
 
-                    if i._name not in self.defines:
-                        self.defines[i._name] = []
+    #                 if i._name not in self.defines:
+    #                     self.defines[i._name] = []
 
-                    self.defines[i._name].append(i)
+    #                 self.defines[i._name].append(i)
 
-                    # then use a phi node to reconcile them:
-                    phi = irPhi(i, ds, lineno=ir.lineno)
+    #                 # then use a phi node to reconcile them:
+    #                 phi = irPhi(i, ds, lineno=ir.lineno)
 
-                    self.code.insert(index, phi)
+    #                 self.code.insert(index, phi)
                     
 
-                self.uses[i._name].append(i)
+    #             self.uses[i._name].append(i)
 
-        # continue with successors:
-        for suc in self.successors:
-            suc.convert_to_ssa2(ssa_vars, visited)
+    #     # continue with successors:
+    #     for suc in self.successors:
+    #         suc.convert_to_ssa2(ssa_vars, visited)
 
 
-    # resolve phi nodes by inserting an assignment
-    # from each define to the target variable.
-    # this will take the IR out of SSA form.
-    def resolve_phi(self, visited=[]):
-        if self in visited:
-            return
+    # # resolve phi nodes by inserting an assignment
+    # # from each define to the target variable.
+    # # this will take the IR out of SSA form.
+    # def resolve_phi(self, visited=[]):
+    #     if self in visited:
+    #         return
 
-        visited.append(self)
+    #     visited.append(self)
 
-        for ir in self.code:
-            if not isinstance(ir, irPhi):
-                continue
+    #     for ir in self.code:
+    #         if not isinstance(ir, irPhi):
+    #             continue
 
-            ir.resolve()
+    #         ir.resolve()
 
-        for suc in self.successors:
-            suc.resolve_phi(visited=visited)
+    #     for suc in self.successors:
+    #         suc.resolve_phi(visited=visited)
 
     @property
     def is_leader(self):
