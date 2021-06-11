@@ -1049,10 +1049,14 @@ class irFunc(IR):
                 # 2. Jump target
                 # This code be anywhere, even behind.
                 # fallthrough_block = self.create_block_from_code_at_index(index, prev_block=block)
-                target_block = self.create_block_from_code_at_label(ir.target, prev_block=block)
+                true_block = self.create_block_from_code_at_label(ir.true_label, prev_block=block)
+                block.successors.append(true_block)
+
+                false_block = self.create_block_from_code_at_label(ir.false_label, prev_block=block)
+                block.successors.append(false_block)
 
                 # block.successors.append(fallthrough_block)
-                block.successors.append(target_block)
+                
 
                 # get successor parameters and add move instructions
                 # to load our values to those parameters
@@ -1061,7 +1065,7 @@ class irFunc(IR):
                 # fallthrough_block_params = fallthrough_block.get_params()
                 # target_block_params = target_block.params()
 
-                # break
+                break
 
             elif isinstance(ir, irUnconditionalJump):
                 # jump to a single location
@@ -1079,9 +1083,9 @@ class irFunc(IR):
     def analyze_blocks(self):
         # ensure conditional branches are always followed by an
         # unconditional jump
-        for i in range(len(self.body)):
-            if isinstance(self.body[i], irConditionalJump):
-                assert isinstance(self.body[i + 1], irUnconditionalJump)
+        # for i in range(len(self.body)):
+        #     if isinstance(self.body[i], irConditionalJump):
+        #         assert isinstance(self.body[i + 1], irUnconditionalJump)
 
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -1094,7 +1098,7 @@ class irFunc(IR):
         # with an unconditional jump or return
         for block in self.blocks.values():
             assert isinstance(block.code[0], irLabel)
-            assert isinstance(block.code[-1], irUnconditionalJump) or isinstance(block.code[-1], irReturn)
+            assert isinstance(block.code[-1], irConditionalJump) or isinstance(block.code[-1], irUnconditionalJump) or isinstance(block.code[-1], irReturn)
 
         # record jump sources for each label
         # for ir in self.body:
@@ -1767,6 +1771,24 @@ class irBranchZero(irBranchConditional):
 
     def generate(self):
         return insJmpIfZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
+
+class irBranch(irConditionalJump):
+    def __init__(self, value, true_label, false_label, **kwargs):
+        super().__init__(**kwargs)        
+        self.value = value
+        self.true_label = true_label
+        self.false_label = false_label
+
+    def __str__(self):
+        s = 'BR %s -> T: %s | F: %s' % (self.value, self.true_label.name, self.false_label.name)
+
+        return s    
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_jump_target(self):
+        return self.target
 
 # class irBranchNotZero(irBranchConditional):
 #     def __init__(self, *args, **kwargs):
@@ -2922,10 +2944,11 @@ class Builder(object):
 
         assert not isinstance(test, irBinop)
 
-        branch = irBranchZero(test, else_label, lineno=lineno)
+        # branch = irBranchZero(test, else_label, lineno=lineno)
+        branch = irBranch(test, body_label, else_label, lineno=lineno)
         self.append_node(branch)
-        jump = irJump(body_label, lineno=lineno)
-        self.append_node(jump)
+        # jump = irJump(body_label, lineno=lineno)
+        # self.append_node(jump)
 
         self.scope_depth += 1
 
