@@ -707,6 +707,7 @@ class irBlock(IR):
         self.locals = {}
         self.defines = {}
         self.uses = {}
+        self.params = {}
 
         self.entry_label = None
         self.jump_target = None
@@ -1087,9 +1088,13 @@ class irFunc(IR):
         #     if isinstance(self.body[i], irConditionalJump):
         #         assert isinstance(self.body[i + 1], irUnconditionalJump)
 
+
+
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
 
+        return
+        
         # verify all instructions are assigned to a block:
         # for ir in self.body:
             # assert ir.block is not None
