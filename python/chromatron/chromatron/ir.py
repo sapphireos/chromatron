@@ -2783,6 +2783,10 @@ class Builder(object):
             # need i32 for comparisons
             data_type = 'i32'
 
+
+        # OVERRIDING DATA TYPE SELECTION!!!
+        data_type = 'var'
+
         # generate result register with target data type
         result = self.add_temp(data_type=data_type, lineno=lineno)
 
