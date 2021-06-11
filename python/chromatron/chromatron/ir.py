@@ -805,20 +805,26 @@ class irBlock(IR):
 
         return ds
 
-    def get_defined2(self, name):
+    def get_defined2(self, name, visited=None):
+        if visited is None:
+            visited = []
+            
+        if self in visited:
+            return []
+
         try:
-            return self.defines[name]
+            return [self.defines[name]]
 
         except KeyError:
             pass
 
+        visited.append(self)
+
+        ds = []
         for pre in self.predecessors:
-            d = pre.get_defined2(name)
+            ds.extend(pre.get_defined2(name, visited=visited))
 
-            if d is not None:
-                return d
-
-        raise KeyError(name)
+        return ds
 
     # def convert_to_ssa(self, ssa_vars={}, visited=[]):
     #     # make search breadth-first:
@@ -912,13 +918,14 @@ class irBlock(IR):
     #         suc.convert_to_ssa(ssa_vars, visited)
 
 
-    def rename_vars(self, ssa_vars={}, visited=[]):
+    def rename_vars(self, ssa_vars={}, visited=[], defines={}):
         if self in visited:
             return
 
         visited.append(self)
         
-        self.defines = {} # variables available at the end of the block
+        # self.defines = copy(defines) # variables available at the end of the block
+        self.defines = {}
         self.params = {} # variables required at the beginning of the block
         self.uses = {}
 
@@ -961,15 +968,17 @@ class irBlock(IR):
                     if i._name not in self.uses:
                         self.uses[i._name] = []
 
-                    try:
-                        d = self.get_defined2(i._name)
+                    ds = self.get_defined2(i._name)
 
-                    except KeyError:
+                    if len(ds) == 0:
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
-                    # take previous definition for the input
-                    i.__dict__ = copy(d.__dict__)
+                    elif len(ds) == 1:
+                        # take previous definition for the input
+                        i.__dict__ = copy(ds[0].__dict__)
 
+                    else:
+                        assert False
 
                 # set block parameters
                 # unless we are a leader block
@@ -993,26 +1002,39 @@ class irBlock(IR):
 
         # continue with successors:
         for suc in self.successors:
-            suc.rename_vars(ssa_vars, visited)
+            suc.rename_vars(ssa_vars, visited, defines=self.defines)
 
         return ssa_vars
 
-    def convert_to_ssa3(self, ssa_vars={}, visited=[]):
+    def convert_to_ssa3(self, visited=[]):
         if self in visited:
             return
 
         # make sure all predecessors have been analyzed
-        for pre in self.predecessors:
+        # for pre in self.predecessors:
             # unless they are also successors, in which
             # case it doesn't count, since we will
             # hvae executed first.
-            if pre in self.successors:
-                continue
+            # if pre in self.successors:
+                # continue
 
-            if pre not in visited:
-                return
+            # if pre not in visited:
+                # return
+
+
+                # if this predecessor is also a successor,
+                # but has not been analyzed, analyze it.
+
+                # if pre in self.successors:
+                #     pre.convert_to_ssa3(ssa_vars, visited)
+
+                # else:
+                #     return
 
         visited.append(self)
+
+        # for suc in self.successors:
+            # suc.convert_to_ssa3(ssa_vars, visited)
 
         insertion_point = None
         for i in range(len(self.code)):
@@ -1027,22 +1049,22 @@ class irBlock(IR):
         for k, v in self.params.items():
             sources = []
             for pre in self.predecessors:
-                d = pre.get_defined2(k)
-                sources.append(d)
+                ds = pre.get_defined2(k)
+                sources.extend(ds)
 
             ir = irPhi(v, sources, lineno=-1)
             
             self.code.insert(insertion_point, ir)
 
         for suc in self.successors:
-            # for k, v in suc.params.items():
-            #     d = self.get_defined2(k)
+        #     # for k, v in suc.params.items():
+        #     #     d = self.get_defined2(k)
 
-            #     ir = irAssign(v, d, lineno=-1)
+        #     #     ir = irAssign(v, d, lineno=-1)
 
-            #     self.code.insert(insertion_point, ssair)
+        #     #     self.code.insert(insertion_point, ssair)
 
-            suc.convert_to_ssa3(ssa_vars, visited)
+            suc.convert_to_ssa3(visited)
 
     # def convert_to_ssa2(self, ssa_vars={}, visited=[]):
     #     # # make search breadth-first:
@@ -1311,7 +1333,7 @@ class irFunc(IR):
         #     target.sources.append(ir)
 
         ssa_vars = self.leader_block.rename_vars()
-        self.leader_block.convert_to_ssa3(ssa_vars)
+        self.leader_block.convert_to_ssa3()
         # self.leader_block.convert_to_ssa2(ssa_vars)
         # self.leader_block.convert_to_ssa()
         # self.leader_block.resolve_phi()
