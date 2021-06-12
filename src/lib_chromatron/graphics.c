@@ -77,6 +77,9 @@ PT_BEGIN( pt );
     // init alarm
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
+    // gfx_v_log_value_curve();
+    // THREAD_EXIT( pt );
+
     // init pixel arrays
     gfx_v_process_faders();
     gfx_v_sync_array();
