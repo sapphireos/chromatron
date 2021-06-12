@@ -106,7 +106,7 @@ static bool pca9536_enabled;
 #define DIMMER_RATE                 5000
 #define MIN_DIMMER                  20000
 
-static uint8_t fx_low_batt[] = {
+static uint8_t fx_low_batt[] __attribute__((aligned(4))) = {
     #include "low_batt.fx.carray"
 };
 
@@ -133,7 +133,7 @@ static uint16_t fx_low_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *p
 }
 
 
-static uint8_t fx_crit_batt[] = {
+static uint8_t fx_crit_batt[] __attribute__((aligned(4))) = {
     #include "crit_batt.fx.carray"
 };
 
