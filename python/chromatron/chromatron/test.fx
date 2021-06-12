@@ -1,7 +1,14 @@
 
 
-def simple_expr():
-	return 1 + 2
+def simple_binop():
+	a = Number()
+	b = Number()
+
+	b = 1
+
+	a = b + 2
+
+	return a
 
 	# a = Array(4, 3, 2)
 

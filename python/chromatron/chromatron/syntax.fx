@@ -5,3 +5,7 @@ def simple_func():
 def simple_expr():
 	return 1 + 2
 
+def simple_var():
+	a = Number()
+
+	return a

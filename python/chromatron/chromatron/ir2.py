@@ -489,6 +489,18 @@ class irFunc(IR):
         self.body.append(ir)
 
 
+class irDefine(IR):
+    def __init__(self, var, **kwargs):
+        super().__init__(**kwargs)
+        self.var = var
+    
+    def __str__(self):
+        return f'DEF: {self.var} depth: {self.scope_depth}'
+
+    def get_output_vars(self):
+        return [self.var]
+
+
 class irLabel(IR):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)        
@@ -555,6 +567,89 @@ class irReturn(IR):
         return [self.ret_var]
 
 
+class irAssign(IR):
+    def __init__(self, target, value, **kwargs):
+        super(irAssign, self).__init__(**kwargs)
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        return '%s = %s' % (self.target, self.value)
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.target]
+
+    # def generate(self):
+    #     return insMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+class irBinop(IR):
+    def __init__(self, result, op, left, right, **kwargs):
+        super(irBinop, self).__init__(**kwargs)
+        self.result = result
+        self.op = op
+        self.left = left
+        self.right = right
+
+        self.data_type = self.result.type
+
+    def __str__(self):
+        s = '%s = %s %s %s' % (self.result, self.left, self.op, self.right)
+
+        return s
+
+    def get_input_vars(self):
+        return [self.left, self.right]
+
+    def get_output_vars(self):
+        return [self.result]
+
+    # def generate(self):
+    #     ops = {
+    #         'i32':
+    #             {'eq': insCompareEq,
+    #             'neq': insCompareNeq,
+    #             'gt': insCompareGt,
+    #             'gte': insCompareGtE,
+    #             'lt': insCompareLt,
+    #             'lte': insCompareLtE,
+    #             'logical_and': insAnd,
+    #             'logical_or': insOr,
+    #             'add': insAdd,
+    #             'sub': insSub,
+    #             'mul': insMul,
+    #             'div': insDiv,
+    #             'mod': insMod},
+    #         'f16':
+    #             {'eq': insF16CompareEq,
+    #             'neq': insF16CompareNeq,
+    #             'gt': insF16CompareGt,
+    #             'gte': insF16CompareGtE,
+    #             'lt': insF16CompareLt,
+    #             'lte': insF16CompareLtE,
+    #             'logical_and': insF16And,
+    #             'logical_or': insF16Or,
+    #             'add': insF16Add,
+    #             'sub': insF16Sub,
+    #             'mul': insF16Mul,
+    #             'div': insF16Div,
+    #             'mod': insF16Mod},
+    #         'str':
+    #             # placeholders for now
+    #             # need actual string instructions
+    #             {'eq': insBinop, # compare
+    #             'neq': insBinop, # compare not equal
+    #             'in': insBinop,  # search
+    #             'add': insBinop, # concatenate
+    #             'mod': insBinop} # formatted output
+    #     }
+
+    #     return ops[self.data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
+
+
+
 
 class irVar(IR):
     def __init__(self, name, datatype=None, **kwargs):
@@ -562,10 +657,15 @@ class irVar(IR):
         self._name = name
         self.type = datatype
 
+        self.is_temp = False
         self.is_const = False
 
     def __str__(self):
-        return "Var(%s, %s)" % (self.name, self.type)
+        if self.type:
+            return "Var(%s:%s)" % (self.name, self.type)
+
+        else:
+            return "Var(%s)" % (self.name)
 
     @property
     def name(self):
@@ -598,4 +698,21 @@ class irConst(irVar):
         self.is_const = True
 
     def __str__(self):
-        return "Const(%s, %s)" % (self.name, self.type)
+        if self.type:
+            return "Const(%s:%s)" % (self.name, self.type)
+
+        else:
+            return "Const(%s)" % (self.name)
+   
+class irTemp(irVar):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.is_temp = True
+
+    def __str__(self):
+        if self.type:
+            return "Temp(%s:%s)" % (self.name, self.type)
+
+        else:
+            return "Temp(%s)" % (self.name)

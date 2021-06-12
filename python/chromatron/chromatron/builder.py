@@ -20,6 +20,9 @@ class Builder(object):
         self.globals = {}
         self.consts = {}
 
+        self.next_temp = 0
+
+
     def __str__(self):
         s = "FX IR:\n"
 
@@ -80,11 +83,36 @@ class Builder(object):
 
         return ir
 
+    def assign(self, target, value, lineno=None):     
+        ir = irAssign(target, value, lineno=lineno)
+            
+        self.append_node(ir)
+
+    def binop(self, op, left, right, lineno=None):
+        # left = self.load_value(left, lineno=lineno)
+        # right = self.load_value(right, lineno=lineno)
+
+        # generate result register
+        result = self.add_temp(lineno=lineno)
+
+        ir = irBinop(result, op, left, right, lineno=lineno)
+
+        self.append_node(ir)
+
+        return result
 
     def analyze_blocks(self):
         for func in self.funcs.values():
             func.analyze_blocks()
 
+
+    def add_temp(self, data_type='i32', lineno=None):
+        name = '%' + str(self.next_temp)
+        self.next_temp += 1
+
+        ir = irTemp(name, lineno=lineno)
+    
+        return ir
 
     def add_const(self, value, data_type=None, lineno=None):
         name = str(value)
@@ -98,7 +126,25 @@ class Builder(object):
 
         return ir
     
+    def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
+        if is_global:
+            return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
+        else: # localvar = irVar(name, data_type, lineno=lineno)
+            if len(keywords) > 0:
+                raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
+
+            var = irVar(name, data_type, lineno=lineno)
+            # var = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
+            
+            ir = irDefine(var, lineno=lineno)
+
+            self.append_node(ir)
+
+            return var
+
+    def get_var(self, name, lineno=None):
+        return irVar(name, lineno=lineno)
 
     def finish_module(self):
         # clean up stuff after first pass is done
