@@ -93,10 +93,6 @@ class Builder(object):
         self.append_node(ir)
 
     def binop(self, op, left, right, lineno=None):
-        # left = self.load_value(left, lineno=lineno)
-        # right = self.load_value(right, lineno=lineno)
-
-        # generate result register
         result = self.add_temp(lineno=lineno)
 
         ir = irBinop(result, op, left, right, lineno=lineno)
