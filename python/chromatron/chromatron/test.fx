@@ -1,8 +1,8 @@
 
 
+def simple_expr():
+	return 1 + 2
 
-def func():
-	return 1
 	# a = Array(4, 3, 2)
 
 	# return a[0][1][2]
