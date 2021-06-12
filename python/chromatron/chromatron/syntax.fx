@@ -19,3 +19,17 @@ def simple_binop():
 	a = b + 2
 
 	return a
+
+def simple_ifelse():
+	a = Number()
+	b = Number()
+
+	if a > 0:
+		b = 1
+
+	else:
+		b = 2
+
+	return b
+
+	

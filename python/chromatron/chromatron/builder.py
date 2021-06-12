@@ -83,6 +83,10 @@ class Builder(object):
 
         return ir
 
+    def jump(self, target, lineno=None):
+        ir = irJump(target, lineno=lineno)
+        self.append_node(ir)
+
     def assign(self, target, value, lineno=None):     
         ir = irAssign(target, value, lineno=lineno)
             
@@ -150,4 +154,27 @@ class Builder(object):
 
         return self
 
+    def ifelse(self, test, lineno=None):
+        body_label = self.label('if.then', lineno=lineno)
+        else_label = self.label('if.else', lineno=lineno)
+        end_label = self.label('if.end', lineno=lineno)
 
+        assert not isinstance(test, irBinop)
+
+        branch = irBranch(test, body_label, else_label, lineno=lineno)
+        self.append_node(branch)
+
+        self.scope_depth += 1
+
+        return body_label, else_label, end_label
+
+    def end_if(self, end_label, lineno=None):
+        self.jump(end_label, lineno=lineno)
+
+    def do_else(self, lineno=None):
+        pass
+
+    def end_ifelse(self, end_label, lineno=None):
+        self.jump(end_label, lineno=lineno)
+        self.scope_depth -= 1
+        self.position_label(end_label)

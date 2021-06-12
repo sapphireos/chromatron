@@ -1,14 +1,16 @@
 
 
-def simple_binop():
+def simple_ifelse():
 	a = Number()
 	b = Number()
 
-	b = 1
+	if a > 0:
+		b = 1
 
-	a = b + 2
+	else:
+		b = 2
 
-	return a
+	return b
 
 	# a = Array(4, 3, 2)
 

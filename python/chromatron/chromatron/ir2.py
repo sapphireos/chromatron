@@ -508,6 +508,25 @@ class irFunc(IR):
         self.body.append(ir)
 
 
+class irPhi(IR):
+    def __init__(self, target, defines=[], **kwargs):
+        super().__init__(**kwargs)
+
+        self.target = target
+        self.defines = defines
+
+    def __str__(self):
+        s = ''
+        for d in self.defines:
+            s += f'{d.name}, '
+
+        s = s[:-2]
+
+        s = f'{self.target} = PHI({s})'
+
+        return s
+
+
 class irDefine(IR):
     def __init__(self, var, **kwargs):
         super().__init__(**kwargs)
