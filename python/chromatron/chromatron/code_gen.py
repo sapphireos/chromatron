@@ -26,9 +26,8 @@ import ast
 import sys
 from textwrap import dedent
 
-from .ir import *
-from .instructions import *
-
+# from .ir import *
+from .builder import Builder
 
 # see http://dev.stephendiehl.com/numpile/
 def ast2tree(node, include_attrs=True):
@@ -167,39 +166,48 @@ class cg1GenericObject(cg1Node):
 class cg1Var(cg1Node):
     _fields = ["name", "type"]
 
-    def __init__(self, name="<anon>", **kwargs):
+    def __init__(self, name="<anon>", datatype=None, **kwargs):
         super(cg1Var, self).__init__(**kwargs)
 
         self.name = name
         
-        self.type = None
+        self.type = datatype
 
     def build(self, builder, depth=None):
         return builder.get_var(self.name, self.lineno)
     
     def __str__(self):
-        return "cg1Var %s %s" % (self.name, self.type)
+        return "cg1Var:%s=%s" % (self.name, self.type)
 
-class cg1VarInt32(cg1Var):
+class cg1Const(cg1Var):
     def __init__(self, *args, **kwargs):
-        super(cg1VarInt32, self).__init__(*args, **kwargs)
-        self.type = 'i32'
+        super().__init__(*args, **kwargs)
+        self.value = self.name
 
-class cg1ConstInt32(cg1VarInt32):
-    def build(self, builder):
-        return builder.add_const(self.name, self.type, lineno=self.lineno)
+    def build(self, builder, depth=None):
+        return builder.add_const(self.value, lineno=self.lineno)
+    
 
-class cg1VarFixed16(cg1Var):
-    def __init__(self, *args, **kwargs):
-        super(cg1VarFixed16, self).__init__(*args, **kwargs)
-        self.type = 'f16'
+# class cg1VarInt32(cg1Var):
+#     def __init__(self, *args, **kwargs):
+#         super(cg1VarInt32, self).__init__(*args, **kwargs)
+#         self.type = 'i32'
 
-class cg1ConstFixed16(cg1VarFixed16):
-    def __init__(self, *args, **kwargs):
-        super(cg1ConstFixed16, self).__init__(*args, **kwargs)
+# class cg1ConstInt32(cg1VarInt32):
+#     def build(self, builder):
+#         return builder.add_const(self.name, self.type, lineno=self.lineno)
 
-    def build(self, builder):
-        return builder.add_const(self.name, self.type, lineno=self.lineno)
+# class cg1VarFixed16(cg1Var):
+#     def __init__(self, *args, **kwargs):
+#         super(cg1VarFixed16, self).__init__(*args, **kwargs)
+#         self.type = 'f16'
+
+# class cg1ConstFixed16(cg1VarFixed16):
+#     def __init__(self, *args, **kwargs):
+#         super(cg1ConstFixed16, self).__init__(*args, **kwargs)
+
+#     def build(self, builder):
+#         return builder.add_const(self.name, self.type, lineno=self.lineno)
     
     
 
@@ -823,22 +831,23 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1AugAssign(self.visit(node.op), self.visit(node.target), self.visit(node.value), lineno=node.lineno)
 
 
-    def get_const(self, value, node):
-        if isinstance(value, int):
-            return cg1ConstInt32(value, lineno=node.lineno)
+    # def get_const(self, value, node):
+    #     if isinstance(value, int):
+    #         return cg1ConstInt32(value, lineno=node.lineno)
 
-        elif isinstance(value, float):
-            return cg1ConstFixed16(value, lineno=node.lineno)
+    #     elif isinstance(value, float):
+    #         return cg1ConstFixed16(value, lineno=node.lineno)
 
-        else:
-            raise NotImplementedError(node)    
+    #     else:
+    #         raise NotImplementedError(node)    
 
     def visit_Constant(self, node):
         if isinstance(node.value, str):
             return cg1StrLiteral(node.value, lineno=node.lineno)
 
         else:
-            return self.get_const(node.value, node)
+            # return self.get_const(node.value, node)
+            return cg1Const(node.value, lineno=node.lineno)
 
     def visit_Name(self, node):
         return cg1Var(node.id, lineno=node.lineno)

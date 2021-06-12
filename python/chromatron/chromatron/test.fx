@@ -2,10 +2,10 @@
 
 
 def func():
+	return 1
+	# a = Array(4, 3, 2)
 
-	a = Array(4, 3, 2)
-
-	return a[0][1][2]
+	# return a[0][1][2]
 
 	# pixels[2].val += 1
 	# pixels.val += 1
