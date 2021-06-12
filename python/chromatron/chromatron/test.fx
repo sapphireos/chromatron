@@ -6,7 +6,7 @@ def simple_array():
 
 	b = Number()
 
-	a = 2 + b
+	a = b[0] + a
 
 	# b = a[0][1]
 	# b[0] = a[1]

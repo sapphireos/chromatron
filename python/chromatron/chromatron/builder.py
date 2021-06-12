@@ -114,6 +114,12 @@ class Builder(object):
 
         return result
 
+    def augassign(self, op, target, value, lineno=None):
+        result = self.binop(op, target, value, lineno=lineno)
+
+        # must copy target, so SSA conversion will work
+        self.assign(copy(target), result, lineno=lineno)
+
     def analyze_blocks(self):
         for func in self.funcs.values():
             func.analyze_blocks()

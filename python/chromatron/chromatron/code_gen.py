@@ -536,11 +536,7 @@ class cg1AugAssign(cg1CodeNode):
         self.value = value
 
     def build(self, builder):
-        if isinstance(self.target, cg1Subscript):
-            target = self.target.build(builder)
-
-        else:
-            target = self.target.build(builder)
+        target = self.target.build(builder)
 
         value = self.value.build(builder)
     
