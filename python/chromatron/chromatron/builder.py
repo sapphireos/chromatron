@@ -21,6 +21,7 @@ class Builder(object):
         self.consts = {}
 
         self.next_temp = 0
+        self.refs = {}
 
 
     def __str__(self):
@@ -48,11 +49,15 @@ class Builder(object):
         node.scope_depth = self.scope_depth
         self.current_func.append_node(node)
 
+    def nop(self, lineno=None):
+        pass
+
     def func(self, *args, **kwargs):
         func = irFunc(*args, builder=self, **kwargs)
         self.funcs[func.name] = func
         self.current_func = func
         self.next_temp = 0
+        self.refs = {}
         self.scope_depth = 0
 
         func_label = self.label(f'function:{func.name}', lineno=kwargs['lineno'])
@@ -106,14 +111,30 @@ class Builder(object):
             func.analyze_blocks()
 
 
-    def add_temp(self, data_type='i32', lineno=None):
+    def add_temp(self, data_type=None, lineno=None):
         name = '%' + str(self.next_temp)
         self.next_temp += 1
 
         ir = irTemp(name, lineno=lineno)
     
         return ir
+    
+    def add_ref(self, target, lineno=None):
+        if isinstance(target, irRef):
+            name = target.target.name
 
+        else:
+            name = target.name
+
+        if name not in self.refs:
+            self.refs[name] = 0
+
+        ir = irRef(target, self.refs[name], lineno=lineno)
+
+        self.refs[name] += 1
+
+        return ir
+    
     def add_const(self, value, data_type=None, lineno=None):
         name = str(value)
 
@@ -131,8 +152,8 @@ class Builder(object):
             return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
         else:
-            if len(keywords) > 0:
-                raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
+            # if len(keywords) > 0:
+            #     raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
 
             var = irVar(name, data_type, lineno=lineno)
             
@@ -174,3 +195,19 @@ class Builder(object):
         self.jump(end_label, lineno=lineno)
         self.scope_depth -= 1
         self.position_label(end_label)
+
+    def lookup_subscript(self, target, index, lineno=None):
+        result = self.add_ref(target, lineno=lineno)
+
+        ir = irIndex(result, target, index, lineno=lineno)
+        self.append_node(ir)
+
+        return result
+
+    def lookup_attribute(self, obj, attr, lineno=None):
+        result = self.add_ref(obj, lineno=lineno)
+
+        ir = irAttr(result, obj, attr, lineno=lineno)
+        self.append_node(ir)
+
+        return result

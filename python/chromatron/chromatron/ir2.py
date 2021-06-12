@@ -612,16 +612,69 @@ class irAssign(IR):
         self.value = value
         
     def __str__(self):
-        return '%s = %s' % (self.target, self.value)
+        if isinstance(self.target, irRef):
+            target = f'*{self.target}'
+        else:
+            target = f'{self.target}'
+
+        if isinstance(self.value, irRef):
+            value = f'*{self.value}'
+        else:
+            value = f'{self.value}'
+
+        return f'{target} = {value}'
 
     def get_input_vars(self):
         return [self.value]
 
     def get_output_vars(self):
-        return [self.target]
+        if isinstance(self.target, irRef):
+            return []
+
+        else:
+            return [self.target]
 
     # def generate(self):
     #     return insMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+class irIndex(IR):
+    def __init__(self, result, target, index, **kwargs):
+        super().__init__(**kwargs)        
+        self.result = result
+        self.target = target
+        self.index = index
+
+    def __str__(self):
+        s = '%s = INDEX %s[%s]' % (self.result, self.target, self.index)
+
+        return s
+
+    def get_input_vars(self):
+        return [self.target, self.index]
+
+    def get_output_vars(self):
+        return [self.result]
+
+
+class irAttr(IR):
+    def __init__(self, result, target, attr, **kwargs):
+        super().__init__(**kwargs)        
+        self.result = result
+        self.target = target
+        self.attr = attr
+
+    def __str__(self):
+        s = '%s = ATTR %s.%s' % (self.result, self.target, self.attr)
+
+        return s
+
+    def get_input_vars(self):
+        # return [self.target, self.attr]
+        return [self.target]
+
+    def get_output_vars(self):
+        return [self.result]
+
 
 class irBinop(IR):
     def __init__(self, result, op, left, right, **kwargs):
@@ -690,7 +743,7 @@ class irBinop(IR):
 
 
 class irVar(IR):
-    def __init__(self, name, datatype=None, **kwargs):
+    def __init__(self, name=None, datatype=None, **kwargs):
         super().__init__(**kwargs)
         self._name = name
         self.type = datatype
@@ -758,3 +811,27 @@ class irTemp(irVar):
 
         else:
             return "Temp(%s)" % (self.name)
+
+class irRef(irTemp):
+    def __init__(self, target, ref_count, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if isinstance(target, irRef):
+            self.target = target.target
+
+        else:
+            self.target = target
+
+        self.ref_count = ref_count
+
+    @property
+    def name(self):
+        return f'&{self.target._name}_{self.ref_count}'
+
+    def __str__(self):
+        if self.type:
+            return "Ref(%s:%s)" % (self.name, self.type)
+
+        else:
+            return "Ref(%s)" % (self.name)
+
+

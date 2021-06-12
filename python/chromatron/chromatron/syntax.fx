@@ -1,3 +1,5 @@
+def empty_func():
+	pass
 
 def simple_func():
 	return 0
@@ -32,4 +34,3 @@ def simple_ifelse():
 
 	return b
 
-	

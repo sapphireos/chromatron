@@ -1,17 +1,17 @@
 
 
-def simple_ifelse():
-	a = Number()
+def simple_array():
+	a = Number(count=4)
+	# pass
+
 	b = Number()
 
-	if a > 0:
-		b = 1
+	# b = a[0][1]
+	# b = a[0].v[1].z.x
+	# b[0] = a[1]
 
-	else:
-		b = 2
-
-	return b
-
+	a[0].v[1].z.x = b
+	
 	# a = Array(4, 3, 2)
 
 	# return a[0][1][2]

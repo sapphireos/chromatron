@@ -312,7 +312,7 @@ class cg1Func(cg1CodeNode):
 
         # check if we need a default return
         if not isinstance(self.body[-1], cg1Return):
-            ret = cg1Return(cg1ConstInt32(0, lineno=self.lineno), lineno=self.lineno)
+            ret = cg1Return(cg1Const(0, lineno=self.lineno), lineno=self.lineno)
             ret.build(builder)
 
         # check decorators
@@ -557,18 +557,21 @@ class cg1Attribute(cg1CodeNode):
         self.load = load
         
     def build(self, builder, depth=0):
-        if isinstance(self.obj, cg1Var):
-            obj = self.obj
+        # if self.load:
+        return builder.lookup_attribute(self.obj.build(builder), self.attr, lineno=self.lineno)
 
-        else:
-            obj = self.obj.build(builder)
+        # if isinstance(self.obj, cg1Var):
+        #     obj = self.obj
 
-        if isinstance(obj, irPixelIndex):
-            obj.attr = self.attr
-            return obj
+        # else:
+        #     obj = self.obj.build(builder)
 
-        else:
-            return builder.get_obj_var(obj.name, self.attr, lineno=self.lineno)
+        # if isinstance(obj, irPixelIndex):
+        #     obj.attr = self.attr
+        #     return obj
+
+        # else:
+        #     return builder.get_obj_var(obj.name, self.attr, lineno=self.lineno)
 
 
 class cg1Subscript(cg1CodeNode):
@@ -586,13 +589,20 @@ class cg1Subscript(cg1CodeNode):
         target = self.target.build(builder, depth=depth)
         index = self.index.build(builder)
 
-        builder.lookup_subscript(target, index, lineno=self.lineno)
+        # if self.load:
+        return builder.lookup_subscript(target, index, lineno=self.lineno)
 
-        if depth == 1:
-            return builder.resolve_lookup(lineno=self.lineno)
+        # else:
+            # return builder.load_subscript(target, index, lineno=self.lineno)
+        # builder.lookup_subscript(target, index, lineno=self.lineno)
 
-        else:
-            return target
+        # if depth == 1:
+        #     return builder.resolve_lookup(lineno=self.lineno)
+
+        # else:
+        #     return target
+
+        # return target
 
 
 class cg1StrLiteral(cg1CodeNode):
@@ -999,12 +1009,14 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     tree = ast.parse(source)
 
     if debug_print:
+        print("Python AST:")
         print(pformat_ast(tree))
 
     cg1 = CodeGenPass1()
     cg1_data = cg1(source)
 
     if debug_print:
+        print("CG Pass 1:")
         print(pformat_ast(cg1_data))
 
     builder = cg1_data.build(script_name=script_name, source=source)
