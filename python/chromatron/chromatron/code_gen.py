@@ -26,6 +26,9 @@ import ast
 import sys
 from textwrap import dedent
 
+import colored_traceback
+colored_traceback.add_hook()
+
 # from .ir import *
 from .builder import Builder
 
