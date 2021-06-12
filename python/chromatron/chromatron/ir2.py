@@ -680,20 +680,23 @@ class irVar(IR):
         self.is_const = False
         self.ssa_version = None
 
+    @property
+    def name(self):
+        if self.is_temp or self.ssa_version is None:
+            return self._name
+        
+        return f'{self._name}_v{self.ssa_version}'
+
+    @name.setter
+    def name(self, value):
+        self._name = value        
+
     def __str__(self):
         if self.type:
             return "Var(%s:%s)" % (self.name, self.type)
 
         else:
             return "Var(%s)" % (self.name)
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        self._name = value
 
         
 class irConst(irVar):
