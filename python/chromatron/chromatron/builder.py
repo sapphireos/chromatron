@@ -130,12 +130,11 @@ class Builder(object):
         if is_global:
             return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
-        else: # localvar = irVar(name, data_type, lineno=lineno)
+        else:
             if len(keywords) > 0:
                 raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
 
             var = irVar(name, data_type, lineno=lineno)
-            # var = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
             
             ir = irDefine(var, lineno=lineno)
 

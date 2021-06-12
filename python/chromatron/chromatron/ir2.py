@@ -1,4 +1,7 @@
 
+from copy import copy
+
+
 source_code = []
 
 def set_source_code(source):
@@ -24,6 +27,14 @@ def params_to_string(params):
 
     return s
 
+
+class SyntaxError(Exception):
+    def __init__(self, message='', lineno=None):
+        self.lineno = lineno
+
+        message += ' (line %d)' % (self.lineno)
+
+        super().__init__(message)
 
 
 class IR(object):
@@ -140,7 +151,13 @@ class irBlock(IR):
 
         return ds
 
-    def rename_vars(self, ssa_vars={}, visited=[], defines={}):
+    def rename_vars(self, ssa_vars=None, visited=None):
+        if ssa_vars is None:
+            ssa_vars = {}
+
+        if visited is None:
+            visited = []
+
         if self in visited:
             return
 
@@ -170,7 +187,7 @@ class irBlock(IR):
 
             else:
                 # look for writes to current set of vars and increment versions
-                outputs = [o for o in ir.get_output_vars() if not o.temp and not o.is_const]
+                outputs = [o for o in ir.get_output_vars() if not o.is_temp and not o.is_const]
 
                 for o in outputs:
                     o.block = self
@@ -183,7 +200,7 @@ class irBlock(IR):
                     else:
                         assert False
 
-                inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
+                inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const]
 
                 for i in inputs:
                     if i._name not in self.uses:
@@ -206,7 +223,7 @@ class irBlock(IR):
                 # set block parameters
                 # unless we are a leader block
                 if len(self.predecessors) > 0:
-                    inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
+                    inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const]
 
                     for i in inputs:
                         if i._name in self.params:
@@ -225,14 +242,16 @@ class irBlock(IR):
 
         # continue with successors:
         for suc in self.successors:
-            suc.rename_vars(ssa_vars, visited, defines=self.defines)
+            suc.rename_vars(ssa_vars, visited)
 
         return ssa_vars
 
-    def insert_phi(self, visited=[]):
+    def insert_phi(self, visited=None):
+        if visited is None:
+            visited = []
+
         if self in visited:
             return
-
         
         visited.append(self)
 
@@ -275,7 +294,7 @@ class irBlock(IR):
 
     # @property
     # def params(self):
-        # return [v for v in self.input_vars if not v.temp and not v.is_const]
+        # return [v for v in self.input_vars if not v.is_temp and not v.is_const]
 
     @property
     def input_vars(self):
@@ -287,7 +306,7 @@ class irBlock(IR):
                 if i.name not in v:
                     v[i.name] = i
 
-        return [a for a in v.values() if not a.temp and not a.is_const]
+        return [a for a in v.values() if not a.is_temp and not a.is_const]
 
     @property
     def output_vars(self):
@@ -299,7 +318,7 @@ class irBlock(IR):
                 if o.name not in v:
                     v[o.name] = o
 
-        return [a for a in v.values() if not a.temp and not a.is_const]
+        return [a for a in v.values() if not a.is_temp and not a.is_const]
 
 
 
@@ -333,7 +352,7 @@ class irFunc(IR):
 
 
         s += "********************************\n"
-        s += "Func blocks:\n"
+        s += "Blocks:\n"
         s += "********************************\n"
 
         blocks = [self.blocks[k] for k in sorted(self.blocks.keys())]
@@ -432,7 +451,7 @@ class irFunc(IR):
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
 
-        return
+        # return
         
         # verify all instructions are assigned to a block:
         # for ir in self.body:
@@ -442,7 +461,7 @@ class irFunc(IR):
         # with an unconditional jump or return
         for block in self.blocks.values():
             assert isinstance(block.code[0], irLabel)
-            assert isinstance(block.code[-1], irConditionalJump) or isinstance(block.code[-1], irUnconditionalJump) or isinstance(block.code[-1], irReturn)
+            assert isinstance(block.code[-1], irBranch) or isinstance(block.code[-1], irJump) or isinstance(block.code[-1], irReturn)
 
 
         ssa_vars = self.leader_block.rename_vars()
@@ -659,6 +678,7 @@ class irVar(IR):
 
         self.is_temp = False
         self.is_const = False
+        self.ssa_version = None
 
     def __str__(self):
         if self.type:
