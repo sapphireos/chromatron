@@ -6,11 +6,16 @@ def simple_array():
 
 	b = Number()
 
+	a = 2 + b
+
 	# b = a[0][1]
-	# b = a[0].v[1].z.x
 	# b[0] = a[1]
 
-	a[0].v[1].z.x = b
+	# b = a[b + 3]
+
+	# b = a[0].v[1].z.x
+	# a[0].v[1].z.x = b
+	# a[0].v[1].z.x = b[2].w[3][4]
 	
 	# a = Array(4, 3, 2)
 

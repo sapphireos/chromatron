@@ -100,6 +100,14 @@ class Builder(object):
     def binop(self, op, left, right, lineno=None):
         result = self.add_temp(lineno=lineno)
 
+        # check if one side is a const, if so,
+        # make sure it is on the right to make
+        # common subexpressions easier to find
+        if isinstance(left, irConst) and not isinstance(right, irConst):
+            temp = left
+            left = right
+            right = temp
+
         ir = irBinop(result, op, left, right, lineno=lineno)
 
         self.append_node(ir)
