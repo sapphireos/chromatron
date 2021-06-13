@@ -28,6 +28,11 @@ from catbus import *
 from copy import deepcopy, copy
 import pprint
 
+
+def debug_print(s):
+    # print(s)
+    pass
+
 source_code = []
 
 VM_ISA_VERSION  = 12
@@ -232,7 +237,7 @@ class irVar(IR):
         if self.addr == None:
             raise CompilerFatal("%s does not have an address. Line: %d" % (self, self.lineno))
 
-        return insAddr(self.addr, self)
+        return insAddr(self.addr, self, lineno=self.lineno)
 
     def lookup(self, indexes):
         assert len(indexes) == 0
@@ -296,7 +301,7 @@ class irAddress(irVar):
     
     def generate(self):
         assert self.addr != None
-        return insAddr(self.addr, self.target)
+        return insAddr(self.addr, self.target, lineno=self.lineno)
 
     def get_base_type(self):
         return self.target.get_base_type()
@@ -431,7 +436,7 @@ class irStrLiteral(irVar_str):
 
     def generate(self):
         assert self.addr != None
-        return insAddr(self.ref, self)
+        return insAddr(self.ref, self, lineno=self.lineno)
 
 class irField(IR):
     def __init__(self, name, obj, **kwargs):
@@ -443,7 +448,7 @@ class irField(IR):
         return "Field(%s.%s)" % (self.obj.name, self.name)
 
     def generate(self):
-        return insAddr(self.obj.offsets[self.name].addr)
+        return insAddr(self.obj.offsets[self.name].addr, lineno=self.lineno)
 
 class irObject(IR):
     def __init__(self, name, data_type, args=[], kw={}, **kwargs):
@@ -587,12 +592,13 @@ class irDBAttr(irVar):
         return self
 
 class irFunc(IR):
-    def __init__(self, name, ret_type='i32', params=None, body=None, **kwargs):
+    def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
         super(irFunc, self).__init__(**kwargs)
         self.name = name
         self.ret_type = ret_type
         self.params = params
         self.body = body
+        self.builder = builder
 
         if self.params == None:
             self.params = []
@@ -681,7 +687,7 @@ class irFunc(IR):
 
     def generate(self):
         params = [a.generate() for a in self.params]
-        func = insFunction(self.name, params)
+        func = insFunction(self.name, params, lineno=self.lineno)
         ins = [func]
         for ir in self.body:
             code = ir.generate()
@@ -694,6 +700,219 @@ class irFunc(IR):
 
         return ins
 
+    def control_flow(self, sequence=None, cfg=None, pc=None, jumps_taken=None):
+        if sequence == None:
+            sequence =[]
+
+        if cfg == None:
+            cfg = []
+
+        if pc == None:
+            pc = 0
+
+        if jumps_taken == None:
+            jumps_taken = []
+
+
+        labels = self.labels()
+       
+        cfg.append(sequence)
+
+        while True:
+            ins = self.body[pc]
+
+            sequence.append(pc)
+            
+            if isinstance(ins, irReturn):
+                break
+
+            jump = ins.get_jump_target()
+
+            # check if unconditional jump
+            if isinstance(ins, irJump) and ins not in jumps_taken:
+                pc = labels[jump.name]
+
+                jumps_taken.append(ins)
+
+            elif jump != None:
+                if ins not in jumps_taken:
+                    jumps_taken.append(ins)
+
+                    self.control_flow(sequence=copy(sequence), cfg=cfg, pc=labels[jump.name], jumps_taken=jumps_taken)
+
+                pc += 1
+
+            else:
+                pc += 1
+
+        return cfg
+
+    def unreachable(self, cfg=None):
+        if cfg == None:
+            cfg = self.control_flow()
+
+        unreachable = list(range(len(self.body)))
+
+        for sequence in cfg:
+            for line in sequence:
+                if line in unreachable:
+                    unreachable.remove(line)
+
+        return unreachable
+
+    def usedef(self):
+        use = []
+        define = []
+
+        for ins in self.body:
+            used = ins.get_input_vars()
+
+            # look for address references, if so, include their target
+            for v in copy(used):
+                if isinstance(v, irAddress):
+                    if v.target.name not in self.builder.globals:
+                        used.append(v.target)
+
+            # use.append([a.name for a in used])
+            use.append([a for a in used])
+
+
+            defined = ins.get_output_vars()
+
+            # filter globals and consts
+            defined = [a for a in defined if not a.is_global and not a.is_const]
+
+            # look for address references, if so, include their target
+            for v in copy(defined):
+                if isinstance(v, irAddress):
+                    if v.target.name not in self.builder.globals:
+                        defined.append(v.target)
+
+            # define.append([a.name for a in defined])
+            define.append([a for a in defined])
+
+        # attach function params
+        # define[0].extend([a.name for a in self.funcs[func].params])
+        define[0].extend([a for a in self.params])
+
+        # define[0].extend(self.globals.keys())
+
+        return use, define
+
+    def liveness(self, pc=None):
+        if pc == None:
+            pc = 0
+
+        """
+        1. Gather inputs and outputs used by each instruction
+            a. Returns are exit points: globals/consts are treated as inputs to returns,
+               so that they do not get removed.
+
+        2. Walk tree ->
+            construct list of inputs/outputs for this particular iteration of the program
+    
+        3. Iterate list for this tree:
+            now we have the linear sequence what gets used where, based on a particular
+            set of branches taken.
+
+            we can iterate backwards
+    
+            each time the variable shows up, add to liveness list.
+            
+            once we get to start of program (this version), we know at which
+            lines each variable is alive.        
+
+        """
+
+        # inputs = use
+        # outputs = define
+
+        # from pprint import pprint
+
+
+        use, define = self.usedef()
+
+        cfgs = self.control_flow()
+
+        debug_print('unreachable')
+        unreachable = self.unreachable(cfgs)
+        for r in unreachable:
+            debug_print('\t%s' % (r))
+        debug_print('\n')
+
+        code = self.body
+
+        debug_print('liveness')
+        liveness = [[] for i in range(len(code))]
+
+        for line in unreachable:
+            liveness[line] = None
+
+        # print 'CFG:'
+        for cfg in cfgs:
+
+            # print cfg
+    
+            prev = []
+            for i in reversed(cfg):
+
+                # add previous live variables
+                liveness[i].extend(prev)
+
+                # add current variables being used
+                liveness[i].extend(use[i])
+
+                # uniqueify
+                liveness[i] = list(set(liveness[i]))
+
+                prev = liveness[i]
+
+        for cfg in cfgs:
+            defined = []
+            for i in cfg:
+                # check if variables have been defined yet
+                for v in copy(liveness[i]):
+
+                    if v in define[i]:
+                        defined.append(v)
+
+                    elif v not in defined:
+                        # remove from liveness as this variable has not been defined yet
+                        liveness[i].remove(v)
+
+
+
+
+        debug_print('------%s------' % (self.name))
+
+        debug_print('use')
+        for i in use:
+            debug_print([a.name for a in i])
+        debug_print('define')
+        for i in define:
+            debug_print([a.name for a in i])
+                
+        pc = 0
+        
+        for l in liveness:
+            temp = 5
+            if l == None:
+                debug_print('%s: UNREACHABLE' % (pc))
+
+            else:
+                for a in l:
+                    debug_print('%s: %s' % (pc, a.name))
+                    temp -= 1
+
+            debug_print('\t' * temp + str(code[pc]))
+
+            pc += 1
+
+        debug_print('------')
+
+        return liveness
+
+
 class irReturn(IR):
     def __init__(self, ret_var, **kwargs):
         super(irReturn, self).__init__(**kwargs)
@@ -703,7 +922,7 @@ class irReturn(IR):
         return "RET %s" % (self.ret_var)
 
     def generate(self):
-        return insReturn(self.ret_var.generate())
+        return insReturn(self.ret_var.generate(), lineno=self.lineno)
 
     def get_input_vars(self):
         return [self.ret_var]
@@ -713,7 +932,7 @@ class irNop(IR):
         return "NOP" 
 
     def generate(self):
-        return insNop()
+        return insNop(lineno=self.lineno)
 
 class irBinop(IR):
     def __init__(self, result, op, left, right, **kwargs):
@@ -776,7 +995,7 @@ class irBinop(IR):
                 'mod': insBinop} # formatted output
         }
 
-        return ops[self.data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate())
+        return ops[self.data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
 
 
 class irUnaryNot(IR):
@@ -789,7 +1008,7 @@ class irUnaryNot(IR):
         return "%s = NOT %s" % (self.target, self.value)
 
     def generate(self):
-        return insNot(self.target.generate(), self.value.generate())
+        return insNot(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
     def get_input_vars(self):
         return [self.value]
@@ -835,10 +1054,10 @@ class irConvertType(IR):
             if self.skip_conversion():
                 raise KeyError
 
-            return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate())
+            return type_conversions[(self.result.type, self.value.type)](self.result.generate(), self.value.generate(), lineno=self.lineno)
 
         except KeyError:
-            ins = insConvMov(self.result.generate(), self.value.generate())
+            ins = insConvMov(self.result.generate(), self.value.generate(), lineno=self.lineno)
             return ins
 
 class irConvertTypeInPlace(IR):
@@ -864,7 +1083,7 @@ class irConvertTypeInPlace(IR):
 
     def generate(self):
         try:
-            return type_conversions[(self.dest_type, self.target.type)](self.target.generate(), self.target.generate())
+            return type_conversions[(self.dest_type, self.target.type)](self.target.generate(), self.target.generate(), lineno=self.lineno)
 
         except KeyError:
             raise CompilerFatal("Invalid conversion: '%s' to '%s' on line: %d" % (self.target.type, self.dest_type, self.lineno))
@@ -914,10 +1133,10 @@ class irVectorOp(IR):
 
         if isinstance(self.target, irPixelAttr):
             target = self.target.generate()
-            return pixel_ops[self.op](target.name, target.attr, self.value.generate())
+            return pixel_ops[self.op](target.name, target.attr, self.value.generate(), lineno=self.lineno)
 
         else:
-            return ops[self.op](self.target.generate(), self.value.generate())
+            return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 class irClear(IR):
     def __init__(self, target, **kwargs):
@@ -933,7 +1152,7 @@ class irClear(IR):
         return [self.target]
 
     def generate(self):
-        return insClr(self.target.generate())
+        return insClr(self.target.generate(), lineno=self.lineno)
 
 
 class irAssign(IR):
@@ -954,7 +1173,7 @@ class irAssign(IR):
         return [self.target]
 
     def generate(self):
-        return insMov(self.target.generate(), self.value.generate())
+        return insMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 class irVectorAssign(IR):
     def __init__(self, target, value, **kwargs):
@@ -981,10 +1200,10 @@ class irVectorAssign(IR):
     def generate(self):
         if isinstance(self.target, irPixelAttr):
             target = self.target.generate()
-            return insPixelVectorMov(target.name, target.attr, self.value.generate())
+            return insPixelVectorMov(target.name, target.attr, self.value.generate(), lineno=self.lineno)
 
         else:
-            return insVectorMov(self.target.generate(), self.value.generate())
+            return insVectorMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 class irCall(IR):
     def __init__(self, target, params, args, result, **kwargs):
@@ -1011,10 +1230,10 @@ class irCall(IR):
         args = [a.generate() for a in self.args]
 
         # call func
-        call_ins = insCall(self.target, params, args)
+        call_ins = insCall(self.target, params, args, lineno=self.lineno)
 
         # move return value to result register
-        mov_ins = insMov(self.result.generate(), insAddr(0))
+        mov_ins = insMov(self.result.generate(), insAddr(0), lineno=self.lineno)
 
         return [call_ins, mov_ins]
 
@@ -1039,13 +1258,13 @@ class irLibCall(IR):
 
     def generate(self):    
         if self.target == 'halt':
-            return insHalt()
+            return insHalt(lineno=self.lineno)
 
         params = [a.generate() for a in self.params]
 
         if len(self.params) > 0 and isinstance(self.params[0], irDBAttr):
             db_item = params.pop(0)
-            call_ins = insDBCall(self.target, db_item, self.result.generate(), params)
+            call_ins = insDBCall(self.target, db_item, self.result.generate(), params, lineno=self.lineno)
 
         else:
             # if calling a thread function, remap the first parameter to a Python string,
@@ -1054,7 +1273,7 @@ class irLibCall(IR):
             if self.target in THREAD_FUNCS:
                 params[0] = self.params[0].name
 
-            call_ins = insLibCall(self.target, self.result.generate(), params)
+            call_ins = insLibCall(self.target, self.result.generate(), params, lineno=self.lineno)
 
         return call_ins
 
@@ -1070,7 +1289,7 @@ class irLabel(IR):
         return s
 
     def generate(self):
-        return insLabel(self.name)
+        return insLabel(self.name, lineno=self.lineno)
 
 
 class irBranchConditional(IR):
@@ -1095,7 +1314,7 @@ class irBranchZero(irBranchConditional):
         return s    
 
     def generate(self):
-        return insJmpIfZero(self.value.generate(), self.target.generate())
+        return insJmpIfZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
         
 
 
@@ -1109,7 +1328,7 @@ class irBranchNotZero(irBranchConditional):
         return s    
 
     def generate(self):
-        return insJmpIfNotZero(self.value.generate(), self.target.generate())
+        return insJmpIfNotZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
     
 
 class irJump(IR):
@@ -1123,7 +1342,7 @@ class irJump(IR):
         return s    
 
     def generate(self):
-        return insJmp(self.target.generate())
+        return insJmp(self.target.generate(), lineno=self.lineno)
 
     def get_jump_target(self):
         return self.target
@@ -1144,7 +1363,7 @@ class irJumpLessPreInc(IR):
         return [self.op1, self.op2]
 
     def generate(self):
-        return insJmpIfLessThanPreInc(self.op1.generate(), self.op2.generate(), self.target.generate())
+        return insJmpIfLessThanPreInc(self.op1.generate(), self.op2.generate(), self.target.generate(), lineno=self.lineno)
 
     def get_jump_target(self):
         return self.target
@@ -1211,7 +1430,7 @@ class irIndex(IR):
             strides.append(stride)
         
 
-        return insIndex(self.result.generate(), self.target.generate(), indexes, counts, strides)
+        return insIndex(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
 
 class irPixelIndex(IR):
@@ -1300,7 +1519,7 @@ class irDBStore(IR):
     def generate(self):
         indexes = [a.generate() for a in self.indexes]
 
-        return insDBStore(self.target.attr, indexes, self.value.generate())
+        return insDBStore(self.target.attr, indexes, self.value.generate(), lineno=self.lineno)
 
 
 class irDBLoad(IR):
@@ -1330,7 +1549,7 @@ class irDBLoad(IR):
 
     def generate(self):
         indexes = [a.generate() for a in self.indexes]
-        return insDBLoad(self.target.generate(), self.value.attr, indexes)
+        return insDBLoad(self.target.generate(), self.value.attr, indexes, lineno=self.lineno)
 
 
 
@@ -1367,7 +1586,7 @@ class irPixelStore(IR):
         for index in self.target.indexes:
             indexes.append(index.generate())
 
-        return ins[self.target.attr](self.target.name, self.target.attr, indexes, self.value.generate())
+        return ins[self.target.attr](self.target.name, self.target.attr, indexes, self.value.generate(), lineno=self.lineno)
 
 
 class irPixelLoad(IR):
@@ -1412,7 +1631,7 @@ class irPixelLoad(IR):
             while len(indexes) < 2:
                 indexes.append(CONST65535.generate())
 
-        return ins(self.target.generate(), self.value.name, self.value.attr, indexes)
+        return ins(self.target.generate(), self.value.name, self.value.attr, indexes, lineno=self.lineno)
 
 
 class irIndexLoad(IR):
@@ -1433,7 +1652,7 @@ class irIndexLoad(IR):
         return [self.result]
 
     def generate(self):
-        return insIndirectLoad(self.result.generate(), self.address.generate())
+        return insIndirectLoad(self.result.generate(), self.address.generate(), lineno=self.lineno)
 
 class irIndexStore(IR):
     def __init__(self, address, value, **kwargs):
@@ -1453,7 +1672,7 @@ class irIndexStore(IR):
         return [self.value]
 
     def generate(self):
-        return insIndirectStore(self.value.generate(), self.address.generate())
+        return insIndirectStore(self.value.generate(), self.address.generate(), lineno=self.lineno)
 
 
 CONST65535 = irConst(65535, lineno=0)
@@ -1820,7 +2039,7 @@ class Builder(object):
         del self.locals[self.current_func][var.name]
 
     def func(self, *args, **kwargs):
-        func = irFunc(*args, **kwargs)
+        func = irFunc(*args, builder=self, **kwargs)
         self.funcs[func.name] = func
         self.locals[func.name] = {}
         self.current_func = func.name
@@ -2536,225 +2755,6 @@ class Builder(object):
 
         self.cron_tab[func].append(params)
 
-    def usedef(self, func):
-        use = []
-        define = []
-
-        for ins in self.funcs[func].body:
-            used = ins.get_input_vars()
-
-            # look for address references, if so, include their target
-            for v in copy(used):
-                if isinstance(v, irAddress):
-                    if v.target.name not in self.globals:
-                        used.append(v.target)
-
-            # use.append([a.name for a in used])
-            use.append([a for a in used])
-
-
-            defined = ins.get_output_vars()
-
-            # filter globals and consts
-            defined = [a for a in defined if not a.is_global and not a.is_const]
-
-            # look for address references, if so, include their target
-            for v in copy(defined):
-                if isinstance(v, irAddress):
-                    if v.target.name not in self.globals:
-                        defined.append(v.target)
-
-            # define.append([a.name for a in defined])
-            define.append([a for a in defined])
-
-        # attach function params
-        # define[0].extend([a.name for a in self.funcs[func].params])
-        define[0].extend([a for a in self.funcs[func].params])
-
-        # define[0].extend(self.globals.keys())
-
-        return use, define
-
-    def control_flow(self, func, sequence=None, cfg=None, pc=None, jumps_taken=None):
-        if sequence == None:
-            sequence =[]
-
-        if cfg == None:
-            cfg = []
-
-        if pc == None:
-            pc = 0
-
-        if jumps_taken == None:
-            jumps_taken = []
-
-
-        code = self.funcs[func]
-        labels = code.labels()
-        
-        cfg.append(sequence)
-
-        while True:
-            ins = code.body[pc]
-
-            sequence.append(pc)
-            
-            if isinstance(ins, irReturn):
-                break
-
-            jump = ins.get_jump_target()
-
-            # check if unconditional jump
-            if isinstance(ins, irJump) and ins not in jumps_taken:
-                pc = labels[jump.name]
-
-                jumps_taken.append(ins)
-
-            elif jump != None:
-                if ins not in jumps_taken:
-                    jumps_taken.append(ins)
-
-                    self.control_flow(func, sequence=copy(sequence), cfg=cfg, pc=labels[jump.name], jumps_taken=jumps_taken)
-
-                pc += 1
-
-            else:
-                pc += 1
-
-
-        return cfg
-
-    def unreachable(self, func, cfg=None):
-        if cfg == None:
-            cfg = self.control_flow(func)
-
-
-        unreachable = list(range(len(self.funcs[func].body)))
-
-        for sequence in cfg:
-            for line in sequence:
-                if line in unreachable:
-                    unreachable.remove(line)
-
-        return unreachable
-
-    def liveness(self, func, pc=None):
-        if pc == None:
-            pc = 0
-
-        """
-        1. Gather inputs and outputs used by each instruction
-            a. Returns are exit points: globals/consts are treated as inputs to returns,
-               so that they do not get removed.
-
-        2. Walk tree ->
-            construct list of inputs/outputs for this particular iteration of the program
-    
-        3. Iterate list for this tree:
-            now we have the linear sequence what gets used where, based on a particular
-            set of branches taken.
-
-            we can iterate backwards
-    
-            each time the variable shows up, add to liveness list.
-            
-            once we get to start of program (this version), we know at which
-            lines each variable is alive.        
-
-        """
-
-        # inputs = use
-        # outputs = define
-
-        # from pprint import pprint
-
-
-        use, define = self.usedef(func)
-
-        cfgs = self.control_flow(func)
-
-        self.debug_print('unreachable')
-        unreachable = self.unreachable(func, cfgs)
-        for r in unreachable:
-            self.debug_print('\t%s' % (r))
-        self.debug_print('\n')
-
-        code = self.funcs[func].body
-
-        self.debug_print('liveness')
-        liveness = [[] for i in range(len(code))]
-
-        for line in unreachable:
-            liveness[line] = None
-
-        # print 'CFG:'
-        for cfg in cfgs:
-
-            # print cfg
-    
-            prev = []
-            for i in reversed(cfg):
-
-                # add previous live variables
-                liveness[i].extend(prev)
-
-                # add current variables being used
-                liveness[i].extend(use[i])
-
-                # uniqueify
-                liveness[i] = list(set(liveness[i]))
-
-                prev = liveness[i]
-
-        for cfg in cfgs:
-            defined = []
-            for i in cfg:
-                # check if variables have been defined yet
-                for v in copy(liveness[i]):
-
-                    if v in define[i]:
-                        defined.append(v)
-
-                    elif v not in defined:
-                        # remove from liveness as this variable has not been defined yet
-                        liveness[i].remove(v)
-
-
-
-
-        self.debug_print('------%s------' % (func))
-
-        self.debug_print('use')
-        for i in use:
-            self.debug_print([a.name for a in i])
-        self.debug_print('define')
-        for i in define:
-            self.debug_print([a.name for a in i])
-                
-        pc = 0
-        
-        for l in liveness:
-            temp = 5
-            if l == None:
-                self.debug_print('%s: UNREACHABLE' % (pc))
-
-            else:
-                for a in l:
-                    self.debug_print('%s: %s' % (pc, a.name))
-                    temp -= 1
-
-            self.debug_print('\t' * temp + str(code[pc]))
-
-            pc += 1
-
-        self.debug_print('------')
-
-        return liveness
-
-    def debug_print(self, s):
-        # print(s)
-        pass
-
     def allocate(self):
         self.remove_unreachable()        
 
@@ -2866,19 +2866,19 @@ class Builder(object):
 
 
         if self.optimizations['optimize_register_usage']:
-            self.debug_print('optimize_register_usage')
+            debug_print('optimize_register_usage')
             for func in self.funcs:
-                self.debug_print('optimize %s' % func)
+                debug_print('optimize %s' % func)
 
                 registers = {}
                 address_pool = []
 
-                liveness = self.liveness(func)
+                liveness = self.funcs[func].liveness()
 
                 line_no = 0
 
                 for line in liveness:
-                    self.debug_print('line %s %s' % (line_no, [a.name for a in line]))
+                    debug_print('line %s %s' % (line_no, [a.name for a in line]))
                     line_no += 1
 
                     # check if line is marked None, this means
@@ -2892,7 +2892,7 @@ class Builder(object):
                         assert var.length < 65535
 
                         if var not in line:
-                            self.debug_print('remove %s %s' % (var, var.addr))
+                            debug_print('remove %s %s' % (var, var.addr))
 
                             del registers[var.name]
 
@@ -2904,7 +2904,7 @@ class Builder(object):
 
                     for var in line:
                         if (var.addr != None) and (var.addr in address_pool):
-                            self.debug_print('unpool %s %s' % (var, var.addr))
+                            debug_print('unpool %s %s' % (var, var.addr))
                             address_pool.remove(var.addr)
 
 
@@ -2931,16 +2931,16 @@ class Builder(object):
                                     var_addr = addr
 
                                     addr += var.length
-                                    self.debug_print('alloc %s %s' % (var, var_addr))
+                                    debug_print('alloc %s %s' % (var, var_addr))
 
                                 else:
-                                    self.debug_print('pool %s %s' % (var, var_addr))
+                                    debug_print('pool %s %s' % (var, var_addr))
 
                                 # assign address to var
                                 var.addr = var_addr
 
                                 
-                    self.debug_print('%s %s %s\n' % (line, registers, address_pool))
+                    debug_print('%s %s %s\n' % (line, registers, address_pool))
                     
 
                 # Trash vars:
@@ -3040,7 +3040,7 @@ class Builder(object):
         unallocated = []
         for i in self.data_table:
             if i.addr == None:
-                self.debug_print("NOT ALLOCATED: %s" % (i))
+                debug_print("NOT ALLOCATED: %s" % (i))
                 unallocated.append(i)
 
         self.data_table = [a for a in self.data_table if a not in unallocated]
@@ -3089,14 +3089,27 @@ class Builder(object):
             for s in self.strings:
                 print('\t%3d: [%3d] %s' % (s.addr, s.strlen, s.name))
 
-    def print_instructions(self):
+    def print_instructions(self, interleave_source=False):
+        global source_code
         print("INSTRUCTIONS: ")
+
+        used_lines = []
+
         i = 0
         for func in self.code:
             print('\t%s:' % (func))
 
             for ins in self.code[func]:
                 s = '\t\t%3d: %s' % (i, str(ins))
+
+                if interleave_source and ins.lineno not in used_lines:
+                    try:
+                        s += f'\n\t\t\t{source_code[ins.lineno].strip()}'
+                        used_lines.append(ins.lineno)
+
+                    except IndexError:
+                        pass
+
                 print(s)
                 i += 1
 
@@ -3117,8 +3130,8 @@ class Builder(object):
 
     def remove_unreachable(self):
         if self.optimizations['remove_unreachable_code']:
-            for func in list(self.funcs.values()):
-                unreachable = self.unreachable(func.name)
+            for func in self.funcs.values():
+                unreachable = func.unreachable()
 
                 new_code = []
                 for i in range(len(func.body)):

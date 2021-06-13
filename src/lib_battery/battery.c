@@ -90,8 +90,6 @@ static uint8_t button_hold_duration[MAX_BUTTONS];
 
 static bool pca9536_enabled;
 
-static uint8_t graphic_brightness;
-static bool graphics_dir;
 
 #define BUTTON_IO_CHECKS            4
 
@@ -107,6 +105,59 @@ static bool graphics_dir;
 #define BUTTON_WAIT_FOR_RELEASE     255
 #define DIMMER_RATE                 5000
 #define MIN_DIMMER                  20000
+
+static uint8_t fx_low_batt[] __attribute__((aligned(4))) = {
+    #include "low_batt.fx.carray"
+};
+
+static uint16_t fx_low_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    uint16_t ret_val = len;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+            memcpy( ptr, &fx_low_batt[pos], len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            ret_val = sizeof(fx_low_batt);
+            break;
+
+        default:
+            ret_val = 0;
+            break;
+    }
+
+    return ret_val;
+}
+
+
+static uint8_t fx_crit_batt[] __attribute__((aligned(4))) = {
+    #include "crit_batt.fx.carray"
+};
+
+static uint16_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    uint16_t ret_val = len;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+            memcpy( ptr, &fx_crit_batt[pos], len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            ret_val = sizeof(fx_crit_batt);
+            break;
+
+        default:
+            ret_val = 0;
+            break;
+    }
+
+    return ret_val;
+}
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
@@ -152,9 +203,8 @@ void batt_v_init( void ){
                      0,
                      0 );
 
-
-    // dimming_direction_down = TRUE;
-    // last_dimmer = gfx_u16_get_submaster_dimmer();
+    fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
+    fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
 }
 
 static bool _ui_b_button_down( uint8_t ch ){
@@ -300,14 +350,16 @@ PT_BEGIN( pt );
 
             batt_state = BATT_STATE_OK;
             gfx_b_disable();
+            vm_v_resume();
         }
         else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
             batt_state = BATT_STATE_OK;
             gfx_b_enable();
             batt_v_enable_pixels();
+            vm_v_resume();
         }
-        else{
+        else{ // DISCHARGE
 
             gfx_b_enable();
             batt_v_enable_pixels();
@@ -331,6 +383,9 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("Batt critical: %u"), bq25895_u16_get_batt_voltage() );
                     
                     batt_state = BATT_STATE_CRITICAL;
+
+                    vm_v_pause();
+                    vm_v_run_prog( "crit_batt.fxb", VM_MAX_VMS - 1 );
                 }
             }
             else if( bq25895_u8_get_soc() <= 10 ){
@@ -340,6 +395,9 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("Batt low: %u"), bq25895_u16_get_batt_voltage() );
 
                     batt_state = BATT_STATE_LOW;
+
+                    vm_v_pause();
+                    vm_v_run_prog( "low_batt.fxb", VM_MAX_VMS - 1 );
                 }
             }
 
@@ -354,56 +412,6 @@ PT_BEGIN( pt );
                 THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
                 bq25895_v_enable_ship_mode( FALSE );
-            }
-            else if( batt_state == BATT_STATE_CRITICAL ){
-
-                vm_v_hold();
-
-                uint8_t *r = gfx_u8p_get_red();
-                uint8_t *g = gfx_u8p_get_green();
-                uint8_t *b = gfx_u8p_get_blue();
-
-                memset( r, 0, gfx_u16_get_pix_count() );
-                memset( g, 0, gfx_u16_get_pix_count() );
-                memset( b, 0, gfx_u16_get_pix_count() );
-
-                r[0] = 32;
-                r[gfx_u16_get_pix_count() - 1] = r[0];
-                
-                pixel_v_signal();
-            }
-            else if( batt_state == BATT_STATE_LOW ){
-
-                vm_v_hold();    
-
-                uint8_t *r = gfx_u8p_get_red();
-                uint8_t *g = gfx_u8p_get_green();
-                uint8_t *b = gfx_u8p_get_blue();
-
-                memset( r, graphic_brightness, gfx_u16_get_pix_count() );
-                memset( g, 0, gfx_u16_get_pix_count() );
-                memset( b, 0, gfx_u16_get_pix_count() );
-
-                pixel_v_signal();
-
-                if( !graphics_dir ){
-                    
-                    graphic_brightness++;
-
-                    if( graphic_brightness == 32 ){
-
-                        graphics_dir = TRUE;
-                    }
-                }
-                else{
-
-                    graphic_brightness--;
-
-                    if( graphic_brightness == 0 ){
-
-                        graphics_dir = FALSE;
-                    }
-                }
             }
         }
 

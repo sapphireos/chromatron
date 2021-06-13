@@ -345,6 +345,9 @@ class cg1Call(cg1CodeNode):
             if self.target in THREAD_FUNCS:
                 raise SyntaxError("Parameter '%s' not found for function '%s'.  Thread functions require string parameters." % (e.var, self.target), self.lineno)
 
+            else:
+                raise
+
         return builder.call(self.target, params, lineno=self.lineno)
 
 class cg1If(cg1CodeNode):
@@ -831,9 +834,13 @@ class CodeGenPass1(ast.NodeVisitor):
         else:
             raise NotImplementedError(node)    
 
-    def visit_Num(self, node):
-        return self.get_const(node.n, node)
-        
+    def visit_Constant(self, node):
+        if isinstance(node.value, str):
+            return cg1StrLiteral(node.value, lineno=node.lineno)
+
+        else:
+            return self.get_const(node.value, node)
+
     def visit_Name(self, node):
         return cg1Var(node.id, lineno=node.lineno)
 
@@ -966,9 +973,6 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Import(self, node):
         return cg1Import([a.name for a in node.names], lineno=node.lineno)
 
-    def visit_Str(self, node):
-        return cg1StrLiteral(node.s, lineno=node.lineno)
-
     def visit_Tuple(self, node):
         items = [self.visit(a) for a in node.elts]
         return cg1Tuple(items, lineno=node.lineno)        
@@ -978,6 +982,9 @@ class CodeGenPass1(ast.NodeVisitor):
 
 
 def compile_text(source, debug_print=False, summarize=False, script_name=''):
+    import colored_traceback
+    colored_traceback.add_hook()
+    
     tree = ast.parse(source)
 
     if debug_print:
