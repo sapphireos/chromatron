@@ -59,7 +59,7 @@ static uint8_t fx_rainbow[] __attribute__((aligned(4))) = {
 
 static uint16_t fx_rainbow_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
 
-    uint16_t ret_val = 0;
+    uint16_t ret_val = len;
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
