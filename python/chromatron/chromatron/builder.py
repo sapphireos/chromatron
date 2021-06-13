@@ -241,6 +241,23 @@ class Builder(object):
 
         self.scope_depth -= 1
 
+    def start_lookup(self, lineno=None):
+        self.lookups = []
+
+    def add_lookup(self, index, lineno=None):
+        if isinstance(index, str):
+            index = irAttribute(index, lineno=lineno)
+
+        self.lookups.append(index)
+
+    def finish_lookup(self, target, lineno=None):
+        result = self.add_ref(target, lineno=lineno)
+        ir = irLookup(result, target, self.lookups, lineno=lineno)
+
+        self.append_node(ir)
+
+        return result
+
     def lookup_subscript(self, target, index, lineno=None):
         result = self.add_ref(target, lineno=lineno)
 

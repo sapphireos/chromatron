@@ -553,8 +553,19 @@ class cg1Attribute(cg1CodeNode):
         self.load = load
         
     def build(self, builder, depth=0):
+        if depth == 0:
+            builder.start_lookup(lineno=self.lineno)
+
+        target = self.obj.build(builder, depth=depth + 1)
+        builder.add_lookup(self.attr, lineno=self.lineno)      
+
+        if depth == 0:
+            return builder.finish_lookup(target, lineno=self.lineno)
+
+        return target
+
         # if self.load:
-        return builder.lookup_attribute(self.obj.build(builder), self.attr, lineno=self.lineno)
+        # return builder.lookup_attribute(self.obj.build(builder), self.attr, lineno=self.lineno)
 
         # if isinstance(self.obj, cg1Var):
         #     obj = self.obj
@@ -580,13 +591,24 @@ class cg1Subscript(cg1CodeNode):
         self.load = load
 
     def build(self, builder, depth=0):
-        depth += 1
+        if depth == 0:
+            builder.start_lookup(lineno=self.lineno)
 
-        target = self.target.build(builder, depth=depth)
+        target = self.target.build(builder, depth=depth + 1)
         index = self.index.build(builder)
 
-        # if self.load:
-        return builder.lookup_subscript(target, index, lineno=self.lineno)
+        builder.add_lookup(index, lineno=self.lineno)      
+
+        if depth == 0:
+            return builder.finish_lookup(target, lineno=self.lineno)
+
+        return target
+
+        # target = self.target.build(builder, depth=depth + 1)
+        # index = self.index.build(builder)
+
+        # # if self.load:
+        # return builder.lookup_subscript(target, index, lineno=self.lineno)
 
         # else:
             # return builder.load_subscript(target, index, lineno=self.lineno)

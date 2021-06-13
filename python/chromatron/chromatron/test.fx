@@ -1,21 +1,27 @@
 
-def while_loop():
-	i = Number()
-	i = 4
+# def while_loop():
+# 	i = Number()
+# 	i = 4
 
-	while i > 0:
-		i -= 1
+# 	while i > 0:
+# 		i -= 1
 
+# 		a = Number()
+# 		a = 2
+# 		while a == 2:
+# 			a += 1
+# 			i = a + 3
 
-# def simple_array():
-# 	a = Number(count=4)
-# 	# pass
+def simple_array():
+	a = Number(count=4)
+	# pass
 
-# 	b = Number()
+	b = Number()
 
-# 	a = b[0] + a
+	# a = b[0] + a
 
-	# b = a[0][1]
+	a[0][1].h = b
+	# b = a.x.y
 	# b[0] = a[1]
 
 	# b = a[b + 3]

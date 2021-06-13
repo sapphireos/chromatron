@@ -637,43 +637,71 @@ class irAssign(IR):
     # def generate(self):
     #     return insMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
-class irIndex(IR):
-    def __init__(self, result, target, index, **kwargs):
+class irLookup(IR):
+    def __init__(self, result, target, indexes, **kwargs):
         super().__init__(**kwargs)        
         self.result = result
         self.target = target
-        self.index = index
+        self.indexes = indexes
 
     def __str__(self):
-        s = '%s = INDEX %s[%s]' % (self.result, self.target, self.index)
+        indexes = ''
+        for index in self.indexes:
+            if isinstance(index, irAttribute):
+                indexes += '.%s' % (index.name)
+            else:
+                indexes += '[%s]' % (index.name)
+
+        s = '%s = LOOKUP %s%s' % (self.result, self.target, indexes)
 
         return s
 
     def get_input_vars(self):
-        return [self.target, self.index]
+        i = [self.target]
+        i.extend(self.indexes)
+
+        return i
 
     def get_output_vars(self):
         return [self.result]
 
+# class irIndex(IR):
+#     def __init__(self, result, target, index, **kwargs):
+#         super().__init__(**kwargs)        
+#         self.result = result
+#         self.target = target
+#         self.index = index
 
-class irAttr(IR):
-    def __init__(self, result, target, attr, **kwargs):
-        super().__init__(**kwargs)        
-        self.result = result
-        self.target = target
-        self.attr = attr
+#     def __str__(self):
+#         s = '%s = INDEX %s[%s]' % (self.result, self.target, self.index)
 
-    def __str__(self):
-        s = '%s = ATTR %s.%s' % (self.result, self.target, self.attr)
+#         return s
 
-        return s
+#     def get_input_vars(self):
+#         return [self.target, self.index]
 
-    def get_input_vars(self):
-        # return [self.target, self.attr]
-        return [self.target]
+#     def get_output_vars(self):
+#         return [self.result]
 
-    def get_output_vars(self):
-        return [self.result]
+
+# class irAttr(IR):
+#     def __init__(self, result, target, attr, **kwargs):
+#         super().__init__(**kwargs)        
+#         self.result = result
+#         self.target = target
+#         self.attr = attr
+
+#     def __str__(self):
+#         s = '%s = ATTR %s.%s' % (self.result, self.target, self.attr)
+
+#         return s
+
+#     def get_input_vars(self):
+#         # return [self.target, self.attr]
+#         return [self.target]
+
+#     def get_output_vars(self):
+#         return [self.result]
 
 
 class irBinop(IR):
@@ -834,4 +862,9 @@ class irRef(irTemp):
         else:
             return "Ref(%s)" % (self.name)
 
+class irAttribute(irConst):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)    
 
+    def __str__(self):    
+        return "Attr(%s)" % (self.name)
