@@ -34,3 +34,10 @@ def simple_ifelse():
 
 	return b
 
+def while_loop():
+	i = Number()
+	i = 4
+
+	while i > 0:
+		i -= 1
+

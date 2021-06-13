@@ -23,6 +23,8 @@ class Builder(object):
         self.next_temp = 0
         self.refs = {}
 
+        self.loop_top = []
+        self.loop_end = []
 
     def __str__(self):
         s = "FX IR:\n"
@@ -209,6 +211,35 @@ class Builder(object):
         self.jump(end_label, lineno=lineno)
         self.scope_depth -= 1
         self.position_label(end_label)
+
+    def begin_while(self, lineno=None):
+        top_label = self.label('while.top', lineno=lineno)
+        end_label = self.label('while.end', lineno=lineno)
+        self.position_label(top_label)
+
+        self.loop_top.append(top_label)
+        self.loop_end.append(end_label)
+
+        self.scope_depth += 1
+
+    def test_while(self, test, lineno=None):
+        body_label = self.label('while.body', lineno=lineno)
+        ir = irBranch(test, body_label, self.loop_end[-1], lineno=lineno)
+
+        self.append_node(ir)
+        
+        self.position_label(body_label)
+
+    def end_while(self, lineno=None):
+        ir = irJump(self.loop_top[-1], lineno=lineno)
+        self.append_node(ir)
+
+        self.position_label(self.loop_end[-1])
+
+        self.loop_top.pop(-1)
+        self.loop_end.pop(-1)
+
+        self.scope_depth -= 1
 
     def lookup_subscript(self, target, index, lineno=None):
         result = self.add_ref(target, lineno=lineno)

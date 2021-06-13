@@ -198,7 +198,7 @@ class irBlock(IR):
                         ssa_vars[o._name] = o
 
                     else:
-                        assert False
+                        raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
                 inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const]
 

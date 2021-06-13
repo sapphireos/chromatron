@@ -1,12 +1,19 @@
 
+def while_loop():
+	i = Number()
+	i = 4
 
-def simple_array():
-	a = Number(count=4)
-	# pass
+	while i > 0:
+		i -= 1
 
-	b = Number()
 
-	a = b[0] + a
+# def simple_array():
+# 	a = Number(count=4)
+# 	# pass
+
+# 	b = Number()
+
+# 	a = b[0] + a
 
 	# b = a[0][1]
 	# b[0] = a[1]
