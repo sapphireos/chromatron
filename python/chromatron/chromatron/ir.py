@@ -3175,14 +3175,27 @@ class Builder(object):
             for s in self.strings:
                 print('\t%3d: [%3d] %s' % (s.addr, s.strlen, s.name))
 
-    def print_instructions(self):
+    def print_instructions(self, interleave_source=False):
+        global source_code
         print("INSTRUCTIONS: ")
+
+        used_lines = []
+
         i = 0
         for func in self.code:
             print('\t%s:' % (func))
 
             for ins in self.code[func]:
                 s = '\t\t%3d: %s' % (i, str(ins))
+
+                if interleave_source and ins.lineno not in used_lines:
+                    try:
+                        s += f'\n\t\t\t{source_code[ins.lineno].strip()}'
+                        used_lines.append(ins.lineno)
+
+                    except IndexError:
+                        pass
+
                 print(s)
                 i += 1
 

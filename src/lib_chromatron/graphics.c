@@ -30,6 +30,7 @@
 #include "catbus_common.h"
 #include "catbus.h"
 #include "datetime.h"
+#include "fs.h"
 
 #include "pixel.h"
 #include "hal_pixel.h"
@@ -51,6 +52,34 @@ KV_SECTION_META kv_meta_t gfx_info_kv[] = {
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 
 
+static uint8_t fx_rainbow[] __attribute__((aligned(4))) = {
+    #include "rainbow.fx.carray"
+};
+
+
+static uint16_t fx_rainbow_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    uint16_t ret_val = len;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+            memcpy( ptr, &fx_rainbow[pos], len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            ret_val = sizeof(fx_rainbow);
+            break;
+
+        default:
+            ret_val = 0;
+            break;
+    }
+
+    return ret_val;
+}
+
+
 void gfx_v_init( void ){
 
     gfxlib_v_init();
@@ -62,6 +91,8 @@ void gfx_v_init( void ){
     #endif
 
     sc_v_init();
+
+    fs_f_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );
 
     thread_t_create( gfx_control_thread,
                 PSTR("gfx_control"),
@@ -76,6 +107,9 @@ PT_BEGIN( pt );
 
     // init alarm
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+
+    // gfx_v_log_value_curve();
+    // THREAD_EXIT( pt );
 
     // init pixel arrays
     gfx_v_process_faders();

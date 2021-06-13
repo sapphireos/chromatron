@@ -70,19 +70,19 @@ int8_t energy_kv_handler(
 
         // convert raw counts to microamp-hours
 
-        if( hash == __KV__energy_cpu ){
+        if( hash == __KV__energy_total_cpu ){
 
             STORE64(data, energy_cpu / ( 3600 * ( 1000 / FADER_RATE ) ) );
         }
-        else if( hash == __KV__energy_wifi ){
+        else if( hash == __KV__energy_total_wifi ){
 
             STORE64(data, energy_wifi / ( 3600 * ( 1000 / FADER_RATE ) ) );
         }
-        else if( hash == __KV__energy_pix ){
+        else if( hash == __KV__energy_total_pix ){
 
             STORE64(data, energy_pix / ( 3600 * ( 1000 / FADER_RATE ) ) );
         }
-        else if( hash == __KV__energy_total ){
+        else if( hash == __KV__energy_total_all ){
 
             STORE64(data, energy_total / ( 3600 * ( 1000 / FADER_RATE ) ) );
         }
@@ -103,7 +103,7 @@ KV_SECTION_META kv_meta_t energy_info_kv[] = {
     { SAPPHIRE_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total_cpu" },
     { SAPPHIRE_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total_wifi" },
     { SAPPHIRE_TYPE_UINT64,   0, 0,  0,    	        energy_kv_handler,    "energy_total_pix" },
-    { SAPPHIRE_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total_total" },
+    { SAPPHIRE_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total_all" },
 
     { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_cpu,    0,                    "energy_power_cpu" },
     { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_wifi,   0,                    "energy_power_wifi" },

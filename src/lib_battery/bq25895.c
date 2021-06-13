@@ -47,6 +47,7 @@ static uint32_t capacity;
 static int32_t remaining;
 static int8_t therm;
 static uint8_t batt_cells; // number of cells in system
+static uint16_t boost_voltage;
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
@@ -65,6 +66,7 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                0,  "batt_remaining" },
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
 
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
@@ -358,13 +360,13 @@ void bq25895_v_set_system_reset( bool enable ){
 // voltage is in mV!
 void bq25895_v_set_boost_voltage( uint16_t volts ){
 
-    if( volts > 5510 ){
+    if( volts > BQ25895_MAX_BOOST_VOLTAGE ){
 
-        volts = 5510;
+        volts = BQ25895_MAX_BOOST_VOLTAGE;
     }
-    else if( volts < 4550 ){
+    else if( volts < BQ25895_MIN_BOOST_VOLTAGE ){
 
-        volts = 4550;
+        volts = BQ25895_MIN_BOOST_VOLTAGE;
     }
 
     uint8_t data = ( ( volts - 4550 ) * 15 ) / 960;
@@ -677,6 +679,14 @@ PT_BEGIN( pt );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
     bq25895_v_enable_adc_continuous();
     bq25895_v_set_charger( FALSE );
+    
+    // set min sys
+    // on battery only mode, the battery voltage must be above MINSYS for the ADC
+    // to read correctly.
+    // since MINSYS can only regulate the SYS voltage when plugged in to a power source,
+    // it otherwise isn't very important for our designs other than this ADC consideration.
+    bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+
 
     // init battery SOC state
     batt_volts = bq25895_u16_get_batt_voltage();
@@ -757,7 +767,22 @@ PT_BEGIN( pt );
 
             bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
             bq25895_v_enable_adc_continuous();
-            bq25895_v_set_boost_voltage( 4700 );
+
+            // set boost voltage
+            if( boost_voltage == 0 ){
+
+                boost_voltage = 4700;
+            }
+            else if( boost_voltage > BQ25895_MAX_BOOST_VOLTAGE ){
+
+                boost_voltage = BQ25895_MAX_BOOST_VOLTAGE;
+            }
+            else if( boost_voltage < BQ25895_MIN_BOOST_VOLTAGE ){
+
+                boost_voltage = BQ25895_MIN_BOOST_VOLTAGE;
+            }
+
+            bq25895_v_set_boost_voltage( boost_voltage );
 
             // charge config for NCR18650B
 
@@ -801,9 +826,6 @@ PT_BEGIN( pt );
 
             // run auto DPDM (which can override the current limits)
             // bq25895_v_force_dpdm();
-
-            // set min sys
-            bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );

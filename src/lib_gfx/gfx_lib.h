@@ -31,28 +31,28 @@
 #include "target.h"
 #include "hsv_to_rgb.h"
 
-#define GFX_VERSION             2
+// #define GFX_VERSION             2
 
-typedef struct  __attribute__((packed)){
-    uint8_t version;
-    uint16_t pix_count;
-    uint16_t pix_size_x;
-    uint16_t pix_size_y;
-    uint8_t pix_mode;
-    bool interleave_x;
-    bool invert_x;
-    bool transpose;
-    uint16_t hs_fade;
-    uint16_t v_fade;
-    uint16_t master_dimmer;
-    uint16_t sub_dimmer;
-    uint16_t frame_rate;
-    uint16_t dimmer_curve;
-    uint16_t virtual_array_start;
-    uint16_t virtual_array_length;
-    uint32_t sync_group_hash;
-    uint16_t sat_curve;
-} gfx_params_t;
+// typedef struct  __attribute__((packed)){
+//     uint8_t version;
+//     uint16_t pix_count;
+//     uint16_t pix_size_x;
+//     uint16_t pix_size_y;
+//     uint8_t pix_mode;
+//     bool interleave_x;
+//     bool invert_x;
+//     bool transpose;
+//     uint16_t hs_fade;
+//     uint16_t v_fade;
+//     uint16_t master_dimmer;
+//     uint16_t sub_dimmer;
+//     uint16_t frame_rate;
+//     uint16_t dimmer_curve;
+//     uint16_t virtual_array_start;
+//     uint16_t virtual_array_length;
+//     uint32_t sync_group_hash;
+//     uint16_t sat_curve;
+// } gfx_params_t;
 
 typedef struct  __attribute__((packed)){
     uint16_t h;
@@ -97,8 +97,8 @@ void gfx_v_set_pix_mode( uint8_t mode );
 void gfx_v_set_vm_frame_rate( uint16_t frame_rate );
 uint16_t gfx_u16_get_vm_frame_rate( void );
 
-void gfx_v_set_params( gfx_params_t *params );
-void gfx_v_get_params( gfx_params_t *params );
+// void gfx_v_set_params( gfx_params_t *params );
+// void gfx_v_get_params( gfx_params_t *params );
 
 int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t param_len );
 
@@ -182,5 +182,8 @@ uint32_t gfx_u32_get_pixel_w( void );
 // implemented by VM to signal frame rate changes
 void gfx_vm_v_update_frame_rate( uint16_t new_frame_rate );
 
+// logs the value -> RGB curve to a file
+// debug only!
+void gfx_v_log_value_curve( void );
 
 #endif
