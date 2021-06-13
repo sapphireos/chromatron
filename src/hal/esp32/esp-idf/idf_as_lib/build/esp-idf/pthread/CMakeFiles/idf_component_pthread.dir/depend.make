@@ -7,6 +7,7 @@ esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread.c.obj: ../../../../
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -102,6 +103,7 @@ esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_cond_var.c.obj: ../
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_cond_var.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_cond_var.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_cond_var.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_cond_var.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_cond_var.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_cond_var.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_cond_var.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -194,6 +196,7 @@ esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_local_storage.c.obj
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_local_storage.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_local_storage.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_local_storage.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_local_storage.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_local_storage.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_local_storage.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/pthread/CMakeFiles/idf_component_pthread.dir/pthread_local_storage.c.obj: ../../../../../components/esp32/include/esp_sleep.h

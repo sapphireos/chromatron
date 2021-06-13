@@ -7,6 +7,7 @@ esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: ..
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj: ../../../../../components/esp32/include/esp_sleep.h

@@ -8,6 +8,7 @@ esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.obj: ../.
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.obj: ../../../../../components/esp32/include/esp_ipc.h
@@ -106,6 +107,7 @@ esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.obj: ../..
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.obj: ../../../../../components/esp32/include/esp_ipc.h
@@ -212,6 +214,7 @@ esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.obj: ../../
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.obj: ../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.obj: ../../../../../components/esp32/include/esp_err.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.obj: ../../../../../components/esp32/include/esp_flash_data_types.h
+esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.obj: ../../../../../components/esp32/include/esp_ipc.h

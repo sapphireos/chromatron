@@ -33,6 +33,7 @@
 #include "config.h"
 #include "timesync.h"
 #include "vm_sync.h"
+#include "util.h"
 
 #include "vm.h"
 #include "vm_core.h"
@@ -45,10 +46,11 @@ static bool vm_reset[VM_MAX_VMS];
 static bool vm_run[VM_MAX_VMS];
 
 static int8_t vm_status[VM_MAX_VMS];
-static uint16_t vm_loop_time[VM_MAX_VMS];
-static uint16_t vm_thread_time[VM_MAX_VMS];
+static uint16_t vm_run_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
 static uint8_t vm_timing_status;
+
+static uint8_t vm_pause;
 
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
@@ -77,8 +79,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[0],            0,                  "vm_run" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[0],         0,                  "vm_status" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[0],      0,                  "vm_loop_time" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[0],    0,                  "vm_thread_time" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[0],       0,                  "vm_run_time" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
     { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &vm_timing_status,     0,                  "vm_timing" },
 
@@ -87,8 +88,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[1],            0,                  "vm_run_1" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_1" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[1],         0,                  "vm_status_1" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[1],      0,                  "vm_loop_time_1" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[1],    0,                  "vm_thread_time_1" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[1],       0,                  "vm_run_time_1" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[1],     0,                  "vm_peak_cycles_1" },
     #endif
 
@@ -97,8 +97,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[2],            0,                  "vm_run_2" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_2" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[2],         0,                  "vm_status_2" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[2],      0,                  "vm_loop_time_2" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[2],    0,                  "vm_thread_time_2" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[2],       0,                  "vm_run_time_2" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[2],     0,                  "vm_peak_cycles_2" },
     #endif
 
@@ -107,8 +106,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[3],            0,                  "vm_run_3" },
     { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_3" },
     { SAPPHIRE_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[3],         0,                  "vm_status_3" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_loop_time[3],      0,                  "vm_loop_time_3" },
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_thread_time[3],    0,                  "vm_thread_time_3" },
+    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[3],       0,                  "vm_run_time_3" },
     { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_peak_cycles_3" },
     #endif
 
@@ -144,6 +142,7 @@ static const PROGMEM uint32_t restricted_keys[] = {
     __KV__pix_mode,    
 };
 
+#ifdef ENABLE_CATBUS_LINK
 static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
     catbus_hash_t32 link_tag = 0;
@@ -171,12 +170,15 @@ static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
     return link_tag;
 }
-
+#endif
 
 static void reset_published_data( uint8_t vm_id ){
 
     kvdb_v_clear_tag( 0, 1 << vm_id );
+
+    #ifdef ENABLE_CATBUS_LINK
     link_v_delete_by_tag( get_link_tag( vm_id ) );
+    #endif
 } 
 
 static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
@@ -437,7 +439,9 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
     // set up links
     fs_v_seek( f, sizeof(vm_size) + state.link_start );
+    #ifdef ENABLE_CATBUS_LINK
     catbus_hash_t32 link_tag = get_link_tag( vm_id );
+    #endif
 
     for( uint8_t i = 0; i < state.link_count; i++ ){
 
@@ -445,6 +449,7 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
         fs_i16_read( f, (uint8_t *)&link, sizeof(link) );
 
+        #ifdef ENABLE_CATBUS_LINK
         link_l_create( 
             link.mode,
             link.source_key,
@@ -453,7 +458,8 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
             link_tag,
             link.rate,
             link.aggregation,
-            LINK_FILTER_OFF );            
+            LINK_FILTER_OFF );   
+        #endif         
     }
 
     // load cron jobs
@@ -462,8 +468,7 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
     fs_f_close( f );
 
     vm_status[vm_id]        = VM_STATUS_READY;
-    vm_loop_time[vm_id]     = 0;
-    vm_thread_time[vm_id]   = 0;
+    vm_run_time[vm_id]      = 0;
     vm_max_cycles[vm_id]    = 0;
 
     log_v_debug_P( PSTR("VM loaded in: %lu ms"), tmr_u32_elapsed_time_ms( start_time ) );
@@ -618,8 +623,7 @@ PT_BEGIN( pt );
         state->handle = -1;
     }
     
-    vm_loop_time[state->vm_id]     = 0;
-    vm_thread_time[state->vm_id]   = 0;
+    vm_run_time[state->vm_id]      = 0;
     vm_max_cycles[state->vm_id]    = 0;
 
     get_program_fname( state->vm_id, state->program_fname );
@@ -683,6 +687,8 @@ PT_BEGIN( pt );
 
     // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
+
+        THREAD_WAIT_WHILE( pt, vm_pause & ( 1 << state->vm_id ) );
 
         state->delay_adjust = 0;
         
@@ -856,6 +862,23 @@ PT_BEGIN( pt );
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
 
+        // update timing
+        uint32_t elapsed_us = state->vm_state.last_elapsed_us;
+
+        if( elapsed_us > 65535 ){
+
+            elapsed_us = 65535;
+        }
+
+        if( vm_run_time[state->vm_id] == 0 ){
+
+            vm_run_time[state->vm_id] = elapsed_us;
+        }
+        else{
+
+            vm_run_time[state->vm_id] = util_u16_ewma( elapsed_us, vm_run_time[state->vm_id], 16 );    
+        }
+
         // log_v_debug_P( PSTR("net: %d delay: %d tick: %d next: %d cur: %d loop: %d thread: %d thread2: %d"), 
         //     time_u32_get_network_time(), 
         //     delay,
@@ -952,6 +975,7 @@ PT_BEGIN( pt );
         THREAD_EXIT( pt );
     }
 
+    TMR_WAIT( pt, 100 ); // delay so pixel drivers have a chance to zero out the array
 
     while(1){
 
@@ -1025,8 +1049,7 @@ PT_BEGIN( pt );
                 log_v_debug_P( PSTR("Stopping VM: %d"), i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
 
-                vm_loop_time[i]     = 0;
-                vm_thread_time[i]   = 0;
+                vm_run_time[i]      = 0;
                 vm_max_cycles[i]    = 0;
             }
             
@@ -1084,6 +1107,47 @@ void vm_v_reset( void ){
     vm_reset[0] = TRUE;
 }
 
+void vm_v_pause( void ){
+
+    vm_pause |= ( 1 << 0 );
+}
+
+void vm_v_resume( void ){
+
+    vm_pause &= ~( 1 << 0 );
+}
+
+void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
+
+    catbus_hash_t32 hash;
+
+    if( vm_id == 0 ){
+
+        hash = __KV__vm_prog;
+    }
+    else if( vm_id == 1 ){
+
+        hash = __KV__vm_prog_1;
+    }
+    else if( vm_id == 2 ){
+
+        hash = __KV__vm_prog_2;
+    }
+    else if( vm_id == 3 ){
+
+        hash = __KV__vm_prog_3;
+    }
+    else{
+
+        hash = 0;
+
+        ASSERT( FALSE );
+    }    
+
+    kv_i8_set( hash, name, FFS_FILENAME_LEN );
+
+    vm_reset[vm_id] = TRUE;
+}
 
 bool vm_b_running( void ){
 

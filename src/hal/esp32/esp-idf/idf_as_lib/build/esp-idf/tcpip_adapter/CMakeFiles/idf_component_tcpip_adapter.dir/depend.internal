@@ -9,6 +9,7 @@ esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_l
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -105,6 +106,7 @@ esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_l
  ../../../../../components/lwip/port/esp32/include/netif/dhcp_state.h
  ../../../../../components/lwip/port/esp32/include/netif/ethernetif.h
  ../../../../../components/lwip/port/esp32/include/netif/wlanif.h
+ ../../../../../components/lwip/port/esp32/tcp_isn/tcp_isn.h
  ../../../../../components/newlib/include/_ansi.h
  ../../../../../components/newlib/include/alloca.h
  ../../../../../components/newlib/include/inttypes.h

@@ -65,6 +65,20 @@ menu "LWIP"
             will be redirected to lwip_select(), therefore, select can be used
             for sockets only.
 
+    config LWIP_SO_LINGER
+        bool "Enable SO_LINGER processing"
+        default n
+        help
+            Enabling this option allows SO_LINGER processing.
+            l_onoff = 1,l_linger can set the timeout.
+
+            If l_linger=0, When a connection is closed, TCP will terminate the connection.
+            This means that TCP will discard any data packets stored in the socket send buffer
+            and send an RST to the peer.
+
+            If l_linger!=0,Then closesocket() calls to block the process until
+            the remaining data packets has been sent or timed out.
+
     config LWIP_SO_REUSE
         bool "Enable SO_REUSEADDR option"
         default y
@@ -92,18 +106,31 @@ menu "LWIP"
         help
             Enabling this option allows checking for available data on a netconn.
 
-    config LWIP_IP_FRAG
-        bool "Enable fragment outgoing IP packets"
+    config LWIP_IP4_FRAG
+        bool "Enable fragment outgoing IP4 packets"
         default y
         help
-            Enabling this option allows fragmenting outgoing IP packets if their size
+            Enabling this option allows fragmenting outgoing IP4 packets if their size
             exceeds MTU.
 
-    config LWIP_IP_REASSEMBLY
-        bool "Enable reassembly incoming fragmented IP packets"
+    config LWIP_IP6_FRAG
+        bool "Enable fragment outgoing IP6 packets"
+        default y
+        help
+            Enabling this option allows fragmenting outgoing IP6 packets if their size
+            exceeds MTU.
+
+    config LWIP_IP4_REASSEMBLY
+        bool "Enable reassembly incoming fragmented IP4 packets"
         default n
         help
-            Enabling this option allows reassemblying incoming fragmented IP packets.
+            Enabling this option allows reassemblying incoming fragmented IP4 packets.
+
+    config LWIP_IP6_REASSEMBLY
+        bool "Enable reassembly incoming fragmented IP6 packets"
+        default n
+        help
+            Enabling this option allows reassemblying incoming fragmented IP6 packets.
 
     config LWIP_STATS
         bool "Enable LWIP statistics"
@@ -269,6 +296,17 @@ menu "LWIP"
 
     menu "TCP"
 
+        config LWIP_TCP_ISN_HOOK
+            bool "Enable TCP ISN Hook"
+            default y
+            help
+                Enables custom TCP ISN hook to randomize initial sequence
+                number in TCP connection. This is recommended as default
+                lwIP implementation (`tcp_next_iss`) is not very strong,
+                as it does not take into consideration any platform
+                specific entropy source.
+
+
         config LWIP_MAX_ACTIVE_TCP
             int "Maximum active TCP Connections"
             range 1 1024
@@ -295,6 +333,13 @@ menu "LWIP"
                 change the memory usage of LWIP, except for preventing
                 new listening TCP connections after the limit is reached.
 
+        config LWIP_TCP_HIGH_SPEED_RETRANSMISSION
+            bool "TCP high speed retransmissions"
+            default y
+            help
+                Speed up the TCP retransmission interval. If disabled,
+                it is recommended to change the number of SYN retransmissions to 6,
+                and TCP initial rto time to 3000.
 
         config TCP_MAXRTX
             int "Maximum number of retransmissions of data segments"
@@ -305,19 +350,22 @@ menu "LWIP"
 
         config TCP_SYNMAXRTX
             int "Maximum number of retransmissions of SYN segments"
-            default 6
+            default 6 if !LWIP_TCP_HIGH_SPEED_RETRANSMISSION
+            default 12 if LWIP_TCP_HIGH_SPEED_RETRANSMISSION
             range 3 12
             help
                 Set maximum number of retransmissions of SYN segments.
 
         config TCP_MSS
             int "Maximum Segment Size (MSS)"
-            default 1436
-            range 1220 1436
+            default 1440
+            range 536 1460
             help
                 Set maximum segment size for TCP transmission.
 
-                Can be set lower to save RAM, the default value 1436 will give best throughput.
+                Can be set lower to save RAM, the default value 1460(ipv4)/1440(ipv6) will give best throughput.
+                IPv4 TCP_MSS Range: 576 <= TCP_MSS <= 1460
+                IPv6 TCP_MSS Range: 1220<= TCP_MSS <= 1440
 
         config TCP_MSL
             int "Maximum segment lifetime (MSL)"
@@ -435,6 +483,14 @@ menu "LWIP"
             help
                 Enable this feature to support TCP window scaling.
 
+        config LWIP_TCP_RTO_TIME
+            int "Default TCP rto time"
+            default 3000 if !LWIP_TCP_HIGH_SPEED_RETRANSMISSION
+            default 1500 if LWIP_TCP_HIGH_SPEED_RETRANSMISSION
+            help
+                Set default TCP rto time for a reasonable initial rto.
+                In bad network environment, recommend set value of rto time to 1500.
+
     endmenu # TCP
 
     menu "UDP"
@@ -503,6 +559,19 @@ menu "LWIP"
         default 0x0 if TCPIP_TASK_AFFINITY_CPU0
         default 0x1 if TCPIP_TASK_AFFINITY_CPU1
 
+    config LWIP_IPV6_MEMP_NUM_ND6_QUEUE
+        int "Max number of IPv6 packets to queue during MAC resolution"
+        range 3 20
+        default 3
+        help
+            Config max number of IPv6 packets to queue during MAC resolution.
+
+    config LWIP_IPV6_ND6_NUM_NEIGHBORS
+        int "Max number of entries in IPv6 neighbor cache"
+        range 3 10
+        default 5
+        help
+            Config max number of entries in IPv6 neighbor cache.
 
     menuconfig PPP_SUPPORT
         bool "Enable PPP support (new/experimental)"
@@ -600,5 +669,12 @@ menu "LWIP"
                 (SNTPv4 RFC 4330 enforces a minimum update time of 15 seconds).
 
     endmenu # SNTP
+
+    config LWIP_ESP_LWIP_ASSERT
+        bool "Enable LWIP ASSERT checks"
+        default y
+        help
+            Enable this option allows lwip to check assert.
+            It is recommended to keep it open, do not close it.
 
 endmenu

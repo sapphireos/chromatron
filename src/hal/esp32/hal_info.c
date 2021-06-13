@@ -24,6 +24,7 @@
 
 #include "hal_info.h"
 #include "cpu.h"
+#include "flash_fs.h"
 
 #include "esp_system.h"
 
@@ -42,6 +43,10 @@ static int8_t hal_info_kv_handler(
 
             strlcpy_P( data, PSTR("ChromatronESP32"), len );
     	}
+        else if( hash == __KV__hw_board_type ){
+            
+            *(uint8_t *)data = ffs_u8_read_board_type();
+        }
     	else if( hash == __KV__cpu_clock ){
 
             STORE32(data, cpu_u32_get_clock_speed());
@@ -77,6 +82,20 @@ static int8_t hal_info_kv_handler(
 
         return 0;
     }
+    else if( op == KV_OP_SET ){
+
+        if( hash == __KV__hw_board_type ){
+
+            if( ffs_u8_read_board_type() == FLASH_FS_HW_TYPE_UNSET ){
+
+                ffs_v_write_board_type( *(uint8_t *)data );    
+
+                return 0;
+            }
+
+            return -1; // cannot set board rev (already set)
+        }
+    }
 
     return -1;
 }
@@ -84,6 +103,7 @@ static int8_t hal_info_kv_handler(
 
 KV_SECTION_META kv_meta_t hal_info_kv[] = {
     { SAPPHIRE_TYPE_STRING32,     0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "hw_type" },
+    { SAPPHIRE_TYPE_UINT8,        0, 0,                   0, hal_info_kv_handler,  "hw_board_type" },
     { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "cpu_clock" },
     { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "esp_heap_free" },
     { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "esp_heap_min_free" },

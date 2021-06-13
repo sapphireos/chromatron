@@ -28,6 +28,7 @@
 #include "hal_pixel.h"
 #include "os_irq.h"
 #include "spi.h"
+#include "timers.h"
 
 #include "pixel.h"
 #include "pixel_vars.h"
@@ -40,34 +41,12 @@
 #define FADE_TIMER_VALUE_WS2811     1 // 1 ms
 #define FADE_TIMER_LOW_POWER        20 // 20 ms
 
-#define MAX_BYTES_PER_PIXEL 16
 
-#define HEADER_LENGTH       2
-#define TRAILER_LENGTH      32
-#define ZERO_PADDING (N_PIXEL_OUTPUTS * (TRAILER_LENGTH + HEADER_LENGTH))
 
 #ifdef PIXEL_USE_MALLOC
-
-static uint8_t *array_r __attribute__((aligned(4)));
-static uint8_t *array_g __attribute__((aligned(4)));
-static uint8_t *array_b __attribute__((aligned(4)));
-static union{
-    uint8_t *dither __attribute__((aligned(4)));
-    uint8_t *white __attribute__((aligned(4)));
-} array_misc;
 static uint8_t *outputs __attribute__((aligned(4)));
-
 #else
-
-static uint8_t array_r[MAX_PIXELS] __attribute__((aligned(4)));
-static uint8_t array_g[MAX_PIXELS] __attribute__((aligned(4)));
-static uint8_t array_b[MAX_PIXELS] __attribute__((aligned(4)));
-static union{
-    uint8_t dither[MAX_PIXELS] __attribute__((aligned(4)));
-    uint8_t white[MAX_PIXELS] __attribute__((aligned(4)));
-} array_misc;
-static uint8_t outputs[MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING] __attribute__((aligned(4)));
-
+static uint8_t outputs[PIXEL_BUF_SIZE] __attribute__((aligned(4)));
 #endif
 
 static uint8_t dither_cycle;
@@ -76,6 +55,9 @@ static const uint8_t ws2811_lookup[256][4] __attribute__((aligned(4))) = {
     #include "ws2811_lookup.txt"
 };
 
+static spi_transaction_t spi_transaction;
+static spi_transaction_t* transaction_ptr = &spi_transaction;
+static bool request_reconfigure;
 
 static uint16_t setup_pixel_buffer( void ){
 
@@ -109,6 +91,11 @@ static uint16_t setup_pixel_buffer( void ){
 
     */
 
+    uint8_t *array_r = gfx_u8p_get_red();
+    uint8_t *array_g = gfx_u8p_get_green();
+    uint8_t *array_b = gfx_u8p_get_blue();
+    uint8_t *array_misc = gfx_u8p_get_dither();
+
     uint8_t r, g, b, dither;
     uint8_t rd, gd, bd;
 
@@ -123,7 +110,7 @@ static uint16_t setup_pixel_buffer( void ){
         }
         else if( pix_dither ){
 
-            dither = array_misc.dither[i];
+            dither = array_misc[i];
 
             rd = ( dither >> 4 ) & 0x03;
             gd = ( dither >> 2 ) & 0x03;
@@ -219,7 +206,7 @@ static uint16_t setup_pixel_buffer( void ){
 
             if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
-                uint8_t white = array_misc.white[i];
+                uint8_t white = array_misc[i];
 
                 buf[buf_index++] = pgm_read_byte( &ws2811_lookup[white][0] );
                 buf[buf_index++] = pgm_read_byte( &ws2811_lookup[white][1] );
@@ -241,14 +228,21 @@ static uint16_t setup_pixel_buffer( void ){
     return buf_index;
 }
 
+static void _pixel_v_configure( void ){
+
+    if( pix_mode == PIX_MODE_OFF ){
+
+        return;
+    }
+
+    spi_v_init( PIXEL_SPI_CHANNEL, pix_clock, 0 );
+}
+
 
 PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    // signal transfer thread to start
-    thread_v_signal( PIX_SIGNAL_0 );
-
     while(1){
 
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
@@ -263,49 +257,42 @@ PT_BEGIN( pt );
             THREAD_WAIT_WHILE( pt, !gfx_b_enabled() );
 
             // re-enable pixel drivers
-            hal_pixel_v_configure();
+            _pixel_v_configure();
             
             // restart loop
             continue;
         }
 
-        uint16_t *h = gfx_u16p_get_hue();
-        uint16_t *s = gfx_u16p_get_sat();
-        uint16_t *v = gfx_u16p_get_val();
-        uint16_t r, g, b, w;
+        if( request_reconfigure ){
 
-        // run HSV to RGBW conversion for this channel
-        for( uint32_t i = 0; i < gfx_u16_get_pix_count(); i++ ){
+            _pixel_v_configure();
 
-            uint16_t dimmed_val = gfx_u16_get_dimmed_val( v[i] );
-
-            if( pix_mode == PIX_MODE_SK6812_RGBW ){
-
-                gfx_v_hsv_to_rgbw( h[i], s[i], dimmed_val, &r, &g, &b, &w );
-                
-                array_r[i] = r >> 8;
-                array_g[i] = g >> 8;
-                array_b[i] = b >> 8;
-                array_misc.white[i] = w >> 8;
-            }
-            else{
-
-                gfx_v_hsv_to_rgb( h[i], s[i], dimmed_val, &r, &g, &b );
-
-                array_r[i] = r >> 8;
-                array_g[i] = g >> 8;
-                array_b[i] = b >> 8;
-                array_misc.dither[i] = 0;
-            }
+            request_reconfigure = FALSE;
         }
 
         uint16_t data_length = setup_pixel_buffer();
-        
-        // initiate SPI transfer
-        // this is blocking!
-        spi_v_write_block( PIXEL_SPI_CHANNEL, outputs, data_length );
 
-        THREAD_YIELD( pt );
+        // initiate SPI transfers
+
+        // this will transmit using interrupt/DMA mode
+        memset( &spi_transaction, 0, sizeof(spi_transaction) );
+
+        spi_transaction.length = data_length * 8;
+        spi_transaction.tx_buffer = outputs;
+        
+        esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), &spi_transaction, 200 );
+        if( err != ESP_OK ){
+
+            log_v_critical_P( PSTR("pixel spi bus error: 0x%03x handle: 0x%x len: %u"), err, hal_spi_s_get_handle(), data_length );
+
+            // this is bad, but log and we will try on the next frame
+
+            continue;
+        }        
+
+        THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
+
+        TMR_WAIT( pt, 5 );
     }
 
 PT_END( pt );
@@ -314,18 +301,9 @@ PT_END( pt );
 void hal_pixel_v_init( void ){
 
     #ifdef PIXEL_USE_MALLOC
-
-    array_r = malloc( MAX_PIXELS );
-    array_g = malloc( MAX_PIXELS );
-    array_b = malloc( MAX_PIXELS );
-    array_misc.white = malloc( MAX_PIXELS );
-
-    outputs = malloc( MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING );
     
-    ASSERT( array_r != 0 );
-    ASSERT( array_g != 0 );
-    ASSERT( array_b != 0 );
-    ASSERT( array_misc.white != 0 );
+    outputs = malloc( PIXEL_BUF_SIZE );
+    
     ASSERT( outputs != 0 );
 
     #endif
@@ -335,7 +313,7 @@ void hal_pixel_v_init( void ){
                      0,
                      0 );
 
-	hal_pixel_v_configure();
+	_pixel_v_configure();
 }
 
 void hal_pixel_v_configure( void ){
@@ -345,6 +323,6 @@ void hal_pixel_v_configure( void ){
         return;
     }
 
-	spi_v_init( PIXEL_SPI_CHANNEL, pix_clock, 0 );
+    request_reconfigure = TRUE;
 }
 

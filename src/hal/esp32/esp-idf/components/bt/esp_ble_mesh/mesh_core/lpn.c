@@ -165,7 +165,7 @@ static void friend_clear_sent(int err, void *user_data)
     lpn->req_attempts++;
 
     if (err) {
-        BT_ERR("%s, Sending Friend Request failed (err %d)", __func__, err);
+        BT_ERR("Sending Friend Clear failed (err %d)", err);
         lpn_set_state(BLE_MESH_LPN_ENABLED);
         clear_friendship(false, lpn->disable);
         return;
@@ -201,7 +201,7 @@ static int send_friend_clear(void)
     BT_DBG("%s", __func__);
 
     return bt_mesh_ctl_send(&tx, TRANS_CTL_OP_FRIEND_CLEAR, &req,
-                            sizeof(req), NULL, &clear_sent_cb, NULL);
+                            sizeof(req), &clear_sent_cb, NULL);
 }
 
 static void clear_friendship(bool force, bool disable)
@@ -218,7 +218,7 @@ static void clear_friendship(bool force, bool disable)
         return;
     }
 
-    bt_mesh_rx_reset();
+    bt_mesh_rx_reset(true);
 
     k_delayed_work_cancel(&lpn->timer);
 
@@ -277,7 +277,7 @@ static void friend_req_sent(u16_t duration, int err, void *user_data)
     struct bt_mesh_lpn *lpn = &bt_mesh.lpn;
 
     if (err) {
-        BT_ERR("%s, Sending Friend Request failed (err %d)", __func__, err);
+        BT_ERR("Sending Friend Request failed (err %d)", err);
 
         if (IS_ENABLED(CONFIG_BLE_MESH_LPN_ESTABLISHMENT)) {
             bt_mesh_scan_enable();
@@ -328,7 +328,7 @@ static int send_friend_req(struct bt_mesh_lpn *lpn)
     BT_DBG("%s", __func__);
 
     return bt_mesh_ctl_send(&tx, TRANS_CTL_OP_FRIEND_REQ, &req,
-                            sizeof(req), NULL, &friend_req_sent_cb, NULL);
+                            sizeof(req), &friend_req_sent_cb, NULL);
 }
 
 static void req_sent(u16_t duration, int err, void *user_data)
@@ -339,7 +339,7 @@ static void req_sent(u16_t duration, int err, void *user_data)
            lpn->sent_req, duration, err, state2str(lpn->state));
 
     if (err) {
-        BT_ERR("%s, Sending request failed (err %d)", __func__, err);
+        BT_ERR("Sending request failed (err %d)", err);
         lpn->sent_req = 0U;
         group_zero(lpn->pending);
         return;
@@ -403,7 +403,7 @@ static int send_friend_poll(void)
     }
 
     err = bt_mesh_ctl_send(&tx, TRANS_CTL_OP_FRIEND_POLL, &fsn, 1,
-                           NULL, &req_sent_cb, NULL);
+                           &req_sent_cb, NULL);
     if (err == 0) {
         lpn->pending_poll = 0U;
         lpn->sent_req = TRANS_CTL_OP_FRIEND_POLL;
@@ -492,7 +492,7 @@ void bt_mesh_lpn_msg_received(struct bt_mesh_net_rx *rx)
     }
 
     if (lpn->sent_req != TRANS_CTL_OP_FRIEND_POLL) {
-        BT_WARN("Unexpected message withouth a preceding Poll");
+        BT_WARN("Unexpected message without a preceding Poll");
         return;
     }
 
@@ -699,7 +699,7 @@ static bool sub_update(u8_t op)
         }
 
         if (added_count + g >= lpn->queue_size) {
-            BT_WARN("%s, Friend Queue Size exceeded", __func__);
+            BT_WARN("Friend Queue Size exceeded");
             break;
         }
 
@@ -718,7 +718,7 @@ static bool sub_update(u8_t op)
 
     req.xact = lpn->xact_next++;
 
-    if (bt_mesh_ctl_send(&tx, op, &req, 1 + g * 2, NULL,
+    if (bt_mesh_ctl_send(&tx, op, &req, 1 + g * 2,
                          &req_sent_cb, NULL) < 0) {
         group_zero(lpn->pending);
         return false;
@@ -834,7 +834,7 @@ static void lpn_timeout(struct k_work *work)
         update_timeout(lpn);
         break;
     default:
-        __ASSERT(0, "Unhandled LPN state");
+        BT_ERR("Unhandled LPN state");
         break;
     }
 }
@@ -1090,6 +1090,7 @@ int bt_mesh_lpn_init(void)
     return 0;
 }
 
+#if CONFIG_BLE_MESH_DEINIT
 int bt_mesh_lpn_deinit(void)
 {
     struct bt_mesh_lpn *lpn = &bt_mesh.lpn;
@@ -1100,5 +1101,6 @@ int bt_mesh_lpn_deinit(void)
 
     return 0;
 }
+#endif /* CONFIG_BLE_MESH_DEINIT */
 
 #endif /* CONFIG_BLE_MESH_LOW_POWER */

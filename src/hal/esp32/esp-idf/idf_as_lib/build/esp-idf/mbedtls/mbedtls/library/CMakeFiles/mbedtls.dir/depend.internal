@@ -10,6 +10,7 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_bignum.c.o
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -110,6 +111,7 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_hardware.c
  ../../../../../components/esp32/include/esp_assert.h
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -389,6 +391,7 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -897,21 +900,30 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/ssl_ticket.c.obj
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/dhm.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/ecdh.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/ecdsa.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/ecjpake.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/ecp.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/md.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/md5.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/pk.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform_time.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform_util.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/rsa.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/sha1.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/sha256.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/sha512.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/ssl.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/ssl_ciphersuites.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/ssl_internal.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/ssl_ticket.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/threading.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/x509.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/x509_crl.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/x509_crt.h
  ../../../../../components/mbedtls/port/include/mbedtls/config.h
+ ../../../../../components/mbedtls/port/include/sha1_alt.h
+ ../../../../../components/mbedtls/port/include/sha256_alt.h
+ ../../../../../components/mbedtls/port/include/sha512_alt.h
  ../../../../../components/newlib/include/_ansi.h
  ../../../../../components/newlib/include/alloca.h
  ../../../../../components/newlib/include/limits.h

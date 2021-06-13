@@ -1100,10 +1100,10 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
 #if (BLE_INCLUDED == TRUE)
         while ( ((l2cb.controller_xmit_window != 0 && (p_lcb->transport == BT_TRANSPORT_BR_EDR)) ||
                  (l2cb.controller_le_xmit_window != 0 && (p_lcb->transport == BT_TRANSPORT_LE)))
-                && (p_lcb->sent_not_acked <= p_lcb->link_xmit_quota))
+                && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
 #else
         while ( (l2cb.controller_xmit_window != 0)
-                && (p_lcb->sent_not_acked <= p_lcb->link_xmit_quota))
+                && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
 #endif
         {
             if (list_is_empty(p_lcb->link_xmit_data_q)) {
@@ -1122,11 +1122,17 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
 #if (BLE_INCLUDED == TRUE)
             while ( ((l2cb.controller_xmit_window != 0 && (p_lcb->transport == BT_TRANSPORT_BR_EDR)) ||
                      (l2cb.controller_le_xmit_window != 0 && (p_lcb->transport == BT_TRANSPORT_LE)))
-                    && (p_lcb->sent_not_acked <= p_lcb->link_xmit_quota))
+                    && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
 #else
             while ((l2cb.controller_xmit_window != 0) && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
 #endif
             {
+                //need check flag: partial_segment_being_sent.
+                if ( (p_lcb->partial_segment_being_sent)
+                        || (p_lcb->link_state != LST_CONNECTED)
+                        || (L2C_LINK_CHECK_POWER_MODE (p_lcb)) ) {
+                    break;
+                }
                 //L2CAP_TRACE_DEBUG("l2cu_get_next_buffer_to_send = %p",l2cu_get_next_buffer_to_send(p_lcb));
                 if ((p_buf = l2cu_get_next_buffer_to_send (p_lcb)) == NULL) {
                     break;

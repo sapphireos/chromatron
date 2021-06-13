@@ -7,6 +7,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj:
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj: ../../../../../components/esp32/include/esp_interface.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/dhcpserver/dhcpserver.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -143,6 +144,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: ../../.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/esp_ping.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -256,6 +258,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: ../../../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/apps/ping/ping.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -428,6 +431,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: ../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_lib.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -572,6 +576,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: ../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/api_msg.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -716,6 +721,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: ../../../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/err.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -826,6 +832,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: ../../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netbuf.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -946,6 +953,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: ../../.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netdb.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1073,6 +1081,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: ../.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/netifapi.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1209,6 +1218,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: ../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/sockets.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1362,6 +1372,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: ../../.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/api/tcpip.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1499,6 +1510,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/apps/sntp/sntp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1633,6 +1645,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: ../../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/def.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1742,6 +1755,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: ../../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/dns.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1872,6 +1886,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/inet_chksum.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -1987,6 +2002,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: ../../.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/init.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -2159,6 +2175,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: ../../../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ip.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -2283,6 +2300,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/autoip.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -2417,6 +2435,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -2552,6 +2571,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/etharp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -2687,6 +2707,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/icmp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -2818,6 +2839,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/igmp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -2947,6 +2969,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -3091,6 +3114,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -3209,6 +3233,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -3341,6 +3366,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: .
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -3449,6 +3475,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -3578,6 +3605,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: .
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -3709,6 +3737,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: .
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/inet6.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -3820,6 +3849,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -3958,6 +3988,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -4068,6 +4099,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -4198,6 +4230,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/mld6.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -4329,6 +4362,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/ipv6/nd6.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -4463,6 +4497,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: ../../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/mem.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -4579,6 +4614,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: ../../.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/memp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -4739,6 +4775,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: ../../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/netif.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -4889,6 +4926,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: ../../.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/pbuf.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -5026,6 +5064,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: ../../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/raw.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -5154,6 +5193,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: ../../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/stats.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -5268,6 +5308,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: ../../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/sys.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -5375,6 +5416,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: ../../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -5509,6 +5551,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: ../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_in.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -5642,6 +5685,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: ../.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/tcp_out.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -5777,6 +5821,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/timeouts.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -5925,6 +5970,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: ../../..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/core/udp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -6060,6 +6106,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernet.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -6220,6 +6267,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -6378,6 +6426,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/lowpan6.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -6513,6 +6562,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/auth.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -6682,6 +6732,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ccp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -6838,6 +6889,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -6996,6 +7048,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -7155,6 +7208,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj:
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -7314,6 +7368,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/demand.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -7485,6 +7540,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eap.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -7642,6 +7698,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ecp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -7799,6 +7856,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: .
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/eui64.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -7955,6 +8013,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/fsm.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -8111,6 +8170,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -8279,6 +8339,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -8448,6 +8509,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/lcp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -8605,6 +8667,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: .
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/magic.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -8762,6 +8825,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/mppe.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -8918,6 +8982,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.ob
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/multilink.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -9083,6 +9148,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: ../
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/ppp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -9247,6 +9313,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: 
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -9408,6 +9475,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -9564,6 +9632,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: .
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -9726,6 +9795,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -9887,6 +9957,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: .
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/pppos.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -10049,6 +10120,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/upap.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -10205,6 +10277,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: .
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/utils.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -10380,6 +10453,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: ../.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/ppp/vj.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -10536,6 +10610,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: ../.
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/lwip/src/netif/slipif.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -10658,6 +10733,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/debug/lwip_debug.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -10797,6 +10873,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.ob
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/freertos/sys_arch.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -10914,6 +10991,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj: ../../../../../components/esp32/include/esp_interface.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -11048,6 +11126,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_interface.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -11187,6 +11266,7 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ../../../../../components/esp32/include/esp_err.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ../../../../../components/esp32/include/esp_event_legacy.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ../../../../../components/esp32/include/esp_interface.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -11326,12 +11406,130 @@ esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ..
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: ../../../../../components/lwip/port/esp32/netif/wlanif.c
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj: config/sdkconfig.h
 
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/driver/include/driver/gpio.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/driver/include/driver/touch_pad.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_assert.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_attr.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_intr.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_sleep.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_system.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_task.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_timer.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/esp_types.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/rom/ets_sys.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/rom/gpio.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/rom/md5_hash.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/config/core-isa.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/config/core-matmap.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/config/core.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/config/specreg.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/config/system.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/config/tie-asm.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/config/tie.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/coreasm.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/corebits.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/hal.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/xtensa-versions.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/xtruntime-core-state.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/xtruntime-frames.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/esp32/include/xtensa/xtruntime.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/FreeRTOS.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/FreeRTOSConfig.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/deprecated_definitions.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/list.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/mpu_wrappers.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/portable.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/portbenchmark.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/portmacro.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/porttrace.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/projdefs.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/queue.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/semphr.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/task.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/xtensa_api.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/xtensa_config.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/freertos/include/freertos/xtensa_context.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/heap/include/esp_heap_caps.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/heap/include/multi_heap.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/include/apps/sntp/sntp.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/lwip/src/include/lwip/arch.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/lwip/src/include/lwip/debug.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/lwip/src/include/lwip/def.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/lwip/src/include/lwip/err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/lwip/src/include/lwip/ip4_addr.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/lwip/src/include/lwip/ip6_addr.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/lwip/src/include/lwip/ip_addr.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/lwip/src/include/lwip/opt.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/lwip/src/include/lwip/sys.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/port/esp32/include/arch/cc.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/port/esp32/include/arch/perf.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/port/esp32/include/arch/sys_arch.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/port/esp32/include/arch/vfs_lwip.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/port/esp32/include/lwipopts.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/port/esp32/include/netif/dhcp_state.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/_ansi.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/alloca.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/inttypes.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/limits.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/machine/_default_types.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/machine/_types.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/machine/ieeefp.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/machine/stdlib.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/machine/types.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/newlib.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/stdint.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/stdio.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/stdlib.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/string.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/_default_fcntl.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/_intsup.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/_types.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/cdefs.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/config.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/custom_file.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/fcntl.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/features.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/lock.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/reent.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/sched.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/stat.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/stdio.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/string.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/time.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/sys/types.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/include/unistd.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/platform_include/assert.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/platform_include/errno.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/platform_include/sys/select.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/platform_include/sys/unistd.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/newlib/platform_include/time.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/esp32/include/soc/cpu.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/esp32/include/soc/gpio_pins.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/esp32/include/soc/gpio_reg.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/esp32/include/soc/gpio_sig_map.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/esp32/include/soc/gpio_struct.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/esp32/include/soc/io_mux_reg.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/esp32/include/soc/rtc_io_reg.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/esp32/include/soc/soc.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/esp32/include/soc/touch_channel.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/include/soc/gpio_periph.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/soc/include/soc/soc_memory_layout.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/vfs/include/sys/ioctl.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/port/esp32/tcp_isn/tcp_isn.c
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: ../../../../../components/lwip/port/esp32/tcp_isn/tcp_isn.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj: config/sdkconfig.h
+
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../../../../components/driver/include/driver/gpio.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../../../../components/driver/include/driver/touch_pad.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../../../../components/esp32/include/esp_assert.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/lwip/CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj: ../../../../../components/esp32/include/esp_sleep.h

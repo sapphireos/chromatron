@@ -26,6 +26,7 @@
 
 #include "gfx_lib.h"
 #include "vm.h"
+#include "pixel.h"
 
 #include "energy.h"
 #include "battery.h"
@@ -41,10 +42,23 @@ static int8_t batt_ui_state;
 static bool pixels_enabled = TRUE;
 // static uint8_t buttons;
 
+static uint8_t batt_state;
+#define BATT_STATE_OK           0
+#define BATT_STATE_LOW          1
+#define BATT_STATE_CRITICAL     2
+#define BATT_STATE_CUTOFF       3
+static uint8_t batt_request_shutdown;
+
+
+#define EMERGENCY_CUTOFF_VOLTAGE ( BQ25895_CUTOFF_VOLTAGE - 100 ) // set 100 mv below the main cutoff, to give a little headroom
+
+
 KV_SECTION_META kv_meta_t ui_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable, 0,          "batt_enable" },
-    { SAPPHIRE_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state, 0,        "batt_ui_state" },
-    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled, 0,       "batt_pixel_power" },
+    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable,           0,   "batt_enable" },
+    { SAPPHIRE_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,         0,   "batt_ui_state" },
+    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,        0,   "batt_pixel_power" },
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,            0,   "batt_state" },
+    { SAPPHIRE_TYPE_BOOL,   0, 0,                   &batt_request_shutdown, 0,   "batt_request_shutdown" },
     // { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &buttons,       0,        "batt_button_state" },
 };
 
@@ -72,7 +86,7 @@ hold btn 0 for 3 seconds and btn 1 for 6 seconds
 
 #define MAX_BUTTONS 2
 
-static uint8_t button_hold_duration[2];
+static uint8_t button_hold_duration[MAX_BUTTONS];
 
 static bool pca9536_enabled;
 
@@ -92,6 +106,58 @@ static bool pca9536_enabled;
 #define DIMMER_RATE                 5000
 #define MIN_DIMMER                  20000
 
+static uint8_t fx_low_batt[] __attribute__((aligned(4))) = {
+    #include "low_batt.fx.carray"
+};
+
+static uint16_t fx_low_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    uint16_t ret_val = len;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+            memcpy( ptr, &fx_low_batt[pos], len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            ret_val = sizeof(fx_low_batt);
+            break;
+
+        default:
+            ret_val = 0;
+            break;
+    }
+
+    return ret_val;
+}
+
+
+static uint8_t fx_crit_batt[] __attribute__((aligned(4))) = {
+    #include "crit_batt.fx.carray"
+};
+
+static uint16_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    uint16_t ret_val = len;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+            memcpy( ptr, &fx_crit_batt[pos], len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            ret_val = sizeof(fx_crit_batt);
+            break;
+
+        default:
+            ret_val = 0;
+            break;
+    }
+
+    return ret_val;
+}
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
@@ -137,9 +203,8 @@ void batt_v_init( void ){
                      0,
                      0 );
 
-
-    // dimming_direction_down = TRUE;
-    // last_dimmer = gfx_u16_get_submaster_dimmer();
+    fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
+    fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
 }
 
 static bool _ui_b_button_down( uint8_t ch ){
@@ -233,7 +298,7 @@ PT_BEGIN( pt );
 
         pca9536_v_set_output( BATT_IO_BOOST );
 
-        batt_v_enable_pixels();
+        batt_v_disable_pixels();
     }
 
     while(1){
@@ -283,24 +348,62 @@ PT_BEGIN( pt );
             ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
             ( bq25895_u8_get_faults() != 0 ) ){
 
+            batt_state = BATT_STATE_OK;
             gfx_b_disable();
+            vm_v_resume();
         }
         else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
+            batt_state = BATT_STATE_OK;
             gfx_b_enable();
             batt_v_enable_pixels();
+            vm_v_resume();
         }
-        else{
+        else{ // DISCHARGE
 
             gfx_b_enable();
             batt_v_enable_pixels();
 
-            if( bq25895_u8_get_soc() <= 5 ){
+            // the low battery states are latching, so that a temporary increase in SOC due to voltage fluctuations will not
+            // toggle between states.  States only flow towards lower SOC, unless the charger is activated.
+            if( ( bq25895_u8_get_soc() <= 0 ) || ( bq25895_u16_get_batt_voltage() < EMERGENCY_CUTOFF_VOLTAGE ) ){
+                // for cutoff, we also check voltage as a backup, in case the SOC calculation has a problem.
 
+                if( batt_state != BATT_STATE_CUTOFF ){
+
+                    log_v_debug_P( PSTR("Batt cutoff, shutting down: %u"), bq25895_u16_get_batt_voltage() );
+                }
+
+                batt_state = BATT_STATE_CUTOFF;
             }
-            else if( bq25895_u8_get_soc() <= 2 ){ // NOTE!!!!!!!!! THIS WILL NEVER RUN!!!!!!
+            else if( bq25895_u8_get_soc() <= 3 ){
 
-                log_v_debug_P( PSTR("Low batt, shutting down: %u"), bq25895_u16_get_batt_voltage() );
+                if( batt_state < BATT_STATE_CRITICAL ){
+
+                    log_v_debug_P( PSTR("Batt critical: %u"), bq25895_u16_get_batt_voltage() );
+                    
+                    batt_state = BATT_STATE_CRITICAL;
+
+                    vm_v_pause();
+                    vm_v_run_prog( "crit_batt.fxb", VM_MAX_VMS - 1 );
+                }
+            }
+            else if( bq25895_u8_get_soc() <= 10 ){
+
+                if( batt_state < BATT_STATE_LOW ){
+
+                    log_v_debug_P( PSTR("Batt low: %u"), bq25895_u16_get_batt_voltage() );
+
+                    batt_state = BATT_STATE_LOW;
+
+                    vm_v_pause();
+                    vm_v_run_prog( "low_batt.fxb", VM_MAX_VMS - 1 );
+                }
+            }
+
+            if( ( batt_state == BATT_STATE_CUTOFF ) || ( batt_request_shutdown ) ){
+
+                gfx_b_disable();
 
                 batt_ui_state = -2;
 
@@ -309,10 +412,6 @@ PT_BEGIN( pt );
                 THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
                 bq25895_v_enable_ship_mode( FALSE );
-            }
-            else{
-
-                
             }
         }
 

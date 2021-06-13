@@ -60,6 +60,8 @@ stdio.h
 assert.h
 -
 
+../../../../../components/esp32/include/esp_idf_version.h
+
 ../../../../../components/esp32/include/esp_interface.h
 stdint.h
 -
@@ -103,6 +105,8 @@ esp_err.h
 ../../../../../components/esp32/include/esp_err.h
 esp_sleep.h
 ../../../../../components/esp32/include/esp_sleep.h
+esp_idf_version.h
+../../../../../components/esp32/include/esp_idf_version.h
 
 ../../../../../components/esp32/include/esp_types.h
 sys/cdefs.h

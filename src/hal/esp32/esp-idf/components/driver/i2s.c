@@ -492,6 +492,15 @@ esp_err_t i2s_set_clk(i2s_port_t i2s_num, uint32_t rate, i2s_bits_per_sample_t b
             rate, real_rate, bits, clkmInteger, bck, (double)I2S_BASE_CLK / mclk, real_rate*bits*channel, 64, clkmDecimals);
     }
 
+    if (p_i2s_obj[i2s_num]->mode & I2S_MODE_TX) {
+        p_i2s_obj[i2s_num]->tx->curr_ptr = NULL;
+        p_i2s_obj[i2s_num]->tx->rw_pos = 0;
+    }
+    if (p_i2s_obj[i2s_num]->mode & I2S_MODE_RX) {
+        p_i2s_obj[i2s_num]->rx->curr_ptr = NULL;
+        p_i2s_obj[i2s_num]->rx->rw_pos = 0;
+    }
+
     I2S[i2s_num]->sample_rate_conf.tx_bits_mod = bits;
     I2S[i2s_num]->sample_rate_conf.rx_bits_mod = bits;
 
@@ -673,17 +682,16 @@ esp_err_t i2s_start(i2s_port_t i2s_num)
     I2S_CHECK((i2s_num < I2S_NUM_MAX), "i2s_num error", ESP_ERR_INVALID_ARG);
     //start DMA link
     I2S_ENTER_CRITICAL();
-    i2s_reset_fifo(i2s_num);
+    I2S[i2s_num]->conf.tx_reset = 1;
+    I2S[i2s_num]->conf.tx_reset = 0;
+    I2S[i2s_num]->conf.rx_reset = 1;
+    I2S[i2s_num]->conf.rx_reset = 0;
     //reset dma
     I2S[i2s_num]->lc_conf.in_rst = 1;
     I2S[i2s_num]->lc_conf.in_rst = 0;
     I2S[i2s_num]->lc_conf.out_rst = 1;
     I2S[i2s_num]->lc_conf.out_rst = 0;
-
-    I2S[i2s_num]->conf.tx_reset = 1;
-    I2S[i2s_num]->conf.tx_reset = 0;
-    I2S[i2s_num]->conf.rx_reset = 1;
-    I2S[i2s_num]->conf.rx_reset = 0;
+    i2s_reset_fifo(i2s_num);
 
     esp_intr_disable(p_i2s_obj[i2s_num]->i2s_isr_handle);
     I2S[i2s_num]->int_clr.val = 0xFFFFFFFF;
@@ -895,10 +903,9 @@ static esp_err_t i2s_param_config(i2s_port_t i2s_num, const i2s_config_t *i2s_co
         //initialize the specific ADC channel.
         //in the current stage, we only support ADC1 and single channel mode.
         //In default data mode, the ADC data is in 12-bit resolution mode.
-        adc_power_always_on();
+        adc_power_acquire();
     }
     // configure I2S data port interface.
-    i2s_reset_fifo(i2s_num);
     //reset i2s
     I2S[i2s_num]->conf.tx_reset = 1;
     I2S[i2s_num]->conf.tx_reset = 0;
@@ -910,6 +917,7 @@ static esp_err_t i2s_param_config(i2s_port_t i2s_num, const i2s_config_t *i2s_co
     I2S[i2s_num]->lc_conf.in_rst = 0;
     I2S[i2s_num]->lc_conf.out_rst = 1;
     I2S[i2s_num]->lc_conf.out_rst = 0;
+    i2s_reset_fifo(i2s_num);
 
     //Enable and configure DMA
     I2S[i2s_num]->lc_conf.check_owner = 0;

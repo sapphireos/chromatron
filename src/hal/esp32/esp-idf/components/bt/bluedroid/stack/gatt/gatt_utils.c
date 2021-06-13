@@ -1423,7 +1423,7 @@ void gatt_sr_get_sec_info(BD_ADDR rem_bda, tBT_TRANSPORT transport, UINT8 *p_sec
 
     BTM_GetSecurityFlagsByTransport(rem_bda, &sec_flag, transport);
 
-    sec_flag &= (GATT_SEC_FLAG_LKEY_UNAUTHED | GATT_SEC_FLAG_LKEY_AUTHED | GATT_SEC_FLAG_ENCRYPTED);
+    sec_flag &= (GATT_SEC_FLAG_LKEY_UNAUTHED | GATT_SEC_FLAG_LKEY_AUTHED | GATT_SEC_FLAG_ENCRYPTED | GATT_SEC_FLAG_AUTHORIZATION);
 #if (SMP_INCLUDED == TRUE)
     *p_key_size = btm_ble_read_sec_key_size(rem_bda);
 #endif  ///SMP_INCLUDED == TRUE
@@ -2325,7 +2325,7 @@ void gatt_dbg_display_uuid(tBT_UUID bt_uuid)
                 bt_uuid.uu.uuid128[3], bt_uuid.uu.uuid128[2],
                 bt_uuid.uu.uuid128[1], bt_uuid.uu.uuid128[0]);
     } else {
-        BCM_STRNCPY_S(str_buf, sizeof(str_buf), "Unknown UUID 0", 15);
+        BCM_STRNCPY_S(str_buf, "Unknown UUID 0", 15);
     }
 
     GATT_TRACE_DEBUG ("UUID=[%s]", str_buf);

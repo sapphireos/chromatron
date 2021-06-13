@@ -33,6 +33,10 @@
 #include "netif/wlanif.h"
 #include "netif/ethernetif.h"
 
+#if CONFIG_LWIP_TCP_ISN_HOOK
+#include "tcp_isn.h"
+#endif
+
 #include "dhcpserver/dhcpserver.h"
 #include "dhcpserver/dhcpserver_options.h"
 
@@ -102,6 +106,18 @@ void tcpip_adapter_init(void)
     int ret;
 
     if (tcpip_inited == false) {
+#if CONFIG_LWIP_TCP_ISN_HOOK
+        uint8_t rand_buf[16];
+        /*
+         * This is early startup code where WiFi/BT is yet to be enabled and hence
+         * relevant entropy source is not available. However, bootloader enables
+         * SAR ADC based entropy source at its initialization, and our requirement
+         * of random bytes is pretty small (16), so we can assume that following
+         * API will provide sufficiently random data.
+         */
+        esp_fill_random(rand_buf, sizeof(rand_buf));
+        lwip_init_tcp_isn(esp_log_timestamp(), rand_buf);
+#endif
         tcpip_inited = true;
 
         tcpip_init(NULL, NULL);
@@ -325,6 +341,10 @@ esp_err_t tcpip_adapter_down(tcpip_adapter_if_t tcpip_if)
             tcpip_adapter_reset_ip_info(tcpip_if);
         }
 
+        for(int8_t i = 0 ;i < LWIP_IPV6_NUM_ADDRESSES ;i++) {
+            netif_ip6_addr_set(esp_netif[tcpip_if] ,i ,IP6_ADDR_ANY6);
+            netif_ip6_addr_set_state(esp_netif[tcpip_if], i, IP6_ADDR_INVALID);
+        }
         netif_set_addr(esp_netif[tcpip_if], IP4_ADDR_ANY4, IP4_ADDR_ANY4, IP4_ADDR_ANY4);
         netif_set_down(esp_netif[tcpip_if]);
         tcpip_adapter_start_ip_lost_timer(tcpip_if);

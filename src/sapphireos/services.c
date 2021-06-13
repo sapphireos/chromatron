@@ -1057,7 +1057,7 @@ static bool compare_self( service_state_t *service ){
         // check uptime
         int64_t diff = (int64_t)service->local_uptime - (int64_t)service->server_uptime;
 
-        if( diff > SERVICE_UPTIME_MIN_DIFF ){
+        if( diff > (int64_t)SERVICE_UPTIME_MIN_DIFF ){
 
             log_v_debug_P( PSTR("uptime newer: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
 
@@ -1069,6 +1069,8 @@ static bool compare_self( service_state_t *service ){
 
                 // log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
             }
+
+            log_v_debug_P( PSTR("uptime ***") );
 
             return FALSE;
         }
@@ -1132,6 +1134,8 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
     else if( diff < ( -1 * SERVICE_UPTIME_MIN_DIFF ) ){
 
         // log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)our_uptime, (uint32_t)offer->uptime );
+
+        log_v_debug_P( PSTR("uptime ***") );
 
         return FALSE;
     }
@@ -1287,7 +1291,9 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                 // if tracking is a server
                 if( service->server_valid ){
 
-                    log_v_debug_P( PSTR("%x hop to better server: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                    log_v_debug_P( PSTR("%x hop to better server: %d.%d.%d.%d uptime local: %lu remote: %lu"), 
+                        service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0,
+                        service->local_uptime, service->server_uptime );
 
                     // reset timeout
                     service->timeout   = SERVICE_CONNECTED_TIMEOUT;
@@ -1312,7 +1318,9 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
                     if( !compare_self( service ) ){
 
                         // tracked server is better
-                        log_v_debug_P( PSTR("%x found a better server: %d.%d.%d.%d"), service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0 );
+                        log_v_debug_P( PSTR("%x found a better server: %d.%d.%d.%d uptime local: %lu remote: %lu"), 
+                            service->id, service->server_ip.ip3, service->server_ip.ip2, service->server_ip.ip1, service->server_ip.ip0,
+                            service->local_uptime, service->server_uptime );
 
                         log_v_info_P( PSTR("-> CONNECTED") );
 

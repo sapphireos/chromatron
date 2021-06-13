@@ -27,6 +27,8 @@
 
 #include "system.h"
 #include "target.h"
+#include "flash_fs.h"
+#include "hal_boards.h"
 
 #include "hal_io.h"
 
@@ -34,7 +36,7 @@
 static io_mode_t8 io_modes[IO_PIN_COUNT];
 #endif
 
-static const gpio_num_t gpios[IO_PIN_COUNT] = {
+static const gpio_num_t gpios_v0_0[IO_PIN_COUNT] = {
     // feather pinout - need to change this
     GPIO_NUM_13, // IO_PIN_13_A12 
     GPIO_NUM_12, // IO_PIN_12_A11 
@@ -62,9 +64,39 @@ static const gpio_num_t gpios[IO_PIN_COUNT] = {
     GPIO_NUM_13, // IO_PIN_LED0
     GPIO_NUM_2,  // IO_PIN_LED1
     GPIO_NUM_15, // IO_PIN_LED2
-
-    // note that v0.1 changes connections!
 };
+
+static const gpio_num_t gpios_v0_1[IO_PIN_COUNT] = {
+    // feather pinout - need to change this
+    GPIO_NUM_13, // IO_PIN_13_A12 
+    GPIO_NUM_12, // IO_PIN_12_A11 
+    GPIO_NUM_27, // IO_PIN_27_A10 
+    GPIO_NUM_33, // IO_PIN_33_A9  
+    GPIO_NUM_15, // IO_PIN_15_A8  
+    GPIO_NUM_32, // IO_PIN_32_A7  
+    GPIO_NUM_14, // IO_PIN_14_A6  
+    GPIO_NUM_22, // IO_PIN_22_SCL 
+    GPIO_NUM_23, // IO_PIN_23_SDA 
+    GPIO_NUM_21, // IO_PIN_21     
+    GPIO_NUM_17, // IO_PIN_17_TX  
+    GPIO_NUM_16, // IO_PIN_16_RX  
+    GPIO_NUM_19, // IO_PIN_19_MISO
+    GPIO_NUM_18, // IO_PIN_18_MOSI
+    GPIO_NUM_5,  // IO_PIN_5_SCK  
+    GPIO_NUM_4,  // IO_PIN_4_A5   
+    GPIO_NUM_36, // IO_PIN_36_A4  
+    GPIO_NUM_39, // IO_PIN_39_A3  
+    GPIO_NUM_34, // IO_PIN_34_A2  
+    GPIO_NUM_25, // IO_PIN_25_A1  
+    GPIO_NUM_26, // IO_PIN_26_A0  
+
+    // chromatron32 v0.1
+    GPIO_NUM_15, // IO_PIN_LED0
+    GPIO_NUM_4,  // IO_PIN_LED1
+    GPIO_NUM_2, // IO_PIN_LED2
+};
+
+static const gpio_num_t *gpios = gpios_v0_1;
 
 int32_t hal_io_i32_get_gpio_num( uint8_t pin ){
 
@@ -80,9 +112,39 @@ int32_t hal_io_i32_get_gpio_num( uint8_t pin ){
     #endif
 }
 
+bool hal_io_b_is_board_type_known( void ){
+
+    uint8_t board = ffs_u8_read_board_type();
+
+    if( board == BOARD_TYPE_UNKNOWN ){
+
+        return FALSE;
+    }
+    else if( board >= BOARD_TYPE_COUNT ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 void io_v_init( void ){
 
+    // check board type
+    uint8_t board = ffs_u8_read_board_type();
 
+    if( board == BOARD_TYPE_CHROMATRON32_v0_0 ){
+
+        gpios = gpios_v0_0;
+    }
+    else if( board == BOARD_TYPE_CHROMATRON32_v0_1 ){
+
+        gpios = gpios_v0_1;
+    }
+    else{
+
+        trace_printf("Unknown board type, setting default IO map.\r\n");
+    }
 }
 
 uint8_t io_u8_get_board_rev( void ){

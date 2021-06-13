@@ -153,6 +153,8 @@ platform_time.h
 ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform_time.h
 time.h
 -
+assert.h
+-
 
 ../../../../../components/mbedtls/mbedtls/include/mbedtls/rsa.h
 config.h
@@ -435,12 +437,6 @@ stddef.h
 -
 stdint.h
 -
-
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/certs.c
-mbedtls/config.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/config.h
-mbedtls/certs.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/mbedtls/certs.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/pkcs11.c
 mbedtls/pkcs11.h

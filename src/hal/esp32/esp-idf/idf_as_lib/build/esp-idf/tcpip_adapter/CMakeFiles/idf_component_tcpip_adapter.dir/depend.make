@@ -8,6 +8,7 @@ esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_l
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/esp32/include/esp_err.h
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/esp32/include/esp_event_legacy.h
+esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/esp32/include/esp_interface.h
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -104,6 +105,7 @@ esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_l
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/lwip/port/esp32/include/netif/dhcp_state.h
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/lwip/port/esp32/include/netif/ethernetif.h
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/lwip/port/esp32/include/netif/wlanif.h
+esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/lwip/port/esp32/tcp_isn/tcp_isn.h
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/newlib/include/_ansi.h
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/newlib/include/alloca.h
 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj: ../../../../../components/newlib/include/inttypes.h

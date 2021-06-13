@@ -48,6 +48,10 @@ assert.h
 sdkconfig.h
 ../../../../../components/esp32/include/sdkconfig.h
 
+../../../../../components/esp32/include/esp_clk.h
+stdint.h
+-
+
 ../../../../../components/esp32/include/esp_crosscore_int.h
 
 ../../../../../components/esp32/include/esp_err.h
@@ -57,6 +61,8 @@ stdio.h
 -
 assert.h
 -
+
+../../../../../components/esp32/include/esp_idf_version.h
 
 ../../../../../components/esp32/include/esp_intr.h
 rom/ets_sys.h
@@ -91,6 +97,8 @@ esp_err.h
 ../../../../../components/esp32/include/esp_err.h
 esp_sleep.h
 ../../../../../components/esp32/include/esp_sleep.h
+esp_idf_version.h
+../../../../../components/esp32/include/esp_idf_version.h
 
 ../../../../../components/esp32/include/esp_task.h
 sdkconfig.h
@@ -135,6 +143,30 @@ soc/gpio_reg.h
 ../../../../../components/esp32/include/rom/soc/gpio_reg.h
 soc/gpio_pins.h
 ../../../../../components/esp32/include/rom/soc/gpio_pins.h
+
+../../../../../components/esp32/include/rom/libc_stubs.h
+stddef.h
+-
+stdint.h
+-
+stdio.h
+-
+stdarg.h
+-
+reent.h
+-
+errno.h
+-
+
+../../../../../components/esp32/include/rom/rtc.h
+ets_sys.h
+../../../../../components/esp32/include/rom/ets_sys.h
+stdbool.h
+-
+stdint.h
+-
+soc/soc.h
+../../../../../components/esp32/include/rom/soc/soc.h
 
 ../../../../../components/esp32/include/xtensa/config/core-isa.h
 
@@ -633,6 +665,8 @@ sntp.h
 ../../../../../components/lwip/port/esp32/include/sntp.h
 netif/dhcp_state.h
 ../../../../../components/lwip/port/esp32/include/netif/dhcp_state.h
+lwip/arch.h
+-
 
 ../../../../../components/lwip/port/esp32/include/netif/dhcp_state.h
 
@@ -676,7 +710,13 @@ sys/features.h
 machine/_default_types.h
 -
 
+../../../../../components/newlib/include/machine/endian.h
+sys/config.h
+-
+
 ../../../../../components/newlib/include/machine/ieeefp.h
+
+../../../../../components/newlib/include/machine/param.h
 
 ../../../../../components/newlib/include/machine/stdlib.h
 
@@ -685,6 +725,22 @@ machine/_types.h
 -
 
 ../../../../../components/newlib/include/newlib.h
+
+../../../../../components/newlib/include/reent.h
+sys/reent.h
+-
+sys/_types.h
+-
+machine/types.h
+-
+stddef.h
+-
+
+../../../../../components/newlib/include/signal.h
+_ansi.h
+../../../../../components/newlib/include/_ansi.h
+sys/signal.h
+-
 
 ../../../../../components/newlib/include/stdint.h
 machine/_default_types.h
@@ -784,6 +840,10 @@ cygwin/config.h
 
 ../../../../../components/newlib/include/sys/custom_file.h
 
+../../../../../components/newlib/include/sys/errno.h
+sys/reent.h
+-
+
 ../../../../../components/newlib/include/sys/fcntl.h
 sys/_default_fcntl.h
 -
@@ -792,6 +852,16 @@ sys/_default_fcntl.h
 
 ../../../../../components/newlib/include/sys/lock.h
 _ansi.h
+-
+
+../../../../../components/newlib/include/sys/param.h
+sys/config.h
+-
+sys/syslimits.h
+-
+machine/endian.h
+-
+machine/param.h
 -
 
 ../../../../../components/newlib/include/sys/reent.h
@@ -809,6 +879,18 @@ assert.h
 -
 
 ../../../../../components/newlib/include/sys/sched.h
+
+../../../../../components/newlib/include/sys/signal.h
+_ansi.h
+../../../../../components/newlib/include/sys/_ansi.h
+sys/features.h
+-
+sys/types.h
+-
+cygwin/signal.h
+-
+signal.h
+-
 
 ../../../../../components/newlib/include/sys/stat.h
 _ansi.h
@@ -830,12 +912,20 @@ sys/reent.h
 
 ../../../../../components/newlib/include/sys/string.h
 
+../../../../../components/newlib/include/sys/syslimits.h
+
 ../../../../../components/newlib/include/sys/time.h
 _ansi.h
 -
 sys/types.h
 -
 cygwin/sys_time.h
+-
+
+../../../../../components/newlib/include/sys/times.h
+_ansi.h
+-
+machine/types.h
 -
 
 ../../../../../components/newlib/include/sys/types.h
@@ -878,7 +968,21 @@ stdlib.h
 
 ../../../../../components/newlib/platform_include/errno.h
 
+../../../../../components/newlib/platform_include/esp_newlib.h
+sys/reent.h
+-
+
+../../../../../components/newlib/platform_include/pthread.h
+sys/types.h
+-
+sys/time.h
+-
+
 ../../../../../components/newlib/platform_include/sys/poll.h
+
+../../../../../components/newlib/platform_include/sys/random.h
+sys/types.h
+-
 
 ../../../../../components/newlib/platform_include/sys/select.h
 sys/types.h
@@ -914,6 +1018,10 @@ xtensa/corebits.h
 xtensa/config/core.h
 ../../../../../components/soc/esp32/include/soc/xtensa/config/core.h
 
+../../../../../components/soc/esp32/include/soc/frc_timer_reg.h
+soc.h
+../../../../../components/soc/esp32/include/soc/soc.h
+
 ../../../../../components/soc/esp32/include/soc/gpio_pins.h
 
 ../../../../../components/soc/esp32/include/soc/gpio_reg.h
@@ -927,6 +1035,20 @@ stdint.h
 -
 
 ../../../../../components/soc/esp32/include/soc/io_mux_reg.h
+soc.h
+../../../../../components/soc/esp32/include/soc/soc.h
+
+../../../../../components/soc/esp32/include/soc/rtc.h
+stdbool.h
+-
+stddef.h
+-
+stdint.h
+-
+soc/soc.h
+../../../../../components/soc/esp32/include/soc/soc/soc.h
+
+../../../../../components/soc/esp32/include/soc/rtc_cntl_reg.h
 soc.h
 ../../../../../components/soc/esp32/include/soc/soc.h
 
@@ -1014,6 +1136,64 @@ stdint.h
 
 ../../../../../components/vfs/include/sys/ioctl.h
 
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/locks.c
+sys/lock.h
+-
+stdlib.h
+-
+sys/reent.h
+-
+esp_attr.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_attr.h
+soc/cpu.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/soc/cpu.h
+freertos/FreeRTOS.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/freertos/FreeRTOS.h
+freertos/semphr.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/freertos/semphr.h
+freertos/portmacro.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/freertos/portmacro.h
+freertos/task.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/freertos/task.h
+freertos/portable.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/freertos/portable.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/poll.c
+sys/poll.h
+-
+esp_vfs.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_vfs.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/pthread.c
+pthread.h
+-
+esp_log.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_log.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/random.c
+sys/random.h
+-
+sys/param.h
+-
+assert.h
+-
+errno.h
+-
+string.h
+-
+esp_system.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_system.h
+esp_log.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_log.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/reent_init.c
+string.h
+-
+sys/reent.h
+-
+esp_attr.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_attr.h
+
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/select.c
 sys/select.h
 -
@@ -1025,6 +1205,124 @@ lwip/sockets.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/lwip/sockets.h
 esp_log.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_log.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/syscall_table.c
+string.h
+-
+stdbool.h
+-
+unistd.h
+-
+errno.h
+-
+stdlib.h
+-
+sys/types.h
+-
+sys/stat.h
+-
+sys/signal.h
+-
+sys/unistd.h
+-
+sys/reent.h
+-
+rom/libc_stubs.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/rom/libc_stubs.h
+esp_vfs.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_vfs.h
+esp_newlib.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_newlib.h
+sdkconfig.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/sdkconfig.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/syscalls.c
+string.h
+-
+stdbool.h
+-
+sys/types.h
+-
+unistd.h
+-
+errno.h
+-
+sys/reent.h
+-
+stdlib.h
+-
+esp_attr.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_attr.h
+freertos/FreeRTOS.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/freertos/FreeRTOS.h
+esp_heap_caps.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_heap_caps.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/termios.c
+sdkconfig.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/sdkconfig.h
+sys/termios.h
+-
+sys/errno.h
+-
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/time.c
+errno.h
+-
+stdlib.h
+-
+time.h
+-
+reent.h
+-
+unistd.h
+-
+sys/types.h
+-
+sys/reent.h
+-
+sys/time.h
+-
+sys/times.h
+-
+sys/lock.h
+-
+rom/rtc.h
+-
+esp_attr.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_attr.h
+esp_intr_alloc.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_intr_alloc.h
+esp_clk.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_clk.h
+esp_timer.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_timer.h
+soc/soc.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/soc/soc.h
+soc/rtc.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/soc/rtc.h
+soc/rtc_cntl_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/soc/rtc_cntl_reg.h
+soc/frc_timer_reg.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/soc/frc_timer_reg.h
+rom/ets_sys.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/rom/ets_sys.h
+freertos/FreeRTOS.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/freertos/FreeRTOS.h
+freertos/xtensa_api.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/freertos/xtensa_api.h
+freertos/task.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/freertos/task.h
+sdkconfig.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/sdkconfig.h
+limits.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/limits.h
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/utime.c
+utime.h
+-
+esp_vfs.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/esp_vfs.h
 
 config/sdkconfig.h
 

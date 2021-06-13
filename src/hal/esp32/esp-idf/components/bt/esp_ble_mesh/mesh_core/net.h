@@ -12,6 +12,10 @@
 
 #include "mesh_access.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define BLE_MESH_NET_FLAG_KR       BIT(0)
 #define BLE_MESH_NET_FLAG_IVU      BIT(1)
 
@@ -42,11 +46,11 @@ struct bt_mesh_app_key {
 struct bt_mesh_subnet {
     u32_t beacon_sent;        /* Timestamp of last sent beacon */
     u8_t  beacons_last;       /* Number of beacons during last
-                   * observation window
-                   */
-    u8_t  beacons_cur;        /* Number of beaconds observed during
-                   * currently ongoing window.
-                   */
+                               * observation window
+                               */
+    u8_t  beacons_cur;        /* Number of beacons observed during
+                               * currently ongoing window.
+                               */
 
     u8_t  beacon_cache[21];   /* Cached last authenticated beacon */
 
@@ -345,8 +349,8 @@ void bt_mesh_net_sec_update(struct bt_mesh_subnet *sub);
 struct bt_mesh_subnet *bt_mesh_subnet_get(u16_t net_idx);
 
 struct bt_mesh_subnet *bt_mesh_subnet_find(const u8_t net_id[8], u8_t flags,
-        u32_t iv_index, const u8_t auth[8],
-        bool *new_key);
+                                           u32_t iv_index, const u8_t auth[8],
+                                           bool *new_key);
 
 int bt_mesh_net_encode(struct bt_mesh_net_tx *tx, struct net_buf_simple *buf,
                        bool proxy);
@@ -371,7 +375,7 @@ u32_t bt_mesh_next_seq(void);
 void bt_mesh_net_start(void);
 
 void bt_mesh_net_init(void);
-void bt_mesh_net_deinit(bool erase);
+void bt_mesh_net_deinit(void);
 
 void bt_mesh_net_header_parse(struct net_buf_simple *buf,
                               struct bt_mesh_net_rx *rx);
@@ -416,5 +420,9 @@ static inline void send_cb_finalize(const struct bt_mesh_send_cb *cb,
         cb->end(0, cb_data);
     }
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _NET_H_ */

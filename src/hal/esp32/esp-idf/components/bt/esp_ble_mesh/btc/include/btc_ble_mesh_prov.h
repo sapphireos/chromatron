@@ -16,9 +16,16 @@
 #define _BTC_BLE_MESH_PROV_H_
 
 #include "btc/btc_manage.h"
+#include "mesh_byteorder.h"
+#include "mesh_config.h"
 #include "mesh_main.h"
+#include "fast_prov.h"
 #include "provisioner_prov.h"
 #include "esp_ble_mesh_defs.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum {
     BTC_BLE_MESH_ACT_MESH_INIT = 0,
@@ -32,6 +39,9 @@ typedef enum {
     BTC_BLE_MESH_ACT_PROXY_IDENTITY_ENABLE,
     BTC_BLE_MESH_ACT_PROXY_GATT_ENABLE,
     BTC_BLE_MESH_ACT_PROXY_GATT_DISABLE,
+    BTC_BLE_MESH_ACT_NODE_ADD_LOCAL_NET_KEY,
+    BTC_BLE_MESH_ACT_NODE_ADD_LOCAL_APP_KEY,
+    BTC_BLE_MESH_ACT_NODE_BIND_APP_KEY_TO_MODEL,
     BTC_BLE_MESH_ACT_PROVISIONER_READ_OOB_PUB_KEY,
     BTC_BLE_MESH_ACT_PROVISIONER_INPUT_STR,
     BTC_BLE_MESH_ACT_PROVISIONER_INPUT_NUM,
@@ -53,6 +63,9 @@ typedef enum {
     BTC_BLE_MESH_ACT_PROVISIONER_STORE_NODE_COMP_DATA,
     BTC_BLE_MESH_ACT_PROVISIONER_DELETE_NODE_WITH_UUID,
     BTC_BLE_MESH_ACT_PROVISIONER_DELETE_NODE_WITH_ADDR,
+    BTC_BLE_MESH_ACT_PROVISIONER_ENABLE_HEARTBEAT_RECV,
+    BTC_BLE_MESH_ACT_PROVISIONER_SET_HEARTBEAT_FILTER_TYPE,
+    BTC_BLE_MESH_ACT_PROVISIONER_SET_HEARTBEAT_FILTER_INFO,
     BTC_BLE_MESH_ACT_SET_FAST_PROV_INFO,
     BTC_BLE_MESH_ACT_SET_FAST_PROV_ACTION,
     BTC_BLE_MESH_ACT_LPN_ENABLE,
@@ -63,6 +76,10 @@ typedef enum {
     BTC_BLE_MESH_ACT_PROXY_CLIENT_SET_FILTER_TYPE,
     BTC_BLE_MESH_ACT_PROXY_CLIENT_ADD_FILTER_ADDR,
     BTC_BLE_MESH_ACT_PROXY_CLIENT_REMOVE_FILTER_ADDR,
+    BTC_BLE_MESH_ACT_START_BLE_ADVERTISING,
+    BTC_BLE_MESH_ACT_STOP_BLE_ADVERTISING,
+    BTC_BLE_MESH_ACT_MODEL_SUBSCRIBE_GROUP_ADDR,
+    BTC_BLE_MESH_ACT_MODEL_UNSUBSCRIBE_GROUP_ADDR,
     BTC_BLE_MESH_ACT_DEINIT_MESH,
 } btc_ble_mesh_prov_act_t;
 
@@ -97,8 +114,23 @@ typedef union {
         char string[8];
     } input_string;
     struct ble_mesh_set_device_name_args {
-        char name[ESP_BLE_MESH_DEVICE_NAME_MAX_LEN];
+        char name[ESP_BLE_MESH_DEVICE_NAME_MAX_LEN + 1];
     } set_device_name;
+    struct ble_mesh_node_add_local_net_key_args {
+        uint8_t  net_key[16];
+        uint16_t net_idx;
+    } node_add_local_net_key;
+    struct ble_mesh_node_add_local_app_key_args {
+        uint8_t  app_key[16];
+        uint16_t net_idx;
+        uint16_t app_idx;
+    } node_add_local_app_key;
+    struct ble_mesh_node_bind_local_mod_app_args {
+        uint16_t element_addr;
+        uint16_t company_id;
+        uint16_t model_id;
+        uint16_t app_idx;
+    } node_local_mod_app_bind;
     struct ble_mesh_provisioner_read_oob_pub_key_args {
         uint8_t link_idx;
         uint8_t pub_key_x[32];
@@ -151,7 +183,7 @@ typedef union {
     } set_primary_elem_addr;
     struct ble_mesh_provisioner_set_node_name_args {
         uint16_t index;
-        char name[ESP_BLE_MESH_NODE_NAME_MAX_LEN];
+        char name[ESP_BLE_MESH_NODE_NAME_MAX_LEN + 1];
     } set_node_name;
     struct ble_mesh_provisioner_add_local_app_key_args {
         uint8_t app_key[16];
@@ -188,6 +220,17 @@ typedef union {
     struct ble_mesh_provisioner_delete_node_with_addr_args {
         uint16_t unicast_addr;
     } delete_node_with_addr;
+    struct {
+        bool enable;
+    } enable_heartbeat_recv;
+    struct {
+        uint8_t type;
+    } set_heartbeat_filter_type;
+    struct {
+        uint8_t  op;
+        uint16_t hb_src;
+        uint16_t hb_dst;
+    } set_heartbeat_filter_info;
     struct ble_mesh_set_fast_prov_info_args {
         uint16_t unicast_min;
         uint16_t unicast_max;
@@ -235,6 +278,25 @@ typedef union {
         uint16_t  addr_num;
         uint16_t *addr;
     } proxy_client_remove_filter_addr;
+    struct ble_mesh_start_ble_advertising_args {
+        esp_ble_mesh_ble_adv_param_t param;
+        esp_ble_mesh_ble_adv_data_t  data;
+    } start_ble_advertising;
+    struct ble_mesh_stop_ble_advertising_args {
+        uint8_t index;
+    } stop_ble_advertising;
+    struct ble_mesh_model_sub_group_addr_args {
+        uint16_t element_addr;
+        uint16_t company_id;
+        uint16_t model_id;
+        uint16_t group_addr;
+    } model_sub_group_addr;
+    struct ble_mesh_model_unsub_group_addr_args {
+        uint16_t element_addr;
+        uint16_t company_id;
+        uint16_t model_id;
+        uint16_t group_addr;
+    } model_unsub_group_addr;
     struct ble_mesh_deinit_args {
         esp_ble_mesh_deinit_param_t param;
     } mesh_deinit;
@@ -266,9 +328,19 @@ void btc_ble_mesh_prov_arg_deep_copy(btc_msg_t *msg, void *p_dest, void *p_src);
 
 void btc_ble_mesh_model_arg_deep_copy(btc_msg_t *msg, void *p_dest, void *p_src);
 
+const uint8_t *btc_ble_mesh_node_get_local_net_key(uint16_t net_idx);
+
+const uint8_t *btc_ble_mesh_node_get_local_app_key(uint16_t app_idx);
+
 esp_ble_mesh_node_t *btc_ble_mesh_provisioner_get_node_with_uuid(const uint8_t uuid[16]);
 
 esp_ble_mesh_node_t *btc_ble_mesh_provisioner_get_node_with_addr(uint16_t unicast_addr);
+
+esp_ble_mesh_node_t *btc_ble_mesh_provisioner_get_node_with_name(const char *name);
+
+u16_t btc_ble_mesh_provisioner_get_prov_node_count(void);
+
+const esp_ble_mesh_node_t **btc_ble_mesh_provisioner_get_node_table_entry(void);
 
 int btc_ble_mesh_client_model_init(esp_ble_mesh_model_t *model);
 
@@ -285,19 +357,20 @@ esp_ble_mesh_elem_t *btc_ble_mesh_elem_find(u16_t addr);
 uint8_t btc_ble_mesh_elem_count(void);
 
 esp_ble_mesh_model_t *btc_ble_mesh_model_find_vnd(const esp_ble_mesh_elem_t *elem,
-        uint16_t company, uint16_t id);
+                                                  uint16_t company, uint16_t id);
 
-esp_ble_mesh_model_t *btc_ble_mesh_model_find(const esp_ble_mesh_elem_t *elem,
-        uint16_t id);
+esp_ble_mesh_model_t *btc_ble_mesh_model_find(const esp_ble_mesh_elem_t *elem, uint16_t id);
 
 const esp_ble_mesh_comp_t *btc_ble_mesh_comp_get(void);
-
-u16_t btc_ble_mesh_provisioner_get_prov_node_count(void);
 
 void btc_ble_mesh_model_call_handler(btc_msg_t *msg);
 void btc_ble_mesh_model_cb_handler(btc_msg_t *msg);
 
 void btc_ble_mesh_prov_call_handler(btc_msg_t *msg);
 void btc_ble_mesh_prov_cb_handler(btc_msg_t *msg);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BTC_BLE_MESH_PROV_H_ */

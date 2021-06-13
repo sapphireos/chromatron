@@ -7,6 +7,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/dport_panic_highint_hdl.S.obj
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_panic.h
+ ../../../../../components/esp32/include/rom/ets_sys.h
  ../../../../../components/esp32/include/xtensa/config/core-isa.h
  ../../../../../components/esp32/include/xtensa/config/core-matmap.h
  ../../../../../components/esp32/include/xtensa/config/core.h
@@ -21,7 +22,11 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/dport_panic_highint_hdl.S.obj
  ../../../../../components/esp32/include/xtensa/xtruntime-core-state.h
  ../../../../../components/esp32/include/xtensa/xtruntime-frames.h
  ../../../../../components/esp32/include/xtensa/xtruntime.h
+ ../../../../../components/freertos/include/freertos/FreeRTOSConfig.h
+ ../../../../../components/freertos/include/freertos/xtensa_config.h
  ../../../../../components/freertos/include/freertos/xtensa_context.h
+ ../../../../../components/freertos/include/freertos/xtensa_rtos.h
+ ../../../../../components/freertos/include/freertos/xtensa_timer.h
  ../../../../../components/newlib/include/_ansi.h
  ../../../../../components/newlib/include/alloca.h
  ../../../../../components/newlib/include/machine/_default_types.h
@@ -48,6 +53,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/dport_panic_highint_hdl.S.obj
  ../../../../../components/soc/esp32/include/soc/dport_access.h
  ../../../../../components/soc/esp32/include/soc/dport_reg.h
  ../../../../../components/soc/esp32/include/soc/soc.h
+ ../../../../../components/soc/esp32/include/soc/timer_group_reg.h
  ../../../../../components/soc/esp32/include/soc/uart_reg.h
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/dport_panic_highint_hdl.S
  config/sdkconfig.h
@@ -59,6 +65,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/brownout.c.obj
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -141,6 +148,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/cache_err_int.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -396,6 +404,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/cpu_start.c.obj
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
  ../../../../../components/esp32/include/esp_flash_data_types.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_int_wdt.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
@@ -558,6 +567,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/crosscore_int.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -687,6 +697,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/dport_access.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -784,6 +795,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/esp_adapter.c.obj
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -939,6 +951,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/esp_err_to_name.c.obj
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
  ../../../../../components/esp32/include/esp_flash_data_types.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -1076,6 +1089,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/esp_himem.c.obj
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_himem.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -1164,6 +1178,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/esp_timer.c.obj
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -1260,6 +1275,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/esp_timer_esp32.c.obj
  ../../../../../components/esp32/include/esp_clk.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -1354,6 +1370,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/ets_timer_legacy.c.obj
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -1446,6 +1463,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/event_default_handlers.c.obj
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
  ../../../../../components/esp32/include/esp_event_loop.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -1576,6 +1594,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/event_loop.c.obj
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
  ../../../../../components/esp32/include/esp_event_loop.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -1773,6 +1792,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/freertos_hooks.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_freertos_hooks.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_pm.h
@@ -1856,6 +1876,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/gdbstub.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_gdbstub.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_panic.h
@@ -1996,6 +2017,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/hwcrypto/aes.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -2094,6 +2116,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/hwcrypto/sha.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -2189,6 +2212,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/int_wdt.c.obj
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_freertos_hooks.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_int_wdt.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -2278,6 +2302,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/intr_alloc.c.obj
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_ipc.h
@@ -2365,6 +2390,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/ipc.c.obj
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_ipc.h
@@ -2494,6 +2520,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/panic.c.obj
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_flash_data_types.h
  ../../../../../components/esp32/include/esp_gdbstub.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_panic.h
@@ -2596,6 +2623,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/phy_init.c.obj
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -2738,6 +2766,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/pm_esp32.c.obj
  ../../../../../components/esp32/include/esp_clk.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_pm.h
@@ -2837,6 +2866,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/pm_locks.c.obj
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_pm.h
@@ -2964,6 +2994,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/reset_reason.c.obj
  ../../../../../components/esp32/include/esp_assert.h
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -3030,6 +3061,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/restore.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -3157,6 +3189,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/sleep_modes.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -3269,6 +3302,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/spiram.c.obj
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_himem.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -3444,6 +3478,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/stack_check.c.obj
  ../../../../../components/esp32/include/esp_assert.h
  ../../../../../components/esp32/include/esp_attr.h
  ../../../../../components/esp32/include/esp_err.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -3512,6 +3547,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/system_api.c.obj
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -3656,6 +3692,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/task_wdt.c.obj
  ../../../../../components/esp32/include/esp_dport_access.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_freertos_hooks.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
  ../../../../../components/esp32/include/esp_sleep.h
@@ -3746,6 +3783,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/task_wdt.c.obj
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/task_wdt.c
  config/sdkconfig.h
 esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/wifi_init.c.obj
+ ../../../../../components/driver/include/driver/adc.h
  ../../../../../components/driver/include/driver/gpio.h
  ../../../../../components/driver/include/driver/touch_pad.h
  ../../../../../components/esp32/include/esp32/pm.h
@@ -3754,6 +3792,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/wifi_init.c.obj
  ../../../../../components/esp32/include/esp_crosscore_int.h
  ../../../../../components/esp32/include/esp_err.h
  ../../../../../components/esp32/include/esp_event_legacy.h
+ ../../../../../components/esp32/include/esp_idf_version.h
  ../../../../../components/esp32/include/esp_interface.h
  ../../../../../components/esp32/include/esp_intr.h
  ../../../../../components/esp32/include/esp_intr_alloc.h
@@ -3860,6 +3899,7 @@ esp-idf/esp32/CMakeFiles/idf_component_esp32.dir/wifi_init.c.obj
  ../../../../../components/newlib/platform_include/sys/select.h
  ../../../../../components/newlib/platform_include/sys/unistd.h
  ../../../../../components/newlib/platform_include/time.h
+ ../../../../../components/soc/esp32/include/soc/adc_channel.h
  ../../../../../components/soc/esp32/include/soc/cpu.h
  ../../../../../components/soc/esp32/include/soc/gpio_pins.h
  ../../../../../components/soc/esp32/include/soc/gpio_reg.h

@@ -7,6 +7,7 @@ esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: ../.
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj: ../../../../../components/esp32/include/esp_sleep.h

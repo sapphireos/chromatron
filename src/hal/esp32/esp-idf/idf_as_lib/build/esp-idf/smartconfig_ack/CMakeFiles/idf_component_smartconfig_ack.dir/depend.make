@@ -8,6 +8,7 @@ esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj: ../../../../../components/esp32/include/esp_err.h
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj: ../../../../../components/esp32/include/esp_event_legacy.h
+esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj: ../../../../../components/esp32/include/esp_interface.h
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/smartconfig_ack/CMakeFiles/idf_component_smartconfig_ack.dir/smartconfig_ack.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h

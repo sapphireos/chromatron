@@ -35,9 +35,11 @@
 #ifdef ENABLE_FFS
 
 static uint32_t flash_id;
+static uint8_t flash_erase_time;
 
 KV_SECTION_META kv_meta_t flash_id_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,  "flash_id" },
+    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,          "flash_id" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_erase_time, 0,  "flash_erase_time" },
 };
 
 
@@ -217,11 +219,18 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         return;
     }
 
-    ASSERT( ( address % 4 ) == 0 );
+    // fix odd address alignment
+    while( ( address % 4 ) != 0 ){
+
+        *(uint8_t *)ptr = flash25_u8_read_byte( address );
+
+        address++;
+        ptr++;
+        len--;
+    }
 
     uint32_t block_len = ( len / 4 ) * 4;
 
-    
     // misaligned pointers will cause an exception!
     // if our alignment is off, we'll copy into an aligned buffer
     // and do the flash write from there.
@@ -365,12 +374,20 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         return;
     }
 
-    ASSERT( ( address % 4 ) == 0 );
+    // fix odd address alignment
+    while( ( address % 4 ) != 0 ){
 
-    uint32_t block_len = ( len / 4 ) * 4;
+        flash25_v_write_byte( address, *(uint8_t *)ptr );
+
+        address++;
+        ptr++;
+        len--;
+    }
 
     // enable writes
     flash25_v_write_enable();
+
+    uint32_t block_len = ( len / 4 ) * 4;
 
     // misaligned pointers will cause an exception!
     // if our alignment is off, we'll copy into an aligned buffer
@@ -464,7 +481,15 @@ void flash25_v_erase_4k( uint32_t address ){
 
     address += START_ADDRESS;
         
+    uint32_t start = tmr_u32_get_system_time_ms();
+
     spi_flash_erase_sector( address / FLASH_FS_ERASE_BLOCK_SIZE );
+    
+    uint32_t elapsed = tmr_u32_elapsed_time_ms( start );
+    if( ( elapsed > flash_erase_time ) && ( elapsed < 255 ) ){
+
+        flash_erase_time = elapsed;
+    }
 }
 
 // erase the entire array

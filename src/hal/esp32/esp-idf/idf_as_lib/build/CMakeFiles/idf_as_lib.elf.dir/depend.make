@@ -7,6 +7,7 @@ CMakeFiles/idf_as_lib.elf.dir/main.c.obj: /home/jeremy/JEREMY/SAPPHIRE/chromatro
 CMakeFiles/idf_as_lib.elf.dir/main.c.obj: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/include/esp_attr.h
 CMakeFiles/idf_as_lib.elf.dir/main.c.obj: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/include/esp_crosscore_int.h
 CMakeFiles/idf_as_lib.elf.dir/main.c.obj: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/include/esp_err.h
+CMakeFiles/idf_as_lib.elf.dir/main.c.obj: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/include/esp_idf_version.h
 CMakeFiles/idf_as_lib.elf.dir/main.c.obj: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/include/esp_intr.h
 CMakeFiles/idf_as_lib.elf.dir/main.c.obj: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/include/esp_intr_alloc.h
 CMakeFiles/idf_as_lib.elf.dir/main.c.obj: /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/include/esp_sleep.h

@@ -80,6 +80,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/idf_component_lwip.dir/port/esp32/netif/dhcp_state.c.obj"
   "CMakeFiles/idf_component_lwip.dir/port/esp32/netif/ethernetif.c.obj"
   "CMakeFiles/idf_component_lwip.dir/port/esp32/netif/wlanif.c.obj"
+  "CMakeFiles/idf_component_lwip.dir/port/esp32/tcp_isn/tcp_isn.c.obj"
   "CMakeFiles/idf_component_lwip.dir/port/esp32/vfs_lwip.c.obj"
   "liblwip.a"
   "liblwip.pdb"

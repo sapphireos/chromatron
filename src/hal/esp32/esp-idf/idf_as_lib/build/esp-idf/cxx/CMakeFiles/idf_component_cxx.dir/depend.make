@@ -10,6 +10,7 @@ esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj: ../../../../../
 esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj: ../../../../../components/esp32/include/esp_sleep.h

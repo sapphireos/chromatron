@@ -13,6 +13,10 @@
 #include "net.h"
 #include "mesh_bearer_adapt.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define BLE_MESH_PROXY_NET_PDU   0x00
 #define BLE_MESH_PROXY_BEACON    0x01
 #define BLE_MESH_PROXY_CONFIG    0x02
@@ -36,30 +40,35 @@
 
 int bt_mesh_set_device_name(const char *name);
 
-int bt_mesh_proxy_send(struct bt_mesh_conn *conn, u8_t type,
-                       struct net_buf_simple *msg);
+int bt_mesh_proxy_server_send(struct bt_mesh_conn *conn, u8_t type,
+                              struct net_buf_simple *msg);
 
-int bt_mesh_proxy_prov_enable(void);
-int bt_mesh_proxy_prov_disable(bool disconnect);
+int bt_mesh_proxy_server_prov_enable(void);
+int bt_mesh_proxy_server_prov_disable(bool disconnect);
 
-int bt_mesh_proxy_gatt_enable(void);
-int bt_mesh_proxy_gatt_disable(void);
-void bt_mesh_proxy_gatt_disconnect(void);
+int bt_mesh_proxy_server_gatt_enable(void);
+int bt_mesh_proxy_server_gatt_disable(void);
 
-void bt_mesh_proxy_beacon_send(struct bt_mesh_subnet *sub);
+void bt_mesh_proxy_server_gatt_disconnect(void);
 
-struct net_buf_simple *bt_mesh_proxy_get_buf(void);
+void bt_mesh_proxy_server_beacon_send(struct bt_mesh_subnet *sub);
 
-s32_t bt_mesh_proxy_adv_start(void);
-void bt_mesh_proxy_adv_stop(void);
+struct net_buf_simple *bt_mesh_proxy_server_get_buf(void);
 
-void bt_mesh_proxy_identity_start(struct bt_mesh_subnet *sub);
-void bt_mesh_proxy_identity_stop(struct bt_mesh_subnet *sub);
+s32_t bt_mesh_proxy_server_adv_start(void);
+void bt_mesh_proxy_server_adv_stop(void);
 
-bool bt_mesh_proxy_relay(struct net_buf_simple *buf, u16_t dst);
-void bt_mesh_proxy_addr_add(struct net_buf_simple *buf, u16_t addr);
+void bt_mesh_proxy_server_identity_start(struct bt_mesh_subnet *sub);
+void bt_mesh_proxy_server_identity_stop(struct bt_mesh_subnet *sub);
 
-int bt_mesh_proxy_init(void);
-int bt_mesh_proxy_deinit(void);
+bool bt_mesh_proxy_server_relay(struct net_buf_simple *buf, u16_t dst);
+void bt_mesh_proxy_server_addr_add(struct net_buf_simple *buf, u16_t addr);
+
+int bt_mesh_proxy_server_init(void);
+int bt_mesh_proxy_server_deinit(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _PROXY_H_ */

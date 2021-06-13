@@ -7,6 +7,7 @@ esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: ../../../../../c
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -96,6 +97,7 @@ esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: ../../../..
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_caps_init.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -185,6 +187,7 @@ esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: ../../../../../
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/heap_trace.c.obj: ../../../../../components/esp32/include/esp_sleep.h
@@ -276,6 +279,7 @@ esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: ../../../../../
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/heap/CMakeFiles/idf_component_heap.dir/multi_heap.c.obj: ../../../../../components/esp32/include/esp_sleep.h

@@ -367,7 +367,7 @@ class Client(BaseClient):
         try:
             sock.connect(host)
 
-        except ConnectionRefusedError:
+        except (OSError, ConnectionRefusedError):
             self._update_directory((None, None))
             return None
 

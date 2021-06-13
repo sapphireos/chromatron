@@ -453,6 +453,12 @@ nd6_input(struct pbuf *p, struct netif *inp)
 
     /* Offset to options. */
     offset = sizeof(struct ra_header);
+#ifdef ESP_LWIP
+    if (offset > p->tot_len) {
+        /* integer underflow can occur */
+        goto lenerr_drop_free_return;
+    }
+#endif
 
     /* Process each option. */
     while ((p->tot_len - offset) > 0) {
@@ -547,7 +553,17 @@ nd6_input(struct pbuf *p, struct netif *inp)
         u8_t num, n;
         struct rdnss_option * rdnss_opt;
 
+#ifdef ESP_LWIP
+        if (p->len < 8) {
+            goto lenerr_drop_free_return;
+        }
+#endif
         rdnss_opt = (struct rdnss_option *)buffer;
+#ifdef ESP_LWIP
+        if (p->len < rdnss_opt->length << 3 || rdnss_opt->length <= 0){
+            goto lenerr_drop_free_return;
+        }
+#endif
         num = (rdnss_opt->length - 1) / 2;
         for (n = 0; (rdnss_server_idx < DNS_MAX_SERVERS) && (n < num); n++) {
           ip_addr_t rdnss_address;
@@ -577,6 +593,13 @@ nd6_input(struct pbuf *p, struct netif *inp)
         ND6_STATS_INC(nd6.proterr);
         break;
       }
+#ifdef ESP_LWIP
+      /* ensure offset does not overflow */
+      u32_t overflow = offset + 8 * ((u16_t)buffer[1]);
+      if (overflow > UINT16_MAX) {
+          goto lenerr_drop_free_return;
+      }
+#endif
       /* option length is checked earlier to be non-zero to make sure loop ends */
       offset += 8 * ((u16_t)buffer[1]);
     }
@@ -700,6 +723,14 @@ nd6_input(struct pbuf *p, struct netif *inp)
   }
 
   pbuf_free(p);
+#ifdef ESP_LWIP
+  return;
+
+lenerr_drop_free_return:
+  ND6_STATS_INC(nd6.lenerr);
+  ND6_STATS_INC(nd6.drop);
+  pbuf_free(p);
+#endif
 }
 
 #ifdef ESP_LWIP
@@ -890,15 +921,6 @@ nd6_tmr(void)
 #endif
           /* @todo implement preferred and valid lifetimes. */
         } else if (netif->flags & NETIF_FLAG_UP) {
-#if ESP_LWIP
-#if LWIP_IPV6_MLD
-          if ((netif_ip6_addr_state(netif, i) & IP6_ADDR_TENTATIVE_COUNT_MASK) == 0) {
-            /* Join solicited node multicast group. */
-            ip6_addr_set_solicitednode(&multicast_address, netif_ip6_addr(netif, i)->addr[3]);
-            mld6_joingroup(netif_ip6_addr(netif, i), &multicast_address);
-          }
-#endif /* LWIP_IPV6_MLD */
-#endif
           /* Send a NS for this address. */
           nd6_send_ns(netif, netif_ip6_addr(netif, i), ND6_SEND_FLAG_MULTICAST_DEST);
           /* tentative: set next state by increasing by one */
@@ -1785,6 +1807,12 @@ nd6_queue_packet(s8_t neighbor_index, struct pbuf *q)
   if (copy_needed) {
     /* copy the whole packet into new pbufs */
     p = pbuf_alloc(PBUF_LINK, q->tot_len, PBUF_RAM);
+#if ESP_ND6_QUEUEING
+    if(p == NULL) {
+      pbuf_free(q);
+      return ERR_MEM;
+    }
+#else
     while ((p == NULL) && (neighbor_cache[neighbor_index].q != NULL)) {
       /* Free oldest packet (as per RFC recommendation) */
 #if LWIP_ND6_QUEUEING
@@ -1798,6 +1826,7 @@ nd6_queue_packet(s8_t neighbor_index, struct pbuf *q)
 #endif /* LWIP_ND6_QUEUEING */
       p = pbuf_alloc(PBUF_LINK, q->tot_len, PBUF_RAM);
     }
+#endif /* ESP_ND6_QUEUEING */
     if (p != NULL) {
       if (pbuf_copy(p, q) != ERR_OK) {
         pbuf_free(p);
@@ -1824,19 +1853,31 @@ nd6_queue_packet(s8_t neighbor_index, struct pbuf *q)
       new_entry = (struct nd6_q_entry *)memp_malloc(MEMP_ND6_QUEUE);
     }
     if (new_entry != NULL) {
+      unsigned int qlen = 0;
       new_entry->next = NULL;
       new_entry->p = p;
       if (neighbor_cache[neighbor_index].q != NULL) {
         /* queue was already existent, append the new entry to the end */
         r = neighbor_cache[neighbor_index].q;
+        qlen++;
         while (r->next != NULL) {
           r = r->next;
+          qlen++;
         }
         r->next = new_entry;
       } else {
         /* queue did not exist, first item in queue */
         neighbor_cache[neighbor_index].q = new_entry;
       }
+#if ESP_ND6_QUEUEING
+      if (qlen >= MEMP_NUM_ND6_QUEUE) {
+        r->next = NULL;
+        pbuf_free(new_entry->p);
+        memp_free(MEMP_ND6_QUEUE, new_entry);
+        LWIP_DEBUGF(LWIP_DBG_TRACE, ("ipv6: could not queue the packet %p (queue is full)\n", (void *)q));
+        return ERR_MEM;
+      }
+#endif
       LWIP_DEBUGF(LWIP_DBG_TRACE, ("ipv6: queued packet %p on neighbor entry %"S16_F"\n", (void *)p, (s16_t)neighbor_index));
       result = ERR_OK;
     } else {

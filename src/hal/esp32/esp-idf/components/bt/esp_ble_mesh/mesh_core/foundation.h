@@ -8,7 +8,12 @@
 #ifndef _FOUNDATION_H_
 #define _FOUNDATION_H_
 
+#include "mesh_byteorder.h"
 #include "net.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define OP_APP_KEY_ADD                     BLE_MESH_MODEL_OP_1(0x00)
 #define OP_APP_KEY_UPDATE                  BLE_MESH_MODEL_OP_1(0x01)
@@ -127,19 +132,9 @@ struct label {
     bt_mesh_atomic_t flags[1];
 };
 
-int bt_mesh_cfg_srv_init(struct bt_mesh_model *model, bool primary);
-int bt_mesh_health_srv_init(struct bt_mesh_model *model, bool primary);
+void bt_mesh_mod_sub_reset(bool store);
 
-int bt_mesh_cfg_srv_deinit(struct bt_mesh_model *model, bool primary);
-int bt_mesh_health_srv_deinit(struct bt_mesh_model *model, bool primary);
-
-int bt_mesh_cfg_cli_init(struct bt_mesh_model *model, bool primary);
-int bt_mesh_health_cli_init(struct bt_mesh_model *model, bool primary);
-
-int bt_mesh_cfg_cli_deinit(struct bt_mesh_model *model, bool primary);
-int bt_mesh_health_cli_deinit(struct bt_mesh_model *model, bool primary);
-
-void bt_mesh_cfg_reset(void);
+void bt_mesh_cfg_reset(bool store);
 
 void bt_mesh_heartbeat(u16_t src, u16_t dst, u8_t hops, u16_t feat);
 
@@ -180,5 +175,9 @@ static inline void key_idx_unpack(struct net_buf_simple *buf,
     *idx2 = sys_get_le16(&buf->data[1]) >> 4;
     net_buf_simple_pull(buf, 3);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _FOUNDATION_H_ */

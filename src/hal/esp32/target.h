@@ -74,7 +74,7 @@
 
 // memory
 #define MAX_MEM_HANDLES         512
-#define MEM_MAX_STACK           ESP_TASK_MAIN_STACK
+#define MEM_MAX_STACK           4096
 #define MEM_HEAP_SIZE			65535
 
 // flash fs
@@ -125,7 +125,11 @@
 // comment this out to turn off run-time asserts
 #define INCLUDE_ASSERTS
 
+
+
 // recovery mode
+// #define DISABLE_SAFE_MODE
+
 // #define DISABLE_RECOVERY_MODE
 
 // #define HALT_ON_ASSERT

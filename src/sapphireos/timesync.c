@@ -323,6 +323,11 @@ static void time_v_set_ntp_master_clock_internal(
 
         is_sync = TRUE;
 
+        char time_str[ISO8601_STRING_MIN_LEN_MS];
+        ntp_v_to_iso8601( time_str, sizeof(time_str), time_t_now() );
+
+        log_v_info_P( PSTR("NTP Time is now: %s"), time_str );
+
         return;
     }
 

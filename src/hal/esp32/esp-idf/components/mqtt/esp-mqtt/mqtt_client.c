@@ -7,7 +7,6 @@
 #include "esp_transport_tcp.h"
 #include "esp_transport_ssl.h"
 #include "esp_transport_ws.h"
-#include "platform.h"
 #include "mqtt_outbox.h"
 #include "mqtt_supported_features.h"
 
@@ -17,21 +16,14 @@
 #ifdef MQTT_DISABLE_API_LOCKS
 # define MQTT_API_LOCK(c)
 # define MQTT_API_UNLOCK(c)
-# define MQTT_API_LOCK_FROM_OTHER_TASK(c)
-# define MQTT_API_UNLOCK_FROM_OTHER_TASK(c)
 #else
-# define MQTT_API_LOCK(c)          xSemaphoreTake(c->api_lock, portMAX_DELAY)
-# define MQTT_API_UNLOCK(c)        xSemaphoreGive(c->api_lock)
-# define MQTT_API_LOCK_FROM_OTHER_TASK(c)    { if (c->task_handle != xTaskGetCurrentTaskHandle()) { xSemaphoreTake(c->api_lock, portMAX_DELAY); } }
-# define MQTT_API_UNLOCK_FROM_OTHER_TASK(c)  { if (c->task_handle != xTaskGetCurrentTaskHandle()) { xSemaphoreGive(c->api_lock); } }
+# define MQTT_API_LOCK(c)          xSemaphoreTakeRecursive(c->api_lock, portMAX_DELAY)
+# define MQTT_API_UNLOCK(c)        xSemaphoreGiveRecursive(c->api_lock)
 #endif /* MQTT_USE_API_LOCKS */
 
-#ifdef MQTT_SUPPORTED_FEATURE_DER_CERTIFICATES
-# define MQTT_TRANSPORT_SET_CERT_OR_KEY(setfn, key, len) \
-    { if (key) { if (len) { setfn##_der(ssl, key, len); } else { setfn(ssl, key, strlen(key)); } } }
-#else
-# define MQTT_TRANSPORT_SET_CERT_OR_KEY(setfn, key, len) \
-    { if (key) { setfn(ssl, key, strlen(key)); } }
+_Static_assert(sizeof(uint64_t) == sizeof(outbox_tick_t), "mqtt-client tick type size different from outbox tick type");
+#ifdef ESP_EVENT_ANY_ID
+_Static_assert(MQTT_EVENT_ANY == ESP_EVENT_ANY_ID, "mqtt-client event enum does not match the global EVENT_ANY_ID");
 #endif
 
 static const char *TAG = "MQTT_CLIENT";
@@ -51,8 +43,8 @@ typedef struct mqtt_state
     uint8_t *out_buffer;
     int in_buffer_length;
     int out_buffer_length;
-    uint32_t message_length;
-    uint32_t in_buffer_read_len;
+    size_t message_length;
+    size_t in_buffer_read_len;
     mqtt_message_t *outbound_message;
     mqtt_connection_t mqtt_connection;
     uint16_t pending_msg_id;
@@ -63,9 +55,7 @@ typedef struct mqtt_state
 
 typedef struct {
     mqtt_event_callback_t event_handle;
-#ifdef MQTT_SUPPORTED_FEATURE_EVENT_LOOP
     esp_event_loop_handle_t event_loop_handle;
-#endif
     int task_stack;
     int task_prio;
     char *uri;
@@ -82,6 +72,17 @@ typedef struct {
     int num_alpn_protos;
     char *clientkey_password;
     int clientkey_password_len;
+    bool use_global_ca_store;
+    const char *cacert_buf;
+    size_t cacert_bytes;
+    const char *clientcert_buf;
+    size_t clientcert_bytes;
+    const char *clientkey_buf;
+    size_t clientkey_bytes;
+    const struct psk_key_hint *psk_hint_key;
+    bool skip_cert_common_name_check;
+    bool use_secure_element;
+    void *ds_data;
 } mqtt_config_storage_t;
 
 typedef enum {
@@ -121,6 +122,7 @@ struct esp_mqtt_client {
 
 const static int STOPPED_BIT = BIT0;
 const static int RECONNECT_BIT = BIT1;
+const static int DISCONNECT_BIT = BIT2;
 
 static esp_err_t esp_mqtt_dispatch_event(esp_mqtt_client_handle_t client);
 static esp_err_t esp_mqtt_dispatch_event_with_msgid(esp_mqtt_client_handle_t client);
@@ -130,10 +132,193 @@ static esp_err_t esp_mqtt_abort_connection(esp_mqtt_client_handle_t client);
 static esp_err_t esp_mqtt_client_ping(esp_mqtt_client_handle_t client);
 static char *create_string(const char *ptr, int len);
 static int mqtt_message_receive(esp_mqtt_client_handle_t client, int read_poll_timeout_ms);
+static void esp_mqtt_client_dispatch_transport_error(esp_mqtt_client_handle_t client);
+
+
+#if MQTT_ENABLE_SSL
+enum esp_mqtt_ssl_cert_key_api {
+    MQTT_SSL_DATA_API_CA_CERT,
+    MQTT_SSL_DATA_API_CLIENT_CERT,
+    MQTT_SSL_DATA_API_CLIENT_KEY,
+    MQTT_SSL_DATA_API_MAX,
+};
+
+static esp_err_t esp_mqtt_set_cert_key_data(esp_transport_handle_t ssl, enum esp_mqtt_ssl_cert_key_api what, const char *cert_key_data, int cert_key_len)
+{
+    char *data = (char *)cert_key_data;
+    int ssl_transport_api_id = what;
+    int len = cert_key_len;
+
+    if (!data) {
+        return ESP_OK;
+    }
+
+    if (len == 0) {
+        // if length not specified, expect 0-terminated PEM string
+        // and the original transport_api_id (by convention after the last api_id in the enum)
+        ssl_transport_api_id += MQTT_SSL_DATA_API_MAX;
+        len = strlen(data);
+    }
+#ifndef MQTT_SUPPORTED_FEATURE_DER_CERTIFICATES
+    else {
+        ESP_LOGE(TAG, "Explicit cert-/key-len is not available in IDF version %s", IDF_VER);
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+#endif
+
+    // option to force the cert/key config to null (i.e. skip validation) when existing config updates
+    if (0 == strcmp(data, "NULL")) {
+        data = NULL;
+        len = 0;
+    }
+
+    switch (ssl_transport_api_id) {
+#ifdef MQTT_SUPPORTED_FEATURE_DER_CERTIFICATES
+        case MQTT_SSL_DATA_API_CA_CERT:
+            esp_transport_ssl_set_cert_data_der(ssl, data, len);
+            break;
+        case MQTT_SSL_DATA_API_CLIENT_CERT:
+            esp_transport_ssl_set_client_cert_data_der(ssl, data, len);
+            break;
+        case MQTT_SSL_DATA_API_CLIENT_KEY:
+            esp_transport_ssl_set_client_key_data_der(ssl, data, len);
+            break;
+#endif
+        case MQTT_SSL_DATA_API_CA_CERT + MQTT_SSL_DATA_API_MAX:
+            esp_transport_ssl_set_cert_data(ssl, data, len);
+            break;
+        case MQTT_SSL_DATA_API_CLIENT_CERT + MQTT_SSL_DATA_API_MAX:
+            esp_transport_ssl_set_client_cert_data(ssl, data, len);
+            break;
+        case MQTT_SSL_DATA_API_CLIENT_KEY + MQTT_SSL_DATA_API_MAX:
+            esp_transport_ssl_set_client_key_data(ssl, data, len);
+            break;
+        default:
+            return ESP_ERR_INVALID_ARG;
+    }
+    return ESP_OK;
+}
+
+static esp_err_t esp_mqtt_set_ssl_transport_properties(esp_transport_list_handle_t transport_list, mqtt_config_storage_t *cfg)
+{
+    esp_transport_handle_t ssl = esp_transport_list_get_transport(transport_list, "mqtts");
+
+    if (cfg->use_global_ca_store == true) {
+        esp_transport_ssl_enable_global_ca_store(ssl);
+    } else {
+        ESP_OK_CHECK(TAG, esp_mqtt_set_cert_key_data(ssl, MQTT_SSL_DATA_API_CA_CERT, cfg->cacert_buf, cfg->cacert_bytes),
+                     goto esp_mqtt_set_transport_failed);
+    }
+
+    if (cfg->use_secure_element) {
+#ifdef MQTT_SUPPORTED_FEATURE_SECURE_ELEMENT
+#ifdef CONFIG_ESP_TLS_USE_SECURE_ELEMENT
+        esp_transport_ssl_use_secure_element(ssl);
+#else
+        ESP_LOGE(TAG, "Secure element not enabled for esp-tls in menuconfig");
+        goto esp_mqtt_set_transport_failed;
+#endif /* CONFIG_ESP_TLS_USE_SECURE_ELEMENT */
+#else
+        ESP_LOGE(TAG, "Secure element feature is not available in IDF version %s", IDF_VER);
+        goto esp_mqtt_set_transport_failed;
+#endif /* MQTT_SUPPORTED_FEATURE_SECURE_ELEMENT */
+    }
+
+    if(cfg->ds_data != NULL) {
+#ifdef MQTT_SUPPORTED_FEATURE_DIGITAL_SIGNATURE
+#ifdef CONFIG_ESP_TLS_USE_DS_PERIPHERAL
+        esp_transport_ssl_set_ds_data(ssl, cfg->ds_data);
+#else
+        ESP_LOGE(TAG, "Digital Signature not enabled for esp-tls in menuconfig");
+        goto esp_mqtt_set_transport_failed;
+#endif /* CONFIG_ESP_TLS_USE_DS_PERIPHERAL */
+#else
+        ESP_LOGE(TAG, "Digital Signature feature is not available in IDF version %s", IDF_VER);
+        goto esp_mqtt_set_transport_failed;
+#endif
+    }
+    ESP_OK_CHECK(TAG, esp_mqtt_set_cert_key_data(ssl, MQTT_SSL_DATA_API_CLIENT_CERT, cfg->clientcert_buf, cfg->clientcert_bytes),
+                 goto esp_mqtt_set_transport_failed);
+    ESP_OK_CHECK(TAG, esp_mqtt_set_cert_key_data(ssl, MQTT_SSL_DATA_API_CLIENT_KEY, cfg->clientkey_buf, cfg->clientkey_bytes),
+                 goto esp_mqtt_set_transport_failed);
+
+    if (cfg->clientkey_password && cfg->clientkey_password_len) {
+#if defined(MQTT_SUPPORTED_FEATURE_CLIENT_KEY_PASSWORD) && MQTT_ENABLE_SSL
+        esp_transport_ssl_set_client_key_password(ssl,
+                                                  cfg->clientkey_password,
+                                                  cfg->clientkey_password_len);
+#else
+        ESP_LOGE(TAG, "Password protected keys are not available in IDF version %s", IDF_VER);
+        goto esp_mqtt_set_transport_failed;
+#endif
+    }
+
+    if (cfg->psk_hint_key) {
+#if defined(MQTT_SUPPORTED_FEATURE_PSK_AUTHENTICATION) && MQTT_ENABLE_SSL
+        esp_transport_ssl_set_psk_key_hint(ssl, cfg->psk_hint_key);
+#else
+        ESP_LOGE(TAG, "PSK authentication is not available in IDF version %s", IDF_VER);
+        goto esp_mqtt_set_transport_failed;
+#endif
+    }
+
+    if (cfg->alpn_protos) {
+#if defined(MQTT_SUPPORTED_FEATURE_ALPN) && MQTT_ENABLE_SSL
+        esp_transport_ssl_set_alpn_protocol(ssl, (const char **)cfg->alpn_protos);
+#else
+        ESP_LOGE(TAG, "APLN is not available in IDF version %s", IDF_VER);
+        goto esp_mqtt_set_transport_failed;
+#endif
+    }
+
+
+    if (cfg->skip_cert_common_name_check) {
+#if defined(MQTT_SUPPORTED_FEATURE_SKIP_CRT_CMN_NAME_CHECK) && MQTT_ENABLE_SSL
+        esp_transport_ssl_skip_common_name_check(ssl);
+#else
+        ESP_LOGE(TAG, "Skip certificate common name check is not available in IDF version %s", IDF_VER);
+        goto esp_mqtt_set_transport_failed;
+#endif
+    }
+
+    return ESP_OK;
+
+    esp_mqtt_set_transport_failed:
+    return ESP_FAIL;
+}
+#endif // MQTT_ENABLE_SSL
+
+/* Checks if the user supplied config values are internally consistent */
+static esp_err_t esp_mqtt_check_cfg_conflict(const mqtt_config_storage_t *cfg, const esp_mqtt_client_config_t *user_cfg)
+{
+    esp_err_t ret = ESP_OK;
+
+    bool ssl_cfg_enabled = cfg->use_global_ca_store || cfg->cacert_buf || cfg->clientcert_buf || cfg->psk_hint_key || cfg->alpn_protos;
+    bool is_ssl_scheme = false;
+    if (cfg->scheme) {
+        is_ssl_scheme = (strcasecmp(cfg->scheme, "mqtts") == 0) || (strcasecmp(cfg->scheme, "wss") == 0);
+    }
+
+    if (!is_ssl_scheme && ssl_cfg_enabled) {
+        if (cfg->uri) {
+            ESP_LOGW(TAG, "SSL related configs set, but the URI scheme specifies a non-SSL scheme, scheme = %s", cfg->scheme);
+        } else {
+            ESP_LOGW(TAG, "SSL related configs set, but the transport protocol is a non-SSL scheme, transport = %d", user_cfg->transport);
+        }
+        ret = ESP_ERR_INVALID_ARG;
+    }
+
+    if (cfg->uri && user_cfg->transport) {
+        ESP_LOGW(TAG, "Transport config set, but overridden by scheme from URI: transport = %d, uri scheme = %s", user_cfg->transport, cfg->scheme);
+        ret = ESP_ERR_INVALID_ARG;
+    }
+
+    return ret;
+}
 
 esp_err_t esp_mqtt_set_config(esp_mqtt_client_handle_t client, const esp_mqtt_client_config_t *config)
 {
-    MQTT_API_LOCK_FROM_OTHER_TASK(client);
+    MQTT_API_LOCK(client);
     //Copy user configurations to client context
     esp_err_t err = ESP_OK;
     mqtt_config_storage_t *cfg;
@@ -142,7 +327,7 @@ esp_err_t esp_mqtt_set_config(esp_mqtt_client_handle_t client, const esp_mqtt_cl
     } else {
         cfg = calloc(1, sizeof(mqtt_config_storage_t));
         ESP_MEM_CHECK(TAG, cfg, {
-            MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+            MQTT_API_UNLOCK(client);
             return ESP_ERR_NO_MEM;
         });
         client->config = cfg;
@@ -190,6 +375,7 @@ esp_err_t esp_mqtt_set_config(esp_mqtt_client_handle_t client, const esp_mqtt_cl
     } else if (client->connect_info.client_id == NULL) {
         client->connect_info.client_id = platform_create_id_string();
     }
+
     ESP_MEM_CHECK(TAG, client->connect_info.client_id, goto _mqtt_set_config_failed);
     ESP_LOGD(TAG, "MQTT client_id=%s", client->connect_info.client_id);
 
@@ -233,7 +419,29 @@ esp_err_t esp_mqtt_set_config(esp_mqtt_client_handle_t client, const esp_mqtt_cl
     if (client->connect_info.keepalive == 0) {
         client->connect_info.keepalive = MQTT_KEEPALIVE_TICK;
     }
-    cfg->network_timeout_ms = MQTT_NETWORK_TIMEOUT_MS;
+    if (config->disable_keepalive) {
+        // internal `keepalive` value (in connect_info) is in line with 3.1.2.10 Keep Alive from mqtt spec:
+        //      * keepalive=0: Keep alive mechanism disabled (server not to disconnect the client on its inactivity)
+        //      * period in seconds to send a Control packet if inactive
+        client->connect_info.keepalive = 0;
+    }
+
+    if (config->protocol_ver) {
+        client->connect_info.protocol_ver = config->protocol_ver;
+    }
+    if (client->connect_info.protocol_ver== MQTT_PROTOCOL_UNDEFINED) {
+#ifdef MQTT_PROTOCOL_311
+        client->connect_info.protocol_ver = MQTT_PROTOCOL_V_3_1_1;
+#else
+        client->connect_info.protocol_ver = MQTT_PROTOCOL_V_3_1;
+#endif
+    }
+
+    cfg->network_timeout_ms = config->network_timeout_ms;
+    if (cfg->network_timeout_ms <= 0) {
+        cfg->network_timeout_ms = MQTT_NETWORK_TIMEOUT_MS;
+    }
+
     if (config->user_context) {
         cfg->user_context = config->user_context;
     }
@@ -257,7 +465,7 @@ esp_err_t esp_mqtt_set_config(esp_mqtt_client_handle_t client, const esp_mqtt_cl
         cfg->reconnect_timeout_ms = MQTT_RECON_DEFAULT_MS;
     }
 
-    if(config->alpn_protos) {
+    if (config->alpn_protos) {
         for (int i = 0; i < cfg->num_alpn_protos; i++) {
             free(cfg->alpn_protos[i]);
         }
@@ -279,23 +487,66 @@ esp_err_t esp_mqtt_set_config(esp_mqtt_client_handle_t client, const esp_mqtt_cl
         }
     }
 
+    // configure ssl related parameters
+    cfg->use_global_ca_store = config->use_global_ca_store;
+    cfg->cacert_buf = config->cert_pem;
+    cfg->cacert_bytes = config->cert_len;
+    cfg->clientcert_buf = config->client_cert_pem;
+    cfg->clientcert_bytes = config->client_cert_len;
+    cfg->clientkey_buf = config->client_key_pem;
+    cfg->clientkey_bytes = config->client_key_len;
+    cfg->psk_hint_key = config->psk_hint_key;
+    cfg->skip_cert_common_name_check = config->skip_cert_common_name_check;
+    cfg->use_secure_element = config->use_secure_element;
+    cfg->ds_data = config->ds_data;
+
     if (config->clientkey_password && config->clientkey_password_len) {
         cfg->clientkey_password_len = config->clientkey_password_len;
         cfg->clientkey_password = malloc(cfg->clientkey_password_len);
         memcpy(cfg->clientkey_password, config->clientkey_password, cfg->clientkey_password_len);
     }
 
-    MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+    if (config->transport) {
+        free(client->config->scheme);
+        if (config->transport == MQTT_TRANSPORT_OVER_WS) {
+            cfg->scheme = create_string("ws", 2);
+            ESP_MEM_CHECK(TAG, cfg->scheme, goto _mqtt_set_config_failed);
+        } else if (config->transport == MQTT_TRANSPORT_OVER_TCP) {
+            cfg->scheme = create_string("mqtt", 4);
+            ESP_MEM_CHECK(TAG, cfg->scheme, goto _mqtt_set_config_failed);
+        } else if (config->transport == MQTT_TRANSPORT_OVER_SSL) {
+            cfg->scheme = create_string("mqtts", 5);
+            ESP_MEM_CHECK(TAG, cfg->scheme, goto _mqtt_set_config_failed);
+        } else if (config->transport == MQTT_TRANSPORT_OVER_WSS) {
+            cfg->scheme = create_string("wss", 3);
+            ESP_MEM_CHECK(TAG, cfg->scheme, goto _mqtt_set_config_failed);
+        }
+    }
+
+    // Set uri at the end of config to override separately configured uri elements
+    if (config->uri) {
+        if (esp_mqtt_client_set_uri(client, cfg->uri) != ESP_OK) {
+            err = ESP_FAIL;
+            goto _mqtt_set_config_failed;
+        }
+    }
+    esp_mqtt_check_cfg_conflict(cfg, config);
+
+    MQTT_API_UNLOCK(client);
+
     return ESP_OK;
 _mqtt_set_config_failed:
     esp_mqtt_destroy_config(client);
-    MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+    MQTT_API_UNLOCK(client);
     return err;
 }
 
 static esp_err_t esp_mqtt_destroy_config(esp_mqtt_client_handle_t client)
 {
     mqtt_config_storage_t *cfg = client->config;
+    if (cfg == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
     free(cfg->host);
     free(cfg->uri);
     free(cfg->path);
@@ -318,6 +569,7 @@ static esp_err_t esp_mqtt_destroy_config(esp_mqtt_client_handle_t client)
 #endif
     memset(cfg, 0, sizeof(mqtt_config_storage_t));
     free(client->config);
+    client->config = NULL;
     return ESP_OK;
 }
 
@@ -335,7 +587,7 @@ static esp_err_t esp_mqtt_connect(esp_mqtt_client_handle_t client, int timeout_m
     client->mqtt_state.pending_msg_type = mqtt_get_type(client->mqtt_state.outbound_message->data);
     client->mqtt_state.pending_msg_id = mqtt_get_id(client->mqtt_state.outbound_message->data,
                                         client->mqtt_state.outbound_message->length);
-    ESP_LOGI(TAG, "Sending MQTT CONNECT message, type: %d, id: %04X",
+    ESP_LOGD(TAG, "Sending MQTT CONNECT message, type: %d, id: %04X",
              client->mqtt_state.pending_msg_type,
              client->mqtt_state.pending_msg_id);
 
@@ -403,6 +655,7 @@ static esp_err_t esp_mqtt_connect(esp_mqtt_client_handle_t client, int timeout_m
 
 static esp_err_t esp_mqtt_abort_connection(esp_mqtt_client_handle_t client)
 {
+    MQTT_API_LOCK(client);
     esp_transport_close(client->transport);
     client->wait_timeout_ms = client->config->reconnect_timeout_ms;
     client->reconnect_tick = platform_tick_get_ms();
@@ -411,6 +664,7 @@ static esp_err_t esp_mqtt_abort_connection(esp_mqtt_client_handle_t client)
     client->event.event_id = MQTT_EVENT_DISCONNECTED;
     client->wait_for_ping_resp = false;
     esp_mqtt_dispatch_event_with_msgid(client);
+    MQTT_API_UNLOCK(client);
     return ESP_OK;
 }
 
@@ -423,20 +677,13 @@ esp_mqtt_client_handle_t esp_mqtt_client_init(const esp_mqtt_client_config_t *co
         free(client);
         return NULL;
     }
-    client->api_lock = xSemaphoreCreateMutex();
+    client->api_lock = xSemaphoreCreateRecursiveMutex();
     if (!client->api_lock) {
         free(client->event.error_handle);
         free(client);
         return NULL;
     }
-    esp_mqtt_set_config(client, config);
-#ifdef MQTT_SUPPORTED_FEATURE_EVENT_LOOP
-    esp_event_loop_args_t no_task_loop = {
-        .queue_size = 1,
-        .task_name = NULL,
-    };
-    esp_event_loop_create(&no_task_loop, &client->config->event_loop_handle);
-#endif
+
     client->transport_list = esp_transport_list_init();
     ESP_MEM_CHECK(TAG, client->transport_list, goto _mqtt_init_failed);
 
@@ -444,10 +691,6 @@ esp_mqtt_client_handle_t esp_mqtt_client_init(const esp_mqtt_client_config_t *co
     ESP_MEM_CHECK(TAG, tcp, goto _mqtt_init_failed);
     esp_transport_set_default_port(tcp, MQTT_TCP_DEFAULT_PORT);
     esp_transport_list_add(client->transport_list, tcp, "mqtt");
-    if (config->transport == MQTT_TRANSPORT_OVER_TCP) {
-        client->config->scheme = create_string("mqtt", 4);
-        ESP_MEM_CHECK(TAG, client->config->scheme, goto _mqtt_init_failed);
-    }
 
 #if MQTT_ENABLE_WS
     esp_transport_handle_t ws = esp_transport_ws_init(tcp);
@@ -457,10 +700,6 @@ esp_mqtt_client_handle_t esp_mqtt_client_init(const esp_mqtt_client_config_t *co
     esp_transport_ws_set_subprotocol(ws, "mqtt");
 #endif
     esp_transport_list_add(client->transport_list, ws, "ws");
-    if (config->transport == MQTT_TRANSPORT_OVER_WS) {
-        client->config->scheme = create_string("ws", 2);
-        ESP_MEM_CHECK(TAG, client->config->scheme, goto _mqtt_init_failed);
-    }
 #endif
 
 #if MQTT_ENABLE_SSL
@@ -468,51 +707,7 @@ esp_mqtt_client_handle_t esp_mqtt_client_init(const esp_mqtt_client_config_t *co
     ESP_MEM_CHECK(TAG, ssl, goto _mqtt_init_failed);
     esp_transport_set_default_port(ssl, MQTT_SSL_DEFAULT_PORT);
 
-#ifndef MQTT_SUPPORTED_FEATURE_DER_CERTIFICATES
-    if (config->cert_len || config->client_cert_len || config->client_key_len) {
-        ESP_LOGE(TAG, "Explicit cert-/key-len is not available in IDF version %s", IDF_VER);
-        goto _mqtt_init_failed;
-    }
-#endif
-
-    if (config->use_global_ca_store == true) {
-        esp_transport_ssl_enable_global_ca_store(ssl);
-    } else if (config->cert_pem) {
-        MQTT_TRANSPORT_SET_CERT_OR_KEY(esp_transport_ssl_set_cert_data, config->cert_pem, config->cert_len);
-    }
-    MQTT_TRANSPORT_SET_CERT_OR_KEY(esp_transport_ssl_set_client_cert_data, config->client_cert_pem, config->client_cert_len);
-    MQTT_TRANSPORT_SET_CERT_OR_KEY(esp_transport_ssl_set_client_key_data, config->client_key_pem, config->client_key_len);
-#ifdef MQTT_SUPPORTED_FEATURE_CLIENT_KEY_PASSWORD
-    if (client->config->clientkey_password && client->config->clientkey_password_len) {
-        esp_transport_ssl_set_client_key_password(ssl,
-                                                  client->config->clientkey_password,
-                                                  client->config->clientkey_password_len);
-    }
-#endif
-
-    if (config->psk_hint_key) {
-#ifdef MQTT_SUPPORTED_FEATURE_PSK_AUTHENTICATION
-        esp_transport_ssl_set_psk_key_hint(ssl, config->psk_hint_key);
-#else
-        ESP_LOGE(TAG, "PSK authentication is not available in IDF version %s", IDF_VER);
-        goto _mqtt_init_failed;
-#endif
-    }
-
-    if (client->config->alpn_protos) {
-#ifdef MQTT_SUPPORTED_FEATURE_ALPN
-        esp_transport_ssl_set_alpn_protocol(ssl, (const char **)client->config->alpn_protos);
-#else
-        ESP_LOGE(TAG, "APLN is not available in IDF version %s", IDF_VER);
-        goto _mqtt_init_failed;
-#endif
-    }
-
     esp_transport_list_add(client->transport_list, ssl, "mqtts");
-    if (config->transport == MQTT_TRANSPORT_OVER_SSL) {
-        client->config->scheme = create_string("mqtts", 5);
-        ESP_MEM_CHECK(TAG, client->config->scheme, goto _mqtt_init_failed);
-    }
 #endif
 
 #if MQTT_ENABLE_WSS
@@ -523,16 +718,19 @@ esp_mqtt_client_handle_t esp_mqtt_client_init(const esp_mqtt_client_config_t *co
 #endif
     esp_transport_set_default_port(wss, MQTT_WSS_DEFAULT_PORT);
     esp_transport_list_add(client->transport_list, wss, "wss");
-    if (config->transport == MQTT_TRANSPORT_OVER_WSS) {
-        client->config->scheme = create_string("wss", 3);
-        ESP_MEM_CHECK(TAG, client->config->scheme, goto _mqtt_init_failed);
-    }
 #endif
-    if (client->config->uri) {
-        if (esp_mqtt_client_set_uri(client, client->config->uri) != ESP_OK) {
-            goto _mqtt_init_failed;
-        }
+    ESP_MEM_CHECK(TAG, client->transport_list, goto _mqtt_init_failed);
+
+    if (esp_mqtt_set_config(client, config) != ESP_OK) {
+        goto _mqtt_init_failed;
     }
+#ifdef MQTT_SUPPORTED_FEATURE_EVENT_LOOP
+    esp_event_loop_args_t no_task_loop = {
+            .queue_size = 1,
+            .task_name = NULL,
+    };
+    esp_event_loop_create(&no_task_loop, &client->config->event_loop_handle);
+#endif
 
     client->keepalive_tick = platform_tick_get_ms();
     client->reconnect_tick = platform_tick_get_ms();
@@ -542,14 +740,16 @@ esp_mqtt_client_handle_t esp_mqtt_client_init(const esp_mqtt_client_config_t *co
     if (buffer_size <= 0) {
         buffer_size = MQTT_BUFFER_SIZE_BYTE;
     }
+    // use separate value for output buffer size if configured
+    int out_buffer_size = config->out_buffer_size > 0 ? config->out_buffer_size : buffer_size;
 
     client->mqtt_state.in_buffer = (uint8_t *)malloc(buffer_size);
     ESP_MEM_CHECK(TAG, client->mqtt_state.in_buffer, goto _mqtt_init_failed);
     client->mqtt_state.in_buffer_length = buffer_size;
-    client->mqtt_state.out_buffer = (uint8_t *)malloc(buffer_size);
+    client->mqtt_state.out_buffer = (uint8_t *)malloc(out_buffer_size);
     ESP_MEM_CHECK(TAG, client->mqtt_state.out_buffer, goto _mqtt_init_failed);
 
-    client->mqtt_state.out_buffer_length = buffer_size;
+    client->mqtt_state.out_buffer_length = out_buffer_size;
     client->mqtt_state.connect_info = &client->connect_info;
     client->outbox = outbox_init();
     ESP_MEM_CHECK(TAG, client->outbox, goto _mqtt_init_failed);
@@ -612,7 +812,7 @@ esp_err_t esp_mqtt_client_set_uri(esp_mqtt_client_handle_t client, const char *u
     }
 
     // This API could be also executed when client is active (need to protect config fields)
-    MQTT_API_LOCK_FROM_OTHER_TASK(client);
+    MQTT_API_LOCK(client);
     // set uri overrides actual scheme, host, path if configured previously
     free(client->config->scheme);
     free(client->config->host);
@@ -620,7 +820,22 @@ esp_err_t esp_mqtt_client_set_uri(esp_mqtt_client_handle_t client, const char *u
 
     client->config->scheme = create_string(uri + puri.field_data[UF_SCHEMA].off, puri.field_data[UF_SCHEMA].len);
     client->config->host = create_string(uri + puri.field_data[UF_HOST].off, puri.field_data[UF_HOST].len);
-    client->config->path = create_string(uri + puri.field_data[UF_PATH].off, puri.field_data[UF_PATH].len);
+    client->config->path = NULL;
+
+    if (puri.field_data[UF_PATH].len || puri.field_data[UF_QUERY].len) {
+        if (puri.field_data[UF_QUERY].len == 0) {
+            asprintf(&client->config->path, "%.*s", puri.field_data[UF_PATH].len, uri + puri.field_data[UF_PATH].off);
+        } else if (puri.field_data[UF_PATH].len == 0)  {
+            asprintf(&client->config->path, "/?%.*s", puri.field_data[UF_QUERY].len, uri + puri.field_data[UF_QUERY].off);
+        } else {
+            asprintf(&client->config->path, "%.*s?%.*s", puri.field_data[UF_PATH].len, uri + puri.field_data[UF_PATH].off,
+                    puri.field_data[UF_QUERY].len, uri + puri.field_data[UF_QUERY].off);
+        }
+        ESP_MEM_CHECK(TAG, client->config->path, {
+            MQTT_API_UNLOCK(client);
+            return ESP_ERR_NO_MEM;
+        });
+    }
 
     if (client->config->path) {
         esp_transport_handle_t trans = esp_transport_list_get_transport(client->transport_list, "ws");
@@ -650,7 +865,7 @@ esp_err_t esp_mqtt_client_set_uri(esp_mqtt_client_handle_t client, const char *u
         free(user_info);
     }
 
-    MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+    MQTT_API_UNLOCK(client);
     return ESP_OK;
 }
 
@@ -662,15 +877,7 @@ static esp_err_t mqtt_write_data(esp_mqtt_client_handle_t client)
                                         client->config->network_timeout_ms);
     // client->mqtt_state.pending_msg_type = mqtt_get_type(client->mqtt_state.outbound_message->data);
     if (write_len <= 0) {
-        client->event.event_id = MQTT_EVENT_ERROR;
-        client->event.error_handle->error_type = MQTT_ERROR_TYPE_ESP_TLS;
-        client->event.error_handle->connect_return_code = 0;
-#ifdef MQTT_SUPPORTED_FEATURE_TRANSPORT_ERR_REPORTING
-        client->event.error_handle->esp_tls_last_esp_err = esp_tls_get_and_clear_last_error(esp_transport_get_error_handle(client->transport),
-                                                                                            &client->event.error_handle->esp_tls_stack_err,
-                                                                                            &client->event.error_handle->esp_tls_cert_verify_flags);
-#endif
-        esp_mqtt_dispatch_event_with_msgid(client);
+        esp_mqtt_client_dispatch_transport_error(client);
         ESP_LOGE(TAG, "Error write data or timeout, written len = %d, errno=%d", write_len, errno);
         return ESP_FAIL;
     }
@@ -744,15 +951,13 @@ post_data_event:
     esp_mqtt_dispatch_event(client);
 
     if (msg_read_len < msg_total_len) {
-        // if total data is longer then actual -> read payload only
         size_t buf_len = client->mqtt_state.in_buffer_length;
-        esp_transport_handle_t transport = esp_transport_get_payload_transport_handle(client->transport);
 
         msg_data = (char *)client->mqtt_state.in_buffer;
         msg_topic = NULL;
         msg_topic_len = 0;
         msg_data_offset += msg_data_len;
-        msg_data_len = esp_transport_read(transport, (char *)client->mqtt_state.in_buffer,
+        msg_data_len = esp_transport_read(client-> transport, (char *)client->mqtt_state.in_buffer,
                                           msg_total_len - msg_read_len > buf_len ? buf_len : msg_total_len - msg_read_len,
                                           client->config->network_timeout_ms);
         if (msg_data_len <= 0) {
@@ -858,8 +1063,6 @@ static int mqtt_message_receive(esp_mqtt_client_handle_t client, int read_poll_t
         buf++;
         client->mqtt_state.in_buffer_read_len++;
     }
-    /* any further reading only the underlying payload */
-    t = esp_transport_get_payload_transport_handle(t);
     if ((client->mqtt_state.in_buffer_read_len == 1) ||
             ((client->mqtt_state.in_buffer_read_len < 6) && (*(buf - 1) & 0x80))) {
         do {
@@ -950,6 +1153,7 @@ static int mqtt_message_receive(esp_mqtt_client_handle_t client, int read_poll_t
     ESP_LOGD(TAG, "%s: transport_read():%d %d", __func__, client->mqtt_state.in_buffer_read_len, client->mqtt_state.message_length);
     return 1;
 err:
+    esp_mqtt_client_dispatch_transport_error(client);
     return -1;
 }
 
@@ -1070,8 +1274,8 @@ static esp_err_t mqtt_resend_queued(esp_mqtt_client_handle_t client, outbox_item
     // decode queued data
     client->mqtt_state.outbound_message->data = outbox_item_get_data(item, &client->mqtt_state.outbound_message->length, &client->mqtt_state.pending_msg_id,
             &client->mqtt_state.pending_msg_type, &client->mqtt_state.pending_publish_qos);
-    // set duplicate flag for QoS-2 message
-    if (client->mqtt_state.pending_msg_type == MQTT_MSG_TYPE_PUBLISH && client->mqtt_state.pending_publish_qos == 2) {
+    // set duplicate flag for QoS-1 and QoS-2 messages
+    if (client->mqtt_state.pending_msg_type == MQTT_MSG_TYPE_PUBLISH && client->mqtt_state.pending_publish_qos > 0) {
         mqtt_set_dup(client->mqtt_state.outbound_message->data);
     }
 
@@ -1087,8 +1291,8 @@ static esp_err_t mqtt_resend_queued(esp_mqtt_client_handle_t client, outbox_item
 static void esp_mqtt_task(void *pv)
 {
     esp_mqtt_client_handle_t client = (esp_mqtt_client_handle_t) pv;
-    uint32_t last_retransmit = 0;
-    int32_t msg_tick = 0;
+    uint64_t last_retransmit = 0;
+    outbox_tick_t msg_tick = 0;
     client->run = true;
 
     //get transport by scheme
@@ -1109,7 +1313,7 @@ static void esp_mqtt_task(void *pv)
         MQTT_API_LOCK(client);
         switch ((int)client->state) {
         case MQTT_STATE_INIT:
-            xEventGroupClearBits(client->status_bits, RECONNECT_BIT);
+            xEventGroupClearBits(client->status_bits, RECONNECT_BIT | DISCONNECT_BIT);
             client->event.event_id = MQTT_EVENT_BEFORE_CONNECT;
             esp_mqtt_dispatch_event_with_msgid(client);
 
@@ -1117,27 +1321,22 @@ static void esp_mqtt_task(void *pv)
                 ESP_LOGE(TAG, "There is no transport");
                 client->run = false;
             }
+#if MQTT_ENABLE_SSL
+            esp_mqtt_set_ssl_transport_properties(client->transport_list, client->config);
+#endif
 
             if (esp_transport_connect(client->transport,
                                       client->config->host,
                                       client->config->port,
                                       client->config->network_timeout_ms) < 0) {
                 ESP_LOGE(TAG, "Error transport connect");
-                client->event.event_id = MQTT_EVENT_ERROR;
-                client->event.error_handle->error_type = MQTT_ERROR_TYPE_ESP_TLS;
-                client->event.error_handle->connect_return_code = 0;
-#ifdef MQTT_SUPPORTED_FEATURE_TRANSPORT_ERR_REPORTING
-                client->event.error_handle->esp_tls_last_esp_err = esp_tls_get_and_clear_last_error(esp_transport_get_error_handle(client->transport),
-                                                                                                    &client->event.error_handle->esp_tls_stack_err,
-                                                                                                    &client->event.error_handle->esp_tls_cert_verify_flags);
-#endif
-                esp_mqtt_dispatch_event_with_msgid(client);
+                esp_mqtt_client_dispatch_transport_error(client);
                 esp_mqtt_abort_connection(client);
                 break;
             }
             ESP_LOGD(TAG, "Transport connected to %s://%s:%d", client->config->scheme, client->config->host, client->config->port);
             if (esp_mqtt_connect(client, client->config->network_timeout_ms) != ESP_OK) {
-                ESP_LOGI(TAG, "Error MQTT Connected");
+                ESP_LOGE(TAG, "MQTT connect failed");
                 esp_mqtt_abort_connection(client);
                 break;
             }
@@ -1149,10 +1348,23 @@ static void esp_mqtt_task(void *pv)
 
             break;
         case MQTT_STATE_CONNECTED:
+            // check for disconnection request
+            if (xEventGroupWaitBits(client->status_bits, DISCONNECT_BIT, true, true, 0) & DISCONNECT_BIT) {
+                esp_mqtt_abort_connection(client);
+                break;
+            }
             // receive and process data
             if (mqtt_process_receive(client) == ESP_FAIL) {
                 esp_mqtt_abort_connection(client);
                 break;
+            }
+
+            //Delete message after OUTBOX_EXPIRED_TIMEOUT_MS miliseconds
+            int deleted = outbox_delete_expired(client->outbox, platform_tick_get_ms(), OUTBOX_EXPIRED_TIMEOUT_MS);
+            client->mqtt_state.pending_msg_count -= deleted;
+
+            if (client->mqtt_state.pending_msg_count < 0) {
+                client->mqtt_state.pending_msg_count = 0;
             }
 
             // resend all non-transmitted messages first
@@ -1170,7 +1382,8 @@ static void esp_mqtt_task(void *pv)
                 }
             }
 
-            if (platform_tick_get_ms() - client->keepalive_tick > client->connect_info.keepalive * 1000 / 2) {
+            if (client->connect_info.keepalive &&       // connect_info.keepalive=0 means that the keepslive is disabled
+                platform_tick_get_ms() - client->keepalive_tick > client->connect_info.keepalive * 1000 / 2) {
                 //No ping resp from last ping => Disconnected
                 if (client->wait_for_ping_resp) {
                     ESP_LOGE(TAG, "No PING_RESP, disconnected");
@@ -1195,13 +1408,6 @@ static void esp_mqtt_task(void *pv)
                 client->state = MQTT_STATE_INIT;
             }
 
-            //Delete message after 30 seconds
-            int deleted = outbox_delete_expired(client->outbox, platform_tick_get_ms(), OUTBOX_EXPIRED_TIMEOUT_MS);
-            client->mqtt_state.pending_msg_count -= deleted;
-            if (client->mqtt_state.pending_msg_count < 0) {
-                client->mqtt_state.pending_msg_count = 0;
-            }
-            //
             outbox_cleanup(client->outbox, OUTBOX_MAX_SIZE);
             break;
         case MQTT_STATE_WAIT_TIMEOUT:
@@ -1244,10 +1450,10 @@ esp_err_t esp_mqtt_client_start(esp_mqtt_client_handle_t client)
         ESP_LOGE(TAG, "Client was not initialized");
         return ESP_ERR_INVALID_ARG;
     }
-    MQTT_API_LOCK_FROM_OTHER_TASK(client);
+    MQTT_API_LOCK(client);
     if (client->state >= MQTT_STATE_INIT) {
         ESP_LOGE(TAG, "Client has started");
-        MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+        MQTT_API_UNLOCK(client);
         return ESP_FAIL;
     }
     esp_err_t err = ESP_OK;
@@ -1264,13 +1470,21 @@ esp_err_t esp_mqtt_client_start(esp_mqtt_client_handle_t client)
         err = ESP_FAIL;
     }
 #endif
-    MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+    MQTT_API_UNLOCK(client);
     return err;
+}
+
+esp_err_t esp_mqtt_client_disconnect(esp_mqtt_client_handle_t client)
+{
+    ESP_LOGI(TAG, "Client asked to disconnect");
+    xEventGroupSetBits(client->status_bits, DISCONNECT_BIT);
+    return ESP_OK;
 }
 
 esp_err_t esp_mqtt_client_reconnect(esp_mqtt_client_handle_t client)
 {
     ESP_LOGI(TAG, "Client force reconnect requested");
+
     if (client->state != MQTT_STATE_WAIT_TIMEOUT) {
         ESP_LOGD(TAG, "The client is not waiting for reconnection. Ignore the request");
         return ESP_FAIL;
@@ -1282,14 +1496,23 @@ esp_err_t esp_mqtt_client_reconnect(esp_mqtt_client_handle_t client)
 
 esp_err_t esp_mqtt_client_stop(esp_mqtt_client_handle_t client)
 {
-    MQTT_API_LOCK_FROM_OTHER_TASK(client);
+    MQTT_API_LOCK(client);
     if (client->run) {
+        /* A running client cannot be stopped from the MQTT task/event handler */
+        TaskHandle_t running_task = xTaskGetCurrentTaskHandle();
+        if (running_task == client->task_handle) {
+            MQTT_API_UNLOCK(client);
+            ESP_LOGE(TAG, "Client cannot be stopped from MQTT task");
+            return ESP_FAIL;
+        }
+
         // Only send the disconnect message if the client is connected
         if(client->state == MQTT_STATE_CONNECTED) {
             // Notify the broker we are disconnecting
             client->mqtt_state.outbound_message = mqtt_msg_disconnect(&client->mqtt_state.mqtt_connection);
             if (client->mqtt_state.outbound_message->length == 0) {
                 ESP_LOGE(TAG, "Disconnect message cannot be created");
+                MQTT_API_UNLOCK(client);
                 return ESP_FAIL;
             }
             if (mqtt_write_data(client) != ESP_OK) {
@@ -1299,12 +1522,12 @@ esp_err_t esp_mqtt_client_stop(esp_mqtt_client_handle_t client)
 
         client->run = false;
         client->state = MQTT_STATE_UNKNOWN;
-        MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+        MQTT_API_UNLOCK(client);
         xEventGroupWaitBits(client->status_bits, STOPPED_BIT, false, true, portMAX_DELAY);
         return ESP_OK;
     } else {
         ESP_LOGW(TAG, "Client asked to stop, but was not started");
-        MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+        MQTT_API_UNLOCK(client);
         return ESP_FAIL;
     }
 }
@@ -1327,10 +1550,10 @@ static esp_err_t esp_mqtt_client_ping(esp_mqtt_client_handle_t client)
 
 int esp_mqtt_client_subscribe(esp_mqtt_client_handle_t client, const char *topic, int qos)
 {
-    MQTT_API_LOCK_FROM_OTHER_TASK(client);
+    MQTT_API_LOCK(client);
     if (client->state != MQTT_STATE_CONNECTED) {
         ESP_LOGE(TAG, "Client has not connected");
-        MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+        MQTT_API_UNLOCK(client);
         return -1;
     }
     client->mqtt_state.outbound_message = mqtt_msg_subscribe(&client->mqtt_state.mqtt_connection,
@@ -1338,6 +1561,7 @@ int esp_mqtt_client_subscribe(esp_mqtt_client_handle_t client, const char *topic
                                           &client->mqtt_state.pending_msg_id);
     if (client->mqtt_state.outbound_message->length == 0) {
         ESP_LOGE(TAG, "Subscribe message cannot be created");
+        MQTT_API_UNLOCK(client);
         return -1;
     }
 
@@ -1348,20 +1572,20 @@ int esp_mqtt_client_subscribe(esp_mqtt_client_handle_t client, const char *topic
 
     if (mqtt_write_data(client) != ESP_OK) {
         ESP_LOGE(TAG, "Error to subscribe topic=%s, qos=%d", topic, qos);
-        MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+        MQTT_API_UNLOCK(client);
         return -1;
     }
 
     ESP_LOGD(TAG, "Sent subscribe topic=%s, id: %d, type=%d successful", topic, client->mqtt_state.pending_msg_id, client->mqtt_state.pending_msg_type);
-    MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+    MQTT_API_UNLOCK(client);
     return client->mqtt_state.pending_msg_id;
 }
 
 int esp_mqtt_client_unsubscribe(esp_mqtt_client_handle_t client, const char *topic)
 {
-    MQTT_API_LOCK_FROM_OTHER_TASK(client);
+    MQTT_API_LOCK(client);
     if (client->state != MQTT_STATE_CONNECTED) {
-        MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+        MQTT_API_UNLOCK(client);
         ESP_LOGE(TAG, "Client has not connected");
         return -1;
     }
@@ -1369,6 +1593,7 @@ int esp_mqtt_client_unsubscribe(esp_mqtt_client_handle_t client, const char *top
                                           topic,
                                           &client->mqtt_state.pending_msg_id);
     if (client->mqtt_state.outbound_message->length == 0) {
+        MQTT_API_UNLOCK(client);
         ESP_LOGE(TAG, "Unubscribe message cannot be created");
         return -1;
     }
@@ -1381,12 +1606,12 @@ int esp_mqtt_client_unsubscribe(esp_mqtt_client_handle_t client, const char *top
 
     if (mqtt_write_data(client) != ESP_OK) {
         ESP_LOGE(TAG, "Error to unsubscribe topic=%s", topic);
-        MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+        MQTT_API_UNLOCK(client);
         return -1;
     }
 
     ESP_LOGD(TAG, "Sent Unsubscribe topic=%s, id: %d, successful", topic, client->mqtt_state.pending_msg_id);
-    MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+    MQTT_API_UNLOCK(client);
     return client->mqtt_state.pending_msg_id;
 }
 
@@ -1404,7 +1629,7 @@ int esp_mqtt_client_publish(esp_mqtt_client_handle_t client, const char *topic, 
         len = strlen(data);
     }
 
-    MQTT_API_LOCK_FROM_OTHER_TASK(client);
+    MQTT_API_LOCK(client);
     mqtt_message_t *publish_msg = mqtt_msg_publish(&client->mqtt_state.mqtt_connection,
                                   topic, data, len,
                                   qos, retain,
@@ -1412,12 +1637,12 @@ int esp_mqtt_client_publish(esp_mqtt_client_handle_t client, const char *topic, 
 
     if (publish_msg->length == 0) {
         ESP_LOGE(TAG, "Publish message cannot be created");
-        MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+        MQTT_API_UNLOCK(client);
         return -1;
     }
     /* We have to set as pending all the qos>0 messages */
+    client->mqtt_state.outbound_message = publish_msg;
     if (qos > 0) {
-        client->mqtt_state.outbound_message = publish_msg;
         client->mqtt_state.pending_msg_type = mqtt_get_type(client->mqtt_state.outbound_message->data);
         client->mqtt_state.pending_msg_id = pending_msg_id;
         client->mqtt_state.pending_publish_qos = qos;
@@ -1425,14 +1650,27 @@ int esp_mqtt_client_publish(esp_mqtt_client_handle_t client, const char *topic, 
         // by default store as QUEUED (not transmitted yet) only for messages which would fit outbound buffer
         if (client->mqtt_state.mqtt_connection.message.fragmented_msg_total_length == 0) {
             mqtt_enqueue(client);
+        } else {
+            int first_fragment = client->mqtt_state.outbound_message->length - client->mqtt_state.outbound_message->fragmented_msg_data_offset;
+            mqtt_enqueue_oversized(client, ((uint8_t *)data) + first_fragment, len - first_fragment);
         }
-    } else {
-        client->mqtt_state.outbound_message = publish_msg;
     }
 
     /* Skip sending if not connected (rely on resending) */
     if (client->state != MQTT_STATE_CONNECTED) {
         ESP_LOGD(TAG, "Publish: client is not connected");
+        if (qos > 0) {
+            ret = pending_msg_id;
+        }
+
+        //Delete message after OUTBOX_EXPIRED_TIMEOUT_MS miliseconds
+        int deleted = outbox_delete_expired(client->outbox, platform_tick_get_ms(), OUTBOX_EXPIRED_TIMEOUT_MS);
+        client->mqtt_state.pending_msg_count -= deleted;
+
+        if (client->mqtt_state.pending_msg_count < 0) {
+            client->mqtt_state.pending_msg_count = 0;
+        }
+
         goto cannot_publish;
     }
 
@@ -1450,22 +1688,14 @@ int esp_mqtt_client_publish(esp_mqtt_client_handle_t client, const char *topic, 
         }
 
         int data_sent = client->mqtt_state.outbound_message->length - client->mqtt_state.outbound_message->fragmented_msg_data_offset;
+        client->mqtt_state.outbound_message->fragmented_msg_data_offset = 0;
+        client->mqtt_state.outbound_message->fragmented_msg_total_length = 0;
         remaining_len -= data_sent;
         current_data +=  data_sent;
 
         if (remaining_len > 0) {
             mqtt_connection_t *connection = &client->mqtt_state.mqtt_connection;
             ESP_LOGD(TAG, "Sending fragmented message, remains to send %d bytes of %d", remaining_len, len);
-            if (connection->message.fragmented_msg_data_offset) {
-                // asked to enqueue oversized message (first time only)
-                connection->message.fragmented_msg_data_offset = 0;
-                connection->message.fragmented_msg_total_length = 0;
-                if (qos > 0) {
-                    // internally enqueue all big messages, as they dont fit 'pending msg' structure
-                    mqtt_enqueue_oversized(client, (uint8_t *)current_data, remaining_len);
-                }
-            }
-
             if (remaining_len > connection->buffer_length) {
                 // Continue with sending
                 memcpy(connection->buffer, current_data, connection->buffer_length);
@@ -1489,14 +1719,17 @@ int esp_mqtt_client_publish(esp_mqtt_client_handle_t client, const char *topic, 
         outbox_set_tick(client->outbox, pending_msg_id, platform_tick_get_ms());
         outbox_set_pending(client->outbox, pending_msg_id, TRANSMITTED);
     }
-    MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+    MQTT_API_UNLOCK(client);
     return pending_msg_id;
 
 cannot_publish:
+    // clear out possible fragmented publish if failed or skipped
+    client->mqtt_state.outbound_message->fragmented_msg_total_length = 0;
     if (qos == 0) {
         ESP_LOGW(TAG, "Publish: Losing qos0 data when client not connected");
     }
-    MQTT_API_UNLOCK_FROM_OTHER_TASK(client);
+    MQTT_API_UNLOCK(client);
+
     return ret;
 }
 
@@ -1517,4 +1750,40 @@ esp_err_t esp_mqtt_client_register_event(esp_mqtt_client_handle_t client, esp_mq
     ESP_LOGE(TAG, "Registering event handler while event loop not available in IDF version %s", IDF_VER);
     return ESP_FAIL;
 #endif
+}
+
+
+static void esp_mqtt_client_dispatch_transport_error(esp_mqtt_client_handle_t client)
+{
+        client->event.event_id = MQTT_EVENT_ERROR;
+        client->event.error_handle->error_type = MQTT_ERROR_TYPE_TCP_TRANSPORT;
+        client->event.error_handle->connect_return_code = 0;
+#ifdef MQTT_SUPPORTED_FEATURE_TRANSPORT_ERR_REPORTING
+        client->event.error_handle->esp_tls_last_esp_err = esp_tls_get_and_clear_last_error(esp_transport_get_error_handle(client->transport),
+                                                                                            &client->event.error_handle->esp_tls_stack_err,
+                                                                                            &client->event.error_handle->esp_tls_cert_verify_flags);
+#ifdef MQTT_SUPPORTED_FEATURE_TRANSPORT_SOCK_ERRNO_REPORTING
+        client->event.error_handle->esp_transport_sock_errno = esp_transport_get_errno(client->transport);
+#endif
+#endif
+        esp_mqtt_dispatch_event_with_msgid(client);
+}
+
+int esp_mqtt_client_get_outbox_size(esp_mqtt_client_handle_t client)
+{
+    int outbox_size = 0;
+
+    if (client == NULL) {
+        return 0;
+    }
+
+    MQTT_API_LOCK(client);
+
+    if (client->outbox) {
+        outbox_size = outbox_get_size(client->outbox);
+    }
+
+    MQTT_API_UNLOCK(client);
+
+    return outbox_size;
 }

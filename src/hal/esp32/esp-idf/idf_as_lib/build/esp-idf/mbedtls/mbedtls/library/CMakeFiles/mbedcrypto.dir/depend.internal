@@ -889,17 +889,29 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecjpake.c.obj
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/mbedtls/library/ecjpake.c
  config/sdkconfig.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj
+ ../../../../../components/esp32/include/esp_types.h
+ ../../../../../components/esp32/include/hwcrypto/aes.h
+ ../../../../../components/esp32/include/rom/aes.h
  ../../../../../components/esp32/include/xtensa/config/core-isa.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/aes.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/bignum.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/check_config.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/config.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/ctr_drbg.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/ecp.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/ecp_internal.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/hmac_drbg.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/md.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform_time.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform_util.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/sha256.h
+ ../../../../../components/mbedtls/mbedtls/include/mbedtls/sha512.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/threading.h
+ ../../../../../components/mbedtls/port/include/aes_alt.h
  ../../../../../components/mbedtls/port/include/mbedtls/config.h
+ ../../../../../components/mbedtls/port/include/sha256_alt.h
+ ../../../../../components/mbedtls/port/include/sha512_alt.h
  ../../../../../components/newlib/include/_ansi.h
  ../../../../../components/newlib/include/alloca.h
  ../../../../../components/newlib/include/limits.h
@@ -1982,6 +1994,7 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/rsa.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/threading.h
  ../../../../../components/mbedtls/mbedtls/include/mbedtls/x509.h
+ ../../../../../components/mbedtls/port/include/mbedtls/bignum.h
  ../../../../../components/mbedtls/port/include/mbedtls/config.h
  ../../../../../components/newlib/include/_ansi.h
  ../../../../../components/newlib/include/alloca.h

@@ -52,6 +52,10 @@ assert.h
 sdkconfig.h
 ../../../../../components/esp32/include/sdkconfig.h
 
+../../../../../components/esp32/include/esp_clk.h
+stdint.h
+-
+
 ../../../../../components/esp32/include/esp_err.h
 stdint.h
 -
@@ -363,6 +367,8 @@ esp_efuse_utility.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/src/esp_efuse_utility.h
 soc/efuse_reg.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/src/soc/efuse_reg.h
+esp_clk.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/src/esp_clk.h
 esp_log.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/src/esp_log.h
 assert.h

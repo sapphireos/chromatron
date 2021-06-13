@@ -27,11 +27,17 @@
 #include "spi.h"
 #include "hal_spi.h"
 #include "hal_io.h"
+#include "hal_pixel.h"
 
 #include "driver/spi_master.h"
 
 static spi_device_handle_t spi;
 static spi_device_interface_config_t devcfg;
+
+spi_device_handle_t hal_spi_s_get_handle( void ){
+
+    return spi;
+}
 
 void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
@@ -56,7 +62,12 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
         .sclk_io_num 		= hal_io_i32_get_gpio_num( HAL_SPI_SCK ),
         .quadwp_io_num 		= -1,
         .quadhd_io_num 		= -1,
-        .max_transfer_sz 	= 0, // sets default
+        .max_transfer_sz    = PIXEL_BUF_SIZE, // increase max transfer size to pixel bufs
+        // if this is the default (0), it is set to 4094 bytes which is the max for a single
+        // DMA transfer.
+        // if increased beyond that limit, the ESP32 library code will allocate additional
+        // DMA descriptors and link them.
+        .intr_flags         = ESP_INTR_FLAG_IRAM,
     };
 
 	ESP_ERROR_CHECK(spi_bus_initialize( HAL_SPI_PORT, &buscfg, 1 )); // DMA channel 1
@@ -65,7 +76,7 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
     devcfg.clock_speed_hz   = freq;
     devcfg.mode             = mode;                            
     devcfg.spics_io_num     = -1;
-    devcfg.queue_size       = 1;       
+    devcfg.queue_size       = 7;       
 
     ESP_ERROR_CHECK(spi_bus_add_device( HAL_SPI_PORT, &devcfg, &spi ));   
 }

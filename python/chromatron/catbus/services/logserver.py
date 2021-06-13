@@ -188,7 +188,7 @@ class LogServer(MsgFlowReceiver):
 
 
 def main():
-    util.setup_basic_logging(console=True, level=logging.INFO)
+    util.setup_basic_logging(console=True, level=logging.DEBUG)
 
     logserver = LogServer()
 

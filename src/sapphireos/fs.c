@@ -119,8 +119,8 @@ void fs_v_mount( void );
 #ifdef ENABLE_FFS
 static int8_t create_file_on_media( char *fname );
 #endif
-static uint16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr, uint16_t len );
-static uint16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len );
+static int16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr, uint16_t len );
+static int16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len );
 static int8_t read_fname_from_media( file_id_t8 file_id, void *ptr, uint16_t max_len );
 static uint32_t get_free_space_on_media( file_id_t8 file_id );
 static bool media_busy( void );
@@ -438,7 +438,7 @@ int16_t fs_i16_write( file_t file, const void *src, uint16_t len ){
         return -1;
     }
 
-    uint16_t bytes_written = fs_i16_write_id( state->file_id, state->current_pos, src, len );
+    int16_t bytes_written = fs_i16_write_id( state->file_id, state->current_pos, src, len );
 
     if( bytes_written > 0 ){
 
@@ -769,7 +769,7 @@ int16_t fs_i16_read_id( file_id_t8 id, uint32_t pos, void *dst, uint16_t len ){
         return -1;
     }
 
-    uint16_t bytes_read = 0;
+    int16_t bytes_read = 0;
 
     // check if virtual
     if( FS_FILE_IS_VIRTUAL( id ) ){
@@ -813,7 +813,7 @@ int16_t fs_i16_write_id( file_id_t8 id, uint32_t pos, const void *src, uint16_t 
         return -1;
     }
 
-    uint16_t bytes_written = 0;
+    int16_t bytes_written = 0;
 
     // check if virtual
     if( FS_FILE_IS_VIRTUAL( id ) ){
@@ -826,7 +826,7 @@ int16_t fs_i16_write_id( file_id_t8 id, uint32_t pos, const void *src, uint16_t 
         // bounds check!
         if( pos > size ){
 
-            return 0;
+            return FFS_STATUS_EOF;
         }
 
         uint32_t write_len = len;
@@ -866,7 +866,7 @@ static int8_t create_file_on_media( char *fname ){
 // returns number of bytes committed to the device driver's write buffers,
 // NOT the number that have actually been written to the device!  The drivers
 // will stream data to the device as needed.
-static uint16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr, uint16_t len ){
+static int16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr, uint16_t len ){
 
     // check free space on media and limit to available space
     // this must be done even if the file size won't be changing, since the
@@ -876,23 +876,16 @@ static uint16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *pt
     // bounds check requested space
     if( len > free_space ){
 
+        trace_printf("Insufficient free space! %d < %d\r\n", free_space, len);
+
         // limit to free space available
         len = free_space;
     }
 
-    int32_t write_len;
-
-    write_len = ffs_i32_write( file_id, pos, ptr, len );
-
-    if( write_len < 0 ){
-
-        return 0;
-    }
-
-    return write_len;
+    return ffs_i32_write( file_id, pos, ptr, len );
 }
 
-static uint16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len ){
+static int16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len ){
 
 	// bounds check file
 	if( (int32_t)( pos + len ) >= fs_i32_get_size_id( file_id ) ){
@@ -900,16 +893,7 @@ static uint16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, ui
 		len = fs_i32_get_size_id( file_id ) - pos;
 	}
 
-    int32_t readlen;
-
-    readlen = ffs_i32_read( file_id, pos, ptr, len );
-
-    if( readlen < 0 ){
-
-        return 0;
-    }
-
-    return readlen;
+    return ffs_i32_read( file_id, pos, ptr, len );
 }
 
 static int8_t read_fname_from_media( file_id_t8 file_id, void *ptr, uint16_t max_len ){

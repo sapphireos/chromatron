@@ -888,17 +888,29 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecjpake.c.obj: ../../.
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecjpake.c.obj: ../../../../../components/mbedtls/mbedtls/library/ecjpake.c
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecjpake.c.obj: config/sdkconfig.h
 
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/esp32/include/esp_types.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/esp32/include/hwcrypto/aes.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/esp32/include/rom/aes.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/esp32/include/xtensa/config/core-isa.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/aes.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/bignum.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/check_config.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/config.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/ctr_drbg.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/ecp.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/ecp_internal.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/hmac_drbg.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/md.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform_time.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/platform_util.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/sha256.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/sha512.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/threading.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/port/include/aes_alt.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/port/include/mbedtls/config.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/port/include/sha256_alt.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/mbedtls/port/include/sha512_alt.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/newlib/include/_ansi.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/newlib/include/alloca.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj: ../../../../../components/newlib/include/limits.h
@@ -1981,6 +1993,7 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj: ../../.
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/rsa.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/threading.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj: ../../../../../components/mbedtls/mbedtls/include/mbedtls/x509.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj: ../../../../../components/mbedtls/port/include/mbedtls/bignum.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj: ../../../../../components/mbedtls/port/include/mbedtls/config.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj: ../../../../../components/newlib/include/_ansi.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj: ../../../../../components/newlib/include/alloca.h

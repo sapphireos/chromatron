@@ -36,6 +36,7 @@ static uint16_t batt_volts;
 static uint16_t vbus_volts;
 static uint16_t sys_volts;
 static uint16_t batt_charge_current;
+static uint16_t batt_max_charge_current;
 static bool batt_charging;
 static bool vbus_connected;
 static uint8_t batt_fault;
@@ -45,34 +46,42 @@ static bool dump_regs;
 static uint32_t capacity;
 static int32_t remaining;
 static int8_t therm;
+static uint8_t batt_cells; // number of cells in system
+static uint16_t boost_voltage;
 
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,             0,  "batt_soc" },
-    { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                0,  "batt_temp" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,        0,  "batt_charging" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,       0,  "batt_external_power" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,           0,  "batt_volts" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,           0,  "batt_vbus_volts" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,            0,  "batt_sys_volts" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,        0,  "batt_charge_status" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,  0,  "batt_charge_current" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,           0,  "batt_fault" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,          0,  "batt_vbus_status" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,             0,  "batt_capacity" },
-    { SAPPHIRE_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,            0,  "batt_remaining" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                 0,  "batt_soc" },
+    { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                    0,  "batt_temp" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,            0,  "batt_charging" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,           0,  "batt_external_power" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,               0,  "batt_volts" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,               0,  "batt_vbus_volts" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                0,  "batt_sys_volts" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,            0,  "batt_charge_status" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,      0,  "batt_charge_current" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,               0,  "batt_fault" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,              0,  "batt_vbus_status" },
+    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                 0,  "batt_capacity" },
+    { SAPPHIRE_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                0,  "batt_remaining" },
+    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
+
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
 };
 
-#define SOC_MAX_VOLTS   ( BQ25895_FLOAT_VOLTAGE - 100 )
+static uint16_t soc_state;
+
+#define SOC_MAX_VOLTS   ( BQ25895_FLOAT_VOLTAGE - 200 )
 #define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
-#define SOC_FILTER      32
+#define SOC_FILTER      16
 
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
 
-static uint8_t _calc_batt_soc( uint16_t volts ){
+static uint16_t _calc_batt_soc( uint16_t volts ){
 
     if( volts < SOC_MIN_VOLTS ){
 
@@ -81,17 +90,19 @@ static uint8_t _calc_batt_soc( uint16_t volts ){
 
     if( volts > SOC_MAX_VOLTS ){
 
-        return 100;
+        return 10000;
     }
 
-    return util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 100 );
+    return util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
 }
 
 static uint8_t calc_batt_soc( uint16_t volts ){
 
-    uint8_t temp_soc = _calc_batt_soc( volts );
+    uint16_t temp_soc = _calc_batt_soc( volts );
 
-    return util_u16_ewma( temp_soc, batt_soc, SOC_FILTER );
+    soc_state = util_u16_ewma( temp_soc, soc_state, SOC_FILTER );
+
+    return soc_state / 100;
 }
 
 int8_t bq25895_i8_init( void ){
@@ -105,10 +116,6 @@ int8_t bq25895_i8_init( void ){
 
         return -1;
     }
-
-    batt_volts = bq25895_u16_get_batt_voltage();
-    batt_soc = _calc_batt_soc( batt_volts );
-    batt_soc_startup = batt_soc;
 
     thread_t_create( bat_mon_thread,
                      PSTR("bat_mon"),
@@ -353,13 +360,13 @@ void bq25895_v_set_system_reset( bool enable ){
 // voltage is in mV!
 void bq25895_v_set_boost_voltage( uint16_t volts ){
 
-    if( volts > 5510 ){
+    if( volts > BQ25895_MAX_BOOST_VOLTAGE ){
 
-        volts = 5510;
+        volts = BQ25895_MAX_BOOST_VOLTAGE;
     }
-    else if( volts < 4550 ){
+    else if( volts < BQ25895_MIN_BOOST_VOLTAGE ){
 
-        volts = 4550;
+        volts = BQ25895_MIN_BOOST_VOLTAGE;
     }
 
     uint8_t data = ( ( volts - 4550 ) * 15 ) / 960;
@@ -669,23 +676,24 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    TMR_WAIT( pt, 500 );
-
-    // reconfigure
-
-    // bq25895_v_enable_ship_mode();
-    // bq25895_v_leave_ship_mode();
-
-    // bq25895_v_force_dpdm();
-
-    // bq25895_v_print_regs();
-
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
     bq25895_v_enable_adc_continuous();
-    bq25895_v_set_boost_voltage( 5100 );
     bq25895_v_set_charger( FALSE );
+    
+    // set min sys
+    // on battery only mode, the battery voltage must be above MINSYS for the ADC
+    // to read correctly.
+    // since MINSYS can only regulate the SYS voltage when plugged in to a power source,
+    // it otherwise isn't very important for our designs other than this ADC consideration.
+    bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
 
-    // bq25895_v_print_regs();
+
+    // init battery SOC state
+    batt_volts = bq25895_u16_get_batt_voltage();
+    soc_state = _calc_batt_soc( batt_volts );
+    batt_soc = calc_batt_soc( batt_volts );
+    batt_soc_startup = batt_soc;
+
 
     while(1){
 
@@ -759,19 +767,55 @@ PT_BEGIN( pt );
 
             bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
             bq25895_v_enable_adc_continuous();
-            bq25895_v_set_boost_voltage( 4700 );
+
+            // set boost voltage
+            if( boost_voltage == 0 ){
+
+                boost_voltage = 4700;
+            }
+            else if( boost_voltage > BQ25895_MAX_BOOST_VOLTAGE ){
+
+                boost_voltage = BQ25895_MAX_BOOST_VOLTAGE;
+            }
+            else if( boost_voltage < BQ25895_MIN_BOOST_VOLTAGE ){
+
+                boost_voltage = BQ25895_MIN_BOOST_VOLTAGE;
+            }
+
+            bq25895_v_set_boost_voltage( boost_voltage );
 
             // charge config for NCR18650B
 
 
             bq25895_v_set_inlim( 3250 );
-
-            // bq25895_v_set_inlim( 3000 );
             bq25895_v_set_pre_charge_current( 160 );
             
-            // bq25895_v_set_fast_charge_current( 1625 );
-            // bq25895_v_set_fast_charge_current( 250 );
-            bq25895_v_set_fast_charge_current( 1625 * 4 ); // 4-cell configuration
+            uint8_t n_cells = batt_cells;
+
+            if( n_cells < 1 ){
+
+                n_cells = 1;
+            }
+
+            uint32_t fast_charge_current = 1625 * n_cells;
+
+            if( fast_charge_current > 5000 ){
+
+                fast_charge_current = 5000;
+            }
+
+            // set default max current to the cell count setting
+            if( batt_max_charge_current == 0 ){
+
+                batt_max_charge_current = fast_charge_current;
+            }
+            // apply maximum charge current, if the allowable cell current would exceed it
+            else if( fast_charge_current > batt_max_charge_current ){
+
+                fast_charge_current = batt_max_charge_current;
+            }
+
+            bq25895_v_set_fast_charge_current( fast_charge_current );
 
             bq25895_v_set_termination_current( 65 );
             bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
@@ -782,9 +826,6 @@ PT_BEGIN( pt );
 
             // run auto DPDM (which can override the current limits)
             // bq25895_v_force_dpdm();
-
-            // set min sys
-            bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );
@@ -887,6 +928,8 @@ PT_BEGIN( pt );
             kv_i8_persist( __KV__batt_capacity );
 
             log_v_info_P( PSTR("Battery capacity calibrated to %u"), capacity );
+
+            batt_soc_startup = 0; // this prevents this from running again until the device has been restarted with a full charge
         }
 
         batt_soc = new_batt_soc;

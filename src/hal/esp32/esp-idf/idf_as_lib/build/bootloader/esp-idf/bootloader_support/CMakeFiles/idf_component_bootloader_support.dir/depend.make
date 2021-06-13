@@ -34,8 +34,10 @@ esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/b
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj: ../../../../../../components/bootloader_support/include/esp_flash_partitions.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj: ../../../../../../components/bootloader_support/include/esp_image_format.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj: ../../../../../../components/bootloader_support/include/esp_secure_boot.h
+esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj: ../../../../../../components/bootloader_support/include_bootloader/bootloader_config.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj: ../../../../../../components/bootloader_support/include_bootloader/bootloader_flash.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj: ../../../../../../components/bootloader_support/include_bootloader/bootloader_sha.h
+esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj: ../../../../../../components/bootloader_support/include_bootloader/bootloader_utility.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj: ../../../../../../components/esp32/include/esp_assert.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj: ../../../../../../components/esp32/include/esp_attr.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj: ../../../../../../components/esp32/include/esp_err.h
@@ -187,6 +189,7 @@ esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/b
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.obj: ../../../../../../components/esp32/include/esp_attr.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.obj: ../../../../../../components/esp32/include/esp_dport_access.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.obj: ../../../../../../components/esp32/include/esp_err.h
+esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.obj: ../../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.obj: ../../../../../../components/esp32/include/esp_sleep.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.obj: ../../../../../../components/esp32/include/esp_system.h
 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.obj: ../../../../../../components/esp32/include/rom/ets_sys.h

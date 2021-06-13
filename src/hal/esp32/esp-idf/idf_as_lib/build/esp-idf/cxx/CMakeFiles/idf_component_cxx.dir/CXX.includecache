@@ -58,6 +58,8 @@ stdio.h
 assert.h
 -
 
+../../../../../components/esp32/include/esp_idf_version.h
+
 ../../../../../components/esp32/include/esp_intr.h
 rom/ets_sys.h
 ../../../../../components/esp32/include/rom/ets_sys.h
@@ -91,6 +93,8 @@ esp_err.h
 ../../../../../components/esp32/include/esp_err.h
 esp_sleep.h
 ../../../../../components/esp32/include/esp_sleep.h
+esp_idf_version.h
+../../../../../components/esp32/include/esp_idf_version.h
 
 ../../../../../components/esp32/include/esp_timer.h
 stdint.h
@@ -692,6 +696,8 @@ cstdlib
 cstdio
 -
 exception
+-
+regex
 -
 bits/functexcept.h
 -

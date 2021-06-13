@@ -16,6 +16,7 @@
 #include "prov.h"
 #include "beacon.h"
 #include "access.h"
+#include "transport.h"
 #include "foundation.h"
 #include "proxy_server.h"
 
@@ -109,7 +110,7 @@ static enum {
     MESH_GATT_PROXY,
 } gatt_svc = MESH_GATT_NONE;
 
-static char device_name[DEVICE_NAME_SIZE] = "ESP-BLE-MESH";
+static char device_name[DEVICE_NAME_SIZE + 1];
 
 int bt_mesh_set_device_name(const char *name)
 {
@@ -119,12 +120,12 @@ int bt_mesh_set_device_name(const char *name)
     }
 
     if (strlen(name) > DEVICE_NAME_SIZE) {
-        BT_ERR("%s, Too long device name", __func__);
+        BT_ERR("Too long device name (len %d)", strlen(name));
         return -EINVAL;
     }
 
     memset(device_name, 0x0, sizeof(device_name));
-    memcpy(device_name, name, strlen(name));
+    strncpy(device_name, name, DEVICE_NAME_SIZE);
 
     return bt_mesh_gatts_set_local_device_name(device_name);
 }
@@ -150,7 +151,7 @@ static void proxy_sar_timeout(struct k_work *work)
 
     client = CONTAINER_OF(work, struct bt_mesh_proxy_client, sar_timer.work);
     if (!client || !client->conn) {
-        BT_ERR("%s, Invalid proxy client parameter", __func__);
+        BT_ERR("Invalid proxy client parameter");
         return;
     }
 
@@ -176,7 +177,7 @@ static int filter_set(struct bt_mesh_proxy_client *client,
     }
 
     type = net_buf_simple_pull_u8(buf);
-    BT_DBG("type 0x%02x", type);
+    BT_INFO("Set filter type 0x%02x", type);
 
     switch (type) {
     case 0x00:
@@ -214,9 +215,12 @@ static void filter_add(struct bt_mesh_proxy_client *client, u16_t addr)
     for (i = 0; i < ARRAY_SIZE(client->filter); i++) {
         if (client->filter[i] == BLE_MESH_ADDR_UNASSIGNED) {
             client->filter[i] = addr;
+            BT_INFO("Add filter addr 0x%04x", addr);
             return;
         }
     }
+
+    BT_WARN("Proxy filter is full!");
 }
 
 static void filter_remove(struct bt_mesh_proxy_client *client, u16_t addr)
@@ -232,6 +236,7 @@ static void filter_remove(struct bt_mesh_proxy_client *client, u16_t addr)
     for (i = 0; i < ARRAY_SIZE(client->filter); i++) {
         if (client->filter[i] == addr) {
             client->filter[i] = BLE_MESH_ADDR_UNASSIGNED;
+            BT_INFO("Remove filter addr 0x%04x", addr);
             return;
         }
     }
@@ -275,13 +280,13 @@ static void send_filter_status(struct bt_mesh_proxy_client *client,
 
     err = bt_mesh_net_encode(&tx, buf, true);
     if (err) {
-        BT_ERR("%s, Encoding Proxy cfg message failed (err %d)", __func__, err);
+        BT_ERR("Encoding proxy cfg message failed (err %d)", err);
         return;
     }
 
     err = proxy_segment_and_send(client->conn, BLE_MESH_PROXY_CONFIG, buf);
     if (err) {
-        BT_ERR("%s, Failed to send proxy cfg message (err %d)", __func__, err);
+        BT_ERR("Failed to send proxy cfg message (err %d)", err);
     }
 }
 
@@ -292,10 +297,23 @@ static void proxy_cfg(struct bt_mesh_proxy_client *client)
     u8_t opcode = 0U;
     int err = 0;
 
+    if (client->buf.len > 29) {
+        BT_ERR("Too large proxy cfg pdu (len %d)", client->buf.len);
+        return;
+    }
+
     err = bt_mesh_net_decode(&client->buf, BLE_MESH_NET_IF_PROXY_CFG,
                              &rx, &buf);
     if (err) {
-        BT_ERR("%s, Failed to decode Proxy Configuration (err %d)", __func__, err);
+        BT_ERR("Failed to decode Proxy Configuration (err %d)", err);
+        return;
+    }
+
+    rx.local_match = 1U;
+
+    if (bt_mesh_rpl_check(&rx, NULL)) {
+        BT_WARN("Replay: src 0x%04x dst 0x%04x seq 0x%06x",
+                rx.ctx.addr, rx.ctx.recv_dst, rx.seq);
         return;
     }
 
@@ -365,7 +383,7 @@ static void proxy_send_beacons(struct k_work *work)
     }
 }
 
-void bt_mesh_proxy_beacon_send(struct bt_mesh_subnet *sub)
+void bt_mesh_proxy_server_beacon_send(struct bt_mesh_subnet *sub)
 {
     int i;
 
@@ -373,7 +391,7 @@ void bt_mesh_proxy_beacon_send(struct bt_mesh_subnet *sub)
         /* NULL means we send on all subnets */
         for (i = 0; i < ARRAY_SIZE(bt_mesh.sub); i++) {
             if (bt_mesh.sub[i].net_idx != BLE_MESH_KEY_UNUSED) {
-                bt_mesh_proxy_beacon_send(&bt_mesh.sub[i]);
+                bt_mesh_proxy_server_beacon_send(&bt_mesh.sub[i]);
             }
         }
 
@@ -387,7 +405,7 @@ void bt_mesh_proxy_beacon_send(struct bt_mesh_subnet *sub)
     }
 }
 
-void bt_mesh_proxy_identity_start(struct bt_mesh_subnet *sub)
+void bt_mesh_proxy_server_identity_start(struct bt_mesh_subnet *sub)
 {
     sub->node_id = BLE_MESH_NODE_IDENTITY_RUNNING;
     sub->node_id_start = k_uptime_get_32();
@@ -396,7 +414,7 @@ void bt_mesh_proxy_identity_start(struct bt_mesh_subnet *sub)
     next_idx = sub - bt_mesh.sub;
 }
 
-void bt_mesh_proxy_identity_stop(struct bt_mesh_subnet *sub)
+void bt_mesh_proxy_server_identity_stop(struct bt_mesh_subnet *sub)
 {
     sub->node_id = BLE_MESH_NODE_IDENTITY_STOPPED;
     sub->node_id_start = 0U;
@@ -423,7 +441,7 @@ int bt_mesh_proxy_identity_enable(void)
             continue;
         }
 
-        bt_mesh_proxy_identity_start(sub);
+        bt_mesh_proxy_server_identity_start(sub);
         count++;
     }
 
@@ -580,7 +598,7 @@ static void proxy_connected(struct bt_mesh_conn *conn, u8_t err)
     }
 
     if (!client) {
-        BT_ERR("%s, No free Proxy Client objects", __func__);
+        BT_ERR("No free Proxy Client objects");
         return;
     }
 
@@ -619,7 +637,7 @@ static void proxy_disconnected(struct bt_mesh_conn *conn, u8_t reason)
     bt_mesh_adv_update();
 }
 
-struct net_buf_simple *bt_mesh_proxy_get_buf(void)
+struct net_buf_simple *bt_mesh_proxy_server_get_buf(void)
 {
     struct net_buf_simple *buf = &clients[0].buf;
 
@@ -651,7 +669,10 @@ static ssize_t prov_ccc_write(struct bt_mesh_conn *conn,
 
     /* If a connection exists there must be a client */
     client = find_client(conn);
-    __ASSERT(client, "No client for connection");
+    if (!client) {
+        BT_ERR("No client for connection %p", conn);
+        return 0;
+    }
 
     if (client->filter_type == NONE) {
         client->filter_type = PROV;
@@ -692,7 +713,7 @@ static struct bt_mesh_gatt_attr prov_attrs[] = {
 
 struct bt_mesh_gatt_service prov_svc = BLE_MESH_GATT_SERVICE(prov_attrs);
 
-int bt_mesh_proxy_prov_enable(void)
+int bt_mesh_proxy_server_prov_enable(void)
 {
     int i;
 
@@ -722,7 +743,7 @@ int bt_mesh_proxy_prov_enable(void)
     return 0;
 }
 
-int bt_mesh_proxy_prov_disable(bool disconnect)
+int bt_mesh_proxy_server_prov_disable(bool disconnect)
 {
     int i;
 
@@ -786,7 +807,10 @@ static ssize_t proxy_ccc_write(struct bt_mesh_conn *conn,
 
     /* If a connection exists there must be a client */
     client = find_client(conn);
-    __ASSERT(client, "No client for connection");
+    if (!client) {
+        BT_ERR("No client for connection %p", conn);
+        return 0;
+    }
 
     if (client->filter_type == NONE) {
         client->filter_type = WHITELIST;
@@ -827,7 +851,7 @@ static struct bt_mesh_gatt_attr proxy_attrs[] = {
 
 struct bt_mesh_gatt_service proxy_svc = BLE_MESH_GATT_SERVICE(proxy_attrs);
 
-int bt_mesh_proxy_gatt_enable(void)
+int bt_mesh_proxy_server_gatt_enable(void)
 {
     int i;
 
@@ -855,7 +879,7 @@ int bt_mesh_proxy_gatt_enable(void)
     return 0;
 }
 
-void bt_mesh_proxy_gatt_disconnect(void)
+void bt_mesh_proxy_server_gatt_disconnect(void)
 {
     int i;
 
@@ -872,7 +896,7 @@ void bt_mesh_proxy_gatt_disconnect(void)
     }
 }
 
-int bt_mesh_proxy_gatt_disable(void)
+int bt_mesh_proxy_server_gatt_disable(void)
 {
     BT_DBG("%s", __func__);
 
@@ -886,7 +910,7 @@ int bt_mesh_proxy_gatt_disable(void)
         return -EBUSY;
     }
 
-    bt_mesh_proxy_gatt_disconnect();
+    bt_mesh_proxy_server_gatt_disconnect();
 
     bt_mesh_gatts_service_stop(&proxy_svc);
     gatt_svc = MESH_GATT_NONE;
@@ -894,12 +918,12 @@ int bt_mesh_proxy_gatt_disable(void)
     return 0;
 }
 
-void bt_mesh_proxy_addr_add(struct net_buf_simple *buf, u16_t addr)
+void bt_mesh_proxy_server_addr_add(struct net_buf_simple *buf, u16_t addr)
 {
     struct bt_mesh_proxy_client *client =
         CONTAINER_OF(buf, struct bt_mesh_proxy_client, buf);
 
-    BT_INFO("filter_type %u addr 0x%04x", client->filter_type, addr);
+    BT_DBG("filter_type %u addr 0x%04x", client->filter_type, addr);
 
     if (client->filter_type == WHITELIST) {
         filter_add(client, addr);
@@ -940,7 +964,7 @@ static bool client_filter_match(struct bt_mesh_proxy_client *client,
     return false;
 }
 
-bool bt_mesh_proxy_relay(struct net_buf_simple *buf, u16_t dst)
+bool bt_mesh_proxy_server_relay(struct net_buf_simple *buf, u16_t dst)
 {
     bool relayed = false;
     int i;
@@ -965,7 +989,7 @@ bool bt_mesh_proxy_relay(struct net_buf_simple *buf, u16_t dst)
         net_buf_simple_reserve(&msg, 1);
         net_buf_simple_add_mem(&msg, buf->data, buf->len);
 
-        bt_mesh_proxy_send(client->conn, BLE_MESH_PROXY_NET_PDU, &msg);
+        bt_mesh_proxy_server_send(client->conn, BLE_MESH_PROXY_NET_PDU, &msg);
         relayed = true;
     }
 
@@ -1027,18 +1051,18 @@ static int proxy_segment_and_send(struct bt_mesh_conn *conn, u8_t type,
     return 0;
 }
 
-int bt_mesh_proxy_send(struct bt_mesh_conn *conn, u8_t type,
-                       struct net_buf_simple *msg)
+int bt_mesh_proxy_server_send(struct bt_mesh_conn *conn, u8_t type,
+                              struct net_buf_simple *msg)
 {
     struct bt_mesh_proxy_client *client = find_client(conn);
 
     if (!client) {
-        BT_ERR("%s, No Proxy Client found", __func__);
+        BT_ERR("No Proxy Client found");
         return -ENOTCONN;
     }
 
     if ((client->filter_type == PROV) != (type == BLE_MESH_PROXY_PROV)) {
-        BT_ERR("%s, Invalid PDU type for Proxy Client", __func__);
+        BT_ERR("Invalid PDU type for Proxy Client");
         return -EINVAL;
     }
 
@@ -1174,7 +1198,7 @@ static bool advertise_subnet(struct bt_mesh_subnet *sub)
     }
 
     return (sub->node_id == BLE_MESH_NODE_IDENTITY_RUNNING ||
-            bt_mesh_gatt_proxy_get() == BLE_MESH_GATT_PROXY_ENABLED);
+            bt_mesh_gatt_proxy_get() != BLE_MESH_GATT_PROXY_NOT_SUPPORTED);
 }
 
 static struct bt_mesh_subnet *next_sub(void)
@@ -1246,17 +1270,13 @@ static s32_t gatt_proxy_advertise(struct bt_mesh_subnet *sub)
                    active, remaining);
             node_id_adv(sub);
         } else {
-            bt_mesh_proxy_identity_stop(sub);
+            bt_mesh_proxy_server_identity_stop(sub);
             BT_DBG("Node ID stopped");
         }
     }
 
     if (sub->node_id == BLE_MESH_NODE_IDENTITY_STOPPED) {
-        if (bt_mesh_gatt_proxy_get() == BLE_MESH_GATT_PROXY_ENABLED) {
-            net_id_adv(sub);
-        } else {
-            return gatt_proxy_advertise(next_sub());
-        }
+        net_id_adv(sub);
     }
 
     subnet_count = sub_count();
@@ -1329,7 +1349,7 @@ static size_t gatt_prov_adv_create(struct bt_mesh_adv_data prov_sd[2])
 }
 #endif /* CONFIG_BLE_MESH_PB_GATT */
 
-s32_t bt_mesh_proxy_adv_start(void)
+s32_t bt_mesh_proxy_server_adv_start(void)
 {
     BT_DBG("%s", __func__);
 
@@ -1373,7 +1393,7 @@ s32_t bt_mesh_proxy_adv_start(void)
     return K_FOREVER;
 }
 
-void bt_mesh_proxy_adv_stop(void)
+void bt_mesh_proxy_server_adv_stop(void)
 {
     int err = 0;
 
@@ -1385,7 +1405,7 @@ void bt_mesh_proxy_adv_stop(void)
 
     err = bt_le_adv_stop();
     if (err) {
-        BT_ERR("%s, Failed to stop advertising (err %d)", __func__, err);
+        BT_ERR("Failed to stop advertising (err %d)", err);
     } else {
         proxy_adv_enabled = false;
     }
@@ -1396,7 +1416,7 @@ static struct bt_mesh_conn_cb conn_callbacks = {
     .disconnected = proxy_disconnected,
 };
 
-int bt_mesh_proxy_init(void)
+int bt_mesh_proxy_server_init(void)
 {
     int i;
 
@@ -1420,15 +1440,12 @@ int bt_mesh_proxy_init(void)
 
     bt_mesh_gatts_conn_cb_register(&conn_callbacks);
 
-#if defined(CONFIG_BLE_MESH_PB_GATT)
-    const struct bt_mesh_prov *prov = bt_mesh_prov_get();
-    __ASSERT(prov && prov->uuid, "%s, Device UUID is not initialized", __func__);
-#endif
-
+    strncpy(device_name, "ESP-BLE-MESH", DEVICE_NAME_SIZE);
     return bt_mesh_gatts_set_local_device_name(device_name);
 }
 
-int bt_mesh_proxy_deinit(void)
+#if CONFIG_BLE_MESH_DEINIT
+int bt_mesh_proxy_server_deinit(void)
 {
     int i;
 
@@ -1437,6 +1454,7 @@ int bt_mesh_proxy_deinit(void)
 
 #if defined(CONFIG_BLE_MESH_GATT_PROXY_SERVER)
     bt_mesh_gatts_service_deregister(&proxy_svc);
+    next_idx = 0;
 #endif
 
 #if defined(CONFIG_BLE_MESH_PB_GATT)
@@ -1453,8 +1471,10 @@ int bt_mesh_proxy_deinit(void)
     memset(device_name, 0, sizeof(device_name));
 
     bt_mesh_gatts_conn_cb_deregister();
+    conn_count = 0;
 
     return 0;
 }
+#endif /* CONFIG_BLE_MESH_DEINIT */
 
 #endif /* (CONFIG_BLE_MESH_NODE && CONFIG_BLE_MESH_PB_GATT) || CONFIG_BLE_MESH_GATT_PROXY_SERVER */

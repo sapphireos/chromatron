@@ -1564,6 +1564,19 @@ def init():
 
 """
 
+test_expr_db_f16 = """
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+
+def init():
+    db.kv_test_key = 123
+    
+    a = db.kv_test_key + 1.0 # note that since we don't really do DB type conversion, db.kv_test_key gets treated as an f16 here.  this is ok for now.
+    b = db.kv_test_key + db.kv_test_key
+
+"""
+
 test_db_augassign = """
 
 a = Number(publish=True)
@@ -2058,6 +2071,13 @@ class CGTestsBase(unittest.TestCase):
             expected={
                 'a': 124,
                 'b': 246,
+            })
+
+    def test_expr_db_f16(self):
+        self.run_test(test_expr_db_f16,
+            expected={
+                'a': 1.0018768310546875,
+                'b': 246.0,
             })
 
     def test_db_augassign(self):
@@ -3688,82 +3708,82 @@ class CGTestsLocal(CGTestsBase):
                 raise
 
 
-from fixtures import *
+# from fixtures import *
 
-import chromatron
-from catbus import ProtocolErrorException
-import time
+# import chromatron
+# from catbus import ProtocolErrorException
+# import time
 
-ct = chromatron.Chromatron(host=NETWORK_ADDR)
+# ct = chromatron.Chromatron(host=NETWORK_ADDR)
 
-class CGTestsOnDevice(CGTestsBase):
-    def run_test(self, program, expected={}):
-        global ct
-        # ct = chromatron.Chromatron(host='usb', force_network=True)
-        # ct = chromatron.Chromatron(host='10.0.0.108')
+# class CGTestsOnDevice(CGTestsBase):
+#     def run_test(self, program, expected={}):
+#         global ct
+#         # ct = chromatron.Chromatron(host='usb', force_network=True)
+#         # ct = chromatron.Chromatron(host='10.0.0.108')
 
-        tries = 3
+#         tries = 3
 
-        while tries > 0:
-            try:
-                # ct.load_vm(bin_data=program)
-                with open('test.fx', 'w') as f:
-                    f.write(program) # write out the program source for debug if it fails
+#         while tries > 0:
+#             try:
+#                 # ct.load_vm(bin_data=program)
+#                 with open('test.fx', 'w') as f:
+#                     f.write(program) # write out the program source for debug if it fails
 
-                builder = code_gen.compile_text(program, debug_print=False)
-                builder.assemble()
-                data = builder.generate_binary('test.fxb')
+#                 builder = code_gen.compile_text(program, debug_print=False)
+#                 builder.assemble()
+#                 data = builder.generate_binary('test.fxb')
 
-                ct.stop_vm()
+#                 ct.stop_vm()
                 
-                # change vm program
-                ct.set_key('vm_prog', 'test.fxb')
-                ct.put_file('test.fxb', data)
-                ct.start_vm()
+#                 # change vm program
+#                 ct.set_key('vm_prog', 'test.fxb')
+#                 ct.put_file('test.fxb', data)
+#                 ct.start_vm()
 
-                for i in range(100):
-                    time.sleep(0.1)
+#                 for i in range(100):
+#                     time.sleep(0.1)
 
-                    vm_status = ct.get_key('vm_status')
+#                     vm_status = ct.get_key('vm_status')
 
-                    if vm_status != 4 and vm_status != -127:
-                        # vm reports READY (4), we need to wait until it changes 
-                        # (READY means it is waiting for the internal VM to start)
-                        # -127 means the VM is not initialized
-                        break
+#                     if vm_status != 4 and vm_status != -127:
+#                         # vm reports READY (4), we need to wait until it changes 
+#                         # (READY means it is waiting for the internal VM to start)
+#                         # -127 means the VM is not initialized
+#                         break
 
-                assert vm_status == 0
+#                 assert vm_status == 0
 
-                ct.init_scan()
+#                 ct.init_scan()
                 
-                for reg, expected_value in expected.items():
-                    tries = 5
-                    while tries > 0:
-                        tries -= 1
+#                 for reg, expected_value in expected.items():
+#                     tries = 5
+#                     while tries > 0:
+#                         tries -= 1
 
-                        if reg == 'kv_test_key':
-                            actual = ct.get_key(reg)
+#                         if reg == 'kv_test_key':
+#                             actual = ct.get_key(reg)
 
-                        else:
-                            actual = ct.get_vm_reg(str(reg))
+#                         else:
+#                             actual = ct.get_vm_reg(str(reg))
 
-                        try:
-                            assert actual == expected_value
+#                         try:
+#                             assert actual == expected_value
 
-                        except AssertionError:
-                            # print "Expected: %s Actual: %s Reg: %s" % (expected_value, actual, reg)
-                            # print "Resetting VM..."
-                            if tries == 0:
-                                raise
+#                         except AssertionError:
+#                             # print "Expected: %s Actual: %s Reg: %s" % (expected_value, actual, reg)
+#                             # print "Resetting VM..."
+#                             if tries == 0:
+#                                 raise
 
-                            ct.reset_vm()
-                            time.sleep(0.2)
+#                             ct.reset_vm()
+#                             time.sleep(0.2)
 
-                return
+#                 return
 
-            except ProtocolErrorException:
-                print("Protocol error, trying again.")
-                tries -= 1
+#             except ProtocolErrorException:
+#                 print("Protocol error, trying again.")
+#                 tries -= 1
 
-        ct.stop_vm()
+#         ct.stop_vm()
 

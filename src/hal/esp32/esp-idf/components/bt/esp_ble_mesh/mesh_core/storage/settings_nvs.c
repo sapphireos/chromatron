@@ -15,9 +15,6 @@
 #include <string.h>
 #include <errno.h>
 
-#include "nvs.h"
-#include "nvs_flash.h"
-
 #include "mesh_common.h"
 #include "settings_nvs.h"
 #include "settings.h"
@@ -26,18 +23,19 @@
 
 enum settings_type {
     SETTINGS_CORE,
-    SETTINGS_SERVER,
 };
 
 struct settings_context {
     char *nvs_name;
-    nvs_handle handle;
+    bt_mesh_nvs_handle_t handle;
 
     int (*settings_init)(void);
     int (*settings_load)(void);
     int (*settings_commit)(void);
+#if CONFIG_BLE_MESH_DEINIT
     int (*settings_deinit)(void);
     int (*settings_erase)(void);
+#endif /* CONFIG_BLE_MESH_DEINIT */
 };
 
 static struct settings_context settings_ctx[] = {
@@ -46,19 +44,16 @@ static struct settings_context settings_ctx[] = {
         .settings_init = settings_core_init,
         .settings_load = settings_core_load,
         .settings_commit = settings_core_commit,
+#if CONFIG_BLE_MESH_DEINIT
         .settings_deinit = settings_core_deinit,
-    },
-    [SETTINGS_SERVER] = {
-        .nvs_name = "mesh_server",
-        .settings_init = NULL,
-        .settings_load = NULL,
-        .settings_commit = NULL,
+        .settings_erase = settings_core_erase,
+#endif /* CONFIG_BLE_MESH_DEINIT */
     },
 };
 
 /* API used to initialize, load and commit BLE Mesh related settings */
 
-void bt_mesh_settings_foreach(void)
+void bt_mesh_settings_init_foreach(void)
 {
     int err = 0;
     int i;
@@ -80,28 +75,29 @@ void bt_mesh_settings_foreach(void)
         err = nvs_open(ctx->nvs_name, NVS_READWRITE, &ctx->handle);
 #endif
         if (err != ESP_OK) {
-            BT_ERR("%s, Open nvs failed, name %s, err %d", __func__, ctx->nvs_name, err);
+            BT_ERR("Open nvs failed, name %s, err %d", ctx->nvs_name, err);
             continue;
         }
 
         if (ctx->settings_init && ctx->settings_init()) {
-            BT_ERR("%s, Init settings failed, name %s", __func__, ctx->nvs_name);
+            BT_ERR("Init settings failed, name %s", ctx->nvs_name);
             continue;
         }
 
         if (ctx->settings_load && ctx->settings_load()) {
-            BT_ERR("%s, Load settings failed, name %s", __func__, ctx->nvs_name);
+            BT_ERR("Load settings failed, name %s", ctx->nvs_name);
             continue;
         }
 
         if (ctx->settings_commit && ctx->settings_commit()) {
-            BT_ERR("%s, Commit settings failed, name %s", __func__, ctx->nvs_name);
+            BT_ERR("Commit settings failed, name %s", ctx->nvs_name);
             continue;
         }
     }
 }
 
-void bt_mesh_settings_deforeach(void)
+#if CONFIG_BLE_MESH_DEINIT
+void bt_mesh_settings_deinit_foreach(bool erase)
 {
     int i;
 
@@ -109,7 +105,12 @@ void bt_mesh_settings_deforeach(void)
         struct settings_context *ctx = &settings_ctx[i];
 
         if (ctx->settings_deinit && ctx->settings_deinit()) {
-            BT_ERR("%s, Deinit settings failed, name %s", __func__, ctx->nvs_name);
+            BT_ERR("Deinit settings failed, name %s", ctx->nvs_name);
+            continue;
+        }
+
+        if (erase && ctx->settings_erase && ctx->settings_erase()) {
+            BT_ERR("Erase settings failed, name %s", ctx->nvs_name);
             continue;
         }
 
@@ -120,17 +121,18 @@ void bt_mesh_settings_deforeach(void)
     nvs_flash_deinit_partition(CONFIG_BLE_MESH_PARTITION_NAME);
 #endif
 }
+#endif /* CONFIG_BLE_MESH_DEINIT */
 
 /* API used to get BLE Mesh related nvs handle */
 
-static inline nvs_handle settings_get_nvs_handle(enum settings_type type)
+static inline bt_mesh_nvs_handle_t settings_get_nvs_handle(enum settings_type type)
 {
     return settings_ctx[type].handle;
 }
 
 /* API used to store/erase BLE Mesh related settings */
 
-static int settings_save(nvs_handle handle, const char *key, const u8_t *val, size_t len)
+static int settings_save(bt_mesh_nvs_handle_t handle, const char *key, const u8_t *val, size_t len)
 {
     int err = 0;
 
@@ -139,41 +141,61 @@ static int settings_save(nvs_handle handle, const char *key, const u8_t *val, si
         return -EINVAL;
     }
 
-    BT_DBG("%s, nvs %s, key %s", __func__, val ? "set" : "erase", key);
+    BT_DBG("nvs %s, key %s", val ? "set" : "erase", key);
 
     if (val) {
         err = nvs_set_blob(handle, key, val, len);
     } else {
         err = nvs_erase_key(handle, key);
         if (err == ESP_ERR_NVS_NOT_FOUND) {
-            BT_DBG("%s, %s does not exist", __func__, key);
+            BT_DBG("%s not exists", key);
             return 0;
         }
     }
     if (err != ESP_OK) {
-        BT_ERR("%s, Failed to %s %s data (err %d)", __func__,
-               val ? "set" : "erase", key, err);
+        BT_ERR("Failed to %s %s data (err %d)",
+                val ? "set" : "erase", key, err);
         return -EIO;
     }
 
     err = nvs_commit(handle);
     if (err != ESP_OK) {
-        BT_ERR("%s, Failed to commit settings (err %d)", __func__, err);
+        BT_ERR("Failed to commit settings (err %d)", err);
         return -EIO;
     }
 
     return 0;
 }
 
+int bt_mesh_save_settings(bt_mesh_nvs_handle_t handle, const char *key,
+                          const u8_t *val, size_t len)
+{
+    int err = 0;
+    bt_mesh_settings_lock();
+    err = settings_save(handle, key, val, len);
+    bt_mesh_settings_unlock();
+    return err;
+}
+
 int bt_mesh_save_core_settings(const char *key, const u8_t *val, size_t len)
 {
-    nvs_handle handle = settings_get_nvs_handle(SETTINGS_CORE);
-    return settings_save(handle, key, val, len);
+    bt_mesh_nvs_handle_t handle = settings_get_nvs_handle(SETTINGS_CORE);
+    return bt_mesh_save_settings(handle, key, val, len);
+}
+
+int bt_mesh_erase_settings(bt_mesh_nvs_handle_t handle, const char *key)
+{
+    return bt_mesh_save_settings(handle, key, NULL, 0);
+}
+
+int bt_mesh_erase_core_settings(const char *key)
+{
+    return bt_mesh_save_core_settings(key, NULL, 0);
 }
 
 /* API used to load BLE Mesh related settings */
 
-static int settings_load(nvs_handle handle, const char *key,
+static int settings_load(bt_mesh_nvs_handle_t handle, const char *key,
                          u8_t *buf, size_t buf_len, bool *exist)
 {
     int err = 0;
@@ -186,12 +208,12 @@ static int settings_load(nvs_handle handle, const char *key,
     err = nvs_get_blob(handle, key, buf, &buf_len);
     if (err != ESP_OK) {
         if (err == ESP_ERR_NVS_NOT_FOUND) {
-            BT_DBG("%s, Settings %s is not found", __func__, key);
+            BT_DBG("Settings %s not found", key);
             *exist = false;
             return 0;
         }
 
-        BT_ERR("%s, Failed to get %s data (err %d)", __func__, key, err);
+        BT_ERR("Failed to get %s data (err %d)", key, err);
         return -EIO;
     }
 
@@ -199,15 +221,25 @@ static int settings_load(nvs_handle handle, const char *key,
     return 0;
 }
 
+int bt_mesh_load_settings(bt_mesh_nvs_handle_t handle, const char *key,
+                          u8_t *buf, size_t buf_len, bool *exist)
+{
+    int err = 0;
+    bt_mesh_settings_lock();
+    err = settings_load(handle, key, buf, buf_len, exist);
+    bt_mesh_settings_unlock();
+    return err;
+}
+
 int bt_mesh_load_core_settings(const char *key, u8_t *buf, size_t buf_len, bool *exist)
 {
-    nvs_handle handle = settings_get_nvs_handle(SETTINGS_CORE);
-    return settings_load(handle, key, buf, buf_len, exist);
+    bt_mesh_nvs_handle_t handle = settings_get_nvs_handle(SETTINGS_CORE);
+    return bt_mesh_load_settings(handle, key, buf, buf_len, exist);
 }
 
 /* API used to get length of BLE Mesh related settings */
 
-static size_t settings_get_length(nvs_handle handle, const char *key)
+static size_t settings_get_length(bt_mesh_nvs_handle_t handle, const char *key)
 {
     size_t len = 0U;
     int err = 0;
@@ -220,7 +252,7 @@ static size_t settings_get_length(nvs_handle handle, const char *key)
     err = nvs_get_blob(handle, key, NULL, &len);
     if (err != ESP_OK) {
         if (err != ESP_ERR_NVS_NOT_FOUND) {
-            BT_ERR("%s, Failed to get %s length (err %d)", __func__, key, err);
+            BT_ERR("Failed to get %s length (err %d)", key, err);
         }
         return 0;
     }
@@ -233,7 +265,7 @@ static size_t settings_get_length(nvs_handle handle, const char *key)
  * Mesh settings.
  */
 
-static struct net_buf_simple *settings_get_item(nvs_handle handle, const char *key)
+static struct net_buf_simple *settings_get_item(bt_mesh_nvs_handle_t handle, const char *key)
 {
     struct net_buf_simple *buf = NULL;
     size_t length = 0U;
@@ -242,20 +274,20 @@ static struct net_buf_simple *settings_get_item(nvs_handle handle, const char *k
 
     length = settings_get_length(handle, key);
     if (!length) {
-        BT_DBG("%s, Empty %s", __func__, key);
+        BT_DBG("Empty %s", key);
         return NULL;
     }
 
     buf = bt_mesh_alloc_buf(length);
     if (!buf) {
-        BT_ERR("%s, Failed to allocate memory", __func__);
+        BT_ERR("%s, Out of memory", __func__);
         /* TODO: in this case, erase all related settings? */
         return NULL;
     }
 
     err = settings_load(handle, key, buf->data, length, &exist);
     if (err) {
-        BT_ERR("%s, Failed to load %s", __func__, key);
+        BT_ERR("Failed to load %s", key);
         /* TODO: in this case, erase all related settings? */
         bt_mesh_free_buf(buf);
         return NULL;
@@ -270,10 +302,19 @@ static struct net_buf_simple *settings_get_item(nvs_handle handle, const char *k
     return buf;
 }
 
+struct net_buf_simple *bt_mesh_get_settings_item(bt_mesh_nvs_handle_t handle, const char *key)
+{
+    struct net_buf_simple *buf = NULL;
+    bt_mesh_settings_lock();
+    buf = settings_get_item(handle, key);
+    bt_mesh_settings_unlock();
+    return buf;
+}
+
 struct net_buf_simple *bt_mesh_get_core_settings_item(const char *key)
 {
-    nvs_handle handle = settings_get_nvs_handle(SETTINGS_CORE);
-    return settings_get_item(handle, key);
+    bt_mesh_nvs_handle_t handle = settings_get_nvs_handle(SETTINGS_CORE);
+    return bt_mesh_get_settings_item(handle, key);
 }
 
 /* API used to check if the settings item exists */
@@ -305,7 +346,7 @@ static bool is_settings_item_exist(struct net_buf_simple *buf, const u16_t val)
 
 /* API used to add the settings item */
 
-static int settings_add_item(nvs_handle handle, const char *key, const u16_t val)
+static int settings_add_item(bt_mesh_nvs_handle_t handle, const char *key, const u16_t val)
 {
     struct net_buf_simple *store = NULL;
     struct net_buf_simple *buf = NULL;
@@ -316,7 +357,7 @@ static int settings_add_item(nvs_handle handle, const char *key, const u16_t val
 
     /* Check if val already exists */
     if (is_settings_item_exist(buf, val) == true) {
-        BT_DBG("%s, 0x%04x already exists", __func__, val);
+        BT_DBG("0x%04x already exists", val);
         bt_mesh_free_buf(buf);
         return 0;
     }
@@ -325,7 +366,7 @@ static int settings_add_item(nvs_handle handle, const char *key, const u16_t val
 
     store = bt_mesh_alloc_buf(length);
     if (!store) {
-        BT_ERR("%s, Failed to allocate memory", __func__);
+        BT_ERR("%s, Out of memory", __func__);
         bt_mesh_free_buf(buf);
         return -ENOMEM;
     }
@@ -342,15 +383,24 @@ static int settings_add_item(nvs_handle handle, const char *key, const u16_t val
     return err;
 }
 
+int bt_mesh_add_settings_item(bt_mesh_nvs_handle_t handle, const char *key, const u16_t val)
+{
+    int err = 0;
+    bt_mesh_settings_lock();
+    err = settings_add_item(handle, key, val);
+    bt_mesh_settings_unlock();
+    return err;
+}
+
 int bt_mesh_add_core_settings_item(const char *key, const u16_t val)
 {
-    nvs_handle handle = settings_get_nvs_handle(SETTINGS_CORE);
-    return settings_add_item(handle, key, val);
+    bt_mesh_nvs_handle_t handle = settings_get_nvs_handle(SETTINGS_CORE);
+    return bt_mesh_add_settings_item(handle, key, val);
 }
 
 /* API used to remove the settings item */
 
-static int settings_remove_item(nvs_handle handle, const char *key, const u16_t val)
+static int settings_remove_item(bt_mesh_nvs_handle_t handle, const char *key, const u16_t val)
 {
     struct net_buf_simple *store = NULL;
     struct net_buf_simple *buf = NULL;
@@ -363,7 +413,7 @@ static int settings_remove_item(nvs_handle handle, const char *key, const u16_t 
 
     /* Check if val does exist */
     if (is_settings_item_exist(buf, val) == false) {
-        BT_DBG("%s, 0x%04x does not exist", __func__, val);
+        BT_DBG("0x%04x not exists", val);
         bt_mesh_free_buf(buf);
         return 0;
     }
@@ -377,7 +427,7 @@ static int settings_remove_item(nvs_handle handle, const char *key, const u16_t 
 
     store = bt_mesh_alloc_buf(length);
     if (!store) {
-        BT_ERR("%s, Failed to allocate memory", __func__);
+        BT_ERR("%s, Out of memory", __func__);
         bt_mesh_free_buf(buf);
         return -ENOMEM;
     }
@@ -397,10 +447,19 @@ static int settings_remove_item(nvs_handle handle, const char *key, const u16_t 
     return err;
 }
 
+int bt_mesh_remove_settings_item(bt_mesh_nvs_handle_t handle, const char *key, const u16_t val)
+{
+    int err = 0;
+    bt_mesh_settings_lock();
+    err = settings_remove_item(handle, key, val);
+    bt_mesh_settings_unlock();
+    return err;
+}
+
 int bt_mesh_remove_core_settings_item(const char *key, const u16_t val)
 {
-    nvs_handle handle = settings_get_nvs_handle(SETTINGS_CORE);
-    return settings_remove_item(handle, key, val);
+    bt_mesh_nvs_handle_t handle = settings_get_nvs_handle(SETTINGS_CORE);
+    return bt_mesh_remove_settings_item(handle, key, val);
 }
 
 #endif /* CONFIG_BLE_MESH_SETTINGS */

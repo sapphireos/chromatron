@@ -182,6 +182,9 @@ uint16_t kvdb_u16_db_size( void ){
     return list_u16_size( &db_list );
 }
 
+
+// TODO:
+// require adding the name to the DB, otherwise lookups will fail!
 int8_t kvdb_i8_add( 
     catbus_hash_t32 hash, 
     catbus_type_t8 type,
@@ -207,7 +210,8 @@ int8_t kvdb_i8_add(
 
     // check if this hash is already in another part of the database:
     catbus_meta_t meta;
-    if( kv_i8_get_catbus_meta( hash, &meta ) >= 0 ){
+    int8_t status = kv_i8_get_catbus_meta( hash, &meta );
+    if( status >= 0 ){
 
         return KVDB_STATUS_HASH_CONFLICT;
     }
@@ -403,7 +407,7 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
 
     if( len != data_len ){
 
-        return KVDB_STATUS_NOT_ENOUGH_SPACE;
+        return KVDB_STATUS_LENGTH_MISMATCH;
     }
 
     uint8_t *data_ptr = (uint8_t *)( entry + 1 );
@@ -680,7 +684,7 @@ int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] )
 
     if( kv_names_f < 0 ){
 
-        return status;
+        goto end;
     }
 
     fs_v_seek( kv_names_f, 0 );
@@ -702,6 +706,7 @@ int8_t kvdb_i8_lookup_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] )
         }
     }
 
+end:
     return status;
 }
 #endif

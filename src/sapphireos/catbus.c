@@ -210,6 +210,10 @@ static int8_t _catbus_i8_meta_handler(
 
 void catbus_v_init( void ){
 
+    COMPILER_ASSERT( CATBUS_FILE_PAGE_SIZE <= CATBUS_MAX_DATA );
+
+    trace_printf("Catbus max data len: %d\r\n", CATBUS_MAX_DATA);
+
     #ifdef ENABLE_CATBUS_LINK
     // list_v_init( &send_list );
     // list_v_init( &receive_cache );
@@ -403,6 +407,8 @@ int8_t _catbus_i8_internal_set(
 
     for( uint16_t i = 0; i < count; i++ ){
 
+        // NOTE: we do an internal read before we do the conversion.
+        // this is so the conversion will also check if the value is changing.
         kv_i8_internal_get( &meta, hash, index, 1, buf, sizeof(buf) );
 
         if( type_i8_convert( meta.type, buf, type, data, data_len ) != 0 ){
@@ -495,7 +501,7 @@ int8_t catbus_i8_array_get(
 
         for( uint16_t i = 0; i < count; i++ ){
        
-            status = kv_i8_array_get( hash, index, 1, buf, sizeof(buf) );         
+            status = kv_i8_internal_get( &meta, hash, index, 1, buf, sizeof(buf) );         
             type_i8_convert( type, data, meta.type, buf, 0 );
             
             index++;
@@ -511,7 +517,7 @@ int8_t catbus_i8_array_get(
     // conversion not necessary, so we don't need our own loop
     else{
 
-        status = kv_i8_array_get( hash, index, count, data, type_size );
+        status = kv_i8_internal_get( &meta, hash, index, count, data, type_size );
     }
 
     return 0;
@@ -844,6 +850,17 @@ PT_BEGIN( pt );
                     goto end;
                 }
 
+                uint16_t data_len = kv_u16_get_size_meta( &meta ) + sizeof(catbus_data_t) - 1;
+
+                // check data len - if too large, log an error and skip
+                // this prevents clients from requesting an item that will fail
+                if( data_len > CATBUS_MAX_DATA ){
+
+                    log_v_critical_P( PSTR("%s is too large for packet: %d bytes. Max: %d Skipping."), meta.name, data_len, CATBUS_MAX_DATA );
+
+                    continue;
+                }
+
                 item->hash      = hash_u32_string( meta.name );
                 item->type      = meta.type;
                 item->flags     = meta.flags;
@@ -879,26 +896,37 @@ PT_BEGIN( pt );
                 if( kv_i8_lookup_hash( LOAD32(hash), &meta ) == 0 ){
 
                     uint16_t data_len = kv_u16_get_size_meta( &meta ) + sizeof(catbus_data_t) - 1;
-                    
-                    if( ( reply_len + data_len ) > CATBUS_MAX_DATA ){
+
+                    // check if this item is too large for a single packet:
+                    if( data_len > CATBUS_MAX_DATA ){
+
+                        log_v_critical_P( PSTR("0x%0x is too large for packet: %d bytes"), LOAD32(hash), data_len );
+
+                        error = CATBUS_ERROR_DATA_TOO_LARGE;
+                        goto end;
+                    }
+                    else if( ( reply_len + data_len ) > CATBUS_MAX_DATA ){
+
+                        // this is ok - catbus can request more items that the reply message can contain.
+                        // the client is expected to handle this.
 
                         break;
                     }
-
+                    
                     reply_len += data_len;
                     reply_count++;
                 }       
                 else{
 
-                    log_v_debug_P( PSTR("%lu not found from: %d.%d.%d.%d"), hash, raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
-                }         
+                    log_v_warn_P( PSTR("%lu not found from: %d.%d.%d.%d"), hash, raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+                }
 
                 hash++;
             }
 
-            if( reply_len > CATBUS_MAX_DATA ){
+            if( reply_count == 0 ){
 
-                error = CATBUS_ERROR_PROTOCOL_ERROR;
+                error = CATBUS_ERROR_KEY_NOT_FOUND;
                 goto end;
             }
 
@@ -941,6 +969,10 @@ PT_BEGIN( pt );
                     uint8_t *ptr = (uint8_t *)data;
                     ptr += ( sizeof(catbus_data_t) + ( type_len - 1 ) );
                     data = (catbus_data_t *)ptr;
+                }
+                else{
+
+                    ASSERT( FALSE ); // all requested keys were already checked, so they must exist here
                 }
 
                 hash++;
@@ -1084,7 +1116,7 @@ PT_BEGIN( pt );
             memcpy( reply.filename, msg->filename, sizeof(reply.filename) );
             reply.status        = 0;
             reply.session_id    = session_id;
-            reply.page_size     = CATBUS_MAX_DATA;
+            reply.page_size     = CATBUS_FILE_PAGE_SIZE;
 
             sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );
         }

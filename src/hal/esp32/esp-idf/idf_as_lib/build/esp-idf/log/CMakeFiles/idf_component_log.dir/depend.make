@@ -7,6 +7,7 @@ esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj: ../../../../../component
 esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj: ../../../../../components/esp32/include/esp_attr.h
 esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj: ../../../../../components/esp32/include/esp_crosscore_int.h
 esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj: ../../../../../components/esp32/include/esp_err.h
+esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj: ../../../../../components/esp32/include/esp_idf_version.h
 esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj: ../../../../../components/esp32/include/esp_intr.h
 esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj: ../../../../../components/esp32/include/esp_intr_alloc.h
 esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj: ../../../../../components/esp32/include/esp_sleep.h

@@ -452,6 +452,7 @@ ip6_input(struct pbuf *p, struct netif *inp)
   if (ip6_addr_isipv4mappedipv6(ip_2_ip6(&ip_data.current_iphdr_dest)) ||
      ip6_addr_isipv4mappedipv6(ip_2_ip6(&ip_data.current_iphdr_src)) ||
      ip6_addr_ismulticast(ip_2_ip6(&ip_data.current_iphdr_src))) {
+    pbuf_free(p);
     IP6_STATS_INC(ip6.err);
     IP6_STATS_INC(ip6.drop);
     return ERR_OK;
@@ -593,7 +594,7 @@ netif_found:
       ip_data.current_ip_header_tot_len += hlen;
 
       /* Skip over this header. */
-      if (hlen > p->len) {
+      if (p->len < 8 || hlen > p->len) {
         LWIP_DEBUGF(IP6_DEBUG | LWIP_DBG_LEVEL_SERIOUS,
           ("IPv6 options header (hlen %"U16_F") does not fit in first pbuf (len %"U16_F"), IPv6 packet dropped.\n",
               hlen, p->len));
@@ -616,7 +617,7 @@ netif_found:
       ip_data.current_ip_header_tot_len += hlen;
 
       /* Skip over this header. */
-      if (hlen > p->len) {
+      if (p->len < 8 || hlen > p->len) {
         LWIP_DEBUGF(IP6_DEBUG | LWIP_DBG_LEVEL_SERIOUS,
           ("IPv6 options header (hlen %"U16_F") does not fit in first pbuf (len %"U16_F"), IPv6 packet dropped.\n",
               hlen, p->len));
@@ -639,7 +640,7 @@ netif_found:
       ip_data.current_ip_header_tot_len += hlen;
 
       /* Skip over this header. */
-      if (hlen > p->len) {
+      if (p->len < 8 || hlen > p->len) {
         LWIP_DEBUGF(IP6_DEBUG | LWIP_DBG_LEVEL_SERIOUS,
           ("IPv6 options header (hlen %"U16_F") does not fit in first pbuf (len %"U16_F"), IPv6 packet dropped.\n",
               hlen, p->len));
@@ -917,6 +918,8 @@ ip6_output_if_src(struct pbuf *p, const ip6_addr_t *src, const ip6_addr_t *dest,
   if (netif->mtu && (p->tot_len > nd6_get_destination_mtu(dest, netif))) {
     return ip6_frag(p, netif, dest);
   }
+#else
+  LWIP_ERROR("ip6_output_if: Packets larger than MTU, discarded!!!",!(netif->mtu && p->tot_len > netif->mtu),return ERR_IF;);
 #endif /* LWIP_IPV6_FRAG */
 
   LWIP_DEBUGF(IP6_DEBUG, ("netif->output_ip6()\n"));

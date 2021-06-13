@@ -34,10 +34,17 @@
 #include "gfx_lib.h"
 #include "vm.h"
 
-static uint8_t array_red[MAX_PIXELS];
-static uint8_t array_green[MAX_PIXELS];
-static uint8_t array_blue[MAX_PIXELS];
-static uint8_t array_misc[MAX_PIXELS];
+#ifdef PIXEL_USE_MALLOC
+static uint8_t *array_red __attribute__((aligned(4)));
+static uint8_t *array_green __attribute__((aligned(4)));
+static uint8_t *array_blue __attribute__((aligned(4)));
+static uint8_t *array_misc __attribute__((aligned(4)));
+#else
+static uint8_t array_red[MAX_PIXELS] __attribute__((aligned(4)));
+static uint8_t array_green[MAX_PIXELS] __attribute__((aligned(4)));
+static uint8_t array_blue[MAX_PIXELS] __attribute__((aligned(4)));
+static uint8_t array_misc[MAX_PIXELS] __attribute__((aligned(4)));
+#endif
 
 static uint16_t pix0_16bit_red;
 static uint16_t pix0_16bit_green;
@@ -127,6 +134,30 @@ static void update_pix_count( void ){
     for( uint8_t i = 0; i < N_PIXEL_OUTPUTS; i++ ){
 
         pix_count += pix_counts[i];
+    }
+}
+
+static void compute_dimmer_lookup( void ){
+
+    float curve_exp = (float)dimmer_curve / 64.0;
+
+    for( uint32_t i = 0; i < DIMMER_LOOKUP_SIZE; i++ ){
+
+        float input = ( (float)( i << 8 ) ) / 65535.0;
+
+        dimmer_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
+    }
+}
+
+static void compute_sat_lookup( void ){
+
+    float curve_exp = (float)sat_curve / 64.0;
+
+    for( uint32_t i = 0; i < DIMMER_LOOKUP_SIZE; i++ ){
+
+        float input = ( (float)( i << 8 ) ) / 65535.0;
+
+        sat_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
     }
 }
 
@@ -260,6 +291,14 @@ int8_t gfx_i8_kv_handler(
                 v_fade[i] = global_v_fade;   
             }
         }
+        else if( hash == __KV__gfx_dimmer_curve ){
+
+            compute_dimmer_lookup();
+        }
+        else if( hash == __KV__gfx_sat_curve ){
+
+            compute_sat_lookup();
+        }
     }
 
     return 0;
@@ -276,8 +315,8 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                0,                   "gfx_dimmer_curve" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   0,                   "gfx_sat_curve" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
         
     #ifdef ENABLE_VIRTUAL_ARRAY
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
@@ -290,30 +329,6 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
     #endif
 };
-
-static void compute_dimmer_lookup( void ){
-
-    float curve_exp = (float)dimmer_curve / 64.0;
-
-    for( uint32_t i = 0; i < DIMMER_LOOKUP_SIZE; i++ ){
-
-        float input = ( (float)( i << 8 ) ) / 65535.0;
-
-        dimmer_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
-    }
-}
-
-static void compute_sat_lookup( void ){
-
-    float curve_exp = (float)sat_curve / 64.0;
-
-    for( uint32_t i = 0; i < DIMMER_LOOKUP_SIZE; i++ ){
-
-        float input = ( (float)( i << 8 ) ) / 65535.0;
-
-        sat_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
-    }
-}
 
 static void setup_master_array( void ){
 
@@ -397,85 +412,85 @@ uint16_t gfx_u16_get_vm_frame_rate( void ){
     return gfx_frame_rate;
 }
 
-void gfx_v_set_params( gfx_params_t *params ){
+// void gfx_v_set_params( gfx_params_t *params ){
 
-    // version check
-    if( params->version != GFX_VERSION ){
+//     // version check
+//     if( params->version != GFX_VERSION ){
 
-        return;
-    }
+//         return;
+//     }
 
-    uint8_t old_dimmer_curve = dimmer_curve;
-    uint8_t old_sat_curve = sat_curve;
+//     uint8_t old_dimmer_curve = dimmer_curve;
+//     uint8_t old_sat_curve = sat_curve;
 
-    dimmer_curve            = params->dimmer_curve;
-    sat_curve               = params->sat_curve;
-    pix_count               = params->pix_count;
-    pix_size_x              = params->pix_size_x;
-    pix_size_y              = params->pix_size_y;
-    gfx_interleave_x        = params->interleave_x;
-    gfx_invert_x            = params->invert_x;
-    gfx_transpose           = params->transpose;
-    pix_mode                = params->pix_mode;
-    global_hs_fade          = params->hs_fade;
-    global_v_fade           = params->v_fade;
-    pix_master_dimmer       = params->master_dimmer;
-    pix_sub_dimmer          = params->sub_dimmer;
-    gfx_frame_rate          = params->frame_rate;
+//     dimmer_curve            = params->dimmer_curve;
+//     sat_curve               = params->sat_curve;
+//     pix_count               = params->pix_count;
+//     pix_size_x              = params->pix_size_x;
+//     pix_size_y              = params->pix_size_y;
+//     gfx_interleave_x        = params->interleave_x;
+//     gfx_invert_x            = params->invert_x;
+//     gfx_transpose           = params->transpose;
+//     pix_mode                = params->pix_mode;
+//     global_hs_fade          = params->hs_fade;
+//     global_v_fade           = params->v_fade;
+//     pix_master_dimmer       = params->master_dimmer;
+//     pix_sub_dimmer          = params->sub_dimmer;
+//     gfx_frame_rate          = params->frame_rate;
 
-    #ifdef ENABLE_VIRTUAL_ARRAY
-    virtual_array_start     = params->virtual_array_start;
-    virtual_array_length    = params->virtual_array_length;
-    #endif
+//     #ifdef ENABLE_VIRTUAL_ARRAY
+//     virtual_array_start     = params->virtual_array_start;
+//     virtual_array_length    = params->virtual_array_length;
+//     #endif
 
-    param_error_check();
+//     param_error_check();
 
-    // only run if dimmer curve is changing
-    if( old_dimmer_curve != dimmer_curve ){
+//     // only run if dimmer curve is changing
+//     if( old_dimmer_curve != dimmer_curve ){
         
-        compute_dimmer_lookup();
-    }
+//         compute_dimmer_lookup();
+//     }
 
-    // only run if sat curve is changing
-    if( old_sat_curve != sat_curve ){
+//     // only run if sat curve is changing
+//     if( old_sat_curve != sat_curve ){
         
-        compute_sat_lookup();
-    }
+//         compute_sat_lookup();
+//     }
 
-    update_master_fader();
+//     update_master_fader();
 
-    // sync_db();
+//     // sync_db();
 
-    #ifdef ENABLE_VIRTUAL_ARRAY
-    virtual_array_sub_position      = virtual_array_start / pix_count;
-    scaled_pix_count                = (uint32_t)pix_count * 65536;
-    scaled_virtual_array_length     = (uint32_t)virtual_array_length * 65536;
-    #endif
-}
+//     #ifdef ENABLE_VIRTUAL_ARRAY
+//     virtual_array_sub_position      = virtual_array_start / pix_count;
+//     scaled_pix_count                = (uint32_t)pix_count * 65536;
+//     scaled_virtual_array_length     = (uint32_t)virtual_array_length * 65536;
+//     #endif
+// }
 
-void gfx_v_get_params( gfx_params_t *params ){
+// void gfx_v_get_params( gfx_params_t *params ){
 
-    params->version                 = GFX_VERSION;
-    params->pix_count               = pix_count;
-    params->pix_size_x              = pix_size_x;
-    params->pix_size_y              = pix_size_y;
-    params->interleave_x            = gfx_interleave_x;
-    params->invert_x                = gfx_invert_x;
-    params->transpose               = gfx_transpose;
-    params->pix_mode                = pix_mode;
-    params->hs_fade                 = global_hs_fade;
-    params->v_fade                  = global_v_fade;
-    params->master_dimmer           = pix_master_dimmer;
-    params->sub_dimmer              = pix_sub_dimmer;
-    params->frame_rate              = gfx_frame_rate;
-    params->dimmer_curve            = dimmer_curve;
-    params->sat_curve               = sat_curve;
+//     params->version                 = GFX_VERSION;
+//     params->pix_count               = pix_count;
+//     params->pix_size_x              = pix_size_x;
+//     params->pix_size_y              = pix_size_y;
+//     params->interleave_x            = gfx_interleave_x;
+//     params->invert_x                = gfx_invert_x;
+//     params->transpose               = gfx_transpose;
+//     params->pix_mode                = pix_mode;
+//     params->hs_fade                 = global_hs_fade;
+//     params->v_fade                  = global_v_fade;
+//     params->master_dimmer           = pix_master_dimmer;
+//     params->sub_dimmer              = pix_sub_dimmer;
+//     params->frame_rate              = gfx_frame_rate;
+//     params->dimmer_curve            = dimmer_curve;
+//     params->sat_curve               = sat_curve;
 
-    #ifdef ENABLE_VIRTUAL_ARRAY
-    params->virtual_array_start     = virtual_array_start;
-    params->virtual_array_length    = virtual_array_length;
-    #endif
-}
+//     #ifdef ENABLE_VIRTUAL_ARRAY
+//     params->virtual_array_start     = virtual_array_start;
+//     params->virtual_array_length    = virtual_array_length;
+//     #endif
+// }
 
 uint16_t urand( int32_t *params, uint16_t param_len ){
 
@@ -1508,10 +1523,10 @@ void gfx_v_clear( void ){
 
 void gfx_v_shutdown_graphic( void ){
 
-    memset( array_red, 0, sizeof(array_red) );
-    memset( array_green, 0, sizeof(array_green) );
-    memset( array_blue, 0, sizeof(array_blue) );
-    memset( array_misc, 0, sizeof(array_misc) );
+    memset( array_red, 0, MAX_PIXELS );
+    memset( array_green, 0, MAX_PIXELS );
+    memset( array_blue, 0, MAX_PIXELS );
+    memset( array_misc, 0, MAX_PIXELS );
 
     array_red[0] = 16;
     array_green[0] = 16;
@@ -1902,6 +1917,20 @@ void gfx_v_process_faders( void ){
 
 void gfxlib_v_init( void ){
 
+    #ifdef PIXEL_USE_MALLOC
+
+    array_red = malloc( MAX_PIXELS );
+    array_green = malloc( MAX_PIXELS );
+    array_blue = malloc( MAX_PIXELS );
+    array_misc = malloc( MAX_PIXELS );
+
+    ASSERT( array_red != 0 );
+    ASSERT( array_green != 0 );
+    ASSERT( array_blue != 0 );
+    ASSERT( array_misc != 0 );
+
+    #endif
+
     param_error_check();
 
     compute_dimmer_lookup();
@@ -2006,22 +2035,22 @@ void gfx_v_sync_array( void ){
     #ifdef ENABLE_CHANNEL_MASK
     if( channel_mask & 1 ){
 
-        memset( array_red, 0, sizeof(array_red) );
+        memset( array_red, 0, MAX_PIXELS );
     }
 
     if( channel_mask & 2 ){
 
-        memset( array_green, 0, sizeof(array_green) );
+        memset( array_green, 0, MAX_PIXELS );
     }
 
     if( channel_mask & 4 ){
 
-        memset( array_blue, 0, sizeof(array_blue) );
+        memset( array_blue, 0, MAX_PIXELS );
     }
 
     if( channel_mask & 8 ){
 
-        memset( array_misc, 0, sizeof(array_misc) );
+        memset( array_misc, 0, MAX_PIXELS );
     }
     #endif
 }
@@ -2031,9 +2060,14 @@ void gfx_v_sync_array( void ){
 
 void gfx_v_init_noise( void ){
 
+    // use a fixed seed for the noise table.
+    // this ensures synced programs to have synced noise without
+    // needing to exchange another RNG seed.
+    uint64_t seed = 0x3145761340987315;
+
     for( uint32_t i = 0; i < NOISE_TABLE_SIZE; i++ ){
 
-        noise_table[i] = rnd_u8_get_int();
+        noise_table[i] = rnd_u8_get_int_with_seed( &seed );      
     }
 }
 
@@ -2105,6 +2139,357 @@ uint32_t gfx_u32_get_pixel_w( void ){
     return total;
 }
 
+
+
+#include "fs.h"
+PT_THREAD( gfx_v_log_value_curve_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    pix_master_dimmer = 65535;
+    pix_sub_dimmer = 65535;
+    target_dimmer = 65535;
+    current_dimmer = 65535;
+
+    // init output arrays
+    gfx_v_reset();
+
+    static gfx_pixel_array_t pix_array;
+    gfx_v_init_pixel_arrays( &pix_array, 1 );
+
+    hue[0] = 0;
+    sat[0] = 0;
+    val[0] = 65535;
+
+    // set fades to something slow
+    _gfx_v_set_hs_fade_1d( 4000, 0 );
+    _gfx_v_set_v_fade_1d( 4000, 0 );
+
+    gfx_v_sync_array();
+
+    // set full white at zero brightness on index 0
+    gfx_v_set_hsv( 0, 0, 0, 0 );
+
+    trace_printf("GFX log start\r\n");
+
+    // static file_t f;
+    // f = fs_f_open_P( PSTR("fader_log"), FS_MODE_CREATE_IF_NOT_FOUND );
+
+    // static uint16_t max_iter;
+    // max_iter = 256;
+    // static uint16_t count;
+    // count = 0;
+
+
+
+    // while( gfx_u16_get_is_v_fading( 0, 0, 0 ) && ( max_iter > 0 ) ){
+
+    //     trace_printf("FADE: %d: %d,%d,%d,%d\r\n", count, val[0], array_red[0], array_green[0], array_blue[0] );
+
+    //     count++;
+    //     max_iter--;
+
+    //     gfx_v_process_faders();
+    //     gfx_v_sync_array();
+
+    //     char buf[64];
+
+    //     int16_t len = snprintf_P( buf, sizeof(buf), PSTR("%d,%d,%d,%d,%d\n"), val[0], target_val[0], array_red[0], array_green[0], array_blue[0] );
+
+    //     if( fs_i16_write( f, buf, len ) < len ){
+
+    //         trace_printf("GFX log out of space!\r\n");
+
+    //         break;
+    //     }
+
+    //     THREAD_YIELD( pt );
+    //     THREAD_YIELD( pt );
+    //     THREAD_YIELD( pt );
+    //     THREAD_YIELD( pt );
+    // }
+
+    // f = fs_f_close( f );
+
+    for( uint16_t i = 0 ; i < cnt_of_array(dimmer_lookup); i++ ){
+
+        trace_printf("dimmer: %d -> %d\r\n", i, dimmer_lookup[i]);
+    }
+
+    trace_printf("GFX log end\r\n");
+
+PT_END( pt );
+}
+
+void gfx_v_log_value_curve( void ){
+
+    thread_t_create( gfx_v_log_value_curve_thread,
+                PSTR("gfx_v_log_value_curve_thread"),
+                0,
+                0 );
+}
+
+/*
+dimmer lookup:
+
+0 -> 0
+1 -> 1
+2 -> 4
+3 -> 9
+4 -> 16
+5 -> 25
+6 -> 36
+7 -> 49
+8 -> 64
+9 -> 81
+10 -> 100
+11 -> 121
+12 -> 144
+13 -> 169
+14 -> 196
+15 -> 225
+16 -> 256
+17 -> 289
+18 -> 324
+19 -> 361
+20 -> 400
+21 -> 441
+22 -> 484
+23 -> 529
+24 -> 576
+25 -> 625
+26 -> 676
+27 -> 729
+28 -> 784
+29 -> 841
+30 -> 900
+31 -> 961
+32 -> 1024
+33 -> 1089
+34 -> 1156
+35 -> 1225
+36 -> 1296
+37 -> 1369
+38 -> 1444
+39 -> 1521
+40 -> 1600
+41 -> 1681
+42 -> 1764
+43 -> 1849
+44 -> 1936
+45 -> 2025
+46 -> 2116
+47 -> 2209
+48 -> 2304
+49 -> 2401
+50 -> 2500
+51 -> 2601
+52 -> 2704
+53 -> 2809
+54 -> 2916
+55 -> 3025
+56 -> 3136
+57 -> 3249
+58 -> 3364
+59 -> 3481
+60 -> 3600
+61 -> 3721
+62 -> 3844
+63 -> 3969
+64 -> 4096
+65 -> 4225
+66 -> 4356
+67 -> 4489
+68 -> 4624
+69 -> 4761
+70 -> 4900
+71 -> 5041
+72 -> 5184
+73 -> 5329
+74 -> 5476
+75 -> 5625
+76 -> 5776
+77 -> 5929
+78 -> 6084
+79 -> 6241
+80 -> 6400
+81 -> 6561
+82 -> 6724
+83 -> 6889
+84 -> 7056
+85 -> 7225
+86 -> 7396
+87 -> 7569
+88 -> 7744
+89 -> 7921
+90 -> 8100
+91 -> 8281
+92 -> 8464
+93 -> 8649
+94 -> 8836
+95 -> 9025
+96 -> 9216
+97 -> 9409
+98 -> 9604
+99 -> 9801
+100 -> 10000
+101 -> 10201
+102 -> 10404
+103 -> 10609
+104 -> 10816
+105 -> 11025
+106 -> 11236
+107 -> 11449
+108 -> 11664
+109 -> 11881
+110 -> 12100
+111 -> 12321
+112 -> 12544
+113 -> 12769
+114 -> 12996
+115 -> 13225
+116 -> 13456
+117 -> 13689
+118 -> 13924
+119 -> 14161
+120 -> 14400
+121 -> 14641
+122 -> 14884
+123 -> 15129
+124 -> 15376
+125 -> 15625
+126 -> 15876
+127 -> 16129
+128 -> 16384
+129 -> 16641
+130 -> 16900
+131 -> 17161
+132 -> 17424
+133 -> 17689
+134 -> 17956
+135 -> 18225
+136 -> 18496
+137 -> 18769
+138 -> 19044
+139 -> 19321
+140 -> 19600
+141 -> 19881
+142 -> 20164
+143 -> 20449
+144 -> 20736
+145 -> 21025
+146 -> 21316
+147 -> 21609
+148 -> 21904
+149 -> 22201
+150 -> 22500
+151 -> 22801
+152 -> 23104
+153 -> 23409
+154 -> 23716
+155 -> 24025
+156 -> 24336
+157 -> 24649
+158 -> 24964
+159 -> 25281
+160 -> 25600
+161 -> 25921
+162 -> 26244
+163 -> 26569
+164 -> 26896
+165 -> 27225
+166 -> 27556
+167 -> 27889
+168 -> 28224
+169 -> 28561
+170 -> 28900
+171 -> 29241
+172 -> 29584
+173 -> 29929
+174 -> 30276
+175 -> 30625
+176 -> 30976
+177 -> 31329
+178 -> 31684
+179 -> 32041
+180 -> 32400
+181 -> 32761
+182 -> 33124
+183 -> 33489
+184 -> 33856
+185 -> 34225
+186 -> 34596
+187 -> 34969
+188 -> 35344
+189 -> 35721
+190 -> 36100
+191 -> 36481
+192 -> 36864
+193 -> 37249
+194 -> 37636
+195 -> 38025
+196 -> 38416
+197 -> 38809
+198 -> 39204
+199 -> 39601
+200 -> 40000
+201 -> 40401
+202 -> 40804
+203 -> 41209
+204 -> 41616
+205 -> 42025
+206 -> 42436
+207 -> 42849
+208 -> 43264
+209 -> 43681
+210 -> 44100
+211 -> 44521
+212 -> 44944
+213 -> 45369
+214 -> 45796
+215 -> 46225
+216 -> 46656
+217 -> 47089
+218 -> 47524
+219 -> 47961
+220 -> 48400
+221 -> 48841
+222 -> 49284
+223 -> 49729
+224 -> 50176
+225 -> 50625
+226 -> 51076
+227 -> 51529
+228 -> 51984
+229 -> 52441
+230 -> 52900
+231 -> 53361
+232 -> 53824
+233 -> 54289
+234 -> 54756
+235 -> 55225
+236 -> 55696
+237 -> 56169
+238 -> 56644
+239 -> 57121
+240 -> 57600
+241 -> 58081
+242 -> 58564
+243 -> 59049
+244 -> 59536
+245 -> 60025
+246 -> 60516
+247 -> 61009
+248 -> 61504
+249 -> 62001
+250 -> 62500
+251 -> 63001
+252 -> 63504
+253 -> 64009
+254 -> 64516
+255 -> 65025
+
+*/
 
 /*
 Other HSV to RGB code for reference

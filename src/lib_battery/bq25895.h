@@ -29,6 +29,9 @@
 #define BQ25895_FLOAT_VOLTAGE		4100
 #define BQ25895_CUTOFF_VOLTAGE		3100
 
+#define BQ25895_MIN_BOOST_VOLTAGE   4550
+#define BQ25895_MAX_BOOST_VOLTAGE   5510
+
 // NOTE! The datasheet lists the address as 0x6B in the serial Interface
 // overview, but then lists it as 0x6A in the register description.
 // the 0x6B is a typo!

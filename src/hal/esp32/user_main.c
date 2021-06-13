@@ -22,9 +22,16 @@
 void app_v_init( void ) __attribute__((weak));
 void libs_v_init( void ) __attribute__((weak));
 
-void wifi_init_sta();
+void sapphire_main();
 
 void app_main()
+{
+    xTaskCreatePinnedToCore(&sapphire_main, "sapphire",
+                            MEM_MAX_STACK, NULL,
+                            ESP_TASK_MAIN_PRIO, NULL, 1);    
+}
+
+void sapphire_main()
 {
     trace_printf("\r\nESP32 SDK version:%s\r\n", esp_get_idf_version());
 
@@ -56,8 +63,6 @@ void app_main()
             libs_v_init();
         }
     }
-
-    // wifi_init_sta();
     
     sapphire_run();
 

@@ -64,6 +64,7 @@ static bool default_ap_mode;
 static bool ap_mode;
 static bool connected;
 static bool wifi_shutdown;
+static uint8_t disconnect_reason;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
@@ -112,7 +113,7 @@ PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 static const char *TAG = "wifi station";
 
 static esp_err_t event_handler(void *ctx, system_event_t *event);
-static bool scan_done;
+static volatile bool scan_done;
 static bool connect_done;
 
 typedef struct{
@@ -178,20 +179,6 @@ void hal_wifi_v_init( void ){
         esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
     }
 
-    // set up hostname
-    char mac_str[16];
-    memset( mac_str, 0, sizeof(mac_str) );
-    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
-    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
-    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
-
-    memset( hostname, 0, sizeof(hostname) );
-    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
-
-    strlcat( hostname, mac_str, sizeof(hostname) );
-
-    tcpip_adapter_set_hostname( TCPIP_ADAPTER_IF_STA, hostname );
-        
 	thread_t_create_critical( 
                  wifi_connection_manager_thread,
                  PSTR("wifi_connection_manager"),
@@ -771,7 +758,7 @@ static void scan_cb( void ){
 
     for( uint32_t i = 0; i < ap_count; i++ ){
 
-        trace_printf("%s %u %d\n", ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi);
+        log_v_debug_P( PSTR("%s %u %d"), ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
 
         int8_t router = has_ssid( (char *)ap_info[i].ssid );
         if( router < 0 ){
@@ -792,6 +779,8 @@ static void scan_cb( void ){
 
     if( best_rssi == -127 ){
 
+        log_v_debug_P( PSTR("no routers found") );
+
         return;
     }
 
@@ -807,26 +796,68 @@ static void scan_cb( void ){
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     switch(event->event_id) {
-    case SYSTEM_EVENT_STA_START:
-        esp_wifi_connect();
-        break;
-    case SYSTEM_EVENT_STA_GOT_IP:
-        trace_printf("wifi connected, IP:%s\n", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
-        connect_done = TRUE;
-        break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-        {
-            connected = FALSE;
-            ESP_LOGI(TAG,"disconnect\n");
+
+        case SYSTEM_EVENT_STA_START:
+            trace_printf("SYSTEM_EVENT_STA_START\r\n");
             break;
-        }
-    case SYSTEM_EVENT_SCAN_DONE:
-        scan_done = TRUE;
-        break;
-    default:
-        break;
+
+        case SYSTEM_EVENT_STA_STOP:
+            trace_printf("SYSTEM_EVENT_STA_STOP\r\n");
+            break;
+
+        case SYSTEM_EVENT_STA_GOT_IP:
+            trace_printf("wifi connected, IP:%s\n", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+            connect_done = TRUE;
+            connected = TRUE;
+
+            break;
+
+        case SYSTEM_EVENT_STA_CONNECTED:
+            trace_printf("SYSTEM_EVENT_STA_CONNECTED\r\n");
+            break;
+
+        case SYSTEM_EVENT_STA_DISCONNECTED:
+            trace_printf("SYSTEM_EVENT_STA_DISCONNECTED\r\n");
+            disconnect_reason = event->event_info.disconnected.reason;
+            connected = FALSE;
+            connect_done = TRUE;
+
+            break;
+        
+        case SYSTEM_EVENT_SCAN_DONE:
+            trace_printf("SYSTEM_EVENT_SCAN_DONE\r\n");
+            scan_done = TRUE;
+
+            break;
+
+        default:
+            trace_printf("event: %d\r\n", event->event_id);
+            break;
     }
+
     return ESP_OK;
+}
+
+static void set_hostname( void ){
+
+    // set up hostname
+    char mac_str[16];
+    memset( mac_str, 0, sizeof(mac_str) );
+    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
+    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
+    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
+
+    memset( hostname, 0, sizeof(hostname) );
+    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
+
+    strlcat( hostname, mac_str, sizeof(hostname) );
+
+    esp_err_t err = tcpip_adapter_set_hostname( TCPIP_ADAPTER_IF_STA, hostname );
+
+    if( err != ESP_OK ){
+
+        log_v_error_P( PSTR("fail to set hostname: %d"), err );
+    }
 }
 
 
@@ -834,14 +865,16 @@ PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
+    // log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
 
-    static uint8_t scan_timeout;
+    static uint16_t scan_timeout;
 
     connected = FALSE;
     wifi_rssi = -127;
 
     esp_wifi_disconnect();
+    TMR_WAIT( pt, 100 );
+    
     esp_wifi_stop();    
 
     THREAD_WAIT_WHILE( pt, wifi_shutdown );
@@ -864,12 +897,26 @@ PT_BEGIN( pt );
  
         // station mode
         if( !ap_mode ){
-station_mode:            
+station_mode:          
 
-            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
-
+            connected = FALSE;  
+            connect_done = FALSE;
+            disconnect_reason = 0;
+        
+            // trace_printf("esp_wifi_disconnect\r\n");   
             esp_wifi_disconnect();
-            ESP_ERROR_CHECK(esp_wifi_start());
+            TMR_WAIT( pt, 100 ); // this delay seems to be important
+            // without it, esp_wifi_stop might hang for as many as 5 seconds.
+
+            // trace_printf("esp_wifi_stop\r\n");
+            esp_wifi_stop();    
+
+            // trace_printf("esp_wifi_set_mode\r\n");
+            esp_wifi_set_mode( WIFI_MODE_STA );
+
+            // trace_printf("esp_wifi_start\r\n");
+            esp_wifi_start();
+
 
             // check if we can try a fast connect with the last connected router
             if( wifi_router >= 0 ){
@@ -883,13 +930,18 @@ station_mode:
                 log_v_debug_P( PSTR("Scanning...") );
                 
                 scan_done = FALSE;
-                
-                if( esp_wifi_scan_start(NULL, FALSE) != 0 ){
+                    
+                esp_err_t err = esp_wifi_scan_start(NULL, FALSE);
+                if( err != 0 ){
 
-                	log_v_error_P( PSTR("Scan error") );
+                	log_v_error_P( PSTR("Scan error: %d"), err );
+
+                    esp_wifi_scan_stop();
+
+                    goto end;
                 }
 
-                scan_timeout = 200;
+                scan_timeout = 500;
                 while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
 
                     scan_timeout--;
@@ -901,6 +953,17 @@ station_mode:
 
                     scan_cb();
                 }
+                else{
+
+                    log_v_error_P( PSTR("scan timeout!") );
+
+                    // call the scan callback anyway.
+                    // the ESP32 seems to sometimes fail to signal scan completion so we timeout.
+                    // or maybe it fails to scan entirely? can't tell so far.
+                    scan_cb();
+                }
+
+                esp_wifi_scan_stop();
 
                 if( wifi_router < 0 ){
 
@@ -911,6 +974,8 @@ station_mode:
             }
 
             connect_done = FALSE;
+
+            set_hostname();
             
             wifi_config_t wifi_config = {0};
             wifi_config.sta.bssid_set = 1;
@@ -918,6 +983,16 @@ station_mode:
             wifi_config.sta.channel = wifi_channel;
             wifi_v_get_ssid( (char *)wifi_config.sta.ssid );
             get_pass( wifi_router, (char *)wifi_config.sta.password );
+
+            log_v_debug_P( PSTR("BSSID: %02x:%02x:%02x:%02x:%02x:%02x ch: %d"), 
+                wifi_bssid[0],
+                wifi_bssid[1],
+                wifi_bssid[2],
+                wifi_bssid[3],
+                wifi_bssid[4],
+                wifi_bssid[5],
+                wifi_channel
+            );
 
             ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
             
@@ -928,9 +1003,7 @@ station_mode:
                                    ( thread_b_alarm_set() ) );
 
            	// check if we're connected
-           	if( connect_done ){
-
-                connected = TRUE;
+           	if( connect_done && connected ){
 
            		// get IP info
            		tcpip_adapter_ip_info_t info;
@@ -959,7 +1032,7 @@ station_mode:
                 wifi_channel = -1;
                 memset( wifi_bssid, 0, sizeof(wifi_bssid) );
 
-                log_v_debug_P( PSTR("Connection failed") );
+                log_v_debug_P( PSTR("Connection failed: %d"), disconnect_reason );
             }
 
             kv_i8_persist( __KV__wifi_channel );
@@ -1094,7 +1167,7 @@ end:
 
             char ssid[WIFI_SSID_LEN];
             wifi_v_get_ssid( ssid );
-            log_v_debug_P( PSTR("Wifi connected to: %s"), ssid );
+            log_v_debug_P( PSTR("Wifi connected to: %s ch: %d"), ssid, wifi_channel );
         }
         else{
 

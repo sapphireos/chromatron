@@ -154,6 +154,9 @@ class BaseInstruction(object):
     mnemonic = 'NOP'
     opcode = None
 
+    def __init__(self, lineno=None):
+        self.lineno = lineno
+
     def __str__(self):
         return self.mnemonic
 
@@ -184,13 +187,14 @@ class insNopGfx16Convert(insNop):
     
 # pseudo instruction - does not actually produce an opcode
 class insAddr(BaseInstruction):
-    def __init__(self, addr=None, var=None):
+    def __init__(self, addr=None, var=None, **kwargs):
+        super().__init__(**kwargs)
         self.addr = addr
         self.var = var
 
     def __str__(self):
         if self.var != None:
-            return "Addr(%s, %s)" % (self.addr, self.var.type)
+            return "%s(%s @ %s)" % (self.var.name, self.var.type, self.addr)
 
         else:
             return "Addr(%s)" % (self.addr)
@@ -204,7 +208,8 @@ class insAddr(BaseInstruction):
 
 
 class insLabel(BaseInstruction):
-    def __init__(self, name=None):
+    def __init__(self, name=None, **kwargs):
+        super().__init__(**kwargs)
         self.name = name
 
     def __str__(self):
@@ -218,7 +223,8 @@ class insLabel(BaseInstruction):
         return [self, None]
 
 class insFuncTarget(BaseInstruction):
-    def __init__(self, name=None):
+    def __init__(self, name=None, **kwargs):
+        super().__init__(**kwargs)
         self.name = name
 
     def __str__(self):
@@ -232,7 +238,8 @@ class insFuncTarget(BaseInstruction):
         return [self, None]
 
 class insPixelArray(BaseInstruction):
-    def __init__(self, name=None):
+    def __init__(self, name=None, **kwargs):
+        super().__init__(**kwargs)
         self.name = name
 
     def __str__(self):
@@ -245,7 +252,8 @@ class insPixelArray(BaseInstruction):
         return [self]
 
 class insFunction(BaseInstruction):
-    def __init__(self, name=None, args=[]):
+    def __init__(self, name=None, args=[], **kwargs):
+        super().__init__(**kwargs)
         self.name = name
         self.args = args
 
@@ -268,7 +276,8 @@ class insFunction(BaseInstruction):
 class insMov(BaseInstruction):
     mnemonic = 'MOV'
 
-    def __init__(self, dest, src):
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
         self.dest = dest
         self.src = src
 
@@ -288,7 +297,8 @@ class insMov(BaseInstruction):
 class insClr(BaseInstruction):
     mnemonic = 'CLR'
 
-    def __init__(self, dest):
+    def __init__(self, dest, **kwargs):
+        super().__init__(**kwargs)
         self.dest = dest
 
     def __str__(self):
@@ -306,7 +316,8 @@ class insClr(BaseInstruction):
 class insNot(BaseInstruction):
     mnemonic = 'NOT'
 
-    def __init__(self, dest, src):
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
         self.dest = dest
         self.src = src
 
@@ -331,8 +342,8 @@ class insBinop(BaseInstruction):
     mnemonic = 'BINOP'
     symbol = "??"
 
-    def __init__(self, result, op1, op2):
-        super(insBinop, self).__init__()
+    def __init__(self, result, op1, op2, **kwargs):
+        super().__init__(**kwargs)
         self.result = result
         self.op1 = op1
         self.op2 = op2
@@ -557,8 +568,8 @@ class insF16Mod(insBinop):
 class BaseJmp(BaseInstruction):
     mnemonic = 'JMP'
 
-    def __init__(self, label):
-        super(BaseJmp, self).__init__()
+    def __init__(self, label, **kwargs):
+        super().__init__(**kwargs)
 
         self.label = label
 
@@ -579,8 +590,8 @@ class insJmp(BaseJmp):
         return bc
 
 class insJmpConditional(BaseJmp):
-    def __init__(self, op1, label):
-        super(insJmpConditional, self).__init__(label)
+    def __init__(self, op1, label, **kwargs):
+        super().__init__(label, **kwargs)
 
         self.op1 = op1
 
@@ -627,8 +638,8 @@ class insJmpNotZero(insJmpConditional):
 class insJmpIfLessThanPreInc(BaseJmp):
     mnemonic = 'JMP_IF_LESS_PRE_INC'
 
-    def __init__(self, op1, op2, label):
-        super(insJmpIfLessThanPreInc, self).__init__(label)
+    def __init__(self, op1, op2, label, **kwargs):
+        super().__init__(label, **kwargs)
 
         self.op1 = op1
         self.op2 = op2
@@ -656,7 +667,8 @@ class insJmpIfLessThanPreInc(BaseJmp):
 class insReturn(BaseInstruction):
     mnemonic = 'RET'
 
-    def __init__(self, op1):
+    def __init__(self, op1, **kwargs):
+        super().__init__(**kwargs)
         self.op1 = op1
 
     def __str__(self):
@@ -676,7 +688,8 @@ class insReturn(BaseInstruction):
 class insCall(BaseInstruction):
     mnemonic = 'CALL'
 
-    def __init__(self, target, params=[], args=[]):
+    def __init__(self, target, params=[], args=[], **kwargs):
+        super().__init__(**kwargs)
         self.target = target
         self.params = params
         self.args = args
@@ -723,7 +736,8 @@ class insCall(BaseInstruction):
 class insLibCall(BaseInstruction):
     mnemonic = 'LCALL'
 
-    def __init__(self, target, result, params=[]):
+    def __init__(self, target, result, params=[], **kwargs):
+        super().__init__(**kwargs)
         self.target = target
         self.result = result
         self.params = params
@@ -841,7 +855,8 @@ class insLibCall(BaseInstruction):
 class insDBCall(BaseInstruction):
     mnemonic = 'DBCALL'
 
-    def __init__(self, target, db_item, result, params=[]):
+    def __init__(self, target, db_item, result, params=[], **kwargs):
+        super().__init__(**kwargs)
         self.target = target
         self.db_item = db_item
         self.result = result
@@ -939,7 +954,8 @@ class insDBCall(BaseInstruction):
 class insIndex(BaseInstruction):
     mnemonic = 'INDEX'
 
-    def __init__(self, result, base_addr, indexes, counts, strides):
+    def __init__(self, result, base_addr, indexes, counts, strides, **kwargs):
+        super().__init__(**kwargs)
         self.result = result
         self.base_addr = base_addr
         self.indexes = indexes
@@ -989,7 +1005,8 @@ class insIndex(BaseInstruction):
 class insIndirectLoad(BaseInstruction):
     mnemonic = 'LOAD_INDIRECT'
 
-    def __init__(self, dest, addr):
+    def __init__(self, dest, addr, **kwargs):
+        super().__init__(**kwargs)
         self.dest = dest
         self.addr = addr
 
@@ -1011,7 +1028,8 @@ class insIndirectLoad(BaseInstruction):
 class insIndirectStore(BaseInstruction):
     mnemonic = 'STORE_INDIRECT'
 
-    def __init__(self, src, addr):
+    def __init__(self, src, addr, **kwargs):
+        super().__init__(**kwargs)
         self.src = src
         self.addr = addr
 
@@ -1052,7 +1070,8 @@ class insIndirectStore(BaseInstruction):
 class insAssert(BaseInstruction):
     mnemonic = 'ASSERT'
 
-    def __init__(self, op1):
+    def __init__(self, op1, **kwargs):
+        super().__init__(**kwargs)
         self.op1 = op1
 
     def __str__(self):
@@ -1067,8 +1086,8 @@ class insAssert(BaseInstruction):
 class insHalt(BaseInstruction):
     mnemonic = 'HALT'
     
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def __str__(self):
         return "%s" % (self.mnemonic)
@@ -1081,8 +1100,8 @@ class insHalt(BaseInstruction):
 class insVector(BaseInstruction):
     mnemonic = 'VECTOR'
 
-    def __init__(self, target, value):
-        super(insVector, self).__init__()
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
         self.target = target
         self.value = value
 
@@ -1254,8 +1273,8 @@ class insVectorMod(insVector):
 class insPixelVector(BaseInstruction):
     mnemonic = 'PIXEL_VECTOR'
 
-    def __init__(self, pixel_array, attr, value):
-        super(insPixelVector, self).__init__()
+    def __init__(self, pixel_array, attr, value, **kwargs):
+        super().__init__(**kwargs)
         self.pixel_array = pixel_array
         self.attr = attr
         self.value = value
@@ -1480,8 +1499,8 @@ class insPixelVectorMod(insPixelVector):
 class insPixelStore(BaseInstruction):
     mnemonic = 'PSTORE'
 
-    def __init__(self, pixel_array, attr, indexes, value):
-        super(insPixelStore, self).__init__()
+    def __init__(self, pixel_array, attr, indexes, value, **kwargs):
+        super().__init__(**kwargs)
         self.pixel_array = pixel_array
         self.attr = attr
         self.indexes = indexes
@@ -1581,8 +1600,8 @@ class insPixelStoreVFade(insPixelStore):
 class insPixelLoad(BaseInstruction):
     mnemonic = 'PLOAD'
 
-    def __init__(self, target, pixel_array, attr, indexes):
-        super(insPixelLoad, self).__init__()
+    def __init__(self, target, pixel_array, attr, indexes, **kwargs):
+        super().__init__(**kwargs)
         self.pixel_array = pixel_array
         self.attr = attr
         self.indexes = indexes
@@ -1664,8 +1683,8 @@ class insPixelIsVFade(insPixelFading):
 class insDBStore(BaseInstruction):
     mnemonic = 'DB_STORE'
 
-    def __init__(self, db_item, indexes, value):
-        super(insDBStore, self).__init__()
+    def __init__(self, db_item, indexes, value, **kwargs):
+        super().__init__(**kwargs)
         self.db_item = db_item
         self.indexes = indexes
         self.value = value
@@ -1722,8 +1741,8 @@ class insDBStore(BaseInstruction):
 class insDBLoad(BaseInstruction):
     mnemonic = 'DB_LOAD'
 
-    def __init__(self, target, db_item, indexes):
-        super(insDBLoad, self).__init__()
+    def __init__(self, target, db_item, indexes, **kwargs):
+        super().__init__(**kwargs)
         self.db_item = db_item
         self.indexes = indexes
         self.target = target
@@ -1781,7 +1800,8 @@ class insConvMov(insMov):
 class insConvI32toF16(BaseInstruction):
     mnemonic = 'CONV_I32_TO_F16'
 
-    def __init__(self, dest, src):
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
         self.dest = dest
         self.src = src
 
@@ -1801,7 +1821,8 @@ class insConvI32toF16(BaseInstruction):
 class insConvF16toI32(BaseInstruction):
     mnemonic = 'CONV_F16_TO_I32'
 
-    def __init__(self, dest, src):
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
         self.dest = dest
         self.src = src
 
