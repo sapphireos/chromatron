@@ -1,4 +1,6 @@
 
+global_a = Number()
+
 # def while_loop():
 # 	i = Number()
 # 	i = 4
@@ -20,7 +22,8 @@ def simple_array():
 
 	# a = b[0] + a
 
-	a[0][1].h = b
+	# a[0][1].h = b
+	global_a += 1
 	# b = a.x.y
 	# b[0] = a[1]
 

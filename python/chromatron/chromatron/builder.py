@@ -47,6 +47,88 @@ class Builder(object):
 
         return s
 
+    ###################################
+    # Analysis
+    ###################################
+    def analyze_blocks(self):
+        for func in self.funcs.values():
+            func.analyze_blocks()
+    
+
+    ###################################
+    # Variables
+    ###################################
+
+    def add_global(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
+        if name in self.globals:
+            # return self.globals[name]
+            raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
+
+        ir = irGlobal(name, data_type, lineno=lineno)
+        self.globals[name] = ir
+
+        return ir
+
+    def add_temp(self, data_type=None, lineno=None):
+        name = '%' + str(self.next_temp)
+        self.next_temp += 1
+
+        ir = irTemp(name, lineno=lineno)
+    
+        return ir
+    
+    def add_ref(self, target, lineno=None):
+        if isinstance(target, irRef):
+            name = target.target.name
+
+        else:
+            name = target.name
+
+        if name not in self.refs:
+            self.refs[name] = 0
+
+        ir = irRef(target, self.refs[name], lineno=lineno)
+
+        self.refs[name] += 1
+
+        return ir
+    
+    def add_const(self, value, data_type=None, lineno=None):
+        name = str(value)
+
+        if name in self.consts:
+            return self.consts[name]
+
+        ir = irConst(name, data_type, lineno=lineno)
+
+        self.consts[name] = ir
+
+        return ir
+    
+    def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
+        if is_global:
+            return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
+
+        else:
+            # if len(keywords) > 0:
+            #     raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
+
+            var = irVar(name, data_type, lineno=lineno)
+            
+            ir = irDefine(var, lineno=lineno)
+
+            self.append_node(ir)
+
+            return var
+
+    def get_var(self, name, lineno=None):
+        return irVar(name, lineno=lineno)
+
+
+    ###################################
+    # IR instructions
+    ###################################
+
     def append_node(self, node):
         node.scope_depth = self.scope_depth
         self.current_func.append_node(node)
@@ -122,66 +204,6 @@ class Builder(object):
         # must copy target, so SSA conversion will work
         self.assign(copy(target), result, lineno=lineno)
 
-    def analyze_blocks(self):
-        for func in self.funcs.values():
-            func.analyze_blocks()
-
-
-    def add_temp(self, data_type=None, lineno=None):
-        name = '%' + str(self.next_temp)
-        self.next_temp += 1
-
-        ir = irTemp(name, lineno=lineno)
-    
-        return ir
-    
-    def add_ref(self, target, lineno=None):
-        if isinstance(target, irRef):
-            name = target.target.name
-
-        else:
-            name = target.name
-
-        if name not in self.refs:
-            self.refs[name] = 0
-
-        ir = irRef(target, self.refs[name], lineno=lineno)
-
-        self.refs[name] += 1
-
-        return ir
-    
-    def add_const(self, value, data_type=None, lineno=None):
-        name = str(value)
-
-        if name in self.consts:
-            return self.consts[name]
-
-        ir = irConst(name, data_type, lineno=lineno)
-
-        self.consts[name] = ir
-
-        return ir
-    
-    def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
-        if is_global:
-            return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
-
-        else:
-            # if len(keywords) > 0:
-            #     raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
-
-            var = irVar(name, data_type, lineno=lineno)
-            
-            ir = irDefine(var, lineno=lineno)
-
-            self.append_node(ir)
-
-            return var
-
-    def get_var(self, name, lineno=None):
-        return irVar(name, lineno=lineno)
-
     def finish_module(self):
         # clean up stuff after first pass is done
 
@@ -254,22 +276,6 @@ class Builder(object):
         result = self.add_ref(target, lineno=lineno)
         ir = irLookup(result, target, self.lookups, lineno=lineno)
 
-        self.append_node(ir)
-
-        return result
-
-    def lookup_subscript(self, target, index, lineno=None):
-        result = self.add_ref(target, lineno=lineno)
-
-        ir = irIndex(result, target, index, lineno=lineno)
-        self.append_node(ir)
-
-        return result
-
-    def lookup_attribute(self, obj, attr, lineno=None):
-        result = self.add_ref(obj, lineno=lineno)
-
-        ir = irAttr(result, obj, attr, lineno=lineno)
         self.append_node(ir)
 
         return result

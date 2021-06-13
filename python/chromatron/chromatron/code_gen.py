@@ -564,22 +564,6 @@ class cg1Attribute(cg1CodeNode):
 
         return target
 
-        # if self.load:
-        # return builder.lookup_attribute(self.obj.build(builder), self.attr, lineno=self.lineno)
-
-        # if isinstance(self.obj, cg1Var):
-        #     obj = self.obj
-
-        # else:
-        #     obj = self.obj.build(builder)
-
-        # if isinstance(obj, irPixelIndex):
-        #     obj.attr = self.attr
-        #     return obj
-
-        # else:
-        #     return builder.get_obj_var(obj.name, self.attr, lineno=self.lineno)
-
 
 class cg1Subscript(cg1CodeNode):
     _fields = ["target", "index", "load"]
@@ -603,24 +587,6 @@ class cg1Subscript(cg1CodeNode):
             return builder.finish_lookup(target, lineno=self.lineno)
 
         return target
-
-        # target = self.target.build(builder, depth=depth + 1)
-        # index = self.index.build(builder)
-
-        # # if self.load:
-        # return builder.lookup_subscript(target, index, lineno=self.lineno)
-
-        # else:
-            # return builder.load_subscript(target, index, lineno=self.lineno)
-        # builder.lookup_subscript(target, index, lineno=self.lineno)
-
-        # if depth == 1:
-        #     return builder.resolve_lookup(lineno=self.lineno)
-
-        # else:
-        #     return target
-
-        # return target
 
 
 class cg1StrLiteral(cg1CodeNode):

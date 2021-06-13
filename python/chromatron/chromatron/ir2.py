@@ -329,6 +329,8 @@ class irFunc(IR):
         self.ret_type = ret_type
         self.params = params
         self.body = []
+        self.builder = builder
+        self.globals = builder.globals
         
         if self.params == None:
             self.params = []
@@ -461,7 +463,7 @@ class irFunc(IR):
         # with an unconditional jump or return
         for block in self.blocks.values():
             assert isinstance(block.code[0], irLabel)
-            assert isinstance(block.code[-1], irBranch) or isinstance(block.code[-1], irJump) or isinstance(block.code[-1], irReturn)
+            assert isinstance(block.code[-1], irControlFlow)
 
 
         ssa_vars = self.leader_block.rename_vars()
@@ -554,8 +556,10 @@ class irLabel(IR):
     def generate(self):
         return insLabel(self.name, lineno=self.lineno)
 
+class irControlFlow(IR):
+    pass
 
-class irBranch(IR):
+class irBranch(irControlFlow):
     def __init__(self, value, true_label, false_label, **kwargs):
         super().__init__(**kwargs)        
         self.value = value
@@ -573,7 +577,7 @@ class irBranch(IR):
     def get_jump_target(self):
         return self.target
 
-class irJump(IR):
+class irJump(irControlFlow):
     def __init__(self, target, **kwargs):
         super().__init__(**kwargs)        
         self.target = target
@@ -590,7 +594,7 @@ class irJump(IR):
         return self.target
 
 
-class irReturn(IR):
+class irReturn(irControlFlow):
     def __init__(self, ret_var, **kwargs):
         super().__init__(**kwargs)
         self.ret_var = ret_var
@@ -776,6 +780,7 @@ class irVar(IR):
         self._name = name
         self.type = datatype
 
+        self.is_global = False
         self.is_temp = False
         self.is_const = False
         self.ssa_version = None
@@ -797,6 +802,16 @@ class irVar(IR):
 
         else:
             return "Var(%s)" % (self.name)
+
+class irGlobal(irVar):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.is_global = True
+        assert self.type is not None
+
+    def __str__(self):
+        return "Global(%s:%s)" % (self.name, self.type)
 
         
 class irConst(irVar):
