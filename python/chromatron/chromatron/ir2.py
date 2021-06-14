@@ -58,7 +58,7 @@ class IR(object):
         return None
 
 class irBlock(IR):
-    def __init__(self, **kwargs):
+    def __init__(self, global_vars={},**kwargs):
         super().__init__(**kwargs)
         self.predecessors = []
         self.successors = []
@@ -67,6 +67,7 @@ class irBlock(IR):
         self.defines = {}
         self.uses = {}
         self.params = {}
+        self.globals = global_vars
 
         self.entry_label = None
         self.jump_target = None
@@ -150,6 +151,56 @@ class irBlock(IR):
                     ds.append(d)
 
         return ds
+    
+    def init_global_vars(self, visited=None):    
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+
+        self.defines = {}
+
+        for index in range(len(self.code)):
+            ir = self.code[index]
+
+            if isinstance(ir, irDefine):
+                if ir.var._name in self.globals:
+                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+
+            else:
+                # analyze inputs and LOAD from global if needed
+                inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const]
+
+                for i in inputs:
+                    if i._name in self.globals and i._name not in self.defines:
+                        # copy global var to register and add to defines:
+                        i.__dict__ = copy(self.globals[i._name].__dict__)
+                        self.defines[i._name] = i
+
+                        # insert a LOAD instruction here
+                        ir = irLoad(i, self.globals[i._name], lineno=ir.lineno)
+                        self.code.insert(index, ir)
+
+                        # set up SSA
+                        i.ssa_version = 0
+                
+                # analyze outputs and initialize a global as needed                
+                outputs = [o for o in ir.get_output_vars() if not o.is_temp and not o.is_const]
+
+                for o in outputs:
+                    if o._name in self.globals and o._name not in self.defines:
+                        # copy global var to register and add to defines:
+                        o.__dict__ = copy(self.globals[o._name].__dict__)
+                        self.defines[o._name] = o
+
+                        # set up SSA
+                        o.ssa_version = 0
+                
+        return copy(self.defines)
 
     def rename_vars(self, ssa_vars=None, visited=None):
         if ssa_vars is None:
@@ -163,7 +214,6 @@ class irBlock(IR):
 
         visited.append(self)
         
-        self.defines = {}
         self.params = {} # variables required at the beginning of the block
         self.uses = {}
 
@@ -383,7 +433,7 @@ class irFunc(IR):
 
             return block
 
-        block = irBlock(lineno=self.body[index].lineno)
+        block = irBlock(global_vars=self.globals, lineno=self.body[index].lineno)
         block.scope_depth = self.body[index].scope_depth
         self.blocks[index] = block
 
@@ -465,8 +515,8 @@ class irFunc(IR):
             assert isinstance(block.code[0], irLabel)
             assert isinstance(block.code[-1], irControlFlow)
 
-
-        ssa_vars = self.leader_block.rename_vars()
+        global_vars = self.leader_block.init_global_vars()
+        ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
         self.leader_block.insert_phi()
 
 
@@ -528,6 +578,10 @@ class irPhi(IR):
 
         return s
 
+
+class irNop(IR):
+    def __str__(self, **kwargs):
+        return "NOP" 
 
 class irDefine(IR):
     def __init__(self, var, **kwargs):
@@ -668,6 +722,23 @@ class irLookup(IR):
 
     def get_output_vars(self):
         return [self.result]
+
+
+class irLoad(IR):
+    def __init__(self, target, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.ref = ref
+        
+    def __str__(self):
+        return f'{self.target} <-- {self.ref}'
+
+    def get_input_vars(self):
+        return [self.ref]
+
+    def get_output_vars(self):
+        return [self.target]
+
 
 # class irIndex(IR):
 #     def __init__(self, result, target, index, **kwargs):

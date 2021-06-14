@@ -1,6 +1,6 @@
 
 global_a = Number()
-
+global_b = Number()
 # def while_loop():
 # 	i = Number()
 # 	i = 4
@@ -24,6 +24,10 @@ def simple_array():
 
 	# a[0][1].h = b
 	global_a += 1
+
+	global_b += 3
+
+	return 2
 	# b = a.x.y
 	# b[0] = a[1]
 
