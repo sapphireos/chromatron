@@ -775,7 +775,7 @@ class irLoad(IR):
         self.ref = ref
         
     def __str__(self):
-        return f'{self.target} <-- {self.ref}'
+        return f'LOAD {self.target} <-- {self.ref}'
 
     def get_input_vars(self):
         return [self.ref]
@@ -791,7 +791,7 @@ class irStore(IR):
         self.ref = ref
         
     def __str__(self):
-        return f'{self.register} --> {self.ref}'
+        return f'STORE {self.register} --> {self.ref}'
 
     def get_input_vars(self):
         return [self.ref]

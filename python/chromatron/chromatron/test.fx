@@ -25,7 +25,10 @@ def simple_array():
 	# a[0][1].h = b
 	global_a += 1
 
-	# global_b = 3
+	global_b = 3
+
+
+	global_a = 1 + 2
 
 	return 2
 	# b = a.x.y
