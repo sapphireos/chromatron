@@ -163,86 +163,75 @@ class irBlock(IR):
 
         self.stores = {}
         self.defines = {}
+        self.declarations = copy(self.globals)
+        new_code = []
         
-        added = True
+        # iterate over code
+        for index in range(len(self.code)):
+            ir = self.code[index]
 
-        # scan until no longer adding loads
-        while added:
-            added = False
+            if isinstance(ir, irDefine):
+                if ir.var._name in self.globals:
+                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
-            # iterate over code
-            for index in range(len(self.code)):
-                ir = self.code[index]
+                self.declarations[ir.var._name] = ir.var
 
-                if isinstance(ir, irDefine):
-                    if ir.var._name in self.globals:
-                        raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+            else:
+                # analyze inputs and LOAD from global if needed
+                inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const and not i.is_global]
 
-                else:
-                    # analyze inputs and LOAD from global if needed
-                    inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const]
+                for i in inputs:
+                    if i._name in self.globals and i._name not in self.defines:
+                        # copy global var to register and add to defines:
+                        i.__dict__ = copy(self.globals[i._name].__dict__)
+                        i.is_global = False
+                        self.defines[i._name] = i
 
-                    for i in inputs:
-                        if i._name in self.globals and i._name not in self.defines:
+                        # insert a LOAD instruction here
+                        ir = irLoad(i, self.globals[i._name], lineno=ir.lineno)
+                        new_code.append(ir)
+
+                        # set up SSA
+                        i.ssa_version = 0
+
+                # analyze outputs and initialize a global as needed                
+                outputs = [o for o in ir.get_output_vars() if not o.is_temp and not o.is_const and not o.is_global]
+
+                for o in outputs:
+                    if o._name in self.globals:
+                        # record a store
+                        self.stores[o._name] = o
+
+                        if  o._name not in self.defines:
                             # copy global var to register and add to defines:
-                            i.__dict__ = copy(self.globals[i._name].__dict__)
-                            self.defines[i._name] = i
-
-                            # insert a LOAD instruction here
-                            ir = irLoad(i, self.globals[i._name], lineno=ir.lineno)
-                            self.code.insert(index, ir)
+                            o.__dict__ = copy(self.globals[o._name].__dict__)
+                            o.is_global = False
+                            self.defines[o._name] = o
 
                             # set up SSA
-                            i.ssa_version = 0
+                            o.ssa_version = 0
 
-                            added = True
-                            break
-                    
-                    # analyze outputs and initialize a global as needed                
-                    outputs = [o for o in ir.get_output_vars() if not o.is_temp and not o.is_const]
+            new_code.append(self.code[index])
 
-                    for o in outputs:
-                        if o._name in self.globals:
-                            # record a store
-                            self.stores[o._name] = o
+        self.code = new_code
+        new_code = []
 
-                            if  o._name not in self.defines:
-                                # copy global var to register and add to defines:
-                                o.__dict__ = copy(self.globals[o._name].__dict__)
-                                self.defines[o._name] = o
+        # iterate over code
+        for index in range(len(self.code)):
+            ir = self.code[index]
 
-                                # set up SSA
-                                o.ssa_version = 0
+            if isinstance(ir, irReturn): # or irCall
+                for k, v in self.stores.items():
+                    ir = irStore(v, self.globals[k], lineno=ir.lineno)
+                    new_code.append(ir)
 
+            new_code.append(self.code[index])
 
-        stores_completed = []
-        added = True
-
-        # scan until no longer adding stores
-        while added:
-            added = False
-
-            # iterate over code
-            for index in range(len(self.code)):
-                ir = self.code[index]
-
-                if isinstance(ir, irReturn): # or irCall
-                    if ir in stores_completed:
-                        continue
-
-                    stores_completed.append(ir)
-
-                    for k, v in self.stores.items():
-                        ir = irStore(v, self.globals[k], lineno=ir.lineno)
-                        self.code.insert(index, ir)
-
-                    added = True
-                    break
-
+        self.code = new_code
 
         # continue with successors:
         for suc in self.successors:
-            suc.init_global_vars()
+            suc.init_global_vars(visited=visited)
                 
         return copy(self.defines)
 
@@ -308,6 +297,7 @@ class irBlock(IR):
                     elif len(ds) == 1:
                         # take previous definition for the input
                         i.__dict__ = copy(ds[0].__dict__)
+                        i.is_global = False
 
                     else:
                         # this indicates we'll need a phi to reconcile the 
@@ -377,6 +367,18 @@ class irBlock(IR):
 
         for suc in self.successors:
             suc.insert_phi(visited)
+
+
+    def apply_types(self):
+        for ir in self.code:
+            variables = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const and not i.is_global]
+            variables.extend([o for o in ir.get_output_vars() if not o.is_temp and not o.is_const and not o.is_global])
+
+            for v in variables:
+                if v._name not in self.declarations:
+                    raise Exception
+
+                v.type = self.declarations[v._name].type
 
     @property
     def is_leader(self):
@@ -560,9 +562,9 @@ class irFunc(IR):
             assert isinstance(block.code[-1], irControlFlow)
 
         global_vars = self.leader_block.init_global_vars()
-        ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
+        self.leader_block.rename_vars(ssa_vars=global_vars)
+        self.leader_block.apply_types()
         self.leader_block.insert_phi()
-
 
 
     # def remove_dead_labels(self):
