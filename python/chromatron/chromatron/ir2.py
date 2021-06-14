@@ -281,7 +281,7 @@ class irBlock(IR):
 
             else:
                 # look for writes to current set of vars and increment versions
-                outputs = [o for o in ir.get_output_vars() if not o.is_temp and not o.is_const]
+                outputs = [o for o in ir.get_output_vars() if not o.is_temp and not o.is_const and not o.is_global]
 
                 for o in outputs:
                     o.block = self
@@ -294,7 +294,7 @@ class irBlock(IR):
                     else:
                         raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
-                inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const]
+                inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const and not i.is_global]
 
                 for i in inputs:
                     if i._name not in self.uses:
