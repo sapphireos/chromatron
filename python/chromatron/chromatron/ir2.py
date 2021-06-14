@@ -161,44 +161,88 @@ class irBlock(IR):
 
         visited.append(self)
 
-
+        self.stores = {}
         self.defines = {}
+        
+        added = True
 
-        for index in range(len(self.code)):
-            ir = self.code[index]
+        # scan until no longer adding loads
+        while added:
+            added = False
 
-            if isinstance(ir, irDefine):
-                if ir.var._name in self.globals:
-                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+            # iterate over code
+            for index in range(len(self.code)):
+                ir = self.code[index]
 
-            else:
-                # analyze inputs and LOAD from global if needed
-                inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const]
+                if isinstance(ir, irDefine):
+                    if ir.var._name in self.globals:
+                        raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
-                for i in inputs:
-                    if i._name in self.globals and i._name not in self.defines:
-                        # copy global var to register and add to defines:
-                        i.__dict__ = copy(self.globals[i._name].__dict__)
-                        self.defines[i._name] = i
+                else:
+                    # analyze inputs and LOAD from global if needed
+                    inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const]
 
-                        # insert a LOAD instruction here
-                        ir = irLoad(i, self.globals[i._name], lineno=ir.lineno)
+                    for i in inputs:
+                        if i._name in self.globals and i._name not in self.defines:
+                            # copy global var to register and add to defines:
+                            i.__dict__ = copy(self.globals[i._name].__dict__)
+                            self.defines[i._name] = i
+
+                            # insert a LOAD instruction here
+                            ir = irLoad(i, self.globals[i._name], lineno=ir.lineno)
+                            self.code.insert(index, ir)
+
+                            # set up SSA
+                            i.ssa_version = 0
+
+                            added = True
+                            break
+                    
+                    # analyze outputs and initialize a global as needed                
+                    outputs = [o for o in ir.get_output_vars() if not o.is_temp and not o.is_const]
+
+                    for o in outputs:
+                        if o._name in self.globals:
+                            # record a store
+                            self.stores[o._name] = o
+
+                            if  o._name not in self.defines:
+                                # copy global var to register and add to defines:
+                                o.__dict__ = copy(self.globals[o._name].__dict__)
+                                self.defines[o._name] = o
+
+                                # set up SSA
+                                o.ssa_version = 0
+
+
+        stores_completed = []
+        added = True
+
+        # scan until no longer adding stores
+        while added:
+            added = False
+
+            # iterate over code
+            for index in range(len(self.code)):
+                ir = self.code[index]
+
+                if isinstance(ir, irReturn): # or irCall
+                    if ir in stores_completed:
+                        continue
+
+                    stores_completed.append(ir)
+
+                    for k, v in self.stores.items():
+                        ir = irStore(v, self.globals[k], lineno=ir.lineno)
                         self.code.insert(index, ir)
 
-                        # set up SSA
-                        i.ssa_version = 0
-                
-                # analyze outputs and initialize a global as needed                
-                outputs = [o for o in ir.get_output_vars() if not o.is_temp and not o.is_const]
+                    added = True
+                    break
 
-                for o in outputs:
-                    if o._name in self.globals and o._name not in self.defines:
-                        # copy global var to register and add to defines:
-                        o.__dict__ = copy(self.globals[o._name].__dict__)
-                        self.defines[o._name] = o
 
-                        # set up SSA
-                        o.ssa_version = 0
+        # continue with successors:
+        for suc in self.successors:
+            suc.init_global_vars()
                 
         return copy(self.defines)
 
@@ -740,6 +784,21 @@ class irLoad(IR):
         return [self.target]
 
 
+class irStore(IR):
+    def __init__(self, register, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.register = register
+        self.ref = ref
+        
+    def __str__(self):
+        return f'{self.register} --> {self.ref}'
+
+    def get_input_vars(self):
+        return [self.ref]
+
+    def get_output_vars(self):
+        return [self.register]
+
 # class irIndex(IR):
 #     def __init__(self, result, target, index, **kwargs):
 #         super().__init__(**kwargs)        
@@ -882,7 +941,7 @@ class irGlobal(irVar):
         assert self.type is not None
 
     def __str__(self):
-        return "Global(%s:%s)" % (self.name, self.type)
+        return "Global(%s:%s)" % (self._name, self.type)
 
         
 class irConst(irVar):

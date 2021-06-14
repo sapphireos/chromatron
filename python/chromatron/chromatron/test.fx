@@ -15,17 +15,17 @@ global_b = Number()
 # 			i = a + 3
 
 def simple_array():
-	a = Number(count=4)
+	# a = Number(count=4)
 	# pass
 
-	b = Number()
+	# b = Number()
 
 	# a = b[0] + a
 
 	# a[0][1].h = b
 	global_a += 1
 
-	global_b += 3
+	# global_b = 3
 
 	return 2
 	# b = a.x.y
