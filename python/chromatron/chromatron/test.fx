@@ -7,7 +7,7 @@
 # 		i -= 1
 
 
-global_a = Number()
+global_a = Fixed16()
 global_b = Number()
 
 # # def while_loop():
@@ -24,10 +24,10 @@ global_b = Number()
 # # 			i = a + 3
 
 def simple_array():
-	# a = Number(count=4)
+	a = Number(count=4)
 	# pass
 
-	# b = Number()
+	b = Number()
 
 	# a = b[0] + a
 
@@ -38,6 +38,8 @@ def simple_array():
 
 
 	global_a = 1 + 2
+
+	global_a = a + b
 
 # 	return 2
 	# b = a.x.y

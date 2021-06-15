@@ -370,6 +370,8 @@ class irBlock(IR):
 
 
     def apply_types(self):
+        # scan forward and assign types from declared variables to
+        # their SSA instances
         for ir in self.code:
             variables = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const and not i.is_global]
             variables.extend([o for o in ir.get_output_vars() if not o.is_temp and not o.is_const and not o.is_global])
@@ -379,6 +381,20 @@ class irBlock(IR):
                     raise Exception
 
                 v.type = self.declarations[v._name].type
+
+
+        # scan in reverse for assignments,
+        # if they are sourced from a temp register, apply type
+        # to that register.
+        for i in range(len(self.code)):
+            index = (len(self.code) - 1) - i
+
+            ir = self.code[index]
+
+            if isinstance(ir, irAssign):
+                if ir.target.type != None and ir.value.is_temp and ir.value.type is None:
+                    ir.value.type = ir.target.type
+
 
     @property
     def is_leader(self):
