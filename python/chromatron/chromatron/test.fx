@@ -1,14 +1,15 @@
 
-def while_loop():
-	i = Number()
-	i = 4
+# def while_loop():
+# 	i = Number()
+# 	i = 4
 
-	while i > 0:
-		i -= 1
+# 	while i > 0:
+# 		i -= 1
 
 
-# global_a = Number()
-# global_b = Number()
+global_a = Number()
+global_b = Number()
+
 # # def while_loop():
 # # 	i = Number()
 # # 	i = 4
@@ -22,21 +23,21 @@ def while_loop():
 # # 			a += 1
 # # 			i = a + 3
 
-# def simple_array():
-# 	# a = Number(count=4)
-# 	# pass
+def simple_array():
+	# a = Number(count=4)
+	# pass
 
-# 	# b = Number()
+	# b = Number()
 
-# 	# a = b[0] + a
+	# a = b[0] + a
 
-# 	# a[0][1].h = b
-# 	global_a += 1
+	# a[0][1].h = b
+	global_a += 1
 
-# 	global_b = 3
+	global_b = 3
 
 
-# 	global_a = 1 + 2
+	global_a = 1 + 2
 
 # 	return 2
 	# b = a.x.y

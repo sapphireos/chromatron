@@ -41,3 +41,6 @@ def while_loop():
 	while i > 0:
 		i -= 1
 
+global_a = Number()
+def global_var():
+	global_a += 1

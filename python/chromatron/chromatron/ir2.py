@@ -711,7 +711,7 @@ class irReturn(irControlFlow):
 
 class irAssign(IR):
     def __init__(self, target, value, **kwargs):
-        super(irAssign, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.target = target
         self.value = value
         
@@ -842,7 +842,7 @@ class irStore(IR):
 
 class irBinop(IR):
     def __init__(self, result, op, left, right, **kwargs):
-        super(irBinop, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.result = result
         self.op = op
         self.left = left
