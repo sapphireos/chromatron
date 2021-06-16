@@ -786,6 +786,7 @@ class irLookup(IR):
         return [self.result]
 
 
+# Load register from memory
 class irLoad(IR):
     def __init__(self, target, ref, **kwargs):
         super().__init__(**kwargs)
@@ -801,7 +802,7 @@ class irLoad(IR):
     def get_output_vars(self):
         return [self.target]
 
-
+# Store register to memory
 class irStore(IR):
     def __init__(self, register, ref, **kwargs):
         super().__init__(**kwargs)
@@ -816,6 +817,42 @@ class irStore(IR):
 
     def get_output_vars(self):
         return [self.register]
+
+
+# Spill register to stack
+class irSpill(IR):
+    def __init__(self, target, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.ref = ref
+        
+    def __str__(self):
+        return f'SPILL {self.target} >>> {self.ref}'
+
+    def get_input_vars(self):
+        return [self.ref]
+
+    def get_output_vars(self):
+        return [self.target]
+
+# Fill register from stack
+class irFill(IR):
+    def __init__(self, target, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.ref = ref
+        
+    def __str__(self):
+        return f'FILL {self.target} <<< {self.ref}'
+
+    def get_input_vars(self):
+        return [self.ref]
+
+    def get_output_vars(self):
+        return [self.target]
+
+
+
 
 # class irIndex(IR):
 #     def __init__(self, result, target, index, **kwargs):
