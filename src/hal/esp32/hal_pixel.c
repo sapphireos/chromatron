@@ -249,12 +249,12 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
-        if( !gfx_b_enabled() ){
+        if( !batt_b_pixels_enabled() ){
 
             // shut down pixel driver IO
             spi_v_release();
 
-            THREAD_WAIT_WHILE( pt, !gfx_b_enabled() );
+            THREAD_WAIT_WHILE( pt, !batt_b_pixels_enabled() );
 
             // re-enable pixel drivers
             _pixel_v_configure();
