@@ -2,6 +2,9 @@
 from .ir2 import *
 
 
+ASSOCIATIVE_OPS = ['add', 'mul']
+
+
 class Builder(object):
     def __init__(self, script_name='fx_script', source=[]):
         
@@ -186,8 +189,9 @@ class Builder(object):
 
         # check if one side is a const, if so,
         # make sure it is on the right to make
-        # common subexpressions easier to find
-        if isinstance(left, irConst) and not isinstance(right, irConst):
+        # common subexpressions easier to find.
+        # this only applies to operations which are associative
+        if op in ASSOCIATIVE_OPS and isinstance(left, irConst) and not isinstance(right, irConst):
             temp = left
             left = right
             right = temp
