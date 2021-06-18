@@ -2,7 +2,7 @@
 from .ir2 import *
 
 
-ASSOCIATIVE_OPS = ['add', 'mul']
+COMMUTATIVE_OPS = ['add', 'mul']
 
 
 class Builder(object):
@@ -190,8 +190,8 @@ class Builder(object):
         # check if one side is a const, if so,
         # make sure it is on the right to make
         # common subexpressions easier to find.
-        # this only applies to operations which are associative
-        if op in ASSOCIATIVE_OPS and isinstance(left, irConst) and not isinstance(right, irConst):
+        # this only applies to operations which are commutative
+        if op in COMMUTATIVE_OPS and isinstance(left, irConst) and not isinstance(right, irConst):
             temp = left
             left = right
             right = temp
