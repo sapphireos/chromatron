@@ -806,6 +806,8 @@ class irFunc(IR):
             for block in self.blocks.values():
                 block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
 
+
+
     # def remove_dead_labels(self):
     #     return
     #     labels = self.labels()
@@ -1041,10 +1043,10 @@ class irStore(IR):
         return f'STORE {self.register} --> {self.ref}'
 
     def get_input_vars(self):
-        return [self.ref]
+        return [self.register]
 
     def get_output_vars(self):
-        return [self.register]
+        return [self.ref]
 
 
 # Spill register to stack
