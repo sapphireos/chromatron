@@ -200,6 +200,20 @@ class irBlock(IR):
 
         return v.values()
 
+    def get_input_vars(self):
+        v = []
+        for node in self.code:
+            v.extend(node.get_input_vars())
+
+        return v
+
+    def get_output_vars(self):
+        v = []
+        for node in self.code:
+            v.extend(node.get_output_vars())
+
+        return v
+
     def append(self, node):
         # ensure that each node only belongs to one block:
 
@@ -249,10 +263,13 @@ class irBlock(IR):
         self.defines = {}
         self.declarations = copy(self.globals)
         new_code = []
-        
+
         # iterate over code
+        # look for defines and record them.
+        # also insert inits to 0
         for index in range(len(self.code)):
             ir = self.code[index]
+            new_code.append(ir)
 
             if isinstance(ir, irDefine):
                 if ir.var._name in self.globals:
@@ -260,7 +277,22 @@ class irBlock(IR):
 
                 self.declarations[ir.var._name] = ir.var
 
-            else:
+                # init variable to 0
+                zero = irVar(0, lineno=ir.lineno)
+                zero.is_const = True
+
+                assign = irAssign(ir.var, zero, lineno=ir.lineno)
+                
+                new_code.append(assign)
+
+        self.code = new_code
+        new_code = []
+        
+        # iterate over code
+        for index in range(len(self.code)):
+            ir = self.code[index]
+
+            if not isinstance(ir, irDefine):
                 # analyze inputs and LOAD from global if needed
                 inputs = ir.local_input_vars
 
@@ -558,14 +590,10 @@ class irBlock(IR):
 
         self.code = new_code
 
-    def remove_dead_code(self):
+    def remove_dead_code(self, reads=None):
         new_code = []
 
-        reads = []
-
-        for ir in self.code:
-            # record all input vars in block
-            reads.extend([a.name for a in  ir.get_input_vars()])
+        assert reads is not None
 
         for ir in self.code:
             is_read = False
@@ -604,6 +632,52 @@ class irFunc(IR):
         self.blocks = {}
         self.leader_block = None
 
+
+    @property
+    def global_input_vars(self):
+        v = []
+        for block in self.blocks.values():
+            v.extend(block.global_input_vars)
+
+        return v
+
+    @property
+    def global_output_vars(self):
+        v = []
+        for block in self.blocks.values():
+            v.extend(block.global_output_vars)
+
+        return v
+
+    @property
+    def local_input_vars(self):
+        v = []
+        for block in self.blocks.values():
+            v.extend(block.local_input_vars)
+
+        return v
+
+    @property
+    def local_output_vars(self):
+        v = []
+        for block in self.blocks.values():
+            v.extend(block.local_output_vars)
+
+        return v
+
+    def get_input_vars(self):
+        v = []
+        for block in self.blocks.values():
+            v.extend(block.get_input_vars())
+
+        return v
+    
+    def get_output_vars(self):
+        v = []
+        for block in self.blocks.values():
+            v.extend(block.get_output_vars())
+
+        return v
 
     def __str__(self):
         params = params_to_string(self.params)
@@ -719,15 +793,17 @@ class irFunc(IR):
         self.leader_block.apply_types()
         self.leader_block.insert_phi()
 
+        optimize = True
 
-        for block in self.blocks.values():
-            block.fold_and_propagate_constants()
+        if optimize:
+            for block in self.blocks.values():
+                block.fold_and_propagate_constants()
 
-        for block in self.blocks.values():
-            block.remove_redundant_copies()
+            for block in self.blocks.values():
+                block.remove_redundant_copies()
 
-        for block in self.blocks.values():
-            block.remove_dead_code()
+            for block in self.blocks.values():
+                block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
 
     # def remove_dead_labels(self):
     #     return
@@ -786,6 +862,11 @@ class irPhi(IR):
 
         return s
 
+    def get_input_vars(self):
+        return self.defines
+
+    def get_output_vars(self):
+        return [self.target]
 
 class irNop(IR):
     def __str__(self, **kwargs):

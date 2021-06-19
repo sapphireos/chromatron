@@ -1,20 +1,22 @@
 
-# def while_loop():
-# 	i = Number()
-# 	i = 4
+def while_loop():
+	i = Number()
+	i = 4
 
-# 	while i > 0:
-# 		i -= 1
+	while i > 0:
+		i -= 1
+
+	return i
 
 # global_b = Number()
-def constant_folding():
-	a = Number()
+# def constant_folding():
+# 	a = Number()
 
-	# a = 1 + 2
+# 	# a = 1 + 2
 
-	a += 1
+# 	a += 1
 
-	return a
+# 	return a
 
 # 	# a = 3 + 4 + 5
 
