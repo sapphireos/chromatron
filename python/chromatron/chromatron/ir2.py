@@ -780,7 +780,8 @@ class irFunc(IR):
 
         # verify all instructions are assigned to a block:
         for ir in self.body:
-            assert ir.block is not None
+            if ir.block is None:
+                raise SyntaxError(f'Unreachable code.', lineno=ir.lineno)
 
         # verify all blocks start with a label and end
         # with an unconditional jump or return
