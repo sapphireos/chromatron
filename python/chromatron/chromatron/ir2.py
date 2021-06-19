@@ -57,6 +57,23 @@ class IR(object):
     def get_jump_target(self):
         return None
 
+    @property
+    def global_input_vars(self):
+        return [a for a in self.get_input_vars() if a.is_global]
+
+    @property
+    def global_output_vars(self):
+        return [a for a in self.get_output_vars() if a.is_global]
+
+    @property
+    def local_input_vars(self):
+        return [a for a in self.get_input_vars() if not a.is_temp and not a.is_const and not a.is_global]
+
+    @property
+    def local_output_vars(self):
+        return [a for a in self.get_output_vars() if not a.is_temp and not a.is_const and not a.is_global]
+
+
 class irBlock(IR):
     def __init__(self, global_vars={},**kwargs):
         super().__init__(**kwargs)
@@ -178,7 +195,7 @@ class irBlock(IR):
 
             else:
                 # analyze inputs and LOAD from global if needed
-                inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const and not i.is_global]
+                inputs = ir.local_input_vars
 
                 for i in inputs:
                     if i._name in self.globals and i._name not in self.defines:
@@ -195,7 +212,7 @@ class irBlock(IR):
                         i.ssa_version = 0
 
                 # analyze outputs and initialize a global as needed                
-                outputs = [o for o in ir.get_output_vars() if not o.is_temp and not o.is_const and not o.is_global]
+                outputs = ir.local_output_vars
 
                 for o in outputs:
                     if o._name in self.globals:
@@ -270,7 +287,7 @@ class irBlock(IR):
 
             else:
                 # look for writes to current set of vars and increment versions
-                outputs = [o for o in ir.get_output_vars() if not o.is_temp and not o.is_const and not o.is_global]
+                outputs = ir.local_output_vars
 
                 for o in outputs:
                     o.block = self
@@ -283,7 +300,7 @@ class irBlock(IR):
                     else:
                         raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
-                inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const and not i.is_global]
+                inputs = ir.local_input_vars
 
                 for i in inputs:
                     if i._name not in self.uses:
@@ -373,8 +390,8 @@ class irBlock(IR):
         # scan forward and assign types from declared variables to
         # their SSA instances
         for ir in self.code:
-            variables = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const and not i.is_global]
-            variables.extend([o for o in ir.get_output_vars() if not o.is_temp and not o.is_const and not o.is_global])
+            variables = ir.local_input_vars
+            variables.extend(ir.local_output_vars)
 
             for v in variables:
                 if v._name not in self.declarations:
@@ -409,29 +426,52 @@ class irBlock(IR):
         # return [v for v in self.input_vars if not v.is_temp and not v.is_const]
 
     @property
-    def input_vars(self):
+    def global_input_vars(self):
         v = {}
         for node in self.code:
-            inputs = node.get_input_vars()
+            inputs = node.global_input_vars
 
             for i in inputs:
                 if i.name not in v:
                     v[i.name] = i
 
-        return [a for a in v.values() if not a.is_temp and not a.is_const and not a.is_global]
+        return v.values()
 
     @property
-    def output_vars(self):
+    def global_output_vars(self):
         v = {}
         for node in self.code:
-            outputs = node.get_output_vars()
+            outputs = node.global_output_vars
 
             for o in outputs:
                 if o.name not in v:
                     v[o.name] = o
 
-        return [a for a in v.values() if not a.is_temp and not a.is_const and not a.is_global]
+        return v.values()
 
+    @property
+    def local_input_vars(self):
+        v = {}
+        for node in self.code:
+            inputs = node.local_input_vars
+
+            for i in inputs:
+                if i.name not in v:
+                    v[i.name] = i
+
+        return v.values()
+
+    @property
+    def local_output_vars(self):
+        v = {}
+        for node in self.code:
+            outputs = node.local_output_vars
+
+            for o in outputs:
+                if o.name not in v:
+                    v[o.name] = o
+
+        return v.values()
 
 
 class irFunc(IR):
