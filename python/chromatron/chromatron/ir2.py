@@ -524,27 +524,12 @@ class irFunc(IR):
             block.append(ir)
 
             if isinstance(ir, irBranch):
-                # we are branching to two locations:
-                # 1. Fallthrough
-                # This is the next instruction in the list.
-                # 2. Jump target
-                # This code be anywhere, even behind.
-                # fallthrough_block = self.create_block_from_code_at_index(index, prev_block=block)
+                # conditional branch choosing between 2 locations
                 true_block = self.create_block_from_code_at_label(ir.true_label, prev_block=block)
                 block.successors.append(true_block)
 
                 false_block = self.create_block_from_code_at_label(ir.false_label, prev_block=block)
                 block.successors.append(false_block)
-
-                # block.successors.append(fallthrough_block)
-                
-
-                # get successor parameters and add move instructions
-                # to load our values to those parameters
-                # what if we don't use those values at all?
-                # need a method to ask for them from predecessors.
-                # fallthrough_block_params = fallthrough_block.get_params()
-                # target_block_params = target_block.params()
 
                 break
 
@@ -565,11 +550,9 @@ class irFunc(IR):
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
 
-        # return
-        
         # verify all instructions are assigned to a block:
-        # for ir in self.body:
-            # assert ir.block is not None
+        for ir in self.body:
+            assert ir.block is not None
 
         # verify all blocks start with a label and end
         # with an unconditional jump or return
