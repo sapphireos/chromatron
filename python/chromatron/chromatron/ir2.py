@@ -216,8 +216,9 @@ class irBlock(IR):
 
                 for o in outputs:
                     if o._name in self.globals:
-                        # record a store
-                        self.stores[o._name] = o
+                        # record a store - unless this is a load
+                        if not isinstance(ir, irLoad):
+                            self.stores[o._name] = o
 
                         if  o._name not in self.defines:
                             # copy global var to register and add to defines:
@@ -989,9 +990,21 @@ class irVar(IR):
         self.type = datatype
 
         self.is_global = False
+        # self._is_global_modified = False
         self.is_temp = False
         self.is_const = False
         self.ssa_version = None
+
+    # @property
+    # def is_global_modified(self):
+    #     return self._is_global_modified
+
+    # @is_global_modified.setter
+    # def is_global_modified(self, value):
+    #     if value:
+    #         assert self.is_global
+
+    #     self._is_global_modified = value   
 
     @property
     def name(self):
