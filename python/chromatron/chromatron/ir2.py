@@ -414,6 +414,20 @@ class irBlock(IR):
                     ir.value.type = ir.target.type
 
 
+    def fold_constants(self):
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irBinop):
+                val = ir.fold()
+
+                if val is not None:
+                    # replace with assign
+                    ir = irAssign(ir.result, val, lineno=ir.lineno)
+    
+            new_code.append(ir)
+
+        self.code = new_code
+
     @property
     def is_leader(self):
         return len(self.predecessors) == 0
@@ -606,6 +620,8 @@ class irFunc(IR):
         self.leader_block.apply_types()
         self.leader_block.insert_phi()
 
+        for block in self.blocks.values():
+            block.fold_constants()
 
     # def remove_dead_labels(self):
     #     return
@@ -938,6 +954,69 @@ class irBinop(IR):
     def get_output_vars(self):
         return [self.result]
 
+    def fold(self):
+        val = None
+        op = self.op
+        left = self.left
+        right = self.right
+
+        if not left.is_const or not right.is_const:
+            return None
+
+        if op == 'eq':
+            val = left.value == right.value
+
+        elif op == 'neq':
+            val = left.value != right.value
+
+        elif op == 'gt':
+            val = left.value > right.value
+
+        elif op == 'gte':
+            val = left.value >= right.value
+
+        elif op == 'lt':
+            val = left.value < right.value
+
+        elif op == 'lte':
+            val = left.value <= right.value
+
+        elif op == 'logical_and':
+            val = left.value and right.value
+
+        elif op == 'logical_or':
+            val = left.value or right.value
+
+        elif op == 'add':
+            val = left.value + right.value
+
+        elif op == 'sub':
+            val = left.value - right.value
+
+        elif op == 'mul':
+            val = left.value * right.value
+
+            if left.type == 'f16':
+                val /= 65536
+
+        elif op == 'div':
+            if left.type == 'f16':
+                val = (left.value * 65536) / right.value
+
+            else:
+                val = left.value / right.value
+
+        elif op == 'mod':
+            val = left.value % right.value
+
+        else:
+            assert False
+
+        v = irVar(val, lineno=self.lineno)
+        v.is_const = True
+        
+        return v
+
     # def generate(self):
     #     ops = {
     #         'i32':
@@ -1005,6 +1084,23 @@ class irVar(IR):
     #         assert self.is_global
 
     #     self._is_global_modified = value   
+
+    @property
+    def value(self):
+        assert self.is_const
+
+        if self.name == 'True':
+            return 1
+        elif self.name == 'False':
+            return 0
+        elif self.type == 'f16':
+            val = float(self.name)
+            if val > 32767.0 or val < -32767.0:
+                raise SyntaxError("Fixed16 out of range, must be between -32767.0 and 32767.0", lineno=kwargs['lineno'])
+
+            return int(val * 65536)
+        else:
+            return int(self.name)
 
     @property
     def name(self):
