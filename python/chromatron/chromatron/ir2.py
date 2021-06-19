@@ -418,7 +418,7 @@ class irBlock(IR):
                 if i.name not in v:
                     v[i.name] = i
 
-        return [a for a in v.values() if not a.is_temp and not a.is_const]
+        return [a for a in v.values() if not a.is_temp and not a.is_const and not a.is_global]
 
     @property
     def output_vars(self):
@@ -430,7 +430,7 @@ class irBlock(IR):
                 if o.name not in v:
                     v[o.name] = o
 
-        return [a for a in v.values() if not a.is_temp and not a.is_const]
+        return [a for a in v.values() if not a.is_temp and not a.is_const and not a.is_global]
 
 
 
@@ -966,64 +966,77 @@ class irVar(IR):
 
     def __str__(self):
         if self.type:
-            return "Var(%s:%s)" % (self.name, self.type)
+            s = f"({self.name}:{self.type})"
 
         else:
-            return "Var(%s)" % (self.name)
+            s = f"({self.name})"
 
-class irGlobal(irVar):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        if self.is_global:
+            return f'Global{s}'
 
-        self.is_global = True
-        assert self.type is not None
+        elif self.is_temp:
+            return f'Temp{s}'
 
-    def __str__(self):
-        return "Global(%s:%s)" % (self._name, self.type)
+        elif self.is_const:
+            return f'Const{s}'
+
+        else:
+            return f'Var{s}'            
+
+
+# class irGlobal(irVar):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+
+#         self.is_global = True
+#         assert self.type is not None
+
+#     def __str__(self):
+#         return "Global(%s:%s)" % (self._name, self.type)
 
         
-class irConst(irVar):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+# class irConst(irVar):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
 
-        # if self.name == 'True':
-        #     self.value = 1
-        # elif self.name == 'False':
-        #     self.value = 0
-        # elif self.type == 'f16':
-        #     val = float(self.name)
-        #     if val > 32767.0 or val < -32767.0:
-        #         raise SyntaxError("Fixed16 out of range, must be between -32767.0 and 32767.0", lineno=kwargs['lineno'])
+#         # if self.name == 'True':
+#         #     self.value = 1
+#         # elif self.name == 'False':
+#         #     self.value = 0
+#         # elif self.type == 'f16':
+#         #     val = float(self.name)
+#         #     if val > 32767.0 or val < -32767.0:
+#         #         raise SyntaxError("Fixed16 out of range, must be between -32767.0 and 32767.0", lineno=kwargs['lineno'])
 
-        #     self.value = int(val * 65536)
-        # else:
-        #     self.value = int(self.name)
+#         #     self.value = int(val * 65536)
+#         # else:
+#         #     self.value = int(self.name)
 
-        # self.default_value = self.value
+#         # self.default_value = self.value
 
-        self.is_const = True
+#         self.is_const = True
 
-    def __str__(self):
-        if self.type:
-            return "Const(%s:%s)" % (self.name, self.type)
+#     def __str__(self):
+#         if self.type:
+#             return "Const(%s:%s)" % (self.name, self.type)
 
-        else:
-            return "Const(%s)" % (self.name)
+#         else:
+#             return "Const(%s)" % (self.name)
    
-class irTemp(irVar):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+# class irTemp(irVar):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
 
-        self.is_temp = True
+#         self.is_temp = True
 
-    def __str__(self):
-        if self.type:
-            return "Temp(%s:%s)" % (self.name, self.type)
+#     def __str__(self):
+#         if self.type:
+#             return "Temp(%s:%s)" % (self.name, self.type)
 
-        else:
-            return "Temp(%s)" % (self.name)
+#         else:
+#             return "Temp(%s)" % (self.name)
 
-class irRef(irTemp):
+class irRef(irVar):
     def __init__(self, target, ref_count, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if isinstance(target, irRef):
@@ -1033,6 +1046,7 @@ class irRef(irTemp):
             self.target = target
 
         self.ref_count = ref_count
+        self.is_temp = True
 
     @property
     def name(self):
@@ -1045,9 +1059,11 @@ class irRef(irTemp):
         else:
             return "Ref(%s)" % (self.name)
 
-class irAttribute(irConst):
+class irAttribute(irVar):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)    
+
+        self.is_temp = True
 
     def __str__(self):    
         return "Attr(%s)" % (self.name)

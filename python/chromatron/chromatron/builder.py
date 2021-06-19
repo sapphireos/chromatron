@@ -67,7 +67,8 @@ class Builder(object):
             # return self.globals[name]
             raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
-        ir = irGlobal(name, data_type, lineno=lineno)
+        ir = irVar(name, data_type, lineno=lineno)
+        ir.is_global = True
         self.globals[name] = ir
 
         return ir
@@ -76,8 +77,9 @@ class Builder(object):
         name = '%' + str(self.next_temp)
         self.next_temp += 1
 
-        ir = irTemp(name, lineno=lineno)
-    
+        ir = irVar(name, lineno=lineno)
+        ir.is_temp = True
+
         return ir
     
     def add_ref(self, target, lineno=None):
@@ -102,7 +104,8 @@ class Builder(object):
         if name in self.consts:
             return self.consts[name]
 
-        ir = irConst(name, data_type, lineno=lineno)
+        ir = irVar(name, data_type, lineno=lineno)
+        ir.is_const = True
 
         self.consts[name] = ir
 
@@ -191,7 +194,8 @@ class Builder(object):
         # make sure it is on the right to make
         # common subexpressions easier to find.
         # this only applies to operations which are commutative
-        if op in COMMUTATIVE_OPS and isinstance(left, irConst) and not isinstance(right, irConst):
+        # if op in COMMUTATIVE_OPS and isinstance(left, irConst) and not isinstance(right, irConst):
+        if op in COMMUTATIVE_OPS and left.is_const and not right.is_const:
             temp = left
             left = right
             right = temp
