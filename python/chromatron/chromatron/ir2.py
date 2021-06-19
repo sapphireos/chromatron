@@ -543,13 +543,13 @@ class irBlock(IR):
             if isinstance(ir, irAssign):
                 # if assigning a constant, record
                 # that association with the target var
-                if ir.value.is_const:
-                    aliases[ir.target.name] = ir.value
+                # if ir.value.is_const:
+                aliases[ir.target.name] = ir.value
 
                 # if this value is aliased, then we
                 # can just assign the constant value directly
                 # instead of the temp var
-                elif ir.value.name in aliases:
+                if ir.value.name in aliases:
                     replaced = True
                     ir.value = aliases[ir.value.name]
                     aliases[ir.target.name] = ir.value

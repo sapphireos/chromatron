@@ -261,6 +261,7 @@ class Builder(object):
         self.position_label(body_label)
 
     def end_while(self, lineno=None):
+        self.scope_depth -= 1
         ir = irJump(self.loop_top[-1], lineno=lineno)
         self.append_node(ir)
 
@@ -268,8 +269,6 @@ class Builder(object):
 
         self.loop_top.pop(-1)
         self.loop_end.pop(-1)
-
-        self.scope_depth -= 1
 
     def start_lookup(self, lineno=None):
         self.lookups = []
