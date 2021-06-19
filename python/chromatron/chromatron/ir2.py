@@ -533,6 +533,31 @@ class irBlock(IR):
 
         return replaced 
 
+    def remove_redundant_copies(self):
+        new_code = []
+
+        # this is a peephole optimization
+        for index in range(len(self.code) - 1):
+            ir = self.code[index]
+            next_ir = self.code[index + 1]
+
+            # if a binop is followed by an assign:
+            if isinstance(ir, irBinop) and isinstance(next_ir, irAssign):
+                # and the binop's result is the input value for the assign:
+                if ir.result.name == next_ir.value.name:
+                    # just replace the binop result
+                    ir.result = next_ir.target
+                    new_code.append(ir)
+                    self.code[index + 1] = irNop(lineno=ir.lineno)
+
+            else:
+                new_code.append(ir)
+
+        # append last instruction (since loop will miss it)
+        new_code.append(self.code[-1])
+
+        self.code = new_code
+
     def remove_dead_code(self):
         new_code = []
 
@@ -553,7 +578,10 @@ class irBlock(IR):
 
             # any of this instruction's outputs are eventually read:
             # if this instruction has no outputs, we will not remove it.
-            if is_read or len(ir.get_output_vars()) == 0:
+            if is_read or \
+               len(ir.get_output_vars()) == 0 and \
+               not isinstance(ir, irNop):
+
                 # keep this instruction
                 new_code.append(ir)
 
@@ -694,6 +722,9 @@ class irFunc(IR):
 
         for block in self.blocks.values():
             block.fold_and_propagate_constants()
+
+        for block in self.blocks.values():
+            block.remove_redundant_copies()
 
         for block in self.blocks.values():
             block.remove_dead_code()
