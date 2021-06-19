@@ -138,6 +138,68 @@ class irBlock(IR):
     def name(self, value):
         self._name = value
 
+
+
+    @property
+    def is_leader(self):
+        return len(self.predecessors) == 0
+
+    @property
+    def is_terminator(self):
+        return len(self.successors) == 0    
+
+    # @property
+    # def params(self):
+        # return [v for v in self.input_vars if not v.is_temp and not v.is_const]
+
+    @property
+    def global_input_vars(self):
+        v = {}
+        for node in self.code:
+            inputs = node.global_input_vars
+
+            for i in inputs:
+                if i.name not in v:
+                    v[i.name] = i
+
+        return v.values()
+
+    @property
+    def global_output_vars(self):
+        v = {}
+        for node in self.code:
+            outputs = node.global_output_vars
+
+            for o in outputs:
+                if o.name not in v:
+                    v[o.name] = o
+
+        return v.values()
+
+    @property
+    def local_input_vars(self):
+        v = {}
+        for node in self.code:
+            inputs = node.local_input_vars
+
+            for i in inputs:
+                if i.name not in v:
+                    v[i.name] = i
+
+        return v.values()
+
+    @property
+    def local_output_vars(self):
+        v = {}
+        for node in self.code:
+            outputs = node.local_output_vars
+
+            for o in outputs:
+                if o.name not in v:
+                    v[o.name] = o
+
+        return v.values()
+
     def append(self, node):
         # ensure that each node only belongs to one block:
 
@@ -168,6 +230,11 @@ class irBlock(IR):
                     ds.append(d)
 
         return ds
+        
+
+    ##############################################
+    # Analysis Passes
+    ##############################################
     
     def init_global_vars(self, visited=None):    
         if visited is None:
@@ -414,6 +481,10 @@ class irBlock(IR):
                     ir.value.type = ir.target.type
 
 
+    ##############################################
+    # Optimizer Passes
+    ##############################################
+
     def fold_constants(self):
         new_code = []
         for ir in self.code:
@@ -427,66 +498,6 @@ class irBlock(IR):
             new_code.append(ir)
 
         self.code = new_code
-
-    @property
-    def is_leader(self):
-        return len(self.predecessors) == 0
-
-    @property
-    def is_terminator(self):
-        return len(self.successors) == 0    
-
-    # @property
-    # def params(self):
-        # return [v for v in self.input_vars if not v.is_temp and not v.is_const]
-
-    @property
-    def global_input_vars(self):
-        v = {}
-        for node in self.code:
-            inputs = node.global_input_vars
-
-            for i in inputs:
-                if i.name not in v:
-                    v[i.name] = i
-
-        return v.values()
-
-    @property
-    def global_output_vars(self):
-        v = {}
-        for node in self.code:
-            outputs = node.global_output_vars
-
-            for o in outputs:
-                if o.name not in v:
-                    v[o.name] = o
-
-        return v.values()
-
-    @property
-    def local_input_vars(self):
-        v = {}
-        for node in self.code:
-            inputs = node.local_input_vars
-
-            for i in inputs:
-                if i.name not in v:
-                    v[i.name] = i
-
-        return v.values()
-
-    @property
-    def local_output_vars(self):
-        v = {}
-        for node in self.code:
-            outputs = node.local_output_vars
-
-            for o in outputs:
-                if o.name not in v:
-                    v[o.name] = o
-
-        return v.values()
 
 
 class irFunc(IR):
