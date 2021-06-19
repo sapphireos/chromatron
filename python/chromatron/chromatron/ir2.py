@@ -798,10 +798,10 @@ class irFunc(IR):
 
         if optimize:
             for block in self.blocks.values():
-                block.fold_and_propagate_constants()
+                block.remove_redundant_copies()
 
             for block in self.blocks.values():
-                block.remove_redundant_copies()
+                block.fold_and_propagate_constants()
 
             for block in self.blocks.values():
                 block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
