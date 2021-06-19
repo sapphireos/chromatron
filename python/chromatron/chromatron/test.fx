@@ -7,10 +7,14 @@
 # 		i -= 1
 
 # global_b = Number()
-# def constant_folding():
-# 	a = Number()
+def constant_folding():
+	a = Number()
 
-# 	# a = 1 + 2
+	# a = 1 + 2
+
+	a += 1
+
+	return a
 
 # 	# a = 3 + 4 + 5
 
@@ -22,19 +26,19 @@
 # global_a = Fixed16()
 # global_b = Number()
 
-def while_loop():
-	i = Number()
-	i = 4
+# def while_loop():
+# 	i = Number()
+# 	i = 4
 
-	while i > 0:
-		i -= 1
+# 	while i > 0:
+# 		i -= 1
 
-		a = Number()
-		a = 2 + 3
+# 		a = Number()
+# 		a = 2 + 3
 
-		while a == 2:
-			a += 1
-			i = a + 2 + 3
+# 		while a == 2:
+# 			a += 1
+# 			i = a + 2 + 3
 
 
 # def simple_array():

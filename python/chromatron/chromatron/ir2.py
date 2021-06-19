@@ -230,7 +230,7 @@ class irBlock(IR):
                     ds.append(d)
 
         return ds
-        
+
 
     ##############################################
     # Analysis Passes
@@ -484,18 +484,78 @@ class irBlock(IR):
     ##############################################
     # Optimizer Passes
     ##############################################
-
-    def fold_constants(self):
+    def fold_and_propagate_constants(self):
+        replaced = False
         new_code = []
+        aliases = {}
+
         for ir in self.code:
             if isinstance(ir, irBinop):
+                if ir.left.name in aliases:
+                    replaced = True
+                    ir.left = aliases[ir.left.name]
+
+                if ir.right.name in aliases:
+                    replaced = True
+                    ir.right = aliases[ir.right.name]
+
+                # attempt to fold
                 val = ir.fold()
 
                 if val is not None:
                     # replace with assign
                     ir = irAssign(ir.result, val, lineno=ir.lineno)
-    
+
+                    replaced = True
+            
+            if isinstance(ir, irAssign):
+                # if assigning a constant, record
+                # that association with the target var
+                if ir.value.is_const:
+                    aliases[ir.target.name] = ir.value
+
+                # if this value is aliased, then we
+                # can just assign the constant value directly
+                # instead of the temp var
+                elif ir.value.name in aliases:
+                    replaced = True
+                    ir.value = aliases[ir.value.name]
+                    aliases[ir.target.name] = ir.value
+
+            elif isinstance(ir, irReturn):
+                if ir.ret_var.name in aliases:
+                    replaced = True
+                    ir.ret_var = aliases[ir.ret_var.name]
+
             new_code.append(ir)
+
+        self.code = new_code       
+
+        return replaced 
+
+    def remove_dead_code(self):
+        new_code = []
+
+        reads = []
+
+        for ir in self.code:
+            # record all input vars in block
+            reads.extend([a.name for a in  ir.get_input_vars()])
+
+        for ir in self.code:
+            is_read = False
+
+            # check if this instruction writes to any vars which are read
+            for o in ir.get_output_vars():
+                if o.name in reads:
+                    is_read = True
+                    break
+
+            # any of this instruction's outputs are eventually read:
+            # if this instruction has no outputs, we will not remove it.
+            if is_read or len(ir.get_output_vars()) == 0:
+                # keep this instruction
+                new_code.append(ir)
 
         self.code = new_code
 
@@ -631,8 +691,12 @@ class irFunc(IR):
         self.leader_block.apply_types()
         self.leader_block.insert_phi()
 
+
         for block in self.blocks.values():
-            block.fold_constants()
+            block.fold_and_propagate_constants()
+
+        for block in self.blocks.values():
+            block.remove_dead_code()
 
     # def remove_dead_labels(self):
     #     return
@@ -1025,7 +1089,7 @@ class irBinop(IR):
 
         v = irVar(val, lineno=self.lineno)
         v.is_const = True
-        
+
         return v
 
     # def generate(self):
