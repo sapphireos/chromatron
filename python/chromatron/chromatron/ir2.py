@@ -27,6 +27,11 @@ def params_to_string(params):
 
     return s
 
+def get_zero(lineno=None):
+    zero = irVar(0, lineno=lineno)
+    zero.is_const = True
+
+    return zero
 
 class SyntaxError(Exception):
     def __init__(self, message='', lineno=None):
@@ -278,10 +283,7 @@ class irBlock(IR):
                 self.declarations[ir.var._name] = ir.var
 
                 # init variable to 0
-                zero = irVar(0, lineno=ir.lineno)
-                zero.is_const = True
-
-                assign = irAssign(ir.var, zero, lineno=ir.lineno)
+                assign = irAssign(ir.var, get_zero(ir.lineno), lineno=ir.lineno)
                 
                 new_code.append(assign)
 
@@ -563,7 +565,23 @@ class irBlock(IR):
 
         self.code = new_code       
 
-        return replaced 
+        return replaced
+
+    def reduce_strength(self):
+        new_code = []
+
+        for ir in self.code:
+            if isinstance(ir, irBinop):
+                new_ir = ir.reduce_strength()
+
+                if new_ir is not None:
+                    # replace instruction
+                    ir = new_ir
+
+            new_code.append(ir)
+
+        self.code = new_code       
+
 
     def remove_redundant_copies(self):
         new_code = []
@@ -797,14 +815,17 @@ class irFunc(IR):
         optimize = True
 
         if optimize:
-            for block in self.blocks.values():
-                block.remove_redundant_copies()
+            # for block in self.blocks.values():
+                # block.remove_redundant_copies()
+
+            # for block in self.blocks.values():
+                # block.fold_and_propagate_constants()
 
             for block in self.blocks.values():
-                block.fold_and_propagate_constants()
+                block.reduce_strength()
 
-            for block in self.blocks.values():
-                block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
+            # for block in self.blocks.values():
+                # block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
 
 
 
@@ -1143,6 +1164,42 @@ class irBinop(IR):
 
     def get_output_vars(self):
         return [self.result]
+
+    def reduce_strength(self):
+        if self.op == 'add':
+            # add to 0 is just an assign
+            if self.left.is_const and self.left.value == 0:
+                return irAssign(self.result, self.right, lineno=self.lineno)
+
+            elif self.right.is_const and self.right.value == 0:
+                return irAssign(self.result, self.left, lineno=self.lineno)
+
+        elif self.op == 'sub':
+            # sub  is just an assign
+            if self.right.is_const and self.right.value == 0:
+                return irAssign(self.result, self.left, lineno=self.lineno)
+        
+        elif self.op == 'mul':
+            # mul times 0 is assign to 0
+            if self.left.is_const and self.left.value == 0:
+                return irAssign(self.result, get_zero(self.lineno), lineno=self.lineno)
+
+            elif self.right.is_const and self.right.value == 0:
+                return irAssign(self.result, get_zero(self.lineno), lineno=self.lineno)
+
+            # mul times 1 is assign
+            elif self.left.is_const and self.left.value == 1:
+                return irAssign(self.result, self.right, lineno=self.lineno)
+
+            elif self.right.is_const and self.right.value == 1:
+                return irAssign(self.result, self.left, lineno=self.lineno)
+
+        elif self.op == 'div':
+            # div by 1 is assign
+            if self.right.is_const and self.right.value == 1:
+                return irAssign(self.result, self.left, lineno=self.lineno)
+
+        return None
 
     def fold(self):
         val = None

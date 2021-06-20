@@ -1,9 +1,9 @@
 
-global_a = Number()
-def global_var():
-	global_a += 1
+# global_a = Number()
+# def global_var():
+# 	global_a += 1
 
-	return global_a
+# 	return global_a
 
 # def while_loop():
 # 	i = Number()
@@ -15,12 +15,14 @@ def global_var():
 # 	return i
 
 # global_b = Number()
-# def constant_folding():
-# 	a = Number()
+def constant_folding():
+	a = Number()
 
-# 	a = 1 + 2
+	# a = 1 + 2
 
-# 	a += 1
+	# a += 1
+
+	return a - 0
 
 # 	# return a
 
