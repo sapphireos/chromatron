@@ -844,6 +844,9 @@ class irFunc(IR):
         for block in self.blocks.values():
             self.code.extend(block.code)
 
+
+        # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
+
         if optimize:
             self.prune_jumps()
 
