@@ -844,6 +844,35 @@ class irFunc(IR):
         for block in self.blocks.values():
             self.code.extend(block.code)
 
+        if optimize:
+            self.prune_jumps()
+
+    def prune_jumps(self):
+        new_code = []
+
+        # this is a peephole optimization
+        for index in range(len(self.code) - 1):
+            ir = self.code[index]
+            next_ir = self.code[index + 1]
+
+            # if a jump followed by a label:
+            if isinstance(ir, irJump) and isinstance(next_ir, irLabel):
+                # check if label is jump target:
+                if ir.target.name == next_ir.name:
+                    # skip this jump
+                    pass          
+
+                else:
+                    new_code.append(ir)
+
+            else:
+                new_code.append(ir)
+
+        # append last instruction (since loop will miss it)
+        new_code.append(self.code[-1])
+
+        self.code = new_code
+
 
     # def remove_dead_labels(self):
     #     return
