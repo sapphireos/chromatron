@@ -718,7 +718,19 @@ class irFunc(IR):
         blocks = [self.blocks[k] for k in sorted(self.blocks.keys())]
         for block in blocks:
             s += f'{block}\n'
-    
+
+        s += "********************************\n"
+        s += "Code:\n"
+        s += "********************************\n"
+        lines_printed = []
+        for ir in self.code:
+            if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
+                s += f'________________________________________________________\n'
+                s += f' {ir.lineno}: {source_code[ir.lineno - 1].strip()}\n'
+                lines_printed.append(ir.lineno)
+
+            s += f'\t{ir}\n'
+
         return s
 
     def create_block_from_code_at_label(self, label, prev_block=None):
@@ -815,18 +827,22 @@ class irFunc(IR):
         optimize = True
 
         if optimize:
-            # for block in self.blocks.values():
-                # block.remove_redundant_copies()
+            for block in self.blocks.values():
+                block.remove_redundant_copies()
 
-            # for block in self.blocks.values():
-                # block.fold_and_propagate_constants()
+            for block in self.blocks.values():
+                block.fold_and_propagate_constants()
 
             for block in self.blocks.values():
                 block.reduce_strength()
 
-            # for block in self.blocks.values():
-                # block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
+            for block in self.blocks.values():
+                block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
 
+        # reassemble code
+        self.code = []
+        for block in self.blocks.values():
+            self.code.extend(block.code)
 
 
     # def remove_dead_labels(self):
@@ -1354,7 +1370,7 @@ class irVar(IR):
         if self.is_temp or self.ssa_version is None:
             return self._name
         
-        return f'{self._name}_v{self.ssa_version}'
+        return f'{self._name}.v{self.ssa_version}'
 
     @name.setter
     def name(self, value):
