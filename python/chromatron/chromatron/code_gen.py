@@ -1003,22 +1003,18 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         print("CG Pass 1:")
         print(pformat_ast(cg1_data))
 
-    builder = cg1_data.build(script_name=script_name, source=source)
+    program = cg1_data.build(script_name=script_name, source=source)
 
-    builder.analyze_blocks()
+    program.analyze_blocks()
 
 
     if debug_print:
-        print(builder)
+        print(program)
 
     sys.exit(0)
 
-    builder.resolve_phi()
-    if debug_print:
-        print(builder)
-
-    # sys.exit(0)
-
+    
+    
     builder.allocate()
     builder.generate_instructions()
 

@@ -79,6 +79,42 @@ class IR(object):
         return [a for a in self.get_output_vars() if not a.is_temp and not a.is_const and not a.is_global]
 
 
+class irProgram(IR):
+    def __init__(self, funcs={}, global_vars={},**kwargs):
+        super().__init__(**kwargs)
+
+        self.funcs = funcs
+        self.globals = global_vars        
+
+    def __str__(self):
+        s = "FX IR:\n"
+
+        s += 'Globals:\n'
+        for i in list(self.globals.values()):
+            s += '%d\t%s\n' % (i.lineno, i)
+
+        # s += 'Consts:\n'
+        # for i in list(self.consts.values()):
+        #     s += '%d\t%s\n' % (i.lineno, i)
+        
+        # s += 'PixelArrays:\n'
+        # for i in list(self.pixel_arrays.values()):
+        #     s += '%d\t%s\n' % (i.lineno, i)
+
+        s += 'Functions:\n'
+        for func in list(self.funcs.values()):
+            s += '%s\n' % (func)
+
+        return s
+
+    ###################################
+    # Analysis
+    ###################################
+    def analyze_blocks(self):
+        for func in self.funcs.values():
+            func.analyze_blocks()
+    
+
 class irBlock(IR):
     def __init__(self, global_vars={},**kwargs):
         super().__init__(**kwargs)
@@ -839,13 +875,19 @@ class irFunc(IR):
             for block in self.blocks.values():
                 block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
 
+
+        # run liveness analysis
+
+        # register allocator
+
+
+
+        # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
+
         # reassemble code
         self.code = []
         for block in self.blocks.values():
             self.code.extend(block.code)
-
-
-        # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
 
         if optimize:
             self.prune_jumps()

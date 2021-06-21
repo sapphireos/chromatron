@@ -30,7 +30,7 @@ class Builder(object):
         self.loop_end = []
 
     def __str__(self):
-        s = "FX IR:\n"
+        s = "FX IR Builder:\n"
 
         s += 'Globals:\n'
         for i in list(self.globals.values()):
@@ -49,14 +49,6 @@ class Builder(object):
             s += '%s\n' % (func)
 
         return s
-
-    ###################################
-    # Analysis
-    ###################################
-    def analyze_blocks(self):
-        for func in self.funcs.values():
-            func.analyze_blocks()
-    
 
     ###################################
     # Variables
@@ -213,9 +205,9 @@ class Builder(object):
         self.assign(copy(target), result, lineno=lineno)
 
     def finish_module(self):
-        # clean up stuff after first pass is done
+        ir = irProgram(self.funcs, self.globals, lineno=0)
 
-        return self
+        return ir
 
     def ifelse(self, test, lineno=None):
         body_label = self.label('if.then', lineno=lineno)
