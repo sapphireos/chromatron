@@ -1,4 +1,5 @@
 
+import logging
 from copy import copy
 
 
@@ -676,7 +677,8 @@ class irFunc(IR):
         self.name = name
         self.ret_type = ret_type
         self.params = params
-        self.body = []
+        self.body = [] # input IR
+        self.code = [] # output IR
         self.builder = builder
         self.globals = builder.globals
         
@@ -849,6 +851,8 @@ class irFunc(IR):
             if ir.block is None:
                 raise SyntaxError(f'Unreachable code.', lineno=ir.lineno)
 
+        self.body = None
+
         # verify all blocks start with a label and end
         # with an unconditional jump or return
         for block in self.blocks.values():
@@ -889,8 +893,26 @@ class irFunc(IR):
         for block in self.blocks.values():
             self.code.extend(block.code)
 
+
+        self.verify_ssa()
+
+        
         if optimize:
             self.prune_jumps()
+
+    def verify_ssa(self):
+        writes = {}
+        for ir in self.code:
+            for o in ir.get_output_vars():
+                try:
+                    assert o.name not in writes
+
+                except AssertionError:
+                    logging.critical(f'FATAL: {o.name} defined by {writes[o.name]} at line {writes[o.name].lineno}, overwritten by {ir} at line {ir.lineno}')
+
+                    raise
+
+                writes[o.name] = ir
 
     def prune_jumps(self):
         new_code = []
@@ -951,9 +973,6 @@ class irFunc(IR):
 
         return labels
 
-    def code(self):
-        return self.body
-
     def append_node(self, ir):
         self.body.append(ir)
 
@@ -993,10 +1012,6 @@ class irDefine(IR):
     
     def __str__(self):
         return f'DEF: {self.var} depth: {self.scope_depth}'
-
-    def get_output_vars(self):
-        return [self.var]
-
 
 class irLabel(IR):
     def __init__(self, name, **kwargs):
