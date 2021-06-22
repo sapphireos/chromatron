@@ -570,6 +570,7 @@ class irBlock(IR):
         for ir in reversed(self.code):
             used[ir] = ir.get_input_vars()
             used[ir].extend(prev)
+            used[ir] = list(set(used[ir])) # uniquify
             prev = used[ir]
 
         for pre in self.predecessors:
@@ -597,6 +598,7 @@ class irBlock(IR):
         for ir in self.code:
             defined[ir] = ir.get_output_vars()
             defined[ir].extend(prev)
+            defined[ir] = list(set(defined[ir])) # uniquify
             prev = defined[ir]
 
         for suc in self.successors:
@@ -932,9 +934,12 @@ class irFunc(IR):
             for block in self.blocks.values():
                 block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
 
-        # run used analysis
-        self.used = self.used()
-        self.defined = self.defined()
+        # run usedef analysis
+        used = self.used()
+        defined = self.defined()
+
+        # run liveness
+        self.live = self.liveness(used, defined)
 
         # register allocator
 
@@ -967,6 +972,18 @@ class irFunc(IR):
                 block.defined(visited, defined)
 
         return defined
+
+    def liveness(self, used, defined):
+        liveness = {}
+
+        for ir in defined:
+            liveness[ir] = []
+
+            for i in used[ir]:
+                if i in defined[ir] and i not in liveness[ir]:
+                    liveness[ir].append(i)
+
+        return liveness
 
     def get_code_from_blocks(self):
         code = []
