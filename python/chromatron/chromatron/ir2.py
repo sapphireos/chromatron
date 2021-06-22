@@ -940,7 +940,8 @@ class irFunc(IR):
         defined = self.defined()
 
         # run liveness
-        self.live = self.liveness(used, defined)
+        self.liveness = self.liveness_analysis(used, defined)
+
 
         # register allocator
 
@@ -950,7 +951,12 @@ class irFunc(IR):
 
         # reassemble code
         self.code = self.get_code_from_blocks()
-        
+
+        for ir in self.code:
+            s = f'{str(ir):48}\t{[str(a) for a in self.liveness[ir]]}'
+            print(s)
+
+
         self.verify_ssa()
         
         if optimize:
@@ -974,7 +980,7 @@ class irFunc(IR):
 
         return defined
 
-    def liveness(self, used, defined):
+    def liveness_analysis(self, used, defined):
         liveness = {}
 
         for ir in defined:
