@@ -511,13 +511,8 @@ class irBlock(IR):
             for pre in self.predecessors:
                 ds = pre.get_defined(k)
                 sources.extend(ds)
-
-            if len(sources) == 1:
-                # if a single source, just use an assign
-                ir = irAssign(v, sources[0], lineno=-1)
-
-            else:
-                ir = irPhi(v, sources, lineno=-1)
+    
+            ir = irPhi(v, sources, lineno=-1)
             
             self.code.insert(insertion_point, ir)
 
