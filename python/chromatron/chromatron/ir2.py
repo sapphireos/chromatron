@@ -1090,7 +1090,7 @@ class irPhi(IR):
         return s
 
     def get_input_vars(self):
-        return self.defines
+        return copy(self.defines)
 
     def get_output_vars(self):
         return [self.target]
