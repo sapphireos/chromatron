@@ -278,17 +278,6 @@ static void time_v_set_ntp_master_clock_internal(
 
     master_source = source;
 
-    // if source is usable to sync ntp, set ntp valid.
-    if( source > TIME_SOURCE_INTERNAL ){
-
-        if( !ntp_valid ){
-
-            // log_v_debug_P( PSTR("NTP valid") );
-        }
-
-        ntp_valid = TRUE;
-    }
-
     // adjust local time with delay.
     // local timestamp now matches when the sync message was transmitted, rather than received.
     local_system_time -= delay;
@@ -309,6 +298,7 @@ static void time_v_set_ntp_master_clock_internal(
 
     if( ( abs64( delta_master_ms ) > 60000 ) ||
         ( abs64( delta_ntp_seconds ) > 60 ) ||
+        ( !ntp_valid && ( source > TIME_SOURCE_INTERNAL) ) ||
         !is_sync ){
 
         log_v_debug_P( PSTR("clock synced: prev sync: %d delta_master: %d delta_ntp: %d"), is_sync, (int32_t)delta_master_ms, (int32_t)delta_ntp_seconds );
@@ -323,10 +313,15 @@ static void time_v_set_ntp_master_clock_internal(
 
         is_sync = TRUE;
 
-        char time_str[ISO8601_STRING_MIN_LEN_MS];
-        ntp_v_to_iso8601( time_str, sizeof(time_str), time_t_now() );
+        if( source > TIME_SOURCE_INTERNAL ){
+            
+            ntp_valid = TRUE;
 
-        log_v_info_P( PSTR("NTP Time is now: %s"), time_str );
+            char time_str[ISO8601_STRING_MIN_LEN_MS];
+            ntp_v_to_iso8601( time_str, sizeof(time_str), time_t_now() );
+
+            log_v_info_P( PSTR("NTP Time is now: %s"), time_str );
+        }
 
         return;
     }
