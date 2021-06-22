@@ -39,19 +39,19 @@
 # global_a = Fixed16()
 # global_b = Number()
 
-def while_loop():
-	i = Number()
-	i = 4
+# def while_loop():
+# 	i = Number()
+# 	i = 4
 
-	while i > 0:
-		i -= 1
+# 	while i > 0:
+# 		i -= 1
 
-		a = Number()
-		a = 2 + 3
+# 		a = Number()
+# 		a = 2 + 3
 
-		while a == 2:
-			a += 1
-			i = a + 2 + 3
+# 		while a == 2:
+# 			a += 1
+# 			i = a + 2 + 3
 
 
 # def simple_array():
@@ -101,25 +101,25 @@ def while_loop():
 	# return b + 4
 
 
-# def func():
-# 	b = Number() # defines b0
+def func():
+	b = Number() # defines b0
 
-# 	b += 1 # uses b0 and defines b1
+	b += 1 # uses b0 and defines b1
 
-# 	if b > 0: # uses B1
-# 		b = b + 4 # defines b2
+	if b > 0: # uses B1
+		b = b + 4 # defines b2
 
 # 		# return b
 	
-# 	else:
+	else:
 # 		# b = 3 # defines b3
-# 		b += 3
+		b += 3
 # # 		# pass
 
 # 		if b > 2:
 # 			b = 0
 
-# 	return b # uses b
+	return b # uses b
 # # 	# need to define b4 and use b4 here
 
 # def func():

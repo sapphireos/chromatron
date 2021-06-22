@@ -551,6 +551,59 @@ class irBlock(IR):
                 if ir.target.type != None and ir.value.is_temp and ir.value.type is None:
                     ir.value.type = ir.target.type
 
+    def used(self, visited=None, used=None, prev=None):
+        assert visited is not None
+            
+        if self in visited:
+            return
+        
+        visited.append(self)
+
+
+        if used is None:
+            used = {}
+
+        if prev is None:
+            prev = []
+
+        # run backwards through code
+        for ir in reversed(self.code):
+            used[ir] = ir.get_input_vars()
+            used[ir].extend(prev)
+            prev = used[ir]
+
+        for pre in self.predecessors:
+            pre.used(visited, used, prev)
+
+        return used
+
+
+    def defined(self, visited=None, defined=None, prev=None):
+        assert visited is not None
+            
+        if self in visited:
+            return
+        
+        visited.append(self)
+
+
+        if defined is None:
+            defined = {}
+
+        if prev is None:
+            prev = []
+
+        # run backwards through code
+        for ir in self.code:
+            defined[ir] = ir.get_output_vars()
+            defined[ir].extend(prev)
+            prev = defined[ir]
+
+        for suc in self.successors:
+            suc.defined(visited, defined, prev)
+
+        return defined
+
 
     ##############################################
     # Optimizer Passes
@@ -879,8 +932,9 @@ class irFunc(IR):
             for block in self.blocks.values():
                 block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
 
-
-        # run liveness analysis
+        # run used analysis
+        self.used = self.used()
+        self.defined = self.defined()
 
         # register allocator
 
@@ -889,16 +943,38 @@ class irFunc(IR):
         # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
 
         # reassemble code
-        self.code = []
-        for block in self.blocks.values():
-            self.code.extend(block.code)
-
-
+        self.code = self.get_code_from_blocks()
+        
         self.verify_ssa()
-
         
         if optimize:
             self.prune_jumps()
+
+    def used(self):
+        visited = []
+        used = {}
+        for block in self.blocks.values():
+            if block.is_terminator:
+                block.used(visited, used)
+
+        return used
+
+    def defined(self):
+        visited = []
+        defined = {}
+        for block in self.blocks.values():
+            if block.is_leader:
+                block.defined(visited, defined)
+
+        return defined
+
+    def get_code_from_blocks(self):
+        code = []
+
+        for block in self.blocks.values():
+            code.extend(block.code)
+
+        return code
 
     def verify_ssa(self):
         writes = {}
