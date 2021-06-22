@@ -579,13 +579,18 @@ class irBlock(IR):
         return used
 
 
-    def defined(self, visited=None, defined=None, prev=None):
+    def defined(self, visited=None, defined=None, prev=None, edge=None):
         assert visited is not None
+
+        if not self.is_leader:
+            assert edge is not None
             
-        if self in visited:
+        if edge in visited:
             return
         
-        visited.append(self)
+        visited.append(edge)
+
+        # need to ensure we can run for each *edge* into this block.
 
 
         if defined is None:
@@ -602,7 +607,8 @@ class irBlock(IR):
             prev = defined[ir]
 
         for suc in self.successors:
-            suc.defined(visited, defined, prev)
+            edge = (self, suc)
+            suc.defined(visited, defined, prev, edge)
 
         return defined
 
