@@ -561,12 +561,11 @@ class irBlock(IR):
         if not self.is_terminator:
             assert edge is not None    
 
-        if self in visited:
+        if edge in visited:
             return
         
         if edge:
             visited.append(edge)
-
 
         if used is None:
             used = {}
