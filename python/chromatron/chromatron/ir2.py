@@ -584,16 +584,16 @@ class irBlock(IR):
     def defined(self, visited=None, defined=None, prev=None, edge=None):
         assert visited is not None
 
+        # need to ensure we can run for each *edge* into this block.
+
         if not self.is_leader:
             assert edge is not None
             
         if edge in visited:
             return
         
-        visited.append(edge)
-
-        # need to ensure we can run for each *edge* into this block.
-
+        if edge:
+            visited.append(edge)
 
         if defined is None:
             defined = {}
@@ -603,12 +603,17 @@ class irBlock(IR):
 
         # run backwards through code
         for ir in self.code:
-            defined[ir] = ir.get_output_vars()
+            if ir not in defined:
+                defined[ir] = []
+                
+            defined[ir].extend(ir.get_output_vars())
             defined[ir].extend(prev)
             defined[ir] = list(set(defined[ir])) # uniquify
             prev = defined[ir]
 
         for suc in self.successors:
+            # edge is this node plus the successor.
+            # this tracks multiple paths into the successor
             edge = (self, suc)
             suc.defined(visited, defined, prev, edge)
 
