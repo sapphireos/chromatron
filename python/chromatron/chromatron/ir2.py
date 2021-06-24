@@ -117,7 +117,7 @@ class irProgram(IR):
     
 
 class irBlock(IR):
-    def __init__(self, global_vars={},**kwargs):
+    def __init__(self, func=None, **kwargs):
         super().__init__(**kwargs)
         self.predecessors = []
         self.successors = []
@@ -126,7 +126,8 @@ class irBlock(IR):
         self.defines = {}
         self.uses = {}
         self.params = {}
-        self.globals = global_vars
+        self.func = func
+        self.globals = self.func.globals
 
         self.entry_label = None
         self.jump_target = None
@@ -159,7 +160,13 @@ class irBlock(IR):
                 s += f'{depth}| {ir.lineno}: {depth}{source_code[ir.lineno - 1].strip()}\n'
                 lines_printed.append(ir.lineno)
 
-            s += f'{depth}|\t{ir}\n'
+            ir_s = f'{depth}|\t{str(ir):48}'
+
+            if self.func.liveness:
+                s += f'{ir_s}\t{[a.name for a in self.func.liveness[ir]]}\n'
+
+            else:
+                s += f'{ir_s}\n'
 
         s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
 
@@ -847,7 +854,7 @@ class irFunc(IR):
 
             return block
 
-        block = irBlock(global_vars=self.globals, lineno=self.body[index].lineno)
+        block = irBlock(func=self, lineno=self.body[index].lineno)
         block.scope_depth = self.body[index].scope_depth
         self.blocks[index] = block
 
@@ -952,9 +959,9 @@ class irFunc(IR):
         # reassemble code
         self.code = self.get_code_from_blocks()
 
-        for ir in self.code:
-            s = f'{str(ir):48}\t{[str(a) for a in self.liveness[ir]]}'
-            print(s)
+        # for ir in self.code:
+        #     s = f'{str(ir):48}\t{[a.name for a in self.liveness[ir]]}'
+        #     print(s)
 
 
         self.verify_ssa()
