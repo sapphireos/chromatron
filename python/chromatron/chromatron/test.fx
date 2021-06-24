@@ -49,9 +49,9 @@ def while_loop():
 		a = Number()
 		a = 2 + 3
 
-		while a == 2:
-			a += 1
-			i = a + 2 + 3
+		# while a == 2:
+		# 	a += 1
+		# 	i = a + 2 + 3
 
 
 # def simple_array():

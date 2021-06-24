@@ -163,7 +163,7 @@ class irBlock(IR):
             ir_s = f'{depth}|\t{str(ir):48}'
 
             if self.func.liveness:
-                s += f'{ir_s}\t{[a.name for a in self.func.liveness[ir]]}\n'
+                s += f'{ir_s}\t{[a.name for a in self.func.defined_vars[ir]]}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -959,11 +959,11 @@ class irFunc(IR):
                 block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
 
         # run usedef analysis
-        used = self.used()
-        defined = self.defined()
+        self.used_vars = self.used()
+        self.defined_vars = self.defined()
 
         # run liveness
-        self.liveness = self.liveness_analysis(used, defined)
+        self.liveness = self.liveness_analysis(self.used_vars, self.defined_vars)
 
 
         # register allocator
