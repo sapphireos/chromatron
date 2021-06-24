@@ -163,7 +163,9 @@ class irBlock(IR):
             ir_s = f'{depth}|\t{str(ir):48}'
 
             if self.func.liveness:
-                s += f'{ir_s}\t{[a.name for a in self.func.defined_vars[ir]]}\n'
+                s += f'{ir_s}\t{[a.name for a in self.func.liveness[ir]]}\n'
+                # s += f'{ir_s}\t{[a.name for a in self.func.used_vars[ir]]}\n'
+                # s += f'{ir_s}\t{[a.name for a in self.func.defined_vars[ir]]}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -578,7 +580,13 @@ class irBlock(IR):
             if ir not in used:
                 used[ir] = []
 
-            used[ir].extend(ir.get_input_vars())
+            input_vars = ir.get_input_vars()
+            # if isinstance(ir, irPhi):
+                # for i in input_vars:
+
+            # need to do some Phi-fu here
+
+            used[ir].extend(input_vars)
             used[ir].extend(prev)
             used[ir] = list(set(used[ir])) # uniquify
             prev = used[ir]
