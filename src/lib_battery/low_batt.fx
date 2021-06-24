@@ -13,9 +13,9 @@ def main():
 		
 		pixels.val = 0.0
 
-		delay(1000)
+		delay(2000)
 
 		pixels.val = 0.3
 
-		delay(1000)
+		delay(2000)
 

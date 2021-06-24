@@ -1165,9 +1165,9 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            if( data_len > CATBUS_MAX_DATA ){
+            if( data_len > CATBUS_FILE_PAGE_SIZE ){
 
-                data_len = CATBUS_MAX_DATA;
+                data_len = CATBUS_FILE_PAGE_SIZE;
             }
 
             // alloc data
