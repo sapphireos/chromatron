@@ -553,13 +553,19 @@ class irBlock(IR):
                 if ir.target.type != None and ir.value.is_temp and ir.value.type is None:
                     ir.value.type = ir.target.type
 
-    def used(self, visited=None, used=None, prev=None):
+    def used(self, visited=None, used=None, prev=None, edge=None):
         assert visited is not None
-            
+        
+        # need to ensure we can run for each *edge* into this block.
+
+        if not self.is_terminator:
+            assert edge is not None    
+
         if self in visited:
             return
         
-        visited.append(self)
+        if edge:
+            visited.append(edge)
 
 
         if used is None:
@@ -570,13 +576,19 @@ class irBlock(IR):
 
         # run backwards through code
         for ir in reversed(self.code):
-            used[ir] = ir.get_input_vars()
+            if ir not in used:
+                used[ir] = []
+
+            used[ir].extend(ir.get_input_vars())
             used[ir].extend(prev)
             used[ir] = list(set(used[ir])) # uniquify
             prev = used[ir]
 
         for pre in self.predecessors:
-            pre.used(visited, used, prev)
+            # edge is this node plus the predecessor.
+            # this tracks multiple paths into the predecessor
+            edge = (self, pre)
+            pre.used(visited, used, prev, edge)
 
         return used
 
@@ -605,7 +617,7 @@ class irBlock(IR):
         for ir in self.code:
             if ir not in defined:
                 defined[ir] = []
-                
+
             defined[ir].extend(ir.get_output_vars())
             defined[ir].extend(prev)
             defined[ir] = list(set(defined[ir])) # uniquify
