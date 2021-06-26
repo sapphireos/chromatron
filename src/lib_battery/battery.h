@@ -47,6 +47,5 @@ void batt_v_init( void );
 // APIs to control pixel strip power switch
 void batt_v_enable_pixels( void );
 void batt_v_disable_pixels( void );
-bool batt_b_pixels_enabled( void );
 
 #endif

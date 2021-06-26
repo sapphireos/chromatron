@@ -1057,7 +1057,7 @@ static bool compare_self( service_state_t *service ){
         // check uptime
         int64_t diff = (int64_t)service->local_uptime - (int64_t)service->server_uptime;
 
-        if( diff > (int64_t)SERVICE_UPTIME_MIN_DIFF ){
+        if( diff > SERVICE_UPTIME_MIN_DIFF ){
 
             log_v_debug_P( PSTR("uptime newer: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
 
@@ -1065,10 +1065,10 @@ static bool compare_self( service_state_t *service ){
         }
         else if( diff < ( -1 * SERVICE_UPTIME_MIN_DIFF ) ){
 
-            if( service->local_uptime > 0 ){
+            // if( service->local_uptime > 0 ){
 
                 // log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
-            }
+            // }
 
             log_v_debug_P( PSTR("uptime ***") );
 
