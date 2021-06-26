@@ -50,6 +50,7 @@ import catbus
 from . import code_gen
 
 import click
+import logging
 
 BACKUP_FILE = 'backup.json'
 
@@ -680,7 +681,11 @@ class DeviceGroup(UserDict):
         threads = []
 
         def scan_func(device):
-            device.init_scan()
+            try:
+                device.init_scan()
+
+            except catbus.client.NoResponseFromHost:
+                logging.warning(f'{device.host} not found')
 
         for match in self.matches.values():
             ct = Chromatron(host=match['host'][0], port=match['host'][1], init_scan=False)
