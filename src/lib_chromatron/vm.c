@@ -1144,7 +1144,12 @@ void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
         ASSERT( FALSE );
     }    
 
-    kv_i8_set( hash, name, FFS_FILENAME_LEN );
+    // set full string in KV, with 0 padding
+    char prog[FFS_FILENAME_LEN];
+    memset( prog, 0, sizeof(prog) );
+    strncpy( prog, name, sizeof(prog) );
+
+    kv_i8_set( hash, prog, FFS_FILENAME_LEN );
 
     vm_reset[vm_id] = TRUE;
 }
