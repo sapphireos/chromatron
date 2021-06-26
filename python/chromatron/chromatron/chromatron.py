@@ -191,7 +191,7 @@ PIXEL_SETTINGS = [
 #     'vcc'
 # ]
 
-QUERY_FILENAME = os.path.join(firmware_package.data_dir(), 'chromatron_last_query.db')
+# QUERY_FILENAME = os.path.join(firmware_package.data_dir(), 'chromatron_last_query.db')
 
 MAX_UPDATE_THREADS = 4
 
@@ -632,9 +632,9 @@ class DeviceGroup(UserDict):
         self.from_file = False
 
         if host == None and len(args) == 0:
-            self.load_from_file()
+            host = 'all'
 
-        elif host != None and host.lower() == 'usb':
+        if host != None and host.lower() == 'usb':
             self.matches[0] = {'host': ('usb', 0)}
 
         elif (len(args) > 0) or (host == 'all'):
@@ -745,26 +745,26 @@ class DeviceGroup(UserDict):
 
         return d
 
-    def save_to_file(self, filename=QUERY_FILENAME):
-        with open(filename, 'w+') as f:
-            f.write(json.dumps(self.to_dict()))
+    # def save_to_file(self, filename=QUERY_FILENAME):
+    #     with open(filename, 'w+') as f:
+    #         f.write(json.dumps(self.to_dict()))
 
-    def load_from_file(self, filename=QUERY_FILENAME):
-        with open(filename, 'r') as f:
-            data = json.loads(f.read())
+    # def load_from_file(self, filename=QUERY_FILENAME):
+    #     with open(filename, 'r') as f:
+    #         data = json.loads(f.read())
 
-            self.from_file = True
+    #         self.from_file = True
 
-            self.timestamp = data['timestamp']
-            self.tags = data['tags']
-            self.matches = {}
+    #         self.timestamp = data['timestamp']
+    #         self.tags = data['tags']
+    #         self.matches = {}
 
-            # need to convert device id back to a number
-            # JSON only does string keys
-            for k, v in data['matches'].items():
-                self.matches[int(k)] = v
+    #         # need to convert device id back to a number
+    #         # JSON only does string keys
+    #         for k, v in data['matches'].items():
+    #             self.matches[int(k)] = v
 
-        return self
+    #     return self
 
     def make_func(self, f):
         def wrapper(*args, **kwargs):
@@ -1303,8 +1303,8 @@ def discover(ctx):
 
     group = ctx.invoke(show)
 
-    if group != None:
-        group.save_to_file()
+    # if group != None:
+        # group.save_to_file()
 
 @cli.command()
 @click.pass_context
@@ -1398,7 +1398,7 @@ def identify(ctx):
             if ct.device_id not in marked:
                 del group[ct.device_id]
 
-        group.save_to_file()
+        # group.save_to_file()
 
 
 
