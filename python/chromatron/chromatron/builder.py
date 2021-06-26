@@ -238,6 +238,10 @@ class Builder(object):
         top_label = self.label('while.top', lineno=lineno)
         end_label = self.label('while.end', lineno=lineno)
         self.position_label(top_label)
+        top_label.loop_top = top_label
+        top_label.loop_end = end_label
+        end_label.loop_top = top_label
+        end_label.loop_end = end_label
 
         self.loop_top.append(top_label)
         self.loop_end.append(end_label)

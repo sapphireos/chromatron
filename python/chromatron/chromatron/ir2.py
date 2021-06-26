@@ -1148,8 +1148,21 @@ class irLabel(IR):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)        
         self.name = name
-        # list of jumps that arrive at this label
-        self.sources = []
+
+        self.loop_top = None
+        self.loop_end = None
+    
+    @property
+    def is_loop(self):
+        return self.loop_top is not None and self.loop_end is not None
+
+    @property
+    def is_loop_top(self):
+        return self.loop_top == self
+
+    @property
+    def is_loop_end(self):
+        return self.loop_end == self
 
     def __str__(self):
         s = 'LABEL %s' % (self.name)
