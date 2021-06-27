@@ -1007,6 +1007,9 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     program.analyze_blocks()
 
+    # save IR to file
+    with open(f'{script_name}.fxir', 'w') as f:
+        f.write(str(program))
 
     if debug_print:
         print(program)
