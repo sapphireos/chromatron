@@ -128,7 +128,6 @@ class irBlock(IR):
         self.params = {}
         self.func = func
         self.globals = self.func.globals
-        self.loops = [] # loop membership
 
         self.entry_label = None
         self.jump_target = None
@@ -164,10 +163,10 @@ class irBlock(IR):
             ir_s = f'{depth}|\t{str(ir):48}'
 
             if self.func.liveness:
-                # s += f'{ir_s}\t{[a.name for a in self.func.liveness[ir]]}\n'
+                s += f'{ir_s}\t{[a.name for a in self.func.liveness[ir]]}\n'
                 # s += f'{ir_s}\t{[a.name for a in self.func.used_vars[ir]]}\n'
                 # s += f'{ir_s}\t{[a.name for a in self.func.defined_vars[ir]]}\n'
-                s += f'{ir_s}\n'
+                # s += f'{ir_s}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -621,7 +620,7 @@ class irBlock(IR):
             # if isinstance(ir, irPhi):
                 # for i in input_vars:
 
-            # need to do some Phi-fu here
+            # need to do some Phi-fu here?
 
             used[ir].extend(input_vars)
             used[ir].extend(prev)
