@@ -269,7 +269,7 @@ class Builder(object):
         self.scope_depth += 1
 
     def test_while(self, test, lineno=None):
-        body_label = self.label('while.body', lineno=lineno)
+        body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
         ir = irBranch(test, body_label, self.loop_end[-1], lineno=lineno)
 
         self.append_node(ir)
@@ -282,7 +282,7 @@ class Builder(object):
         loop_name = self.loop.pop(-1)
         ir = irLoopExit(loop_name, lineno=lineno)
         self.append_node(ir)
-        
+
         ir = irJump(self.loop_top[-1], lineno=lineno)
         self.append_node(ir)
 

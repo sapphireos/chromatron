@@ -128,6 +128,7 @@ class irBlock(IR):
         self.params = {}
         self.func = func
         self.globals = self.func.globals
+        self.loops = [] # loop membership
 
         self.entry_label = None
         self.jump_target = None
@@ -920,7 +921,7 @@ class irFunc(IR):
 
         if prev_block:
             block.predecessors.append(prev_block)
-        
+
         while True:
             ir = self.body[index]
 
@@ -1668,22 +1669,24 @@ class irVar(IR):
 
     def __str__(self):
         if self.type:
-            s = f"({self.name}:{self.type})"
+            s = f"{self.name}:{self.type}"
 
         else:
-            s = f"({self.name})"
+            s = f"{self.name}"
 
         if self.is_global:
-            return f'Global{s}'
+            return f'Global({s})'
 
         elif self.is_temp:
-            return f'Temp{s}'
+            # return f'Temp{s}'
+            return f'{s}'
 
         elif self.is_const:
-            return f'Const{s}'
+            return f'Const({s})'
 
         else:
-            return f'Var{s}'            
+            # return f'Var{s}'            
+            return f'{s}'
 
 
 # class irGlobal(irVar):

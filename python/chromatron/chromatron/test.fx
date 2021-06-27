@@ -49,13 +49,15 @@ def while_loop():
 	while i > 0:
 		i -= 1
 
-		a = Number()
-		# # a = 2 + 3
+		# a = Number()
+		# # # a = 2 + 3
 
-		while a == 2:
-			a += 1
-			i -= 3
-		# 	i = a + 2 + 3
+		# while a == 2:
+		# 	a += 1
+		# 	i -= 3
+			# i = a + 2 + 3
+
+		# i += 1
 
 	return i
 
