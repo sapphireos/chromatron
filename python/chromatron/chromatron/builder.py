@@ -26,6 +26,9 @@ class Builder(object):
         self.next_temp = 0
         self.refs = {}
 
+        self.next_loop = 0
+
+        self.loop = []
         self.loop_top = []
         self.loop_end = []
 
@@ -243,13 +246,22 @@ class Builder(object):
         self.position_label(end_label)
 
     def begin_while(self, lineno=None):
-        top_label = self.label('while.top', lineno=lineno)
-        end_label = self.label('while.end', lineno=lineno)
+        loop_name = f'while.{self.next_loop}'
+        self.loop.append(loop_name)
+
+        top_label = self.label(f'{loop_name}.top', lineno=lineno)
+        end_label = self.label(f'{loop_name}.end', lineno=lineno)
         self.position_label(top_label)
-        top_label.loop_top = top_label
-        top_label.loop_end = end_label
-        end_label.loop_top = top_label
-        end_label.loop_end = end_label
+
+        ir = irLoopEntry(loop_name, lineno=lineno)
+        self.append_node(ir)
+
+        self.next_loop += 1
+
+        # top_label.loop_top = top_label
+        # top_label.loop_end = end_label
+        # end_label.loop_top = top_label
+        # end_label.loop_end = end_label
 
         self.loop_top.append(top_label)
         self.loop_end.append(end_label)
@@ -266,6 +278,11 @@ class Builder(object):
 
     def end_while(self, lineno=None):
         self.scope_depth -= 1
+
+        loop_name = self.loop.pop(-1)
+        ir = irLoopExit(loop_name, lineno=lineno)
+        self.append_node(ir)
+        
         ir = irJump(self.loop_top[-1], lineno=lineno)
         self.append_node(ir)
 

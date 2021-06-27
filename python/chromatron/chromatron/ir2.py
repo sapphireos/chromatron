@@ -163,9 +163,10 @@ class irBlock(IR):
             ir_s = f'{depth}|\t{str(ir):48}'
 
             if self.func.liveness:
-                s += f'{ir_s}\t{[a.name for a in self.func.liveness[ir]]}\n'
+                # s += f'{ir_s}\t{[a.name for a in self.func.liveness[ir]]}\n'
                 # s += f'{ir_s}\t{[a.name for a in self.func.used_vars[ir]]}\n'
                 # s += f'{ir_s}\t{[a.name for a in self.func.defined_vars[ir]]}\n'
+                s += f'{ir_s}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -495,7 +496,9 @@ class irBlock(IR):
 
         return ssa_vars
 
-    def insert_phi(self, visited=None):
+    def insert_phi_loop_closures(self, visited=None, ssa_vars=None):
+        assert ssa_vars is not None
+
         if visited is None:
             visited = []
 
@@ -504,6 +507,39 @@ class irBlock(IR):
         
         visited.append(self)
 
+        # look for loop exits
+        for i in range(len(self.code)):
+            ir = self.code[i]
+
+            if isinstance(ir, irLoopExit):
+                for k, v in self.defines.items():
+
+                    new_var = irVar(lineno=v.lineno)
+                    new_var.__dict__ = copy(v.__dict__)
+                    new_var.ssa_version = ssa_vars[new_var._name].ssa_version + 1
+                    ssa_vars[new_var._name] = new_var
+
+                    self.defines[new_var._name] = new_var
+
+                    phi = irPhi(new_var, [v], lineno=-1)
+                    
+                    self.code.insert(i + 1, phi)
+
+                break
+
+        for suc in self.successors:
+            suc.insert_phi_loop_closures(visited, ssa_vars)
+
+        return ssa_vars
+
+    def insert_phi(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+        
+        visited.append(self)
 
         insertion_point = None
         for i in range(len(self.code)):
@@ -947,11 +983,12 @@ class irFunc(IR):
             assert isinstance(block.code[-1], irControlFlow)
 
         global_vars = self.leader_block.init_global_vars()
-        self.leader_block.rename_vars(ssa_vars=global_vars)
+        ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
         self.leader_block.apply_types()
+        self.leader_block.insert_phi_loop_closures(ssa_vars=ssa_vars)
         self.leader_block.insert_phi()
 
-        optimize = True
+        optimize = False
 
         if optimize:
             for block in self.blocks.values():
@@ -964,7 +1001,8 @@ class irFunc(IR):
                 block.reduce_strength()
 
             for block in self.blocks.values():
-                block.remove_dead_code(reads=[a.name for a in self.get_input_vars()])
+                reads = [a.name for a in self.get_input_vars()]
+                block.remove_dead_code(reads=reads)
 
         # run usedef analysis
         self.used_vars = self.used()
@@ -1146,6 +1184,22 @@ class irDefine(IR):
     
     def __str__(self):
         return f'DEF: {self.var} depth: {self.scope_depth}'
+
+class irLoopEntry(IR):
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+
+    def __str__(self):
+        return f'LoopEntry: {self.name}'
+
+class irLoopExit(IR):
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+
+    def __str__(self):
+        return f'LoopExit: {self.name}'
 
 class irLabel(IR):
     def __init__(self, name, **kwargs):
