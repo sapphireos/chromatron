@@ -131,6 +131,10 @@ class Builder(object):
         node.scope_depth = self.scope_depth
         self.current_func.append_node(node)
 
+    @property
+    def prev_node(self):
+        return self.current_func.prev_node
+
     def nop(self, lineno=None):
         pass
 
@@ -224,6 +228,10 @@ class Builder(object):
         return body_label, else_label, end_label
 
     def end_if(self, end_label, lineno=None):
+        if isinstance(self.prev_node, irReturn):
+            # no need to jump, we have already returned
+            return
+
         self.jump(end_label, lineno=lineno)
 
     def do_else(self, lineno=None):

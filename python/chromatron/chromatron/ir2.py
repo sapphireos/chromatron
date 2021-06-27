@@ -1107,6 +1107,9 @@ class irFunc(IR):
     def append_node(self, ir):
         self.body.append(ir)
 
+    @property
+    def prev_node(self):
+        return self.body[-1]
 
 class irPhi(IR):
     def __init__(self, target, defines=[], **kwargs):
