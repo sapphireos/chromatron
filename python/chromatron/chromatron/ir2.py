@@ -114,7 +114,42 @@ class irProgram(IR):
     def analyze_blocks(self):
         for func in self.funcs.values():
             func.analyze_blocks()
-    
+
+class Edge(object):
+    def __init__(self, node1, node2):
+        self.node1 = node1
+        self.node2 = node2
+
+    def __hash__(self):
+        return hash((self.node1, self.node2))
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    @property
+    def is_back_edge(self):
+        loop_entry = None
+        loop_exit = None
+
+        if self.node1.loop_entry:
+            loop_entry = self.node1.loop_entry
+
+        elif self.node2.loop_entry:
+            loop_entry = self.node2.loop_entry
+
+        if self.node1.loop_exit:
+            loop_exit = self.node1.loop_exit
+
+        elif self.node2.loop_exit:
+            loop_exit = self.node2.loop_exit
+
+        if loop_exit is None or loop_entry is None:
+            return False
+
+        if loop_entry == loop_exit:
+            return True
+
+        return False        
 
 class irBlock(IR):
     def __init__(self, func=None, **kwargs):
@@ -190,7 +225,21 @@ class irBlock(IR):
     def name(self, value):
         self._name = value
 
+    @property
+    def loop_entry(self):
+        for ir in self.code:
+            if isinstance(ir, irLoopEntry):
+                return ir.name            
 
+        return None
+
+    @property
+    def loop_exit(self):
+        for ir in self.code:
+            if isinstance(ir, irLoopExit):
+                return ir.name            
+
+        return None
 
     @property
     def is_leader(self):
@@ -630,7 +679,7 @@ class irBlock(IR):
         for pre in self.predecessors:
             # edge is this node plus the predecessor.
             # this tracks multiple paths into the predecessor
-            edge = (self, pre)
+            edge = Edge(self, pre)
             pre.used(visited, used, prev, edge)
 
         return used
@@ -669,7 +718,7 @@ class irBlock(IR):
         for suc in self.successors:
             # edge is this node plus the successor.
             # this tracks multiple paths into the successor
-            edge = (self, suc)
+            edge = Edge(self, suc)
             suc.defined(visited, defined, prev, edge)
 
         return defined
