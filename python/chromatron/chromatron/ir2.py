@@ -128,10 +128,13 @@ class Edge(object):
     def __eq__(self, other):
         return hash(self) == hash(other)
 
+    def __str__(self):
+        return f'{self.node1.name} | {self.node2.name}'
+
     @property
     def is_back_edge(self):
-        return False
-        
+        # return False
+
         loop_entry = None
         loop_exit = None
 
