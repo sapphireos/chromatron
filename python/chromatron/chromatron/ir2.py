@@ -121,13 +121,17 @@ class Edge(object):
         self.node2 = node2
 
     def __hash__(self):
-        return hash((self.node1, self.node2))
+        t = tuple(sorted((self.node1, self.node2), key=lambda a: a.name))
+
+        return hash(t)
 
     def __eq__(self, other):
         return hash(self) == hash(other)
 
     @property
     def is_back_edge(self):
+        return False
+        
         loop_entry = None
         loop_exit = None
 
@@ -652,6 +656,9 @@ class irBlock(IR):
             return
         
         if edge:
+            if edge.is_back_edge:
+                return
+                
             visited.append(edge)
 
         if used is None:
@@ -697,6 +704,9 @@ class irBlock(IR):
             return
         
         if edge:
+            if edge.is_back_edge:
+                return
+
             visited.append(edge)
 
         if defined is None:
