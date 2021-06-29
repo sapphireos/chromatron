@@ -121,7 +121,7 @@ class Edge(object):
         self.to_node = to_node
 
     def __hash__(self):
-        t = tuple(sorted((self.from_node, self.to_node), key=lambda a: a.name))
+        t = (self.from_node, self.to_node)
 
         return hash(t)
 
@@ -129,7 +129,7 @@ class Edge(object):
         return hash(self) == hash(other)
 
     def __str__(self):
-        return f'{self.from_node.name} | {self.to_node.name}'
+        return f'{self.from_node.name} -> {self.to_node.name}'
 
     @property
     def is_back_edge(self):
