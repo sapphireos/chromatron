@@ -116,12 +116,12 @@ class irProgram(IR):
             func.analyze_blocks()
 
 class Edge(object):
-    def __init__(self, node1, node2):
-        self.node1 = node1
-        self.node2 = node2
+    def __init__(self, from_node, to_node):
+        self.from_node = from_node
+        self.to_node = to_node
 
     def __hash__(self):
-        t = tuple(sorted((self.node1, self.node2), key=lambda a: a.name))
+        t = tuple(sorted((self.from_node, self.to_node), key=lambda a: a.name))
 
         return hash(t)
 
@@ -129,34 +129,18 @@ class Edge(object):
         return hash(self) == hash(other)
 
     def __str__(self):
-        return f'{self.node1.name} | {self.node2.name}'
+        return f'{self.from_node.name} | {self.to_node.name}'
 
     @property
     def is_back_edge(self):
-        # return False
-
-        loop_entry = None
-        loop_exit = None
-
-        if self.node1.loop_entry:
-            loop_entry = self.node1.loop_entry
-
-        elif self.node2.loop_entry:
-            loop_entry = self.node2.loop_entry
-
-        if self.node1.loop_exit:
-            loop_exit = self.node1.loop_exit
-
-        elif self.node2.loop_exit:
-            loop_exit = self.node2.loop_exit
-
-        if loop_exit is None or loop_entry is None:
+        if self.from_node.loop_exit is None:
             return False
 
-        if loop_entry == loop_exit:
-            return True
+        if self.to_node.loop_entry is None:
+            return False
 
-        return False        
+        return self.to_node.loop_entry == self.from_node.loop_exit
+
 
 class irBlock(IR):
     def __init__(self, func=None, **kwargs):
