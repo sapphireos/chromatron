@@ -1151,6 +1151,9 @@ void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
 
     kv_i8_set( hash, prog, FFS_FILENAME_LEN );
 
+    log_v_info_P( PSTR("Starting %s on VM: %d"), prog, vm_id );
+
+    vm_run[vm_id] = TRUE;
     vm_reset[vm_id] = TRUE;
 }
 
