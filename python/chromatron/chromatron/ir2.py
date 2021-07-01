@@ -171,12 +171,12 @@ class irBlock(IR):
 
         s += '\n'
 
-        s += f'{depth}| In:\n'
-        for i in self.params.values():
-            s += f'{depth}|\t{i.name}: {i.type}\n'
-        s += f'{depth}| Out:\n'
-        for i in self.defines.values():
-            s += f'{depth}|\t{i.name}: {i.type}\n'
+        # s += f'{depth}| In:\n'
+        # for i in self.params.values():
+        #     s += f'{depth}|\t{i.name}: {i.type}\n'
+        # s += f'{depth}| Out:\n'
+        # for i in self.defines.values():
+        #     s += f'{depth}|\t{i.name}: {i.type}\n'
 
         lines_printed = []
         s += f'{depth}| Code:\n'
