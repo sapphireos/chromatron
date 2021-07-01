@@ -670,7 +670,7 @@ class irBlock(IR):
 
             used[ir].extend(input_vars)
             used[ir].extend(prev)
-            used[ir] = list(set(used[ir])) # uniquify
+            # used[ir] = list(set(used[ir])) # uniquify
             prev = used[ir]
 
         for pre in self.predecessors:
@@ -679,8 +679,17 @@ class irBlock(IR):
             edge = Edge(self, pre)
             pre.used(visited, used, prev, edge)
 
-        return used
+        # uniquify:
+        for ir, v in used.items():
+            names = []
+            used[ir] = []
+            for a in v:
+                if a.name not in names:
+                    names.append(a.name)
 
+                    used[ir].append(a)
+
+        return used
 
     def defined(self, visited=None, defined=None, prev=None, edge=None):
         assert visited is not None
@@ -712,7 +721,7 @@ class irBlock(IR):
 
             defined[ir].extend(ir.get_output_vars())
             defined[ir].extend(prev)
-            defined[ir] = list(set(defined[ir])) # uniquify
+            # defined[ir] = list(set(defined[ir])) # uniquify
             prev = defined[ir]
 
         for suc in self.successors:
@@ -720,6 +729,16 @@ class irBlock(IR):
             # this tracks multiple paths into the successor
             edge = Edge(self, suc)
             suc.defined(visited, defined, prev, edge)
+
+        # uniquify:
+        for ir, v in defined.items():
+            names = []
+            defined[ir] = []
+            for a in v:
+                if a.name not in names:
+                    names.append(a.name)
+
+                    defined[ir].append(a)
 
         return defined
 
@@ -1722,7 +1741,7 @@ class irBinop(IR):
 class irVar(IR):
     def __init__(self, name=None, datatype=None, **kwargs):
         super().__init__(**kwargs)
-        self._name = name
+        self._name = str(name)
         self.type = datatype
 
         self.is_global = False
