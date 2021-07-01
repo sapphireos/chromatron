@@ -171,6 +171,14 @@ class irBlock(IR):
 
         s += '\n'
 
+        s += f'{depth}| Predecessors:\n'
+        for p in self.predecessors:
+            s += f'{depth}|\t{p.name}\n'
+
+        s += f'{depth}| Successors:\n'
+        for p in self.successors:
+            s += f'{depth}|\t{p.name}\n'
+
         # s += f'{depth}| In:\n'
         # for i in self.params.values():
         #     s += f'{depth}|\t{i.name}: {i.type}\n'
