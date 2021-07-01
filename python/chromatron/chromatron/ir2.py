@@ -189,10 +189,13 @@ class irBlock(IR):
             ir_s = f'{depth}|\t{str(ir):48}'
 
             if self.func.liveness:
-                s += f'{ir_s}\t{[a.name for a in self.func.liveness[ir]]}\n'
+                # s += f'{ir_s}\t{[a.name for a in self.func.liveness[ir]]}\n'
                 # s += f'{ir_s}\t{[a.name for a in self.func.used_vars[ir]]}\n'
                 # s += f'{ir_s}\t{[a.name for a in self.func.defined_vars[ir]]}\n'
-                # s += f'{ir_s}\n'
+                s += f'{ir_s}\n'
+                s += f'\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
+                s += f'\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
+                s += f'\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -1054,8 +1057,53 @@ class irFunc(IR):
         self.used_vars = self.used()
         self.defined_vars = self.defined()
 
+
+
+
+        # self.liveness = True
         # run liveness
         self.liveness = self.liveness_analysis(self.used_vars, self.defined_vars)
+
+        # # liveness = {}
+        # defined = {}
+        # used = {}
+        # for block in self.blocks.values():
+        #     prev = []
+        #     for ir in block.code:
+        #         if ir not in defined:
+        #             defined[ir] = []
+
+        #         defined[ir].extend(prev)
+
+        #         for o in ir.get_output_vars():
+        #             if o not in defined[ir]:
+        #                 defined[ir].append(o)
+            
+        #         prev = defined[ir]
+
+        # for block in self.blocks.values():
+        #     prev = []
+        #     for ir in reversed(block.code):
+        #         # if ir not in defined:
+        #         #     defined[ir] = []
+
+        #         # for o in ir.get_output_vars():
+        #         #     if o not in defined[ir]:
+        #         #         defined[ir].append(o)
+
+        #         if ir not in used:
+        #             used[ir] = []
+
+        #         used[ir].extend(prev)
+
+        #         for i in ir.get_input_vars():
+        #             if i not in used[ir]:
+        #                 used[ir].append(i)
+
+        #         prev = used[ir]
+
+
+                # i = ir.get_input_vars()
 
 
         # register allocator
@@ -1067,8 +1115,18 @@ class irFunc(IR):
         # reassemble code
         self.code = self.get_code_from_blocks()
 
-        # for ir in self.code:
+        defined = self.defined_vars
+
+        print('\nDEFINED')
+        for ir in self.code:
         #     s = f'{str(ir):48}\t{[a.name for a in self.liveness[ir]]}'
+            s = f'{str(ir):48}\t{[a.name for a in defined[ir]]}'
+            print(s)
+
+        # print('\nUSED')
+        # for ir in self.code:
+        # #     s = f'{str(ir):48}\t{[a.name for a in self.liveness[ir]]}'
+        #     s = f'{str(ir):48}\t{[a.name for a in used[ir]]}'
         #     print(s)
 
 
