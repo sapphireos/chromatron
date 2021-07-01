@@ -201,9 +201,9 @@ class irBlock(IR):
                 # s += f'{ir_s}\t{[a.name for a in self.func.used_vars[ir]]}\n'
                 # s += f'{ir_s}\t{[a.name for a in self.func.defined_vars[ir]]}\n'
                 s += f'{ir_s}\n'
-                s += f'\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
-                s += f'\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
-                s += f'\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
+                s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
+                s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
+                s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
 
             else:
                 s += f'{ir_s}\n'
