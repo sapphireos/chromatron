@@ -683,7 +683,7 @@ class irBlock(IR):
         for ir, v in used.items():
             names = []
             used[ir] = []
-            for a in v:
+            for a in sorted(v, key=lambda a: a.name):
                 if a.name not in names:
                     names.append(a.name)
 
@@ -734,7 +734,7 @@ class irBlock(IR):
         for ir, v in defined.items():
             names = []
             defined[ir] = []
-            for a in v:
+            for a in sorted(v, key=lambda a: a.name):
                 if a.name not in names:
                     names.append(a.name)
 
