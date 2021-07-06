@@ -64,6 +64,14 @@ class IR(object):
         return None
 
     @property
+    def gen(self):
+        return set(self.get_input_vars())
+
+    @property
+    def kill(self):
+        return set(self.get_output_vars())
+
+    @property
     def global_input_vars(self):
         return [a for a in self.get_input_vars() if a.is_global]
 
@@ -234,6 +242,26 @@ class irBlock(IR):
     @name.setter
     def name(self, value):
         self._name = value
+
+    @property
+    def gen(self):
+        g = []
+        for ir in self.code:
+            for v in ir.gen:
+                if v not in g:
+                    g.append(v)
+
+        return g
+
+    @property
+    def kill(self):
+        g = []
+        for ir in self.code:
+            for v in ir.kill:
+                if v not in g:
+                    g.append(v)
+
+        return g
 
     @property
     def loop_entry(self):
@@ -1131,9 +1159,11 @@ class irFunc(IR):
 
 
 
-        # self.liveness = True
+        self.liveness = False
         # run liveness
         self.liveness = self.liveness_analysis(self.used_vars, self.defined_vars)
+
+
 
         # # liveness = {}
         # defined = {}
@@ -1186,13 +1216,70 @@ class irFunc(IR):
         # reassemble code
         self.code = self.get_code_from_blocks()
 
-        defined = self.defined_vars
 
-        print('\nDEFINED')
-        for ir in self.code:
-        #     s = f'{str(ir):48}\t{[a.name for a in self.liveness[ir]]}'
-            s = f'{str(ir):48}\t{[a.name for a in defined[ir]]}'
-            print(s)
+        # gen = [set() for ir in self.code]
+        # kill = [set() for ir in self.code]
+        # succ = [None for ir in self.code]
+        # live_in = [set() for ir in self.code]
+        # live_out = [set() for ir in self.code]
+        # labels = {}
+        
+        # for i in range(len(self.code)):
+        #     ir = self.code[i]
+        #     if isinstance(ir, irLabel):
+        #         labels[ir.name] = i
+
+        # for i in range(len(self.code)):
+        #     ir = self.code[i]
+
+        #     gen[i] = ir.gen
+        #     kill[i] = ir.kill
+
+        #     targets = ir.get_jump_target()
+
+        #     if isinstance(ir, irReturn):
+        #         succ[i] = set([])  
+
+        #     elif targets is None:
+        #         succ[i] = set([i + 1])
+
+        #     else:
+        #         succ[i] = set([labels[t.name] for t in targets])
+
+        # iterations = 0
+        # while True:
+        #     iterations += 1
+        #     prev_live_in = copy(live_in)
+        #     prev_live_out = copy(live_out)
+
+        #     for i in range(len(self.code)):
+        #         ir = self.code[i]
+
+        #         live_in[i] = gen[i] | (live_out[i] - kill[i])
+
+        #         live_out[i] = set()
+
+        #         for s in succ[i]:
+        #             live_out[i] |= live_in[s]
+
+        #     if live_in == prev_live_in and live_out == prev_live_out:
+        #         break
+
+        # print('iter', iterations)
+
+        # for i in range(len(self.code)):
+        #     ir = self.code[i]
+
+        #     print(f'{ir} in: {[a.name for a in live_in[i]]} out: {[a.name for a in live_out[i]]}')
+
+
+        # defined = self.defined_vars
+
+        # print('\nDEFINED')
+        # for ir in self.code:
+        # #     s = f'{str(ir):48}\t{[a.name for a in self.liveness[ir]]}'
+        #     s = f'{str(ir):48}\t{[a.name for a in defined[ir]]}'
+        #     print(s)
 
         # print('\nUSED')
         # for ir in self.code:
@@ -1423,7 +1510,7 @@ class irBranch(irControlFlow):
         return [self.value]
 
     def get_jump_target(self):
-        return self.target
+        return [self.true_label, self.false_label]
 
 class irJump(irControlFlow):
     def __init__(self, target, **kwargs):
@@ -1439,7 +1526,7 @@ class irJump(irControlFlow):
         # return insJmp(self.target.generate(), lineno=self.lineno)
 
     def get_jump_target(self):
-        return self.target
+        return [self.target]
 
 
 class irReturn(irControlFlow):
