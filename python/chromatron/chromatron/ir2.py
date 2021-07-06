@@ -29,7 +29,7 @@ def params_to_string(params):
     return s
 
 def get_zero(lineno=None):
-    zero = irVar(0, lineno=lineno)
+    zero = irVar(0, 'i32', lineno=lineno)
     zero.is_const = True
 
     return zero
@@ -178,6 +178,14 @@ class irBlock(IR):
         s += f'{depth}| Successors:\n'
         for p in self.successors:
             s += f'{depth}|\t{p.name}\n'
+
+        s += f'{depth}| Defined:\n'
+        for i in self.defined2:
+            s += f'{depth}|\t{i.name}: {i.type}\n'
+
+        s += f'{depth}| Used:\n'
+        for i in self.used2:
+            s += f'{depth}|\t{i.name}: {i.type}\n'
 
         # s += f'{depth}| In:\n'
         # for i in self.params.values():
@@ -616,7 +624,20 @@ class irBlock(IR):
             suc.insert_phi(visited)
 
 
-    def apply_types(self):
+    def apply_types(self, visited=None, declarations=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+        
+        visited.append(self)
+
+        if declarations is None:
+            declarations = {}
+
+        declarations.update(self.declarations)
+
         # scan forward and assign types from declared variables to
         # their SSA instances
         for ir in self.code:
@@ -624,10 +645,10 @@ class irBlock(IR):
             variables.extend(ir.local_output_vars)
 
             for v in variables:
-                if v._name not in self.declarations:
+                if v._name not in declarations:
                     raise Exception
 
-                v.type = self.declarations[v._name].type
+                v.type = declarations[v._name].type
 
 
         # scan in reverse for assignments,
@@ -641,6 +662,29 @@ class irBlock(IR):
             if isinstance(ir, irAssign):
                 if ir.target.type != None and ir.value.is_temp and ir.value.type is None:
                     ir.value.type = ir.target.type
+
+        for suc in self.successors:
+            suc.apply_types(visited, declarations)
+
+    @property
+    def used2(self):
+        used = []
+        for ir in self.code:
+            for i in ir.get_input_vars():
+                if i not in used:
+                    used.append(i)
+
+        return used
+
+    @property
+    def defined2(self):
+        defined = []
+        for ir in self.code:
+            for o in ir.get_output_vars():
+                if o not in defined:
+                    defined.append(o)
+
+        return defined
 
     def used(self, visited=None, used=None, prev=None, edge=None):
         assert visited is not None

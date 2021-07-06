@@ -99,6 +99,15 @@ class Builder(object):
         if name in self.consts:
             return self.consts[name]
 
+        if isinstance(value, int):
+            data_type = 'i32'
+
+        elif isinstance(value, float):
+            data_type = 'f16'
+            
+        else:
+            assert False
+
         ir = irVar(name, data_type, lineno=lineno)
         ir.is_const = True
 
