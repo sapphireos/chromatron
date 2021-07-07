@@ -48,6 +48,8 @@ class IR(object):
         self.lineno = lineno
         self.block = None
         self.scope_depth = None
+        self.live_in = []
+        self.live_out = []
 
         assert self.lineno != None
 
@@ -229,6 +231,10 @@ class irBlock(IR):
 
             else:
                 s += f'{ir_s}\n'
+                s += f'{depth}|\t  gen:      {[a.name for a in ir.gen]}\n'
+                s += f'{depth}|\t  kill:     {[a.name for a in ir.kill]}\n'
+                s += f'{depth}|\t  live_in:  {[a.name for a in ir.live_in]}\n'
+                s += f'{depth}|\t  live_out: {[a.name for a in ir.live_out]}\n'
 
         s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
 
@@ -1191,16 +1197,18 @@ class irFunc(IR):
                 reads = [a.name for a in self.get_input_vars()]
                 block.remove_dead_code(reads=reads)
 
-        # run usedef analysis
-        self.defined_vars = self.defined()
-        self.used_vars = self.used()
-
-
-
-
         self.liveness = False
-        # run liveness
-        self.liveness = self.liveness_analysis(self.used_vars, self.defined_vars)
+
+        # # run usedef analysis
+        # self.defined_vars = self.defined()
+        # self.used_vars = self.used()
+
+
+
+
+        
+        # # run liveness
+        # self.liveness = self.liveness_analysis(self.used_vars, self.defined_vars)
 
 
 
@@ -1255,61 +1263,84 @@ class irFunc(IR):
         # reassemble code
         self.code = self.get_code_from_blocks()
 
-
-        # gen = [set() for ir in self.code]
-        # kill = [set() for ir in self.code]
-        # succ = [None for ir in self.code]
-        # live_in = [set() for ir in self.code]
-        # live_out = [set() for ir in self.code]
         # labels = {}
         
-        # for i in range(len(self.code)):
-        #     ir = self.code[i]
+        # for ir in self.code:
         #     if isinstance(ir, irLabel):
-        #         labels[ir.name] = i
+        #         labels[ir.name] = ir
 
-        # for i in range(len(self.code)):
-        #     ir = self.code[i]
 
-        #     gen[i] = ir.gen
-        #     kill[i] = ir.kill
+        # live = {}
 
-        #     targets = ir.get_jump_target()
+        # for ir in self.code:
+        #     if ir not in live:
+        #         live[ir] = []
 
-        #     if isinstance(ir, irReturn):
-        #         succ[i] = set([])  
+        #     )
 
-        #     elif targets is None:
-        #         succ[i] = set([i + 1])
 
-        #     else:
-        #         succ[i] = set([labels[t.name] for t in targets])
+        # return
 
-        # iterations = 0
-        # while True:
-        #     iterations += 1
-        #     prev_live_in = copy(live_in)
-        #     prev_live_out = copy(live_out)
 
-        #     for i in range(len(self.code)):
-        #         ir = self.code[i]
 
-        #         live_in[i] = gen[i] | (live_out[i] - kill[i])
 
-        #         live_out[i] = set()
+        gen = [set() for ir in self.code]
+        kill = [set() for ir in self.code]
+        succ = [None for ir in self.code]
+        live_in = [set() for ir in self.code]
+        live_out = [set() for ir in self.code]
+        labels = {}
+        
+        for i in range(len(self.code)):
+            ir = self.code[i]
+            if isinstance(ir, irLabel):
+                labels[ir.name] = i
 
-        #         for s in succ[i]:
-        #             live_out[i] |= live_in[s]
+        for i in range(len(self.code)):
+            ir = self.code[i]
 
-        #     if live_in == prev_live_in and live_out == prev_live_out:
-        #         break
+            gen[i] = ir.gen
+            kill[i] = ir.kill
 
-        # print('iter', iterations)
+            targets = ir.get_jump_target()
 
-        # for i in range(len(self.code)):
-        #     ir = self.code[i]
+            if isinstance(ir, irReturn):
+                succ[i] = set([])  
 
-        #     print(f'{ir} in: {[a.name for a in live_in[i]]} out: {[a.name for a in live_out[i]]}')
+            elif targets is None:
+                succ[i] = set([i + 1])
+
+            else:
+                succ[i] = set([labels[t.name] for t in targets])
+
+        iterations = 0
+        while True:
+            iterations += 1
+            prev_live_in = copy(live_in)
+            prev_live_out = copy(live_out)
+
+            for i in range(len(self.code)):
+                ir = self.code[i]
+
+                live_in[i] = gen[i] | (live_out[i] - kill[i])
+
+                live_out[i] = set()
+
+                for s in succ[i]:
+                    live_out[i] |= live_in[s]
+
+                ir.live_in = live_in[i]
+                ir.live_out = live_out[i]
+
+            if live_in == prev_live_in and live_out == prev_live_out:
+                break
+
+        print('iter', iterations)
+
+        for i in range(len(self.code)):
+            ir = self.code[i]
+
+            print(f'{ir} in: {[a.name for a in live_in[i]]} out: {[a.name for a in live_out[i]]}')
 
 
         # defined = self.defined_vars
