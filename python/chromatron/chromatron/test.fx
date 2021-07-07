@@ -52,6 +52,9 @@ def while_loop():
 		# a = Number()
 		# # # a = 2 + 3
 
+		# if i == 1:
+			# i = 2
+
 		# while a == 2:
 		# 	a += 1
 		# 	i -= 3

@@ -149,7 +149,6 @@ class Edge(object):
 
         return self.to_node.loop_entry == self.from_node.loop_exit
 
-
 class irBlock(IR):
     def __init__(self, func=None, **kwargs):
         super().__init__(**kwargs)
@@ -726,9 +725,6 @@ class irBlock(IR):
             return
         
         if edge:
-            if edge.is_back_edge:
-                return
-                
             visited.append(edge)
 
         if used is None:
@@ -736,6 +732,11 @@ class irBlock(IR):
 
         if prev is None:
             prev = []
+
+        for suc in self.successors:
+            # visit successor nodes first (that have not yet been unvisited)            
+            # this covers the backwards flow from a 2 way branch.
+            suc.used(visited, used, prev, Edge(self, suc))
 
         # run backwards through code
         for ir in reversed(self.code):
@@ -750,7 +751,7 @@ class irBlock(IR):
 
             used[ir].extend(input_vars)
             used[ir].extend(prev)
-            # used[ir] = list(set(used[ir])) # uniquify
+            
             prev = used[ir]
 
         for pre in self.predecessors:
@@ -794,14 +795,20 @@ class irBlock(IR):
         if prev is None:
             prev = []
 
-        # run backwards through code
+        # run through code
         for ir in self.code:
             if ir not in defined:
                 defined[ir] = []
 
             defined[ir].extend(ir.get_output_vars())
             defined[ir].extend(prev)
-            # defined[ir] = list(set(defined[ir])) # uniquify
+
+            # # Phi node inputs kills defines
+            # if isinstance(ir, irPhi):
+            #     for i in ir.get_input_vars():
+            #         if i in defined[ir]:
+            #             defined[ir].remove(i)
+            
             prev = defined[ir]
 
         for suc in self.successors:
@@ -1948,6 +1955,10 @@ class irVar(IR):
         else:
             # return f'Var{s}'            
             return f'{s}'
+
+    def __repr__(self):
+        return str(self)
+
 
 
 # class irGlobal(irVar):
