@@ -141,13 +141,20 @@ class Edge(object):
 
     @property
     def is_back_edge(self):
-        if self.from_node.loop_exit is None:
-            return False
+        # if self.from_node.loop_exit is None:
+        #     return False
 
-        if self.to_node.loop_entry is None:
-            return False
+        # if self.to_node.loop_entry is None:
+        #     return False
 
-        return self.to_node.loop_entry == self.from_node.loop_exit
+        # return self.to_node.loop_entry == self.from_node.loop_exit
+        if self.from_node in self.to_node.successors:
+            return True
+
+        # if self.to_node in self.from_node.predecessors:
+            # return True
+
+        return False
 
 class irBlock(IR):
     def __init__(self, func=None, **kwargs):
@@ -227,6 +234,9 @@ class irBlock(IR):
 
         return s
 
+    def __repr__(self):
+        return self.name
+
     @property
     def name(self):
         try:
@@ -241,6 +251,27 @@ class irBlock(IR):
     @name.setter
     def name(self, value):
         self._name = value
+
+    def get_ancestors(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        visited.append(self)
+
+        anc = copy(self.predecessors)
+
+        for pre in self.predecessors:
+            if pre is not self:
+                anc.extend(pre.get_ancestors(visited=visited))
+
+        return [a for a in anc if a is not self]
+
+    @property
+    def ancestors(self):
+        return self.get_ancestors()
 
     @property
     def gen(self):
@@ -736,6 +767,7 @@ class irBlock(IR):
         for suc in self.successors:
             # visit successor nodes first (that have not yet been unvisited)            
             # this covers the backwards flow from a 2 way branch.
+            #visited.append(Edge(suc, self))
             suc.used(visited, used, prev, Edge(self, suc))
 
         # run backwards through code
@@ -1160,8 +1192,8 @@ class irFunc(IR):
                 block.remove_dead_code(reads=reads)
 
         # run usedef analysis
-        self.used_vars = self.used()
         self.defined_vars = self.defined()
+        self.used_vars = self.used()
 
 
 
@@ -1957,7 +1989,7 @@ class irVar(IR):
             return f'{s}'
 
     def __repr__(self):
-        return str(self)
+        return self.name
 
 
 
