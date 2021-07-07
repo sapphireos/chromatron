@@ -1319,19 +1319,24 @@ class irFunc(IR):
             prev_live_in = copy(live_in)
             prev_live_out = copy(live_out)
 
-            for i in range(len(self.code)):
+            for a in range(len(self.code)):
+                i = (len(self.code) - 1) - a
                 ir = self.code[i]
 
                 live_in[i] = gen[i] | (live_out[i] - kill[i])
 
                 live_out[i] = set()
-
                 for s in succ[i]:
                     live_out[i] |= live_in[s]
 
                 ir.live_in = live_in[i]
                 ir.live_out = live_out[i]
 
+            print(iterations)
+            with open(f'test.fx.fxir', 'w') as f:
+                f.write(str(self))
+
+            # check for steady state condition
             if live_in == prev_live_in and live_out == prev_live_out:
                 break
 
