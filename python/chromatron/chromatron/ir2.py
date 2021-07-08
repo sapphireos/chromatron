@@ -229,12 +229,22 @@ class irBlock(IR):
                 s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
                 s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
 
-            else:
+            # elif True:
+            elif False:
                 s += f'{ir_s}\n'
                 s += f'{depth}|\t  gen:      {[a.name for a in ir.gen]}\n'
                 s += f'{depth}|\t  kill:     {[a.name for a in ir.kill]}\n'
                 s += f'{depth}|\t  live_in:  {[a.name for a in ir.live_in]}\n'
                 s += f'{depth}|\t  live_out: {[a.name for a in ir.live_out]}\n'
+
+            elif True:
+            # elif False:
+                s += f'{ir_s}\n'
+                s += f'{depth}|\t  in:  {[a.name for a in self.live_in2[ir]]}\n'
+                s += f'{depth}|\t  out: {[a.name for a in self.live_out2[ir]]}\n'
+                
+            else:
+                s += f'{ir_s}\n'
 
         s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
 
@@ -730,6 +740,7 @@ class irBlock(IR):
         for suc in self.successors:
             suc.apply_types(visited, declarations)
 
+
     @property
     def used2(self):
         used = []
@@ -749,6 +760,43 @@ class irBlock(IR):
                     defined.append(o)
 
         return defined
+
+    @property
+    def live_in2(self):
+        live = {}
+        prev = []
+        for ir in reversed(self.code):
+            live[ir] = copy(prev)
+
+            for i in ir.get_input_vars():
+                if i not in live[ir]:
+                    live[ir].append(i)
+
+            # for o in ir.get_output_vars():
+            #     if o in live[ir]:
+            #         live[ir].remove(o)
+
+            if not isinstance(ir, irPhi):
+                prev = live[ir]
+
+            else:
+                prev = []
+
+        return live
+
+    @property
+    def live_out2(self):
+        live = {}
+        prev = []
+        for ir in self.code:
+            live[ir] = copy(prev)
+            for o in ir.get_output_vars():
+                if o not in live[ir]:
+                    live[ir].append(o)
+
+            prev = live[ir]
+
+        return live
 
     def used(self, visited=None, used=None, prev=None, edge=None):
         assert visited is not None
