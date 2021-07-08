@@ -1014,7 +1014,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     if debug_print:
         print(program)
 
-    sys.exit(0)
+    return ''
 
     
     
@@ -1058,7 +1058,7 @@ def compile_script(path, debug_print=False):
         return compile_text(f.read(), script_name=script_name, debug_print=debug_print)
 
 
-if __name__ == '__main__':
+def main():
     path = sys.argv[1]
     script_name = os.path.split(path)[1]
 
@@ -1066,12 +1066,13 @@ if __name__ == '__main__':
         with open(path) as f:
             text = f.read()
 
-        stream = compile_text(text, debug_print=True, script_name=script_name).stream
+        program = compile_text(text, debug_print=True, script_name=script_name)
+        return
 
         try:
             output_path = sys.argv[2]
             with open(output_path, 'w+') as f:
-                f.write(stream)
+                f.write(program.stream)
 
         except IndexError:
             pass
@@ -1118,3 +1119,15 @@ if __name__ == '__main__':
 
             print("Largest %8s size: %32s %5d bytes" % (param, name, highest))
 
+
+profile = False
+if __name__ == '__main__':
+
+    if profile:
+        import yappi
+        yappi.start()
+
+    main()
+
+    if profile:
+        yappi.get_func_stats().print_all()

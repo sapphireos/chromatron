@@ -28,12 +28,6 @@ def params_to_string(params):
 
     return s
 
-def get_zero(lineno=None):
-    zero = irVar(0, 'i32', lineno=lineno)
-    zero.is_const = True
-
-    return zero
-
 class SyntaxError(Exception):
     def __init__(self, message='', lineno=None):
         self.lineno = lineno
@@ -203,6 +197,15 @@ class irBlock(IR):
         for i in self.used2:
             s += f'{depth}|\t{i.name}: {i.type}\n'
 
+        s += f'{depth}| Live In:\n'
+        for i in self.live_in2:
+            s += f'{depth}|\t{i.name}: {i.type}\n'
+
+        s += f'{depth}| Live Out:\n'
+        for i in self.live_out2:
+            s += f'{depth}|\t{i.name}: {i.type}\n'
+
+
         # s += f'{depth}| In:\n'
         # for i in self.params.values():
         #     s += f'{depth}|\t{i.name}: {i.type}\n'
@@ -240,8 +243,8 @@ class irBlock(IR):
             elif True:
             # elif False:
                 s += f'{ir_s}\n'
-                s += f'{depth}|\t  in:  {[a.name for a in self.live_in2[ir]]}\n'
-                s += f'{depth}|\t  out: {[a.name for a in self.live_out2[ir]]}\n'
+                s += f'{depth}|\t  in:  {[a.name for a in self.get_live_in()[ir]]}\n'
+                s += f'{depth}|\t  out: {[a.name for a in self.get_live_out()[ir]]}\n'
                 
             else:
                 s += f'{ir_s}\n'
@@ -761,8 +764,7 @@ class irBlock(IR):
 
         return defined
 
-    @property
-    def live_in2(self):
+    def get_live_in(self):
         live = {}
         prev = []
         for ir in reversed(self.code):
@@ -772,20 +774,27 @@ class irBlock(IR):
                 if i not in live[ir]:
                     live[ir].append(i)
 
-            # for o in ir.get_output_vars():
-            #     if o in live[ir]:
-            #         live[ir].remove(o)
+            # outputs kill liveness
+            for o in ir.get_output_vars():
+                if o in live[ir]:
+                    live[ir].remove(o)
 
-            if not isinstance(ir, irPhi):
-                prev = live[ir]
+            prev = live[ir]
 
-            else:
-                prev = []
+        for ir in self.code:
+            inputs = ir.get_input_vars()
+
+            for i in copy(live[ir]):
+                if i not in inputs:
+                    live[ir].remove(i)
 
         return live
 
     @property
-    def live_out2(self):
+    def live_in2(self):
+        return self.get_live_in()[self.code[0]]
+
+    def get_live_out(self):
         live = {}
         prev = []
         for ir in self.code:
@@ -797,6 +806,11 @@ class irBlock(IR):
             prev = live[ir]
 
         return live
+
+    @property
+    def live_out2(self):
+        return self.get_live_out()[self.code[-1]]
+
 
     def used(self, visited=None, used=None, prev=None, edge=None):
         assert visited is not None
@@ -1327,7 +1341,7 @@ class irFunc(IR):
         #     )
 
 
-        # return
+        return
 
 
 
@@ -2075,6 +2089,14 @@ class irVar(IR):
 
     def __repr__(self):
         return self.name
+
+
+
+ZERO = irVar(0, 'i32', lineno=-1)
+ZERO.is_const = True
+
+def get_zero(lineno=None):
+    return ZERO
 
 
 

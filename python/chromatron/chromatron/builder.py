@@ -21,7 +21,7 @@ class Builder(object):
         self.scope_depth = 0
         self.labels = {}
         self.globals = {}
-        self.consts = {}
+        self.consts = {'0': get_zero()}
 
         self.next_temp = 0
         self.refs = {}
