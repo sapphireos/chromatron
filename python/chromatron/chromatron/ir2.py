@@ -119,38 +119,38 @@ class irProgram(IR):
         for func in self.funcs.values():
             func.analyze_blocks()
 
-class Edge(object):
-    def __init__(self, from_node, to_node):
-        self.from_node = from_node
-        self.to_node = to_node
+# class Edge(object):
+#     def __init__(self, from_node, to_node):
+#         self.from_node = from_node
+#         self.to_node = to_node
 
-    def __hash__(self):
-        t = (self.from_node, self.to_node)
+#     def __hash__(self):
+#         t = (self.from_node, self.to_node)
 
-        return hash(t)
+#         return hash(t)
 
-    def __eq__(self, other):
-        return hash(self) == hash(other)
+#     def __eq__(self, other):
+#         return hash(self) == hash(other)
 
-    def __str__(self):
-        return f'{self.from_node.name} -> {self.to_node.name}'
+#     def __str__(self):
+#         return f'{self.from_node.name} -> {self.to_node.name}'
 
-    @property
-    def is_back_edge(self):
-        # if self.from_node.loop_exit is None:
-        #     return False
+#     @property
+#     def is_back_edge(self):
+#         # if self.from_node.loop_exit is None:
+#         #     return False
 
-        # if self.to_node.loop_entry is None:
-        #     return False
+#         # if self.to_node.loop_entry is None:
+#         #     return False
 
-        # return self.to_node.loop_entry == self.from_node.loop_exit
-        if self.from_node in self.to_node.successors:
-            return True
+#         # return self.to_node.loop_entry == self.from_node.loop_exit
+#         if self.from_node in self.to_node.successors:
+#             return True
 
-        # if self.to_node in self.from_node.predecessors:
-            # return True
+#         # if self.to_node in self.from_node.predecessors:
+#             # return True
 
-        return False
+#         return False
 
 class irBlock(IR):
     def __init__(self, func=None, **kwargs):
@@ -200,13 +200,13 @@ class irBlock(IR):
         # for i in self.used2:
         #     s += f'{depth}|\t{i.name}: {i.type}\n'
 
-        s += f'{depth}| Live In:\n'
-        for i in self.live_in[self.code[0]]:
-            s += f'{depth}|\t{i.name}: {i.type}\n'
+        # s += f'{depth}| Live In:\n'
+        # for i in self.live_in[self.code[0]]:
+        #     s += f'{depth}|\t{i.name}: {i.type}\n'
 
-        s += f'{depth}| Live Out:\n'
-        for i in self.live_out[self.code[-1]]:
-            s += f'{depth}|\t{i.name}: {i.type}\n'
+        # s += f'{depth}| Live Out:\n'
+        # for i in self.live_out[self.code[-1]]:
+        #     s += f'{depth}|\t{i.name}: {i.type}\n'
 
 
         # s += f'{depth}| In:\n'
@@ -243,8 +243,8 @@ class irBlock(IR):
                 s += f'{depth}|\t  live_in:  {[a.name for a in ir.live_in]}\n'
                 s += f'{depth}|\t  live_out: {[a.name for a in ir.live_out]}\n'
 
-            elif True:
-            # elif False:
+            # elif True:
+            elif False:
                 s += f'{ir_s}\n'
                 s += f'{depth}|\t  in:  {[a.name for a in self.live_in[ir]]}\n'
                 s += f'{depth}|\t  out: {[a.name for a in self.live_out[ir]]}\n'
@@ -784,12 +784,12 @@ class irBlock(IR):
 
             prev = live[ir]
 
-        for ir in self.code:
-            inputs = ir.get_input_vars()
+        # for ir in self.code:
+        #     inputs = ir.get_input_vars()
 
-            for i in copy(live[ir]):
-                if i not in inputs:
-                    live[ir].remove(i)
+        #     for i in copy(live[ir]):
+        #         if i not in inputs:
+        #             live[ir].remove(i)
 
         self.live_in = live
 
@@ -923,6 +923,39 @@ class irBlock(IR):
 
     #     return defined
 
+    def usedef(self, used=None, defined=None, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        if defined is None:
+            defined = {}
+
+        if used is None:
+            used = {}
+
+        for ir in self.code:
+            for o in ir.get_output_vars():
+                if o not in defined:
+                    defined[o] = []
+
+                defined[o].append(ir)
+
+            for i in ir.get_input_vars():
+                if i not in used:
+                    used[i] = []
+
+                used[i].append(ir)
+
+        # continue with successors:
+        for suc in self.successors:
+            suc.usedef(used, defined, visited)
+
+        return defined, used
 
     ##############################################
     # Optimizer Passes
@@ -1259,11 +1292,11 @@ class irFunc(IR):
         # self.defined_vars = self.defined()
         # self.used_vars = self.used()
 
-        for block in self.blocks.values():
-            block.compute_live_in()
-            block.compute_live_out()
+        # for block in self.blocks.values():
+        #     block.compute_live_in()
+        #     block.compute_live_out()
 
-
+        used, defined = self.leader_block.usedef()
         
         # # run liveness
         # self.liveness = self.liveness_analysis(self.used_vars, self.defined_vars)
@@ -1427,35 +1460,35 @@ class irFunc(IR):
         if optimize:
             self.prune_jumps()
 
-    def used(self):
-        visited = []
-        used = {}
-        for block in self.blocks.values():
-            if block.is_terminator:
-                block.used(visited, used)
+    # def used(self):
+    #     visited = []
+    #     used = {}
+    #     for block in self.blocks.values():
+    #         if block.is_terminator:
+    #             block.used(visited, used)
 
-        return used
+    #     return used
 
-    def defined(self):
-        visited = []
-        defined = {}
-        for block in self.blocks.values():
-            if block.is_leader:
-                block.defined(visited, defined)
+    # def defined(self):
+    #     visited = []
+    #     defined = {}
+    #     for block in self.blocks.values():
+    #         if block.is_leader:
+    #             block.defined(visited, defined)
 
-        return defined
+    #     return defined
 
-    def liveness_analysis(self, used, defined):
-        liveness = {}
+    # def liveness_analysis(self, used, defined):
+    #     liveness = {}
 
-        for ir in defined:
-            liveness[ir] = []
+    #     for ir in defined:
+    #         liveness[ir] = []
 
-            for i in used[ir]:
-                if i in defined[ir] and i not in liveness[ir]:
-                    liveness[ir].append(i)
+    #         for i in used[ir]:
+    #             if i in defined[ir] and i not in liveness[ir]:
+    #                 liveness[ir].append(i)
 
-        return liveness
+    #     return liveness
 
     def get_code_from_blocks(self):
         code = []
