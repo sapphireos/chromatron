@@ -159,11 +159,14 @@ class irBlock(IR):
         self.successors = []
         self.code = []
         self.locals = {}
-        self.defines = {}
-        self.uses = {}
+        # self.defines = {}
+        # self.uses = {}
         self.params = {}
         self.func = func
         self.globals = self.func.globals
+
+        self.live_in = {}
+        self.live_out = {}
 
         self.entry_label = None
         self.jump_target = None
@@ -189,20 +192,20 @@ class irBlock(IR):
         for p in self.successors:
             s += f'{depth}|\t{p.name}\n'
 
-        s += f'{depth}| Defined:\n'
-        for i in self.defined2:
-            s += f'{depth}|\t{i.name}: {i.type}\n'
+        # s += f'{depth}| Defined:\n'
+        # for i in self.defined2:
+        #     s += f'{depth}|\t{i.name}: {i.type}\n'
 
-        s += f'{depth}| Used:\n'
-        for i in self.used2:
-            s += f'{depth}|\t{i.name}: {i.type}\n'
+        # s += f'{depth}| Used:\n'
+        # for i in self.used2:
+        #     s += f'{depth}|\t{i.name}: {i.type}\n'
 
         s += f'{depth}| Live In:\n'
-        for i in self.live_in2:
+        for i in self.live_in[self.code[0]]:
             s += f'{depth}|\t{i.name}: {i.type}\n'
 
         s += f'{depth}| Live Out:\n'
-        for i in self.live_out2:
+        for i in self.live_out[self.code[-1]]:
             s += f'{depth}|\t{i.name}: {i.type}\n'
 
 
@@ -243,8 +246,8 @@ class irBlock(IR):
             elif True:
             # elif False:
                 s += f'{ir_s}\n'
-                s += f'{depth}|\t  in:  {[a.name for a in self.get_live_in()[ir]]}\n'
-                s += f'{depth}|\t  out: {[a.name for a in self.get_live_out()[ir]]}\n'
+                s += f'{depth}|\t  in:  {[a.name for a in self.live_in[ir]]}\n'
+                s += f'{depth}|\t  out: {[a.name for a in self.live_out[ir]]}\n'
                 
             else:
                 s += f'{ir_s}\n'
@@ -271,62 +274,62 @@ class irBlock(IR):
     def name(self, value):
         self._name = value
 
-    def get_ancestors(self, visited=None):
-        if visited is None:
-            visited = []
+    # def get_ancestors(self, visited=None):
+    #     if visited is None:
+    #         visited = []
 
-        if self in visited:
-            return []
+    #     if self in visited:
+    #         return []
 
-        visited.append(self)
+    #     visited.append(self)
 
-        anc = copy(self.predecessors)
+    #     anc = copy(self.predecessors)
 
-        for pre in self.predecessors:
-            if pre is not self:
-                anc.extend(pre.get_ancestors(visited=visited))
+    #     for pre in self.predecessors:
+    #         if pre is not self:
+    #             anc.extend(pre.get_ancestors(visited=visited))
 
-        return [a for a in anc if a is not self]
+    #     return [a for a in anc if a is not self]
 
-    @property
-    def ancestors(self):
-        return self.get_ancestors()
+    # @property
+    # def ancestors(self):
+    #     return self.get_ancestors()
 
-    @property
-    def gen(self):
-        g = []
-        for ir in self.code:
-            for v in ir.gen:
-                if v not in g:
-                    g.append(v)
+    # @property
+    # def gen(self):
+    #     g = []
+    #     for ir in self.code:
+    #         for v in ir.gen:
+    #             if v not in g:
+    #                 g.append(v)
 
-        return g
+    #     return g
 
-    @property
-    def kill(self):
-        g = []
-        for ir in self.code:
-            for v in ir.kill:
-                if v not in g:
-                    g.append(v)
+    # @property
+    # def kill(self):
+    #     g = []
+    #     for ir in self.code:
+    #         for v in ir.kill:
+    #             if v not in g:
+    #                 g.append(v)
 
-        return g
+    #     return g
 
-    @property
-    def loop_entry(self):
-        for ir in self.code:
-            if isinstance(ir, irLoopEntry):
-                return ir.name            
+    # @property
+    # def loop_entry(self):
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoopEntry):
+    #             return ir.name            
 
-        return None
+    #     return None
 
-    @property
-    def loop_exit(self):
-        for ir in self.code:
-            if isinstance(ir, irLoopExit):
-                return ir.name            
+    # @property
+    # def loop_exit(self):
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoopExit):
+    #             return ir.name            
 
-        return None
+    #     return None
 
     @property
     def is_leader(self):
@@ -744,27 +747,27 @@ class irBlock(IR):
             suc.apply_types(visited, declarations)
 
 
-    @property
-    def used2(self):
-        used = []
-        for ir in self.code:
-            for i in ir.get_input_vars():
-                if i not in used:
-                    used.append(i)
+    # @property
+    # def used2(self):
+    #     used = []
+    #     for ir in self.code:
+    #         for i in ir.get_input_vars():
+    #             if i not in used:
+    #                 used.append(i)
 
-        return used
+    #     return used
 
-    @property
-    def defined2(self):
-        defined = []
-        for ir in self.code:
-            for o in ir.get_output_vars():
-                if o not in defined:
-                    defined.append(o)
+    # @property
+    # def defined2(self):
+    #     defined = []
+    #     for ir in self.code:
+    #         for o in ir.get_output_vars():
+    #             if o not in defined:
+    #                 defined.append(o)
 
-        return defined
+    #     return defined
 
-    def get_live_in(self):
+    def compute_live_in(self):
         live = {}
         prev = []
         for ir in reversed(self.code):
@@ -788,13 +791,9 @@ class irBlock(IR):
                 if i not in inputs:
                     live[ir].remove(i)
 
-        return live
+        self.live_in = live
 
-    @property
-    def live_in2(self):
-        return self.get_live_in()[self.code[0]]
-
-    def get_live_out(self):
+    def compute_live_out(self):
         live = {}
         prev = []
         for ir in self.code:
@@ -805,129 +804,124 @@ class irBlock(IR):
 
             prev = live[ir]
 
-        return live
+        self.live_out = live
 
-    @property
-    def live_out2(self):
-        return self.get_live_out()[self.code[-1]]
-
-
-    def used(self, visited=None, used=None, prev=None, edge=None):
-        assert visited is not None
+    # def used(self, visited=None, used=None, prev=None, edge=None):
+    #     assert visited is not None
         
-        # need to ensure we can run for each *edge* into this block.
+    #     # need to ensure we can run for each *edge* into this block.
 
-        if not self.is_terminator:
-            assert edge is not None    
+    #     if not self.is_terminator:
+    #         assert edge is not None    
 
-        if edge in visited:
-            return
+    #     if edge in visited:
+    #         return
         
-        if edge:
-            visited.append(edge)
+    #     if edge:
+    #         visited.append(edge)
 
-        if used is None:
-            used = {}
+    #     if used is None:
+    #         used = {}
 
-        if prev is None:
-            prev = []
+    #     if prev is None:
+    #         prev = []
 
-        for suc in self.successors:
-            # visit successor nodes first (that have not yet been unvisited)            
-            # this covers the backwards flow from a 2 way branch.
-            #visited.append(Edge(suc, self))
-            suc.used(visited, used, prev, Edge(self, suc))
+    #     for suc in self.successors:
+    #         # visit successor nodes first (that have not yet been unvisited)            
+    #         # this covers the backwards flow from a 2 way branch.
+    #         #visited.append(Edge(suc, self))
+    #         suc.used(visited, used, prev, Edge(self, suc))
 
-        # run backwards through code
-        for ir in reversed(self.code):
-            if ir not in used:
-                used[ir] = []
+    #     # run backwards through code
+    #     for ir in reversed(self.code):
+    #         if ir not in used:
+    #             used[ir] = []
 
-            input_vars = ir.get_input_vars()
-            # if isinstance(ir, irPhi):
-                # for i in input_vars:
+    #         input_vars = ir.get_input_vars()
+    #         # if isinstance(ir, irPhi):
+    #             # for i in input_vars:
 
-            # need to do some Phi-fu here?
+    #         # need to do some Phi-fu here?
 
-            used[ir].extend(input_vars)
-            used[ir].extend(prev)
+    #         used[ir].extend(input_vars)
+    #         used[ir].extend(prev)
             
-            prev = used[ir]
+    #         prev = used[ir]
 
-        for pre in self.predecessors:
-            # edge is this node plus the predecessor.
-            # this tracks multiple paths into the predecessor
-            edge = Edge(self, pre)
-            pre.used(visited, used, prev, edge)
+    #     for pre in self.predecessors:
+    #         # edge is this node plus the predecessor.
+    #         # this tracks multiple paths into the predecessor
+    #         edge = Edge(self, pre)
+    #         pre.used(visited, used, prev, edge)
 
-        # uniquify:
-        for ir, v in used.items():
-            names = []
-            used[ir] = []
-            for a in sorted(v, key=lambda a: a.name):
-                if a.name not in names:
-                    names.append(a.name)
+    #     # uniquify:
+    #     for ir, v in used.items():
+    #         names = []
+    #         used[ir] = []
+    #         for a in sorted(v, key=lambda a: a.name):
+    #             if a.name not in names:
+    #                 names.append(a.name)
 
-                    used[ir].append(a)
+    #                 used[ir].append(a)
 
-        return used
+    #     return used
 
-    def defined(self, visited=None, defined=None, prev=None, edge=None):
-        assert visited is not None
+    # def defined(self, visited=None, defined=None, prev=None, edge=None):
+    #     assert visited is not None
 
-        # need to ensure we can run for each *edge* into this block.
+    #     # need to ensure we can run for each *edge* into this block.
 
-        if not self.is_leader:
-            assert edge is not None
+    #     if not self.is_leader:
+    #         assert edge is not None
             
-        if edge in visited:
-            return
+    #     if edge in visited:
+    #         return
         
-        if edge:
-            if edge.is_back_edge:
-                return
+    #     if edge:
+    #         if edge.is_back_edge:
+    #             return
 
-            visited.append(edge)
+    #         visited.append(edge)
 
-        if defined is None:
-            defined = {}
+    #     if defined is None:
+    #         defined = {}
 
-        if prev is None:
-            prev = []
+    #     if prev is None:
+    #         prev = []
 
-        # run through code
-        for ir in self.code:
-            if ir not in defined:
-                defined[ir] = []
+    #     # run through code
+    #     for ir in self.code:
+    #         if ir not in defined:
+    #             defined[ir] = []
 
-            defined[ir].extend(ir.get_output_vars())
-            defined[ir].extend(prev)
+    #         defined[ir].extend(ir.get_output_vars())
+    #         defined[ir].extend(prev)
 
-            # # Phi node inputs kills defines
-            # if isinstance(ir, irPhi):
-            #     for i in ir.get_input_vars():
-            #         if i in defined[ir]:
-            #             defined[ir].remove(i)
+    #         # # Phi node inputs kills defines
+    #         # if isinstance(ir, irPhi):
+    #         #     for i in ir.get_input_vars():
+    #         #         if i in defined[ir]:
+    #         #             defined[ir].remove(i)
             
-            prev = defined[ir]
+    #         prev = defined[ir]
 
-        for suc in self.successors:
-            # edge is this node plus the successor.
-            # this tracks multiple paths into the successor
-            edge = Edge(self, suc)
-            suc.defined(visited, defined, prev, edge)
+    #     for suc in self.successors:
+    #         # edge is this node plus the successor.
+    #         # this tracks multiple paths into the successor
+    #         edge = Edge(self, suc)
+    #         suc.defined(visited, defined, prev, edge)
 
-        # uniquify:
-        for ir, v in defined.items():
-            names = []
-            defined[ir] = []
-            for a in sorted(v, key=lambda a: a.name):
-                if a.name not in names:
-                    names.append(a.name)
+    #     # uniquify:
+    #     for ir, v in defined.items():
+    #         names = []
+    #         defined[ir] = []
+    #         for a in sorted(v, key=lambda a: a.name):
+    #             if a.name not in names:
+    #                 names.append(a.name)
 
-                    defined[ir].append(a)
+    #                 defined[ir].append(a)
 
-        return defined
+    #     return defined
 
 
     ##############################################
@@ -1240,7 +1234,7 @@ class irFunc(IR):
         global_vars = self.leader_block.init_global_vars()
         ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
         self.leader_block.apply_types()
-        self.leader_block.insert_phi_loop_closures(ssa_vars=ssa_vars)
+        # self.leader_block.insert_phi_loop_closures(ssa_vars=ssa_vars)
         self.leader_block.insert_phi()
 
         optimize = False
@@ -1265,7 +1259,9 @@ class irFunc(IR):
         # self.defined_vars = self.defined()
         # self.used_vars = self.used()
 
-
+        for block in self.blocks.values():
+            block.compute_live_in()
+            block.compute_live_out()
 
 
         
@@ -1341,74 +1337,74 @@ class irFunc(IR):
         #     )
 
 
-        return
+        # return
 
 
 
 
-        gen = [set() for ir in self.code]
-        kill = [set() for ir in self.code]
-        succ = [None for ir in self.code]
-        live_in = [set() for ir in self.code]
-        live_out = [set() for ir in self.code]
-        labels = {}
+        # gen = [set() for ir in self.code]
+        # kill = [set() for ir in self.code]
+        # succ = [None for ir in self.code]
+        # live_in = [set() for ir in self.code]
+        # live_out = [set() for ir in self.code]
+        # labels = {}
         
-        for i in range(len(self.code)):
-            ir = self.code[i]
-            if isinstance(ir, irLabel):
-                labels[ir.name] = i
+        # for i in range(len(self.code)):
+        #     ir = self.code[i]
+        #     if isinstance(ir, irLabel):
+        #         labels[ir.name] = i
 
-        for i in range(len(self.code)):
-            ir = self.code[i]
+        # for i in range(len(self.code)):
+        #     ir = self.code[i]
 
-            gen[i] = ir.gen
-            kill[i] = ir.kill
+        #     gen[i] = ir.gen
+        #     kill[i] = ir.kill
 
-            targets = ir.get_jump_target()
+        #     targets = ir.get_jump_target()
 
-            if isinstance(ir, irReturn):
-                succ[i] = set([])  
+        #     if isinstance(ir, irReturn):
+        #         succ[i] = set([])  
 
-            elif targets is None:
-                succ[i] = set([i + 1])
+        #     elif targets is None:
+        #         succ[i] = set([i + 1])
 
-            else:
-                succ[i] = set([labels[t.name] for t in targets])
+        #     else:
+        #         succ[i] = set([labels[t.name] for t in targets])
 
-        iterations = 0
-        while True:
-            iterations += 1
-            prev_live_in = copy(live_in)
-            prev_live_out = copy(live_out)
+        # iterations = 0
+        # while True:
+        #     iterations += 1
+        #     prev_live_in = copy(live_in)
+        #     prev_live_out = copy(live_out)
 
-            for a in range(len(self.code)):
-                i = (len(self.code) - 1) - a
-                # i = a
-                ir = self.code[i]
+        #     for a in range(len(self.code)):
+        #         i = (len(self.code) - 1) - a
+        #         # i = a
+        #         ir = self.code[i]
 
-                live_in[i] = gen[i] | (live_out[i] - kill[i])
+        #         live_in[i] = gen[i] | (live_out[i] - kill[i])
 
-                live_out[i] = set()
-                for s in succ[i]:
-                    live_out[i] |= live_in[s]
+        #         live_out[i] = set()
+        #         for s in succ[i]:
+        #             live_out[i] |= live_in[s]
 
-                ir.live_in = live_in[i]
-                ir.live_out = live_out[i]
+        #         ir.live_in = live_in[i]
+        #         ir.live_out = live_out[i]
 
-            print(iterations)
-            with open(f'test.fx.fxir', 'w') as f:
-                f.write(str(self))
+        #     print(iterations)
+        #     with open(f'test.fx.fxir', 'w') as f:
+        #         f.write(str(self))
 
-            # check for steady state condition
-            if live_in == prev_live_in and live_out == prev_live_out:
-                break
+        #     # check for steady state condition
+        #     if live_in == prev_live_in and live_out == prev_live_out:
+        #         break
 
-        print('iter', iterations)
+        # print('iter', iterations)
 
-        for i in range(len(self.code)):
-            ir = self.code[i]
+        # for i in range(len(self.code)):
+        #     ir = self.code[i]
 
-            print(f'{ir} in: {[a.name for a in live_in[i]]} out: {[a.name for a in live_out[i]]}')
+        #     print(f'{ir} in: {[a.name for a in live_in[i]]} out: {[a.name for a in live_out[i]]}')
 
 
         # defined = self.defined_vars
@@ -1585,21 +1581,21 @@ class irDefine(IR):
     def __str__(self):
         return f'DEF: {self.var} depth: {self.scope_depth}'
 
-class irLoopEntry(IR):
-    def __init__(self, name, **kwargs):
-        super().__init__(**kwargs)
-        self.name = name
+# class irLoopEntry(IR):
+#     def __init__(self, name, **kwargs):
+#         super().__init__(**kwargs)
+#         self.name = name
 
-    def __str__(self):
-        return f'LoopEntry: {self.name}'
+#     def __str__(self):
+#         return f'LoopEntry: {self.name}'
 
-class irLoopExit(IR):
-    def __init__(self, name, **kwargs):
-        super().__init__(**kwargs)
-        self.name = name
+# class irLoopExit(IR):
+#     def __init__(self, name, **kwargs):
+#         super().__init__(**kwargs)
+#         self.name = name
 
-    def __str__(self):
-        return f'LoopExit: {self.name}'
+#     def __str__(self):
+#         return f'LoopExit: {self.name}'
 
 class irLabel(IR):
     def __init__(self, name, **kwargs):
