@@ -233,7 +233,7 @@ class irBlock(IR):
                 s += f'{ir_s}\n'
                 s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
                 s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
-                s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
+                # s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
 
             # elif True:
             elif False:
@@ -923,7 +923,110 @@ class irBlock(IR):
 
     #     return defined
 
-    def usedef(self, used=None, defined=None, visited=None):
+    # def usedef(self, used=None, defined=None, visited=None):
+    #     if visited is None:
+    #         visited = []
+
+    #     if self in visited:
+    #         return
+
+    #     visited.append(self)
+
+    #     if defined is None:
+    #         defined = {}
+
+    #     if used is None:
+    #         used = {}
+
+    #     prev = []
+    #     for ir in self.code:
+    #         if ir not in defined:
+    #             defined[ir] = []
+
+    #         defined[ir].extend(prev)
+
+    #         for o in ir.get_output_vars():
+    #             # if o not in defined:
+    #                 # defined[o] = []
+    #             if o.is_const:
+    #                 continue
+
+    #             defined[ir].append(o)
+
+    #         prev = defined[ir]
+
+    #     prev = []
+    #     for ir in reversed(self.code):
+    #         if ir not in used:
+    #             used[ir] = []
+
+    #         used[ir].extend(prev)
+
+    #         for i in ir.get_input_vars():
+    #             # if i not in used:
+    #                 # used[i] = []
+
+    #             if i.is_const:
+    #                 continue
+
+    #             used[ir].append(i)
+
+    #         for o in ir.get_output_vars():
+    #             if o in used[ir]:
+    #                 used[ir].remove(o)
+
+    #         prev = used[ir]
+
+    #     # continue with successors:
+    #     for suc in self.successors:
+    #         suc.usedef(used, defined, visited)
+
+    #     return used, defined
+
+
+    def used(self, used=None, prev=None, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        if used is None:
+            used = {}
+
+        if prev is None:
+            prev = []
+
+        for ir in reversed(self.code):
+            if ir not in used:
+                used[ir] = []
+
+            used[ir].extend(prev)
+
+            for i in ir.get_input_vars():
+                if i.is_const:
+                    continue
+
+                used[ir].append(i)
+
+            prev = copy(used[ir])
+
+            for o in ir.get_output_vars():
+                if o in prev:
+                    prev.remove(o)
+
+        prev = used[self.code[-1]]
+
+        # continue with successors:
+        for suc in self.successors:
+            suc.used(used, prev, visited)
+
+        return used
+
+
+    def defined(self, defined=None, prev=None, visited=None):
         if visited is None:
             visited = []
 
@@ -935,27 +1038,66 @@ class irBlock(IR):
         if defined is None:
             defined = {}
 
-        if used is None:
-            used = {}
+        if prev is None:
+            prev = []
 
         for ir in self.code:
+            if ir not in defined:
+                defined[ir] = []
+
+            defined[ir].extend(prev)
+
             for o in ir.get_output_vars():
-                if o not in defined:
-                    defined[o] = []
+                if o.is_const:
+                    continue
 
-                defined[o].append(ir)
+                defined[ir].append(o)
 
-            for i in ir.get_input_vars():
-                if i not in used:
-                    used[i] = []
+            # this shouldn't be necessary for the algorithm
+            # to work, but it cleans up the intermediate output a bit
+            if isinstance(ir, irPhi):
+                for d in ir.defines:
+                    if d in defined[ir]:
+                        defined[ir].remove(d)
 
-                used[i].append(ir)
+            prev = defined[ir]
 
         # continue with successors:
         for suc in self.successors:
-            suc.usedef(used, defined, visited)
+            suc.defined(defined, prev, visited)
 
-        return defined, used
+        return defined
+
+    def liveness(self, used, defined, live=None, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        if live is None:
+            combined = {}
+            combined.update(used)
+            combined.update(defined)
+            live = {a: [] for a in combined}
+
+        for ir in self.code:
+            for a, v in defined.items():
+                if ir in v:
+                    live[a].append(ir)
+
+        for ir in reversed(self.code):
+            for a, v in used.items():
+                if ir in v:
+                    live[a].append(ir)
+
+        # continue with successors:
+        for suc in self.successors:
+            suc.liveness(used, defined, live, visited)
+
+        return live
 
     ##############################################
     # Optimizer Passes
@@ -1286,7 +1428,7 @@ class irFunc(IR):
                 reads = [a.name for a in self.get_input_vars()]
                 block.remove_dead_code(reads=reads)
 
-        self.liveness = False
+        self.liveness = True
 
         # # run usedef analysis
         # self.defined_vars = self.defined()
@@ -1296,8 +1438,14 @@ class irFunc(IR):
         #     block.compute_live_in()
         #     block.compute_live_out()
 
-        used, defined = self.leader_block.usedef()
-        
+        defined = self.leader_block.defined()
+        used = self.leader_block.used()
+        # used, defined = self.leader_block.usedef()
+        # live = self.leader_block.liveness(used, defined)
+
+        self.used_vars = used
+        self.defined_vars = defined
+
         # # run liveness
         # self.liveness = self.liveness_analysis(self.used_vars, self.defined_vars)
 
@@ -1353,6 +1501,22 @@ class irFunc(IR):
 
         # reassemble code
         self.code = self.get_code_from_blocks()
+
+        # self.used_vars = {ir: [] for ir in self.code}
+        # for a, v in used.items():
+        #     for ir in v:
+        #         self.used_vars[ir].append(a)
+
+        # self.defined_vars = {ir: [] for ir in self.code}
+        # for a, v in defined.items():
+        #     for ir in v:
+        #         self.defined_vars[ir].append(a)
+
+        # self.liveness = {ir: [] for ir in self.code}
+        # for a, v in live.items():
+        #     for ir in v:
+        #         self.liveness[ir].append(a)
+
 
         # labels = {}
         
