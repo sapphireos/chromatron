@@ -989,12 +989,13 @@ class irBlock(IR):
             visited = []
 
         if self in visited:
-            return
+            return {}
 
         visited.append(self)
 
         if used is None:
-            used = {}
+            # used = {}
+            used = {ir: [] for ir in self.code}
 
         if prev is None:
             prev = []
@@ -1017,12 +1018,20 @@ class irBlock(IR):
                 if o in prev:
                     prev.remove(o)
 
-        prev = used[self.code[-1]]
+        # prev = used[self.code[-1]]
+        prev = None
 
         # continue with successors:
         for suc in self.successors:
-            suc.used(used, prev, visited)
+            suc_used = suc.used(visited=visited)
 
+            for ir, v in suc_used.items():
+                if ir not in used:
+                    used[ir] = []
+
+                for a in v:
+                    if a not in used[ir]:
+                        used[ir].append(a)
         return used
 
 
@@ -1031,7 +1040,7 @@ class irBlock(IR):
             visited = []
 
         if self in visited:
-            return
+            return {}
 
         visited.append(self)
 
@@ -1052,13 +1061,6 @@ class irBlock(IR):
                     continue
 
                 defined[ir].append(o)
-
-            # this shouldn't be necessary for the algorithm
-            # to work, but it cleans up the intermediate output a bit
-            if isinstance(ir, irPhi):
-                for d in ir.defines:
-                    if d in defined[ir]:
-                        defined[ir].remove(d)
 
             prev = defined[ir]
 
