@@ -67,11 +67,11 @@ class IR(object):
 
     @property
     def gen(self):
-        return set(self.get_input_vars())
+        return set([a for a in self.get_input_vars() if not a.is_const])
 
     @property
     def kill(self):
-        return set(self.get_output_vars())
+        return set([a for a in self.get_output_vars() if not a.is_const])
 
     @property
     def global_input_vars(self):
@@ -1321,6 +1321,7 @@ class irFunc(IR):
 
             for a in range(len(self.code)):
                 i = (len(self.code) - 1) - a
+                # i = a
                 ir = self.code[i]
 
                 live_in[i] = gen[i] | (live_out[i] - kill[i])
