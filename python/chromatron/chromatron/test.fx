@@ -39,30 +39,43 @@
 # global_a = Fixed16()
 # global_b = Number()
 
-def while_loop():
-	i = Number()
-	i = 4
+def simple_ifelse():
+	a = Number()
+	b = Number()
 
-	# if i == 1:
-		# return 2
+	if a > 0:
+		b = 1
 
-	while i > 0:
-		i -= 1
+	else:
+		b = 2
 
-		# a = Number()
-		# # # a = 2 + 3
+	return b
 
-		# if i == 1:
-			# i = 2
 
-		# while a == 2:
-		# 	a += 1
-		# 	i -= 3
-			# i = a + 2 + 3
+# def while_loop():
+# 	i = Number()
+# 	i = 4
 
-		# i += 1
+# 	# if i == 1:
+# 		# return 2
 
-	return i
+# 	while i > 0:
+# 		i -= 1
+
+# 		# a = Number()
+# 		# # # a = 2 + 3
+
+# 		if i == 1:
+# 			i = 2
+
+# 		# while a == 2:
+# 		# 	a += 1
+# 		# 	i -= 3
+# 			# i = a + 2 + 3
+
+# 		# i += 1
+
+# 	return i
 
 # def simple_array():
 # 	a = Number(count=4)

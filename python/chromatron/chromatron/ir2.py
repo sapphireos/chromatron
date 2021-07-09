@@ -59,13 +59,13 @@ class IR(object):
     def get_jump_target(self):
         return None
 
-    @property
-    def gen(self):
-        return set([a for a in self.get_input_vars() if not a.is_const])
+    # @property
+    # def gen(self):
+    #     return set([a for a in self.get_input_vars() if not a.is_const])
 
-    @property
-    def kill(self):
-        return set([a for a in self.get_output_vars() if not a.is_const])
+    # @property
+    # def kill(self):
+    #     return set([a for a in self.get_output_vars() if not a.is_const])
 
     @property
     def global_input_vars(self):
@@ -1042,55 +1042,55 @@ class irBlock(IR):
         return used
 
 
-    def used222(self, used=None, visited=None):
-        if visited is None:
-            visited = []
+    # def used222(self, used=None, visited=None):
+    #     if visited is None:
+    #         visited = []
 
-        if self in visited:
-            return {}
+    #     if self in visited:
+    #         return {}
 
-        visited.append(self)
+    #     visited.append(self)
 
-        if used is None:
-            #used = {ir: [] for ir in self.code}
-            used = {}
+    #     if used is None:
+    #         #used = {ir: [] for ir in self.code}
+    #         used = {}
 
-        prev = []
-        for suc in self.successors:
-            suc_used = suc.used(used=used, visited=visited)
+    #     prev = []
+    #     for suc in self.successors:
+    #         suc_used = suc.used(used=used, visited=visited)
 
-            if len(suc_used) == 0:
-                continue
+    #         if len(suc_used) == 0:
+    #             continue
 
-            for ir, v in suc_used.items():
-                if ir not in used:
-                    used[ir] = []
+    #         for ir, v in suc_used.items():
+    #             if ir not in used:
+    #                 used[ir] = []
 
-                for a in v:
-                    if a not in used[ir]:
-                        used[ir].append(a)
+    #             for a in v:
+    #                 if a not in used[ir]:
+    #                     used[ir].append(a)
 
-            prev.extend(suc_used[suc.code[0]])
+    #         prev.extend(suc_used[suc.code[0]])
 
-        for ir in reversed(self.code):
-            if ir not in used:
-                used[ir] = []
+    #     for ir in reversed(self.code):
+    #         if ir not in used:
+    #             used[ir] = []
 
-            used[ir].extend(prev)
+    #         used[ir].extend(prev)
 
-            for i in ir.get_input_vars():
-                if i.is_const:
-                    continue
+    #         for i in ir.get_input_vars():
+    #             if i.is_const:
+    #                 continue
 
-                used[ir].append(i)
+    #             used[ir].append(i)
 
-            prev = copy(used[ir])
+    #         prev = copy(used[ir])
 
-            for o in ir.get_output_vars():
-                if o in prev:
-                    prev.remove(o)
+    #         for o in ir.get_output_vars():
+    #             if o in prev:
+    #                 prev.remove(o)
 
-        return used
+    #     return used
 
 
     def defined(self, defined=None, prev=None, visited=None):
@@ -2374,7 +2374,7 @@ class irVar(IR):
             return f'{s}'
 
     def __repr__(self):
-        return self.name
+        return f'{self.name}/{id(self)}'
 
 
 
