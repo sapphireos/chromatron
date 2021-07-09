@@ -1120,7 +1120,42 @@ class irBlock(IR):
 
                 defined[ir].append(o)
 
+            # phi kills definitions on its inputs (as they are replaced by the phi's output)
+            if isinstance(ir, irPhi):
+                for d in ir.defines:
+                    if d in defined[ir]:
+                        defined[ir].remove(d)
+
             prev = defined[ir]
+
+
+        # look for phi nodes.
+        # phi defines are live starting at top of block:
+        phi_defines = {}
+        for ir in self.code:
+            if isinstance(ir, irPhi):
+                phi_defines[ir] = []
+                for d in ir.defines:
+                    if d not in phi_defines:
+                        phi_defines[ir].append(d)
+
+        # apply phi defines from top down to phi node
+        for ir in self.code:
+            # check if this is a phi, if so,
+            # apply it's defines and then remove it from consideration
+            if ir in phi_defines:
+                for d in phi_defines[ir]:
+                    if d not in defined[ir]:
+                        defined[ir].append(d)
+
+                del phi_defines[ir]
+
+            else:                
+                for phi, defines in phi_defines.items():
+                    for d in defines:
+                        if d not in defined[ir]:
+                            defined[ir].append(d)
+
 
         # continue with successors:
         for suc in self.successors:
@@ -1143,6 +1178,7 @@ class irBlock(IR):
             combined.update(defined)
             live = {a: [] for a in combined}
 
+        # intersection of defined and used for liveness:
         for ir in self.code:
             for d in defined[ir]:
                 if d in used[ir]:
