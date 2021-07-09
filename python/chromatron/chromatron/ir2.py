@@ -119,21 +119,22 @@ class irProgram(IR):
         for func in self.funcs.values():
             func.analyze_blocks()
 
-# class Edge(object):
-#     def __init__(self, from_node, to_node):
-#         self.from_node = from_node
-#         self.to_node = to_node
 
-#     def __hash__(self):
-#         t = (self.from_node, self.to_node)
+class Edge(object):
+    def __init__(self, from_node, to_node):
+        self.from_node = from_node
+        self.to_node = to_node
 
-#         return hash(t)
+    def __hash__(self):
+        t = (self.from_node, self.to_node)
 
-#     def __eq__(self, other):
-#         return hash(self) == hash(other)
+        return hash(t)
 
-#     def __str__(self):
-#         return f'{self.from_node.name} -> {self.to_node.name}'
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __str__(self):
+        return f'{self.from_node.name} -> {self.to_node.name}'
 
 #     @property
 #     def is_back_edge(self):
@@ -233,7 +234,7 @@ class irBlock(IR):
                 s += f'{ir_s}\n'
                 s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
                 s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
-                # s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
+                s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
 
             # elif True:
             elif False:
@@ -436,7 +437,32 @@ class irBlock(IR):
 
         return ds
 
+    @property
+    def _used(self):
+        used = {}
+        prev = []
+    
+        for ir in reversed(self.code):
+            if ir not in used:
+                used[ir] = []
 
+            used[ir].extend(prev)
+
+            for i in ir.get_input_vars():
+                if i.is_const:
+                    continue
+
+                if i not in used[ir]:
+                    used[ir].append(i)
+
+            prev = copy(used[ir])
+
+            for o in ir.get_output_vars():
+                if o in prev:
+                    prev.remove(o)
+
+        return used
+        
     ##############################################
     # Analysis Passes
     ##############################################
@@ -983,8 +1009,40 @@ class irBlock(IR):
 
     #     return used, defined
 
+    def used(self, used=None, visited=None, edge=None):
+        if visited is None:
+            visited = []
 
-    def used(self, used=None, prev=None, visited=None):
+        if edge is not None and edge in visited:
+            return {}
+
+        visited.append(edge)
+            
+        if used is None:
+            used = {}
+
+        used.update(self._used)
+
+        for suc in self.successors:
+            edge = Edge(self, suc)
+            suc_used = suc.used(visited=visited, edge=edge)
+
+            if len(suc_used) == 0:
+                continue
+
+            block_used = suc_used[suc.code[0]]
+
+            for ir in reversed(self.code):
+                for i in block_used:
+                    if i not in used[ir]:
+                        used[ir].append(i)
+
+            used.update(suc_used)
+
+        return used
+
+
+    def used222(self, used=None, visited=None):
         if visited is None:
             visited = []
 
@@ -994,11 +1052,25 @@ class irBlock(IR):
         visited.append(self)
 
         if used is None:
-            # used = {}
-            used = {ir: [] for ir in self.code}
+            #used = {ir: [] for ir in self.code}
+            used = {}
 
-        if prev is None:
-            prev = []
+        prev = []
+        for suc in self.successors:
+            suc_used = suc.used(used=used, visited=visited)
+
+            if len(suc_used) == 0:
+                continue
+
+            for ir, v in suc_used.items():
+                if ir not in used:
+                    used[ir] = []
+
+                for a in v:
+                    if a not in used[ir]:
+                        used[ir].append(a)
+
+            prev.extend(suc_used[suc.code[0]])
 
         for ir in reversed(self.code):
             if ir not in used:
@@ -1018,20 +1090,6 @@ class irBlock(IR):
                 if o in prev:
                     prev.remove(o)
 
-        # prev = used[self.code[-1]]
-        prev = None
-
-        # continue with successors:
-        for suc in self.successors:
-            suc_used = suc.used(visited=visited)
-
-            for ir, v in suc_used.items():
-                if ir not in used:
-                    used[ir] = []
-
-                for a in v:
-                    if a not in used[ir]:
-                        used[ir].append(a)
         return used
 
 
@@ -1086,14 +1144,10 @@ class irBlock(IR):
             live = {a: [] for a in combined}
 
         for ir in self.code:
-            for a, v in defined.items():
-                if ir in v:
-                    live[a].append(ir)
-
-        for ir in reversed(self.code):
-            for a, v in used.items():
-                if ir in v:
-                    live[a].append(ir)
+            for d in defined[ir]:
+                if d in used[ir]:
+                    if d not in live[ir]:
+                        live[ir].append(d)
 
         # continue with successors:
         for suc in self.successors:
@@ -1443,10 +1497,11 @@ class irFunc(IR):
         defined = self.leader_block.defined()
         used = self.leader_block.used()
         # used, defined = self.leader_block.usedef()
-        # live = self.leader_block.liveness(used, defined)
+        live = self.leader_block.liveness(used, defined)
 
         self.used_vars = used
         self.defined_vars = defined
+        self.liveness = live
 
         # # run liveness
         # self.liveness = self.liveness_analysis(self.used_vars, self.defined_vars)
