@@ -96,6 +96,36 @@ static const gpio_num_t gpios_v0_1[IO_PIN_COUNT] = {
     GPIO_NUM_2, // IO_PIN_LED2
 };
 
+
+static const gpio_num_t gpios_wrover_kit[IO_PIN_COUNT] = {
+    GPIO_NUM_13, // IO_PIN_13_A12 
+    GPIO_NUM_12, // IO_PIN_12_A11 
+    GPIO_NUM_27, // IO_PIN_27_A10 
+    GPIO_NUM_33, // IO_PIN_33_A9  
+    GPIO_NUM_15, // IO_PIN_15_A8  
+    GPIO_NUM_32, // IO_PIN_32_A7  
+    GPIO_NUM_14, // IO_PIN_14_A6  
+    GPIO_NUM_22, // IO_PIN_22_SCL 
+    GPIO_NUM_23, // IO_PIN_23_SDA 
+    GPIO_NUM_21, // IO_PIN_21     
+    GPIO_NUM_17, // IO_PIN_17_TX  
+    GPIO_NUM_16, // IO_PIN_16_RX  
+    GPIO_NUM_19, // IO_PIN_19_MISO
+    GPIO_NUM_18, // IO_PIN_18_MOSI
+    GPIO_NUM_5,  // IO_PIN_5_SCK  
+    GPIO_NUM_4,  // IO_PIN_4_A5   
+    GPIO_NUM_36, // IO_PIN_36_A4  
+    GPIO_NUM_39, // IO_PIN_39_A3  
+    GPIO_NUM_34, // IO_PIN_34_A2  
+    GPIO_NUM_25, // IO_PIN_25_A1  
+    GPIO_NUM_26, // IO_PIN_26_A0  
+
+    GPIO_NUM_0, // IO_PIN_LED0
+    GPIO_NUM_4, // IO_PIN_LED1
+    GPIO_NUM_2, // IO_PIN_LED2
+};
+
+
 static const gpio_num_t *gpios = gpios_v0_1;
 
 int32_t hal_io_i32_get_gpio_num( uint8_t pin ){
@@ -140,6 +170,10 @@ void io_v_init( void ){
     else if( board == BOARD_TYPE_CHROMATRON32_v0_1 ){
 
         gpios = gpios_v0_1;
+    }
+    else if( board == BOARD_TYPE_WROVER_KIT ){
+
+        gpios = gpios_wrover_kit;
     }
     else{
 

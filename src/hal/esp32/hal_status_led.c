@@ -31,6 +31,7 @@
 #include "wifi.h"
 #include "timesync.h"
 
+#include "hal_boards.h"
 #include "hal_status_led.h"
 
 
@@ -194,13 +195,20 @@ void reset_all( void ){
     io_v_set_mode( IO_PIN_LED1, IO_MODE_OUTPUT );
     io_v_set_mode( IO_PIN_LED2, IO_MODE_OUTPUT );
 
-    io_v_digital_write( IO_PIN_LED0, TRUE );
-    io_v_digital_write( IO_PIN_LED1, TRUE );
-    io_v_digital_write( IO_PIN_LED2, TRUE );
+    bool direction = TRUE;
+
+    // wrover kit has inverted LED drive
+    if( ffs_u8_read_board_type() == BOARD_TYPE_WROVER_KIT ){
+
+        direction = FALSE;
+    }
+
+    io_v_digital_write( IO_PIN_LED0, direction );
+    io_v_digital_write( IO_PIN_LED1, direction );
+    io_v_digital_write( IO_PIN_LED2, direction );
 }
 
 
-// this will also change on v0.1.....
 #define LED_BLUE        IO_PIN_LED1
 #define LED_GREEN       IO_PIN_LED2
 #define LED_RED         IO_PIN_LED0
@@ -240,6 +248,15 @@ void status_led_v_set( uint8_t state, uint8_t led ){
     }
 
     reset_all();
+
+    bool direction = FALSE;
+
+    // wrover kit has inverted LED drive
+    if( ffs_u8_read_board_type() == BOARD_TYPE_WROVER_KIT ){
+
+        direction = TRUE;
+    }
+
  
     if( state == 0 ){
 
@@ -248,36 +265,36 @@ void status_led_v_set( uint8_t state, uint8_t led ){
 
     switch( led ){
         case STATUS_LED_BLUE:
-            io_v_digital_write( LED_BLUE, FALSE );
+            io_v_digital_write( LED_BLUE, direction );
             break;
 
         case STATUS_LED_GREEN:
-            io_v_digital_write( LED_GREEN, FALSE );
+            io_v_digital_write( LED_GREEN, direction );
             break;
 
         case STATUS_LED_RED:
-            io_v_digital_write( LED_RED, FALSE );
+            io_v_digital_write( LED_RED, direction );
             break;
 
         case STATUS_LED_YELLOW:
-            io_v_digital_write( LED_GREEN, FALSE );
-            io_v_digital_write( LED_RED, FALSE );
+            io_v_digital_write( LED_GREEN, direction );
+            io_v_digital_write( LED_RED, direction );
             break;
 
         case STATUS_LED_PURPLE:
-            io_v_digital_write( LED_BLUE, FALSE );
-            io_v_digital_write( LED_RED, FALSE );
+            io_v_digital_write( LED_BLUE, direction );
+            io_v_digital_write( LED_RED, direction );
             break;
 
         case STATUS_LED_TEAL:
-            io_v_digital_write( LED_BLUE, FALSE );
-            io_v_digital_write( LED_GREEN, FALSE );
+            io_v_digital_write( LED_BLUE, direction );
+            io_v_digital_write( LED_GREEN, direction );
             break;
 
         case STATUS_LED_WHITE:
-            io_v_digital_write( LED_RED,  FALSE );
-            io_v_digital_write( LED_GREEN, FALSE );
-            io_v_digital_write( LED_BLUE, FALSE );
+            io_v_digital_write( LED_RED,  direction );
+            io_v_digital_write( LED_GREEN, direction );
+            io_v_digital_write( LED_BLUE, direction );
             break;
 
         default:
