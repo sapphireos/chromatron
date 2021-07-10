@@ -1743,7 +1743,21 @@ class irVar(IR):
     #     if value:
     #         assert self.is_global
 
-    #     self._is_global_modified = value   
+    #     self._is_global_modified = value
+
+    def __hash__(self):
+        if self.ssa_version is None:
+            return hash(self)
+
+        else:
+            return hash(self.name)
+
+    # def __eq__(self, other):
+    #     if self.ssa_version is None:
+    #         return super().__eq__(other)
+
+    #     else:
+    #         return self.name == other.name   
 
     @property
     def value(self):
