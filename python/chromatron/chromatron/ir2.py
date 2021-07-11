@@ -683,6 +683,21 @@ class irBlock(IR):
         self.live_out = live
 
     def used(self, used=None, visited=None, edge=None):
+        def merge_used(used1, used2):
+            used = copy(used1)
+        
+            for k2, v2 in used2.items():
+                if k2 in used:
+                    for v in v2:
+                        if v not in used[k2]:
+                            used[k2].append(v)
+
+                else:
+                    used[k2] = v2
+
+            return used
+
+
         if visited is None:
             visited = []
 
@@ -694,7 +709,7 @@ class irBlock(IR):
         if used is None:
             used = {}
 
-        used.update(self._used)
+        used = merge_used(used, self._used)
 
         for suc in self.successors:
             edge = Edge(self, suc)
@@ -710,7 +725,11 @@ class irBlock(IR):
                     if i not in used[ir]:
                         used[ir].append(i)
 
-            used.update(suc_used)
+            used = merge_used(used, suc_used)
+            
+        print(f'\n{self.name}')
+        for u, v in used.items():
+            print(f'\t{u}: {[a.name for a in v]}')
 
         return used
 
