@@ -1778,12 +1778,12 @@ class irVar(IR):
         else:
             return hash(self.name)
 
-    # def __eq__(self, other):
-    #     if self.ssa_version is None:
-    #         return super().__eq__(other)
+    def __eq__(self, other):
+        if self.ssa_version is None:
+            return super().__eq__(other)
 
-    #     else:
-    #         return self.name == other.name   
+        else:
+            return self.name == other.name   
 
     @property
     def value(self):
