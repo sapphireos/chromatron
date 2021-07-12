@@ -1,6 +1,6 @@
 
 import logging
-from copy import copy
+from copy import copy, deepcopy
 
 
 source_code = []
@@ -693,10 +693,9 @@ class irBlock(IR):
                             used[k2].append(v)
 
                 else:
-                    used[k2] = v2
+                    used[k2] = copy(v2)
 
             return used
-
 
         if visited is None:
             visited = []
@@ -807,13 +806,13 @@ class irBlock(IR):
         visited.append(self)
 
         if live is None:
-            combined = {}
-            combined.update(used)
-            combined.update(defined)
-            live = {a: [] for a in combined}
+            live = {}
 
         # intersection of defined and used for liveness:
         for ir in self.code:
+            if ir not in live:
+                live[ir] = []
+
             for d in defined[ir]:
                 if d in used[ir]:
                     if d not in live[ir]:
@@ -1127,7 +1126,7 @@ class irFunc(IR):
         return used
 
     def liveness(self, used, defined):
-        return self.leader_block(used, defined)
+        return self.leader_block.liveness(used, defined)
 
     def analyze_blocks(self):
         self.blocks = {}
