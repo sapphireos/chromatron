@@ -726,14 +726,14 @@ class irBlock(IR):
 
         return used
 
-    def defined(self, defined=None, prev=None, visited=None):
+    def defined(self, defined=None, prev=None, visited=None, edge=None):
         if visited is None:
             visited = []
 
-        if self in visited:
+        if edge is not None and edge in visited:
             return {}
 
-        visited.append(self)
+        visited.append(edge)
 
         if defined is None:
             defined = {}
@@ -792,7 +792,8 @@ class irBlock(IR):
 
         # continue with successors:
         for suc in self.successors:
-            suc.defined(defined, prev, visited)
+            edge = Edge(self, suc)
+            suc.defined(defined, prev, visited, edge)
 
         return defined
 
