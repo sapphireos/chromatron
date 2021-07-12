@@ -711,25 +711,19 @@ class irBlock(IR):
 
         used = merge_used(used, self._used)
 
-        for suc in self.successors:
-            edge = Edge(self, suc)
-            suc_used = suc.used(visited=visited, edge=edge)
+        if isinstance(edge, Edge):
+            suc_used = used[edge.from_node.code[0]]
 
-            if len(suc_used) == 0:
-                continue
+            for ir in self.code:
+                for v in suc_used:
+                    if v not in used[ir]:
+                        used[ir].append(v)
 
-            block_used = suc_used[suc.code[0]]
+        for pre in self.predecessors:
+            edge = Edge(self, pre)
+            pre_used = pre.used(used=used, visited=visited, edge=edge)
 
-            for ir in reversed(self.code):
-                for i in block_used:
-                    if i not in used[ir]:
-                        used[ir].append(i)
-
-            used = merge_used(used, suc_used)
-            
-        print(f'\n{self.name}')
-        for u, v in used.items():
-            print(f'\t{u}: {[a.name for a in v]}')
+            used = merge_used(used, pre_used)
 
         return used
 
@@ -1120,6 +1114,20 @@ class irFunc(IR):
 
         return block
 
+    def defined(self):
+        return self.leader_block.defined()
+
+    def used(self):
+        # run used on each terminator node
+        used = {}
+        for block in self.blocks.values():
+            if block.is_terminator:
+                used = block.used(used=used, edge=block) 
+
+        return used
+
+    def liveness(self, used, defined):
+        return self.leader_block(used, defined)
 
     def analyze_blocks(self):
         self.blocks = {}
@@ -1161,16 +1169,15 @@ class irFunc(IR):
                 block.remove_dead_code(reads=reads)
 
         # run usedef analysis
-        defined = self.leader_block.defined()
-        used = self.leader_block.used()
-
+        defined = self.defined()
+        used = self.used()
+        
         # liveness analysis
-        live = self.leader_block.liveness(used, defined)
+        live = self.liveness(used, defined)
 
         self.used_vars = used
         self.defined_vars = defined
         self.liveness = live
-
 
 
         # register allocator
