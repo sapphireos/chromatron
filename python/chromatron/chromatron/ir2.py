@@ -711,10 +711,10 @@ class irBlock(IR):
         used = merge_used(used, self._used)
 
         if isinstance(edge, Edge):
-            suc_used = used[edge.from_node.code[0]]
+            from_used = used[edge.from_node.code[0]]
 
             for ir in self.code:
-                for v in suc_used:
+                for v in from_used:
                     if v not in used[ir]:
                         used[ir].append(v)
 
