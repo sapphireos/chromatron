@@ -262,7 +262,7 @@ class Builder(object):
         end_label = self.label(f'{loop_name}.end', lineno=lineno)
         self.position_label(top_label)
 
-        ir = irLoopEntry(loop_name, lineno=lineno)
+        ir = irLoopHeader(loop_name, lineno=lineno)
         self.append_node(ir)
 
         self.next_loop += 1
@@ -279,6 +279,10 @@ class Builder(object):
         self.append_node(ir)
         
         self.position_label(body_label)
+
+        loop_name = self.loop[-1]   
+        ir = irLoopEntry(loop_name, lineno=lineno)
+        self.append_node(ir)
 
     def end_while(self, lineno=None):
         self.scope_depth -= 1

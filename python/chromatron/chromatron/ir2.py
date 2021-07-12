@@ -589,6 +589,7 @@ class irBlock(IR):
             index = i
 
             if not isinstance(self.code[index], irLabel) and \
+               not isinstance(self.code[index], irLoopHeader) and \
                not isinstance(self.code[index], irLoopEntry):
                 insertion_point = index
                 break
@@ -1318,6 +1319,14 @@ class irDefine(IR):
     
     def __str__(self):
         return f'DEF: {self.var} depth: {self.scope_depth}'
+
+class irLoopHeader(IR):
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+
+    def __str__(self):
+        return f'LoopHeader: {self.name}'
 
 class irLoopEntry(IR):
     def __init__(self, name, **kwargs):
