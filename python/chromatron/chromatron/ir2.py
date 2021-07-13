@@ -1222,9 +1222,10 @@ class irFunc(IR):
                 insert_index += 1
 
 
-        # need to remove redundant assigns here after loop invariant code motion
 
-        
+        # need to remove redundant assigns here after loop invariant code motion
+        # this may be easier after deconstructing SSA, since it will just be a 
+        # redundant assign within an intermediate read
 
 
         # run usedef analysis
@@ -1254,7 +1255,11 @@ class irFunc(IR):
 
         self.prune_no_ops()
 
-        # self.deconstruct_ssa();
+        self.deconstruct_ssa();
+
+        # remove redundant assignments
+        
+        
 
     def get_code_from_blocks(self):
         code = []
