@@ -1560,47 +1560,6 @@ class irFill(IR):
         return [self.target]
 
 
-
-
-# class irIndex(IR):
-#     def __init__(self, result, target, index, **kwargs):
-#         super().__init__(**kwargs)        
-#         self.result = result
-#         self.target = target
-#         self.index = index
-
-#     def __str__(self):
-#         s = '%s = INDEX %s[%s]' % (self.result, self.target, self.index)
-
-#         return s
-
-#     def get_input_vars(self):
-#         return [self.target, self.index]
-
-#     def get_output_vars(self):
-#         return [self.result]
-
-
-# class irAttr(IR):
-#     def __init__(self, result, target, attr, **kwargs):
-#         super().__init__(**kwargs)        
-#         self.result = result
-#         self.target = target
-#         self.attr = attr
-
-#     def __str__(self):
-#         s = '%s = ATTR %s.%s' % (self.result, self.target, self.attr)
-
-#         return s
-
-#     def get_input_vars(self):
-#         # return [self.target, self.attr]
-#         return [self.target]
-
-#     def get_output_vars(self):
-#         return [self.result]
-
-
 class irBinop(IR):
     def __init__(self, result, op, left, right, **kwargs):
         super().__init__(**kwargs)
@@ -1865,60 +1824,6 @@ ZERO.is_const = True
 
 def get_zero(lineno=None):
     return ZERO
-
-
-
-# class irGlobal(irVar):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-
-#         self.is_global = True
-#         assert self.type is not None
-
-#     def __str__(self):
-#         return "Global(%s:%s)" % (self._name, self.type)
-
-        
-# class irConst(irVar):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-
-#         # if self.name == 'True':
-#         #     self.value = 1
-#         # elif self.name == 'False':
-#         #     self.value = 0
-#         # elif self.type == 'f16':
-#         #     val = float(self.name)
-#         #     if val > 32767.0 or val < -32767.0:
-#         #         raise SyntaxError("Fixed16 out of range, must be between -32767.0 and 32767.0", lineno=kwargs['lineno'])
-
-#         #     self.value = int(val * 65536)
-#         # else:
-#         #     self.value = int(self.name)
-
-#         # self.default_value = self.value
-
-#         self.is_const = True
-
-#     def __str__(self):
-#         if self.type:
-#             return "Const(%s:%s)" % (self.name, self.type)
-
-#         else:
-#             return "Const(%s)" % (self.name)
-   
-# class irTemp(irVar):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-
-#         self.is_temp = True
-
-#     def __str__(self):
-#         if self.type:
-#             return "Temp(%s:%s)" % (self.name, self.type)
-
-#         else:
-#             return "Temp(%s)" % (self.name)
 
 class irRef(irVar):
     def __init__(self, target, ref_count, *args, **kwargs):
