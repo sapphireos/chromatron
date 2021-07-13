@@ -59,19 +59,24 @@ def while_loop():
 	# if i == 1:
 		# return 2
 
+	a = Number()
+
 	while i > 0:
 		i -= 1
 
-		a = Number()
-		a = 2 + i + 4
-		# a = 4
+		a = 1 + 2
+		a = 3 + 4
 
-		while a > 0:
-			a -= 1
-			if a == 0:
-				i -= 2
-			else:
-				i = 1
+		# a = Number()
+		# a = 2 + i + 4
+		# # a = 4
+
+		# while a > 0:
+		# 	a -= 1
+		# 	if a == 0:
+		# 		i -= 2
+		# 	else:
+		# 		i = 1
 
 		# if i == 1:
 		# 	i = 2
@@ -86,7 +91,7 @@ def while_loop():
 
 		# i += 1
 
-	return i
+	# return a
 
 # def simple_array():
 # 	a = Number(count=4)

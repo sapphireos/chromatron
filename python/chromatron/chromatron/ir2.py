@@ -1157,6 +1157,7 @@ class irFunc(IR):
         self.leader_block.apply_types()
         self.leader_block.insert_phi()
 
+
         optimize = True
 
         if optimize:
@@ -1173,6 +1174,57 @@ class irFunc(IR):
                 reads = [a.name for a in self.get_input_vars()]
                 block.remove_dead_code(reads=reads)
 
+
+        loops = self.leader_block.analyze_loops()
+        # from pprint import pprint
+        # pprint(loops)
+
+        # basic loop invariant code motion:
+
+        for loop, info in loops.items():
+            header_code = []
+
+            for block in info['body']:
+                for index in range(len(block.code)):
+                    ir = block.code[index]
+
+                    if isinstance(ir, irBinop):
+                        # check if inputs are loop invariant
+
+                        # for now, just check for consts, until we have a reaching def
+                        if ir.left.is_const and ir.right.is_const:
+                            # move instruction to header
+                            header_code.append(ir)
+
+                            # replace instruction at this location with no-op
+                            block.code[index] = irNop(lineno=-1)
+
+                    elif isinstance(ir, irAssign):
+                        if ir.value.is_const:
+                            # move instruction to header
+                            header_code.append(ir)
+
+                            # replace instruction at this location with no-op
+                            block.code[index] = irNop(lineno=-1)
+
+
+            # add code to loop header
+            header = info['header']
+            insert_index = None
+            # search for header:
+            for index in range(len(header.code)):
+                ir = header.code[index]
+
+                if isinstance(ir, irLoopHeader):
+                    insert_index = index + 1
+                    break
+
+            # insert code
+            for ir in header_code:
+                header.code.insert(insert_index, ir)
+                insert_index += 1
+
+
         # run usedef analysis
         defined = self.defined()
         used = self.used()
@@ -1186,11 +1238,6 @@ class irFunc(IR):
 
 
         # register allocator
-
-
-        loops = self.leader_block.analyze_loops()
-        from pprint import pprint
-        pprint(loops)
 
 
         # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
