@@ -62,8 +62,12 @@ def while_loop():
 	while i > 0:
 		i -= 1
 
-		# a = Number()
-		# # # a = 2 + 3
+		a = Number()
+		# a = 2 + 3
+		a = 4
+
+		while a > 0:
+			a -= 1
 
 		# if i == 1:
 			# i = 2

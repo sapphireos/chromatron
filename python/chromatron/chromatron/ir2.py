@@ -747,13 +747,16 @@ class irBlock(IR):
             if ir not in defined:
                 defined[ir] = []
 
-            defined[ir].extend(prev)
+            for d in prev:
+                if d not in defined[ir]:
+                    defined[ir].append(d)
 
             for o in ir.get_output_vars():
                 if o.is_const:
                     continue
 
-                defined[ir].append(o)
+                if o not in defined[ir]:
+                    defined[ir].append(o)
 
             # phi kills definitions on its inputs (as they are replaced by the phi's output)
             if isinstance(ir, irPhi):
