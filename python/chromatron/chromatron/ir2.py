@@ -616,38 +616,6 @@ class irBlock(IR):
         for suc in self.successors:
             suc.apply_types(visited, declarations)
 
-    def compute_live_in(self):
-        live = {}
-        prev = []
-        for ir in reversed(self.code):
-            live[ir] = copy(prev)
-
-            for i in ir.get_input_vars():
-                if i not in live[ir]:
-                    live[ir].append(i)
-
-            # outputs kill liveness
-            for o in ir.get_output_vars():
-                if o in live[ir]:
-                    live[ir].remove(o)
-
-            prev = live[ir]
-
-        self.live_in = live
-
-    def compute_live_out(self):
-        live = {}
-        prev = []
-        for ir in self.code:
-            live[ir] = copy(prev)
-            for o in ir.get_output_vars():
-                if o not in live[ir]:
-                    live[ir].append(o)
-
-            prev = live[ir]
-
-        self.live_out = live
-
     def used(self, used=None, visited=None, edge=None):
         def merge_used(used1, used2):
             used = copy(used1)
