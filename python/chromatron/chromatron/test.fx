@@ -63,8 +63,8 @@ def while_loop():
 		i -= 1
 
 		a = Number()
-		# a = 2 + 3
-		a = 4
+		a = 2 + i + 4
+		# a = 4
 
 		while a > 0:
 			a -= 1

@@ -1611,6 +1611,9 @@ class irBinop(IR):
 
         self.data_type = self.result.type
 
+        if self.op == 'div' and self.right.is_const and self.right.value == 0:
+            raise SyntaxError("Division by 0", lineno=self.lineno)
+
     def __str__(self):
         s = '%s = %s %s %s' % (self.result, self.left, self.op, self.right)
 
@@ -1632,7 +1635,7 @@ class irBinop(IR):
                 return irAssign(self.result, self.left, lineno=self.lineno)
 
         elif self.op == 'sub':
-            # sub  is just an assign
+            # sub 0 from var is just an assign
             if self.right.is_const and self.right.value == 0:
                 return irAssign(self.result, self.left, lineno=self.lineno)
         
