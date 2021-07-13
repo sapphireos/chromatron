@@ -899,7 +899,7 @@ class irBlock(IR):
         self.code = new_code       
 
 
-    def remove_redundant_copies(self):
+    def remove_redundant_binop_assigns(self):
         new_code = []
 
         # this is a peephole optimization
@@ -1162,7 +1162,7 @@ class irFunc(IR):
 
         if optimize:
             for block in self.blocks.values():
-                block.remove_redundant_copies()
+                block.remove_redundant_binop_assigns()
 
             for block in self.blocks.values():
                 block.fold_and_propagate_constants()
@@ -1205,7 +1205,6 @@ class irFunc(IR):
                             # replace instruction at this location with no-op
                             block.code[index] = irNop(lineno=-1)
 
-
             # add code to loop header
             header = info['header']
             insert_index = None
@@ -1221,6 +1220,11 @@ class irFunc(IR):
             for ir in header_code:
                 header.code.insert(insert_index, ir)
                 insert_index += 1
+
+
+        # need to remove redundant assigns here after loop invariant code motion
+
+        
 
 
         # run usedef analysis
@@ -1250,7 +1254,7 @@ class irFunc(IR):
 
         self.prune_no_ops()
 
-        self.deconstruct_ssa();
+        # self.deconstruct_ssa();
 
     def get_code_from_blocks(self):
         code = []
