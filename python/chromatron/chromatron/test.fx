@@ -68,10 +68,13 @@ def while_loop():
 
 		while a > 0:
 			a -= 1
-			i -= 2
+			if a == 0:
+				i -= 2
+			else:
+				i = 1
 
 		# if i == 1:
-			# i = 2
+		# 	i = 2
 
 		# else:
 		# 	i += 3

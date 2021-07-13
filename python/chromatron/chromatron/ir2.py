@@ -762,6 +762,75 @@ class irBlock(IR):
 
         return live
 
+    def _loops_pass_1(self, loops=None, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        if loops is None:
+            loops = {}
+
+        for ir in self.code:
+            if isinstance(ir, irLoopMeta):
+                if ir.name not in loops:
+                    loops[ir.name] = {
+                        'header': None,
+                        'entry': None,
+                        'body': [],
+                        'exit': None
+                    }
+
+            if isinstance(ir, irLoopHeader):
+                loops[ir.name]['header'] = self
+
+            elif isinstance(ir, irLoopEntry):
+                loops[ir.name]['entry'] = self
+                loops[ir.name]['body'].append(self)
+
+            elif isinstance(ir, irLoopExit):
+                loops[ir.name]['exit'] = self
+                loops[ir.name]['body'].append(self)
+
+        for suc in self.successors:
+            suc._loops_pass_1(loops, visited)                
+
+        return loops
+
+    def _loops_pass_2(self, loop, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+
+        if loop['exit'] is self:
+            return
+
+        if loop['entry'] is not self:
+            if self not in loop['body']:
+                loop['body'].append(self)
+
+        for suc in self.successors:
+            suc._loops_pass_2(loop, visited=visited)
+
+
+    def analyze_loops(self):
+        # get loop entries/exits
+        loops = self._loops_pass_1()
+
+        # fill out loop bodies
+        for loop, info in loops.items():
+            info['entry']._loops_pass_2(info)
+
+        return loops
+
     ##############################################
     # Optimizer Passes
     ##############################################
@@ -1119,6 +1188,10 @@ class irFunc(IR):
         # register allocator
 
 
+        loops = self.leader_block.analyze_loops()
+        from pprint import pprint
+        pprint(loops)
+
 
         # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
 
@@ -1296,7 +1369,10 @@ class irDefine(IR):
     def __str__(self):
         return f'DEF: {self.var} depth: {self.scope_depth}'
 
-class irLoopHeader(IR):
+class irLoopMeta(IR):
+    pass
+
+class irLoopHeader(irLoopMeta):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
@@ -1304,7 +1380,7 @@ class irLoopHeader(IR):
     def __str__(self):
         return f'LoopHeader: {self.name}'
 
-class irLoopEntry(IR):
+class irLoopEntry(irLoopMeta):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
@@ -1312,7 +1388,7 @@ class irLoopEntry(IR):
     def __str__(self):
         return f'LoopEntry: {self.name}'
 
-class irLoopExit(IR):
+class irLoopExit(irLoopMeta):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
