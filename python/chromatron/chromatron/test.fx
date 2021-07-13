@@ -91,7 +91,7 @@ def while_loop():
 
 		# i += 1
 
-	# return a
+	return a
 
 # def simple_array():
 # 	a = Number(count=4)

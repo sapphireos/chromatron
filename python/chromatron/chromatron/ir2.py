@@ -1176,9 +1176,7 @@ class irFunc(IR):
 
 
         loops = self.leader_block.analyze_loops()
-        # from pprint import pprint
-        # pprint(loops)
-
+        
         # basic loop invariant code motion:
 
         for loop, info in loops.items():
@@ -1280,6 +1278,8 @@ class irFunc(IR):
         new_code = []
 
         # this is a peephole optimization
+        # note we skip the last instruction in the loop, since
+        # we check current + 1 in the peephole
         for index in range(len(self.code) - 1):
             ir = self.code[index]
             next_ir = self.code[index + 1]
@@ -1306,7 +1306,7 @@ class irFunc(IR):
     def prune_no_ops(self):
         new_code = []
 
-        for index in range(len(self.code) - 1):
+        for index in range(len(self.code)):
             ir = self.code[index]
             
             if not isinstance(ir, irNop) and \
@@ -1332,7 +1332,7 @@ class irFunc(IR):
                 new_code = []
 
         # remove phi nodes
-        for index in range(len(self.code) - 1):
+        for index in range(len(self.code)):
             ir = self.code[index]
             
             if not isinstance(ir, irPhi):
