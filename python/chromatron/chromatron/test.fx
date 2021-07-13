@@ -68,6 +68,7 @@ def while_loop():
 
 		while a > 0:
 			a -= 1
+			i -= 2
 
 		# if i == 1:
 			# i = 2

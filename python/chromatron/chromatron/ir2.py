@@ -181,8 +181,8 @@ class irBlock(IR):
 
             if self.func.liveness:
                 s += f'{ir_s}\n'
-                s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
-                s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
+                # s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
+                # s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
                 s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
 
             else:
@@ -536,42 +536,6 @@ class irBlock(IR):
         # continue with successors:
         for suc in self.successors:
             suc.rename_vars(ssa_vars, visited)
-
-        return ssa_vars
-
-    def insert_phi_loop_closures(self, visited=None, ssa_vars=None):
-        assert ssa_vars is not None
-
-        if visited is None:
-            visited = []
-
-        if self in visited:
-            return
-        
-        visited.append(self)
-
-        # look for loop exits
-        for i in range(len(self.code)):
-            ir = self.code[i]
-
-            if isinstance(ir, irLoopExit):
-                for k, v in self.defines.items():
-
-                    new_var = irVar(lineno=v.lineno)
-                    new_var.__dict__ = copy(v.__dict__)
-                    new_var.ssa_version = ssa_vars[new_var._name].ssa_version + 1
-                    ssa_vars[new_var._name] = new_var
-
-                    self.defines[new_var._name] = new_var
-
-                    phi = irPhi(new_var, [v], lineno=-1)
-                    
-                    self.code.insert(i + 1, phi)
-
-                break
-
-        for suc in self.successors:
-            suc.insert_phi_loop_closures(visited, ssa_vars)
 
         return ssa_vars
 
@@ -1154,10 +1118,9 @@ class irFunc(IR):
         global_vars = self.leader_block.init_global_vars()
         ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
         self.leader_block.apply_types()
-        # self.leader_block.insert_phi_loop_closures(ssa_vars=ssa_vars)
         self.leader_block.insert_phi()
 
-        optimize = False
+        optimize = True
 
         if optimize:
             for block in self.blocks.values():
@@ -1198,6 +1161,10 @@ class irFunc(IR):
         
         if optimize:
             self.prune_jumps()
+
+        self.prune_no_ops()
+
+        self.deconstruct_ssa();
 
     def get_code_from_blocks(self):
         code = []
@@ -1244,6 +1211,44 @@ class irFunc(IR):
 
         # append last instruction (since loop will miss it)
         new_code.append(self.code[-1])
+
+        self.code = new_code
+
+    # remove all no-op instructions
+    def prune_no_ops(self):
+        new_code = []
+
+        for index in range(len(self.code) - 1):
+            ir = self.code[index]
+            
+            if not isinstance(ir, irNop) and \
+               not isinstance(ir, irDefine) and \
+               not isinstance(ir, irLoopHeader) and \
+               not isinstance(ir, irLoopEntry) and \
+               not isinstance(ir, irLoopExit):
+
+                new_code.append(ir)
+
+        self.code = new_code
+
+    def deconstruct_ssa(self):
+        # convert all SSA variables back to single
+        # representation
+        for ir in self.code:
+            for i in ir.get_input_vars():
+                i.ssa_version = None
+
+            for o in ir.get_output_vars():
+                o.ssa_version = None
+
+                new_code = []
+
+        # remove phi nodes
+        for index in range(len(self.code) - 1):
+            ir = self.code[index]
+            
+            if not isinstance(ir, irPhi):
+                new_code.append(ir)
 
         self.code = new_code
 
