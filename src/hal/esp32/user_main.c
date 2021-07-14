@@ -26,9 +26,15 @@ void sapphire_main();
 
 void app_main()
 {
+    #ifdef CONFIG_FREERTOS_UNICORE
+        int core = 0;
+    #else
+        int core = 1;
+    #endif
+
     xTaskCreatePinnedToCore(&sapphire_main, "sapphire",
                             MEM_MAX_STACK, NULL,
-                            ESP_TASK_MAIN_PRIO, NULL, 1);    
+                            ESP_TASK_MAIN_PRIO, NULL, core);    
 }
 
 void sapphire_main()
