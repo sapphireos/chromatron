@@ -65,7 +65,7 @@ def while_loop():
 		i -= 1
 
 		a = 1 + 2
-		a = 3 + 4
+		# a = 3 + 4
 
 		# a = Number()
 		# a = 2 + i + 4

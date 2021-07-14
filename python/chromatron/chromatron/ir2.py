@@ -3,6 +3,11 @@ import logging
 from copy import copy, deepcopy
 
 
+# debug imports:
+import sys
+from pprint import pprint
+# /debug
+
 source_code = []
 
 def set_source_code(source):
@@ -182,8 +187,8 @@ class irBlock(IR):
             if self.func.liveness:
                 s += f'{ir_s}\n'
                 # s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
-                # s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
-                s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
+                s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
+                # s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -949,6 +954,35 @@ class irBlock(IR):
 
         self.code = new_code
 
+    def remove_redundant_assigns(self):
+        # remove redundant assigns in SSA form.
+        remove = []
+
+        for i in range(len(self.code)):
+            ir = self.code[i]
+
+            if isinstance(ir, irAssign):
+                j = i + 1
+
+                while j < len(self.code):
+                    ir2 = self.code[j]
+
+                    # check for assign target
+                    if isinstance(ir2, irAssign):
+                        if ir2.target._name == ir.target._name:
+                            # remove ir as it is redundant
+                            remove.append(ir)
+                            break
+
+                        # if the assignment is used, then we are done here
+                        elif ir.target in ir2.get_input_vars():
+                            break
+
+                    j += 1
+
+        # remove instructions:
+        self.code = [ir for ir in self.code if ir not in remove]
+
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
@@ -1178,55 +1212,13 @@ class irFunc(IR):
         loops = self.leader_block.analyze_loops()
         
         # basic loop invariant code motion:
+        self.loop_invariant_code_motion(loops)
 
-        for loop, info in loops.items():
-            header_code = []
-
-            for block in info['body']:
-                for index in range(len(block.code)):
-                    ir = block.code[index]
-
-                    if isinstance(ir, irBinop):
-                        # check if inputs are loop invariant
-
-                        # for now, just check for consts, until we have a reaching def
-                        if ir.left.is_const and ir.right.is_const:
-                            # move instruction to header
-                            header_code.append(ir)
-
-                            # replace instruction at this location with no-op
-                            block.code[index] = irNop(lineno=-1)
-
-                    elif isinstance(ir, irAssign):
-                        if ir.value.is_const:
-                            # move instruction to header
-                            header_code.append(ir)
-
-                            # replace instruction at this location with no-op
-                            block.code[index] = irNop(lineno=-1)
-
-            # add code to loop header
-            header = info['header']
-            insert_index = None
-            # search for header:
-            for index in range(len(header.code)):
-                ir = header.code[index]
-
-                if isinstance(ir, irLoopHeader):
-                    insert_index = index + 1
-                    break
-
-            # insert code
-            for ir in header_code:
-                header.code.insert(insert_index, ir)
-                insert_index += 1
+        # common subexpr elimination?
 
 
-
-        # need to remove redundant assigns here after loop invariant code motion
-        # this may be easier after deconstructing SSA, since it will just be a 
-        # redundant assign within an intermediate read
-
+        for block in self.blocks.values():
+            block.remove_redundant_assigns()
 
         # run usedef analysis
         defined = self.defined()
@@ -1238,6 +1230,10 @@ class irFunc(IR):
         self.used_vars = used
         self.defined_vars = defined
         self.liveness = live
+
+        # need to remove redundant assigns here after loop invariant code motion
+        # this may be easier after deconstructing SSA, since it will just be a 
+        # redundant assign within an intermediate read
 
 
         # register allocator
@@ -1257,9 +1253,8 @@ class irFunc(IR):
 
         self.deconstruct_ssa();
 
-        # remove redundant assignments
-        
-        
+
+
 
     def get_code_from_blocks(self):
         code = []
@@ -1348,6 +1343,49 @@ class irFunc(IR):
                 new_code.append(ir)
 
         self.code = new_code
+
+    def loop_invariant_code_motion(self, loops):
+        for loop, info in loops.items():
+            header_code = []
+
+            for block in info['body']:
+                for index in range(len(block.code)):
+                    ir = block.code[index]
+
+                    if isinstance(ir, irBinop):
+                        # check if inputs are loop invariant
+
+                        # for now, just check for consts, until we have a reaching def
+                        if ir.left.is_const and ir.right.is_const:
+                            # move instruction to header
+                            header_code.append(ir)
+
+                            # replace instruction at this location with no-op
+                            block.code[index] = irNop(lineno=-1)
+
+                    elif isinstance(ir, irAssign):
+                        if ir.value.is_const:
+                            # move instruction to header
+                            header_code.append(ir)
+
+                            # replace instruction at this location with no-op
+                            block.code[index] = irNop(lineno=-1)
+
+            # add code to loop header
+            header = info['header']
+            insert_index = None
+            # search for header:
+            for index in range(len(header.code)):
+                ir = header.code[index]
+
+                if isinstance(ir, irLoopHeader):
+                    insert_index = index + 1
+                    break
+
+            # insert code
+            for ir in header_code:
+                header.code.insert(insert_index, ir)
+                insert_index += 1
 
 
     # def remove_dead_labels(self):
@@ -1853,7 +1891,7 @@ class irVar(IR):
 
     def __hash__(self):
         if self.ssa_version is None:
-            return hash(self)
+            return hash(id(self))
 
         else:
             return hash(self.name)
