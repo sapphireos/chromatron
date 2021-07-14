@@ -48,7 +48,7 @@ static int32_t remaining;
 static int8_t therm;
 static uint8_t batt_cells; // number of cells in system
 static uint16_t boost_voltage;
-
+static uint16_t vindpm;
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                 0,  "batt_soc" },
@@ -67,6 +67,7 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &vindpm,                   0,  "batt_vindpm" },
 
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
@@ -671,6 +672,34 @@ void bq25895_v_print_regs( void ){
     }
 }
 
+void bq25895_v_set_vindpm( int16_t mv ){
+
+    if( mv < 3900 ){
+
+        mv = 3900;
+    }
+    else if( mv > 15300 ){
+
+        mv = 15300;
+    }
+
+    mv -= 2600;
+    mv /= 100;
+
+    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_VINDPM );
+
+    // set the force bit
+    reg |= BQ25895_BIT_FORCE_VINDPM;
+
+    reg &= ~BQ25895_MASK_VINDPM;
+
+    // make sure force bit is set before we update the setting
+    bq25895_v_write_reg( BQ25895_REG_VINDPM, reg );
+
+    reg |= mv;
+
+    bq25895_v_write_reg( BQ25895_REG_VINDPM, reg );
+}
 
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
@@ -728,8 +757,6 @@ PT_BEGIN( pt );
         // NOTE below 10 C (check thermistor!), reduce charging to 0.25C.
         // don't forget max otherwise is 0.5C.  Need a config option for this.
 
-        // NOTE Reduce boost voltage to minimum (4.55V)
-
         // NOTE reduce battery charge.  Charge to 4.0 or 4.1V and discharge to 
         // 3.0 to 3.2V to increase cycle life.
         
@@ -756,6 +783,14 @@ PT_BEGIN( pt );
 
             // turn OFF auto dpdm
             bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+
+
+            // for solar MPPT: DEBUG ONLY!!!
+            if( vindpm > 0 ){
+
+                bq25895_v_set_vindpm( vindpm );    
+            }
+            
 
             bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
             // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
@@ -873,6 +908,12 @@ PT_BEGIN( pt );
 
             batt_charging = TRUE;
 
+            // for solar MPPT: DEBUG ONLY!!!
+            if( vindpm > 0 ){
+
+                bq25895_v_set_vindpm( vindpm );    
+            }
+            
             if( ( counter % 60 ) == 0 ){
 
                 log_v_debug_P( PSTR("batt: %d curr: %d"),

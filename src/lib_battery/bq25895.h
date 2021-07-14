@@ -124,6 +124,7 @@
 
 #define BQ25895_REG_VINDPM                  0x0D
 #define BQ25895_BIT_FORCE_VINDPM            ( 1 << 7 )
+#define BQ25895_MASK_VINDPM                 0x7F
 
 #define BQ25895_REG_BATT_VOLTAGE            0x0E
 #define BQ25895_MASK_BATT_VOLTAGE           0x7F
@@ -214,5 +215,6 @@ void bq25895_v_set_charge_timer( uint8_t setting );
 uint8_t bq25895_u8_get_soc( void );
 uint8_t bq25895_u8_get_device_id( void );
 void bq25895_v_print_regs( void );
+void bq25895_v_set_vindpm( int16_t mv );
 
 #endif
