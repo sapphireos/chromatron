@@ -187,8 +187,8 @@ class irBlock(IR):
             if self.func.liveness:
                 s += f'{ir_s}\n'
                 # s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
-                s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
-                # s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
+                # s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
+                s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -1080,7 +1080,13 @@ class irFunc(IR):
                 s += f' {ir.lineno}: {source_code[ir.lineno - 1].strip()}\n'
                 lines_printed.append(ir.lineno)
 
-            s += f'\t{ir}\n'
+            
+            if self.liveness:
+                live = list(set([a.name for a in self.liveness[ir]]))
+                s += f'\t{str(ir):48}\tlive: {live}\n'
+
+            else:
+                s += f'\t{ir}\n'
 
         return s
 
@@ -1218,6 +1224,8 @@ class irFunc(IR):
 
 
         for block in self.blocks.values():
+            # remove redundant assignments.
+            # loop invariant code motion can create these
             block.remove_redundant_assigns()
 
         # run usedef analysis
@@ -1230,14 +1238,6 @@ class irFunc(IR):
         self.used_vars = used
         self.defined_vars = defined
         self.liveness = live
-
-        # need to remove redundant assigns here after loop invariant code motion
-        # this may be easier after deconstructing SSA, since it will just be a 
-        # redundant assign within an intermediate read
-
-
-        # register allocator
-
 
         # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
 
@@ -1253,6 +1253,7 @@ class irFunc(IR):
 
         self.deconstruct_ssa();
 
+        # register allocator
 
 
 
@@ -1890,11 +1891,13 @@ class irVar(IR):
     #     self._is_global_modified = value
 
     def __hash__(self):
-        if self.ssa_version is None:
-            return hash(id(self))
+        # if self.ssa_version is None:
+        #     return hash(id(self))
 
-        else:
-            return hash(self.name)
+        # else:
+        #     return hash(self.name)
+
+        return hash(self.name)
 
     def __eq__(self, other):
         if self.ssa_version is None:
