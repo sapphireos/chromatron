@@ -186,8 +186,8 @@ class irBlock(IR):
 
             if self.func.liveness:
                 s += f'{ir_s}\n'
-                # s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
-                # s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
+                s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
+                s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
                 s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
 
             else:
@@ -332,8 +332,8 @@ class irBlock(IR):
             used[ir].extend(prev)
 
             for i in ir.get_input_vars():
-                if i.is_const:
-                    continue
+                # if i.is_const:
+                    # continue
 
                 if i not in used[ir]:
                     used[ir].append(i)
@@ -689,8 +689,8 @@ class irBlock(IR):
                     defined[ir].append(d)
 
             for o in ir.get_output_vars():
-                if o.is_const:
-                    continue
+                # if o.is_const:
+                    # continue
 
                 if o not in defined[ir]:
                     defined[ir].append(o)
@@ -1251,7 +1251,7 @@ class irFunc(IR):
 
         self.prune_no_ops()
 
-        self.deconstruct_ssa();
+        # self.deconstruct_ssa();
 
         # register allocator
 
@@ -1631,6 +1631,23 @@ class irLookup(IR):
 
     def get_output_vars(self):
         return [self.result]
+
+# Load constant to register
+class irLoadConst(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        return f'LOAD CONST {self.target} <-- {self.value}'
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.target]
+        # might need to include value here for liveness to work
 
 
 # Load register from memory
