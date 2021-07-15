@@ -1060,6 +1060,20 @@ class irFunc(IR):
 
         return v
 
+    @property
+    def max_registers(self):
+        if self.liveness is None:
+            return None
+
+        max_live =0 
+        for ir, live in self.liveness.items():
+            live = {l.name: None for l in live}
+
+            if len(live) > max_live:
+                max_live = len(live)
+
+        return max_live
+
     def __str__(self):
         params = params_to_string(self.params)
 
@@ -1099,6 +1113,9 @@ class irFunc(IR):
 
             else:
                 s += f'\t{ir}\n'
+
+        s += f'Max registers: {self.max_registers}\n'
+        s += f'Instructions: {len([i for i in self.code if not isinstance(i, irLabel)])}\n'
 
         return s
 
@@ -1226,19 +1243,19 @@ class irFunc(IR):
                 reads = [a.name for a in self.get_input_vars()]
                 block.remove_dead_code(reads=reads)
 
+            loops = self.leader_block.analyze_loops()
+            
+            # basic loop invariant code motion:
+            self.loop_invariant_code_motion(loops)
 
-        loops = self.leader_block.analyze_loops()
-        
-        # basic loop invariant code motion:
-        self.loop_invariant_code_motion(loops)
-
-        # common subexpr elimination?
+            # common subexpr elimination?
 
 
-        for block in self.blocks.values():
-            # remove redundant assignments.
-            # loop invariant code motion can create these
-            block.remove_redundant_assigns()
+            for block in self.blocks.values():
+                # remove redundant assignments.
+                # loop invariant code motion can create these
+                block.remove_redundant_assigns()
+
 
         # run usedef analysis
         defined = self.defined()
