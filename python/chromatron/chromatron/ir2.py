@@ -621,7 +621,7 @@ class irBlock(IR):
         for suc in self.successors:
             suc.apply_types(visited, declarations)
 
-    def used(self, used=None, visited=None, edge=None):
+    def used(self, used=None, visited=None, edge=None, include_consts=False):
         def merge_used(used1, used2):
             used = copy(used1)
         
@@ -647,7 +647,16 @@ class irBlock(IR):
         if used is None:
             used = {}
 
-        used = merge_used(used, self._used)
+        
+        if not include_consts:
+            _used = {}
+            for k, v in self._used.items():
+                _used[k] = [a for a in v if not a.is_const]
+
+        else:
+            _used = self._used
+
+        used = merge_used(used, _used)
 
         if isinstance(edge, Edge):
             from_used = used[edge.from_node.code[0]]
@@ -665,7 +674,7 @@ class irBlock(IR):
 
         return used
 
-    def defined(self, defined=None, prev=None, visited=None, edge=None):
+    def defined(self, defined=None, prev=None, visited=None, edge=None, include_consts=False):
         if visited is None:
             visited = []
 
@@ -687,18 +696,19 @@ class irBlock(IR):
                 defined[ir] = []
 
             # add define for any input consts, if not already defined
-            for i in ir.get_input_vars():
-                if i.is_const and i not in consts:
-                    consts.append(i)
-                    defined[ir].append(i)
+            if include_consts:
+                for i in ir.get_input_vars():
+                    if i.is_const and i not in consts:
+                        consts.append(i)
+                        defined[ir].append(i)
 
             for d in prev:
                 if d not in defined[ir]:
                     defined[ir].append(d)
 
             for o in ir.get_output_vars():
-                # if o.is_const:
-                    # continue
+                if o.is_const and not include_consts:
+                    continue
 
                 if o not in defined[ir]:
                     defined[ir].append(o)
