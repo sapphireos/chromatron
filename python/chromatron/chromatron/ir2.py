@@ -680,20 +680,17 @@ class irBlock(IR):
         if prev is None:
             prev = []
 
-        # init consts at top of block
-        consts = [c for c in self.get_input_vars() if c.is_const]
-
-        if self.code[0] not in defined:
-            defined[self.code[0]] = []
-
-        for c in consts:
-            if c not in defined[self.code[0]]:
-                defined[self.code[0]].append(c)
-
+        consts = []
 
         for ir in self.code:
             if ir not in defined:
                 defined[ir] = []
+
+            # add define for any input consts, if not already defined
+            for i in ir.get_input_vars():
+                if i.is_const and i not in consts:
+                    consts.append(i)
+                    defined[ir].append(i)
 
             for d in prev:
                 if d not in defined[ir]:
