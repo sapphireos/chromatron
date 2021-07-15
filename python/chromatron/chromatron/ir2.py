@@ -186,9 +186,9 @@ class irBlock(IR):
 
             if self.func.liveness:
                 s += f'{ir_s}\n'
-                s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
-                s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
-                s += f'{depth}|\t  live: {[a.name for a in self.func.liveness[ir]]}\n'
+                # s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
+                # s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
+                s += f'{depth}|\t  live: {list(set([a.name for a in self.func.liveness[ir]]))}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -680,6 +680,17 @@ class irBlock(IR):
         if prev is None:
             prev = []
 
+        # init consts at top of block
+        consts = [c for c in self.get_input_vars() if c.is_const]
+
+        if self.code[0] not in defined:
+            defined[self.code[0]] = []
+
+        for c in consts:
+            if c not in defined[self.code[0]]:
+                defined[self.code[0]].append(c)
+
+
         for ir in self.code:
             if ir not in defined:
                 defined[ir] = []
@@ -994,6 +1005,7 @@ class irFunc(IR):
         self.code = [] # output IR
         self.builder = builder
         self.globals = builder.globals
+        self.consts = builder.consts
         
         if self.params == None:
             self.params = []
@@ -1251,7 +1263,7 @@ class irFunc(IR):
 
         self.prune_no_ops()
 
-        # self.deconstruct_ssa();
+        self.deconstruct_ssa();
 
         # register allocator
 
@@ -1632,6 +1644,7 @@ class irLookup(IR):
     def get_output_vars(self):
         return [self.result]
 
+
 # Load constant to register
 class irLoadConst(IR):
     def __init__(self, target, value, **kwargs):
@@ -1665,6 +1678,7 @@ class irLoad(IR):
 
     def get_output_vars(self):
         return [self.target]
+
 
 # Store register to memory
 class irStore(IR):
