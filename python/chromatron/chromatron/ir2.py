@@ -33,6 +33,16 @@ def params_to_string(params):
 
     return s
 
+
+def add_const_temp(const, datatype=None, lineno=None):
+    name = '$' + str(const)
+    
+    ir = irVar(name, datatype=datatype, lineno=lineno)
+    ir.is_temp = True
+
+    return ir
+
+
 class SyntaxError(Exception):
     def __init__(self, message='', lineno=None):
         self.lineno = lineno
@@ -378,7 +388,7 @@ class irBlock(IR):
                 self.declarations[ir.var._name] = ir.var
 
                 # init variable to 0
-                assign = irAssign(ir.var, get_zero(ir.lineno), lineno=ir.lineno)
+                assign = irLoadConst(ir.var, get_zero(ir.lineno), lineno=ir.lineno)
                 
                 new_code.append(assign)
 
@@ -448,6 +458,53 @@ class irBlock(IR):
             suc.init_global_vars(visited=visited)
                 
         return copy(self.defines)
+
+    def init_consts(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        new_code = []
+        consts = {}
+
+        # iterate over code
+        # look for defines and record them.
+        # also insert inits to 0
+        for index in range(len(self.code)):
+            ir = self.code[index]
+
+            if isinstance(ir, irLoadConst):
+                new_code.append(ir)
+                continue
+
+            ir_consts = [i for i in ir.get_input_vars() if i.is_const]
+            for c in ir_consts:
+                # check if const is loaded:
+                if c.name not in consts:
+                    # load const
+                    target = add_const_temp(c.name, datatype=c.type, lineno=ir.lineno)
+                    load = irLoadConst(target, copy(c), lineno=ir.lineno)
+
+                    consts[c.name] = target
+
+                    new_code.append(load)
+
+                # replace var with const target register
+                c.__dict__ = copy(consts[c.name].__dict__)
+
+            new_code.append(ir)
+
+
+        self.code = new_code
+
+        # continue with successors:
+        for suc in self.successors:
+            suc.init_consts(visited=visited)
+
 
     def rename_vars(self, ssa_vars=None, visited=None):
         if ssa_vars is None:
@@ -979,14 +1036,14 @@ class irBlock(IR):
         for i in range(len(self.code)):
             ir = self.code[i]
 
-            if isinstance(ir, irAssign):
+            if isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
                 j = i + 1
 
                 while j < len(self.code):
                     ir2 = self.code[j]
 
                     # check for assign target
-                    if isinstance(ir2, irAssign):
+                    if isinstance(ir2, irAssign) or isinstance(ir2, irLoadConst):
                         if ir2.target._name == ir.target._name:
                             # remove ir as it is redundant
                             remove.append(ir)
@@ -1229,6 +1286,7 @@ class irFunc(IR):
             assert isinstance(block.code[-1], irControlFlow)
 
         global_vars = self.leader_block.init_global_vars()
+        self.leader_block.init_consts()
         ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
         self.leader_block.apply_types()
         self.leader_block.insert_phi()
@@ -1613,6 +1671,8 @@ class irAssign(IR):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
+
+        assert not self.value.is_const
         
     def __str__(self):
         if isinstance(self.target, irRef):
@@ -1975,9 +2035,13 @@ class irVar(IR):
                 raise SyntaxError("Fixed16 out of range, must be between -32767.0 and 32767.0", lineno=kwargs['lineno'])
 
             return int(val * 65536)
-        else:
-            return int(self.name)
 
+        elif self.is_const:
+            return int(self.name[1:])
+
+        else:
+            return None
+            
     @property
     def name(self):
         if self.is_temp or self.ssa_version is None:

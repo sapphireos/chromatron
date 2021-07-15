@@ -191,7 +191,11 @@ class Builder(object):
         self.append_node(ir)
 
     def assign(self, target, value, lineno=None):     
-        ir = irAssign(target, value, lineno=lineno)
+        if value.is_const:
+            ir = irLoadConst(target, value, lineno=lineno)
+
+        else:
+            ir = irAssign(target, value, lineno=lineno)
             
         self.append_node(ir)
 
