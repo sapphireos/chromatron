@@ -1462,7 +1462,7 @@ class irFunc(IR):
                             # replace instruction at this location with no-op
                             block.code[index] = irNop(lineno=-1)
 
-                    elif isinstance(ir, irAssign):
+                    elif isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
                         if ir.value.is_const:
                             # move instruction to header
                             header_code.append(ir)
