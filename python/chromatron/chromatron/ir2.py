@@ -1744,7 +1744,6 @@ class irLoadConst(IR):
 
     def get_output_vars(self):
         return [self.target]
-        # might need to include value here for liveness to work
 
 
 # Load register from memory
@@ -2015,11 +2014,12 @@ class irVar(IR):
         return hash(self.name)
 
     def __eq__(self, other):
-        if self.ssa_version is None:
-            return super().__eq__(other)
+        # if self.ssa_version is None:
+        #     return super().__eq__(other)
 
-        else:
-            return self.name == other.name   
+        # else:
+        #     return self.name == other.name   
+        return self.name == other.name   
 
     @property
     def value(self):
