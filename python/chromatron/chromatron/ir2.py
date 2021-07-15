@@ -1347,6 +1347,9 @@ class irFunc(IR):
         if optimize:
             self.prune_jumps()
 
+            # jump threading...
+
+
         self.prune_no_ops()
 
         self.deconstruct_ssa();
@@ -1448,6 +1451,9 @@ class irFunc(IR):
             header_code = []
 
             for block in info['body']:
+                # get vars used on the entry block
+                used = info['entry'].get_input_vars()
+
                 for index in range(len(block.code)):
                     ir = block.code[index]
 
@@ -1455,7 +1461,7 @@ class irFunc(IR):
                         # check if inputs are loop invariant
 
                         # for now, just check for consts, until we have a reaching def
-                        if ir.left.is_const and ir.right.is_const:
+                        if ir.result not in used and ir.left.is_const and ir.right.is_const:
                             # move instruction to header
                             header_code.append(ir)
 
@@ -1463,7 +1469,7 @@ class irFunc(IR):
                             block.code[index] = irNop(lineno=-1)
 
                     elif isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
-                        if ir.value.is_const:
+                        if ir.target not in used and ir.value.is_const:
                             # move instruction to header
                             header_code.append(ir)
 

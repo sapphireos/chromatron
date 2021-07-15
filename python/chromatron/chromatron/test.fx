@@ -1,3 +1,19 @@
+def loop_invariant_code_motion2():
+	i = Number()
+	i = 4
+
+	a = Number()
+
+	while i > 0:
+		i -= 1
+
+		if i == 1:
+			i = 2
+
+		a = 2 + 3
+
+	return a
+
 
 # global_a = Number()
 # def global_var():
@@ -52,46 +68,46 @@
 # 	return b
 
 
-def while_loop():
-	i = Number()
-	i = 4
+# def while_loop():
+# 	i = Number()
+# 	i = 4
 
-	# if i == 1:
-		# return 2
+# 	# if i == 1:
+# 		# return 2
 
-	a = Number()
+# 	a = Number()
 
-	while i > 0:
-		i -= 1
+# 	while i > 0:
+# 		i -= 1
 
-		a = 1 + 2
-		# a = 3 + 4
+# 		a = 1 + 2
+# 		# a = 3 + 4
 
-		# a = Number()
-		# a = 2 + i + 4
-		# # a = 4
+# 		# a = Number()
+# 		# a = 2 + i + 4
+# 		# # a = 4
 
-		# while a > 0:
-		# 	a -= 1
-		# 	if a == 0:
-		# 		i -= 2
-		# 	else:
-		# 		i = 1
+# 		# while a > 0:
+# 		# 	a -= 1
+# 		# 	if a == 0:
+# 		# 		i -= 2
+# 		# 	else:
+# 		# 		i = 1
 
-		# if i == 1:
-		# 	i = 2
+# 		if i == 1:
+# 			i = 2
 
-		# else:
-		# 	i += 3
+# 		else:
+# 			i += 3
 
-		# while a == 2:
-		# 	a += 1
-		# 	i -= 3
-			# i = a + 2 + 3
+# 		# while a == 2:
+# 		# 	a += 1
+# 		# 	i -= 3
+# 			# i = a + 2 + 3
 
-		# i += 1
+# 		# i += 1
 
-	return a
+# 	return a
 
 # def simple_array():
 # 	a = Number(count=4)
