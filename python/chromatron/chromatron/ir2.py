@@ -39,6 +39,7 @@ def add_const_temp(const, datatype=None, lineno=None):
     
     ir = irVar(name, datatype=datatype, lineno=lineno)
     ir.is_temp = True
+    ir.holds_const = True
 
     return ir
 
@@ -934,7 +935,7 @@ class irBlock(IR):
 
                 if val is not None:
                     # replace with assign
-                    ir = irAssign(ir.result, val, lineno=ir.lineno)
+                    ir = irLoadConst(ir.result, val, lineno=ir.lineno)
 
                     replaced = True
             
@@ -1286,7 +1287,6 @@ class irFunc(IR):
             assert isinstance(block.code[-1], irControlFlow)
 
         global_vars = self.leader_block.init_global_vars()
-        self.leader_block.init_consts()
         ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
         self.leader_block.apply_types()
         self.leader_block.insert_phi()
@@ -1304,6 +1304,11 @@ class irFunc(IR):
             for block in self.blocks.values():
                 block.reduce_strength()
 
+
+        self.leader_block.init_consts()
+
+
+        if optimize:
             for block in self.blocks.values():
                 reads = [a.name for a in self.get_input_vars()]
                 block.remove_dead_code(reads=reads)
@@ -1320,7 +1325,6 @@ class irFunc(IR):
                 # remove redundant assignments.
                 # loop invariant code motion can create these
                 block.remove_redundant_assigns()
-
 
         # run usedef analysis
         defined = self.defined()
@@ -1734,8 +1738,10 @@ class irLoadConst(IR):
     def __init__(self, target, value, **kwargs):
         super().__init__(**kwargs)
         self.target = target
-        self.value = value
+        self.value = copy(value)
         
+        assert value.is_const
+
     def __str__(self):
         return f'LOAD CONST {self.target} <-- {self.value}'
 
@@ -1990,6 +1996,7 @@ class irVar(IR):
         self.is_global = False
         # self._is_global_modified = False
         self.is_temp = False
+        self.holds_const = False
         self.is_const = False
         self.ssa_version = None
 
@@ -2037,7 +2044,10 @@ class irVar(IR):
             return int(val * 65536)
 
         elif self.is_const:
-            return int(self.name[1:])
+            if self.name.startswith('$'):
+                return int(self.name[1:])
+
+            return int(self.name)
 
         else:
             return None
