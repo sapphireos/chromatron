@@ -488,7 +488,7 @@ class irBlock(IR):
                 if c.name not in consts:
                     # load const
                     target = add_const_temp(c.name, datatype=c.type, lineno=ir.lineno)
-                    load = irLoadConst(target, copy(c), lineno=ir.lineno)
+                    load = irLoadConst(target, copy(c), lineno=-1)
 
                     consts[c.name] = target
 
@@ -1352,7 +1352,7 @@ class irFunc(IR):
 
         self.prune_no_ops()
 
-        self.deconstruct_ssa();
+        # self.deconstruct_ssa();
 
         # register allocator
 
@@ -1449,32 +1449,34 @@ class irFunc(IR):
     def loop_invariant_code_motion(self, loops):
         for loop, info in loops.items():
             header_code = []
-
+            
             for block in info['body']:
-                # get vars used on the entry block
-                used = info['entry'].get_input_vars()
-
+                block_code = []
+                
                 for index in range(len(block.code)):
                     ir = block.code[index]
+                    block_code.append(ir)
 
                     if isinstance(ir, irBinop):
                         # check if inputs are loop invariant
 
                         # for now, just check for consts, until we have a reaching def
-                        if ir.result not in used and ir.left.is_const and ir.right.is_const:
+                        if ir.left.is_const and ir.right.is_const:
                             # move instruction to header
                             header_code.append(ir)
 
-                            # replace instruction at this location with no-op
-                            block.code[index] = irNop(lineno=-1)
+                            # remove from block code
+                            block_code.remove(ir)
 
                     elif isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
-                        if ir.target not in used and ir.value.is_const:
+                        if ir.value.is_const:
                             # move instruction to header
                             header_code.append(ir)
 
-                            # replace instruction at this location with no-op
-                            block.code[index] = irNop(lineno=-1)
+                            # remove from block code
+                            block_code.remove(ir)
+
+                block.code = block_code
 
             # add code to loop header
             header = info['header']
