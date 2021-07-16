@@ -195,11 +195,11 @@ class irBlock(IR):
 
             ir_s = f'{depth}|\t{str(ir):48}'
 
-            if self.func.liveness:
+            if self.func.live_vars:
                 s += f'{ir_s}\n'
-                # s += f'{depth}|\t  def:  {[a.name for a in self.func.defined_vars[ir]]}\n'
-                # s += f'{depth}|\t  use:  {[a.name for a in self.func.used_vars[ir]]}\n'
-                s += f'{depth}|\t  live: {list(set([a.name for a in self.func.liveness[ir]]))}\n'
+                s += f'{depth}|\t  def:  {sorted(list(set([a.name for a in self.func.defined_vars[ir]])))}\n'
+                s += f'{depth}|\t  use:  {sorted(list(set([a.name for a in self.func.used_vars[ir]])))}\n'
+                s += f'{depth}|\t  live: {sorted(list(set([a.name for a in self.func.live_vars[ir]])))}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -1127,11 +1127,11 @@ class irFunc(IR):
 
     @property
     def max_registers(self):
-        if self.liveness is None:
+        if self.live_vars is None:
             return None
 
         max_live =0 
-        for ir, live in self.liveness.items():
+        for ir, live in self.live_vars.items():
             live = {l.name: None for l in live}
 
             if len(live) > max_live:
@@ -1172,8 +1172,8 @@ class irFunc(IR):
                 lines_printed.append(ir.lineno)
 
             
-            if self.liveness:
-                live = list(set([a.name for a in self.liveness[ir]]))
+            if self.live_vars:
+                live = list(set([a.name for a in self.live_vars[ir]]))
                 s += f'\t{str(ir):48}\tlive: {live}\n'
 
             else:
@@ -1267,7 +1267,30 @@ class irFunc(IR):
         return used
 
     def liveness(self, used, defined):
-        return self.leader_block.liveness(used, defined)
+        # verify used and defined:
+        
+        # an instruction that uses a var should have it defined
+        # by that point:
+
+        e = None
+
+        for ir in used:
+            for v in [a for a in ir.get_input_vars() if not a.is_const]:
+                try:
+                    assert v in defined[ir]
+
+                except AssertionError as exc:   
+                    if e is None: 
+                        e = exc
+
+                    logging.critical(f'FATAL: {v} not defined, used at {ir}.  Line: {ir.lineno}')
+             
+        self.live_vars = self.leader_block.liveness(used, defined)
+
+        if e:
+            raise e
+
+        return self.live_vars
 
     def analyze_blocks(self):
         self.blocks = {}
@@ -1330,12 +1353,15 @@ class irFunc(IR):
         defined = self.defined()
         used = self.used()
         
-        # liveness analysis
-        live = self.liveness(used, defined)
+        self.live_vars = None
 
         self.used_vars = used
         self.defined_vars = defined
-        self.liveness = live
+
+        # liveness analysis
+        live = self.liveness(used, defined)
+
+        self.live_vars = live
 
         # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
 
@@ -1452,7 +1478,7 @@ class irFunc(IR):
             
             for block in info['body']:
                 block_code = []
-                
+
                 for index in range(len(block.code)):
                     ir = block.code[index]
                     block_code.append(ir)

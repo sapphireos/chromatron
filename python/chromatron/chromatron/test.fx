@@ -68,47 +68,66 @@
 # 	return b
 
 
-def while_loop():
+
+def while_loop_multiple_condition():
 	i = Number()
 	i = 4
 
-	# if i == 1:
-		# return 2
-
 	a = Number()
 
+	# this breaks liveness!!!
 	while i > 0 and a == 2:
 		i -= 1
 
-		# a = 2 + i
-
-		# a = 3 + 4
-
-		# a = Number()
-		# a = 2 + i + 4
-		# # a = 4
-
-		# while a > 0:
-		# 	a -= 1
-		# 	if a == 0:
-		# 		i -= 2
-		# 	else:
-		# 		i = 1
-
-		# if i == 1:
-			# i = 2
-
-		# else:
-			# i += 3
-
-		# while a == 2:
-		# 	a += 1
-		# 	i -= 3
-			# i = a + 2 + 3
-
-		# i += 1
-
 	return a
+
+
+
+# def while_loop():
+# 	i = Number()
+# 	i = 4
+
+# 	# if i == 1:
+# 		# return 2
+
+# 	a = Number()
+
+
+# 	# this breaks liveness!!!
+# 	while i > 0 and a == 2:
+# 		i -= 1
+
+
+
+# 		# a = 2 + i
+
+# 		# a = 3 + 4
+
+# 		# a = Number()
+# 		# a = 2 + i + 4
+# 		# # a = 4
+
+# 		# while a > 0:
+# 		# 	a -= 1
+# 		# 	if a == 0:
+# 		# 		i -= 2
+# 		# 	else:
+# 		# 		i = 1
+
+# 		# if i == 1:
+# 			# i = 2
+
+# 		# else:
+# 			# i += 3
+
+# 		# while a == 2:
+# 		# 	a += 1
+# 		# 	i -= 3
+# 			# i = a + 2 + 3
+
+# 		# i += 1
+
+# 	return a
 
 # def simple_array():
 # 	a = Number(count=4)

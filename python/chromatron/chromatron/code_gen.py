@@ -1005,7 +1005,12 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     program = cg1_data.build(script_name=script_name, source=source)
 
-    program.analyze_blocks()
+    e = None
+    try:
+        program.analyze_blocks()
+
+    except AssertionError as exc:
+        e = exc
 
     # save IR to file
     with open(f'{script_name}.fxir', 'w') as f:
@@ -1013,6 +1018,9 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     if debug_print:
         print(program)
+
+    if e:
+        raise e
 
     return ''
 
