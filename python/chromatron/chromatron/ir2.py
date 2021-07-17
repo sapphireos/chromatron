@@ -872,6 +872,7 @@ class irBlock(IR):
 
             elif isinstance(ir, irLoopEntry):
                 loops[ir.name]['entry'] = self
+                loops[ir.name]['test_var'] = ir.test_var
                 loops[ir.name]['body'].append(self)
 
             elif isinstance(ir, irLoopExit):
@@ -882,6 +883,31 @@ class irBlock(IR):
             suc._loops_pass_1(loops, visited)                
 
         return loops
+
+    def _loop_test_vars(self, loop):
+        test_vars = [loop['test_var']]
+
+        # test vars will be in the entry block
+        for ir in reversed(loop['entry'].code):
+            # skip phi nodes
+            if isinstance(ir, irPhi):
+                continue
+
+            for o in ir.get_output_vars():
+                if o in test_vars:
+                    # output is a test var,
+                    # so the inputs are dependent as well
+                    test_vars.extend([i for i in ir.get_input_vars() if not i.is_const])
+
+        return test_vars
+
+    def _loop_induction_vars(self, loop):
+        # init induction vars with any vars
+        # in the loop test vars that are modified
+        # within the loop body
+        for v in loop['test_vars']:
+            pass
+
 
     def _loops_pass_2(self, loop, visited=None):
         if visited is None:
@@ -910,7 +936,9 @@ class irBlock(IR):
 
         # fill out loop bodies
         for loop, info in loops.items():
+            info['test_vars'] = self._loop_test_vars(info)
             info['entry']._loops_pass_2(info)
+            info['induction_vars'] = self._loop_induction_vars(info)
 
         return loops
 
@@ -1155,6 +1183,19 @@ class irFunc(IR):
         # for v in self.locals.values():
         #     s += f'{v.lineno:3}\t{v.name:16}:{v.type}\n'
 
+        s += "********************************\n"
+        s += "Input Code:\n"
+        s += "********************************\n"
+        lines_printed = []
+        for ir in self.body:
+            if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
+                s += f'________________________________________________________\n'
+                s += f' {ir.lineno}: {source_code[ir.lineno - 1].strip()}\n'
+                lines_printed.append(ir.lineno)
+    
+            s += f'\t{ir}\n'
+
+
 
         s += "********************************\n"
         s += "Blocks:\n"
@@ -1300,11 +1341,11 @@ class irFunc(IR):
         self.leader_block = self.create_block_from_code_at_index(0)
 
         # verify all instructions are assigned to a block:
-        for ir in self.body:
-            if ir.block is None:
-                raise SyntaxError(f'Unreachable code.', lineno=ir.lineno)
+        # for ir in self.body:
+        #     if ir.block is None:
+        #         raise SyntaxError(f'Unreachable code.', lineno=ir.lineno)
 
-        self.body = None
+        # self.body = None
 
         # verify all blocks start with a label and end
         # with an unconditional jump or return
@@ -1318,7 +1359,7 @@ class irFunc(IR):
         self.leader_block.insert_phi()
 
 
-        optimize = True
+        optimize = False
 
         if optimize:
             for block in self.blocks.values():
@@ -1381,7 +1422,7 @@ class irFunc(IR):
 
         self.prune_no_ops()
 
-        self.deconstruct_ssa();
+        # self.deconstruct_ssa();
 
         # register allocator
 
@@ -1613,9 +1654,10 @@ class irLoopHeader(irLoopMeta):
         return f'LoopHeader: {self.name}'
 
 class irLoopEntry(irLoopMeta):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, test_var, **kwargs):
         super().__init__(**kwargs)
         self.name = name
+        self.test_var = test_var
 
     def __str__(self):
         return f'LoopEntry: {self.name}'
@@ -2165,3 +2207,18 @@ class irAttribute(irVar):
 
     def __str__(self):    
         return "Attr(%s)" % (self.name)
+
+
+class irAssert(IR):
+    def __init__(self, value, **kwargs):
+        super(irAssert, self).__init__(**kwargs)        
+        self.value = value
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def __str__(self):
+        s = 'ASSERT %s' % (self.value)
+
+        return s   
+

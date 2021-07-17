@@ -278,7 +278,7 @@ class Builder(object):
 
     def test_while(self, test, lineno=None):
         loop_name = self.loop[-1]   
-        ir = irLoopEntry(loop_name, lineno=lineno)
+        ir = irLoopEntry(loop_name, test, lineno=lineno)
         self.append_node(ir)
 
         body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
@@ -291,7 +291,7 @@ class Builder(object):
     def end_while(self, lineno=None):
         self.scope_depth -= 1
 
-        loop_name = self.loop.pop(-1)
+        loop_name = self.loop[-1]
         ir = irLoopExit(loop_name, lineno=lineno)
         self.append_node(ir)
 
@@ -300,8 +300,27 @@ class Builder(object):
 
         self.position_label(self.loop_end[-1])
 
+        self.loop.pop(-1)
         self.loop_top.pop(-1)
         self.loop_end.pop(-1)
+
+    def loop_break(self, lineno=None):
+        assert self.loop_end[-1] != None
+
+        loop_name = self.loop[-1]
+        ir = irLoopExit(loop_name, lineno=lineno)
+        self.append_node(ir)
+
+        self.jump(self.loop_end[-1], lineno=lineno)
+
+    def loop_continue(self, lineno=None):
+        assert self.loop_top[-1] != None    
+        self.jump(self.loop_top[-1], lineno=lineno)
+
+    def assertion(self, test, lineno=None):
+        ir = irAssert(test, lineno=lineno)
+
+        self.append_node(ir)
 
     def start_lookup(self, lineno=None):
         self.lookups = []

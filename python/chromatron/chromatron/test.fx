@@ -1,18 +1,21 @@
-# def loop_invariant_code_motion2():
-# 	i = Number()
-# 	i = 4
+def loop_invariant_code_motion2():
+	i = Number()
+	# i = 4
 
-# 	a = Number()
+	# a = Number()
 
-# 	while i > 0:
-# 		i -= 1
+	while i > 0:
+		i -= 1
 
-# 		if i == 1:
-# 			i = 2
+		# if i == 1:
+			# i = 2
 
-# 		a = 2 + 3
+		# a = 2 + 3
 
-# 	return a
+		# break
+		# pass
+
+	# return a
 
 
 # global_a = Number()
@@ -69,22 +72,22 @@
 
 
 
-def while_loop_multiple_condition():
-	i = Number()
-	i = 4
+# def while_loop_multiple_condition():
+# 	i = Number()
+# 	i = 4
 
-	a = Number()
-	a = 1
+# 	a = Number()
+# 	a = 1
 
-	# this breaks liveness!!!
-	while i > 0 and a == 2:
-	# while i > 0 and a == 2:
-	# while a == 2:
-		i -= 1
+# 	# this breaks liveness!!!
+# 	while i > 0 and a == 2:
+# 	# while i > 0 and a == 2:
+# 	# while a == 2:
+# 		i -= 1
 
-		a = 8 + 8
+# 		a = 8 + 8
 
-	return a
+# 	return a
 
 
 # def while_loop_multiple_condition():
