@@ -1259,8 +1259,8 @@ class irFunc(IR):
                 s += f'\t\t\t{block.name}\n'
 
             s += '\tBody Vars:\n'
-            for v in info['body_vars']:
-                s += f'\t\t\t{v.name}\n'
+            for v in sorted(list(set([v.name for v in info['body_vars']]))):
+                s += f'\t\t\t{v}\n'
 
             s += f'\tEnd:    {info["end"].name}\n'
 
