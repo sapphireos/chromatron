@@ -1568,7 +1568,7 @@ class irFunc(IR):
     def loop_invariant_code_motion(self, loops):
         for loop, info in loops.items():
             header_code = []
-            end_code = []
+            # end_code = []
             
             for block in info['body']:
                 block_code = []
@@ -1582,27 +1582,33 @@ class irFunc(IR):
 
                         # for now, just check for consts, until we have a reaching def
                         if ir.left.is_const and ir.right.is_const:
-                            # check if result is used in the loop:
-                            if ir.result in info['body_vars']:
-                                # move instruction to header
-                                header_code.append(ir)
-                            else:
-                                # move to end of loop
-                                end_code.append(ir)
+                            # move instruction to header
+                            header_code.append(ir)
+
+                            # # check if result is used in the loop:
+                            # if ir.result in info['body_vars']:
+                            #     # move instruction to header
+                            #     header_code.append(ir)
+                            # else:
+                            #     # move to end of loop
+                            #     end_code.append(ir)
 
                             # remove from block code
                             block_code.remove(ir)
 
                     elif isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
                         if ir.value.is_const:
+                            # move instruction to header
+                            header_code.append(ir)
+                            
                             # check if target is used in the loop:
-                            if ir.target in info['body_vars']:
-                                # move instruction to header
-                                header_code.append(ir)
+                            # if ir.target in info['body_vars']:
+                            #     # move instruction to header
+                            #     header_code.append(ir)
 
-                            else:
-                                # move to end of loop
-                                end_code.append(ir)
+                            # else:
+                            #     # move to end of loop
+                            #     end_code.append(ir)
 
                             # remove from block code
                             block_code.remove(ir)
@@ -1626,14 +1632,14 @@ class irFunc(IR):
                 insert_index += 1
 
 
-            # add code to loop end
-            end = info['end']
-            insert_index = 1
+            # # add code to loop end
+            # end = info['end']
+            # insert_index = 1
             
-            # insert code
-            for ir in end_code:
-                end.code.insert(insert_index, ir)
-                insert_index += 1
+            # # insert code
+            # for ir in end_code:
+            #     end.code.insert(insert_index, ir)
+            #     insert_index += 1
 
 
     # def remove_dead_labels(self):
