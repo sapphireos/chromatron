@@ -20,32 +20,64 @@
 # 		i -= 1
 
 
-def loop_invariant_code_motion2():
+def loop_invariant_code_motion_ifbreak():
 	i = Number()
-	# i = 4
+	i = 4
 
 	a = Number()
-	# a = 4
 
 	while i > 0:
-		# i -= 1
+		i -= 1
 
-		if i == 100:
-			a = 2 + 3
+		if i == 10:
+			break
+			
+		a = 2 + 3
 
-			# break
+	return a
 
-			# pass
-		else:
-			a = 5
-			# pass
+
+# def loop_invariant_code_motion2():
+# 	i = Number()
+# 	# i = 4
+
+# 	a = Number()
+# 	# a = 4
+
+# 	while i > 0:
+# 		# i -= 1
+
+# 		if i == 100:
+# 			a = 2 + 3
+
+# 			# break
+
+# 			# pass
+# 		# else:
+# 			# a = 5
+# 			# pass
 
 			
 
-		# break
-		# pass
+# 		# break
+# 		# pass
 
-	return a
+# 	# return a
+
+
+# def loop_invariant_code_motion_induction():
+# 	i = Number()
+# 	i = 4
+
+# 	while i > 0:
+# 		# i -= 1
+# 		if i == 1:
+# 			break
+
+# 		# if i == 1:
+# 		i = 2
+
+# 	return i
 
 
 # global_a = Number()

@@ -1516,7 +1516,7 @@ class irFunc(IR):
 
         if optimize:
             # basic loop invariant code motion:
-            self.loop_invariant_code_motion(self.loops)
+            # self.loop_invariant_code_motion(self.loops)
 
             # common subexpr elimination?
 
