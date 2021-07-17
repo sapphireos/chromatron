@@ -1448,8 +1448,8 @@ class irFunc(IR):
             self.loop_invariant_code_motion(self.loops)
 
             # common subexpr elimination?
-            
-            
+
+
 
             # for block in self.blocks.values():
             #     # remove redundant assignments.
@@ -1490,6 +1490,7 @@ class irFunc(IR):
 
 
         self.prune_no_ops()
+        self.remove_dead_labels()
 
         self.deconstruct_ssa();
 
@@ -1630,26 +1631,34 @@ class irFunc(IR):
                     header.code.insert(insert_index, ir)
                     insert_index += 1
 
-    # def remove_dead_labels(self):
-    #     return
-    #     labels = self.labels()
+    def remove_dead_labels(self):
+        labels = self.labels()
 
-    #     keep = []
-    #     code = self.code()
-
-    #     # get list of labels that are used
-    #     for label in labels:
-    #         for node in code:
-    #             target = node.get_jump_target()
-
-    #             if target != None:
-    #                 if target.name == label:
-    #                     keep.append(label)
-    #                     break
-
-    #     dead_labels = [l for l in labels if l not in keep]
+        keep = []
         
-    #     self.root_block.remove_dead_labels(dead_labels)
+        # get list of labels that are used
+        for label in labels:
+            for node in self.code:
+                targets = node.get_jump_target()
+                if targets is None:
+                    continue
+                    
+                for target in targets:
+                    if target != None and target.name == label:
+                        keep.append(label)
+                            
+
+        dead_labels = [l for l in labels if l not in keep]
+
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irLabel):
+                if ir.name in dead_labels:
+                    continue
+
+            new_code.append(ir)
+        
+        self.code = new_code
 
     def labels(self):
         labels = {}

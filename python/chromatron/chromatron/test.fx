@@ -13,7 +13,7 @@ def loop_invariant_code_motion2():
 		# else:
 		# 	pass
 
-		a = 2 + 3
+		# a = 2 + 3
 
 		# break
 		# pass
