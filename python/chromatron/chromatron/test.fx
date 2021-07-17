@@ -12,27 +12,39 @@
 # 			j += 1
 
 
-def loop_invariant_code_motion2():
+def while_loop():
 	i = Number()
-	# i = 4
-
-	a = Number()
-	# a = 4
+	i = 4
 
 	while i > 0:
 		i -= 1
 
-		if i == 1:
-			pass
-		else:
-			# pass
 
-			a = 2 + 3
+# def loop_invariant_code_motion2():
+# 	i = Number()
+# 	# i = 4
 
-		# break
-		# pass
+# 	a = Number()
+# 	# a = 4
 
-	return a
+# 	while i > 0:
+# 		# i -= 1
+
+# 		if i == 100:
+# 			a = 2 + 3
+
+# 			# break
+
+# 			# pass
+# 		# else:
+# 			# pass
+
+			
+
+# 		# break
+# 		# pass
+
+# 	return a
 
 
 # global_a = Number()

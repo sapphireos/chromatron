@@ -200,8 +200,8 @@ class irBlock(IR):
 
             if self.func.live_vars:
                 s += f'{ir_s}\n'
-                s += f'{depth}|\t  def:  {sorted(list(set([a.name for a in self.func.defined_vars[ir]])))}\n'
-                s += f'{depth}|\t  use:  {sorted(list(set([a.name for a in self.func.used_vars[ir]])))}\n'
+                # s += f'{depth}|\t  def:  {sorted(list(set([a.name for a in self.func.defined_vars[ir]])))}\n'
+                # s += f'{depth}|\t  use:  {sorted(list(set([a.name for a in self.func.used_vars[ir]])))}\n'
                 s += f'{depth}|\t  live: {sorted(list(set([a.name for a in self.func.live_vars[ir]])))}\n'
 
             else:
@@ -359,11 +359,11 @@ class irBlock(IR):
                     prev.remove(o)
 
         return used
-        
+    
     ##############################################
     # Analysis Passes
     ##############################################
-    
+
     def init_global_vars(self, visited=None):    
         if visited is None:
             visited = []
@@ -1365,6 +1365,34 @@ class irFunc(IR):
 
         return block
 
+    def calc_dominance(self):
+        dominators = {self.leader_block: set([self.leader_block])}
+
+        blocks = [b for b in self.blocks.values() if b is not self.leader_block]
+        for block in blocks:
+            dominators[block] = set(copy(blocks))
+        
+        changed = True
+        while changed:
+            changed = False
+
+            for block in blocks:
+                predecessor_sets = []
+
+                for pre in block.predecessors:
+                    predecessor_sets.append(set(dominators[pre]))
+
+                intersection = predecessor_sets[0].intersection(*predecessor_sets[1:])
+
+                new = set([block]).union(intersection)
+
+                if dominators[block] != new:
+                    changed = True
+
+                dominators[block] = new
+
+        return dominators
+
     def defined(self):
         return self.leader_block.defined()
 
@@ -1406,6 +1434,12 @@ class irFunc(IR):
     def analyze_blocks(self):
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
+
+        self.dominators = self.calc_dominance()
+
+        pprint(self.dominators)
+
+        # sys.exit(0)
 
         # verify all instructions are assigned to a block:
         # THIS WILL FAIL ON BREAK STATEMENTS AT THE END OF A LOOP!
@@ -1452,7 +1486,7 @@ class irFunc(IR):
 
         if optimize:
             # basic loop invariant code motion:
-            self.loop_invariant_code_motion(self.loops)
+            # self.loop_invariant_code_motion(self.loops)
 
             # common subexpr elimination?
 
@@ -1499,7 +1533,7 @@ class irFunc(IR):
         self.prune_no_ops()
         self.remove_dead_labels()
 
-        self.deconstruct_ssa();
+        # self.deconstruct_ssa();
 
         # register allocator
 
@@ -1599,6 +1633,11 @@ class irFunc(IR):
                     ir = block.code[index]
                     block_code.append(ir)
 
+                    # check if the instruction's block dominates the loop entry node
+                    
+
+
+
                     if isinstance(ir, irBinop):
                         # check if inputs are loop invariant
 
@@ -1621,7 +1660,6 @@ class irFunc(IR):
                 block.code = block_code
 
             if len(header_code) > 0:
-                
                 header = info['header']
                 insert_index = None
                 
@@ -1636,6 +1674,7 @@ class irFunc(IR):
                 # add code to loop header
                 for ir in header_code:
                     header.code.insert(insert_index, ir)
+                    ir.block = header
                     insert_index += 1
 
     def remove_dead_labels(self):

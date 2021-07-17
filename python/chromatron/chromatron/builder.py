@@ -302,6 +302,8 @@ class Builder(object):
     def end_while(self, lineno=None):
         loop_name = self.loop[-1]
 
+        # place a landing pad at the end of the loop body
+        # this makes some loop analysis easier
         # jump_label = self.label(f'{loop_name}.jump', lineno=lineno)
         # self.position_label(jump_label)
 
