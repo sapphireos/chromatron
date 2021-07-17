@@ -1380,7 +1380,7 @@ class irFunc(IR):
         self.leader_block.insert_phi()
 
 
-        optimize = False
+        optimize = True
 
         if optimize:
             for block in self.blocks.values():
@@ -1648,7 +1648,7 @@ class irPhi(IR):
         return [self.target]
 
 class irNop(IR):
-    def __init__(self, var, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.is_nop = True
 
