@@ -29,7 +29,10 @@ class Builder(object):
         self.next_loop = 0
 
         self.loop = []
+        self.loop_preheader = []
+        self.loop_header = []
         self.loop_top = []
+        self.loop_body = []
         self.loop_end = []
 
     def __str__(self):
@@ -262,46 +265,50 @@ class Builder(object):
         loop_name = f'while.{self.next_loop}'
         self.loop.append(loop_name)
 
-        header_label = self.label(f'{loop_name}.header', lineno=lineno)
-        self.position_label(header_label)
+        top_label = self.label(f'{self.loop[-1]}.top', lineno=lineno)
+        end_label = self.label(f'{self.loop[-1]}.end', lineno=lineno)
+        preheader_label = self.label(f'{self.loop[-1]}.preheader', lineno=lineno)
+        header_label = self.label(f'{self.loop[-1]}.header', lineno=lineno)
+        body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
 
+        self.loop_preheader.append(preheader_label)
+        self.loop_header.append(header_label)
+        self.loop_top.append(top_label)
+        self.loop_body.append(body_label)
+        self.loop_end.append(end_label)
+
+        self.position_label(preheader_label)
+
+        self.next_loop += 1
+
+    def test_while_preheader(self, test, lineno=None):
+        ir = irBranch(test, self.loop_header[-1], self.loop_end[-1], lineno=lineno)
+        self.append_node(ir)
+
+    def while_header(self, test, lineno=None):
+        self.position_label(self.loop_header[-1])
+
+        loop_name = self.loop[-1]
         ir = irLoopHeader(loop_name, lineno=lineno)
         self.append_node(ir)
 
-        top_label = self.label(f'{loop_name}.top', lineno=lineno)
-
-        self.jump(top_label, lineno=lineno)
-        self.position_label(top_label)
-
-        end_label = self.label(f'{loop_name}.end', lineno=lineno)
+        self.jump(self.loop_body[-1], lineno=lineno)
         
-        self.next_loop += 1
-
-        self.loop_top.append(top_label)
-        self.loop_end.append(end_label)
+        self.position_label(self.loop_top[-1])
 
         self.scope_depth += 1
 
     def test_while(self, test, lineno=None):
-        loop_name = self.loop[-1]   
-        # ir = irLoopEntry(loop_name, test, lineno=lineno)
-        # self.append_node(ir)
-
-        body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
-        
-        ir = irBranch(test, body_label, self.loop_end[-1], lineno=lineno)
+        ir = irBranch(test, self.loop_body[-1], self.loop_end[-1], lineno=lineno)
         self.append_node(ir)
         
-        self.position_label(body_label)
+        self.position_label(self.loop_body[-1])
 
     def end_while(self, lineno=None):
         loop_name = self.loop[-1]
 
-        jump_label = self.label(f'{loop_name}.jump', lineno=lineno)
-        self.position_label(jump_label)
-
-        # ir = irLoopExit(loop_name, lineno=lineno)
-        # self.append_node(ir)
+        # jump_label = self.label(f'{loop_name}.jump', lineno=lineno)
+        # self.position_label(jump_label)
 
         self.jump(self.loop_top[-1], lineno=lineno)
         
@@ -309,15 +316,14 @@ class Builder(object):
         self.position_label(self.loop_end[-1])
 
         self.loop.pop(-1)
+        self.loop_preheader.pop(-1)
+        self.loop_header.pop(-1)
         self.loop_top.pop(-1)
+        self.loop_body.pop(-1)
         self.loop_end.pop(-1)
 
     def loop_break(self, lineno=None):
         assert self.loop_end[-1] != None
-
-        # loop_name = self.loop[-1]
-        # ir = irLoopExit(loop_name, lineno=lineno)
-        # self.append_node(ir)
 
         self.jump(self.loop_end[-1], lineno=lineno)
 

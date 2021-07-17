@@ -3,7 +3,7 @@ def loop_invariant_code_motion2():
 	# i = 4
 
 	a = Number()
-	a = 4
+	# a = 4
 
 	while i > 0:
 		i -= 1
@@ -15,7 +15,7 @@ def loop_invariant_code_motion2():
 
 		a = 2 + 3
 
-		# break
+		break
 		# pass
 
 	return a

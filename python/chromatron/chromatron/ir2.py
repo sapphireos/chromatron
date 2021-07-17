@@ -870,24 +870,32 @@ class irBlock(IR):
 
                 # we are a loop header
 
-                # there should only be 1 successor block:
+                # we should have 1 successors:
                 assert len(self.successors) == 1
 
-                # entry node is the header successor:
-                entry_node = self.successors[0]
+                # the header's successor is the loop body
+                # the loop body should have 2 predecessors:
+                loop_top = self.successors[0]
 
-                # does the entry node have any predecessors other than the header?
-                if len(entry_node.predecessors) == 1:
-                    # we're not actually a loop.
+                # the loop body should have 2 predecessors, one is the header (us)
+                # the other is the loop entry node
+
+                # if it only has 1 predecessor:
+                if len(loop_top.predecessors) == 1:
+                    # so we're not actually a loop.
+
                     # possibly a break statement that jumps out of the loop
                     # without a conditional block
                     del loops[ir.name]
-
 
                     # while we're here, delete the loop header
                     self.code = [ir for ir in self.code if not isinstance(ir, irLoopHeader)]
 
                     break
+
+
+                assert len(loop_top.predecessors) == 2
+                entry_node = [a for a in loop_top.predecessors if a is not self][0]
 
                 # and the entry node of the loop is that successor
                 loops[ir.name]['entry'] = entry_node
@@ -1145,7 +1153,7 @@ class irFunc(IR):
         self.blocks = {}
         self.leader_block = None
         self.live_vars = None
-
+        self.loops = {}
 
     @property
     def global_input_vars(self):
@@ -1568,7 +1576,6 @@ class irFunc(IR):
     def loop_invariant_code_motion(self, loops):
         for loop, info in loops.items():
             header_code = []
-            # end_code = []
             
             for block in info['body']:
                 block_code = []
@@ -1585,14 +1592,6 @@ class irFunc(IR):
                             # move instruction to header
                             header_code.append(ir)
 
-                            # # check if result is used in the loop:
-                            # if ir.result in info['body_vars']:
-                            #     # move instruction to header
-                            #     header_code.append(ir)
-                            # else:
-                            #     # move to end of loop
-                            #     end_code.append(ir)
-
                             # remove from block code
                             block_code.remove(ir)
 
@@ -1600,47 +1599,29 @@ class irFunc(IR):
                         if ir.value.is_const:
                             # move instruction to header
                             header_code.append(ir)
-                            
-                            # check if target is used in the loop:
-                            # if ir.target in info['body_vars']:
-                            #     # move instruction to header
-                            #     header_code.append(ir)
-
-                            # else:
-                            #     # move to end of loop
-                            #     end_code.append(ir)
 
                             # remove from block code
                             block_code.remove(ir)
 
                 block.code = block_code
 
-            # add code to loop header
-            header = info['header']
-            insert_index = None
-            # search for header:
-            for index in range(len(header.code)):
-                ir = header.code[index]
+            if len(header_code) > 0:
+                
+                header = info['header']
+                insert_index = None
+                
+                # search for header:
+                for index in range(len(header.code)):
+                    ir = header.code[index]
 
-                if isinstance(ir, irLoopHeader):
-                    insert_index = index + 1
-                    break
+                    if isinstance(ir, irLoopHeader):
+                        insert_index = index + 1
+                        break
 
-            # insert code
-            for ir in header_code:
-                header.code.insert(insert_index, ir)
-                insert_index += 1
-
-
-            # # add code to loop end
-            # end = info['end']
-            # insert_index = 1
-            
-            # # insert code
-            # for ir in end_code:
-            #     end.code.insert(insert_index, ir)
-            #     insert_index += 1
-
+                # add code to loop header
+                for ir in header_code:
+                    header.code.insert(insert_index, ir)
+                    insert_index += 1
 
     # def remove_dead_labels(self):
     #     return

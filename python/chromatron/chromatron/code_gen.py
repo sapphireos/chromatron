@@ -481,7 +481,11 @@ class cg1While(cg1CodeNode):
         builder.begin_while(lineno=self.lineno)
 
         test = self.test.build(builder)
+        builder.test_while_preheader(test, lineno=self.lineno)
 
+        builder.while_header(test, lineno=self.lineno)
+
+        test = self.test.build(builder)
         builder.test_while(test, lineno=self.lineno)
 
         for node in self.body:
