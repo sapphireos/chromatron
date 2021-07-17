@@ -863,7 +863,9 @@ class irBlock(IR):
                 loops[ir.name] = {
                     'header': self,
                     'entry': None,
+                    'end': None,
                     'body': [],
+                    'body_vars': [],
                 }
 
                 # we are a loop header
@@ -895,6 +897,49 @@ class irBlock(IR):
 
         return loops
 
+    def _loops_pass_2(self, loop, visited=None):
+        if visited is None:
+            # make sure start node is loop entry
+            assert loop['entry'] is self
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        # iterate over all predecessors, skipping the loop header.
+        # this will record every node in the loop
+        for pre in self.predecessors:
+            if pre is loop['header']:
+                continue
+
+            pre._loops_pass_2(loop, visited=visited)
+
+        if self not in loop['body']:
+            if self is loop['entry']:
+                # place entry at start of list
+                # this just makes the list easier to read
+                loop['body'].insert(0, self)
+            
+            else:
+                loop['body'].append(self)
+
+            # record vars used in the loop body:
+            input_vars = self.get_input_vars()
+            for i in input_vars:
+                if i not in loop['body_vars']:
+                    loop['body_vars'].append(i)
+
+    def _loops_pass_3(self, loop):
+        entry_node = loop['entry']
+        loop['end'] = None
+
+        for suc in entry_node.successors:
+            if suc is not loop['header'] and suc not in loop['body']:
+                assert loop['end'] is None                
+                loop['end'] = suc
+
     def _loop_test_vars(self, loop):
         test_vars = [loop['test_var']]
 
@@ -920,29 +965,6 @@ class irBlock(IR):
             pass
 
 
-    def _loops_pass_2(self, loop, visited=None):
-        if visited is None:
-            # make sure start node is loop entry
-            assert loop['entry'] is self
-            loop['body'].append(self)
-            visited = []
-
-        if self in visited:
-            return
-
-        visited.append(self)
-
-        # iterate over all predecessors, skipping the loop header.
-        # this will record every node in the loop
-        for pre in self.predecessors:
-            if pre is loop['header']:
-                continue
-
-            pre._loops_pass_2(loop, visited=visited)
-
-        if self not in loop['body']:
-            loop['body'].append(self)
-
     def analyze_loops(self):
         # get loop entries/headers
         loops = self._loops_pass_1()
@@ -950,6 +972,7 @@ class irBlock(IR):
         # fill out loop bodies
         for loop, info in loops.items():
             info['entry']._loops_pass_2(info)
+            self._loops_pass_3(info)
 
             # info['test_vars'] = self._loop_test_vars(info)
             # info['induction_vars'] = self._loop_induction_vars(info)
@@ -1214,8 +1237,17 @@ class irFunc(IR):
         s += "********************************\n"
         for loop, info in self.loops.items():
             s += f'{loop}\n'
+            s += f'\tHeader: {info["header"].name}\n'
+            s += f'\tEntry:  {info["entry"].name}\n'
+            s += '\tBody:\n'
             for block in info['body']:
-                s += f'\t{block.name}\n'
+                s += f'\t\t\t{block.name}\n'
+
+            s += '\tBody Vars:\n'
+            for v in info['body_vars']:
+                s += f'\t\t\t{v.name}\n'
+
+            s += f'\tEnd:    {info["end"].name}\n'
 
         s += "********************************\n"
         s += "Blocks:\n"
@@ -1536,6 +1568,7 @@ class irFunc(IR):
     def loop_invariant_code_motion(self, loops):
         for loop, info in loops.items():
             header_code = []
+            end_code = []
             
             for block in info['body']:
                 block_code = []
@@ -1549,16 +1582,27 @@ class irFunc(IR):
 
                         # for now, just check for consts, until we have a reaching def
                         if ir.left.is_const and ir.right.is_const:
-                            # move instruction to header
-                            header_code.append(ir)
+                            # check if result is used in the loop:
+                            if ir.result in info['body_vars']:
+                                # move instruction to header
+                                header_code.append(ir)
+                            else:
+                                # move to end of loop
+                                end_code.append(ir)
 
                             # remove from block code
                             block_code.remove(ir)
 
                     elif isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
                         if ir.value.is_const:
-                            # move instruction to header
-                            header_code.append(ir)
+                            # check if target is used in the loop:
+                            if ir.target in info['body_vars']:
+                                # move instruction to header
+                                header_code.append(ir)
+
+                            else:
+                                # move to end of loop
+                                end_code.append(ir)
 
                             # remove from block code
                             block_code.remove(ir)
@@ -1579,6 +1623,16 @@ class irFunc(IR):
             # insert code
             for ir in header_code:
                 header.code.insert(insert_index, ir)
+                insert_index += 1
+
+
+            # add code to loop end
+            end = info['end']
+            insert_index = 1
+            
+            # insert code
+            for ir in end_code:
+                end.code.insert(insert_index, ir)
                 insert_index += 1
 
 
