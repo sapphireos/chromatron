@@ -1195,7 +1195,13 @@ class irFunc(IR):
     
             s += f'\t{ir}\n'
 
-
+        s += "********************************\n"
+        s += "Loops:\n"
+        s += "********************************\n"
+        for loop, info in self.loops.items():
+            s += f'{loop}\n'
+            for block in info['body']:
+                s += f'\t{block.name}\n'
 
         s += "********************************\n"
         s += "Blocks:\n"
@@ -1341,6 +1347,7 @@ class irFunc(IR):
         self.leader_block = self.create_block_from_code_at_index(0)
 
         # verify all instructions are assigned to a block:
+        # THIS WILL FAIL ON BREAK STATEMENTS AT THE END OF A LOOP!
         # for ir in self.body:
         #     if ir.block is None:
         #         raise SyntaxError(f'Unreachable code.', lineno=ir.lineno)
@@ -1380,10 +1387,11 @@ class irFunc(IR):
                 reads = [a.name for a in self.get_input_vars()]
                 block.remove_dead_code(reads=reads)
 
-            loops = self.leader_block.analyze_loops()
-            
+        self.loops = self.leader_block.analyze_loops()
+
+        if optimize:
             # basic loop invariant code motion:
-            self.loop_invariant_code_motion(loops)
+            self.loop_invariant_code_motion(self.loops)
 
             # common subexpr elimination?
 

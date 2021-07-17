@@ -5,15 +5,17 @@ def loop_invariant_code_motion2():
 	# a = Number()
 
 	while i > 0:
-		i -= 1
+		# i -= 1
 
-		# if i == 1:
-			# i = 2
+		if i == 1:
+			pass
+		else:
+			pass
 
 		# a = 2 + 3
 
 		# break
-		# pass
+		pass
 
 	# return a
 

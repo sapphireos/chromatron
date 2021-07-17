@@ -262,13 +262,19 @@ class Builder(object):
         loop_name = f'while.{self.next_loop}'
         self.loop.append(loop_name)
 
+        header_label = self.label(f'{loop_name}.header', lineno=lineno)
+        self.position_label(header_label)
+
         ir = irLoopHeader(loop_name, lineno=lineno)
         self.append_node(ir)
 
         top_label = self.label(f'{loop_name}.top', lineno=lineno)
-        end_label = self.label(f'{loop_name}.end', lineno=lineno)
+
+        self.jump(top_label, lineno=lineno)
         self.position_label(top_label)
 
+        end_label = self.label(f'{loop_name}.end', lineno=lineno)
+        
         self.next_loop += 1
 
         self.loop_top.append(top_label)
@@ -295,9 +301,8 @@ class Builder(object):
         ir = irLoopExit(loop_name, lineno=lineno)
         self.append_node(ir)
 
-        ir = irJump(self.loop_top[-1], lineno=lineno)
-        self.append_node(ir)
-
+        self.jump(self.loop_top[-1], lineno=lineno)
+        
         self.position_label(self.loop_end[-1])
 
         self.loop.pop(-1)
