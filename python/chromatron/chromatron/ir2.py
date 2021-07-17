@@ -871,8 +871,24 @@ class irBlock(IR):
                 # there should only be 1 successor block:
                 assert len(self.successors) == 1
 
+                # entry node is the header successor:
+                entry_node = self.successors[0]
+
+                # does the entry node have any predecessors other than the header?
+                if len(entry_node.predecessors) == 1:
+                    # we're not actually a loop.
+                    # possibly a break statement that jumps out of the loop
+                    # without a conditional block
+                    del loops[ir.name]
+
+
+                    # while we're here, delete the loop header
+                    self.code = [ir for ir in self.code if not isinstance(ir, irLoopHeader)]
+
+                    break
+
                 # and the entry node of the loop is that successor
-                loops[ir.name]['entry'] = self.successors[0]
+                loops[ir.name]['entry'] = entry_node
 
         for suc in self.successors:
             suc._loops_pass_1(loops, visited)                
@@ -933,8 +949,9 @@ class irBlock(IR):
 
         # fill out loop bodies
         for loop, info in loops.items():
-            # info['test_vars'] = self._loop_test_vars(info)
             info['entry']._loops_pass_2(info)
+
+            # info['test_vars'] = self._loop_test_vars(info)
             # info['induction_vars'] = self._loop_induction_vars(info)
 
         return loops
