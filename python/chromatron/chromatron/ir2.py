@@ -1911,7 +1911,8 @@ class irLoad(IR):
         return f'LOAD {self.target} <-- {self.ref}'
 
     def get_input_vars(self):
-        return [self.ref]
+        # return [self.ref]
+        return []
 
     def get_output_vars(self):
         return [self.target]
@@ -1931,7 +1932,8 @@ class irStore(IR):
         return [self.register]
 
     def get_output_vars(self):
-        return [self.ref]
+        # return [self.ref]
+        return []
 
 
 # Spill register to stack
