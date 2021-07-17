@@ -392,7 +392,7 @@ class irBlock(IR):
                 self.declarations[ir.var._name] = ir.var
 
                 # init variable to 0
-                assign = irLoadConst(ir.var, get_zero(ir.lineno), lineno=ir.lineno)
+                assign = irLoadConst(ir.var, self.func.get_zero(ir.lineno), lineno=ir.lineno)
                 
                 new_code.append(assign)
 
@@ -1145,7 +1145,11 @@ class irFunc(IR):
         self.code = [] # output IR
         self.builder = builder
         self.globals = builder.globals
-        self.consts = builder.consts
+
+        ZERO = irVar(0, 'i32', lineno=-1)
+        ZERO.is_const = True
+
+        self.consts = {'0': ZERO}
         
         if self.params == None:
             self.params = []
@@ -1154,6 +1158,9 @@ class irFunc(IR):
         self.leader_block = None
         self.live_vars = None
         self.loops = {}
+
+    def get_zero(self, lineno=None):
+        return self.consts['0']
 
     @property
     def global_input_vars(self):
@@ -1387,7 +1394,7 @@ class irFunc(IR):
                     if e is None: 
                         e = exc
 
-                    logging.critical(f'FATAL: {v} not defined, used at {ir}.  Line: {ir.lineno}')
+                    logging.critical(f'FATAL: {v} not defined, used at {ir}. Func: {self.name} Line: {ir.lineno}')
              
         self.live_vars = self.leader_block.liveness(used, defined)
 
@@ -2001,10 +2008,10 @@ class irBinop(IR):
         elif self.op == 'mul':
             # mul times 0 is assign to 0
             if self.left.is_const and self.left.value == 0:
-                return irAssign(self.result, get_zero(self.lineno), lineno=self.lineno)
+                return irAssign(self.result, self.get_zero(self.lineno), lineno=self.lineno)
 
             elif self.right.is_const and self.right.value == 0:
-                return irAssign(self.result, get_zero(self.lineno), lineno=self.lineno)
+                return irAssign(self.result, self.get_zero(self.lineno), lineno=self.lineno)
 
             # mul times 1 is assign
             elif self.left.is_const and self.left.value == 1:
@@ -2227,14 +2234,6 @@ class irVar(IR):
 
     def __repr__(self):
         return f'{self.name}/{id(self)}'
-
-
-
-ZERO = irVar(0, 'i32', lineno=-1)
-ZERO.is_const = True
-
-def get_zero(lineno=None):
-    return ZERO
 
 class irRef(irVar):
     def __init__(self, target, ref_count, *args, **kwargs):

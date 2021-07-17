@@ -21,7 +21,6 @@ class Builder(object):
         self.scope_depth = 0
         self.labels = {}
         self.globals = {}
-        self.consts = {'0': get_zero()}
 
         self.next_temp = 0
         self.refs = {}
@@ -42,10 +41,6 @@ class Builder(object):
         for i in list(self.globals.values()):
             s += '%d\t%s\n' % (i.lineno, i)
 
-        s += 'Consts:\n'
-        for i in list(self.consts.values()):
-            s += '%d\t%s\n' % (i.lineno, i)
-        
         # s += 'PixelArrays:\n'
         # for i in list(self.pixel_arrays.values()):
         #     s += '%d\t%s\n' % (i.lineno, i)
@@ -99,8 +94,8 @@ class Builder(object):
     def add_const(self, value, data_type=None, lineno=None):
         name = str(value)
 
-        if name in self.consts:
-            return self.consts[name]
+        if name in self.current_func.consts:
+            return self.current_func.consts[name]
 
         if isinstance(value, int):
             data_type = 'i32'
@@ -114,7 +109,7 @@ class Builder(object):
         ir = irVar(name, data_type, lineno=lineno)
         ir.is_const = True
 
-        self.consts[name] = ir
+        self.current_func.consts[name] = ir
 
         return ir
     

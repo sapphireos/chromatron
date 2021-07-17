@@ -1,24 +1,29 @@
-def loop_invariant_code_motion2():
-	i = Number()
-	# i = 4
 
-	a = Number()
-	# a = 4
+global_a = Number()
+def global_var():
+	global_a += 1
 
-	while i > 0:
-		i -= 1
+# def loop_invariant_code_motion2():
+# 	i = Number()
+# 	# i = 4
 
-		# if i == 1:
-		# 	pass
-		# else:
-		# 	pass
+# 	a = Number()
+# 	# a = 4
 
-		# a = 2 + 3
+# 	while i > 0:
+# 		i -= 1
 
-		# break
-		# pass
+# 		if i == 1:
+# 			pass
+# 		else:
+# 			pass
 
-	return a
+# 		a = 2 + 3
+
+# 		break
+# 		# pass
+
+# 	return a
 
 
 # global_a = Number()
