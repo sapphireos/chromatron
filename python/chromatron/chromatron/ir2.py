@@ -393,6 +393,7 @@ class irBlock(IR):
 
                 # init variable to 0
                 assign = irLoadConst(ir.var, self.func.get_zero(ir.lineno), lineno=ir.lineno)
+                assign.block = self
                 
                 new_code.append(assign)
 
@@ -416,6 +417,7 @@ class irBlock(IR):
 
                         # insert a LOAD instruction here
                         ir = irLoad(i, self.globals[i._name], lineno=ir.lineno)
+                        ir.block = self
                         new_code.append(ir)
 
                         # set up SSA
@@ -451,6 +453,7 @@ class irBlock(IR):
             if isinstance(ir, irReturn): # or irCall
                 for k, v in self.stores.items():
                     ir = irStore(v, self.globals[k], lineno=ir.lineno)
+                    ir.block = self
                     new_code.append(ir)
 
             new_code.append(self.code[index])
@@ -492,6 +495,7 @@ class irBlock(IR):
                     # load const
                     target = add_const_temp(c.name, datatype=c.type, lineno=ir.lineno)
                     load = irLoadConst(target, copy(c), lineno=-1)
+                    load.block = self
 
                     consts[c.name] = target
 
@@ -633,6 +637,7 @@ class irBlock(IR):
                 sources.extend(ds)
     
             ir = irPhi(v, sources, lineno=-1)
+            ir.block = self
             
             self.code.insert(insertion_point, ir)
 
@@ -1011,6 +1016,7 @@ class irBlock(IR):
                 if val is not None:
                     # replace with assign
                     ir = irLoadConst(ir.result, val, lineno=ir.lineno)
+                    ir.block = self
 
                     replaced = True
             
@@ -1047,6 +1053,7 @@ class irBlock(IR):
                 new_ir = ir.reduce_strength()
 
                 if new_ir is not None:
+                    new_ir.block = self
                     # replace instruction
                     ir = new_ir
 
@@ -1070,7 +1077,9 @@ class irBlock(IR):
                     # just replace the binop result
                     ir.result = next_ir.target
                     new_code.append(ir)
-                    self.code[index + 1] = irNop(lineno=ir.lineno)
+                    nop = irNop(lineno=ir.lineno)
+                    nop.block = self
+                    self.code[index + 1] = nop
 
             else:
                 new_code.append(ir)
@@ -1439,6 +1448,18 @@ class irFunc(IR):
 
         return self.live_vars
 
+    def verify_block_assignments(self):
+        # verify all instructions are recording their blocks:
+        for block in self.blocks.values():
+            for ir in block.code:
+                try:
+                    assert ir.block is block
+
+                except AssertionError:
+
+                    logging.critical(f'FATAL: {ir} from {block.name} does not have a block assignment.')
+                    raise
+
     def analyze_blocks(self):
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -1464,6 +1485,8 @@ class irFunc(IR):
         self.leader_block.apply_types()
         self.leader_block.insert_phi()
 
+        self.verify_block_assignments()
+
 
         optimize = True
 
@@ -1478,8 +1501,11 @@ class irFunc(IR):
                 block.reduce_strength()
 
 
-        self.leader_block.init_consts()
+        self.verify_block_assignments()
 
+        self.leader_block.init_consts()
+        
+        self.verify_block_assignments()
 
         if optimize:
             for block in self.blocks.values():
@@ -1640,9 +1666,8 @@ class irFunc(IR):
                     block_code.append(ir)
 
                     # check if the instruction's block dominates the loop entry node
-                    
-
-
+                    if ir.block not in entry_dominators:
+                        continue
 
                     if isinstance(ir, irBinop):
                         # check if inputs are loop invariant

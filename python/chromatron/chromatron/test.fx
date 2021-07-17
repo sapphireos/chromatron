@@ -36,7 +36,8 @@ def loop_invariant_code_motion2():
 			# break
 
 			# pass
-		# else:
+		else:
+			a = 5
 			# pass
 
 			
