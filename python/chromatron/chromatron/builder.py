@@ -295,14 +295,17 @@ class Builder(object):
         self.position_label(body_label)
 
     def end_while(self, lineno=None):
-        self.scope_depth -= 1
-
         loop_name = self.loop[-1]
+
+        jump_label = self.label(f'{loop_name}.jump', lineno=lineno)
+        self.position_label(jump_label)
+
         ir = irLoopExit(loop_name, lineno=lineno)
         self.append_node(ir)
 
         self.jump(self.loop_top[-1], lineno=lineno)
         
+        self.scope_depth -= 1
         self.position_label(self.loop_end[-1])
 
         self.loop.pop(-1)
