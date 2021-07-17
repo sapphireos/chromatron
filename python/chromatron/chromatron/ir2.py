@@ -152,8 +152,6 @@ class irBlock(IR):
         self.successors = []
         self.code = []
         self.locals = {}
-        # self.defines = {}
-        # self.uses = {}
         self.params = {}
         self.func = func
         self.globals = self.func.globals
@@ -184,6 +182,10 @@ class irBlock(IR):
         s += f'{depth}| Successors:\n'
         for p in self.successors:
             s += f'{depth}|\t{p.name}\n'
+
+        s += f'{depth}| Params:\n'
+        for p in self.params.values():
+            s += f'{depth}|\t{p}\n'
 
         lines_printed = []
         s += f'{depth}| Code:\n'
@@ -626,7 +628,7 @@ class irBlock(IR):
         for k, v in self.params.items():
             sources = []
             for pre in self.predecessors:
-                ds = pre.get_defined(k)
+                ds = pre.get_defined(k, visited=[self])
                 sources.extend(ds)
     
             ir = irPhi(v, sources, lineno=-1)
@@ -1077,6 +1079,7 @@ class irFunc(IR):
 
         self.blocks = {}
         self.leader_block = None
+        self.live_vars = None
 
 
     @property
@@ -1378,7 +1381,7 @@ class irFunc(IR):
 
         self.prune_no_ops()
 
-        # self.deconstruct_ssa();
+        self.deconstruct_ssa();
 
         # register allocator
 
@@ -1566,6 +1569,8 @@ class irPhi(IR):
 
         self.target = target
         self.defines = defines
+
+        assert self.target not in self.defines
 
     def __str__(self):
         s = ''

@@ -74,12 +74,25 @@ def while_loop_multiple_condition():
 	i = 4
 
 	a = Number()
+	a = 1
 
 	# this breaks liveness!!!
 	while i > 0 and a == 2:
+	# while i > 0 and a == 2:
+	# while a == 2:
 		i -= 1
 
+		a = 8 + 8
+
 	return a
+
+
+# def while_loop_multiple_condition():
+# 	a = Number()
+# 	while a == 2:
+# 		pass
+
+	# return a
 
 
 
