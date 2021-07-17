@@ -60,6 +60,7 @@ class IR(object):
         self.scope_depth = None
         self.live_in = []
         self.live_out = []
+        self.is_nop = False
 
         assert self.lineno != None
 
@@ -618,8 +619,8 @@ class irBlock(IR):
             index = i
 
             if not isinstance(self.code[index], irLabel) and \
-               not isinstance(self.code[index], irLoopHeader) and \
-               not isinstance(self.code[index], irLoopEntry):
+               not isinstance(self.code[index], irLoopHeader): # and \
+               # not isinstance(self.code[index], irLoopEntry):
                 insertion_point = index
                 break
 
@@ -858,26 +859,20 @@ class irBlock(IR):
             loops = {}
 
         for ir in self.code:
-            if isinstance(ir, irLoopMeta):
-                if ir.name not in loops:
-                    loops[ir.name] = {
-                        'header': None,
-                        'entry': None,
-                        'body': [],
-                        'exit': None
-                    }
-
             if isinstance(ir, irLoopHeader):
-                loops[ir.name]['header'] = self
+                loops[ir.name] = {
+                    'header': self,
+                    'entry': None,
+                    'body': [],
+                }
 
-            elif isinstance(ir, irLoopEntry):
-                loops[ir.name]['entry'] = self
-                loops[ir.name]['test_var'] = ir.test_var
-                loops[ir.name]['body'].append(self)
+                # we are a loop header
 
-            elif isinstance(ir, irLoopExit):
-                loops[ir.name]['exit'] = self
-                loops[ir.name]['body'].append(self)
+                # there should only be 1 successor block:
+                assert len(self.successors) == 1
+
+                # and the entry node of the loop is that successor
+                loops[ir.name]['entry'] = self.successors[0]
 
         for suc in self.successors:
             suc._loops_pass_1(loops, visited)                
@@ -911,6 +906,9 @@ class irBlock(IR):
 
     def _loops_pass_2(self, loop, visited=None):
         if visited is None:
+            # make sure start node is loop entry
+            assert loop['entry'] is self
+            loop['body'].append(self)
             visited = []
 
         if self in visited:
@@ -918,27 +916,26 @@ class irBlock(IR):
 
         visited.append(self)
 
+        # iterate over all predecessors, skipping the loop header.
+        # this will record every node in the loop
+        for pre in self.predecessors:
+            if pre is loop['header']:
+                continue
 
-        if loop['exit'] is self:
-            return
+            pre._loops_pass_2(loop, visited=visited)
 
-        if loop['entry'] is not self:
-            if self not in loop['body']:
-                loop['body'].append(self)
-
-        for suc in self.successors:
-            suc._loops_pass_2(loop, visited=visited)
-
+        if self not in loop['body']:
+            loop['body'].append(self)
 
     def analyze_loops(self):
-        # get loop entries/exits
+        # get loop entries/headers
         loops = self._loops_pass_1()
 
         # fill out loop bodies
         for loop, info in loops.items():
-            info['test_vars'] = self._loop_test_vars(info)
+            # info['test_vars'] = self._loop_test_vars(info)
             info['entry']._loops_pass_2(info)
-            info['induction_vars'] = self._loop_induction_vars(info)
+            # info['induction_vars'] = self._loop_induction_vars(info)
 
         return loops
 
@@ -1223,7 +1220,7 @@ class irFunc(IR):
 
             
             if self.live_vars:
-                live = list(set([a.name for a in self.live_vars[ir]]))
+                live = sorted(list(set([a.name for a in self.live_vars[ir]])))
                 s += f'\t{str(ir):48}\tlive: {live}\n'
 
             else:
@@ -1493,12 +1490,7 @@ class irFunc(IR):
         for index in range(len(self.code)):
             ir = self.code[index]
             
-            if not isinstance(ir, irNop) and \
-               not isinstance(ir, irDefine) and \
-               not isinstance(ir, irLoopHeader) and \
-               not isinstance(ir, irLoopEntry) and \
-               not isinstance(ir, irLoopExit):
-
+            if not ir.is_nop:
                 new_code.append(ir)
 
         self.code = new_code
@@ -1639,6 +1631,10 @@ class irPhi(IR):
         return [self.target]
 
 class irNop(IR):
+    def __init__(self, var, **kwargs):
+        super().__init__(**kwargs)
+        self.is_nop = True
+
     def __str__(self, **kwargs):
         return "NOP" 
 
@@ -1646,37 +1642,19 @@ class irDefine(IR):
     def __init__(self, var, **kwargs):
         super().__init__(**kwargs)
         self.var = var
+        self.is_nop = True
     
     def __str__(self):
         return f'DEF: {self.var} depth: {self.scope_depth}'
 
-class irLoopMeta(IR):
-    pass
-
-class irLoopHeader(irLoopMeta):
+class irLoopHeader(IR):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
+        self.is_nop = True
 
     def __str__(self):
         return f'LoopHeader: {self.name}'
-
-class irLoopEntry(irLoopMeta):
-    def __init__(self, name, test_var, **kwargs):
-        super().__init__(**kwargs)
-        self.name = name
-        self.test_var = test_var
-
-    def __str__(self):
-        return f'LoopEntry: {self.name}'
-
-class irLoopExit(irLoopMeta):
-    def __init__(self, name, **kwargs):
-        super().__init__(**kwargs)
-        self.name = name
-
-    def __str__(self):
-        return f'LoopExit: {self.name}'
 
 class irLabel(IR):
     def __init__(self, name, **kwargs):

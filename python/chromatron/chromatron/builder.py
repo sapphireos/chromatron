@@ -284,8 +284,8 @@ class Builder(object):
 
     def test_while(self, test, lineno=None):
         loop_name = self.loop[-1]   
-        ir = irLoopEntry(loop_name, test, lineno=lineno)
-        self.append_node(ir)
+        # ir = irLoopEntry(loop_name, test, lineno=lineno)
+        # self.append_node(ir)
 
         body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
         
@@ -300,8 +300,8 @@ class Builder(object):
         jump_label = self.label(f'{loop_name}.jump', lineno=lineno)
         self.position_label(jump_label)
 
-        ir = irLoopExit(loop_name, lineno=lineno)
-        self.append_node(ir)
+        # ir = irLoopExit(loop_name, lineno=lineno)
+        # self.append_node(ir)
 
         self.jump(self.loop_top[-1], lineno=lineno)
         
@@ -315,9 +315,9 @@ class Builder(object):
     def loop_break(self, lineno=None):
         assert self.loop_end[-1] != None
 
-        loop_name = self.loop[-1]
-        ir = irLoopExit(loop_name, lineno=lineno)
-        self.append_node(ir)
+        # loop_name = self.loop[-1]
+        # ir = irLoopExit(loop_name, lineno=lineno)
+        # self.append_node(ir)
 
         self.jump(self.loop_end[-1], lineno=lineno)
 
