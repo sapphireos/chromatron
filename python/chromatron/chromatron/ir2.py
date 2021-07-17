@@ -1448,12 +1448,19 @@ class irFunc(IR):
             self.loop_invariant_code_motion(self.loops)
 
             # common subexpr elimination?
+            
+            
 
+            # for block in self.blocks.values():
+            #     # remove redundant assignments.
+            #     # loop invariant code motion can create these
+            #     block.remove_redundant_assigns()
 
+            # remove dead code:
             for block in self.blocks.values():
-                # remove redundant assignments.
-                # loop invariant code motion can create these
-                block.remove_redundant_assigns()
+                reads = [a.name for a in self.get_input_vars()]
+                block.remove_dead_code(reads=reads)
+
 
         # run usedef analysis
         defined = self.defined()
@@ -1484,7 +1491,7 @@ class irFunc(IR):
 
         self.prune_no_ops()
 
-        # self.deconstruct_ssa();
+        self.deconstruct_ssa();
 
         # register allocator
 
