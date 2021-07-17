@@ -1248,6 +1248,14 @@ class irFunc(IR):
             s += f'\t{ir}\n'
 
         s += "********************************\n"
+        s += "Dominance:\n"
+        s += "********************************\n"
+        for n, dom in self.dominators.items():
+            s += f'\t{n.name}\n'
+            for d in dom:
+                s += f'\t\t{d.name}\n'
+
+        s += "********************************\n"
         s += "Loops:\n"
         s += "********************************\n"
         for loop, info in self.loops.items():
@@ -1437,10 +1445,6 @@ class irFunc(IR):
 
         self.dominators = self.calc_dominance()
 
-        pprint(self.dominators)
-
-        # sys.exit(0)
-
         # verify all instructions are assigned to a block:
         # THIS WILL FAIL ON BREAK STATEMENTS AT THE END OF A LOOP!
         # for ir in self.body:
@@ -1486,7 +1490,7 @@ class irFunc(IR):
 
         if optimize:
             # basic loop invariant code motion:
-            # self.loop_invariant_code_motion(self.loops)
+            self.loop_invariant_code_motion(self.loops)
 
             # common subexpr elimination?
 
@@ -1625,6 +1629,8 @@ class irFunc(IR):
     def loop_invariant_code_motion(self, loops):
         for loop, info in loops.items():
             header_code = []
+
+            entry_dominators = self.dominators[info['entry']]
             
             for block in info['body']:
                 block_code = []
