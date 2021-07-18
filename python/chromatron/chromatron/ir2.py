@@ -639,11 +639,17 @@ class irBlock(IR):
             for pre in self.predecessors:
                 ds = pre.get_defined(k, visited=[self])
                 sources.extend(ds)
-    
+
+            assert len(sources) > 0
+
+            # if len(sources) == 1:
+            #     ir = irAssign(v, sources[0], lineno=-1)
+
+            # else:
             ir = irPhi(v, list(set(sources)), lineno=-1)
+                
             ir.block = self
             v.block = self
-            
             self.code.insert(insertion_point, ir)
 
         for suc in self.successors:
@@ -1255,33 +1261,36 @@ class irBlock(IR):
         self.code = [ir for ir in self.code if ir not in remove]
 
     def resolve_phi(self):
-        changed = False
+        # changed = False
         new_code = []
         for ir in self.code:
             if isinstance(ir, irPhi):
                 for v in ir.defines:
-                    for ir2 in v.block.code:
-                        if isinstance(ir2, irPhi):
-                            continue
+                    # for ir2 in v.block.code:
+                    #     if isinstance(ir2, irPhi):
+                    #         continue
 
-                        for o in [o for o in ir2.get_output_vars() if o.name == v.name]:
-                            if o.name != ir.target.name:
-                                o.ssa_version = ir.target.ssa_version
-                                changed = True
+                    #     for o in [o for o in ir2.get_output_vars() if o.name == v.name]:
+                    #         if o.name != ir.target.name:
+                    #             changed = True
+                    #             logging.debug(f'Out {o.name:8} -> {ir.target.name:8} at {ir2.block.name:24} | {str(ir2):32} | Phi: {ir} / {ir.block.name}')
+                    #             o.ssa_version = ir.target.ssa_version
 
-                        for i in [i for i in ir2.get_input_vars() if i.name == v.name]:
-                            if i.name != ir.target.name:
-                                i.ssa_version = ir.target.ssa_version
-                                changed = True
+                    #     for i in [i for i in ir2.get_input_vars() if i.name == v.name]:
+                    #         if i.name != ir.target.name:
+                    #             changed = True
+                    #             logging.debug(f'In  {i.name:8} -> {ir.target.name:8} at {ir2.block.name:24} | {str(ir2):32} | Phi: {ir} / {ir.block.name}')
+                    #             i.ssa_version = ir.target.ssa_version
 
-                    # source = v.block
-                    # assign = irAssign(ir.target, v, lineno=-1)
-                    # assign.block = source
 
-                    # insertion_point = len(source.code) - 1
-                    # source.code.insert(insertion_point, assign)
+                    source = v.block
+                    assign = irAssign(ir.target, v, lineno=-1)
+                    assign.block = source
+
+                    insertion_point = len(source.code) - 1
+                    source.code.insert(insertion_point, assign)
                         # changed = True
-                new_code.append(ir)
+                # new_code.append(ir)
 
                 # phi node will be removed from block
             else:
@@ -1292,7 +1301,21 @@ class irBlock(IR):
         # if changed:
             # raise Exception
 
-        return changed
+        # return changed
+
+    # def remove_phi(self):
+    #     new_code = []
+    #     for ir in self.code:
+    #         if isinstance(ir, irPhi):
+    #             pass
+
+    #             # phi node will be removed from block
+                
+    #         else:
+    #             new_code.append(ir)
+
+    #     self.code = new_code
+
 
     # def reorder_instructions(self):
     #     # look for instructions that can be reordered,
@@ -1642,24 +1665,33 @@ class irFunc(IR):
                     raise
 
     def resolve_phi(self):
-        changed = True
-        iteration_limit = 512
+        for block in self.blocks.values():
+            block.resolve_phi()
 
-        i = 0
-        while changed and i < iteration_limit:
-            i += 1
+        # changed = True
+        # iteration_limit = 8
 
-            changed = False
+        # i = 0
+        # while changed and i < iteration_limit:
+        #     i += 1
 
-            for block in self.blocks.values():
-                if block.resolve_phi():
-                    changed = True
+        #     logging.debug(f'Phi resolution iter: {i}')
+        #     changed = False
+
+        #     for block in self.blocks.values():
+        #         if block.resolve_phi():
+        #             changed = True
         
-        if changed:
-            # we hit the iteration limit
-            raise CompilerFatal(f'Phi resolution failed after {i} iterations')
+        # if changed:
+        #     # we hit the iteration limit
+        #     raise CompilerFatal(f'Phi resolution failed after {i} iterations')
     
-        logging.debug(f'Phi resolution in {i} iterations')
+
+        # # remove phi nodes
+        # for block in self.blocks.values():
+        #     block.remove_phi()
+
+        # logging.debug(f'Phi resolution in {i} iterations')
             
     def analyze_blocks(self):
         self.blocks = {}
@@ -1691,7 +1723,7 @@ class irFunc(IR):
         self.verify_ssa()
 
 
-        optimize = True
+        optimize = False
 
         if optimize:
             for block in self.blocks.values():
@@ -1720,6 +1752,7 @@ class irFunc(IR):
 
         self.loops = self.leader_block.analyze_loops()
 
+        optimize = True
         if optimize:
             # basic loop invariant code motion:
             self.loop_invariant_code_motion(self.loops)
@@ -1733,24 +1766,25 @@ class irFunc(IR):
 
 
 
-            for block in self.blocks.values():
+            # for block in self.blocks.values():
             #     # remove redundant assignments.
             #     # loop invariant code motion can create these
-                block.remove_redundant_assigns()
+                # block.remove_redundant_assigns()
 
         self.verify_ssa()
 
         # convert out of SSA form
         self.resolve_phi()
 
-        # if optimize:
+        optimize = True
+        if optimize:
         #     for block in self.blocks.values():
         #         block.remove_redundant_binop_assigns()
 
         #     for block in self.blocks.values():
         #         block.remove_redundant_assigns()
 
-        #     self.leader_block.propagate_copies2()
+            self.leader_block.propagate_copies2()
 
         #     for block in self.blocks.values():
         #         block.fold_constants()
@@ -1759,10 +1793,10 @@ class irFunc(IR):
         #         block.reduce_strength()
 
 
-        #     # remove dead code:
-        #     for block in self.blocks.values():
-        #         reads = [a.name for a in self.get_input_vars()]
-        #         block.remove_dead_code(reads=reads)
+            # remove dead code:
+            for block in self.blocks.values():
+                reads = [a.name for a in self.get_input_vars()]
+                block.remove_dead_code(reads=reads)
 
             
 
@@ -1775,7 +1809,7 @@ class irFunc(IR):
         # self.used_vars = used
         # self.defined_vars = defined
 
-        # liveness analysis
+        # # liveness analysis
         # live = self.liveness(used, defined)
         # self.live_vars = live        
 

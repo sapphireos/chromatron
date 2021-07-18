@@ -31,6 +31,7 @@ import colored_traceback
 colored_traceback.add_hook()
 
 # from .ir import *
+from .ir2 import CompilerFatal
 from .builder import Builder
 from sapphire.common.util import setup_basic_logging
 
@@ -1018,7 +1019,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     try:
         program.analyze_blocks()
 
-    except AssertionError as exc:
+    except (AssertionError, CompilerFatal) as exc:
         e = exc
 
     # save IR to file
