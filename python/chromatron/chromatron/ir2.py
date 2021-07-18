@@ -200,8 +200,8 @@ class irBlock(IR):
 
             if self.func.live_vars:
                 s += f'{ir_s}\n'
-                # s += f'{depth}|\t  def:  {sorted(list(set([a.name for a in self.func.defined_vars[ir]])))}\n'
-                # s += f'{depth}|\t  use:  {sorted(list(set([a.name for a in self.func.used_vars[ir]])))}\n'
+                s += f'{depth}|\t  def:  {sorted(list(set([a.name for a in self.func.defined_vars[ir]])))}\n'
+                s += f'{depth}|\t  use:  {sorted(list(set([a.name for a in self.func.used_vars[ir]])))}\n'
                 s += f'{depth}|\t  live: {sorted(list(set([a.name for a in self.func.live_vars[ir]])))}\n'
 
             else:
@@ -1251,22 +1251,44 @@ class irBlock(IR):
         self.code = [ir for ir in self.code if ir not in remove]
 
     def resolve_phi(self):
+        changed = False
         new_code = []
         for ir in self.code:
             if isinstance(ir, irPhi):
                 for v in ir.defines:
-                    source = v.block
-                    assign = irAssign(ir.target, v, lineno=-1)
-                    assign.block = source
+                    for ir2 in v.block.code:
+                        if isinstance(ir2, irPhi)
+                            continue
 
-                    insertion_point = len(source.code) - 1
-                    source.code.insert(insertion_point, assign)
+                        for o in [o for o in ir2.get_output_vars() if o.name == v.name]:
+                            if o.name != ir.target.name:
+                                o.ssa_version = ir.target.ssa_version
+                                changed = True
+
+                        for i in [i for i in ir2.get_input_vars() if i.name == v.name]:
+                            if i.name != ir.target.name:
+                                i.ssa_version = ir.target.ssa_version
+                                changed = True
+
+                    # source = v.block
+                    # assign = irAssign(ir.target, v, lineno=-1)
+                    # assign.block = source
+
+                    # insertion_point = len(source.code) - 1
+                    # source.code.insert(insertion_point, assign)
+                        # changed = True
+                new_code.append(ir)
 
                 # phi node will be removed from block
             else:
                 new_code.append(ir)
 
         self.code = new_code
+
+        # if changed:
+            # raise Exception
+
+        return changed
 
     # def reorder_instructions(self):
     #     # look for instructions that can be reordered,
@@ -1616,9 +1638,22 @@ class irFunc(IR):
                     raise
 
     def resolve_phi(self):
-        for block in self.blocks.values():
-            block.resolve_phi()
+        changed = True
+        i = 0
+        while changed and i < 100:
+            i += 1
+            changed = False
 
+            for block in self.blocks.values():
+                # try:
+                if block.resolve_phi():
+                    changed = True
+                
+                # except Exception:
+                #     break
+
+        print(f'Phi resolution in {i} iterations')
+            
     def analyze_blocks(self):
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -1701,42 +1736,41 @@ class irFunc(IR):
         # convert out of SSA form
         self.resolve_phi()
 
-        if optimize:
-            for block in self.blocks.values():
-                block.remove_redundant_binop_assigns()
+        # if optimize:
+        #     for block in self.blocks.values():
+        #         block.remove_redundant_binop_assigns()
 
-            for block in self.blocks.values():
-                block.remove_redundant_assigns()
+        #     for block in self.blocks.values():
+        #         block.remove_redundant_assigns()
 
-            self.leader_block.propagate_copies2()
+        #     self.leader_block.propagate_copies2()
 
-            for block in self.blocks.values():
-                block.fold_constants()
+        #     for block in self.blocks.values():
+        #         block.fold_constants()
 
-            for block in self.blocks.values():
-                block.reduce_strength()
+        #     for block in self.blocks.values():
+        #         block.reduce_strength()
 
 
-            # remove dead code:
-            for block in self.blocks.values():
-                reads = [a.name for a in self.get_input_vars()]
-                block.remove_dead_code(reads=reads)
+        #     # remove dead code:
+        #     for block in self.blocks.values():
+        #         reads = [a.name for a in self.get_input_vars()]
+        #         block.remove_dead_code(reads=reads)
 
             
 
         # run usedef analysis
-        defined = self.defined()
-        used = self.used()
+        # defined = self.defined()
+        # used = self.used()
         
-        self.live_vars = None
+        # self.live_vars = None
 
-        self.used_vars = used
-        self.defined_vars = defined
+        # self.used_vars = used
+        # self.defined_vars = defined
 
         # liveness analysis
-        live = self.liveness(used, defined)
-
-        self.live_vars = live        
+        # live = self.liveness(used, defined)
+        # self.live_vars = live        
 
 
 
