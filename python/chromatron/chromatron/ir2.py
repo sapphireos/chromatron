@@ -997,6 +997,7 @@ class irBlock(IR):
     # Optimizer Passes
     ##############################################
     def fold_and_propagate_constants(self):
+
         replaced = False
         new_code = []
         aliases = {}
@@ -1020,8 +1021,11 @@ class irBlock(IR):
                     ir.block = self
 
                     replaced = True
-            
-            if isinstance(ir, irAssign):
+
+            if isinstance(ir, irLoadConst):
+                aliases[ir.target.name] = ir.value
+
+            elif isinstance(ir, irAssign):
                 # if assigning a constant, record
                 # that association with the target var
                 # if ir.value.is_const:
@@ -1574,6 +1578,9 @@ class irFunc(IR):
             for block in self.blocks.values():
                 block.remove_redundant_assigns()
 
+            # propagate copies?
+
+            
 
         # run usedef analysis
         defined = self.defined()
@@ -1809,7 +1816,7 @@ class irPhi(IR):
     def __str__(self):
         s = ''
         for d in self.defines:
-            s += f'{d.name}!{d.block.name}, '
+            s += f'{d.name}[{d.block.name}], '
 
         s = s[:-2]
 
