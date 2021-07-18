@@ -638,6 +638,7 @@ class irBlock(IR):
     
             ir = irPhi(v, sources, lineno=-1)
             ir.block = self
+            v.block = self
             
             self.code.insert(insertion_point, ir)
 
@@ -1143,6 +1144,23 @@ class irBlock(IR):
         # remove instructions:
         self.code = [ir for ir in self.code if ir not in remove]
 
+    def resolve_phi(self):
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irPhi):
+                for v in ir.defines:
+                    source
+                    assign = irAssign(ir.target, v, lineno=-1)
+                    assign.block = self
+
+                    insertion_point = len(source.code) - 1
+                    source.code.insert(insertion_point, assign)
+
+                # phi node will be removed from block
+            else:
+                new_code.append(ir)
+
+        self.code = new_code
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
@@ -1460,6 +1478,10 @@ class irFunc(IR):
                     logging.critical(f'FATAL: {ir} from {block.name} does not have a block assignment.')
                     raise
 
+    def resolve_phi(self):
+        for block in self.blocks.values():
+            block.resolve_phi()
+
     def analyze_blocks(self):
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -1518,7 +1540,7 @@ class irFunc(IR):
 
         if optimize:
             # basic loop invariant code motion:
-            self.loop_invariant_code_motion(self.loops)
+            # self.loop_invariant_code_motion(self.loops)
 
             # common subexpr elimination?
 
@@ -1534,6 +1556,11 @@ class irFunc(IR):
                 reads = [a.name for a in self.get_input_vars()]
                 block.remove_dead_code(reads=reads)
 
+        self.verify_ssa()
+
+        # convert out of SSA form
+        # self.resolve_phi()
+
 
         # run usedef analysis
         defined = self.defined()
@@ -1547,11 +1574,12 @@ class irFunc(IR):
         # liveness analysis
         live = self.liveness(used, defined)
 
-        self.live_vars = live
+        self.live_vars = live        
+
+
 
         # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
 
-        self.verify_ssa()
 
         # reassemble code
         self.code = self.get_code_from_blocks()
@@ -1707,7 +1735,6 @@ class irFunc(IR):
                 # add code to loop header
                 for ir in header_code:
                     header.code.insert(insert_index, ir)
-                    ir.block = header
                     insert_index += 1
 
     def remove_dead_labels(self):
@@ -1766,12 +1793,10 @@ class irPhi(IR):
 
         assert self.target not in defines
 
-        self.source_pairs = [(d, d.block) for d in defines]
-
     def __str__(self):
         s = ''
-        for d in self.source_pairs:
-            s += f'{d[0].name}!{d[1].name}, '
+        for d in self.defines:
+            s += f'{d.name}!{d.block.name}, '
 
         s = s[:-2]
 
