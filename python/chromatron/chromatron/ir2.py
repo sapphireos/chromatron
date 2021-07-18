@@ -1516,7 +1516,7 @@ class irFunc(IR):
 
         if optimize:
             # basic loop invariant code motion:
-            # self.loop_invariant_code_motion(self.loops)
+            self.loop_invariant_code_motion(self.loops)
 
             # common subexpr elimination?
 
@@ -1762,12 +1762,14 @@ class irPhi(IR):
         self.target = target
         self.defines = defines
 
-        assert self.target not in self.defines
+        assert self.target not in defines
+
+        self.source_pairs = [(d, d.block) for d in defines]
 
     def __str__(self):
         s = ''
-        for d in self.defines:
-            s += f'{d.name}, '
+        for d in self.source_pairs:
+            s += f'{d[0].name}!{d[1].name}, '
 
         s = s[:-2]
 

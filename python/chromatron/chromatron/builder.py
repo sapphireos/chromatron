@@ -304,8 +304,8 @@ class Builder(object):
 
         # place a landing pad at the end of the loop body
         # this makes some loop analysis easier
-        jump_label = self.label(f'{loop_name}.landing', lineno=lineno)
-        self.position_label(jump_label)
+        # jump_label = self.label(f'{loop_name}.landing', lineno=lineno)
+        # self.position_label(jump_label)
 
         self.jump(self.loop_top[-1], lineno=lineno)
         

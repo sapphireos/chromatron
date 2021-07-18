@@ -30,7 +30,8 @@ def loop_invariant_code_motion_ifbreak():
 		i -= 1
 
 		if i == 10:
-			break
+			# break
+			pass
 			
 		a = 2 + 3
 
