@@ -1065,6 +1065,7 @@ class irBlock(IR):
 
     def remove_redundant_binop_assigns(self):
         new_code = []
+        nops = []
 
         # this is a peephole optimization
         for index in range(len(self.code) - 1):
@@ -1081,6 +1082,7 @@ class irBlock(IR):
                     nop = irNop(lineno=ir.lineno)
                     nop.block = self
                     self.code[index + 1] = nop
+                    nops.append(nop)
 
                 else:
                     new_code.append(ir)
@@ -1091,7 +1093,8 @@ class irBlock(IR):
         # append last instruction (since loop will miss it)
         new_code.append(self.code[-1])
 
-        self.code = new_code
+        # remove the nops we added:
+        self.code = [n for n in new_code if n not in nops]
 
     def remove_dead_code(self, reads=None):
         new_code = []
