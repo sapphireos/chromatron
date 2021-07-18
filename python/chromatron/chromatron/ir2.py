@@ -1022,15 +1022,85 @@ class irBlock(IR):
 
         self.code = new_code     
 
-    def propagate_copies(self):
-        new_code = []
+
+    def get_aliased_variables(self):
         aliases = {}
 
         for ir in self.code:
-            if isinstance(ir, irLoadConst):
-                aliases[ir.target.name] = ir.value
+            if (isinstance(ir, irLoadConst) and not ir.target.holds_const) or isinstance(ir, irAssign):
+                aliases[ir.target] = ir.value
+                # record source block for target, we will need this later
+                ir.target.block = self
 
-            elif isinstance(ir, irAssign):
+        return aliases
+
+    def _propagate_copies(self, aliases):
+        new_code = []
+        changed = False
+
+        for ir in self.code:
+            if isinstance(ir, irAssign):
+                # if this value is aliased, then we
+                # can just assign the constant value directly
+                # instead of the temp var
+                if ir.value in aliases and ir.value != aliases[ir.value]:                
+                    changed = True
+
+                    ir.value = aliases[ir.value]
+
+                    if ir.value.is_const and not isinstance(ir, irLoadConst):
+                        ir = irLoadConst(ir.target, ir.value, lineno=ir.lineno)
+                        ir.block = self
+
+            elif isinstance(ir, irReturn):
+                if ir.ret_var in aliases and ir.ret_var != aliases[ir.ret_var]:
+                    ir.ret_var = aliases[ir.ret_var]
+                    changed = True
+
+            # elif isinstance(ir, irBinop):
+            #     if ir.left in aliases:
+            #         ir.left = aliases[ir.left]
+            #         changed = True
+
+            #     if ir.right in aliases:
+            #         ir.right = aliases[ir.right]
+            #         changed = True
+
+            new_code.append(ir)
+
+        self.code = new_code
+
+        return changed
+
+    def propagate_copies2(self, aliases=None, visited=None):
+        if visited is None:
+            aliases = {}
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        aliases.update(self.get_aliased_variables())
+
+        dominators = self.func.dominators[self]
+        aliases = {a: v for a, v in aliases.items() if a.block in dominators}
+
+        while self._propagate_copies(aliases):
+            pass
+
+        for suc in self.successors:
+            suc.propagate_copies2(aliases=copy(aliases), visited=visited)
+
+
+    def propagate_copies(self):
+        new_code = []
+
+        aliases = self.get_aliased_variables()
+
+        for ir in self.code:
+            if isinstance(ir, irAssign):
                 # if this value is aliased, then we
                 # can just assign the constant value directly
                 # instead of the temp var
@@ -1041,10 +1111,6 @@ class irBlock(IR):
 
                     else:
                         ir.value = aliases[ir.value.name]
-                        aliases[ir.target.name] = ir.value
-
-                else:
-                    aliases[ir.target.name] = ir.value
 
             elif isinstance(ir, irReturn):
                 if ir.ret_var.name in aliases:
@@ -1175,6 +1241,24 @@ class irBlock(IR):
                 new_code.append(ir)
 
         self.code = new_code
+
+    # def reorder_instructions(self):
+    #     # look for instructions that can be reordered,
+    #     # which can help other optimizations
+
+    #     # try to move assigns/loads to the top of the block
+        
+    #     assigns = []
+    #     for ir in self.code:
+    #         if isinstance(ir, irAssign) or \
+    #            isinstance(ir, irLoadConst) or \
+    #            isinstance(ir, irLoad):
+    #             assigns.append(ir)         
+
+    #     insertion_point = 1
+        
+
+
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
@@ -1538,8 +1622,8 @@ class irFunc(IR):
             for block in self.blocks.values():
                 block.reduce_strength()
 
-            for block in self.blocks.values():
-                block.propagate_copies()
+            # for block in self.blocks.values():
+                # block.propagate_copies()
 
         self.verify_block_assignments()
 
@@ -1558,19 +1642,24 @@ class irFunc(IR):
             # basic loop invariant code motion:
             self.loop_invariant_code_motion(self.loops)
 
+            # for block in self.blocks.values():
+            #     block.reorder_instructions()
+
+
+
             # common subexpr elimination?
 
 
 
-            # for block in self.blocks.values():
+            for block in self.blocks.values():
             #     # remove redundant assignments.
             #     # loop invariant code motion can create these
-            #     block.remove_redundant_assigns()
+                block.remove_redundant_assigns()
 
         self.verify_ssa()
 
         # convert out of SSA form
-        # self.resolve_phi()
+        self.resolve_phi()
 
         if optimize:
             for block in self.blocks.values():
@@ -1579,13 +1668,22 @@ class irFunc(IR):
             for block in self.blocks.values():
                 block.remove_redundant_assigns()
 
-            for block in self.blocks.values():
-                block.propagate_copies()
+            # for block in self.blocks.values():
+                # block.propagate_copies()
+
+            self.leader_block.propagate_copies2()
+
+            # for block in self.blocks.values():
+                # block.fold_constants()
+
+            # for block in self.blocks.values():
+            #     block.reduce_strength()
+
 
             # remove dead code:
-            for block in self.blocks.values():
-                reads = [a.name for a in self.get_input_vars()]
-                block.remove_dead_code(reads=reads)
+            # for block in self.blocks.values():
+            #     reads = [a.name for a in self.get_input_vars()]
+            #     block.remove_dead_code(reads=reads)
 
             
 

@@ -3,18 +3,19 @@ def test():
 	i = Number()
 	i = 4
 
-	a = Number()
+	# a = Number()
 
 	while i > 0:
 		i -= 1
 
-		if i == 10:
-			break
+		# if i == 10:
+			# break
 			# pass
 			
-		a = 2 + 3
+		# a = 2 + 3
 
-	return a
+	# return a
+	# return i
 
 
 # def test():
