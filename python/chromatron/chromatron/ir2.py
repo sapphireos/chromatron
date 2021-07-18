@@ -996,7 +996,7 @@ class irBlock(IR):
     ##############################################
     # Optimizer Passes
     ##############################################
-    def fold_and_propagate_constants(self):
+    def fold_constants(self):
         new_code = []
         aliases = {}
 
@@ -1018,20 +1018,32 @@ class irBlock(IR):
                     ir = irLoadConst(ir.result, val, lineno=ir.lineno)
                     ir.block = self
 
+            new_code.append(ir)
+
+        self.code = new_code     
+
+    def propagate_copies(self):
+        new_code = []
+        aliases = {}
+
+        for ir in self.code:
             if isinstance(ir, irLoadConst):
                 aliases[ir.target.name] = ir.value
 
             elif isinstance(ir, irAssign):
-                # if assigning a constant, record
-                # that association with the target var
-                # if ir.value.is_const:
-                aliases[ir.target.name] = ir.value
-
                 # if this value is aliased, then we
                 # can just assign the constant value directly
                 # instead of the temp var
                 if ir.value.name in aliases:
-                    ir.value = aliases[ir.value.name]
+                    if aliases[ir.value.name].is_const:
+                        ir = irLoadConst(ir.target, aliases[ir.value.name], lineno=ir.lineno)
+                        ir.block = self
+
+                    else:
+                        ir.value = aliases[ir.value.name]
+                        aliases[ir.target.name] = ir.value
+
+                else:
                     aliases[ir.target.name] = ir.value
 
             elif isinstance(ir, irReturn):
@@ -1521,11 +1533,13 @@ class irFunc(IR):
                 block.remove_redundant_binop_assigns()
 
             for block in self.blocks.values():
-                block.fold_and_propagate_constants()
+                block.fold_constants()
 
             for block in self.blocks.values():
                 block.reduce_strength()
 
+            for block in self.blocks.values():
+                block.propagate_copies()
 
         self.verify_block_assignments()
 
@@ -1553,11 +1567,6 @@ class irFunc(IR):
             #     # loop invariant code motion can create these
             #     block.remove_redundant_assigns()
 
-            # remove dead code:
-            for block in self.blocks.values():
-                reads = [a.name for a in self.get_input_vars()]
-                block.remove_dead_code(reads=reads)
-
         self.verify_ssa()
 
         # convert out of SSA form
@@ -1570,7 +1579,13 @@ class irFunc(IR):
             for block in self.blocks.values():
                 block.remove_redundant_assigns()
 
-            # propagate copies?
+            for block in self.blocks.values():
+                block.propagate_copies()
+
+            # remove dead code:
+            for block in self.blocks.values():
+                reads = [a.name for a in self.get_input_vars()]
+                block.remove_dead_code(reads=reads)
 
             
 
