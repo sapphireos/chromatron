@@ -19,6 +19,7 @@ def while_loop():
 	while i > 0:
 		i -= 1
 
+	return i
 
 # def simple_ifelse():
 # 	a = Number()

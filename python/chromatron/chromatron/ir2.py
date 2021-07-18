@@ -1082,6 +1082,9 @@ class irBlock(IR):
                     nop.block = self
                     self.code[index + 1] = nop
 
+                else:
+                    new_code.append(ir)
+
             else:
                 new_code.append(ir)
 
@@ -1149,7 +1152,7 @@ class irBlock(IR):
         for ir in self.code:
             if isinstance(ir, irPhi):
                 for v in ir.defines:
-                    source
+                    source = v.block
                     assign = irAssign(ir.target, v, lineno=-1)
                     assign.block = self
 
@@ -1540,7 +1543,7 @@ class irFunc(IR):
 
         if optimize:
             # basic loop invariant code motion:
-            # self.loop_invariant_code_motion(self.loops)
+            self.loop_invariant_code_motion(self.loops)
 
             # common subexpr elimination?
 
@@ -1559,8 +1562,11 @@ class irFunc(IR):
         self.verify_ssa()
 
         # convert out of SSA form
-        # self.resolve_phi()
+        self.resolve_phi()
 
+        if optimize:
+            for block in self.blocks.values():
+                block.remove_redundant_binop_assigns()
 
         # run usedef analysis
         defined = self.defined()
