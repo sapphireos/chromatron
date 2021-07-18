@@ -52,6 +52,10 @@ class SyntaxError(Exception):
 
         super().__init__(message)
 
+class CompilerFatal(Exception):
+    def __init__(self, message=''):
+        super(CompilerFatal, self).__init__(message)
+
 
 class IR(object):
     def __init__(self, lineno=None):
@@ -1257,7 +1261,7 @@ class irBlock(IR):
             if isinstance(ir, irPhi):
                 for v in ir.defines:
                     for ir2 in v.block.code:
-                        if isinstance(ir2, irPhi)
+                        if isinstance(ir2, irPhi):
                             continue
 
                         for o in [o for o in ir2.get_output_vars() if o.name == v.name]:
@@ -1639,20 +1643,23 @@ class irFunc(IR):
 
     def resolve_phi(self):
         changed = True
+        iteration_limit = 512
+
         i = 0
-        while changed and i < 100:
+        while changed and i < iteration_limit:
             i += 1
+
             changed = False
 
             for block in self.blocks.values():
-                # try:
                 if block.resolve_phi():
                     changed = True
-                
-                # except Exception:
-                #     break
-
-        print(f'Phi resolution in {i} iterations')
+        
+        if changed:
+            # we hit the iteration limit
+            raise CompilerFatal(f'Phi resolution failed after {i} iterations')
+    
+        logging.debug(f'Phi resolution in {i} iterations')
             
     def analyze_blocks(self):
         self.blocks = {}

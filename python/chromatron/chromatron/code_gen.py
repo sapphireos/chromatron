@@ -25,12 +25,15 @@ import os
 import ast
 import sys
 from textwrap import dedent
+import logging
 
 import colored_traceback
 colored_traceback.add_hook()
 
 # from .ir import *
 from .builder import Builder
+from sapphire.common.util import setup_basic_logging
+
 
 # see http://dev.stephendiehl.com/numpile/
 def ast2tree(node, include_attrs=True):
@@ -994,6 +997,8 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     import colored_traceback
     colored_traceback.add_hook()
     
+
+
     tree = ast.parse(source)
 
     if debug_print:
@@ -1073,6 +1078,10 @@ def compile_script(path, debug_print=False):
 def main():
     path = sys.argv[1]
     script_name = os.path.split(path)[1]
+
+    setup_basic_logging()
+
+    logging.info(f'Compiling: {script_name}')
 
     try:
         with open(path) as f:
