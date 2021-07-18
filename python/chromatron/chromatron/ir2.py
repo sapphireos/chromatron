@@ -1057,20 +1057,36 @@ class irBlock(IR):
                     ir.ret_var = aliases[ir.ret_var]
                     changed = True
 
-            # elif isinstance(ir, irBinop):
-            #     if ir.left in aliases:
-            #         ir.left = aliases[ir.left]
-            #         changed = True
+            elif isinstance(ir, irBinop):
+                if ir.left in aliases:
+                    ir.left = aliases[ir.left]
+                    changed = True
 
-            #     if ir.right in aliases:
-            #         ir.right = aliases[ir.right]
-            #         changed = True
+                if ir.right in aliases:
+                    ir.right = aliases[ir.right]
+                    changed = True
 
             new_code.append(ir)
 
         self.code = new_code
 
         return changed
+
+    
+    # def ud_chains(self, visited=None):
+    #     if visited is None:
+    #         visited = []
+
+    #     if self in visited:
+    #         return
+
+    #     visited.append(self)
+
+
+
+    #     for suc in self.successors:
+    #         suc.ud_chains(visited=visited)
+
 
     def propagate_copies2(self, aliases=None, visited=None):
         if visited is None:
@@ -1085,7 +1101,16 @@ class irBlock(IR):
         aliases.update(self.get_aliased_variables())
 
         dominators = self.func.dominators[self]
-        aliases = {a: v for a, v in aliases.items() if a.block in dominators}
+        # aliases = {a: v for a, v in aliases.items() if a.block in dominators}
+        var_defines = self.func.var_defines
+
+        remove = []
+        for a in aliases:
+            for d in var_defines[a]:
+                if d.block not in dominators:
+                    remove.append(a)
+
+        aliases = {a: v for a, v in aliases.items() if a not in remove}
 
         while self._propagate_copies(aliases):
             pass
@@ -1231,7 +1256,7 @@ class irBlock(IR):
                 for v in ir.defines:
                     source = v.block
                     assign = irAssign(ir.target, v, lineno=-1)
-                    assign.block = self
+                    assign.block = source
 
                     insertion_point = len(source.code) - 1
                     source.code.insert(insertion_point, assign)
@@ -1346,6 +1371,19 @@ class irFunc(IR):
                 max_live = len(live)
 
         return max_live
+
+    @property
+    def var_defines(self):
+        d = {}
+
+        for ir in self.get_code_from_blocks():
+            for o in ir.get_output_vars():
+                if o not in d:
+                    d[o] = []
+
+                d[o].append(ir)
+
+        return d
 
     def __str__(self):
         params = params_to_string(self.params)
@@ -1624,6 +1662,7 @@ class irFunc(IR):
 
             # for block in self.blocks.values():
                 # block.propagate_copies()
+            # self.leader_block.propagate_copies2()
 
         self.verify_block_assignments()
 
@@ -1667,9 +1706,6 @@ class irFunc(IR):
 
             for block in self.blocks.values():
                 block.remove_redundant_assigns()
-
-            # for block in self.blocks.values():
-                # block.propagate_copies()
 
             self.leader_block.propagate_copies2()
 
