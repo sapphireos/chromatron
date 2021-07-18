@@ -636,7 +636,7 @@ class irBlock(IR):
                 ds = pre.get_defined(k, visited=[self])
                 sources.extend(ds)
     
-            ir = irPhi(v, sources, lineno=-1)
+            ir = irPhi(v, list(set(sources)), lineno=-1)
             ir.block = self
             v.block = self
             
@@ -1570,7 +1570,7 @@ class irFunc(IR):
         self.verify_ssa()
 
         # convert out of SSA form
-        self.resolve_phi()
+        # self.resolve_phi()
 
         if optimize:
             for block in self.blocks.values():

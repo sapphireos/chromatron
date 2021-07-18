@@ -1,5 +1,5 @@
 
-def loop_invariant_code_motion_ifbreak():
+def test():
 	i = Number()
 	i = 4
 
