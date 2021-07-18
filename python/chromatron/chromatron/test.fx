@@ -1,6 +1,7 @@
 
 def test():
 	i = Number()
+	# i = 2 + 3
 	i = 4
 
 	# a = Number()

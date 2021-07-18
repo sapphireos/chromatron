@@ -998,17 +998,17 @@ class irBlock(IR):
     ##############################################
     def fold_constants(self):
         new_code = []
-        aliases = {}
+        # aliases = {}
 
         for ir in self.code:
             if isinstance(ir, irBinop):
-                if ir.left.name in aliases:
-                    replaced = True
-                    ir.left = aliases[ir.left.name]
+                # if ir.left.name in aliases:
+                #     replaced = True
+                #     ir.left = aliases[ir.left.name]
 
-                if ir.right.name in aliases:
-                    replaced = True
-                    ir.right = aliases[ir.right.name]
+                # if ir.right.name in aliases:
+                #     replaced = True
+                #     ir.right = aliases[ir.right.name]
 
                 # attempt to fold
                 val = ir.fold()
@@ -1027,7 +1027,8 @@ class irBlock(IR):
         aliases = {}
 
         for ir in self.code:
-            if (isinstance(ir, irLoadConst) and not ir.target.holds_const) or isinstance(ir, irAssign):
+            # if (isinstance(ir, irLoadConst) and not ir.target.holds_const) or isinstance(ir, irAssign):
+            if isinstance(ir, irLoadConst) or isinstance(ir, irAssign):
                 aliases[ir.target] = ir.value
                 # record source block for target, we will need this later
                 ir.target.block = self
@@ -1053,16 +1054,16 @@ class irBlock(IR):
                         ir.block = self
 
             elif isinstance(ir, irReturn):
-                if ir.ret_var in aliases and ir.ret_var != aliases[ir.ret_var]:
+                if ir.ret_var in aliases and ir.ret_var != aliases[ir.ret_var] and not aliases[ir.ret_var].is_const:
                     ir.ret_var = aliases[ir.ret_var]
                     changed = True
 
             elif isinstance(ir, irBinop):
-                if ir.left in aliases:
+                if ir.left in aliases and (ir.right.is_const or ir.right.holds_const):
                     ir.left = aliases[ir.left]
                     changed = True
 
-                if ir.right in aliases:
+                if ir.right in aliases and (ir.left.is_const or ir.left.holds_const):
                     ir.right = aliases[ir.right]
                     changed = True
 
@@ -1709,17 +1710,17 @@ class irFunc(IR):
 
             self.leader_block.propagate_copies2()
 
-            # for block in self.blocks.values():
-                # block.fold_constants()
+            for block in self.blocks.values():
+                block.fold_constants()
 
-            # for block in self.blocks.values():
-            #     block.reduce_strength()
+            for block in self.blocks.values():
+                block.reduce_strength()
 
 
             # remove dead code:
-            # for block in self.blocks.values():
-            #     reads = [a.name for a in self.get_input_vars()]
-            #     block.remove_dead_code(reads=reads)
+            for block in self.blocks.values():
+                reads = [a.name for a in self.get_input_vars()]
+                block.remove_dead_code(reads=reads)
 
             
 
