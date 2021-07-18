@@ -1487,6 +1487,8 @@ class irFunc(IR):
 
         self.verify_block_assignments()
 
+        self.verify_ssa()
+
 
         optimize = True
 
@@ -1549,10 +1551,10 @@ class irFunc(IR):
 
         # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
 
+        self.verify_ssa()
+
         # reassemble code
         self.code = self.get_code_from_blocks()
-
-        self.verify_ssa()
         
         if optimize:
             self.prune_jumps()
@@ -1579,7 +1581,7 @@ class irFunc(IR):
 
     def verify_ssa(self):
         writes = {}
-        for ir in self.code:
+        for ir in self.get_code_from_blocks():
             for o in ir.get_output_vars():
                 try:
                     assert o.name not in writes
