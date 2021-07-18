@@ -1,32 +1,32 @@
 
-# def loop_invariant_code_motion_ifbreak():
-# 	i = Number()
-# 	i = 4
+def loop_invariant_code_motion_ifbreak():
+	i = Number()
+	i = 4
 
-# 	a = Number()
-
-# 	while i > 0:
-# 		i -= 1
-
-# 		if i == 10:
-# 			break
-# 			# pass
-			
-# 		a = 2 + 3
-
-# 	return a
-
-
-def test():
 	a = Number()
-	b = Number()
-	c = Number()
 
-	a = 2 + 3
-	b = a
-	c = b
+	while i > 0:
+		i -= 1
 
-	return c
+		if i == 10:
+			break
+			# pass
+			
+		a = 2 + 3
+
+	return a
+
+
+# def test():
+# 	a = Number()
+# 	b = Number()
+# 	c = Number()
+
+# 	a = 2 + 3
+# 	b = a
+# 	c = b
+
+# 	return c
 
 
 

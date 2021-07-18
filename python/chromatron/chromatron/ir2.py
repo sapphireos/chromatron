@@ -997,8 +997,6 @@ class irBlock(IR):
     # Optimizer Passes
     ##############################################
     def fold_and_propagate_constants(self):
-
-        replaced = False
         new_code = []
         aliases = {}
 
@@ -1020,8 +1018,6 @@ class irBlock(IR):
                     ir = irLoadConst(ir.result, val, lineno=ir.lineno)
                     ir.block = self
 
-                    replaced = True
-
             if isinstance(ir, irLoadConst):
                 aliases[ir.target.name] = ir.value
 
@@ -1035,20 +1031,16 @@ class irBlock(IR):
                 # can just assign the constant value directly
                 # instead of the temp var
                 if ir.value.name in aliases:
-                    replaced = True
                     ir.value = aliases[ir.value.name]
                     aliases[ir.target.name] = ir.value
 
             elif isinstance(ir, irReturn):
                 if ir.ret_var.name in aliases:
-                    replaced = True
                     ir.ret_var = aliases[ir.ret_var.name]
 
             new_code.append(ir)
 
         self.code = new_code       
-
-        return replaced
 
     def reduce_strength(self):
         new_code = []
