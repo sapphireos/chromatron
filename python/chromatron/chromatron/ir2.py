@@ -646,11 +646,19 @@ class irBlock(IR):
             #     ir = irAssign(v, sources[0], lineno=-1)
 
             # else:
+            # temp = self.func.builder.add_temp(data_type=v.type, lineno=-1)
+            # temp.block = self
+
+            # ir = irPhi(temp, list(set(sources)), lineno=-1)
             ir = irPhi(v, list(set(sources)), lineno=-1)
                 
             ir.block = self
             v.block = self
             self.code.insert(insertion_point, ir)
+
+            # assign = irAssign(v, temp, lineno=-1)
+            # assign.block = self
+            # self.code.insert(insertion_point + 1, assign)
 
         for suc in self.successors:
             suc.insert_phi(visited)
@@ -1076,6 +1084,14 @@ class irBlock(IR):
                 if ir.right in aliases and (ir.left.is_const or ir.left.holds_const):
                     ir.right = aliases[ir.right]
                     changed = True
+
+            # elif isinstance(ir, irPhi):
+            #     for i in range(len(ir.defines)):
+            #         v = ir.defines[i]
+
+            #         if v in aliases and v != aliases[v] and not aliases[v].is_const:
+            #             changed = True
+            #             ir.defines[i] = aliases[v]
 
             new_code.append(ir)
 
@@ -1799,19 +1815,18 @@ class irFunc(IR):
                 block.remove_dead_code(reads=reads)
 
             
-
         # run usedef analysis
-        # defined = self.defined()
-        # used = self.used()
+        defined = self.defined()
+        used = self.used()
         
-        # self.live_vars = None
+        self.live_vars = None
 
-        # self.used_vars = used
-        # self.defined_vars = defined
+        self.used_vars = used
+        self.defined_vars = defined
 
-        # # liveness analysis
-        # live = self.liveness(used, defined)
-        # self.live_vars = live        
+        # liveness analysis
+        live = self.liveness(used, defined)
+        self.live_vars = live        
 
 
 
