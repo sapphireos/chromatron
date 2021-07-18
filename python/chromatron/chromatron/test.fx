@@ -12,14 +12,14 @@
 # 			j += 1
 
 
-def while_loop():
-	i = Number()
-	i = 4
+# def while_loop():
+# 	i = Number()
+# 	i = 4
 
-	while i > 0:
-		i -= 1
+# 	while i > 0:
+# 		i -= 1
 
-	return i
+# 	return i
 
 # def simple_ifelse():
 # 	a = Number()
@@ -33,22 +33,22 @@ def while_loop():
 
 # 	return b
 
-# def loop_invariant_code_motion_ifbreak():
-# 	i = Number()
-# 	i = 4
+def loop_invariant_code_motion_ifbreak():
+	i = Number()
+	i = 4
 
-# 	a = Number()
+	a = Number()
 
-# 	while i > 0:
-# 		i -= 1
+	while i > 0:
+		i -= 1
 
-# 		if i == 10:
-# 			# break
-# 			pass
+		if i == 10:
+			break
+			# pass
 			
-# 		a = 2 + 3
+		a = 2 + 3
 
-# 	return a
+	return a
 
 
 # def loop_invariant_code_motion2():

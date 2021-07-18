@@ -1136,7 +1136,7 @@ class irBlock(IR):
 
                     # check for assign target
                     if isinstance(ir2, irAssign) or isinstance(ir2, irLoadConst):
-                        if ir2.target._name == ir.target._name:
+                        if ir2.target.name == ir.target.name:
                             # remove ir as it is redundant
                             remove.append(ir)
                             break
@@ -1570,6 +1570,10 @@ class irFunc(IR):
         if optimize:
             for block in self.blocks.values():
                 block.remove_redundant_binop_assigns()
+
+            for block in self.blocks.values():
+                block.remove_redundant_assigns()
+
 
         # run usedef analysis
         defined = self.defined()
