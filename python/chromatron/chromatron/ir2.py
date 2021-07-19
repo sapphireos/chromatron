@@ -161,9 +161,6 @@ class irBlock(IR):
         self.func = func
         self.globals = self.func.globals
 
-        self.live_in = {}
-        self.live_out = {}
-
         self.entry_label = None
         self.jump_target = None
 
@@ -202,11 +199,16 @@ class irBlock(IR):
 
             ir_s = f'{depth}|\t{str(ir):48}'
 
-            if self.func.live_vars:
+            if self.func.live_in:
                 s += f'{ir_s}\n'
-                s += f'{depth}|\t  def:  {sorted(list(set([a.name for a in self.func.defined_vars[ir]])))}\n'
+                s += f'{depth}|\t  in:  {sorted(list(set([a.name for a in self.func.live_in[ir]])))}\n'
+                s += f'{depth}|\t  out: {sorted(list(set([a.name for a in self.func.live_out[ir]])))}\n'
+
+            elif self.func.live_vars:
+                s += f'{ir_s}\n'
+                # s += f'{depth}|\t  def:  {sorted(list(set([a.name for a in self.func.defined_vars[ir]])))}\n'
                 s += f'{depth}|\t  use:  {sorted(list(set([a.name for a in self.func.used_vars[ir]])))}\n'
-                s += f'{depth}|\t  live: {sorted(list(set([a.name for a in self.func.live_vars[ir]])))}\n'
+                # s += f'{depth}|\t  live: {sorted(list(set([a.name for a in self.func.live_vars[ir]])))}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -1375,6 +1377,9 @@ class irFunc(IR):
         self.live_vars = None
         self.loops = {}
 
+        self.live_in = None
+        self.live_out = None
+
     def get_zero(self, lineno=None):
         return self.consts['0']
 
@@ -1668,6 +1673,74 @@ class irFunc(IR):
 
         return self.live_vars
 
+    def liveness_analysis(self):
+        live_in = {}
+        live_out = {}
+        succ = {}
+
+        code = self.get_code_from_blocks()
+
+        # init to empty sets
+        for ir in code:
+            live_in[ir] = set()
+            live_out[ir] = set()
+            succ[ir] = []
+
+        # init successors
+        for i in range(len(code)):
+            ir = code[i]
+
+            targets = ir.get_jump_target()
+
+            if isinstance(ir, irReturn):
+                # returns have no successor
+                continue
+
+            if targets is None:
+                # no jump targets, successor is next instruction
+                succ[ir] = [code[i + 1]]
+
+            else:
+                succ[ir].extend(targets)
+                
+
+        iterations = 0
+        iteration_limit = 512
+        changed = True
+        while changed and iterations < iteration_limit:
+            iterations += 1
+            changed = False
+            prev_live_in = {}
+            prev_live_out = {}
+
+            for ir in code:
+                prev_live_in[ir] = copy(live_in[ir])
+                prev_live_out[ir] = copy(live_out[ir])
+
+                in_vars = [a for a in ir.get_input_vars() if not a.is_const]
+                out_vars = [a for a in ir.get_output_vars() if not a.is_const]
+
+                use = set(in_vars)
+                define = set(out_vars)
+
+                live_in[ir] = use | (live_out[ir] - define)
+                live_out[ir] = set()
+
+                for s in succ[ir]:
+                    live_out[ir] |= live_in[s]
+
+            if prev_live_in != live_in:
+                changed = True
+
+            elif prev_live_out != live_out:
+                changed = True
+
+        self.live_in = live_in
+        self.live_out = live_out
+
+        logging.debug(f'Liveness analysis in {iterations} iterations')
+
+
     def verify_block_assignments(self):
         # verify all instructions are recording their blocks:
         for block in self.blocks.values():
@@ -1789,6 +1862,7 @@ class irFunc(IR):
 
         self.verify_ssa()
 
+
         # convert out of SSA form
         self.resolve_phi()
 
@@ -1814,19 +1888,20 @@ class irFunc(IR):
                 reads = [a.name for a in self.get_input_vars()]
                 block.remove_dead_code(reads=reads)
 
-            
-        # run usedef analysis
-        defined = self.defined()
-        used = self.used()
+        self.liveness_analysis()
+
+        # # run usedef analysis
+        # defined = self.defined()
+        # used = self.used()
         
-        self.live_vars = None
+        # self.live_vars = None
 
-        self.used_vars = used
-        self.defined_vars = defined
+        # self.used_vars = used
+        # self.defined_vars = defined
 
-        # liveness analysis
-        live = self.liveness(used, defined)
-        self.live_vars = live        
+        # # liveness analysis
+        # live = self.liveness(used, defined)
+        # self.live_vars = live        
 
 
 
