@@ -340,32 +340,6 @@ class irBlock(IR):
 
         return ds
 
-    @property
-    def _used(self):
-        used = {}
-        prev = []
-    
-        for ir in reversed(self.code):
-            if ir not in used:
-                used[ir] = []
-
-            used[ir].extend(prev)
-
-            for i in ir.get_input_vars():
-                # if i.is_const:
-                    # continue
-
-                if i not in used[ir]:
-                    used[ir].append(i)
-
-            prev = copy(used[ir])
-
-            for o in ir.get_output_vars():
-                if o in prev:
-                    prev.remove(o)
-
-        return used
-    
     ##############################################
     # Analysis Passes
     ##############################################
@@ -708,170 +682,6 @@ class irBlock(IR):
         for suc in self.successors:
             suc.apply_types(visited, declarations)
 
-    def used(self, used=None, visited=None, edge=None, include_consts=False):
-        def merge_used(used1, used2):
-            used = copy(used1)
-        
-            for k2, v2 in used2.items():
-                if k2 in used:
-                    for v in v2:
-                        if v not in used[k2]:
-                            used[k2].append(v)
-
-                else:
-                    used[k2] = copy(v2)
-
-            return used
-
-        if visited is None:
-            visited = []
-
-        if edge is not None and edge in visited:
-            return {}
-
-        visited.append(edge)
-            
-        if used is None:
-            used = {}
-
-        
-        if not include_consts:
-            _used = {}
-            for k, v in self._used.items():
-                _used[k] = [a for a in v if not a.is_const]
-
-        else:
-            _used = self._used
-
-        used = merge_used(used, _used)
-
-        if isinstance(edge, Edge):
-            from_used = used[edge.from_node.code[0]]
-
-            for ir in self.code:
-                for v in from_used:
-                    if v not in used[ir]:
-                        used[ir].append(v)
-
-        for pre in self.predecessors:
-            edge = Edge(self, pre)
-            pre_used = pre.used(used=used, visited=visited, edge=edge)
-
-            used = merge_used(used, pre_used)
-
-        return used
-
-    def defined(self, defined=None, prev=None, visited=None, edge=None, include_consts=False):
-        if visited is None:
-            visited = []
-
-        if edge is not None and edge in visited:
-            return {}
-
-        visited.append(edge)
-
-        if defined is None:
-            defined = {}
-
-        if prev is None:
-            prev = []
-
-        consts = []
-
-        for ir in self.code:
-            if ir not in defined:
-                defined[ir] = []
-
-            # add define for any input consts, if not already defined
-            if include_consts:
-                for i in ir.get_input_vars():
-                    if i.is_const and i not in consts:
-                        consts.append(i)
-                        defined[ir].append(i)
-
-            for d in prev:
-                if d not in defined[ir]:
-                    defined[ir].append(d)
-
-            for o in ir.get_output_vars():
-                if o.is_const and not include_consts:
-                    continue
-
-                if o not in defined[ir]:
-                    defined[ir].append(o)
-
-            # phi kills definitions on its inputs (as they are replaced by the phi's output)
-            if isinstance(ir, irPhi):
-                for d in ir.defines:
-                    if d in defined[ir]:
-                        defined[ir].remove(d)
-
-            prev = defined[ir]
-
-
-        # look for phi nodes.
-        # phi defines are live starting at top of block:
-        phi_defines = {}
-        for ir in self.code:
-            if isinstance(ir, irPhi):
-                phi_defines[ir] = []
-                for d in ir.defines:
-                    if d not in phi_defines:
-                        phi_defines[ir].append(d)
-
-        # apply phi defines from top down to phi node
-        for ir in self.code:
-            # check if this is a phi, if so,
-            # apply it's defines and then remove it from consideration
-            if ir in phi_defines:
-                for d in phi_defines[ir]:
-                    if d not in defined[ir]:
-                        defined[ir].append(d)
-
-                del phi_defines[ir]
-
-            else:                
-                for phi, defines in phi_defines.items():
-                    for d in defines:
-                        if d not in defined[ir]:
-                            defined[ir].append(d)
-
-
-        # continue with successors:
-        for suc in self.successors:
-            edge = Edge(self, suc)
-            suc.defined(defined, prev, visited, edge)
-
-        return defined
-
-    def liveness(self, used, defined, live=None, visited=None):
-        if visited is None:
-            visited = []
-
-        if self in visited:
-            return
-
-        visited.append(self)
-
-        if live is None:
-            live = {}
-
-        # intersection of defined and used for liveness:
-        for ir in self.code:
-            if ir not in live:
-                live[ir] = []
-
-            for d in defined[ir]:
-                if d in used[ir]:
-                    if d not in live[ir]:
-                        live[ir].append(d)
-
-        # continue with successors:
-        for suc in self.successors:
-            suc.liveness(used, defined, live, visited)
-
-        return live
-
     def _loops_pass_1(self, loops=None, visited=None):
         if visited is None:
             visited = []
@@ -1018,18 +828,10 @@ class irBlock(IR):
     ##############################################
     def fold_constants(self):
         new_code = []
-        # aliases = {}
-
+       
         for ir in self.code:
             if isinstance(ir, irBinop):
-                # if ir.left.name in aliases:
-                #     replaced = True
-                #     ir.left = aliases[ir.left.name]
-
-                # if ir.right.name in aliases:
-                #     replaced = True
-                #     ir.right = aliases[ir.right.name]
-
+                
                 # attempt to fold
                 val = ir.fold()
 
@@ -1100,22 +902,6 @@ class irBlock(IR):
         self.code = new_code
 
         return changed
-
-    
-    # def ud_chains(self, visited=None):
-    #     if visited is None:
-    #         visited = []
-
-    #     if self in visited:
-    #         return
-
-    #     visited.append(self)
-
-
-
-    #     for suc in self.successors:
-    #         suc.ud_chains(visited=visited)
-
 
     def propagate_copies2(self, aliases=None, visited=None):
         if visited is None:
@@ -1279,36 +1065,16 @@ class irBlock(IR):
         self.code = [ir for ir in self.code if ir not in remove]
 
     def resolve_phi(self):
-        # changed = False
         new_code = []
         for ir in self.code:
             if isinstance(ir, irPhi):
                 for v in ir.defines:
-                    # for ir2 in v.block.code:
-                    #     if isinstance(ir2, irPhi):
-                    #         continue
-
-                    #     for o in [o for o in ir2.get_output_vars() if o.name == v.name]:
-                    #         if o.name != ir.target.name:
-                    #             changed = True
-                    #             logging.debug(f'Out {o.name:8} -> {ir.target.name:8} at {ir2.block.name:24} | {str(ir2):32} | Phi: {ir} / {ir.block.name}')
-                    #             o.ssa_version = ir.target.ssa_version
-
-                    #     for i in [i for i in ir2.get_input_vars() if i.name == v.name]:
-                    #         if i.name != ir.target.name:
-                    #             changed = True
-                    #             logging.debug(f'In  {i.name:8} -> {ir.target.name:8} at {ir2.block.name:24} | {str(ir2):32} | Phi: {ir} / {ir.block.name}')
-                    #             i.ssa_version = ir.target.ssa_version
-
-
                     source = v.block
                     assign = irAssign(ir.target, v, lineno=-1)
                     assign.block = source
 
                     insertion_point = len(source.code) - 1
                     source.code.insert(insertion_point, assign)
-                        # changed = True
-                # new_code.append(ir)
 
                 # phi node will be removed from block
             else:
@@ -1316,40 +1082,6 @@ class irBlock(IR):
 
         self.code = new_code
 
-        # if changed:
-            # raise Exception
-
-        # return changed
-
-    # def remove_phi(self):
-    #     new_code = []
-    #     for ir in self.code:
-    #         if isinstance(ir, irPhi):
-    #             pass
-
-    #             # phi node will be removed from block
-                
-    #         else:
-    #             new_code.append(ir)
-
-    #     self.code = new_code
-
-
-    # def reorder_instructions(self):
-    #     # look for instructions that can be reordered,
-    #     # which can help other optimizations
-
-    #     # try to move assigns/loads to the top of the block
-        
-    #     assigns = []
-    #     for ir in self.code:
-    #         if isinstance(ir, irAssign) or \
-    #            isinstance(ir, irLoadConst) or \
-    #            isinstance(ir, irLoad):
-    #             assigns.append(ir)         
-
-    #     insertion_point = 1
-        
 
 
 
@@ -1635,44 +1367,6 @@ class irFunc(IR):
 
         return dominators
 
-    def defined(self):
-        return self.leader_block.defined()
-
-    def used(self):
-        # run used on each terminator node
-        used = {}
-        for block in self.blocks.values():
-            if block.is_terminator:
-                used = block.used(used=used, edge=block) 
-
-        return used
-
-    def liveness(self, used, defined):
-        # verify used and defined:
-        
-        # an instruction that uses a var should have it defined
-        # by that point:
-
-        e = None
-
-        for ir in used:
-            for v in [a for a in ir.get_input_vars() if not a.is_const]:
-                try:
-                    assert v in defined[ir]
-
-                except AssertionError as exc:   
-                    if e is None: 
-                        e = exc
-
-                    logging.critical(f'FATAL: {v} not defined, used at {ir}. Func: {self.name} Line: {ir.lineno}')
-             
-        self.live_vars = self.leader_block.liveness(used, defined)
-
-        if e:
-            raise e
-
-        return self.live_vars
-
     def liveness_analysis(self):
         live_in = {}
         live_out = {}
@@ -1756,31 +1450,6 @@ class irFunc(IR):
     def resolve_phi(self):
         for block in self.blocks.values():
             block.resolve_phi()
-
-        # changed = True
-        # iteration_limit = 8
-
-        # i = 0
-        # while changed and i < iteration_limit:
-        #     i += 1
-
-        #     logging.debug(f'Phi resolution iter: {i}')
-        #     changed = False
-
-        #     for block in self.blocks.values():
-        #         if block.resolve_phi():
-        #             changed = True
-        
-        # if changed:
-        #     # we hit the iteration limit
-        #     raise CompilerFatal(f'Phi resolution failed after {i} iterations')
-    
-
-        # # remove phi nodes
-        # for block in self.blocks.values():
-        #     block.remove_phi()
-
-        # logging.debug(f'Phi resolution in {i} iterations')
             
     def analyze_blocks(self):
         self.blocks = {}
@@ -1889,21 +1558,6 @@ class irFunc(IR):
                 block.remove_dead_code(reads=reads)
 
         self.liveness_analysis()
-
-        # # run usedef analysis
-        # defined = self.defined()
-        # used = self.used()
-        
-        # self.live_vars = None
-
-        # self.used_vars = used
-        # self.defined_vars = defined
-
-        # # liveness analysis
-        # live = self.liveness(used, defined)
-        # self.live_vars = live        
-
-
 
         # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
 
