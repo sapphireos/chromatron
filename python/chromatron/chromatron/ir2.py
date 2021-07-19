@@ -1367,17 +1367,14 @@ class irFunc(IR):
 
         return dominators
 
-    def liveness_analysis(self):
-        live_in = {}
-        live_out = {}
+    def get_successors(self, code=None):
+        if code is None:
+            code = self.get_code_from_blocks()
+
         succ = {}
 
-        code = self.get_code_from_blocks()
-
-        # init to empty sets
+        # init to empty
         for ir in code:
-            live_in[ir] = set()
-            live_out[ir] = set()
             succ[ir] = []
 
         # init successors
@@ -1396,7 +1393,21 @@ class irFunc(IR):
 
             else:
                 succ[ir].extend(targets)
-                
+        
+        return succ
+
+    def liveness_analysis(self):
+        live_in = {}
+        live_out = {}
+        
+        code = self.get_code_from_blocks()
+
+        # init to empty sets
+        for ir in code:
+            live_in[ir] = set()
+            live_out[ir] = set()
+
+        succ = self.get_successors(code=code)
 
         iterations = 0
         iteration_limit = 512
