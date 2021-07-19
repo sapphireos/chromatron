@@ -1407,7 +1407,7 @@ class irFunc(IR):
             prev_live_in = {}
             prev_live_out = {}
 
-            for ir in code:
+            for ir in reversed(code):
                 prev_live_in[ir] = copy(live_in[ir])
                 prev_live_out[ir] = copy(live_out[ir])
 
