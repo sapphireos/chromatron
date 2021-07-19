@@ -903,7 +903,7 @@ class irBlock(IR):
 
         return changed
 
-    def propagate_copies2(self, aliases=None, visited=None):
+    def propagate_copies(self, aliases=None, visited=None):
         if visited is None:
             aliases = {}
             visited = []
@@ -931,34 +931,34 @@ class irBlock(IR):
             pass
 
         for suc in self.successors:
-            suc.propagate_copies2(aliases=copy(aliases), visited=visited)
+            suc.propagate_copies(aliases=copy(aliases), visited=visited)
 
 
-    def propagate_copies(self):
-        new_code = []
+    # def old_propagate_copies(self):
+    #     new_code = []
 
-        aliases = self.get_aliased_variables()
+    #     aliases = self.get_aliased_variables()
 
-        for ir in self.code:
-            if isinstance(ir, irAssign):
-                # if this value is aliased, then we
-                # can just assign the constant value directly
-                # instead of the temp var
-                if ir.value.name in aliases:
-                    if aliases[ir.value.name].is_const:
-                        ir = irLoadConst(ir.target, aliases[ir.value.name], lineno=ir.lineno)
-                        ir.block = self
+    #     for ir in self.code:
+    #         if isinstance(ir, irAssign):
+    #             # if this value is aliased, then we
+    #             # can just assign the constant value directly
+    #             # instead of the temp var
+    #             if ir.value.name in aliases:
+    #                 if aliases[ir.value.name].is_const:
+    #                     ir = irLoadConst(ir.target, aliases[ir.value.name], lineno=ir.lineno)
+    #                     ir.block = self
 
-                    else:
-                        ir.value = aliases[ir.value.name]
+    #                 else:
+    #                     ir.value = aliases[ir.value.name]
 
-            elif isinstance(ir, irReturn):
-                if ir.ret_var.name in aliases:
-                    ir.ret_var = aliases[ir.ret_var.name]
+    #         elif isinstance(ir, irReturn):
+    #             if ir.ret_var.name in aliases:
+    #                 ir.ret_var = aliases[ir.ret_var.name]
 
-            new_code.append(ir)
+    #         new_code.append(ir)
 
-        self.code = new_code       
+    #     self.code = new_code       
 
     def reduce_strength(self):
         new_code = []
@@ -1504,9 +1504,8 @@ class irFunc(IR):
             for block in self.blocks.values():
                 block.reduce_strength()
 
-            # for block in self.blocks.values():
-                # block.propagate_copies()
-            # self.leader_block.propagate_copies2()
+            
+            # self.leader_block.propagate_copies()
 
         self.verify_block_assignments()
 
@@ -1554,7 +1553,7 @@ class irFunc(IR):
         #     for block in self.blocks.values():
         #         block.remove_redundant_assigns()
 
-            self.leader_block.propagate_copies2()
+            self.leader_block.propagate_copies()
 
         #     for block in self.blocks.values():
         #         block.fold_constants()
