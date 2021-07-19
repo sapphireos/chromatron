@@ -1082,7 +1082,29 @@ class irBlock(IR):
 
         self.code = new_code
 
+    def local_value_numbering(self):
+        next_val = 0
+        ir_values = {}
+        assigned_values = {}
 
+        for ir in self.code:
+            if isinstance(ir, irAssign):
+                if ir.value not in assigned_values:
+                    assigned_values[ir.value] = next_val
+                    next_val += 1
+
+                if assigned_values[ir.value] not in ir_values:
+                    ir_values[assigned_values[ir.value]] = []
+
+                ir_values[assigned_values[ir.value]].append(ir)
+                
+        for value, instructions in ir_values.items():
+            for i in range(len(instructions) - 1):
+                ir = instructions[i]
+                next_ir = instructions[i + 1]
+
+                # set next IR's value to previous target
+                next_ir.value = ir.target
 
 
 class irFunc(IR):
@@ -1553,7 +1575,14 @@ class irFunc(IR):
         #     for block in self.blocks.values():
         #         block.remove_redundant_assigns()
 
-            self.leader_block.propagate_copies()
+            # self.leader_block.propagate_copies()
+
+            for block in self.blocks.values():
+                block.local_value_numbering()
+
+            # self.leader_block.propagate_copies()
+
+
 
         #     for block in self.blocks.values():
         #         block.fold_constants()
