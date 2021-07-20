@@ -1558,6 +1558,41 @@ class irFunc(IR):
     def calc_dominance_frontiers(self, dominators):
         df = {}
 
+        sdom = self.calc_strict_dominance(dominators)
+
+        for n in self.blocks.values():        
+            df[n] = []
+            for m in self.blocks.values():
+
+
+                # is m in the DF of n?
+
+                # m is in DF(n) if and only if:
+                # 1. n does not strictly dominate m
+                if m in sdom[n]: # is m in the set of nodes strictly dominated by n?
+                    continue
+
+                # skip = False
+
+                # AND:
+                # 2. n dominates q where q is a predecessor of m
+                for q in m.predecessors:
+                    # does n dominate q?
+                    # is q in the set of nodes dominated by n?
+                    if q in dominators[n]:
+                        df[n].append(m)              
+                        break
+
+                #     if q in dominators[n]:
+                #         skip = True
+
+                #     if skip:
+                #         break
+
+                # if skip:
+                #     continue
+
+                # df[n].append(m)
 
         return df
 
