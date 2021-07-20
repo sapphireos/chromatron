@@ -823,6 +823,49 @@ class irBlock(IR):
 
         return loops
 
+
+    def analyze_copies_local(self):
+        # local block only
+
+        copy_in = {}
+        copy_out = {}
+
+        # init to empty sets
+        for ir in self.code:
+            copy_in[ir] = set()
+            copy_out[ir] = set()
+
+        prev_out = set()
+        for ir in self.code:
+            if ir not in copy_in:
+                continue            
+            
+            gen = set()
+            if isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
+                gen = set([ir])
+        
+            defines = ir.get_output_vars()
+
+            kill = set()
+            for copy_ir in copy_in[ir]:
+                copy_vars = copy_ir.get_output_vars()
+                copy_vars.extend(copy_ir.get_input_vars())
+
+                for c in copy_vars:
+                    if c in defines:
+                        # this instruction kills these copies
+                        kill = set([ir])
+                        break
+
+            copy_in[ir] = prev_out
+
+            copy_out[ir] = (copy_in[ir] - kill) | gen
+            
+            prev_out = copy(copy_out[ir])
+
+        self.copy_in = copy_in
+        self.copy_out = copy_out
+        
     ##############################################
     # Optimizer Passes
     ##############################################
@@ -845,93 +888,150 @@ class irBlock(IR):
         self.code = new_code     
 
 
-    def get_aliased_variables(self):
-        aliases = {}
+    # def get_aliased_variables(self):
+    #     aliases = {}
 
-        for ir in self.code:
-            # if (isinstance(ir, irLoadConst) and not ir.target.holds_const) or isinstance(ir, irAssign):
-            if isinstance(ir, irLoadConst) or isinstance(ir, irAssign):
-                aliases[ir.target] = ir.value
-                # record source block for target, we will need this later
-                ir.target.block = self
+    #     for ir in self.code:
+    #         # if (isinstance(ir, irLoadConst) and not ir.target.holds_const) or isinstance(ir, irAssign):
+    #         if isinstance(ir, irLoadConst) or isinstance(ir, irAssign):
+    #             aliases[ir.target] = ir.value
+    #             # record source block for target, we will need this later
+    #             ir.target.block = self
 
-        return aliases
+    #     return aliases
 
-    def _propagate_copies(self, aliases):
-        new_code = []
-        changed = False
+    # def _propagate_copies(self, aliases):
+    #     new_code = []
+    #     changed = False
 
-        for ir in self.code:
-            if isinstance(ir, irAssign):
-                # if this value is aliased, then we
-                # can just assign the constant value directly
-                # instead of the temp var
-                if ir.value in aliases and ir.value != aliases[ir.value]:                
-                    changed = True
+    #     for ir in self.code:
+    #         if isinstance(ir, irAssign):
+    #             # if this value is aliased, then we
+    #             # can just assign the constant value directly
+    #             # instead of the temp var
+    #             if ir.value in aliases and ir.value != aliases[ir.value]:                
+    #                 changed = True
 
-                    ir.value = aliases[ir.value]
+    #                 ir.value = aliases[ir.value]
 
-                    if ir.value.is_const and not isinstance(ir, irLoadConst):
-                        ir = irLoadConst(ir.target, ir.value, lineno=ir.lineno)
-                        ir.block = self
+    #                 if ir.value.is_const and not isinstance(ir, irLoadConst):
+    #                     ir = irLoadConst(ir.target, ir.value, lineno=ir.lineno)
+    #                     ir.block = self
 
-            elif isinstance(ir, irReturn):
-                if ir.ret_var in aliases and ir.ret_var != aliases[ir.ret_var] and not aliases[ir.ret_var].is_const:
-                    ir.ret_var = aliases[ir.ret_var]
-                    changed = True
+    #         elif isinstance(ir, irReturn):
+    #             if ir.ret_var in aliases and ir.ret_var != aliases[ir.ret_var] and not aliases[ir.ret_var].is_const:
+    #                 ir.ret_var = aliases[ir.ret_var]
+    #                 changed = True
 
-            elif isinstance(ir, irBinop):
-                if ir.left in aliases and (ir.right.is_const or ir.right.holds_const):
-                    ir.left = aliases[ir.left]
-                    changed = True
+    #         elif isinstance(ir, irBinop):
+    #             if ir.left in aliases and (ir.right.is_const or ir.right.holds_const):
+    #                 ir.left = aliases[ir.left]
+    #                 changed = True
 
-                if ir.right in aliases and (ir.left.is_const or ir.left.holds_const):
-                    ir.right = aliases[ir.right]
-                    changed = True
+    #             if ir.right in aliases and (ir.left.is_const or ir.left.holds_const):
+    #                 ir.right = aliases[ir.right]
+    #                 changed = True
 
-            # elif isinstance(ir, irPhi):
-            #     for i in range(len(ir.defines)):
-            #         v = ir.defines[i]
+    #         # elif isinstance(ir, irPhi):
+    #         #     for i in range(len(ir.defines)):
+    #         #         v = ir.defines[i]
 
-            #         if v in aliases and v != aliases[v] and not aliases[v].is_const:
-            #             changed = True
-            #             ir.defines[i] = aliases[v]
+    #         #         if v in aliases and v != aliases[v] and not aliases[v].is_const:
+    #         #             changed = True
+    #         #             ir.defines[i] = aliases[v]
 
-            new_code.append(ir)
+    #         new_code.append(ir)
 
-        self.code = new_code
+    #     self.code = new_code
 
-        return changed
+    #     return changed
 
-    def propagate_copies(self, aliases=None, visited=None):
-        if visited is None:
-            aliases = {}
-            visited = []
+    # def propagate_copies(self, aliases=None, visited=None):
+    #     if visited is None:
+    #         aliases = {}
+    #         visited = []
 
-        if self in visited:
-            return
+    #     if self in visited:
+    #         return
 
-        visited.append(self)
+    #     visited.append(self)
 
-        aliases.update(self.get_aliased_variables())
+    #     dominators = self.func.dominators[self]
 
-        dominators = self.func.dominators[self]
-        # aliases = {a: v for a, v in aliases.items() if a.block in dominators}
-        var_defines = self.func.var_defines
+    #     changed = False
+    #     new_code = []
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoadConst) or isinstance(ir, irAssign):
+    #             aliases[ir.target] = ir.value
+    #             # record source block for target, we will need this later
+    #             ir.target.block = self            
 
-        remove = []
-        for a in aliases:
-            for d in var_defines[a]:
-                if d.block not in dominators:
-                    remove.append(a)
+    #         if isinstance(ir, irAssign):
+    #             # if this value is aliased, then we
+    #             # can just assign the constant value directly
+    #             # instead of the temp var
+    #             if ir.value in aliases and ir.value != aliases[ir.value]:                
+    #                 changed = True
 
-        aliases = {a: v for a, v in aliases.items() if a not in remove}
+    #                 ir.value = aliases[ir.value]
 
-        while self._propagate_copies(aliases):
-            pass
+    #                 if ir.value.is_const and not isinstance(ir, irLoadConst):
+    #                     ir = irLoadConst(ir.target, ir.value, lineno=ir.lineno)
+    #                     ir.block = self
 
-        for suc in self.successors:
-            suc.propagate_copies(aliases=copy(aliases), visited=visited)
+    #         elif isinstance(ir, irReturn):
+    #             if ir.ret_var in aliases and ir.ret_var != aliases[ir.ret_var] and not aliases[ir.ret_var].is_const:
+    #                 ir.ret_var = aliases[ir.ret_var]
+    #                 changed = True
+
+    #         elif isinstance(ir, irBinop):
+    #             if ir.left in aliases and (ir.right.is_const or ir.right.holds_const):
+    #                 ir.left = aliases[ir.left]
+    #                 changed = True
+
+    #             if ir.right in aliases and (ir.left.is_const or ir.left.holds_const):
+    #                 ir.right = aliases[ir.right]
+    #                 changed = True
+
+    #         # elif isinstance(ir, irPhi):
+    #         #     for i in range(len(ir.defines)):
+    #         #         v = ir.defines[i]
+
+    #         #         if v in aliases and v != aliases[v] and not aliases[v].is_const:
+    #         #             changed = True
+    #         #             ir.defines[i] = aliases[v]
+
+    #         new_code.append(ir)
+
+    #     self.code = new_code
+
+    #     for suc in self.successors:
+    #         if suc.propagate_copies(aliases=aliases, visited=visited):
+    #             changed = True
+
+    #     return changed
+
+
+
+        # aliases.update(self.get_aliased_variables())
+
+        # dominators = self.func.dominators[self]
+        # # aliases = {a: v for a, v in aliases.items() if a.block in dominators}
+        # var_defines = self.func.var_defines
+
+        # remove = []
+        # for a in aliases:
+        #     for d in var_defines[a]:
+        #         if d.block not in dominators:
+        #             remove.append(a)
+
+        # aliases = {a: v for a, v in aliases.items() if a not in remove}
+
+        # while self._propagate_copies(aliases):
+        #     pass
+
+        # for suc in self.successors:
+        #     suc.propagate_copies(aliases=copy(aliases), visited=visited)
 
 
     # def old_propagate_copies(self):
@@ -1106,6 +1206,7 @@ class irBlock(IR):
                 # set next IR's value to previous target
                 next_ir.value = ir.target
 
+    
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
@@ -1504,14 +1605,14 @@ class irFunc(IR):
             assert isinstance(block.code[0], irLabel)
             assert isinstance(block.code[-1], irControlFlow)
 
-        global_vars = self.leader_block.init_global_vars()
-        ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
-        self.leader_block.apply_types()
-        self.leader_block.insert_phi()
+        # global_vars = self.leader_block.init_global_vars()
+        # ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
+        # self.leader_block.apply_types()
+        # self.leader_block.insert_phi()
 
-        self.verify_block_assignments()
+        # self.verify_block_assignments()
 
-        self.verify_ssa()
+        # self.verify_ssa()
 
 
         optimize = False
@@ -1547,10 +1648,6 @@ class irFunc(IR):
             # basic loop invariant code motion:
             self.loop_invariant_code_motion(self.loops)
 
-            # for block in self.blocks.values():
-            #     block.reorder_instructions()
-
-
 
             # common subexpr elimination?
 
@@ -1561,14 +1658,88 @@ class irFunc(IR):
             #     # loop invariant code motion can create these
                 # block.remove_redundant_assigns()
 
-        self.verify_ssa()
+        # self.verify_ssa()
 
 
         # convert out of SSA form
-        self.resolve_phi()
+        # self.resolve_phi()
 
-        optimize = True
-        if optimize:
+
+        
+
+        for block in self.blocks.values():
+            block.analyze_copies_local()
+
+        # from:
+        # https://www.csd.uwo.ca/~mmorenom/CS447/Lectures/CodeOptimization.html/node8.html
+
+        code = self.get_code_from_blocks()
+
+        all_copies = []
+        for ir in code:
+            if isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
+                all_copies.append(ir)
+
+        all_copies = set(all_copies)
+
+        block_copies_in = {}
+        block_copies_out = {}
+
+        for block in self.blocks.values():
+            block_copies_in[block] = copy(all_copies)
+            block_copies_out[block] = set()
+
+        block_copies_in[self.leader_block] = set()
+        block_copies_out[self.leader_block] = set(list(self.leader_block.copy_out.values())[-1])
+
+        changed = True
+        while changed:
+            changed = False
+
+            for block in self.blocks.values():
+                copies_in = set()
+                # set copies in from predecessors outs
+                for pre in block.predecessors:
+                    # intersection
+                    copies_in &= list(pre.copy_in.values())[-1]
+
+                # gen is the copies out from this block
+                gen = list(block.copy_out.values())[-1]
+
+                # kills are all copies (from all points in the function)
+                kills = []
+                defines = block.get_output_vars()
+
+                for ir in code:
+                    if ir in block.code:
+                        continue
+
+                    copy_vars = ir.get_output_vars()
+                    copy_vars.extend(ir.get_input_vars())
+
+                    for c in copy_vars:
+                        if c in defines:
+                            kills.append(ir)
+                            break
+
+                kills = set(kills)
+
+                # union
+                copies_out = gen | (copies_in - kills) 
+
+                if copies_in != block_copies_in[block]:
+                    changed = True
+
+                if copies_out != block_copies_out[block]:
+                    changed = True
+
+                block_copies_in[block] = copies_in
+                block_copies_out[block] = copies_out
+
+
+
+        # optimize = True
+        # if optimize:
         #     for block in self.blocks.values():
         #         block.remove_redundant_binop_assigns()
 
@@ -1577,10 +1748,10 @@ class irFunc(IR):
 
             # self.leader_block.propagate_copies()
 
-            for block in self.blocks.values():
-                block.local_value_numbering()
+            # for block in self.blocks.values():
+            #     block.local_value_numbering()
 
-            # self.leader_block.propagate_copies()
+            # self.propagate_copies()
 
 
 
@@ -1592,9 +1763,9 @@ class irFunc(IR):
 
 
             # remove dead code:
-            for block in self.blocks.values():
-                reads = [a.name for a in self.get_input_vars()]
-                block.remove_dead_code(reads=reads)
+            # for block in self.blocks.values():
+            #     reads = [a.name for a in self.get_input_vars()]
+            #     block.remove_dead_code(reads=reads)
 
         self.liveness_analysis()
 
@@ -1756,6 +1927,17 @@ class irFunc(IR):
                 for ir in header_code:
                     header.code.insert(insert_index, ir)
                     insert_index += 1
+
+    def propagate_copies(self):
+        iterations = 0
+        iteration_limit = 128
+        changed = True
+        while changed and iterations < iteration_limit:
+            changed = self.leader_block.propagate_copies()
+
+            iterations += 1
+
+        logging.debug(f'Propagate copies in {iterations} iterations')        
 
     def remove_dead_labels(self):
         labels = self.labels()
