@@ -1,22 +1,77 @@
 
-def test():
-	i = Number()
-	# i = 2 + 3
-	i = 4
+def simple_ifelse():
+	a = Number()
+	b = Number()
 
-	# a = Number()
+	if a > 0:
+		b = 1
 
-	while i > 0:
-		i -= 1
+	else:
+		b = 2
 
-		# if i == 10:
-			# break
-			# pass
+
+	if b == 3:
+		a = 4
+
+	else:
+		a = 5
+
+	return a
+
+
+
+# def copy_prop():
+# 	a = Number()
+# 	b = Number()
+# 	c = Number()
+# 	d = Number()
+# 	e = Number()
+# 	f = Number()
+	
+# 	u = Number()
+# 	v = Number()
+# 	w = Number()
+	
+# 	x = Number()
+# 	y = Number()
+# 	z = Number()
+
+# 	u = a + b
+# 	v = c + d
+# 	w = e + f
+
+# 	if True:
+# 		x = c + d
+# 		y = c + d
+
+# 	else:
+# 		u = a + b
+# 		x = e + f
+# 		y = e + f
+
+# 	z = u + y
+# 	u = a + b
+
+
+
+# def test():
+# 	i = Number()
+# 	# i = 2 + 3
+# 	i = 4
+
+# 	# a = Number()
+
+# 	while i > 0:
+# 		i -= 1
+
+# 		# if i == 10:
+# 			# break
+# 			# pass
 			
-		# a = 2 + 3
+# 		# a = 2 + 3
 
-	# return a
-	return i
+# 	# return a
+# 	return i
 
 
 # def test():
@@ -53,19 +108,6 @@ def test():
 # 		i -= 1
 
 # 	return i
-
-# def simple_ifelse():
-# 	a = Number()
-# 	b = Number()
-
-# 	if a > 0:
-# 		b = 1
-
-# 	else:
-# 		b = 2
-
-# 	return b
-
 
 # def loop_invariant_code_motion2():
 # 	i = Number()

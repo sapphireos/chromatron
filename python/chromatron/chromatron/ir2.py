@@ -204,12 +204,6 @@ class irBlock(IR):
                 s += f'{depth}|\t  in:  {sorted(list(set([a.name for a in self.func.live_in[ir]])))}\n'
                 s += f'{depth}|\t  out: {sorted(list(set([a.name for a in self.func.live_out[ir]])))}\n'
 
-            elif self.func.live_vars:
-                s += f'{ir_s}\n'
-                # s += f'{depth}|\t  def:  {sorted(list(set([a.name for a in self.func.defined_vars[ir]])))}\n'
-                s += f'{depth}|\t  use:  {sorted(list(set([a.name for a in self.func.used_vars[ir]])))}\n'
-                # s += f'{depth}|\t  live: {sorted(list(set([a.name for a in self.func.live_vars[ir]])))}\n'
-
             else:
                 s += f'{ir_s}\n'
 
@@ -1480,7 +1474,92 @@ class irFunc(IR):
 
                 dominators[block] = new
 
+        # lookup: key is dominated by values
+
         return dominators
+
+    def calc_strict_dominance(self, dominators):
+        sdom = {}
+
+        for node, dom in dominators.items():
+            sdom[node] = copy(dom)
+            sdom[node].remove(node)
+
+        return sdom
+
+    def calc_immediate_dominance(self, sdom):
+        idom = {}
+
+        # convert from "is-dominated_by" to "dominates"
+        sdom2 = {}
+        for n in self.blocks.values():
+            sdom2[n] = []
+
+        for node, dom in sdom.items():
+            for d in dom:
+                if node is not d:
+                    sdom2[d].append(node)
+
+        for n in self.blocks.values():
+            idom[n] = None
+
+            """
+            The immediate dominator or idom of a node n is 
+            the unique node that strictly dominates n but 
+            does not strictly dominate any other node that 
+            strictly dominates n. Every node, except the 
+            entry node, has an immediate dominator.
+
+            """
+
+            sdoms = sdom[n] # all nodes that strictly dominate n
+            # one of these will be the idom
+
+            for d in sdoms:
+                # does d strictly dominate any other node that
+                # also strictly dominates n?
+
+                d_doms = sdom2[d] # set of nodes that d strictly dominates
+
+                skip = False
+                for d2 in d_doms:
+                    # does d2 strictly dominate n?
+                    if n in sdom2[d2]:
+                        skip = True
+                        break
+
+                if skip:
+                    continue
+
+                assert idom[n] is None
+                idom[n] = d                
+
+        assert idom[self.leader_block] is None
+
+        return idom
+
+    def calc_dominator_tree(self, dominators):
+        sdom = self.calc_strict_dominance(dominators)
+        idom = self.calc_immediate_dominance(sdom)
+
+        # convert from "is-dominated_by" to "dominates"
+        tree = {}
+        for n in self.blocks.values():
+            tree[n] = []
+
+        for n in self.blocks.values():
+            if idom[n] is None:
+                continue
+
+            tree[idom[n]].append(n)
+
+        return tree
+
+    def calc_dominance_frontiers(self, dominators):
+        df = {}
+
+
+        return df
 
     def get_successors(self, code=None):
         if code is None:
@@ -1582,6 +1661,8 @@ class irFunc(IR):
         self.leader_block = self.create_block_from_code_at_index(0)
 
         self.dominators = self.calc_dominance()
+        self.dominator_tree = self.calc_dominator_tree(self.dominators)
+        self.dominance_frontier = self.calc_dominance_frontiers(self.dominators)
 
         # verify all instructions are assigned to a block:
         # THIS WILL FAIL ON BREAK STATEMENTS AT THE END OF A LOOP!
@@ -1598,6 +1679,7 @@ class irFunc(IR):
             assert isinstance(block.code[-1], irControlFlow)
 
         global_vars = self.leader_block.init_global_vars()
+        return
         ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
         self.leader_block.apply_types()
         self.leader_block.insert_phi()
@@ -1607,17 +1689,17 @@ class irFunc(IR):
         self.verify_ssa()
 
 
-        optimize = False
+        optimize = True
 
         if optimize:
             for block in self.blocks.values():
                 block.remove_redundant_binop_assigns()
 
-            for block in self.blocks.values():
-                block.fold_constants()
+            # for block in self.blocks.values():
+            #     block.fold_constants()
 
-            for block in self.blocks.values():
-                block.reduce_strength()
+            # for block in self.blocks.values():
+            #     block.reduce_strength()
 
             
             # self.leader_block.propagate_copies()
@@ -1628,10 +1710,10 @@ class irFunc(IR):
         
         self.verify_block_assignments()
 
-        if optimize:
-            for block in self.blocks.values():
-                reads = [a.name for a in self.get_input_vars()]
-                block.remove_dead_code(reads=reads)
+        # if optimize:
+        #     for block in self.blocks.values():
+        #         reads = [a.name for a in self.get_input_vars()]
+        #         block.remove_dead_code(reads=reads)
 
         self.loops = self.leader_block.analyze_loops()
 
@@ -1657,7 +1739,7 @@ class irFunc(IR):
         # self.resolve_phi()
 
 
-        
+
         # self.analyze_copies()
 
         # optimize = True
@@ -1689,7 +1771,7 @@ class irFunc(IR):
             #     reads = [a.name for a in self.get_input_vars()]
             #     block.remove_dead_code(reads=reads)
 
-        self.liveness_analysis()
+        # self.liveness_analysis()
 
         # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
 
