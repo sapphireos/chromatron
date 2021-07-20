@@ -1697,11 +1697,20 @@ class irFunc(IR):
             changed = False
 
             for block in self.blocks.values():
-                copies_in = set()
+                copies_in = None
                 # set copies in from predecessors outs
                 for pre in block.predecessors:
-                    # intersection
-                    copies_in &= list(pre.copy_in.values())[-1]
+                    pre_copies_in = set(list(pre.copy_in.values())[-1])
+
+                    if copies_in is None:
+                        copies_in = pre_copies_in
+
+                    else:
+                        # intersection
+                        copies_in &= pre_copies_in
+
+                if copies_in is None:
+                    copies_in = set()
 
                 # gen is the copies out from this block
                 gen = list(block.copy_out.values())[-1]
