@@ -164,6 +164,9 @@ class irBlock(IR):
         self.entry_label = None
         self.jump_target = None
 
+        self.local_values = {}
+        self.local_defines = {}
+
     def __str__(self):
         tab = '\t'
         depth = f'{self.scope_depth * tab}'
@@ -338,7 +341,7 @@ class irBlock(IR):
     # Analysis Passes
     ##############################################
 
-    def init_global_vars(self, visited=None):    
+    def init_vars(self, visited=None):    
         if visited is None:
             visited = []
 
@@ -436,7 +439,7 @@ class irBlock(IR):
 
         # continue with successors:
         for suc in self.successors:
-            suc.init_global_vars(visited=visited)
+            suc.init_vars(visited=visited)
                 
         return copy(self.defines)
 
@@ -1169,29 +1172,49 @@ class irBlock(IR):
         self.code = new_code
 
     def local_value_numbering(self):
-        next_val = 0
-        ir_values = {}
-        assigned_values = {}
+        next_val = self.func.current_value_num
+        values = {}
+        defines = {}
 
         for ir in self.code:
             if isinstance(ir, irAssign):
-                if ir.value not in assigned_values:
-                    assigned_values[ir.value] = next_val
-                    next_val += 1
+                target = ir.target
+                value = ir.value
+                expr = ir
 
-                if assigned_values[ir.value] not in ir_values:
-                    ir_values[assigned_values[ir.value]] = []
+            else:
+                continue
 
-                ir_values[assigned_values[ir.value]].append(ir)
+            target.ssa_version = next_val
+            defines[target] = next_val
+            values[target] = expr
+
+            next_val += 1
+
+
+        # ir_values = {}
+        # for ir in self.code:
+        #     if isinstance(ir, irAssign):
+        #         if ir.value not in assigned_values:
+        #             assigned_values[ir.value] = next_val
+        #             next_val += 1
+
+        #         if assigned_values[ir.value] not in ir_values:
+        #             ir_values[assigned_values[ir.value]] = []
+
+        #         ir_values[assigned_values[ir.value]].append(ir)
                 
-        for value, instructions in ir_values.items():
-            for i in range(len(instructions) - 1):
-                ir = instructions[i]
-                next_ir = instructions[i + 1]
+        # for value, instructions in ir_values.items():
+        #     for i in range(len(instructions) - 1):
+        #         ir = instructions[i]
+        #         next_ir = instructions[i + 1]
 
-                # set next IR's value to previous target
-                next_ir.value = ir.target
+        #         # set next IR's value to previous target
+        #         next_ir.value = ir.target
 
+
+        self.func.current_value_num = next_val
+        self.local_values = values
     
 
 class irFunc(IR):
@@ -1220,6 +1243,8 @@ class irFunc(IR):
 
         self.live_in = None
         self.live_out = None
+
+        self.current_value_num = 0
 
     def get_zero(self, lineno=None):
         return self.consts['0']
@@ -1682,10 +1707,13 @@ class irFunc(IR):
         self.leader_block = self.create_block_from_code_at_index(0)
 
 
+        self.leader_block.init_vars()
+        self.leader_block.local_value_numbering()
         
 
+
         return
-        
+
 
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
@@ -1705,7 +1733,7 @@ class irFunc(IR):
             assert isinstance(block.code[0], irLabel)
             assert isinstance(block.code[-1], irControlFlow)
 
-        global_vars = self.leader_block.init_global_vars()
+        global_vars = self.leader_block.init_vars()
         return
         ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
         self.leader_block.apply_types()
@@ -2620,7 +2648,7 @@ class irVar(IR):
         if self.is_temp or self.ssa_version is None:
             return self._name
         
-        return f'{self._name}.v{self.ssa_version}'
+        return f'{self._name}.{self.ssa_version}'
 
     @name.setter
     def name(self, value):

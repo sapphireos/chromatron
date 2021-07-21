@@ -1,26 +1,39 @@
 
-def simple_ifelse():
+
+
+# def simple_ifelse():
+# 	a = Number()
+# 	b = Number()
+
+# 	a = b + 7
+
+# 	if a > 0:
+# 		b = 1
+
+# 	else:
+# 		b = 2
+
+
+# 	if b == 3:
+# 		a = 4
+
+# 	else:
+# 		a = 5
+
+# 	return a
+
+
+
+def lvn():
 	a = Number()
 	b = Number()
+	c = Number()
+	
+	z = Number()
 
-	a = b + 7
-
-	if a > 0:
-		b = 1
-
-	else:
-		b = 2
-
-
-	if b == 3:
-		a = 4
-
-	else:
-		a = 5
-
-	return a
-
-
+	a = z
+	b = a
+	c = z
 
 # def copy_prop():
 # 	a = Number()
@@ -37,6 +50,10 @@ def simple_ifelse():
 # 	x = Number()
 # 	y = Number()
 # 	z = Number()
+
+# 	a = f
+# 	b = a
+# 	c = f
 
 # 	u = a + b
 # 	v = c + d
