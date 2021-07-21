@@ -10,6 +10,9 @@ from pprint import pprint
 
 source_code = []
 
+COMMUTATIVE_OPS = ['add', 'mul']
+
+
 def set_source_code(source):
     global source_code
     source_code = source
@@ -2411,20 +2414,44 @@ class irFill(IR):
 
 
 class irBinop(IR):
-    def __init__(self, result, op, left, right, **kwargs):
+    def __init__(self, target, op, left, right, **kwargs):
         super().__init__(**kwargs)
-        self.result = result
+        self.target = target
         self.op = op
+
+        # canonicalize the binop expression, if possible:
+        if op in COMMUTATIVE_OPS:
+            # check if one side is a const, if so,
+            # make sure it is on the right to make
+            # common subexpressions easier to find.
+            # this only applies to operations which are commutative
+            # if op in COMMUTATIVE_OPS and isinstance(left, irConst) and not isinstance(right, irConst):
+            if left.is_const and not right.is_const:
+                temp = left
+                left = right
+                right = temp
+
+            else:
+                # place them in sorted order by name
+                temp = list(sorted([left, right], key=lambda a: a.name))
+                left = temp[0]
+                right = temp[1]
+
+                # NOTE:
+                # it *looks* like Python's parser already does something like this.
+                # however, we are not going to rely on that behavior, and will ensure 
+                # it is done to our specs here.
+
         self.left = left
         self.right = right
 
-        self.data_type = self.result.type
+        self.data_type = self.target.type
 
         if self.op == 'div' and self.right.is_const and self.right.value == 0:
             raise SyntaxError("Division by 0", lineno=self.lineno)
 
     def __str__(self):
-        s = '%s = %s %s %s' % (self.result, self.left, self.op, self.right)
+        s = '%s = %s %s %s' % (self.target, self.left, self.op, self.right)
 
         return s
 
@@ -2432,41 +2459,41 @@ class irBinop(IR):
         return [self.left, self.right]
 
     def get_output_vars(self):
-        return [self.result]
+        return [self.target]
 
     def reduce_strength(self):
         if self.op == 'add':
             # add to 0 is just an assign
             if self.left.is_const and self.left.value == 0:
-                return irAssign(self.result, self.right, lineno=self.lineno)
+                return irAssign(self.target, self.right, lineno=self.lineno)
 
             elif self.right.is_const and self.right.value == 0:
-                return irAssign(self.result, self.left, lineno=self.lineno)
+                return irAssign(self.target, self.left, lineno=self.lineno)
 
         elif self.op == 'sub':
             # sub 0 from var is just an assign
             if self.right.is_const and self.right.value == 0:
-                return irAssign(self.result, self.left, lineno=self.lineno)
+                return irAssign(self.target, self.left, lineno=self.lineno)
         
         elif self.op == 'mul':
             # mul times 0 is assign to 0
             if self.left.is_const and self.left.value == 0:
-                return irAssign(self.result, self.get_zero(self.lineno), lineno=self.lineno)
+                return irAssign(self.target, self.get_zero(self.lineno), lineno=self.lineno)
 
             elif self.right.is_const and self.right.value == 0:
-                return irAssign(self.result, self.get_zero(self.lineno), lineno=self.lineno)
+                return irAssign(self.target, self.get_zero(self.lineno), lineno=self.lineno)
 
             # mul times 1 is assign
             elif self.left.is_const and self.left.value == 1:
-                return irAssign(self.result, self.right, lineno=self.lineno)
+                return irAssign(self.target, self.right, lineno=self.lineno)
 
             elif self.right.is_const and self.right.value == 1:
-                return irAssign(self.result, self.left, lineno=self.lineno)
+                return irAssign(self.target, self.left, lineno=self.lineno)
 
         elif self.op == 'div':
             # div by 1 is assign
             if self.right.is_const and self.right.value == 1:
-                return irAssign(self.result, self.left, lineno=self.lineno)
+                return irAssign(self.target, self.left, lineno=self.lineno)
 
         return None
 
@@ -2573,7 +2600,7 @@ class irBinop(IR):
     #             'mod': insBinop} # formatted output
     #     }
 
-    #     return ops[self.data_type][self.op](self.result.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
+    #     return ops[self.data_type][self.op](self.target.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
 
 
 

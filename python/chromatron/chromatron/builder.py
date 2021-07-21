@@ -2,9 +2,6 @@
 from .ir2 import *
 
 
-COMMUTATIVE_OPS = ['add', 'mul']
-
-
 class Builder(object):
     def __init__(self, script_name='fx_script', source=[]):
         
@@ -194,9 +191,9 @@ class Builder(object):
 
         # check if previous op is a binop and the binop result
         # is the value for this assign:
-        elif isinstance(self.prev_node, irBinop) and self.prev_node.result == value:
+        elif isinstance(self.prev_node, irBinop) and self.prev_node.target == value:
             # in this case, just change the binop result to the assign target:
-            self.prev_node.result = target
+            self.prev_node.target = target
             self.next_temp -= 1 # rewind temp counter
 
             # this is *technically* a peephole optimization, but really it is
@@ -211,29 +208,19 @@ class Builder(object):
         self.append_node(ir)
 
     def binop(self, op, left, right, lineno=None):
-        result = self.add_temp(lineno=lineno)
-
-        # check if one side is a const, if so,
-        # make sure it is on the right to make
-        # common subexpressions easier to find.
-        # this only applies to operations which are commutative
-        # if op in COMMUTATIVE_OPS and isinstance(left, irConst) and not isinstance(right, irConst):
-        if op in COMMUTATIVE_OPS and left.is_const and not right.is_const:
-            temp = left
-            left = right
-            right = temp
-
-        ir = irBinop(result, op, left, right, lineno=lineno)
+        target = self.add_temp(lineno=lineno)
+        
+        ir = irBinop(target, op, left, right, lineno=lineno)
 
         self.append_node(ir)
 
-        return result
+        return target
 
     def augassign(self, op, target, value, lineno=None):
-        result = self.binop(op, target, value, lineno=lineno)
+        target = self.binop(op, target, value, lineno=lineno)
 
         # must copy target, so SSA conversion will work
-        self.assign(copy(target), result, lineno=lineno)
+        self.assign(copy(target), target, lineno=lineno)
 
     def finish_module(self):
         ir = irProgram(self.funcs, self.globals, lineno=0)
