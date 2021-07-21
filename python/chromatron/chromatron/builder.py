@@ -192,6 +192,19 @@ class Builder(object):
         if value.is_const:
             ir = irLoadConst(target, value, lineno=lineno)
 
+        # check if previous op is a binop and the binop result
+        # is the value for this assign:
+        elif isinstance(self.prev_node, irBinop) and self.prev_node.result == value:
+            # in this case, just change the binop result to the assign target:
+            self.prev_node.result = target
+            self.next_temp -= 1 # rewind temp counter
+
+            # this is *technically* a peephole optimization, but really it is
+            # just correcting for how binops unfold in the code generator.
+
+            # skip appending a node
+            return
+
         else:
             ir = irAssign(target, value, lineno=lineno)
             

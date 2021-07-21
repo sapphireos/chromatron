@@ -3,6 +3,8 @@ def simple_ifelse():
 	a = Number()
 	b = Number()
 
+	a = b + 7
+
 	if a > 0:
 		b = 1
 

@@ -1322,13 +1322,13 @@ class irFunc(IR):
     
             s += f'\t{ir}\n'
 
-        s += "********************************\n"
-        s += "Dominance:\n"
-        s += "********************************\n"
-        for n, dom in self.dominators.items():
-            s += f'\t{n.name}\n'
-            for d in dom:
-                s += f'\t\t{d.name}\n'
+        # s += "********************************\n"
+        # s += "Dominance:\n"
+        # s += "********************************\n"
+        # for n, dom in self.dominators.items():
+        #     s += f'\t{n.name}\n'
+        #     for d in dom:
+        #         s += f'\t\t{d.name}\n'
 
         s += "********************************\n"
         s += "Loops:\n"
@@ -1680,6 +1680,12 @@ class irFunc(IR):
     def analyze_blocks(self):
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
+
+
+        
+
+        return
+        
 
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
