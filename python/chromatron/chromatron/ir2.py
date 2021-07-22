@@ -1249,7 +1249,7 @@ class irBlock(IR):
         self.func.current_value_num = next_val
         self.local_values = values
 
-    def convert_to_ssa(self, next_val=None, visited=None):
+    def convert_to_ssa(self, loops=None, next_val=None, visited=None, prev_node=None):
         # this will also propagate type information
 
         if self.is_ssa:
@@ -1262,6 +1262,53 @@ class irBlock(IR):
         # check that all predecessors have completed their SSA
         # conversion
         for pre in self.predecessors:
+            # if we are looking at a predecessor that we just came from:
+            if prev_node is pre:
+                # we can assert that the predecessor has completed its
+                # SSA conversion:
+                assert pre.is_ssa
+
+                # and we can skip further checks
+                continue
+
+            # special handling for loops:
+            is_loop_body = False
+            for loop_info in loops.values():
+                # are we the *successor* of a loop header?
+                # that would make us the first block in the loop body.
+                # ALSO check that we just came from the header:
+                # (which should always be the case if we are traversing
+                # correctly, but we'll check to make sure)
+                if loop_info['header'].successors[0] is self and \
+                   prev_node is loop_info['header']:
+
+                   # if we got to here:
+                   # 1. pre is not the previous node
+                   # 2. pre is not the loop header
+
+                   # check if pre is the loop entry:
+                   if pre is loop_info['entry']:
+                        # since we construct loops with a preheader
+                        # that checks the first time the loop runs,
+                        # we know that the loop body will run 
+                        # before what we call the loop entry block.
+                        # so we can assert that the entry block 
+                        # hasn't been converted yet.
+                        assert not pre.is_ssa
+
+                        # since we know this block will execute before
+                        # the loop entry, we can go ahead and run the 
+                        # SSA algorithm on it.  The loop entry will
+                        # get covered as we descend the successors
+                        # until the loop body is completed.
+                        is_loop_body = True
+                        break
+
+            if is_loop_body:
+                continue # continue with checks for other predecessors
+
+            # check if SSA is set up on predecessor, if not,
+            # skip processing for this node until predecessors are complete
             if not pre.is_ssa:
                 return next_val
 
@@ -1269,6 +1316,7 @@ class irBlock(IR):
             return next_val
 
         visited.append(self)
+        prev_node = self
 
         self.defines = {}
 
@@ -1346,7 +1394,7 @@ class irBlock(IR):
         self.is_ssa = True
 
         for suc in self.successors:
-            next_val = suc.convert_to_ssa(next_val=next_val, visited=visited)
+             next_val = suc.convert_to_ssa(loops=loops, next_val=next_val, visited=visited, prev_node=prev_node)
 
         return next_val
 
@@ -1841,7 +1889,8 @@ class irFunc(IR):
 
 
         self.leader_block.init_vars()
-        self.leader_block.convert_to_ssa()
+        self.loops = self.leader_block.analyze_loops()
+        self.leader_block.convert_to_ssa(loops=self.loops)
         self.verify_ssa()
 
         # self.leader_block.local_value_numbering()
