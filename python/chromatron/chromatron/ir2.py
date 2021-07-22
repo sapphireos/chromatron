@@ -1249,74 +1249,56 @@ class irBlock(IR):
         self.func.current_value_num = next_val
         self.local_values = values
 
-    def convert_to_ssa(self, loops=None, next_val=None, visited=None, prev_node=None):
+    def convert_to_ssa(self, sealed_blocks=None, next_val=None, visited=None, incomplete_phis=None):
         # this will also propagate type information
 
-        if self.is_ssa:
-            return next_val
+        # if self.is_ssa:
+        #     return next_val
 
         if visited is None:
             visited = []
+            incomplete_phis = {}
+            sealed_blocks = []
             next_val = 0
 
+        if self in sealed_blocks:
+            return next_val
+
+        # terminology from "Simple and Efficient Construction of Static Single Assignment Form"
+        # "sealed" means all predecessor blocks have been "filled".
+        # "filled" means their local SSA conversion is complete.
+        # we mark filled as is_ssa = True
+        sealed = True
         # check that all predecessors have completed their SSA
         # conversion
         for pre in self.predecessors:
-            # if we are looking at a predecessor that we just came from:
-            if prev_node is pre:
-                # we can assert that the predecessor has completed its
-                # SSA conversion:
-                assert pre.is_ssa
+            if not pre.is_ssa: # not "filled"
+                sealed = False
+                break
 
-                # and we can skip further checks
-                continue
+        if sealed and self not in sealed_blocks:
+            sealed_blocks.append(self)
 
-            # special handling for loops:
-            is_loop_body = False
-            for loop_info in loops.values():
-                # are we the *successor* of a loop header?
-                # that would make us the first block in the loop body.
-                # ALSO check that we just came from the header:
-                # (which should always be the case if we are traversing
-                # correctly, but we'll check to make sure)
-                if loop_info['header'].successors[0] is self and \
-                   prev_node is loop_info['header']:
+            if self in incomplete_phis:
+                for phi in incomplete_phis[self]:
+                    # perform recursive lookup
+                    ds = self.get_defined(i._name)
 
-                   # if we got to here:
-                   # 1. pre is not the previous node
-                   # 2. pre is not the loop header
+                    if len(ds) == 0:
+                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+            
+                    else:
+                        # update operands of phi
+                        phi.defines = ds    
 
-                   # check if pre is the loop entry:
-                   if pre is loop_info['entry']:
-                        # since we construct loops with a preheader
-                        # that checks the first time the loop runs,
-                        # we know that the loop body will run 
-                        # before what we call the loop entry block.
-                        # so we can assert that the entry block 
-                        # hasn't been converted yet.
-                        assert not pre.is_ssa
+            for suc in self.successors:
+                if suc not in sealed_blocks:
+                    next_val = suc.convert_to_ssa(sealed_blocks=sealed_blocks, next_val=next_val, visited=visited, incomplete_phis=incomplete_phis)
 
-                        # since we know this block will execute before
-                        # the loop entry, we can go ahead and run the 
-                        # SSA algorithm on it.  The loop entry will
-                        # get covered as we descend the successors
-                        # until the loop body is completed.
-                        is_loop_body = True
-                        break
-
-            if is_loop_body:
-                continue # continue with checks for other predecessors
-
-            # check if SSA is set up on predecessor, if not,
-            # skip processing for this node until predecessors are complete
-            if not pre.is_ssa:
-                return next_val
-
-        if self in visited:
-            return next_val
+        # if self in visited:
+            # return next_val
 
         visited.append(self)
-        prev_node = self
 
         self.defines = {}
 
@@ -1340,37 +1322,66 @@ class irBlock(IR):
 
                 for i in inputs:
                     i.block = self
-                    ds = self.get_defined(i._name)
 
-                    if len(ds) == 0:
-                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
-                    
-                    elif len(ds) == 1:
-                        i.clone(ds[0])
+                    # check if we have a local definition:
+                    try:
+                        ds = [self.defines[i._name]]
 
-                    else:
-                        idx = 1
-                        while idx < len(ds):
-                            # ensure all incoming versions of this
-                            # var have the same type
-                            assert ds[idx].type == ds[0].type
+                    except KeyError:
+                        ds = []
 
-                            # at some point, we might want to support 
-                            # a conversion, but for now, let's
-                            # avoid dealing with this.
+                    assert len(ds) <= 1 # we can only have 0 or 1 local definition
 
-                            idx += 1
-
-
-                        i.clone(ds[0])
+                    if len(ds) == 0 and not sealed:
+                        # no local definition, and block is not sealed (predecessors are incomplete)
                         i.ssa_version = next_val
                         next_val += 1
                         self.defines[i._name] = i
 
-                        # multiple sources for define
-                        # we need a phi node to reconcile this
-                        phi = irPhi(i, ds, lineno=-1)
-                        new_code.append(phi)
+                        phi = irPhi(i, [], lineno=-1)
+                        new_code.append(phi)                            
+
+                        if self not in incomplete_phis:
+                            incomplete_phis[self] = []
+
+                        incomplete_phis[self].append(phi)
+
+                    else:
+                        # perform recursive lookup
+                        ds = self.get_defined(i._name)
+
+                        if len(ds) == 0:
+                            raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+                
+                        elif len(ds) == 1:
+                            i.clone(ds[0])
+
+                        else:
+                            # if multiple defines:
+                            # we will insert a phi
+
+                            idx = 1
+                            while idx < len(ds):
+                                # ensure all incoming versions of this
+                                # var have the same type
+                                assert ds[idx].type == ds[0].type
+
+                                # at some point, we might want to support 
+                                # a conversion, but for now, let's
+                                # avoid dealing with this.
+
+                                idx += 1
+
+
+                            i.clone(ds[0])
+                            i.ssa_version = next_val
+                            next_val += 1
+                            self.defines[i._name] = i
+
+                            # multiple sources for define
+                            # we need a phi node to reconcile this
+                            phi = irPhi(i, ds, lineno=-1)
+                            new_code.append(phi)
 
                 # look for writes to current set of vars and increment versions
                 outputs = ir.local_output_vars
@@ -1394,7 +1405,7 @@ class irBlock(IR):
         self.is_ssa = True
 
         for suc in self.successors:
-             next_val = suc.convert_to_ssa(loops=loops, next_val=next_val, visited=visited, prev_node=prev_node)
+             next_val = suc.convert_to_ssa(sealed_blocks=sealed_blocks, next_val=next_val, visited=visited, incomplete_phis=incomplete_phis)
 
         return next_val
 
@@ -1889,8 +1900,8 @@ class irFunc(IR):
 
 
         self.leader_block.init_vars()
-        self.loops = self.leader_block.analyze_loops()
-        self.leader_block.convert_to_ssa(loops=self.loops)
+        # self.loops = self.leader_block.analyze_loops()
+        self.leader_block.convert_to_ssa()
         self.verify_ssa()
 
         # self.leader_block.local_value_numbering()
