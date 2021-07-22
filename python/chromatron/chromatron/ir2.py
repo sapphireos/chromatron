@@ -170,6 +170,8 @@ class irBlock(IR):
         self.local_values = {}
         self.local_defines = {}
 
+        self.is_ssa = False
+
     def __str__(self):
         tab = '\t'
         depth = f'{self.scope_depth * tab}'
@@ -1176,23 +1178,51 @@ class irBlock(IR):
 
     def local_value_numbering(self):
         next_val = self.func.current_value_num
+        
         values = {}
         defines = {}
 
         for ir in self.code:
-            if isinstance(ir, irAssign):
+            if isinstance(ir, irLoadConst):                
+                pass
+
+            elif isinstance(ir, irAssign):
                 target = ir.target
-                value = ir.value
-                expr = ir
+                values = [ir.value]
+                op = '='
 
             else:
                 continue
 
+
             target.ssa_version = next_val
-            defines[target] = next_val
-            values[target] = expr
+            values[target] = next_val
+
 
             next_val += 1
+
+
+
+
+
+
+        # values = {}
+        # defines = {}
+
+        # for ir in self.code:
+        #     if isinstance(ir, irAssign):
+        #         target = ir.target
+        #         value = ir.value
+        #         expr = ir
+
+        #     else:
+        #         continue
+
+        #     target.ssa_version = next_val
+        #     defines[target] = next_val
+        #     values[target] = expr
+
+        #     next_val += 1
 
 
         # ir_values = {}
@@ -1218,7 +1248,107 @@ class irBlock(IR):
 
         self.func.current_value_num = next_val
         self.local_values = values
-    
+
+    def convert_to_ssa(self, next_val=None, visited=None):
+        # this will also propagate type information
+
+        if self.is_ssa:
+            return next_val
+
+        if visited is None:
+            visited = []
+            next_val = 0
+
+        # check that all predecessors have completed their SSA
+        # conversion
+        for pre in self.predecessors:
+            if not pre.is_ssa:
+                return next_val
+
+        if self in visited:
+            return next_val
+
+        visited.append(self)
+
+        self.defines = {}
+
+        new_code = []
+        for ir in self.code:
+            # look for defines and set their version to 0
+            if isinstance(ir, irDefine):
+                if ir.var._name in self.defines:
+                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+
+                assert ir.var.ssa_version is None
+
+                ir.var.ssa_version = next_val
+                next_val ++ 1
+
+                ir.var.block = self
+                self.defines[ir.var._name] = ir.var
+
+            else:
+                inputs = ir.local_input_vars
+
+                for i in inputs:
+                    i.block = self
+                    ds = self.get_defined(i._name)
+
+                    if len(ds) == 0:
+                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+                    
+                    elif len(ds) == 1:
+                        i.clone(ds[0])
+
+                    else:
+                        idx = 1
+                        while idx < len(ds):
+                            # ensure all incoming versions of this
+                            # var have the same type
+                            assert ds[idx].type == ds[0].type
+
+                            # at some point, we might want to support 
+                            # a conversion, but for now, let's
+                            # avoid dealing with this.
+
+                            idx += 1
+
+
+                        i.clone(ds[0])
+                        i.ssa_version = next_val
+                        next_val += 1
+                        self.defines[i._name] = i
+
+                        # multiple sources for define
+                        # we need a phi node to reconcile this
+                        phi = irPhi(i, ds, lineno=-1)
+                        new_code.append(phi)
+
+                # look for writes to current set of vars and increment versions
+                outputs = ir.local_output_vars
+
+                for o in outputs:
+                    ds = self.get_defined(o._name)
+                    if len(ds) == 0:
+                        raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
+
+                    assert len(ds) == 1
+
+                    o.block = self
+                    o.clone(ds[0])
+                    o.ssa_version = next_val
+                    next_val += 1
+                    self.defines[o._name] = o
+
+            new_code.append(ir)
+
+        self.code = new_code
+        self.is_ssa = True
+
+        for suc in self.successors:
+            next_val = suc.convert_to_ssa(next_val=next_val, visited=visited)
+
+        return next_val
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
@@ -1711,7 +1841,10 @@ class irFunc(IR):
 
 
         self.leader_block.init_vars()
-        self.leader_block.local_value_numbering()
+        self.leader_block.convert_to_ssa()
+        self.verify_ssa()
+
+        # self.leader_block.local_value_numbering()
         
 
 
@@ -1863,7 +1996,7 @@ class irFunc(IR):
     def verify_ssa(self):
         writes = {}
         for ir in self.get_code_from_blocks():
-            for o in ir.get_output_vars():
+            for o in [o for o in ir.get_output_vars() if not o.is_const and not o.is_temp]:
                 try:
                     assert o.name not in writes
 
@@ -1872,7 +2005,24 @@ class irFunc(IR):
 
                     raise
 
+                try:
+                    assert o.ssa_version is not None
+
+                except AssertionError:
+                    logging.critical(f'FATAL: {o.name} not assigned to SSA. Line {ir.lineno}')
+
+                    raise
+
                 writes[o.name] = ir
+
+            for i in [i for i in ir.get_input_vars() if not i.is_const and not i.is_temp]:
+                try:
+                    assert i.ssa_version is not None
+
+                except AssertionError:
+                    logging.critical(f'FATAL: {i.name} not assigned to SSA. Line {ir.lineno}')
+
+                    raise
 
     def prune_jumps(self):
         new_code = []
@@ -2645,6 +2795,13 @@ class irVar(IR):
         # else:
         #     return self.name == other.name   
         return self.name == other.name   
+
+    def clone(self, source):
+        assert self._name == source._name
+
+        # clone source attributes to self
+        self.ssa_version = source.ssa_version
+        self.type = source.type
 
     @property
     def value(self):

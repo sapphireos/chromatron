@@ -24,73 +24,73 @@
 
 
 
-def lvn():
-	a = Number()
-	b = Number()
-	c = Number()
+# def lvn():
+# 	a = Number()
+# 	b = Number()
+# 	c = Number()
 	
-	z = Number()
+# 	z = Number()
 
-	a = z
-	b = a
-	c = z
+# 	a = z
+# 	b = a
+# 	c = z
 
-def copy_prop():
-	a = Number()
-	b = Number()
-	c = Number()
-	d = Number()
-	e = Number()
-	f = Number()
+# def copy_prop():
+# 	a = Number()
+# 	b = Number()
+# 	c = Number()
+# 	d = Number()
+# 	e = Number()
+# 	f = Number()
 	
-	u = Number()
-	v = Number()
-	w = Number()
+# 	u = Number()
+# 	v = Number()
+# 	w = Number()
 	
-	x = Number()
-	y = Number()
-	z = Number()
+# 	x = Number()
+# 	y = Number()
+# 	z = Number()
 
-	a = f
-	b = a
-	c = f
+# 	a = f
+# 	b = a
+# 	c = f
 
-	u = b + a
-	v = c + d
-	w = e + f
+# 	u = b + a
+# 	v = c + d
+# 	w = e + f
 
-	if True:
-		x = c + d
-		y = c + d
+# 	if True:
+# 		x = c + d
+# 		y = c + d
 
-	else:
-		u = a + b
-		x = e + f
-		y = e + f
+# 	else:
+# 		u = a + b
+# 		x = e + f
+# 		y = e + f
 
-	z = u + y
-	u = a + b
+# 	z = u + y
+# 	u = a + b
 
 
 
-# def test():
-# 	i = Number()
-# 	# i = 2 + 3
-# 	i = 4
+def loop():
+	i = Number()
+	# i = 2 + 3
+	i = 4
 
-# 	# a = Number()
+	# a = Number()
 
-# 	while i > 0:
-# 		i -= 1
+	while i > 0:
+		i -= 1
 
-# 		# if i == 10:
-# 			# break
-# 			# pass
+		# if i == 10:
+			# break
+			# pass
 			
-# 		# a = 2 + 3
+		# a = 2 + 3
 
-# 	# return a
-# 	return i
+	# return a
+	return i
 
 
 # def test():

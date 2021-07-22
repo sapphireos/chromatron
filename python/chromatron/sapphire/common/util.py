@@ -217,7 +217,7 @@ def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
                                                     'INFO':     'green',
                                                     'WARNING':  'yellow',
                                                     'ERROR':    'red',
-                                                    'CRITICAL': 'red,bg_white',
+                                                    'CRITICAL': 'black,bg_purple',
                                                 })
         handler.setFormatter(formatter)
         root.addHandler(handler)

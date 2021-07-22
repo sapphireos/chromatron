@@ -153,7 +153,7 @@ class Builder(object):
         self.refs = {}
         self.scope_depth = 0
 
-        func_label = self.label(f'function:{func.name}', lineno=kwargs['lineno'])
+        func_label = self.label(f'func:{func.name}', lineno=kwargs['lineno'])
         self.position_label(func_label)
 
         return func
