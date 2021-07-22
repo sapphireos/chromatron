@@ -217,10 +217,10 @@ class Builder(object):
         return target
 
     def augassign(self, op, target, value, lineno=None):
-        target = self.binop(op, target, value, lineno=lineno)
+        result = self.binop(op, target, value, lineno=lineno)
 
         # must copy target, so SSA conversion will work
-        self.assign(copy(target), target, lineno=lineno)
+        self.assign(copy(target), result, lineno=lineno)
 
     def finish_module(self):
         ir = irProgram(self.funcs, self.globals, lineno=0)
