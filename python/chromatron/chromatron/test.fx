@@ -20,7 +20,9 @@ def simple_ifelse():
 	# else:
 	# 	a = 5
 
-	return b
+	a = b * 2
+
+	return a
 
 
 

@@ -1424,25 +1424,35 @@ class irBlock(IR):
                 outputs = ir.local_output_vars
 
                 for o in outputs:
+                    o.block = self
+                    o.ssa_version = next_val
+                    next_val += 1
+                    self.defines[o._name] = o
+
                     # check if we have a definition:
-                    try:
-                        v = self.lookup_var(o)
+                    # try:
+                    #     v = self.lookup_var(o)
 
-                    except KeyError:
-                        raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
+                    # except KeyError:
+                    #     raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
-                    if isinstance(v, irIncompletePhi):
-                        print(v)
+                    # if isinstance(v, irIncompletePhi):
+                    #     o.ssa_version = next_val
+                    #     next_val += 1
+                    #     self.defines[o._name] = o
+                    #     v.var = o
+                    #     new_code.append(v)
 
-                    elif isinstance(v, irPhi):
-                        print(v)
+                    # elif isinstance(v, irPhi):
+                    #     print(v)
+                    #     raise Exception
 
-                    else:
-                        o.block = self
-                        o.clone(v)
-                        o.ssa_version = next_val
-                        next_val += 1
-                        self.defines[o._name] = o
+                    # else:
+                    #     o.block = self
+                    #     o.clone(v)
+                    #     o.ssa_version = next_val
+                    #     next_val += 1
+                    #     self.defines[o._name] = o
         
             new_code.append(ir)
 
@@ -2200,7 +2210,7 @@ class irFunc(IR):
     def analyze_blocks(self):
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
-        self.blocks = {v.name: v for v in self.blocks.values()}
+        # self.blocks = {v.name: v for v in self.blocks.values()}
 
         self.leader_block.init_vars()
         self.leader_block.init_consts()
@@ -2209,13 +2219,13 @@ class irFunc(IR):
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
         
-        # blocks = self.blocks.values()
-        blocks = [
-            self.blocks['func:simple_ifelse.0'],
-            self.blocks['if.then.0'],
-            self.blocks['if.else.0'],
-            self.blocks['if.end.0'],
-        ]
+        blocks = self.blocks.values()
+        # blocks = [
+        #     self.blocks['func:simple_ifelse.0'],
+        #     self.blocks['if.then.0'],
+        #     self.blocks['if.else.0'],
+        #     self.blocks['if.end.0'],
+        # ]
 
         next_val = 0
         iterations = 0
