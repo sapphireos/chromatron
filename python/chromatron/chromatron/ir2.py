@@ -171,6 +171,8 @@ class irBlock(IR):
         self.local_defines = {}
 
         self.is_ssa = False
+        self.filled = False
+        self.sealed = False
 
     def __str__(self):
         tab = '\t'
@@ -461,8 +463,7 @@ class irBlock(IR):
         consts = {}
 
         # iterate over code
-        # look for defines and record them.
-        # also insert inits to 0
+        # look for consts and load them to temp registers
         for index in range(len(self.code)):
             ir = self.code[index]
 
@@ -1249,8 +1250,260 @@ class irBlock(IR):
         self.func.current_value_num = next_val
         self.local_values = values
 
-    def convert_to_ssa(self, sealed_blocks=None, next_val=None, visited=None, incomplete_phis=None):
+
+    def _read_variable(self, variable, sealed_blocks, incomplete_phis, next_val):
+        if variable._name in self.defines:
+            return self.defines[variable._name], next_val
+
+        if self not in sealed_blocks:
+            # not sealed, we need an incomplete phi
+            val = variable
+            val.ssa_version = next_val
+            next_val += 1
+            
+            self.defines[variable._name] = val
+
+            phi = irPhi(val, lineno=-1)
+
+            if self not in incomplete_phis:
+                incomplete_phis[self] = {}
+
+            incomplete_phis[self][variable._name] = phi
+
+        elif len(self.predecessors) == 1:
+            return self.predecessors[0]._read_variable(variable, sealed_blocks, incomplete_phis, next_val)
+
+        else:
+            val = variable
+            val.ssa_version = next_val
+            next_val += 1
+            
+            self.defines[variable._name] = val
+
+            phi = irPhi(val, lineno=-1)
+
+
+
+        # raise KeyError(variable)
+
+        return val, next_val
+
+    def lookup_var(self, var):
+        if not isinstance(var, str):
+            var = var._name
+
+        # check local block
+        if var in self.defines:
+            return self.defines[var]
+
+        # if no predecessors
+        elif len(self.predecessors) == 0:
+            # look up fails
+            raise KeyError(var)
+
+        # if only one predecessor
+        elif len(self.predecessors) == 1:
+            # we enforce that at least one predecessor is filled before filling a block
+            # we check that here.  since there is only one in this case, it has to be filled.
+            assert self.predecessors[0].filled
+
+            return self.predecessors[0].lookup_var(var)
+
+        # if block is sealed (all preds are filled)
+        elif len([p for p in self.predecessors if not p.filled]) == 0:
+            values = []
+
+            for p in self.predecessors:
+                # each predecessor must return a value
+                values.append(p.lookup_var(var))
+
+            return irPhi(var, values, lineno=-1)
+
+        # if block is not sealed:
+        elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
+            assert not self.sealed
+
+            # this requires an incomplete phi which defines a new value
+            return irIncompletePhi(var, self, lineno=-1)
+
+        else:
+            assert False
+
+        
+
+
+    def fill(self, next_val):
+        if self.filled:
+            return next_val
+
+        if len(self.predecessors) == 0:
+            # if no preds, we must be the start block
+            self.sealed = True
+
+        # are any predecessors filled?
+        elif len([p for p in self.predecessors if p.filled]) == 0:
+            return next_val
+
+
+        self.defines = {}
+
+        # start to fill block
+        for ir in self.code:
+            # look for defines and set their version to 0
+            if isinstance(ir, irDefine):
+                if ir.var._name in self.defines:
+                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+
+                assert ir.var.ssa_version is None
+
+                ir.var.ssa_version = next_val
+                next_val += 1
+
+                ir.var.block = self
+                self.defines[ir.var._name] = ir.var
+
+            else:
+                inputs = ir.local_input_vars
+
+                for i in inputs:
+                    i.block = self
+
+                    # check if we have a definition:
+                    try:
+                        v = self.lookup_var(i)
+
+                    except KeyError:
+                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+
+                    if isinstance(v, irIncompletePhi):
+                        pass
+
+                    elif isinstance(v, irPhi):
+                        pass
+
+                    else:
+                        i.clone(v)
+                    
+                # look for writes to current set of vars and increment versions
+                outputs = ir.local_output_vars
+
+                for o in outputs:
+                    # check if we have a definition:
+                    try:
+                        v = self.lookup_var(o)
+
+                    except KeyError:
+                        raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
+
+                    if isinstance(v, irIncompletePhi):
+                        pass
+
+                    elif isinstance(v, irPhi):
+                        pass
+
+                    else:
+                        o.block = self
+                        o.clone(v)
+                        o.ssa_version = next_val
+                        next_val += 1
+                        self.defines[o._name] = o
+        
+
+        self.filled = True                    
+
+        return next_val
+
+
+
+    # def convert_to_ssa(self, sealed_blocks=None, next_val=None, visited=None, incomplete_phis=None):
+    def convert_to_ssa(self, sealed_blocks=None, incomplete_phis=None, next_val=None):
         # this will also propagate type information
+
+        if sealed_blocks is None:
+            sealed_blocks = []
+            incomplete_phis = {}
+            next_val = 0
+
+        sealed = True
+        for pre in self.predecessors:
+            if not pre.filled:
+                sealed = False
+
+
+        self.sealed = sealed
+
+
+        self.defines = {}
+
+        # local value numbering:
+
+        new_code = []
+        for ir in self.code:
+            # look for defines and set their version to 0
+            if isinstance(ir, irDefine):
+                if ir.var._name in self.defines:
+                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+
+                assert ir.var.ssa_version is None
+
+                ir.var.ssa_version = next_val
+                next_val += 1
+
+                ir.var.block = self
+                self.defines[ir.var._name] = ir.var
+
+            else:
+                inputs = ir.local_input_vars
+
+                for i in inputs:
+                    i.block = self
+
+                    # check if we have a definition:
+                    try:
+                        v, next_val = self._read_variable(i, sealed_blocks, incomplete_phis, next_val)
+
+                    except KeyError:
+                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+
+                    i.clone(v)
+                    
+                # look for writes to current set of vars and increment versions
+                outputs = ir.local_output_vars
+
+                for o in outputs:
+                    # check if we have a definition:
+                    try:
+                        v, next_val = self._read_variable(o, sealed_blocks, incomplete_phis, next_val)
+
+                    except KeyError:
+                        raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
+
+                    o.block = self
+                    o.clone(v)
+                    o.ssa_version = next_val
+                    next_val += 1
+                    self.defines[o._name] = o
+
+
+            new_code.append(ir)
+
+        self.code = new_code
+
+        self.filled = True
+
+        for suc in self.successors:
+            next_val = suc.convert_to_ssa(sealed_blocks, incomplete_phis, next_val)
+
+
+
+
+        return next_val
+
+
+
+
+
+
 
         # if self.is_ssa:
         #     return next_val
@@ -1312,7 +1565,7 @@ class irBlock(IR):
                 assert ir.var.ssa_version is None
 
                 ir.var.ssa_version = next_val
-                next_val ++ 1
+                next_val += 1
 
                 ir.var.block = self
                 self.defines[ir.var._name] = ir.var
@@ -1900,13 +2153,41 @@ class irFunc(IR):
 
 
         self.leader_block.init_vars()
-        # self.loops = self.leader_block.analyze_loops()
-        self.leader_block.convert_to_ssa()
-        self.verify_ssa()
+        self.leader_block.init_consts()
+
+        next_val = 0
+        iterations = 0
+        iteration_limit = 16
+        while len([b for b in self.blocks.values() if not b.filled]) > 0:
+            iterations += 1
+
+            if iterations > iteration_limit:
+                # raise Exception()
+                break
+
+            for block in self.blocks.values():
+                next_val = block.fill(next_val)
+
+
+            
+
+
+
+
+
+
+
+
+
+
+
+        
+        # self.leader_block.convert_to_ssa()
+        # self.verify_ssa()
 
         # self.leader_block.local_value_numbering()
         
-
+        # # self.loops = self.leader_block.analyze_loops()
 
         return
 
@@ -2364,6 +2645,12 @@ class irPhi(IR):
 
     def get_output_vars(self):
         return [self.target]
+
+class irIncompletePhi(IR):
+    def __init__(self, var, block, **kwargs):
+        super().__init__(**kwargs)
+        self.var = var
+        self.block = block
 
 class irNop(IR):
     def __init__(self, **kwargs):
@@ -2891,6 +3178,11 @@ class irVar(IR):
     def name(self):
         if self.is_temp or self.ssa_version is None:
             return self._name
+
+            # if self.is_const:
+            #     return self._name
+
+            # return f'{self._name}/{str(id(self))[-3:]}'
         
         return f'{self._name}.{self.ssa_version}'
 

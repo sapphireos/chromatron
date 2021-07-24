@@ -14,13 +14,13 @@ def simple_ifelse():
 		b = 2
 
 
-	if b == 3:
-		a = 4
+	# if b == 3:
+	# 	a = 4
 
-	else:
-		a = 5
+	# else:
+	# 	a = 5
 
-	return a
+	return b
 
 
 
