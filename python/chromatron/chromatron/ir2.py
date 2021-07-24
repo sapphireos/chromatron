@@ -1424,35 +1424,19 @@ class irBlock(IR):
                 outputs = ir.local_output_vars
 
                 for o in outputs:
+                    # check if we have a definition:
+                    try:
+                        self.lookup_var(o)
+
+                        # this is just to check that the variable has been declared
+
+                    except KeyError:
+                        raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
+
                     o.block = self
                     o.ssa_version = next_val
                     next_val += 1
                     self.defines[o._name] = o
-
-                    # check if we have a definition:
-                    # try:
-                    #     v = self.lookup_var(o)
-
-                    # except KeyError:
-                    #     raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
-
-                    # if isinstance(v, irIncompletePhi):
-                    #     o.ssa_version = next_val
-                    #     next_val += 1
-                    #     self.defines[o._name] = o
-                    #     v.var = o
-                    #     new_code.append(v)
-
-                    # elif isinstance(v, irPhi):
-                    #     print(v)
-                    #     raise Exception
-
-                    # else:
-                    #     o.block = self
-                    #     o.clone(v)
-                    #     o.ssa_version = next_val
-                    #     next_val += 1
-                    #     self.defines[o._name] = o
         
             new_code.append(ir)
 
