@@ -1288,18 +1288,21 @@ class irBlock(IR):
 
         return val, next_val
 
-    def lookup_var(self, var):
+    def lookup_var(self, var, skip_local=False):
         if not isinstance(var, str):
-            var = var._name
+            var_name = var._name
+
+        else:
+            var_name = var
 
         # check local block
-        if var in self.defines:
-            return self.defines[var]
+        if var_name in self.defines and not skip_local:
+            return self.defines[var_name]
 
         # if no predecessors
         elif len(self.predecessors) == 0:
             # look up fails
-            raise KeyError(var)
+            raise KeyError(var_name)
 
         # if only one predecessor
         elif len(self.predecessors) == 1:
@@ -1307,7 +1310,7 @@ class irBlock(IR):
             # we check that here.  since there is only one in this case, it has to be filled.
             assert self.predecessors[0].filled
 
-            return self.predecessors[0].lookup_var(var)
+            return self.predecessors[0].lookup_var(var_name)
 
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
@@ -1315,7 +1318,7 @@ class irBlock(IR):
 
             for p in self.predecessors:
                 # each predecessor must return a value
-                values.append(p.lookup_var(var))
+                values.append(p.lookup_var(var_name))
 
             return irPhi(var, values, lineno=-1)
 
@@ -1329,21 +1332,46 @@ class irBlock(IR):
         else:
             assert False
 
-        
+
+    def seal(self):        
+        if len(self.predecessors) == 0:
+            # if no preds, we must be the start block
+            self.sealed = True
+
+        if self.sealed:
+            return
+
+        assert len(self.predecessors) > 0
+
+        # check if all predecessors are filled
+        if len([p for p in self.predecessors if not p.filled]) > 0:
+            # at least one predecessor is unfilled
+            return
+
+        # we can seal this block
+        for i in range(len(self.code)):
+            ir = self.code[i]
+
+            if isinstance(ir, irIncompletePhi):
+                # replace incomplete phi with completed phi node
+                phi = self.lookup_var(ir.var, skip_local=True)
+                assert isinstance(phi, irPhi)
+                
+                self.code[i] = phi        
+
+
+        self.sealed = True
+
 
 
     def fill(self, next_val):
         if self.filled:
             return next_val
 
-        if len(self.predecessors) == 0:
-            # if no preds, we must be the start block
-            self.sealed = True
-
         # are any predecessors filled?
-        elif len([p for p in self.predecessors if p.filled]) == 0:
+        if len(self.predecessors) > 0 and \
+           len([p for p in self.predecessors if p.filled]) == 0:
             return next_val
-
 
         self.defines = {}
 
@@ -1377,10 +1405,14 @@ class irBlock(IR):
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
                     if isinstance(v, irIncompletePhi):
-                        pass
+                        i.ssa_version = next_val
+                        next_val += 1
+                        self.defines[i._name] = i
+                        v.var = i
+                        new_code.append(v)
 
                     elif isinstance(v, irPhi):
-                        pass
+                        print(v)
 
                     else:
                         i.clone(v)
@@ -1397,10 +1429,10 @@ class irBlock(IR):
                         raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
                     if isinstance(v, irIncompletePhi):
-                        pass
+                        print(v)
 
                     elif isinstance(v, irPhi):
-                        pass
+                        print(v)
 
                     else:
                         o.block = self
@@ -2173,22 +2205,28 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        return
+    
 
         next_val = 0
         iterations = 0
         iteration_limit = 16
-        while len([b for b in self.blocks.values() if not b.filled]) > 0:
+        while (len([b for b in self.blocks.values() if not b.filled]) > 0) or \
+              (len([b for b in self.blocks.values() if not b.sealed]) > 0):
+              
             iterations += 1
 
             if iterations > iteration_limit:
-                # raise Exception()
+                raise Exception()
                 break
 
             for block in self.blocks.values():
                 next_val = block.fill(next_val)
+                block.seal()
 
 
+        for block in self.blocks.values():
+            assert block.filled
+            assert block.sealed
             
 
 
@@ -2672,12 +2710,16 @@ class irIncompletePhi(IR):
         self.var = var
         self.block = block
 
+    def __str__(self):
+        return f'{self.var} = Incomplete PHI()'
+
+
 class irNop(IR):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.is_nop = True
 
-    def __str__(self, **kwargs):
+    def __str__(self):
         return "NOP" 
 
 class irDefine(IR):
