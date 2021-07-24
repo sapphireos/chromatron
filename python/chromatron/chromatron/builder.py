@@ -288,11 +288,13 @@ class Builder(object):
         self.append_node(ir)
 
         self.jump(self.loop_body[-1], lineno=lineno)
+            
+
+        self.scope_depth += 1
         
         self.position_label(self.loop_top[-1])
 
-        self.scope_depth += 1
-
+        
     def test_while(self, test, lineno=None):
         ir = irBranch(test, self.loop_body[-1], self.loop_end[-1], lineno=lineno)
         self.append_node(ir)
