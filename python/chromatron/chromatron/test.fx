@@ -1,26 +1,26 @@
 
 
 
-def simple_ifelse():
-	a = Number()
-	b = Number()
+# def simple_ifelse():
+# 	a = Number()
+# 	b = Number()
 
-	a = b + 7
+# 	a = b + 7
 
-	if a > 0:
-		b = 1
+# 	if a > 0:
+# 		b = 1
 
-	else:
-		b = 2
+# 	else:
+# 		b = 2
 
 
-	# if b == 3:
-	# 	a = 4
+# 	# if b == 3:
+# 	# 	a = 4
 
-	# else:
-	# 	a = 5
+# 	# else:
+# 	# 	a = 5
 
-	return b
+# 	return b
 
 
 
@@ -73,24 +73,24 @@ def simple_ifelse():
 
 
 
-# def loop():
-# 	i = Number()
-# 	# i = 2 + 3
-# 	i = 4
+def loop():
+	i = Number()
+	# i = 2 + 3
+	i = 4
 
-# 	# a = Number()
+	# a = Number()
 
-# 	while i > 0:
-# 		i -= 1
+	while i > 0:
+		i -= 1
 
-# 		# if i == 10:
-# 			# break
-# 			# pass
+		# if i == 10:
+			# break
+			# pass
 			
-# 		# a = 2 + 3
+		# a = 2 + 3
 
-# 	# return a
-# 	return i
+	# return a
+	return i
 
 
 # def test():

@@ -1347,6 +1347,7 @@ class irBlock(IR):
 
         self.defines = {}
 
+        new_code = []
         # start to fill block
         for ir in self.code:
             # look for defines and set their version to 0
@@ -1408,6 +1409,9 @@ class irBlock(IR):
                         next_val += 1
                         self.defines[o._name] = o
         
+            new_code.append(ir)
+
+        self.code = new_code
 
         self.filled = True                    
 
@@ -1792,13 +1796,24 @@ class irFunc(IR):
     
             s += f'\t{ir}\n'
 
-        # s += "********************************\n"
-        # s += "Dominance:\n"
-        # s += "********************************\n"
-        # for n, dom in self.dominators.items():
-        #     s += f'\t{n.name}\n'
-        #     for d in dom:
-        #         s += f'\t\t{d.name}\n'
+        s += "********************************\n"
+        s += "Dominance:\n"
+        s += "********************************\n"
+        for n, dom in self.dominators.items():
+            s += f'\t{n.name}\n'
+            for d in dom:
+                s += f'\t\t{d.name}\n'
+
+        s += "********************************\n"
+        s += "Dominator Tree:\n"
+        s += "********************************\n"
+        for n, dom in self.dominator_tree.items():
+            s += f'\t{n.name}\n'
+            if len(dom) == 0:
+                s += '\t\tNone\n'
+            else:
+                for d in dom:
+                    s += f'\t\t{d.name}\n'
 
         s += "********************************\n"
         s += "Loops:\n"
@@ -2154,6 +2169,11 @@ class irFunc(IR):
 
         self.leader_block.init_vars()
         self.leader_block.init_consts()
+
+        self.dominators = self.calc_dominance()
+        self.dominator_tree = self.calc_dominator_tree(self.dominators)
+
+        return
 
         next_val = 0
         iterations = 0
