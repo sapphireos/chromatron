@@ -1412,7 +1412,10 @@ class irBlock(IR):
                         new_code.append(v)
 
                     elif isinstance(v, irPhi):
-                        print(v)
+                        v.target.ssa_version = next_val
+                        next_val += 1
+                        self.defines[v.target._name] = v.target
+                        new_code.append(v)
 
                     else:
                         i.clone(v)
@@ -2197,7 +2200,7 @@ class irFunc(IR):
     def analyze_blocks(self):
         self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
-
+        self.blocks = {v.name: v for v in self.blocks.values()}
 
         self.leader_block.init_vars()
         self.leader_block.init_consts()
@@ -2205,13 +2208,20 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-    
+        
+        # blocks = self.blocks.values()
+        blocks = [
+            self.blocks['func:simple_ifelse.0'],
+            self.blocks['if.then.0'],
+            self.blocks['if.else.0'],
+            self.blocks['if.end.0'],
+        ]
 
         next_val = 0
         iterations = 0
         iteration_limit = 16
-        while (len([b for b in self.blocks.values() if not b.filled]) > 0) or \
-              (len([b for b in self.blocks.values() if not b.sealed]) > 0):
+        while (len([b for b in blocks if not b.filled]) > 0) or \
+              (len([b for b in blocks if not b.sealed]) > 0):
               
             iterations += 1
 
@@ -2219,12 +2229,12 @@ class irFunc(IR):
                 raise Exception()
                 break
 
-            for block in self.blocks.values():
+            for block in blocks:
                 next_val = block.fill(next_val)
                 block.seal()
 
 
-        for block in self.blocks.values():
+        for block in blocks:
             assert block.filled
             assert block.sealed
             
