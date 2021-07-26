@@ -1355,6 +1355,7 @@ class irBlock(IR):
             if isinstance(ir, irIncompletePhi):
                 # replace incomplete phi with completed phi node
                 phi = self.lookup_var(ir.var, skip_local=True)
+                phi.block = self
                 assert isinstance(phi, irPhi)
                 
                 self.code[i] = phi        
@@ -1412,6 +1413,7 @@ class irBlock(IR):
                         new_code.append(v)
 
                     elif isinstance(v, irPhi):
+                        v.block = self
                         v.target.ssa_version = next_val
                         next_val += 1
                         self.defines[v.target._name] = v.target
@@ -2093,9 +2095,8 @@ class irFunc(IR):
     #                 if q in dominators[n]:
     #                     df[n].append(m)              
     #                     break
-
+    
     #     return df
-
     def get_successors(self, code=None):
         if code is None:
             code = self.get_code_from_blocks()
@@ -2233,7 +2234,8 @@ class irFunc(IR):
             assert block.sealed
             
 
-
+        self.verify_block_assignments()
+        self.verify_ssa()
 
 
 
