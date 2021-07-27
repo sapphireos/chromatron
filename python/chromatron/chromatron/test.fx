@@ -1,27 +1,41 @@
 
-def simple_ifelse():
+# def simple_ifelse():
+# 	a = Number()
+# 	b = Number()
+
+# 	a = b + 7
+
+# 	if a > 0:
+# 		b = 1
+
+# 	else:
+# 		b = 2
+
+
+# 	if b == 3:
+# 		a = 4
+
+# 	else:
+# 		a = 5
+
+# 	a = b * 2
+
+# 	return a
+
+def swap_problem():
+	x = Number()
+	y = Number()
+	t = Number()
 	a = Number()
 	b = Number()
 
-	a = b + 7
+	while True:
+		t = x
+		x = y
+		y = t
 
-	if a > 0:
-		b = 1
-
-	else:
-		b = 2
-
-
-	if b == 3:
-		a = 4
-
-	else:
-		a = 5
-
-	a = b * 2
-
-	return a
-
+	a = x
+	b = y
 
 # def loop():
 # 	i = Number()
@@ -32,7 +46,7 @@ def simple_ifelse():
 
 # 	while i > 0:
 # 		i -= 1
-		
+
 # 		if i == 10:
 # 			break
 # 			# pass

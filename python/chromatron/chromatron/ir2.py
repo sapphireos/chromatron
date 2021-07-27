@@ -368,7 +368,7 @@ class irBlock(IR):
     # Analysis Passes
     ##############################################
 
-    def init_vars(self, visited=None):    
+    def init_vars(self, visited=None, declarations=None):    
         if visited is None:
             visited = []
 
@@ -380,6 +380,9 @@ class irBlock(IR):
         self.stores = {}
         self.defines = {}
         self.declarations = copy(self.globals)
+        if declarations is not None:
+            self.declarations.update(declarations
+                )
         new_code = []
 
         # iterate over code
@@ -460,13 +463,22 @@ class irBlock(IR):
                     ir.block = self
                     new_code.append(ir)
 
+            # assign types
+            variables = []
+            variables.extend(ir.local_input_vars)
+            variables.extend(ir.local_output_vars)
+            for v in variables:
+                if v.type is None:
+                    v.type = self.declarations[v.name].type
+
+
             new_code.append(self.code[index])
 
         self.code = new_code
 
         # continue with successors:
         for suc in self.successors:
-            suc.init_vars(visited=visited)
+            suc.init_vars(visited=visited, declarations=copy(self.declarations))
                 
         return copy(self.defines)
 
@@ -1592,6 +1604,13 @@ class irBlock(IR):
 
                 assert len(ir.defines) > 0
 
+                # assign type
+                for d in ir.defines:
+                    if d.type is not None:
+                        ir.target.type = d.type
+
+                        break
+
                 # check if only one define
                 # these convert trivially to assigns
                 if len(ir.defines) == 1:
@@ -2394,6 +2413,8 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
+        # return
+
         self.convert_to_ssa()    
 
         self.verify_block_assignments()
@@ -2849,7 +2870,7 @@ class irPhi(IR):
 
     def __str__(self):
         s = ''
-        for d in self.defines:
+        for d in sorted(self.defines, key=lambda a: a.name):
             s += f'{d.name}[{d.block.name}], '
 
         s = s[:-2]
