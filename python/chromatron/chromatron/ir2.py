@@ -1188,9 +1188,6 @@ class irBlock(IR):
             if isinstance(ir, irPhi):
                 phis.append(ir)
                 
-
-                # new_code.append(ir)
-
                 # phi node will be removed from block
             else:
                 new_code.append(ir)
@@ -1241,7 +1238,7 @@ class irBlock(IR):
             merge_block = irBlock(self.func, lineno=in_block.lineno - 1)
             merge_block.scope_depth = self.scope_depth
 
-            label = irLabel(f'merge.{merge_number}.{in_block.name}', lineno=-1)
+            label = irLabel(f'merge.{merge_number}_{self.name}', lineno=-1)
             merge_number += 1
             merge_block.append(label)
 
@@ -2380,13 +2377,7 @@ class irFunc(IR):
         self.resolve_phi()
 
 
-
-        # self.leader_block.convert_to_ssa()
-        # self.verify_ssa()
-
-        # self.leader_block.local_value_numbering()
-        
-        # # self.loops = self.leader_block.analyze_loops()
+        # self.liveness_analysis()
 
         return
 

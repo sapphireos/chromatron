@@ -163,9 +163,9 @@ class Builder(object):
             self.labels[name] = 0
 
         else:
-            self.labels[name] += 1
-
-        name += '.%d' % (self.labels[name])
+            # self.labels[name] += 1
+            assert False
+        # name += '.%d' % (self.labels[name])
 
         ir = irLabel(name, lineno=lineno)
         return ir
