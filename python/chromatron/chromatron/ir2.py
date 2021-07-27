@@ -517,185 +517,185 @@ class irBlock(IR):
             suc.init_consts(visited=visited)
 
 
-    def rename_vars(self, ssa_vars=None, visited=None):
-        if ssa_vars is None:
-            ssa_vars = {}
+    # def rename_vars(self, ssa_vars=None, visited=None):
+    #     if ssa_vars is None:
+    #         ssa_vars = {}
 
-        if visited is None:
-            visited = []
+    #     if visited is None:
+    #         visited = []
 
-        if self in visited:
-            return
+    #     if self in visited:
+    #         return
 
-        visited.append(self)
+    #     visited.append(self)
         
-        self.params = {} # variables required at the beginning of the block
-        self.uses = {}
+    #     self.params = {} # variables required at the beginning of the block
+    #     self.uses = {}
 
-        for index in range(len(self.code)):
-            ir = self.code[index]
+    #     for index in range(len(self.code)):
+    #         ir = self.code[index]
 
-            # look for defines and set their version to 0
-            if isinstance(ir, irDefine):
-                if ir.var._name in ssa_vars:
-                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+    #         # look for defines and set their version to 0
+    #         if isinstance(ir, irDefine):
+    #             if ir.var._name in ssa_vars:
+    #                 raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
-                assert ir.var.ssa_version is None
+    #             assert ir.var.ssa_version is None
 
-                ir.var.ssa_version = 0
+    #             ir.var.ssa_version = 0
 
-                # set current SSA version of this variable
-                ssa_vars[ir.var._name] = ir.var
+    #             # set current SSA version of this variable
+    #             ssa_vars[ir.var._name] = ir.var
 
-                ir.var.block = self
-                self.defines[ir.var._name] = ir.var
+    #             ir.var.block = self
+    #             self.defines[ir.var._name] = ir.var
 
-            else:
-                # look for writes to current set of vars and increment versions
-                outputs = ir.local_output_vars
+    #         else:
+    #             # look for writes to current set of vars and increment versions
+    #             outputs = ir.local_output_vars
 
-                for o in outputs:
-                    o.block = self
-                    self.defines[o._name] = o
+    #             for o in outputs:
+    #                 o.block = self
+    #                 self.defines[o._name] = o
 
-                    if o._name in ssa_vars:
-                        o.ssa_version = ssa_vars[o._name].ssa_version + 1
-                        ssa_vars[o._name] = o
+    #                 if o._name in ssa_vars:
+    #                     o.ssa_version = ssa_vars[o._name].ssa_version + 1
+    #                     ssa_vars[o._name] = o
 
-                    else:
-                        raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
+    #                 else:
+    #                     raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
-                inputs = ir.local_input_vars
+    #             inputs = ir.local_input_vars
 
-                for i in inputs:
-                    if i._name not in self.uses:
-                        self.uses[i._name] = []
+    #             for i in inputs:
+    #                 if i._name not in self.uses:
+    #                     self.uses[i._name] = []
 
-                    ds = self.get_defined(i._name)
+    #                 ds = self.get_defined(i._name)
 
-                    if len(ds) == 0:
-                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+    #                 if len(ds) == 0:
+    #                     raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
-                    elif len(ds) == 1:
-                        # take previous definition for the input
-                        i.__dict__ = copy(ds[0].__dict__)
-                        i.is_global = False
+    #                 elif len(ds) == 1:
+    #                     # take previous definition for the input
+    #                     i.__dict__ = copy(ds[0].__dict__)
+    #                     i.is_global = False
 
-                    else:
-                        # this indicates we'll need a phi to reconcile the 
-                        # values, but we'll get that on the phi conversion step
-                        pass
+    #                 else:
+    #                     # this indicates we'll need a phi to reconcile the 
+    #                     # values, but we'll get that on the phi conversion step
+    #                     pass
 
-                # set block parameters
-                # unless we are a leader block
-                if len(self.predecessors) > 0:
-                    inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const]
+    #             # set block parameters
+    #             # unless we are a leader block
+    #             if len(self.predecessors) > 0:
+    #                 inputs = [i for i in ir.get_input_vars() if not i.is_temp and not i.is_const]
 
-                    for i in inputs:
-                        if i._name in self.params:
-                            continue
+    #                 for i in inputs:
+    #                     if i._name in self.params:
+    #                         continue
 
-                        # set SSA version for param
-                        if i._name in ssa_vars:
-                            i.ssa_version = ssa_vars[i._name].ssa_version + 1
-                            ssa_vars[i._name] = i
+    #                     # set SSA version for param
+    #                     if i._name in ssa_vars:
+    #                         i.ssa_version = ssa_vars[i._name].ssa_version + 1
+    #                         ssa_vars[i._name] = i
 
-                        else:
-                            assert False
+    #                     else:
+    #                         assert False
 
-                        self.params[i._name] = i
-                        self.defines[i._name] = i
+    #                     self.params[i._name] = i
+    #                     self.defines[i._name] = i
 
-        # continue with successors:
-        for suc in self.successors:
-            suc.rename_vars(ssa_vars, visited)
+    #     # continue with successors:
+    #     for suc in self.successors:
+    #         suc.rename_vars(ssa_vars, visited)
 
-        return ssa_vars
+    #     return ssa_vars
 
-    def insert_phi(self, visited=None):
-        if visited is None:
-            visited = []
+    # def insert_phi(self, visited=None):
+    #     if visited is None:
+    #         visited = []
 
-        if self in visited:
-            return
+    #     if self in visited:
+    #         return
         
-        visited.append(self)
+    #     visited.append(self)
 
-        insertion_point = None
-        for i in range(len(self.code)):
-            index = i
+    #     insertion_point = None
+    #     for i in range(len(self.code)):
+    #         index = i
 
-            if not isinstance(self.code[index], irLabel) and \
-               not isinstance(self.code[index], irLoopHeader): # and \
-               # not isinstance(self.code[index], irLoopEntry):
-                insertion_point = index
-                break
+    #         if not isinstance(self.code[index], irLabel) and \
+    #            not isinstance(self.code[index], irLoopHeader): # and \
+    #            # not isinstance(self.code[index], irLoopEntry):
+    #             insertion_point = index
+    #             break
 
-        assert insertion_point is not None
+    #     assert insertion_point is not None
 
-        for k, v in self.params.items():
-            sources = []
-            for pre in self.predecessors:
-                ds = pre.get_defined(k, visited=[self])
-                sources.extend(ds)
+    #     for k, v in self.params.items():
+    #         sources = []
+    #         for pre in self.predecessors:
+    #             ds = pre.get_defined(k, visited=[self])
+    #             sources.extend(ds)
 
-            assert len(sources) > 0
+    #         assert len(sources) > 0
 
-            if len(sources) == 1:
-                ir = irAssign(v, sources[0], lineno=-1)
+    #         if len(sources) == 1:
+    #             ir = irAssign(v, sources[0], lineno=-1)
 
-            else:
-                ir = irPhi(v, list(set(sources)), lineno=-1)
+    #         else:
+    #             ir = irPhi(v, list(set(sources)), lineno=-1)
                 
-            ir.block = self
-            v.block = self
-            self.code.insert(insertion_point, ir)
+    #         ir.block = self
+    #         v.block = self
+    #         self.code.insert(insertion_point, ir)
 
-        for suc in self.successors:
-            suc.insert_phi(visited)
+    #     for suc in self.successors:
+    #         suc.insert_phi(visited)
 
 
-    def apply_types(self, visited=None, declarations=None):
-        if visited is None:
-            visited = []
+    # def apply_types(self, visited=None, declarations=None):
+    #     if visited is None:
+    #         visited = []
 
-        if self in visited:
-            return
+    #     if self in visited:
+    #         return
         
-        visited.append(self)
+    #     visited.append(self)
 
-        if declarations is None:
-            declarations = {}
+    #     if declarations is None:
+    #         declarations = {}
 
-        declarations.update(self.declarations)
+    #     declarations.update(self.declarations)
 
-        # scan forward and assign types from declared variables to
-        # their SSA instances
-        for ir in self.code:
-            variables = ir.local_input_vars
-            variables.extend(ir.local_output_vars)
+    #     # scan forward and assign types from declared variables to
+    #     # their SSA instances
+    #     for ir in self.code:
+    #         variables = ir.local_input_vars
+    #         variables.extend(ir.local_output_vars)
 
-            for v in variables:
-                if v._name not in declarations:
-                    raise Exception
+    #         for v in variables:
+    #             if v._name not in declarations:
+    #                 raise Exception
 
-                v.type = declarations[v._name].type
+    #             v.type = declarations[v._name].type
 
 
-        # scan in reverse for assignments,
-        # if they are sourced from a temp register, apply type
-        # to that register.
-        for i in range(len(self.code)):
-            index = (len(self.code) - 1) - i
+    #     # scan in reverse for assignments,
+    #     # if they are sourced from a temp register, apply type
+    #     # to that register.
+    #     for i in range(len(self.code)):
+    #         index = (len(self.code) - 1) - i
 
-            ir = self.code[index]
+    #         ir = self.code[index]
 
-            if isinstance(ir, irAssign):
-                if ir.target.type != None and ir.value.is_temp and ir.value.type is None:
-                    ir.value.type = ir.target.type
+    #         if isinstance(ir, irAssign):
+    #             if ir.target.type != None and ir.value.is_temp and ir.value.type is None:
+    #                 ir.value.type = ir.target.type
 
-        for suc in self.successors:
-            suc.apply_types(visited, declarations)
+    #     for suc in self.successors:
+    #         suc.apply_types(visited, declarations)
 
     def _loops_pass_1(self, loops=None, visited=None):
         if visited is None:
@@ -1179,6 +1179,121 @@ class irBlock(IR):
         # remove instructions:
         self.code = [ir for ir in self.code if ir not in remove]
 
+    def local_value_numbering(self):
+        next_val = self.func.current_value_num
+        
+        values = {}
+        defines = {}
+
+        for ir in self.code:
+            if isinstance(ir, irLoadConst):                
+                pass
+
+            elif isinstance(ir, irAssign):
+                target = ir.target
+                values = [ir.value]
+                op = '='
+
+            else:
+                continue
+
+
+            target.ssa_version = next_val
+            values[target] = next_val
+
+
+            next_val += 1
+
+
+
+
+
+
+        # values = {}
+        # defines = {}
+
+        # for ir in self.code:
+        #     if isinstance(ir, irAssign):
+        #         target = ir.target
+        #         value = ir.value
+        #         expr = ir
+
+        #     else:
+        #         continue
+
+        #     target.ssa_version = next_val
+        #     defines[target] = next_val
+        #     values[target] = expr
+
+        #     next_val += 1
+
+
+        # ir_values = {}
+        # for ir in self.code:
+        #     if isinstance(ir, irAssign):
+        #         if ir.value not in assigned_values:
+        #             assigned_values[ir.value] = next_val
+        #             next_val += 1
+
+        #         if assigned_values[ir.value] not in ir_values:
+        #             ir_values[assigned_values[ir.value]] = []
+
+        #         ir_values[assigned_values[ir.value]].append(ir)
+                
+        # for value, instructions in ir_values.items():
+        #     for i in range(len(instructions) - 1):
+        #         ir = instructions[i]
+        #         next_ir = instructions[i + 1]
+
+        #         # set next IR's value to previous target
+        #         next_ir.value = ir.target
+
+
+        self.func.current_value_num = next_val
+        self.local_values = values
+
+
+    # def _read_variable(self, variable, sealed_blocks, incomplete_phis, next_val):
+    #     if variable._name in self.defines:
+    #         return self.defines[variable._name], next_val
+
+    #     if self not in sealed_blocks:
+    #         # not sealed, we need an incomplete phi
+    #         val = variable
+    #         val.ssa_version = next_val
+    #         next_val += 1
+            
+    #         self.defines[variable._name] = val
+
+    #         phi = irPhi(val, lineno=-1)
+
+    #         if self not in incomplete_phis:
+    #             incomplete_phis[self] = {}
+
+    #         incomplete_phis[self][variable._name] = phi
+
+    #     elif len(self.predecessors) == 1:
+    #         return self.predecessors[0]._read_variable(variable, sealed_blocks, incomplete_phis, next_val)
+
+    #     else:
+    #         val = variable
+    #         val.ssa_version = next_val
+    #         next_val += 1
+            
+    #         self.defines[variable._name] = val
+
+    #         phi = irPhi(val, lineno=-1)
+
+
+
+    #     # raise KeyError(variable)
+
+    #     return val, next_val
+
+    ##############################################
+    # Transformation Passes
+    ##############################################
+
     def resolve_phi(self, merge_number=0):
 
         # extract phis and remove from block code
@@ -1304,116 +1419,6 @@ class irBlock(IR):
 
         # self.code = new_code
 
-    def local_value_numbering(self):
-        next_val = self.func.current_value_num
-        
-        values = {}
-        defines = {}
-
-        for ir in self.code:
-            if isinstance(ir, irLoadConst):                
-                pass
-
-            elif isinstance(ir, irAssign):
-                target = ir.target
-                values = [ir.value]
-                op = '='
-
-            else:
-                continue
-
-
-            target.ssa_version = next_val
-            values[target] = next_val
-
-
-            next_val += 1
-
-
-
-
-
-
-        # values = {}
-        # defines = {}
-
-        # for ir in self.code:
-        #     if isinstance(ir, irAssign):
-        #         target = ir.target
-        #         value = ir.value
-        #         expr = ir
-
-        #     else:
-        #         continue
-
-        #     target.ssa_version = next_val
-        #     defines[target] = next_val
-        #     values[target] = expr
-
-        #     next_val += 1
-
-
-        # ir_values = {}
-        # for ir in self.code:
-        #     if isinstance(ir, irAssign):
-        #         if ir.value not in assigned_values:
-        #             assigned_values[ir.value] = next_val
-        #             next_val += 1
-
-        #         if assigned_values[ir.value] not in ir_values:
-        #             ir_values[assigned_values[ir.value]] = []
-
-        #         ir_values[assigned_values[ir.value]].append(ir)
-                
-        # for value, instructions in ir_values.items():
-        #     for i in range(len(instructions) - 1):
-        #         ir = instructions[i]
-        #         next_ir = instructions[i + 1]
-
-        #         # set next IR's value to previous target
-        #         next_ir.value = ir.target
-
-
-        self.func.current_value_num = next_val
-        self.local_values = values
-
-
-    # def _read_variable(self, variable, sealed_blocks, incomplete_phis, next_val):
-    #     if variable._name in self.defines:
-    #         return self.defines[variable._name], next_val
-
-    #     if self not in sealed_blocks:
-    #         # not sealed, we need an incomplete phi
-    #         val = variable
-    #         val.ssa_version = next_val
-    #         next_val += 1
-            
-    #         self.defines[variable._name] = val
-
-    #         phi = irPhi(val, lineno=-1)
-
-    #         if self not in incomplete_phis:
-    #             incomplete_phis[self] = {}
-
-    #         incomplete_phis[self][variable._name] = phi
-
-    #     elif len(self.predecessors) == 1:
-    #         return self.predecessors[0]._read_variable(variable, sealed_blocks, incomplete_phis, next_val)
-
-    #     else:
-    #         val = variable
-    #         val.ssa_version = next_val
-    #         next_val += 1
-            
-    #         self.defines[variable._name] = val
-
-    #         phi = irPhi(val, lineno=-1)
-
-
-
-    #     # raise KeyError(variable)
-
-    #     return val, next_val
 
     def lookup_var(self, var, skip_local=False):
         if not isinstance(var, str):
@@ -1437,7 +1442,7 @@ class irBlock(IR):
             # we check that here.  since there is only one in this case, it has to be filled.
             assert self.predecessors[0].filled
 
-            return self.predecessors[0].lookup_var(var_name)
+            return self.predecessors[0].lookup_var(var)
 
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
@@ -1445,7 +1450,7 @@ class irBlock(IR):
 
             for p in self.predecessors:
                 # each predecessor must return a value
-                values.append(p.lookup_var(var_name))
+                values.append(p.lookup_var(var))
 
             return irPhi(var, values, lineno=-1)
 
@@ -1575,6 +1580,27 @@ class irBlock(IR):
 
         return next_val
 
+    def clean_up_phis(self):
+        assert len([ir for ir in self.code if isinstance(ir, irIncompletePhi)]) == 0
+
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irPhi):
+
+                # make sure list of defines is unique
+                ir.defines = list(set(ir.defines))
+
+                assert len(ir.defines) > 0
+
+                # check if only one define
+                # these convert trivially to assigns
+                if len(ir.defines) == 1:
+                    ir = irAssign(ir.target, ir.defines[0], lineno=ir.lineno)
+                    ir.block = self
+
+            new_code.append(ir)
+
+        self.code = new_code
 
 
     # # def convert_to_ssa(self, sealed_blocks=None, next_val=None, visited=None, incomplete_phis=None):
@@ -2355,6 +2381,8 @@ class irFunc(IR):
             assert block.filled
             assert block.sealed
         
+        for block in blocks:
+            block.clean_up_phis()
 
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -2374,7 +2402,7 @@ class irFunc(IR):
 
 
         # convert out of SSA form
-        self.resolve_phi()
+        # self.resolve_phi()
 
 
         # self.liveness_analysis()
