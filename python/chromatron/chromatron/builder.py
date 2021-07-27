@@ -293,6 +293,8 @@ class Builder(object):
         self.scope_depth += 1
         
         self.position_label(self.loop_top[-1])
+        ir = irLoopTop(loop_name, lineno=lineno)
+        self.append_node(ir)
 
         
     def test_while(self, test, lineno=None):

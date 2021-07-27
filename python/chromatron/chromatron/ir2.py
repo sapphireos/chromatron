@@ -709,7 +709,7 @@ class irBlock(IR):
     #     for suc in self.successors:
     #         suc.apply_types(visited, declarations)
 
-    def _loops_pass_1(self, loops=None, visited=None):
+    def _loops_pass_1a(self, loops=None, visited=None):
         if visited is None:
             visited = []
 
@@ -725,7 +725,7 @@ class irBlock(IR):
             if isinstance(ir, irLoopHeader):
                 loops[ir.name] = {
                     'header': self,
-                    'entry': None,
+                    'top': None,
                     'end': None,
                     'body': [],
                     'body_vars': [],
@@ -741,7 +741,7 @@ class irBlock(IR):
                 loop_top = self.successors[0]
 
                 # the loop body should have 2 predecessors, one is the header (us)
-                # the other is the loop entry node
+                # the other is the loop top node
 
                 # if it only has 1 predecessor:
                 if len(loop_top.predecessors) == 1:
@@ -751,27 +751,48 @@ class irBlock(IR):
                     # without a conditional block
                     del loops[ir.name]
 
-                    # while we're here, delete the loop header
-                    self.code = [ir for ir in self.code if not isinstance(ir, irLoopHeader)]
-
                     break
 
-
                 assert len(loop_top.predecessors) == 2
-                entry_node = [a for a in loop_top.predecessors if a is not self][0]
+                top_node = [a for a in loop_top.predecessors if a is not self][0]
 
-                # and the entry node of the loop is that successor
-                loops[ir.name]['entry'] = entry_node
+                # and the top node of the loop is that successor
+                loops[ir.name]['top'] = top_node
 
         for suc in self.successors:
-            suc._loops_pass_1(loops, visited)                
+            suc._loops_pass_1a(loops, visited)                
+
+        return loops
+
+    def _loops_pass_1b(self, loops, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        for ir in self.code:
+            if isinstance(ir, irLoopTop):
+
+
+
+                
+
+
+                
+                
+
+        for suc in self.successors:
+            suc._loops_pass_1b(loops, visited)                
 
         return loops
 
     def _loops_pass_2(self, loop, visited=None):
         if visited is None:
-            # make sure start node is loop entry
-            assert loop['entry'] is self
+            # make sure start node is loop top
+            assert loop['top'] is self
             visited = []
 
         if self in visited:
@@ -788,8 +809,8 @@ class irBlock(IR):
             pre._loops_pass_2(loop, visited=visited)
 
         if self not in loop['body']:
-            if self is loop['entry']:
-                # place entry at start of list
+            if self is loop['top']:
+                # place top at start of list
                 # this just makes the list easier to read
                 loop['body'].insert(0, self)
             
@@ -803,10 +824,10 @@ class irBlock(IR):
                     loop['body_vars'].append(i)
 
     def _loops_pass_3(self, loop):
-        entry_node = loop['entry']
+        top_node = loop['top']
         loop['end'] = None
 
-        for suc in entry_node.successors:
+        for suc in top_node.successors:
             if suc is not loop['header'] and suc not in loop['body']:
                 assert loop['end'] is None                
                 loop['end'] = suc
@@ -814,8 +835,8 @@ class irBlock(IR):
     def _loop_test_vars(self, loop):
         test_vars = [loop['test_var']]
 
-        # test vars will be in the entry block
-        for ir in reversed(loop['entry'].code):
+        # test vars will be in the top block
+        for ir in reversed(loop['top'].code):
             # skip phi nodes
             if isinstance(ir, irPhi):
                 continue
@@ -838,11 +859,12 @@ class irBlock(IR):
 
     def analyze_loops(self):
         # get loop entries/headers
-        loops = self._loops_pass_1()
+        loops = self._loops_pass_1a()
+        self._loops_pass_1b(loops)
 
         # fill out loop bodies
         for loop, info in loops.items():
-            info['entry']._loops_pass_2(info)
+            info['top']._loops_pass_2(info)
             self._loops_pass_3(info)
 
             # info['test_vars'] = self._loop_test_vars(info)
@@ -2030,7 +2052,7 @@ class irFunc(IR):
         for loop, info in self.loops.items():
             s += f'{loop}\n'
             s += f'\tHeader: {info["header"].name}\n'
-            s += f'\tEntry:  {info["entry"].name}\n'
+            s += f'\tTop:    {info["top"].name}\n'
             s += '\tBody:\n'
             for block in info['body']:
                 s += f'\t\t\t{block.name}\n'
@@ -2381,7 +2403,7 @@ class irFunc(IR):
         
         next_val = 0
         iterations = 0
-        iteration_limit = 16
+        iteration_limit = 1024
         while (len([b for b in blocks if not b.filled]) > 0) or \
               (len([b for b in blocks if not b.sealed]) > 0):
               
@@ -2403,6 +2425,8 @@ class irFunc(IR):
         for block in blocks:
             block.clean_up_phis()
 
+        logging.debug(f'SSA conversion in {iterations} iterations')
+
     def check_critical_edges(self):
         for block in self.blocks.values():
             # check if block has multiple successors
@@ -2414,35 +2438,79 @@ class irFunc(IR):
                 if len(s.predecessors) > 1:
                     raise CompilerFatal(f'Critical edge from {block.name} to {s.name}')
 
+    def analyze_loops(self):
+        self.loops = self.leader_block.analyze_loops()
+
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
-        # self.blocks = {v.name: v for v in self.blocks.values()}
-
+        
         self.leader_block.init_vars()
         self.leader_block.init_consts()
 
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        # return
-
         self.convert_to_ssa()    
 
+        # checks
         self.verify_block_assignments()
         self.verify_ssa()
         
+        # loop analysis
+        self.analyze_loops()
+        
+        # value numbering
 
+
+
+        # optimizers
+        # optimize = False
+        optimize = True
+        if optimize:
+            # basic loop invariant code motion:
+            self.loop_invariant_code_motion(self.loops)
+
+
+
+        return
 
         # convert out of SSA form
         self.resolve_phi()
 
+        # blocks may be rearranged or added at this point
 
+        self.dominators = self.calc_dominance()
+        self.dominator_tree = self.calc_dominator_tree(self.dominators)
+
+        # redo loop analysis
+        self.analyze_loops()
+
+
+        # checks
         self.check_critical_edges()
+        self.verify_block_assignments()
 
+
+
+        # basic block merging (helps with jump elimination)
+        # guide with simple branch prediction:
+        # prioritize branches that occur within a loop
+
+
+
+
+
+        # liveness
 
         # self.liveness_analysis()
 
+        # allocate registers
+
         self.code = self.get_code_from_blocks()
+
+        # prune jumps
+
+
 
         return
 
@@ -2685,7 +2753,7 @@ class irFunc(IR):
         for loop, info in loops.items():
             header_code = []
 
-            entry_dominators = self.dominators[info['entry']]
+            entry_dominators = self.dominators[info['top']]
             
             for block in info['body']:
                 block_code = []
@@ -2709,6 +2777,8 @@ class irFunc(IR):
                             # remove from block code
                             block_code.remove(ir)
 
+                            logging.debug(f'LICM: loop {loop} moving [{ir}] to loop header')
+
                     elif isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
                         if ir.value.is_const:
                             # move instruction to header
@@ -2716,6 +2786,8 @@ class irFunc(IR):
 
                             # remove from block code
                             block_code.remove(ir)
+
+                            logging.debug(f'LICM: loop {loop} moving [{ir}] to loop header')
 
                 block.code = block_code
 
@@ -2733,6 +2805,7 @@ class irFunc(IR):
 
                 # add code to loop header
                 for ir in header_code:
+                    ir.block = header
                     header.code.insert(insert_index, ir)
                     insert_index += 1
 
@@ -2936,6 +3009,15 @@ class irLoopHeader(IR):
 
     def __str__(self):
         return f'LoopHeader: {self.name}'
+
+class irLoopTop(IR):
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.is_nop = True
+
+    def __str__(self):
+        return f'LoopTop: {self.name}'
 
 class irLabel(IR):
     def __init__(self, name, **kwargs):
