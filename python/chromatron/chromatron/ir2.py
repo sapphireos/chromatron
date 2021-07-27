@@ -1179,7 +1179,7 @@ class irBlock(IR):
         # remove instructions:
         self.code = [ir for ir in self.code if ir not in remove]
 
-    def resolve_phi(self):
+    def resolve_phi(self, merge_number=0):
 
         # extract phis and remove from block code
         phis = []
@@ -1234,21 +1234,15 @@ class irBlock(IR):
                 # want to make sure the assign happens after the jump
                 # though?
         
-        pprint(defines)
-        for phi, phi_defines in defines.items():
-            for var, pred in phi_defines.items():
-                ir = irAssign(phi.target, var, lineno=-1)
-                ir.block = pred
-                pred.code.insert(len(pred.code) - 1, ir)
-
-        # return
+        merge_blocks = {}
 
         # insert a merge block for each incoming block
         for in_block in incoming_blocks:
-            merge_block = irBlock(self.func, lineno=self.lineno - 1)
+            merge_block = irBlock(self.func, lineno=in_block.lineno - 1)
             merge_block.scope_depth = self.scope_depth
 
-            label = irLabel(f'merge.{in_block.name}', lineno=-1)
+            label = irLabel(f'merge.{merge_number}.{in_block.name}', lineno=-1)
+            merge_number += 1
             merge_block.append(label)
 
 
@@ -1281,6 +1275,18 @@ class irBlock(IR):
             self.predecessors.remove(in_block)
             self.predecessors.append(merge_block)
 
+            merge_blocks[in_block] = merge_block
+
+        for phi, phi_defines in defines.items():
+            for var, pred in phi_defines.items():
+                
+                merge_block = merge_blocks[pred]
+
+                ir = irAssign(phi.target, var, lineno=-1)
+                ir.block = merge_block
+                merge_block.code.insert(len(merge_block.code) - 1, ir)
+
+        return merge_number        
 
         # return
 
@@ -1856,7 +1862,8 @@ class irFunc(IR):
 
     @property
     def blocks(self):
-        return {b.name: b for b in sorted(self.leader_block.get_blocks(), key=lambda a: a.lineno)}
+        return {b.name: b for b in self.leader_block.get_blocks()}
+        # return {b.name: b for b in sorted(self.leader_block.get_blocks(), key=lambda a: a.lineno)}
 
     @property
     def global_input_vars(self):
@@ -2323,8 +2330,9 @@ class irFunc(IR):
                     raise
 
     def resolve_phi(self):
+        merge_number = 0
         for block in self.blocks.values():
-            block.resolve_phi()
+            merge_number = block.resolve_phi(merge_number)
             
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
