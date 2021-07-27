@@ -224,6 +224,26 @@ class irBlock(IR):
     def __repr__(self):
         return self.name
 
+    def get_blocks(self, blocks=None, visited=None):
+        if blocks is None:
+            blocks = []
+
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return visited
+
+        visited.append(self)
+
+        blocks.append(self)
+        blocks.extend(self.successors)
+
+        for s in self.successors:
+            s.get_blocks(blocks, visited)
+
+        return blocks
+
     @property
     def name(self):
         try:
@@ -1160,22 +1180,126 @@ class irBlock(IR):
         self.code = [ir for ir in self.code if ir not in remove]
 
     def resolve_phi(self):
+
+        # extract phis and remove from block code
+        phis = []
         new_code = []
         for ir in self.code:
             if isinstance(ir, irPhi):
-                for v in ir.defines:
-                    source = v.block
-                    assign = irAssign(ir.target, v, lineno=-1)
-                    assign.block = source
+                phis.append(ir)
+                
 
-                    insertion_point = len(source.code) - 1
-                    source.code.insert(insertion_point, assign)
+                # new_code.append(ir)
 
                 # phi node will be removed from block
             else:
                 new_code.append(ir)
 
         self.code = new_code
+
+        # collect incoming blocks from all phis
+        incoming_blocks = []
+        defines = {}
+        for phi in phis:
+            defines[phi] = {}
+            for d in phi.defines:
+
+                """
+                d.block is the source block where d is defined.
+                However, that isn't the block we want - we want
+                the direct predecessor on the path d was defined
+                that leads into this block.
+
+                To do the lookup, we can iterator over predecessors
+                and look up d.  Since we might get multiple sources
+                for d (since the lookup is on the non-SSA name),
+                we will collect all sources with their predecessors
+                and select the predecessor matching the SSA version.
+                 
+
+                """
+                
+                for p in self.predecessors:
+                    v = p.lookup_var(d)
+                    if v.name == d.name:
+                        assert v not in defines[phi]
+                            
+                        defines[phi][v] = p
+
+                        if p not in incoming_blocks:
+                            incoming_blocks.append(p)
+
+                # .... possibly we don't need merge blocks,
+                # just place assigns on the predecessor blocks?
+                # want to make sure the assign happens after the jump
+                # though?
+        
+        pprint(defines)
+        for phi, phi_defines in defines.items():
+            for var, pred in phi_defines.items():
+                ir = irAssign(phi.target, var, lineno=-1)
+                ir.block = pred
+                pred.code.insert(len(pred.code) - 1, ir)
+
+        # return
+
+        # insert a merge block for each incoming block
+        for in_block in incoming_blocks:
+            merge_block = irBlock(self.func, lineno=self.lineno - 1)
+            merge_block.scope_depth = self.scope_depth
+
+            label = irLabel(f'merge.{in_block.name}', lineno=-1)
+            merge_block.append(label)
+
+
+            # set exit jump to self block
+            jump = irJump(self.code[0], lineno=-1)
+            merge_block.append(jump)
+
+            # replace jump on the incoming block to point to the merge block
+            incoming_jump = in_block.code[-1]
+
+            if isinstance(incoming_jump, irJump):
+                incoming_jump.target = label
+
+            elif isinstance(incoming_jump, irBranch):
+                if incoming_jump.true_label.name == self.name:
+                    incoming_jump.true_label = label
+
+                if incoming_jump.false_label.name == self.name:
+                    incoming_jump.false_label = label
+
+            else:
+                # last instruction in block is supposed to be a jump or branch
+                assert False
+
+            # rearrange block structure    
+            in_block.successors.remove(self)
+            in_block.successors.append(merge_block)
+            merge_block.predecessors.append(in_block)
+            merge_block.successors.append(self)
+            self.predecessors.remove(in_block)
+            self.predecessors.append(merge_block)
+
+
+        # return
+
+        # new_code = []
+        # for ir in self.code:
+        #     if isinstance(ir, irPhi):
+        #         for v in ir.defines:
+        #             source = v.block
+        #             assign = irAssign(ir.target, v, lineno=-1)
+        #             assign.block = source
+
+        #             insertion_point = len(source.code) - 1
+        #             source.code.insert(insertion_point, assign)
+
+        #         # phi node will be removed from block
+        #     else:
+        #         new_code.append(ir)
+
+        # self.code = new_code
 
     def local_value_numbering(self):
         next_val = self.func.current_value_num
@@ -1251,42 +1375,42 @@ class irBlock(IR):
         self.local_values = values
 
 
-    def _read_variable(self, variable, sealed_blocks, incomplete_phis, next_val):
-        if variable._name in self.defines:
-            return self.defines[variable._name], next_val
+    # def _read_variable(self, variable, sealed_blocks, incomplete_phis, next_val):
+    #     if variable._name in self.defines:
+    #         return self.defines[variable._name], next_val
 
-        if self not in sealed_blocks:
-            # not sealed, we need an incomplete phi
-            val = variable
-            val.ssa_version = next_val
-            next_val += 1
+    #     if self not in sealed_blocks:
+    #         # not sealed, we need an incomplete phi
+    #         val = variable
+    #         val.ssa_version = next_val
+    #         next_val += 1
             
-            self.defines[variable._name] = val
+    #         self.defines[variable._name] = val
 
-            phi = irPhi(val, lineno=-1)
+    #         phi = irPhi(val, lineno=-1)
 
-            if self not in incomplete_phis:
-                incomplete_phis[self] = {}
+    #         if self not in incomplete_phis:
+    #             incomplete_phis[self] = {}
 
-            incomplete_phis[self][variable._name] = phi
+    #         incomplete_phis[self][variable._name] = phi
 
-        elif len(self.predecessors) == 1:
-            return self.predecessors[0]._read_variable(variable, sealed_blocks, incomplete_phis, next_val)
+    #     elif len(self.predecessors) == 1:
+    #         return self.predecessors[0]._read_variable(variable, sealed_blocks, incomplete_phis, next_val)
 
-        else:
-            val = variable
-            val.ssa_version = next_val
-            next_val += 1
+    #     else:
+    #         val = variable
+    #         val.ssa_version = next_val
+    #         next_val += 1
             
-            self.defines[variable._name] = val
+    #         self.defines[variable._name] = val
 
-            phi = irPhi(val, lineno=-1)
+    #         phi = irPhi(val, lineno=-1)
 
 
 
-        # raise KeyError(variable)
+    #     # raise KeyError(variable)
 
-        return val, next_val
+    #     return val, next_val
 
     def lookup_var(self, var, skip_local=False):
         if not isinstance(var, str):
@@ -1450,252 +1574,252 @@ class irBlock(IR):
 
 
 
-    # def convert_to_ssa(self, sealed_blocks=None, next_val=None, visited=None, incomplete_phis=None):
-    def convert_to_ssa(self, sealed_blocks=None, incomplete_phis=None, next_val=None):
-        # this will also propagate type information
+    # # def convert_to_ssa(self, sealed_blocks=None, next_val=None, visited=None, incomplete_phis=None):
+    # def convert_to_ssa(self, sealed_blocks=None, incomplete_phis=None, next_val=None):
+    #     # this will also propagate type information
 
-        if sealed_blocks is None:
-            sealed_blocks = []
-            incomplete_phis = {}
-            next_val = 0
+    #     if sealed_blocks is None:
+    #         sealed_blocks = []
+    #         incomplete_phis = {}
+    #         next_val = 0
 
-        sealed = True
-        for pre in self.predecessors:
-            if not pre.filled:
-                sealed = False
-
-
-        self.sealed = sealed
+    #     sealed = True
+    #     for pre in self.predecessors:
+    #         if not pre.filled:
+    #             sealed = False
 
 
-        self.defines = {}
+    #     self.sealed = sealed
 
-        # local value numbering:
 
-        new_code = []
-        for ir in self.code:
-            # look for defines and set their version to 0
-            if isinstance(ir, irDefine):
-                if ir.var._name in self.defines:
-                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+    #     self.defines = {}
 
-                assert ir.var.ssa_version is None
+    #     # local value numbering:
 
-                ir.var.ssa_version = next_val
-                next_val += 1
+    #     new_code = []
+    #     for ir in self.code:
+    #         # look for defines and set their version to 0
+    #         if isinstance(ir, irDefine):
+    #             if ir.var._name in self.defines:
+    #                 raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
-                ir.var.block = self
-                self.defines[ir.var._name] = ir.var
+    #             assert ir.var.ssa_version is None
 
-            else:
-                inputs = ir.local_input_vars
+    #             ir.var.ssa_version = next_val
+    #             next_val += 1
 
-                for i in inputs:
-                    i.block = self
+    #             ir.var.block = self
+    #             self.defines[ir.var._name] = ir.var
 
-                    # check if we have a definition:
-                    try:
-                        v, next_val = self._read_variable(i, sealed_blocks, incomplete_phis, next_val)
+    #         else:
+    #             inputs = ir.local_input_vars
 
-                    except KeyError:
-                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+    #             for i in inputs:
+    #                 i.block = self
 
-                    i.clone(v)
+    #                 # check if we have a definition:
+    #                 try:
+    #                     v, next_val = self._read_variable(i, sealed_blocks, incomplete_phis, next_val)
+
+    #                 except KeyError:
+    #                     raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+
+    #                 i.clone(v)
                     
-                # look for writes to current set of vars and increment versions
-                outputs = ir.local_output_vars
+    #             # look for writes to current set of vars and increment versions
+    #             outputs = ir.local_output_vars
 
-                for o in outputs:
-                    # check if we have a definition:
-                    try:
-                        v, next_val = self._read_variable(o, sealed_blocks, incomplete_phis, next_val)
+    #             for o in outputs:
+    #                 # check if we have a definition:
+    #                 try:
+    #                     v, next_val = self._read_variable(o, sealed_blocks, incomplete_phis, next_val)
 
-                    except KeyError:
-                        raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
+    #                 except KeyError:
+    #                     raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
-                    o.block = self
-                    o.clone(v)
-                    o.ssa_version = next_val
-                    next_val += 1
-                    self.defines[o._name] = o
-
-
-            new_code.append(ir)
-
-        self.code = new_code
-
-        self.filled = True
-
-        for suc in self.successors:
-            next_val = suc.convert_to_ssa(sealed_blocks, incomplete_phis, next_val)
+    #                 o.block = self
+    #                 o.clone(v)
+    #                 o.ssa_version = next_val
+    #                 next_val += 1
+    #                 self.defines[o._name] = o
 
 
+    #         new_code.append(ir)
+
+    #     self.code = new_code
+
+    #     self.filled = True
+
+    #     for suc in self.successors:
+    #         next_val = suc.convert_to_ssa(sealed_blocks, incomplete_phis, next_val)
 
 
-        return next_val
 
 
+    #     return next_val
 
 
 
 
 
-        # if self.is_ssa:
-        #     return next_val
 
-        if visited is None:
-            visited = []
-            incomplete_phis = {}
-            sealed_blocks = []
-            next_val = 0
 
-        if self in sealed_blocks:
-            return next_val
+    #     # if self.is_ssa:
+    #     #     return next_val
 
-        # terminology from "Simple and Efficient Construction of Static Single Assignment Form"
-        # "sealed" means all predecessor blocks have been "filled".
-        # "filled" means their local SSA conversion is complete.
-        # we mark filled as is_ssa = True
-        sealed = True
-        # check that all predecessors have completed their SSA
-        # conversion
-        for pre in self.predecessors:
-            if not pre.is_ssa: # not "filled"
-                sealed = False
-                break
+    #     if visited is None:
+    #         visited = []
+    #         incomplete_phis = {}
+    #         sealed_blocks = []
+    #         next_val = 0
 
-        if sealed and self not in sealed_blocks:
-            sealed_blocks.append(self)
+    #     if self in sealed_blocks:
+    #         return next_val
 
-            if self in incomplete_phis:
-                for phi in incomplete_phis[self]:
-                    # perform recursive lookup
-                    ds = self.get_defined(i._name)
+    #     # terminology from "Simple and Efficient Construction of Static Single Assignment Form"
+    #     # "sealed" means all predecessor blocks have been "filled".
+    #     # "filled" means their local SSA conversion is complete.
+    #     # we mark filled as is_ssa = True
+    #     sealed = True
+    #     # check that all predecessors have completed their SSA
+    #     # conversion
+    #     for pre in self.predecessors:
+    #         if not pre.is_ssa: # not "filled"
+    #             sealed = False
+    #             break
 
-                    if len(ds) == 0:
-                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+    #     if sealed and self not in sealed_blocks:
+    #         sealed_blocks.append(self)
+
+    #         if self in incomplete_phis:
+    #             for phi in incomplete_phis[self]:
+    #                 # perform recursive lookup
+    #                 ds = self.get_defined(i._name)
+
+    #                 if len(ds) == 0:
+    #                     raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
             
-                    else:
-                        # update operands of phi
-                        phi.defines = ds    
+    #                 else:
+    #                     # update operands of phi
+    #                     phi.defines = ds    
 
-            for suc in self.successors:
-                if suc not in sealed_blocks:
-                    next_val = suc.convert_to_ssa(sealed_blocks=sealed_blocks, next_val=next_val, visited=visited, incomplete_phis=incomplete_phis)
+    #         for suc in self.successors:
+    #             if suc not in sealed_blocks:
+    #                 next_val = suc.convert_to_ssa(sealed_blocks=sealed_blocks, next_val=next_val, visited=visited, incomplete_phis=incomplete_phis)
 
-        # if self in visited:
-            # return next_val
+    #     # if self in visited:
+    #         # return next_val
 
-        visited.append(self)
+    #     visited.append(self)
 
-        self.defines = {}
+    #     self.defines = {}
 
-        new_code = []
-        for ir in self.code:
-            # look for defines and set their version to 0
-            if isinstance(ir, irDefine):
-                if ir.var._name in self.defines:
-                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+    #     new_code = []
+    #     for ir in self.code:
+    #         # look for defines and set their version to 0
+    #         if isinstance(ir, irDefine):
+    #             if ir.var._name in self.defines:
+    #                 raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
-                assert ir.var.ssa_version is None
+    #             assert ir.var.ssa_version is None
 
-                ir.var.ssa_version = next_val
-                next_val += 1
+    #             ir.var.ssa_version = next_val
+    #             next_val += 1
 
-                ir.var.block = self
-                self.defines[ir.var._name] = ir.var
+    #             ir.var.block = self
+    #             self.defines[ir.var._name] = ir.var
 
-            else:
-                inputs = ir.local_input_vars
+    #         else:
+    #             inputs = ir.local_input_vars
 
-                for i in inputs:
-                    i.block = self
+    #             for i in inputs:
+    #                 i.block = self
 
-                    # check if we have a local definition:
-                    try:
-                        ds = [self.defines[i._name]]
+    #                 # check if we have a local definition:
+    #                 try:
+    #                     ds = [self.defines[i._name]]
 
-                    except KeyError:
-                        ds = []
+    #                 except KeyError:
+    #                     ds = []
 
-                    assert len(ds) <= 1 # we can only have 0 or 1 local definition
+    #                 assert len(ds) <= 1 # we can only have 0 or 1 local definition
 
-                    if len(ds) == 0 and not sealed:
-                        # no local definition, and block is not sealed (predecessors are incomplete)
-                        i.ssa_version = next_val
-                        next_val += 1
-                        self.defines[i._name] = i
+    #                 if len(ds) == 0 and not sealed:
+    #                     # no local definition, and block is not sealed (predecessors are incomplete)
+    #                     i.ssa_version = next_val
+    #                     next_val += 1
+    #                     self.defines[i._name] = i
 
-                        phi = irPhi(i, [], lineno=-1)
-                        new_code.append(phi)                            
+    #                     phi = irPhi(i, [], lineno=-1)
+    #                     new_code.append(phi)                            
 
-                        if self not in incomplete_phis:
-                            incomplete_phis[self] = []
+    #                     if self not in incomplete_phis:
+    #                         incomplete_phis[self] = []
 
-                        incomplete_phis[self].append(phi)
+    #                     incomplete_phis[self].append(phi)
 
-                    else:
-                        # perform recursive lookup
-                        ds = self.get_defined(i._name)
+    #                 else:
+    #                     # perform recursive lookup
+    #                     ds = self.get_defined(i._name)
 
-                        if len(ds) == 0:
-                            raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+    #                     if len(ds) == 0:
+    #                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
                 
-                        elif len(ds) == 1:
-                            i.clone(ds[0])
+    #                     elif len(ds) == 1:
+    #                         i.clone(ds[0])
 
-                        else:
-                            # if multiple defines:
-                            # we will insert a phi
+    #                     else:
+    #                         # if multiple defines:
+    #                         # we will insert a phi
 
-                            idx = 1
-                            while idx < len(ds):
-                                # ensure all incoming versions of this
-                                # var have the same type
-                                assert ds[idx].type == ds[0].type
+    #                         idx = 1
+    #                         while idx < len(ds):
+    #                             # ensure all incoming versions of this
+    #                             # var have the same type
+    #                             assert ds[idx].type == ds[0].type
 
-                                # at some point, we might want to support 
-                                # a conversion, but for now, let's
-                                # avoid dealing with this.
+    #                             # at some point, we might want to support 
+    #                             # a conversion, but for now, let's
+    #                             # avoid dealing with this.
 
-                                idx += 1
+    #                             idx += 1
 
 
-                            i.clone(ds[0])
-                            i.ssa_version = next_val
-                            next_val += 1
-                            self.defines[i._name] = i
+    #                         i.clone(ds[0])
+    #                         i.ssa_version = next_val
+    #                         next_val += 1
+    #                         self.defines[i._name] = i
 
-                            # multiple sources for define
-                            # we need a phi node to reconcile this
-                            phi = irPhi(i, ds, lineno=-1)
-                            new_code.append(phi)
+    #                         # multiple sources for define
+    #                         # we need a phi node to reconcile this
+    #                         phi = irPhi(i, ds, lineno=-1)
+    #                         new_code.append(phi)
 
-                # look for writes to current set of vars and increment versions
-                outputs = ir.local_output_vars
+    #             # look for writes to current set of vars and increment versions
+    #             outputs = ir.local_output_vars
 
-                for o in outputs:
-                    ds = self.get_defined(o._name)
-                    if len(ds) == 0:
-                        raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
+    #             for o in outputs:
+    #                 ds = self.get_defined(o._name)
+    #                 if len(ds) == 0:
+    #                     raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
-                    assert len(ds) == 1
+    #                 assert len(ds) == 1
 
-                    o.block = self
-                    o.clone(ds[0])
-                    o.ssa_version = next_val
-                    next_val += 1
-                    self.defines[o._name] = o
+    #                 o.block = self
+    #                 o.clone(ds[0])
+    #                 o.ssa_version = next_val
+    #                 next_val += 1
+    #                 self.defines[o._name] = o
 
-            new_code.append(ir)
+    #         new_code.append(ir)
 
-        self.code = new_code
-        self.is_ssa = True
+    #     self.code = new_code
+    #     self.is_ssa = True
 
-        for suc in self.successors:
-             next_val = suc.convert_to_ssa(sealed_blocks=sealed_blocks, next_val=next_val, visited=visited, incomplete_phis=incomplete_phis)
+    #     for suc in self.successors:
+    #          next_val = suc.convert_to_ssa(sealed_blocks=sealed_blocks, next_val=next_val, visited=visited, incomplete_phis=incomplete_phis)
 
-        return next_val
+    #     return next_val
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
@@ -1716,10 +1840,11 @@ class irFunc(IR):
         if self.params == None:
             self.params = []
 
-        self.blocks = {}
+        # self.blocks = {}
         self.leader_block = None
         self.live_vars = None
         self.loops = {}
+
 
         self.live_in = None
         self.live_out = None
@@ -1728,6 +1853,10 @@ class irFunc(IR):
 
     def get_zero(self, lineno=None):
         return self.consts['0']
+
+    @property
+    def blocks(self):
+        return {b.name: b for b in sorted(self.leader_block.get_blocks(), key=lambda a: a.lineno)}
 
     @property
     def global_input_vars(self):
@@ -1867,7 +1996,8 @@ class irFunc(IR):
         s += "Blocks:\n"
         s += "********************************\n"
 
-        blocks = [self.blocks[k] for k in sorted(self.blocks.keys())]
+        # blocks = [self.blocks[k] for k in sorted(self.blocks.keys())]
+        blocks = self.blocks.values()
         for block in blocks:
             s += f'{block}\n'
 
@@ -1894,7 +2024,7 @@ class irFunc(IR):
 
         return s
 
-    def create_block_from_code_at_label(self, label, prev_block=None):
+    def create_block_from_code_at_label(self, label, prev_block=None, blocks=None):
         labels = self.labels()
         index = labels[label.name]
 
@@ -1902,12 +2032,16 @@ class irFunc(IR):
         assert self.body[index].name == label.name
         assert isinstance(self.body[index], irLabel)
 
-        return self.create_block_from_code_at_index(index, prev_block=prev_block)
+        return self.create_block_from_code_at_index(index, prev_block=prev_block, blocks=blocks)
 
-    def create_block_from_code_at_index(self, index, prev_block=None):
+    def create_block_from_code_at_index(self, index, prev_block=None, blocks=None):
+        if blocks is None:
+            blocks = {}
+            # blocks = self.blocks
+
         # check if we already have a block starting at this index
-        if index in self.blocks:
-            block = self.blocks[index]
+        if index in blocks:
+            block = blocks[index]
             # check if prev_block is not already as predecessor:
             if prev_block not in block.predecessors:
                 block.predecessors.append(prev_block)
@@ -1916,7 +2050,7 @@ class irFunc(IR):
 
         block = irBlock(func=self, lineno=self.body[index].lineno)
         block.scope_depth = self.body[index].scope_depth
-        self.blocks[index] = block
+        blocks[index] = block
 
         if prev_block:
             block.predecessors.append(prev_block)
@@ -1928,7 +2062,7 @@ class irFunc(IR):
             # if so, this is an entry point for a new block,
             # possibly a backwards jump
             if isinstance(ir, irLabel) and (len(block.code) > 0):
-                new_block = self.create_block_from_code_at_label(ir, prev_block=block)
+                new_block = self.create_block_from_code_at_label(ir, prev_block=block, blocks=blocks)
                 block.successors.append(new_block)
 
                 # add a jump to this label in this block, this creates a clean
@@ -1944,17 +2078,17 @@ class irFunc(IR):
 
             if isinstance(ir, irBranch):
                 # conditional branch choosing between 2 locations
-                true_block = self.create_block_from_code_at_label(ir.true_label, prev_block=block)
+                true_block = self.create_block_from_code_at_label(ir.true_label, prev_block=block, blocks=blocks)
                 block.successors.append(true_block)
 
-                false_block = self.create_block_from_code_at_label(ir.false_label, prev_block=block)
+                false_block = self.create_block_from_code_at_label(ir.false_label, prev_block=block, blocks=blocks)
                 block.successors.append(false_block)
 
                 break
 
             elif isinstance(ir, irJump):
                 # jump to a single location
-                target_block = self.create_block_from_code_at_label(ir.target, prev_block=block)
+                target_block = self.create_block_from_code_at_label(ir.target, prev_block=block, blocks=blocks)
                 block.successors.append(target_block)
                 break
 
@@ -2193,7 +2327,6 @@ class irFunc(IR):
             block.resolve_phi()
             
     def analyze_blocks(self):
-        self.blocks = {}
         self.leader_block = self.create_block_from_code_at_index(0)
         # self.blocks = {v.name: v for v in self.blocks.values()}
 
@@ -2239,13 +2372,11 @@ class irFunc(IR):
 
 
 
+        # convert out of SSA form
+        self.resolve_phi()
 
 
 
-
-
-
-        
         # self.leader_block.convert_to_ssa()
         # self.verify_ssa()
 

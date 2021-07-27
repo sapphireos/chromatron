@@ -12,15 +12,35 @@
 # 		b = 2
 
 
-# 	if b == 3:
-# 		a = 4
+# 	# if b == 3:
+# 	# 	a = 4
 
-# 	else:
-# 		a = 5
+# 	# else:
+# 	# 	a = 5
 
 # 	a = b * 2
 
 # 	return a
+
+
+def loop():
+	i = Number()
+	# i = 2 + 3
+	i = 4
+
+	# a = Number()
+
+	while i > 0:
+		i -= 1
+
+		# if i == 10:
+			# break
+			# pass
+			
+		# a = 2 + 3
+
+	# return a
+	return i
 
 
 
@@ -72,25 +92,6 @@
 # 	u = a + b
 
 
-
-def loop():
-	i = Number()
-	# i = 2 + 3
-	i = 4
-
-	# a = Number()
-
-	while i > 0:
-		i -= 1
-
-		# if i == 10:
-			# break
-			# pass
-			
-		# a = 2 + 3
-
-	# return a
-	return i
 
 
 # def test():
