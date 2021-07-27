@@ -2333,26 +2333,10 @@ class irFunc(IR):
         merge_number = 0
         for block in self.blocks.values():
             merge_number = block.resolve_phi(merge_number)
-            
-    def analyze_blocks(self):
-        self.leader_block = self.create_block_from_code_at_index(0)
-        # self.blocks = {v.name: v for v in self.blocks.values()}
 
-        self.leader_block.init_vars()
-        self.leader_block.init_consts()
-
-        self.dominators = self.calc_dominance()
-        self.dominator_tree = self.calc_dominator_tree(self.dominators)
-
-        
+    def convert_to_ssa(self):
         blocks = self.blocks.values()
-        # blocks = [
-        #     self.blocks['func:simple_ifelse.0'],
-        #     self.blocks['if.then.0'],
-        #     self.blocks['if.else.0'],
-        #     self.blocks['if.end.0'],
-        # ]
-
+        
         next_val = 0
         iterations = 0
         iteration_limit = 16
@@ -2373,7 +2357,19 @@ class irFunc(IR):
         for block in blocks:
             assert block.filled
             assert block.sealed
-            
+        
+
+    def analyze_blocks(self):
+        self.leader_block = self.create_block_from_code_at_index(0)
+        # self.blocks = {v.name: v for v in self.blocks.values()}
+
+        self.leader_block.init_vars()
+        self.leader_block.init_consts()
+
+        self.dominators = self.calc_dominance()
+        self.dominator_tree = self.calc_dominator_tree(self.dominators)
+
+        self.convert_to_ssa()    
 
         self.verify_block_assignments()
         self.verify_ssa()
