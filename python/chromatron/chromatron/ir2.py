@@ -2388,7 +2388,7 @@ class irFunc(IR):
             iterations += 1
 
             if iterations > iteration_limit:
-                raise Exception()
+                raise CompilerFatal()
                 break
 
             for block in blocks:
@@ -2402,6 +2402,17 @@ class irFunc(IR):
         
         for block in blocks:
             block.clean_up_phis()
+
+    def check_critical_edges(self):
+        for block in self.blocks.values():
+            # check if block has multiple successors
+            if len(block.successors) <= 1:
+                continue
+
+            # check if any successors have multiple predecessors
+            for s in block.successors:
+                if len(s.predecessors) > 1:
+                    raise CompilerFatal(f'Critical edge from {block.name} to {s.name}')
 
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -2419,14 +2430,19 @@ class irFunc(IR):
 
         self.verify_block_assignments()
         self.verify_ssa()
-
+        
 
 
         # convert out of SSA form
-        # self.resolve_phi()
+        self.resolve_phi()
+
+
+        self.check_critical_edges()
 
 
         # self.liveness_analysis()
+
+        self.code = self.get_code_from_blocks()
 
         return
 

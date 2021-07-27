@@ -22,20 +22,31 @@
 
 # 	return a
 
-def swap_problem():
-	x = Number()
+def lost_copy_problem():
+	i = Number()
 	y = Number()
-	t = Number()
-	a = Number()
-	b = Number()
+	z = Number()
 
 	while True:
-		t = x
-		x = y
-		y = t
+		y = i
+		i += 1
 
-	a = x
-	b = y
+	z = y + 1
+
+# def swap_problem():
+# 	x = Number()
+# 	y = Number()
+# 	t = Number()
+# 	a = Number()
+# 	b = Number()
+
+# 	while True:
+# 		t = x
+# 		x = y
+# 		y = t
+
+# 	a = x
+# 	b = y
 
 # def loop():
 # 	i = Number()
