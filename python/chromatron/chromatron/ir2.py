@@ -738,26 +738,26 @@ class irBlock(IR):
 
                 # the header's successor is the loop body
                 # the loop body should have 2 predecessors:
-                loop_top = self.successors[0]
+                # loop_top = self.successors[0]
 
                 # the loop body should have 2 predecessors, one is the header (us)
                 # the other is the loop top node
 
                 # if it only has 1 predecessor:
-                if len(loop_top.predecessors) == 1:
-                    # so we're not actually a loop.
+                # if len(loop_top.predecessors) == 1:
+                #     # so we're not actually a loop.
 
-                    # possibly a break statement that jumps out of the loop
-                    # without a conditional block
-                    del loops[ir.name]
+                #     # possibly a break statement that jumps out of the loop
+                #     # without a conditional block
+                #     del loops[ir.name]
 
-                    break
+                #     break
 
-                assert len(loop_top.predecessors) == 2
-                top_node = [a for a in loop_top.predecessors if a is not self][0]
+                # assert len(loop_top.predecessors) == 2
+                # top_node = [a for a in loop_top.predecessors if a is not self][0]
 
                 # and the top node of the loop is that successor
-                loops[ir.name]['top'] = top_node
+                # loops[ir.name]['top'] = top_node
 
         for suc in self.successors:
             suc._loops_pass_1a(loops, visited)                
@@ -775,13 +775,15 @@ class irBlock(IR):
 
         for ir in self.code:
             if isinstance(ir, irLoopTop):
+                assert ir.name in loops
+                assert loops[ir.name]['top'] is None
 
+                loops[ir.name]['top'] = self
 
+                branch = self.code[-1]
+                assert isinstance(branch, irBranch)
 
-                
-
-
-                
+                # take the true branch:
                 
 
         for suc in self.successors:
@@ -857,7 +859,7 @@ class irBlock(IR):
             pass
 
 
-    def analyze_loops(self):
+    def _analyze_loops(self):
         # get loop entries/headers
         loops = self._loops_pass_1a()
         self._loops_pass_1b(loops)
@@ -872,6 +874,17 @@ class irBlock(IR):
 
         return loops
 
+
+    def analyze_loops(self):
+        # dominator based algorithm
+        for h in self.func.dominator_tree:
+            for n in self.func.blocks.values():
+                if h is not n and h in self.func.dominators[n] and h in n.successors:
+                    print('back edge', h.name, n.name)
+
+                    # loop body is all nodes starting at h that reach n
+
+        return {}
 
     def analyze_copies_local(self):
         # local block only
@@ -1454,7 +1467,15 @@ class irBlock(IR):
         # self.code = new_code
 
 
-    def lookup_var(self, var, skip_local=False):
+    def lookup_var(self, var, skip_local=False, visited=None):
+        if visited is None:
+            visited = []    
+
+        if self in visited:
+            return None
+
+        visited.append(self)
+
         if not isinstance(var, str):
             var_name = var._name
 
@@ -1476,7 +1497,7 @@ class irBlock(IR):
             # we check that here.  since there is only one in this case, it has to be filled.
             assert self.predecessors[0].filled
 
-            return self.predecessors[0].lookup_var(var)
+            return self.predecessors[0].lookup_var(var, visited=visited)
 
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
@@ -1484,7 +1505,9 @@ class irBlock(IR):
 
             for p in self.predecessors:
                 # each predecessor must return a value
-                values.append(p.lookup_var(var))
+                v = p.lookup_var(var, visited=visited)
+                if v is not None:
+                    values.append(v)
 
             return irPhi(var, values, lineno=-1)
 
@@ -2464,8 +2487,8 @@ class irFunc(IR):
 
 
         # optimizers
-        # optimize = False
-        optimize = True
+        optimize = False
+        # optimize = True
         if optimize:
             # basic loop invariant code motion:
             self.loop_invariant_code_motion(self.loops)
