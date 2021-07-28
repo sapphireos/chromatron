@@ -1543,12 +1543,20 @@ class irBlock(IR):
         # self.code = new_code
 
 
-    def lookup_var(self, var, skip_local=False):
+    def lookup_var(self, var, skip_local=False, visited=None):
         if not isinstance(var, str):
             var_name = var._name
 
         else:
             var_name = var
+
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return None
+
+        visited.append(self)
 
         # check local block
         if var_name in self.defines and not skip_local:
@@ -1565,7 +1573,7 @@ class irBlock(IR):
             # we check that here.  since there is only one in this case, it has to be filled.
             assert self.predecessors[0].filled
 
-            return self.predecessors[0].lookup_var(var)
+            return self.predecessors[0].lookup_var(var, visited=visited)
 
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
@@ -1579,12 +1587,14 @@ class irBlock(IR):
 
             for p in self.predecessors:
                 # each predecessor must return a value
-                v = p.lookup_var(var)
+                v = p.lookup_var(var, visited=visited)
 
                 if isinstance(v, irPhi):
                     raise Exception
                 elif isinstance(v, irIncompletePhi):
                     raise Exception
+                elif v is None:
+                    continue
 
                 values.append(v)
 
@@ -1593,14 +1603,16 @@ class irBlock(IR):
             if len(values) == 1:
                 return values[0]
 
-            return irPhi(var, values, lineno=-1)
+            ir = irPhi(var, values, lineno=-1)
+            return ir
 
         # if block is not sealed:
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
             assert not self.sealed
 
             # this requires an incomplete phi which defines a new value
-            return irIncompletePhi(var, self, lineno=-1)
+            ir = irIncompletePhi(var, self, lineno=-1)
+            return ir
 
         else:
             assert False
@@ -1627,11 +1639,18 @@ class irBlock(IR):
 
             if isinstance(ir, irIncompletePhi):
                 # replace incomplete phi with completed phi node
-                phi = self.lookup_var(ir.var, skip_local=True)
-                phi.block = self
-                assert isinstance(phi, irPhi)
-                
-                self.code[i] = phi        
+                v = self.lookup_var(ir.var, skip_local=True)
+
+                assert v is not None
+
+                if isinstance(v, irPhi):
+                    v.block = self
+
+                else:
+                    v = irAssign(ir.var, v, lineno=-1)
+                    v.block = self
+
+                self.code[i] = v        
 
 
         self.sealed = True
@@ -2563,7 +2582,7 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        self.analyze_loops()
+
         return
 
         self.convert_to_ssa()    
@@ -2588,7 +2607,7 @@ class irFunc(IR):
 
 
 
-        # return
+        return
 
         # convert out of SSA form
         self.resolve_phi()
@@ -2603,7 +2622,7 @@ class irFunc(IR):
 
 
         # checks
-        self.check_critical_edges()
+        # self.check_critical_edges()
         self.verify_block_assignments()
 
 
