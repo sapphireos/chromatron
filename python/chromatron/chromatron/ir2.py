@@ -1493,17 +1493,16 @@ class irBlock(IR):
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
 
-            var.ssa_version = self.func.next_val
-            self.func.next_val += 1
-            var.block = self
-            self.defines[var_name] = var
+            # var.ssa_version = self.func.next_val
+            # self.func.next_val += 1
+            # var.block = self
+            # self.defines[var_name] = var
 
             values = []
 
             for p in self.predecessors:
                 # each predecessor must return a value
                 v = p.lookup_var(var)
-                # if v is not None:
 
                 if v is not var:
                     values.append(v)
@@ -2492,7 +2491,7 @@ class irFunc(IR):
         self.analyze_loops()
         
         # value numbering
-
+        
 
 
         # optimizers
