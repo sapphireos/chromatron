@@ -1342,7 +1342,6 @@ class irBlock(IR):
     ##############################################
 
     def resolve_phi(self, merge_number=0):
-
         # extract phis and remove from block code
         phis = []
         new_code = []
@@ -2495,7 +2494,7 @@ class irFunc(IR):
 
 
 
-        return
+        # return
 
         # convert out of SSA form
         self.resolve_phi()

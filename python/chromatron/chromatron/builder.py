@@ -279,12 +279,13 @@ class Builder(object):
         ir = irJump(self.loop_top[-1], lineno=lineno)
         self.append_node(ir)
 
+        self.scope_depth -= 1
+
         self.position_label(self.loop_end[-1])
 
         self.loop_top.pop(-1)
         self.loop_end.pop(-1)
 
-        self.scope_depth -= 1
 
     def while_header(self, test, lineno=None):
         pass
