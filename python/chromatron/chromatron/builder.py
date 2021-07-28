@@ -256,72 +256,110 @@ class Builder(object):
         self.scope_depth -= 1
         self.position_label(end_label)
 
+
+
     def begin_while(self, lineno=None):
-        loop_name = f'while.{self.next_loop}'
-        self.loop.append(loop_name)
+        top_label = self.label('while.top', lineno=lineno)
+        end_label = self.label('while.end', lineno=lineno)
+        self.position_label(top_label)
 
-        top_label = self.label(f'{self.loop[-1]}.top', lineno=lineno)
-        end_label = self.label(f'{self.loop[-1]}.end', lineno=lineno)
-        preheader_label = self.label(f'{self.loop[-1]}.preheader', lineno=lineno)
-        header_label = self.label(f'{self.loop[-1]}.header', lineno=lineno)
-        body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
-
-        self.loop_preheader.append(preheader_label)
-        self.loop_header.append(header_label)
         self.loop_top.append(top_label)
-        self.loop_body.append(body_label)
         self.loop_end.append(end_label)
 
-        self.position_label(preheader_label)
-
-        self.next_loop += 1
-
-    def test_while_preheader(self, test, lineno=None):
-        ir = irBranch(test, self.loop_header[-1], self.loop_end[-1], lineno=lineno)
-        self.append_node(ir)
-
-    def while_header(self, test, lineno=None):
-        self.position_label(self.loop_header[-1])
-
-        loop_name = self.loop[-1]
-        ir = irLoopHeader(loop_name, lineno=lineno)
-        self.append_node(ir)
-
-        self.jump(self.loop_body[-1], lineno=lineno)
-            
-
         self.scope_depth += 1
-        
-        self.position_label(self.loop_top[-1])
-        ir = irLoopTop(loop_name, lineno=lineno)
-        self.append_node(ir)
 
-        
     def test_while(self, test, lineno=None):
-        ir = irBranch(test, self.loop_body[-1], self.loop_end[-1], lineno=lineno)
+        body_label = self.label('while.body', lineno=lineno)
+
+        ir = irBranch(test, body_label, self.loop_end[-1], lineno=lineno)
         self.append_node(ir)
-        
-        self.position_label(self.loop_body[-1])
+        self.position_label(body_label)
 
     def end_while(self, lineno=None):
-        loop_name = self.loop[-1]
+        ir = irJump(self.loop_top[-1], lineno=lineno)
+        self.append_node(ir)
 
-        # place a landing pad at the end of the loop body
-        # this makes some loop analysis easier
-        # jump_label = self.label(f'{loop_name}.landing', lineno=lineno)
-        # self.position_label(jump_label)
-
-        self.jump(self.loop_top[-1], lineno=lineno)
-        
-        self.scope_depth -= 1
         self.position_label(self.loop_end[-1])
 
-        self.loop.pop(-1)
-        self.loop_preheader.pop(-1)
-        self.loop_header.pop(-1)
         self.loop_top.pop(-1)
-        self.loop_body.pop(-1)
         self.loop_end.pop(-1)
+
+        self.scope_depth -= 1
+
+    def while_header(self, test, lineno=None):
+        pass
+
+    def test_while_preheader(self, test, lineno=None):
+        pass
+
+
+
+    # def begin_while(self, lineno=None):
+    #     loop_name = f'while.{self.next_loop}'
+    #     self.loop.append(loop_name)
+
+    #     top_label = self.label(f'{self.loop[-1]}.top', lineno=lineno)
+    #     end_label = self.label(f'{self.loop[-1]}.end', lineno=lineno)
+    #     preheader_label = self.label(f'{self.loop[-1]}.preheader', lineno=lineno)
+    #     header_label = self.label(f'{self.loop[-1]}.header', lineno=lineno)
+    #     body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
+
+    #     self.loop_preheader.append(preheader_label)
+    #     self.loop_header.append(header_label)
+    #     self.loop_top.append(top_label)
+    #     self.loop_body.append(body_label)
+    #     self.loop_end.append(end_label)
+
+    #     self.position_label(preheader_label)
+
+    #     self.next_loop += 1
+
+    # def test_while_preheader(self, test, lineno=None):
+    #     ir = irBranch(test, self.loop_header[-1], self.loop_end[-1], lineno=lineno)
+    #     self.append_node(ir)
+
+    # def while_header(self, test, lineno=None):
+    #     self.position_label(self.loop_header[-1])
+
+    #     loop_name = self.loop[-1]
+    #     ir = irLoopHeader(loop_name, lineno=lineno)
+    #     self.append_node(ir)
+
+    #     self.jump(self.loop_body[-1], lineno=lineno)
+            
+
+    #     self.scope_depth += 1
+        
+    #     self.position_label(self.loop_top[-1])
+    #     ir = irLoopTop(loop_name, lineno=lineno)
+    #     self.append_node(ir)
+
+        
+    # def test_while(self, test, lineno=None):
+    #     ir = irBranch(test, self.loop_body[-1], self.loop_end[-1], lineno=lineno)
+    #     self.append_node(ir)
+        
+    #     self.position_label(self.loop_body[-1])
+
+    # def end_while(self, lineno=None):
+    #     loop_name = self.loop[-1]
+
+    #     # place a landing pad at the end of the loop body
+    #     # this makes some loop analysis easier
+    #     # jump_label = self.label(f'{loop_name}.landing', lineno=lineno)
+    #     # self.position_label(jump_label)
+
+    #     self.jump(self.loop_top[-1], lineno=lineno)
+        
+    #     self.scope_depth -= 1
+    #     self.position_label(self.loop_end[-1])
+
+    #     self.loop.pop(-1)
+    #     self.loop_preheader.pop(-1)
+    #     self.loop_header.pop(-1)
+    #     self.loop_top.pop(-1)
+    #     self.loop_body.pop(-1)
+    #     self.loop_end.pop(-1)
 
     def loop_break(self, lineno=None):
         assert self.loop_end[-1] != None
