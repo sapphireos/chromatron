@@ -29,19 +29,19 @@ def lost_copy_problem():
 
 	while True:
 		# y = i
-		# i += 1
+		i += 1
 
 		# if i == 1:
 		# 	pass
 
 		while False:
-			# a = Number()
-			# a += 1
+		# 	a = Number()
+		# 	a += 1
 			pass
 
 
-	z = y + 1
-	
+	z = i + 1
+
 
 # def swap_problem():
 # 	x = Number()

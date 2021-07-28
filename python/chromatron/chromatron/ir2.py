@@ -1573,7 +1573,8 @@ class irBlock(IR):
             # we check that here.  since there is only one in this case, it has to be filled.
             assert self.predecessors[0].filled
 
-            return self.predecessors[0].lookup_var(var, visited=visited)
+            v = self.predecessors[0].lookup_var(var, visited=visited)
+            return v
 
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
@@ -1602,6 +1603,9 @@ class irBlock(IR):
 
             if len(values) == 1:
                 return values[0]
+
+            elif len(values) == 0:
+                return None
 
             ir = irPhi(var, values, lineno=-1)
             return ir
@@ -2583,7 +2587,7 @@ class irFunc(IR):
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
 
-        return
+        # return
 
         self.convert_to_ssa()    
 
@@ -2607,7 +2611,7 @@ class irFunc(IR):
 
 
 
-        return
+        # return
 
         # convert out of SSA form
         self.resolve_phi()
