@@ -1019,7 +1019,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     try:
         program.analyze_blocks()
 
-    except (AssertionError, CompilerFatal) as exc:
+    except Exception as exc:
         e = exc
 
     # save IR to file

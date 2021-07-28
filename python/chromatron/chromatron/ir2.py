@@ -859,7 +859,7 @@ class irBlock(IR):
             pass
 
 
-    def _analyze_loops(self):
+    def analyze_loops(self):
         # get loop entries/headers
         loops = self._loops_pass_1a()
         self._loops_pass_1b(loops)
@@ -875,16 +875,16 @@ class irBlock(IR):
         return loops
 
 
-    def analyze_loops(self):
-        # dominator based algorithm
-        for h in self.func.dominator_tree:
-            for n in self.func.blocks.values():
-                if h is not n and h in self.func.dominators[n] and h in n.successors:
-                    print('back edge', h.name, n.name)
+    # def analyze_loops(self):
+    #     # dominator based algorithm
+    #     for h in self.func.dominator_tree:
+    #         for n in self.func.blocks.values():
+    #             if h is not n and h in self.func.dominators[n] and h in n.successors:
+    #                 print('back edge', h.name, n.name)
 
-                    # loop body is all nodes starting at h that reach n
+    #                 # loop body is all nodes starting at h that reach n
 
-        return {}
+    #     return {}
 
     def analyze_copies_local(self):
         # local block only
@@ -1505,7 +1505,17 @@ class irBlock(IR):
                 v = p.lookup_var(var)
 
                 if v is not var:
+                    if isinstance(v, irPhi):
+                        raise Exception
+                    elif isinstance(v, irIncompletePhi):
+                        raise Exception
+
                     values.append(v)
+
+            values = list(set(values))
+
+            if len(values) == 1:
+                return values[0]
 
             return irPhi(var, values, lineno=-1)
 
@@ -2514,7 +2524,7 @@ class irFunc(IR):
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
         # redo loop analysis
-        self.analyze_loops()
+        # self.analyze_loops()
 
 
         # checks
@@ -3013,7 +3023,6 @@ class irIncompletePhi(IR):
 
     def __str__(self):
         return f'{self.var} = Incomplete PHI()'
-
 
 class irNop(IR):
     def __init__(self, **kwargs):

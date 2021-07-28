@@ -31,6 +31,9 @@ def lost_copy_problem():
 		y = i
 		i += 1
 
+		if i == 1:
+			pass
+
 	z = y + 1
 
 # def swap_problem():
