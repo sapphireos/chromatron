@@ -2192,8 +2192,12 @@ class irFunc(IR):
     def calc_dominance(self):
         dominators = {self.leader_block: set([self.leader_block])}
 
-        blocks = [b for b in self.blocks.values() if b is not self.leader_block]
+        # blocks = [b for b in self.blocks.values() if b is not self.leader_block]
+        blocks = list(self.blocks.values())
         for block in blocks:
+            if block is self.leader_block:
+                continue
+
             dominators[block] = set(copy(blocks))
         
         changed = True
@@ -2206,7 +2210,13 @@ class irFunc(IR):
                 for pre in block.predecessors:
                     predecessor_sets.append(set(dominators[pre]))
 
-                intersection = predecessor_sets[0].intersection(*predecessor_sets[1:])
+                if len(predecessor_sets) == 0:
+                    # leader block will not have predecessors
+                    intersection = set()
+
+                else:
+                    # every other block:
+                    intersection = predecessor_sets[0].intersection(*predecessor_sets[1:])
 
                 new = set([block]).union(intersection)
 
