@@ -1467,15 +1467,7 @@ class irBlock(IR):
         # self.code = new_code
 
 
-    def lookup_var(self, var, skip_local=False, visited=None):
-        if visited is None:
-            visited = []    
-
-        if self in visited:
-            return None
-
-        visited.append(self)
-
+    def lookup_var(self, var, skip_local=False):
         if not isinstance(var, str):
             var_name = var._name
 
@@ -1497,16 +1489,24 @@ class irBlock(IR):
             # we check that here.  since there is only one in this case, it has to be filled.
             assert self.predecessors[0].filled
 
-            return self.predecessors[0].lookup_var(var, visited=visited)
+            return self.predecessors[0].lookup_var(var)
 
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
+
+            var.ssa_version = self.func.next_val
+            self.func.next_val += 1
+            var.block = self
+            self.defines[var_name] = var
+
             values = []
 
             for p in self.predecessors:
                 # each predecessor must return a value
-                v = p.lookup_var(var, visited=visited)
-                if v is not None:
+                v = p.lookup_var(var)
+                # if v is not None:
+
+                if v is not var:
                     values.append(v)
 
             return irPhi(var, values, lineno=-1)
@@ -1554,14 +1554,14 @@ class irBlock(IR):
 
 
 
-    def fill(self, next_val):
+    def fill(self):
         if self.filled:
-            return next_val
+            return
 
         # are any predecessors filled?
         if len(self.predecessors) > 0 and \
            len([p for p in self.predecessors if p.filled]) == 0:
-            return next_val
+            return
 
         self.defines = {}
 
@@ -1575,8 +1575,8 @@ class irBlock(IR):
 
                 assert ir.var.ssa_version is None
 
-                ir.var.ssa_version = next_val
-                next_val += 1
+                ir.var.ssa_version = self.func.next_val
+                self.func.next_val += 1
 
                 ir.var.block = self
                 self.defines[ir.var._name] = ir.var
@@ -1595,16 +1595,16 @@ class irBlock(IR):
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
                     if isinstance(v, irIncompletePhi):
-                        i.ssa_version = next_val
-                        next_val += 1
+                        i.ssa_version = self.func.next_val
+                        self.func.next_val += 1
                         self.defines[i._name] = i
                         v.var = i
                         new_code.append(v)
 
                     elif isinstance(v, irPhi):
                         v.block = self
-                        v.target.ssa_version = next_val
-                        next_val += 1
+                        v.target.ssa_version = self.func.next_val
+                        self.func.next_val += 1
                         self.defines[v.target._name] = v.target
                         new_code.append(v)
 
@@ -1625,8 +1625,8 @@ class irBlock(IR):
                         raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
                     o.block = self
-                    o.ssa_version = next_val
-                    next_val += 1
+                    o.ssa_version = self.func.next_val
+                    self.func.next_val += 1
                     self.defines[o._name] = o
         
             new_code.append(ir)
@@ -1634,8 +1634,6 @@ class irBlock(IR):
         self.code = new_code
 
         self.filled = True                    
-
-        return next_val
 
     def clean_up_phis(self):
         assert len([ir for ir in self.code if isinstance(ir, irIncompletePhi)]) == 0
@@ -2424,7 +2422,7 @@ class irFunc(IR):
     def convert_to_ssa(self):
         blocks = self.blocks.values()
         
-        next_val = 0
+        self.next_val = 0
         iterations = 0
         iteration_limit = 1024
         while (len([b for b in blocks if not b.filled]) > 0) or \
@@ -2437,7 +2435,7 @@ class irFunc(IR):
                 break
 
             for block in blocks:
-                next_val = block.fill(next_val)
+                block.fill()
                 block.seal()
 
 
@@ -2472,6 +2470,8 @@ class irFunc(IR):
 
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
+
+        # return
 
         self.convert_to_ssa()    
 
