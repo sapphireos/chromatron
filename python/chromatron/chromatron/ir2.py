@@ -1504,13 +1504,12 @@ class irBlock(IR):
                 # each predecessor must return a value
                 v = p.lookup_var(var)
 
-                if v is not var:
-                    if isinstance(v, irPhi):
-                        raise Exception
-                    elif isinstance(v, irIncompletePhi):
-                        raise Exception
+                if isinstance(v, irPhi):
+                    raise Exception
+                elif isinstance(v, irIncompletePhi):
+                    raise Exception
 
-                    values.append(v)
+                values.append(v)
 
             values = list(set(values))
 
