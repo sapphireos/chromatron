@@ -709,130 +709,130 @@ class irBlock(IR):
     #     for suc in self.successors:
     #         suc.apply_types(visited, declarations)
 
-    def _loops_pass_1a(self, loops=None, visited=None):
-        if visited is None:
-            visited = []
+    # def _loops_pass_1a(self, loops=None, visited=None):
+    #     if visited is None:
+    #         visited = []
 
-        if self in visited:
-            return
+    #     if self in visited:
+    #         return
 
-        visited.append(self)
+    #     visited.append(self)
 
-        if loops is None:
-            loops = {}
+    #     if loops is None:
+    #         loops = {}
 
-        for ir in self.code:
-            if isinstance(ir, irLoopHeader):
-                loops[ir.name] = {
-                    'header': self,
-                    'top': None,
-                    'end': None,
-                    'body': [],
-                    'body_vars': [],
-                }
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoopHeader):
+    #             loops[ir.name] = {
+    #                 'header': self,
+    #                 'top': None,
+    #                 'end': None,
+    #                 'body': [],
+    #                 'body_vars': [],
+    #             }
 
-                # we are a loop header
+    #             # we are a loop header
 
-                # we should have 1 successors:
-                assert len(self.successors) == 1
+    #             # we should have 1 successors:
+    #             assert len(self.successors) == 1
 
-                # the header's successor is the loop body
-                # the loop body should have 2 predecessors:
-                # loop_top = self.successors[0]
+    #             # the header's successor is the loop body
+    #             # the loop body should have 2 predecessors:
+    #             # loop_top = self.successors[0]
 
-                # the loop body should have 2 predecessors, one is the header (us)
-                # the other is the loop top node
+    #             # the loop body should have 2 predecessors, one is the header (us)
+    #             # the other is the loop top node
 
-                # if it only has 1 predecessor:
-                # if len(loop_top.predecessors) == 1:
-                #     # so we're not actually a loop.
+    #             # if it only has 1 predecessor:
+    #             # if len(loop_top.predecessors) == 1:
+    #             #     # so we're not actually a loop.
 
-                #     # possibly a break statement that jumps out of the loop
-                #     # without a conditional block
-                #     del loops[ir.name]
+    #             #     # possibly a break statement that jumps out of the loop
+    #             #     # without a conditional block
+    #             #     del loops[ir.name]
 
-                #     break
+    #             #     break
 
-                # assert len(loop_top.predecessors) == 2
-                # top_node = [a for a in loop_top.predecessors if a is not self][0]
+    #             # assert len(loop_top.predecessors) == 2
+    #             # top_node = [a for a in loop_top.predecessors if a is not self][0]
 
-                # and the top node of the loop is that successor
-                # loops[ir.name]['top'] = top_node
+    #             # and the top node of the loop is that successor
+    #             # loops[ir.name]['top'] = top_node
 
-        for suc in self.successors:
-            suc._loops_pass_1a(loops, visited)                
+    #     for suc in self.successors:
+    #         suc._loops_pass_1a(loops, visited)                
 
-        return loops
+    #     return loops
 
-    def _loops_pass_1b(self, loops, visited=None):
-        if visited is None:
-            visited = []
+    # def _loops_pass_1b(self, loops, visited=None):
+    #     if visited is None:
+    #         visited = []
 
-        if self in visited:
-            return
+    #     if self in visited:
+    #         return
 
-        visited.append(self)
+    #     visited.append(self)
 
-        for ir in self.code:
-            if isinstance(ir, irLoopTop):
-                assert ir.name in loops
-                assert loops[ir.name]['top'] is None
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoopTop):
+    #             assert ir.name in loops
+    #             assert loops[ir.name]['top'] is None
 
-                loops[ir.name]['top'] = self
+    #             loops[ir.name]['top'] = self
 
-                branch = self.code[-1]
-                assert isinstance(branch, irBranch)
+    #             branch = self.code[-1]
+    #             assert isinstance(branch, irBranch)
 
-                # take the true branch:
+    #             # take the true branch:
                 
 
-        for suc in self.successors:
-            suc._loops_pass_1b(loops, visited)                
+    #     for suc in self.successors:
+    #         suc._loops_pass_1b(loops, visited)                
 
-        return loops
+    #     return loops
 
-    def _loops_pass_2(self, loop, visited=None):
-        if visited is None:
-            # make sure start node is loop top
-            assert loop['top'] is self
-            visited = []
+    # def _loops_pass_2(self, loop, visited=None):
+    #     if visited is None:
+    #         # make sure start node is loop top
+    #         assert loop['top'] is self
+    #         visited = []
 
-        if self in visited:
-            return
+    #     if self in visited:
+    #         return
 
-        visited.append(self)
+    #     visited.append(self)
 
-        # iterate over all predecessors, skipping the loop header.
-        # this will record every node in the loop
-        for pre in self.predecessors:
-            if pre is loop['header']:
-                continue
+    #     # iterate over all predecessors, skipping the loop header.
+    #     # this will record every node in the loop
+    #     for pre in self.predecessors:
+    #         if pre is loop['header']:
+    #             continue
 
-            pre._loops_pass_2(loop, visited=visited)
+    #         pre._loops_pass_2(loop, visited=visited)
 
-        if self not in loop['body']:
-            if self is loop['top']:
-                # place top at start of list
-                # this just makes the list easier to read
-                loop['body'].insert(0, self)
+    #     if self not in loop['body']:
+    #         if self is loop['top']:
+    #             # place top at start of list
+    #             # this just makes the list easier to read
+    #             loop['body'].insert(0, self)
             
-            else:
-                loop['body'].append(self)
+    #         else:
+    #             loop['body'].append(self)
 
-            # record vars used in the loop body:
-            input_vars = self.get_input_vars()
-            for i in input_vars:
-                if i not in loop['body_vars']:
-                    loop['body_vars'].append(i)
+    #         # record vars used in the loop body:
+    #         input_vars = self.get_input_vars()
+    #         for i in input_vars:
+    #             if i not in loop['body_vars']:
+    #                 loop['body_vars'].append(i)
 
-    def _loops_pass_3(self, loop):
-        top_node = loop['top']
-        loop['end'] = None
+    # def _loops_pass_3(self, loop):
+    #     top_node = loop['top']
+    #     loop['end'] = None
 
-        for suc in top_node.successors:
-            if suc is not loop['header'] and suc not in loop['body']:
-                assert loop['end'] is None                
-                loop['end'] = suc
+    #     for suc in top_node.successors:
+    #         if suc is not loop['header'] and suc not in loop['body']:
+    #             assert loop['end'] is None                
+    #             loop['end'] = suc
 
     def _loop_test_vars(self, loop):
         test_vars = [loop['test_var']]
@@ -851,40 +851,117 @@ class irBlock(IR):
 
         return test_vars
 
-    def _loop_induction_vars(self, loop):
-        # init induction vars with any vars
-        # in the loop test vars that are modified
-        # within the loop body
-        for v in loop['test_vars']:
-            pass
+    # def _loop_induction_vars(self, loop):
+    #     # init induction vars with any vars
+    #     # in the loop test vars that are modified
+    #     # within the loop body
+    #     for v in loop['test_vars']:
+    #         pass
+
+
+    # def _analyze_loops(self):
+    #     # get loop entries/headers
+    #     loops = self._loops_pass_1a()
+    #     self._loops_pass_1b(loops)
+
+    #     # fill out loop bodies
+    #     for loop, info in loops.items():
+    #         info['top']._loops_pass_2(info)
+    #         self._loops_pass_3(info)
+
+    #         # info['test_vars'] = self._loop_test_vars(info)
+    #         # info['induction_vars'] = self._loop_induction_vars(info)
+
+    #     return loops
+
+
+    def _loops_find_header(self, loop, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+        for ir in self.code:
+            if isinstance(ir, irLoopHeader) and ir.name == loop:
+                return self
+                # we are a loop header
+
+        for suc in self.successors:
+            header = suc._loops_find_header(loop, visited)
+
+            if header is not None:
+                return header
+
+        return None
 
 
     def analyze_loops(self):
-        # get loop entries/headers
-        loops = self._loops_pass_1a()
-        self._loops_pass_1b(loops)
+        # dominator based algorithm
+        # get back edges:
+        back_edges = []
+        for h in self.func.dominator_tree:
+            for n in self.func.blocks.values():
+                if h is not n and h in self.func.dominators[n] and h in n.successors:
+                    # n dominated by h
+                    back_edges.append((n, h))
 
-        # fill out loop bodies
+                    # loop body is all nodes starting at h that reach n
+
+
+        loop_bodies = []
+
+        # https://www.csd.uwo.ca/~mmorenom/CS447/Lectures/CodeOptimization.html/node6.html        
+        for back_edge in back_edges:
+            n = back_edge[0]
+            d = back_edge[1]
+            loop_nodes = list(back_edge)
+            stack = [n]
+
+            while len(stack) > 0:
+                m = stack.pop()
+
+                for p in m.predecessors:
+                    if p not in loop_nodes:
+                        loop_nodes.append(p)
+                        stack.append(p)
+
+            loop_bodies.append(loop_nodes)
+
+        loops = {}
+        for body in loop_bodies:
+            loop_name = None
+            info = {
+                'header': None,
+                'top': None,
+                'body': [],
+                'body_vars': [],
+                }
+
+
+            for block in body:
+                # look for loop top
+                try:
+                    loop_top = [a for a in block.code if isinstance(a, irLoopTop)][0]
+
+                except IndexError:
+                    continue
+
+                loop_name = loop_top.name
+                info['top'] = block
+                info['body'] = body
+
+                loops[loop_name] = info
+                break
+
         for loop, info in loops.items():
-            info['top']._loops_pass_2(info)
-            self._loops_pass_3(info)
+            # search for headers
+            info['header'] = self._loops_find_header(loop)
+            assert info['header'] is not None
 
-            # info['test_vars'] = self._loop_test_vars(info)
-            # info['induction_vars'] = self._loop_induction_vars(info)
 
         return loops
-
-
-    # def analyze_loops(self):
-    #     # dominator based algorithm
-    #     for h in self.func.dominator_tree:
-    #         for n in self.func.blocks.values():
-    #             if h is not n and h in self.func.dominators[n] and h in n.successors:
-    #                 print('back edge', h.name, n.name)
-
-    #                 # loop body is all nodes starting at h that reach n
-
-    #     return {}
 
     def analyze_copies_local(self):
         # local block only
@@ -2089,8 +2166,6 @@ class irFunc(IR):
             for v in sorted(list(set([v.name for v in info['body_vars']]))):
                 s += f'\t\t\t{v}\n'
 
-            s += f'\tEnd:    {info["end"].name}\n'
-
         s += "********************************\n"
         s += "Blocks:\n"
         s += "********************************\n"
@@ -2488,7 +2563,8 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        # return
+        self.analyze_loops()
+        return
 
         self.convert_to_ssa()    
 
@@ -2523,7 +2599,7 @@ class irFunc(IR):
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
         # redo loop analysis
-        # self.analyze_loops()
+        self.analyze_loops()
 
 
         # checks

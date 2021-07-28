@@ -34,6 +34,11 @@ def lost_copy_problem():
 		if i == 1:
 			pass
 
+		while False:
+			a = Number()
+			a += 1
+			
+
 	z = y + 1
 
 # def swap_problem():
