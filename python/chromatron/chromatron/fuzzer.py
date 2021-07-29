@@ -19,7 +19,7 @@ class Block(object):
 		self.available_blocks = []
 
 	def __str__(self):
-		tab = '\t'
+		tab = '    '
 		s = f'{tab * self.depth}{self.type} {self.block_num}: {self.count}/{self.total}\n'
 
 		for block in self.blocks:
@@ -70,6 +70,9 @@ class Block(object):
 
 		if current_depth >= self.target_depth:
 			# max depth reached
+			if len(self.blocks) == 0:
+				self.blocks.append(Pass(depth=current_depth))
+
 			return
 
 		if len(self.available_blocks) == 0:
@@ -130,7 +133,7 @@ class Statements(Block):
 		pass
 
 	def open(self):
-		return 'pass'
+		return 'statements'
 
 class Pass(Block):
 	def __init__(self, *args, **kwargs):
