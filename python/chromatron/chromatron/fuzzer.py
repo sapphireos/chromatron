@@ -1,21 +1,41 @@
 
 from .code_gen import parse, compile_text
-
 from random import randint
+from copy import copy
+
+
 
 class Element(object):
-	def __init__(self, depth=None):
+	def __init__(self, depth=None, target_vars=1, variables={}):
 		self.depth = depth
 		self.available_elements = []
+		self.target_vars = target_vars
+		self.variables = variables
 
 	def choose_element(self):
 		return self.available_elements[randint(0, len(self.available_elements) - 1)]
 
+	def get_var(self):
+		try:
+			return list(self.variables.values())[randint(0, self.target_vars - 1)]
+
+		except IndexError:
+			new_var = chr(len(self.variables) + 97)
+			self.variables[new_var] = new_var
+			return new_var
+
+
 class Block(Element):
 	block_num = 0
 	
-	def __init__(self, min_length=0, max_length=4, target_depth=None, depth=None):
-		super().__init__(depth=depth)
+	def __init__(self, 
+				 min_length=0, 
+				 max_length=4, 
+				 target_depth=None, 
+				 **kwargs):
+
+		super().__init__(**kwargs)
+
 		self.indent = True
 		self.target_length = randint(min_length, max_length)
 		self.target_depth = target_depth
@@ -66,8 +86,11 @@ class Block(Element):
 	def close(self):
 		return ''
 
-	def generate(self, current_total=0):
+	def generate(self, current_total=0, target_vars=None):
 		current_depth = self.depth
+
+		if target_vars is not None:
+			self.target_vars = target_vars
 
 		if self.indent:
 			current_depth += 1
@@ -83,7 +106,7 @@ class Block(Element):
 			return
 
 		while self.total < self.target_length:
-			b = self.choose_element()(depth=current_depth, target_depth=self.target_depth)
+			b = self.choose_element()(depth=current_depth, target_depth=self.target_depth, variables=copy(self.variables), target_vars=self.target_vars)
 
 			self.blocks.append(b) 
 
@@ -104,7 +127,7 @@ class WhileLoop(Block):
 			Statements,
 		]
 
-		self.compare = CompareVars(depth=self.depth)
+		self.compare = CompareVars(depth=self.depth, target_vars=self.target_vars)
 
 	def open(self):
 		return f'while {self.compare.render()}:'
@@ -164,7 +187,7 @@ class Statements(Block):
 		return s
 
 	def generate(self, *args, **kwargs):
-		self.statements.append(self.choose_element()(depth=self.depth))
+		self.statements.append(self.choose_element()(depth=self.depth, target_vars=self.target_vars))
 
 	def open(self):
 		s = ''
@@ -205,8 +228,8 @@ class Expr(Statement):
 		self.type = 'Expr'
 
 		self.op = '?'
-		self.var1 = 'a?'
-		self.var2 = 'b?'
+		self.var1 = self.get_var()
+		self.var2 = self.get_var()
 
 	def render(self):
 		return f'{self.var1} {self.op} {self.var2}'
@@ -218,9 +241,7 @@ class CompareVars(Expr):
 		self.type = 'CompareVars'
 
 		self.op = '>'
-		self.var1 = 'a'
-		self.var2 = 'b'
-
+		
 class ArithVars(Expr):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -228,8 +249,6 @@ class ArithVars(Expr):
 		self.type = 'ArithVars'
 
 		self.op = '+'
-		self.var1 = 'a'
-		self.var2 = 'b'
 
 class Assign(Statement):
 	def __init__(self, *args, **kwargs):
@@ -241,8 +260,8 @@ class Assign(Statement):
 		]
 
 		self.type = 'Assign'
-		self.var = 'a'
-		self.expr = self.choose_element()(depth=self.depth)
+		self.var = self.get_var()
+		self.expr = self.choose_element()(depth=self.depth, target_vars=self.target_vars)
 
 	def render(self):
 		return f'{self.var} = {self.expr.render()}'
@@ -269,14 +288,14 @@ class Func(Block):
 
 		return s
 
-	def generate(self, length=None, depth=None):
+	def generate(self, length=None, depth=None, max_vars=None):
 		if length:
 			self.target_length = length
 
 		if depth:
 			self.target_depth = depth
 
-		super().generate()
+		super().generate(target_vars=max_vars)
 
 	def open(self):
 		return 'def func():'
@@ -286,7 +305,7 @@ class Func(Block):
 def main():
 	f = Func()
 
-	f.generate(16, 5)
+	f.generate(16, 5, 4)
 
 	print(f)
 	code = f.render()
