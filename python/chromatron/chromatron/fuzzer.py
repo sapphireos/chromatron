@@ -46,12 +46,13 @@ class Block(object):
 		code = ''
 		tab = '    '
 
+		# code += f'{tab * self.depth}# {self.type}: {self.block_num}\n'
 		code += f'{tab * self.depth}{self.open()}\n'
 
 		for b in self.blocks:
 			code += b.render()
 
-		code += f'{tab * self.depth}{self.close()}'
+		# code += f'{tab * self.depth}{self.close()}'
 
 		return code
 
@@ -81,21 +82,38 @@ class Block(object):
 
 			b.generate(self.total)
 
+		if len(self.blocks) == 0:
+			self.blocks.append(Pass(depth=current_depth))
+
 class WhileLoop(Block):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.type = 'While'
 
+		self.available_blocks = [
+			WhileLoop,
+			If,
+			# IfElse,	
+			Statements,
+		]
+
 	def open(self):
-		return 'while:'
+		return 'while i > 0:'
 
 class If(Block):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.type = 'If'
 
+		self.available_blocks = [
+			WhileLoop,
+			If,
+			# IfElse,	
+			Statements,
+		]
+
 	def open(self):
-		return 'if:'
+		return 'if True:'
 
 class IfElse(Block):
 	def __init__(self, *args, **kwargs):
@@ -112,7 +130,19 @@ class Statements(Block):
 		pass
 
 	def open(self):
-		return 'statements'
+		return 'pass'
+
+class Pass(Block):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.indent = False
+		self.type = 'Pass'
+
+	def generate(self, *args, **kwargs):
+		pass
+
+	def open(self):
+		return 'pass'
 
 class Func(Block):
 	def __init__(self, min_depth=0, max_depth=1):
