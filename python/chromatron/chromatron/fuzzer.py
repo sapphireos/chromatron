@@ -6,7 +6,7 @@ from random import randint
 
 class Block(object):
 	block_num = 0
-	def __init__(self, min_length=0, max_length=3, target_depth=None, depth=None):
+	def __init__(self, min_length=0, max_length=8, target_depth=None, depth=None):
 		self.indent = True
 		self.target_length = randint(min_length, max_length)
 		self.target_depth = target_depth
@@ -105,7 +105,7 @@ class Func(Block):
 def main():
 	f = Func()
 
-	f.generate(6, 3)
+	f.generate(8, 3)
 
 	print(f)
 
