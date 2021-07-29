@@ -1,5 +1,5 @@
 
-from .code_gen import compile_text
+from .code_gen import parse, compile_text
 
 from random import randint
 
@@ -107,7 +107,7 @@ class WhileLoop(Block):
 		self.compare = CompareVars(depth=self.depth)
 
 	def open(self):
-		return f'while {self.compare.render()}'
+		return f'while {self.compare.render()}:'
 
 class If(Block):
 	def __init__(self, *args, **kwargs):
@@ -289,7 +289,23 @@ def main():
 	f.generate(16, 5)
 
 	print(f)
-	print(f.render())
+	code = f.render()
+	print(code)
+	parse(code) # check if parseable
+
+
+	# execution:
+	# need a variable manager to ensure variables are declared
+	# variables passed down tree, queries go up tree
+	# declare var on use if not already declared
+
+	# need to ensure loops always terminate (yay halting problem!)
+	# but since we are controlling input, we can manipulate loop inits
+	# we can also check for halting by just killing the program after some
+	# amount of time.
+	# could also instrument loops to add a counter and raise exception if exceeded.
+	# this instrumentation would be generated only on the python check program.
+	
 
 if __name__ == '__main__':
 	main()

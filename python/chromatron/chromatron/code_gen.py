@@ -993,14 +993,14 @@ class CodeGenPass1(ast.NodeVisitor):
     def generic_visit(self, node):
         raise NotImplementedError(node)
 
+def parse(source):
+    return ast.parse(source)
 
 def compile_text(source, debug_print=False, summarize=False, script_name=''):
     import colored_traceback
     colored_traceback.add_hook()
     
-
-
-    tree = ast.parse(source)
+    tree = parse(source)
 
     if debug_print:
         print("Python AST:")
