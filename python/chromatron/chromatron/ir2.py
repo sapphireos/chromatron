@@ -1601,6 +1601,9 @@ class irBlock(IR):
 
             values = list(set(values))
 
+            if var in values:
+                values.remove(var)
+
             if len(values) == 1:
                 return values[0]
 
@@ -1646,8 +1649,12 @@ class irBlock(IR):
                 v = self.lookup_var(ir.var, skip_local=True)
 
                 assert v is not None
+               
+                if isinstance(v, irIncompletePhi):
+                    # we can't seal yet
+                    return
 
-                if isinstance(v, irPhi):
+                elif isinstance(v, irPhi):
                     v.block = self
 
                 else:

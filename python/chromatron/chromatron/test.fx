@@ -22,14 +22,15 @@
 
 # 	return a
 
-def lost_copy_problem():
+
+def stuff():
 	i = Number()
-	y = Number()
-	z = Number()
+	# y = Number()
+	# z = Number()
 
 	while i > 1:
 		# y = i
-		i += 1
+		# i += 1
 
 		# if i == 1:
 		# 	pass
@@ -40,7 +41,19 @@ def lost_copy_problem():
 			pass
 
 
-	z = i + 1
+	# z = i + 1
+
+
+# def lost_copy_problem():
+# 	i = Number()
+# 	y = Number()
+# 	z = Number()
+
+# 	while True:
+# 		y = i
+# 		i += 1
+
+# 	z = i + 1
 
 
 # def swap_problem():
