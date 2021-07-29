@@ -5,7 +5,7 @@ from random import randint
 
 class Block(object):
 	block_num = 0
-	def __init__(self, min_length=0, max_length=8, target_depth=None, depth=None):
+	def __init__(self, min_length=0, max_length=4, target_depth=None, depth=None):
 		self.indent = True
 		self.target_length = randint(min_length, max_length)
 		self.target_depth = target_depth
@@ -16,12 +16,14 @@ class Block(object):
 		self.block_num = Block.block_num
 		Block.block_num += 1
 
+		self.available_blocks = []
+
 	def __str__(self):
 		tab = '\t'
-		s = f'{tab * self.depth}{self.type} {self.block_num}: {self.count}/{self.total} @ {self.depth}\n'
+		s = f'{tab * self.depth}{self.type} {self.block_num}: {self.count}/{self.total}\n'
 
 		for block in self.blocks:
-			s += f'{block}\n'
+			s += f'{block}'
 
 		return s
 
@@ -37,27 +39,43 @@ class Block(object):
 
 		return c
 
+	def choose_block(self):
+		return self.available_blocks[randint(0, len(self.available_blocks) - 1)]
+
 	def render(self):
-		raise NotImplementedError
+		code = ''
+		tab = '    '
+
+		code += f'{tab * self.depth}{self.open()}\n'
+
+		for b in self.blocks:
+			code += b.render()
+
+		code += f'{tab * self.depth}{self.close()}'
+
+		return code
 
 	def open(self):
 		raise NotImplementedError
 
 	def close(self):
-		raise NotImplementedError
+		return ''
 
 	def generate(self, current_total=0):
 		current_depth = self.depth
+
+		if self.indent:
+			current_depth += 1
 
 		if current_depth >= self.target_depth:
 			# max depth reached
 			return
 
-		if self.indent:
-			current_depth += 1
+		if len(self.available_blocks) == 0:
+			return
 
-		while self.total + current_total < self.target_length:
-			b = choose_block()(depth=current_depth, target_depth=self.target_depth)
+		while self.total < self.target_length:
+			b = self.choose_block()(depth=current_depth, target_depth=self.target_depth)
 
 			self.blocks.append(b) 
 
@@ -68,10 +86,16 @@ class WhileLoop(Block):
 		super().__init__(*args, **kwargs)
 		self.type = 'While'
 
+	def open(self):
+		return 'while:'
+
 class If(Block):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.type = 'If'
+
+	def open(self):
+		return 'if:'
 
 class IfElse(Block):
 	def __init__(self, *args, **kwargs):
@@ -87,6 +111,9 @@ class Statements(Block):
 	def generate(self, *args, **kwargs):
 		pass
 
+	def open(self):
+		return 'statements'
+
 class Func(Block):
 	def __init__(self, min_depth=0, max_depth=1):
 		super().__init__()
@@ -94,11 +121,18 @@ class Func(Block):
 		self.depth = 0
 		self.target_depth = randint(min_depth, max_depth)
 
+		self.available_blocks = [
+			WhileLoop,
+			If,
+			# IfElse,	
+			Statements,
+		]
+
 	def __str__(self):
 		s = f'Func: {self.count}/{self.total} @ {self.depth}\n'
 
 		for block in self.blocks:
-			s += f'{block}\n'
+			s += f'{block}'
 
 		return s
 
@@ -111,24 +145,28 @@ class Func(Block):
 
 		super().generate()
 
-BLOCK_TYPES = [
-	WhileLoop,
-	If,
-	IfElse,	
-	Statements,
-]
+	def open(self):
+		return 'def func():'
 
-def choose_block():
-	return BLOCK_TYPES[randint(0, len(BLOCK_TYPES) - 1)]
+# BLOCK_TYPES = [
+# 	WhileLoop,
+# 	If,
+# 	# IfElse,	
+# 	# Statements,
+# ]
+
+# def choose_block():
+# 	return BLOCK_TYPES[randint(0, len(BLOCK_TYPES) - 1)]
 		
 
 
 def main():
 	f = Func()
 
-	f.generate(24, 4)
+	f.generate(16, 5)
 
 	print(f)
+	print(f.render())
 
 if __name__ == '__main__':
 	main()
