@@ -3,7 +3,6 @@ from .code_gen import compile_text
 
 from random import randint
 
-
 class Block(object):
 	block_num = 0
 	def __init__(self, min_length=0, max_length=8, target_depth=None, depth=None):
@@ -11,6 +10,7 @@ class Block(object):
 		self.target_length = randint(min_length, max_length)
 		self.target_depth = target_depth
 		self.depth = depth
+		self.type = 'Block'
 
 		self.blocks = []	
 		self.block_num = Block.block_num
@@ -18,7 +18,7 @@ class Block(object):
 
 	def __str__(self):
 		tab = '\t'
-		s = f'{tab * self.depth}Block {self.block_num}: {self.count}/{self.total} @ {self.depth}\n'
+		s = f'{tab * self.depth}{self.type} {self.block_num}: {self.count}/{self.total} @ {self.depth}\n'
 
 		for block in self.blocks:
 			s += f'{block}\n'
@@ -57,7 +57,7 @@ class Block(object):
 			current_depth += 1
 
 		while self.total + current_total < self.target_length:
-			b = Block(depth=current_depth, target_depth=self.target_depth)
+			b = choose_block()(depth=current_depth, target_depth=self.target_depth)
 
 			self.blocks.append(b) 
 
@@ -66,15 +66,26 @@ class Block(object):
 class WhileLoop(Block):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+		self.type = 'While'
 
 class If(Block):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+		self.type = 'If'
 
 class IfElse(Block):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+		self.type = 'IfElse'
 
+class Statements(Block):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.indent = False
+		self.type = 'Statements'
+
+	def generate(self, *args, **kwargs):
+		pass
 
 class Func(Block):
 	def __init__(self, min_depth=0, max_depth=1):
@@ -99,13 +110,23 @@ class Func(Block):
 			self.target_depth = depth
 
 		super().generate()
+
+BLOCK_TYPES = [
+	WhileLoop,
+	If,
+	IfElse,	
+	Statements,
+]
+
+def choose_block():
+	return BLOCK_TYPES[randint(0, len(BLOCK_TYPES) - 1)]
 		
 
 
 def main():
 	f = Func()
 
-	f.generate(8, 3)
+	f.generate(24, 4)
 
 	print(f)
 
