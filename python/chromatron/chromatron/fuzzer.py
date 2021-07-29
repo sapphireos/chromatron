@@ -1,4 +1,8 @@
 
+import sys
+import os
+
+
 from .code_gen import parse, compile_text
 from random import randint
 from copy import copy
@@ -286,7 +290,7 @@ class DeclaredVar(Element):
 	def render(self):
 		return f'{self.var}'
 
-class AugAssign(Element):
+class AugAssign(Statement):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
@@ -333,6 +337,8 @@ class Func(Block):
 			Statements,
 		]
 
+		self.code = None
+
 	def __str__(self):
 		s = f'Func: {self.count}/{self.total} @ {self.depth}\n'
 
@@ -340,6 +346,15 @@ class Func(Block):
 			s += f'{block}'
 
 		return s
+
+	def render(self):
+		if self.code is None:
+			self.code = super().render()
+
+			# ensure code is parsable
+			parse(self.code)
+
+		return self.code
 
 	def generate(self, length=None, depth=None, max_vars=None):
 		if length:
@@ -360,15 +375,80 @@ class Func(Block):
 
 		return s
 
+PY_HEADER = """
+def Number():
+	return 0
+
+"""
+
+PY_TRAILER = """
+def main():
+	func()
+
+if __name__ == '__main__':
+	main()
+
+"""
+
+def generate_python(func):
+	code = func.render()
+
+	py_code = PY_HEADER
+
+	py_code += code
+
+	py_code += PY_TRAILER
+
+	return py_code
+
+def generate_fx(func):
+	code = func.render()
+
+	return code
 
 
+def run_py(func):
+	py = generate_python(func)
 
+	with open('_fuzz.py', 'w') as f:
+		f.write(py)
+
+	os.system(f'python3 _fuzz.py')
+
+
+def compile_fx(func):
+	fx = generate_fx(func)
+
+	# with open('_fuzz.fx', 'w') as f:
+		# f.write(fx)
+
+	compile_text(fx)
 
 
 def main():
-	f = Func()
+	func = Func()
 
-	f.generate(16, 5, 4)
+	func.generate(16, 5, 4)
+
+	print(func)
+	code = func.render()
+	print(code)
+
+	# py = generate_python(func)
+	# with open('_fuzz.py', 'w') as f:
+		# f.write(py)
+
+	run_py(func)
+	compile_fx(func)
+
+	return 
+
+	# fx = generate_fx(func)
+
+	with open('_fuzz.fx', 'w') as f:
+		f.write(fx)
+
+	return
 
 	print(f)
 	code = f.render()

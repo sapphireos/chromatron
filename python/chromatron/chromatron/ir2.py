@@ -1591,9 +1591,13 @@ class irBlock(IR):
                 v = p.lookup_var(var, visited=visited)
 
                 if isinstance(v, irPhi):
-                    raise Exception
+                    # raise Exception(v)
+                    pass
+                    
                 elif isinstance(v, irIncompletePhi):
-                    raise Exception
+                    # raise Exception(v)
+                    # continue
+                    pass
                 elif v is None:
                     continue
 
@@ -1601,14 +1605,25 @@ class irBlock(IR):
 
             values = list(set(values))
 
-            if var in values:
-                values.remove(var)
+            try:
+                if var in values:
+                    values.remove(var)
+
+            except AttributeError:
+                pass
 
             if len(values) == 1:
                 return values[0]
 
             elif len(values) == 0:
                 return None
+
+            # check for incomplete phi
+            values = [v for v in values if not isinstance(v, irIncompletePhi)]
+            # for i in range(len(values)):
+            #     v = values[i]
+            #     if isinstance(v, irIncompletePhi):
+            #         values[i] = v.var
 
             ir = irPhi(var, values, lineno=-1)
             return ir
@@ -1707,6 +1722,8 @@ class irBlock(IR):
 
                     except KeyError:
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+
+                    assert v is not None
 
                     if isinstance(v, irIncompletePhi):
                         i.ssa_version = self.func.next_val

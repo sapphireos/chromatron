@@ -1,3 +1,28 @@
+def func():
+    a = Number()
+    b = Number()
+    c = Number()
+    d = Number()
+    while a > b:
+        if c > d:
+            if c > a:
+            	pass
+                # if a > a:
+                #     pass
+    # while d > c:
+    #     while c > d:
+    #         if d > a:
+    #             pass
+    #     a = a + c
+    # a += b
+
+    # return d
+    # d = b > d
+    # if b > b:
+    #     while a > d:
+    #         if d > a:
+    #             if a > a:
+    #                 pass
 
 # def simple_ifelse():
 # 	a = Number()
@@ -23,22 +48,22 @@
 # 	return a
 
 
-def stuff():
-	i = Number()
-	# y = Number()
-	# z = Number()
+# def stuff():
+# 	i = Number()
+# 	# y = Number()
+# 	# z = Number()
 
-	while i > 1:
-		# y = i
-		# i += 1
+# 	while i > 1:
+# 		# y = i
+# 		# i += 1
 
-		# if i == 1:
-		# 	pass
+# 		# if i == 1:
+# 		# 	pass
 
-		while i < 2:
-		# 	a = Number()
-		# 	a += 1
-			pass
+# 		while i < 2:
+# 		# 	a = Number()
+# 		# 	a += 1
+# 			pass
 
 
 	# z = i + 1
