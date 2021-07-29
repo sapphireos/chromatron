@@ -3,20 +3,27 @@ from .code_gen import compile_text
 
 from random import randint
 
-class Block(object):
+class Element(object):
+	def __init__(self, depth=None):
+		self.depth = depth
+		self.available_elements = []
+
+	def choose_element(self):
+		return self.available_elements[randint(0, len(self.available_elements) - 1)]
+
+class Block(Element):
 	block_num = 0
+	
 	def __init__(self, min_length=0, max_length=4, target_depth=None, depth=None):
+		super().__init__(depth=depth)
 		self.indent = True
 		self.target_length = randint(min_length, max_length)
 		self.target_depth = target_depth
-		self.depth = depth
 		self.type = 'Block'
 
 		self.blocks = []	
 		self.block_num = Block.block_num
 		Block.block_num += 1
-
-		self.available_blocks = []
 
 	def __str__(self):
 		tab = '    '
@@ -38,9 +45,6 @@ class Block(object):
 			c += block.total
 
 		return c
-
-	def choose_block(self):
-		return self.available_blocks[randint(0, len(self.available_blocks) - 1)]
 
 	def render(self):
 		code = ''
@@ -75,11 +79,11 @@ class Block(object):
 
 			return
 
-		if len(self.available_blocks) == 0:
+		if len(self.available_elements) == 0:
 			return
 
 		while self.total < self.target_length:
-			b = self.choose_block()(depth=current_depth, target_depth=self.target_depth)
+			b = self.choose_element()(depth=current_depth, target_depth=self.target_depth)
 
 			self.blocks.append(b) 
 
@@ -93,22 +97,24 @@ class WhileLoop(Block):
 		super().__init__(*args, **kwargs)
 		self.type = 'While'
 
-		self.available_blocks = [
+		self.available_elements = [
 			WhileLoop,
 			If,
 			# IfElse,	
 			Statements,
 		]
 
+		self.compare = CompareVars(depth=self.depth)
+
 	def open(self):
-		return 'while i > 0:'
+		return f'while {self.compare.render()}'
 
 class If(Block):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.type = 'If'
 
-		self.available_blocks = [
+		self.available_elements = [
 			WhileLoop,
 			If,
 			# IfElse,	
@@ -123,18 +129,6 @@ class IfElse(Block):
 		super().__init__(*args, **kwargs)
 		self.type = 'IfElse'
 
-class Statements(Block):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.indent = False
-		self.type = 'Statements'
-
-	def generate(self, *args, **kwargs):
-		pass
-
-	def open(self):
-		return 'statements'
-
 class Pass(Block):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -147,6 +141,112 @@ class Pass(Block):
 	def open(self):
 		return 'pass'
 
+
+class Statements(Block):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.indent = False
+		self.type = 'Statements'
+
+		self.statements = []
+
+		self.available_elements = [
+			DeclareVar,
+			Assign,
+		]
+
+	def __str__(self):
+		tab = '    '
+		s = ''
+		for i in self.statements:
+			s = f'{i}\n'
+
+		return s
+
+	def generate(self, *args, **kwargs):
+		self.statements.append(self.choose_element()(depth=self.depth))
+
+	def open(self):
+		s = ''
+
+		for i in self.statements:
+			s += i.render()
+
+		return s
+
+class Statement(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.type = 'Statement'
+
+	def __str__(self):
+		tab = '    '
+		s = f'{tab * self.depth}{self.type}'
+
+		return s
+
+	def render(self):
+		raise NotImplementedError
+
+class DeclareVar(Statement):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.type = 'DeclareVar'
+
+	def render(self):
+		return 'a = Number()'
+
+class Expr(Statement):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.type = 'Expr'
+
+		self.op = '?'
+		self.var1 = 'a?'
+		self.var2 = 'b?'
+
+	def render(self):
+		return f'{self.var1} {self.op} {self.var2}'
+
+class CompareVars(Expr):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.type = 'CompareVars'
+
+		self.op = '>'
+		self.var1 = 'a'
+		self.var2 = 'b'
+
+class ArithVars(Expr):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.type = 'ArithVars'
+
+		self.op = '+'
+		self.var1 = 'a'
+		self.var2 = 'b'
+
+class Assign(Statement):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.available_elements = [
+			ArithVars,
+			CompareVars,
+		]
+
+		self.type = 'Assign'
+		self.var = 'a'
+		self.expr = self.choose_element()(depth=self.depth)
+
+	def render(self):
+		return f'{self.var} = {self.expr.render()}'
+
 class Func(Block):
 	def __init__(self, min_depth=0, max_depth=1):
 		super().__init__()
@@ -154,7 +254,7 @@ class Func(Block):
 		self.depth = 0
 		self.target_depth = randint(min_depth, max_depth)
 
-		self.available_blocks = [
+		self.available_elements = [
 			WhileLoop,
 			If,
 			# IfElse,	
@@ -181,16 +281,6 @@ class Func(Block):
 	def open(self):
 		return 'def func():'
 
-# BLOCK_TYPES = [
-# 	WhileLoop,
-# 	If,
-# 	# IfElse,	
-# 	# Statements,
-# ]
-
-# def choose_block():
-# 	return BLOCK_TYPES[randint(0, len(BLOCK_TYPES) - 1)]
-		
 
 
 def main():
