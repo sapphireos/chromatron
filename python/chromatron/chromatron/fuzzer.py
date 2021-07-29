@@ -144,8 +144,10 @@ class If(Block):
 			Statements,
 		]
 
+		self.compare = CompareVars(depth=self.depth, target_vars=self.target_vars)
+
 	def open(self):
-		return 'if True:'
+		return f'if {self.compare.render()}:'
 
 class IfElse(Block):
 	def __init__(self, *args, **kwargs):
@@ -174,8 +176,9 @@ class Statements(Block):
 		self.statements = []
 
 		self.available_elements = [
-			DeclareVar,
 			Assign,
+			AugAssign,
+			Return,
 		]
 
 	def __str__(self):
@@ -213,13 +216,24 @@ class Statement(Element):
 		raise NotImplementedError
 
 class DeclareVar(Statement):
-	def __init__(self, *args, **kwargs):
+	def __init__(self, var, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
+		self.var = var
 		self.type = 'DeclareVar'
 
 	def render(self):
-		return 'a = Number()'
+		return f'{self.var} = Number()'
+
+class Return(Statement):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.type = 'Return'
+		self.var = self.get_var()
+
+	def render(self):
+		return f'return {self.var}'
 
 class Expr(Statement):
 	def __init__(self, *args, **kwargs):
@@ -250,6 +264,43 @@ class ArithVars(Expr):
 
 		self.op = '+'
 
+class ConstVar(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.type = 'ConstVar'
+
+		self.const = randint(0, 4)
+
+	def render(self):
+		return f'{self.const}'
+
+class DeclaredVar(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.type = 'DeclaredVar'
+
+		self.var = self.get_var()
+
+	def render(self):
+		return f'{self.var}'
+
+class AugAssign(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.type = 'AugAssign'
+
+		self.op = '+'
+
+		self.var1 = self.get_var()
+		self.var2 = self.get_var()
+
+	def render(self):
+		return f'{self.var1} {self.op}= {self.var2}'
+
+
 class Assign(Statement):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -257,6 +308,8 @@ class Assign(Statement):
 		self.available_elements = [
 			ArithVars,
 			CompareVars,
+			ConstVar,
+			DeclaredVar,
 		]
 
 		self.type = 'Assign'
@@ -298,7 +351,17 @@ class Func(Block):
 		super().generate(target_vars=max_vars)
 
 	def open(self):
-		return 'def func():'
+		s = 'def func():'
+
+		tab = '    '
+		for var in self.variables.values():
+			declare = DeclareVar(var)
+			s += f'\n{tab * (self.depth + 1)}{declare.render()}'
+
+		return s
+
+
+
 
 
 
