@@ -1535,13 +1535,13 @@ class irBlock(IR):
         else:
             var_name = var
 
-        if visited is None:
-            visited = []
+        # if visited is None:
+        #     visited = []
 
-        if self in visited:
-            return None
+        # if self in visited:
+        #     return None
 
-        visited.append(self)
+        # visited.append(self)
 
         # check local block
         if var_name in self.defines and not skip_local:
@@ -1564,58 +1564,82 @@ class irBlock(IR):
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
 
+            # clone var
+            v = irVar(name=var._name, lineno=var.lineno)
+            v.clone(var)
+            v.block = self
+            v.ssa_version = None
+            v.convert_to_ssa()
+
+            self.defines[v._name] = v
+
+            values = []
+            for p in self.predecessors:
+                pv = p.lookup_var(var)
+
+                values.append(pv)
+
+            ir = irPhi(v, values, lineno=-1)
+            ir.block = self
+            return ir
+
+
             # var.ssa_version = self.func.next_val
             # self.func.next_val += 1
             # var.block = self
             # self.defines[var_name] = var
 
-            values = []
+            # values = []
 
-            for p in self.predecessors:
-                # each predecessor must return a value
-                v = p.lookup_var(var, visited=visited)
+            # for p in self.predecessors:
+            #     # each predecessor must return a value
+            #     v = p.lookup_var(var, visited=visited)
 
-                if isinstance(v, irPhi):
-                    # raise Exception(v)
-                    pass
+            #     if isinstance(v, irPhi):
+            #         # raise Exception(v)
+            #         pass
                     
-                elif isinstance(v, irIncompletePhi):
-                    # raise Exception(v)
-                    # continue
-                    pass
-                elif v is None:
-                    continue
+            #     elif isinstance(v, irIncompletePhi):
+            #         # raise Exception(v)
+            #         # continue
+            #         pass
+            #     elif v is None:
+            #         continue
 
-                values.append(v)
+            #     values.append(v)
 
-            values = list(set(values))
+            # values = list(set(values))
 
-            try:
-                if var in values:
-                    values.remove(var)
+            # try:
+            #     if var in values:
+            #         values.remove(var)
 
-            except AttributeError:
-                pass
+            # except AttributeError:
+            #     pass
 
-            if len(values) == 1:
-                return values[0]
+            # if len(values) == 1:
+            #     return values[0]
 
-            elif len(values) == 0:
-                return None
+            # elif len(values) == 0:
+            #     return None
 
-            # check for incomplete phi
-            values = [v for v in values if not isinstance(v, irIncompletePhi)]
-            # for i in range(len(values)):
-            #     v = values[i]
-            #     if isinstance(v, irIncompletePhi):
-            #         values[i] = v.var
+            # # check for incomplete phi
+            # values = [v for v in values if not isinstance(v, irIncompletePhi)]
+            # # for i in range(len(values)):
+            # #     v = values[i]
+            # #     if isinstance(v, irIncompletePhi):
+            # #         values[i] = v.var
 
-            ir = irPhi(var, values, lineno=-1)
-            return ir
+            # ir = irPhi(var, values, lineno=-1)
+            # return ir
 
         # if block is not sealed:
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
             assert not self.sealed
+
+            var.ssa_version = None
+            var.convert_to_ssa()
+            self.defines[var._name] = var
 
             # this requires an incomplete phi which defines a new value
             ir = irIncompletePhi(var, self, lineno=-1)
@@ -1645,23 +1669,35 @@ class irBlock(IR):
             ir = self.code[i]
 
             if isinstance(ir, irIncompletePhi):
-                # replace incomplete phi with completed phi node
-                v = self.lookup_var(ir.var, skip_local=True)
+                values = []
+                for p in self.predecessors:
+                    v = p.lookup_var(ir.var)
 
-                assert v is not None
+                    values.append(v)
+
+                phi = irPhi(ir.var, values, lineno=ir.lineno)
+                phi.block = self
+
+                self.code[i] = phi
+
+
+                # # replace incomplete phi with completed phi node
+                # v = self.lookup_var(ir.var, skip_local=False)
+
+                # assert v is not None
                
-                if isinstance(v, irIncompletePhi):
-                    # we can't seal yet
-                    return
+                # if isinstance(v, irIncompletePhi):
+                #     # we can't seal yet
+                #     return
 
-                elif isinstance(v, irPhi):
-                    v.block = self
+                # elif isinstance(v, irPhi):
+                #     v.block = self
 
-                else:
-                    v = irAssign(ir.var, v, lineno=-1)
-                    v.block = self
+                # else:
+                #     v = irAssign(ir.var, v, lineno=-1)
+                #     v.block = self
 
-                self.code[i] = v        
+                # self.code[i] = v        
 
 
         self.sealed = True
@@ -1689,10 +1725,9 @@ class irBlock(IR):
 
                 assert ir.var.ssa_version is None
 
-                ir.var.ssa_version = self.func.next_val
-                self.func.next_val += 1
-
                 ir.var.block = self
+                ir.var.convert_to_ssa()
+                
                 self.defines[ir.var._name] = ir.var
 
             else:
@@ -1711,18 +1746,21 @@ class irBlock(IR):
                     assert v is not None
 
                     if isinstance(v, irIncompletePhi):
-                        i.ssa_version = self.func.next_val
-                        self.func.next_val += 1
-                        self.defines[i._name] = i
-                        v.var = i
+                        # i.ssa_version = self.func.next_val
+                        # self.func.next_val += 1
+                        # self.defines[i._name] = i
+                        # v.var = i
                         new_code.append(v)
+                        # assert False
+                        i.clone(v.var)
 
                     elif isinstance(v, irPhi):
-                        v.block = self
-                        v.target.ssa_version = self.func.next_val
-                        self.func.next_val += 1
-                        self.defines[v.target._name] = v.target
+                        # v.block = self
+                        # v.target.ssa_version = self.func.next_val
+                        # self.func.next_val += 1
+                        # self.defines[v.target._name] = v.target
                         new_code.append(v)
+                        i.clone(v.target)
 
                     else:
                         i.clone(v)
@@ -1741,8 +1779,9 @@ class irBlock(IR):
                         raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
                     o.block = self
-                    o.ssa_version = self.func.next_val
-                    self.func.next_val += 1
+                    o.ssa_version = None
+                    o.convert_to_ssa()
+                    
                     self.defines[o._name] = o
         
             new_code.append(ir)
@@ -2889,7 +2928,7 @@ class irFunc(IR):
                 try:
                     assert o.name not in writes
 
-                except AssertionErrirVaror:
+                except AssertionError:
                     logging.critical(f'FATAL: {o.name} defined by {writes[o.name]} at line {writes[o.name].lineno}, overwritten by {ir} at line {ir.lineno}')
 
                     raise

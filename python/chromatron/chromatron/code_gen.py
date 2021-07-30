@@ -1151,5 +1151,6 @@ if __name__ == '__main__':
 
     main()
 
-    if profile:
+    if profile:            # try:
+
         yappi.get_func_stats().print_all()

@@ -1,12 +1,26 @@
-def func():
-    a = Number()
-    b = Number()
-    c = Number()
-    d = Number()
-    while a > b:
-        if c > d:
-            if c > a:
-            	pass
+
+def double_while_loop():
+    i = Number()
+    i = 4
+
+    while i > 0:
+        i -= 1
+        j = Number()
+
+        j = 4
+
+        while j > 0:
+            j -= 1
+            
+# def func():
+#     a = Number()
+#     b = Number()
+#     c = Number()
+#     d = Number()
+#     while a > b:
+#         if c > d:
+#             if c > a:
+#             	pass
                 # if a > a:
                 #     pass
     # while d > c:
@@ -94,7 +108,7 @@ def func():
 # 		y = t
 
 # 	a = x
-# 	b = y
+	# b = y
 
 # def loop():
 # 	i = Number()
@@ -106,8 +120,8 @@ def func():
 # 	while i > 0:
 # 		i -= 1
 
-# 		if i == 10:
-# 			break
+# 		# if i == 10:
+# 		# 	break
 # 			# pass
 			
 # 		# a = 2 + 3
