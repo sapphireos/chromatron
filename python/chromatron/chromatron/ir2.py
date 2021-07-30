@@ -1577,10 +1577,15 @@ class irBlock(IR):
             for p in self.predecessors:
                 pv = p.lookup_var(var)
 
+                if isinstance(pv, irPhi):
+                    pv = pv.target
+
                 values.append(pv)
 
+            if v in values: # remove self references
+                values.remove(v)
+
             ir = irPhi(v, values, lineno=-1)
-            ir.block = self
             return ir
 
 
@@ -1673,6 +1678,9 @@ class irBlock(IR):
                 for p in self.predecessors:
                     v = p.lookup_var(ir.var)
 
+                    if isinstance(v, irPhi):
+                        v = v.target
+
                     values.append(v)
 
                 phi = irPhi(ir.var, values, lineno=ir.lineno)
@@ -1750,6 +1758,7 @@ class irBlock(IR):
                         # self.func.next_val += 1
                         # self.defines[i._name] = i
                         # v.var = i
+                        v.block = self
                         new_code.append(v)
                         # assert False
                         i.clone(v.var)
@@ -1759,6 +1768,7 @@ class irBlock(IR):
                         # v.target.ssa_version = self.func.next_val
                         # self.func.next_val += 1
                         # self.defines[v.target._name] = v.target
+                        v.block = self
                         new_code.append(v)
                         i.clone(v.target)
 
@@ -2731,7 +2741,7 @@ class irFunc(IR):
 
 
 
-        # return
+        return
 
         # convert out of SSA form
         self.resolve_phi()

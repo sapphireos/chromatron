@@ -1,17 +1,16 @@
 
-def double_while_loop():
+def while_with_if_loop():
     i = Number()
     i = 4
+    a = Number()
+    b = Number()
 
     while i > 0:
         i -= 1
-        j = Number()
 
-        j = 4
+        if a < b:
+            i = 0
 
-        while j > 0:
-            j -= 1
-            
 # def func():
 #     a = Number()
 #     b = Number()
