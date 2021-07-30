@@ -1582,6 +1582,8 @@ class irBlock(IR):
 
                 values.append(pv)
 
+            values = list(set(values))
+
             if v in values: # remove self references
                 values.remove(v)
 
@@ -1670,15 +1672,17 @@ class irBlock(IR):
             return
 
         # we can seal this block
-        for i in range(len(self.code)):
-            ir = self.code[i]
-
+        new_code = []
+        for ir in self.code:
             if isinstance(ir, irIncompletePhi):
                 values = []
                 for p in self.predecessors:
                     v = p.lookup_var(ir.var)
 
                     if isinstance(v, irPhi):
+                        v.block = self
+                        new_code.append(v)
+
                         v = v.target
 
                     values.append(v)
@@ -1686,7 +1690,10 @@ class irBlock(IR):
                 phi = irPhi(ir.var, values, lineno=ir.lineno)
                 phi.block = self
 
-                self.code[i] = phi
+                new_code.append(phi)
+
+            else:
+                new_code.append(ir)
 
 
                 # # replace incomplete phi with completed phi node
@@ -1707,6 +1714,7 @@ class irBlock(IR):
 
                 # self.code[i] = v        
 
+        self.code = new_code
 
         self.sealed = True
 
@@ -2616,8 +2624,8 @@ class irFunc(IR):
             assert block.filled
             assert block.sealed
         
-        for block in blocks:
-            block.clean_up_phis()
+        # for block in blocks:
+        #     block.clean_up_phis()
 
         logging.debug(f'SSA conversion in {iterations} iterations')
 
