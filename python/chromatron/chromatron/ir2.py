@@ -1680,10 +1680,11 @@ class irBlock(IR):
                     v = p.lookup_var(ir.var)
 
                     if isinstance(v, irPhi):
-                        v.block = self
-                        new_code.append(v)
+                        continue
+                        # v.block = self
+                        # new_code.append(v)
 
-                        v = v.target
+                        # v = v.target
 
                     values.append(v)
 
