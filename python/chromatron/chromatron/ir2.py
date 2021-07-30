@@ -1534,7 +1534,7 @@ class irBlock(IR):
 
         else:
             var_name = var
-
+        
         # if visited is None:
         #     visited = []
 
@@ -1579,6 +1579,9 @@ class irBlock(IR):
 
                 if isinstance(pv, irPhi):
                     pv = pv.target
+
+                elif isinstance(pv, irIncompletePhi):
+                    pv = pv.var
 
                 values.append(pv)
 
@@ -1645,6 +1648,7 @@ class irBlock(IR):
             assert not self.sealed
 
             var.ssa_version = None
+            var.block = self
             var.convert_to_ssa()
             self.defines[var._name] = var
 
@@ -1687,6 +1691,11 @@ class irBlock(IR):
                         # v = v.target
 
                     values.append(v)
+
+                values = list(set(values))
+
+                if ir.var in values: # remove self references
+                    values.remove(ir.var)
 
                 phi = irPhi(ir.var, values, lineno=ir.lineno)
                 phi.block = self
@@ -1819,8 +1828,6 @@ class irBlock(IR):
                 # make sure list of defines is unique
                 ir.defines = list(set(ir.defines))
 
-                assert len(ir.defines) > 0
-
                 # assign type
                 for d in ir.defines:
                     if d.type is not None:
@@ -1833,6 +1840,10 @@ class irBlock(IR):
                 if len(ir.defines) == 1:
                     ir = irAssign(ir.target, ir.defines[0], lineno=ir.lineno)
                     ir.block = self
+
+                # no defines?
+                elif len(ir.defines) == 0:
+                    continue # skip phi
 
             new_code.append(ir)
 
@@ -2625,8 +2636,8 @@ class irFunc(IR):
             assert block.filled
             assert block.sealed
         
-        # for block in blocks:
-        #     block.clean_up_phis()
+        for block in blocks:
+            block.clean_up_phis()
 
         logging.debug(f'SSA conversion in {iterations} iterations')
 
@@ -2750,7 +2761,7 @@ class irFunc(IR):
 
 
 
-        return
+        # return
 
         # convert out of SSA form
         self.resolve_phi()

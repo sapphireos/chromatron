@@ -1,15 +1,29 @@
-
-def while_with_if_loop():
-    i = Number()
-    i = 4
+def func():
     a = Number()
     b = Number()
+    c = Number()
+    d = Number()
+    if a > b:
+        if c > c:
+            while c > c:
+                if a > c:
+                    pass
+    if a > d:
+        if a > b:
+            while d > b:
+                while c > b:
+                    pass
+                if b > d:
+                    pass
+    b += c
+    while b > b:
+        b = a > a
+    while d > a:
+        if a > d:
+            while b > d:
+                while a > b:
+                    pass
 
-    while i > 0:
-        i -= 1
-
-        if a < b:
-            i = 0
 
 # def func():
 #     a = Number()

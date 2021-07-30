@@ -430,16 +430,25 @@ def main():
 
 	func.generate(16, 5, 4)
 
-	print(func)
+	# print(func)
 	code = func.render()
-	print(code)
+	# print(code)
 
 	# py = generate_python(func)
 	# with open('_fuzz.py', 'w') as f:
 		# f.write(py)
 
-	run_py(func)
-	compile_fx(func)
+	for i in range(10000):
+		print(i)
+		
+		try:
+			run_py(func)
+			compile_fx(func)
+
+		except Exception as e:
+			print(func)
+			print(code)
+			raise
 
 	return 
 
@@ -470,4 +479,8 @@ def main():
 	
 
 if __name__ == '__main__':
-	main()
+	try:
+		main()
+
+	except KeyboardInterrupt:
+		pass
