@@ -69,6 +69,8 @@ class IR(object):
         self.live_out = []
         self.is_nop = False
 
+        self.loops = []
+
         assert self.lineno != None
 
     def generate(self):
@@ -896,73 +898,6 @@ class irBlock(IR):
 
         return None
 
-
-    def analyze_loops(self):
-        # dominator based algorithm
-        # get back edges:
-        back_edges = []
-        for h in self.func.dominator_tree:
-            for n in self.func.blocks.values():
-                if h is not n and h in self.func.dominators[n] and h in n.successors:
-                    # n dominated by h
-                    back_edges.append((n, h))
-
-                    # loop body is all nodes starting at h that reach n
-
-
-        loop_bodies = []
-
-        # https://www.csd.uwo.ca/~mmorenom/CS447/Lectures/CodeOptimization.html/node6.html        
-        for back_edge in back_edges:
-            n = back_edge[0]
-            d = back_edge[1]
-            loop_nodes = list(back_edge)
-            stack = [n]
-
-            while len(stack) > 0:
-                m = stack.pop()
-
-                for p in m.predecessors:
-                    if p not in loop_nodes:
-                        loop_nodes.append(p)
-                        stack.append(p)
-
-            loop_bodies.append(loop_nodes)
-
-        loops = {}
-        for body in loop_bodies:
-            loop_name = None
-            info = {
-                'header': None,
-                'top': None,
-                'body': [],
-                'body_vars': [],
-                }
-
-
-            for block in body:
-                # look for loop top
-                try:
-                    loop_top = [a for a in block.code if isinstance(a, irLoopTop)][0]
-
-                except IndexError:
-                    continue
-
-                loop_name = loop_top.name
-                info['top'] = block
-                info['body'] = body
-
-                loops[loop_name] = info
-                break
-
-        for loop, info in loops.items():
-            # search for headers
-            info['header'] = self._loops_find_header(loop)
-            assert info['header'] is not None
-
-
-        return loops
-
     def analyze_copies_local(self):
         # local block only
 
@@ -1542,6 +1477,56 @@ class irBlock(IR):
 
         # self.code = new_code
 
+    """
+    
+    lookup refactor
+
+    irVar - convert to SSA method.  vars have link to func.next_val through self.block
+    
+    notes from Braun:
+
+    lookup var:
+    we need to actually do the add phi to self.defines on the *sealed* len(pred) > 1 case
+    since the block is sealed, we should be able to complete predecessor lookups
+    (the problem we hit is with cycles)
+
+    v = Phi(empty)
+    self.defines <- v
+    v = addPhiOperands(var, v)
+    self.defines <- v
+
+    return phi
+    # fill logic will insert phi
+    # recursive lookups should be able to return from the phi's target var because we
+    # put it in our defines
+
+
+    also, for incomplete phi:
+        create incomplete phi node
+        add target var to defines
+        return incomplete phi
+
+        fill logic will insert incomplete phi
+
+
+    addPhiOperands(var, phi):
+        for p in preds:
+            v = p.lookup_var(var)
+
+            phi.operands <- v
+
+        return tryRemoveTrivialPhi(phi)
+
+
+    tryRemoveTrivialPhi(phi):
+        return phi 
+
+        # we can remove trivial phis in our clean up pass
+
+
+
+
+    """
 
     def lookup_var(self, var, skip_local=False, visited=None):
         if not isinstance(var, str):
@@ -2599,7 +2584,79 @@ class irFunc(IR):
                     raise CompilerFatal(f'Critical edge from {block.name} to {s.name}')
 
     def analyze_loops(self):
-        self.loops = self.leader_block.analyze_loops()
+        self.loops = {}
+
+        # reset loop membership
+        for block in self.blocks.values():
+            block.loops = []
+
+        # dominator based algorithm
+        # get back edges:
+        back_edges = []
+        for h in self.dominator_tree:
+            for n in self.blocks.values():
+                if h is not n and h in self.dominators[n] and h in n.successors:
+                    # n dominated by h
+                    back_edges.append((n, h))
+
+                    # loop body is all nodes starting at h that reach n
+
+
+        loop_bodies = []
+
+        # https://www.csd.uwo.ca/~mmorenom/CS447/Lectures/CodeOptimization.html/node6.html        
+        for back_edge in back_edges:
+            n = back_edge[0]
+            d = back_edge[1]
+            loop_nodes = list(back_edge)
+            stack = [n]
+
+            while len(stack) > 0:
+                m = stack.pop()
+
+                for p in m.predecessors:
+                    if p not in loop_nodes:
+                        loop_nodes.append(p)
+                        stack.append(p)
+
+            loop_bodies.append(loop_nodes)
+
+        loops = {}
+        for body in loop_bodies:
+            loop_name = None
+            info = {
+                'header': None,
+                'top': None,
+                'body': [],
+                'body_vars': [],
+                }
+
+
+            for block in body:
+                # look for loop top
+                try:
+                    loop_top = [a for a in block.code if isinstance(a, irLoopTop)][0]
+
+                except IndexError:
+                    continue
+
+                loop_name = loop_top.name
+                info['top'] = block
+                info['body'] = body
+
+                loops[loop_name] = info
+                break
+
+        for loop, info in loops.items():
+            # search for headers
+            info['header'] = self.leader_block._loops_find_header(loop)
+            assert info['header'] is not None
+
+            # add loop to blocks in body
+            for block in info['body']:
+                block.loops.append(loop)
+
+        self.loops = loops
 
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -2816,6 +2873,11 @@ class irFunc(IR):
         code = []
 
         for block in self.blocks.values():
+            # attach loop data to instructions
+            for ir in block.code:
+                ir.loops = self.loops.keys()
+
+            # attach code
             code.extend(block.code)
 
         return code
@@ -2827,7 +2889,7 @@ class irFunc(IR):
                 try:
                     assert o.name not in writes
 
-                except AssertionError:
+                except AssertionErrirVaror:
                     logging.critical(f'FATAL: {o.name} defined by {writes[o.name]} at line {writes[o.name].lineno}, overwritten by {ir} at line {ir.lineno}')
 
                     raise
@@ -3644,7 +3706,14 @@ class irVar(IR):
 
         # else:
         #     return self.name == other.name   
-        return self.name == other.name   
+        return self.name == other.name  
+
+    def convert_to_ssa(self):
+        assert self.ssa_version is None
+        assert self.block is not None
+
+        self.ssa_version = self.block.func.next_val
+        self.block.func.next_val += 1
 
     def clone(self, source):
         assert self._name == source._name
