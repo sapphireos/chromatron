@@ -1,30 +1,3 @@
-def func():
-    a = Number()
-    b = Number()
-    c = Number()
-    d = Number()
-    if a > b:
-        if c > c:
-            while c > c:
-                if a > c:
-                    pass
-    if a > d:
-        if a > b:
-            while d > b:
-                while c > b:
-                    pass
-                if b > d:
-                    pass
-    b += c
-    while b > b:
-        b = a > a
-    while d > a:
-        if a > d:
-            while b > d:
-                while a > b:
-                    pass
-
-
 # def func():
 #     a = Number()
 #     b = Number()
@@ -51,29 +24,26 @@ def func():
     #             if a > a:
     #                 pass
 
-# def simple_ifelse():
-# 	a = Number()
-# 	b = Number()
+# def while_loop():
+#     i = Number()
+#     i = 4
 
-# 	a = b + 7
-
-# 	if a > 0:
-# 		b = 1
-
-# 	else:
-# 		b = 2
+#     while i > 0:
+#         i -= 1
 
 
-# 	if b == 3:
-# 		a = 4
+def double_while_loop():
+    i = Number()
+    i = 4
 
-# 	else:
-# 		a = 5
+    while i > 0:
+        i -= 1
+        j = Number()
 
-# 	a = b * 2
+        j = 4
 
-# 	return a
-
+        while j > 0:
+            j -= 1
 
 # def stuff():
 # 	i = Number()

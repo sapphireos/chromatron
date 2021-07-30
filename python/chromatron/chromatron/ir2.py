@@ -1528,20 +1528,12 @@ class irBlock(IR):
 
     """
 
-    def lookup_var(self, var, skip_local=False, visited=None):
+    def lookup_var(self, var, skip_local=False):
         if not isinstance(var, str):
             var_name = var._name
 
         else:
             var_name = var
-        
-        # if visited is None:
-        #     visited = []
-
-        # if self in visited:
-        #     return None
-
-        # visited.append(self)
 
         # check local block
         if var_name in self.defines and not skip_local:
@@ -1592,56 +1584,6 @@ class irBlock(IR):
 
             ir = irPhi(v, values, lineno=-1)
             return ir
-
-
-            # var.ssa_version = self.func.next_val
-            # self.func.next_val += 1
-            # var.block = self
-            # self.defines[var_name] = var
-
-            # values = []
-
-            # for p in self.predecessors:
-            #     # each predecessor must return a value
-            #     v = p.lookup_var(var, visited=visited)
-
-            #     if isinstance(v, irPhi):
-            #         # raise Exception(v)
-            #         pass
-                    
-            #     elif isinstance(v, irIncompletePhi):
-            #         # raise Exception(v)
-            #         # continue
-            #         pass
-            #     elif v is None:
-            #         continue
-
-            #     values.append(v)
-
-            # values = list(set(values))
-
-            # try:
-            #     if var in values:
-            #         values.remove(var)
-
-            # except AttributeError:
-            #     pass
-
-            # if len(values) == 1:
-            #     return values[0]
-
-            # elif len(values) == 0:
-            #     return None
-
-            # # check for incomplete phi
-            # values = [v for v in values if not isinstance(v, irIncompletePhi)]
-            # # for i in range(len(values)):
-            # #     v = values[i]
-            # #     if isinstance(v, irIncompletePhi):
-            # #         values[i] = v.var
-
-            # ir = irPhi(var, values, lineno=-1)
-            # return ir
 
         # if block is not sealed:
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
@@ -1705,25 +1647,6 @@ class irBlock(IR):
             else:
                 new_code.append(ir)
 
-
-                # # replace incomplete phi with completed phi node
-                # v = self.lookup_var(ir.var, skip_local=False)
-
-                # assert v is not None
-               
-                # if isinstance(v, irIncompletePhi):
-                #     # we can't seal yet
-                #     return
-
-                # elif isinstance(v, irPhi):
-                #     v.block = self
-
-                # else:
-                #     v = irAssign(ir.var, v, lineno=-1)
-                #     v.block = self
-
-                # self.code[i] = v        
-
         self.code = new_code
 
         self.sealed = True
@@ -1772,20 +1695,11 @@ class irBlock(IR):
                     assert v is not None
 
                     if isinstance(v, irIncompletePhi):
-                        # i.ssa_version = self.func.next_val
-                        # self.func.next_val += 1
-                        # self.defines[i._name] = i
-                        # v.var = i
                         v.block = self
                         new_code.append(v)
-                        # assert False
                         i.clone(v.var)
 
                     elif isinstance(v, irPhi):
-                        # v.block = self
-                        # v.target.ssa_version = self.func.next_val
-                        # self.func.next_val += 1
-                        # self.defines[v.target._name] = v.target
                         v.block = self
                         new_code.append(v)
                         i.clone(v.target)
@@ -2761,7 +2675,7 @@ class irFunc(IR):
 
 
 
-        # return
+        return
 
         # convert out of SSA form
         self.resolve_phi()
