@@ -1676,9 +1676,9 @@ class irFunc(IR):
 
         logging.debug(f'Liveness analysis in {iterations} iterations')
 
-        # top of function should not have anything live:
-        assert len(self.live_in[code[0]]) == 0
-        assert len(self.live_out[code[0]]) == 0
+        # top of function should not have anything live other than it's parameters:
+        assert len(self.live_in[code[0]]) == len(self.params)
+        assert len(self.live_out[code[0]]) == len(self.params)
 
 
     def verify_block_assignments(self):
