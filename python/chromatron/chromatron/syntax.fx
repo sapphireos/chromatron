@@ -83,6 +83,13 @@ def while_with_if_loop():
 
         if a < b:
             i = 0
+            
+def another_while_if():
+    a = Number()
+
+    while a > 0:
+        if True:
+            pass
 
 
 # global_a = Number()

@@ -1,29 +1,10 @@
-# def func():
-#     a = Number()
-#     b = Number()
-#     c = Number()
-#     d = Number()
-#     while a > b:
-#         if c > d:
-#             if c > a:
-#             	pass
-                # if a > a:
-                #     pass
-    # while d > c:
-    #     while c > d:
-    #         if d > a:
-    #             pass
-    #     a = a + c
-    # a += b
 
-    # return d
-    # d = b > d
-    # if b > b:
-    #     while a > d:
-    #         if d > a:
-    #             if a > a:
-    #                 pass
+def another_while_if():
+    a = Number()
 
+    while a > 0:
+        if True:
+            pass
 
 
 # def simple_ifelse():
@@ -67,489 +48,489 @@
 #         i -= 1
 
 
-def double_while_loop():
-    i = Number()
-    i = 4
+# def double_while_loop():
+#     i = Number()
+#     i = 4
 
-    while i > 0:
-        i -= 1
-        j = Number()
+#     while i > 0:
+#         i -= 1
+#         j = Number()
 
-        j = 4
+#         j = 4
 
-        while j > 0:
-            j -= 1
+#         while j > 0:
+#             j -= 1
 
 
 
 
 # def stuff():
-# 	i = Number()
-# 	# y = Number()
-# 	# z = Number()
+#   i = Number()
+#   # y = Number()
+#   # z = Number()
 
-# 	while i > 1:
-# 		# y = i
-# 		# i += 1
+#   while i > 1:
+#       # y = i
+#       # i += 1
 
-# 		# if i == 1:
-# 		# 	pass
+#       # if i == 1:
+#       #   pass
 
-# 		while i < 2:
-# 		# 	a = Number()
-# 		# 	a += 1
-# 			pass
+#       while i < 2:
+#       #   a = Number()
+#       #   a += 1
+#           pass
 
 
-	# z = i + 1
+    # z = i + 1
 
 
 # def lost_copy_problem():
-# 	i = Number()
-# 	y = Number()
-# 	z = Number()
+#   i = Number()
+#   y = Number()
+#   z = Number()
 
-# 	while True:
-# 		y = i
-# 		i += 1
+#   while True:
+#       y = i
+#       i += 1
 
-# 	z = i + 1
+#   z = i + 1
 
 
 # def swap_problem():
-# 	x = Number()
-# 	y = Number()
-# 	t = Number()
-# 	a = Number()
-# 	b = Number()
+#   x = Number()
+#   y = Number()
+#   t = Number()
+#   a = Number()
+#   b = Number()
 
-# 	while True:
-# 		t = x
-# 		x = y
-# 		y = t
+#   while True:
+#       t = x
+#       x = y
+#       y = t
 
-# 	a = x
-	# b = y
+#   a = x
+    # b = y
 
 # def loop():
-# 	i = Number()
-# 	# i = 2 + 3
-# 	i = 4
+#   i = Number()
+#   # i = 2 + 3
+#   i = 4
 
-# 	# a = Number()
+#   # a = Number()
 
-# 	while i > 0:
-# 		i -= 1
+#   while i > 0:
+#       i -= 1
 
-# 		# if i == 10:
-# 		# 	break
-# 			# pass
-			
-# 		# a = 2 + 3
+#       # if i == 10:
+#       #   break
+#           # pass
+            
+#       # a = 2 + 3
 
-# 	# return a
-# 	return i
+#   # return a
+#   return i
 
 
 
 # def lvn():
-# 	a = Number()
-# 	b = Number()
-# 	c = Number()
-	
-# 	z = Number()
+#   a = Number()
+#   b = Number()
+#   c = Number()
+    
+#   z = Number()
 
-# 	a = z
-# 	b = a
-# 	c = z
+#   a = z
+#   b = a
+#   c = z
 
 # def copy_prop():
-# 	a = Number()
-# 	b = Number()
-# 	c = Number()
-# 	d = Number()
-# 	e = Number()
-# 	f = Number()
-	
-# 	u = Number()
-# 	v = Number()
-# 	w = Number()
-	
-# 	x = Number()
-# 	y = Number()
-# 	z = Number()
+#   a = Number()
+#   b = Number()
+#   c = Number()
+#   d = Number()
+#   e = Number()
+#   f = Number()
+    
+#   u = Number()
+#   v = Number()
+#   w = Number()
+    
+#   x = Number()
+#   y = Number()
+#   z = Number()
 
-# 	a = f
-# 	b = a
-# 	c = f
+#   a = f
+#   b = a
+#   c = f
 
-# 	u = b + a
-# 	v = c + d
-# 	w = e + f
+#   u = b + a
+#   v = c + d
+#   w = e + f
 
-# 	if True:
-# 		x = c + d
-# 		y = c + d
+#   if True:
+#       x = c + d
+#       y = c + d
 
-# 	else:
-# 		u = a + b
-# 		x = e + f
-# 		y = e + f
+#   else:
+#       u = a + b
+#       x = e + f
+#       y = e + f
 
-# 	z = u + y
-# 	u = a + b
+#   z = u + y
+#   u = a + b
 
 
 
 
 # def test():
-# 	a = Number()
-# 	b = Number()
-# 	c = Number()
+#   a = Number()
+#   b = Number()
+#   c = Number()
 
-# 	a = 2 + 3
-# 	b = a
-# 	c = b
+#   a = 2 + 3
+#   b = a
+#   c = b
 
-# 	return c
+#   return c
 
 
 
 # def double_while_loop():
-# 	i = Number()
-# 	i = 4
+#   i = Number()
+#   i = 4
 
-# 	while i > 0:
-# 		i -= 1
+#   while i > 0:
+#       i -= 1
 
-# 		j = Number()
-# 		j = 5
-# 		while j < 10:
-# 			j += 1
+#       j = Number()
+#       j = 5
+#       while j < 10:
+#           j += 1
 
 
 # def while_loop():
-# 	i = Number()
-# 	i = 4
+#   i = Number()
+#   i = 4
 
-# 	while i > 0:
-# 		i -= 1
+#   while i > 0:
+#       i -= 1
 
-# 	return i
+#   return i
 
 # def loop_invariant_code_motion2():
-# 	i = Number()
-# 	# i = 4
+#   i = Number()
+#   # i = 4
 
-# 	a = Number()
-# 	# a = 4
+#   a = Number()
+#   # a = 4
 
-# 	while i > 0:
-# 		# i -= 1
+#   while i > 0:
+#       # i -= 1
 
-# 		if i == 100:
-# 			a = 2 + 3
+#       if i == 100:
+#           a = 2 + 3
 
-# 			# break
+#           # break
 
-# 			# pass
-# 		# else:
-# 			# a = 5
-# 			# pass
+#           # pass
+#       # else:
+#           # a = 5
+#           # pass
 
-			
+            
 
-# 		# break
-# 		# pass
+#       # break
+#       # pass
 
-# 	# return a
+#   # return a
 
 
 # def loop_invariant_code_motion_induction():
-# 	i = Number()
-# 	i = 4
+#   i = Number()
+#   i = 4
 
-# 	while i > 0:
-# 		# i -= 1
-# 		if i == 1:
-# 			break
+#   while i > 0:
+#       # i -= 1
+#       if i == 1:
+#           break
 
-# 		# if i == 1:
-# 		i = 2
+#       # if i == 1:
+#       i = 2
 
-# 	return i
+#   return i
 
 
 # global_a = Number()
 # def global_var():
-# 	global_a += 1
+#   global_a += 1
 
-# 	return global_a
+#   return global_a
 
 # def while_loop():
-# 	i = Number()
-# 	i = 4
+#   i = Number()
+#   i = 4
 
-# 	while i > 0:
-# 		i -= 1
+#   while i > 0:
+#       i -= 1
 
-# 	return i
+#   return i
 
 # global_b = Number()
 # def constant_folding():
-# 	a = Number()
+#   a = Number()
 
-# 	# a = 1 + 2
+#   # a = 1 + 2
 
-# 	# a += 1
+#   # a += 1
 
-# 	return a - 0
+#   return a - 0
 
-# 	# return a
+#   # return a
 
-# 	a = 3 + 4 + 5
+#   a = 3 + 4 + 5
 
-# 	return a
+#   return a
 
 
-# 	a = 6 * global_b - 7
+#   a = 6 * global_b - 7
 
-	# global_b = 0
-	# a = 1 - a
+    # global_b = 0
+    # a = 1 - a
 
 # global_a = Fixed16()
 # global_b = Number()
 
 # def simple_ifelse():
-# 	a = Number()
-# 	b = Number()
+#   a = Number()
+#   b = Number()
 
-# 	if a > 0:
-# 		b = 1
+#   if a > 0:
+#       b = 1
 
-# 	else:
-# 		b = 2
+#   else:
+#       b = 2
 
-# 	return b
+#   return b
 
-
-
-# def while_loop_multiple_condition():
-# 	i = Number()
-# 	i = 4
-
-# 	a = Number()
-# 	a = 1
-
-# 	# this breaks liveness!!!
-# 	while i > 0 and a == 2:
-# 	# while i > 0 and a == 2:
-# 	# while a == 2:
-# 		i -= 1
-
-# 		a = 8 + 8
-
-# 	return a
 
 
 # def while_loop_multiple_condition():
-# 	a = Number()
-# 	while a == 2:
-# 		pass
+#   i = Number()
+#   i = 4
 
-	# return a
+#   a = Number()
+#   a = 1
+
+#   # this breaks liveness!!!
+#   while i > 0 and a == 2:
+#   # while i > 0 and a == 2:
+#   # while a == 2:
+#       i -= 1
+
+#       a = 8 + 8
+
+#   return a
+
+
+# def while_loop_multiple_condition():
+#   a = Number()
+#   while a == 2:
+#       pass
+
+    # return a
 
 
 
 # def while_loop():
-# 	i = Number()
-# 	i = 4
+#   i = Number()
+#   i = 4
 
-# 	# if i == 1:
-# 		# return 2
+#   # if i == 1:
+#       # return 2
 
-# 	a = Number()
-
-
-# 	# this breaks liveness!!!
-# 	while i > 0 and a == 2:
-# 		i -= 1
+#   a = Number()
 
 
+#   # this breaks liveness!!!
+#   while i > 0 and a == 2:
+#       i -= 1
 
-# 		# a = 2 + i
 
-# 		# a = 3 + 4
 
-# 		# a = Number()
-# 		# a = 2 + i + 4
-# 		# # a = 4
+#       # a = 2 + i
 
-# 		# while a > 0:
-# 		# 	a -= 1
-# 		# 	if a == 0:
-# 		# 		i -= 2
-# 		# 	else:
-# 		# 		i = 1
+#       # a = 3 + 4
 
-# 		# if i == 1:
-# 			# i = 2
+#       # a = Number()
+#       # a = 2 + i + 4
+#       # # a = 4
 
-# 		# else:
-# 			# i += 3
+#       # while a > 0:
+#       #   a -= 1
+#       #   if a == 0:
+#       #       i -= 2
+#       #   else:
+#       #       i = 1
 
-# 		# while a == 2:
-# 		# 	a += 1
-# 		# 	i -= 3
-# 			# i = a + 2 + 3
+#       # if i == 1:
+#           # i = 2
 
-# 		# i += 1
+#       # else:
+#           # i += 3
 
-# 	return a
+#       # while a == 2:
+#       #   a += 1
+#       #   i -= 3
+#           # i = a + 2 + 3
+
+#       # i += 1
+
+#   return a
 
 # def simple_array():
-# 	a = Number(count=4)
-# 	# pass
+#   a = Number(count=4)
+#   # pass
 
-# 	b = Number()
+#   b = Number()
 
-# 	# a = b[0] + a
+#   # a = b[0] + a
 
-# 	# a[0][1].h = b
-# 	global_a += 1
+#   # a[0][1].h = b
+#   global_a += 1
 
-# 	global_b = 3
-
-
-# 	global_a = 1 + 2
-
-# 	global_a = a + b
-
-# 	return 2
-	# b = a.x.y
-	# b[0] = a[1]
-
-	# b = a[b + 3]
-
-	# b = a[0].v[1].z.x
-	# a[0].v[1].z.x = b
-	# a[0].v[1].z.x = b[2].w[3][4]
-	
-	# a = Array(4, 3, 2)
-
-	# return a[0][1][2]
-
-	# pixels[2].val += 1
-	# pixels.val += 1
-
-	# b = Number()
-
-	# b = 1 + 2 + 3 +4
-
-	# b = 0
-
-	# if b == 1:
-	# 	return 2
-
-	# return b + 4
+#   global_b = 3
 
 
-# def func():
-# 	b = Number() # defines b0
+#   global_a = 1 + 2
 
-# 	# return 0
+#   global_a = a + b
 
-# # 	b += 1 # uses b0 and defines b1
+#   return 2
+    # b = a.x.y
+    # b[0] = a[1]
 
-# 	if b > 0: # uses B1
-# # 		b = b + 4 # defines b2
+    # b = a[b + 3]
 
-# 		return b
+    # b = a[0].v[1].z.x
+    # a[0].v[1].z.x = b
+    # a[0].v[1].z.x = b[2].w[3][4]
+    
+    # a = Array(4, 3, 2)
 
-# 	else:
-# # # 		# b = 3 # defines b3
-# 		b += 3
-# # # # 		# pass
+    # return a[0][1][2]
 
-# # # 		if b > 2:
-# # # 			b = 0
+    # pixels[2].val += 1
+    # pixels.val += 1
 
-# 	return b # uses b
-# # 	# need to define b4 and use b4 here
+    # b = Number()
+
+    # b = 1 + 2 + 3 +4
+
+    # b = 0
+
+    # if b == 1:
+    #   return 2
+
+    # return b + 4
+
 
 # def func():
-# 	b = Number()
-# 	i = Number()
-# 	i = 4
+#   b = Number() # defines b0
 
-# 	while i > 0:
-# 		i -= 1
+#   # return 0
 
-# 		b += i
+# #     b += 1 # uses b0 and defines b1
 
-# 		if i < 2:
-# 			i = 3
-		
+#   if b > 0: # uses B1
+# #         b = b + 4 # defines b2
 
-# 	if b == 0:
-# 		b = 2
+#       return b
 
-# 	return b
+#   else:
+# # #       # b = 3 # defines b3
+#       b += 3
+# # # #         # pass
+
+# # #       if b > 2:
+# # #           b = 0
+
+#   return b # uses b
+# #     # need to define b4 and use b4 here
+
+# def func():
+#   b = Number()
+#   i = Number()
+#   i = 4
+
+#   while i > 0:
+#       i -= 1
+
+#       b += i
+
+#       if i < 2:
+#           i = 3
+        
+
+#   if b == 0:
+#       b = 2
+
+#   return b
 
 
 
 # # def func(b: Number):
 # def func():
-# 	b = Number() 
-# 	temp_a = Number()
+#   b = Number() 
+#   temp_a = Number()
 
-# 	b += 1
+#   b += 1
 
-# 	# b = 1.0 + 2
-# 	# temp_b = Number()
+#   # b = 1.0 + 2
+#   # temp_b = Number()
 
-# 	if temp_a > 0:
-# 		# temp_b = Fixed16()
-# 		# temp_b = 1.0 + b
-# 		b = temp_a + 3
-		
-# 	else:
-# 		if temp_a > 0:
-# 			# temp_a += 1
-# 			b = 1
+#   if temp_a > 0:
+#       # temp_b = Fixed16()
+#       # temp_b = 1.0 + b
+#       b = temp_a + 3
+        
+#   else:
+#       if temp_a > 0:
+#           # temp_a += 1
+#           b = 1
 
-# 		# temp_b = Fixed16()
-		
-# 		# temp_a += 2
-# 		# b += 3
+#       # temp_b = Fixed16()
+        
+#       # temp_a += 2
+#       # b += 3
 
-# 	# temp_b += 1
-		
-# 	return b
+#   # temp_b += 1
+        
+#   return b
 
 
 # ********************************
 # Func code:
 # ********************************
-# 3	temp_a = Number()
-# 			Var(temp_a_v1, i32) = Const(0, i32)
-# 5	b += 1
-# 			Var(%0, i32) = Var(b_v0, i32) add Const(1, i32)
-# 			Var(b_v1, i32) = Var(%0, i32)
-# 7	if temp_a > 0:
-# 			Var(%1, i32) = Var(temp_a_v1, i32) gt Const(0, i32)
-# 			Var(%2, i32) = Var(%1, i32)
-# 			BR Z Var(%2, i32) -> if.else.0 (Line 0)
+# 3 temp_a = Number()
+#           Var(temp_a_v1, i32) = Const(0, i32)
+# 5 b += 1
+#           Var(%0, i32) = Var(b_v0, i32) add Const(1, i32)
+#           Var(b_v1, i32) = Var(%0, i32)
+# 7 if temp_a > 0:
+#           Var(%1, i32) = Var(temp_a_v1, i32) gt Const(0, i32)
+#           Var(%2, i32) = Var(%1, i32)
+#           BR Z Var(%2, i32) -> if.else.0 (Line 0)
 # LABEL if.then.0
-# 8	b = temp_a + 3
-# 			Var(%3, i32) = Var(temp_a_v1, i32) add Const(3, i32)
-# 			Var(b_v2, i32) = Var(%3, i32)
-# 			JMP -> if.end.0 (Line 7)
+# 8 b = temp_a + 3
+#           Var(%3, i32) = Var(temp_a_v1, i32) add Const(3, i32)
+#           Var(b_v2, i32) = Var(%3, i32)
+#           JMP -> if.end.0 (Line 7)
 # LABEL if.else.0
 # LABEL if.end.0
-# 			Var(b_v3, i32) = PHI(b)[func.2]
-# 26	return b
-# 			RET Var(b_v3, i32)
+#           Var(b_v3, i32) = PHI(b)[func.2]
+# 26    return b
+#           RET Var(b_v3, i32)
 
 # Control flow for this simple function:
 
@@ -568,23 +549,23 @@ def double_while_loop():
 # | Var(%2, i32) = Var(%1, i32)
 # | BR Z Var(%2, i32) -> if.else.0 (Line 0) # jumps to 2 (if.else.0), falls through to 1 (if.then.0) (2 targets)
 
-# 	| * BLOCK START 1
-# 	| * Predecessors: [0]
-# 	| * Successors: [3]
-# 	| * In: b_v1. temp_a_v1
-# 	| * Out: b_v2
-# 	| LABEL if.then.0
-# 	| # 8 b = temp_a + 3
-# 	| Var(%3, i32) = Var(temp_a_v1, i32) add Const(3, i32)
-# 	| Var(b_v2, i32) = Var(%3, i32)
-# 	| JMP -> if.end.0 # jumps to if.end.0 (only one target)
+#   | * BLOCK START 1
+#   | * Predecessors: [0]
+#   | * Successors: [3]
+#   | * In: b_v1. temp_a_v1
+#   | * Out: b_v2
+#   | LABEL if.then.0
+#   | # 8 b = temp_a + 3
+#   | Var(%3, i32) = Var(temp_a_v1, i32) add Const(3, i32)
+#   | Var(b_v2, i32) = Var(%3, i32)
+#   | JMP -> if.end.0 # jumps to if.end.0 (only one target)
 
-# 	| * BLOCK START 2
-# 	| * Predecessors: [0]
-# 	| * Successors: [3]
-# 	| * In: 
-# 	| * Out: 
-# 	| LABEL if.else.0
+#   | * BLOCK START 2
+#   | * Predecessors: [0]
+#   | * Successors: [3]
+#   | * In: 
+#   | * Out: 
+#   | LABEL if.else.0
 
 # | * BLOCK START 3
 # | * Predecessors: [1, 2]
@@ -614,21 +595,21 @@ def double_while_loop():
 # | Var(%2, i32) = Var(%1, i32)
 # | BR Z Var(%2, i32) -> if.else.0 (Line 0)
 
-# 	| * BLOCK START
-# 	| * In: b_v1. temp_a_v1
-# 	| * Out: b_v2
-# 	| LABEL if.then.0
-# 	| # 8 b = temp_a + 3
-# 	| Var(%3, i32) = Var(temp_a_v1, i32) add Const(3, i32)
-# 	| Var(b_v2, i32) = Var(%3, i32)
-# 	| Var(b_v3, i32) = Var(b_v2, i32)
-# 	| JMP -> if.end.0
+#   | * BLOCK START
+#   | * In: b_v1. temp_a_v1
+#   | * Out: b_v2
+#   | LABEL if.then.0
+#   | # 8 b = temp_a + 3
+#   | Var(%3, i32) = Var(temp_a_v1, i32) add Const(3, i32)
+#   | Var(b_v2, i32) = Var(%3, i32)
+#   | Var(b_v3, i32) = Var(b_v2, i32)
+#   | JMP -> if.end.0
 
-# 	| * BLOCK START
-# 	| * In: 
-# 	| * Out: 
-# 	| LABEL if.else.0
-# 	| Var(b_v3, i32) = Var(b_v1, i32)
+#   | * BLOCK START
+#   | * In: 
+#   | * Out: 
+#   | LABEL if.else.0
+#   | Var(b_v3, i32) = Var(b_v1, i32)
 
 # | * BLOCK START
 # | * In: b_v1. b_v2, temp_a_v1
@@ -645,68 +626,68 @@ def double_while_loop():
 
 
 # def func(b: Number):
-# 	temp_a = Number()
+#   temp_a = Number()
 
-# 	b += 1
+#   b += 1
 
-# 	if temp_a > 0:
-# 		b = temp_a + 3
-# 		# temp_a = 1
-		
-# 	else:
-# 		# b += 2
-# 		# temp_a += 1
-# 		pass
-# 		# if temp_a == 2:
-# 			# b = 4 + b
+#   if temp_a > 0:
+#       b = temp_a + 3
+#       # temp_a = 1
+        
+#   else:
+#       # b += 2
+#       # temp_a += 1
+#       pass
+#       # if temp_a == 2:
+#           # b = 4 + b
 
 
-# 	# if temp_a > 5:
-# 	# 	b = 3 + b
-		
-# 	# else:
-# 	# 	# b = 1 + 2
-# 	# 	temp_a = 5
+#   # if temp_a > 5:
+#   #   b = 3 + b
+        
+#   # else:
+#   #   # b = 1 + 2
+#   #   temp_a = 5
 
-# 	return b
+#   return b
 
 
 # def func2(b: Number):
-# 	temp_a = Number() # temp_a_v1
+#   temp_a = Number() # temp_a_v1
 
-# 	b += 1  # b_v1 = b_v0 + 1
+#   b += 1  # b_v1 = b_v0 + 1
 
-# 	temp_a = b + 2 # temp_a_v2 = b_v1 + 2
+#   temp_a = b + 2 # temp_a_v2 = b_v1 + 2
 
-# 	if temp_a > 0: # temp_v2
-# 		b = temp_a + 3 # b_v2 = temp_a_v2 + 3
+#   if temp_a > 0: # temp_v2
+#       b = temp_a + 3 # b_v2 = temp_a_v2 + 3
 
-# 		if b < 0: # b_v2
-# 			b = 1 # b_v3
-# 			b = 2 # b_v4
+#       if b < 0: # b_v2
+#           b = 1 # b_v3
+#           b = 2 # b_v4
 
-# 			temp_a = 6 # temp_a_v3
+#           temp_a = 6 # temp_a_v3
 
-# 			b = b + temp_a # b_v5 = b_v4 + temp_a_v3
-# 			# should reduce to 2 + 6
+#           b = b + temp_a # b_v5 = b_v4 + temp_a_v3
+#           # should reduce to 2 + 6
 
-# 		# elif b == 1:
-# 		# 	b = 2
+#       # elif b == 1:
+#       #   b = 2
 
-# 		else: # equivalent to elif
-# 			if b == 1: # b_v2
-# 				b = 2 # b_v6
+#       else: # equivalent to elif
+#           if b == 1: # b_v2
+#               b = 2 # b_v6
 
-# 			# phi(b_v6)
+#           # phi(b_v6)
 
-# 		# phi(b_v5, b_v6)
+#       # phi(b_v5, b_v6)
 
-# 	else:
-# 		b = 4 + b
+#   else:
+#       b = 4 + b
 
-# 	temp_a = b
+#   temp_a = b
 
-# 	return temp_a
+#   return temp_a
 
 
 
@@ -719,30 +700,30 @@ def double_while_loop():
     
 
 # def func2(b: Number):
-# 	temp_a = Number()
+#   temp_a = Number()
 
-# 	b += 2
-	
-# 	temp_a = global_a + 2 + b
+#   b += 2
+    
+#   temp_a = global_a + 2 + b
 
-# 	b = temp_a + 3
+#   b = temp_a + 3
 
-# 	temp_a = b
+#   temp_a = b
 
-# 	return temp_a
+#   return temp_a
 
 # compile error here!
 
 
 # def func3():
-# 	for i in 4:
-# 		func1()
+#   for i in 4:
+#       func1()
 
-# 		global_b = func2(i)
+#       global_b = func2(i)
 
 
-# 	if 1 == 1:
-# 		global_b += 1
+#   if 1 == 1:
+#       global_b += 1
 
-# 	else:
-# 		global_a += 1
+#   else:
+#       global_a += 1

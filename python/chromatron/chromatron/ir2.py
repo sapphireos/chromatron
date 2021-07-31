@@ -1598,35 +1598,6 @@ class irBlock(IR):
             ir = irPhi(var, values, lineno=-1)
             return ir
 
-            # clone var
-            # v = irVar(name=var._name, lineno=var.lineno)
-            # v.clone(var)
-            # v.block = self
-            # v.ssa_version = None
-            # v.convert_to_ssa()
-
-            # self.defines[v._name] = v
-
-            # values = []
-            # for p in self.predecessors:
-            #     pv = p.lookup_var(var)
-
-            #     if isinstance(pv, irPhi): # this Phi is getting lost and not added to the code sequence
-            #         pv = pv.target
-
-            #     elif isinstance(pv, irIncompletePhi):
-            #         pv = pv.var
-
-            #     values.append(pv)
-
-            # values = list(set(values))
-
-            # if v in values: # remove self references
-            #     values.remove(v)
-
-            # ir = irPhi(v, values, lineno=-1)
-            # return ir
-
         # if block is not sealed:
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
             assert not self.sealed
@@ -1677,8 +1648,8 @@ class irBlock(IR):
                 for p in self.predecessors:
                     v = p.lookup_var(ir.var)
 
-                    if isinstance(v, irPhi):
-                        continue
+                    # if isinstance(v, irPhi):
+                    #     continue
                         # v.block = self
                         # new_code.append(v)
 
@@ -1690,6 +1661,8 @@ class irBlock(IR):
 
                 if ir.var in values: # remove self references
                     values.remove(ir.var)
+
+                assert len(values) > 0
 
                 phi = irPhi(ir.var, values, lineno=ir.lineno)
                 phi.block = self
@@ -1748,32 +1721,18 @@ class irBlock(IR):
                     if isinstance(v, irPhi):
                         v.block = self
                         new_code.append(v)
+                        v.target.block = self
                         i.clone(v.target)
 
                     elif isinstance(v, irIncompletePhi):
                         v.block = self
                         new_code.append(v)
+                        v.var.block = self
                         i.clone(v.var)
 
                     else:
                         i.clone(v)
 
-
-                    # assert v is not None
-
-                    # if isinstance(v, irIncompletePhi):
-                    #     v.block = self
-                    #     new_code.append(v)
-                    #     i.clone(v.var)
-
-                    # elif isinstance(v, irPhi):
-                    #     v.block = selfr = irIncompletePhi
-                    #     new_code.append(v)
-                    #     i.clone(v.target)
-
-                    # else:
-                    #     i.clone(v)
-                    
                 # look for writes to current set of vars and increment versions
                 outputs = ir.local_output_vars
 
@@ -2627,8 +2586,8 @@ class irFunc(IR):
             assert block.filled
             assert block.sealed
         
-        for block in blocks:
-            block.clean_up_phis()
+        # for block in blocks:
+        #     block.clean_up_phis()
 
         logging.debug(f'SSA conversion in {iterations} iterations')
 
