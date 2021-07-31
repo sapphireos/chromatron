@@ -974,28 +974,32 @@ class irBlock(IR):
 
             # multiple values
             # create new var and add a phi node
-            var.ssa_version = None
-            var.block = self
-            var.convert_to_ssa()
-            self.defines[var._name] = var
+            new_var = irVar(name=var_name, lineno=-1)
+            new_var.clone(var)
+            new_var.block = self
+            new_var.ssa_version = None
+            new_var.convert_to_ssa()
+            self.defines[var_name] = new_var
 
-            self.add_phi(var, values)
+            self.add_phi(new_var, values)
 
-            return var
+            return new_var
 
         # if block is not sealed:
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
             assert not self.sealed
 
-            var.ssa_version = None
-            var.block = self
-            var.convert_to_ssa()
-            self.defines[var._name] = var
+            new_var = irVar(name=var_name, lineno=-1)
+            new_var.clone(var)
+            new_var.block = self
+            new_var.ssa_version = None
+            new_var.convert_to_ssa()
+            self.defines[var_name] = new_var
 
             # this requires an incomplete phi which defines a new value
-            self.add_incomplete_phi(var)
+            self.add_incomplete_phi(new_var)
 
-            return var
+            return new_var
 
         else:
             assert False
@@ -1875,7 +1879,7 @@ class irFunc(IR):
 
         # liveness
 
-        # self.liveness_analysis()
+        self.liveness_analysis()
 
         # allocate registers
 

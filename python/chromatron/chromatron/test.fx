@@ -1,11 +1,11 @@
-# def while_if_while():
-#     a = Number()
-#     b = Number()
+def while_if_while():
+    a = Number()
+    b = Number()
 
-#     while a > b:
-#         if a > b:
-#             while a > b:
-#                 pass
+    while a > b:
+        if a > b:
+            while a > b:
+                pass
         
 
 # def another_while_if():
@@ -16,17 +16,17 @@
 #             pass
 
 
-def simple_ifelse():
-    a = Number()
-    b = Number()
+# def simple_ifelse():
+#     a = Number()
+#     b = Number()
 
-    if a > 0:
-        b = 1
+#     if a > 0:
+#         b = 1
 
-    else:
-        b = 2
+#     else:
+#         b = 2
 
-    return b
+#     return b
 
 
 # def two_ifelse():
