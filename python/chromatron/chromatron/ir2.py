@@ -1123,6 +1123,8 @@ class irBlock(IR):
         self.filled = True                    
 
     def clean_up_phis(self):
+        changed = False
+
         assert len([ir for ir in self.code if isinstance(ir, irIncompletePhi)]) == 0
 
         # insert any phis that are leftover
@@ -1131,6 +1133,10 @@ class irBlock(IR):
             assert isinstance(ir, irPhi)
 
             self.code.insert(1, ir)
+
+            changed = True
+
+        self.temp_phis = [] # done with temp phis
 
         new_code = []
         for ir in self.code:
@@ -1146,19 +1152,39 @@ class irBlock(IR):
 
                         break
 
-                # check if only one define
-                # these convert trivially to assigns
-                if len(ir.defines) == 1:
-                    ir = irAssign(ir.target, ir.defines[0], lineno=ir.lineno)
-                    ir.block = self
-
                 # no defines?
-                elif len(ir.defines) == 0:
-                    continue # skip phi
+                if len(ir.defines) == 0:
+                    continue # skip phi (remove from code)
+
+                # check if only one define
+                # if so, that means that any user of the target var is a copy of
+                # the singular definition - they must always be equivalent.  thanks SSA!
+                # we can replace all users of the target with the define, eliminating
+                # this phi and also eliminating a variable.
+                elif len(ir.defines) == 1:
+
+                    # get all users of this variable
+                    users = [i for i in self.func.local_input_vars if i == ir.target]
+
+                    for user in users:
+                        user.clone(ir.defines[0])
+
+                    changed = True
+                    continue # remove phi from code
+
+                # check if the phi target variable is in it's defines.
+                # this could occur during a previous replace-use (above)
+                # if so, let's remove it
+                elif ir.target in ir.defines:
+                    ir.defines.remove(ir.target)
+                    changed = True
+                                    
 
             new_code.append(ir)
 
         self.code = new_code
+
+        return changed
 
 
 class irFunc(IR):
@@ -1718,13 +1744,22 @@ class irFunc(IR):
                 block.fill()
                 block.seal()
 
-
         for block in blocks:
             assert block.filled
             assert block.sealed
         
-        for block in blocks:
-            block.clean_up_phis()
+        changed = True
+        while changed:
+            iterations += 1
+
+            if iterations > iteration_limit:
+                raise CompilerFatal(f'SSA conversion failed after {iterations} iterations')
+                break
+                
+            changed = False
+            for block in blocks:
+                if block.clean_up_phis():
+                    changed = True
 
         logging.debug(f'SSA conversion in {iterations} iterations')
 
@@ -1849,7 +1884,7 @@ class irFunc(IR):
 
 
 
-        # return
+        return
 
         # convert out of SSA form
         self.resolve_phi()

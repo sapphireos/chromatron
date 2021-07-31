@@ -92,15 +92,14 @@ def another_while_if():
             pass
 
 
-
 def while_if_while():
     a = Number()
-    b = Number()
-
-    while a > b:
-        if a > b:
-            while a > b:
+    
+    while a > 0:
+        if a > 0:
+            while a > 0:
                 pass
+        
         
 
 # global_a = Number()
