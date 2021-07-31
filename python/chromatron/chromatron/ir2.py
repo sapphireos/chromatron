@@ -165,6 +165,7 @@ class irBlock(IR):
         self.params = {}
         self.func = func
         self.globals = self.func.globals
+        self.defines = {}
 
         self.entry_label = None
         self.jump_target = None
@@ -876,6 +877,10 @@ class irBlock(IR):
             merge_block.successors.append(self)
             self.predecessors.remove(in_block)
             self.predecessors.append(merge_block)
+
+            # merge blocks are considered "auto" filled and sealed
+            merge_block.filled = True
+            merge_block.sealed = True
 
             merge_blocks[in_block] = merge_block
 
@@ -1841,6 +1846,9 @@ class irFunc(IR):
 
         self.loops = loops
 
+    def allocate_registers(self, max_registers=32):
+        pass
+
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
         
@@ -1909,6 +1917,7 @@ class irFunc(IR):
         self.liveness_analysis()
 
         # allocate registers
+        self.allocate_registers()
 
         self.code = self.get_code_from_blocks()
 
