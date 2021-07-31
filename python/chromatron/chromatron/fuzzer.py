@@ -438,7 +438,7 @@ def main():
 	# with open('_fuzz.py', 'w') as f:
 		# f.write(py)
 
-	for i in range(10000):
+	for i in range(1000):
 		print(i)
 		
 		try:
