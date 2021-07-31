@@ -175,6 +175,7 @@ class irBlock(IR):
         self.is_ssa = False
         self.filled = False
         self.sealed = False
+        self.temp_phis = []
 
     def __str__(self):
         tab = '\t'
@@ -1524,9 +1525,18 @@ class irBlock(IR):
         # we can remove trivial phis in our clean up pass
 
 
-
-
     """
+
+
+    def add_phi(self, var, values):
+        ir = irPhi(var, values, lineno=-1)
+        ir.block = self
+        self.temp_phis.append(ir)
+
+    def add_incomplete_phi(self, var):
+        ir = irIncompletePhi(var, self, lineno=-1)
+        ir.block = self
+        self.temp_phis.append(ir)
 
     def lookup_var(self, var, skip_local=False, visited=None):
         if visited is None:
@@ -1566,8 +1576,6 @@ class irBlock(IR):
 
             assert var._name not in self.defines
 
-            # self.defines[var._name] = None
-
             values = []
 
             for p in self.predecessors:
@@ -1595,8 +1603,10 @@ class irBlock(IR):
             var.convert_to_ssa()
             self.defines[var._name] = var
 
-            ir = irPhi(var, values, lineno=-1)
-            return ir
+            # ir = irPhi(var, values, lineno=-1)
+            self.add_phi(var, values)
+
+            return var
 
         # if block is not sealed:
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
@@ -1618,8 +1628,10 @@ class irBlock(IR):
             self.defines[var._name] = var
 
             # this requires an incomplete phi which defines a new value
-            ir = irIncompletePhi(var, self, lineno=-1)
-            return ir
+            # ir = irIncompletePhi(var, self, lineno=-1)
+            self.add_incomplete_phi(var)
+
+            return var
 
         else:
             assert False
@@ -1640,6 +1652,12 @@ class irBlock(IR):
             # at least one predecessor is unfilled
             return
 
+        # get any incomplete phis and add them to the code
+        for ir in [p for p in self.temp_phis if isinstance(p, irIncompletePhi)]:
+            self.code.insert(1, ir)
+
+        self.temp_phis = [p for p in self.temp_phis if not isinstance(p, irIncompletePhi)]
+
         # we can seal this block
         new_code = []
         for ir in self.code:
@@ -1648,12 +1666,6 @@ class irBlock(IR):
                 for p in self.predecessors:
                     v = p.lookup_var(ir.var)
 
-                    # if isinstance(v, irPhi):
-                    #     continue
-                        # v.block = self
-                        # new_code.append(v)
-
-                        # v = v.target
                     if v is not None:
                         values.append(v)
 
@@ -1675,8 +1687,6 @@ class irBlock(IR):
         self.code = new_code
 
         self.sealed = True
-
-
 
     def fill(self):
         if self.filled:
@@ -1717,21 +1727,18 @@ class irBlock(IR):
                     except KeyError:
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
+                    # if isinstance(v, irPhi):
+                    #     v.block = self
+                    #     new_code.append(v)
+                    #     v.target.block = self
+                    #     i.clone(v.target)
 
-                    if isinstance(v, irPhi):
-                        v.block = self
-                        new_code.append(v)
-                        v.target.block = self
-                        i.clone(v.target)
+                    # elif isinstance(v, irIncompletePhi):
+                    #     new_code.append(v)
+                    #     # i.clone(v.var)
 
-                    elif isinstance(v, irIncompletePhi):
-                        v.block = self
-                        new_code.append(v)
-                        v.var.block = self
-                        i.clone(v.var)
-
-                    else:
-                        i.clone(v)
+                    # else:
+                    i.clone(v)
 
                 # look for writes to current set of vars and increment versions
                 outputs = ir.local_output_vars
@@ -1760,6 +1767,13 @@ class irBlock(IR):
 
     def clean_up_phis(self):
         assert len([ir for ir in self.code if isinstance(ir, irIncompletePhi)]) == 0
+
+        # insert any phis that are leftover
+        for ir in self.temp_phis:
+            # incomplete phis should already have been processed at this point
+            assert isinstance(ir, irPhi)
+
+            self.code.insert(1, ir)
 
         new_code = []
         for ir in self.code:
@@ -2574,7 +2588,7 @@ class irFunc(IR):
             iterations += 1
 
             if iterations > iteration_limit:
-                raise CompilerFatal()
+                raise CompilerFatal(f'SSA conversion failed after {iterations} iterations')
                 break
 
             for block in blocks:
@@ -2586,8 +2600,8 @@ class irFunc(IR):
             assert block.filled
             assert block.sealed
         
-        # for block in blocks:
-        #     block.clean_up_phis()
+        for block in blocks:
+            block.clean_up_phis()
 
         logging.debug(f'SSA conversion in {iterations} iterations')
 
@@ -3226,7 +3240,7 @@ class irIncompletePhi(IR):
         self.block = block
 
     def __str__(self):
-        return f'{self.var} = Incomplete PHI()'
+        return f'{self.var} = Incomplete PHI() @ {self.block.name}'
 
 class irNop(IR):
     def __init__(self, **kwargs):

@@ -1,10 +1,10 @@
 
-def another_while_if():
-    a = Number()
+# def another_while_if():
+#     a = Number()
 
-    while a > 0:
-        if True:
-            pass
+#     while a > 0:
+#         if True:
+#             pass
 
 
 # def simple_ifelse():
@@ -62,6 +62,18 @@ def another_while_if():
 #             j -= 1
 
 
+
+def while_with_if_loop():
+    i = Number()
+    i = 4
+    a = Number()
+    b = Number()
+
+    while i > 0:
+        i -= 1
+
+        if a < b:
+            i = 0
 
 
 # def stuff():
