@@ -300,27 +300,19 @@ class irBlock(IR):
 
     @property
     def local_input_vars(self):
-        v = {}
+        v = []
         for node in self.code:
-            inputs = node.local_input_vars
+            v.extend(node.local_input_vars)
 
-            for i in inputs:
-                if i.name not in v:
-                    v[i.name] = i
-
-        return v.values()
+        return v
 
     @property
     def local_output_vars(self):
-        v = {}
+        v = []
         for node in self.code:
-            outputs = node.local_output_vars
+            v.extend(node.local_output_vars)
 
-            for o in outputs:
-                if o.name not in v:
-                    v[o.name] = o
-
-        return v.values()
+        return v
 
     def get_input_vars(self):
         v = []
@@ -1884,7 +1876,7 @@ class irFunc(IR):
 
 
 
-        return
+        # return
 
         # convert out of SSA form
         self.resolve_phi()

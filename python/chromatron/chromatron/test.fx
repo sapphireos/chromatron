@@ -1,3 +1,12 @@
+def func():
+    a = Number()
+    
+    if a > 0:
+        while True:
+            if a > a:
+                pass
+    
+
 # def while_if_while():
 #     a = Number()
 #     # b = Number()
@@ -29,23 +38,23 @@
 #     return b
 
 
-def two_ifelse():
-    a = Number()
-    b = Number()
+# def two_ifelse():
+#     a = Number()
+#     b = Number()
 
-    if a > 0:
-        b = 1
+#     if a > 0:
+#         b = 1
 
-    else:
-        b = 2
+#     else:
+#         b = 2
 
-    if b < 0:
-        a = 1
+#     if b < 0:
+#         a = 1
 
-    else:
-        b = 2
+#     else:
+#         b = 2
 
-    return b
+#     return b
 
 
 
