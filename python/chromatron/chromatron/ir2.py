@@ -1528,7 +1528,15 @@ class irBlock(IR):
 
     """
 
-    def lookup_var(self, var, skip_local=False):
+    def lookup_var(self, var, skip_local=False, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return None
+
+        visited.append(self)
+
         if not isinstance(var, str):
             var_name = var._name
 
@@ -1550,7 +1558,7 @@ class irBlock(IR):
             # we check that here.  since there is only one in this case, it has to be filled.
             assert self.predecessors[0].filled
 
-            v = self.predecessors[0].lookup_var(var)
+            v = self.predecessors[0].lookup_var(var, visited=visited)
             return v
 
         # if block is sealed (all preds are filled)
@@ -1558,27 +1566,37 @@ class irBlock(IR):
 
             assert var._name not in self.defines
 
-            self.defines[var._name] = None
+            # self.defines[var._name] = None
 
             values = []
 
             for p in self.predecessors:
-                pv = p.lookup_var(var)
+                pv = p.lookup_var(var, visited=visited)
 
                 if isinstance(pv, list):
                     for item in pv:
                         if item is not None:
                             values.append(item)
 
-                else:
+                elif pv is not None:
                     values.append(pv)
 
             values = list(set(values))
 
+            assert len(values) > 0
+
             if len(values) == 1:
                 return values[0]
 
-            return values
+            # multiple values
+            # create new var and add a phi node
+            var.ssa_version = None
+            var.block = self
+            var.convert_to_ssa()
+            self.defines[var._name] = var
+
+            ir = irPhi(var, values, lineno=-1)
+            return ir
 
             # clone var
             # v = irVar(name=var._name, lineno=var.lineno)
@@ -1727,9 +1745,10 @@ class irBlock(IR):
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
 
-                    if isinstance(v, list):
-                        print(v)
-                        raise Exception
+                    if isinstance(v, irPhi):
+                        v.block = self
+                        new_code.append(v)
+                        i.clone(v.target)
 
                     elif isinstance(v, irIncompletePhi):
                         v.block = self
