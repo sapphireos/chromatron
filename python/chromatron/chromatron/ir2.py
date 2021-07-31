@@ -1550,7 +1550,7 @@ class irBlock(IR):
             # we check that here.  since there is only one in this case, it has to be filled.
             assert self.predecessors[0].filled
 
-            v = self.predecessors[0].lookup_var(var, visited=visited)
+            v = self.predecessors[0].lookup_var(var)
             return v
 
         # if block is sealed (all preds are filled)
@@ -1569,7 +1569,7 @@ class irBlock(IR):
             for p in self.predecessors:
                 pv = p.lookup_var(var)
 
-                if isinstance(pv, irPhi):
+                if isinstance(pv, irPhi): # this Phi is getting lost and not added to the code sequence
                     pv = pv.target
 
                 elif isinstance(pv, irIncompletePhi):
@@ -1588,6 +1588,16 @@ class irBlock(IR):
         # if block is not sealed:
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
             assert not self.sealed
+
+
+            # v = irVar(name=var._name, lineno=var.lineno)
+            # v.clone(var)
+            # v.block = self
+            # v.ssa_version = None
+            # v.convert_to_ssa()
+
+            # self.defines[v._name] = v
+
 
             var.ssa_version = None
             var.block = self
@@ -2521,6 +2531,16 @@ class irFunc(IR):
                     logging.critical(f'FATAL: {ir} from {block.name} does not have a block assignment.')
                     raise
 
+    def verify_variables(self):
+        # check that used vars have a define
+        # this is just a basic check, it does not
+        # perform a dataflow analysis
+        outputs = self.local_output_vars
+        for i in self.local_input_vars:
+            if i not in outputs:
+                raise CompilerFatal(f'Variable {i} used without define')
+
+
     def resolve_phi(self):
         merge_number = 0
         for block in self.blocks.values():
@@ -2658,6 +2678,7 @@ class irFunc(IR):
         # checks
         self.verify_block_assignments()
         self.verify_ssa()
+        self.verify_variables();
         
         # loop analysis
         self.analyze_loops()
