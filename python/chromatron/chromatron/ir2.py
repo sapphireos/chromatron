@@ -1591,7 +1591,13 @@ class irBlock(IR):
 
             values = list(set(values))
 
-            assert len(values) > 0
+            # remove self reference
+            if var in values:
+                values.remove(var)
+
+            if len(values) == 0:
+                # no values left
+                return var
 
             if len(values) == 1:
                 return values[0]
