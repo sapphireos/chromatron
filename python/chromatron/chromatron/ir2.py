@@ -402,7 +402,7 @@ class irBlock(IR):
                 self.declarations[ir.var._name] = ir.var
 
                 # init variable to 0
-                assign = irLoadConst(ir.var, self.func.get_zero(ir.lineno), lineno=ir.lineno)
+                assign = irLoadConst(copy(ir.var), self.func.get_zero(ir.lineno), lineno=ir.lineno)
                 assign.block = self
                 
                 new_code.append(assign)
@@ -760,34 +760,34 @@ class irBlock(IR):
         # remove instructions:
         self.code = [ir for ir in self.code if ir not in remove]
 
-    def local_value_numbering(self):
-        next_val = self.func.current_value_num
+    # def local_value_numbering(self):
+    #     next_val = self.func.current_value_num
         
-        values = {}
-        defines = {}
+    #     values = {}
+    #     defines = {}
 
-        for ir in self.code:
-            if isinstance(ir, irLoadConst):                
-                pass
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoadConst):                
+    #             pass
 
-            elif isinstance(ir, irAssign):
-                target = ir.target
-                values = [ir.value]
-                op = '='
+    #         elif isinstance(ir, irAssign):
+    #             target = ir.target
+    #             values = [ir.value]
+    #             op = '='
 
-            else:
-                continue
-
-
-            target.ssa_version = next_val
-            values[target] = next_val
+    #         else:
+    #             continue
 
 
-            next_val += 1
+    #         target.ssa_version = next_val
+    #         values[target] = next_val
 
 
-        self.func.current_value_num = next_val
-        self.local_values = values
+    #         next_val += 1
+
+
+    #     self.func.current_value_num = next_val
+    #     self.local_values = values
 
     ##############################################
     # Transformation Passes
@@ -1097,16 +1097,16 @@ class irBlock(IR):
                 outputs = ir.local_output_vars
 
                 for o in outputs:
+                    o.block = self
+
                     # check if we have a definition:
                     try:
-                        self.lookup_var(o)
-
-                        # this is just to check that the variable has been declared
+                        v = self.lookup_var(o)
 
                     except KeyError:
                         raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
 
-                    o.block = self
+                    o.clone(v)
                     o.ssa_version = None
                     o.convert_to_ssa()
                     
@@ -1181,11 +1181,12 @@ class irFunc(IR):
         self.live_vars = None
         self.loops = {}
 
-
         self.live_in = None
         self.live_out = None
 
-        self.current_value_num = 0
+        self.ssa_next_val = {}
+
+        # self.current_value_num = 0
 
     def get_zero(self, lineno=None):
         return self.consts['0']
@@ -1193,7 +1194,6 @@ class irFunc(IR):
     @property
     def blocks(self):
         return {b.name: b for b in self.leader_block.get_blocks()}
-        # return {b.name: b for b in sorted(self.leader_block.get_blocks(), key=lambda a: a.lineno)}
 
     @property
     def global_input_vars(self):
@@ -1677,7 +1677,7 @@ class irFunc(IR):
         for block in self.blocks.values():
             for ir in block.code:
                 if isinstance(ir, irDefine):
-                    if ir.var.ssa_version != 1:
+                    if ir.var.ssa_version != 0:
                         raise CompilerFatal(f'Variable {ir.var} at line {ir.lineno} modified out of place')
 
 
@@ -1698,7 +1698,7 @@ class irFunc(IR):
     def convert_to_ssa(self):
         blocks = self.blocks.values()
         
-        self.next_val = 0
+        self.ssa_next_val = {}
         iterations = 0
         iteration_limit = 1024
         while (len([b for b in blocks if not b.filled]) > 0) or \
@@ -2827,46 +2827,26 @@ class irVar(IR):
         self.type = datatype
 
         self.is_global = False
-        # self._is_global_modified = False
         self.is_temp = False
         self.holds_const = False
         self.is_const = False
         self.ssa_version = None
 
-    # @property
-    # def is_global_modified(self):
-    #     return self._is_global_modified
-
-    # @is_global_modified.setter
-    # def is_global_modified(self, value):
-    #     if value:
-    #         assert self.is_global
-
-    #     self._is_global_modified = value
-
     def __hash__(self):
-        # if self.ssa_version is None:
-        #     return hash(id(self))
-
-        # else:
-        #     return hash(self.name)
-
         return hash(self.name)
 
     def __eq__(self, other):
-        # if self.ssa_version is None:
-        #     return super().__eq__(other)
-
-        # else:
-        #     return self.name == other.name   
         return self.name == other.name  
 
     def convert_to_ssa(self):
         assert self.ssa_version is None
         assert self.block is not None
 
-        self.ssa_version = self.block.func.next_val
-        self.block.func.next_val += 1
+        if self._name not in self.block.func.ssa_next_val:
+            self.block.func.ssa_next_val[self._name] = 0
+
+        self.ssa_version = self.block.func.ssa_next_val[self._name]
+        self.block.func.ssa_next_val[self._name] += 1
 
     def clone(self, source):
         assert self._name == source._name
