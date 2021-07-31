@@ -24,6 +24,41 @@
     #             if a > a:
     #                 pass
 
+
+
+# def simple_ifelse():
+#     a = Number()
+#     b = Number()
+
+#     if a > 0:
+#         b = 1
+
+#     else:
+#         b = 2
+
+#     return b
+
+
+# def two_ifelse():
+#     a = Number()
+#     b = Number()
+
+#     if a > 0:
+#         b = 1
+
+#     else:
+#         b = 2
+
+#     if b < 0:
+#         a = 1
+
+#     else:
+#         b = 2
+
+#     return b
+
+
+
 # def while_loop():
 #     i = Number()
 #     i = 4
@@ -44,6 +79,9 @@ def double_while_loop():
 
         while j > 0:
             j -= 1
+
+
+
 
 # def stuff():
 # 	i = Number()

@@ -1556,34 +1556,58 @@ class irBlock(IR):
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
 
-            # clone var
-            v = irVar(name=var._name, lineno=var.lineno)
-            v.clone(var)
-            v.block = self
-            v.ssa_version = None
-            v.convert_to_ssa()
+            assert var._name not in self.defines
 
-            self.defines[v._name] = v
+            self.defines[var._name] = None
 
             values = []
+
             for p in self.predecessors:
                 pv = p.lookup_var(var)
 
-                if isinstance(pv, irPhi): # this Phi is getting lost and not added to the code sequence
-                    pv = pv.target
+                if isinstance(pv, list):
+                    for item in pv:
+                        if item is not None:
+                            values.append(item)
 
-                elif isinstance(pv, irIncompletePhi):
-                    pv = pv.var
-
-                values.append(pv)
+                else:
+                    values.append(pv)
 
             values = list(set(values))
 
-            if v in values: # remove self references
-                values.remove(v)
+            if len(values) == 1:
+                return values[0]
 
-            ir = irPhi(v, values, lineno=-1)
-            return ir
+            return values
+
+            # clone var
+            # v = irVar(name=var._name, lineno=var.lineno)
+            # v.clone(var)
+            # v.block = self
+            # v.ssa_version = None
+            # v.convert_to_ssa()
+
+            # self.defines[v._name] = v
+
+            # values = []
+            # for p in self.predecessors:
+            #     pv = p.lookup_var(var)
+
+            #     if isinstance(pv, irPhi): # this Phi is getting lost and not added to the code sequence
+            #         pv = pv.target
+
+            #     elif isinstance(pv, irIncompletePhi):
+            #         pv = pv.var
+
+            #     values.append(pv)
+
+            # values = list(set(values))
+
+            # if v in values: # remove self references
+            #     values.remove(v)
+
+            # ir = irPhi(v, values, lineno=-1)
+            # return ir
 
         # if block is not sealed:
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
@@ -1641,8 +1665,8 @@ class irBlock(IR):
                         # new_code.append(v)
 
                         # v = v.target
-
-                    values.append(v)
+                    if v is not None:
+                        values.append(v)
 
                 values = list(set(values))
 
@@ -1702,20 +1726,34 @@ class irBlock(IR):
                     except KeyError:
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
-                    assert v is not None
 
-                    if isinstance(v, irIncompletePhi):
+                    if isinstance(v, list):
+                        print(v)
+                        raise Exception
+
+                    elif isinstance(v, irIncompletePhi):
                         v.block = self
                         new_code.append(v)
                         i.clone(v.var)
 
-                    elif isinstance(v, irPhi):
-                        v.block = self
-                        new_code.append(v)
-                        i.clone(v.target)
-
                     else:
                         i.clone(v)
+
+
+                    # assert v is not None
+
+                    # if isinstance(v, irIncompletePhi):
+                    #     v.block = self
+                    #     new_code.append(v)
+                    #     i.clone(v.var)
+
+                    # elif isinstance(v, irPhi):
+                    #     v.block = selfr = irIncompletePhi
+                    #     new_code.append(v)
+                    #     i.clone(v.target)
+
+                    # else:
+                    #     i.clone(v)
                     
                 # look for writes to current set of vars and increment versions
                 outputs = ir.local_output_vars
