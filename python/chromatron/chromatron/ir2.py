@@ -87,6 +87,10 @@ class IR(object):
         return None
 
     @property
+    def loop_depth(self):
+        return len(self.loops)
+
+    @property
     def global_input_vars(self):
         return [a for a in self.get_input_vars() if a.is_global]
 
@@ -646,7 +650,7 @@ class irBlock(IR):
         visited.append(self)
 
         blocks = [self]
-        
+
         for s in self.successors:
             blocks.extend(s.get_blocks_depth_first(visited=visited))
 
@@ -1951,6 +1955,11 @@ class irFunc(IR):
             for block in info['body']:
                 block.loops.append(loop)
 
+        # attach loop information to IR code
+        for block in self.blocks.values():
+            for ir in block.code:
+                ir.loops = loops.keys()
+
         self.loops = loops
 
     @property
@@ -2192,10 +2201,6 @@ class irFunc(IR):
         code = []
 
         for block in self.sorted_blocks:
-            # attach loop data to instructions
-            for ir in block.code:
-                ir.loops = self.loops.keys()
-
             # attach code
             code.extend(block.code)
 
