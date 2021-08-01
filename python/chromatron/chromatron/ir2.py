@@ -1971,7 +1971,8 @@ class irFunc(IR):
 
     def generate(self):
         self.instructions = []
-        for ir in self.get_code_from_blocks():
+        assert len(self.code) > 0
+        for ir in self.code:
             ins = ir.generate()
 
             if ins is None:
@@ -2025,7 +2026,7 @@ class irFunc(IR):
         # convert out of SSA form
         self.resolve_phi()
 
-        # blocks may be rearranged or added at this point
+        # blocks may have been rearranged or added at this point
 
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
@@ -2049,16 +2050,17 @@ class irFunc(IR):
 
 
         # liveness
-
         self.liveness_analysis()
 
         # allocate registers
         self.allocate_registers()
 
 
+        # convert to IR code listing        
+        self.code = self.get_code_from_blocks()
+
         # prune jumps
-
-
+        self.prune_jumps()
 
         # return
 
@@ -2238,32 +2240,49 @@ class irFunc(IR):
                     raise
 
     def prune_jumps(self):
+        iterations = 0
+        iteration_limit = 128
+
+        old_length = len(self.code)
+
         new_code = []
+        prev_code = self.code
+        while prev_code != new_code:
+            iterations += 1
 
-        # this is a peephole optimization
-        # note we skip the last instruction in the loop, since
-        # we check current + 1 in the peephole
-        for index in range(len(self.code) - 1):
-            ir = self.code[index]
-            next_ir = self.code[index + 1]
+            if iterations > iteration_limit:
+                raise CompilerFatal(f'Prune jumps failed after {iterations} iterations')
+                break
 
-            # if a jump followed by a label:
-            if isinstance(ir, irJump) and isinstance(next_ir, irLabel):
-                # check if label is jump target:
-                if ir.target.name == next_ir.name:
-                    # skip this jump
-                    pass          
+            new_code = []
+            prev_code = self.code
+
+            # this is a peephole optimization
+            # note we skip the last instruction in the loop, since
+            # we check current + 1 in the peephole
+            for index in range(len(self.code) - 1):
+                ir = self.code[index]
+                next_ir = self.code[index + 1]
+
+                # if a jump followed by a label:
+                if isinstance(ir, irJump) and isinstance(next_ir, irLabel):
+                    # check if label is jump target:
+                    if ir.target.name == next_ir.name:
+                        # skip this jump
+                        pass
+
+                    else:
+                        new_code.append(ir)
 
                 else:
                     new_code.append(ir)
 
-            else:
-                new_code.append(ir)
+            # append last instruction (since loop will miss it)
+            new_code.append(self.code[-1])
 
-        # append last instruction (since loop will miss it)
-        new_code.append(self.code[-1])
-
-        self.code = new_code
+            self.code = new_code
+        
+        logging.debug(f'Prune jumps in {iterations} iterations. Eliminated {old_length - len(self.code)} instructions')
 
     # remove all no-op instructions
     def prune_no_ops(self):
