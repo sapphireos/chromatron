@@ -215,8 +215,10 @@ class irBlock(IR):
 
             if self.func.live_in:
                 s += f'{ir_s}\n'
-                s += f'{depth}|\t  in:  {sorted(list(set([a.name for a in self.func.live_in[ir]])))}\n'
-                s += f'{depth}|\t  out: {sorted(list(set([a.name for a in self.func.live_out[ir]])))}\n'
+                ins = sorted(list(set([f'{a.name} @ {a.register}' for a in self.func.live_in[ir]])))
+                outs = sorted(list(set([f'{a.name} @ {a.register}' for a in self.func.live_out[ir]])))
+                s += f'{depth}|\t  in:  {ins}\n'
+                s += f'{depth}|\t  out: {outs}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -1183,6 +1185,65 @@ class irBlock(IR):
 
         return changed
 
+    def allocate_registers(self, max_registers, registers=None, address_pool=None, visited=None):
+        if visited is None:
+            visited = []
+
+            registers = {}
+            address_pool = list(range(max_registers)) # preload with all registers
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        # naive, greedy, linear scan
+        # the simplest thing that will work!
+        #
+        # for vars in live_in that are not in live_out,
+        # assign to instruction inputs, then release from 
+        # address pool
+        #
+        # vars in live out: 
+        # if not allocated, allocate register
+        # assign addr to instruction output
+        #
+        # verify instruction vars have live registers
+        #
+        # we can skip spills for now since we can go to 256 registers
+        #
+        # depth first tree traversal 
+        #
+        #
+
+        for ir in self.code:
+            for i in ir.get_input_vars():
+                assert i in registers
+                # assign register
+                i.register = registers[i]
+
+            kills = ir.live_in - ir.live_out
+            
+            for k in kills:
+                # return register to pool
+                address_pool.insert(0, registers[k])
+                del registers[k]
+
+            for v in ir.live_out:
+                if v not in registers:
+                    # assign from pool
+                    registers[v] = address_pool.pop(0)
+
+            for o in ir.get_output_vars():
+                # var might not be in registers
+                # this is the case if the variable isn't live
+                # and this is a dead instruction
+                if o in registers:
+                    o.register = registers[o]
+
+        for suc in self.successors:
+            suc.allocate_registers(max_registers, copy(registers), copy(address_pool), visited=visited)
+
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
@@ -1685,6 +1746,11 @@ class irFunc(IR):
         assert len(self.live_in[code[0]]) == len(self.params)
         assert len(self.live_out[code[0]]) == len(self.params)
 
+        # copy liveness information into instructions:
+        for ir in self.get_code_from_blocks():
+            ir.live_in = set(self.live_in[ir])
+            ir.live_out = set(self.live_out[ir])
+
 
     def verify_block_assignments(self):
         # verify all instructions are recording their blocks:
@@ -1752,7 +1818,7 @@ class irFunc(IR):
             if iterations > iteration_limit:
                 raise CompilerFatal(f'SSA conversion failed after {iterations} iterations')
                 break
-                
+
             changed = False
             for block in blocks:
                 if block.clean_up_phis():
@@ -1846,8 +1912,9 @@ class irFunc(IR):
 
         self.loops = loops
 
-    def allocate_registers(self, max_registers=32):
-        pass
+    def allocate_registers(self, max_registers=32):        
+        self.leader_block.allocate_registers(max_registers) 
+
 
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -2593,7 +2660,7 @@ class irLoadConst(IR):
         return f'LOAD CONST {self.target} <-- {self.value}'
 
     def get_input_vars(self):
-        return [self.value]
+        return []
 
     def get_output_vars(self):
         return [self.target]
@@ -2872,6 +2939,8 @@ class irVar(IR):
         self.is_const = False
         self.ssa_version = None
 
+        self.register = None
+
     def __hash__(self):
         return hash(self.name)
 
@@ -2941,6 +3010,9 @@ class irVar(IR):
 
         else:
             s = f"{self.name}"
+
+        if self.register is not None:
+            s += f'@{self.register}'
 
         if self.is_global:
             return f'Global({s})'
