@@ -1280,6 +1280,8 @@ class irFunc(IR):
 
         self.ssa_next_val = {}
 
+        self.instructions = None
+
         # self.current_value_num = 0
 
     def get_zero(self, lineno=None):
@@ -1449,7 +1451,23 @@ class irFunc(IR):
                 s += f'\t{ir}\n'
 
         s += f'Max registers: {self.max_registers}\n'
-        s += f'Instructions: {len([i for i in self.code if not isinstance(i, irLabel)])}\n'
+        s += f'IR Instructions: {len([i for i in self.get_code_from_blocks() if not isinstance(i, irLabel)])}\n'
+
+        if self.instructions:
+            s += "********************************\n"
+            s += "Instructions:\n"
+            s += "********************************\n"
+            lines_printed = []
+            for ir in self.instructions:
+                if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
+                    s += f'________________________________________________________\n'
+                    s += f' {ir.lineno}: {source_code[ir.lineno - 1].strip()}\n'
+                    lines_printed.append(ir.lineno)
+
+                s += f'\t{ir}\n'
+
+            s += f'VM Instructions: {len([i for i in self.instructions if not isinstance(i, insLabel)])}\n'
+
 
         return s
 
@@ -1922,11 +1940,20 @@ class irFunc(IR):
         self.leader_block.allocate_registers(max_registers) 
 
     def generate(self):
-        instructions = []
+        self.instructions = []
         for ir in self.get_code_from_blocks():
-            instructions.append(ir.generate())
+            ins = ir.generate()
 
-        return instructions
+            if ins is None:
+                continue
+
+            if isinstance(ins, list):
+                self.instructions.extend(ins)
+
+            else:
+                self.instructions.append(ins)
+
+        return self.instructions
 
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -2497,6 +2524,9 @@ class irDefine(IR):
     def __str__(self):
         return f'DEF: {self.var} depth: {self.scope_depth}'
 
+    def generate(self):
+        return None
+
 class irLoopHeader(IR):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
@@ -2506,6 +2536,9 @@ class irLoopHeader(IR):
     def __str__(self):
         return f'LoopHeader: {self.name}'
 
+    def generate(self):
+        return None
+
 class irLoopTop(IR):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
@@ -2514,6 +2547,9 @@ class irLoopTop(IR):
 
     def __str__(self):
         return f'LoopTop: {self.name}'
+
+    def generate(self):
+        return None
 
 class irLabel(IR):
     def __init__(self, name, **kwargs):
@@ -2564,6 +2600,14 @@ class irBranch(irControlFlow):
     def get_jump_target(self):
         return [self.true_label, self.false_label]
 
+    def generate(self):
+        ins = [
+            insJmpIfZero(self.value, self.false_label.generate(), lineno=self.lineno),
+            insJmp(self.true_label.generate(), lineno=self.lineno)
+        ]
+
+        return ins
+
 class irJump(irControlFlow):
     def __init__(self, target, **kwargs):
         super().__init__(**kwargs)        
@@ -2574,8 +2618,8 @@ class irJump(irControlFlow):
 
         return s    
 
-    # def generate(self):
-        # return insJmp(self.target.generate(), lineno=self.lineno)
+    def generate(self):
+        return insJmp(self.target.generate(), lineno=self.lineno)
 
     def get_jump_target(self):
         return [self.target]
@@ -2589,8 +2633,8 @@ class irReturn(irControlFlow):
     def __str__(self):
         return "RET %s" % (self.ret_var)
 
-    # def generate(self):
-        # return insReturn(self.ret_var.generate(), lineno=self.lineno)
+    def generate(self):
+        return insReturn(self.ret_var.generate(), lineno=self.lineno)
 
     def get_input_vars(self):
         return [self.ret_var]
@@ -2753,8 +2797,6 @@ class irBinop(IR):
         self.left = left
         self.right = right
 
-        self.data_type = self.target.type
-
         if self.op == 'div' and self.right.is_const and self.right.value == 0:
             raise SyntaxError("Division by 0", lineno=self.lineno)
 
@@ -2762,6 +2804,10 @@ class irBinop(IR):
         s = '%s = %s %s %s' % (self.target, self.left, self.op, self.right)
 
         return s
+
+    @property
+    def data_type(self):
+        return self.target.type
 
     def get_input_vars(self):
         return [self.left, self.right]
@@ -2868,47 +2914,47 @@ class irBinop(IR):
 
         return v
 
-    # def generate(self):
-    #     ops = {
-    #         'i32':
-    #             {'eq': insCompareEq,
-    #             'neq': insCompareNeq,
-    #             'gt': insCompareGt,
-    #             'gte': insCompareGtE,
-    #             'lt': insCompareLt,
-    #             'lte': insCompareLtE,
-    #             'logical_and': insAnd,
-    #             'logical_or': insOr,
-    #             'add': insAdd,
-    #             'sub': insSub,
-    #             'mul': insMul,
-    #             'div': insDiv,
-    #             'mod': insMod},
-    #         'f16':
-    #             {'eq': insF16CompareEq,
-    #             'neq': insF16CompareNeq,
-    #             'gt': insF16CompareGt,
-    #             'gte': insF16CompareGtE,
-    #             'lt': insF16CompareLt,
-    #             'lte': insF16CompareLtE,
-    #             'logical_and': insF16And,
-    #             'logical_or': insF16Or,
-    #             'add': insF16Add,
-    #             'sub': insF16Sub,
-    #             'mul': insF16Mul,
-    #             'div': insF16Div,
-    #             'mod': insF16Mod},
-    #         'str':
-    #             # placeholders for now
-    #             # need actual string instructions
-    #             {'eq': insBinop, # compare
-    #             'neq': insBinop, # compare not equal
-    #             'in': insBinop,  # search
-    #             'add': insBinop, # concatenate
-    #             'mod': insBinop} # formatted output
-    #     }
+    def generate(self):
+        ops = {
+            'i32':
+                {'eq': insCompareEq,
+                'neq': insCompareNeq,
+                'gt': insCompareGt,
+                'gte': insCompareGtE,
+                'lt': insCompareLt,
+                'lte': insCompareLtE,
+                'logical_and': insAnd,
+                'logical_or': insOr,
+                'add': insAdd,
+                'sub': insSub,
+                'mul': insMul,
+                'div': insDiv,
+                'mod': insMod},
+            # 'f16':
+            #     {'eq': insF16CompareEq,
+            #     'neq': insF16CompareNeq,
+            #     'gt': insF16CompareGt,
+            #     'gte': insF16CompareGtE,
+            #     'lt': insF16CompareLt,
+            #     'lte': insF16CompareLtE,
+            #     'logical_and': insF16And,
+            #     'logical_or': insF16Or,
+            #     'add': insF16Add,
+            #     'sub': insF16Sub,
+            #     'mul': insF16Mul,
+            #     'div': insF16Div,
+            #     'mod': insF16Mod},
+            # 'str':
+            #     # placeholders for now
+            #     # need actual string instructions
+            #     {'eq': insBinop, # compare
+            #     'neq': insBinop, # compare not equal
+            #     'in': insBinop,  # search
+            #     'add': insBinop, # concatenate
+            #     'mod': insBinop} # formatted output
+        }
 
-    #     return ops[self.data_type][self.op](self.target.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
+        return ops[self.data_type][self.op](self.target.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
 
 
 

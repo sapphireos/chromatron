@@ -67,7 +67,7 @@ class Builder(object):
         name = '%' + str(self.next_temp)
         self.next_temp += 1
 
-        ir = irVar(name, lineno=lineno)
+        ir = irVar(name, datatype=data_type, lineno=lineno)
         ir.is_temp = True
 
         return ir
@@ -208,7 +208,7 @@ class Builder(object):
         self.append_node(ir)
 
     def binop(self, op, left, right, lineno=None):
-        target = self.add_temp(lineno=lineno)
+        target = self.add_temp(data_type='i32', lineno=lineno)
         
         ir = irBinop(target, op, left, right, lineno=lineno)
 

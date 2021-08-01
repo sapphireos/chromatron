@@ -1039,9 +1039,6 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     if debug_print:
         print(program)
 
-        from pprint import pprint
-        pprint(instructions)
-
     if e:
         raise e
 

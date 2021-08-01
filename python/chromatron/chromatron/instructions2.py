@@ -153,3 +153,192 @@ class insLabel(BaseInstruction):
     def assemble(self):
         # leave room for 16 bits
         return [self, None]
+
+
+class BaseJmp(BaseInstruction):
+    mnemonic = 'JMP'
+
+    def __init__(self, label, **kwargs):
+        super().__init__(**kwargs)
+
+        self.label = label
+
+    def __str__(self):
+        return "%s -> %s" % (self.mnemonic, self.label)
+
+
+class insJmp(BaseJmp):
+    def execute(self, vm):
+        return self.label
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.label.assemble())
+
+        return bc
+
+class insJmpConditional(BaseJmp):
+    def __init__(self, op1, label, **kwargs):
+        super().__init__(label, **kwargs)
+
+        self.op1 = op1
+
+    def __str__(self):
+        return "%s, %s -> %s" % (self.mnemonic, self.op1, self.label)
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.label.assemble())
+        bc.extend(self.op1.assemble())
+
+        return bc
+
+class insJmpIfZero(insJmpConditional):
+    mnemonic = 'JMPZ'
+
+    def execute(self, vm):
+        if vm.memory[self.op1.addr] == 0:
+            return self.label
+
+class insReturn(BaseInstruction):
+    mnemonic = 'RET'
+
+    def __init__(self, op1, **kwargs):
+        super().__init__(**kwargs)
+        self.op1 = op1
+
+    def __str__(self):
+        return "%s %s" % (self.mnemonic, self.op1)
+
+    def execute(self, vm):
+        vm.memory[0] = vm.memory[self.op1.addr]
+
+        raise ReturnException
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.op1.assemble())
+        
+        return bc
+
+
+
+class insBinop(BaseInstruction):
+    mnemonic = 'BINOP'
+    symbol = "??"
+
+    def __init__(self, result, op1, op2, **kwargs):
+        super().__init__(**kwargs)
+        self.result = result
+        self.op1 = op1
+        self.op2 = op2
+
+    def __str__(self):
+        return "%-16s %16s <- %16s %4s %16s" % (self.mnemonic, self.result, self.op1, self.symbol, self.op2)
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.result.assemble())
+        bc.extend(self.op1.assemble())
+        bc.extend(self.op2.assemble())
+
+        return bc
+
+class insCompareEq(insBinop):
+    mnemonic = 'COMP_EQ'
+    symbol = "=="
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] == vm.memory[self.op2.addr]
+
+class insCompareNeq(insBinop):
+    mnemonic = 'COMP_NEQ'
+    symbol = "!="
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] != vm.memory[self.op2.addr]
+
+class insCompareGt(insBinop):
+    mnemonic = 'COMP_GT'
+    symbol = ">"
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] > vm.memory[self.op2.addr]
+
+class insCompareGtE(insBinop):
+    mnemonic = 'COMP_GTE'
+    symbol = ">="
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] >= vm.memory[self.op2.addr]
+
+class insCompareLt(insBinop):
+    mnemonic = 'COMP_LT'
+    symbol = "<"
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] < vm.memory[self.op2.addr]
+
+class insCompareLtE(insBinop):
+    mnemonic = 'COMP_LTE'
+    symbol = "<="
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] <= vm.memory[self.op2.addr]
+
+class insAnd(insBinop):
+    mnemonic = 'AND'
+    symbol = "AND"
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] and vm.memory[self.op2.addr]
+
+class insOr(insBinop):
+    mnemonic = 'OR'
+    symbol = "OR"
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] or vm.memory[self.op2.addr]
+
+class insAdd(insBinop):
+    mnemonic = 'ADD'
+    symbol = "+"
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] + vm.memory[self.op2.addr]
+
+class insSub(insBinop):
+    mnemonic = 'SUB'
+    symbol = "-"
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] - vm.memory[self.op2.addr]
+
+class insMul(insBinop):
+    mnemonic = 'MUL'
+    symbol = "*"
+
+    def execute(self, vm):
+        vm.memory[self.result.addr] = vm.memory[self.op1.addr] * vm.memory[self.op2.addr]
+
+class insDiv(insBinop):
+    mnemonic = 'DIV'
+    symbol = "/"
+
+    def execute(self, vm):
+        if vm.memory[self.op2.addr] == 0:
+            vm.memory[self.result.addr] = 0
+
+        else:
+            vm.memory[self.result.addr] = vm.memory[self.op1.addr] / vm.memory[self.op2.addr]
+
+class insMod(insBinop):
+    mnemonic = 'MOD'
+    symbol = "%"
+
+    def execute(self, vm):
+        if vm.memory[self.op2.addr] == 0:
+            vm.memory[self.result.addr] = 0
+
+        else:
+            vm.memory[self.result.addr] = vm.memory[self.op1.addr] % vm.memory[self.op2.addr]
