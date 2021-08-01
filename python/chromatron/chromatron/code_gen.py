@@ -1022,12 +1022,25 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     except Exception as exc:
         e = exc
 
+    # generate instructions
+    instructions = None
+    try:
+        if not e:
+            instructions = program.generate()
+
+    except Exception as exc:
+        e = exc    
+
     # save IR to file
     with open(f'{script_name}.fxir', 'w') as f:
         f.write(str(program))
 
+
     if debug_print:
         print(program)
+
+        from pprint import pprint
+        pprint(instructions)
 
     if e:
         raise e

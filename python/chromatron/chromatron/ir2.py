@@ -2,6 +2,7 @@
 import logging
 from copy import copy, deepcopy
 
+from .instructions2 import *
 
 # debug imports:
 import sys
@@ -130,13 +131,18 @@ class irProgram(IR):
 
         return s
 
-    ###################################
-    # Analysis
-    ###################################
+    
     def analyze_blocks(self):
         for func in self.funcs.values():
             func.analyze_blocks()
 
+    def generate(self):
+        func_code = {}
+        
+        for name, func in self.funcs.items():
+            func_code[name] = func.generate()
+
+        return func_code
 
 class Edge(object):
     def __init__(self, from_node, to_node):
@@ -1915,6 +1921,12 @@ class irFunc(IR):
     def allocate_registers(self, max_registers=32):        
         self.leader_block.allocate_registers(max_registers) 
 
+    def generate(self):
+        instructions = []
+        for ir in self.get_code_from_blocks():
+            instructions.append(ir.generate())
+
+        return instructions
 
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -1986,7 +1998,7 @@ class irFunc(IR):
         # allocate registers
         self.allocate_registers()
 
-        self.code = self.get_code_from_blocks()
+        # self.code = self.get_code_from_blocks()
 
         # prune jumps
 
@@ -2615,37 +2627,8 @@ class irAssign(IR):
         else:
             return [self.target]
 
-    # def generate(self):
-    #     return insMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
-
-class irLookup(IR):
-    def __init__(self, result, target, indexes, **kwargs):
-        super().__init__(**kwargs)        
-        self.result = result
-        self.target = target
-        self.indexes = indexes
-
-    def __str__(self):
-        indexes = ''
-        for index in self.indexes:
-            if isinstance(index, irAttribute):
-                indexes += '.%s' % (index.name)
-            else:
-                indexes += '[%s]' % (index.name)
-
-        s = '%s = LOOKUP %s%s' % (self.result, self.target, indexes)
-
-        return s
-
-    def get_input_vars(self):
-        i = [self.target]
-        i.extend(self.indexes)
-
-        return i
-
-    def get_output_vars(self):
-        return [self.result]
-
+    def generate(self):
+        return insMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 # Load constant to register
 class irLoadConst(IR):
@@ -2664,6 +2647,9 @@ class irLoadConst(IR):
 
     def get_output_vars(self):
         return [self.target]
+
+    def generate(self):
+        return insLoadConst(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 
 # Load register from memory
@@ -3030,6 +3016,45 @@ class irVar(IR):
 
     def __repr__(self):
         return f'{self.name}/{id(self)}'
+
+    def generate(self):
+        if self.is_const:
+            # constants are just that, constants.
+            # they don't have a register
+            return self.value
+
+        # if self.register == None:
+            # raise CompilerFatal("%s does not have a register. Line: %d" % (self, self.lineno))
+
+        return insReg(self.register, self, lineno=self.lineno)
+
+class irLookup(IR):
+    def __init__(self, result, target, indexes, **kwargs):
+        super().__init__(**kwargs)        
+        self.result = result
+        self.target = target
+        self.indexes = indexes
+
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            if isinstance(index, irAttribute):
+                indexes += '.%s' % (index.name)
+            else:
+                indexes += '[%s]' % (index.name)
+
+        s = '%s = LOOKUP %s%s' % (self.result, self.target, indexes)
+
+        return s
+
+    def get_input_vars(self):
+        i = [self.target]
+        i.extend(self.indexes)
+
+        return i
+
+    def get_output_vars(self):
+        return [self.result]
 
 class irRef(irVar):
     def __init__(self, target, ref_count, *args, **kwargs):
