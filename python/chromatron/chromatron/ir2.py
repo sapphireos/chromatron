@@ -635,6 +635,23 @@ class irBlock(IR):
 
         self.copy_in = copy_in
         self.copy_out = copy_out
+
+    def get_blocks_depth_first(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        visited.append(self)
+
+        blocks = [self]
+        
+        for s in self.successors:
+            blocks.extend(s.get_blocks_depth_first(visited=visited))
+
+        return blocks
+
         
     ##############################################
     # Optimizer Passes
@@ -1936,6 +1953,10 @@ class irFunc(IR):
 
         self.loops = loops
 
+    @property
+    def sorted_blocks(self):
+        return self.leader_block.get_blocks_depth_first()
+
     def allocate_registers(self, max_registers=32):        
         self.leader_block.allocate_registers(max_registers) 
 
@@ -2025,153 +2046,152 @@ class irFunc(IR):
         # allocate registers
         self.allocate_registers()
 
-        # self.code = self.get_code_from_blocks()
 
         # prune jumps
 
 
 
-        return
+        # return
 
 
-        self.dominators = self.calc_dominance()
-        self.dominator_tree = self.calc_dominator_tree(self.dominators)
-        self.dominance_frontier = self.calc_dominance_frontiers(self.dominators)
+        # self.dominators = self.calc_dominance()
+        # self.dominator_tree = self.calc_dominator_tree(self.dominators)
+        # self.dominance_frontier = self.calc_dominance_frontiers(self.dominators)
 
-        # verify all instructions are assigned to a block:
-        # THIS WILL FAIL ON BREAK STATEMENTS AT THE END OF A LOOP!
-        # for ir in self.body:
-        #     if ir.block is None:
-        #         raise SyntaxError(f'Unreachable code.', lineno=ir.lineno)
+        # # verify all instructions are assigned to a block:
+        # # THIS WILL FAIL ON BREAK STATEMENTS AT THE END OF A LOOP!
+        # # for ir in self.body:
+        # #     if ir.block is None:
+        # #         raise SyntaxError(f'Unreachable code.', lineno=ir.lineno)
 
-        # self.body = None
+        # # self.body = None
 
-        # verify all blocks start with a label and end
-        # with an unconditional jump or return
-        for block in self.blocks.values():
-            assert isinstance(block.code[0], irLabel)
-            assert isinstance(block.code[-1], irControlFlow)
+        # # verify all blocks start with a label and end
+        # # with an unconditional jump or return
+        # for block in self.blocks.values():
+        #     assert isinstance(block.code[0], irLabel)
+        #     assert isinstance(block.code[-1], irControlFlow)
 
-        global_vars = self.leader_block.init_vars()
-        return
-        ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
-        self.leader_block.apply_types()
-        self.leader_block.insert_phi()
+        # global_vars = self.leader_block.init_vars()
+        # return
+        # ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
+        # self.leader_block.apply_types()
+        # self.leader_block.insert_phi()
 
-        self.verify_block_assignments()
-
-        self.verify_ssa()
-
-
-        optimize = True
-
-        if optimize:
-            for block in self.blocks.values():
-                block.remove_redundant_binop_assigns()
-
-            # for block in self.blocks.values():
-            #     block.fold_constants()
-
-            # for block in self.blocks.values():
-            #     block.reduce_strength()
-
-            
-            # self.leader_block.propagate_copies()
-
-        self.verify_block_assignments()
-
-        self.leader_block.init_consts()
-        
-        self.verify_block_assignments()
-
-        # if optimize:
-        #     for block in self.blocks.values():
-        #         reads = [a.name for a in self.get_input_vars()]
-        #         block.remove_dead_code(reads=reads)
-
-        self.loops = self.leader_block.analyze_loops()
-
-        optimize = False
-        if optimize:
-            # basic loop invariant code motion:
-            self.loop_invariant_code_motion(self.loops)
-
-
-            # common subexpr elimination?
-
-
-
-            # for block in self.blocks.values():
-            #     # remove redundant assignments.
-            #     # loop invariant code motion can create these
-                # block.remove_redundant_assigns()
+        # self.verify_block_assignments()
 
         # self.verify_ssa()
 
 
-        # convert out of SSA form
-        # self.resolve_phi()
-
-
-
-        # self.analyze_copies()
-
         # optimize = True
+
         # if optimize:
         #     for block in self.blocks.values():
         #         block.remove_redundant_binop_assigns()
 
-        #     for block in self.blocks.values():
-        #         block.remove_redundant_assigns()
+        #     # for block in self.blocks.values():
+        #     #     block.fold_constants()
 
-            # self.leader_block.propagate_copies()
+        #     # for block in self.blocks.values():
+        #     #     block.reduce_strength()
 
-            # for block in self.blocks.values():
-            #     block.local_value_numbering()
+            
+        #     # self.leader_block.propagate_copies()
 
-            # self.propagate_copies()
+        # self.verify_block_assignments()
 
-
-
-        #     for block in self.blocks.values():
-        #         block.fold_constants()
-
-        #     for block in self.blocks.values():
-        #         block.reduce_strength()
-
-
-            # remove dead code:
-            # for block in self.blocks.values():
-            #     reads = [a.name for a in self.get_input_vars()]
-            #     block.remove_dead_code(reads=reads)
-
-        # self.liveness_analysis()
-
-        # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
-
-
-        # reassemble code
-        self.code = self.get_code_from_blocks()
+        # self.leader_block.init_consts()
         
-        if optimize:
-            self.prune_jumps()
+        # self.verify_block_assignments()
 
-            # jump threading...
+        # # if optimize:
+        # #     for block in self.blocks.values():
+        # #         reads = [a.name for a in self.get_input_vars()]
+        # #         block.remove_dead_code(reads=reads)
+
+        # self.loops = self.leader_block.analyze_loops()
+
+        # optimize = False
+        # if optimize:
+        #     # basic loop invariant code motion:
+        #     self.loop_invariant_code_motion(self.loops)
 
 
-        self.prune_no_ops()
-        self.remove_dead_labels()
+        #     # common subexpr elimination?
 
-        # self.deconstruct_ssa();
 
-        # register allocator
+
+        #     # for block in self.blocks.values():
+        #     #     # remove redundant assignments.
+        #     #     # loop invariant code motion can create these
+        #         # block.remove_redundant_assigns()
+
+        # # self.verify_ssa()
+
+
+        # # convert out of SSA form
+        # # self.resolve_phi()
+
+
+
+        # # self.analyze_copies()
+
+        # # optimize = True
+        # # if optimize:
+        # #     for block in self.blocks.values():
+        # #         block.remove_redundant_binop_assigns()
+
+        # #     for block in self.blocks.values():
+        # #         block.remove_redundant_assigns()
+
+        #     # self.leader_block.propagate_copies()
+
+        #     # for block in self.blocks.values():
+        #     #     block.local_value_numbering()
+
+        #     # self.propagate_copies()
+
+
+
+        # #     for block in self.blocks.values():
+        # #         block.fold_constants()
+
+        # #     for block in self.blocks.values():
+        # #         block.reduce_strength()
+
+
+        #     # remove dead code:
+        #     # for block in self.blocks.values():
+        #     #     reads = [a.name for a in self.get_input_vars()]
+        #     #     block.remove_dead_code(reads=reads)
+
+        # # self.liveness_analysis()
+
+        # # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
+
+
+        # # reassemble code
+        # self.code = self.get_code_from_blocks()
+        
+        # if optimize:
+        #     self.prune_jumps()
+
+        #     # jump threading...
+
+
+        # self.prune_no_ops()
+        # self.remove_dead_labels()
+
+        # # self.deconstruct_ssa();
+
+        # # register allocator
 
 
 
     def get_code_from_blocks(self):
         code = []
 
-        for block in self.blocks.values():
+        for block in self.sorted_blocks:
             # attach loop data to instructions
             for ir in block.code:
                 ir.loops = self.loops.keys()
