@@ -853,7 +853,7 @@ class irBlock(IR):
                 """
                 
                 for p in self.predecessors:
-                    v = p.lookup_var(d)
+                    v = p.ssa_lookup_var(d)
                     if v.name == d.name:
                         assert v not in defines[phi]
                             
@@ -935,7 +935,7 @@ class irBlock(IR):
         ir.block = self
         self.temp_phis.append(ir)
 
-    def lookup_var(self, var, skip_local=False, visited=None):
+    def ssa_lookup_var(self, var, skip_local=False, visited=None):
         if visited is None:
             visited = []
 
@@ -965,7 +965,7 @@ class irBlock(IR):
             # we check that here.  since there is only one in this case, it has to be filled.
             assert self.predecessors[0].filled
 
-            v = self.predecessors[0].lookup_var(var, visited=visited)
+            v = self.predecessors[0].ssa_lookup_var(var, visited=visited)
             return v
 
         # if block is sealed (all preds are filled)
@@ -976,7 +976,7 @@ class irBlock(IR):
             values = []
 
             for p in self.predecessors:
-                pv = p.lookup_var(var, visited=visited)
+                pv = p.ssa_lookup_var(var, visited=visited)
 
                 if isinstance(pv, list):
                     for item in pv:
@@ -1059,7 +1059,7 @@ class irBlock(IR):
             if isinstance(ir, irIncompletePhi):
                 values = []
                 for p in self.predecessors:
-                    v = p.lookup_var(ir.var)
+                    v = p.ssa_lookup_var(ir.var)
 
                     if v is not None:
                         values.append(v)
@@ -1117,7 +1117,7 @@ class irBlock(IR):
 
                     # check if we have a definition:
                     try:
-                        v = self.lookup_var(i)
+                        v = self.ssa_lookup_var(i)
 
                     except KeyError:
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
@@ -1132,7 +1132,7 @@ class irBlock(IR):
 
                     # check if we have a definition:
                     try:
-                        v = self.lookup_var(o)
+                        v = self.ssa_lookup_var(o)
 
                     except KeyError:
                         raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)

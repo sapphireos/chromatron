@@ -7,6 +7,18 @@
 #                 pass
     
 
+# def while_if_while():
+#     a = Number()
+#     b = Number()
+
+#     while a > 0:
+#         if a > 0:
+#             while a > 0:
+#                 b += a
+
+#     return b
+
+
 def while_if_while():
     a = Number()
     b = Number()
