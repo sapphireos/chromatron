@@ -1013,31 +1013,35 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         print("CG Pass 1:")
         print(pformat_ast(cg1_data))
 
-    program = cg1_data.build(script_name=script_name, source=source)
+    ir_program = cg1_data.build(script_name=script_name, source=source)
 
     e = None
     try:
-        program.analyze_blocks()
+        ir_program.analyze_blocks()
 
     except Exception as exc:
         e = exc
 
     # generate instructions
-    instructions = None
+    ins_program = None
     try:
         if not e:
-            instructions = program.generate()
+            ins_program = ir_program.generate()
 
     except Exception as exc:
         e = exc    
 
     # save IR to file
     with open(f'{script_name}.fxir', 'w') as f:
-        f.write(str(program))
+        f.write(str(ir_program))
+
+        if ins_program:
+            f.write(str(ins_program))
 
 
     if debug_print:
-        print(program)
+        print(ir_program)
+        print(ins_program)
 
     if e:
         raise e

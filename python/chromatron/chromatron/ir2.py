@@ -141,12 +141,11 @@ class irProgram(IR):
             func.analyze_blocks()
 
     def generate(self):
-        func_code = {}
-        
+        ins_funcs = {}
         for name, func in self.funcs.items():
-            func_code[name] = func.generate()
+            ins_funcs[name] = func.generate()
 
-        return func_code
+        return insProgram(funcs=ins_funcs)
 
 class Edge(object):
     def __init__(self, from_node, to_node):
@@ -1454,7 +1453,7 @@ class irFunc(IR):
             s += f'{block}\n'
 
         s += "********************************\n"
-        s += "Code:\n"
+        s += "IR:\n"
         s += "********************************\n"
         lines_printed = []
         for ir in self.code:
@@ -1473,23 +1472,7 @@ class irFunc(IR):
 
         s += f'Max registers: {self.max_registers}\n'
         s += f'IR Instructions: {len([i for i in self.get_code_from_blocks() if not isinstance(i, irLabel)])}\n'
-
-        if self.instructions:
-            s += "********************************\n"
-            s += "Instructions:\n"
-            s += "********************************\n"
-            lines_printed = []
-            for ir in self.instructions:
-                if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
-                    s += f'________________________________________________________\n'
-                    s += f' {ir.lineno}: {source_code[ir.lineno - 1].strip()}\n'
-                    lines_printed.append(ir.lineno)
-
-                s += f'\t{ir}\n'
-
-            s += f'VM Instructions: {len([i for i in self.instructions if not isinstance(i, insLabel)])}\n'
-
-
+        
         return s
 
     def create_block_from_code_at_label(self, label, prev_block=None, blocks=None):
@@ -1970,7 +1953,7 @@ class irFunc(IR):
         self.leader_block.allocate_registers(max_registers) 
 
     def generate(self):
-        self.instructions = []
+        instructions = []
         assert len(self.code) > 0
         for ir in self.code:
             ins = ir.generate()
@@ -1979,12 +1962,12 @@ class irFunc(IR):
                 continue
 
             if isinstance(ins, list):
-                self.instructions.extend(ins)
+                instructions.extend(ins)
 
             else:
-                self.instructions.append(ins)
+                instructions.append(ins)
 
-        return self.instructions
+        return insFunc(self.name, instructions, source_code, lineno=self.lineno)
 
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)

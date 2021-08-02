@@ -23,7 +23,6 @@
 from catbus import *
 from sapphire.common import catbus_string_hash
 
-
 class ReturnException(Exception):
     pass
 
@@ -47,6 +46,58 @@ def convert_to_f16(value):
 
 def convert_to_i32(value):
     return int(value / 65536.0)
+
+
+class insProgram(object):
+    def __init__(self, funcs={}):
+        self.funcs = funcs
+
+    def __str__(self):
+        s = 'FX Instructions:\n'
+
+        for func in self.funcs.values():
+            s += str(func)
+
+        return s
+
+    def run(self):
+        pass
+
+    def assemble(self):
+        pass
+
+class insFunc(object):
+    def __init__(self, name, code=[], source_code=[], lineno=None):
+        self.name = name
+        self.code = code
+        self.source_code = source_code
+        self.lineno = lineno
+
+    def __str__(self):
+        s = ''
+        s += "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+        s += f"Func: {self.name}\n"
+        s += "Code:\n"
+        s += "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+        lines_printed = []
+        for ins in self.code:
+            if ins.lineno >= 0 and ins.lineno not in lines_printed and not isinstance(ins, insLabel):
+                s += f'________________________________________________________\n'
+                s += f' {ins.lineno}: {self.source_code[ins.lineno - 1].strip()}\n'
+                lines_printed.append(ins.lineno)
+
+            s += f'\t{ins}\n'
+
+        s += f'VM Instructions: {len([i for i in self.code if not isinstance(i, insLabel)])}\n'
+
+        return s
+
+    def run(self):
+        pass
+
+    def assemble(self):
+        pass
+
 
 class BaseInstruction(object):
     mnemonic = 'NOP'
