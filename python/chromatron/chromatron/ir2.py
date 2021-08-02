@@ -853,9 +853,10 @@ class irBlock(IR):
                 """
                 
                 for p in self.predecessors:
-                    v = p.ssa_lookup_var(d)
-                    if v.name == d.name:
-                        assert v not in defines[phi]
+                    v = p.lookup_var(d)
+                    if v:
+                    # if v.name == d.name:
+                        #assert v not in defines[phi]
                             
                         defines[phi][v] = p
 
@@ -934,6 +935,27 @@ class irBlock(IR):
         ir = irIncompletePhi(var, self, lineno=-1)
         ir.block = self
         self.temp_phis.append(ir)
+
+    def lookup_var(self, var, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return None
+
+        visited.append(self)
+
+        if var._name in self.defines:
+            if self.defines[var._name] is var:
+                return self.defines[var._name]
+
+        # search predecessors
+        for p in self.predecessors:
+            v = p.lookup_var(var, visited=visited)
+            if v:
+                return v
+        
+        return None
 
     def ssa_lookup_var(self, var, skip_local=False, visited=None):
         if visited is None:
