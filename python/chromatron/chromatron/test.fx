@@ -7,14 +7,16 @@
 #                 pass
     
 
-# def while_if_while():
-#     a = Number()
-#     # b = Number()
+def while_if_while():
+    a = Number()
+    b = Number()
 
-#     while a > 0:
-#         if a > 0:
-#             while a > 0:
-#                 pass
+    while a > 0:
+        if a > 0:
+            while a > 0:
+                b += a
+
+    return b
         
 
 # def another_while_if():
@@ -58,12 +60,12 @@
 
 
 
-def while_loop():
-    i = Number()
-    i = 4
+# def while_loop():
+#     i = Number()
+#     i = 4
 
-    while i > 0:
-        i -= 1
+#     while i > 0:
+#         i -= 1
 
 
 # def double_while_loop():

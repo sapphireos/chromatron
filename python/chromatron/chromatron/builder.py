@@ -146,7 +146,7 @@ class Builder(object):
         pass
 
     def func(self, *args, **kwargs):
-        func = irFunc(*args, builder=self, **kwargs)
+        func = irFunc(*args, global_vars=self.globals, **kwargs)
         self.funcs[func.name] = func
         self.current_func = func
         self.next_temp = 0

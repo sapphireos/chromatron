@@ -29,7 +29,8 @@ class ReturnException(Exception):
 
 opcodes = {
     'MOV':                  0x01,
-    'LDC':                  0x02,
+    'LDI':                  0x02,
+    'LDC':                  0x03,
 }
 
 
@@ -67,10 +68,11 @@ class insProgram(object):
         pass
 
 class insFunc(object):
-    def __init__(self, name, code=[], source_code=[], lineno=None):
+    def __init__(self, name, code=[], source_code=[], register_count=None, lineno=None):
         self.name = name
         self.code = code
         self.source_code = source_code
+        self.register_count = register_count
         self.lineno = lineno
 
     def __str__(self):
@@ -88,6 +90,7 @@ class insFunc(object):
 
             s += f'\t{ins}\n'
 
+        s += f"Registers: {self.register_count}\n"
         s += f'VM Instructions: {len([i for i in self.code if not isinstance(i, insLabel)])}\n'
 
         return s
@@ -148,6 +151,7 @@ class insReg(BaseInstruction):
         return [l, h]
 
 
+# register to register move
 class insMov(BaseInstruction):
     mnemonic = 'MOV'
 
@@ -169,6 +173,28 @@ class insMov(BaseInstruction):
 
         return bc
 
+# loads from 16 bit immediate value
+class insLoadImmediate(BaseInstruction):
+    mnemonic = 'LDI'
+
+    def __init__(self, dest, value, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.value = value
+
+    def __str__(self):
+        return "%s %s <- %s" % (self.mnemonic, self.dest, self.value)
+
+    def execute(self, vm):
+        vm.memory[self.dest.addr] = self.value
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+
+        return bc
+
+# loads from constant pool
 class insLoadConst(BaseInstruction):
     mnemonic = 'LDC'
 

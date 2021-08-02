@@ -1,6 +1,7 @@
 
 import logging
 from copy import copy, deepcopy
+import struct
 
 from .instructions2 import *
 
@@ -47,6 +48,15 @@ def add_const_temp(const, datatype=None, lineno=None):
 
     return ir
 
+# return true if value fits in 16 bits
+def is_16_bits(value):
+    try:
+        # TODO add support for f16
+        struct.pack('h', value)
+        return True
+
+    except struct.error:
+        return False
 
 class SyntaxError(Exception):
     def __init__(self, message='', lineno=None):
@@ -121,14 +131,6 @@ class irProgram(IR):
         for i in list(self.globals.values()):
             s += '%d\t%s\n' % (i.lineno, i)
 
-        # s += 'Consts:\n'
-        # for i in list(self.consts.values()):
-        #     s += '%d\t%s\n' % (i.lineno, i)
-        
-        # s += 'PixelArrays:\n'
-        # for i in list(self.pixel_arrays.values()):
-        #     s += '%d\t%s\n' % (i.lineno, i)
-
         s += 'Functions:\n'
         for func in list(self.funcs.values()):
             s += '%s\n' % (func)
@@ -136,7 +138,7 @@ class irProgram(IR):
         return s
 
     
-    def analyze_blocks(self):
+    def analyze(self):
         for func in self.funcs.values():
             func.analyze_blocks()
 
@@ -1219,7 +1221,7 @@ class irBlock(IR):
             address_pool = list(range(max_registers)) # preload with all registers
 
         if self in visited:
-            return
+            return 0
 
         visited.append(self)
 
@@ -1242,6 +1244,8 @@ class irBlock(IR):
         #
         #
 
+        registers_used = 0
+
         for ir in self.code:
             for i in ir.get_input_vars():
                 assert i in registers
@@ -1260,6 +1264,9 @@ class irBlock(IR):
                     # assign from pool
                     registers[v] = address_pool.pop(0)
 
+                    if len(registers) > registers_used:
+                        registers_used = len(registers)
+
             for o in ir.get_output_vars():
                 # var might not be in registers
                 # this is the case if the variable isn't live
@@ -1267,20 +1274,24 @@ class irBlock(IR):
                 if o in registers:
                     o.register = registers[o]
 
-        for suc in self.successors:
-            suc.allocate_registers(max_registers, copy(registers), copy(address_pool), visited=visited)
 
+        for suc in self.successors:
+            used = suc.allocate_registers(max_registers, copy(registers), copy(address_pool), visited=visited)
+
+            if used > registers_used:
+                registers_used = used
+
+        return registers_used
 
 class irFunc(IR):
-    def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
+    def __init__(self, name, ret_type='i32', params=None, body=None, global_vars=None, **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.ret_type = ret_type
         self.params = params
         self.body = [] # input IR
         self.code = [] # output IR
-        self.builder = builder
-        self.globals = builder.globals
+        self.globals = global_vars
 
         ZERO = irVar(0, 'i32', lineno=-1)
         ZERO.is_const = True
@@ -1301,6 +1312,7 @@ class irFunc(IR):
         self.ssa_next_val = {}
 
         self.instructions = None
+        self.register_count = None
 
         # self.current_value_num = 0
 
@@ -1950,7 +1962,7 @@ class irFunc(IR):
         return self.leader_block.get_blocks_depth_first()
 
     def allocate_registers(self, max_registers=32):        
-        self.leader_block.allocate_registers(max_registers) 
+        self.register_count = self.leader_block.allocate_registers(max_registers) 
 
     def generate(self):
         instructions = []
@@ -1967,7 +1979,7 @@ class irFunc(IR):
             else:
                 instructions.append(ins)
 
-        return insFunc(self.name, instructions, source_code, lineno=self.lineno)
+        return insFunc(self.name, instructions, source_code, self.register_count, lineno=self.lineno)
 
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -2720,7 +2732,15 @@ class irLoadConst(IR):
         return [self.target]
 
     def generate(self):
-        return insLoadConst(self.target.generate(), self.value.generate(), lineno=self.lineno)
+        value = self.value.generate()
+
+        if is_16_bits(value):
+            # a load immediate will work here
+            return insLoadImmediate(self.target.generate(), value, lineno=self.lineno)
+
+        else:
+            # 32 bits, requires constant pooling
+            return insLoadConst(self.target.generate(), value, lineno=self.lineno)
 
 
 # Load register from memory

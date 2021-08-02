@@ -1017,7 +1017,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     e = None
     try:
-        ir_program.analyze_blocks()
+        ir_program.analyze()
 
     except Exception as exc:
         e = exc
