@@ -7,6 +7,26 @@
 #                 pass
     
 
+def while_while_expr():
+    a = Number()
+    b = Number()
+
+    while a > 0:
+        while a > 0:
+            b += 1
+
+    return b
+        
+# def if_while_expr():
+#     a = Number()
+#     b = Number()
+
+#     if a > 0:
+#         while a > 0:
+#             b += a
+
+#     return b
+
 # def while_if_while():
 #     a = Number()
 #     b = Number()
@@ -18,14 +38,14 @@
 
 #     return b
 
-def if_if_expr():
-    a = Number()
-    
-    if a > 0:
-        if a > 0:
-            a += 1
+# def if_if_expr():
+#     a = Number()
 
-    return a
+#     if a > 0:
+#         if a > 0:
+#             a += 1
+
+#     return a
         
 
 # def another_while_if():

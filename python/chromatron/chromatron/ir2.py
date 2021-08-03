@@ -1035,10 +1035,16 @@ class irBlock(IR):
 
             assert var._name not in self.defines
 
+
+            
+            
+
             values = []
             sources = {}
+            possible_single = False
 
             for p in self.predecessors:
+                # pv = p.ssa_lookup_var(var, visited=[self])
                 pv = p.ssa_lookup_var(var, visited=visited)
 
                 if isinstance(pv, list):
@@ -1046,13 +1052,17 @@ class irBlock(IR):
                         if item is not None:
                             values.append(item)
 
-                            assert item not in sources
+                            # assert item not in sources
+                            if item in sources:
+                                possible_single = True
                             sources[item] = p
 
                 elif pv is not None:
                     values.append(pv)
 
-                    assert pv not in sources
+                    # assert pv not in sources
+                    if pv in sources:
+                        possible_single = True
                     sources[pv] = p
 
             values = list(set(values))
@@ -1067,6 +1077,8 @@ class irBlock(IR):
 
             if len(values) == 1:
                 return values[0]
+
+            assert not possible_single
 
             # multiple values
             # create new var and add a phi node
@@ -1855,6 +1867,9 @@ class irFunc(IR):
         logging.debug(f'Liveness analysis in {iterations} iterations')
 
         # top of function should not have anything live other than it's parameters:
+        # if these trigger, it is possible that the SSA construction was missing a Phi node,
+        # so there exists a code path where a variable is not defined (and thus, has its liveness killed),
+        # so that var will "leak" to the top.
         assert len(self.live_in[code[0]]) == len(self.params)
         assert len(self.live_out[code[0]]) == len(self.params)
 
