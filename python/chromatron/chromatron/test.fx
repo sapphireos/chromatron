@@ -18,15 +18,13 @@
 
 #     return b
 
-
-def while_if_while():
+def if_if_expr():
     a = Number()
     b = Number()
 
-    while a > 0:
+    if a > 0:
         if a > 0:
-            while a > 0:
-                b += a
+            b += a
 
     return b
         

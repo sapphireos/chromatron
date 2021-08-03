@@ -91,7 +91,26 @@ def another_while_if():
         if True:
             pass
 
+def if_if_expr():
+    a = Number()
+    b = Number()
 
+    if a > 0:
+        if a > 0:
+            b += a
+
+    return b
+
+def if_while_expr():
+    a = Number()
+    b = Number()
+
+    if a > 0:
+        while a > 0:
+            b += a
+
+    return b
+        
 def while_if_while():
     a = Number()
 

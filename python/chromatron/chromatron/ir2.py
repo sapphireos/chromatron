@@ -863,7 +863,7 @@ class irBlock(IR):
                     incoming_blocks.append(p)
 
             assert len(defines[phi]) == len(phi.defines)
-            
+
 
             #     """
             #     d.block is the source block whereinators)
@@ -2091,7 +2091,7 @@ class irFunc(IR):
             self.loop_invariant_code_motion(self.loops)
 
 
-
+        # self.liveness_analysis()
         # return
 
         # convert out of SSA form
