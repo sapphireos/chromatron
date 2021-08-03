@@ -987,11 +987,7 @@ class irBlock(IR):
         visited.append(self)
 
         if var._name in self.defines:
-            # if var == self.defines[var._name]:
             return self.defines[var._name]
-
-            # if self.defines[var.name] is var:
-            #     return self.defines[var.name]
 
         # search predecessors
         for p in self.predecessors:

@@ -20,13 +20,12 @@
 
 def if_if_expr():
     a = Number()
-    b = Number()
-
+    
     if a > 0:
         if a > 0:
-            b += a
+            a += 1
 
-    return b
+    return a
         
 
 # def another_while_if():
