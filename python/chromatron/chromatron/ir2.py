@@ -226,8 +226,8 @@ class irBlock(IR):
 
             if self.func.live_in:
                 s += f'{ir_s}\n'
-                ins = sorted(list(set([f'{a.name} @ {a.register}' for a in self.func.live_in[ir]])))
-                outs = sorted(list(set([f'{a.name} @ {a.register}' for a in self.func.live_out[ir]])))
+                ins = sorted(list(set([f'{a.name}' for a in self.func.live_in[ir]])))
+                outs = sorted(list(set([f'{a.name}' for a in self.func.live_out[ir]])))
                 s += f'{depth}|\t  in:  {ins}\n'
                 s += f'{depth}|\t  out: {outs}\n'
 
@@ -855,32 +855,15 @@ class irBlock(IR):
         for phi in phis:
             defines[phi] = {}
 
-            # pruned_reachable = {}
-            # reachable = {}
-            # for d in phi.defines:
-            #     reachable[d] = [p for p in self.predecessors if d.block.reachable(p)]
-
-            #     if len(reachable[d]) == 1:
-            #         pruned_reachable[d] = reachable[d][0]
-            
-
-            #     for 
-            # print(reachable)
-
-
             for d in phi.defines:
-                for p in self.predecessors:
-                    v = p.lookup_var(d)
+                p = phi.sources[d]
+                defines[phi][d] = p
 
-                    if v.name == d.name:
-                        assert d not in defines[phi]
+                if p not in incoming_blocks:
+                    incoming_blocks.append(p)
 
-                        defines[phi][d] = p
-
-                        if p not in incoming_blocks:
-                            incoming_blocks.append(p)
-
-                assert len(defines[phi]) == len(phi.defines)
+            assert len(defines[phi]) == len(phi.defines)
+            
 
             #     """
             #     d.block is the source block whereinators)
@@ -984,8 +967,8 @@ class irBlock(IR):
 
         return merge_number        
 
-    def add_phi(self, var, values):
-        ir = irPhi(var, values, lineno=-1)
+    def add_phi(self, var, values, sources):
+        ir = irPhi(var, values, sources, lineno=-1)
         ir.block = self
         self.temp_phis.append(ir)
 
@@ -1057,6 +1040,7 @@ class irBlock(IR):
             assert var._name not in self.defines
 
             values = []
+            sources = {}
 
             for p in self.predecessors:
                 pv = p.ssa_lookup_var(var, visited=visited)
@@ -1066,8 +1050,14 @@ class irBlock(IR):
                         if item is not None:
                             values.append(item)
 
+                            assert item not in sources
+                            sources[item] = p
+
                 elif pv is not None:
                     values.append(pv)
+
+                    assert pv not in sources
+                    sources[pv] = p
 
             values = list(set(values))
 
@@ -1091,7 +1081,7 @@ class irBlock(IR):
             new_var.convert_to_ssa()
             self.defines[var_name] = new_var
 
-            self.add_phi(new_var, values)
+            self.add_phi(new_var, values, sources)
 
             return new_var
 
@@ -1141,11 +1131,14 @@ class irBlock(IR):
         for ir in self.code:
             if isinstance(ir, irIncompletePhi):
                 values = []
+                sources = {}
                 for p in self.predecessors:
                     v = p.ssa_lookup_var(ir.var)
 
                     if v is not None:
                         values.append(v)
+                        assert v not in sources
+                        sources[v] = p
 
                 values = list(set(values))
 
@@ -1154,7 +1147,7 @@ class irBlock(IR):
 
                 assert len(values) > 0
 
-                phi = irPhi(ir.var, values, lineno=ir.lineno)
+                phi = irPhi(ir.var, values, sources, lineno=ir.lineno)
                 phi.block = self
 
                 new_code.append(phi)
@@ -2595,18 +2588,19 @@ class irFunc(IR):
         return self.body[-1]
 
 class irPhi(IR):
-    def __init__(self, target, defines=[], **kwargs):
+    def __init__(self, target, defines=[], sources={}, **kwargs):
         super().__init__(**kwargs)
 
         self.target = target
         self.defines = defines
+        self.sources = sources
 
         assert self.target not in defines
 
     def __str__(self):
         s = ''
         for d in sorted(self.defines, key=lambda a: a.name):
-            s += f'{d.name}[{d.block.name}], '
+            s += f'{d.name}[{self.sources[d].name}], '
 
         s = s[:-2]
 
