@@ -377,6 +377,25 @@ class irBlock(IR):
     # Analysis Passes
     ##############################################
 
+    # depth first reachability check
+    def reachable(self, target, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return False
+
+        visited.append(self)
+
+        if self is target:
+            return True
+
+        for suc in self.successors:
+            if suc.reachable(target, visited=visited):
+                return True
+
+        return False
+
     def init_vars(self, visited=None, declarations=None):    
         if visited is None:
             visited = []
@@ -835,38 +854,77 @@ class irBlock(IR):
         defines = {}
         for phi in phis:
             defines[phi] = {}
+
+            # pruned_reachable = {}
+            # reachable = {}
+            # for d in phi.defines:
+            #     reachable[d] = [p for p in self.predecessors if d.block.reachable(p)]
+
+            #     if len(reachable[d]) == 1:
+            #         pruned_reachable[d] = reachable[d][0]
+            
+
+            #     for 
+            # print(reachable)
+
+
             for d in phi.defines:
-
-                """
-                d.block is the source block where d is defined.
-                However, that isn't the block we want - we want
-                the direct predecessor on the path d was defined
-                that leads into this block.
-
-                To do the lookup, we can iterator over predecessors
-                and look up d.  Since we might get multiple sources
-                for d (since the lookup is on the non-SSA name),
-                we will collect all sources with their predecessors
-                and select the predecessor matching the SSA version.
-                 
-
-                """
-                
                 for p in self.predecessors:
                     v = p.lookup_var(d)
-                    if v:
-                    # if v.name == d.name:
-                        #assert v not in defines[phi]
-                            
-                        defines[phi][v] = p
+
+                    if v.name == d.name:
+                        assert d not in defines[phi]
+
+                        defines[phi][d] = p
 
                         if p not in incoming_blocks:
                             incoming_blocks.append(p)
 
-                # .... possibly we don't need merge blocks,
-                # just place assigns on the predecessor blocks?
-                # want to make sure the assign happens after the jump
-                # though?
+                assert len(defines[phi]) == len(phi.defines)
+
+            #     """
+            #     d.block is the source block whereinators)
+
+    #     d is defined.
+            #     However, that isn't the block we want - we want
+            #     the direct predecessor on the path d was defined
+            #     that leads into this block.
+
+            #     To do the lookup, we can iterator over predecessors
+            #     and look up d.  Since we might get multiple sources
+            #     for d (since the lookup is on the non-SSA name),
+            #     we will collect all sources with their predecessors
+            #     and select the predecessor matching the SSA version.
+                 
+
+            #     """
+
+            #     reachable = [p for p in self.predecessors if d.block.reachable(p)]
+            #     assert len(reachable) <= 1
+                
+            #     reachable = reachable[0]
+
+
+
+
+            #     for p in self.predecessors:
+            #         # is p reachable from d.block?
+            #         if d.block.reachable(p):
+
+            #         # v = p.lookup_var(d)
+            #         # if v:
+            #         # if v.name == d.name:
+            #             #assert v not in defines[phi]
+                            
+            #             defines[phi][d] = p
+
+            #             if p not in incoming_blocks:
+            #                 incoming_blocks.append(p)
+
+            #     # .... possibly we don't need merge blocks,
+            #     # just place assigns on the predecessor blocks?
+            #     # want to make sure the assign happens after the jump
+            #     # though?
         
         merge_blocks = {}
 
@@ -946,8 +1004,11 @@ class irBlock(IR):
         visited.append(self)
 
         if var._name in self.defines:
-            if self.defines[var._name] is var:
-                return self.defines[var._name]
+            # if var == self.defines[var._name]:
+            return self.defines[var._name]
+
+            # if self.defines[var.name] is var:
+            #     return self.defines[var.name]
 
         # search predecessors
         for p in self.predecessors:
