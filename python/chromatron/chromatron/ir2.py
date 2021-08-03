@@ -1070,7 +1070,8 @@ class irBlock(IR):
 
             phi.defines = list(set(values))
             phi.sources = sources
-            
+            phi.verify()
+
             return new_var
 
 
@@ -1198,6 +1199,7 @@ class irBlock(IR):
 
                 phi = irPhi(ir.var, values, sources, lineno=ir.lineno)
                 phi.block = self
+                phi.verify()
 
                 new_code.append(phi)
 
@@ -1290,9 +1292,12 @@ class irBlock(IR):
 
         self.temp_phis = [] # done with temp phis
 
+        all_phis = [ir for ir in self.func.get_code_from_blocks() if isinstance(ir, irPhi)]
+
         new_code = []
         for ir in self.code:
             if isinstance(ir, irPhi):
+                ir.verify()
 
                 # assign type
                 for d in ir.defines:
@@ -1317,24 +1322,38 @@ class irBlock(IR):
                     users = [i for i in self.func.local_input_vars if i == ir.target]
 
                     for user in users:
+                        for phi in all_phis:
+                            if phi is ir:
+                                continue
+
+                            if user in phi.defines:
+                                del phi.sources[user.name]
+                                phi.sources[define.name] = ir.sources[define.name]
+                                user.clone(define)
+                                phi.defines = list(set(phi.defines))
+                                phi.verify()
+
                         user.clone(define)
 
                     changed = True
                     continue # remove phi from code
 
-                elif len(ir.defines) > 1:
-                    ir.defines = list(set(ir.defines))
-                    ir.sources = {k: v for k, v in ir.sources.items() if k in [a.name for a in ir.defines]}
-                    changed = True
+                # elif len(ir.defines) > 1:
+                #     ir.defines = list(set(ir.defines))
+                #     ir.sources = {k: v for k, v in ir.sources.items() if k in [a.name for a in ir.defines]}
+                    
+                #     changed = True
 
                 # check if the phi target variable is in it's defines.
                 # this could occur during a previous replace-use (above)
                 # if so, let's remove it
-                elif ir.target in ir.defines:
+                if ir.target in ir.defines:
                     ir.defines.remove(ir.target)
                     del ir.sources[ir.target.name]
+
                     changed = True
-                                    
+                
+                ir.verify()                    
 
             new_code.append(ir)
 
@@ -2653,6 +2672,12 @@ class irPhi(IR):
 
         assert self.target not in defines
 
+    def verify(self):
+        for d in sorted(self.defines, key=lambda a: a.name):
+            assert d.name in self.sources
+
+        assert len(self.defines) == len(self.sources)
+
     def __str__(self):
         s = ''
         #defines = sorted(self.defines.keys(), key=lambda a: a.name)
@@ -2660,12 +2685,11 @@ class irPhi(IR):
         for d in sorted(self.defines, key=lambda a: a.name):
             #meow = self.sources[d.name]
 
-            #try:
-            s += f'{d.name}[{self.sources[d.name].name}], '
-
-            #except KeyError:
-
-            #    s += f'{d.name}[???], '
+            try:
+                s += f'{d.name}[{self.sources[d.name].name}], '
+            
+            except KeyError:
+               s += f'{d.name}[???], '
 
 
         s = s[:-2]
