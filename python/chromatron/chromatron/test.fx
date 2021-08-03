@@ -1,3 +1,39 @@
+
+# def double_while_loop():
+#     i = Number()
+#     i = 4
+
+#     while i > 0:
+#         i -= 1
+#         j = Number()
+
+#         j = 4
+
+#         while j > 0:
+#             j -= 1
+
+
+
+def while_if_while_expr():
+    a = Number()
+    b = Number()
+
+    while a > 0:
+        if a > 0:
+            while a > 0:
+                b += a
+
+    return b
+        
+
+# def another_while_if():
+#     a = Number()
+
+#     while a > 0:
+#         if True:
+#             pass
+
+
 # def func():
 #     a = Number()
     
@@ -7,15 +43,15 @@
 #                 pass
     
 
-def while_while_expr():
-    a = Number()
-    b = Number()
+# def while_while_expr():
+#     a = Number()
+#     b = Number()
 
-    while a > 0:
-        while a > 0:
-            b += 1
+#     while a > 0:
+#         while a > 0:
+#             b += 1
 
-    return b
+#     return b
         
 # def if_while_expr():
 #     a = Number()

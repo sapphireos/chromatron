@@ -856,7 +856,7 @@ class irBlock(IR):
             defines[phi] = {}
 
             for d in phi.defines:
-                p = phi.sources[d]
+                p = phi.sources[d.name]
                 defines[phi][d] = p
 
                 if p not in incoming_blocks:
@@ -967,15 +967,19 @@ class irBlock(IR):
 
         return merge_number        
 
-    def add_phi(self, var, values, sources):
-        ir = irPhi(var, values, sources, lineno=-1)
+    def add_phi(self, var):
+        ir = irPhi(var, lineno=-1)
         ir.block = self
         self.temp_phis.append(ir)
+
+        return ir
 
     def add_incomplete_phi(self, var):
         ir = irIncompletePhi(var, self, lineno=-1)
         ir.block = self
         self.temp_phis.append(ir)
+
+        return ir
 
     def lookup_var(self, var, visited=None):
         if visited is None:
@@ -1035,63 +1039,99 @@ class irBlock(IR):
 
             assert var._name not in self.defines
 
-
-            
-            
-
-            values = []
-            sources = {}
-            possible_single = False
-
-            for p in self.predecessors:
-                # pv = p.ssa_lookup_var(var, visited=[self])
-                pv = p.ssa_lookup_var(var, visited=visited)
-
-                if isinstance(pv, list):
-                    for item in pv:
-                        if item is not None:
-                            values.append(item)
-
-                            # assert item not in sources
-                            if item in sources:
-                                possible_single = True
-                            sources[item] = p
-
-                elif pv is not None:
-                    values.append(pv)
-
-                    # assert pv not in sources
-                    if pv in sources:
-                        possible_single = True
-                    sources[pv] = p
-
-            values = list(set(values))
-
-            # remove self reference
-            if var in values:
-                values.remove(var)
-
-            if len(values) == 0:
-                # no values left
-                return var
-
-            if len(values) == 1:
-                return values[0]
-
-            assert not possible_single
-
-            # multiple values
             # create new var and add a phi node
             new_var = irVar(name=var_name, lineno=-1)
             new_var.clone(var)
             new_var.block = self
             new_var.ssa_version = None
             new_var.convert_to_ssa()
+            # this will ensure the lookup will resolve on a loop
             self.defines[var_name] = new_var
 
-            self.add_phi(new_var, values, sources)
+            # add the temp phi
+            phi = self.add_phi(new_var)
 
+            # search predecessors for incoming phi values
+            values = []
+            sources = {}
+            for p in self.predecessors:
+                pv = p.ssa_lookup_var(var)
+
+                if isinstance(pv, list):
+                    for item in pv:
+                        if item is not None:
+                            values.append(item)
+                            sources[item.name] = p
+
+                elif pv is not None:
+                    values.append(pv)
+                    sources[pv.name] = p
+
+
+            phi.defines = list(set(values))
+            phi.sources = sources
+            
             return new_var
+
+
+
+
+
+
+
+            # values = []
+            # sources = {}
+            # possible_single = False
+
+            # for p in self.predecessors:
+            #     # pv = p.ssa_lookup_var(var, visited=[self])
+            #     pv = p.ssa_lookup_var(var, visited=visited)
+
+            #     if isinstance(pv, list):
+            #         for item in pv:
+            #             if item is not None:
+            #                 values.append(item)
+
+            #                 # assert item not in sources
+            #                 if item in sources:
+            #                     possible_single = True
+            #                 sources[item] = p
+
+            #     elif pv is not None:
+            #         values.append(pv)
+
+            #         # assert pv not in sources
+            #         if pv in sources:
+            #             possible_single = True
+            #         sources[pv] = p
+
+            # values = list(set(values))
+
+            # # remove self reference
+            # if var in values:
+            #     values.remove(var)
+
+            # if len(values) == 0:
+            #     # no values left
+            #     return var
+
+            # if len(values) == 1:
+            #     return values[0]
+
+            # assert not possible_single
+
+            # # multiple values
+            # # create new var and add a phi node
+            # new_var = irVar(name=var_name, lineno=-1)
+            # new_var.clone(var)
+            # new_var.block = self
+            # new_var.ssa_version = None
+            # new_var.convert_to_ssa()
+            # self.defines[var_name] = new_var
+
+            # self.add_phi(new_var, values, sources)
+
+            # return new_var
 
         # if block is not sealed:
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
@@ -1145,13 +1185,14 @@ class irBlock(IR):
 
                     if v is not None:
                         values.append(v)
-                        assert v not in sources
-                        sources[v] = p
+                        assert v.name not in sources
+                        sources[v.name] = p
 
                 values = list(set(values))
 
                 if ir.var in values: # remove self references
                     values.remove(ir.var)
+                    del sources[ir.var.name]
 
                 assert len(values) > 0
 
@@ -1253,9 +1294,6 @@ class irBlock(IR):
         for ir in self.code:
             if isinstance(ir, irPhi):
 
-                # make sure list of defines is unique
-                ir.defines = list(set(ir.defines))
-
                 # assign type
                 for d in ir.defines:
                     if d.type is not None:
@@ -1273,21 +1311,28 @@ class irBlock(IR):
                 # we can replace all users of the target with the define, eliminating
                 # this phi and also eliminating a variable.
                 elif len(ir.defines) == 1:
+                    define = ir.defines[0]
 
                     # get all users of this variable
                     users = [i for i in self.func.local_input_vars if i == ir.target]
 
                     for user in users:
-                        user.clone(ir.defines[0])
+                        user.clone(define)
 
                     changed = True
                     continue # remove phi from code
+
+                elif len(ir.defines) > 1:
+                    ir.defines = list(set(ir.defines))
+                    ir.sources = {k: v for k, v in ir.sources.items() if k in [a.name for a in ir.defines]}
+                    changed = True
 
                 # check if the phi target variable is in it's defines.
                 # this could occur during a previous replace-use (above)
                 # if so, let's remove it
                 elif ir.target in ir.defines:
                     ir.defines.remove(ir.target)
+                    del ir.sources[ir.target.name]
                     changed = True
                                     
 
@@ -2378,26 +2423,26 @@ class irFunc(IR):
 
         self.code = new_code
 
-    def deconstruct_ssa(self):
-        # convert all SSA variables back to single
-        # representation
-        for ir in self.code:
-            for i in ir.get_input_vars():
-                i.ssa_version = None
+    # def deconstruct_ssa(self):
+    #     # convert all SSA variables back to single
+    #     # representation
+    #     for ir in self.code:
+    #         for i in ir.get_input_vars():
+    #             i.ssa_version = None
 
-            for o in ir.get_output_vars():
-                o.ssa_version = None
+    #         for o in ir.get_output_vars():
+    #             o.ssa_version = None
 
-                new_code = []
+    #             new_code = []
 
-        # remove phi nodes
-        for index in range(len(self.code)):
-            ir = self.code[index]
+    #     # remove phi nodes
+    #     for index in range(len(self.code)):
+    #         ir = self.code[index]
             
-            if not isinstance(ir, irPhi):
-                new_code.append(ir)
+    #         if not isinstance(ir, irPhi):
+    #             new_code.append(ir)
 
-        self.code = new_code
+    #     self.code = new_code
 
     def loop_invariant_code_motion(self, loops):
         for loop, info in loops.items():
@@ -2610,8 +2655,18 @@ class irPhi(IR):
 
     def __str__(self):
         s = ''
+        #defines = sorted(self.defines.keys(), key=lambda a: a.name)
+        # defines = list(self.defines.keys())
         for d in sorted(self.defines, key=lambda a: a.name):
-            s += f'{d.name}[{self.sources[d].name}], '
+            #meow = self.sources[d.name]
+
+            #try:
+            s += f'{d.name}[{self.sources[d.name].name}], '
+
+            #except KeyError:
+
+            #    s += f'{d.name}[???], '
+
 
         s = s[:-2]
 

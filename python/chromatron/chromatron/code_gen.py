@@ -1024,12 +1024,12 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     # generate instructions
     ins_program = None
-    try:
-        if not e:
-            ins_program = ir_program.generate()
+    # try:
+    #     if not e:
+    #         ins_program = ir_program.generate()
 
-    except Exception as exc:
-        e = exc    
+    # except Exception as exc:
+    #     e = exc    
 
     # save IR to file
     with open(f'{script_name}.fxir', 'w') as f:
@@ -1086,6 +1086,8 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 def compile_script(path, debug_print=False):
     script_name = os.path.split(path)[1]
 
+    logging.info(f'Compiling {script_name}')
+
     with open(path) as f:
         return compile_text(f.read(), script_name=script_name, debug_print=debug_print)
 
@@ -1099,10 +1101,8 @@ def main():
     logging.info(f'Compiling: {script_name}')
 
     try:
-        with open(path) as f:
-            text = f.read()
-
-        program = compile_text(text, debug_print=True, script_name=script_name)
+        program = compile_script(path, debug_print=True)
+       
         return
 
         try:
