@@ -855,29 +855,45 @@ class irBlock(IR):
         for phi in phis:
             defines[phi] = {}
 
-            reachable = {}
+
+            
             for d in phi.defines:
-                source = d.block
-                reachable[d] = []
+                # defines[phi][d] = []
                 for p in self.predecessors:
-                    if source.reachable(p):
-                        reachable[d].append(p)
+                    v = p.lookup_var(d)
+                    if v.name == d.name:
+                        # defines[phi][d].append(p)
 
-            for blocks in reachable.values():
-                for blocks2 in reachable.values():
-                    if blocks is blocks2:
-                        continue
+                        assert d not in defines[phi]
 
-                    if len(blocks2) == 1:
-                        if blocks2[0] in blocks:
-                            blocks.remove(blocks2[0])
+                        defines[phi][d] = p
 
-            for d, blocks in reachable.items():
-                assert len(blocks) == 1
+                        if p not in incoming_blocks:
+                            incoming_blocks.append(p)
 
 
+            # reachable = {}
+            # for d in phi.defines:
+            #     source = d.block
+            #     reachable[d] = []
+            #     for p in self.predecessors:
+            #         if source.reachable(p):
+            #             reachable[d].append(p)
 
-            print(reachable)
+            # for blocks in reachable.values():
+            #     for blocks2 in reachable.values():
+            #         if blocks is blocks2:
+            #             continue
+
+            #         if len(blocks2) == 1:
+            #             if blocks2[0] in blocks:
+            #                 blocks.remove(blocks2[0])
+
+            # for d, blocks in reachable.items():
+            #     assert len(blocks) == 1
+
+            # print(reachable)
+
             # for d in phi.defines:
             #     p = phi.sources[d.name]
             #     defines[phi][d] = p
@@ -1015,6 +1031,10 @@ class irBlock(IR):
 
         if var._name in self.defines:
             return self.defines[var._name]
+
+        # if var._name in self.defines:
+        #     if self.defines[var._name].name == var.name:
+        #         return self.defines[var._name]
 
         # search predecessors
         for p in self.predecessors:
@@ -1917,6 +1937,8 @@ class irFunc(IR):
             merge_number = block.resolve_phi(merge_number)
 
     def convert_to_ssa(self):
+        logging.debug(f'Converting function: {self.name} to SSA')
+
         blocks = self.blocks.values()
         
         self.ssa_next_val = {}

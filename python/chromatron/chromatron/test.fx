@@ -1,16 +1,16 @@
 
-def double_while_loop():
-    i = Number()
-    i = 4
+# def double_while_loop():
+#     i = Number()
+#     i = 4
 
-    while i > 0:
-        i -= 1
-        j = Number()
+#     while i > 0:
+#         i -= 1
+#         j = Number()
 
-        j = 4
+#         j = 4
 
-        while j > 0:
-            j -= 1
+#         while j > 0:
+#             j -= 1
 
 
 
@@ -74,14 +74,14 @@ def double_while_loop():
 
 #     return b
 
-# def if_if_expr():
-#     a = Number()
+def if_if_expr():
+    a = Number()
 
-#     if a > 0:
-#         if a > 0:
-#             a += 1
+    if a > 0:
+        if a > 0:
+            a += 1
 
-#     return a
+    return a
         
 
 # def another_while_if():
