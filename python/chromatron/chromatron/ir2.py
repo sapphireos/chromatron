@@ -855,8 +855,6 @@ class irBlock(IR):
         for phi in phis:
             defines[phi] = {}
 
-
-            
             for d in phi.defines:
                 # defines[phi][d] = []
                 for p in self.predecessors:
@@ -1164,7 +1162,7 @@ class irBlock(IR):
                     if v is not None:
                         values.append(v)
                         
-                values = list(sorted(set(values), key=lambda a: a.name))
+                values = list(sorted(set(values), key=lambda a: a.n))
 
                 if ir.var in values: # remove self references
                     values.remove(ir.var)
@@ -1249,11 +1247,7 @@ class irBlock(IR):
 
         self.filled = True                    
 
-    def clean_up_phis(self):
-        changed = False
-
-        assert len([ir for ir in self.code if isinstance(ir, irIncompletePhi)]) == 0
-
+    def apply_temp_phis(self):
         # insert any phis that are leftover
         for ir in self.temp_phis:
             # incomplete phis should already have been processed at this point
@@ -1261,9 +1255,14 @@ class irBlock(IR):
 
             self.code.insert(1, ir)
 
-            changed = True
-
         self.temp_phis = [] # done with temp phis
+
+    def clean_up_phis(self):
+        changed = False
+
+        assert len(self.temp_phis) == 0
+
+        assert len([ir for ir in self.code if isinstance(ir, irIncompletePhi)]) == 0
 
         new_code = []
         for ir in self.code:
@@ -1947,8 +1946,6 @@ class irFunc(IR):
         while (len([b for b in blocks if not b.filled]) > 0) or \
               (len([b for b in blocks if not b.sealed]) > 0):
               
-            iterations += 1
-
             if iterations > iteration_limit:
                 raise CompilerFatal(f'SSA conversion failed after {iterations} iterations')
                 break
@@ -1957,14 +1954,15 @@ class irFunc(IR):
                 block.fill()
                 block.seal()
 
+            iterations += 1
+
         for block in blocks:
             assert block.filled
             assert block.sealed
+            block.apply_temp_phis()
         
         changed = True
         while changed:
-            iterations += 1
-
             if iterations > iteration_limit:
                 logging.critical(f'SSA conversion failed after {iterations} iterations in function: "{self.name}"')
                 raise CompilerFatal(f'SSA conversion failed after {iterations} iterations in function: "{self.name}"')
@@ -1974,6 +1972,8 @@ class irFunc(IR):
             for block in blocks:
                 if block.clean_up_phis():
                     changed = True
+
+            iterations += 1
 
         logging.debug(f'SSA conversion in {iterations} iterations')
 
