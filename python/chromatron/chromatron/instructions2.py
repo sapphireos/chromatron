@@ -54,7 +54,7 @@ class insProgram(object):
         self.funcs = funcs
 
     def __str__(self):
-        s = 'FX Instructions:\n'
+        s = 'VM Instructions:\n'
 
         for func in self.funcs.values():
             s += str(func)
@@ -63,6 +63,9 @@ class insProgram(object):
 
     def run(self):
         pass
+
+    def run_func(self, func):
+        self.funcs[func].run()
 
     def assemble(self):
         pass
@@ -74,6 +77,8 @@ class insFunc(object):
         self.source_code = source_code
         self.register_count = register_count
         self.lineno = lineno
+
+        self.registers = None
 
     def __str__(self):
         s = ''
@@ -96,7 +101,48 @@ class insFunc(object):
         return s
 
     def run(self):
-        pass
+        labels = {}
+
+        # scan code stream and get offsets for all functions and labels
+        for i in range(len(self.code)):
+            ins = self.code[i]
+            if isinstance(ins, insLabel):
+                labels[ins.name] = i
+
+        self.registers = [0] * self.register_count
+
+        pc = 0
+        cycles = 0
+
+        while True:
+            cycles += 1
+
+            ins = self.code[pc]
+
+            # print(cycles, pc, ins)
+
+            pc += 1
+
+            try:    
+                ret_val = ins.execute(self)
+
+                # if isinstance(ins, insCall):
+                #     # push PC to return stack
+                #     return_stack.append(pc)
+
+                # if returning label to jump to
+                if ret_val != None:
+                    # jump to target
+                    pc = labels[ret_val.name]
+                
+            except ReturnException:
+                return
+                # if len(return_stack) == 0:
+                #     # program is complete
+                #     break
+
+                # # pop PC from return stack
+                # pc = return_stack.pop(-1)
 
     def assemble(self):
         pass
@@ -131,6 +177,8 @@ class BaseInstruction(object):
 
 # pseudo instruction - does not actually produce an opcode
 class insReg(BaseInstruction):
+    mnemonic = ''
+
     def __init__(self, reg=None, var=None, **kwargs):
         super().__init__(**kwargs)
         self.reg = reg
@@ -164,7 +212,7 @@ class insMov(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.memory[self.dest.addr] = vm.memory[self.src.addr]
+        vm.registers[self.dest.reg] = vm.registers[self.src.reg]
 
     def assemble(self):
         bc = [self.opcode]
@@ -186,7 +234,7 @@ class insLoadImmediate(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.value)
 
     def execute(self, vm):
-        vm.memory[self.dest.addr] = self.value
+        vm.registers[self.dest.reg] = self.value
 
     def assemble(self):
         bc = [self.opcode]
@@ -207,7 +255,7 @@ class insLoadConst(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.value)
 
     def execute(self, vm):
-        vm.memory[self.dest.addr] = self.value
+        vm.registers[self.dest.reg] = self.value
 
     def assemble(self):
         bc = [self.opcode]
@@ -274,7 +322,7 @@ class insJmpIfZero(insJmpConditional):
     mnemonic = 'JMPZ'
 
     def execute(self, vm):
-        if vm.memory[self.op1.addr] == 0:
+        if vm.registers[self.op1.reg] == 0:
             return self.label
 
 class insReturn(BaseInstruction):
@@ -288,7 +336,7 @@ class insReturn(BaseInstruction):
         return "%s %s" % (self.mnemonic, self.op1)
 
     def execute(self, vm):
-        vm.memory[0] = vm.memory[self.op1.addr]
+        vm.registers[0] = vm.registers[self.op1.reg]
 
         raise ReturnException
 
@@ -326,96 +374,96 @@ class insCompareEq(insBinop):
     symbol = "=="
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] == vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] == vm.registers[self.op2.reg]
 
 class insCompareNeq(insBinop):
     mnemonic = 'COMP_NEQ'
     symbol = "!="
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] != vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] != vm.registers[self.op2.reg]
 
 class insCompareGt(insBinop):
     mnemonic = 'COMP_GT'
     symbol = ">"
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] > vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] > vm.registers[self.op2.reg]
 
 class insCompareGtE(insBinop):
     mnemonic = 'COMP_GTE'
     symbol = ">="
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] >= vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] >= vm.registers[self.op2.reg]
 
 class insCompareLt(insBinop):
     mnemonic = 'COMP_LT'
     symbol = "<"
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] < vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] < vm.registers[self.op2.reg]
 
 class insCompareLtE(insBinop):
     mnemonic = 'COMP_LTE'
     symbol = "<="
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] <= vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] <= vm.registers[self.op2.reg]
 
 class insAnd(insBinop):
     mnemonic = 'AND'
     symbol = "AND"
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] and vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] and vm.registers[self.op2.reg]
 
 class insOr(insBinop):
     mnemonic = 'OR'
     symbol = "OR"
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] or vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] or vm.registers[self.op2.reg]
 
 class insAdd(insBinop):
     mnemonic = 'ADD'
     symbol = "+"
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] + vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] + vm.registers[self.op2.reg]
 
 class insSub(insBinop):
     mnemonic = 'SUB'
     symbol = "-"
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] - vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] - vm.registers[self.op2.reg]
 
 class insMul(insBinop):
     mnemonic = 'MUL'
     symbol = "*"
 
     def execute(self, vm):
-        vm.memory[self.result.addr] = vm.memory[self.op1.addr] * vm.memory[self.op2.addr]
+        vm.registers[self.result.reg] = vm.registers[self.op1.reg] * vm.registers[self.op2.reg]
 
 class insDiv(insBinop):
     mnemonic = 'DIV'
     symbol = "/"
 
     def execute(self, vm):
-        if vm.memory[self.op2.addr] == 0:
-            vm.memory[self.result.addr] = 0
+        if vm.registers[self.op2.reg] == 0:
+            vm.registers[self.result.reg] = 0
 
         else:
-            vm.memory[self.result.addr] = vm.memory[self.op1.addr] / vm.memory[self.op2.addr]
+            vm.registers[self.result.reg] = vm.registers[self.op1.reg] / vm.registers[self.op2.reg]
 
 class insMod(insBinop):
     mnemonic = 'MOD'
     symbol = "%"
 
     def execute(self, vm):
-        if vm.memory[self.op2.addr] == 0:
-            vm.memory[self.result.addr] = 0
+        if vm.registers[self.op2.reg] == 0:
+            vm.registers[self.result.reg] = 0
 
         else:
-            vm.memory[self.result.addr] = vm.memory[self.op1.addr] % vm.memory[self.op2.addr]
+            vm.registers[self.result.reg] = vm.registers[self.op1.reg] % vm.registers[self.op2.reg]

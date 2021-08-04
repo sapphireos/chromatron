@@ -1024,12 +1024,12 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     # generate instructions
     ins_program = None
-    # try:
-    #     if not e:
-    #         ins_program = ir_program.generate()
+    try:
+        if not e:
+            ins_program = ir_program.generate()
 
-    # except Exception as exc:
-    #     e = exc    
+    except Exception as exc:
+        e = exc    
 
     # if isinstance(e, CompilerFatal):
     #     raise e
@@ -1044,7 +1044,12 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     if debug_print:
         print(ir_program)
-        print(ins_program)
+        
+        if ins_program:
+            print(ins_program)
+
+    list(ins_program.funcs.values())[0].run()
+
 
     if e:
         raise e

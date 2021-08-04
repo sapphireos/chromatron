@@ -24,18 +24,9 @@ from .ir2 import *
 
 
 class VM(object):
-    def __init__(self, builder=None, code=None, data=None, strings=None, pix_size_x=4, pix_size_y=4):
-        self.pixel_arrays = {}
-
-        if builder == None:
-            self.code = code
-            self.data = data
-            self.data.extend(strings)
-
-        else:
-            self.code = builder.code
-            self.data = builder.data_table
-            self.data.extend(builder.strings)
+    def __init__(self, pix_size_x=4, pix_size_y=4):
+        
+        
 
         # init memory
         self.memory = []

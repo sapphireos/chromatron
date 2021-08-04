@@ -430,9 +430,11 @@ def main():
 
 	func.generate(16, 5, 4)
 
-	# print(func)
+	print(func)
 	code = func.render()
-	# print(code)
+	print(code)
+	
+	return
 
 	# py = generate_python(func)
 	# with open('_fuzz.py', 'w') as f:
