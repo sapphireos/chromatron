@@ -239,7 +239,8 @@ class insReg(BaseInstruction):
 
     def __str__(self):
         if self.var is not None:
-            return "%s(%s @ %s)" % (self.var.name, self.var.type, self.reg)
+            s = "%s(%s @ %s)" % (self.var.name, self.var.type, self.reg)
+            return f'{s:18}'
 
         else:
             return "Reg(%s)" % (self.reg)

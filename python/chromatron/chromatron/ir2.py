@@ -3165,14 +3165,14 @@ class irVar(IR):
 
         elif self.is_temp:
             # return f'Temp{s}'
-            return f'{s:12}'
+            return f'{s}'
 
         elif self.is_const:
             return f'Const({s})'
 
         else:
             # return f'Var{s}'            
-            return f'{s:12}'
+            return f'{s}'
 
     def __repr__(self):
         return f'{self.name}/{id(self)}'
