@@ -855,6 +855,29 @@ class irBlock(IR):
         for phi in phis:
             defines[phi] = {}
 
+            reachable = {}
+            for d in phi.defines:
+                source = d.block
+                reachable[d] = []
+                for p in self.predecessors:
+                    if source.reachable(p):
+                        reachable[d].append(p)
+
+            for blocks in reachable.values():
+                for blocks2 in reachable.values():
+                    if blocks is blocks2:
+                        continue
+
+                    if len(blocks2) == 1:
+                        if blocks2[0] in blocks:
+                            blocks.remove(blocks2[0])
+
+            for d, blocks in reachable.items():
+                assert len(blocks) == 1
+
+
+
+            print(reachable)
             # for d in phi.defines:
             #     p = phi.sources[d.name]
             #     defines[phi][d] = p
@@ -1254,10 +1277,12 @@ class irBlock(IR):
                     changed = True
                     continue # remove phi from code
 
-                # elif len(ir.defines) > 1:
-                #     ir.defines = list(set(ir.defines))
+                elif len(ir.defines) > 1:
+                    old_defines = copy(ir.defines)
+                    ir.defines = list(set(ir.defines))
                     
-                #     changed = True # need to check for changed!~
+                    if old_defines != ir.defines:
+                        changed = True # need to check for changed!
 
                 # check if the phi target variable is in it's defines.
                 # this could occur during a previous replace-use (above)
