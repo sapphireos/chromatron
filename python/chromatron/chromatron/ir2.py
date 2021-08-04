@@ -1162,7 +1162,7 @@ class irBlock(IR):
                     if v is not None:
                         values.append(v)
                         
-                values = list(sorted(set(values), key=lambda a: a.n))
+                values = list(sorted(set(values), key=lambda a: a.name))
 
                 if ir.var in values: # remove self references
                     values.remove(ir.var)
