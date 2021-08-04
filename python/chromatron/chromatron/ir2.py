@@ -225,7 +225,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|\t{str(ir):48}'
 
-            if self.func.live_in:
+            if self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
                 outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
@@ -1318,75 +1318,75 @@ class irBlock(IR):
 
         return changed
 
-    def allocate_registers(self, max_registers, registers=None, address_pool=None, visited=None):
-        if visited is None:
-            visited = []
+    # def allocate_registers(self, max_registers, registers=None, address_pool=None, visited=None):
+    #     if visited is None:
+    #         visited = []
 
-            registers = {}
-            address_pool = list(range(max_registers)) # preload with all registers
+    #         registers = {}
+    #         address_pool = list(range(max_registers)) # preload with all registers
 
-        if self in visited:
-            return 0
+    #     if self in visited:
+    #         return 0
 
-        visited.append(self)
+    #     visited.append(self)
 
-        # naive, greedy, linear scan
-        # the simplest thing that will work!
-        #
-        # for vars in live_in that are not in live_out,
-        # assign to instruction inputs, then release from 
-        # address pool
-        #
-        # vars in live out: 
-        # if not allocated, allocate register
-        # assign addr to instruction output
-        #
-        # verify instruction vars have live registers
-        #
-        # we can skip spills for now since we can go to 256 registers
-        #
-        # depth first tree traversal 
-        #
-        #
+    #     # naive, greedy, linear scan
+    #     # the simplest thing that will work!
+    #     #
+    #     # for vars in live_in that are not in live_out,
+    #     # assign to instruction inputs, then release from 
+    #     # address pool
+    #     #
+    #     # vars in live out: 
+    #     # if not allocated, allocate register
+    #     # assign addr to instruction output
+    #     #
+    #     # verify instruction vars have live registers
+    #     #
+    #     # we can skip spills for now since we can go to 256 registers
+    #     #
+    #     # depth first tree traversal 
+    #     #
+    #     #
 
-        registers_used = 0
+    #     registers_used = 0
 
-        for ir in self.code:
-            for i in ir.get_input_vars():
-                assert i in registers
-                # assign register
-                i.register = registers[i]
+    #     for ir in self.code:
+    #         for i in ir.get_input_vars():
+    #             assert i in registers
+    #             # assign register
+    #             i.register = registers[i]
 
-            kills = ir.live_in - ir.live_out
+    #         kills = ir.live_in - ir.live_out
             
-            for k in kills:
-                # return register to pool
-                address_pool.insert(0, registers[k])
-                del registers[k]
+    #         for k in kills:
+    #             # return register to pool
+    #             address_pool.insert(0, registers[k])
+    #             del registers[k]
 
-            for v in ir.live_out:
-                if v not in registers:
-                    # assign from pool
-                    registers[v] = address_pool.pop(0)
+    #         for v in ir.live_out:
+    #             if v not in registers:
+    #                 # assign from pool
+    #                 registers[v] = address_pool.pop(0)
 
-                    if len(registers) > registers_used:
-                        registers_used = len(registers)
+    #                 if len(registers) > registers_used:
+    #                     registers_used = len(registers)
 
-            for o in ir.get_output_vars():
-                # var might not be in registers
-                # this is the case if the variable isn't live
-                # and this is a dead instruction
-                if o in registers:
-                    o.register = registers[o]
+    #         for o in ir.get_output_vars():
+    #             # var might not be in registers
+    #             # this is the case if the variable isn't live
+    #             # and this is a dead instruction
+    #             if o in registers:
+    #                 o.register = registers[o]
 
 
-        for suc in self.successors:
-            used = suc.allocate_registers(max_registers, registers, address_pool, visited=visited)
+    #     for suc in self.successors:
+    #         used = suc.allocate_registers(max_registers, registers, address_pool, visited=visited)
 
-            if used > registers_used:
-                registers_used = used
+    #         if used > registers_used:
+    #             registers_used = used
 
-        return registers_used
+    #     return registers_used
 
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, global_vars=None, **kwargs):
@@ -1413,6 +1413,7 @@ class irFunc(IR):
 
         self.live_in = None
         self.live_out = None
+        self.live_ranges = {}
 
         self.ssa_next_val = {}
 
@@ -1841,8 +1842,10 @@ class irFunc(IR):
     def liveness_analysis(self):
         live_in = {}
         live_out = {}
+
+        assert len(self.code) > 0
         
-        code = self.get_code_from_blocks()
+        code = self.code
 
         # init to empty sets
         for ir in code:
@@ -1895,7 +1898,7 @@ class irFunc(IR):
         assert len(self.live_out[code[0]]) == len(self.params)
 
         # copy liveness information into instructions:
-        for ir in self.get_code_from_blocks():
+        for ir in code:
             ir.live_in = set(self.live_in[ir])
             ir.live_out = set(self.live_out[ir])
 
@@ -2074,7 +2077,18 @@ class irFunc(IR):
         return self.leader_block.get_blocks_depth_first()
 
     def allocate_registers(self, max_registers=32):        
-        self.register_count = self.leader_block.allocate_registers(max_registers) 
+        # self.register_count = self.leader_block.allocate_registers(max_registers) 
+
+        assert len(self.code) > 0
+
+        registers = {}
+
+        for index in range(len(self.code)):
+            ir = self.code[index]
+
+            registers[ir] = []
+
+            
 
     def generate(self):
         instructions = []
@@ -2152,159 +2166,42 @@ class irFunc(IR):
         # guide with simple branch prediction:
         # prioritize branches that occur within a loop
 
-
-
         self.merge_basic_blocks()
-
-
-        # liveness
-        self.liveness_analysis()
-
-        # allocate registers
-        self.allocate_registers()
 
         self.remove_dead_code()
 
         # convert to IR code listing        
         self.code = self.get_code_from_blocks()
 
-        # prune jumps
+        # run trivial prunes
         self.prune_jumps()
+        self.prune_no_ops()
 
-        # return
+        # liveness
+        self.liveness_analysis()
 
+        self.compute_live_ranges()
 
-        # self.dominators = self.calc_dominance()
-        # self.dominator_tree = self.calc_dominator_tree(self.dominators)
-        # self.dominance_frontier = self.calc_dominance_frontiers(self.dominators)
-
-        # # verify all instructions are assigned to a block:
-        # # THIS WILL FAIL ON BREAK STATEMENTS AT THE END OF A LOOP!
-        # # for ir in self.body:
-        # #     if ir.block is None:
-        # #         raise SyntaxError(f'Unreachable code.', lineno=ir.lineno)
-
-        # # self.body = None
-
-        # # verify all blocks start with a label and end
-        # # with an unconditional jump or return
-        # for block in self.blocks.values():
-        #     assert isinstance(block.code[0], irLabel)
-        #     assert isinstance(block.code[-1], irControlFlow)
-
-        # global_vars = self.leader_block.init_vars()
-        # return
-        # ssa_vars = self.leader_block.rename_vars(ssa_vars=global_vars)
-        # self.leader_block.apply_types()
-        # self.leader_block.insert_phi()
-
-        # self.verify_block_assignments()
-
-        # self.verify_ssa()
-
-
-        # optimize = True
-
-        # if optimize:
-        #     for block in self.blocks.values():
-        #         block.remove_redundant_binop_assigns()
-
-        #     # for block in self.blocks.values():
-        #     #     block.fold_constants()
-
-        #     # for block in self.blocks.values():
-        #     #     block.reduce_strength()
-
-            
-        #     # self.leader_block.propagate_copies()
-
-        # self.verify_block_assignments()
-
-        # self.leader_block.init_consts()
-        
-        # self.verify_block_assignments()
-
-        # # if optimize:
-        # #     for block in self.blocks.values():
-        # #         reads = [a.name for a in self.get_input_vars()]
-        # #         block.remove_dead_code(reads=reads)
-
-        # self.loops = self.leader_block.analyze_loops()
-
-        # optimize = False
-        # if optimize:
-        #     # basic loop invariant code motion:
-        #     self.loop_invariant_code_motion(self.loops)
-
-
-        #     # common subexpr elimination?
+        # allocate registers
+        self.allocate_registers()
 
 
 
-        #     # for block in self.blocks.values():
-        #     #     # remove redundant assignments.
-        #     #     # loop invariant code motion can create these
-        #         # block.remove_redundant_assigns()
+    def compute_live_ranges(self):
+        ranges = {}
 
-        # # self.verify_ssa()
+        assert len(self.code) > 0
 
+        for index in range(len(self.code)):
+            ir = self.code[index]
 
-        # # convert out of SSA form
-        # # self.resolve_phi()
+            for o in self.live_out[ir]:
+                if o not in ranges:
+                    ranges[o] = []
 
+                ranges[o].append(index)
 
-
-        # # self.analyze_copies()
-
-        # # optimize = True
-        # # if optimize:
-        # #     for block in self.blocks.values():
-        # #         block.remove_redundant_binop_assigns()
-
-        # #     for block in self.blocks.values():
-        # #         block.remove_redundant_assigns()
-
-        #     # self.leader_block.propagate_copies()
-
-        #     # for block in self.blocks.values():
-        #     #     block.local_value_numbering()
-
-        #     # self.propagate_copies()
-
-
-
-        # #     for block in self.blocks.values():
-        # #         block.fold_constants()
-
-        # #     for block in self.blocks.values():
-        # #         block.reduce_strength()
-
-
-        #     # remove dead code:
-        #     # for block in self.blocks.values():
-        #     #     reads = [a.name for a in self.get_input_vars()]
-        #     #     block.remove_dead_code(reads=reads)
-
-        # # self.liveness_analysis()
-
-        # # DO NOT MODIFY BLOCK CODE BEYOND THIS POINT!
-
-
-        # # reassemble code
-        # self.code = self.get_code_from_blocks()
-        
-        # if optimize:
-        #     self.prune_jumps()
-
-        #     # jump threading...
-
-
-        # self.prune_no_ops()
-        # self.remove_dead_labels()
-
-        # # self.deconstruct_ssa();
-
-        # # register allocator
+        self.live_ranges = ranges
 
 
     def remove_dead_code(self):
