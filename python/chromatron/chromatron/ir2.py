@@ -2154,6 +2154,7 @@ class irFunc(IR):
 
 
 
+        self.merge_basic_blocks()
 
 
         # liveness
@@ -2395,6 +2396,47 @@ class irFunc(IR):
             iterations += 1
         
         logging.debug(f'Prune IR jumps in {iterations} iterations. Eliminated {old_length - len(self.code)} instructions')
+
+
+    def merge_basic_blocks(self):
+        # a block B can be merged with it's successor S if:
+        # 1. B has only the one successor AND
+        # 2. S has only one predecessor, B
+
+        for b in self.blocks.values():
+            if len(b.successors) != 1:
+                continue
+
+            s = b.successors[0]
+
+            if len(s.predecessors) != 1:
+                continue
+
+            p = s.predecessors[0]
+
+            assert p is b
+
+            # block is ready for merging
+
+            # get pruned code from s
+            s_code = s.code[1:-1] # we don't need the label or the jump
+
+            # pop jump from b
+            b.code.pop()
+
+            # add s code at end
+            b.code.extend(s_code)
+
+            # add jump from s
+            b.code.append(s.code[-1])
+
+            # replace blocks in tree
+            for suc in s.successors:
+                if s in suc.predecessors:
+                    suc.predecessors.remove(s)
+                    suc.predecessors.append(b)
+
+            b.successors = s.successors
 
     # remove all no-op instructions
     def prune_no_ops(self):
