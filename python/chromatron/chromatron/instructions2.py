@@ -100,6 +100,52 @@ class insFunc(object):
 
         return s
 
+    def prune_jumps(self):
+        iterations = 0
+        iteration_limit = 128
+
+        old_length = len(self.code)
+
+        new_code = []
+        prev_code = self.code
+        while prev_code != new_code:
+            if iterations > iteration_limit:
+                raise CompilerFatal(f'Prune jumps failed after {iterations} iterations')
+                break
+
+            new_code = []
+            prev_code = self.code
+
+            # this is a peephole optimization
+            # note we skip the last instruction in the loop, since
+            # we check current + 1 in the peephole
+            for index in range(len(self.code) - 1):
+                ins = self.code[index]
+                next_ins = self.code[index + 1]
+
+                # if a jump followed by a label:
+                if isinstance(ins, insJmp) and isinstance(next_ins, insLabel):
+                    # check if label is jump target:
+                    if ins.label.name == next_ins.name:
+                        # skip this jump
+                        pass
+
+                    else:
+                        new_code.append(ins)
+
+                else:
+                    new_code.append(ins)
+
+            # append last instruction (since loop will miss it)
+            new_code.append(self.code[-1])
+
+            self.code = new_code
+
+            iterations += 1
+        
+        logging.debug(f'Prune jumps in {iterations} iterations. Eliminated {old_length - len(self.code)} instructions')
+
+
     def run(self):
         labels = {}
 
@@ -110,6 +156,7 @@ class insFunc(object):
                 labels[ins.name] = i
 
         self.registers = [0] * self.register_count
+        registers = self.registers # just makes debugging a bit easier
 
         pc = 0
         cycles = 0

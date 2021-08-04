@@ -146,6 +146,7 @@ class irProgram(IR):
         ins_funcs = {}
         for name, func in self.funcs.items():
             ins_funcs[name] = func.generate()
+            ins_funcs[name].prune_jumps()
 
         return insProgram(funcs=ins_funcs)
 
@@ -2359,8 +2360,6 @@ class irFunc(IR):
         new_code = []
         prev_code = self.code
         while prev_code != new_code:
-            iterations += 1
-
             if iterations > iteration_limit:
                 raise CompilerFatal(f'Prune jumps failed after {iterations} iterations')
                 break
@@ -2392,8 +2391,10 @@ class irFunc(IR):
             new_code.append(self.code[-1])
 
             self.code = new_code
+
+            iterations += 1
         
-        logging.debug(f'Prune jumps in {iterations} iterations. Eliminated {old_length - len(self.code)} instructions')
+        logging.debug(f'Prune IR jumps in {iterations} iterations. Eliminated {old_length - len(self.code)} instructions')
 
     # remove all no-op instructions
     def prune_no_ops(self):
