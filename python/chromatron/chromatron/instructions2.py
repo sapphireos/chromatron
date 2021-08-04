@@ -79,6 +79,7 @@ class insFunc(object):
         self.lineno = lineno
 
         self.registers = None
+        self.return_val = None
 
     def __str__(self):
         s = ''
@@ -158,6 +159,8 @@ class insFunc(object):
         self.registers = [0] * self.register_count
         registers = self.registers # just makes debugging a bit easier
 
+        self.return_val = 0
+
         pc = 0
         cycles = 0
 
@@ -169,6 +172,9 @@ class insFunc(object):
             # print(cycles, pc, ins)
 
             pc += 1
+
+            if isinstance(ins, insLabel):
+                continue
 
             try:    
                 ret_val = ins.execute(self)
@@ -183,7 +189,7 @@ class insFunc(object):
                     pc = labels[ret_val.name]
                 
             except ReturnException:
-                return
+                return self.return_val
                 # if len(return_stack) == 0:
                 #     # program is complete
                 #     break
@@ -383,7 +389,7 @@ class insReturn(BaseInstruction):
         return "%s %s" % (self.mnemonic, self.op1)
 
     def execute(self, vm):
-        vm.registers[0] = vm.registers[self.op1.reg]
+        vm.return_val = vm.registers[self.op1.reg]
 
         raise ReturnException
 
