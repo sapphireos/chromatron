@@ -1048,13 +1048,13 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         if ins_program:
             print(ins_program)
 
-    func = list(ins_program.funcs.values())[0]
-    ret_val = func.run()
-    print(f'VM returned: {ret_val}')
-
-
     if e:
         raise e
+
+    if ins_program:
+        func = list(ins_program.funcs.values())[0]
+        ret_val = func.run()
+        print(f'VM returned: {ret_val}')
 
     return ''
 

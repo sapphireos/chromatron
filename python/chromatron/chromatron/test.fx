@@ -136,10 +136,11 @@ def two_ifelse_expr():
     b = Number()
 
     if a > 0:
-        b = 1
+        a = 1
 
     else:
         b = 2
+        a = 8
 
     if b < 0:
         a = 3
@@ -147,8 +148,8 @@ def two_ifelse_expr():
     else:
         b = 4
 
-    # return b + a
-    return b
+    return b + a
+    # return a
 
 
 

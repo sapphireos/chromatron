@@ -227,8 +227,8 @@ class irBlock(IR):
 
             if self.func.live_in:
                 s += f'{ir_s}\n'
-                ins = sorted(list(set([f'{a.name}' for a in self.func.live_in[ir]])))
-                outs = sorted(list(set([f'{a.name}' for a in self.func.live_out[ir]])))
+                ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
+                outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
                 s += f'{depth}|\t  in:  {ins}\n'
                 s += f'{depth}|\t  out: {outs}\n'
 
@@ -1381,7 +1381,7 @@ class irBlock(IR):
 
 
         for suc in self.successors:
-            used = suc.allocate_registers(max_registers, copy(registers), copy(address_pool), visited=visited)
+            used = suc.allocate_registers(max_registers, registers, address_pool, visited=visited)
 
             if used > registers_used:
                 registers_used = used
