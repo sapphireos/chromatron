@@ -2079,18 +2079,114 @@ class irFunc(IR):
     def sorted_blocks(self):
         return self.leader_block.get_blocks_depth_first()
 
+
     def allocate_registers(self, max_registers=32):        
         # self.register_count = self.leader_block.allocate_registers(max_registers) 
+
+        """
+        Assign registers greedily variable by variable in the live range.
+        A given variable always receives the same register, even if there is a 
+        gap in its range.  So, assign based on interval, basically:
+
+        Live range:
+        The set of points in the program where the variable is live.
+        This excludes points where the variable is not live.
+        There could be multiple contiguous live ranges for a given variable (branches typically)
+
+        Live interval:
+        The span of the program containing all of the live ranges for a given variable,
+        including "holes" between live ranges where that variable is not live.
+    
+        Linear scan uses the interval, not range.
+        
+        The ordering of IR code will somewhat affect the efficiency 
+        of this algorithm.
+
+        """
 
         assert len(self.code) > 0
 
         registers = {}
+        address_pool = list(range(max_registers)) # preload with all registers
 
-        for index in range(len(self.code)):
-            ir = self.code[index]
+        # this is terrible, but is the simplest thing that mostly works:
+        # just assign a unique register to every variable.
+        # that's it.
+        # we can get away with it for testing purposes because we 
+        # can use up to 256 registers.
+        for var, live_at in self.live_ranges.items():
+            registers[var] = address_pool.pop(0)
 
-            registers[ir] = []
 
+
+        # for var, live_at in self.live_ranges.items():
+        #     live_at = list(sorted(live_at))
+        #     interval_start = live_at[0]
+        #     interval_end = live_at[-1]
+
+        #     registers[var] = address_pool.pop(0)
+
+
+        for ir in self.code:
+            for i in ir.get_input_vars():
+                assert i in registers
+                # assign register
+                i.register = registers[i]
+
+            for o in ir.get_output_vars():
+                o.register = registers[o]
+
+        self.register_count = len(registers)
+
+
+
+        # assert len(self.code) > 0
+
+        # registers = {}
+        # address_pool = list(range(max_registers)) # preload with all registers
+
+        # registers_used = 0
+
+        # for ir in self.code:
+        #     for i in ir.get_input_vars():
+        #         assert i in registers
+        #         # assign register
+        #         i.register = registers[i]
+
+        #     kills = ir.live_in - ir.live_out
+            
+        #     for k in kills:
+        #         # return register to pool
+        #         address_pool.insert(0, registers[k])
+        #         del registers[k]
+
+        #     for v in ir.live_out:
+        #         if v not in registers:
+        #             # assign from pool
+        #             registers[v] = address_pool.pop(0)
+
+        #             if len(registers) > registers_used:
+        #                 registers_used = len(registers)
+
+        #     for o in ir.get_output_vars():
+        #         # var might not be in registers
+        #         # this is the case if the variable isn't live
+        #         # and this is a dead instruction
+        #         if o in registers:
+        #             o.register = registers[o]
+
+
+
+
+
+        # for index in range(len(self.code)):
+        #     ir = self.code[index]
+
+        #     registers[ir] = []
+
+            # for var, live_at in self.live_ranges.items():
+            #     if index in live_at:
+                    # this var is live
             
 
     def generate(self):

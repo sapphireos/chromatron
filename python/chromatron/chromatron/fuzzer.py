@@ -8,6 +8,13 @@ from random import randint
 from copy import copy
 
 
+class Selector(object):
+	def __init__(self, items=[]):
+		self.items = items
+
+	def choose(self):
+		return self.items[randint(0, len(self.items) - 1)]
+
 
 class Element(object):
 	def __init__(self, depth=None, target_vars=1, variables={}):

@@ -26,6 +26,9 @@ from sapphire.common import catbus_string_hash
 class ReturnException(Exception):
     pass
 
+class VMException(Exception):
+    pass
+
 
 opcodes = {
     'MOV':                  0x01,
@@ -148,6 +151,9 @@ class insFunc(object):
 
 
     def run(self):
+        if not self.register_count:
+            raise VMException("Registers are not initialized!")
+
         labels = {}
 
         # scan code stream and get offsets for all functions and labels
