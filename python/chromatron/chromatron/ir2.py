@@ -2161,6 +2161,7 @@ class irFunc(IR):
         # allocate registers
         self.allocate_registers()
 
+        self.remove_dead_code()
 
         # convert to IR code listing        
         self.code = self.get_code_from_blocks()
@@ -2304,6 +2305,10 @@ class irFunc(IR):
         # # register allocator
 
 
+    def remove_dead_code(self):
+        reads = [a.name for a in self.get_input_vars()]
+        for block in self.blocks.values():            
+            block.remove_dead_code(reads=reads)
 
     def get_code_from_blocks(self):
         code = []
