@@ -16,18 +16,38 @@ class Selector(object):
 	def select(self):
 		return self.items[randint(0, len(self.items) - 1)]()
 
+
 class Element(object):
+	max_vars = 1
+	variables = []
+
 	def __init__(self):
 		self.depth = 0
 
 	def __str__(self):
-		s = f'{TAB * self.depth}{str(self.__class__.__name__)}\n'
+		s = f'{TAB * self.depth}{self.get_name()}\n'
 
 		return s
+
+	def get_name(self):
+		return str(self.__class__.__name__)
 
 	@property
 	def count(self):
 		return 1
+
+	def generate(self, *args, **kwargs):
+		pass
+
+	def get_var(self):
+		try:
+			return self.variables[randint(0, self.max_vars - 1)]
+
+		except IndexError:
+			new_var = chr(len(self.variables) + 97)
+			self.variables.append(new_var)
+			return new_var
+
 
 class Block(Element):
 	def __init__(self, *args):
@@ -41,7 +61,7 @@ class Block(Element):
 		self.selector = Selector(*args)
 
 	def __str__(self):
-		s = f'{TAB * self.depth}{str(self.__class__.__name__)}\n'
+		s = f'{TAB * self.depth}{self.get_name()}\n'
 
 		for e in self.elements:
 			s += f'{e}'
@@ -81,21 +101,45 @@ class Block(Element):
 			self.add_element(p)
 
 
+class Expr(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.op = '?'
+		self.var1 = self.get_var()
+		self.var2 = self.get_var()
+
+	def __str__(self):
+		s = f'{TAB * self.depth}Expr({self.var1} {self.op} {self.var2})\n'
+
+		return s
+
 class Pass(Element):
 	pass
 
-class While(Block):
+class ControlFlow(Block):
 	def __init__(self):
 		super().__init__(While, If)
 
-class If(Block):
-	def __init__(self):
-		super().__init__(While, If)
+		self.expr = Expr()
+
+	def get_name(self):
+		return f'{super().get_name()} {self.expr}'
+
+class While(ControlFlow):
+	pass
+
+class If(ControlFlow):
+	pass
 
 class Func(Block):
 	def __init__(self):
 		super().__init__(While, If)
 
+	def generate(self, max_length=12, max_depth=3, max_vars=4):
+		Element.max_vars = max_vars
+
+		super().generate(max_length, max_depth)
 
 
 def main():
