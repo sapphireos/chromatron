@@ -1108,7 +1108,7 @@ class irBlock(IR):
                     values.append(pv)
 
 
-            phi.defines = list(set(values))
+            phi.defines = list(sorted(set(values), key=lambda a: a.name))
 
             return new_var
 
@@ -1164,7 +1164,7 @@ class irBlock(IR):
                     if v is not None:
                         values.append(v)
                         
-                values = list(set(values))
+                values = list(sorted(set(values)))
 
                 if ir.var in values: # remove self references
                     values.remove(ir.var)
@@ -1299,7 +1299,7 @@ class irBlock(IR):
 
                 elif len(ir.defines) > 1:
                     old_defines = copy(ir.defines)
-                    ir.defines = list(set(ir.defines))
+                    ir.defines = list(sorted(set(ir.defines), key=lambda a: a.name))
                     
                     if old_defines != ir.defines:
                         changed = True # need to check for changed!
