@@ -74,14 +74,14 @@
 
 #     return b
 
-def if_if_expr():
-    a = Number()
+# def if_if_expr():
+#     a = Number()
 
-    if a > 0:
-        if a > 0:
-            a += 1
+#     if a > 0:
+#         if a > 0:
+#             a += 1
 
-    return a
+#     return a
         
 
 # def another_while_if():
@@ -103,6 +103,25 @@ def if_if_expr():
 #         b = 2
 
 #     return b
+
+
+def two_ifelse():
+    a = Number()
+    b = Number()
+
+    if a > 0:
+        b = 1
+
+    else:
+        b = 2
+
+    if b < 0:
+        a = 1
+
+    else:
+        b = 2
+
+    return b
 
 
 # def two_ifelse():

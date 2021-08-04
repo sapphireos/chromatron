@@ -1031,6 +1031,9 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     # except Exception as exc:
     #     e = exc    
 
+    if isinstance(e, CompilerFatal):
+        raise e
+
     # save IR to file
     with open(f'{script_name}.fxir', 'w') as f:
         f.write(str(ir_program))

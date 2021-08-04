@@ -1966,7 +1966,8 @@ class irFunc(IR):
             iterations += 1
 
             if iterations > iteration_limit:
-                raise CompilerFatal(f'SSA conversion failed after {iterations} iterations')
+                logging.critical(f'SSA conversion failed after {iterations} iterations in function: "{self.name}"')
+                raise CompilerFatal(f'SSA conversion failed after {iterations} iterations in function: "{self.name}"')
                 break
 
             changed = False
