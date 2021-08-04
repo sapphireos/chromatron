@@ -2767,7 +2767,7 @@ class irBranch(irControlFlow):
 
     def generate(self):
         ins = [
-            insJmpIfZero(self.value, self.false_label.generate(), lineno=self.lineno),
+            insJmpIfZero(self.value.generate(), self.false_label.generate(), lineno=self.lineno),
             insJmp(self.true_label.generate(), lineno=self.lineno)
         ]
 
