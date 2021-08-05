@@ -2,6 +2,7 @@ import sys
 import os
 from subprocess import STDOUT, check_output, TimeoutExpired
 
+from .ir2 import DivByZero
 from .code_gen import parse, compile_text
 from random import randint
 from copy import copy
@@ -505,6 +506,9 @@ def main():
 
 		try:
 			compile_fx(f)
+
+		except DivByZero:
+			pass
 
 		except Exception:
 			print(f.render())
