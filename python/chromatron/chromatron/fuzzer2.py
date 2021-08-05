@@ -86,7 +86,11 @@ class Block(Element):
 
 		return e
 
-	def generate(self, max_length=6, max_depth=2):
+	def generate(self, max_length=6, max_depth=2, randomize=True):
+		if randomize:
+			max_length = randint(1, max_length)
+			max_depth = randint(1, max_depth)
+
 		if self.depth < max_depth:			
 			while self.count < max_length:
 				e = self.select()
@@ -140,12 +144,35 @@ class Assign(Element):
 
 		return s
 
+class Variable(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.var = self.get_var()
+
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.var}\n'
+
+		return s
+
 class Pass(Element):
 	pass
 
+
+class Return(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.expr = Selector(ArithVars, Variable).select()
+
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.get_name()} {self.expr}\n'
+
+		return s
+
+
 class ControlFlow(Block):
 	def __init__(self):
-		super().__init__(While, If, Assign)
+		super().__init__(While, If, Assign, Return)
 
 		self.expr = CompareVars()
 
@@ -158,6 +185,12 @@ class While(ControlFlow):
 class If(ControlFlow):
 	pass
 
+class ElIf(Block):
+	pass
+
+class Else(Block):
+	pass
+
 class Func(Block):
 	def __init__(self):
 		super().__init__(While, If)
@@ -165,7 +198,7 @@ class Func(Block):
 	def generate(self, max_length=12, max_depth=3, max_vars=4):
 		Element.max_vars = max_vars
 
-		super().generate(max_length, max_depth)
+		super().generate(max_length, max_depth, randomize=False)
 
 
 def main():
