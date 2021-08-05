@@ -332,6 +332,49 @@ class Func(Block):
 
 			self.elements.insert(0, declare)
 
+
+PY_HEADER = """
+def Number():
+    return 0
+
+"""
+
+PY_TRAILER = """
+def main():
+    return func()
+
+if __name__ == '__main__':
+    print(main())
+
+"""
+
+def generate_python(func):
+	code = func.render()
+
+	py_code = PY_HEADER
+
+	py_code += code
+
+	py_code += PY_TRAILER
+
+	return py_code
+
+def generate_fx(func):
+	code = func.render()
+
+	return code
+
+
+def run_py(func):
+	py = generate_python(func)
+
+	with open('_fuzz.py', 'w') as f:
+		f.write(py)
+
+	os.system(f'python3 _fuzz.py')
+
+
+
 def main():
 	f = Func()
 	f.generate()
@@ -343,6 +386,13 @@ def main():
 	# print(f.count)
 	# print(b.depth)
 	print(f.render())
+
+	run_py(f)
+
+
+	# py_code = generate_python(f)
+	
+	# print(py_code)
 
 if __name__ == '__main__':
 	try:
