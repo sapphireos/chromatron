@@ -514,54 +514,6 @@ class irBlock(IR):
                 
         return copy(self.defines)
 
-    def init_consts(self, visited=None):
-        return
-        if visited is None:
-            visited = []
-
-        if self in visited:
-            return
-
-        visited.append(self)
-
-        new_code = []
-        consts = {}
-
-        # iterate over code
-        # look for consts and load them to temp registers
-        for index in range(len(self.code)):
-            ir = self.code[index]
-
-            if isinstance(ir, irLoadConst):
-                new_code.append(ir)
-                continue
-
-            inputs = [i for i in ir.get_input_vars() if i.is_const]
-            ir_consts = list(sorted(set(inputs), key=lambda a: a.name))
-            for c in ir_consts:
-                # check if const is loaded:
-                if c.name not in consts:
-                    # load const
-                    target = add_const_temp(c.name, datatype=c.type, lineno=ir.lineno)
-                    load = irLoadConst(target, copy(c), lineno=-1)
-                    load.block = self
-
-                    consts[c.name] = target
-
-                    new_code.append(load)
-
-                # replace var with const target register
-                c.__dict__ = copy(consts[c.name].__dict__)
-
-            new_code.append(ir)
-
-
-        self.code = new_code
-
-        # continue with successors:
-        for suc in self.successors:
-            suc.init_consts(visited=visited)
-
     def _loop_test_vars(self, loop):
         test_vars = [loop['test_var']]
 
@@ -2247,7 +2199,6 @@ class irFunc(IR):
         self.verify_block_links()
         
         self.leader_block.init_vars()
-        self.leader_block.init_consts()
 
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
