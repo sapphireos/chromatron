@@ -2068,7 +2068,7 @@ class irFunc(IR):
         return self.leader_block.get_blocks_depth_first()
 
 
-    def allocate_registers(self, max_registers=32):        
+    def allocate_registers(self, max_registers=256):        
         # self.register_count = self.leader_block.allocate_registers(max_registers) 
 
         """
@@ -2103,7 +2103,12 @@ class irFunc(IR):
         # we can get away with it for testing purposes because we 
         # can use up to 256 registers.
         for var, live_at in self.live_ranges.items():
-            registers[var] = address_pool.pop(0)
+            try:
+                registers[var] = address_pool.pop(0)
+
+            except IndexError:
+                logging.critical("This terrible allocator has run out of registers!")
+                raise CompilerFatal("Register allocator failed because it is bad at its job")
 
 
 

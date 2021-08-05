@@ -1,11 +1,31 @@
-
-def const_const_if_if():    
+def func():
+    d = Number()
+    c = Number()
+    b = Number()
     a = Number()
-    if True:
-        a += -4
-        
-    if -4 < -4:
+    c = 6 / -7
+    if -5 < a:
+        return c / -3
+        while b:
+            while d:
+                pass
+            b = d - b
+            if b:
+                pass
+        if a:
+            if -9 < b:
+                pass
+    while -8 <= a:
         pass
+    while 0 == d:
+        if b >= d:
+            pass
+        elif -3 < -4:
+            while -4 <= -10:
+                pass
+        b = 1 > b
+        b = -3 >= 9
+    d = -5 <= a
 
 
 # def const_const_if_if():    
