@@ -438,9 +438,7 @@ def run_py(pycode, fname='_fuzz.py'):
 class NoneOutput(Exception):
 	pass
 
-def generate_valid_program(target_dir='fuzzer'):
-	os.chdir(target_dir)
-
+def generate_valid_program():
 	f = Func()
 	f.generate()
 	pycode = generate_python(f)
@@ -497,13 +495,14 @@ def main():
 		try:
 			f = generate_valid_program()
 
-		except Exception:
+		except Exception as e:
+			print(e)
 			continue
 
 		i += 1
 
 		print(i)
-		
+
 		try:
 			compile_fx(f)
 

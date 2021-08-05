@@ -1,30 +1,32 @@
 def func():
-    # d = Number()
-    # c = Number()
-    # b = Number()
+    d = Number()
+    c = Number()
+    b = Number()
     a = Number()
-    a = 2 >= -7
-    # return b
-    # while b == 8:
-    #     if b:
-    #         pass
-    # c = d % b
-    # return c
+    while b == c:
+        # a = d % -4
+        # while b:
+        #     pass
+        # c = c / 9
+        # while b > c:
+        #     pass
+        while a:
+            return b
+
+        return b
+                
+    # while b:
+    #     pass
     # if d:
-    #     b = 8 >= d
-    #     return c
-    #     while c:
+    #     b = a + -3
+    #     a = c > a
+    #     b = 6 % a
+    #     c = -3 < a
+    #     if c <= 3:
     #         pass
-    #     return d
-    #     while 7 == b:
-    #         if 5 >= -5:
-    #             pass
-    #         if d:
-    #             pass
-    #     return -1 - c
-    #     if a:
+    #     if -4 < -4:
     #         pass
-    # if c:
+    # else:
     #     pass
 
 

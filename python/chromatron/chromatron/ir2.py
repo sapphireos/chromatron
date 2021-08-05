@@ -1922,6 +1922,16 @@ class irFunc(IR):
                     logging.critical(f'FATAL: {ir} from {block.name} does not have a block assignment.')
                     raise
 
+    def verify_block_links(self):
+        for b in self.blocks.values():
+            for p in b.predecessors:
+                # verify b is member of each predecessor's successors
+                assert b in p.successors
+
+            for s in b.successors:
+                # verify b is member of each successor's predecessors
+                assert b in s.predecessors
+
     def verify_variables(self):
         # check that define instructions define the first version of a variable
         # this will catch if a variable reference is incorrectly placed somewhere else and modified.
@@ -2212,6 +2222,7 @@ class irFunc(IR):
 
     def analyze_blocks(self):
         self.leader_block = self.create_block_from_code_at_index(0)
+        self.verify_block_links()
         
         self.leader_block.init_vars()
         self.leader_block.init_consts()
@@ -2225,6 +2236,7 @@ class irFunc(IR):
         self.convert_to_ssa()    
 
         # checks
+        self.verify_block_links()
         self.verify_block_assignments()
         self.verify_ssa()
         self.verify_variables();
@@ -2262,7 +2274,7 @@ class irFunc(IR):
         # checks
         # self.check_critical_edges()
         self.verify_block_assignments()
-
+        self.verify_block_links()
 
 
         # basic block merging (helps with jump elimination)
@@ -2419,40 +2431,51 @@ class irFunc(IR):
         # 1. B has only the one successor AND
         # 2. S has only one predecessor, B
 
-        for b in self.blocks.values():
-            if len(b.successors) != 1:
-                continue
+        changed = True
+        while changed:
+            changed = False
 
-            s = b.successors[0]
+            for b in self.blocks.values():
+                if len(b.successors) != 1:
+                    continue
 
-            if len(s.predecessors) != 1:
-                continue
+                s = b.successors[0]
 
-            p = s.predecessors[0]
+                if len(s.predecessors) != 1:
+                    continue
 
-            assert p is b
+                p = s.predecessors[0]
 
-            # block is ready for merging
+                assert p is b
 
-            # get pruned code from s
-            s_code = s.code[1:-1] # we don't need the label or the jump
+                # block is ready for merging
 
-            # pop jump from b
-            b.code.pop()
+                # get pruned code from s
+                s_code = s.code[1:-1] # we don't need the label or the jump
 
-            # add s code at end
-            b.code.extend(s_code)
+                # pop jump from b
+                b.code.pop()
 
-            # add jump from s
-            b.code.append(s.code[-1])
+                # add s code at end
+                b.code.extend(s_code)
 
-            # replace blocks in tree
-            for suc in s.successors:
-                if s in suc.predecessors:
-                    suc.predecessors.remove(s)
-                    suc.predecessors.append(b)
+                # add jump from s
+                b.code.append(s.code[-1])
 
-            b.successors = s.successors
+                # replace blocks in tree
+                for suc in s.successors:
+                    if s in suc.predecessors:
+                        suc.predecessors.remove(s)
+                        suc.predecessors.append(b)
+
+                b.successors = s.successors
+
+                changed = True 
+                # break loop so we can re-render the block list
+                # otherwise, we may pull in blocks that we've removed from the tree
+                break
+
+        self.verify_block_links()
 
     # remove all no-op instructions
     def prune_no_ops(self):
