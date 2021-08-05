@@ -151,7 +151,7 @@ class Variable(Element):
 		self.var = self.get_var()
 
 	def __str__(self):
-		s = f'{TAB * self.depth}{self.var}\n'
+		s = f'{TAB * self.depth}{self.var}'
 
 		return s
 
@@ -172,15 +172,32 @@ class Return(Element):
 
 class ControlFlow(Block):
 	def __init__(self):
-		super().__init__(While, If, Assign, Return)
+		super().__init__(While, IfBlock, Assign, Return)
 
-		self.expr = CompareVars()
+		self.expr = Selector(CompareVars, Variable).select()
 
 	def get_name(self):
 		return f'{super().get_name()} {self.expr}'
 
 class While(ControlFlow):
 	pass
+
+class IfBlock(Block):
+	def __init__(self):
+		super().__init__()
+
+		self.if_block = If()
+		self.elifs = []
+		self.else_block = None
+
+	def __str__(self):
+		s = f'{self.if_block}'
+
+		return s
+
+	# def generate(self, max_length=6, max_depth=2, randomize=True):
+	def generate(self, *args, **kwargs):
+		pass
 
 class If(ControlFlow):
 	pass
@@ -193,7 +210,7 @@ class Else(Block):
 
 class Func(Block):
 	def __init__(self):
-		super().__init__(While, If)
+		super().__init__(While, IfBlock, Assign, Return)
 
 	def generate(self, max_length=12, max_depth=3, max_vars=4):
 		Element.max_vars = max_vars
