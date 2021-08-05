@@ -186,33 +186,77 @@ class IfBlock(Block):
 	def __init__(self):
 		super().__init__()
 
-		self.if_block = If()
+		self.if_block = None
+		
 		self.elifs = []
 		self.else_block = None
 
 	def __str__(self):
 		s = f'{self.if_block}'
 
+		for e in self.elifs:
+			s += f'{e}'
+
+		if self.else_block:
+			s += f'{self.else_block}'
+
 		return s
 
+
+	@property
+	def count(self):
+		c = 0 
+		if self.if_block:
+			c += self.if_block.count
+
+		for e in self.elifs:
+			c += e.count
+
+		if self.else_block:
+			c += self.else_block.count
+
+		return c
+
+
 	# def generate(self, max_length=6, max_depth=2, randomize=True):
-	def generate(self, *args, **kwargs):
-		pass
+	def generate(self, max_length=6, max_depth=2, **kwargs):
+		self.if_block = If()
+		self.if_block.depth = self.depth
+		self.if_block.generate(max_length=max_length, max_depth=max_depth, **kwargs)
+		
+		while self.count < max_length:
+			if randint(0, 2) == 1:
+				elif_block = ElIf()
+				elif_block.depth = self.depth
+				self.elifs.append(elif_block)
+				elif_block.generate(max_length=max_length, max_depth=max_depth, **kwargs)
+
+			else:
+				break
+
+		if self.count < max_length:	
+			if randint(0, 1) == 1:
+				else_block = Else()
+				else_block.depth = self.depth
+				self.else_block = else_block
+				else_block.generate(max_length=max_length, max_depth=max_depth, **kwargs)
+
 
 class If(ControlFlow):
 	pass
 
-class ElIf(Block):
+class ElIf(ControlFlow):
 	pass
 
-class Else(Block):
+class Else(ControlFlow):
 	pass
 
 class Func(Block):
 	def __init__(self):
-		super().__init__(While, IfBlock, Assign, Return)
+		# super().__init__(While, IfBlock, Assign, Return)
+		super().__init__(IfBlock, Assign)
 
-	def generate(self, max_length=12, max_depth=3, max_vars=4):
+	def generate(self, max_length=24, max_depth=3, max_vars=4):
 		Element.max_vars = max_vars
 
 		super().generate(max_length, max_depth, randomize=False)
