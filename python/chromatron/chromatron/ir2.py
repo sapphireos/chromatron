@@ -66,6 +66,9 @@ class SyntaxError(Exception):
 
         super().__init__(message)
 
+class DivByZero(SyntaxError):
+    pass
+
 class CompilerFatal(Exception):
     def __init__(self, message=''):
         super(CompilerFatal, self).__init__(message)
@@ -2240,7 +2243,7 @@ class irFunc(IR):
         self.verify_block_links()
         self.verify_block_assignments()
         self.verify_ssa()
-        self.verify_variables();
+        self.verify_variables()
         
         # loop analysis
         self.analyze_loops()
@@ -3054,7 +3057,7 @@ class irBinop(IR):
         self.right = right
 
         if self.op == 'div' and self.right.is_const and self.right.value == 0:
-            raise SyntaxError("Division by 0", lineno=self.lineno)
+            raise DivByZero("Division by 0", lineno=self.lineno)
 
     def __str__(self):
         s = '%s = %s %s %s' % (self.target, self.left, self.op, self.right)

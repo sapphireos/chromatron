@@ -190,6 +190,15 @@ def const_const():
     if -4 < -4:
         pass
 
+def const_const_if_if():    
+    a = Number()
+    if True:
+        a += -4
+        
+    if -4 < -4:
+        pass
+    
+
 # global_a = Number()
 # def global_var():
 #   global_a += 1

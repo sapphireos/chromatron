@@ -1,36 +1,12 @@
-def func():
-    # d = Number()
-    # c = Number()
-    # b = Number()
-    # a = Number()
-    # while b == c:
-    #     a = d % -4
-    #     while b:
-    #         pass
-    #     c = c / 9
-    #     while b > c:
-    #         pass
-    #     while a:
-    #         return b
 
-    #     return b
-
-    # while b:
-        # pass
+def const_const_if_if():    
+    a = Number()
+    if True:
+        a += -4
         
-    if d:
-        b = a + -3
-        a = c > a
-        b = 6 % a
-        c = -3 < a
-        if c <= 3:
-            pass
-        if -4 < -4:
-            pass
-    else:
+    if -4 < -4:
         pass
-
-
+    
 # def double_while_loop():
 #     i = Number()
 #     i = 4
