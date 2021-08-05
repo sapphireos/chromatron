@@ -14,7 +14,11 @@ class Selector(object):
 		self.items = args
 
 	def select(self):
-		return self.items[randint(0, len(self.items) - 1)]()
+		try:
+			return self.items[randint(0, len(self.items) - 1)]()
+
+		except TypeError:
+			return self.items[randint(0, len(self.items) - 1)]
 
 
 class Element(object):
@@ -129,8 +133,15 @@ class Expr(Element):
 		self.op = '?'
 		self.var1 = self.get_var()
 		self.var2 = self.get_var()
-		self.code = f'{self.var1} {self.op} {self.var2}'
 		self.render_newline = False
+
+	@property
+	def code(self):
+		return f'{self.var1} {self.op} {self.var2}'
+
+	@code.setter
+	def code(self, value):
+		pass
 
 	def __str__(self):
 		# s = f'{TAB * self.depth}Expr({self.var1} {self.op} {self.var2})\n'
@@ -142,21 +153,20 @@ class CompareVars(Expr):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.op = '?'
+		self.op = Selector('<', '<=', '==', '>', '>=').select()
 
 class ArithVars(Expr):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.op = '#'
-
+		self.op = Selector('+', '-', '*', '/', '%').select()
 
 class Assign(Element):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
 		self.var = self.get_var()
-		self.expr = ArithVars()
+		self.expr = Selector(ArithVars, CompareVars).select()
 		self.code = f'{self.var} = {self.expr}'
 
 	def __str__(self):
