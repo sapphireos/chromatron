@@ -110,7 +110,33 @@ class Expr(Element):
 		self.var2 = self.get_var()
 
 	def __str__(self):
-		s = f'{TAB * self.depth}Expr({self.var1} {self.op} {self.var2})\n'
+		# s = f'{TAB * self.depth}Expr({self.var1} {self.op} {self.var2})\n'
+		s = f'{self.var1} {self.op} {self.var2}'
+
+		return s
+
+class CompareVars(Expr):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.op = '?'
+
+class ArithVars(Expr):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.op = '#'
+
+
+class Assign(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.var = self.get_var()
+		self.expr = ArithVars()
+
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.var} = {self.expr}\n'
 
 		return s
 
@@ -119,9 +145,9 @@ class Pass(Element):
 
 class ControlFlow(Block):
 	def __init__(self):
-		super().__init__(While, If)
+		super().__init__(While, If, Assign)
 
-		self.expr = Expr()
+		self.expr = CompareVars()
 
 	def get_name(self):
 		return f'{super().get_name()} {self.expr}'
