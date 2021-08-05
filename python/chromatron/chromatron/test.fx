@@ -1,3 +1,32 @@
+def func():
+    d = Number()
+    # c = Number()
+    # b = Number()
+    # a = Number()
+    a = 2 >= -7
+    # return b
+    # while b == 8:
+    #     if b:
+    #         pass
+    # c = d % b
+    # return c
+    # if d:
+    #     b = 8 >= d
+    #     return c
+    #     while c:
+    #         pass
+    #     return d
+    #     while 7 == b:
+    #         if 5 >= -5:
+    #             pass
+    #         if d:
+    #             pass
+    #     return -1 - c
+    #     if a:
+    #         pass
+    # if c:
+    #     pass
+
 
 # def double_while_loop():
 #     i = Number()
@@ -131,25 +160,25 @@
 #     while i > 0:
 #         i -= 1
 
-def two_ifelse_expr():
-    a = Number()
-    b = Number()
+# def two_ifelse_expr():
+#     a = Number()
+#     b = Number()
 
-    if a > 0:
-        a = 1
+#     if a > 0:
+#         a = 1
 
-    else:
-        b = 2
-        a = 8
+#     else:
+#         b = 2
+#         a = 8
 
-    if b < 0:
-        a = 3
+#     if b < 0:
+#         a = 3
 
-    else:
-        b = 4
+#     else:
+#         b = 4
 
-    return b + a
-    # return a
+#     return b + a
+#     # return a
 
 
 

@@ -885,7 +885,7 @@ class CodeGenPass1(ast.NodeVisitor):
             # thanks, Python 3, for making this unncessarily complicated.
 
             # get constant, with negation
-            return self.get_const(-1 * node.operand.value, node)
+            return cg1Const(-1 * node.operand.value, lineno=node.lineno)
 
         assert isinstance(node.op, ast.Not)
 

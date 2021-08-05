@@ -340,6 +340,15 @@ class Func(Block):
 		
 		self.code = 'def func():'
 
+		self.rendered_code = None
+
+	def render(self):
+		if self.rendered_code:
+			return self.rendered_code
+
+		self.rendered_code = super().render()
+		return self.rendered_code
+
 	def generate(self, max_length=24, max_depth=3, max_vars=4):
 		Element.max_vars = max_vars
 
@@ -392,23 +401,122 @@ def generate_fx(func):
 
 	return code
 
+def compile_fx(func):
+	fx = generate_fx(func)
 
-def run_py(func):
-	py = generate_python(func)
+	# with open('_fuzz.fx', 'w') as f:
+		# f.write(fx)
 
-	with open('_fuzz.py', 'w') as f:
-		f.write(py)
+	compile_text(fx)
+
+
+def run_py(pycode, fname='_fuzz.py'):
+	with open(fname, 'w') as f:
+		f.write(pycode)
 
 	# cmd = f'python3 _fuzz.py'
 	# cmd = 'which python3'
 	# os.system(cmd)
-	output = check_output(['python3' ,'_fuzz.py'], stderr=STDOUT, cwd=os.getcwd(), timeout=0.1)
-	
+	output = check_output(['python3', fname], stderr=STDOUT, cwd=os.getcwd(), timeout=0.1)
+	output = output.decode().strip()
+
 	if output == 'ZeroDivisionError':
 		raise ZeroDivisionError
 
+	if output == 'None':
+		return None
+	elif output in ['True', 'False']:
+		return output
+	
+	try:
+		return int(output)
+
+	except ValueError:
+		return float(output)
+
+
+class NoneOutput(Exception):
+	pass
+
+def generate_valid_program(target_dir='fuzzer'):
+	os.chdir(target_dir)
+
+	f = Func()
+	f.generate()
+	pycode = generate_python(f)
+
+	try:
+		fname = f'_fuzz.py'
+		output = run_py(pycode, fname=fname)
+		
+		if output is None:
+			raise NoneOutput
+
+	except (ZeroDivisionError, TimeoutExpired, NoneOutput):
+		os.remove(fname)
+		
+		raise
+
+	return f
+
+def generate_programs(target_dir='fuzzer'):
+	count = 0
+
+	os.chdir(target_dir)
+
+	while True:
+		f = Func()
+		f.generate()
+		pycode = generate_python(f)
+
+		print(f'Testing: {count}: ', end='')
+
+		try:
+			fname = f'fuzz_{count}.py'
+			output = run_py(pycode, fname=fname)
+			print(output)
+
+			if output is None:
+				os.remove(fname)
+
+		except ZeroDivisionError:
+			os.remove(fname)
+			print('ZeroDivisionError')
+
+		except TimeoutExpired:
+			os.remove(fname)
+			print('TimeoutExpired')
+
+
+		count += 1
+
 
 def main():
+	i = 0
+	while i < 10:
+		try:
+			f = generate_valid_program()
+
+		except Exception:
+			continue
+
+		i += 1
+
+		print(i)
+		
+		try:
+			compile_fx(f)
+
+		except Exception:
+			print(f.render())
+			raise
+
+	# generate_programs()
+
+	return
+
+
+
 	f = Func()
 	f.generate()
 
@@ -420,7 +528,7 @@ def main():
 	# print(b.depth)
 	print(f.render())
 
-	# run_py(f)
+	print(run_py(f))
 
 
 	# py_code = generate_python(f)
