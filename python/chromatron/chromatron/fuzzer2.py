@@ -1,5 +1,6 @@
 import sys
 import os
+from subprocess import STDOUT, check_output, TimeoutExpired
 
 from .code_gen import parse, compile_text
 from random import randint
@@ -341,7 +342,11 @@ def Number():
 
 PY_TRAILER = """
 def main():
-    return func()
+    try:
+        return func()
+
+    except ZeroDivisionError:
+    	return "ZeroDivisionError"
 
 if __name__ == '__main__':
     print(main())
@@ -371,8 +376,13 @@ def run_py(func):
 	with open('_fuzz.py', 'w') as f:
 		f.write(py)
 
-	os.system(f'python3 _fuzz.py')
-
+	# cmd = f'python3 _fuzz.py'
+	# cmd = 'which python3'
+	# os.system(cmd)
+	output = check_output(['python3' ,'_fuzz.py'], stderr=STDOUT, cwd=os.getcwd(), timeout=0.1)
+	
+	if output == 'ZeroDivisionError':
+		raise ZeroDivisionError
 
 
 def main():
