@@ -1,8 +1,8 @@
 def func():
-    d = Number()
+    # d = Number()
     # c = Number()
     # b = Number()
-    # a = Number()
+    a = Number()
     a = 2 >= -7
     # return b
     # while b == 8:

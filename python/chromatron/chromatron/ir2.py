@@ -772,7 +772,11 @@ class irBlock(IR):
                 # keep this instruction
                 new_code.append(ir)
 
+        old_code = self.code
+
         self.code = new_code
+
+        return old_code != new_code
 
     def remove_redundant_assigns(self):
         # remove redundant assigns in SSA form.
@@ -2304,9 +2308,25 @@ class irFunc(IR):
 
 
     def remove_dead_code(self):
-        reads = [a.name for a in self.get_input_vars()]
-        for block in self.blocks.values():            
-            block.remove_dead_code(reads=reads)
+        iterations = 0
+        iteration_limit = 1024
+        changed = True
+        while changed:
+            changed = False
+
+            if iterations > iteration_limit:
+                raise CompilerFatal(f'Remove dead code failed after {iterations} iterations')
+                break
+
+            reads = [a.name for a in self.get_input_vars()]
+
+            for block in self.blocks.values():            
+                if block.remove_dead_code(reads=reads):
+                    changed = True
+
+            iterations += 1
+
+        logging.debug(f'Removed dead code in {iterations} iterations')
 
     def get_code_from_blocks(self):
         code = []
