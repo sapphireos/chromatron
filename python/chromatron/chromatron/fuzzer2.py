@@ -6,8 +6,8 @@ from random import randint
 from copy import copy
 
 
-# TAB = ' ' * 4
-TAB = '---|'
+TAB = ' ' * 4
+# TAB = '---|'
 
 class Selector(object):
 	def __init__(self, *args):
@@ -23,6 +23,8 @@ class Element(object):
 
 	def __init__(self):
 		self.depth = 0
+		self.code = ''
+		self.render_newline = True
 
 	def __str__(self):
 		s = f'{TAB * self.depth}{self.get_name()}\n'
@@ -38,6 +40,14 @@ class Element(object):
 
 	def generate(self, *args, **kwargs):
 		pass
+
+	def render(self):
+		s = f'{TAB * self.depth}{self.code}'
+
+		if self.render_newline:
+			s += '\n'
+
+		return s
 
 	def get_var(self):
 		try:
@@ -104,6 +114,13 @@ class Block(Element):
 			p.depth = self.depth + 1
 			self.add_element(p)
 
+	def render(self):
+		s = super().render()
+
+		for e in self.elements:
+			s += f'{e.render()}'
+
+		return s
 
 class Expr(Element):
 	def __init__(self, *args, **kwargs):
@@ -112,6 +129,8 @@ class Expr(Element):
 		self.op = '?'
 		self.var1 = self.get_var()
 		self.var2 = self.get_var()
+		self.code = f'{self.var1} {self.op} {self.var2}'
+		self.render_newline = False
 
 	def __str__(self):
 		# s = f'{TAB * self.depth}Expr({self.var1} {self.op} {self.var2})\n'
@@ -138,6 +157,7 @@ class Assign(Element):
 
 		self.var = self.get_var()
 		self.expr = ArithVars()
+		self.code = f'{self.var} = {self.expr}'
 
 	def __str__(self):
 		s = f'{TAB * self.depth}{self.var} = {self.expr}\n'
@@ -149,20 +169,39 @@ class Variable(Element):
 		super().__init__(*args, **kwargs)
 
 		self.var = self.get_var()
+		self.code = f'{self.var}'
+		self.render_newline = False
 
 	def __str__(self):
 		s = f'{TAB * self.depth}{self.var}'
 
 		return s
 
+class DeclareVar(Element):
+	def __init__(self, var, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.var = var
+
+		self.code = f'{var} = Number()'
+
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.var} = Number()\n'
+
+		return s
+
 class Pass(Element):
-	pass
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = 'pass'
 
 
 class Return(Element):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.expr = Selector(ArithVars, Variable).select()
+
+		self.code = f'return {self.expr.render()}'
 
 	def __str__(self):
 		s = f'{TAB * self.depth}{self.get_name()} {self.expr}\n'
@@ -180,7 +219,9 @@ class ControlFlow(Block):
 		return f'{super().get_name()} {self.expr}'
 
 class While(ControlFlow):
-	pass
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = f'while {self.expr.render()}:'	
 
 class IfBlock(Block):
 	def __init__(self):
@@ -216,9 +257,6 @@ class IfBlock(Block):
 			c += self.else_block.count
 
 		return c
-
-
-	# def generate(self, max_length=6, max_depth=2, randomize=True):
 	def generate(self, max_length=6, max_depth=2, **kwargs):
 		self.if_block = If()
 		self.if_block.depth = self.depth
@@ -241,26 +279,48 @@ class IfBlock(Block):
 				self.else_block = else_block
 				else_block.generate(max_length=max_length, max_depth=max_depth, **kwargs)
 
+	def render(self):
+		s = self.if_block.render()
+
+		for e in self.elifs:
+			s += e.render()
+
+		if self.else_block:
+			s += self.else_block.render()
+
+		return s
 
 class If(ControlFlow):
-	pass
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = f'if {self.expr.render()}:'	
 
 class ElIf(ControlFlow):
-	pass
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = f'elif {self.expr.render()}:'	
 
 class Else(ControlFlow):
-	pass
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = f'else:'	
 
 class Func(Block):
 	def __init__(self):
-		# super().__init__(While, IfBlock, Assign, Return)
-		super().__init__(IfBlock, Assign)
+		super().__init__(While, IfBlock, Assign, Return)
+		
+		self.code = 'def func():'
 
 	def generate(self, max_length=24, max_depth=3, max_vars=4):
 		Element.max_vars = max_vars
 
 		super().generate(max_length, max_depth, randomize=False)
 
+		for var in self.variables:
+			declare = DeclareVar(var)
+			declare.depth = self.depth + 1
+
+			self.elements.insert(0, declare)
 
 def main():
 	f = Func()
@@ -269,10 +329,10 @@ def main():
 	# b.add_element()
 	# b.add_element()
 
-	print(f)
-	print(f.count)
+	# print(f)
+	# print(f.count)
 	# print(b.depth)
-
+	print(f.render())
 
 if __name__ == '__main__':
 	try:
