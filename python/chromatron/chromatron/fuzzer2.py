@@ -11,6 +11,10 @@ from copy import copy
 TAB = ' ' * 4
 # TAB = '---|'
 
+
+variables = []
+max_vars = 1
+
 class Selector(object):
 	def __init__(self, *args):
 		self.items = args
@@ -24,9 +28,6 @@ class Selector(object):
 
 
 class Element(object):
-	max_vars = 1
-	variables = []
-
 	def __init__(self):
 		self.depth = 0
 		self.code = ''
@@ -60,13 +61,7 @@ class Element(object):
 			if randint(0, 1) == 1:
 				return Const()
 
-		try:
-			return self.variables[randint(0, self.max_vars - 1)]
-
-		except IndexError:
-			new_var = chr(len(self.variables) + 97)
-			self.variables.append(new_var)
-			return new_var
+		return variables[randint(0, var_count - 1)]
 
 
 class Block(Element):
@@ -197,7 +192,7 @@ class Const(Element):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.const = randint(-10, 10)
+		self.const = randint(-2000000000, 2000000000)
 		self.code = f'{self.const}'
 		self.render_newline = False
 
@@ -350,12 +345,20 @@ class Func(Block):
 		self.rendered_code = super().render()
 		return self.rendered_code
 
-	def generate(self, max_length=24, max_depth=3, max_vars=4):
-		Element.max_vars = max_vars
+	def generate(self, max_length=128, max_depth=8, max_vars=8):
+
+		# global var handling.... not super happy about this but works for now
+		global var_count
+		global variables
+		var_count = randint(1, max_vars)
+		variables = []
+		
+		for i in range(var_count):
+			variables.append(chr(97 + i))
 
 		super().generate(max_length, max_depth, randomize=False)
 
-		for var in self.variables:
+		for var in variables:
 			declare = DeclareVar(var)
 			declare.depth = self.depth + 1
 
@@ -405,10 +408,10 @@ def generate_fx(func):
 def compile_fx(func):
 	fx = generate_fx(func)
 
-	# with open('_fuzz.fx', 'w') as f:
-		# f.write(fx)
+	with open('_fuzz.fx', 'w') as f:
+		f.write(fx)
 
-	compile_text(fx)
+	return compile_text(fx)
 
 
 def run_py(pycode, fname='_fuzz.py'):
@@ -426,8 +429,10 @@ def run_py(pycode, fname='_fuzz.py'):
 
 	if output == 'None':
 		return None
-	elif output in ['True', 'False']:
-		return output
+	elif output == 'True':
+		return True
+	elif output == 'False':
+		return False
 	
 	try:
 		return int(output)
@@ -444,6 +449,8 @@ def generate_valid_program():
 	f.generate()
 	pycode = generate_python(f)
 
+	output = None
+
 	try:
 		fname = f'_fuzz.py'
 		output = run_py(pycode, fname=fname)
@@ -456,7 +463,7 @@ def generate_valid_program():
 		
 		raise
 
-	return f
+	return f, output
 
 def generate_programs(target_dir='fuzzer'):
 	count = 0
@@ -492,27 +499,43 @@ def generate_programs(target_dir='fuzzer'):
 
 def main():
 	i = 0
-	while i < 10:
-		try:
-			f = generate_valid_program()
+	while i < 100000:
+		py_output = None
 
-		except Exception as e:
-			print(e)
+		try:
+			f, py_output = generate_valid_program()
+
+		except (ZeroDivisionError, TimeoutExpired, NoneOutput):
+			# print(e)
 			continue
 
 		i += 1
 
-		print(i)
+		print(i, end=' -> ')
 
 		try:
-			compile_fx(f)
+			prog = compile_fx(f)
 
 		except DivByZero:
-			pass
+			continue # Div by 0 is a syntax error in FX
 
 		except Exception:
 			print(f.render())
 			raise
+
+		try:
+			fx_output = prog.run_func('func')
+
+			print(f'Py:{py_output}, FX:{fx_output}', end='')
+			print('')
+
+			assert fx_output == py_output
+
+		except Exception:
+			print(f.render())
+			raise
+
+		
 
 	# generate_programs()
 

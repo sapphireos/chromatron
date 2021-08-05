@@ -3,30 +3,29 @@ def func():
     c = Number()
     b = Number()
     a = Number()
-    c = 6 / -7
-    if -5 < a:
-        return c / -3
-        while b:
-            while d:
-                pass
-            b = d - b
-            if b:
-                pass
-        if a:
-            if -9 < b:
-                pass
-    while -8 <= a:
-        pass
-    while 0 == d:
-        if b >= d:
+    if d <= 8:
+        d = a / -4
+        if -3 <= c:
             pass
-        elif -3 < -4:
-            while -4 <= -10:
-                pass
-        b = 1 > b
-        b = -3 >= 9
-    d = -5 <= a
-
+        else:
+            pass
+        a = 8 <= 4
+        if b > c:
+            pass
+        else:
+            pass
+        if -9 <= -6:
+            pass
+        else:
+            pass
+        return a
+        while c > -10:
+            pass
+        if a:
+            pass
+    elif b:
+        pass
+    d = b == a
 
 # def const_const_if_if():    
 #     a = Number()

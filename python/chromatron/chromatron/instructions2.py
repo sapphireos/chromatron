@@ -68,7 +68,7 @@ class insProgram(object):
         pass
 
     def run_func(self, func):
-        self.funcs[func].run()
+        return self.funcs[func].run()
 
     def assemble(self):
         pass
