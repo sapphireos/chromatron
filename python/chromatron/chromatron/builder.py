@@ -89,10 +89,15 @@ class Builder(object):
         return ir
     
     def add_const(self, value, data_type=None, lineno=None):
+        if value is True:
+            value = 1
+        elif value is False:
+            value = 0
+
         name = str(value)
 
         if name in self.current_func.consts:
-            return self.current_func.consts[name]
+            return copy(self.current_func.consts[name])
 
         if isinstance(value, int):
             data_type = 'i32'

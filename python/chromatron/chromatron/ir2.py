@@ -40,7 +40,7 @@ def params_to_string(params):
 
 
 def add_const_temp(const, datatype=None, lineno=None):
-    name = '$' + str(const)
+    name = str(const)
     
     ir = irVar(name, datatype=datatype, lineno=lineno)
     ir.is_temp = True
@@ -515,6 +515,7 @@ class irBlock(IR):
         return copy(self.defines)
 
     def init_consts(self, visited=None):
+        return
         if visited is None:
             visited = []
 
@@ -1217,10 +1218,24 @@ class irBlock(IR):
                 self.defines[ir.var._name] = ir.var
 
             else:
-                inputs = ir.local_input_vars
+                inputs = [a for a in ir.get_input_vars() if not a.is_temp and not a.is_global]
 
                 for i in inputs:
                     i.block = self
+
+                    # check if requested var is a const
+                    # these can't be in the definitions - they need to be loaded to a register first
+                    if i.is_const and i.name not in self.defines:
+                    # note the check for i being in self.defines:
+                    # if we had just added it for a previous operand in this instruction,
+                    # this skips adding a duplicate load const instruction
+                        target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
+                        load = irLoadConst(target, copy(i), lineno=-1)
+                        load.block = self
+
+                        # add new definition and add new instruction to code
+                        self.defines[target._name] = target
+                        new_code.append(load)
 
                     # check if we have a definition:
                     try:
@@ -1230,12 +1245,15 @@ class irBlock(IR):
                         raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
                     i.clone(v)
+                    assert not i.is_const # make sure we properly set up a const register!
 
                 # look for writes to current set of vars and increment versions
-                outputs = ir.local_output_vars
+                outputs = [a for a in ir.get_output_vars() if not a.is_temp and not a.is_global]
 
                 for o in outputs:
                     o.block = self
+
+                    assert not o.is_const # cannot write to a const!
 
                     # check if we have a definition:
                     try:
@@ -3229,7 +3247,6 @@ class irVar(IR):
         self.holds_const = False
         self.is_const = False
         self.ssa_version = None
-
         self.register = None
 
     def __hash__(self):
@@ -3254,6 +3271,9 @@ class irVar(IR):
         # clone source attributes to self
         self.ssa_version = source.ssa_version
         self.type = source.type
+        self.holds_const = source.holds_const
+        self.is_const = source.is_const
+        self.is_temp = source.is_temp
 
     @property
     def value(self):
@@ -3282,7 +3302,11 @@ class irVar(IR):
     @property
     def name(self):
         if self.is_temp or self.ssa_version is None:
-            s = self._name
+            if self.holds_const:
+                s = f'${self._name}'
+
+            else:
+                s = self._name
 
         else:
             s = f'{self._name}.{self.ssa_version}'

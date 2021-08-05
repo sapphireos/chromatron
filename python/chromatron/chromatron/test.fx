@@ -6,6 +6,17 @@ def const_const_if_if():
         
     if -4 < -4:
         pass
+
+
+# def const_const_if_if():    
+#     a = Number()
+#     if a:
+#         a += a
+        
+#     if a < a:
+#         pass
+
+
     
 # def double_while_loop():
 #     i = Number()
