@@ -18,17 +18,17 @@ def func():
     # while b:
         # pass
         
-    # if d:
-        # b = a + -3
-        # a = c > a
-        # b = 6 % a
-        # c = -3 < a
-        # if c <= 3:
-        #     pass
-    if -4 < -4:
+    if d:
+        b = a + -3
+        a = c > a
+        b = 6 % a
+        c = -3 < a
+        if c <= 3:
+            pass
+        if -4 < -4:
+            pass
+    else:
         pass
-    # else:
-        # pass
 
 
 # def double_while_loop():
