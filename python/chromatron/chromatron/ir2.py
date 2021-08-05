@@ -532,7 +532,8 @@ class irBlock(IR):
                 new_code.append(ir)
                 continue
 
-            ir_consts = [i for i in ir.get_input_vars() if i.is_const]
+            inputs = [i for i in ir.get_input_vars() if i.is_const]
+            ir_consts = list(sorted(set(inputs), key=lambda a: a.name))
             for c in ir_consts:
                 # check if const is loaded:
                 if c.name not in consts:

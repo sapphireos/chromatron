@@ -186,6 +186,9 @@ def while_if_while_expr():
 
     return b
         
+def const_const():
+    if -4 < -4:
+        pass
 
 # global_a = Number()
 # def global_var():
