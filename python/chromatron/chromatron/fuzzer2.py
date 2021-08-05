@@ -54,7 +54,11 @@ class Element(object):
 
 		return s
 
-	def get_var(self):
+	def get_var(self, allow_const=False):
+		if allow_const:
+			if randint(0, 1) == 1:
+				return Const()
+
 		try:
 			return self.variables[randint(0, self.max_vars - 1)]
 
@@ -132,8 +136,8 @@ class Expr(Element):
 		super().__init__(*args, **kwargs)
 
 		self.op = '?'
-		self.var1 = self.get_var()
-		self.var2 = self.get_var()
+		self.var1 = self.get_var(allow_const=True)
+		self.var2 = self.get_var(allow_const=True)
 		self.render_newline = False
 
 	@property
@@ -185,6 +189,19 @@ class Variable(Element):
 
 	def __str__(self):
 		s = f'{TAB * self.depth}{self.var}'
+
+		return s
+
+class Const(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.const = randint(-10, 10)
+		self.code = f'{self.const}'
+		self.render_newline = False
+
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.const}'
 
 		return s
 
@@ -268,6 +285,7 @@ class IfBlock(Block):
 			c += self.else_block.count
 
 		return c
+
 	def generate(self, max_length=6, max_depth=2, **kwargs):
 		self.if_block = If()
 		self.if_block.depth = self.depth
@@ -333,6 +351,11 @@ class Func(Block):
 
 			self.elements.insert(0, declare)
 
+		if randint(0, 1) == 1: 
+			ret = Return()
+			ret.depth = self.depth + 1
+			self.elements.append(ret)
+
 
 PY_HEADER = """
 def Number():
@@ -397,7 +420,7 @@ def main():
 	# print(b.depth)
 	print(f.render())
 
-	run_py(f)
+	# run_py(f)
 
 
 	# py_code = generate_python(f)
