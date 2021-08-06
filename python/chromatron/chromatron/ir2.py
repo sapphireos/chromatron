@@ -1045,6 +1045,11 @@ class irBlock(IR):
             # create new var and add a phi node
             new_var = irVar(name=var_name, lineno=-1)
             new_var.clone(var)
+            if new_var.is_const:
+                # convert to proper const register
+                new_var.is_const = False
+                new_var.holds_const = True
+
             new_var.block = self
             new_var.ssa_version = None
             new_var.convert_to_ssa()
@@ -1177,24 +1182,34 @@ class irBlock(IR):
 
                     # check if requested var is a const
                     # these can't be in the definitions - they need to be loaded to a register first
-                    if i.is_const and i.name not in self.defines:
-                    # note the check for i being in self.defines:
-                    # if we had just added it for a previous operand in this instruction,
-                    # this skips adding a duplicate load const instruction
-                        target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
-                        load = irLoadConst(target, copy(i), lineno=-1)
-                        load.block = self
+                    v = None
+                    if i.is_const:
+                        # check if this const is already assigned to a register
+                        try:
+                            v = self.ssa_lookup_var(i)
 
-                        # add new definition and add new instruction to code
-                        self.defines[target._name] = target
-                        new_code.append(load)
+                        except KeyError:
+                            # var not found - we need to load to a register
+                            target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
+                            target.block = self
+                            load = irLoadConst(target, copy(i), lineno=-1)
+                            load.block = self
+                            target.convert_to_ssa()
+
+                            # add new definition and add new instruction to code
+                            self.defines[target._name] = target
+                            new_code.append(load)
+
+                            v = target
 
                     # check if we have a definition:
-                    try:
-                        v = self.ssa_lookup_var(i)
+                    if v is None: # note we may have already satisfied v above in the const handling
+                                  # in which case we can skip this.
+                        try:
+                            v = self.ssa_lookup_var(i)
 
-                    except KeyError:
-                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+                        except KeyError:
+                            raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
                     i.clone(v)
                     assert not i.is_const # make sure we properly set up a const register!
@@ -3259,7 +3274,14 @@ class irVar(IR):
             
     @property
     def name(self):
-        if self.is_temp or self.ssa_version is None:
+        if self.ssa_version is not None:
+            if self.holds_const:
+                s = f'${self._name}.v{self.ssa_version}'
+
+            else:
+                s = f'{self._name}.v{self.ssa_version}'
+
+        elif self.is_temp or self.ssa_version is None:
             if self.holds_const:
                 s = f'${self._name}'
 
