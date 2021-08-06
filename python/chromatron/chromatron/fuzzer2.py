@@ -345,7 +345,7 @@ class Func(Block):
 		self.rendered_code = super().render()
 		return self.rendered_code
 
-	def generate(self, max_length=128, max_depth=8, max_vars=8):
+	def generate(self, max_length=64, max_depth=8, max_vars=8):
 
 		# global var handling.... not super happy about this but works for now
 		global var_count

@@ -2120,6 +2120,8 @@ class irFunc(IR):
         #     registers[var] = address_pool.pop(0)
 
 
+
+        # perform register assignment to instructions:
         for ir in self.code:
             for i in ir.get_input_vars():
                 assert i in registers

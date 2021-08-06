@@ -1,32 +1,3 @@
-def func():
-    d = Number()
-    c = Number()
-    b = Number()
-    a = Number()
-    if d <= 8:
-        d = a / -4
-        if -3 <= c:
-            pass
-        else:
-            pass
-        a = 8 <= 4
-        if b > c:
-            pass
-        else:
-            pass
-        if -9 <= -6:
-            pass
-        else:
-            pass
-        return a
-        while c > -10:
-            pass
-        if a:
-            pass
-    elif b:
-        pass
-    d = b == a
-
 # def const_const_if_if():    
 #     a = Number()
 #     if a:
@@ -143,23 +114,23 @@ def func():
 #     return b
 
 
-# def two_ifelse():
-#     a = Number()
-#     b = Number()
+def two_ifelse():
+    a = Number()
+    b = Number()
 
-#     if a > 0:
-#         b = 1
+    if a > 0:
+        b = 1
 
-#     else:
-#         b = 2
+    else:
+        b = 2
 
-#     if b < 0:
-#         a = 1
+    if b < 0:
+        a = 1
 
-#     else:
-#         b = 2
+    else:
+        b = 2
 
-#     return b
+    return b
 
 
 # def while_loop():
