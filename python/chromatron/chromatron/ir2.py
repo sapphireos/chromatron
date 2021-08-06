@@ -1403,6 +1403,8 @@ class irFunc(IR):
         self.leader_block = None
         self.live_vars = None
         self.loops = {}
+        self.dominators = {}
+        self.dominator_tree = {}
 
         self.live_in = None
         self.live_out = None
