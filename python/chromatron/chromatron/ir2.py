@@ -400,6 +400,42 @@ class irBlock(IR):
 
         return False
 
+    def _get_consts(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        visited.append(self)
+
+        consts = []
+
+        for ir in self.code:
+            for i in ir.get_input_vars():
+                if i.is_const:
+                    consts.append(i)
+
+        for suc in self.successors:
+            consts.extend(suc._get_consts(visited=visited))
+
+        return list(set(consts))
+
+    def init_consts(self):
+        consts = self._get_consts()
+
+        # load all consts to registers at top of function:
+        for const in consts:
+            target = add_const_temp(const.name, datatype=const.type, lineno=-1)
+            target.block = self
+            load = irLoadConst(target, const, lineno=-1)
+            load.block = self
+            target.convert_to_ssa()
+
+            # add new definition and add new instruction to code
+            self.defines[target._name] = target
+            self.code.insert(1, load)
+
     def init_vars(self, visited=None, declarations=None):    
         if visited is None:
             visited = []
@@ -436,36 +472,6 @@ class irBlock(IR):
                 assign.block = self
                 
                 new_code.append(assign)
-
-        self.code = new_code
-
-        new_code = []
-        for ir in self.code:
-            if isinstance(ir, irDefine):
-                new_code.append(ir)
-                continue
-
-            inputs = ir.get_input_vars()
-            for i in inputs:
-                # look for constants
-                if i.is_const:
-                    v = self.lookup_var(i)
-
-                    if v is not None:
-                        continue
-
-                    target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
-                    target.block = self
-                    load = irLoadConst(target, i, lineno=-1)
-                    load.block = self
-                    target.convert_to_ssa()
-
-                    # add new definition and add new instruction to code
-                    self.defines[target._name] = target
-                    new_code.append(load)
-
-            new_code.append(ir)
-
 
         self.code = new_code
 
@@ -996,8 +1002,8 @@ class irBlock(IR):
             # create new var and add a phi node
             new_var = irVar(name=var_name, lineno=-1)
             new_var.clone(var)
-            if new_var.is_const:
-                # convert to proper const register
+            
+            if var.is_const:
                 new_var.is_const = False
                 new_var.holds_const = True
 
@@ -1032,12 +1038,12 @@ class irBlock(IR):
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
             assert not self.sealed
 
-            if var.is_const:
-                new_var = add_const_temp(var.name, datatype=var.type, lineno=-1)
+            new_var = irVar(name=var_name, lineno=-1)
+            new_var.clone(var)
 
-            else:
-                new_var = irVar(name=var_name, lineno=-1)
-                new_var.clone(var)
+            if var.is_const:
+                new_var.is_const = False
+                new_var.holds_const = True
 
             new_var.block = self
             new_var.ssa_version = None
@@ -1089,7 +1095,7 @@ class irBlock(IR):
                 if ir.var in values: # remove self references
                     values.remove(ir.var)
 
-                # assert len(values) > 0
+                assert len(values) > 0
 
                 phi = irPhi(ir.var, values, lineno=ir.lineno)
                 phi.block = self
@@ -2079,6 +2085,7 @@ class irFunc(IR):
         self.verify_block_links()
         
         self.leader_block.init_vars()
+        self.leader_block.init_consts()
 
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
@@ -3057,6 +3064,7 @@ class irVar(IR):
     def convert_to_ssa(self):
         assert self.ssa_version is None
         assert self.block is not None
+        assert not self.is_const
 
         if self._name not in self.block.func.ssa_next_val:
             self.block.func.ssa_next_val[self._name] = 0
