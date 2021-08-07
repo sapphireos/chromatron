@@ -29,6 +29,8 @@ class ReturnException(Exception):
 class VMException(Exception):
     pass
 
+class CycleLimitExceeded(VMException):
+    pass
 
 opcodes = {
     'MOV':                  0x01,
@@ -83,6 +85,8 @@ class insFunc(object):
 
         self.registers = None
         self.return_val = None
+
+        self.cycle_limit = 16384
 
     def __str__(self):
         s = ''
@@ -172,6 +176,10 @@ class insFunc(object):
 
         while True:
             cycles += 1
+
+            if cycles > self.cycle_limit:
+                raise CycleLimitExceeded
+
 
             ins = self.code[pc]
 
