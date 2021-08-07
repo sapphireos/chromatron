@@ -2,6 +2,7 @@ import sys
 import os
 from subprocess import STDOUT, check_output, TimeoutExpired
 
+from datetime import datetime
 from .ir2 import DivByZero
 from .code_gen import parse, compile_text
 from random import randint
@@ -508,18 +509,18 @@ def generate_valid_program(skip_exc=False):
 
 	return f, output
 
-def generate_programs(target_dir='fuzzer'):
+def generate_programs(total=None, target_dir='fuzzer'):
 	count = 0
 
 	os.chdir(target_dir)
 
-	while True:
+	while total is None or count < total:
 		f, output = generate_valid_program(skip_exc=True)
 
 		if f is None:
 			continue
 
-		with open(f'fuzzer_{count}.fx', 'w') as file:
+		with open(f'fuzzer_{datetime.utcnow().isoformat()}_{count}.fx', 'w') as file:
 			file.write(f'# OUTPUT: {output}\n\n')
 			file.write(f.render())
 			
@@ -562,7 +563,7 @@ def test_programs(target_dir='fuzzer'):
 
 
 def main():
-	generate_programs()
+	generate_programs(100000)
 	# test_programs()
 	return
 
