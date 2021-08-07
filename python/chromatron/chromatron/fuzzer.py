@@ -13,7 +13,9 @@ TAB = ' ' * 4
 
 
 variables = []
-max_vars = 1
+var_count = 1
+consts = []
+const_count = 8
 
 class Selector(object):
 	def __init__(self, *args):
@@ -207,7 +209,7 @@ class Const(Element):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.const = randint(-2000000000, 2000000000)
+		self.const = consts[randint(0, const_count - 1)]
 		self.code = f'{self.const}'
 		self.render_newline = False
 
@@ -370,6 +372,14 @@ class Func(Block):
 		
 		for i in range(var_count):
 			variables.append(chr(97 + i))
+
+		global const_count
+		global consts
+		const_count = randint(1, 8)
+		consts = []
+
+		for i in range(const_count):
+			consts.append(randint(-2000000000, 2000000000))
 
 		super().generate(max_length, max_depth, randomize=False)
 

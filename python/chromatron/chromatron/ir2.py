@@ -1979,22 +1979,39 @@ class irFunc(IR):
         # that's it.
         # we can get away with it for testing purposes because we 
         # can use up to 256 registers.
-        for var, live_at in self.live_ranges.items():
-            try:
-                registers[var] = address_pool.pop(0)
-
-            except IndexError:
-                logging.critical("This terrible allocator has run out of registers!")
-                raise CompilerFatal("Register allocator failed because it is bad at its job")
-
-
-
         # for var, live_at in self.live_ranges.items():
-        #     live_at = list(sorted(live_at))
-        #     interval_start = live_at[0]
-        #     interval_end = live_at[-1]
+        #     try:
+        #         registers[var] = address_pool.pop(0)
 
-        #     registers[var] = address_pool.pop(0)
+        #     except IndexError:
+        #         logging.critical("This terrible allocator has run out of registers!")
+        #         raise CompilerFatal("Register allocator failed because it is bad at its job")
+
+
+        # Linear Scan:
+        # convert ranges to intervals
+        intervals = {}
+        for var, live_at in self.live_ranges.items():
+            live_at = list(sorted(live_at))
+
+            intervals[var] = list(range(live_at[0], live_at[-1] + 1))
+
+
+        for i in range(len(self.code)):
+            for var, interval in intervals.items():
+                if i == (interval[-1] + 1):
+                    # are we terminating liveness?
+                    address_pool.insert(0, registers[var])
+
+                # are we in within the interval?
+                elif i in interval:
+                    # is this var allocated?
+                    if var not in registers:
+                        try:
+                            registers[var] = address_pool.pop(0)
+                            
+                        except IndexError:
+                            raise CompilerFatal("Register allocator failed")
 
 
 
@@ -2008,58 +2025,7 @@ class irFunc(IR):
             for o in ir.get_output_vars():
                 o.register = registers[o]
 
-        self.register_count = len(registers)
-
-
-
-        # assert len(self.code) > 0
-
-        # registers = {}
-        # address_pool = list(range(max_registers)) # preload with all registers
-
-        # registers_used = 0
-
-        # for ir in self.code:
-        #     for i in ir.get_input_vars():
-        #         assert i in registers
-        #         # assign register
-        #         i.register = registers[i]
-
-        #     kills = ir.live_in - ir.live_out
-            
-        #     for k in kills:
-        #         # return register to pool
-        #         address_pool.insert(0, registers[k])
-        #         del registers[k]
-
-        #     for v in ir.live_out:
-        #         if v not in registers:
-        #             # assign from pool
-        #             registers[v] = address_pool.pop(0)
-
-        #             if len(registers) > registers_used:
-        #                 registers_used = len(registers)
-
-        #     for o in ir.get_output_vars():
-        #         # var might not be in registers
-        #         # this is the case if the variable isn't live
-        #         # and this is a dead instruction
-        #         if o in registers:
-        #             o.register = registers[o]
-
-
-
-
-
-        # for index in range(len(self.code)):
-        #     ir = self.code[index]
-
-        #     registers[ir] = []
-
-            # for var, live_at in self.live_ranges.items():
-            #     if index in live_at:
-                    # this var is live
-            
+        self.register_count = max(registers.values()) + 1
 
     def generate(self):
         instructions = []

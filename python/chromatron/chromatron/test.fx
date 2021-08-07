@@ -1,3 +1,75 @@
+def func():
+    f = Number()
+    e = Number()
+    d = Number()
+    c = Number()
+    b = Number()
+    a = Number()
+    while d:
+        if f:
+            pass
+        d /= c
+        while e >= 485923198:
+            return d - -34733547
+            return 397692812 - e
+            d = -905618367 + -1131913823
+            return e
+            return e
+        if d:
+            pass
+        a *= e
+    d -= f
+    while 1825009597 >= -1982874245:
+        return e * d
+        e = f + d
+        a *= e
+        f = d < -569022093
+    if b == -458569672:
+        while d == 1246222344:
+            pass
+        if d >= -474106507:
+            pass
+        elif a:
+            pass
+        while 442372283 > e:
+            e /= a
+            e = c > e
+            c = b + f
+            b = c <= -673799793
+            f += b
+            f *= a
+            b = d == d
+            return 995780196 / -155303768
+            return b
+            if b:
+                pass
+            else:
+                pass
+            return -634710703 % f
+            c = d == 951422263
+            while -730692086 < d:
+                pass
+            while -915148573 < -846592185:
+                pass
+            return 1271676796 / -813240999
+            e -= c
+            if a:
+                pass
+            else:
+                pass
+        if d < 208025182:
+            pass
+        else:
+            while c < e:
+                pass
+    return a
+    if -243132868 > d:
+        e = a < -755998068
+        a = 1626953663 <= 449765606
+    if d:
+        pass
+    return 1942468874 - f
+
 # def const_const_if_if():    
 #     a = Number()
 #     if a:
@@ -83,13 +155,13 @@
 #     return b
 
 
-def const_const_if_if():    
-    a = Number()
-    if True:
-        a += -4
+# def const_const_if_if():    
+#     a = Number()
+#     if True:
+#         a += -4
         
-    if -4 < -4:
-        pass
+#     if -4 < -4:
+#         pass
     
 # def if_if_expr():
 #     a = Number()
