@@ -6,15 +6,15 @@ def func():
     b = Number()
     a = Number()
     while d:
-        if f:
-            pass
+        # if f:
+        #     pass
         d /= c
         while e >= 485923198:
             return d - -34733547
-            return 397692812 - e
-            d = -905618367 + -1131913823
-            return e
-            return e
+            # return 397692812 - e
+            # d = -905618367 + -1131913823
+            # return e
+            # return e
         if d:
             pass
         a *= e

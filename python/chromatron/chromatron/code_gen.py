@@ -1043,11 +1043,11 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
             f.write(str(ins_program))
 
 
-    if debug_print:
-        print(ir_program)
+    # if debug_print:
+    #     print(ir_program)
         
-        if ins_program:
-            print(ins_program)
+    #     if ins_program:
+    #         print(ins_program)
 
     if e:
         raise e

@@ -921,9 +921,12 @@ class irBlock(IR):
                 
                 merge_block = merge_blocks[pred]
 
-                ir = irAssign(phi.target, var, lineno=-1)
-                ir.block = merge_block
-                merge_block.code.insert(len(merge_block.code) - 1, ir)
+                # check if target and value are the same,
+                # if they are, we don't need an assign here.
+                if phi.target != var: 
+                    ir = irAssign(phi.target, var, lineno=-1)
+                    ir.block = merge_block
+                    merge_block.code.insert(len(merge_block.code) - 1, ir)
 
         return merge_number        
 
@@ -2167,6 +2170,8 @@ class irFunc(IR):
 
 
     def remove_dead_code(self):
+        original_count = len(self.get_code_from_blocks())
+
         iterations = 0
         iteration_limit = 1024
         changed = True
@@ -2185,7 +2190,10 @@ class irFunc(IR):
 
             iterations += 1
 
-        logging.debug(f'Removed dead code in {iterations} iterations')
+        new_count = len(self.get_code_from_blocks())
+        delta = original_count = new_count
+
+        logging.debug(f'Removed dead code in {iterations} iterations. Eliminated {delta} instructions.')
 
     def get_code_from_blocks(self):
         code = []
