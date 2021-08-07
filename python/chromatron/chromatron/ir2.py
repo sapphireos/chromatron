@@ -1207,6 +1207,27 @@ class irBlock(IR):
                 if len(ir.defines) == 0:
                     continue # skip phi (remove from code)
 
+                # is the phi target a constant register?
+                elif ir.target.holds_const:
+                    for d in ir.defines:
+                        assert d.holds_const # ensure all inputs are also consts
+
+                    # we don't need to do any actual phi resolution here, since
+                    # we already know what value the register will hold.
+                    # we can just do another constant load.
+                    # technically the code will still work without this logic,
+                    # but it significantly reduces extra load on the downstream
+                    # optimizers and generates slightly better unoptimized code.
+                    const = copy(ir.target)
+                    const.ssa_version = None
+                    const.holds_const = False
+                    const.is_const = True
+                    const.is_temp = False
+
+                    # replace phi with load const
+                    ir = irLoadConst(ir.target, const, lineno=-1)
+                    ir.block = self
+
                 # check if only one define
                 # if so, that means that any user of the target var is a copy of
                 # the singular definition - they must always be equivalent.  thanks SSA!
@@ -2009,7 +2030,7 @@ class irFunc(IR):
                     if var not in registers:
                         try:
                             registers[var] = address_pool.pop(0)
-                            
+
                         except IndexError:
                             raise CompilerFatal("Register allocator failed")
 
