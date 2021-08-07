@@ -114,31 +114,32 @@
 #     return b
 
 
-def two_ifelse():
-    a = Number()
-    b = Number()
+# def two_ifelse():
+#     a = Number()
+#     b = Number()
 
-    if a > 0:
-        b = 1
+#     if a > 0:
+#         b = 1
 
-    else:
-        b = 2
+#     else:
+#         b = 2
 
-    if b < 0:
-        a = 1
+#     if b < 0:
+#         a = 1
 
-    else:
-        b = 2
+#     else:
+#         b = 2
 
-    return b
+#     return b
 
 
-# def while_loop():
-#     i = Number()
-#     i = 4
+def while_loop():
+    i = Number()
+    i = 4
 
-#     while i > 0:
-#         i -= 1
+    while i > 0:
+    # while 2:
+        i -= 1
 
 # def two_ifelse_expr():
 #     a = Number()

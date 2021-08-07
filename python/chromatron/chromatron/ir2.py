@@ -413,9 +413,30 @@ class irBlock(IR):
         self.defines = {}
         self.declarations = copy(self.globals)
         if declarations is not None:
-            self.declarations.update(declarations
-                )
+            self.declarations.update(declarations)
+
         new_code = []
+
+
+        """
+
+        Load/Store thoughts:
+
+        Consts and globals are similar, except consts are only loaded, never stored.
+
+        Globals only need to store when the function yields or returns.
+
+        Easy mode:
+        Scan for all globals and consts that are used, then place load instructions
+        at top of function.
+        
+        Later, we can look at liveness information and try to move those loads
+        as close as possible ot the first use to free up registers in parts of 
+        the code that don't use those globals/consts.
+
+        """
+
+
 
         # iterate over code
         # look for defines and record them.
@@ -437,6 +458,37 @@ class irBlock(IR):
                 new_code.append(assign)
 
         self.code = new_code
+
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irDefine):
+                new_code.append(ir)
+                continue
+
+            inputs = ir.get_input_vars()
+            for i in inputs:
+                # look for constants
+                if i.is_const:
+                    v = self.lookup_var(i)
+
+                    if v is not None:
+                        continue
+
+                    target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
+                    target.block = self
+                    load = irLoadConst(target, i, lineno=-1)
+                    load.block = self
+                    target.convert_to_ssa()
+
+                    # add new definition and add new instruction to code
+                    self.defines[target._name] = target
+                    new_code.append(load)
+
+            new_code.append(ir)
+
+
+        self.code = new_code
+
         new_code = []
         
         # iterate over code
@@ -992,10 +1044,6 @@ class irBlock(IR):
         if var._name in self.defines:
             return self.defines[var._name]
 
-        # if var._name in self.defines:
-        #     if self.defines[var._name].name == var.name:
-        #         return self.defines[var._name]
-
         # search predecessors
         for p in self.predecessors:
             v = p.lookup_var(var, visited=visited)
@@ -1081,8 +1129,13 @@ class irBlock(IR):
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
             assert not self.sealed
 
-            new_var = irVar(name=var_name, lineno=-1)
-            new_var.clone(var)
+            if var.is_const:
+                new_var = add_const_temp(var.name, datatype=var.type, lineno=-1)
+
+            else:
+                new_var = irVar(name=var_name, lineno=-1)
+                new_var.clone(var)
+
             new_var.block = self
             new_var.ssa_version = None
             new_var.convert_to_ssa()
@@ -1124,17 +1177,51 @@ class irBlock(IR):
             if isinstance(ir, irIncompletePhi):
                 values = []
                 for p in self.predecessors:
-                    v = p.ssa_lookup_var(ir.var)
+                    try:
+                        v = p.ssa_lookup_var(ir.var)
+
+                    except KeyError:
+                        raise
+                        # if not ir.var.holds_const:
+                        #     raise
+
+                        # # Var holds a const - it may not have been used prior to this
+                        # # block.  This is ok since consts don't need to be declared.
+                        # # For any declared var this is a failure since the variable isn't
+                        # # available on all paths into this block.
+
+                        # # load const to register:
+                        # const_var = copy(ir.var)
+                        # const_var.ssa_version = None
+                        # const_var.is_const = True # mimic a const var
+                        # const_var.holds_const = False # mimic a const var
+
+                        # target = add_const_temp(const_var.name, datatype=const_var.type, lineno=ir.lineno)
+                        # target.block = self
+                        # load = irLoadConst(target, const_var, lineno=-1)
+                        # load.block = self
+                        # target.convert_to_ssa()
+
+                        # # add new definition and add new instruction to code
+                        # self.defines[target._name] = target
+                        # new_code.append(load)
+
+                        # v = target
+
+                        # # constants don't need a phi since there's nothing to reconcile
+                        # break
 
                     if v is not None:
                         values.append(v)
-                        
+
+                # if not v.holds_const:
                 values = list(sorted(set(values), key=lambda a: a.name))
 
                 if ir.var in values: # remove self references
                     values.remove(ir.var)
 
-                assert len(values) > 0
+                assert len(values) > 0                
+
 
                 phi = irPhi(ir.var, values, lineno=ir.lineno)
                 phi.block = self
@@ -1156,8 +1243,6 @@ class irBlock(IR):
         if len(self.predecessors) > 0 and \
            len([p for p in self.predecessors if p.filled]) == 0:
             return
-
-        self.defines = {}
 
         new_code = []
         # start to fill block
@@ -1183,24 +1268,24 @@ class irBlock(IR):
                     # check if requested var is a const
                     # these can't be in the definitions - they need to be loaded to a register first
                     v = None
-                    if i.is_const:
-                        # check if this const is already assigned to a register
-                        try:
-                            v = self.ssa_lookup_var(i)
+                    # if i.is_const:
+                    #     # check if this const is already assigned to a register
+                    #     try:
+                    #         v = self.ssa_lookup_var(i)
 
-                        except KeyError:
-                            # var not found - we need to load to a register
-                            target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
-                            target.block = self
-                            load = irLoadConst(target, copy(i), lineno=-1)
-                            load.block = self
-                            target.convert_to_ssa()
+                    #     except KeyError:
+                    #         # var not found - we need to load to a register
+                    #         target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
+                    #         target.block = self
+                    #         load = irLoadConst(target, copy(i), lineno=-1)
+                    #         load.block = self
+                    #         target.convert_to_ssa()
 
-                            # add new definition and add new instruction to code
-                            self.defines[target._name] = target
-                            new_code.append(load)
+                    #         # add new definition and add new instruction to code
+                    #         self.defines[target._name] = target
+                    #         new_code.append(load)
 
-                            v = target
+                    #         v = target
 
                     # check if we have a definition:
                     if v is None: # note we may have already satisfied v above in the const handling
@@ -1282,7 +1367,7 @@ class irBlock(IR):
                     define = ir.defines[0]
 
                     # get all users of this variable
-                    users = [i for i in self.func.local_input_vars if i == ir.target]
+                    users = [i for i in self.func.get_input_vars() if i == ir.target]
 
                     for user in users:
                         user.clone(define)
@@ -1972,7 +2057,7 @@ class irFunc(IR):
             assert block.filled
             assert block.sealed
             block.apply_temp_phis()
-        
+ 
         changed = True
         while changed:
             if iterations > iteration_limit:
