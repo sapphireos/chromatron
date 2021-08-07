@@ -1,399 +1,406 @@
-
 import sys
 import os
+from subprocess import STDOUT, check_output, TimeoutExpired
 
-
+from .ir2 import DivByZero
 from .code_gen import parse, compile_text
 from random import randint
 from copy import copy
 
 
-class Selector(object):
-	def __init__(self, items=[]):
-		self.items = items
+TAB = ' ' * 4
+# TAB = '---|'
 
-	def choose(self):
-		return self.items[randint(0, len(self.items) - 1)]
+
+variables = []
+max_vars = 1
+
+class Selector(object):
+	def __init__(self, *args):
+		self.items = args
+
+	def select(self):
+		try:
+			return self.items[randint(0, len(self.items) - 1)]()
+
+		except TypeError:
+			return self.items[randint(0, len(self.items) - 1)]
 
 
 class Element(object):
-	def __init__(self, depth=None, target_vars=1, variables={}):
-		self.depth = depth
-		self.available_elements = []
-		self.target_vars = target_vars
-		self.variables = variables
+	def __init__(self):
+		self.depth = 0
+		self.code = ''
+		self.render_newline = True
 
-	def choose_element(self):
-		return self.available_elements[randint(0, len(self.available_elements) - 1)]
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.get_name()}\n'
 
-	def get_var(self):
-		try:
-			return list(self.variables.values())[randint(0, self.target_vars - 1)]
+		return s
 
-		except IndexError:
-			new_var = chr(len(self.variables) + 97)
-			self.variables[new_var] = new_var
-			return new_var
+	def get_name(self):
+		return str(self.__class__.__name__)
+
+	@property
+	def count(self):
+		return 1
+
+	def generate(self, *args, **kwargs):
+		pass
+
+	def render(self):
+		s = f'{TAB * self.depth}{self.code}'
+
+		if self.render_newline:
+			s += '\n'
+
+		return s
+
+	def get_var(self, allow_const=False):
+		if allow_const:
+			if randint(0, 1) == 1:
+				return Const()
+
+		return variables[randint(0, var_count - 1)]
 
 
 class Block(Element):
-	block_num = 0
-	
-	def __init__(self, 
-				 min_length=0, 
-				 max_length=4, 
-				 target_depth=None, 
-				 **kwargs):
+	def __init__(self, *args):
+		super().__init__()
 
-		super().__init__(**kwargs)
+		self.elements = []
 
-		self.indent = True
-		self.target_length = randint(min_length, max_length)
-		self.target_depth = target_depth
-		self.type = 'Block'
+		if len(args) == 0:
+			args = [Block]
 
-		self.blocks = []	
-		self.block_num = Block.block_num
-		Block.block_num += 1
+		self.selector = Selector(*args)
 
 	def __str__(self):
-		tab = '    '
-		s = f'{tab * self.depth}{self.type} {self.block_num}: {self.count}/{self.total}\n'
+		s = f'{TAB * self.depth}{self.get_name()}\n'
 
-		for block in self.blocks:
-			s += f'{block}'
+		for e in self.elements:
+			s += f'{e}'
 
 		return s
 
 	@property
 	def count(self):
-		return len(self.blocks)
+		c = 1
 
-	@property
-	def total(self):
-		c = self.count
-		for block in self.blocks:
-			c += block.total
+		for e in self.elements:
+			c += e.count
 
 		return c
 
+	def add_element(self, element):
+		self.elements.append(element)
+
+	def select(self):
+		e = self.selector.select()
+		e.depth = self.depth + 1
+
+		return e
+
+	def generate(self, max_length=6, max_depth=2, randomize=True):
+		if randomize:
+			max_length = randint(1, max_length)
+			max_depth = randint(1, max_depth)
+
+		if self.depth < max_depth:			
+			while self.count < max_length:
+				e = self.select()
+
+				e.generate(max_length - self.count, max_depth)
+
+				self.add_element(e)
+
+		if len(self.elements) == 0:
+			p = Pass()
+			p.depth = self.depth + 1
+			self.add_element(p)
+
 	def render(self):
-		code = ''
-		tab = '    '
+		s = super().render()
 
-		# code += f'{tab * self.depth}# {self.type}: {self.block_num}\n'
-		code += f'{tab * self.depth}{self.open()}\n'
-
-		for b in self.blocks:
-			code += b.render()
-
-		# code += f'{tab * self.depth}{self.close()}'
-
-		return code
-
-	def open(self):
-		raise NotImplementedError
-
-	def close(self):
-		return ''
-
-	def generate(self, current_total=0, target_vars=None):
-		current_depth = self.depth
-
-		if target_vars is not None:
-			self.target_vars = target_vars
-
-		if self.indent:
-			current_depth += 1
-
-		if current_depth >= self.target_depth:
-			# max depth reached
-			if len(self.blocks) == 0:
-				self.blocks.append(Pass(depth=current_depth))
-
-			return
-
-		if len(self.available_elements) == 0:
-			return
-
-		while self.total < self.target_length:
-			b = self.choose_element()(depth=current_depth, target_depth=self.target_depth, variables=copy(self.variables), target_vars=self.target_vars)
-
-			self.blocks.append(b) 
-
-			b.generate(self.total)
-
-		if len(self.blocks) == 0:
-			self.blocks.append(Pass(depth=current_depth))
-
-class WhileLoop(Block):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.type = 'While'
-
-		self.available_elements = [
-			WhileLoop,
-			If,
-			# IfElse,	
-			Statements,
-		]
-
-		self.compare = CompareVars(depth=self.depth, target_vars=self.target_vars)
-
-	def open(self):
-		return f'while {self.compare.render()}:'
-
-class If(Block):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.type = 'If'
-
-		self.available_elements = [
-			WhileLoop,
-			If,
-			# IfElse,	
-			Statements,
-		]
-
-		self.compare = CompareVars(depth=self.depth, target_vars=self.target_vars)
-
-	def open(self):
-		return f'if {self.compare.render()}:'
-
-class IfElse(Block):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.type = 'IfElse'
-
-class Pass(Block):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.indent = False
-		self.type = 'Pass'
-
-	def generate(self, *args, **kwargs):
-		pass
-
-	def open(self):
-		return 'pass'
-
-
-class Statements(Block):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.indent = False
-		self.type = 'Statements'
-
-		self.statements = []
-
-		self.available_elements = [
-			Assign,
-			AugAssign,
-			Return,
-		]
-
-	def __str__(self):
-		tab = '    '
-		s = ''
-		for i in self.statements:
-			s = f'{i}\n'
+		for e in self.elements:
+			s += f'{e.render()}'
 
 		return s
 
-	def generate(self, *args, **kwargs):
-		self.statements.append(self.choose_element()(depth=self.depth, target_vars=self.target_vars))
-
-	def open(self):
-		s = ''
-
-		for i in self.statements:
-			s += i.render()
-
-		return s
-
-class Statement(Element):
+class Expr(Element):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-		self.type = 'Statement'
-
-	def __str__(self):
-		tab = '    '
-		s = f'{tab * self.depth}{self.type}'
-
-		return s
-
-	def render(self):
-		raise NotImplementedError
-
-class DeclareVar(Statement):
-	def __init__(self, var, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-		self.var = var
-		self.type = 'DeclareVar'
-
-	def render(self):
-		return f'{self.var} = Number()'
-
-class Return(Statement):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-		self.type = 'Return'
-		self.var = self.get_var()
-
-	def render(self):
-		return f'return {self.var}'
-
-class Expr(Statement):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-		self.type = 'Expr'
 
 		self.op = '?'
-		self.var1 = self.get_var()
-		self.var2 = self.get_var()
+		self.var1 = self.get_var(allow_const=True)
+		self.var2 = self.get_var(allow_const=True)
+		self.render_newline = False
 
-	def render(self):
+	@property
+	def code(self):
 		return f'{self.var1} {self.op} {self.var2}'
+
+	@code.setter
+	def code(self, value):
+		pass
+
+	def __str__(self):
+		# s = f'{TAB * self.depth}Expr({self.var1} {self.op} {self.var2})\n'
+		s = f'{self.var1} {self.op} {self.var2}'
+
+		return s
 
 class CompareVars(Expr):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.type = 'CompareVars'
+		self.op = Selector('<', '<=', '==', '>', '>=').select()
 
-		self.op = '>'
-		
 class ArithVars(Expr):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.type = 'ArithVars'
+		self.op = Selector('+', '-', '*', '/', '%').select()
 
-		self.op = '+'
-
-class ConstVar(Element):
+class Assign(Element):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-		self.type = 'ConstVar'
-
-		self.const = randint(0, 4)
-
-	def render(self):
-		return f'{self.const}'
-
-class DeclaredVar(Element):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-		self.type = 'DeclaredVar'
 
 		self.var = self.get_var()
+		self.expr = Selector(ArithVars, CompareVars).select()
+		self.code = f'{self.var} = {self.expr}'
 
-	def render(self):
-		return f'{self.var}'
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.var} = {self.expr}\n'
 
-class AugAssign(Statement):
+		return s
+
+class AugAssign(Element):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-		self.type = 'AugAssign'
-
-		self.op = '+'
 
 		self.var1 = self.get_var()
 		self.var2 = self.get_var()
+		self.op = Selector('+', '-', '*', '/', '%').select()
+		
+		self.code = f'{self.var1} {self.op}= {self.var2}'
 
-	def render(self):
-		return f'{self.var1} {self.op}= {self.var2}'
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.var1} {self.op}= {self.var2}\n'
 
+		return s
 
-class Assign(Statement):
+class Variable(Element):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.available_elements = [
-			ArithVars,
-			CompareVars,
-			ConstVar,
-			DeclaredVar,
-		]
-
-		self.type = 'Assign'
 		self.var = self.get_var()
-		self.expr = self.choose_element()(depth=self.depth, target_vars=self.target_vars)
-
-	def render(self):
-		return f'{self.var} = {self.expr.render()}'
-
-class Func(Block):
-	def __init__(self, min_depth=0, max_depth=1):
-		super().__init__()
-
-		self.depth = 0
-		self.target_depth = randint(min_depth, max_depth)
-
-		self.available_elements = [
-			WhileLoop,
-			If,
-			# IfElse,	
-			Statements,
-		]
-
-		self.code = None
+		self.code = f'{self.var}'
+		self.render_newline = False
 
 	def __str__(self):
-		s = f'Func: {self.count}/{self.total} @ {self.depth}\n'
-
-		for block in self.blocks:
-			s += f'{block}'
+		s = f'{TAB * self.depth}{self.var}'
 
 		return s
+
+class Const(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.const = randint(-2000000000, 2000000000)
+		self.code = f'{self.const}'
+		self.render_newline = False
+
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.const}'
+
+		return s
+
+class DeclareVar(Element):
+	def __init__(self, var, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.var = var
+
+		self.code = f'{var} = Number()'
+
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.var} = Number()\n'
+
+		return s
+
+class Pass(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = 'pass'
+
+
+class Return(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.expr = Selector(ArithVars, Variable).select()
+
+		self.code = f'return {self.expr.render()}'
+
+	def __str__(self):
+		s = f'{TAB * self.depth}{self.get_name()} {self.expr}\n'
+
+		return s
+
+
+class ControlFlow(Block):
+	def __init__(self):
+		super().__init__(While, IfBlock, Assign, AugAssign, Return)
+
+		self.expr = Selector(CompareVars, Variable).select()
+
+	def get_name(self):
+		return f'{super().get_name()} {self.expr}'
+
+class While(ControlFlow):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = f'while {self.expr.render()}:'	
+
+class IfBlock(Block):
+	def __init__(self):
+		super().__init__()
+
+		self.if_block = None
+		
+		self.elifs = []
+		self.else_block = None
+
+	def __str__(self):
+		s = f'{self.if_block}'
+
+		for e in self.elifs:
+			s += f'{e}'
+
+		if self.else_block:
+			s += f'{self.else_block}'
+
+		return s
+
+
+	@property
+	def count(self):
+		c = 0 
+		if self.if_block:
+			c += self.if_block.count
+
+		for e in self.elifs:
+			c += e.count
+
+		if self.else_block:
+			c += self.else_block.count
+
+		return c
+
+	def generate(self, max_length=6, max_depth=2, **kwargs):
+		self.if_block = If()
+		self.if_block.depth = self.depth
+		self.if_block.generate(max_length=max_length, max_depth=max_depth, **kwargs)
+		
+		while self.count < max_length:
+			if randint(0, 2) == 1:
+				elif_block = ElIf()
+				elif_block.depth = self.depth
+				self.elifs.append(elif_block)
+				elif_block.generate(max_length=max_length, max_depth=max_depth, **kwargs)
+
+			else:
+				break
+
+		if self.count < max_length:	
+			if randint(0, 1) == 1:
+				else_block = Else()
+				else_block.depth = self.depth
+				self.else_block = else_block
+				else_block.generate(max_length=max_length, max_depth=max_depth, **kwargs)
 
 	def render(self):
-		if self.code is None:
-			self.code = super().render()
+		s = self.if_block.render()
 
-			# ensure code is parsable
-			parse(self.code)
+		for e in self.elifs:
+			s += e.render()
 
-		return self.code
-
-	def generate(self, length=None, depth=None, max_vars=None):
-		if length:
-			self.target_length = length
-
-		if depth:
-			self.target_depth = depth
-
-		super().generate(target_vars=max_vars)
-
-	def open(self):
-		s = 'def func():'
-
-		tab = '    '
-		for var in self.variables.values():
-			declare = DeclareVar(var)
-			s += f'\n{tab * (self.depth + 1)}{declare.render()}'
+		if self.else_block:
+			s += self.else_block.render()
 
 		return s
+
+class If(ControlFlow):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = f'if {self.expr.render()}:'	
+
+class ElIf(ControlFlow):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = f'elif {self.expr.render()}:'	
+
+class Else(ControlFlow):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = f'else:'	
+
+class Func(Block):
+	def __init__(self):
+		super().__init__(While, IfBlock, Assign, AugAssign, Return)
+		
+		self.code = 'def func():'
+
+		self.rendered_code = None
+
+	def render(self):
+		if self.rendered_code:
+			return self.rendered_code
+
+		self.rendered_code = super().render()
+		return self.rendered_code
+
+	def generate(self, max_length=64, max_depth=8, max_vars=8):
+
+		# global var handling.... not super happy about this but works for now
+		global var_count
+		global variables
+		var_count = randint(1, max_vars)
+		variables = []
+		
+		for i in range(var_count):
+			variables.append(chr(97 + i))
+
+		super().generate(max_length, max_depth, randomize=False)
+
+		for var in variables:
+			declare = DeclareVar(var)
+			declare.depth = self.depth + 1
+
+			self.elements.insert(0, declare)
+
+		if randint(0, 1) == 1: 
+			ret = Return()
+			ret.depth = self.depth + 1
+			self.elements.append(ret)
+
 
 PY_HEADER = """
 def Number():
-	return 0
+    return 0
 
 """
 
 PY_TRAILER = """
 def main():
-	func()
+    try:
+        return func()
+
+    except ZeroDivisionError:
+    	return "ZeroDivisionError"
 
 if __name__ == '__main__':
-	main()
+    print(main())
 
 """
 
@@ -413,79 +420,161 @@ def generate_fx(func):
 
 	return code
 
-
-def run_py(func):
-	py = generate_python(func)
-
-	with open('_fuzz.py', 'w') as f:
-		f.write(py)
-
-	os.system(f'python3 _fuzz.py')
-
-
 def compile_fx(func):
 	fx = generate_fx(func)
-
-	# with open('_fuzz.fx', 'w') as f:
-		# f.write(fx)
-
-	compile_text(fx)
-
-
-def main():
-	func = Func()
-
-	func.generate(16, 5, 4)
-
-	print(func)
-	code = func.render()
-	print(code)
-	
-	return
-
-	# py = generate_python(func)
-	# with open('_fuzz.py', 'w') as f:
-		# f.write(py)
-
-	for i in range(1000):
-		print(i)
-		
-		try:
-			run_py(func)
-			compile_fx(func)
-
-		except Exception as e:
-			print(func)
-			print(code)
-			raise
-
-	return 
-
-	# fx = generate_fx(func)
 
 	with open('_fuzz.fx', 'w') as f:
 		f.write(fx)
 
+	return compile_text(fx)
+
+
+def run_py(pycode, fname='_fuzz.py'):
+	with open(fname, 'w') as f:
+		f.write(pycode)
+
+	# cmd = f'python3 _fuzz.py'
+	# cmd = 'which python3'
+	# os.system(cmd)
+	output = check_output(['python3', fname], stderr=STDOUT, cwd=os.getcwd(), timeout=0.1)
+	output = output.decode().strip()
+
+	if output == 'ZeroDivisionError':
+		raise ZeroDivisionError
+
+	if output == 'None':
+		return None
+	elif output == 'True':
+		return True
+	elif output == 'False':
+		return False
+	
+	try:
+		return int(output)
+
+	except ValueError:
+		return float(output)
+
+
+class NoneOutput(Exception):
+	pass
+
+def generate_valid_program():
+	f = Func()
+	f.generate()
+	pycode = generate_python(f)
+
+	output = None
+
+	try:
+		fname = f'_fuzz.py'
+		output = run_py(pycode, fname=fname)
+		
+		if output is None:
+			raise NoneOutput
+
+	except (ZeroDivisionError, TimeoutExpired, NoneOutput):
+		os.remove(fname)
+		
+		raise
+
+	return f, output
+
+def generate_programs(target_dir='fuzzer'):
+	count = 0
+
+	os.chdir(target_dir)
+
+	while True:
+		f = Func()
+		f.generate()
+		pycode = generate_python(f)
+
+		print(f'Testing: {count}: ', end='')
+
+		try:
+			fname = f'fuzz_{count}.py'
+			output = run_py(pycode, fname=fname)
+			print(output)
+
+			if output is None:
+				os.remove(fname)
+
+		except ZeroDivisionError:
+			os.remove(fname)
+			print('ZeroDivisionError')
+
+		except TimeoutExpired:
+			os.remove(fname)
+			print('TimeoutExpired')
+
+
+		count += 1
+
+
+def main():
+	i = 0
+	while i < 100000:
+		py_output = None
+
+		try:
+			f, py_output = generate_valid_program()
+
+		except (ZeroDivisionError, TimeoutExpired, NoneOutput):
+			# print(e)
+			continue
+
+		i += 1
+
+		print(i, end=' -> ')
+
+		try:
+			prog = compile_fx(f)
+
+		except DivByZero:
+			continue # Div by 0 is a syntax error in FX
+
+		except Exception:
+			print(f.render())
+			raise
+
+		try:
+			fx_output = prog.run_func('func')
+
+			print(f'Py:{py_output}, FX:{fx_output}', end='')
+			print('')
+
+			assert fx_output == py_output
+
+		except Exception:
+			print(f.render())
+			raise
+
+		
+
+	# generate_programs()
+
 	return
 
-	print(f)
-	code = f.render()
-	print(code)
-	parse(code) # check if parseable
 
 
-	# execution:
-	# need a variable manager to ensure variables are declared
-	# variables passed down tree, queries go up tree
-	# declare var on use if not already declared
+	f = Func()
+	f.generate()
 
-	# need to ensure loops always terminate (yay halting problem!)
-	# but since we are controlling input, we can manipulate loop inits
-	# we can also check for halting by just killing the program after some
-	# amount of time.
-	# could also instrument loops to add a counter and raise exception if exceeded.
-	# this instrumentation would be generated only on the python check program.
+	# b.add_element()
+	# b.add_element()
+
+	# print(f)
+	# print(f.count)
+	# print(b.depth)
+	print(f.render())
+
+	print(run_py(f))
+
+
+	# py_code = generate_python(f)
 	
+	# print(py_code)
 
 if __name__ == '__main__':
 	try:
