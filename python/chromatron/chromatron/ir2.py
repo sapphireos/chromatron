@@ -1301,6 +1301,7 @@ class irFunc(IR):
 
         self.instructions = None
         self.register_count = None
+        self.registers = {}
 
     def get_zero(self, lineno=None):
         return self.consts['0']
@@ -1471,8 +1472,14 @@ class irFunc(IR):
 
             index += 1
 
-        s += f'Max registers: {self.max_registers}\n'
         s += f'IR Instructions: {len([i for i in self.get_code_from_blocks() if not isinstance(i, irLabel)])}\n'
+
+        s += "********************************\n"
+        s += "Virtual Registers:\n"
+        s += "********************************\n"
+        s += f'Registers: {len(self.registers)}\n'
+        for var, reg in self.registers.items():
+            s += f'\t{str(var):24}: {reg}\n'
         
         return s
 
@@ -2050,6 +2057,7 @@ class irFunc(IR):
                 o.register = registers[o]
 
         self.register_count = max(registers.values()) + 1
+        self.registers = registers
 
     def generate(self):
         instructions = []
