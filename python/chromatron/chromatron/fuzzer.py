@@ -543,6 +543,7 @@ def test_programs(target_dir='fuzzer'):
 			code = tokens[1]
 
 			py_output = output.split('OUTPUT:')[1].strip()
+			fx_output = None
 
 			try:
 				try:
@@ -563,8 +564,8 @@ def test_programs(target_dir='fuzzer'):
 
 
 def main():
-	generate_programs(100000)
-	# test_programs()
+	# generate_programs(100000)
+	test_programs()
 	return
 
 	i = 0
