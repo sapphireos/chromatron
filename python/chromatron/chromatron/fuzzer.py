@@ -523,8 +523,8 @@ def generate_programs(target_dir='fuzzer'):
 			file.write(f'# OUTPUT: {output}\n\n')
 			file.write(f.render())
 			
-
 		count += 1
+		print(count)
 
 def test_programs(target_dir='fuzzer'):
 	os.chdir(target_dir)
@@ -562,8 +562,8 @@ def test_programs(target_dir='fuzzer'):
 
 
 def main():
-	# generate_programs()
-	test_programs()
+	generate_programs()
+	# test_programs()
 	return
 
 	i = 0
