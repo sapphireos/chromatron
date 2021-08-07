@@ -445,13 +445,8 @@ def generate_python(func):
 
 	return py_code
 
-def generate_fx(func):
-	code = func.render()
-
-	return code
-
 def compile_fx(func):
-	fx = generate_fx(func)
+	fx = func.render()
 
 	with open('_fuzz.fx', 'w') as f:
 		f.write(fx)
@@ -489,7 +484,7 @@ def run_py(pycode, fname='_fuzz.py'):
 class NoneOutput(Exception):
 	pass
 
-def generate_valid_program():
+def generate_valid_program(skip_exc=False):
 	f = Func()
 	f.generate()
 	pycode = generate_python(f)
@@ -505,8 +500,11 @@ def generate_valid_program():
 
 	except (ZeroDivisionError, TimeoutExpired, NoneOutput):
 		os.remove(fname)
-		
-		raise
+			
+		if not skip_exc:
+			raise
+
+		return None, None
 
 	return f, output
 
@@ -516,33 +514,58 @@ def generate_programs(target_dir='fuzzer'):
 	os.chdir(target_dir)
 
 	while True:
-		f = Func()
-		f.generate()
-		pycode = generate_python(f)
+		f, output = generate_valid_program(skip_exc=True)
 
-		print(f'Testing: {count}: ', end='')
+		if f is None:
+			continue
 
-		try:
-			fname = f'fuzz_{count}.py'
-			output = run_py(pycode, fname=fname)
-			print(output)
-
-			if output is None:
-				os.remove(fname)
-
-		except ZeroDivisionError:
-			os.remove(fname)
-			print('ZeroDivisionError')
-
-		except TimeoutExpired:
-			os.remove(fname)
-			print('TimeoutExpired')
-
+		with open(f'fuzzer_{count}.fx', 'w') as file:
+			file.write(f'# OUTPUT: {output}\n\n')
+			file.write(f.render())
+			
 
 		count += 1
 
+def test_programs(target_dir='fuzzer'):
+	os.chdir(target_dir)
+
+	count = 0
+	for fx_file in [a for a in os.listdir() if a.endswith('.fx')]:
+		count += 1
+		print(count)
+
+		with open(fx_file, 'r') as f:
+			fx = f.read()
+
+			tokens = fx.split('\n', maxsplit=1)
+			output = tokens[0]
+			code = tokens[1]
+
+			py_output = output.split('OUTPUT:')[1].strip()
+
+			try:
+				try:
+					prog = compile_text(code)
+
+				except DivByZero:
+					continue # Div by 0 is a syntax error in FX, this is ok
+
+				# run it!
+				fx_output = str(prog.run_func('func'))
+
+				assert fx_output == py_output
+
+			except Exception:
+				print(f'Py:{py_output}, FX:{fx_output}')
+				print(fx_file)
+				raise
+
 
 def main():
+	# generate_programs()
+	test_programs()
+	return
+
 	i = 0
 	while i < 100000:
 		py_output = None
