@@ -2031,11 +2031,11 @@ class irFunc(IR):
                 elif i in interval:
                     # is this var allocated?
                     if var not in registers:
-                        try:
-                            registers[var] = address_pool.pop(0)
-
-                        except IndexError:
+                        # check if we are out of registers:
+                        if len(address_pool) == 0:
                             raise CompilerFatal("Register allocator failed")
+
+                        registers[var] = address_pool.pop(0)
 
 
 
