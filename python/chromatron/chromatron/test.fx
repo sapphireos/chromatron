@@ -80,9 +80,17 @@
 #         if a > 0:
 #             while a > 0:
 #                 b += a
-
 #     return b
 
+
+def const_const_if_if():    
+    a = Number()
+    if True:
+        a += -4
+        
+    if -4 < -4:
+        pass
+    
 # def if_if_expr():
 #     a = Number()
 
@@ -133,13 +141,13 @@
 #     return b
 
 
-def while_loop():
-    i = Number()
-    i = 4
+# def while_loop():
+#     i = Number()
+#     i = 4
 
-    while i > 0:
-    # while 2:
-        i -= 1
+#     while i > 0:
+#     # while 2:
+#         i -= 1
 
 # def two_ifelse_expr():
 #     a = Number()

@@ -1084,14 +1084,12 @@ class irBlock(IR):
 
                     values.append(v)
 
-                # if not v.holds_const:
                 values = list(sorted(set(values), key=lambda a: a.name))
 
                 if ir.var in values: # remove self references
                     values.remove(ir.var)
 
-                assert len(values) > 0                
-
+                # assert len(values) > 0
 
                 phi = irPhi(ir.var, values, lineno=ir.lineno)
                 phi.block = self
@@ -1809,7 +1807,6 @@ class irFunc(IR):
 
         blocks = self.blocks.values()
         
-        self.ssa_next_val = {}
         iterations = 0
         iteration_limit = 1024
         while (len([b for b in blocks if not b.filled]) > 0) or \
@@ -2076,6 +2073,8 @@ class irFunc(IR):
         return insFunc(self.name, instructions, source_code, self.register_count, lineno=self.lineno)
 
     def analyze_blocks(self):
+        self.ssa_next_val = {}
+        
         self.leader_block = self.create_block_from_code_at_index(0)
         self.verify_block_links()
         
