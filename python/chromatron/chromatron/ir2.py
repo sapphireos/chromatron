@@ -418,26 +418,6 @@ class irBlock(IR):
         new_code = []
 
 
-        """
-
-        Load/Store thoughts:
-
-        Consts and globals are similar, except consts are only loaded, never stored.
-
-        Globals only need to store when the function yields or returns.
-
-        Easy mode:
-        Scan for all globals and consts that are used, then place load instructions
-        at top of function.
-        
-        Later, we can look at liveness information and try to move those loads
-        as close as possible ot the first use to free up registers in parts of 
-        the code that don't use those globals/consts.
-
-        """
-
-
-
         # iterate over code
         # look for defines and record them.
         # also insert inits to 0
@@ -882,83 +862,6 @@ class irBlock(IR):
 
                         if p not in incoming_blocks:
                             incoming_blocks.append(p)
-
-
-            # reachable = {}
-            # for d in phi.defines:
-            #     source = d.block
-            #     reachable[d] = []
-            #     for p in self.predecessors:
-            #         if source.reachable(p):
-            #             reachable[d].append(p)
-
-            # for blocks in reachable.values():
-            #     for blocks2 in reachable.values():
-            #         if blocks is blocks2:
-            #             continue
-
-            #         if len(blocks2) == 1:
-            #             if blocks2[0] in blocks:
-            #                 blocks.remove(blocks2[0])
-
-            # for d, blocks in reachable.items():
-            #     assert len(blocks) == 1
-
-            # print(reachable)
-
-            # for d in phi.defines:
-            #     p = phi.sources[d.name]
-            #     defines[phi][d] = p
-
-            #     if p not in incoming_blocks:
-            #         incoming_blocks.append(p)
-
-            # assert len(defines[phi]) == len(phi.defines)
-
-
-            #     """
-            #     d.block is the source block whereinators)
-
-    #     d is defined.
-            #     However, that isn't the block we want - we want
-            #     the direct predecessor on the path d was defined
-            #     that leads into this block.
-
-            #     To do the lookup, we can iterator over predecessors
-            #     and look up d.  Since we might get multiple sources
-            #     for d (since the lookup is on the non-SSA name),
-            #     we will collect all sources with their predecessors
-            #     and select the predecessor matching the SSA version.
-                 
-
-            #     """
-
-            #     reachable = [p for p in self.predecessors if d.block.reachable(p)]
-            #     assert len(reachable) <= 1
-                
-            #     reachable = reachable[0]
-
-
-
-
-            #     for p in self.predecessors:
-            #         # is p reachable from d.block?
-            #         if d.block.reachable(p):
-
-            #         # v = p.lookup_var(d)
-            #         # if v:
-            #         # if v.name == d.name:
-            #             #assert v not in defines[phi]
-                            
-            #             defines[phi][d] = p
-
-            #             if p not in incoming_blocks:
-            #                 incoming_blocks.append(p)
-
-            #     # .... possibly we don't need merge blocks,
-            #     # just place assigns on the predecessor blocks?
-            #     # want to make sure the assign happens after the jump
-            #     # though?
         
         merge_blocks = {}
 
@@ -1177,42 +1080,9 @@ class irBlock(IR):
             if isinstance(ir, irIncompletePhi):
                 values = []
                 for p in self.predecessors:
-                    try:
-                        v = p.ssa_lookup_var(ir.var)
+                    v = p.ssa_lookup_var(ir.var)
 
-                    except KeyError:
-                        raise
-                        # if not ir.var.holds_const:
-                        #     raise
-
-                        # # Var holds a const - it may not have been used prior to this
-                        # # block.  This is ok since consts don't need to be declared.
-                        # # For any declared var this is a failure since the variable isn't
-                        # # available on all paths into this block.
-
-                        # # load const to register:
-                        # const_var = copy(ir.var)
-                        # const_var.ssa_version = None
-                        # const_var.is_const = True # mimic a const var
-                        # const_var.holds_const = False # mimic a const var
-
-                        # target = add_const_temp(const_var.name, datatype=const_var.type, lineno=ir.lineno)
-                        # target.block = self
-                        # load = irLoadConst(target, const_var, lineno=-1)
-                        # load.block = self
-                        # target.convert_to_ssa()
-
-                        # # add new definition and add new instruction to code
-                        # self.defines[target._name] = target
-                        # new_code.append(load)
-
-                        # v = target
-
-                        # # constants don't need a phi since there's nothing to reconcile
-                        # break
-
-                    if v is not None:
-                        values.append(v)
+                    values.append(v)
 
                 # if not v.holds_const:
                 values = list(sorted(set(values), key=lambda a: a.name))
@@ -1265,36 +1135,11 @@ class irBlock(IR):
                 for i in inputs:
                     i.block = self
 
-                    # check if requested var is a const
-                    # these can't be in the definitions - they need to be loaded to a register first
-                    v = None
-                    # if i.is_const:
-                    #     # check if this const is already assigned to a register
-                    #     try:
-                    #         v = self.ssa_lookup_var(i)
+                    try:
+                        v = self.ssa_lookup_var(i)
 
-                    #     except KeyError:
-                    #         # var not found - we need to load to a register
-                    #         target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
-                    #         target.block = self
-                    #         load = irLoadConst(target, copy(i), lineno=-1)
-                    #         load.block = self
-                    #         target.convert_to_ssa()
-
-                    #         # add new definition and add new instruction to code
-                    #         self.defines[target._name] = target
-                    #         new_code.append(load)
-
-                    #         v = target
-
-                    # check if we have a definition:
-                    if v is None: # note we may have already satisfied v above in the const handling
-                                  # in which case we can skip this.
-                        try:
-                            v = self.ssa_lookup_var(i)
-
-                        except KeyError:
-                            raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+                    except KeyError:
+                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
 
                     i.clone(v)
                     assert not i.is_const # make sure we properly set up a const register!
@@ -1396,76 +1241,6 @@ class irBlock(IR):
 
         return changed
 
-    # def allocate_registers(self, max_registers, registers=None, address_pool=None, visited=None):
-    #     if visited is None:
-    #         visited = []
-
-    #         registers = {}
-    #         address_pool = list(range(max_registers)) # preload with all registers
-
-    #     if self in visited:
-    #         return 0
-
-    #     visited.append(self)
-
-    #     # naive, greedy, linear scan
-    #     # the simplest thing that will work!
-    #     #
-    #     # for vars in live_in that are not in live_out,
-    #     # assign to instruction inputs, then release from 
-    #     # address pool
-    #     #
-    #     # vars in live out: 
-    #     # if not allocated, allocate register
-    #     # assign addr to instruction output
-    #     #
-    #     # verify instruction vars have live registers
-    #     #
-    #     # we can skip spills for now since we can go to 256 registers
-    #     #
-    #     # depth first tree traversal 
-    #     #
-    #     #
-
-    #     registers_used = 0
-
-    #     for ir in self.code:
-    #         for i in ir.get_input_vars():
-    #             assert i in registers
-    #             # assign register
-    #             i.register = registers[i]
-
-    #         kills = ir.live_in - ir.live_out
-            
-    #         for k in kills:
-    #             # return register to pool
-    #             address_pool.insert(0, registers[k])
-    #             del registers[k]
-
-    #         for v in ir.live_out:
-    #             if v not in registers:
-    #                 # assign from pool
-    #                 registers[v] = address_pool.pop(0)
-
-    #                 if len(registers) > registers_used:
-    #                     registers_used = len(registers)
-
-    #         for o in ir.get_output_vars():
-    #             # var might not be in registers
-    #             # this is the case if the variable isn't live
-    #             # and this is a dead instruction
-    #             if o in registers:
-    #                 o.register = registers[o]
-
-
-    #     for suc in self.successors:
-    #         used = suc.allocate_registers(max_registers, registers, address_pool, visited=visited)
-
-    #         if used > registers_used:
-    #             registers_used = used
-
-    #     return registers_used
-
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, global_vars=None, **kwargs):
         super().__init__(**kwargs)
@@ -1484,7 +1259,6 @@ class irFunc(IR):
         if self.params == None:
             self.params = []
 
-        # self.blocks = {}
         self.leader_block = None
         self.live_vars = None
         self.loops = {}
@@ -1499,8 +1273,6 @@ class irFunc(IR):
 
         self.instructions = None
         self.register_count = None
-
-        # self.current_value_num = 0
 
     def get_zero(self, lineno=None):
         return self.consts['0']
@@ -2571,27 +2343,6 @@ class irFunc(IR):
 
         self.code = new_code
 
-    # def deconstruct_ssa(self):
-    #     # convert all SSA variables back to single
-    #     # representation
-    #     for ir in self.code:
-    #         for i in ir.get_input_vars():
-    #             i.ssa_version = None
-
-    #         for o in ir.get_output_vars():
-    #             o.ssa_version = None
-
-    #             new_code = []
-
-    #     # remove phi nodes
-    #     for index in range(len(self.code)):
-    #         ir = self.code[index]
-            
-    #         if not isinstance(ir, irPhi):
-    #             new_code.append(ir)
-
-    #     self.code = new_code
-
     def loop_invariant_code_motion(self, loops):
         for loop, info in loops.items():
             header_code = []
@@ -2743,7 +2494,6 @@ class irFunc(IR):
                 block_copies_out[block] = copies_out
 
 
-
     def remove_dead_labels(self):
         labels = self.labels()
 
@@ -2802,18 +2552,8 @@ class irPhi(IR):
 
     def __str__(self):
         s = ''
-        #defines = sorted(self.defines.keys(), key=lambda a: a.name)
-        # defines = list(self.defines.keys())
         for d in sorted(self.defines, key=lambda a: a.name):
             s += f'{d.name}[???], '
-            #meow = self.sources[d.name]
-
-            # try:
-            #     s += f'{d.name}[{self.sources[d.name].name}], '
-            
-            # except KeyError:
-            #    s += f'{d.name}[???], '
-
 
         s = s[:-2]
 
