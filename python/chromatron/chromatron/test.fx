@@ -199,10 +199,10 @@ def two_ifelse():
     b = Number()
 
     if a > 0:
-        b = 1
+        b = 1 + 2 + 3 + 4 + 5
 
     else:
-        b = 2
+        b = 2 + 1
 
     if b < 0:
         a = 1

@@ -580,6 +580,7 @@ class irBlock(IR):
     # Optimizer Passes
     ##############################################
     def fold_constants(self):
+        changes = 0
         new_code = []
        
         for ir in self.code:
@@ -590,12 +591,15 @@ class irBlock(IR):
 
                 if val is not None:
                     # replace with assign
-                    ir = irLoadConst(ir.result, val, lineno=ir.lineno)
+                    ir = irLoadConst(ir.target, val, lineno=ir.lineno)
                     ir.block = self
+                    changes += 1
 
             new_code.append(ir)
 
         self.code = new_code     
+
+        return changes
 
     def reduce_strength(self):
         new_code = []
@@ -2137,8 +2141,10 @@ class irFunc(IR):
         self.verify_ssa()
         self.verify_variables()
         
-        # loop analysis
-        self.analyze_loops()
+
+        # fold constants
+        # self.fold_constants()
+
         
         # value numbering
         self.value_numbers = self.leader_block.value_numbering()        
@@ -2148,6 +2154,9 @@ class irFunc(IR):
         optimize = False
         # optimize = True
         if optimize:
+            # loop analysis
+            self.analyze_loops()
+        
             # basic loop invariant code motion:
             self.loop_invariant_code_motion(self.loops)
 
@@ -2196,7 +2205,21 @@ class irFunc(IR):
         # allocate registers
         self.allocate_registers()
 
+    def fold_constants(self):
+        changes = 0
+        iterations = 0
+        iteration_limit = 512
+        prev_changes = None
 
+        while changes != prev_changes and iterations < iteration_limit:
+            iterations += 1
+
+            prev_changes = changes
+
+            for block in self.blocks.values():
+                changes += block.fold_constants()
+
+        logging.debug(f'Folded constants in {iterations} iterations. Folded {changes} instructions.')
 
     def compute_live_ranges(self):
         ranges = {}
@@ -2993,7 +3016,7 @@ class irBinop(IR):
         left = self.left
         right = self.right
 
-        if not left.is_const or not right.is_const:
+        if not left.holds_const or not right.holds_const:
             return None
 
         if op == 'eq':
@@ -3137,7 +3160,7 @@ class irVar(IR):
 
     @property
     def value(self):
-        assert self.is_const
+        assert self.is_const or self.holds_const
 
         if self.name == 'True':
             return 1
@@ -3150,11 +3173,11 @@ class irVar(IR):
 
             return int(val * 65536)
 
-        elif self.is_const:
-            if self.name.startswith('$'):
-                return int(self.name[1:])
+        elif self.is_const or self.holds_const:
+            if self._name.startswith('$'):
+                return int(self._name[1:])
 
-            return int(self.name)
+            return int(self._name)
 
         else:
             return None
