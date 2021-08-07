@@ -249,10 +249,30 @@ class Return(Element):
 
 		return s
 
+class Break(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = f'break'
+
+	def __str__(self):
+		s = f'{TAB * self.depth}break\n'
+
+		return s
+
+class Continue(Element):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.code = f'continue'
+
+	def __str__(self):
+		s = f'{TAB * self.depth}continue\n'
+
+		return s
+
 
 class ControlFlow(Block):
-	def __init__(self):
-		super().__init__(While, IfBlock, Assign, AugAssign, Return)
+	def __init__(self, *args, **kwargs):
+		super().__init__(While, IfBlock, Assign, AugAssign, Return, *args, **kwargs)
 
 		self.expr = Selector(CompareVars, Variable).select()
 
@@ -260,8 +280,8 @@ class ControlFlow(Block):
 		return f'{super().get_name()} {self.expr}'
 
 class While(ControlFlow):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
+	def __init__(self):
+		super().__init__(Break, Continue)
 		self.code = f'while {self.expr.render()}:'	
 
 class IfBlock(Block):
