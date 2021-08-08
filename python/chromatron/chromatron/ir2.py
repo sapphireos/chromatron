@@ -607,6 +607,7 @@ class irBlock(IR):
         new_code = []
         for ir in self.code:
 
+            # run optimizers on this instruction with currently available values:
 
             # attempt to fold:
             if isinstance(ir, irBinop):
@@ -623,7 +624,35 @@ class irBlock(IR):
                     # replace with assign
                     ir = irLoadConst(ir.target, val, lineno=ir.lineno)
 
-            # assign value numbers for this instruction
+            # run optimizers with values available at this instruction:
+            if isinstance(ir, irAssign):
+                # replace intermediate copy with actual value
+                if ir.value in values:
+                    v = values[ir.value]
+
+                    # check if const:
+                    if v.is_const or v.holds_const:
+                        # replace assignment with load const
+                        ir = irLoadConst(ir.target, v, lineno=ir.lineno)
+
+                    else:
+                        # replace assignment value
+                        ir.value = v
+
+            elif isinstance(ir, irBinop):
+                # search for matching expression
+                for target, expr in values.items():
+                    if target == ir.target:
+                        # cannot replace ourselves!
+                        continue
+
+                    if str(expr) == str(ir.value_number):
+                        # replace instruction with assign
+                        ir = irAssign(ir.target, target, lineno=ir.lineno)
+
+                        break
+
+            # assign value numbers for this instruction:
             for o in ir.get_output_vars():
                 assert o not in values
 
@@ -639,23 +668,6 @@ class irBlock(IR):
                     value_number = values[value_number]
                 
                 values[o] = value_number
-
-            # run optimizers with values available at this instruction:
-            if isinstance(ir, irAssign):
-                pass
-
-            elif isinstance(ir, irBinop):
-                # search for matching expression
-                for target, expr in values.items():
-                    if target == ir.target:
-                        # cannot replace ourselves!
-                        continue
-
-                    if str(expr) == str(ir.value_number):
-                        # replace instruction with assign
-                        ir = irAssign(ir.target, target, lineno=ir.lineno)
-
-                        break
 
 
 
