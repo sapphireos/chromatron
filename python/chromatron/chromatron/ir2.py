@@ -3,6 +3,8 @@ import logging
 from copy import copy, deepcopy
 import struct
 
+import graphviz
+
 from .instructions2 import *
 
 # debug imports:
@@ -408,6 +410,8 @@ class irBlock(IR):
                 if value_number is None:
                     continue
 
+                value_number = str(value_number)
+
                 if value_number in values:
                     # print("MEOW!", value_number, values[value_number])
 
@@ -595,15 +599,44 @@ class irBlock(IR):
 
         visited.append(self)
 
+        return False
 
+
+        new_code = []
         for ir in self.code:
-            if isinstance(ir, irAssign):
-                if ir.value in values:
-                    print(ir, '|', values[ir.value])
+            if isinstance(ir, irBinop):
+                # search for matching expression
+                for target, expr in values.items():
+                    if target == ir.target:
+                        # cannot replace ourselves!
+                        continue
 
-        pprint(values)
+                    if expr == ir.value_number:
+                        # replace instruction with assign
+                        ir = irAssign(ir.target, target, lineno=ir.lineno)
 
-        return
+                        break
+
+
+
+            new_code.append(ir)
+
+
+        self.code = new_code
+
+            # if isinstance(ir, irAssign):
+            #     for i in ir.get_input_vars():
+            #         if i in values:
+            #             print(f'replace {i} with {values[i]} in {ir}')
+
+
+        #     if isinstance(ir, irAssign):
+        #         if ir.value in values:
+        #             print(ir, '|', values[ir.value])
+
+        # pprint(values)
+
+        # return
 
         for suc in self.successors:
             suc.gvn_optimize(values, visited)
@@ -1629,6 +1662,16 @@ class irFunc(IR):
 
         return block
 
+    def render_graph(self):
+        dot = graphviz.Digraph(comment=self.name)
+
+        for block in self.blocks.values():
+            dot.node(block.name)
+            for suc in block.successors:
+                dot.edge(block.name, suc.name)
+
+        dot.render('___fx___.gv', view=True, cleanup=True)
+
     def calc_dominance(self):
         dominators = {self.leader_block: set([self.leader_block])}
 
@@ -2153,6 +2196,8 @@ class irFunc(IR):
         
         self.leader_block = self.create_block_from_code_at_index(0)
         self.verify_block_links()
+
+        self.render_graph()
         
         self.leader_block.init_vars()
         self.leader_block.init_consts()

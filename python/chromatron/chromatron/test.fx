@@ -1,21 +1,23 @@
 
 
-def simple_binop():
-    a = Number()
-    b = Number()
-    c = Number()
+# def simple_binop():
+#     a = Number()
+#     b = Number()
+#     c = Number()
 
-    b = 1
+#     b = 1
 
-    a = b + 2
-    c = a
+#     a = b + 2
+#     c = a
+
+#     b = b + 2
 
 
-    b += 3
+#     b += 3
 
-    a = a * c * 3
+#     a = a * c * 3
 
-    return a
+#     return a
 
 # def copy_prop():
 #   a = Number()
@@ -249,23 +251,23 @@ def simple_binop():
 #     return b
 
 
-# def two_ifelse():
-#     a = Number()
-#     b = Number()
+def two_ifelse():
+    a = Number()
+    b = Number()
 
-#     if a > 0:
-#         b = 1 + 2 + 3 + 4 + 5
+    if a > 0:
+        b = 1 + 2 + 3 + 4 + 5
 
-#     else:
-#         b = 2 + 1
+    else:
+        b = 2 + 1
 
-#     if b < 0:
-#         a = 1
+    if b < 0:
+        a = 1
 
-#     else:
-#         b = 2
+    else:
+        b = 2
 
-    # return b
+    return b
 
 
 # def while_loop():
