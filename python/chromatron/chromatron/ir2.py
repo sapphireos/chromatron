@@ -90,7 +90,8 @@ class IR(object):
         assert self.lineno != None
 
     def generate(self):
-        return BaseInstruction()
+        raise NotImplementedError
+        # return BaseInstruction()
 
     def get_input_vars(self):
         return []
@@ -591,11 +592,8 @@ class irBlock(IR):
     # Optimizer Passes
     ##############################################
     def gvn_optimize(self, values=None, visited=None):
-        return
-
         if values is None:
             values = {}
-
 
         new_code = []
         for ir in self.code:
