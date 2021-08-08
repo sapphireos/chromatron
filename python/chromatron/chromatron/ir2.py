@@ -396,19 +396,26 @@ class irBlock(IR):
         visited.append(self)
 
         for ir in self.code:
-            outputs = ir.get_output_vars()
+            # inputs = ir.get_input_vars()
+            # for i in inputs:
 
+            outputs = ir.get_output_vars()
             for o in outputs:
                 assert o not in values
 
-                values[o] = ir.value_number
+                value_number = ir.value_number
 
-        # all_vars = self.get_input_vars()
-        # all_vars.extend(self.get_output_vars())
+                if value_number is None:
+                    continue
 
-        # for v in all_vars:
-        #     if v not in values:
-        #         values[v] = len(values)
+                if value_number in values:
+                    # print("MEOW!", value_number, values[value_number])
+
+                    # not sure this will work, the value
+                    # needs to be available on this code path....
+                    value_number = values[value_number]
+                
+                values[o] = value_number
 
         for suc in self.successors:
             suc.value_numbering(values, visited)
@@ -579,6 +586,29 @@ class irBlock(IR):
     ##############################################
     # Optimizer Passes
     ##############################################
+    def gvn_optimize(self, values=None, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return False
+
+        visited.append(self)
+
+
+        for ir in self.code:
+            if isinstance(ir, irAssign):
+                if ir.value in values:
+                    print(ir, '|', values[ir.value])
+
+        pprint(values)
+
+        return
+
+        for suc in self.successors:
+            suc.gvn_optimize(values, visited)
+
+
     def fold_constants(self):
         changes = 0
         new_code = []
@@ -2148,7 +2178,7 @@ class irFunc(IR):
         
         # value numbering
         self.value_numbers = self.leader_block.value_numbering()        
-
+        self.leader_block.gvn_optimize(self.value_numbers)
 
         # optimizers
         optimize = False
@@ -3232,7 +3262,7 @@ class irVar(IR):
             return f'{s}'
 
     def __repr__(self):
-        return f'{self.name}/{id(self)}'
+        return f'{self.name}'
 
     def generate(self):
         if self.is_const:
