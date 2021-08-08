@@ -1662,15 +1662,32 @@ class irFunc(IR):
 
         return block
 
+    def render_dominator_tree(self):
+        dot = graphviz.Digraph(comment=self.name)
+
+        for node, children in self.dominator_tree.items():
+            dot.node(node.name)
+
+            for c in children:
+                dot.edge(node.name, c.name)
+
+
+        dot.render('___fx_dom_tree___.gv', view=True, cleanup=True)
+
     def render_graph(self):
         dot = graphviz.Digraph(comment=self.name)
 
         for block in self.blocks.values():
-            dot.node(block.name)
+            label = block.name
+            label += '\n--------------------\n'
+            label += '\n'.join([str(a) for a in block.code if not isinstance(a, irLabel)])
+
+            dot.node(block.name, label=label)
+
             for suc in block.successors:
                 dot.edge(block.name, suc.name)
 
-        dot.render('___fx___.gv', view=True, cleanup=True)
+        dot.render('___fx_graph___.gv', view=True, cleanup=True)
 
     def calc_dominance(self):
         dominators = {self.leader_block: set([self.leader_block])}
@@ -2197,14 +2214,14 @@ class irFunc(IR):
         self.leader_block = self.create_block_from_code_at_index(0)
         self.verify_block_links()
 
-        self.render_graph()
-        
         self.leader_block.init_vars()
         self.leader_block.init_consts()
 
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
+        self.render_dominator_tree()
+        # self.render_graph()
 
         # return
 
