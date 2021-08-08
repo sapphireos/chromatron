@@ -591,27 +591,67 @@ class irBlock(IR):
     # Optimizer Passes
     ##############################################
     def gvn_optimize(self, values=None, visited=None):
-        if visited is None:
-            visited = []
+        # if visited is None:
+        #     visited = []
+        #     values = {}
 
-        if self in visited:
-            return False
+        # if self in visited:
+        #     return False
 
-        visited.append(self)
+        # visited.append(self)
 
-        return False
+        if values is None:
+            values = {}
 
 
         new_code = []
         for ir in self.code:
+
+
+            # attempt to fold:
             if isinstance(ir, irBinop):
+                # check existing value numbers and see if we can replace any operands with consts:
+                if ir.left in values:
+                    ir.left = values[ir.left]
+
+                if ir.right in values:
+                    ir.right = values[ir.right]
+
+                val = ir.fold()
+
+                if val is not None:
+                    # replace with assign
+                    ir = irLoadConst(ir.target, val, lineno=ir.lineno)
+
+            # assign value numbers for this instruction
+            for o in ir.get_output_vars():
+                assert o not in values
+
+                value_number = ir.value_number
+
+                if value_number is None:
+                    continue
+
+                # value_number = str(value_number)
+
+                # if this value already exists, we can just reuse it directly
+                if value_number in values:
+                    value_number = values[value_number]
+                
+                values[o] = value_number
+
+            # run optimizers with values available at this instruction:
+            if isinstance(ir, irAssign):
+                pass
+
+            elif isinstance(ir, irBinop):
                 # search for matching expression
                 for target, expr in values.items():
                     if target == ir.target:
                         # cannot replace ourselves!
                         continue
 
-                    if expr == ir.value_number:
+                    if str(expr) == str(ir.value_number):
                         # replace instruction with assign
                         ir = irAssign(ir.target, target, lineno=ir.lineno)
 
@@ -619,10 +659,15 @@ class irBlock(IR):
 
 
 
+            ir.block = self
             new_code.append(ir)
 
 
         self.code = new_code
+
+        print(self.name)
+        pprint(values)
+        print('')
 
             # if isinstance(ir, irAssign):
             #     for i in ir.get_input_vars():
@@ -638,8 +683,14 @@ class irBlock(IR):
 
         # return
 
-        for suc in self.successors:
-            suc.gvn_optimize(values, visited)
+        # for suc in self.successors:
+        #     suc.gvn_optimize(values, visited)
+
+        if self not in self.func.dominator_tree:
+            return
+
+        for c in self.func.dominator_tree[self]:
+            c.gvn_optimize(values)
 
 
     def fold_constants(self):
@@ -2220,7 +2271,7 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        self.render_dominator_tree()
+        # self.render_dominator_tree()
         # self.render_graph()
 
         # return
@@ -2239,8 +2290,9 @@ class irFunc(IR):
 
         
         # value numbering
-        self.value_numbers = self.leader_block.value_numbering()        
-        self.leader_block.gvn_optimize(self.value_numbers)
+        # self.value_numbers = self.leader_block.value_numbering()        
+        # self.leader_block.gvn_optimize(self.value_numbers)
+        self.leader_block.gvn_optimize()
 
         # optimizers
         optimize = False
@@ -2254,7 +2306,7 @@ class irFunc(IR):
 
 
         # self.liveness_analysis()
-        return
+        # return
 
         # convert out of SSA form
         self.resolve_phi()
@@ -3108,7 +3160,7 @@ class irBinop(IR):
         left = self.left
         right = self.right
 
-        if not left.holds_const or not right.holds_const:
+        if not (left.holds_const or left.is_const) or not (right.holds_const or right.is_const):
             return None
 
         if op == 'eq':
