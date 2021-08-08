@@ -911,9 +911,9 @@ class irBlock(IR):
                         self.defines[i._name] = i
 
                         # insert a LOAD instruction here
-                        ir = irLoad(i, self.globals[i._name], lineno=ir.lineno)
-                        ir.block = self
-                        new_code.append(ir)
+                        load = irLoad(i, self.globals[i._name], lineno=ir.lineno)
+                        load.block = self
+                        new_code.append(load)
 
                         # set up SSA
                         i.ssa_version = 0
@@ -947,9 +947,9 @@ class irBlock(IR):
 
             if isinstance(ir, irReturn): # or irCall
                 for k, v in self.stores.items():
-                    ir = irStore(v, self.globals[k], lineno=ir.lineno)
-                    ir.block = self
-                    new_code.append(ir)
+                    store = irStore(v, self.globals[k], lineno=ir.lineno)
+                    store.block = self
+                    new_code.append(store)
 
             # assign types
             variables = []
@@ -2287,8 +2287,6 @@ class irFunc(IR):
             # basic loop invariant code motion:
             self.loop_invariant_code_motion(self.loops)
 
-
-        # self.liveness_analysis()
         # return
 
         # convert out of SSA form
@@ -2315,7 +2313,9 @@ class irFunc(IR):
 
         self.merge_basic_blocks()
 
+        # return
         self.remove_dead_code()
+        # return
 
         # convert to IR code listing        
         self.code = self.get_code_from_blocks()
