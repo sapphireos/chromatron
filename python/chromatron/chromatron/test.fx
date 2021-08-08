@@ -1,4 +1,11 @@
 
+global_a = Number()
+def global_var():
+  global_a += 1
+
+  
+# def obj():
+#     meow.x = 1
 
 # def simple_binop():
 #     a = Number()
@@ -19,41 +26,41 @@
 
 #     return a
 
-def copy_prop():
-  a = Number()
-  b = Number()
-  c = Number()
-  d = Number()
-  e = Number()
-  f = Number()
+# def copy_prop():
+#   a = Number()
+#   b = Number()
+#   c = Number()
+#   d = Number()
+#   e = Number()
+#   f = Number()
     
-  u = Number()
-  v = Number()
-  w = Number()
+#   u = Number()
+#   v = Number()
+#   w = Number()
     
-  x = Number()
-  y = Number()
-  z = Number()
+#   x = Number()
+#   y = Number()
+#   z = Number()
 
-  a = f
-  b = a
-  c = f
+#   a = f
+#   b = a
+#   c = f
 
-  u = b + a
-  v = c + d
-  w = e + f
+#   u = b + a
+#   v = c + d
+#   w = e + f
 
-  if True:
-      x = c + d
-      y = c + d
+#   if True:
+#       x = c + d
+#       y = c + d
 
-  else:
-      u = a + b
-      x = e + f
-      y = e + f
+#   else:
+#       u = a + b
+#       x = e + f
+#       y = e + f
 
-  z = u + y
-  u = a + b
+#   z = u + y
+#   u = a + b
 
 # def func():
 #     f = Number()

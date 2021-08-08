@@ -591,14 +591,7 @@ class irBlock(IR):
     # Optimizer Passes
     ##############################################
     def gvn_optimize(self, values=None, visited=None):
-        # if visited is None:
-        #     visited = []
-        #     values = {}
-
-        # if self in visited:
-        #     return False
-
-        # visited.append(self)
+        return
 
         if values is None:
             values = {}
@@ -674,35 +667,13 @@ class irBlock(IR):
             ir.block = self
             new_code.append(ir)
 
-
         self.code = new_code
-
-        print(self.name)
-        pprint(values)
-        print('')
-
-            # if isinstance(ir, irAssign):
-            #     for i in ir.get_input_vars():
-            #         if i in values:
-            #             print(f'replace {i} with {values[i]} in {ir}')
-
-
-        #     if isinstance(ir, irAssign):
-        #         if ir.value in values:
-        #             print(ir, '|', values[ir.value])
-
-        # pprint(values)
-
-        # return
-
-        # for suc in self.successors:
-        #     suc.gvn_optimize(values, visited)
 
         if self not in self.func.dominator_tree:
             return
 
         for c in self.func.dominator_tree[self]:
-            c.gvn_optimize(values)
+            c.gvn_optimize(copy(values))
 
 
     def fold_constants(self):
