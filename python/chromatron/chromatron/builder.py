@@ -195,8 +195,9 @@ class Builder(object):
             ir = irLoadConst(target, value, lineno=lineno)
 
         # check if previous op is a binop and the binop result
-        # is the value for this assign:
-        elif isinstance(self.prev_node, irBinop) and self.prev_node.target == value:
+        # is the value for this assign
+        # and the result is a temp register:
+        elif isinstance(self.prev_node, irBinop) and self.prev_node.target == value and self.prev_node.target.is_temp:
             # in this case, just change the binop result to the assign target:
             self.prev_node.target = target
             self.next_temp -= 1 # rewind temp counter
