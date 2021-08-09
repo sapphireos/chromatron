@@ -602,14 +602,24 @@ class irBlock(IR):
 
             # attempt to fold:
             if isinstance(ir, irBinop):
-                # check existing value numbers and see if we can replace any operands with consts:
-                if ir.left in values:
-                    ir.left = values[ir.left]
-
-                if ir.right in values:
-                    ir.right = values[ir.right]
-
                 val = ir.fold()
+
+                if val is None:
+                    left = ir.left
+                    right = ir.right
+
+                    # check existing value numbers and see if we can replace any operands with consts:
+                    if ir.left in values and (values[ir.left].is_const or values[ir.left].holds_const):
+                        left = values[ir.left]
+
+                    if ir.right in values and (values[ir.right].is_const or values[ir.right].holds_const):
+                        right = values[ir.right]                
+
+                    if (left.is_const or left.holds_const) and (right.is_const or right.holds_const):
+                        ir.left = left
+                        ir.right = right
+
+                        val = ir.fold()
 
                 if val is not None:
                     # replace with assign

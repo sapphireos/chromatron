@@ -1,7 +1,7 @@
 
 global_a = Number()
 def global_var():
-  global_a += 1
+  global_a += 1 + 2
 
   
 # def obj():
