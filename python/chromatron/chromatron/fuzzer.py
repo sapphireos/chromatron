@@ -592,6 +592,9 @@ def main():
 			# print(e)
 			continue
 
+		if f is None:
+			continue
+
 		i += 1
 
 		print(i, end=' -> ')
