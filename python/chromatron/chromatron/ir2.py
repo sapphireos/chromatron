@@ -600,6 +600,18 @@ class irBlock(IR):
 
             # run optimizers on this instruction with currently available values:
 
+
+            # attempt to replace inputs with existing values:
+            for i in ir.get_input_vars():
+                if i.is_const or i.holds_const:
+                    continue
+
+                if i in values:
+                    v = values[i]
+                    # replace this operand with the looked up value
+                    i.__dict__ = copy(values[i].__dict__)
+
+
             # attempt to fold:
             if isinstance(ir, irBinop):
                 val = ir.fold()
@@ -641,18 +653,10 @@ class irBlock(IR):
                         ir.value = v
 
             elif isinstance(ir, irBinop):
-                # search for matching expression
-                for target, expr in values.items():
-                    if target == ir.target:
-                        # cannot replace ourselves!
-                        continue
-
-                    if str(expr) == str(ir.value_number):
-                        # replace instruction with assign
-                        ir = irAssign(ir.target, target, lineno=ir.lineno)
-
-                        break
-
+                if ir.expr in values:
+                    # replace instruction with assign
+                    ir = irAssign(ir.target, values[ir.expr], lineno=ir.lineno)
+          
             # assign value numbers for this instruction:
             for o in ir.get_output_vars():
                 assert o not in values
@@ -662,13 +666,16 @@ class irBlock(IR):
                 if value_number is None:
                     continue
 
-                # value_number = str(value_number)
+                if isinstance(value_number, irExpr):
+                    if value_number not in values:
+                        values[value_number] = o
 
-                # if this value already exists, we can just reuse it directly
-                if value_number in values:
-                    value_number = values[value_number]
-                
-                values[o] = value_number
+                else:
+                    # if this value already exists, we can just reuse it directly
+                    if value_number in values:
+                        value_number = values[value_number]
+                    
+                    values[o] = value_number
 
 
 
@@ -762,6 +769,13 @@ class irBlock(IR):
         assert reads is not None
 
         for ir in self.code:
+            # check for assign to self
+            # other optimizations might leave some of these around
+            if isinstance(ir, irAssign):
+                if ir.target == ir.value:
+                    # remove instruction
+                    continue
+
             is_read = False
 
             # check if this instruction writes to any vars which are read
@@ -2282,6 +2296,7 @@ class irFunc(IR):
         
         # value numbering
         self.leader_block.gvn_optimize()
+        # self.leader_block.gvn_optimize()
 
         # optimizers
         optimize = False
@@ -2297,7 +2312,7 @@ class irFunc(IR):
 
         # convert out of SSA form
         self.resolve_phi()
-
+        return
         # blocks may have been rearranged or added at this point
 
         self.dominators = self.calc_dominance()
@@ -2328,7 +2343,7 @@ class irFunc(IR):
         # run trivial prunes
         self.prune_jumps()
         self.prune_no_ops()
-        
+
         # liveness
         self.liveness_analysis()
         
@@ -3380,13 +3395,18 @@ class irVar(IR):
         return insReg(self.register, self, lineno=self.lineno)
 
 # this is mostly used for optimizations:
-class irExpr(irVar):
+class irExpr(IR):
     def __init__(self, var1, op, var2, **kwargs):
         super().__init__(**kwargs)
 
         self.var1 = var1
         self.var2 = var2
         self.op = op
+
+        self.is_global = False
+        self.is_temp = False
+        self.holds_const = False
+        self.is_const = False
 
     def __str__(self):
         return f'{self.var1} {self.op} {self.var2}'

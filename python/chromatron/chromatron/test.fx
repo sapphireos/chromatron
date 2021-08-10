@@ -15,7 +15,7 @@ c = Number()
 def simple_binop():
 
     a = b + 3 + 2
-    c = b + 3 + 1 + 1
+    c = b + 3 + 2
         
     # b = 1 + 2 + 3 # 6
 
@@ -29,7 +29,7 @@ def simple_binop():
 
     # a = a * c * 3 # 193
 
-    return a
+    return a + c
 
 
 # def copy_prop():
