@@ -3096,8 +3096,12 @@ class irBinop(IR):
         return s
 
     @property
+    def expr(self):    
+        return irExpr(self.left, self.op, self.right, lineno=self.lineno)
+
+    @property
     def value_number(self):
-        return f'{self.left}_{self.op}_{self.right}'
+        return self.expr
 
     @property
     def data_type(self):
@@ -3251,8 +3255,6 @@ class irBinop(IR):
         return ops[self.data_type][self.op](self.target.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
 
 
-
-
 class irVar(IR):
     def __init__(self, name=None, datatype=None, **kwargs):
         super().__init__(**kwargs)
@@ -3379,6 +3381,21 @@ class irVar(IR):
             # raise CompilerFatal("%s does not have a register. Line: %d" % (self, self.lineno))
 
         return insReg(self.register, self, lineno=self.lineno)
+
+# this is mostly used for optimizations:
+class irExpr(irVar):
+    def __init__(self, var1, op, var2, **kwargs):
+        super().__init__(**kwargs)
+
+        self.var1 = var1
+        self.var2 = var2
+        self.op = op
+
+    def __hash__(self):
+        return hash(f'{self.var1}{self.op}{self.var2}')
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
 
 class irLookup(IR):
     def __init__(self, result, target, indexes, **kwargs):
