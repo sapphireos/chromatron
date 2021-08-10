@@ -2320,7 +2320,7 @@ class irFunc(IR):
 
         # convert out of SSA form
         self.resolve_phi()
-        return
+        # return
         # blocks may have been rearranged or added at this point
 
         self.dominators = self.calc_dominance()
@@ -2359,6 +2359,8 @@ class irFunc(IR):
 
         # allocate registers
         self.allocate_registers()
+
+        self.remove_useless_copies()
 
     def fold_constants(self):
         changes = 0
@@ -2554,15 +2556,30 @@ class irFunc(IR):
                 # otherwise, we may pull in blocks that we've removed from the tree
                 break
 
-        self.verify_block_links()
+        self.verify_block_links()   
+
+    def remove_useless_copies(self):
+        new_code = []
+
+        for ir in self.code:
+            if isinstance(ir, irAssign):
+                assert ir.target.register is not None
+                assert ir.value.register is not None
+
+                # src and dst registers are the same, 
+                # that makes this a nop
+                if ir.target.register == ir.value.register:
+                    continue
+
+            new_code.append(ir)
+
+        self.code = new_code
 
     # remove all no-op instructions
     def prune_no_ops(self):
         new_code = []
 
-        for index in range(len(self.code)):
-            ir = self.code[index]
-            
+        for ir in self.code:            
             if not ir.is_nop:
                 new_code.append(ir)
 
