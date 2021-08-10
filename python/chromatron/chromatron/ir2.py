@@ -612,8 +612,12 @@ class irBlock(IR):
                     i.__dict__ = copy(values[i].__dict__)
 
 
-            # attempt to fold:
+            # attempt to reduce strength and fold:
             if isinstance(ir, irBinop):
+                new_ir = ir.reduce_strength()
+                if new_ir is not None:
+                    ir = new_ir
+
                 val = ir.fold()
 
                 if val is None:

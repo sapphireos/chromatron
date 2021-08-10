@@ -8,28 +8,28 @@
 #     meow.x = 1
 
 
-a = Number()
-b = Number()
-c = Number()
+# a = Number()
+# b = Number()
+# c = Number()
 
-def simple_binop():
+# def simple_binop():
 
-    a = b + 3 + 2
-    c = b + 3 + 2
+#     a = b + 3 + 2
+#     c = b + 3 + 2
         
-    # b = 1 + 2 + 3 # 6
+#     # b = 1 + 2 + 3 # 6
 
-    # a = b + 2 # 8
-    # c = a # 8
+#     # a = b + 2 # 8
+#     # c = a # 8
 
-    # b = b + 2 # 8
+#     # b = b + 2 # 8
 
 
-    # b += 3 # 11
+#     # b += 3 # 11
 
-    # a = a * c * 3 # 193
+#     # a = a * c * 3 # 193
 
-    return a + c
+#     return a + c
 
 
 # def copy_prop():
@@ -283,13 +283,13 @@ def simple_binop():
 #     return b
 
 
-# def while_loop():
-#     i = Number()
-#     i = 4
+def while_loop():
+    i = Number()
+    i = 4
 
-#     while i > 0:
-#     # while 2:
-#         i -= 1
+    while i > 0:
+    # while 2:
+        i -= 1
 
 # def two_ifelse_expr():
 #     a = Number()
