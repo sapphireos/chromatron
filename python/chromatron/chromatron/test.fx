@@ -1,4 +1,13 @@
 
+def while_loop():
+    i = Number()
+    i = 4
+
+    while i > 0:
+    # while 2:
+        i -= 1
+
+
 # global_a = Number()
 # def global_var():
 #   global_a += 1 + 2
@@ -282,14 +291,6 @@
 
 #     return b
 
-
-def while_loop():
-    i = Number()
-    i = 4
-
-    while i > 0:
-    # while 2:
-        i -= 1
 
 # def two_ifelse_expr():
 #     a = Number()

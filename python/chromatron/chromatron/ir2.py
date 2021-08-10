@@ -602,6 +602,8 @@ class irBlock(IR):
 
 
             # attempt to replace inputs with existing values:
+
+            # THIS IS PROBLEMATIC???
             for i in ir.get_input_vars():
                 if i.is_const or i.holds_const:
                     continue
@@ -667,7 +669,9 @@ class irBlock(IR):
 
                 value_number = ir.value_number
 
-                if value_number is None:
+                # if no value number or if value is a const (which we can't reuse since it isn't a register):
+                # skip!
+                if value_number is None or value_number.is_const:
                     continue
 
                 if isinstance(value_number, irExpr):
