@@ -903,6 +903,9 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_Div(self, node):
         return "div"
 
+    def visit_FloorDiv(self, node):
+        return "div"
+
     def visit_Mod(self, node):
         return "mod"
 

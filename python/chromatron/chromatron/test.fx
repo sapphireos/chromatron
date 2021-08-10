@@ -1,6 +1,9 @@
 def func():
-    return -404 % -7501
-    
+    b = Number()
+    b = -4830 // -1813
+    return b * -8936
+
+
 #     i = Number()
 #     i = 4
 

@@ -165,7 +165,7 @@ class ArithVars(Expr):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.op = Selector('+', '-', '*', '/', '%').select()
+		self.op = Selector('+', '-', '*', '//', '%').select() # note the use of integer division
 
 class Assign(Element):
 	def __init__(self, *args, **kwargs):
@@ -186,7 +186,7 @@ class AugAssign(Element):
 
 		self.var1 = self.get_var()
 		self.var2 = self.get_var()
-		self.op = Selector('+', '-', '*', '/', '%').select()
+		self.op = Selector('+', '-', '*', '//', '%').select() # note the use of integer division
 		
 		self.code = f'{self.var1} {self.op}= {self.var2}'
 
@@ -582,7 +582,7 @@ def main():
 	# return
 
 	i = 0
-	while i < 100:
+	while i < 1000:
 		py_output = None
 
 		try:
