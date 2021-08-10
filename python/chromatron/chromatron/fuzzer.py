@@ -1,6 +1,7 @@
 import sys
 import os
 from subprocess import STDOUT, check_output, TimeoutExpired
+import math
 
 from datetime import datetime
 from .ir2 import DivByZero
@@ -507,6 +508,8 @@ def generate_valid_program(skip_exc=False):
 
 		return None, None
 
+	output = int(math.floor(output)) # force floored int, this is important to get division to match
+
 	return f, output
 
 def generate_programs(total=None, target_dir='fuzzer'):
@@ -565,11 +568,11 @@ def test_programs(target_dir='fuzzer'):
 
 def main():
 	# generate_programs(100000)
-	test_programs()
-	return
+	# test_programs()
+	# return
 
 	i = 0
-	while i < 100000:
+	while i < 100:
 		py_output = None
 
 		try:
