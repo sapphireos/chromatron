@@ -5,6 +5,7 @@ import math
 
 from datetime import datetime
 from .ir2 import DivByZero
+from .instructions2 import MAX_INT32, MIN_INT32
 from .code_gen import parse, compile_text
 from random import randint
 from copy import copy
@@ -401,7 +402,7 @@ class Func(Block):
 		consts = []
 
 		for i in range(const_count):
-			consts.append(randint(-2000000000, 2000000000))
+			consts.append(randint(-10000, 10000))
 
 		super().generate(max_length, max_depth, randomize=False)
 
@@ -510,6 +511,15 @@ def generate_valid_program(skip_exc=False):
 
 	output = int(math.floor(output)) # force floored int, this is important to get division to match
 
+	# check output range
+	# python supports large ints, but FX does not - every operation is modulo 32 bits.
+	# this can affect intermediate computations, so it might be difficult to get the final
+	# result from FX and python to match on computations with large numbers.
+	# we will just check python's output and reject programs that have this problem.
+	if output > MAX_INT32 or output < MIN_INT32:
+		os.remove(fname)
+		return None, None
+
 	return f, output
 
 def generate_programs(total=None, target_dir='fuzzer'):
@@ -568,8 +578,8 @@ def test_programs(target_dir='fuzzer'):
 
 def main():
 	# generate_programs(1000)
-	test_programs()
-	return
+	# test_programs()
+	# return
 
 	i = 0
 	while i < 100:

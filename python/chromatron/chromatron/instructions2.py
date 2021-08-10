@@ -22,6 +22,11 @@
 
 from catbus import *
 from sapphire.common import catbus_string_hash
+import numpy as np
+
+MAX_INT32 =  2147483647
+MIN_INT32 = -2147483648
+MAX_UINT32 = 4294967295
 
 class ReturnException(Exception):
     pass
@@ -503,45 +508,50 @@ class insOr(insBinop):
     def execute(self, vm):
         vm.registers[self.result.reg] = vm.registers[self.op1.reg] or vm.registers[self.op2.reg]
 
-class insAdd(insBinop):
+
+class insArith(insBinop):    
+    def execute(self, vm):
+        vm.registers[self.result.reg] = self.arith(np.int32(vm.registers[self.op1.reg]), np.int32(vm.registers[self.op2.reg]))
+
+class insAdd(insArith):
     mnemonic = 'ADD'
     symbol = "+"
 
-    def execute(self, vm):
-        vm.registers[self.result.reg] = vm.registers[self.op1.reg] + vm.registers[self.op2.reg]
+    def arith(self, op1, op2):
+        return op1 + op2
 
-class insSub(insBinop):
+class insSub(insArith):
     mnemonic = 'SUB'
     symbol = "-"
 
-    def execute(self, vm):
-        vm.registers[self.result.reg] = vm.registers[self.op1.reg] - vm.registers[self.op2.reg]
+    def arith(self, op1, op2):
+        return op1 - op2
 
-class insMul(insBinop):
+class insMul(insArith):
     mnemonic = 'MUL'
     symbol = "*"
 
-    def execute(self, vm):
-        vm.registers[self.result.reg] = vm.registers[self.op1.reg] * vm.registers[self.op2.reg]
+    def arith(self, op1, op2):
+        return op1 * op2
 
-class insDiv(insBinop):
+class insDiv(insArith):
     mnemonic = 'DIV'
     symbol = "/"
 
-    def execute(self, vm):
-        if vm.registers[self.op2.reg] == 0:
-            vm.registers[self.result.reg] = 0
+    def arith(self, op1, op2):
+        if op2 == 0:
+            return 0
 
         else:
-            vm.registers[self.result.reg] = vm.registers[self.op1.reg] // vm.registers[self.op2.reg]
+            return op1 // op2
 
-class insMod(insBinop):
+class insMod(insArith):
     mnemonic = 'MOD'
     symbol = "%"
 
-    def execute(self, vm):
-        if vm.registers[self.op2.reg] == 0:
-            vm.registers[self.result.reg] = 0
+    def arith(self, op1, op2):
+        if op2 == 0:
+            return 0
 
         else:
-            vm.registers[self.result.reg] = vm.registers[self.op1.reg] % vm.registers[self.op2.reg]
+            return op1 % op2

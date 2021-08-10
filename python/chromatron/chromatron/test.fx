@@ -1,11 +1,6 @@
-
-# def func():
-#     a = Number()
-#     a *= a
-#     a -= a
-#     return a / -604485732
-
-# def while_loop():
+def func():
+    return -404 % -7501
+    
 #     i = Number()
 #     i = 4
 
@@ -27,24 +22,24 @@
 # b = Number()
 # c = Number()
 
-def simple_binop():
+# def simple_binop():
 
-    a = b + 3 + 2
-    c = b + 3 + 2
+#     a = b + 3 + 2
+#     c = b + 3 + 2
         
-    # b = 1 + 2 + 3 # 6
+#     # b = 1 + 2 + 3 # 6
 
-    # a = b + 2 # 8
-    # c = a # 8
+#     # a = b + 2 # 8
+#     # c = a # 8
 
-    # b = b + 2 # 8
+#     # b = b + 2 # 8
 
 
-    # b += 3 # 11
+#     # b += 3 # 11
 
-    # a = a * c * 3 # 193
+#     # a = a * c * 3 # 193
 
-    return a + c
+#     return a + c
 
 
 # def copy_prop():
