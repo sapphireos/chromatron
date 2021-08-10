@@ -437,47 +437,57 @@ class insBinop(BaseInstruction):
 
         return bc
 
-class insCompareEq(insBinop):
+class insCompare(insBinop):    
+    def execute(self, vm):
+        value = self.compare(vm)
+
+        if value:
+            vm.registers[self.result.reg] = 1
+
+        else:
+            vm.registers[self.result.reg] = 0
+
+class insCompareEq(insCompare):
     mnemonic = 'COMP_EQ'
     symbol = "=="
 
-    def execute(self, vm):
-        vm.registers[self.result.reg] = vm.registers[self.op1.reg] == vm.registers[self.op2.reg]
+    def compare(self, vm):
+        return vm.registers[self.op1.reg] == vm.registers[self.op2.reg]
 
-class insCompareNeq(insBinop):
+class insCompareNeq(insCompare):
     mnemonic = 'COMP_NEQ'
     symbol = "!="
 
-    def execute(self, vm):
-        vm.registers[self.result.reg] = vm.registers[self.op1.reg] != vm.registers[self.op2.reg]
+    def compare(self, vm):
+        return vm.registers[self.op1.reg] != vm.registers[self.op2.reg]
 
-class insCompareGt(insBinop):
+class insCompareGt(insCompare):
     mnemonic = 'COMP_GT'
     symbol = ">"
 
-    def execute(self, vm):
-        vm.registers[self.result.reg] = vm.registers[self.op1.reg] > vm.registers[self.op2.reg]
+    def compare(self, vm):
+        return vm.registers[self.op1.reg] > vm.registers[self.op2.reg]
 
-class insCompareGtE(insBinop):
+class insCompareGtE(insCompare):
     mnemonic = 'COMP_GTE'
     symbol = ">="
 
-    def execute(self, vm):
-        vm.registers[self.result.reg] = vm.registers[self.op1.reg] >= vm.registers[self.op2.reg]
+    def compare(self, vm):
+        return vm.registers[self.op1.reg] >= vm.registers[self.op2.reg]
 
-class insCompareLt(insBinop):
+class insCompareLt(insCompare):
     mnemonic = 'COMP_LT'
     symbol = "<"
 
-    def execute(self, vm):
-        vm.registers[self.result.reg] = vm.registers[self.op1.reg] < vm.registers[self.op2.reg]
+    def compare(self, vm):
+        return vm.registers[self.op1.reg] < vm.registers[self.op2.reg]
 
-class insCompareLtE(insBinop):
+class insCompareLtE(insCompare):
     mnemonic = 'COMP_LTE'
     symbol = "<="
 
-    def execute(self, vm):
-        vm.registers[self.result.reg] = vm.registers[self.op1.reg] <= vm.registers[self.op2.reg]
+    def compare(self, vm):
+        return vm.registers[self.op1.reg] <= vm.registers[self.op2.reg]
 
 class insAnd(insBinop):
     mnemonic = 'AND'
@@ -523,7 +533,7 @@ class insDiv(insBinop):
             vm.registers[self.result.reg] = 0
 
         else:
-            vm.registers[self.result.reg] = vm.registers[self.op1.reg] / vm.registers[self.op2.reg]
+            vm.registers[self.result.reg] = vm.registers[self.op1.reg] // vm.registers[self.op2.reg]
 
 class insMod(insBinop):
     mnemonic = 'MOD'

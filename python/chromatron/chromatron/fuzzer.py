@@ -567,9 +567,9 @@ def test_programs(target_dir='fuzzer'):
 
 
 def main():
-	# generate_programs(100000)
-	# test_programs()
-	# return
+	# generate_programs(1000)
+	test_programs()
+	return
 
 	i = 0
 	while i < 100:

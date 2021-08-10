@@ -2303,7 +2303,7 @@ class irFunc(IR):
 
         
         # value numbering
-        self.leader_block.gvn_optimize()
+        # self.leader_block.gvn_optimize()
         # self.leader_block.gvn_optimize()
 
         # optimizers
