@@ -2281,8 +2281,6 @@ class irFunc(IR):
 
         
         # value numbering
-        # self.value_numbers = self.leader_block.value_numbering()        
-        # self.leader_block.gvn_optimize(self.value_numbers)
         self.leader_block.gvn_optimize()
 
         # optimizers
@@ -2295,7 +2293,7 @@ class irFunc(IR):
             # basic loop invariant code motion:
             self.loop_invariant_code_motion(self.loops)
 
-        # return
+        #return
 
         # convert out of SSA form
         self.resolve_phi()
@@ -2323,7 +2321,6 @@ class irFunc(IR):
 
         # return
         self.remove_dead_code()
-        # return
 
         # convert to IR code listing        
         self.code = self.get_code_from_blocks()
@@ -2331,10 +2328,10 @@ class irFunc(IR):
         # run trivial prunes
         self.prune_jumps()
         self.prune_no_ops()
-
+        
         # liveness
         self.liveness_analysis()
-
+        
         self.compute_live_ranges()
 
         # allocate registers
@@ -3390,6 +3387,9 @@ class irExpr(irVar):
         self.var1 = var1
         self.var2 = var2
         self.op = op
+
+    def __str__(self):
+        return f'{self.var1} {self.op} {self.var2}'
 
     def __hash__(self):
         return hash(f'{self.var1}{self.op}{self.var2}')
