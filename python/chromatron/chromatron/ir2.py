@@ -840,6 +840,85 @@ class irBlock(IR):
     # Transformation Passes
     ##############################################
 
+
+    """
+    
+    Var init changes:
+
+    Walk dominator tree and collect defintions.
+    Definitions are path specific (copy on recurse into next node)
+    
+    Add LOAD instructions for:
+    globals
+    consts
+    objects (from references)
+
+    At top of block where they are used.
+    If the item is already loaded to a register, it will appear in defines
+    and we can replace uses with that register.
+
+
+    For any globals and objects which are written to:
+    Record "stores" and pass down tree same as defines.
+
+    At function exit points (return and call), add STORE instruction
+    just before function exit instruction for all modified globals/objects.
+
+
+    """
+    def init_vars2(self, defines=None, stores=None):
+        if defines is None:
+            defines = {}
+            stores = {}
+
+
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irDefine):
+                if ir.var._name in self.globals:
+                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+
+                target = copy(ir.var)
+
+                # init variable to 0
+                assign = irLoadConst(target, self.func.get_zero(ir.lineno), lineno=ir.lineno)
+                assign.block = self
+
+                defines[ir.var._name] = target
+                
+                new_code.append(ir)                
+                new_code.append(assign)
+                continue
+
+            
+            # NOT irDefine:
+
+            for i in ir.get_input_vars():
+                if i.is_const:
+                    if i._name not in defines:
+                        target = add_const_temp(i._name, datatype=i.type, lineno=-1)
+                        target.block = self
+                        load = irLoadConst(target, i, lineno=-1)
+                        load.block = self
+                        defines[target._name] = target
+
+                        new_code.append(load)
+
+                    i.__dict__ = copy(defines[i._name].__dict__)
+
+
+            new_code.append(ir)
+
+        self.code = new_code
+        self.defines = defines
+
+        if self not in self.func.dominator_tree:
+            return
+
+        for c in self.func.dominator_tree[self]:
+            c.init_vars2(copy(defines), copy(stores))
+
+
     def init_consts(self):
         consts = self._get_consts()
 
@@ -1261,15 +1340,15 @@ class irBlock(IR):
         for ir in self.code:
             # look for defines and set their version to 0
             if isinstance(ir, irDefine):
-                if ir.var._name in self.defines:
-                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+                # if ir.var._name in self.defines:
+                #     raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
                 assert ir.var.ssa_version is None
 
-                ir.var.block = self
-                ir.var.convert_to_ssa()
+                # ir.var.block = self
+                # ir.var.convert_to_ssa()
                 
-                self.defines[ir.var._name] = ir.var
+                # self.defines[ir.var._name] = ir.var
 
             else:
                 inputs = [a for a in ir.get_input_vars() if not a.is_temp and not a.is_global]
@@ -1984,11 +2063,11 @@ class irFunc(IR):
     def verify_variables(self):
         # check that define instructions define the first version of a variable
         # this will catch if a variable reference is incorrectly placed somewhere else and modified.
-        for block in self.blocks.values():
-            for ir in block.code:
-                if isinstance(ir, irDefine):
-                    if ir.var.ssa_version != 0:
-                        raise CompilerFatal(f'Variable {ir.var} at line {ir.lineno} modified out of place')
+        # for block in self.blocks.values():
+        #     for ir in block.code:
+        #         if isinstance(ir, irDefine):
+        #             if ir.var.ssa_version != 0:
+        #                 raise CompilerFatal(f'Variable {ir.var} at line {ir.lineno} modified out of place')
 
 
         # check that used vars have a define
@@ -2248,11 +2327,14 @@ class irFunc(IR):
         self.leader_block = self.create_block_from_code_at_index(0)
         self.verify_block_links()
 
-        self.leader_block.init_vars()
-        self.leader_block.init_consts()
-
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
+
+        self.leader_block.init_vars2()
+
+        # return
+        # self.leader_block.init_vars()
+        # self.leader_block.init_consts()
 
         # self.render_dominator_tree()
         # self.render_graph()

@@ -385,7 +385,7 @@ class Func(Block):
 		self.rendered_code = super().render()
 		return self.rendered_code
 
-	def generate(self, max_length=64, max_depth=8, max_vars=8):
+	def generate(self, max_length=128, max_depth=12, max_vars=8, max_consts=16):
 
 		# global var handling.... not super happy about this but works for now
 		global var_count
@@ -398,11 +398,11 @@ class Func(Block):
 
 		global const_count
 		global consts
-		const_count = randint(1, 8)
+		const_count = randint(1, max_consts)
 		consts = []
 
 		for i in range(const_count):
-			consts.append(randint(-10000, 10000))
+			consts.append(randint(-100, 100))
 
 		super().generate(max_length, max_depth, randomize=False)
 
@@ -577,8 +577,8 @@ def test_programs(target_dir='fuzzer'):
 
 
 def main():
-	generate_programs(100000)
-	# test_programs()
+	# generate_programs(1000)
+	test_programs()
 	return
 
 	i = 0

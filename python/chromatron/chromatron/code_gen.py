@@ -1005,16 +1005,16 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     
     tree = parse(source)
 
-    if debug_print:
-        print("Python AST:")
-        print(pformat_ast(tree))
+    # if debug_print:
+    #     print("Python AST:")
+    #     print(pformat_ast(tree))
 
     cg1 = CodeGenPass1()
     cg1_data = cg1(source)
 
-    if debug_print:
-        print("CG Pass 1:")
-        print(pformat_ast(cg1_data))
+    # if debug_print:
+    #     print("CG Pass 1:")
+    #     print(pformat_ast(cg1_data))
 
     ir_program = cg1_data.build(script_name=script_name, source=source)
 
