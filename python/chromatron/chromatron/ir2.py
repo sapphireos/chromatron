@@ -699,77 +699,77 @@ class irBlock(IR):
             c.gvn_optimize(copy(values))
 
 
-    def fold_constants(self):
-        changes = 0
-        new_code = []
+    # def fold_constants(self):
+    #     changes = 0
+    #     new_code = []
        
-        for ir in self.code:
-            if isinstance(ir, irBinop):
+    #     for ir in self.code:
+    #         if isinstance(ir, irBinop):
                 
-                # attempt to fold
-                val = ir.fold()
+    #             # attempt to fold
+    #             val = ir.fold()
 
-                if val is not None:
-                    # replace with assign
-                    ir = irLoadConst(ir.target, val, lineno=ir.lineno)
-                    ir.block = self
-                    changes += 1
+    #             if val is not None:
+    #                 # replace with assign
+    #                 ir = irLoadConst(ir.target, val, lineno=ir.lineno)
+    #                 ir.block = self
+    #                 changes += 1
 
-            new_code.append(ir)
+    #         new_code.append(ir)
 
-        self.code = new_code     
+    #     self.code = new_code     
 
-        return changes
+    #     return changes
 
-    def reduce_strength(self):
-        new_code = []
+    # def reduce_strength(self):
+    #     new_code = []
 
-        for ir in self.code:
-            if isinstance(ir, irBinop):
-                new_ir = ir.reduce_strength()
+    #     for ir in self.code:
+    #         if isinstance(ir, irBinop):
+    #             new_ir = ir.reduce_strength()
 
-                if new_ir is not None:
-                    new_ir.block = self
-                    # replace instruction
-                    ir = new_ir
+    #             if new_ir is not None:
+    #                 new_ir.block = self
+    #                 # replace instruction
+    #                 ir = new_ir
 
-            new_code.append(ir)
+    #         new_code.append(ir)
 
-        self.code = new_code       
+        # self.code = new_code       
 
 
-    def remove_redundant_binop_assigns(self):
-        new_code = []
-        nops = []
+    # def remove_redundant_binop_assigns(self):
+    #     new_code = []
+    #     nops = []
 
-        # this is a peephole optimization
-        for index in range(len(self.code) - 1):
-            ir = self.code[index]
-            next_ir = self.code[index + 1]
+    #     # this is a peephole optimization
+    #     for index in range(len(self.code) - 1):
+    #         ir = self.code[index]
+    #         next_ir = self.code[index + 1]
 
-            # if a binop is followed by an assign:
-            if isinstance(ir, irBinop) and isinstance(next_ir, irAssign):
-                # and the binop's result is the input value for the assign:
-                if ir.result.name == next_ir.value.name:
-                    # just replace the binop result
-                    ir.result = next_ir.target
-                    new_code.append(ir)
-                    nop = irNop(lineno=ir.lineno)
-                    nop.block = self
-                    self.code[index + 1] = nop
-                    nops.append(nop)
+    #         # if a binop is followed by an assign:
+    #         if isinstance(ir, irBinop) and isinstance(next_ir, irAssign):
+    #             # and the binop's result is the input value for the assign:
+    #             if ir.result.name == next_ir.value.name:
+    #                 # just replace the binop result
+    #                 ir.result = next_ir.target
+    #                 new_code.append(ir)
+    #                 nop = irNop(lineno=ir.lineno)
+    #                 nop.block = self
+    #                 self.code[index + 1] = nop
+    #                 nops.append(nop)
 
-                else:
-                    new_code.append(ir)
+    #             else:
+    #                 new_code.append(ir)
 
-            else:
-                new_code.append(ir)
+    #         else:
+    #             new_code.append(ir)
 
-        # append last instruction (since loop will miss it)
-        new_code.append(self.code[-1])
+    #     # append last instruction (since loop will miss it)
+    #     new_code.append(self.code[-1])
 
-        # remove the nops we added:
-        self.code = [n for n in new_code if n not in nops]
+    #     # remove the nops we added:
+    #     self.code = [n for n in new_code if n not in nops]
 
     def remove_dead_code(self, reads=None):
         new_code = []
@@ -807,63 +807,34 @@ class irBlock(IR):
 
         return old_code != new_code
 
-    def remove_redundant_assigns(self):
-        # remove redundant assigns in SSA form.
-        remove = []
+    # def remove_redundant_assigns(self):
+    #     # remove redundant assigns in SSA form.
+    #     remove = []
 
-        for i in range(len(self.code)):
-            ir = self.code[i]
+    #     for i in range(len(self.code)):
+    #         ir = self.code[i]
 
-            if isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
-                j = i + 1
+    #         if isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
+    #             j = i + 1
 
-                while j < len(self.code):
-                    ir2 = self.code[j]
+    #             while j < len(self.code):
+    #                 ir2 = self.code[j]
 
-                    # check for assign target
-                    if isinstance(ir2, irAssign) or isinstance(ir2, irLoadConst):
-                        if ir2.target.name == ir.target.name:
-                            # remove ir as it is redundant
-                            remove.append(ir)
-                            break
+    #                 # check for assign target
+    #                 if isinstance(ir2, irAssign) or isinstance(ir2, irLoadConst):
+    #                     if ir2.target.name == ir.target.name:
+    #                         # remove ir as it is redundant
+    #                         remove.append(ir)
+    #                         break
 
-                        # if the assignment is used, then we are done here
-                        elif ir.target in ir2.get_input_vars():
-                            break
+    #                     # if the assignment is used, then we are done here
+    #                     elif ir.target in ir2.get_input_vars():
+    #                         break
 
-                    j += 1
+    #                 j += 1
 
-        # remove instructions:
-        self.code = [ir for ir in self.code if ir not in remove]
-
-    # def local_value_numbering(self):
-    #     next_val = self.func.current_value_num
-        
-    #     values = {}
-    #     defines = {}
-
-    #     for ir in self.code:
-    #         if isinstance(ir, irLoadConst):                
-    #             pass
-
-    #         elif isinstance(ir, irAssign):
-    #             target = ir.target
-    #             values = [ir.value]
-    #             op = '='
-
-    #         else:
-    #             continue
-
-
-    #         target.ssa_version = next_val
-    #         values[target] = next_val
-
-
-    #         next_val += 1
-
-
-    #     self.func.current_value_num = next_val
-    #     self.local_values = values
+    #     # remove instructions:
+    #     self.code = [ir for ir in self.code if ir not in remove]
 
     ##############################################
     # Transformation Passes
@@ -1021,7 +992,6 @@ class irBlock(IR):
             defines[phi] = {}
 
             for d in phi.defines:
-                # defines[phi][d] = []
                 for p in self.predecessors:
                     v = p.lookup_var(d)
                     if v.name == d.name:

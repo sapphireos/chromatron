@@ -190,7 +190,42 @@ class Builder(object):
         ir = irJump(target, lineno=lineno)
         self.append_node(ir)
 
-    def assign(self, target, value, lineno=None):     
+    def assign(self, target, value, lineno=None):
+        # if isinstance(target, irRef) and isinstance(value, irRef):
+        #     # need to load from reference to a temp reg,
+        #     # then store to the other reference from the temp reg.
+
+        #     # LOAD
+        #     # STORE
+
+        #     ir = irAssign(target, value, lineno=lineno)
+
+        # elif isinstance(target, irRef):
+        #     # assigning to a reference target
+        #     # we need to load the value to a temp register,
+        #     # then we need to do a STORE to memory on
+        #     # the reference address.  Can be the same
+        #     # store as for globals.
+
+        #     # note that we might not have to do an 
+        #     # assign to temp, depending on the situation,
+        #     # we can just point the STORE directly to
+        #     # the source register.
+
+        #     # ASSIGN/BINOP/LOAD_CONST
+        #     # STORE
+
+        #     ir = irAssign(target, value, lineno=lineno)
+
+        # elif isinstance(value, irRef):
+        #     # loading from a reference target.
+        #     # should be able to just do a LOAD from memory
+        #     # to the target register.
+
+        #     # LOAD
+
+        #     ir = irAssign(target, value, lineno=lineno)
+
         if value.is_const:
             ir = irLoadConst(target, value, lineno=lineno)
 
