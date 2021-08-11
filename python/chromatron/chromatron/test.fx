@@ -1,8 +1,11 @@
 def func():
-    b = Number()
-    b = -4830 // -1813
-    return b * -8936
+    a = Number()
 
+    a = -1850 * 474
+    a *= a
+    a = a % 7524
+    return a
+    
 
 #     i = Number()
 #     i = 4
