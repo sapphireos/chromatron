@@ -31,7 +31,7 @@ import colored_traceback
 colored_traceback.add_hook()
 
 # from .ir import *
-from .ir2 import CompilerFatal
+from .ir2 import CompilerFatal, SyntaxError
 from .builder import Builder
 from sapphire.common.util import setup_basic_logging
 
@@ -1012,9 +1012,9 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     cg1 = CodeGenPass1()
     cg1_data = cg1(source)
 
-    # if debug_print:
-    #     print("CG Pass 1:")
-    #     print(pformat_ast(cg1_data))
+    if debug_print:
+        print("CG Pass 1:")
+        print(pformat_ast(cg1_data))
 
     ir_program = cg1_data.build(script_name=script_name, source=source)
 

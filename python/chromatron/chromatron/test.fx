@@ -1,17 +1,20 @@
 
-global_a = Number()
+# global_a = Number()
 # def global_var():
 #   global_a += 1 + 2
 
 #   return global_a
 
+a = Number()[4]
+
 def obj():
+    pass
     # global_a += 1
 
   
     # meow.x += 1
     
-    return meow.x + meow.y
+    # return meow.x + meow.y
 
     # a = Number()
 
