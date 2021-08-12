@@ -1,16 +1,14 @@
-
 def func():
-    a = Number()
+    c = Number()
     b = Number()
-    
+    a = Number()
+   
     while b:
-        pass
-        
+        a = 75 >= c
+        break
 
-    a += 2
-
-    a /= b
-    
+    c = 75 > a
+    return a
 
 # def func():
 #     b = Number()

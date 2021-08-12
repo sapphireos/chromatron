@@ -45,7 +45,7 @@ def add_const_temp(const, datatype=None, lineno=None):
     name = str(const)
     
     ir = irVar(name, datatype=datatype, lineno=lineno)
-    ir.is_temp = True
+    ir.is_temp = False
     ir.holds_const = True
 
     return ir
@@ -910,6 +910,7 @@ class irBlock(IR):
                         load = irLoadConst(target, i, lineno=-1)
                         load.block = self
                         defines[target._name] = target
+                        self.defines[target._name] = target
 
                         new_code.append(load)
 
