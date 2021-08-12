@@ -60,8 +60,14 @@ def convert_to_i32(value):
 
 
 class insProgram(object):
-    def __init__(self, funcs={}):
+    def __init__(self, funcs={}, global_vars={}):
         self.funcs = funcs
+        self.globals = global_vars
+
+        # initialize memory
+        self.memory = [0] * len(self.globals)
+        for func in self.funcs.values():
+            func.memory = self.memory
 
     def __str__(self):
         s = 'VM Instructions:\n'
@@ -89,6 +95,7 @@ class insFunc(object):
         self.lineno = lineno
 
         self.registers = None
+        self.memory = None
         self.return_val = None
 
         self.cycle_limit = 16384
@@ -336,6 +343,47 @@ class insLoadConst(BaseInstruction):
 
         return bc
 
+class insLoadMemory(BaseInstruction):
+    mnemonic = 'LDM'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+    def __str__(self):
+        return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        vm.registers[self.dest.reg] = vm.memory[self.src]
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
+
+        return bc
+
+class insStoreMemory(BaseInstruction):
+    mnemonic = 'STM'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+    def __str__(self):
+        return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        vm.memory[self.dest] = vm.registers[self.src.reg]
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
+
+        return bc
 
 class insLabel(BaseInstruction):
     def __init__(self, name=None, **kwargs):

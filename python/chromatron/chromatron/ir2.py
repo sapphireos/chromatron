@@ -139,7 +139,7 @@ class irProgram(IR):
 
         s += 'Globals:\n'
         for i in list(self.globals.values()):
-            s += '%d\t%s\n' % (i.lineno, i)
+            s += '%d:\t%s\n' % (i.lineno, i)
 
         s += 'Functions:\n'
         for func in list(self.funcs.values()):
@@ -152,13 +152,22 @@ class irProgram(IR):
         for func in self.funcs.values():
             func.analyze_blocks()
 
+    def _allocate_memory(self):
+        addr = 0
+        for g in self.globals.values():
+            assert g.addr is None
+            g.addr = addr
+            addr += 1
+
     def generate(self):
+        self._allocate_memory()
+
         ins_funcs = {}
         for name, func in self.funcs.items():
             ins_funcs[name] = func.generate()
             ins_funcs[name].prune_jumps()
 
-        return insProgram(funcs=ins_funcs)
+        return insProgram(funcs=ins_funcs, global_vars=self.globals)
 
 class Edge(object):
     def __init__(self, from_node, to_node):
@@ -2349,7 +2358,7 @@ class irFunc(IR):
                 o.register = registers[o]
 
         self.register_count = max(registers.values()) + 1
-        self.registers = registers
+        self.registers = registers            
 
     def generate(self):
         instructions = []
@@ -3150,12 +3159,13 @@ class irLoad(IR):
         return f'LOAD {self.target} <-- {self.ref}'
 
     def get_input_vars(self):
-        # return [self.ref]
         return []
 
     def get_output_vars(self):
         return [self.target]
 
+    def generate(self):
+        return insLoadMemory(self.target.generate(), self.ref.generate(), lineno=self.lineno)
 
 # Store register to memory
 class irStore(IR):
@@ -3171,9 +3181,10 @@ class irStore(IR):
         return [self.register]
 
     def get_output_vars(self):
-        # return [self.ref]
         return []
 
+    def generate(self):
+        return insStoreMemory(self.ref.generate(), self.register.generate(), lineno=self.lineno)
 
 # Spill register to stack
 class irSpill(IR):
@@ -3421,6 +3432,7 @@ class irVar(IR):
         self.is_const = False
         self.ssa_version = None
         self.register = None
+        self.addr = None # used for globals
 
     def __hash__(self):
         return hash(self.name)
@@ -3509,6 +3521,9 @@ class irVar(IR):
         if self.register is not None:
             s += f'@{self.register}'
 
+        elif self.addr is not None:
+            s += f'@[{self.addr}]'
+
         if self.is_global:
             return f'Global({s})'
 
@@ -3538,7 +3553,13 @@ class irVar(IR):
         # if self.register == None:
             # raise CompilerFatal("%s does not have a register. Line: %d" % (self, self.lineno))
 
-        return insReg(self.register, self, lineno=self.lineno)
+        if self.register is not None:
+            assert self.addr is None
+            return insReg(self.register, self, lineno=self.lineno)
+
+        elif self.addr is not None:
+            assert self.register is None
+            return self.addr
 
 # this is mostly used for optimizations:
 class irExpr(IR):
