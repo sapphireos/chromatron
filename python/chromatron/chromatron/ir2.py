@@ -915,16 +915,7 @@ class irBlock(IR):
                     store.block = self
                     new_code.append(store)
 
-            # elif isinstance(ir, irLookup):
-            #     # we are creating a reference to memory
-                
-            #     # we need to store this result in a register.
-            #     # we can treat this like a define (a lookup is effectively a define for a reference)
-            #     # defines[ir.result._name] = ir.result
-            #     # self.defines[ir.result._name] = ir.result
-            #     pass
 
-            # NOT irDefine or function exit:
 
             for i in ir.get_input_vars():
                 i.block = self
@@ -956,10 +947,16 @@ class irBlock(IR):
                     new_code.append(load)
 
                 elif i.is_ref:
+                    if i.name not in self.globals:
+                        raise SyntaxError(f'Object {i.name} is not declared.', lineno=ir.lineno)
+
                     # need to replace reference with an actual register
                     # since this is an input, we need to load from that ref
                     # to a register and then replace with that.
                     if i.name not in defines:
+                        # add reference to globals
+                        # self.globals[i.name] = copy(i) # need to declare!
+
                         target = add_reg(i.name, datatype=i.type, lineno=-1)
                         target.block = self
                         load = irLoad(target, copy(i), lineno=-1)
@@ -996,6 +993,8 @@ class irBlock(IR):
                 elif o.is_ref:
                     assert o.name in defines
                     o.__dict__ = copy(defines[o.name].__dict__)
+
+                    stores[o.name] = o
 
                 if o._name in defines:
                     o.type = defines[o._name].type
