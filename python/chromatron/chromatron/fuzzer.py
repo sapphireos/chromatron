@@ -582,7 +582,8 @@ def main():
 	# return
 
 	i = 0
-	while i < 1000:
+	# while i < 1000:
+	while True:
 		py_output = None
 
 		try:

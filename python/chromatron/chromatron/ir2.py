@@ -529,47 +529,47 @@ class irBlock(IR):
 
         return None
 
-    def analyze_copies_local(self):
-        # local block only
+    # def analyze_copies_local(self):
+    #     # local block only
 
-        copy_in = {}
-        copy_out = {}
+    #     copy_in = {}
+    #     copy_out = {}
 
-        # init to empty sets
-        for ir in self.code:
-            copy_in[ir] = set()
-            copy_out[ir] = set()
+    #     # init to empty sets
+    #     for ir in self.code:
+    #         copy_in[ir] = set()
+    #         copy_out[ir] = set()
 
-        prev_out = set()
-        for ir in self.code:
-            if ir not in copy_in:
-                continue            
+    #     prev_out = set()
+    #     for ir in self.code:
+    #         if ir not in copy_in:
+    #             continue            
             
-            gen = set()
-            if isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
-                gen = set([ir])
+    #         gen = set()
+    #         if isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
+    #             gen = set([ir])
         
-            defines = ir.get_output_vars()
+    #         defines = ir.get_output_vars()
 
-            kill = set()
-            for copy_ir in copy_in[ir]:
-                copy_vars = copy_ir.get_output_vars()
-                copy_vars.extend(copy_ir.get_input_vars())
+    #         kill = set()
+    #         for copy_ir in copy_in[ir]:
+    #             copy_vars = copy_ir.get_output_vars()
+    #             copy_vars.extend(copy_ir.get_input_vars())
 
-                for c in copy_vars:
-                    if c in defines:
-                        # this instruction kills these copies
-                        kill = set([ir])
-                        break
+    #             for c in copy_vars:
+    #                 if c in defines:
+    #                     # this instruction kills these copies
+    #                     kill = set([ir])
+    #                     break
 
-            copy_in[ir] = prev_out
+    #         copy_in[ir] = prev_out
 
-            copy_out[ir] = (copy_in[ir] - kill) | gen
+    #         copy_out[ir] = (copy_in[ir] - kill) | gen
             
-            prev_out = copy(copy_out[ir])
+    #         prev_out = copy(copy_out[ir])
 
-        self.copy_in = copy_in
-        self.copy_out = copy_out
+    #     self.copy_in = copy_in
+    #     self.copy_out = copy_out
 
     def get_blocks_depth_first(self, visited=None):
         if visited is None:
@@ -2761,136 +2761,136 @@ class irFunc(IR):
                     header.code.insert(insert_index, ir)
                     insert_index += 1
 
-    def propagate_copies(self):
-        iterations = 0
-        iteration_limit = 128
-        changed = True
-        while changed and iterations < iteration_limit:
-            changed = self.leader_block.propagate_copies()
+    # def propagate_copies(self):
+    #     iterations = 0
+    #     iteration_limit = 128
+    #     changed = True
+    #     while changed and iterations < iteration_limit:
+    #         changed = self.leader_block.propagate_copies()
 
-            iterations += 1
+    #         iterations += 1
 
-        logging.debug(f'Propagate copies in {iterations} iterations')        
+    #     logging.debug(f'Propagate copies in {iterations} iterations')        
     
-    def analyze_copies(self):
-        for block in self.blocks.values():
-            block.analyze_copies_local()
+    # def analyze_copies(self):
+    #     for block in self.blocks.values():
+    #         block.analyze_copies_local()
 
-        # from:
-        # https://www.csd.uwo.ca/~mmorenom/CS447/Lectures/CodeOptimization.html/node8.html
+    #     # from:
+    #     # https://www.csd.uwo.ca/~mmorenom/CS447/Lectures/CodeOptimization.html/node8.html
 
-        code = self.get_code_from_blocks()
+    #     code = self.get_code_from_blocks()
 
-        all_copies = []
-        for ir in code:
-            if isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
-                all_copies.append(ir)
+    #     all_copies = []
+    #     for ir in code:
+    #         if isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
+    #             all_copies.append(ir)
 
-        all_copies = set(all_copies)
+    #     all_copies = set(all_copies)
 
-        block_copies_in = {}
-        block_copies_out = {}
+    #     block_copies_in = {}
+    #     block_copies_out = {}
 
-        for block in self.blocks.values():
-            block_copies_in[block] = copy(all_copies)
-            block_copies_out[block] = set()
+    #     for block in self.blocks.values():
+    #         block_copies_in[block] = copy(all_copies)
+    #         block_copies_out[block] = set()
 
-        block_copies_in[self.leader_block] = set()
-        block_copies_out[self.leader_block] = set(list(self.leader_block.copy_out.values())[-1])
+    #     block_copies_in[self.leader_block] = set()
+    #     block_copies_out[self.leader_block] = set(list(self.leader_block.copy_out.values())[-1])
 
-        changed = True
-        while changed:
-            changed = False
+    #     changed = True
+    #     while changed:
+    #         changed = False
 
-            for block in self.blocks.values():
-                copies_in = None
-                # set copies in from predecessors outs
-                for pre in block.predecessors:
-                    pre_copies_in = set(list(pre.copy_in.values())[-1])
+    #         for block in self.blocks.values():
+    #             copies_in = None
+    #             # set copies in from predecessors outs
+    #             for pre in block.predecessors:
+    #                 pre_copies_in = set(list(pre.copy_in.values())[-1])
 
-                    if copies_in is None:
-                        copies_in = pre_copies_in
+    #                 if copies_in is None:
+    #                     copies_in = pre_copies_in
 
-                    else:
-                        # intersection
-                        copies_in &= pre_copies_in
+    #                 else:
+    #                     # intersection
+    #                     copies_in &= pre_copies_in
 
-                if copies_in is None:
-                    copies_in = set()
+    #             if copies_in is None:
+    #                 copies_in = set()
 
-                # gen is the copies out from this block
-                gen = list(block.copy_out.values())[-1]
+    #             # gen is the copies out from this block
+    #             gen = list(block.copy_out.values())[-1]
 
-                # kills are all copies (from all points in the function)
-                kills = []
-                defines = block.get_output_vars()
+    #             # kills are all copies (from all points in the function)
+    #             kills = []
+    #             defines = block.get_output_vars()
 
-                for ir in code:
-                    if ir in block.code:
-                        continue
+    #             for ir in code:
+    #                 if ir in block.code:
+    #                     continue
 
-                    copy_vars = ir.get_output_vars()
-                    copy_vars.extend(ir.get_input_vars())
+    #                 copy_vars = ir.get_output_vars()
+    #                 copy_vars.extend(ir.get_input_vars())
 
-                    for c in copy_vars:
-                        if c in defines:
-                            kills.append(ir)
-                            break
+    #                 for c in copy_vars:
+    #                     if c in defines:
+    #                         kills.append(ir)
+    #                         break
 
-                kills = set(kills)
+    #             kills = set(kills)
 
-                # union
-                copies_out = gen | (copies_in - kills) 
+    #             # union
+    #             copies_out = gen | (copies_in - kills) 
 
-                if copies_in != block_copies_in[block]:
-                    changed = True
+    #             if copies_in != block_copies_in[block]:
+    #                 changed = True
 
-                if copies_out != block_copies_out[block]:
-                    changed = True
+    #             if copies_out != block_copies_out[block]:
+    #                 changed = True
 
-                block_copies_in[block] = copies_in
-                block_copies_out[block] = copies_out
+    #             block_copies_in[block] = copies_in
+    #             block_copies_out[block] = copies_out
 
 
-    def remove_dead_labels(self):
-        labels = self.labels()
+    # def remove_dead_labels(self):
+    #     labels = self.labels()
 
-        keep = []
+    #     keep = []
         
-        # get list of labels that are used
-        for label in labels:
-            for node in self.code:
-                targets = node.get_jump_target()
-                if targets is None:
-                    continue
+    #     # get list of labels that are used
+    #     for label in labels:
+    #         for node in self.code:
+    #             targets = node.get_jump_target()
+    #             if targets is None:
+    #                 continue
                     
-                for target in targets:
-                    if target != None and target.name == label:
-                        keep.append(label)
+    #             for target in targets:
+    #                 if target != None and target.name == label:
+    #                     keep.append(label)
                             
 
-        dead_labels = [l for l in labels if l not in keep]
+    #     dead_labels = [l for l in labels if l not in keep]
 
-        new_code = []
-        for ir in self.code:
-            if isinstance(ir, irLabel):
-                if ir.name in dead_labels:
-                    continue
+    #     new_code = []
+    #     for ir in self.code:
+    #         if isinstance(ir, irLabel):
+    #             if ir.name in dead_labels:
+    #                 continue
 
-            new_code.append(ir)
+    #         new_code.append(ir)
         
-        self.code = new_code
+    #     self.code = new_code
 
-    def labels(self):
-        labels = {}
+    # def labels(self):
+    #     labels = {}
 
-        for i in range(len(self.body)):
-            ins = self.body[i]
+    #     for i in range(len(self.body)):
+    #         ins = self.body[i]
 
-            if isinstance(ins, irLabel):
-                labels[ins.name] = i
+    #         if isinstance(ins, irLabel):
+    #             labels[ins.name] = i
 
-        return labels
+    #     return labels
 
     def append_node(self, ir):
         self.body.append(ir)
