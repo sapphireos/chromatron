@@ -12,9 +12,9 @@
 #         i -= 1
 
 
-# global_a = Number()
-# def global_var():
-#   global_a += 1 + 2
+global_a = Number()
+def global_var():
+  global_a += 1 + 2
 
 
 # def obj():
@@ -186,17 +186,17 @@
 #             pass
 
 
-def simple_ifelse():
-    a = Number()
-    b = Number()
+# def simple_ifelse():
+#     a = Number()
+#     b = Number()
 
-    if a > 0:
-        b = 1
+#     if a > 0:
+#         b = 1
 
-    else:
-        b = 2
+#     else:
+#         b = 2
 
-    return b
+#     return b
 
 
 # def two_ifelse():

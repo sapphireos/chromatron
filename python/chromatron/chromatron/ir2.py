@@ -890,8 +890,14 @@ class irBlock(IR):
                 new_code.append(assign)
                 continue
 
-            
-            # NOT irDefine:
+            elif isinstance(ir, irReturn): # function exit point
+                # check for stores
+                for k, v in stores.items():
+                    store = irStore(v, self.globals[k], lineno=ir.lineno)
+                    store.block = self
+                    new_code.append(store)
+
+            # NOT irDefine or function exit:
 
             for i in ir.get_input_vars():
                 if i.is_const:
@@ -905,6 +911,33 @@ class irBlock(IR):
                         new_code.append(load)
 
                     i.__dict__ = copy(defines[i._name].__dict__)
+
+                elif i._name in self.globals and i._name not in defines:
+                    # copy global var to register and add to defines:
+                    i.__dict__ = copy(self.globals[i._name].__dict__)
+                    i.is_global = False
+                    i.holds_global = True
+                    defines[i._name] = i
+                    self.defines[i._name] = i
+
+                    # insert a LOAD instruction here
+                    load = irLoad(i, self.globals[i._name], lineno=ir.lineno)
+                    load.block = self
+                    new_code.append(load)
+
+            for o in ir.get_output_vars():
+                if o._name in self.globals:
+                    # record a store - unless this is a load
+                    if not isinstance(ir, irLoad):
+                        stores[o._name] = o
+
+                    if  o._name not in self.defines:
+                        # copy global var to register and add to defines:
+                        o.__dict__ = copy(self.globals[o._name].__dict__)
+                        o.is_global = False
+                        o.holds_global = True
+                        defines[o._name] = o
+                        self.defines[o._name] = o
 
 
             new_code.append(ir)
@@ -3353,6 +3386,7 @@ class irVar(IR):
         self.is_global = False
         self.is_temp = False
         self.holds_const = False
+        self.holds_global = False
         self.is_const = False
         self.ssa_version = None
         self.register = None
@@ -3383,6 +3417,7 @@ class irVar(IR):
         self.holds_const = source.holds_const
         self.is_const = source.is_const
         self.is_temp = source.is_temp
+        self.holds_global = source.holds_global
 
     @property
     def value(self):
@@ -3452,6 +3487,9 @@ class irVar(IR):
 
         elif self.is_const:
             return f'Const({s})'
+
+        elif self.holds_global:
+            return f'~{s}'
 
         else:
             # return f'Var{s}'            
