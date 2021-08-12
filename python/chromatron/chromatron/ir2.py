@@ -915,14 +915,14 @@ class irBlock(IR):
                     store.block = self
                     new_code.append(store)
 
-            elif isinstance(ir, irLookup):
-                # we are creating a reference to memory
+            # elif isinstance(ir, irLookup):
+            #     # we are creating a reference to memory
                 
-                # we need to store this result in a register.
-                # we can treat this like a define (a lookup is effectively a define for a reference)
-                # defines[ir.result._name] = ir.result
-                # self.defines[ir.result._name] = ir.result
-                pass
+            #     # we need to store this result in a register.
+            #     # we can treat this like a define (a lookup is effectively a define for a reference)
+            #     # defines[ir.result._name] = ir.result
+            #     # self.defines[ir.result._name] = ir.result
+            #     pass
 
             # NOT irDefine or function exit:
 
@@ -955,22 +955,21 @@ class irBlock(IR):
                     load.block = self
                     new_code.append(load)
 
-                # elif i.is_ref:
-                #     # need to replace reference with an actual register
-                #     # since this is an input, we need to load from that ref
-                #     # to a register and then replace with that.
-                #     if i._name not in defines:
-                #         # raise Exception
-                #         target = add_reg(i._name, datatype=i.type, lineno=-1)
-                #         target.block = self
-                #         load = irLoad(target, copy(i), lineno=-1)
-                #         load.block = self
-                #         defines[target._name] = target
-                #         self.defines[target._name] = target
+                elif i.is_ref:
+                    # need to replace reference with an actual register
+                    # since this is an input, we need to load from that ref
+                    # to a register and then replace with that.
+                    if i.name not in defines:
+                        target = add_reg(i.name, datatype=i.type, lineno=-1)
+                        target.block = self
+                        load = irLoad(target, copy(i), lineno=-1)
+                        load.block = self
+                        defines[target._name] = target
+                        self.defines[target._name] = target
 
-                #         new_code.append(load)
+                        new_code.append(load)
 
-                #     i.__dict__ = copy(defines[i._name].__dict__)
+                    i.__dict__ = copy(defines[i.name].__dict__)
                     
 
                 if i._name in defines:
@@ -994,12 +993,9 @@ class irBlock(IR):
                         defines[o._name] = o
                         self.defines[o._name] = o
 
-                # elif o.is_ref:
-                #     if not isinstance(ir, irLookup):
-                #         assert o._name in defines
-                #         o.is_ref = False
-                        
-                #         o.__dict__ = copy(defines[o._name].__dict__)
+                elif o.is_ref:
+                    assert o.name in defines
+                    o.__dict__ = copy(defines[o.name].__dict__)
 
                 if o._name in defines:
                     o.type = defines[o._name].type
@@ -2466,11 +2462,11 @@ class irFunc(IR):
             # basic loop invariant code motion:
             self.loop_invariant_code_motion(self.loops)
 
-        return
+        # return
 
         # convert out of SSA form
         self.resolve_phi()
-        # return
+        return
         # blocks may have been rearranged or added at this point
 
         self.dominators = self.calc_dominance()
@@ -3532,7 +3528,17 @@ class irVar(IR):
             
     @property
     def name(self):
-        if self.ssa_version is not None:
+        if self.is_ref:
+            lookups = ''
+            for lookup in self.lookups:
+                if isinstance(lookup, irAttribute):
+                    lookups += '.%s' % (lookup.name)
+                else:
+                    lookups += '[%s]' % (lookup.name)
+
+            s = f'{self._name}{lookups}'
+
+        elif self.ssa_version is not None:
             if self.holds_const:
                 s = f'${self._name}.v{self.ssa_version}'
 
@@ -3556,11 +3562,14 @@ class irVar(IR):
         self._name = value        
 
     def __str__(self):
-        if self.type and not self.is_ref:
+        if self.type:
             s = f"{self.name}:{self.type}"
 
         else:
             s = f"{self.name}"
+
+        if self.is_ref:
+            s = f'&{s}'
 
         if self.register is not None:
             s += f'@{self.register}'
@@ -3570,16 +3579,6 @@ class irVar(IR):
 
         if self.is_global:
             return f'Global({s})'
-
-        elif self.is_ref:
-            lookups = ''
-            for lookup in self.lookups:
-                if isinstance(lookup, irAttribute):
-                    lookups += '.%s' % (lookup.name)
-                else:
-                    lookups += '[%s]' % (lookup.name)
-
-            return f'&{s}{lookups}:{self.type}'
 
         elif self.is_temp:
             # return f'Temp{s}'

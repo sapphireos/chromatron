@@ -8,7 +8,7 @@
 def obj():
     meow.x += 1
     
-    return meow.x
+    return meow.x + meow.y
 
     # a = Number()
 
