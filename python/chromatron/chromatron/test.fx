@@ -1,28 +1,3 @@
-def func():
-    c = Number()
-    b = Number()
-    a = Number()
-   
-    while b:
-        a = 75 >= c
-        break
-
-    c = 75 > a
-    return a
-
-# def func():
-#     b = Number()
-#     b = -4830 // -1813
-#     return b * -8936
-
-
-#     i = Number()
-#     i = 4
-
-#     while i > 0:
-#     # while 2:
-#         i -= 1
-
 
 # global_a = Number()
 # def global_var():
