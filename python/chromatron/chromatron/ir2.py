@@ -926,6 +926,8 @@ class irBlock(IR):
                     new_code.append(load)
 
             for o in ir.get_output_vars():
+                assert not o.is_const
+
                 if o._name in self.globals:
                     # record a store - unless this is a load
                     if not isinstance(ir, irLoad):
