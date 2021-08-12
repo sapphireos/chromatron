@@ -875,6 +875,7 @@ class irBlock(IR):
         new_code = []
         for ir in self.code:
             if isinstance(ir, irDefine):
+                ir.var.block = self
                 if ir.var._name in self.globals:
                     raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
@@ -900,6 +901,8 @@ class irBlock(IR):
             # NOT irDefine or function exit:
 
             for i in ir.get_input_vars():
+                i.block = self
+
                 if i.is_const:
                     if i._name not in defines:
                         target = add_const_temp(i._name, datatype=i.type, lineno=-1)
@@ -926,6 +929,8 @@ class irBlock(IR):
                     new_code.append(load)
 
             for o in ir.get_output_vars():
+                o.block = self
+                
                 assert not o.is_const
 
                 if o._name in self.globals:
@@ -1259,6 +1264,7 @@ class irBlock(IR):
                 new_var.holds_const = True
 
             new_var.block = self
+            new_var.type = var.type
             new_var.ssa_version = None
             new_var.convert_to_ssa()
             # this will ensure the lookup will resolve on a loop
@@ -1298,6 +1304,7 @@ class irBlock(IR):
 
             new_var.block = self
             new_var.ssa_version = None
+            new_var.type = var.type
             new_var.convert_to_ssa()
             self.defines[var_name] = new_var
 
