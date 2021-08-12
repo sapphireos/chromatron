@@ -5,10 +5,52 @@
 
 #   return global_a
 
-a = Number()[4]
 
-def obj():
-    pass
+a = Number()[4] # array of 4 Numbers
+# b = Number()[4][2] # 2D array of 4x2 (8) Numbers
+
+# My_struct = Struct(a=Number(), b=Number()[2]) # declares a new struct type, not an instance of a struct
+# # for consistency and readability, let's require that struct typedefs are capitalized
+# # to match the other type declare functions
+
+# s = My_struct(a=1, b=2)
+# s = My_struct()
+# a = s['a'] # record element access
+
+
+# st = String(32) # 32 char empty string
+# st = String("hello!") # declare an initialized string
+# st = "meow!" # assign new string to var st.  this is an assign, not a declare
+
+# dt = Datetime() # this is a built in struct type
+
+# all composite data types live in memory and fields are loaded to registers as needed.
+# what about temporary composites created for the duration of a function?
+# if function stack frames are placed in the memory segment, this is probably fine?
+
+# for memory lookups - all functions have a base register set when called
+# for their function local storage.  this is placed after globals and grows
+# like a stack.
+# we could optimize this with a different load/store instruction that accesses
+# a different memory bank?
+
+# Objects
+# use the . syntax:
+# object.property
+# object.method()
+
+# objects are an API construct provided by the underlying VM system.
+# they cannot be declared or created within an FX program, only used when available.
+# pixel arrays and the KV database are the main object APIs the compiler knows about.
+# generic objects could be provided by the VM and discovered dynamically.
+
+
+# Link system:
+# change to system library call.
+
+
+# def obj():
+#     pass
     # global_a += 1
 
   

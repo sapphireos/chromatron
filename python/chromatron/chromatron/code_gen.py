@@ -84,7 +84,7 @@ class cg1Import(cg1Node):
 
 
 class cg1DeclarationBase(cg1Node):
-    _fields = ["name", "type", "init_val"]
+    _fields = ["name", "type", "init_val", "dimensions"]
 
     def __init__(self, name="<anon>", type="i32", keywords=None, **kwargs):
         super(cg1DeclarationBase, self).__init__(**kwargs)
@@ -582,6 +582,18 @@ class cg1Subscript(cg1CodeNode):
         self.index = index
         self.load = load
 
+    def to_list(self):
+        l = [self.index]
+        target = self.target
+
+        while isinstance(target, cg1Subscript):
+            l.append(target.index)
+
+            target = target.target
+
+
+        return target, l
+
     def build(self, builder, depth=0):
         if depth == 0:
             builder.start_lookup(lineno=self.lineno)
@@ -614,7 +626,7 @@ class CodeGenPass1(ast.NodeVisitor):
             'Number': self._handle_Number,
             'Fixed16': self._handle_Fixed16,
             'String': self._handle_String,
-            'Array': self._handle_Array,
+            # 'Array': self._handle_Array,
             'Record': self._handle_Record,
             'PixelArray': self.create_GenericObject,
             'Palette': self.create_GenericObject,
@@ -700,46 +712,46 @@ class CodeGenPass1(ast.NodeVisitor):
 
         return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
 
-    def _handle_Array(self, node):
-        dims = [a.n for a in node.args]
+    # def _handle_Array(self, node):
+    #     dims = [a.n for a in node.args]
 
-        data_type = 'i32'
-        keywords = {}
+    #     data_type = 'i32'
+    #     keywords = {}
         
-        for kw in node.keywords:
-            if kw.arg == 'type':
-                try:
-                    data_type = kw.value.func.id
+    #     for kw in node.keywords:
+    #         if kw.arg == 'type':
+    #             try:
+    #                 data_type = kw.value.func.id
 
-                except AttributeError:
-                    data_type = kw.value.id
+    #             except AttributeError:
+    #                 data_type = kw.value.id
 
-                break
+    #             break
 
-        if data_type == 'Number':
-            data_type = 'i32'
+    #     if data_type == 'Number':
+    #         data_type = 'i32'
 
-        elif data_type == 'Fixed16':
-            data_type = 'f16'
+    #     elif data_type == 'Fixed16':
+    #         data_type = 'f16'
 
-        elif data_type == 'String':
-            data_type = 'str'
+    #     elif data_type == 'String':
+    #         data_type = 'str'
         
-        for kw in node.keywords:
-            if kw.arg == 'type':
-                continue
+    #     for kw in node.keywords:
+    #         if kw.arg == 'type':
+    #             continue
                 
-            if kw.arg == 'init_val':
-                if data_type == 'f16':
-                    keywords[kw.arg] = [int(a.n * 65536) for a in kw.value.elts] # convert to fixed16
+    #         if kw.arg == 'init_val':
+    #             if data_type == 'f16':
+    #                 keywords[kw.arg] = [int(a.n * 65536) for a in kw.value.elts] # convert to fixed16
 
-                else:
-                    keywords[kw.arg] = [a.n for a in kw.value.elts]
+    #             else:
+    #                 keywords[kw.arg] = [a.n for a in kw.value.elts]
 
-            else:
-                keywords[kw.arg] = kw.value.id
+    #         else:
+    #             keywords[kw.arg] = kw.value.id
 
-        return cg1DeclareArray(type=data_type, dimensions=dims, keywords=keywords, lineno=node.lineno)
+    #     return cg1DeclareArray(type=data_type, dimensions=dims, keywords=keywords, lineno=node.lineno)
 
     def _handle_Record(self, node):
         fields = {}
@@ -822,6 +834,14 @@ class CodeGenPass1(ast.NodeVisitor):
         if isinstance(value, cg1DeclarationBase):
             value.name = target.name
             return value
+
+        elif isinstance(value, cg1Subscript):
+            value, l = value.to_list()
+            
+            if isinstance(value, cg1DeclarationBase):
+                value.dimensions = l
+                value.name = target.name
+                return value
 
         elif isinstance(value, cg1RecordType):
             value.name = target.name
