@@ -955,22 +955,22 @@ class irBlock(IR):
                     load.block = self
                     new_code.append(load)
 
-                elif i.is_ref:
-                    # need to replace reference with an actual register
-                    # since this is an input, we need to load from that ref
-                    # to a register and then replace with that.
-                    if i._name not in defines:
-                        # raise Exception
-                        target = add_reg(i._name, datatype=i.type, lineno=-1)
-                        target.block = self
-                        load = irLoad(target, copy(i), lineno=-1)
-                        load.block = self
-                        defines[target._name] = target
-                        self.defines[target._name] = target
+                # elif i.is_ref:
+                #     # need to replace reference with an actual register
+                #     # since this is an input, we need to load from that ref
+                #     # to a register and then replace with that.
+                #     if i._name not in defines:
+                #         # raise Exception
+                #         target = add_reg(i._name, datatype=i.type, lineno=-1)
+                #         target.block = self
+                #         load = irLoad(target, copy(i), lineno=-1)
+                #         load.block = self
+                #         defines[target._name] = target
+                #         self.defines[target._name] = target
 
-                        new_code.append(load)
+                #         new_code.append(load)
 
-                    i.__dict__ = copy(defines[i._name].__dict__)
+                #     i.__dict__ = copy(defines[i._name].__dict__)
                     
 
                 if i._name in defines:
@@ -994,12 +994,12 @@ class irBlock(IR):
                         defines[o._name] = o
                         self.defines[o._name] = o
 
-                elif o.is_ref:
-                    if not isinstance(ir, irLookup):
-                        assert o._name in defines
-                        o.is_ref = False
+                # elif o.is_ref:
+                #     if not isinstance(ir, irLookup):
+                #         assert o._name in defines
+                #         o.is_ref = False
                         
-                        o.__dict__ = copy(defines[o._name].__dict__)
+                #         o.__dict__ = copy(defines[o._name].__dict__)
 
                 if o._name in defines:
                     o.type = defines[o._name].type
@@ -3476,6 +3476,7 @@ class irVar(IR):
         self.ssa_version = None
         self.register = None
         self.addr = None # used for globals
+        self.lookups = None
 
     def __hash__(self):
         return hash(self.name)
@@ -3555,7 +3556,7 @@ class irVar(IR):
         self._name = value        
 
     def __str__(self):
-        if self.type:
+        if self.type and not self.is_ref:
             s = f"{self.name}:{self.type}"
 
         else:
@@ -3571,7 +3572,14 @@ class irVar(IR):
             return f'Global({s})'
 
         elif self.is_ref:
-            return f'&{s}'
+            lookups = ''
+            for lookup in self.lookups:
+                if isinstance(lookup, irAttribute):
+                    lookups += '.%s' % (lookup.name)
+                else:
+                    lookups += '[%s]' % (lookup.name)
+
+            return f'&{s}{lookups}:{self.type}'
 
         elif self.is_temp:
             # return f'Temp{s}'

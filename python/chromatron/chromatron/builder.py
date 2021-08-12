@@ -20,7 +20,7 @@ class Builder(object):
         self.globals = {}
 
         self.next_temp = 0
-        self.refs = {}
+        # self.refs = {}
 
         self.next_loop = 0
 
@@ -30,6 +30,8 @@ class Builder(object):
         self.loop_top = []
         self.loop_body = []
         self.loop_end = []
+
+        self.current_lookup = None
 
     def __str__(self):
         s = "FX IR Builder:\n"
@@ -72,7 +74,7 @@ class Builder(object):
 
         return ir
     
-    def add_ref(self, target, lineno=None):
+    def add_ref(self, target, lookups, lineno=None):
         # if isinstance(target, irRef):
         if target.is_ref:
             name = target.target.name
@@ -80,17 +82,19 @@ class Builder(object):
         else:
             name = target.name
 
-        if name not in self.refs:
-            self.refs[name] = 0
+        # if name not in self.refs:
+        #     self.refs[name] = 0
 
-        target.name = f'{name}_{self.refs[name]}'
+        # target.name = f'{name}_{self.refs[name]}'
+        target.name = f'{name}'
 
         # need to look up proper datatype from types database
         ir = irVar(target, datatype='i32', lineno=lineno)
         ir.is_ref = True
         ir.is_temp = True
+        ir.lookups = lookups
 
-        self.refs[name] += 1
+        # self.refs[name] += 1
 
         return ir
     
@@ -425,18 +429,21 @@ class Builder(object):
         self.append_node(ir)
 
     def start_lookup(self, lineno=None):
-        self.lookups = []
+        assert self.current_lookup is None
+
+        self.current_lookup = []
 
     def add_lookup(self, index, lineno=None):
         if isinstance(index, str):
             index = irAttribute(index, lineno=lineno)
 
-        self.lookups.append(index)
+        self.current_lookup.append(index)
 
     def finish_lookup(self, target, lineno=None):
-        result = self.add_ref(target, lineno=lineno)
-        ir = irLookup(result, target, self.lookups, lineno=lineno)
+        result = self.add_ref(target, self.current_lookup, lineno=lineno)
+        # ir = irLookup(result, target, self.current_lookup, lineno=lineno)
+        # self.append_node(ir)
 
-        self.append_node(ir)
+        self.current_lookup = None
 
-        return copy(result)
+        return result
