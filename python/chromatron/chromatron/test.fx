@@ -5,7 +5,10 @@ def func():
     
     while b:
         pass
-       
+        
+
+    a += 2
+
     a /= b
     
 

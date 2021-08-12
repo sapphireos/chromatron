@@ -928,6 +928,9 @@ class irBlock(IR):
                     load.block = self
                     new_code.append(load)
 
+                if i._name in defines:
+                    i.type = defines[i._name].type
+
             for o in ir.get_output_vars():
                 o.block = self
                 
@@ -946,6 +949,8 @@ class irBlock(IR):
                         defines[o._name] = o
                         self.defines[o._name] = o
 
+                if o._name in defines:
+                    o.type = defines[o._name].type
 
             new_code.append(ir)
 
