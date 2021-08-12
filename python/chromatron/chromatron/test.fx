@@ -1,3 +1,14 @@
+
+def func():
+    a = Number()
+    b = Number()
+    
+    while b:
+        pass
+       
+    a /= b
+    
+
 # def func():
 #     b = Number()
 #     b = -4830 // -1813
@@ -12,11 +23,11 @@
 #         i -= 1
 
 
-global_a = Number()
-def global_var():
-  global_a += 1 + 2
+# global_a = Number()
+# def global_var():
+#   global_a += 1 + 2
 
-  return global_a
+#   return global_a
 
 # def obj():
 #     # meow.x = 1

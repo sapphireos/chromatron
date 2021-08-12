@@ -2536,6 +2536,14 @@ class irFunc(IR):
 
                     raise
 
+                try:
+                    assert o.type is not None
+
+                except AssertionError:
+                    logging.critical(f'FATAL: {o.name} not assigned a type. Line {ir.lineno}')
+
+                    raise
+
                 writes[o.name] = ir
 
             for i in [i for i in ir.get_input_vars() if not i.is_const and not i.is_temp]:
@@ -2546,6 +2554,15 @@ class irFunc(IR):
                     logging.critical(f'FATAL: {i.name} not assigned to SSA. Line {ir.lineno}')
 
                     raise
+
+                try:
+                    assert i.type is not None
+
+                except AssertionError:
+                    logging.critical(f'FATAL: {i.name} not assigned a type. Line {ir.lineno}')
+
+                    raise
+
 
     def prune_jumps(self):
         iterations = 0

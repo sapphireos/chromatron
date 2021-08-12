@@ -197,6 +197,15 @@ def const_const_if_if():
         
     if -4 < -4:
         pass
+
+def while_then_expr():
+    a = Number()
+    b = Number()
+    
+    while b:
+        pass
+       
+    a /= b
     
 
 global_a = Number()
