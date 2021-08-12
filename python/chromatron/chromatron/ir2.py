@@ -910,7 +910,7 @@ class irBlock(IR):
             new_code.append(ir)
 
         self.code = new_code
-        self.defines = defines
+        # self.defines = defines
 
         if self not in self.func.dominator_tree:
             return
@@ -1340,15 +1340,15 @@ class irBlock(IR):
         for ir in self.code:
             # look for defines and set their version to 0
             if isinstance(ir, irDefine):
-                # if ir.var._name in self.defines:
-                #     raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+                if ir.var._name in self.defines:
+                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
                 assert ir.var.ssa_version is None
 
-                # ir.var.block = self
-                # ir.var.convert_to_ssa()
+                ir.var.block = self
+                ir.var.convert_to_ssa()
                 
-                # self.defines[ir.var._name] = ir.var
+                self.defines[ir.var._name] = ir.var
 
             else:
                 inputs = [a for a in ir.get_input_vars() if not a.is_temp and not a.is_global]
@@ -2368,7 +2368,7 @@ class irFunc(IR):
             # basic loop invariant code motion:
             self.loop_invariant_code_motion(self.loops)
 
-        #return
+        # return
 
         # convert out of SSA form
         self.resolve_phi()
