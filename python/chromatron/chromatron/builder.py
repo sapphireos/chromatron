@@ -73,7 +73,8 @@ class Builder(object):
         return ir
     
     def add_ref(self, target, lineno=None):
-        if isinstance(target, irRef):
+        # if isinstance(target, irRef):
+        if target.is_ref:
             name = target.target.name
 
         else:
@@ -82,7 +83,12 @@ class Builder(object):
         if name not in self.refs:
             self.refs[name] = 0
 
-        ir = irRef(target, self.refs[name], lineno=lineno)
+        target.name = f'{name}_{self.refs[name]}'
+
+        # need to look up proper datatype from types database
+        ir = irVar(target, datatype='i32', lineno=lineno)
+        ir.is_ref = True
+        ir.is_temp = True
 
         self.refs[name] += 1
 
@@ -433,4 +439,4 @@ class Builder(object):
 
         self.append_node(ir)
 
-        return result
+        return copy(result)

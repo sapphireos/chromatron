@@ -50,6 +50,14 @@ def add_const_temp(const, datatype=None, lineno=None):
 
     return ir
 
+def add_reg(temp, datatype=None, lineno=None):
+    name = str(temp)
+    
+    ir = irVar(name, datatype=datatype, lineno=lineno)
+
+    return ir
+
+
 # return true if value fits in 16 bits
 def is_16_bits(value):
     try:
@@ -907,6 +915,15 @@ class irBlock(IR):
                     store.block = self
                     new_code.append(store)
 
+            elif isinstance(ir, irLookup):
+                # we are creating a reference to memory
+                
+                # we need to store this result in a register.
+                # we can treat this like a define (a lookup is effectively a define for a reference)
+                # defines[ir.result._name] = ir.result
+                # self.defines[ir.result._name] = ir.result
+                pass
+
             # NOT irDefine or function exit:
 
             for i in ir.get_input_vars():
@@ -938,6 +955,24 @@ class irBlock(IR):
                     load.block = self
                     new_code.append(load)
 
+                elif i.is_ref:
+                    # need to replace reference with an actual register
+                    # since this is an input, we need to load from that ref
+                    # to a register and then replace with that.
+                    if i._name not in defines:
+                        # raise Exception
+                        target = add_reg(i._name, datatype=i.type, lineno=-1)
+                        target.block = self
+                        load = irLoad(target, copy(i), lineno=-1)
+                        load.block = self
+                        defines[target._name] = target
+                        self.defines[target._name] = target
+
+                        new_code.append(load)
+
+                    i.__dict__ = copy(defines[i._name].__dict__)
+                    
+
                 if i._name in defines:
                     i.type = defines[i._name].type
 
@@ -958,6 +993,13 @@ class irBlock(IR):
                         o.holds_global = True
                         defines[o._name] = o
                         self.defines[o._name] = o
+
+                elif o.is_ref:
+                    if not isinstance(ir, irLookup):
+                        assert o._name in defines
+                        o.is_ref = False
+                        
+                        o.__dict__ = copy(defines[o._name].__dict__)
 
                 if o._name in defines:
                     o.type = defines[o._name].type
@@ -2424,7 +2466,7 @@ class irFunc(IR):
             # basic loop invariant code motion:
             self.loop_invariant_code_motion(self.loops)
 
-        # return
+        return
 
         # convert out of SSA form
         self.resolve_phi()
@@ -3427,6 +3469,7 @@ class irVar(IR):
 
         self.is_global = False
         self.is_temp = False
+        self.is_ref = False
         self.holds_const = False
         self.holds_global = False
         self.is_const = False
@@ -3527,6 +3570,9 @@ class irVar(IR):
         if self.is_global:
             return f'Global({s})'
 
+        elif self.is_ref:
+            return f'&{s}'
+
         elif self.is_temp:
             # return f'Temp{s}'
             return f'{s}'
@@ -3604,6 +3650,10 @@ class irLookup(IR):
         return s
 
     def get_input_vars(self):
+        return []
+
+        # TODO need to resolve inputs to registers!
+
         i = [self.target]
         i.extend(self.indexes)
 
@@ -3612,28 +3662,28 @@ class irLookup(IR):
     def get_output_vars(self):
         return [self.result]
 
-class irRef(irVar):
-    def __init__(self, target, ref_count, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if isinstance(target, irRef):
-            self.target = target.target
+# class irRef(irVar):
+#     def __init__(self, target, ref_count, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         if isinstance(target, irRef):
+#             self.target = target.target
 
-        else:
-            self.target = target
+#         else:
+#             self.target = target
 
-        self.ref_count = ref_count
-        self.is_temp = True
+#         self.ref_count = ref_count
+#         self.is_temp = True
 
-    @property
-    def name(self):
-        return f'&{self.target._name}_{self.ref_count}'
+#     @property
+#     def name(self):
+#         return f'&{self.target._name}_{self.ref_count}'
 
-    def __str__(self):
-        if self.type:
-            return "Ref(%s:%s)" % (self.name, self.type)
+#     def __str__(self):
+#         if self.type:
+#             return "Ref(%s:%s)" % (self.name, self.type)
 
-        else:
-            return "Ref(%s)" % (self.name)
+#         else:
+#             return "Ref(%s)" % (self.name)
 
 class irAttribute(irVar):
     def __init__(self, *args, **kwargs):
