@@ -2881,16 +2881,16 @@ class irFunc(IR):
         
     #     self.code = new_code
 
-    # def labels(self):
-    #     labels = {}
+    def labels(self):
+        labels = {}
 
-    #     for i in range(len(self.body)):
-    #         ins = self.body[i]
+        for i in range(len(self.body)):
+            ins = self.body[i]
 
-    #         if isinstance(ins, irLabel):
-    #             labels[ins.name] = i
+            if isinstance(ins, irLabel):
+                labels[ins.name] = i
 
-    #     return labels
+        return labels
 
     def append_node(self, ir):
         self.body.append(ir)
