@@ -945,7 +945,6 @@ class irBlock(IR):
             new_code.append(ir)
 
         self.code = new_code
-        # self.defines = defines
 
         if self not in self.func.dominator_tree:
             return
@@ -954,136 +953,136 @@ class irBlock(IR):
             c.init_vars2(copy(defines), copy(stores))
 
 
-    def init_consts(self):
-        consts = self._get_consts()
+    # def init_consts(self):
+    #     consts = self._get_consts()
 
-        # load all consts to registers at top of function:
-        for const in consts:
-            target = add_const_temp(const.name, datatype=const.type, lineno=-1)
-            target.block = self
-            load = irLoadConst(target, const, lineno=-1)
-            load.block = self
-            target.convert_to_ssa()
+    #     # load all consts to registers at top of function:
+    #     for const in consts:
+    #         target = add_const_temp(const.name, datatype=const.type, lineno=-1)
+    #         target.block = self
+    #         load = irLoadConst(target, const, lineno=-1)
+    #         load.block = self
+    #         target.convert_to_ssa()
 
-            # add new definition and add new instruction to code
-            self.defines[target._name] = target
-            self.code.insert(1, load)
+    #         # add new definition and add new instruction to code
+    #         self.defines[target._name] = target
+    #         self.code.insert(1, load)
 
-    def init_vars(self, visited=None, declarations=None):    
-        if visited is None:
-            visited = []
+    # def init_vars(self, visited=None, declarations=None):    
+    #     if visited is None:
+    #         visited = []
 
-        if self in visited:
-            return
+    #     if self in visited:
+    #         return
 
-        visited.append(self)
+    #     visited.append(self)
 
-        self.stores = {}
-        self.defines = {}
-        self.declarations = copy(self.globals)
-        if declarations is not None:
-            self.declarations.update(declarations)
+    #     self.stores = {}
+    #     self.defines = {}
+    #     self.declarations = copy(self.globals)
+    #     if declarations is not None:
+    #         self.declarations.update(declarations)
 
-        new_code = []
+    #     new_code = []
 
 
-        # iterate over code
-        # look for defines and record them.
-        # also insert inits to 0
-        for index in range(len(self.code)):
-            ir = self.code[index]
-            new_code.append(ir)
+    #     # iterate over code
+    #     # look for defines and record them.
+    #     # also insert inits to 0
+    #     for index in range(len(self.code)):
+    #         ir = self.code[index]
+    #         new_code.append(ir)
 
-            if isinstance(ir, irDefine):
-                if ir.var._name in self.globals:
-                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+    #         if isinstance(ir, irDefine):
+    #             if ir.var._name in self.globals:
+    #                 raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
-                self.declarations[ir.var._name] = ir.var
+    #             self.declarations[ir.var._name] = ir.var
 
-                # init variable to 0
-                assign = irLoadConst(copy(ir.var), self.func.get_zero(ir.lineno), lineno=ir.lineno)
-                assign.block = self
+    #             # init variable to 0
+    #             assign = irLoadConst(copy(ir.var), self.func.get_zero(ir.lineno), lineno=ir.lineno)
+    #             assign.block = self
                 
-                new_code.append(assign)
+    #             new_code.append(assign)
 
-        self.code = new_code
+    #     self.code = new_code
 
-        new_code = []
+    #     new_code = []
         
-        # iterate over code
-        for index in range(len(self.code)):
-            ir = self.code[index]
+    #     # iterate over code
+    #     for index in range(len(self.code)):
+    #         ir = self.code[index]
 
-            if not isinstance(ir, irDefine):
-                # analyze inputs and LOAD from global if needed
-                inputs = ir.local_input_vars
+    #         if not isinstance(ir, irDefine):
+    #             # analyze inputs and LOAD from global if needed
+    #             inputs = ir.local_input_vars
 
-                for i in inputs:
-                    if i._name in self.globals and i._name not in self.defines:
-                        # copy global var to register and add to defines:
-                        i.__dict__ = copy(self.globals[i._name].__dict__)
-                        i.is_global = False
-                        self.defines[i._name] = i
+    #             for i in inputs:
+    #                 if i._name in self.globals and i._name not in self.defines:
+    #                     # copy global var to register and add to defines:
+    #                     i.__dict__ = copy(self.globals[i._name].__dict__)
+    #                     i.is_global = False
+    #                     self.defines[i._name] = i
 
-                        # insert a LOAD instruction here
-                        load = irLoad(i, self.globals[i._name], lineno=ir.lineno)
-                        load.block = self
-                        new_code.append(load)
+    #                     # insert a LOAD instruction here
+    #                     load = irLoad(i, self.globals[i._name], lineno=ir.lineno)
+    #                     load.block = self
+    #                     new_code.append(load)
 
-                        # set up SSA
-                        i.ssa_version = 0
+    #                     # set up SSA
+    #                     i.ssa_version = 0
 
-                # analyze outputs and initialize a global as needed                
-                outputs = ir.local_output_vars
+    #             # analyze outputs and initialize a global as needed                
+    #             outputs = ir.local_output_vars
 
-                for o in outputs:
-                    if o._name in self.globals:
-                        # record a store - unless this is a load
-                        if not isinstance(ir, irLoad):
-                            self.stores[o._name] = o
+    #             for o in outputs:
+    #                 if o._name in self.globals:
+    #                     # record a store - unless this is a load
+    #                     if not isinstance(ir, irLoad):
+    #                         self.stores[o._name] = o
 
-                        if  o._name not in self.defines:
-                            # copy global var to register and add to defines:
-                            o.__dict__ = copy(self.globals[o._name].__dict__)
-                            o.is_global = False
-                            self.defines[o._name] = o
+    #                     if  o._name not in self.defines:
+    #                         # copy global var to register and add to defines:
+    #                         o.__dict__ = copy(self.globals[o._name].__dict__)
+    #                         o.is_global = False
+    #                         self.defines[o._name] = o
 
-                            # set up SSA
-                            o.ssa_version = 0
+    #                         # set up SSA
+    #                         o.ssa_version = 0
 
-            new_code.append(self.code[index])
+    #         new_code.append(self.code[index])
 
-        self.code = new_code
-        new_code = []
+    #     self.code = new_code
+    #     new_code = []
 
-        # iterate over code
-        for index in range(len(self.code)):
-            ir = self.code[index]
+    #     # iterate over code
+    #     for index in range(len(self.code)):
+    #         ir = self.code[index]
 
-            if isinstance(ir, irReturn): # or irCall
-                for k, v in self.stores.items():
-                    store = irStore(v, self.globals[k], lineno=ir.lineno)
-                    store.block = self
-                    new_code.append(store)
+    #         if isinstance(ir, irReturn): # or irCall
+    #             for k, v in self.stores.items():
+    #                 store = irStore(v, self.globals[k], lineno=ir.lineno)
+    #                 store.block = self
+    #                 new_code.append(store)
 
-            # assign types
-            variables = []
-            variables.extend(ir.local_input_vars)
-            variables.extend(ir.local_output_vars)
-            for v in variables:
-                if v.type is None:
-                    v.type = self.declarations[v.name].type
+    #         # assign types
+    #         variables = []
+    #         variables.extend(ir.local_input_vars)
+    #         variables.extend(ir.local_output_vars)
+    #         for v in variables:
+    #             if v.type is None:
+    #                 v.type = self.declarations[v.name].type
 
 
-            new_code.append(self.code[index])
+    #         new_code.append(self.code[index])
 
-        self.code = new_code
+    #     self.code = new_code
 
-        # continue with successors:
-        for suc in self.successors:
-            suc.init_vars(visited=visited, declarations=copy(self.declarations))
+    #     # continue with successors:
+    #     for suc in self.successors:
+    #         suc.init_vars(visited=visited, declarations=copy(self.declarations))
                 
-        return copy(self.defines)
+    #     return copy(self.defines)
 
     def resolve_phi(self, merge_number=0):
         # extract phis and remove from block code
