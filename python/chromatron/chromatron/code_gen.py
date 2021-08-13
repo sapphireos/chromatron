@@ -193,30 +193,15 @@ class cg1Const(cg1Var):
 
     def build(self, builder, depth=None):
         return builder.add_const(self.value, lineno=self.lineno)
-    
 
-# class cg1VarInt32(cg1Var):
-#     def __init__(self, *args, **kwargs):
-#         super(cg1VarInt32, self).__init__(*args, **kwargs)
-#         self.type = 'i32'
+class cg1NamedConst(cg1Var):
+    _fields = ["name", "type", "value"]
+    def __init__(self, *args, value=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.value = value
 
-# class cg1ConstInt32(cg1VarInt32):
-#     def build(self, builder):
-#         return builder.add_const(self.name, self.type, lineno=self.lineno)
-
-# class cg1VarFixed16(cg1Var):
-#     def __init__(self, *args, **kwargs):
-#         super(cg1VarFixed16, self).__init__(*args, **kwargs)
-#         self.type = 'f16'
-
-# class cg1ConstFixed16(cg1VarFixed16):
-#     def __init__(self, *args, **kwargs):
-#         super(cg1ConstFixed16, self).__init__(*args, **kwargs)
-
-#     def build(self, builder):
-#         return builder.add_const(self.name, self.type, lineno=self.lineno)
-    
-    
+    def build(self, builder, depth=None):
+        return builder.add_named_const(self.name, self.value, lineno=self.lineno)
 
 class cg1Module(cg1Node):
     _fields = ["name", "body"]
@@ -248,6 +233,9 @@ class cg1Module(cg1Node):
                 node.build(builder, is_global=True)
 
             elif isinstance(node, cg1Struct):
+                node.build(builder)
+
+            elif isinstance(node, cg1NamedConst):
                 node.build(builder)
 
             elif isinstance(node, cg1Assign):
@@ -840,6 +828,15 @@ class CodeGenPass1(ast.NodeVisitor):
         if isinstance(value, cg1DeclarationBase):
             value.name = target.name
             return value
+
+        elif isinstance(value, cg1Const):
+            if isinstance(value.name, float):
+                datatype = 'f16'
+
+            else:
+                datatype = 'i32'
+
+            return cg1NamedConst(name=target.name, value=value.name, datatype=datatype, lineno=node.lineno)
 
         elif isinstance(value, cg1Subscript):
             value, l = value.to_list()

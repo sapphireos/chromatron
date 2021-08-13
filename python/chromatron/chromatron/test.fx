@@ -5,11 +5,16 @@
 
 #   return global_a
 
+A = 4 # named constant.  recommend all caps for these (like C's convention)
+      # these can be used the same as a const number.
+      # instances of A will be replaced with 4.
+
+# meow = Number()[A]
 
 # a = Number()[4] # array of 4 Numbers
 # b = Number()[4][2] # 2D array of 4x2 (8) Numbers
 
-My_struct = Struct(a=Number(), b=Number()[2]) # declares a new struct type, not an instance of a struct
+# My_struct = Struct(a=Number(), b=Number()[2]) # declares a new struct type, not an instance of a struct
 # # for consistency and readability, let's require that struct typedefs are capitalized
 # # to match the other type declare functions
 
@@ -49,8 +54,9 @@ My_struct = Struct(a=Number(), b=Number()[2]) # declares a new struct type, not 
 # change to system library call.
 
 
-# def obj():
-#     pass
+def obj():
+    return A
+
     # global_a += 1
 
   

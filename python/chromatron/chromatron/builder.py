@@ -18,6 +18,7 @@ class Builder(object):
         self.scope_depth = 0
         self.labels = {}
         self.globals = {}
+        self.named_consts = {}
 
         self.next_temp = 0
         # self.refs = {}
@@ -32,6 +33,7 @@ class Builder(object):
         self.loop_end = []
 
         self.current_lookup = None
+        self.current_func = None
 
     def __str__(self):
         s = "FX IR Builder:\n"
@@ -105,7 +107,7 @@ class Builder(object):
             value = 0
 
         name = str(value)
-
+    
         if name in self.current_func.consts:
             return copy(self.current_func.consts[name])
 
@@ -122,6 +124,31 @@ class Builder(object):
         ir.is_const = True
 
         self.current_func.consts[name] = ir
+
+        return ir
+
+    def add_named_const(self, name, value, data_type=None, lineno=None):
+        if value is True:
+            value = 1
+        elif value is False:
+            value = 0
+
+        if name in self.named_consts:
+            return copy(self.consts[name])
+
+        if isinstance(value, int):
+            data_type = 'i32'
+
+        elif isinstance(value, float):
+            data_type = 'f16'
+            
+        else:
+            assert False
+
+        ir = irVar(str(value), data_type, lineno=lineno)
+        ir.is_const = True
+
+        self.named_consts[name] = ir
 
         return ir
     
@@ -142,6 +169,9 @@ class Builder(object):
             return var
 
     def get_var(self, name, lineno=None):
+        if name in self.named_consts:
+            return self.named_consts[name]
+
         return irVar(name, lineno=lineno)
 
 
