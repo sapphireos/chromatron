@@ -151,7 +151,7 @@ class cg1Struct(cg1Node):
 
     def build(self, builder):
         fields = {k: {'type':v.type, 'dimensions':v.dimensions} for (k, v) in list(self.fields.items())}
-        return builder.create_record(self.name, fields, lineno=self.lineno)
+        return builder.create_struct(self.name, fields, lineno=self.lineno)
 
 
 class cg1GenericObject(cg1Node):

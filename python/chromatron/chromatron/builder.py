@@ -19,6 +19,7 @@ class Builder(object):
         self.labels = {}
         self.globals = {}
         self.named_consts = {}
+        self.structs = {}
 
         self.next_temp = 0
         # self.refs = {}
@@ -174,6 +175,25 @@ class Builder(object):
 
         return irVar(name, lineno=lineno)
 
+    def create_struct(self, name, fields, lineno=None):
+        # new_fields = {}
+        # offsets = {}
+        # offset = 0
+        # for field_name, field in list(fields.items()):
+        #     field_type = field['type']
+        #     field_dims = field['dimensions']
+            
+        #     # new_fields[field_name] = self.build_var(field_name, field_type, field_dims, lineno=lineno)
+
+        #     offsets[field_name] = offset
+        #     # offsets[field_name] = self.add_const(offset, lineno=lineno)
+        #     offset += new_fields[field_name].length
+
+        # ir = irRecord(name, name, new_fields, offsets, lineno=lineno)
+
+        # self.record_types[name] = ir
+
+        pass
 
     ###################################
     # IR instructions
