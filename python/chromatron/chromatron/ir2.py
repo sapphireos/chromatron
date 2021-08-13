@@ -3480,16 +3480,16 @@ class irVar(IR):
         self.addr = None # used for globals
         # self.lookups = None
 
-        # self.dimensions = dimensions
+        self.dimensions = dimensions
 
-    # @property
-    # def length(self):
-    #     l = 1
+    @property
+    def length(self):
+        l = 1
 
-    #     for dim in self.dimensions:
-    #         l *=  dim
+        for dim in self.dimensions:
+            l *=  dim
 
-    #     return l
+        return l
 
     def __hash__(self):
         return hash(self.name)
@@ -3703,7 +3703,11 @@ class irRef(IR):
 
     @property
     def name(self):
-        return f'*{self.target._name}{self.lookups}'
+        if len(self.lookups) == 0:
+            return f'*{self.target._name}'
+
+        else:
+            return f'*{self.target._name}{self.lookups}'
 
     def __str__(self):
         # if self.type:

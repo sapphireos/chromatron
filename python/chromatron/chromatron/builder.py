@@ -77,7 +77,7 @@ class Builder(object):
 
         return ir
     
-    def add_ref(self, target, lookups, lineno=None):
+    def add_ref(self, target, lookups=[], lineno=None):
         # if isinstance(target, irRef):
         # if target.is_ref:
             # name = target.target.name
@@ -176,6 +176,9 @@ class Builder(object):
     def get_var(self, name, lineno=None):
         if name in self.named_consts:
             return self.named_consts[name]
+
+        if name in self.globals:
+            return self.add_ref(self.globals[name], lineno=lineno)
 
         return irVar(name, lineno=lineno)
 

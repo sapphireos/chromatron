@@ -11,6 +11,7 @@
 
 # meow = Number()[A]
 
+# a = Number()
 a = Number()[4] # array of 4 Numbers
 # b = Number()[4][2] # 2D array of 4x2 (8) Numbers
 
@@ -55,13 +56,15 @@ a = Number()[4] # array of 4 Numbers
 
 
 def obj():
+    a += 1
+
     # b = Number()
     # b = a[1]
     # a[0] = b
 
     # a[0] = a[1]
 
-    a[0] += a['a']
+    # a[0] += a['a']
 
     # return a[0]
 
