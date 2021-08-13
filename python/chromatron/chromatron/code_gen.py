@@ -140,11 +140,11 @@ class cg1DeclareRecord(cg1DeclarationBase):
         self.record = record
 
 
-class cg1RecordType(cg1Node):
+class cg1Struct(cg1Node):
     _fields = ["name", "fields"]
 
     def __init__(self, name="<anon>", fields={}, **kwargs):
-        super(cg1RecordType, self).__init__(**kwargs)
+        super(cg1Struct, self).__init__(**kwargs)
 
         self.name = name
         self.fields = fields
@@ -247,7 +247,7 @@ class cg1Module(cg1Node):
             elif isinstance(node, cg1DeclarationBase):
                 node.build(builder, is_global=True)
 
-            elif isinstance(node, cg1RecordType):
+            elif isinstance(node, cg1Struct):
                 node.build(builder)
 
             elif isinstance(node, cg1Assign):
@@ -627,7 +627,7 @@ class CodeGenPass1(ast.NodeVisitor):
             'Fixed16': self._handle_Fixed16,
             'String': self._handle_String,
             # 'Array': self._handle_Array,
-            'Record': self._handle_Record,
+            'Struct': self._handle_Struct,
             'PixelArray': self.create_GenericObject,
             'Palette': self.create_GenericObject,
         }
@@ -753,16 +753,22 @@ class CodeGenPass1(ast.NodeVisitor):
 
     #     return cg1DeclareArray(type=data_type, dimensions=dims, keywords=keywords, lineno=node.lineno)
 
-    def _handle_Record(self, node):
+    def _handle_Struct(self, node):
         fields = {}
 
         for kw in node.keywords:
             field_name = kw.arg
             field_type = self.visit(kw.value)
 
+            if isinstance(field_type, cg1Subscript):
+                field_type, l = field_type.to_list()
+                
+                if isinstance(field_type, cg1DeclarationBase):
+                    field_type.dimensions = l
+
             fields[field_name] = field_type
 
-        return cg1RecordType(fields=fields, lineno=node.lineno)
+        return cg1Struct(fields=fields, lineno=node.lineno)
 
     def create_GenericObject(self, node):
         args = [self.visit(a) for a in node.args]
@@ -843,7 +849,9 @@ class CodeGenPass1(ast.NodeVisitor):
                 value.name = target.name
                 return value
 
-        elif isinstance(value, cg1RecordType):
+            raise SyntaxError("unknown!")
+
+        elif isinstance(value, cg1Struct):
             value.name = target.name
             self._record_types[value.name] = value
 
