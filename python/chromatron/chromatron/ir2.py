@@ -882,7 +882,24 @@ class irBlock(IR):
     just before function exit instruction for all modified globals/objects.
 
 
+
+    References:
+
+    Access to globals through references.
+    Global means anything in memory, and may include lookups.
+    
+    On reference input, load to register if we haven't already.
+    Registers for incoming references prefix with &.
+    Actual references prefix with *.
+    
+    Replace in/out references with register.
+    This should be similar logic to const.
+    
+    LOAD/STORE instructions should handle lookup.
+    Let's not do a separate lookup instruction (for now).
+    
     """
+
     def init_vars2(self, defines=None, stores=None):
         if defines is None:
             defines = {}
@@ -3478,7 +3495,7 @@ class irVar(IR):
         self.ssa_version = None
         self.register = None
         self.addr = None # used for globals
-        # self.lookups = None
+        self.lookups = None
 
         self.dimensions = dimensions
 
@@ -3545,8 +3562,7 @@ class irVar(IR):
             
     @property
     def name(self):
-        # if self.is_ref:
-        if False:
+        if self.is_ref:
             lookups = ''
             for lookup in self.lookups:
                 if isinstance(lookup, irAttribute):
@@ -3554,7 +3570,7 @@ class irVar(IR):
                 else:
                     lookups += '[%s]' % (lookup.name)
 
-            s = f'{self._name}{lookups}'
+            s = f'*{self._name}{lookups}'
 
         elif self.ssa_version is not None:
             if self.holds_const:
@@ -3586,8 +3602,8 @@ class irVar(IR):
         else:
             s = f"{self.name}"
 
-        if self.is_ref:
-            s = f'&{s}'
+        # if self.is_ref:
+        #     s = f'*{s}'
 
         if self.register is not None:
             s += f'@{self.register}'
@@ -3687,34 +3703,33 @@ class irLookup(IR):
     def get_output_vars(self):
         return [self.result]
 
-class irRef(IR):
-    def __init__(self, target, lookups, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # if isinstance(target, irRef):
-        #     self.target = target.target
+# class irRef(IR):
+#     def __init__(self, ref, lookups, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         # if isinstance(target, irRef):
+#         #     self.target = target.target
 
-        # else:
-        self.target = target
-        self.lookups = lookups
+#         # else:
+#         self.ref = ref
+#         self.lookups = lookups
 
-        self.is_const = False
+#         self.is_const = False
+#         # self.is_temp = True
 
-        # self.is_temp = True
+#     @property
+#     def name(self):
+#         if len(self.lookups) == 0:
+#             return f'*{self.ref._name}'
 
-    @property
-    def name(self):
-        if len(self.lookups) == 0:
-            return f'*{self.target._name}'
+#         else:
+#             return f'*{self.ref._name}{self.lookups}'
 
-        else:
-            return f'*{self.target._name}{self.lookups}'
+#     def __str__(self):
+#         # if self.type:
+#         #     return "Ref(%s:%s)" % (self.name, self.type)
 
-    def __str__(self):
-        # if self.type:
-        #     return "Ref(%s:%s)" % (self.name, self.type)
-
-        # else:
-        return self.name
+#         # else:
+#         return self.name
 
 class irAttribute(irVar):
     def __init__(self, *args, **kwargs):
