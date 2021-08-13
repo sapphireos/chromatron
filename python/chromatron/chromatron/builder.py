@@ -79,23 +79,23 @@ class Builder(object):
     
     def add_ref(self, target, lookups, lineno=None):
         # if isinstance(target, irRef):
-        if target.is_ref:
-            name = target.target.name
+        # if target.is_ref:
+            # name = target.target.name
 
-        else:
-            name = target.name
+        # else:
+        name = target.name
 
         # if name not in self.refs:
         #     self.refs[name] = 0
 
         # target.name = f'{name}_{self.refs[name]}'
-        target.name = f'{name}'
+        # target.name = f'{name}{lookups}'
 
         # need to look up proper datatype from types database
-        ir = irVar(target, datatype='i32', lineno=lineno)
+        ir = irVar(f'{name}{lookups}', datatype='i32', lineno=lineno)
         ir.is_ref = True
         ir.is_temp = True
-        ir.lookups = lookups
+        #ir.lookups = lookups
 
         # self.refs[name] += 1
 

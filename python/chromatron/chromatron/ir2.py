@@ -947,17 +947,17 @@ class irBlock(IR):
                     new_code.append(load)
 
                 elif i.is_ref:
-                    if i.name not in self.globals:
-                        raise SyntaxError(f'Object {i.name} is not declared.', lineno=ir.lineno)
+                    # if i._name not in self.globals:
+                        # raise SyntaxError(f'Object {i._name} is not declared.', lineno=ir.lineno)
 
                     # need to replace reference with an actual register
                     # since this is an input, we need to load from that ref
                     # to a register and then replace with that.
-                    if i.name not in defines:
+                    if i._name not in defines:
                         # add reference to globals
                         # self.globals[i.name] = copy(i) # need to declare!
 
-                        target = add_reg(i.name, datatype=i.type, lineno=-1)
+                        target = add_reg(i._name, datatype=i.type, lineno=-1)
                         target.block = self
                         load = irLoad(target, copy(i), lineno=-1)
                         load.block = self
@@ -966,7 +966,7 @@ class irBlock(IR):
 
                         new_code.append(load)
 
-                    i.__dict__ = copy(defines[i.name].__dict__)
+                    i.__dict__ = copy(defines[i._name].__dict__)
                     
 
                 if i._name in defines:
@@ -983,7 +983,7 @@ class irBlock(IR):
                         stores[o._name] = o
 
                     if  o._name not in self.defines:
-                        # copy global var to register and add to defines:
+                        # copy global var to regi-ster and add to defines:
                         o.__dict__ = copy(self.globals[o._name].__dict__)
                         o.is_global = False
                         o.holds_global = True
@@ -991,10 +991,17 @@ class irBlock(IR):
                         self.defines[o._name] = o
 
                 elif o.is_ref:
-                    assert o.name in defines
-                    o.__dict__ = copy(defines[o.name].__dict__)
+                    if  o._name not in self.defines:
+                        # o.__dict__ = copy(self.globals[o._name].__dict__)
+                        # o.is_global = False
+                        # o.holds_global = True
+                        defines[o._name] = o
+                        self.defines[o._name] = o
 
-                    stores[o.name] = o
+                    # assert o._name in defines
+                    # o.__dict__ = copy(defines[o._name].__dict__)
+
+                    # stores[o._name] = o
 
                 if o._name in defines:
                     o.type = defines[o._name].type
@@ -3538,7 +3545,8 @@ class irVar(IR):
             
     @property
     def name(self):
-        if self.is_ref:
+        # if self.is_ref:
+        if False:
             lookups = ''
             for lookup in self.lookups:
                 if isinstance(lookup, irAttribute):
