@@ -110,7 +110,7 @@ class cg1DeclarationBase(cg1Node):
                 self.keywords[key] = False
 
     def build(self, builder, is_global=False):    
-        return builder.declare_var(self.name, self.type, self.dimensions, keywords=self.keywords, is_global=is_global, lineno=self.lineno)
+        return builder.declare_var(self.name, self.type, [a.name for a in self.dimensions], keywords=self.keywords, is_global=is_global, lineno=self.lineno)
     
 class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
@@ -125,19 +125,19 @@ class cg1DeclareStr(cg1DeclarationBase):
 
         super(cg1DeclareStr, self).build(builder, **kwargs)
 
-class cg1DeclareArray(cg1DeclarationBase):
-    def __init__(self, dimensions=[1], **kwargs):
-        super(cg1DeclareArray, self).__init__(**kwargs)
+# class cg1DeclareArray(cg1DeclarationBase):
+#     def __init__(self, dimensions=[1], **kwargs):
+#         super(cg1DeclareArray, self).__init__(**kwargs)
 
-        self.dimensions = dimensions
+#         self.dimensions = dimensions
 
 
-class cg1DeclareRecord(cg1DeclarationBase):
-    def __init__(self, record=None, **kwargs):
-        super(cg1DeclareRecord, self).__init__(**kwargs)
+# class cg1DeclareRecord(cg1DeclarationBase):
+#     def __init__(self, record=None, **kwargs):
+#         super(cg1DeclareRecord, self).__init__(**kwargs)
 
-        self.type = record.name
-        self.record = record
+#         self.type = record.name
+#         self.record = record
 
 
 class cg1Struct(cg1Node):
@@ -774,10 +774,10 @@ class CodeGenPass1(ast.NodeVisitor):
         if node.func.id in self._declarations:
             return self._declarations[node.func.id](node)
 
-        elif node.func.id in self._record_types:
-            record_type = self._record_types[node.func.id]
+        # elif node.func.id in self._record_types:
+        #     record_type = self._record_types[node.func.id]
 
-            return cg1DeclareRecord(record=record_type, lineno=node.lineno)
+        #     return cg1DeclareRecord(record=record_type, lineno=node.lineno)
 
         elif self.in_func:
             kwargs = {}

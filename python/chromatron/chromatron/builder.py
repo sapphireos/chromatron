@@ -62,7 +62,7 @@ class Builder(object):
             # return self.globals[name]
             raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
-        ir = irVar(name, data_type, lineno=lineno)
+        ir = irVar(name, data_type, dimensions, lineno=lineno)
         ir.is_global = True
         self.globals[name] = ir
 
@@ -161,7 +161,7 @@ class Builder(object):
             # if len(keywords) > 0:
             #     raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
 
-            var = irVar(name, data_type, lineno=lineno)
+            var = irVar(name, data_type, dimensions, lineno=lineno)
             
             ir = irDefine(var, lineno=lineno)
 

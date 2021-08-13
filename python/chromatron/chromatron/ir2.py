@@ -3457,7 +3457,7 @@ class irBinop(IR):
 
 
 class irVar(IR):
-    def __init__(self, name=None, datatype=None, **kwargs):
+    def __init__(self, name=None, datatype=None, dimensions=[1], **kwargs):
         super().__init__(**kwargs)
         self._name = str(name)
         self.type = datatype
@@ -3472,6 +3472,17 @@ class irVar(IR):
         self.register = None
         self.addr = None # used for globals
         self.lookups = None
+
+        self.dimensions = dimensions
+
+    @property
+    def length(self):
+        l = 1
+
+        for dim in self.dimensions:
+            l *=  dim
+
+        return l
 
     def __hash__(self):
         return hash(self.name)
