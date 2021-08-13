@@ -5,7 +5,7 @@
 
 #   return global_a
 
-A = 4 # named constant.  recommend all caps for these (like C's convention)
+# A = 4 # named constant.  recommend all caps for these (like C's convention)
       # these can be used the same as a const number.
       # instances of A will be replaced with 4.
 
@@ -55,7 +55,15 @@ a = Number()[4] # array of 4 Numbers
 
 
 def obj():
-    return a[0]
+    # b = Number()
+    # b = a[1]
+    # a[0] = b
+
+    # a[0] = a[1]
+
+    a[0] += a['a']
+
+    # return a[0]
 
     # global_a += 1
 

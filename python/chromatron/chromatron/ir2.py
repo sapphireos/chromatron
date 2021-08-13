@@ -933,40 +933,40 @@ class irBlock(IR):
 
                     i.__dict__ = copy(defines[i._name].__dict__)
 
-                elif i._name in self.globals and i._name not in defines:
-                    # copy global var to register and add to defines:
-                    i.__dict__ = copy(self.globals[i._name].__dict__)
-                    i.is_global = False
-                    i.holds_global = True
-                    defines[i._name] = i
-                    self.defines[i._name] = i
+                # elif i._name in self.globals and i._name not in defines:
+                #     # copy global var to register and add to defines:
+                #     i.__dict__ = copy(self.globals[i._name].__dict__)
+                #     i.is_global = False
+                #     i.holds_global = True
+                #     defines[i._name] = i
+                #     self.defines[i._name] = i
 
-                    # insert a LOAD instruction here
-                    load = irLoad(i, self.globals[i._name], lineno=ir.lineno)
-                    load.block = self
-                    new_code.append(load)
+                #     # insert a LOAD instruction here
+                #     load = irLoad(i, self.globals[i._name], lineno=ir.lineno)
+                #     load.block = self
+                #     new_code.append(load)
 
-                elif i.is_ref:
-                    # if i._name not in self.globals:
-                        # raise SyntaxError(f'Object {i._name} is not declared.', lineno=ir.lineno)
+                # elif i.is_ref:
+                #     # if i._name not in self.globals:
+                #         # raise SyntaxError(f'Object {i._name} is not declared.', lineno=ir.lineno)
 
-                    # need to replace reference with an actual register
-                    # since this is an input, we need to load from that ref
-                    # to a register and then replace with that.
-                    if i._name not in defines:
-                        # add reference to globals
-                        # self.globals[i.name] = copy(i) # need to declare!
+                #     # need to replace reference with an actual register
+                #     # since this is an input, we need to load from that ref
+                #     # to a register and then replace with that.
+                #     if i._name not in defines:
+                #         # add reference to globals
+                #         # self.globals[i.name] = copy(i) # need to declare!
 
-                        target = add_reg(i._name, datatype=i.type, lineno=-1)
-                        target.block = self
-                        load = irLoad(target, copy(i), lineno=-1)
-                        load.block = self
-                        defines[target._name] = target
-                        self.defines[target._name] = target
+                #         target = add_reg(i._name, datatype=i.type, lineno=-1)
+                #         target.block = self
+                #         load = irLoad(target, copy(i), lineno=-1)
+                #         load.block = self
+                #         defines[target._name] = target
+                #         self.defines[target._name] = target
 
-                        new_code.append(load)
+                #         new_code.append(load)
 
-                    i.__dict__ = copy(defines[i._name].__dict__)
+                #     i.__dict__ = copy(defines[i._name].__dict__)
                     
 
                 if i._name in defines:
@@ -977,26 +977,26 @@ class irBlock(IR):
                 
                 assert not o.is_const
 
-                if o._name in self.globals:
-                    # record a store - unless this is a load
-                    if not isinstance(ir, irLoad):
-                        stores[o._name] = o
+                # if o._name in self.globals:
+                #     # record a store - unless this is a load
+                #     if not isinstance(ir, irLoad):
+                #         stores[o._name] = o
 
-                    if  o._name not in self.defines:
-                        # copy global var to regi-ster and add to defines:
-                        o.__dict__ = copy(self.globals[o._name].__dict__)
-                        o.is_global = False
-                        o.holds_global = True
-                        defines[o._name] = o
-                        self.defines[o._name] = o
+                #     if  o._name not in self.defines:
+                #         # copy global var to regi-ster and add to defines:
+                #         o.__dict__ = copy(self.globals[o._name].__dict__)
+                #         o.is_global = False
+                #         o.holds_global = True
+                #         defines[o._name] = o
+                #         self.defines[o._name] = o
 
-                elif o.is_ref:
-                    if  o._name not in self.defines:
-                        # o.__dict__ = copy(self.globals[o._name].__dict__)
-                        # o.is_global = False
-                        # o.holds_global = True
-                        defines[o._name] = o
-                        self.defines[o._name] = o
+                # elif o.is_ref:
+                #     if  o._name not in self.defines:
+                #         # o.__dict__ = copy(self.globals[o._name].__dict__)
+                #         # o.is_global = False
+                #         # o.holds_global = True
+                #         defines[o._name] = o
+                #         self.defines[o._name] = o
 
                     # assert o._name in defines
                     # o.__dict__ = copy(defines[o._name].__dict__)
@@ -3129,15 +3129,15 @@ class irAssign(IR):
         assert not self.value.is_const
         
     def __str__(self):
-        if isinstance(self.target, irRef):
-            target = f'*{self.target}'
-        else:
-            target = f'{self.target}'
+        # if isinstance(self.target, irRef):
+        #     target = f'*{self.target}'
+        # else:
+        target = f'{self.target}'
 
-        if isinstance(self.value, irRef):
-            value = f'*{self.value}'
-        else:
-            value = f'{self.value}'
+        # if isinstance(self.value, irRef):
+        #     value = f'*{self.value}'
+        # else:
+        value = f'{self.value}'
 
         return f'{target} = {value}'
 
@@ -3478,18 +3478,18 @@ class irVar(IR):
         self.ssa_version = None
         self.register = None
         self.addr = None # used for globals
-        self.lookups = None
+        # self.lookups = None
 
-        self.dimensions = dimensions
+        # self.dimensions = dimensions
 
-    @property
-    def length(self):
-        l = 1
+    # @property
+    # def length(self):
+    #     l = 1
 
-        for dim in self.dimensions:
-            l *=  dim
+    #     for dim in self.dimensions:
+    #         l *=  dim
 
-        return l
+    #     return l
 
     def __hash__(self):
         return hash(self.name)
@@ -3687,28 +3687,30 @@ class irLookup(IR):
     def get_output_vars(self):
         return [self.result]
 
-# class irRef(irVar):
-#     def __init__(self, target, ref_count, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         if isinstance(target, irRef):
-#             self.target = target.target
+class irRef(IR):
+    def __init__(self, target, lookups, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # if isinstance(target, irRef):
+        #     self.target = target.target
 
-#         else:
-#             self.target = target
+        # else:
+        self.target = target
+        self.lookups = lookups
 
-#         self.ref_count = ref_count
-#         self.is_temp = True
+        self.is_const = False
 
-#     @property
-#     def name(self):
-#         return f'&{self.target._name}_{self.ref_count}'
+        # self.is_temp = True
 
-#     def __str__(self):
-#         if self.type:
-#             return "Ref(%s:%s)" % (self.name, self.type)
+    @property
+    def name(self):
+        return f'*{self.target._name}{self.lookups}'
 
-#         else:
-#             return "Ref(%s)" % (self.name)
+    def __str__(self):
+        # if self.type:
+        #     return "Ref(%s:%s)" % (self.name, self.type)
+
+        # else:
+        return self.name
 
 class irAttribute(irVar):
     def __init__(self, *args, **kwargs):

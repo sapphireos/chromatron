@@ -83,7 +83,7 @@ class Builder(object):
             # name = target.target.name
 
         # else:
-        name = target.name
+        # name = target.name
 
         # if name not in self.refs:
         #     self.refs[name] = 0
@@ -92,14 +92,18 @@ class Builder(object):
         # target.name = f'{name}{lookups}'
 
         # need to look up proper datatype from types database
-        ir = irVar(f'{name}{lookups}', datatype='i32', lineno=lineno)
-        ir.is_ref = True
-        ir.is_temp = True
-        #ir.lookups = lookups
+        # ir = irVar(f'{name}', datatype='i32', lineno=lineno)
+        # ir.is_ref = True
+        # ir.is_temp = True
+        # ir.lookups = lookups
 
         # self.refs[name] += 1
 
-        return ir
+        # return ir
+
+        ir = irRef(target, lookups, lineno=lineno)
+        
+        return ir    
     
     def add_const(self, value, data_type=None, lineno=None):
         if value is True:
@@ -447,8 +451,8 @@ class Builder(object):
 
     def finish_lookup(self, target, lineno=None):
         result = self.add_ref(target, self.current_lookup, lineno=lineno)
-        ir = irLookup(result, target, self.current_lookup, lineno=lineno)
-        self.append_node(ir)
+        # ir = irLookup(result, target, self.current_lookup, lineno=lineno)
+        # self.append_node(ir)
 
         self.current_lookup = None
 

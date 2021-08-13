@@ -605,7 +605,8 @@ class cg1StrLiteral(cg1CodeNode):
         self.s = s
 
     def build(self, builder):
-        return builder.add_string(self.s, lineno=self.lineno)
+        return self.s
+        # return builder.add_string(self.s, lineno=self.lineno)
 
 
 class CodeGenPass1(ast.NodeVisitor):
@@ -839,14 +840,14 @@ class CodeGenPass1(ast.NodeVisitor):
             return cg1NamedConst(name=target.name, value=value.name, datatype=datatype, lineno=node.lineno)
 
         elif isinstance(value, cg1Subscript):
-            value, l = value.to_list()
+            new_value, l = value.to_list()
             
-            if isinstance(value, cg1DeclarationBase):
-                value.dimensions = l
-                value.name = target.name
-                return value
+            if isinstance(new_value, cg1DeclarationBase):
+                new_value.dimensions = l
+                new_value.name = target.name
+                return new_value
 
-            raise SyntaxError("unknown!")
+            return cg1Assign(target, value, lineno=node.lineno)
 
         elif isinstance(value, cg1Struct):
             value.name = target.name
