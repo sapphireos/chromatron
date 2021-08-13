@@ -357,45 +357,6 @@ class Builder(object):
         self.scope_depth -= 1
         self.position_label(end_label)
 
-
-
-    # def begin_while(self, lineno=None):
-    #     top_label = self.label('while.top', lineno=lineno)
-    #     end_label = self.label('while.end', lineno=lineno)
-    #     self.position_label(top_label)
-
-    #     self.loop_top.append(top_label)
-    #     self.loop_end.append(end_label)
-
-    #     self.scope_depth += 1
-
-    # def test_while(self, test, lineno=None):
-    #     body_label = self.label('while.body', lineno=lineno)
-
-    #     ir = irBranch(test, body_label, self.loop_end[-1], lineno=lineno)
-    #     self.append_node(ir)
-    #     self.position_label(body_label)
-
-    # def end_while(self, lineno=None):
-    #     ir = irJump(self.loop_top[-1], lineno=lineno)
-    #     self.append_node(ir)
-
-    #     self.scope_depth -= 1
-
-    #     self.position_label(self.loop_end[-1])
-
-    #     self.loop_top.pop(-1)
-    #     self.loop_end.pop(-1)
-
-
-    # def while_header(self, test, lineno=None):
-    #     pass
-
-    # def test_while_preheader(self, test, lineno=None):
-    #     pass
-
-
-
     def begin_while(self, lineno=None):
         loop_name = f'while.{self.next_loop}'
         self.loop.append(loop_name)
@@ -446,11 +407,6 @@ class Builder(object):
     def end_while(self, lineno=None):
         loop_name = self.loop[-1]
 
-        # place a landing pad at the end of the loop body
-        # this makes some loop analysis easier
-        # jump_label = self.label(f'{loop_name}.landing', lineno=lineno)
-        # self.position_label(jump_label)
-
         self.jump(self.loop_top[-1], lineno=lineno)
         
         self.scope_depth -= 1
@@ -491,8 +447,8 @@ class Builder(object):
 
     def finish_lookup(self, target, lineno=None):
         result = self.add_ref(target, self.current_lookup, lineno=lineno)
-        # ir = irLookup(result, target, self.current_lookup, lineno=lineno)
-        # self.append_node(ir)
+        ir = irLookup(result, target, self.current_lookup, lineno=lineno)
+        self.append_node(ir)
 
         self.current_lookup = None
 
