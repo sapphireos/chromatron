@@ -22,7 +22,6 @@ class Builder(object):
         self.structs = {}
 
         self.next_temp = 0
-        # self.refs = {}
 
         self.next_loop = 0
 
@@ -412,9 +411,6 @@ class Builder(object):
         self.current_lookup.insert(0, [])
 
     def add_lookup(self, index, lineno=None):
-        # if isinstance(index, str):
-        #     index = irAttribute(index, lineno=lineno)
-
         self.current_lookup[0].append(index)
 
     def finish_lookup(self, target, lineno=None):
@@ -422,12 +418,3 @@ class Builder(object):
         self.current_lookup.pop(0)
 
         return target
-
-
-        # result = self.add_ref(target, self.current_lookup, lineno=lineno)
-        # # ir = irLookup(result, target, self.current_lookup, lineno=lineno)
-        # # self.append_node(ir)
-
-        # self.current_lookup = None
-
-        # return result
