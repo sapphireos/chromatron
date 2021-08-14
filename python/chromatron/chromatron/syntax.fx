@@ -194,7 +194,6 @@ global_a = Number()
 def global_var():
   global_a += 1
 
-global_a = Number()
 def global_double_assign():
   global_a = 1
   global_a = 2

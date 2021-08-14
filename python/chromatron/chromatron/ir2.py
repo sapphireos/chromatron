@@ -251,15 +251,15 @@ class irBlock(IR):
 
             ir_s = f'{depth}|\t{str(ir):48}'
 
-            if self.func.live_in and ir in self.func.live_in:
-                s += f'{ir_s}\n'
-                ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
-                outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
-                s += f'{depth}|\t  in:  {ins}\n'
-                s += f'{depth}|\t  out: {outs}\n'
+            # if self.func.live_in and ir in self.func.live_in:
+            #     s += f'{ir_s}\n'
+            #     ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
+            #     outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
+            #     s += f'{depth}|\t  in:  {ins}\n'
+            #     s += f'{depth}|\t  out: {outs}\n'
 
-            else:
-                s += f'{ir_s}\n'
+            # else:
+            s += f'{ir_s}\n'
 
         s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
 
@@ -968,25 +968,10 @@ class irBlock(IR):
 
                     i.clone(defines[i.basename])
 
-                elif i.basename in self.globals and i.basename not in defines:
-                    # copy global var to register and add to defines:
-                    i.clone(self.globals[i.basename])
-                    i.is_global = False
-                    i.holds_global = True
-                    defines[i.basename] = i
-                    self.defines[i.basename] = i
-
-                    # insert a LOAD instruction here
-                    load = irLoad(i, self.globals[i.basename], lineno=ir.lineno)
-                    load.block = self
-                    new_code.append(load)
-
                 elif i.is_ref:
                     assert i.var_name in self.globals
                     i.type = self.globals[i.var_name].type
-                    # if i.var_name not in self.globals:
-                    #     raise SyntaxError(f'Variable {i.var_name} is not declared.', lineno=ir.lineno)
-
+                    
                     # need to replace reference with an actual register
                     # since this is an input, we need to load from that ref
                     # to a register and then replace with that.
@@ -1020,34 +1005,16 @@ class irBlock(IR):
                 if i.basename in defines:
                     i.type = defines[i.basename].type
 
+
             for o in ir.get_output_vars():
                 o.block = self
                 
                 assert not o.is_const
 
-                if o.basename in self.globals:
-                    # record a store - unless this is a load
-                    if not isinstance(ir, irLoad):
-                        stores[o] = self.globals[o.basename]
-
-                    if o.basename not in self.defines:
-                        # copy global var to register and add to defines:
-                        o.clone(self.globals[o.basename])
-                        o.is_global = False
-                        o.holds_global = True
-                        defines[o.basename] = o
-                        self.defines[o.basename] = o
-
-                    else:
-                        # copy the register we already have
-                        o.clone(self.defines[o.basename])
-
-                elif o.is_ref:
+                if o.is_ref:
                     assert o.var_name in self.globals
                     o.type = self.globals[o.var_name].type
-                    # if o.var_name not in self.globals:
-                    #     raise SyntaxError(f'Variable {o.var_name} is not declared.', lineno=ir.lineno)
-
+                    
                     if o.basename not in defines:
                         target = add_reg(o.basename, datatype=o.type, lineno=-1)
                         target.block = self
@@ -2533,7 +2500,7 @@ class irFunc(IR):
         self.resolve_phi()
         
 
-        return
+        # return
         
 
         # blocks may have been rearranged or added at this point

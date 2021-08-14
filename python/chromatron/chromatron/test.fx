@@ -54,9 +54,12 @@ a = Number()[4] # array of 4 Numbers
 # Link system:
 # change to system library call.
 
-# global_a = Number()
-# def global_var():
-#   global_a += 1
+global_a = Number()
+def global_var():
+  global_a += 1
+  # a1 = Number()
+  # a1 = global_a[0]
+  # a1 = global_a
 
 # global_a = Number()
 # def global_double_assign():
@@ -65,17 +68,17 @@ a = Number()[4] # array of 4 Numbers
 
 # b = Number()
 
-def obj():
-#     # a += A
+# def obj():
+# #     # a += A
 
     
-#     b = 1
-#     b = 2
+# #     b = 1
+# #     b = 2
 
-    # b = a[1]
-    # a[0] = b
-    # b = Number()
-    a[0] = a[1]
+#     # b = a[1]
+#     # a[0] = b
+#     # b = Number()
+#     a[0] = a[1]
     # a[0] = 1
     # a = a[1]
     # a = 1
