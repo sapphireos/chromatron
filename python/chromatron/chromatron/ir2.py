@@ -926,7 +926,13 @@ class irBlock(IR):
 
             elif isinstance(ir, irReturn): # function exit point
                 # check for stores
+                stored = []
+
                 for reg, ref in stores.items():
+                    # check for duplicates (since we store the entire var object in the key instead of just the name)
+                    if reg.name in stored:
+                        continue
+
                     ref_addr_name = f'&{ref.basename}'
 
                     if ref_addr_name not in defines:
@@ -938,9 +944,10 @@ class irBlock(IR):
                         lookup.block = self
                         new_code.append(lookup)
 
-                    store = irStore(reg, defines[ref_addr_name], lineno=ir.lineno)
+                    store = irStore(copy(reg), defines[ref_addr_name], lineno=ir.lineno)
                     store.block = self
                     new_code.append(store)
+                    stored.append(reg.name)
 
 
             for i in ir.get_input_vars():
@@ -2491,7 +2498,7 @@ class irFunc(IR):
         # self.render_dominator_tree()
         # self.render_graph()
 
-        return
+        # return
 
         self.convert_to_ssa()    
 
@@ -2526,7 +2533,7 @@ class irFunc(IR):
         self.resolve_phi()
         
 
-        # return
+        return
         
 
         # blocks may have been rearranged or added at this point
