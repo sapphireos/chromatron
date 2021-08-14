@@ -2389,7 +2389,7 @@ class irFunc(IR):
         self.resolve_phi()
         
 
-        # return
+        return
         
 
         # blocks may have been rearranged or added at this point
@@ -3048,14 +3048,7 @@ class irAssign(IR):
         assert not self.value.is_const
         
     def __str__(self):
-        # if isinstance(self.target, irRef):
-        #     target = f'*{self.target}'
-        # else:
         target = f'{self.target}'
-
-        # if isinstance(self.value, irRef):
-        #     value = f'*{self.value}'
-        # else:
         value = f'{self.value}'
 
         return f'{target} = {value}'
@@ -3076,6 +3069,64 @@ class irAssign(IR):
 
     def generate(self):
         return insMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+class irVectorAssign(IR):
+    def __init__(self, target, value, **kwargs):
+        super(irVectorAssign, self).__init__(**kwargs)
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        return '*%s =(vector) %s' % (self.target, self.value)
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return []
+
+class irVectorOp(IR):
+    def __init__(self, op, target, value, **kwargs):
+        super(irVectorOp, self).__init__(**kwargs)
+        self.op = op
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        s = '*%s %s=(vector) %s' % (self.target, self.op, self.value)
+
+        return s
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return []
+
+    # def generate(self):
+    #     ops = {
+    #         'add': insVectorAdd,
+    #         'sub': insVectorSub,
+    #         'mul': insVectorMul,
+    #         'div': insVectorDiv,
+    #         'mod': insVectorMod,
+    #     }
+
+    #     pixel_ops = {
+    #         'add': insPixelVectorAdd,
+    #         'sub': insPixelVectorSub,
+    #         'mul': insPixelVectorMul,
+    #         'div': insPixelVectorDiv,
+    #         'mod': insPixelVectorMod,
+    #     }
+
+    #     if isinstance(self.target, irPixelAttr):
+    #         target = self.target.generate()
+    #         return pixel_ops[self.op](target.name, target.attr, self.value.generate(), lineno=self.lineno)
+
+    #     else:
+    #         return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
+
 
 # Load constant to register
 class irLoadConst(IR):
@@ -3401,6 +3452,14 @@ class irVar(IR):
         self.ref = None
 
         self.dimensions = dimensions
+
+    @property
+    def is_array(self):
+        for dim in self.dimensions:
+            if dim > 1:
+                return True
+
+        return False
 
     @property
     def obj_id(self):
