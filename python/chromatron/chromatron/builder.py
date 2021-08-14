@@ -81,6 +81,7 @@ class Builder(object):
         ir = irVar(target.name, lineno=lineno)
         ir.lookups = lookups
         ir.is_ref = True
+        ir.ref = target
         
         return ir    
     

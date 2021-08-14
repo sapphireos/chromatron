@@ -50,7 +50,7 @@ def add_const_temp(const, datatype=None, lineno=None):
 
     return ir
 
-def add_reg(temp, datatype=None, lineno=None):
+def add_reg(temp, datatype='i32', lineno=None):
     name = str(temp)
     
     ir = irVar(name, datatype=datatype, lineno=lineno)
@@ -164,7 +164,7 @@ class irProgram(IR):
         for g in self.globals.values():
             assert g.addr is None
             g.addr = addr
-            addr += g.length
+            addr += g.total_length
 
     def generate(self):
         self._allocate_memory()
@@ -3398,6 +3398,7 @@ class irVar(IR):
         self.register = None
         self.addr = None # used for globals
         self.lookups = []
+        self.ref = None
 
         self.dimensions = dimensions
 
@@ -3406,11 +3407,15 @@ class irVar(IR):
         return id(self)
 
     @property
-    def length(self):
-        l = 1
+    def element_length(self):
+        return 1
+
+    @property
+    def total_length(self):
+        l = self.element_length
 
         for dim in self.dimensions:
-            l *=  dim
+            l *= dim
 
         return l
 
@@ -3613,6 +3618,15 @@ class irLookup(IR):
         
     def get_output_vars(self):
         return [self.result]
+
+    def generate(self):
+        lookups = [i.generate() for i in self.lookups]
+        base_addr = self.target.ref.generate()
+        assert base_addr is not None # memory must be allocated first!
+
+        result = self.result.generate()
+
+        print(result, base_addr, lookups)
 
 # class irRef(IR):
 #     def __init__(self, ref, lookups, *args, **kwargs):

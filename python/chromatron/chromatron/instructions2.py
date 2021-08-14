@@ -68,7 +68,7 @@ class insProgram(object):
         # initialize memory
         memory_size = 0
         for v in self.globals.values():
-            memory_size += v.length
+            memory_size += v.total_length
 
         self.memory = [0] * memory_size
 
@@ -400,6 +400,23 @@ class insStoreMemory(BaseInstruction):
         bc.extend(self.src.assemble())
 
         return bc
+
+class insLookup(BaseInstruction):
+    mnemonic = 'LKP'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+        assert self.src is not None
+
+    def __str__(self):
+        return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
+
+    # def execute(self, vm):
+    #     vm.registers[self.dest.reg] = vm.memory[self.src]
+
 
 class insLabel(BaseInstruction):
     def __init__(self, name=None, **kwargs):
