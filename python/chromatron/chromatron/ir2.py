@@ -934,9 +934,9 @@ class irBlock(IR):
                         ref_addr.is_temp = True
                         defines[ref_addr_name] = ref_addr
 
-                    lookup = irLookup(defines[ref_addr_name], copy(ref), lineno=-1)
-                    lookup.block = self
-                    new_code.append(lookup)
+                        lookup = irLookup(defines[ref_addr_name], copy(ref), lineno=-1)
+                        lookup.block = self
+                        new_code.append(lookup)
 
                     store = irStore(reg, defines[ref_addr_name], lineno=ir.lineno)
                     store.block = self
@@ -2487,7 +2487,7 @@ class irFunc(IR):
         # self.render_dominator_tree()
         # self.render_graph()
 
-        # return
+        return
 
         self.convert_to_ssa()    
 
@@ -3727,15 +3727,7 @@ class irLookup(IR):
 
     def get_input_vars(self):
         return []
-        # return [self.target]
-
-        # TODO need to resolve inputs to registers!
-
-        # i = [self.target]
-        # i.extend(self.indexes)
-
-        # return i
-
+        
     def get_output_vars(self):
         return [self.result]
 

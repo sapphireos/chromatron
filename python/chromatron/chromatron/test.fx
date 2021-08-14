@@ -12,7 +12,7 @@
 # meow = Number()[A]
 
 # a = Number()
-a = Number()[4] # array of 4 Numbers
+# a = Number()[4] # array of 4 Numbers
 # b = Number()[4][2] # 2D array of 4x2 (8) Numbers
 
 # My_struct = Struct(a=Number(), b=Number()[2]) # declares a new struct type, not an instance of a struct
@@ -58,14 +58,27 @@ a = Number()[4] # array of 4 Numbers
 # def global_var():
 #   global_a += 1
 
-def obj():
-    # a += A
+global_a = Number()
+def global_double_assign():
+  global_a = 1
+  global_a = 2
 
-    # b = Number()
+# b = Number()
+
+# def obj():
+#     # a += A
+
+    
+#     b = 1
+#     b = 2
+
     # b = a[1]
     # a[0] = b
-    b = Number()
-    a[0] = a[1]
+    # b = Number()
+    # a[0] = a[1]
+    # a[0] = 1
+    # a = a[1]
+    # a = 1
 
     # a[0] += a['a']
 
