@@ -20,6 +20,7 @@
 # 
 # </license>
 
+import logging
 from catbus import *
 from sapphire.common import catbus_string_hash
 import numpy as np
@@ -222,6 +223,11 @@ class insFunc(object):
 
                 # # pop PC from return stack
                 # pc = return_stack.pop(-1)
+
+            except AssertionError:
+                logging.error(f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}')
+
+                raise
 
     def assemble(self):
         pass
@@ -603,3 +609,25 @@ class insMod(insArith):
 
         else:
             return op1 % op2
+
+
+class insAssert(BaseInstruction):
+    mnemonic = 'ASSERT'
+
+    def __init__(self, op1, **kwargs):
+        super().__init__(**kwargs)
+        self.op1 = op1
+
+    def __str__(self):
+        return "%s %s" % (self.mnemonic, self.op1)
+
+    def execute(self, vm):
+        value = vm.registers[self.op1.reg]
+            
+        assert value        
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.op1.assemble())
+        
+        return bc

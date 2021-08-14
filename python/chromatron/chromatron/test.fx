@@ -56,6 +56,7 @@ A = 4 # named constant.  recommend all caps for these (like C's convention)
 
 
 def obj():
+    assert False
     pass
     # a += 1
 

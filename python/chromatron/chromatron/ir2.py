@@ -2489,7 +2489,7 @@ class irFunc(IR):
 
         # convert out of SSA form
         self.resolve_phi()
-        return
+        # return
         # blocks may have been rearranged or added at this point
 
         self.dominators = self.calc_dominance()
@@ -3754,3 +3754,5 @@ class irAssert(IR):
 
         return s   
 
+    def generate(self):
+        return insAssert(self.value.generate(), lineno=self.lineno)
