@@ -132,12 +132,12 @@ class cg1DeclareStr(cg1DeclarationBase):
 #         self.dimensions = dimensions
 
 
-# class cg1DeclareRecord(cg1DeclarationBase):
-#     def __init__(self, record=None, **kwargs):
-#         super(cg1DeclareRecord, self).__init__(**kwargs)
+class cg1DeclareStruct(cg1DeclarationBase):
+    def __init__(self, struct=None, **kwargs):
+        super(cg1DeclareStruct, self).__init__(**kwargs)
 
-#         self.type = record.name
-#         self.record = record
+        self.type = struct.name
+        self.struct = struct
 
 
 class cg1Struct(cg1Node):
@@ -618,7 +618,7 @@ class CodeGenPass1(ast.NodeVisitor):
             'Palette': self.create_GenericObject,
         }
 
-        self._record_types = {}
+        self._struct_types = {}
 
         self.in_func = False
 
@@ -772,10 +772,10 @@ class CodeGenPass1(ast.NodeVisitor):
         if node.func.id in self._declarations:
             return self._declarations[node.func.id](node)
 
-        # elif node.func.id in self._record_types:
-        #     record_type = self._record_types[node.func.id]
+        elif node.func.id in self._struct_types:
+            struct_type = self._struct_types[node.func.id]
 
-        #     return cg1DeclareRecord(record=record_type, lineno=node.lineno)
+            return cg1DeclareStruct(struct=struct_type, lineno=node.lineno)
 
         elif self.in_func:
             kwargs = {}
@@ -839,7 +839,7 @@ class CodeGenPass1(ast.NodeVisitor):
 
         elif isinstance(value, cg1Struct):
             value.name = target.name
-            self._record_types[value.name] = value
+            self._struct_types[value.name] = value
 
             return value
 

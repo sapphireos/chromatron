@@ -15,7 +15,7 @@ from pprint import pprint
 source_code = []
 
 COMMUTATIVE_OPS = ['add', 'mul']
-
+PRIMITIVE_TYPES = ['i32', 'f16']
 
 def set_source_code(source):
     global source_code
@@ -3479,6 +3479,10 @@ class irVar(IR):
             for lookup in self.lookups:
                 if isinstance(lookup, irAttribute):
                     lookups += '.%s' % (lookup.name)
+
+                elif isinstance(lookup, str):
+                    lookups += '[%s]' % (lookup)
+
                 else:
                     lookups += '[%s]' % (lookup.name)
 
@@ -3567,6 +3571,31 @@ class irVar(IR):
             assert self.register is None
             return self.addr
 
+class irStruct(irVar):
+    def __init__(self, name, data_type, fields, **kwargs):
+        super().__init__(name, data_type, **kwargs)        
+
+        self.fields = fields
+
+        self.offsets = {}
+
+        self._element_length = 0
+        for field in list(self.fields.values()):
+            self.offsets[field.name] = self._element_length
+
+            self._element_length += field.element_length
+
+    @property
+    def element_length(self):
+        return self._element_length
+
+    def __call__(self, name, dimensions=[], lineno=None):
+        s = copy(self)
+        s.var_name = name
+        s.dimensions = dimensions
+
+        return s
+
 # this is mostly used for optimizations:
 class irExpr(IR):
     def __init__(self, var1, op, var2, **kwargs):
@@ -3596,12 +3625,24 @@ class irLookup(IR):
         self.result = result
         self.target = target
 
+        if isinstance(self.target.ref, irStruct):
+            # resolve named lookups on struct
+            new_lookups = []
+            for lookup in self.target.lookups:
+                offset = self.target.ref.offsets[lookup]
+
+                const = irVar(offset, 'i32', lineno=-1)
+                const.is_const = True
+
+                new_lookups.append(const)
+
+            self.target.lookups = new_lookups
+
+
     def __str__(self):
         lookups = ''
         for a in self.lookups:
             lookups += f'[{a}]'
-
-        # lookups = lookups[:-2]
 
         return f'{self.result} = LOOKUP {self.target.var_name} {lookups}'
 

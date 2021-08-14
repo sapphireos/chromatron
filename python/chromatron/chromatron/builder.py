@@ -62,7 +62,7 @@ class Builder(object):
             # return self.globals[name]
             raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
-        ir = irVar(name, data_type, dimensions, lineno=lineno)
+        ir = self.build_var(name, data_type, dimensions, lineno=lineno)
         ir.is_global = True
         self.globals[name] = ir
 
@@ -136,8 +136,23 @@ class Builder(object):
         self.named_consts[name] = ir
 
         return ir
+
+    def add_var(self, name, data_type=None, dimensions=[], lineno=None):
+        return self.build_var(name, data_type, dimensions, lineno=lineno)
     
+    def build_var(self, name, data_type=None, dimensions=[], lineno=None):
+        if data_type in PRIMITIVE_TYPES:
+            return irVar(name, data_type, dimensions, lineno=lineno)
+
+        elif data_type in self.structs:
+            return self.structs[data_type](name, dimensions, lineno=lineno)
+
+        raise CompilerFatal('unknown type')
+
     def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
+        if data_type not in PRIMITIVE_TYPES and data_type not in self.structs:
+            raise SyntaxError(f'Type {data_type} is unknown')
+
         if is_global:
             return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
@@ -145,7 +160,7 @@ class Builder(object):
             # if len(keywords) > 0:
             #     raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
 
-            var = irVar(name, data_type, dimensions, lineno=lineno)
+            var = self.add_var(name, data_type, dimensions, lineno=lineno)
             
             ir = irDefine(var, lineno=lineno)
 
@@ -163,24 +178,19 @@ class Builder(object):
         return irVar(name, lineno=lineno)
 
     def create_struct(self, name, fields, lineno=None):
-        # new_fields = {}
-        # offsets = {}
-        # offset = 0
-        # for field_name, field in list(fields.items()):
-        #     field_type = field['type']
-        #     field_dims = field['dimensions']
-            
-        #     # new_fields[field_name] = self.build_var(field_name, field_type, field_dims, lineno=lineno)
+        new_fields = {}
+        
+        for field_name, field in list(fields.items()):
+            field_type = field['type']
+            field_dims = field['dimensions']
 
-        #     offsets[field_name] = offset
-        #     # offsets[field_name] = self.add_const(offset, lineno=lineno)
-        #     offset += new_fields[field_name].length
+            new_fields[field_name] = irVar(field_name, field_type, lineno=lineno)
+            new_fields[field_name].dimensions = field_dims
 
-        # ir = irRecord(name, name, new_fields, offsets, lineno=lineno)
 
-        # self.record_types[name] = ir
+        ir = irStruct(name, name, new_fields, lineno=lineno)
 
-        pass
+        self.structs[name] = ir
 
     ###################################
     # IR instructions
@@ -425,8 +435,8 @@ class Builder(object):
         self.current_lookup.insert(0, [])
 
     def add_lookup(self, index, lineno=None):
-        if isinstance(index, str):
-            index = irAttribute(index, lineno=lineno)
+        # if isinstance(index, str):
+        #     index = irAttribute(index, lineno=lineno)
 
         self.current_lookup[0].append(index)
 

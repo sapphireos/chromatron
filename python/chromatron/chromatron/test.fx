@@ -12,15 +12,15 @@
 # meow = Number()[A]
 
 # a = Number()
-a = Number()[4] # array of 4 Numbers
+# a = Number()[4] # array of 4 Numbers
 # c = Number()[4][2] # 2D array of 4x2 (8) Numbers
 
-# My_struct = Struct(a=Number(), b=Number()[2]) # declares a new struct type, not an instance of a struct
+My_struct = Struct(a=Number(), b=Number()[2]) # declares a new struct type, not an instance of a struct
 # # for consistency and readability, let's require that struct typedefs are capitalized
 # # to match the other type declare functions
 
 # s = My_struct(a=1, b=2)
-# s = My_struct()
+s = My_struct()
 # a = s['a'] # record element access
 
 
@@ -69,23 +69,27 @@ a = Number()[4] # array of 4 Numbers
 # b = Number()
 
 def obj():
+
+    s['a'] += 1
+    # return s
+
 # #     # a += A
 
     
 # #     b = 1
 # #     b = 2
 
-    b = Number()
+    # b = Number()
 
-    b = a[1]
-    # a[a[1]] = b
-
-
-    # b = 3
-    # # b = a[a[a[1]]]
+    # b = a[1]
+    # # a[a[1]] = b
 
 
-    return b
+    # # b = 3
+    # # # b = a[a[a[1]]]
+
+
+    # return b
 
     # a[1] = a[2][b][a[3]]
     # a[0] = 1
