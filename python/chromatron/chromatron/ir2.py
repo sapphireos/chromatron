@@ -963,28 +963,31 @@ class irBlock(IR):
                     load.block = self
                     new_code.append(load)
 
-                # elif i.is_ref:
-                #     # if i.basename not in self.globals:
-                #         # raise SyntaxError(f'Object {i.basename} is not declared.', lineno=ir.lineno)
+                elif i.is_ref:
+                    assert i.var_name in self.globals
+                    i.type = self.globals[i.var_name].type
+                    # if i.var_name not in self.globals:
+                    #     raise SyntaxError(f'Variable {i.var_name} is not declared.', lineno=ir.lineno)
 
-                #     # need to replace reference with an actual register
-                #     # since this is an input, we need to load from that ref
-                #     # to a register and then replace with that.
-                #     if i.basename not in defines:
-                #         # add reference to globals
-                #         # self.globals[i.name] = copy(i) # need to declare!
+                    # need to replace reference with an actual register
+                    # since this is an input, we need to load from that ref
+                    # to a register and then replace with that.
+                    if i.basename not in defines:
+                        # add reference to globals
+                        target = add_reg(i.basename, datatype=i.type, lineno=-1)
+                        target.block = self
 
-                #         target = add_reg(i.basename, datatype=i.type, lineno=-1)
-                #         target.block = self
-                #         load = irLoad(target, copy(i), lineno=-1)
-                #         load.block = self
-                #         defines[target.basename] = target
-                #         self.defines[target.basename] = target
+                        load = irLoad(target, copy(i), lineno=-1)
+                        load.block = self
+                        
+                        defines[target.basename] = target
+                        self.defines[target.basename] = target
 
-                #         new_code.append(load)
+                        new_code.append(load)
 
-                #     i.__dict__ = copy(defines[i.basename].__dict__)
-                    
+                    basename = i.basename
+                    i.clone(defines[basename])
+                    i.var_name = basename
 
                 if i.basename in defines:
                     i.type = defines[i.basename].type
@@ -1007,16 +1010,22 @@ class irBlock(IR):
                         defines[o.basename] = o
                         self.defines[o.basename] = o
 
-                # elif o.is_ref:
-                #     if  o.basename not in self.defines:
-                #         # o.__dict__ = copy(self.globals[o.basename].__dict__)
-                #         # o.is_global = False
-                #         # o.holds_global = True
-                #         defines[o.basename] = o
-                #         self.defines[o.basename] = o
+                elif o.is_ref:
+                    assert o.var_name in self.globals
+                    o.type = self.globals[o.var_name].type
+                    # if o.var_name not in self.globals:
+                    #     raise SyntaxError(f'Variable {o.var_name} is not declared.', lineno=ir.lineno)
 
-                    # assert o.basename in defines
-                    # o.__dict__ = copy(defines[o.basename].__dict__)
+                    if o.basename not in defines:
+                        target = add_reg(o.basename, datatype=o.type, lineno=-1)
+                        target.block = self
+
+                        defines[target.basename] = target
+                        self.defines[target.basename] = target
+
+                    basename = o.basename
+                    o.clone(defines[basename])
+                    o.var_name = basename
 
                     # stores[o.basename] = o
 
@@ -3483,7 +3492,7 @@ class irBinop(IR):
 class irVar(IR):
     def __init__(self, name=None, datatype=None, dimensions=[1], **kwargs):
         super().__init__(**kwargs)
-        self._name = str(name)
+        self.var_name = str(name)
         self.type = datatype
 
         self.is_global = False
@@ -3563,10 +3572,6 @@ class irVar(IR):
             return None
     @property
     def basename(self):
-        return self._name
-
-    @property
-    def name(self):
         if self.is_ref:
             lookups = ''
             for lookup in self.lookups:
@@ -3575,7 +3580,14 @@ class irVar(IR):
                 else:
                     lookups += '[%s]' % (lookup.name)
 
-            s = f'*{self.basename}{lookups}'
+            return f'{self.var_name}{lookups}'
+
+        return self.var_name
+
+    @property
+    def name(self):
+        if self.is_ref:
+            s = f'*{self.basename}'
 
         elif self.ssa_version is not None:
             if self.holds_const:
@@ -3598,7 +3610,7 @@ class irVar(IR):
 
     # @name.setter
     # def name(self, value):
-    #     self._name = value        
+    #     self.var_name = value        
 
     def __str__(self):
         if self.type:

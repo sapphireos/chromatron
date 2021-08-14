@@ -455,10 +455,16 @@ class Builder(object):
         self.current_lookup.append(index)
 
     def finish_lookup(self, target, lineno=None):
-        result = self.add_ref(target, self.current_lookup, lineno=lineno)
-        # ir = irLookup(result, target, self.current_lookup, lineno=lineno)
-        # self.append_node(ir)
-
+        target.lookups = self.current_lookup
         self.current_lookup = None
 
-        return result
+        return target
+
+
+        # result = self.add_ref(target, self.current_lookup, lineno=lineno)
+        # # ir = irLookup(result, target, self.current_lookup, lineno=lineno)
+        # # self.append_node(ir)
+
+        # self.current_lookup = None
+
+        # return result
