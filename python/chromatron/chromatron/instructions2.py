@@ -225,9 +225,10 @@ class insFunc(object):
                 # pc = return_stack.pop(-1)
 
             except AssertionError:
-                logging.error(f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}')
+                msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
+                logging.error(msg)
 
-                raise
+                raise AssertionError(msg)
 
     def assemble(self):
         pass
