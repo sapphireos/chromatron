@@ -553,7 +553,7 @@ class cg1Attribute(cg1CodeNode):
         builder.add_lookup(self.attr, lineno=self.lineno)      
 
         if depth == 0:
-            return builder.finish_lookup(target, lineno=self.lineno)
+            return builder.finish_lookup(target, is_attr=True, lineno=self.lineno)
 
         return target
 
@@ -814,14 +814,7 @@ class CodeGenPass1(ast.NodeVisitor):
         assert len(node.targets) == 1
 
         target = self.visit(node.targets[0])
-
-        try:
-            value = self.visit(node.value)
-
-        except TypeError:
-            # couldn't resolve value
-            # try creating generic object
-            value = self.create_GenericObject(node.value)
+        value = self.visit(node.value)
 
         if isinstance(value, cg1DeclarationBase):
             value.name = target.name
@@ -849,23 +842,11 @@ class CodeGenPass1(ast.NodeVisitor):
     def visit_AugAssign(self, node):
         return cg1AugAssign(self.visit(node.op), self.visit(node.target), self.visit(node.value), lineno=node.lineno)
 
-
-    # def get_const(self, value, node):
-    #     if isinstance(value, int):
-    #         return cg1ConstInt32(value, lineno=node.lineno)
-
-    #     elif isinstance(value, float):
-    #         return cg1ConstFixed16(value, lineno=node.lineno)
-
-    #     else:
-    #         raise NotImplementedError(node)    
-
     def visit_Constant(self, node):
         if isinstance(node.value, str):
             return cg1StrLiteral(node.value, lineno=node.lineno)
 
         else:
-            # return self.get_const(node.value, node)
             return cg1Const(node.value, lineno=node.lineno)
 
     def visit_Name(self, node):

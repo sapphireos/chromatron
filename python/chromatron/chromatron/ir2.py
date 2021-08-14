@@ -3442,6 +3442,7 @@ class irVar(IR):
         self.is_global = False
         self.is_temp = False
         self.is_ref = False
+        self.is_obj = False
         self.holds_const = False
         self.holds_global = False
         self.is_const = False

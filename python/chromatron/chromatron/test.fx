@@ -66,11 +66,14 @@ a = Number()[4] # array of 4 Numbers
 #   global_a = 1
 #   global_a = 2
 
+# pixels = Object()
 
 def obj():
     # b = Number()
 
-    a += 1
+    pixels[0].hue = 1
+
+    # pass
     # a = 1 + 2
     # a = 1 + 2
     # a[1] += 2
