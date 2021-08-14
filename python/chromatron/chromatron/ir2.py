@@ -899,7 +899,7 @@ class irBlock(IR):
     
     """
 
-    def init_vars2(self, defines=None, stores=None):
+    def init_vars(self, scanned, defines=None, stores=None):
         if defines is None:
             defines = {}
             stores = {}
@@ -907,6 +907,12 @@ class irBlock(IR):
 
         new_code = []
         for ir in self.code:
+            if ir in scanned:
+                new_code.append(ir)
+                continue
+
+            scanned.append(ir)
+
             if isinstance(ir, irDefine):
                 ir.var.block = self
                 if ir.var.basename in self.globals:
@@ -1034,145 +1040,19 @@ class irBlock(IR):
 
             new_code.append(ir)
 
+        changed = self.code != new_code
+
         self.code = new_code
 
         if self not in self.func.dominator_tree:
-            return
+            return changed
 
         for c in self.func.dominator_tree[self]:
-            c.init_vars2(copy(defines), copy(stores))
+            if c.init_vars2(scanned, copy(defines), copy(stores)):
+                changed = True
 
+        return changed
 
-    # def init_consts(self):
-    #     consts = self._get_consts()
-
-    #     # load all consts to registers at top of function:
-    #     for const in consts:
-    #         target = add_const_temp(const.name, datatype=const.type, lineno=-1)
-    #         target.block = self
-    #         load = irLoadConst(target, const, lineno=-1)
-    #         load.block = self
-    #         target.convert_to_ssa()
-
-    #         # add new definition and add new instruction to code
-    #         self.defines[target._name] = target
-    #         self.code.insert(1, load)
-
-    # def init_vars(self, visited=None, declarations=None):    
-    #     if visited is None:
-    #         visited = []
-
-    #     if self in visited:
-    #         return
-
-    #     visited.append(self)
-
-    #     self.stores = {}
-    #     self.defines = {}
-    #     self.declarations = copy(self.globals)
-    #     if declarations is not None:
-    #         self.declarations.update(declarations)
-
-    #     new_code = []
-
-
-    #     # iterate over code
-    #     # look for defines and record them.
-    #     # also insert inits to 0
-    #     for index in range(len(self.code)):
-    #         ir = self.code[index]
-    #         new_code.append(ir)
-
-    #         if isinstance(ir, irDefine):
-    #             if ir.var._name in self.globals:
-    #                 raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
-
-    #             self.declarations[ir.var._name] = ir.var
-
-    #             # init variable to 0
-    #             assign = irLoadConst(copy(ir.var), self.func.get_zero(ir.lineno), lineno=ir.lineno)
-    #             assign.block = self
-                
-    #             new_code.append(assign)
-
-    #     self.code = new_code
-
-    #     new_code = []
-        
-    #     # iterate over code
-    #     for index in range(len(self.code)):
-    #         ir = self.code[index]
-
-    #         if not isinstance(ir, irDefine):
-    #             # analyze inputs and LOAD from global if needed
-    #             inputs = ir.local_input_vars
-
-    #             for i in inputs:
-    #                 if i._name in self.globals and i._name not in self.defines:
-    #                     # copy global var to register and add to defines:
-    #                     i.__dict__ = copy(self.globals[i._name].__dict__)
-    #                     i.is_global = False
-    #                     self.defines[i._name] = i
-
-    #                     # insert a LOAD instruction here
-    #                     load = irLoad(i, self.globals[i._name], lineno=ir.lineno)
-    #                     load.block = self
-    #                     new_code.append(load)
-
-    #                     # set up SSA
-    #                     i.ssa_version = 0
-
-    #             # analyze outputs and initialize a global as needed                
-    #             outputs = ir.local_output_vars
-
-    #             for o in outputs:
-    #                 if o._name in self.globals:
-    #                     # record a store - unless this is a load
-    #                     if not isinstance(ir, irLoad):
-    #                         self.stores[o._name] = o
-
-    #                     if  o._name not in self.defines:
-    #                         # copy global var to register and add to defines:
-    #                         o.__dict__ = copy(self.globals[o._name].__dict__)
-    #                         o.is_global = False
-    #                         self.defines[o._name] = o
-
-    #                         # set up SSA
-    #                         o.ssa_version = 0
-
-    #         new_code.append(self.code[index])
-
-    #     self.code = new_code
-    #     new_code = []
-
-    #     # iterate over code
-    #     for index in range(len(self.code)):
-    #         ir = self.code[index]
-
-    #         if isinstance(ir, irReturn): # or irCall
-    #             for k, v in self.stores.items():
-    #                 store = irStore(v, self.globals[k], lineno=ir.lineno)
-    #                 store.block = self
-    #                 new_code.append(store)
-
-    #         # assign types
-    #         variables = []
-    #         variables.extend(ir.local_input_vars)
-    #         variables.extend(ir.local_output_vars)
-    #         for v in variables:
-    #             if v.type is None:
-    #                 v.type = self.declarations[v.name].type
-
-
-    #         new_code.append(self.code[index])
-
-    #     self.code = new_code
-
-    #     # continue with successors:
-    #     for suc in self.successors:
-    #         suc.init_vars(visited=visited, declarations=copy(self.declarations))
-                
-    #     return copy(self.defines)
 
     def resolve_phi(self, merge_number=0):
         # extract phis and remove from block code
@@ -2447,6 +2327,19 @@ class irFunc(IR):
 
         return insFunc(self.name, instructions, source_code, self.register_count, lineno=self.lineno)
 
+    def init_vars(self):
+        scanned = []
+
+        iterations = 0
+        iteration_limit = 512
+        while self.leader_block.init_vars(scanned):
+            iterations += 1
+
+            if iterations > iteration_limit:
+                raise CompilerFatal(f'Var init failed after {iterations} iterations')
+
+        logging.debug(f'Init variables in {iterations} iterations')
+
     def analyze_blocks(self):
         self.ssa_next_val = {}
         
@@ -2456,11 +2349,7 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        self.leader_block.init_vars2()
-
-        # return
-        # self.leader_block.init_vars()
-        # self.leader_block.init_consts()
+        self.init_vars()
 
         # self.render_dominator_tree()
         # self.render_graph()
@@ -2642,7 +2531,7 @@ class irFunc(IR):
 
                 writes[o.name] = ir
 
-            for i in [i for i in ir.get_input_vars() if not i.is_const and not i.is_temp]:
+            for i in [i for i in ir.get_input_vars() if not i.is_const and not i.holds_const and not i.is_temp]:
                 try:
                     assert i.ssa_version is not None
 
@@ -3703,12 +3592,24 @@ class irLookup(IR):
         self.target = target
 
     def __str__(self):
-        s = '%s = LOOKUP %s' % (self.result, self.target)
+        lookups = ''
+        for a in self.lookups:
+            lookups += f'{a}, '
 
-        return s
+        lookups = lookups[:-2]
+
+        return f'{self.result} = LOOKUP {self.target} <{lookups}>'
+
+    @property
+    def base_addr(self):
+        return self.target.addr
+
+    @property
+    def lookups(self):
+        return self.target.lookups
 
     def get_input_vars(self):
-        return []
+        return self.lookups
         
     def get_output_vars(self):
         return [self.result]

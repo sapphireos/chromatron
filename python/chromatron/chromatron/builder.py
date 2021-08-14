@@ -33,7 +33,7 @@ class Builder(object):
         self.loop_body = []
         self.loop_end = []
 
-        self.current_lookup = None
+        self.current_lookup = []
         self.current_func = None
 
     def __str__(self):
@@ -421,19 +421,17 @@ class Builder(object):
         self.append_node(ir)
 
     def start_lookup(self, lineno=None):
-        assert self.current_lookup is None
-
-        self.current_lookup = []
+        self.current_lookup.insert(0, [])
 
     def add_lookup(self, index, lineno=None):
         if isinstance(index, str):
             index = irAttribute(index, lineno=lineno)
 
-        self.current_lookup.append(index)
+        self.current_lookup[0].append(index)
 
     def finish_lookup(self, target, lineno=None):
-        target.lookups = self.current_lookup
-        self.current_lookup = None
+        target.lookups = self.current_lookup[0]
+        self.current_lookup.pop(0)
 
         return target
 
