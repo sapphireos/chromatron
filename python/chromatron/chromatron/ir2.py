@@ -928,7 +928,7 @@ class irBlock(IR):
             elif isinstance(ir, irReturn): # function exit point
                 # check for stores
                 for k, v in stores.items():
-                    store = irStore(v, self.globals[k], lineno=ir.lineno)
+                    store = irStore(k, v, lineno=ir.lineno)
                     store.block = self
                     new_code.append(store)
 
@@ -941,8 +941,10 @@ class irBlock(IR):
                     if i.basename not in defines:
                         target = add_const_temp(i.basename, datatype=i.type, lineno=-1)
                         target.block = self
+
                         load = irLoadConst(target, i, lineno=-1)
                         load.block = self
+
                         defines[target.basename] = target
                         self.defines[target.basename] = target
 
@@ -979,7 +981,7 @@ class irBlock(IR):
 
                         load = irLoad(target, copy(i), lineno=-1)
                         load.block = self
-                        
+
                         defines[target.basename] = target
                         self.defines[target.basename] = target
 
@@ -1000,7 +1002,7 @@ class irBlock(IR):
                 if o.basename in self.globals:
                     # record a store - unless this is a load
                     if not isinstance(ir, irLoad):
-                        stores[o.basename] = o
+                        stores[o] = self.globals[o.basename]
 
                     if  o.basename not in self.defines:
                         # copy global var to register and add to defines:
@@ -1023,11 +1025,12 @@ class irBlock(IR):
                         defines[target.basename] = target
                         self.defines[target.basename] = target
 
+                    ref_o = copy(o)
                     basename = o.basename
                     o.clone(defines[basename])
                     o.var_name = basename
 
-                    # stores[o.basename] = o
+                    stores[o] = ref_o
 
                 if o.basename in defines:
                     o.type = defines[o.basename].type
@@ -3224,6 +3227,8 @@ class irLoad(IR):
         super().__init__(**kwargs)
         self.target = target
         self.ref = ref
+
+        assert self.ref.is_ref or self.ref.is_global
         
     def __str__(self):
         return f'LOAD {self.target} <-- {self.ref}'
@@ -3243,6 +3248,8 @@ class irStore(IR):
         super().__init__(**kwargs)
         self.register = register
         self.ref = ref
+
+        assert self.ref.is_ref or self.ref.is_global
         
     def __str__(self):
         return f'STORE {self.register} --> {self.ref}'
@@ -3504,7 +3511,7 @@ class irVar(IR):
         self.ssa_version = None
         self.register = None
         self.addr = None # used for globals
-        self.lookups = None
+        self.lookups = []
 
         self.dimensions = dimensions
 
