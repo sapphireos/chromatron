@@ -54,10 +54,13 @@ A = 4 # named constant.  recommend all caps for these (like C's convention)
 # Link system:
 # change to system library call.
 
+global_a = Number()
+def global_var():
+  global_a += 1
 
-def obj():
-    assert False
-    pass
+# def obj():
+#     assert False
+#     pass
     # a += 1
 
     # b = Number()

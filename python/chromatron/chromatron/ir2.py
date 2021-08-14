@@ -952,7 +952,7 @@ class irBlock(IR):
 
                 elif i.basename in self.globals and i.basename not in defines:
                     # copy global var to register and add to defines:
-                    i.__dict__ = copy(self.globals[i.basename].__dict__)
+                    i.clone(self.globals[i.basename])
                     i.is_global = False
                     i.holds_global = True
                     defines[i.basename] = i
@@ -994,18 +994,18 @@ class irBlock(IR):
                 
                 assert not o.is_const
 
-                # if o.basename in self.globals:
-                #     # record a store - unless this is a load
-                #     if not isinstance(ir, irLoad):
-                #         stores[o.basename] = o
+                if o.basename in self.globals:
+                    # record a store - unless this is a load
+                    if not isinstance(ir, irLoad):
+                        stores[o.basename] = o
 
-                #     if  o.basename not in self.defines:
-                #         # copy global var to regi-ster and add to defines:
-                #         o.__dict__ = copy(self.globals[o.basename].__dict__)
-                #         o.is_global = False
-                #         o.holds_global = True
-                #         defines[o.basename] = o
-                #         self.defines[o.basename] = o
+                    if  o.basename not in self.defines:
+                        # copy global var to register and add to defines:
+                        o.clone(self.globals[o.basename])
+                        o.is_global = False
+                        o.holds_global = True
+                        defines[o.basename] = o
+                        self.defines[o.basename] = o
 
                 # elif o.is_ref:
                 #     if  o.basename not in self.defines:
@@ -3535,6 +3535,8 @@ class irVar(IR):
         self.is_const = source.is_const
         self.is_temp = source.is_temp
         self.holds_global = source.holds_global
+        self.is_global = source.is_global
+        self.is_ref = source.is_ref
 
     @property
     def value(self):
