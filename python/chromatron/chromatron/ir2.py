@@ -98,8 +98,7 @@ class IR(object):
         assert self.lineno != None
 
     def generate(self):
-        raise NotImplementedError
-        # return BaseInstruction()
+        raise NotImplementedError(self)
 
     def get_input_vars(self):
         return []
@@ -927,11 +926,21 @@ class irBlock(IR):
 
             elif isinstance(ir, irReturn): # function exit point
                 # check for stores
-                for k, v in stores.items():
-                    store = irStore(k, v, lineno=ir.lineno)
+                for reg, ref in stores.items():
+                    ref_addr_name = f'&{ref.basename}'
+
+                    if ref_addr_name not in defines:
+                        ref_addr = add_reg(ref_addr_name, lineno=-1)
+                        ref_addr.is_temp = True
+                        defines[ref_addr_name] = ref_addr
+
+                    lookup = irLookup(defines[ref_addr_name], copy(ref), lineno=-1)
+                    lookup.block = self
+                    new_code.append(lookup)
+
+                    store = irStore(reg, defines[ref_addr_name], lineno=ir.lineno)
                     store.block = self
                     new_code.append(store)
-
 
 
             for i in ir.get_input_vars():
@@ -975,11 +984,21 @@ class irBlock(IR):
                     # since this is an input, we need to load from that ref
                     # to a register and then replace with that.
                     if i.basename not in defines:
-                        # add reference to globals
+                        ref_addr_name = f'&{i.basename}'
+
+                        if ref_addr_name not in defines:
+                            ref_addr = add_reg(ref_addr_name, lineno=-1)
+                            ref_addr.is_temp = True
+                            defines[ref_addr_name] = ref_addr
+                            
+                            lookup = irLookup(defines[ref_addr_name], copy(i), lineno=-1)
+                            lookup.block = self
+                            new_code.append(lookup)
+
                         target = add_reg(i.basename, datatype=i.type, lineno=-1)
                         target.block = self
 
-                        load = irLoad(target, copy(i), lineno=-1)
+                        load = irLoad(target, defines[ref_addr_name], lineno=-1)
                         load.block = self
 
                         defines[target.basename] = target
@@ -2501,7 +2520,11 @@ class irFunc(IR):
 
         # convert out of SSA form
         self.resolve_phi()
+        
+
         # return
+        
+
         # blocks may have been rearranged or added at this point
 
         self.dominators = self.calc_dominance()
@@ -3223,24 +3246,22 @@ class irLoadConst(IR):
 
 # Load register from memory
 class irLoad(IR):
-    def __init__(self, target, ref, **kwargs):
+    def __init__(self, register, ref, **kwargs):
         super().__init__(**kwargs)
-        self.target = target
+        self.register = register
         self.ref = ref
-
-        assert self.ref.is_ref or self.ref.is_global
         
     def __str__(self):
-        return f'LOAD {self.target} <-- {self.ref}'
+        return f'LOAD {self.register} <-- {self.ref}'
 
     def get_input_vars(self):
-        return []
+        return [self.ref]
 
     def get_output_vars(self):
-        return [self.target]
+        return [self.register]
 
     def generate(self):
-        return insLoadMemory(self.target.generate(), self.ref.generate(), lineno=self.lineno)
+        return insLoadMemory(self.register.generate(), self.ref.generate(), lineno=self.lineno)
 
 # Store register to memory
 class irStore(IR):
@@ -3249,13 +3270,11 @@ class irStore(IR):
         self.register = register
         self.ref = ref
 
-        assert self.ref.is_ref or self.ref.is_global
-        
     def __str__(self):
         return f'STORE {self.register} --> {self.ref}'
 
     def get_input_vars(self):
-        return [self.register]
+        return [self.ref, self.register]
 
     def get_output_vars(self):
         return []
@@ -3696,33 +3715,26 @@ class irExpr(IR):
         return hash(self) == hash(other)
 
 class irLookup(IR):
-    def __init__(self, result, target, indexes, **kwargs):
+    def __init__(self, result, target, **kwargs):
         super().__init__(**kwargs)        
         self.result = result
         self.target = target
-        self.indexes = indexes
 
     def __str__(self):
-        indexes = ''
-        for index in self.indexes:
-            if isinstance(index, irAttribute):
-                indexes += '.%s' % (index.name)
-            else:
-                indexes += '[%s]' % (index.name)
-
-        s = '%s = LOOKUP %s%s' % (self.result, self.target, indexes)
+        s = '%s = LOOKUP %s' % (self.result, self.target)
 
         return s
 
     def get_input_vars(self):
         return []
+        # return [self.target]
 
         # TODO need to resolve inputs to registers!
 
-        i = [self.target]
-        i.extend(self.indexes)
+        # i = [self.target]
+        # i.extend(self.indexes)
 
-        return i
+        # return i
 
     def get_output_vars(self):
         return [self.result]
