@@ -66,7 +66,12 @@ class insProgram(object):
         self.globals = global_vars
 
         # initialize memory
-        self.memory = [0] * len(self.globals)
+        memory_size = 0
+        for v in self.globals.values():
+            memory_size += v.length
+
+        self.memory = [0] * memory_size
+
         for func in self.funcs.values():
             func.memory = self.memory
 
@@ -358,6 +363,8 @@ class insLoadMemory(BaseInstruction):
         self.dest = dest
         self.src = src
 
+        assert self.src is not None
+
     def __str__(self):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
@@ -378,6 +385,8 @@ class insStoreMemory(BaseInstruction):
         super().__init__(**kwargs)
         self.dest = dest
         self.src = src
+
+        assert self.dest is not None
 
     def __str__(self):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)

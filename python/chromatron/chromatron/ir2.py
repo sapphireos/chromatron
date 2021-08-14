@@ -165,7 +165,7 @@ class irProgram(IR):
         for g in self.globals.values():
             assert g.addr is None
             g.addr = addr
-            addr += 1
+            addr += g.length
 
     def generate(self):
         self._allocate_memory()

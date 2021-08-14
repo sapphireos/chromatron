@@ -64,7 +64,7 @@ def obj():
     # b = Number()
     # b = a[1]
     # a[0] = b
-
+    b = Number()
     a[0] = a[1]
 
     # a[0] += a['a']
