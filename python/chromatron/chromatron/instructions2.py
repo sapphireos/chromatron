@@ -369,7 +369,7 @@ class insLoadMemory(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.registers[self.dest.reg] = vm.memory[self.src]
+        vm.registers[self.dest.reg] = vm.memory[self.src.reg]
 
     def assemble(self):
         bc = [self.opcode]
@@ -392,7 +392,7 @@ class insStoreMemory(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.memory[self.dest] = vm.registers[self.src.reg]
+        vm.memory[self.dest.reg] = vm.registers[self.src.reg]
 
     def assemble(self):
         bc = [self.opcode]
@@ -414,8 +414,8 @@ class insLookup(BaseInstruction):
     def __str__(self):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
-    # def execute(self, vm):
-    #     vm.registers[self.dest.reg] = vm.memory[self.src]
+    def execute(self, vm):
+        vm.registers[self.dest.reg] = 0
 
 
 class insLabel(BaseInstruction):

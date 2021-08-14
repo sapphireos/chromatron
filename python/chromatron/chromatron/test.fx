@@ -15,12 +15,12 @@
 # a = Number()[4] # array of 4 Numbers
 # c = Number()[4][2] # 2D array of 4x2 (8) Numbers
 
-My_struct = Struct(a=Number(), b=Number()[2]) # declares a new struct type, not an instance of a struct
+# My_struct = Struct(a=Number(), b=Number()[2]) # declares a new struct type, not an instance of a struct
 # # for consistency and readability, let's require that struct typedefs are capitalized
 # # to match the other type declare functions
 
 # s = My_struct(a=1, b=2)
-s = My_struct()
+# s = My_struct()
 # a = s['a'] # record element access
 
 
@@ -68,9 +68,18 @@ s = My_struct()
 
 # b = Number()
 
-def obj():
 
-    s['a'] += 1
+global_a = Number()
+# def global_var():
+#   global_a += 1
+
+def global_double_assign():
+  global_a = 1
+  # global_a = 2
+
+# def obj():
+
+#     s['a'] += 1
     # return s
 
 # #     # a += A

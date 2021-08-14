@@ -1048,7 +1048,7 @@ class irBlock(IR):
             return changed
 
         for c in self.func.dominator_tree[self]:
-            if c.init_vars2(scanned, copy(defines), copy(stores)):
+            if c.init_vars(scanned, copy(defines), copy(stores)):
                 changed = True
 
         return changed
