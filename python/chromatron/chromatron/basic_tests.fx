@@ -50,7 +50,6 @@ def simple_ifelse2():
     assert a == 1
 
 
-
 def while_loop():
     i = Number()
     i = 4
@@ -65,7 +64,6 @@ def while_loop():
 
     assert a == 5
     assert i == 0
-
 
 def double_while_loop():
     i = Number()
@@ -86,3 +84,10 @@ def double_while_loop():
 
     assert a == 20
 
+
+global_a = Number()
+def global_var():
+  global_a += 1
+
+  assert global_a == 1
+  

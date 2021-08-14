@@ -948,20 +948,20 @@ class irBlock(IR):
 
                         new_code.append(load)
 
-                    i.__dict__ = copy(defines[i.basename].__dict__)
+                    i.clone(defines[i.basename])
 
-                # elif i.basename in self.globals and i.basename not in defines:
-                #     # copy global var to register and add to defines:
-                #     i.__dict__ = copy(self.globals[i.basename].__dict__)
-                #     i.is_global = False
-                #     i.holds_global = True
-                #     defines[i.basename] = i
-                #     self.defines[i.basename] = i
+                elif i.basename in self.globals and i.basename not in defines:
+                    # copy global var to register and add to defines:
+                    i.__dict__ = copy(self.globals[i.basename].__dict__)
+                    i.is_global = False
+                    i.holds_global = True
+                    defines[i.basename] = i
+                    self.defines[i.basename] = i
 
-                #     # insert a LOAD instruction here
-                #     load = irLoad(i, self.globals[i.basename], lineno=ir.lineno)
-                #     load.block = self
-                #     new_code.append(load)
+                    # insert a LOAD instruction here
+                    load = irLoad(i, self.globals[i.basename], lineno=ir.lineno)
+                    load.block = self
+                    new_code.append(load)
 
                 # elif i.is_ref:
                 #     # if i.basename not in self.globals:
