@@ -79,8 +79,9 @@ def obj():
 #     # a[0] = b
 
     b = Number()
+    b = 3
     # b = a[a[a[1]]]
-    b = a[1]
+
 
     return b
 

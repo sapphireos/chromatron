@@ -3594,11 +3594,11 @@ class irLookup(IR):
     def __str__(self):
         lookups = ''
         for a in self.lookups:
-            lookups += f'{a}, '
+            lookups += f'[{a}]'
 
-        lookups = lookups[:-2]
+        # lookups = lookups[:-2]
 
-        return f'{self.result} = LOOKUP {self.target} <{lookups}>'
+        return f'{self.result} = LOOKUP {self.target.var_name} {lookups}'
 
     @property
     def base_addr(self):
