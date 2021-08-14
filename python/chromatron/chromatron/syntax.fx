@@ -190,6 +190,6 @@ def while_then_expr():
     a /= b
     
 
-global_a = Number()
-def global_var():
-  global_a += 1
+# global_a = Number()
+# def global_var():
+#   global_a += 1

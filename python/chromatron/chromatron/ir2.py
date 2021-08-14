@@ -910,8 +910,8 @@ class irBlock(IR):
         for ir in self.code:
             if isinstance(ir, irDefine):
                 ir.var.block = self
-                if ir.var._name in self.globals:
-                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+                if ir.var.basename in self.globals:
+                    raise SyntaxError(f'Variable {ir.var.basename} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
                 target = copy(ir.var)
 
@@ -919,7 +919,7 @@ class irBlock(IR):
                 assign = irLoadConst(target, self.func.get_zero(ir.lineno), lineno=ir.lineno)
                 assign.block = self
 
-                defines[ir.var._name] = target
+                defines[ir.var.basename] = target
                 
                 new_code.append(ir)                
                 new_code.append(assign)
@@ -938,90 +938,90 @@ class irBlock(IR):
                 i.block = self
 
                 if i.is_const:
-                    if i._name not in defines:
-                        target = add_const_temp(i._name, datatype=i.type, lineno=-1)
+                    if i.basename not in defines:
+                        target = add_const_temp(i.basename, datatype=i.type, lineno=-1)
                         target.block = self
                         load = irLoadConst(target, i, lineno=-1)
                         load.block = self
-                        defines[target._name] = target
-                        self.defines[target._name] = target
+                        defines[target.basename] = target
+                        self.defines[target.basename] = target
 
                         new_code.append(load)
 
-                    i.__dict__ = copy(defines[i._name].__dict__)
+                    i.__dict__ = copy(defines[i.basename].__dict__)
 
-                # elif i._name in self.globals and i._name not in defines:
+                # elif i.basename in self.globals and i.basename not in defines:
                 #     # copy global var to register and add to defines:
-                #     i.__dict__ = copy(self.globals[i._name].__dict__)
+                #     i.__dict__ = copy(self.globals[i.basename].__dict__)
                 #     i.is_global = False
                 #     i.holds_global = True
-                #     defines[i._name] = i
-                #     self.defines[i._name] = i
+                #     defines[i.basename] = i
+                #     self.defines[i.basename] = i
 
                 #     # insert a LOAD instruction here
-                #     load = irLoad(i, self.globals[i._name], lineno=ir.lineno)
+                #     load = irLoad(i, self.globals[i.basename], lineno=ir.lineno)
                 #     load.block = self
                 #     new_code.append(load)
 
                 # elif i.is_ref:
-                #     # if i._name not in self.globals:
-                #         # raise SyntaxError(f'Object {i._name} is not declared.', lineno=ir.lineno)
+                #     # if i.basename not in self.globals:
+                #         # raise SyntaxError(f'Object {i.basename} is not declared.', lineno=ir.lineno)
 
                 #     # need to replace reference with an actual register
                 #     # since this is an input, we need to load from that ref
                 #     # to a register and then replace with that.
-                #     if i._name not in defines:
+                #     if i.basename not in defines:
                 #         # add reference to globals
                 #         # self.globals[i.name] = copy(i) # need to declare!
 
-                #         target = add_reg(i._name, datatype=i.type, lineno=-1)
+                #         target = add_reg(i.basename, datatype=i.type, lineno=-1)
                 #         target.block = self
                 #         load = irLoad(target, copy(i), lineno=-1)
                 #         load.block = self
-                #         defines[target._name] = target
-                #         self.defines[target._name] = target
+                #         defines[target.basename] = target
+                #         self.defines[target.basename] = target
 
                 #         new_code.append(load)
 
-                #     i.__dict__ = copy(defines[i._name].__dict__)
+                #     i.__dict__ = copy(defines[i.basename].__dict__)
                     
 
-                if i._name in defines:
-                    i.type = defines[i._name].type
+                if i.basename in defines:
+                    i.type = defines[i.basename].type
 
             for o in ir.get_output_vars():
                 o.block = self
                 
                 assert not o.is_const
 
-                # if o._name in self.globals:
+                # if o.basename in self.globals:
                 #     # record a store - unless this is a load
                 #     if not isinstance(ir, irLoad):
-                #         stores[o._name] = o
+                #         stores[o.basename] = o
 
-                #     if  o._name not in self.defines:
+                #     if  o.basename not in self.defines:
                 #         # copy global var to regi-ster and add to defines:
-                #         o.__dict__ = copy(self.globals[o._name].__dict__)
+                #         o.__dict__ = copy(self.globals[o.basename].__dict__)
                 #         o.is_global = False
                 #         o.holds_global = True
-                #         defines[o._name] = o
-                #         self.defines[o._name] = o
+                #         defines[o.basename] = o
+                #         self.defines[o.basename] = o
 
                 # elif o.is_ref:
-                #     if  o._name not in self.defines:
-                #         # o.__dict__ = copy(self.globals[o._name].__dict__)
+                #     if  o.basename not in self.defines:
+                #         # o.__dict__ = copy(self.globals[o.basename].__dict__)
                 #         # o.is_global = False
                 #         # o.holds_global = True
-                #         defines[o._name] = o
-                #         self.defines[o._name] = o
+                #         defines[o.basename] = o
+                #         self.defines[o.basename] = o
 
-                    # assert o._name in defines
-                    # o.__dict__ = copy(defines[o._name].__dict__)
+                    # assert o.basename in defines
+                    # o.__dict__ = copy(defines[o.basename].__dict__)
 
-                    # stores[o._name] = o
+                    # stores[o.basename] = o
 
-                if o._name in defines:
-                    o.type = defines[o._name].type
+                if o.basename in defines:
+                    o.type = defines[o.basename].type
 
             new_code.append(ir)
 
@@ -1282,8 +1282,8 @@ class irBlock(IR):
 
         visited.append(self)
 
-        if var._name in self.defines:
-            return self.defines[var._name]
+        if var.basename in self.defines:
+            return self.defines[var.basename]
 
         # search predecessors
         for p in self.predecessors:
@@ -1303,7 +1303,7 @@ class irBlock(IR):
         visited.append(self)
 
         if not isinstance(var, str):
-            var_name = var._name
+            var_name = var.basename
 
         else:
             var_name = var
@@ -1329,7 +1329,7 @@ class irBlock(IR):
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
 
-            assert var._name not in self.defines
+            assert var.basename not in self.defines
 
             # create new var and add a phi node
             new_var = irVar(name=var_name, lineno=-1)
@@ -1457,15 +1457,15 @@ class irBlock(IR):
         for ir in self.code:
             # look for defines and set their version to 0
             if isinstance(ir, irDefine):
-                if ir.var._name in self.defines:
-                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+                if ir.var.basename in self.defines:
+                    raise SyntaxError(f'Variable {ir.var.basename} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
                 assert ir.var.ssa_version is None
 
                 ir.var.block = self
                 ir.var.convert_to_ssa()
                 
-                self.defines[ir.var._name] = ir.var
+                self.defines[ir.var.basename] = ir.var
 
             else:
                 inputs = [a for a in ir.get_input_vars() if not a.is_temp and not a.is_global]
@@ -1477,7 +1477,7 @@ class irBlock(IR):
                         v = self.ssa_lookup_var(i)
 
                     except KeyError:
-                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
+                        raise SyntaxError(f'Variable {i.basename} is not defined.', lineno=ir.lineno)
 
                     i.clone(v)
                     assert not i.is_const # make sure we properly set up a const register!
@@ -1495,13 +1495,13 @@ class irBlock(IR):
                         v = self.ssa_lookup_var(o)
 
                     except KeyError:
-                        raise SyntaxError(f'Variable {o._name} is not defined.', lineno=ir.lineno)
+                        raise SyntaxError(f'Variable {o.basename} is not defined.', lineno=ir.lineno)
 
                     o.clone(v)
                     o.ssa_version = None
                     o.convert_to_ssa()
                     
-                    self.defines[o._name] = o
+                    self.defines[o.basename] = o
         
             new_code.append(ir)
 
@@ -3519,14 +3519,14 @@ class irVar(IR):
         assert self.block is not None
         assert not self.is_const
 
-        if self._name not in self.block.func.ssa_next_val:
-            self.block.func.ssa_next_val[self._name] = 0
+        if self.basename not in self.block.func.ssa_next_val:
+            self.block.func.ssa_next_val[self.basename] = 0
 
-        self.ssa_version = self.block.func.ssa_next_val[self._name]
-        self.block.func.ssa_next_val[self._name] += 1
+        self.ssa_version = self.block.func.ssa_next_val[self.basename]
+        self.block.func.ssa_next_val[self.basename] += 1
 
     def clone(self, source):
-        assert self._name == source._name
+        assert self.basename == source.basename
 
         # clone source attributes to self
         self.ssa_version = source.ssa_version
@@ -3552,14 +3552,17 @@ class irVar(IR):
             return int(val * 65536)
 
         elif self.is_const or self.holds_const:
-            if self._name.startswith('$'):
-                return int(self._name[1:])
+            if self.basename.startswith('$'):
+                return int(self.basename[1:])
 
-            return int(self._name)
+            return int(self.basename)
 
         else:
             return None
-            
+    @property
+    def basename(self):
+        return self._name
+
     @property
     def name(self):
         if self.is_ref:
@@ -3570,30 +3573,30 @@ class irVar(IR):
                 else:
                     lookups += '[%s]' % (lookup.name)
 
-            s = f'*{self._name}{lookups}'
+            s = f'*{self.basename}{lookups}'
 
         elif self.ssa_version is not None:
             if self.holds_const:
-                s = f'${self._name}.v{self.ssa_version}'
+                s = f'${self.basename}.v{self.ssa_version}'
 
             else:
-                s = f'{self._name}.v{self.ssa_version}'
+                s = f'{self.basename}.v{self.ssa_version}'
 
         elif self.is_temp or self.ssa_version is None:
             if self.holds_const:
-                s = f'${self._name}'
+                s = f'${self.basename}'
 
             else:
-                s = self._name
+                s = self.basename
 
         else:
-            s = f'{self._name}.{self.ssa_version}'
+            s = f'{self.basename}.{self.ssa_version}'
 
         return s
 
-    @name.setter
-    def name(self, value):
-        self._name = value        
+    # @name.setter
+    # def name(self, value):
+    #     self._name = value        
 
     def __str__(self):
         if self.type:
