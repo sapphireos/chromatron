@@ -3166,11 +3166,11 @@ class irAssign(IR):
         return [self.value]
 
     def get_output_vars(self):
-        if isinstance(self.target, irRef):
-            return []
+        # if isinstance(self.target, irRef):
+        #     return []
 
-        else:
-            return [self.target]
+        # else:
+        return [self.target]
 
     def generate(self):
         return insMov(self.target.generate(), self.value.generate(), lineno=self.lineno)

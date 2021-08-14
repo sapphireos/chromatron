@@ -59,24 +59,6 @@ def while_loop():
     while i > 0:
         i -= 1
 
-def two_ifelse():
-    a = Number()
-    b = Number()
-
-    if a > 0:
-        b = 1
-
-    else:
-        b = 2
-
-    if b < 0:
-        a = 1
-
-    else:
-        b = 2
-
-    return b
-
 def two_ifelse_expr():
     a = Number()
     b = Number()

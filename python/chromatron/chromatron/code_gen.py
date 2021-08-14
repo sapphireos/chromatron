@@ -1070,9 +1070,9 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         raise e
 
     if ins_program:
-        func = list(ins_program.funcs.values())[0]
-        ret_val = func.run()
-        print(f'VM returned: {ret_val}')
+        for func in ins_program.funcs.values():
+            ret_val = func.run()
+            print(f'VM returned: {ret_val}')
 
     return ins_program
 
