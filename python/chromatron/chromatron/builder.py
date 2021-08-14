@@ -141,7 +141,7 @@ class Builder(object):
             value = 0
 
         if name in self.named_consts:
-            return copy(self.consts[name])
+            return copy(self.named_consts[name])
 
         if isinstance(value, int):
             data_type = 'i32'
