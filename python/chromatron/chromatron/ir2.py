@@ -1023,13 +1023,17 @@ class irBlock(IR):
                     if not isinstance(ir, irLoad):
                         stores[o] = self.globals[o.basename]
 
-                    if  o.basename not in self.defines:
+                    if o.basename not in self.defines:
                         # copy global var to register and add to defines:
                         o.clone(self.globals[o.basename])
                         o.is_global = False
                         o.holds_global = True
                         defines[o.basename] = o
                         self.defines[o.basename] = o
+
+                    else:
+                        # copy the register we already have
+                        o.clone(self.defines[o.basename])
 
                 elif o.is_ref:
                     assert o.var_name in self.globals
@@ -3533,6 +3537,10 @@ class irVar(IR):
         self.lookups = []
 
         self.dimensions = dimensions
+
+    @property
+    def obj_id(self):
+        return id(self)
 
     @property
     def length(self):
