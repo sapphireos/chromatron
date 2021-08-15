@@ -422,7 +422,7 @@ class insLookup(BaseInstruction):
         indexes = ''
         for index in self.indexes:
             indexes += '[%s]' % (index)
-        return "%s %s <- %s %s" % (self.mnemonic, self.result, self.base_addr, indexes)
+        return "%s %s <- 0x%s %s" % (self.mnemonic, self.result, hex(self.base_addr), indexes)
 
     def execute(self, vm):
         addr = self.base_addr

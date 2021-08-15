@@ -579,7 +579,7 @@ class cg1Subscript(cg1CodeNode):
             target = target.target
 
 
-        return target, l
+        return target, list(reversed(l))
 
     def build(self, builder, depth=0):
         if depth == 0:
