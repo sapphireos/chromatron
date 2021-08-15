@@ -310,6 +310,9 @@ class Builder(object):
         elif value.is_ref and value.ref.is_array and len(value.lookups) == 0:
             raise SyntaxError(f'Cannot vector assign from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
 
+        elif target.is_ref:
+            ir = irAssign(target, value, lineno=lineno)
+
         elif value.is_const:
             ir = irLoadConst(target, value, lineno=lineno)
 

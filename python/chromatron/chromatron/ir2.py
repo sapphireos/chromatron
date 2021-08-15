@@ -2360,7 +2360,7 @@ class irFunc(IR):
         # self.render_dominator_tree()
         # self.render_graph()
 
-        # return
+        return
 
         self.convert_to_ssa()    
         # return

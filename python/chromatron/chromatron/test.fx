@@ -54,21 +54,15 @@
 # Link system:
 # change to system library call.
 
-
-def func_param(a: Number):
-    a += 1
-    
-    assert a == 1
-
 # s = String("hello!")
 
 # # a = Number()[4]
 # # def obj(a: Number):
-# def obj():
+def obj():
 
-#     s2 = String()
+    s2 = String()
 #     # s2 = s
-#     s2 = "meow"
+    s2 = "meow"
 
 #     pass
 
