@@ -12,7 +12,7 @@
 # meow = Number()[A]
 
 # a = Number()
-a = Number()[4] # array of 4 Numbers
+# a = Number()[4] # array of 4 Numbers
 # c = Number()[4][2] # 2D array of 4x2 (8) Numbers
 
 # My_struct = Struct(a=Number(), b=Number()[2]) # declares a new struct type, not an instance of a struct
@@ -54,6 +54,20 @@ a = Number()[4] # array of 4 Numbers
 # Link system:
 # change to system library call.
 
+
+ary = Number()[4]
+
+def array_lookup():
+    b = Number()
+    ary[b] = 1
+    b = 1
+    ary[b] = 2
+
+    assert ary[0] == 1
+    assert ary[1] == 2
+
+
+
 # global_a = Number()
 # def global_var():
 #   global_a += 1
@@ -68,14 +82,18 @@ a = Number()[4] # array of 4 Numbers
 
 # pixels = Object()
 
-def obj():
-    b = Number()
+# def obj():
+#     b = Number()
 
-    # pixels[0].hue = 1 
+#     # pixels[0].hue = 1 
 
-    a[b] = 1
+#     a[b] = 1
 
-    return a[b]
+#     b = 1
+
+#     a[b] = 2
+
+#     return a[0]
 
     # a[1] = 2
 
@@ -87,7 +105,7 @@ def obj():
 
     #     i += 1
 
-    # return a[0] + a[1]
+    # return a[0]
 
     # pass
     # a = 1 + 2
