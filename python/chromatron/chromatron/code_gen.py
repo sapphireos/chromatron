@@ -309,6 +309,8 @@ class cg1Func(cg1CodeNode):
             if dec.target == 'schedule':
                 builder.schedule(self.name, dec.keywords, lineno=self.lineno)
 
+        builder.finish_func(func)
+
         return func
 
 

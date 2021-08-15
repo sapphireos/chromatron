@@ -57,14 +57,33 @@
 
 ary = Number()[4]
 
+
 def array_lookup():
     b = Number()
     ary[b] = 1
     b = 1
     ary[b] = 2
 
+    # return ary[0]
     assert ary[0] == 1
     assert ary[1] == 2
+
+
+
+
+# def array_lookup():
+#     a = Number()
+#     b = Number()
+    
+#     # a = ary[0]
+#     # b = ary[0]
+#     ary[0] = a
+#     ary[0] = 1
+    # b = 1
+    # ary[b] = 2
+
+#     assert ary[0] == 1
+#     # assert ary[1] == 2
 
 
 
@@ -82,7 +101,13 @@ def array_lookup():
 
 # pixels = Object()
 
+# a = Number()[4]
 # def obj():
+    # b = Number()
+
+
+    # return a[b]
+
 #     b = Number()
 
 #     # pixels[0].hue = 1 

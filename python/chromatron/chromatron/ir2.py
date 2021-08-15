@@ -268,6 +268,9 @@ class irBlock(IR):
     def __repr__(self):
         return self.name
 
+    def add_temp(self, basename='', data_type=None, lineno=None):
+        return self.func.add_temp(basename, data_type, lineno=lineno)
+
     def get_blocks(self, blocks=None, visited=None):
         if blocks is None:
             blocks = []
@@ -943,6 +946,7 @@ class irBlock(IR):
 
                     if ref_addr_name not in defines:
                         ref_addr = add_reg(ref_addr_name, lineno=-1)
+                        # ref_addr = self.add_temp(lineno=-1)
                         ref_addr.is_temp = True
                         defines[ref_addr_name] = ref_addr
 
@@ -981,36 +985,47 @@ class irBlock(IR):
                     # need to replace reference with an actual register
                     # since this is an input, we need to load from that ref
                     # to a register and then replace with that.
-                    if i.basename not in defines:
+                    
+                    # if i.basename not in defines:
+                    if True:
                         ref_addr_name = f'&{i.basename}'
 
-                        if ref_addr_name not in defines:
-                            ref_addr = add_reg(ref_addr_name, lineno=-1)
+                        # if ref_addr_name not in defines:
+                        if True:
+                            # ref_addr = add_reg(ref_addr_name, lineno=-1)
+                            ref_addr = self.add_temp(ref_addr_name, lineno=-1)
                             ref_addr.is_temp = True
-                            defines[ref_addr_name] = ref_addr
+                            # defines[ref_addr_name] = ref_addr
                             
-                            lookup = irLookup(defines[ref_addr_name], copy(i), lineno=-1)
+                            lookup = irLookup(ref_addr, copy(i), lineno=-1)
                             lookup.block = self
                             new_code.append(lookup)
 
-                        target = add_reg(i.basename, datatype=i.type, lineno=-1)
+                        # target = add_reg(i.basename, datatype=i.type, lineno=-1)
+                        target = self.add_temp(i.basename, lineno=-1)
                         target.block = self
 
-                        load = irLoad(target, defines[ref_addr_name], lineno=-1)
+                        load = irLoad(target, ref_addr, lineno=-1)
                         load.block = self
 
-                        defines[target.basename] = target
-                        self.defines[target.basename] = target
+                        # defines[i.basename] = target
+                        # self.defines[i.basename] = target
+
+                        # defines[target.basename] = target
+                        # self.defines[target.basename] = target
 
                         new_code.append(load)
 
-                    basename = i.basename
-                    i.clone(defines[basename])
-                    i.var_name = basename
+                    # basename = i.basename
+                    # i.clone(defines[basename])
+                    i.clone(target)
+                    # i.var_name = basename
 
                 if i.basename in defines:
                     i.type = defines[i.basename].type
 
+            
+            new_code.append(ir)
 
             for o in ir.get_output_vars():
                 o.block = self
@@ -1021,24 +1036,53 @@ class irBlock(IR):
                     assert o.var_name in self.globals
                     o.type = self.globals[o.var_name].type
                     
-                    if o.basename not in defines:
-                        target = add_reg(o.basename, datatype=o.type, lineno=-1)
-                        target.block = self
+                    # if o.basename not in defines:
+                    #     target = add_reg(o.basename, datatype=o.type, lineno=-1)
+                    #     target.block = self
 
-                        defines[target.basename] = target
-                        self.defines[target.basename] = target
+                    #     defines[target.basename] = target
+                    #     self.defines[target.basename] = target
 
-                    ref_o = copy(o)
-                    basename = o.basename
-                    o.clone(defines[basename])
-                    o.var_name = basename
+                    # ref_o = copy(o)
+                    # basename = o.basename
+                    # o.clone(defines[basename])
+                    # o.var_name = basename
 
-                    stores[o] = ref_o
+                    # stores[o] = ref_o
+
+                    ref_addr_name = f'&{o.basename}'
+
+                    if True:
+                    # if ref_addr_name not in defines:
+                        ref_addr = self.add_temp(ref_addr_name, lineno=-1)
+                        # ref_addr = self.add_temp(lineno=-1)
+                        ref_addr.is_temp = True
+                        # defines[ref_addr_name] = ref_addr
+
+                        lookup = irLookup(ref_addr, copy(o), lineno=-1)
+                        lookup.block = self
+                        new_code.append(lookup)
+
+                    store = irStore(o, ref_addr, lineno=ir.lineno)
+                    store.block = self
+                    new_code.append(store)
+
+                    target = add_reg(o.basename, datatype=o.type, lineno=-1)
+                    target.block = self
+
+                    defines[target.basename] = target
+                    self.defines[target.basename] = target
+                    o.clone(target)
+
+                    # scanned.append(lookup)
+                    # scanned.append(store)
+
+                    # stored.append(reg.name)
 
                 if o.basename in defines:
                     o.type = defines[o.basename].type
 
-            new_code.append(ir)
+            # new_code.append(ir)
 
         changed = self.code != new_code
 
@@ -1503,6 +1547,8 @@ class irFunc(IR):
         self.code = [] # output IR
         self.globals = global_vars
 
+        self.next_temp = 0
+
         ZERO = irVar(0, 'i32', lineno=-1)
         ZERO.is_const = True
 
@@ -1529,6 +1575,19 @@ class irFunc(IR):
 
     def get_zero(self, lineno=None):
         return self.consts['0']
+
+    def add_temp(self, basename='', data_type=None, lineno=None):
+        name = '%' + str(self.next_temp)
+        
+        if len(basename) > 0:
+            name = f'{basename}.{name}'
+
+        self.next_temp += 1
+
+        ir = irVar(name, datatype=data_type, lineno=lineno)
+        ir.is_temp = True
+
+        return ir
 
     @property
     def blocks(self):
@@ -3530,7 +3589,8 @@ class irVar(IR):
         self.block.func.ssa_next_val[self.basename] += 1
 
     def clone(self, source):
-        assert self.basename == source.basename
+        # assert self.basename == source.basename
+        self.var_name = source.var_name
 
         # clone source attributes to self
         self.ssa_version = source.ssa_version

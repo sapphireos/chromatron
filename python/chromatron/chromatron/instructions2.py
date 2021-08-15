@@ -186,6 +186,7 @@ class insFunc(object):
 
         self.registers = [0] * self.register_count
         registers = self.registers # just makes debugging a bit easier
+        memory = self.memory
 
         self.return_val = 0
 
@@ -369,7 +370,8 @@ class insLoadMemory(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.registers[self.dest.reg] = vm.memory[self.src.reg]
+        src = vm.registers[self.src.reg]
+        vm.registers[self.dest.reg] = vm.memory[src]
 
     def assemble(self):
         bc = [self.opcode]
@@ -392,7 +394,8 @@ class insStoreMemory(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.memory[self.dest.reg] = vm.registers[self.src.reg]
+        dest = vm.registers[self.dest.reg]
+        vm.memory[dest] = vm.registers[self.src.reg]
 
     def assemble(self):
         bc = [self.opcode]

@@ -219,6 +219,9 @@ class Builder(object):
 
         return func
 
+    def finish_func(self, func):
+        func.next_temp = self.next_temp
+
     def label(self, name, lineno=None):
         if name not in self.labels:
             self.labels[name] = 0
