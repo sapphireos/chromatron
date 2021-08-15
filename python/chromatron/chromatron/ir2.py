@@ -2025,8 +2025,8 @@ class irFunc(IR):
         # if these trigger, it is possible that the SSA construction was missing a Phi node,
         # so there exists a code path where a variable is not defined (and thus, has its liveness killed),
         # so that var will "leak" to the top.
-        # assert len(self.live_in[code[0]]) == len(self.params)
-        # assert len(self.live_out[code[0]]) == len(self.params)
+        assert len(self.live_in[code[0]]) == len(self.params)
+        assert len(self.live_out[code[0]]) == len(self.params)
 
         # copy liveness information into instructions:
         for ir in code:
@@ -2332,7 +2332,7 @@ class irFunc(IR):
 
         iterations = 0
         iteration_limit = 512
-        while self.leader_block.init_vars(scanned, defines=defines):
+        while self.leader_block.init_vars(scanned, defines=copy(defines)):
             iterations += 1
 
             if iterations > iteration_limit:
