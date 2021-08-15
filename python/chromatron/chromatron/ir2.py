@@ -3085,24 +3085,9 @@ class irVectorAssign(IR):
     def get_output_vars(self):
         return []
 
-class irObjectAssign(IR):
-    def __init__(self, target, value, **kwargs):
-        super().__init__(**kwargs)
-        self.target = target
-        self.value = value
-        
-    def __str__(self):
-        return '*%s =(object) %s' % (self.target, self.value)
-
-    def get_input_vars(self):
-        return [self.value]
-
-    def get_output_vars(self):
-        return []
-
 class irVectorOp(IR):
     def __init__(self, op, target, value, **kwargs):
-        super(irVectorOp, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.op = op
         self.target = target
         self.value = value
@@ -3142,6 +3127,39 @@ class irVectorOp(IR):
     #     else:
     #         return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
 
+
+class irObjectAssign(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        return '*%s =(object) %s' % (self.target, self.value)
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return []
+
+class irObjectOp(IR):
+    def __init__(self, op, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.op = op
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        s = '*%s %s=(object) %s' % (self.target, self.op, self.value)
+
+        return s
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return []
 
 # Load constant to register
 class irLoadConst(IR):

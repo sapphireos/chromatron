@@ -288,7 +288,13 @@ class Builder(object):
         return target
 
     def augassign(self, op, target, value, lineno=None):
-        if target.is_ref and target.ref.is_array and len(target.lookups) == 0:
+        if target.is_obj:
+            ir = irObjectOp(op, target, value, lineno=lineno)
+            self.append_node(ir)
+
+            return
+
+        elif target.is_ref and target.ref.is_array and len(target.lookups) == 0:
             ir = irVectorOp(op, target.ref, value, lineno=lineno)
             self.append_node(ir)
 

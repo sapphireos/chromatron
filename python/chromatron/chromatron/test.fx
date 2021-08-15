@@ -71,7 +71,7 @@ a = Number()[4] # array of 4 Numbers
 def obj():
     # b = Number()
 
-    pixels[0].hue = 1
+    pixels[0].hue = 1 
 
     # pass
     # a = 1 + 2
