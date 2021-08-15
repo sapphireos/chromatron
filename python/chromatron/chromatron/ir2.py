@@ -248,15 +248,15 @@ class irBlock(IR):
 
             ir_s = f'{depth}|\t{str(ir):48}'
 
-            if self.func.live_in and ir in self.func.live_in:
-                s += f'{ir_s}\n'
-                ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
-                outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
-                s += f'{depth}|\t  in:  {ins}\n'
-                s += f'{depth}|\t  out: {outs}\n'
+            # if self.func.live_in and ir in self.func.live_in:
+            #     s += f'{ir_s}\n'
+            #     ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
+            #     outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
+            #     s += f'{depth}|\t  in:  {ins}\n'
+            #     s += f'{depth}|\t  out: {outs}\n'
 
-            else:
-                s += f'{ir_s}\n'
+            # else:
+            s += f'{ir_s}\n'
 
         s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
 
@@ -2025,8 +2025,13 @@ class irFunc(IR):
         # if these trigger, it is possible that the SSA construction was missing a Phi node,
         # so there exists a code path where a variable is not defined (and thus, has its liveness killed),
         # so that var will "leak" to the top.
-        assert len(self.live_in[code[0]]) == len(self.params)
-        assert len(self.live_out[code[0]]) == len(self.params)
+        for v in self.live_in[code[0]]:
+            if v not in self.params:
+                raise CompilerFatal(f'Liveness error')
+
+        for v in self.live_out[code[0]]:
+            if v not in self.params:
+                raise CompilerFatal(f'Liveness error')
 
         # copy liveness information into instructions:
         for ir in code:
