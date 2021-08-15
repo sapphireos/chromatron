@@ -2389,7 +2389,7 @@ class irFunc(IR):
         self.resolve_phi()
         
 
-        return
+        # return
         
 
         # blocks may have been rearranged or added at this point
@@ -3754,13 +3754,36 @@ class irLookup(IR):
         return [self.result]
 
     def generate(self):
-        lookups = [i.generate() for i in self.lookups]
-        base_addr = self.target.ref.generate()
-        assert base_addr is not None # memory must be allocated first!
+        indexes = [i.generate() for i in self.lookups]
+        counts = []
+        strides = []
 
-        result = self.result.generate()
+        target = self.target.ref
 
-        print(result, base_addr, lookups)
+        for i in range(len(self.lookups)):
+            count = target.dimensions[i]
+            counts.append(count)
+            
+            # if isinstance(target, irRecord):
+            #     target = target.get_field_from_offset(self.lookups[i])
+            #     stride = 0
+
+            # else:
+            # target = target.type
+            stride = target.element_length
+
+            strides.append(stride)
+        
+
+        return insLookup(self.result.generate(), target.generate(), indexes, counts, strides, lineno=self.lineno)
+
+        # lookups = [i.generate() for i in self.lookups]
+        # base_addr = self.target.ref.generate()
+        # assert base_addr is not None # memory must be allocated first!
+
+        # result = self.result.generate()
+
+        # print(result, base_addr, lookups)
 
 class irAttribute(irVar):
     def __init__(self, *args, **kwargs):

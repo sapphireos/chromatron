@@ -69,9 +69,25 @@ a = Number()[4] # array of 4 Numbers
 # pixels = Object()
 
 def obj():
-    # b = Number()
+    b = Number()
 
-    pixels[0].hue = 1 
+    # pixels[0].hue = 1 
+
+    a[b] = 1
+
+    return a[b]
+
+    # a[1] = 2
+
+    # return a[0] + a[1]
+
+    # i = Number()
+    # while i < 4:
+    #     a[i] = i + 1
+
+    #     i += 1
+
+    # return a[0] + a[1]
 
     # pass
     # a = 1 + 2

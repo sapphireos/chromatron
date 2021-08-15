@@ -403,20 +403,39 @@ class insStoreMemory(BaseInstruction):
 
 class insLookup(BaseInstruction):
     mnemonic = 'LKP'
-
-    def __init__(self, dest, src, **kwargs):
+    
+    def __init__(self, result, base_addr, indexes, counts, strides, **kwargs):
         super().__init__(**kwargs)
-        self.dest = dest
-        self.src = src
+        self.result = result
+        self.base_addr = base_addr
+        self.indexes = indexes
+        self.counts = counts
+        self.strides = strides
 
-        assert self.src is not None
+        assert base_addr is not None
 
     def __str__(self):
-        return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index)
+        return "%s %s <- %s %s" % (self.mnemonic, self.result, self.base_addr, indexes)
 
     def execute(self, vm):
-        vm.registers[self.dest.reg] = 0
+        addr = self.base_addr
 
+        for i in range(len(self.indexes)):
+            index = vm.registers[self.indexes[i].reg]
+            
+            count = self.counts[i]
+            stride = self.strides[i]            
+
+            if count > 0:
+                index %= count
+                index *= stride
+
+            addr += index
+
+        vm.registers[self.result.reg] = addr
 
 class insLabel(BaseInstruction):
     def __init__(self, name=None, **kwargs):
