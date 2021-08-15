@@ -550,7 +550,7 @@ class cg1Attribute(cg1CodeNode):
             builder.start_lookup(lineno=self.lineno)
 
         target = self.obj.build(builder, depth=depth + 1)
-        builder.add_lookup(self.attr, lineno=self.lineno)      
+        builder.add_lookup(self.attr, is_attr=True, lineno=self.lineno)      
 
         if depth == 0:
             return builder.finish_lookup(target, is_attr=True, lineno=self.lineno)

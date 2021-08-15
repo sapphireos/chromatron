@@ -248,7 +248,7 @@ class Builder(object):
 
     def assign(self, target, value, lineno=None):
         if target.is_obj:
-            raise Exception
+            ir = irObjectAssign(target, value, lineno=lineno)
 
         elif target.is_ref and target.ref.is_array and len(target.lookups) == 0:
             ir = irVectorAssign(target.ref, value, lineno=lineno)
@@ -413,7 +413,10 @@ class Builder(object):
     def start_lookup(self, lineno=None):
         self.current_lookup.insert(0, [])
 
-    def add_lookup(self, index, lineno=None):
+    def add_lookup(self, index, is_attr=False, lineno=None):
+        if is_attr:
+            index = irAttribute(index, lineno=lineno)
+
         self.current_lookup[0].append(index)
 
     def finish_lookup(self, target, is_attr=False, lineno=None):

@@ -3072,12 +3072,27 @@ class irAssign(IR):
 
 class irVectorAssign(IR):
     def __init__(self, target, value, **kwargs):
-        super(irVectorAssign, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.target = target
         self.value = value
         
     def __str__(self):
         return '*%s =(vector) %s' % (self.target, self.value)
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return []
+
+class irObjectAssign(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        return '*%s =(object) %s' % (self.target, self.value)
 
     def get_input_vars(self):
         return [self.value]
@@ -3534,7 +3549,7 @@ class irVar(IR):
             return None
     @property
     def basename(self):
-        if self.is_ref:
+        if self.is_ref or self.is_obj:
             lookups = ''
             for lookup in self.lookups:
                 if isinstance(lookup, irAttribute):
@@ -3728,34 +3743,6 @@ class irLookup(IR):
         result = self.result.generate()
 
         print(result, base_addr, lookups)
-
-# class irRef(IR):
-#     def __init__(self, ref, lookups, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         # if isinstance(target, irRef):
-#         #     self.target = target.target
-
-#         # else:
-#         self.ref = ref
-#         self.lookups = lookups
-
-#         self.is_const = False
-#         # self.is_temp = True
-
-#     @property
-#     def name(self):
-#         if len(self.lookups) == 0:
-#             return f'*{self.ref._name}'
-
-#         else:
-#             return f'*{self.ref._name}{self.lookups}'
-
-#     def __str__(self):
-#         # if self.type:
-#         #     return "Ref(%s:%s)" % (self.name, self.type)
-
-#         # else:
-#         return self.name
 
 class irAttribute(irVar):
     def __init__(self, *args, **kwargs):
