@@ -1107,7 +1107,7 @@ def main():
     path = sys.argv[1]
     script_name = os.path.split(path)[1]
 
-    setup_basic_logging()
+    setup_basic_logging(show_thread=False)
 
     logging.info(f'Compiling: {script_name}')
 

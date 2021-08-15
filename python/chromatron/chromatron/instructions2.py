@@ -222,6 +222,7 @@ class insFunc(object):
                     pc = labels[ret_val.name]
                 
             except ReturnException:
+                logging.info(f'VM ran func {self.name} in {cycles} cycles. Returned: {self.return_val}')
                 return self.return_val
                 # if len(return_stack) == 0:
                 #     # program is complete
