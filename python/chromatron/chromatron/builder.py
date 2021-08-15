@@ -135,9 +135,6 @@ class Builder(object):
         self.named_consts[name] = ir
 
         return ir
-
-    def add_var(self, name, data_type=None, dimensions=[], lineno=None):
-        return self.build_var(name, data_type, dimensions, lineno=lineno)
     
     def build_var(self, name, data_type=None, dimensions=[], lineno=None):
         if data_type in PRIMITIVE_TYPES:
@@ -159,7 +156,7 @@ class Builder(object):
             # if len(keywords) > 0:
             #     raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
 
-            var = self.add_var(name, data_type, dimensions, lineno=lineno)
+            var = self.build_var(name, data_type, dimensions, lineno=lineno)
             
             ir = irDefine(var, lineno=lineno)
 
@@ -220,7 +217,7 @@ class Builder(object):
         return func
 
     def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
-        ir = self.add_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
+        ir = self.build_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
         
         func.params.append(ir)
 
