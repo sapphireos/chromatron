@@ -1762,7 +1762,7 @@ class irFunc(IR):
         s += "********************************\n"
         s += f'Registers: {len(self.registers)}\n'
         for var, reg in self.registers.items():
-            s += f'\t{str(var):24}: {reg}\n'
+            s += f'\t{var.name:24}: {reg}\n'
         
         return s
 
