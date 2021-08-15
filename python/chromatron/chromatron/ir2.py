@@ -939,10 +939,10 @@ class irBlock(IR):
 
                 if i.is_const:
                     if i.basename not in defines:
-                        target = add_const_temp(i.basename, datatype=i.type, lineno=-1)
+                        target = add_const_temp(i.basename, datatype=i.type, lineno=ir.lineno)
                         target.block = self
 
-                        load = irLoadConst(target, i, lineno=-1)
+                        load = irLoadConst(target, i, lineno=ir.lineno)
                         load.block = self
 
                         defines[target.basename] = target
@@ -962,17 +962,17 @@ class irBlock(IR):
                     
                     ref_addr_name = f'&{i.basename}'
 
-                    ref_addr = self.add_temp(ref_addr_name, lineno=-1)
+                    ref_addr = self.add_temp(ref_addr_name, lineno=ir.lineno)
                     ref_addr.is_temp = True
                     
-                    lookup = irLookup(ref_addr, copy(i), lineno=-1)
+                    lookup = irLookup(ref_addr, copy(i), lineno=ir.lineno)
                     lookup.block = self
                     new_code.append(lookup)
 
-                    target = self.add_temp(i.basename, lineno=-1)
+                    target = self.add_temp(i.basename, lineno=ir.lineno)
                     target.block = self
 
-                    load = irLoad(target, ref_addr, lineno=-1)
+                    load = irLoad(target, ref_addr, lineno=ir.lineno)
                     load.block = self
 
                     new_code.append(load)
@@ -981,7 +981,7 @@ class irBlock(IR):
 
                 if i.basename in defines:
                     i.type = defines[i.basename].type
-                    
+
             
             new_code.append(ir)
 
@@ -996,10 +996,10 @@ class irBlock(IR):
                     
                     ref_addr_name = f'&{o.basename}'
                 
-                    ref_addr = self.add_temp(ref_addr_name, lineno=-1)
+                    ref_addr = self.add_temp(ref_addr_name, lineno=ir.lineno)
                     ref_addr.is_temp = True
 
-                    lookup = irLookup(ref_addr, copy(o), lineno=-1)
+                    lookup = irLookup(ref_addr, copy(o), lineno=ir.lineno)
                     lookup.block = self
                     new_code.append(lookup)
 
@@ -1007,7 +1007,7 @@ class irBlock(IR):
                     store.block = self
                     new_code.append(store)
 
-                    target = add_reg(o.basename, datatype=o.type, lineno=-1)
+                    target = add_reg(o.basename, datatype=o.type, lineno=ir.lineno)
                     target.block = self
 
                     defines[target.basename] = target
@@ -3754,7 +3754,13 @@ class irLookup(IR):
         target = self.target.ref
 
         for i in range(len(self.lookups)):
-            count = target.dimensions[i]
+            try:
+                count = target.dimensions[i]
+
+            except IndexError:
+
+                raise SyntaxError(f'{target.basename} has only {len(target.dimensions)} dimensions, requested {len(self.lookups)}', lineno=self.lineno)
+
             counts.append(count)
             
             # if isinstance(target, irRecord):
