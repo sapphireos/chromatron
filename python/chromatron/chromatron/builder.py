@@ -219,6 +219,13 @@ class Builder(object):
 
         return func
 
+    def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
+        ir = self.add_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
+        
+        func.params.append(ir)
+
+        return ir
+
     def finish_func(self, func):
         func.next_temp = self.next_temp
 

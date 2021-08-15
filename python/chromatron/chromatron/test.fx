@@ -56,11 +56,35 @@
 
 
 
-a = Number()[4]
-def obj():
+
+
+
+ary = Number()[4]
+
+def array_lookup():
+    b = Number()
+    ary[b] = 1
+    b = 1
+    ary[b] = 2
+
+    assert ary[0] == 1
+    assert ary[1] == 2
+    assert ary[2] == 0
+    assert ary[3] == 0
+
+
+# a = Number()[4]
+# def obj(a: Number):
+# # def obj():
+#     # pass
+
+#     a += 1
+#     return a
+    # pass
+
     # b = Number()
 
-    return len(a)
+    # return len(a)
 
     # b += a
 

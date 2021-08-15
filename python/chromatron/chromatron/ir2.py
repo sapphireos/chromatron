@@ -202,7 +202,6 @@ class irBlock(IR):
         self.successors = []
         self.code = []
         self.locals = {}
-        self.params = {}
         self.func = func
         self.globals = self.func.globals
         self.defines = {}
@@ -239,10 +238,6 @@ class irBlock(IR):
         for p in self.successors:
             s += f'{depth}|\t{p.name}\n'
 
-        s += f'{depth}| Params:\n'
-        for p in self.params.values():
-            s += f'{depth}|\t{p}\n'
-
         lines_printed = []
         s += f'{depth}| Code:\n'
         for ir in self.code:
@@ -253,15 +248,15 @@ class irBlock(IR):
 
             ir_s = f'{depth}|\t{str(ir):48}'
 
-            # if self.func.live_in and ir in self.func.live_in:
-            #     s += f'{ir_s}\n'
-            #     ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
-            #     outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
-            #     s += f'{depth}|\t  in:  {ins}\n'
-            #     s += f'{depth}|\t  out: {outs}\n'
+            if self.func.live_in and ir in self.func.live_in:
+                s += f'{ir_s}\n'
+                ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
+                outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
+                s += f'{depth}|\t  in:  {ins}\n'
+                s += f'{depth}|\t  out: {outs}\n'
 
-            # else:
-            s += f'{ir_s}\n'
+            else:
+                s += f'{ir_s}\n'
 
         s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
 
@@ -315,10 +310,6 @@ class irBlock(IR):
     @property
     def is_terminator(self):
         return len(self.successors) == 0    
-
-    # @property
-    # def params(self):
-        # return [v for v in self.input_vars if not v.is_temp and not v.is_const]
 
     @property
     def global_input_vars(self):
@@ -904,11 +895,9 @@ class irBlock(IR):
     
     """
 
-    def init_vars(self, scanned, defines=None, stores=None):
+    def init_vars(self, scanned, defines=None):
         if defines is None:
             defines = {}
-            stores = {}
-
 
         new_code = []
         for ir in self.code:
@@ -1027,7 +1016,7 @@ class irBlock(IR):
             return changed
 
         for c in self.func.dominator_tree[self]:
-            if c.init_vars(scanned, copy(defines), copy(stores)):
+            if c.init_vars(scanned, copy(defines)):
                 changed = True
 
         return changed
@@ -1607,6 +1596,13 @@ class irFunc(IR):
         s = "\n######## Line %4d       ########\n" % (self.lineno)
         s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
 
+        s += "********************************\n"
+        s += "Params:\n"
+        s += "********************************\n"
+
+        for v in self.params:
+            s += f'\t{v.name:16}:{v.type}\n'
+
         # s += "********************************\n"
         # s += "Locals:\n"
         # s += "********************************\n"
@@ -2029,8 +2025,8 @@ class irFunc(IR):
         # if these trigger, it is possible that the SSA construction was missing a Phi node,
         # so there exists a code path where a variable is not defined (and thus, has its liveness killed),
         # so that var will "leak" to the top.
-        assert len(self.live_in[code[0]]) == len(self.params)
-        assert len(self.live_out[code[0]]) == len(self.params)
+        # assert len(self.live_in[code[0]]) == len(self.params)
+        # assert len(self.live_out[code[0]]) == len(self.params)
 
         # copy liveness information into instructions:
         for ir in code:
@@ -2075,7 +2071,7 @@ class irFunc(IR):
         # perform a dataflow analysis
         outputs = self.local_output_vars
         for i in self.local_input_vars:
-            if i not in outputs:
+            if i not in outputs and i not in self.params:
                 raise CompilerFatal(f'Variable {i} used without define')
 
 
@@ -2086,6 +2082,9 @@ class irFunc(IR):
 
     def convert_to_ssa(self):
         logging.debug(f'Converting function: {self.name} to SSA')
+
+        for p in self.params:
+            p.convert_to_ssa()
 
         blocks = self.blocks.values()
         
@@ -2324,9 +2323,16 @@ class irFunc(IR):
     def init_vars(self):
         scanned = []
 
+        defines = {}
+        for v in self.params:
+            defines[v.basename] = v
+            v.block = self.leader_block
+        
+        self.leader_block.defines.update(defines)
+
         iterations = 0
         iteration_limit = 512
-        while self.leader_block.init_vars(scanned):
+        while self.leader_block.init_vars(scanned, defines=defines):
             iterations += 1
 
             if iterations > iteration_limit:
@@ -2351,7 +2357,7 @@ class irFunc(IR):
         # return
 
         self.convert_to_ssa()    
-
+        # return
         # checks
         self.verify_block_links()
         self.verify_block_assignments()

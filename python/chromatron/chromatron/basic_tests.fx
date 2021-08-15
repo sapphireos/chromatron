@@ -148,3 +148,7 @@ def array2_lookup():
     
 
 
+def func_param(a: Number):
+    a += 1
+    
+    assert a == 1
