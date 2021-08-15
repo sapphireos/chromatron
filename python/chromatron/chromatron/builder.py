@@ -61,7 +61,7 @@ class Builder(object):
             # return self.globals[name]
             raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
-        ir = self.build_var(name, data_type, dimensions, lineno=lineno)
+        ir = self.build_var(name, data_type, dimensions, keywords, lineno=lineno)
         ir.is_global = True
         self.globals[name] = ir
 
@@ -136,18 +136,21 @@ class Builder(object):
 
         return ir
     
-    def build_var(self, name, data_type=None, dimensions=[], lineno=None):
+    def build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
         if data_type in PRIMITIVE_TYPES:
             return irVar(name, data_type, dimensions, lineno=lineno)
+
+        elif data_type == 'str':
+            return irString(name, lineno=lineno, **keywords) 
 
         elif data_type in self.structs:
             return self.structs[data_type](name, dimensions, lineno=lineno)
 
-        raise CompilerFatal('unknown type')
+        raise CompilerFatal(f'Unknown type {data_type}')
 
     def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
-        if data_type not in PRIMITIVE_TYPES and data_type not in self.structs:
-            raise SyntaxError(f'Type {data_type} is unknown')
+        if data_type not in PRIMITIVE_TYPES and data_type not in self.structs and data_type != 'str':
+            raise SyntaxError(f'Type {data_type} is unknown', lineno=lineno)
 
         if is_global:
             return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
@@ -156,7 +159,7 @@ class Builder(object):
             # if len(keywords) > 0:
             #     raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
 
-            var = self.build_var(name, data_type, dimensions, lineno=lineno)
+            var = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
             
             ir = irDefine(var, lineno=lineno)
 

@@ -3706,6 +3706,34 @@ class irVar(IR):
             assert self.register is None
             return self.addr
 
+class irString(irVar):
+    def __init__(self, name, length=None, init_val=None, **kwargs):
+        super().__init__(name, 'str', **kwargs)        
+
+        if init_val is not None:
+            self._value = init_val
+            length = len(self._value)    
+
+        else:
+            self._value = ''
+            assert length is not None
+
+        if length is not None:
+            self.dimensions = [length]
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def element_length(self):
+        return len(self._value) // 4 + 1
+
+    @property
+    def total_length(self):
+        return self.element_length
+
+
 class irStruct(irVar):
     def __init__(self, name, data_type, fields, **kwargs):
         super().__init__(name, data_type, **kwargs)        
