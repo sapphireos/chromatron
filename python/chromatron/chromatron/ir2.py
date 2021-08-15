@@ -933,32 +933,6 @@ class irBlock(IR):
                 new_code.append(assign)
                 continue
 
-            elif isinstance(ir, irReturn): # function exit point
-                # check for stores
-                stored = []
-
-                for reg, ref in stores.items():
-                    # check for duplicates (since we store the entire var object in the key instead of just the name)
-                    if reg.name in stored:
-                        continue
-
-                    ref_addr_name = f'&{ref.basename}'
-
-                    if ref_addr_name not in defines:
-                        ref_addr = add_reg(ref_addr_name, lineno=-1)
-                        # ref_addr = self.add_temp(lineno=-1)
-                        ref_addr.is_temp = True
-                        defines[ref_addr_name] = ref_addr
-
-                        lookup = irLookup(defines[ref_addr_name], copy(ref), lineno=-1)
-                        lookup.block = self
-                        new_code.append(lookup)
-
-                    store = irStore(copy(reg), defines[ref_addr_name], lineno=ir.lineno)
-                    store.block = self
-                    new_code.append(store)
-                    stored.append(reg.name)
-
 
             for i in ir.get_input_vars():
                 i.block = self
@@ -986,44 +960,28 @@ class irBlock(IR):
                     # since this is an input, we need to load from that ref
                     # to a register and then replace with that.
                     
-                    # if i.basename not in defines:
-                    if True:
-                        ref_addr_name = f'&{i.basename}'
+                    ref_addr_name = f'&{i.basename}'
 
-                        # if ref_addr_name not in defines:
-                        if True:
-                            # ref_addr = add_reg(ref_addr_name, lineno=-1)
-                            ref_addr = self.add_temp(ref_addr_name, lineno=-1)
-                            ref_addr.is_temp = True
-                            # defines[ref_addr_name] = ref_addr
-                            
-                            lookup = irLookup(ref_addr, copy(i), lineno=-1)
-                            lookup.block = self
-                            new_code.append(lookup)
+                    ref_addr = self.add_temp(ref_addr_name, lineno=-1)
+                    ref_addr.is_temp = True
+                    
+                    lookup = irLookup(ref_addr, copy(i), lineno=-1)
+                    lookup.block = self
+                    new_code.append(lookup)
 
-                        # target = add_reg(i.basename, datatype=i.type, lineno=-1)
-                        target = self.add_temp(i.basename, lineno=-1)
-                        target.block = self
+                    target = self.add_temp(i.basename, lineno=-1)
+                    target.block = self
 
-                        load = irLoad(target, ref_addr, lineno=-1)
-                        load.block = self
+                    load = irLoad(target, ref_addr, lineno=-1)
+                    load.block = self
 
-                        # defines[i.basename] = target
-                        # self.defines[i.basename] = target
+                    new_code.append(load)
 
-                        # defines[target.basename] = target
-                        # self.defines[target.basename] = target
-
-                        new_code.append(load)
-
-                    # basename = i.basename
-                    # i.clone(defines[basename])
                     i.clone(target)
-                    # i.var_name = basename
 
                 if i.basename in defines:
                     i.type = defines[i.basename].type
-
+                    
             
             new_code.append(ir)
 
@@ -1036,32 +994,14 @@ class irBlock(IR):
                     assert o.var_name in self.globals
                     o.type = self.globals[o.var_name].type
                     
-                    # if o.basename not in defines:
-                    #     target = add_reg(o.basename, datatype=o.type, lineno=-1)
-                    #     target.block = self
-
-                    #     defines[target.basename] = target
-                    #     self.defines[target.basename] = target
-
-                    # ref_o = copy(o)
-                    # basename = o.basename
-                    # o.clone(defines[basename])
-                    # o.var_name = basename
-
-                    # stores[o] = ref_o
-
                     ref_addr_name = f'&{o.basename}'
+                
+                    ref_addr = self.add_temp(ref_addr_name, lineno=-1)
+                    ref_addr.is_temp = True
 
-                    if True:
-                    # if ref_addr_name not in defines:
-                        ref_addr = self.add_temp(ref_addr_name, lineno=-1)
-                        # ref_addr = self.add_temp(lineno=-1)
-                        ref_addr.is_temp = True
-                        # defines[ref_addr_name] = ref_addr
-
-                        lookup = irLookup(ref_addr, copy(o), lineno=-1)
-                        lookup.block = self
-                        new_code.append(lookup)
+                    lookup = irLookup(ref_addr, copy(o), lineno=-1)
+                    lookup.block = self
+                    new_code.append(lookup)
 
                     store = irStore(o, ref_addr, lineno=ir.lineno)
                     store.block = self
@@ -1074,15 +1014,8 @@ class irBlock(IR):
                     self.defines[target.basename] = target
                     o.clone(target)
 
-                    # scanned.append(lookup)
-                    # scanned.append(store)
-
-                    # stored.append(reg.name)
-
                 if o.basename in defines:
                     o.type = defines[o.basename].type
-
-            # new_code.append(ir)
 
         changed = self.code != new_code
 
