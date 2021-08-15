@@ -255,6 +255,9 @@ class Builder(object):
 
         elif target.is_ref and target.ref.is_array and len(target.lookups) == 0:
             ir = irVectorAssign(target.ref, value, lineno=lineno)
+        
+        elif value.is_ref and value.ref.is_array and len(value.lookups) == 0:
+            raise SyntaxError(f'Cannot vector assign from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
 
         elif value.is_const:
             ir = irLoadConst(target, value, lineno=lineno)
@@ -302,6 +305,9 @@ class Builder(object):
             self.append_node(ir)
 
             return
+
+        elif value.is_ref and value.ref.is_array and len(value.lookups) == 0:
+            raise SyntaxError(f'Cannot vector op from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
 
         result = self.binop(op, target, value, lineno=lineno)
 
