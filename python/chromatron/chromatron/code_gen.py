@@ -604,8 +604,7 @@ class cg1StrLiteral(cg1CodeNode):
         self.s = s
 
     def build(self, builder):
-        return self.s
-        # return builder.add_string(self.s, lineno=self.lineno)
+        return builder.add_string(self.s, lineno=self.lineno)
 
 
 class CodeGenPass1(ast.NodeVisitor):

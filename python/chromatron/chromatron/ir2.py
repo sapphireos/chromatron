@@ -982,8 +982,9 @@ class irBlock(IR):
                 assert not o.is_const
 
                 if o.is_ref:
-                    assert o.var_name in self.globals
-                    o.type = self.globals[o.var_name].type
+                    # assert o.var_name in self.globals
+                    if o.var_name in self.globals:
+                        o.type = self.globals[o.var_name].type
                     
                     ref_addr_name = f'&{o.basename}'
                 
@@ -3557,7 +3558,11 @@ class irVar(IR):
         return hash(self.name)
 
     def __eq__(self, other):
-        return self.name == other.name  
+        try:
+            return self.name == other.name
+
+        except AttributeError:
+            return self.name == other
 
     def convert_to_ssa(self):
         assert self.ssa_version is None
@@ -3712,7 +3717,7 @@ class irString(irVar):
 
         if init_val is not None:
             self._value = init_val
-            length = len(self._value)    
+            length = self._value.strlen
 
         else:
             self._value = ''
@@ -3732,6 +3737,34 @@ class irString(irVar):
     @property
     def total_length(self):
         return self.element_length
+
+class irStrLiteral(irVar):
+    def __init__(self, string, **kwargs):
+        super().__init__(string, **kwargs)
+        self.strlen = len(self.name)
+
+        if self.strlen == 0:
+            raise SyntaxError("String %s has 0 characters" % (args[0]))
+
+        # self.strdata = self.name
+        # check for empty string (reserving storage padded with nulls)
+        # we will want a more descriptive name
+        # if self.name[0] == '\0':
+        #     self.name = '**empty %d chars**' % (self.strlen)
+        #     self.strdata = '\0' * self.strlen
+
+        self.addr = None
+        self.length = 1 # this is a reference to a string, so the length is 1
+        self.ref = None
+
+        self.size = int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
+        
+    def __str__(self):
+        return 'StrLiteral("%s")[%d]' % (self.name, self.strlen)
+
+    # def generate(self):
+    #     assert self.addr != None
+    #     return insAddr(self.ref, self, lineno=self.lineno)
 
 
 class irStruct(irVar):

@@ -55,15 +55,22 @@
 # change to system library call.
 
 
+def func_param(a: Number):
+    a += 1
+    
+    assert a == 1
 
-s = String("hello!")
+# s = String("hello!")
 
-# a = Number()[4]
-# def obj(a: Number):
-def obj():
+# # a = Number()[4]
+# # def obj(a: Number):
+# def obj():
 
+#     s2 = String()
+#     # s2 = s
+#     s2 = "meow"
 
-    pass
+#     pass
 
 #     a += 1
 #     return a

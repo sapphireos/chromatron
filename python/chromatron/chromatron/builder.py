@@ -20,6 +20,7 @@ class Builder(object):
         self.globals = {}
         self.named_consts = {}
         self.structs = {}
+        self.strings = {}
 
         self.next_temp = 0
 
@@ -32,6 +33,8 @@ class Builder(object):
         self.loop_body = []
         self.loop_end = []
 
+        self.locals = {}
+        self.refs = {}
         self.current_lookup = []
         self.current_func = None
 
@@ -55,18 +58,6 @@ class Builder(object):
     ###################################
     # Variables
     ###################################
-
-    def add_global(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
-        if name in self.globals:
-            # return self.globals[name]
-            raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
-
-        ir = self.build_var(name, data_type, dimensions, keywords, lineno=lineno)
-        ir.is_global = True
-        self.globals[name] = ir
-
-        return ir
-
     def add_temp(self, data_type=None, lineno=None):
         name = '%' + str(self.next_temp)
         self.next_temp += 1
@@ -141,7 +132,13 @@ class Builder(object):
             return irVar(name, data_type, dimensions, lineno=lineno)
 
         elif data_type == 'str':
-            return irString(name, lineno=lineno, **keywords) 
+            # var = irString(name, lineno=lineno, **keywords) 
+
+            var = irVar(name, data_type, dimensions, lineno=lineno)
+            var.is_ref = True
+            var.ref = self.strings[keywords['init_val']]
+
+            return var
 
         elif data_type in self.structs:
             return self.structs[data_type](name, dimensions, lineno=lineno)
@@ -152,20 +149,30 @@ class Builder(object):
         if data_type not in PRIMITIVE_TYPES and data_type not in self.structs and data_type != 'str':
             raise SyntaxError(f'Type {data_type} is unknown', lineno=lineno)
 
+        var = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
+
         if is_global:
-            return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
+            if name in self.globals:
+                # return self.globals[name]
+                raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
+
+            var.is_global = True
+            self.globals[name] = var
 
         else:
             # if len(keywords) > 0:
             #     raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
-
-            var = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
             
+            self.locals[name] = var
+
             ir = irDefine(var, lineno=lineno)
 
             self.append_node(ir)
 
-            return var
+        if var.is_ref:
+            self.refs[var.basename] = var
+
+        return var
 
     def get_var(self, name, lineno=None):
         if name in self.named_consts:
@@ -174,7 +181,13 @@ class Builder(object):
         if name in self.globals:
             return self.add_ref(self.globals[name], lineno=lineno)
 
-        return irVar(name, lineno=lineno)
+        # elif name in self.refs:
+        #     return self.add_ref(self.refs[name], lineno=lineno)
+
+        if name in self.locals:
+            return copy(self.locals[name])
+
+        raise CompilerFatal(f'Var not found: {name}')
 
     def create_struct(self, name, fields, lineno=None):
         new_fields = {}
@@ -190,6 +203,17 @@ class Builder(object):
         ir = irStruct(name, name, new_fields, lineno=lineno)
 
         self.structs[name] = ir
+
+    def add_string(self, string, lineno=None):
+        try:
+            ir = self.strings[string]
+
+        except KeyError:
+            ir = irStrLiteral(string, lineno=lineno)
+
+            self.strings[string] = ir
+
+        return ir
 
     ###################################
     # IR instructions
@@ -212,6 +236,7 @@ class Builder(object):
         self.current_func = func
         self.next_temp = 0
         self.refs = {}
+        self.locals = {}
         self.scope_depth = 0
 
         func_label = self.label(f'func:{func.name}', lineno=kwargs['lineno'])
@@ -221,7 +246,7 @@ class Builder(object):
 
     def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
         ir = self.build_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
-        
+        self.locals[name] = ir
         func.params.append(ir)
 
         return ir
