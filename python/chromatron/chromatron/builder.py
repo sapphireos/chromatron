@@ -237,6 +237,22 @@ class Builder(object):
     def position_label(self, label):
         self.append_node(label)
 
+    def call(self, func_name, params, lineno=None):
+        result = self.add_temp(lineno=lineno)
+
+        if func_name in ARRAY_FUNCS:
+            if len(params) != 1:
+                raise SyntaxError("Array functions take one argument", lineno=lineno)
+
+            if func_name == 'len':
+                # since arrays are fixed length, we don't need a libcall, we 
+                # can just do an assignment.
+                array_len = params[0].ref.count
+                const = self.add_const(array_len, lineno=lineno)
+
+                self.assign(result, const, lineno=lineno)
+
+        return result
 
     def ret(self, value, lineno=None):
         ir = irReturn(value, lineno=lineno)

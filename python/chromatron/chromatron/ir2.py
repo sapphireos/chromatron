@@ -16,6 +16,8 @@ source_code = []
 
 COMMUTATIVE_OPS = ['add', 'mul']
 PRIMITIVE_TYPES = ['i32', 'f16']
+ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
+
 
 def set_source_code(source):
     global source_code
@@ -3517,6 +3519,15 @@ class irVar(IR):
     @property
     def obj_id(self):
         return id(self)
+
+    @property
+    def count(self):
+        count = 1
+
+        for dim in self.dimensions:
+            count *= dim
+
+        return count
 
     @property
     def element_length(self):
