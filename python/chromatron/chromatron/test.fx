@@ -68,7 +68,7 @@ def array2_lookup():
     # ary2[b][1] = 5
     # ary2[b][2] = 6
 
-    return ary2[0][3]
+    return ary2[0][0]
 
     # assert ary2[0][0] == 1
     # assert ary2[0][1] == 2

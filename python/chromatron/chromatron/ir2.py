@@ -3763,26 +3763,13 @@ class irLookup(IR):
 
             counts.append(count)
             
-            # if isinstance(target, irRecord):
-            #     target = target.get_field_from_offset(self.lookups[i])
-            #     stride = 0
-
-            # else:
-            # target = target.type
             stride = target.element_length
+            for d in target.dimensions[i + 1:]:
+                stride *= d
 
             strides.append(stride)
-        
-
+    
         return insLookup(self.result.generate(), target.generate(), indexes, counts, strides, lineno=self.lineno)
-
-        # lookups = [i.generate() for i in self.lookups]
-        # base_addr = self.target.ref.generate()
-        # assert base_addr is not None # memory must be allocated first!
-
-        # result = self.result.generate()
-
-        # print(result, base_addr, lookups)
 
 class irAttribute(irVar):
     def __init__(self, *args, **kwargs):
