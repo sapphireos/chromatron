@@ -3125,15 +3125,38 @@ class irObjectAssign(IR):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
+        self.indexes = target.lookups[:-1]
+        self.attr = target.lookups[-1]
         
     def __str__(self):
         return '*%s =(object) %s' % (self.target, self.value)
 
     def get_input_vars(self):
-        return [self.value]
+        inputs = [self.value]
+        inputs.extend(self.indexes)
+        return inputs
 
     def get_output_vars(self):
         return []
+
+class irObjectLoad(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+        self.indexes = value.lookups[:-1]
+        self.attr = value.lookups[-1]
+        
+    def __str__(self):
+        return '*%s =(object) %s' % (self.target, self.value)
+
+    def get_input_vars(self):
+        inputs = []
+        inputs.extend(self.indexes)
+        return inputs
+
+    def get_output_vars(self):
+        return [self.target]
 
 class irObjectOp(IR):
     def __init__(self, op, target, value, **kwargs):
@@ -3141,6 +3164,8 @@ class irObjectOp(IR):
         self.op = op
         self.target = target
         self.value = value
+        self.indexes = target.lookups[:-1]
+        self.attr = target.lookups[-1]
         
     def __str__(self):
         s = '*%s %s=(object) %s' % (self.target, self.op, self.value)
@@ -3148,7 +3173,9 @@ class irObjectOp(IR):
         return s
 
     def get_input_vars(self):
-        return [self.value]
+        inputs = [self.value]
+        inputs.extend(self.indexes)
+        return inputs
 
     def get_output_vars(self):
         return []

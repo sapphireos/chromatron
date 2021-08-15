@@ -253,6 +253,9 @@ class Builder(object):
         if target.is_obj:
             ir = irObjectAssign(target, value, lineno=lineno)
 
+        elif value.is_obj:
+            ir = irObjectLoad(target, value, lineno=lineno)
+
         elif target.is_ref and target.ref.is_array and len(target.lookups) == 0:
             ir = irVectorAssign(target.ref, value, lineno=lineno)
         

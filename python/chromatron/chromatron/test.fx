@@ -56,17 +56,20 @@
 
 
 
-a = Number()[4]
+# a = Number()[4]
 def obj():
-    b = Number()
+    # b = Number()
 
-    b += a
+    # b += a
 
     # return a[b]
 
-#     b = Number()
+    b = Number()
+    b = pixels[7][6].hue
 
-    # pixels[0].hue = 1 
+    return b
+
+    # pixels[7][6].hue += 1 
 
 #     a[b] = 1
 
