@@ -28,6 +28,11 @@ class Var(object):
     def __init__(self, name, data_type=None):
         self.name = name
         self.type = data_type
+        self.addr = None # assigned address of this variable
+
+    @property
+    def size(self): # size in machine words (32 bits)
+        return None
 
     def build(self, name, **kwargs):
         base = deepcopy(self)
@@ -38,7 +43,15 @@ class Var(object):
     def __str__(self):
         return f'{self.name}:{self.type}'
 
-class varScalar(Var):
+class varRegister(Var):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @property
+    def size(self):
+        return 1 # register vars are always size 1
+
+class varScalar(varRegister):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -53,23 +66,36 @@ class varFixed16(varScalar):
     def __init__(self, name, **kwargs):
         super().__init__(name, data_type='f16', **kwargs)
 
-
-class varRef(Var):
-    def __init__(self, name, ref, **kwargs):
+class varRef(varRegister):
+    def __init__(self, name, target, **kwargs):
         super().__init__(name, **kwargs)
-        self.ref = ref
+        self.target = target
 
-class varObject(Var):
+
+class varComposite(Var):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+class varObject(varComposite):
     def __init__(self, name, **kwargs):
         super().__init__(name, data_type='obj', **kwargs)
 
-class varArray(varObject):
-    def __init__(self, name, dimensions=[1], **kwargs):
+class varArray(varComposite):
+    def __init__(self, name, length=1, **kwargs):
         super().__init__(name, data_type='ary', **kwargs)
-        self.dimensions = dimensions
+        self.length = length
 
+class varStruct(varComposite):
+    def __init__(self, name, fields={}, **kwargs):
+        super().__init__(name, data_type='struct', **kwargs)
+        self.fields = fields
 
+class varString(varComposite):
+    def __init__(self, name, max_length=None, **kwargs):
+        super().__init__(name, data_type='str', **kwargs)
+        self.max_length = max_length
 
+ 
 
 _BASE_TYPES = [varInt32('Number'), varFixed16('Fixed16')]
 
