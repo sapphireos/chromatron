@@ -44,7 +44,11 @@ class Var(object):
         return base
 
     def __str__(self):
-        return f'{self.name}:{self.data_type}'
+        if self.addr is None:
+            return f'{self.name}:{self.data_type}'
+
+        else:
+            return f'{self.name}:{self.data_type}@{self.addr}'
 
 class varRegister(Var):
     def __init__(self, *args, **kwargs):
@@ -74,9 +78,11 @@ class varFixed16(varScalar):
 
 class varRef(varRegister):
     def __init__(self, *args, target, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, data_type='ref', **kwargs)
         self.target = target
 
+    def __str__(self):
+        return f'{super().__str__()} -> {self.target}'
 
 class varComposite(Var):
     def __init__(self, *args, **kwargs):
@@ -101,13 +107,17 @@ class varArray(varComposite):
 
     def lookup(self, indexes=[]):
         indexes = deepcopy(indexes)
-        offset = indexes.pop(0)
+        
+        if len(indexes) > 0:
+            offset = indexes.pop(0)
 
-        addr, datatype = self.element_type.lookup(indexes)
+            addr, datatype = self.element_type.lookup(indexes)
 
-        addr += offset
+            addr += offset
 
-        return addr, datatype
+            return addr, datatype
+
+        return 0, self
 
 class varStruct(varComposite):
     def __init__(self, *args, fields={}, **kwargs):
@@ -122,6 +132,9 @@ class varStruct(varComposite):
 
             self._size += field.size
 
+    def __str__(self):
+        return f'Struct({super().__str__()})'
+
     @property
     def size(self):
         return self._size
@@ -135,18 +148,22 @@ class varStruct(varComposite):
 
     def lookup(self, indexes=[]):
         indexes = deepcopy(indexes)
-        index = indexes.pop(0)
 
-        try:
-            return self.fields[index].lookup(indexes)
+        if len(indexes) > 0:
+            index = indexes.pop(0)
 
-        except KeyError:
-            # try looking up by offset
-            for field_name, offset in list(self.offsets.items()):
-                if offset == index:
-                    return self.fields[field_name].lookup(indexes)
+            try:
+                return self.fields[index].lookup(indexes)
 
-            raise
+            except KeyError:
+                # try looking up by offset
+                for field_name, offset in list(self.offsets.items()):
+                    if offset == index:
+                        return self.fields[field_name].lookup(indexes)
+
+                raise
+
+        return 0, self
 
 class varString(varComposite):
     def __init__(self, *args, string=None, max_length=None, **kwargs):
@@ -162,6 +179,9 @@ class varString(varComposite):
             self.max_length = max_length
 
         self._size = int(((self.max_length - 1) / 4) + 2) # space for characters + 32 bit length
+
+    def __str__(self):
+        return f'String({self.value}[{self.max_length}])'
 
     @property
     def size(self):
@@ -188,7 +208,7 @@ class TypeManager(object):
     def create_type(self, name, base):
         self.types[name] = deepcopy(base)
 
-    def create_var(self, name, data_type, **kwargs):
+    def create_var_from_type(self, name, data_type, **kwargs):
         return VarContainer(self.types[data_type].build(name, **kwargs))
 
 
@@ -197,10 +217,20 @@ if __name__ == '__main__':
 
     # print(m)
 
-    # v = m.create_var('meow', 'Number')
+    # v = m.create_var_from_type('meow', 'Number')
     # print(v)
 
-    a = varArray(element_type=varInt32(), length=4)
-    b = varArray('my_array', element_type=a, length=3)
-    print(a)
-    print(b)
+    # a = varArray(element_type=varInt32(), length=4)
+    # b = varArray('my_array', element_type=a, length=3)
+    # print(a)
+    # print(b)
+
+    # s = varStruct(fields={'a': varInt32(), 'b': varArray(element_type=varInt32(), length=4)})
+
+    # print(s)
+    # print(s.lookup(['b']))
+
+    s = varString(string='meow')
+    print(s)
+    r = varRef('my_ref', target=s)
+    print(r)
