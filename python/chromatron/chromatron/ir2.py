@@ -909,8 +909,8 @@ class irBlock(IR):
 
             if isinstance(ir, irDefine):
                 ir.var.block = self
-                if ir.var.basename in self.globals:
-                    raise SyntaxError(f'Variable {ir.var.basename} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+                if ir.var.name in self.globals:
+                    raise SyntaxError(f'Variable {ir.var.name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
                 target = copy(ir.var)
 
@@ -918,7 +918,7 @@ class irBlock(IR):
                 assign = irLoadConst(target, self.func.get_zero(ir.lineno), lineno=ir.lineno)
                 assign.block = self
 
-                defines[ir.var.basename] = target
+                defines[ir.var.name] = target
                 
                 new_code.append(ir)                
                 new_code.append(assign)
@@ -928,50 +928,50 @@ class irBlock(IR):
             for i in ir.get_input_vars():
                 i.block = self
 
-                if i.is_const:
-                    if i.basename not in defines:
-                        target = add_const_temp(i.basename, datatype=i.type, lineno=ir.lineno)
+                if i.const:
+                    if i.name not in defines:
+                        target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
                         target.block = self
 
                         load = irLoadConst(target, i, lineno=ir.lineno)
                         load.block = self
 
-                        defines[target.basename] = target
-                        self.defines[target.basename] = target
+                        defines[target.name] = target
+                        self.defines[target.name] = target
 
                         new_code.append(load)
 
-                    i.clone(defines[i.basename])
+                    i.clone(defines[i.name])
 
-                elif i.is_ref:
-                    assert i.var_name in self.globals
-                    i.type = self.globals[i.var_name].type
+                # elif i.is_ref:
+                #     assert i.var_name in self.globals
+                #     i.type = self.globals[i.var_name].type
                     
-                    # need to replace reference with an actual register
-                    # since this is an input, we need to load from that ref
-                    # to a register and then replace with that.
+                #     # need to replace reference with an actual register
+                #     # since this is an input, we need to load from that ref
+                #     # to a register and then replace with that.
                     
-                    ref_addr_name = f'&{i.basename}'
+                #     ref_addr_name = f'&{i.basename}'
 
-                    ref_addr = self.add_temp(ref_addr_name, lineno=ir.lineno)
-                    ref_addr.is_temp = True
+                #     ref_addr = self.add_temp(ref_addr_name, lineno=ir.lineno)
+                #     ref_addr.is_temp = True
                     
-                    lookup = irLookup(ref_addr, copy(i), lineno=ir.lineno)
-                    lookup.block = self
-                    new_code.append(lookup)
+                #     lookup = irLookup(ref_addr, copy(i), lineno=ir.lineno)
+                #     lookup.block = self
+                #     new_code.append(lookup)
 
-                    target = self.add_temp(i.basename, lineno=ir.lineno)
-                    target.block = self
+                #     target = self.add_temp(i.basename, lineno=ir.lineno)
+                #     target.block = self
 
-                    load = irLoad(target, ref_addr, lineno=ir.lineno)
-                    load.block = self
+                #     load = irLoad(target, ref_addr, lineno=ir.lineno)
+                #     load.block = self
 
-                    new_code.append(load)
+                #     new_code.append(load)
 
-                    i.clone(target)
+                #     i.clone(target)
 
-                if i.basename in defines:
-                    i.type = defines[i.basename].type
+                if i.name in defines:
+                    i.type = defines[i.name].type
 
             
             new_code.append(ir)
@@ -2355,7 +2355,7 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        return
+        # return
 
         self.init_vars()
 
