@@ -16,7 +16,19 @@ class VarContainer(object):
         else:
             return f'{self.var}'
 
-    def __getattr__(self, name):
+    def __getattribute__(self, name):
+        try:
+            return super().__getattribute__(name)
+
+        except AttributeError as e:
+            pass
+
+        # this will come up during a copy,
+        # var won't have been assigned to the class yet,
+        # so the getattr on var will recursively fail.
+        if "var" not in self.__dict__:
+            raise AttributeError
+
         return getattr(self.var, name)
 
     def __setattr__(self, name, value):
@@ -198,7 +210,12 @@ class varString(varComposite):
 
 
 
-_BASE_TYPES = [varInt32('Number'), varFixed16('Fixed16')]
+_BASE_TYPES = [
+    varInt32('Number'), 
+    varInt32('i32'), 
+    varFixed16('Fixed16'),
+    varFixed16('f16'),
+]
 
 class TypeManager(object):
     def __init__(self):
@@ -226,8 +243,17 @@ if __name__ == '__main__':
 
     # print(m)
 
-    # v = m.create_var_from_type('meow', 'Number')
-    # print(v)
+    v = m.create_var_from_type('meow', 'Number')
+    print(v)
+    print(v.stuff)
+    print(v.var)
+    from copy import copy
+    v1 = copy(v)
+    print(v1)
+    print(v1.var)
+    print(v1.stuff)
+    
+    # print(copy(v).stuff)
 
     # a = varArray(element_type=varInt32(), length=4)
     # b = varArray('my_array', element_type=a, length=3)
@@ -239,7 +265,7 @@ if __name__ == '__main__':
     # print(s)
     # print(s.lookup(['b']))
 
-    s = varString(string='meow')
-    print(s)
-    r = varRef('my_ref', target=s)
-    print(r)
+    # s = varString(string='meow')
+    # print(s)
+    # r = varRef('my_ref', target=s)
+    # print(r)
