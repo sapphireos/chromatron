@@ -84,12 +84,21 @@ class varRef(varRegister):
     def __str__(self):
         return f'{super().__str__()} -> {self.target}'
 
+class varFunction(Var):
+    def __init__(self, *args, func=None, **kwargs):
+        super().__init__(*args, data_type='func', **kwargs)
+        self.func = func
+
+    def lookup(self, index):
+        return 0, self
+
+
 class varComposite(Var):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def lookup(self, index):
-        pass
+        return 0, self
 
 class varObject(varComposite):
     def __init__(self, *args, **kwargs):
