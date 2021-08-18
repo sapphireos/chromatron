@@ -6,6 +6,9 @@ class VarContainer(object):
         self.var = var 
         self.reg = None # what register is signed to this container 
 
+        self.const = False # flag to indicate if variable is a constant
+        self.value = None
+
     def __str__(self):
         if self.reg:
             return f'{self.var}@{self.reg}'
@@ -25,10 +28,10 @@ class VarContainer(object):
 
 
 class Var(object):
-    def __init__(self, name, data_type=None):
+    def __init__(self, name=None, data_type=None):
         self.name = name
-        self.type = data_type
         self.addr = None # assigned address of this variable
+        self.data_type = data_type
 
     @property
     def size(self): # size in machine words (32 bits)
@@ -41,7 +44,7 @@ class Var(object):
         return base
 
     def __str__(self):
-        return f'{self.name}:{self.type}'
+        return f'{self.name}:{self.data_type}'
 
 class varRegister(Var):
     def __init__(self, *args, **kwargs):
@@ -55,20 +58,23 @@ class varScalar(varRegister):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-class varInt32(varScalar):
-    def __init__(self, name, **kwargs):
-        super().__init__(name, data_type='i32', **kwargs)
+    def lookup(self, indexes=[]): # lookup returns address offset and type (self, for scalars)
+        return 0, self
 
-    def build(self, name, **kwargs):
-        return super().build(name, **kwargs)
+class varInt32(varScalar):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, data_type='i32', **kwargs)
+
+    def build(self, *args, **kwargs):
+        return super().build(*args, **kwargs)
 
 class varFixed16(varScalar):
-    def __init__(self, name, **kwargs):
-        super().__init__(name, data_type='f16', **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, data_type='f16', **kwargs)
 
 class varRef(varRegister):
-    def __init__(self, name, target, **kwargs):
-        super().__init__(name, **kwargs)
+    def __init__(self, *args, target, **kwargs):
+        super().__init__(*args, **kwargs)
         self.target = target
 
 
@@ -76,26 +82,92 @@ class varComposite(Var):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def lookup(self, index):
+        pass
+
 class varObject(varComposite):
-    def __init__(self, name, **kwargs):
-        super().__init__(name, data_type='obj', **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 class varArray(varComposite):
-    def __init__(self, name, length=1, **kwargs):
-        super().__init__(name, data_type='ary', **kwargs)
+    def __init__(self, *args, element_type=None, length=1, **kwargs):
+        super().__init__(*args, data_type=f'{element_type.data_type}[{length}]', **kwargs)
         self.length = length
+        self.element_type = element_type
+
+    @property
+    def size(self):
+        return self.length * self.element_type.size
+
+    def lookup(self, indexes=[]):
+        indexes = deepcopy(indexes)
+        offset = indexes.pop(0)
+
+        addr, datatype = self.element_type.lookup(indexes)
+
+        addr += offset
+
+        return addr, datatype
 
 class varStruct(varComposite):
-    def __init__(self, name, fields={}, **kwargs):
-        super().__init__(name, data_type='struct', **kwargs)
+    def __init__(self, *args, fields={}, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fields = fields
 
-class varString(varComposite):
-    def __init__(self, name, max_length=None, **kwargs):
-        super().__init__(name, data_type='str', **kwargs)
-        self.max_length = max_length
+        self.offsets = {}
 
- 
+        self._size = 0
+        for field in list(self.fields.values()):
+            self.offsets[field.name] = self._size
+
+            self._size += field.size
+
+    @property
+    def size(self):
+        return self._size
+
+    def get_field_from_offset(self, offset): 
+        for field_name, addr in list(self.offsets.items()):
+            if addr.name == offset.name:
+                return self.fields[field_name]
+
+        assert False
+
+    def lookup(self, indexes=[]):
+        indexes = deepcopy(indexes)
+        index = indexes.pop(0)
+
+        try:
+            return self.fields[index].lookup(indexes)
+
+        except KeyError:
+            # try looking up by offset
+            for field_name, offset in list(self.offsets.items()):
+                if offset == index:
+                    return self.fields[field_name].lookup(indexes)
+
+            raise
+
+class varString(varComposite):
+    def __init__(self, *args, string=None, max_length=None, **kwargs):
+        super().__init__(*args, data_type='str', **kwargs)
+
+        if string is not None:
+            self.value = string
+            self.max_length = len(string)
+
+        else:
+            assert max_length is not None
+            self.value = '\0' * max_length
+            self.max_length = max_length
+
+        self._size = int(((self.max_length - 1) / 4) + 2) # space for characters + 32 bit length
+
+    @property
+    def size(self):
+        return self._size
+
+
 
 _BASE_TYPES = [varInt32('Number'), varFixed16('Fixed16')]
 
@@ -123,8 +195,12 @@ class TypeManager(object):
 if __name__ == '__main__':
     m = TypeManager()
 
-    print(m)
+    # print(m)
 
-    v = m.create_var('meow', 'Number')
-    print(v)
+    # v = m.create_var('meow', 'Number')
+    # print(v)
 
+    a = varArray(element_type=varInt32(), length=4)
+    b = varArray('my_array', element_type=a, length=3)
+    print(a)
+    print(b)
