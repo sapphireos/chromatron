@@ -59,10 +59,15 @@
 # # a = Number()[4]
 # # def obj(a: Number):
 def obj():
+    a = Number()
 
-    s2 = String()
+    a = 4
+
+    return a
+
+    # s2 = String()
 #     # s2 = s
-    s2 = "meow"
+    # s2 = "meow"
 
 #     pass
 

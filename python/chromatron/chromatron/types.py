@@ -6,9 +6,6 @@ class VarContainer(object):
         self.var = var 
         self.reg = None # what register is signed to this container 
 
-        self.const = False # flag to indicate if variable is a constant
-        self.value = None
-
     def __str__(self):
         if self.reg:
             return f'{self.var}@{self.reg}'
@@ -44,6 +41,15 @@ class Var(object):
         self.name = name
         self.addr = None # assigned address of this variable
         self.data_type = data_type
+
+        self.value = None
+
+    @property
+    def const(self):  # flag to indicate if variable is a constant
+        if self.value is not None:
+            return True
+
+        return False
 
     @property
     def size(self): # size in machine words (32 bits)

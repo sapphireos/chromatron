@@ -1,4 +1,5 @@
 
+from .types import *
 from .ir2 import *
 
 
@@ -38,6 +39,8 @@ class Builder(object):
         self.current_lookup = []
         self.current_func = None
 
+        self.type_manager = TypeManager()
+
     def __str__(self):
         s = "FX IR Builder:\n"
 
@@ -62,10 +65,12 @@ class Builder(object):
         name = '%' + str(self.next_temp)
         self.next_temp += 1
 
-        ir = irVar(name, datatype=data_type, lineno=lineno)
-        ir.is_temp = True
+        return self.type_manager.create_var_from_type(name, data_type)
 
-        return ir
+        # ir = irVar(name, datatype=data_type, lineno=lineno)
+        # ir.is_temp = True
+
+        # return ir
     
     def add_ref(self, target, lookups=[], lineno=None):
         ir = irVar(target.name, lineno=lineno)
@@ -81,7 +86,7 @@ class Builder(object):
         elif value is False:
             value = 0
 
-        name = str(value)
+        name = f'${str(value)}'
     
         if name in self.current_func.consts:
             return copy(self.current_func.consts[name])
@@ -95,12 +100,20 @@ class Builder(object):
         else:
             assert False
 
-        ir = irVar(name, data_type, lineno=lineno)
-        ir.is_const = True
+        var = self.type_manager.create_var_from_type(name, data_type)
+        # var.const = True
+        var.value = value
 
-        self.current_func.consts[name] = ir
+        self.current_func.consts[name] = var
 
-        return ir
+        return var
+
+        # ir = irVar(name, data_type, lineno=lineno)
+        # ir.is_const = True
+
+        # self.current_func.consts[name] = ir
+
+        # return ir
 
     def add_named_const(self, name, value, data_type=None, lineno=None):
         if value is True:
@@ -120,34 +133,45 @@ class Builder(object):
         else:
             assert False
 
-        ir = irVar(str(value), data_type, lineno=lineno)
-        ir.is_const = True
+        var = self.type_manager.create_var_from_type(name, data_type)
+        var.const = True
+        var.value = value
 
-        self.named_consts[name] = ir
+        self.current_func.consts[name] = var
 
-        return ir
+        return var
+
+        # ir = irVar(str(value), data_type, lineno=lineno)
+        # ir.is_const = True
+
+        # self.named_consts[name] = ir
+
+        # return ir
     
     def build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
-        if data_type in PRIMITIVE_TYPES:
-            return irVar(name, data_type, dimensions, lineno=lineno)
+        return self.type_manager.create_var_from_type(name, data_type)
 
-        elif data_type == 'str':
-            # var = irString(name, lineno=lineno, **keywords) 
 
-            var = irVar(name, data_type, dimensions, lineno=lineno)
-            var.is_ref = True
-            var.ref = self.strings[keywords['init_val']]
+        # if data_type in PRIMITIVE_TYPES:
+        #     return irVar(name, data_type, dimensions, lineno=lineno)
 
-            return var
+        # elif data_type == 'str':
+        #     # var = irString(name, lineno=lineno, **keywords) 
 
-        elif data_type in self.structs:
-            return self.structs[data_type](name, dimensions, lineno=lineno)
+        #     var = irVar(name, data_type, dimensions, lineno=lineno)
+        #     var.is_ref = True
+        #     var.ref = self.strings[keywords['init_val']]
 
-        raise CompilerFatal(f'Unknown type {data_type}')
+        #     return var
+
+        # elif data_type in self.structs:
+        #     return self.structs[data_type](name, dimensions, lineno=lineno)
+
+        # raise CompilerFatal(f'Unknown type {data_type}')
 
     def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
-        if data_type not in PRIMITIVE_TYPES and data_type not in self.structs and data_type != 'str':
-            raise SyntaxError(f'Type {data_type} is unknown', lineno=lineno)
+        # if data_type not in PRIMITIVE_TYPES and data_type not in self.structs and data_type != 'str':
+        #     raise SyntaxError(f'Type {data_type} is unknown', lineno=lineno)
 
         var = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
@@ -169,8 +193,8 @@ class Builder(object):
 
             self.append_node(ir)
 
-        if var.is_ref:
-            self.refs[var.basename] = var
+        # if var.is_ref:
+            # self.refs[var.basename] = var
 
         return var
 
@@ -298,6 +322,14 @@ class Builder(object):
         self.append_node(ir)
 
     def assign(self, target, value, lineno=None):
+        ir = irAssign(target, value, lineno=lineno)
+            
+        self.append_node(ir)
+
+        return 
+
+
+
         if target.is_obj:
             ir = irObjectAssign(target, value, lineno=lineno)
 

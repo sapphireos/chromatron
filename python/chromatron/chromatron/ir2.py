@@ -2355,6 +2355,8 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
+        return
+
         self.init_vars()
 
         # self.render_dominator_tree()
@@ -3051,7 +3053,8 @@ class irAssign(IR):
         self.target = target
         self.value = value
 
-        assert not self.value.is_const
+        # assert not self.value.is_const
+        # assert not self.value.const
         
     def __str__(self):
         target = f'{self.target}'
