@@ -96,8 +96,8 @@ class Builder(object):
 
         name = f'${str(value)}'
     
-        if name in self.current_func.consts:
-            return copy(self.current_func.consts[name])
+        # if name in self.current_func.consts:
+        #     return copy(self.current_func.consts[name])
 
         if isinstance(value, int):
             data_type = 'i32'
@@ -199,7 +199,7 @@ class Builder(object):
             # if len(keywords) > 0:
             #     raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
             
-            self.locals[name] = var
+            # self.locals[name] = var
 
             ir = irDefine(var, lineno=lineno)
 
@@ -217,19 +217,19 @@ class Builder(object):
 
 
 
-        if name in self.named_consts:
-            return self.named_consts[name]
+        # if name in self.named_consts:
+        #     return self.named_consts[name]
 
-        if name in self.globals:
-            return self.add_ref(self.globals[name], lineno=lineno)
+        # if name in self.globals:
+        #     return self.add_ref(self.globals[name], lineno=lineno)
 
-        # elif name in self.refs:
-        #     return self.add_ref(self.refs[name], lineno=lineno)
+        # # elif name in self.refs:
+        # #     return self.add_ref(self.refs[name], lineno=lineno)
 
-        if name in self.locals:
-            return copy(self.locals[name])
+        # if name in self.locals:
+        #     return copy(self.locals[name])
 
-        raise CompilerFatal(f'Var not found: {name}')
+        # raise CompilerFatal(f'Var not found: {name}')
 
     def create_struct(self, name, fields, lineno=None):
         new_fields = {}

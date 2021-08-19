@@ -203,16 +203,16 @@ class irBlock(IR):
         self.predecessors = []
         self.successors = []
         self.code = []
-        self.locals = {}
+        # self.locals = {}
         self.func = func
-        self.globals = self.func.globals
+        # self.globals = self.func.globals
         self.defines = {}
 
         self.entry_label = None
         self.jump_target = None
 
-        self.local_values = {}
-        self.local_defines = {}
+        # self.local_values = {}
+        # self.local_defines = {}
 
         self.is_ssa = False
         self.filled = False
@@ -1472,15 +1472,14 @@ class irFunc(IR):
         self.params = params
         self.body = [] # input IR
         self.code = [] # output IR
-        self.globals = global_vars
+        # self.globals = global_vars
         self.symbol_table = symbol_table
 
         self.next_temp = 0
 
-        ZERO = irVar(0, 'i32', lineno=-1)
-        ZERO.is_const = True
-
-        self.consts = {'0': ZERO}
+        # ZERO = irVar(0, 'i32', lineno=-1)
+        # ZERO.is_const = True
+        # self.consts = {'0': ZERO}
         
         if self.params == None:
             self.params = []
@@ -2358,7 +2357,7 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        return
+        # return
 
         self.init_vars()
 
