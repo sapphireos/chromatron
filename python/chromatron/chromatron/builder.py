@@ -1,4 +1,5 @@
 
+from .symbols import *
 from .types import *
 from .ir2 import *
 
@@ -18,8 +19,8 @@ class Builder(object):
         self.funcs = {}
         self.scope_depth = 0
         self.labels = {}
-        self.globals = {}
-        self.named_consts = {}
+        # self.globals = {}
+        # self.named_consts = {}
         self.structs = {}
         self.strings = {}
 
@@ -34,10 +35,13 @@ class Builder(object):
         self.loop_body = []
         self.loop_end = []
 
-        self.locals = {}
-        self.refs = {}
+        # self.locals = {}
+        # self.refs = {}
         self.current_lookup = []
         self.current_func = None
+
+        self.global_symbols = SymbolTable()
+        self.symbol_tables = [self.global_symbols]
 
         self.type_manager = TypeManager()
 
@@ -65,7 +69,10 @@ class Builder(object):
         name = '%' + str(self.next_temp)
         self.next_temp += 1
 
-        return self.type_manager.create_var_from_type(name, data_type)
+        var = self._build_var(name, data_type, lineno=lineno)
+        self.add_var_to_symbol_table(var)
+
+        return var
 
         # ir = irVar(name, datatype=data_type, lineno=lineno)
         # ir.is_temp = True
@@ -73,12 +80,13 @@ class Builder(object):
         # return ir
     
     def add_ref(self, target, lookups=[], lineno=None):
-        ir = irVar(target.name, lineno=lineno)
-        ir.lookups = lookups
-        ir.is_ref = True
-        ir.ref = target
+        # ir = irVar(target.name, lineno=lineno)
+        # ir.lookups = lookups
+        # ir.is_ref = True
+        # ir.ref = target
         
-        return ir    
+        # return ir    
+        pass
     
     def add_const(self, value, data_type=None, lineno=None):
         if value is True:
@@ -100,11 +108,12 @@ class Builder(object):
         else:
             assert False
 
-        var = self.type_manager.create_var_from_type(name, data_type)
+        var = self._build_var(name, data_type, lineno=lineno)
         # var.const = True
         var.value = value
+        self.add_var_to_symbol_table(var)
 
-        self.current_func.consts[name] = var
+        # self.current_func.consts[name] = var
 
         return var
 
@@ -133,11 +142,12 @@ class Builder(object):
         else:
             assert False
 
-        var = self.type_manager.create_var_from_type(name, data_type)
-        var.const = True
+        var = self._build_var(name, data_type, lineno=lineno)
+        # var.const = True
         var.value = value
 
-        self.current_func.consts[name] = var
+        # self.current_func.consts[name] = var
+        self.add_var_to_symbol_table(var)
 
         return var
 
@@ -148,8 +158,8 @@ class Builder(object):
 
         # return ir
     
-    def build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
-        return self.type_manager.create_var_from_type(name, data_type)
+    def _build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
+        return self.type_manager.create_var_from_type(name, data_type, lineno=lineno)
 
 
         # if data_type in PRIMITIVE_TYPES:
@@ -173,15 +183,17 @@ class Builder(object):
         # if data_type not in PRIMITIVE_TYPES and data_type not in self.structs and data_type != 'str':
         #     raise SyntaxError(f'Type {data_type} is unknown', lineno=lineno)
 
-        var = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
+        var = self._build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
         if is_global:
-            if name in self.globals:
+            if name in self.global_symbols:
                 # return self.globals[name]
                 raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
-            var.is_global = True
-            self.globals[name] = var
+            # var.is_global = True
+            # self.globals[name] = var
+
+            self.global_symbols.add(var)
 
         else:
             # if len(keywords) > 0:
@@ -193,12 +205,18 @@ class Builder(object):
 
             self.append_node(ir)
 
+            self.add_var_to_symbol_table(var)
+
         # if var.is_ref:
             # self.refs[var.basename] = var
 
         return var
 
     def get_var(self, name, lineno=None):
+        return self.current_symbol_table.lookup(name)
+
+
+
         if name in self.named_consts:
             return self.named_consts[name]
 
@@ -239,6 +257,20 @@ class Builder(object):
 
         return ir
 
+    def push_symbol_table(self):
+        sym = SymbolTable(self.symbol_tables[-1])
+        self.symbol_tables.insert(0, sym)
+
+        self.current_symbol_table = sym
+
+        return sym
+
+    def pop_symbol_table(self):
+        self.current_symbol_table = self.symbol_tables.pop(0)
+
+    def add_var_to_symbol_table(self, var):
+        self.current_symbol_table.add(var)
+
     ###################################
     # IR instructions
     ###################################
@@ -255,12 +287,14 @@ class Builder(object):
         pass
 
     def func(self, *args, **kwargs):
-        func = irFunc(*args, global_vars=self.globals, **kwargs)
+        sym = self.push_symbol_table()
+
+        func = irFunc(*args, global_vars={}, symbol_table=sym, **kwargs)
         self.funcs[func.name] = func
         self.current_func = func
         self.next_temp = 0
-        self.refs = {}
-        self.locals = {}
+        # self.refs = {}
+        # self.locals = {}
         self.scope_depth = 0
 
         func_label = self.label(f'func:{func.name}', lineno=kwargs['lineno'])
@@ -269,7 +303,7 @@ class Builder(object):
         return func
 
     def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
-        ir = self.build_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
+        ir = self._build_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
         self.locals[name] = ir
         func.params.append(ir)
 
@@ -277,6 +311,7 @@ class Builder(object):
 
     def finish_func(self, func):
         func.next_temp = self.next_temp
+        self.pop_symbol_table()
 
     def label(self, name, lineno=None):
         if name not in self.labels:
@@ -401,7 +436,7 @@ class Builder(object):
         self.assign(copy(target), result, lineno=lineno)
 
     def finish_module(self):
-        ir = irProgram(self.funcs, self.globals, lineno=0)
+        ir = irProgram(self.funcs, self.global_symbols, lineno=0)
 
         return ir
 

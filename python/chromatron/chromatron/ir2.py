@@ -137,17 +137,19 @@ class IR(object):
 
 
 class irProgram(IR):
-    def __init__(self, funcs={}, global_vars={},**kwargs):
+    def __init__(self, funcs={}, symbols=None,**kwargs):
         super().__init__(**kwargs)
 
         self.funcs = funcs
-        self.globals = global_vars        
+        self.symbols = symbols
+        self.global_symbols = symbols
 
     def __str__(self):
         s = "FX IR:\n"
 
         s += 'Globals:\n'
-        for i in list(self.globals.values()):
+        # top level symbols are global
+        for i in list(self.global_symbols.symbols.values()):
             s += '%d:\t%s\n' % (i.lineno, i)
 
         s += 'Functions:\n'
@@ -1463,7 +1465,7 @@ class irBlock(IR):
         return changed
 
 class irFunc(IR):
-    def __init__(self, name, ret_type='i32', params=None, body=None, global_vars=None, **kwargs):
+    def __init__(self, name, ret_type='i32', params=None, body=None, global_vars=None, symbol_table=None, **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.ret_type = ret_type
@@ -1471,6 +1473,7 @@ class irFunc(IR):
         self.body = [] # input IR
         self.code = [] # output IR
         self.globals = global_vars
+        self.symbol_table = symbol_table
 
         self.next_temp = 0
 
@@ -2355,7 +2358,7 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        # return
+        return
 
         self.init_vars()
 

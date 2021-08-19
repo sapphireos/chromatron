@@ -58,8 +58,9 @@
 
 # # a = Number()[4]
 # # def obj(a: Number):
+a = Number()
 def obj():
-    a = Number()
+    # a = Number()
 
     a = 4
 

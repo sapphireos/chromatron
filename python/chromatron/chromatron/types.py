@@ -37,10 +37,11 @@ class VarContainer(object):
 
 
 class Var(object):
-    def __init__(self, name=None, data_type=None):
+    def __init__(self, name=None, data_type=None, lineno=None):
         self.name = name
         self.addr = None # assigned address of this variable
         self.data_type = data_type
+        self.lineno = lineno
 
         self.value = None
 
@@ -55,9 +56,10 @@ class Var(object):
     def size(self): # size in machine words (32 bits)
         return None
 
-    def build(self, name, **kwargs):
+    def build(self, name, lineno=None, **kwargs):
         base = deepcopy(self)
         base.name = name
+        base.lineno = lineno
 
         return base
 
