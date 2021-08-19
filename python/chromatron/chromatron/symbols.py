@@ -1,7 +1,4 @@
 
-
-
-
 class SymbolTable(object):
     def __init__(self, parent=None):
         self.parent = parent
@@ -28,9 +25,12 @@ class SymbolTable(object):
 
     def lookup(self, name):
         if name in self.symbols:
-            return self.symbols[name]
+            return self.symbols[name].copy()
 
-        return self.parent.lookup(name)
+        if self.parent is not None:
+            return self.parent.lookup(name)
+
+        raise KeyError(name)
 
     def add(self, var):
         if var.name in self.symbols:

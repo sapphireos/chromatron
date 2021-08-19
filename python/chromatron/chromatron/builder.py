@@ -95,6 +95,12 @@ class Builder(object):
             value = 0
 
         name = f'${str(value)}'
+
+        try:
+            return self.get_var(name)
+
+        except KeyError:
+            pass
     
         # if name in self.current_func.consts:
         #     return copy(self.current_func.consts[name])
@@ -112,6 +118,9 @@ class Builder(object):
         # var.const = True
         var.value = value
         self.add_var_to_symbol_table(var)
+
+        ir = irLoadConst(var, value, lineno=lineno)
+        self.append_node(ir)
 
         # self.current_func.consts[name] = var
 
@@ -201,7 +210,8 @@ class Builder(object):
             
             # self.locals[name] = var
 
-            ir = irDefine(var, lineno=lineno)
+            # ir = irDefine(var, lineno=lineno)
+            ir = irLoadConst(var, 0, lineno=lineno)
 
             self.append_node(ir)
 
@@ -415,20 +425,20 @@ class Builder(object):
         return target
 
     def augassign(self, op, target, value, lineno=None):
-        if target.is_obj:
-            ir = irObjectOp(op, target, value, lineno=lineno)
-            self.append_node(ir)
+        # if target.is_obj:
+        #     ir = irObjectOp(op, target, value, lineno=lineno)
+        #     self.append_node(ir)
 
-            return
+        #     return
 
-        elif target.is_ref and target.ref.is_array and len(target.lookups) == 0:
-            ir = irVectorOp(op, target.ref, value, lineno=lineno)
-            self.append_node(ir)
+        # elif target.is_ref and target.ref.is_array and len(target.lookups) == 0:
+        #     ir = irVectorOp(op, target.ref, value, lineno=lineno)
+        #     self.append_node(ir)
 
-            return
+        #     return
 
-        elif value.is_ref and value.ref.is_array and len(value.lookups) == 0:
-            raise SyntaxError(f'Cannot vector op from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
+        # elif value.is_ref and value.ref.is_array and len(value.lookups) == 0:
+        #     raise SyntaxError(f'Cannot vector op from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
 
         result = self.binop(op, target, value, lineno=lineno)
 

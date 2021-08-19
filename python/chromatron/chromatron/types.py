@@ -6,6 +6,9 @@ class VarContainer(object):
         self.var = var 
         self.reg = None # what register is signed to this container 
 
+    def copy(self):
+        return deepcopy(self)
+
     def __str__(self):
         if self.reg:
             return f'{self.var}@{self.reg}'

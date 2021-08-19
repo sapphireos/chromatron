@@ -2357,7 +2357,7 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        # return
+        return
 
         self.init_vars()
 
@@ -3204,9 +3204,9 @@ class irLoadConst(IR):
     def __init__(self, target, value, **kwargs):
         super().__init__(**kwargs)
         self.target = target
-        self.value = copy(value)
-        
-        assert value.is_const
+        # self.value = copy(value)
+        self.value = value
+        # assert value.const
 
     @property
     def value_number(self):
@@ -3317,7 +3317,7 @@ class irBinop(IR):
             # common subexpressions easier to find.
             # this only applies to operations which are commutative
             # if op in COMMUTATIVE_OPS and isinstance(left, irConst) and not isinstance(right, irConst):
-            if left.is_const and not right.is_const:
+            if left.const and not right.const:
                 temp = left
                 left = right
                 right = temp
@@ -3336,7 +3336,7 @@ class irBinop(IR):
         self.left = left
         self.right = right
 
-        if self.op == 'div' and self.right.is_const and self.right.value == 0:
+        if self.op == 'div' and self.right.const and self.right.value == 0:
             raise DivByZero("Division by 0", lineno=self.lineno)
 
     def __str__(self):
