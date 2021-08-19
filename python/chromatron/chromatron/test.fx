@@ -58,13 +58,17 @@
 
 # # a = Number()[4]
 # # def obj(a: Number):
-# a = Number()
+a = Number()
 def obj():
     
-    a = Number()
-    a = 4
+    b = Number()
+    b += 1
 
-    a += 4
+    if True:
+        # a = Number()
+        a = 4
+
+        a += 4
 
 
     return a

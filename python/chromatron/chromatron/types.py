@@ -5,6 +5,7 @@ class VarContainer(object):
     def __init__(self, var):
         self.var = var 
         self.reg = None # what register is signed to this container 
+        self.is_container = True
 
     def copy(self):
         return deepcopy(self)
@@ -32,7 +33,7 @@ class VarContainer(object):
         return getattr(self.var, name)
 
     def __setattr__(self, name, value):
-        if name in ['var', 'reg']:
+        if name in ['var', 'reg', 'is_container']:
             super().__setattr__(name, value)
 
         else:
@@ -47,6 +48,11 @@ class Var(object):
         self.lineno = lineno
 
         self.value = None
+        self.is_global = False
+        self.is_container = False
+
+    def copy(self):
+        return deepcopy(self)
 
     @property
     def const(self):  # flag to indicate if variable is a constant

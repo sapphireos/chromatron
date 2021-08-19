@@ -3317,21 +3317,22 @@ class irBinop(IR):
             # common subexpressions easier to find.
             # this only applies to operations which are commutative
             # if op in COMMUTATIVE_OPS and isinstance(left, irConst) and not isinstance(right, irConst):
-            if left.const and not right.const:
-                temp = left
-                left = right
-                right = temp
+            # if left.const and not right.const:
+            #     temp = left
+            #     left = right
+            #     right = temp
 
-            else:
-                # place them in sorted order by name
-                temp = list(sorted([left, right], key=lambda a: a.name))
-                left = temp[0]
-                right = temp[1]
+            # else:
+                
+            # place them in sorted order by name
+            temp = list(sorted([left, right], key=lambda a: a.name))
+            left = temp[0]
+            right = temp[1]
 
-                # NOTE:
-                # it *looks* like Python's parser already does something like this.
-                # however, we are not going to rely on that behavior, and will ensure 
-                # it is done to our specs here.
+            # NOTE:
+            # it *looks* like Python's parser already does something like this.
+            # however, we are not going to rely on that behavior, and will ensure 
+            # it is done to our specs here.
 
         self.left = left
         self.right = right

@@ -25,7 +25,7 @@ class SymbolTable(object):
 
     def lookup(self, name):
         if name in self.symbols:
-            return self.symbols[name].copy()
+            return self.symbols[name]
 
         if self.parent is not None:
             return self.parent.lookup(name)

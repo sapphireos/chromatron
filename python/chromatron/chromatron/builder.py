@@ -199,10 +199,10 @@ class Builder(object):
                 # return self.globals[name]
                 raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
-            # var.is_global = True
+            var.is_global = True
             # self.globals[name] = var
 
-            self.global_symbols.add(var)
+            self.global_symbols.add(var.var) # deref the var container since the global is not technically loaded into a register
 
         else:
             # if len(keywords) > 0:
@@ -223,9 +223,20 @@ class Builder(object):
         return var
 
     def get_var(self, name, lineno=None):
-        return self.current_symbol_table.lookup(name)
+        var = self.current_symbol_table.lookup(name)
 
+        if var.is_container:
+            return var.copy()
 
+        # var does not have a container:
+        # we need a load for the current symbol scope
+        register = VarContainer(var) # wrap var
+        self.add_var_to_symbol_table(register)
+
+        ir = irLoad(register, var, lineno=lineno)
+        self.append_node(ir)
+
+        return register
 
         # if name in self.named_consts:
         #     return self.named_consts[name]
