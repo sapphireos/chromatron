@@ -284,6 +284,13 @@ class Builder(object):
     ###################################
     # IR instructions
     ###################################
+    def push_scope(self):
+        self.scope_depth += 1
+        self.push_symbol_table()
+
+    def pop_scope(self):
+        self.scope_depth -= 1
+        self.pop_symbol_table()
 
     def append_node(self, node):
         node.scope_depth = self.scope_depth
@@ -375,45 +382,45 @@ class Builder(object):
 
 
 
-        if target.is_obj:
-            ir = irObjectAssign(target, value, lineno=lineno)
+        # if target.is_obj:
+        #     ir = irObjectAssign(target, value, lineno=lineno)
 
-        elif value.is_obj:
-            ir = irObjectLoad(target, value, lineno=lineno)
+        # elif value.is_obj:
+        #     ir = irObjectLoad(target, value, lineno=lineno)
 
-        elif target.is_ref and target.ref.is_array and len(target.lookups) == 0:
-            ir = irVectorAssign(target.ref, value, lineno=lineno)
+        # elif target.is_ref and target.ref.is_array and len(target.lookups) == 0:
+        #     ir = irVectorAssign(target.ref, value, lineno=lineno)
         
-        elif value.is_ref and value.ref.is_array and len(value.lookups) == 0:
-            raise SyntaxError(f'Cannot vector assign from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
+        # elif value.is_ref and value.ref.is_array and len(value.lookups) == 0:
+        #     raise SyntaxError(f'Cannot vector assign from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
 
-        elif target.is_ref:
-            ir = irAssign(target, value, lineno=lineno)
+        # elif target.is_ref:
+        #     ir = irAssign(target, value, lineno=lineno)
 
-        elif value.is_const:
-            ir = irLoadConst(target, value, lineno=lineno)
+        # elif value.is_const:
+        #     ir = irLoadConst(target, value, lineno=lineno)
 
-        # check if previous op is a binop and the binop result
-        # is the value for this assign
-        # and the result is a temp register:
-        elif isinstance(self.prev_node, irBinop) and \
-             self.prev_node.target == value and \
-             self.prev_node.target.is_temp:
+        # # check if previous op is a binop and the binop result
+        # # is the value for this assign
+        # # and the result is a temp register:
+        # elif isinstance(self.prev_node, irBinop) and \
+        #      self.prev_node.target == value and \
+        #      self.prev_node.target.is_temp:
 
-            # in this case, just change the binop result to the assign target:
-            self.prev_node.target = target
-            self.next_temp -= 1 # rewind temp counter
+        #     # in this case, just change the binop result to the assign target:
+        #     self.prev_node.target = target
+        #     self.next_temp -= 1 # rewind temp counter
 
-            # this is *technically* a peephole optimization, but really it is
-            # just correcting for how binops unfold in the code generator.
+        #     # this is *technically* a peephole optimization, but really it is
+        #     # just correcting for how binops unfold in the code generator.
 
-            # skip appending a node
-            return
+        #     # skip appending a node
+        #     return
 
-        else:
-            ir = irAssign(target, value, lineno=lineno)
+        # else:
+        #     ir = irAssign(target, value, lineno=lineno)
             
-        self.append_node(ir)
+        # self.append_node(ir)
 
     def binop(self, op, left, right, lineno=None):
         target = self.add_temp(data_type='i32', lineno=lineno)
@@ -460,7 +467,7 @@ class Builder(object):
         branch = irBranch(test, body_label, else_label, lineno=lineno)
         self.append_node(branch)
 
-        self.scope_depth += 1
+        self.push_scope()
 
         return body_label, else_label, end_label
 
@@ -476,7 +483,7 @@ class Builder(object):
 
     def end_ifelse(self, end_label, lineno=None):
         self.jump(end_label, lineno=lineno)
-        self.scope_depth -= 1
+        self.pop_scope()
         self.position_label(end_label)
 
     def begin_while(self, lineno=None):
@@ -513,7 +520,7 @@ class Builder(object):
         self.jump(self.loop_body[-1], lineno=lineno)
             
 
-        self.scope_depth += 1
+        self.push_scope()
         
         self.position_label(self.loop_top[-1])
         ir = irLoopTop(loop_name, lineno=lineno)
@@ -531,7 +538,7 @@ class Builder(object):
 
         self.jump(self.loop_top[-1], lineno=lineno)
         
-        self.scope_depth -= 1
+        self.pop_scope()
         self.position_label(self.loop_end[-1])
 
         self.loop.pop(-1)
