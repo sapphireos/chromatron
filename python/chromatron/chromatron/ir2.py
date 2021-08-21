@@ -1454,7 +1454,8 @@ class irBlock(IR):
                     # technically the code will still work without this logic,
                     # but it significantly reduces extra load on the downstream
                     # optimizers and generates slightly better unoptimized code.
-                    const = copy(ir.target)
+                    # const = copy(ir.target)
+                    const = ir.target.copy()
                     # const.ssa_version = None
                     
 

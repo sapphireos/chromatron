@@ -88,7 +88,7 @@ class Var(object):
     @property
     def ssa_name(self):
         if self.ssa_version is not None:
-            return f'{self.name}.{self.ssa_version}'        
+            return f'{self.name}.v{self.ssa_version}'        
 
         else:
             return self.name

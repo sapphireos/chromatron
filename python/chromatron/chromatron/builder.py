@@ -230,7 +230,7 @@ class Builder(object):
 
         # var does not have a container:
         # we need a load for the current symbol scope
-        register = VarContainer(var) # wrap var
+        register = VarContainer(var.copy()) # wrap var
         self.add_var_to_symbol_table(register)
 
         ir = irLoad(register, var, lineno=lineno)

@@ -1,11 +1,11 @@
 
 global_a = Number()
-def global_var():
-  global_a += 1
+# def global_var():
+#   global_a += 1
 
-# def global_double_assign():
-#   global_a = 1
-#   global_a = 2
+def global_double_assign():
+  global_a = 1
+  global_a = 2
   
 # A = 4 # named constant.  recommend all caps for these (like C's convention)
       # these can be used the same as a const number.
