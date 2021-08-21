@@ -1480,12 +1480,12 @@ class irBlock(IR):
                     for user in users:
                         user.clone(define)
 
-                    changed = True
+                    changed = True                    
                     continue # remove phi from code
 
                 elif len(ir.defines) > 1:
                     old_defines = copy(ir.defines)
-                    ir.defines = list(sorted(set(ir.defines), key=lambda a: a.name))
+                    ir.defines = list(sorted(set(ir.defines), key=lambda a: a.ssa_name))
                     
                     if old_defines != ir.defines:
                         changed = True # need to check for changed!
@@ -2928,7 +2928,7 @@ class irPhi(IR):
     def __str__(self):
         s = ''
         for d in sorted(self.defines, key=lambda a: a.name):
-            s += f'{d.name}[???], '
+            s += f'{d.ssa_name}, '
 
         s = s[:-2]
 

@@ -66,6 +66,14 @@ class Var(object):
         return deepcopy(self)
 
     @property
+    def ssa_name(self):
+        if self.ssa_version is not None:
+            return f'{self.name}.{self.ssa_version}'        
+
+        else:
+            return self.name
+
+    @property
     def const(self):  # flag to indicate if variable is a constant
         if self.value is not None:
             return True
@@ -84,17 +92,11 @@ class Var(object):
         return base
 
     def __str__(self):
-        if self.ssa_version is not None:
-            name = f'{self.name}.{self.ssa_version}'
-
-        else:
-            name = self.name
-
         if self.addr is None:
-            return f'{name}:{self.data_type}'
+            return f'{self.ssa_name}:{self.data_type}'
 
         else:
-            return f'{name}:{self.data_type}@{self.addr}'
+            return f'{self.ssa_name}:{self.data_type}@{self.addr}'
 
 class varRegister(Var):
     def __init__(self, *args, **kwargs):
