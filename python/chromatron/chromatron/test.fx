@@ -58,20 +58,20 @@
 
 # # a = Number()[4]
 # # def obj(a: Number):
-a = Number()
-def obj():
+# a = Number()
+# def obj():
     
-    # b = Number()
-    # b += 1
+#     # b = Number()
+#     # b += 1
 
-    # if True:
-        # a = Number()
-        # a = 4
+#     # if True:
+#         # a = Number()
+#         # a = 4
 
-    a += 4
+#     a += 4
 
 
-    return a
+#     return a
 
     # s2 = String()
 #     # s2 = s
@@ -326,17 +326,17 @@ def obj():
 #             pass
 
 
-# def simple_ifelse():
-#     a = Number()
-#     b = Number()
+def simple_ifelse():
+    a = Number()
+    b = Number()
 
-#     if a > 0:
-#         b = 1
+    if a > 0:
+        b = 1
 
-#     else:
-#         b = 2
+    else:
+        b = 2
 
-#     return b
+    return b
 
 
 # def two_ifelse():

@@ -10,6 +10,15 @@ class VarContainer(object):
     def copy(self):
         return deepcopy(self)
 
+    def convert_to_ssa(self, ssa_vals={}):
+        self.var = self.var.copy()
+
+        if self.var.name not in ssa_vals:
+            ssa_vals[self.var.name] = 0
+
+        self.var.ssa_version = ssa_vals[self.var.name]
+        ssa_vals[self.var.name] += 1
+
     def __str__(self):
         if self.reg:
             return f'{self.var}@{self.reg}'
@@ -51,6 +60,8 @@ class Var(object):
         self.is_global = False
         self.is_container = False
 
+        self.ssa_version = None
+
     def copy(self):
         return deepcopy(self)
 
@@ -73,11 +84,17 @@ class Var(object):
         return base
 
     def __str__(self):
-        if self.addr is None:
-            return f'{self.name}:{self.data_type}'
+        if self.ssa_version is not None:
+            name = f'{self.name}.{self.ssa_version}'
 
         else:
-            return f'{self.name}:{self.data_type}@{self.addr}'
+            name = self.name
+
+        if self.addr is None:
+            return f'{name}:{self.data_type}'
+
+        else:
+            return f'{name}:{self.data_type}@{self.addr}'
 
 class varRegister(Var):
     def __init__(self, *args, **kwargs):

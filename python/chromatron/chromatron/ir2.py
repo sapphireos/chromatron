@@ -1163,7 +1163,7 @@ class irBlock(IR):
         visited.append(self)
 
         if not isinstance(var, str):
-            var_name = var.basename
+            var_name = var.name
 
         else:
             var_name = var
@@ -1189,7 +1189,7 @@ class irBlock(IR):
         # if block is sealed (all preds are filled)
         elif len([p for p in self.predecessors if not p.filled]) == 0:
 
-            assert var.basename not in self.defines
+            assert var_name not in self.defines
 
             # create new var and add a phi node
             new_var = irVar(name=var_name, lineno=-1)
@@ -1316,19 +1316,21 @@ class irBlock(IR):
         # start to fill block
         for ir in self.code:
             # look for defines and set their version to 0
-            if isinstance(ir, irDefine):
-                if ir.var.basename in self.defines:
-                    raise SyntaxError(f'Variable {ir.var.basename} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+            # if isinstance(ir, irDefine):
+            #     if ir.var.basename in self.defines:
+            #         raise SyntaxError(f'Variable {ir.var.basename} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
-                assert ir.var.ssa_version is None
+            #     assert ir.var.ssa_version is None
 
-                ir.var.block = self
-                ir.var.convert_to_ssa()
+            #     ir.var.block = self
+            #     ir.var.convert_to_ssa()
                 
-                self.defines[ir.var.basename] = ir.var
+            #     self.defines[ir.var.basename] = ir.var
 
-            else:
-                inputs = [a for a in ir.get_input_vars() if not a.is_temp and not a.is_global]
+            # else:
+            if True:
+                # inputs = [a for a in ir.get_input_vars() if not a.is_temp and not a.is_global]
+                inputs = ir.get_input_vars()
 
                 for i in inputs:
                     i.block = self
@@ -1337,31 +1339,42 @@ class irBlock(IR):
                         v = self.ssa_lookup_var(i)
 
                     except KeyError:
-                        raise SyntaxError(f'Variable {i.basename} is not defined.', lineno=ir.lineno)
+                        raise SyntaxError(f'Variable {i.name} is not defined.', lineno=ir.lineno)
 
-                    i.clone(v)
-                    assert not i.is_const # make sure we properly set up a const register!
+                    i.var = v
+
+                    # i.clone(v)
+                    # assert not i.is_const # make sure we properly set up a const register!
 
                 # look for writes to current set of vars and increment versions
-                outputs = [a for a in ir.get_output_vars() if not a.is_temp and not a.is_global]
+                # outputs = [a for a in ir.get_output_vars() if not a.is_temp and not a.is_global]
+                outputs = ir.get_output_vars()
 
                 for o in outputs:
                     o.block = self
 
-                    assert not o.is_const # cannot write to a const!
+                    # assert not o.const # cannot write to a const!
+
+                    o.convert_to_ssa(self.func.ssa_next_val)
+                    self.defines[o.name] = o.var
 
                     # check if we have a definition:
-                    try:
-                        v = self.ssa_lookup_var(o)
+                    # try:
+                    #     v = self.ssa_lookup_var(o)
 
-                    except KeyError:
-                        raise SyntaxError(f'Variable {o.basename} is not defined.', lineno=ir.lineno)
+                    # except KeyError:
+                    #     # raise SyntaxError(f'Variable {o.name} is not defined.', lineno=ir.lineno)
 
-                    o.clone(v)
-                    o.ssa_version = None
-                    o.convert_to_ssa()
+                    #     # add to defines and set SSA number:
+                    #     # self.defines[v.name] = v
+                    #     self.func.ssa_next_val[v.name] = 0
+
+
+                    # # o.clone(v)
+                    # # o.ssa_version = None
+                    # # o.convert_to_ssa()
                     
-                    self.defines[o.basename] = o
+                    # self.defines[o.name] = o
         
             new_code.append(ir)
 
@@ -2359,15 +2372,17 @@ class irFunc(IR):
 
         # return
 
-        self.init_vars()
+        # self.init_vars()
 
         # self.render_dominator_tree()
         # self.render_graph()
 
-        return
+        # return
 
         self.convert_to_ssa()    
-        # return
+        
+        return
+        
         # checks
         self.verify_block_links()
         self.verify_block_assignments()
@@ -3244,7 +3259,8 @@ class irLoad(IR):
         return f'LOAD {self.register} <-- {self.ref}'
 
     def get_input_vars(self):
-        return [self.ref]
+        # return [self.ref]
+        return []
 
     def get_output_vars(self):
         return [self.register]
@@ -3263,7 +3279,8 @@ class irStore(IR):
         return f'STORE {self.register} --> {self.ref}'
 
     def get_input_vars(self):
-        return [self.ref, self.register]
+        # return [self.ref, self.register]
+        return [self.register]
 
     def get_output_vars(self):
         return []
@@ -3505,298 +3522,298 @@ class irBinop(IR):
         return ops[self.data_type][self.op](self.target.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
 
 
-class irVar(IR):
-    def __init__(self, name=None, datatype=None, dimensions=[1], **kwargs):
-        super().__init__(**kwargs)
-        self.var_name = str(name)
-        self.type = datatype
-
-        self.is_global = False
-        self.is_temp = False
-        self.is_ref = False
-        self.is_obj = False
-        self.holds_const = False
-        self.holds_global = False
-        self.is_const = False
-        self.ssa_version = None
-        self.register = None
-        self.addr = None # used for globals
-        self.lookups = []
-        self.ref = None
-
-        self.dimensions = dimensions
-
-    @property
-    def is_array(self):
-        for dim in self.dimensions:
-            if dim > 1:
-                return True
-
-        return False
-
-    @property
-    def obj_id(self):
-        return id(self)
-
-    @property
-    def count(self):
-        count = 1
-
-        for dim in self.dimensions:
-            count *= dim
-
-        return count
-
-    @property
-    def element_length(self):
-        return 1
-
-    @property
-    def total_length(self):
-        l = self.element_length
-
-        for dim in self.dimensions:
-            l *= dim
-
-        return l
-
-    def __hash__(self):
-        return hash(self.name)
-
-    def __eq__(self, other):
-        try:
-            return self.name == other.name
-
-        except AttributeError:
-            return self.name == other
-
-    def convert_to_ssa(self):
-        assert self.ssa_version is None
-        assert self.block is not None
-        assert not self.is_const
-
-        if self.basename not in self.block.func.ssa_next_val:
-            self.block.func.ssa_next_val[self.basename] = 0
+# class irVar(IR):
+#     def __init__(self, name=None, datatype=None, dimensions=[1], **kwargs):
+#         super().__init__(**kwargs)
+#         self.var_name = str(name)
+#         self.type = datatype
+
+#         self.is_global = False
+#         self.is_temp = False
+#         self.is_ref = False
+#         self.is_obj = False
+#         self.holds_const = False
+#         self.holds_global = False
+#         self.is_const = False
+#         self.ssa_version = None
+#         self.register = None
+#         self.addr = None # used for globals
+#         self.lookups = []
+#         self.ref = None
+
+#         self.dimensions = dimensions
+
+#     @property
+#     def is_array(self):
+#         for dim in self.dimensions:
+#             if dim > 1:
+#                 return True
+
+#         return False
+
+#     @property
+#     def obj_id(self):
+#         return id(self)
+
+#     @property
+#     def count(self):
+#         count = 1
+
+#         for dim in self.dimensions:
+#             count *= dim
+
+#         return count
+
+#     @property
+#     def element_length(self):
+#         return 1
+
+#     @property
+#     def total_length(self):
+#         l = self.element_length
+
+#         for dim in self.dimensions:
+#             l *= dim
+
+#         return l
+
+#     def __hash__(self):
+#         return hash(self.name)
+
+#     def __eq__(self, other):
+#         try:
+#             return self.name == other.name
+
+#         except AttributeError:
+#             return self.name == other
+
+#     def convert_to_ssa(self):
+#         assert self.ssa_version is None
+#         assert self.block is not None
+#         assert not self.is_const
+
+#         if self.basename not in self.block.func.ssa_next_val:
+#             self.block.func.ssa_next_val[self.basename] = 0
 
-        self.ssa_version = self.block.func.ssa_next_val[self.basename]
-        self.block.func.ssa_next_val[self.basename] += 1
+#         self.ssa_version = self.block.func.ssa_next_val[self.basename]
+#         self.block.func.ssa_next_val[self.basename] += 1
 
-    def clone(self, source):
-        # assert self.basename == source.basename
-        self.var_name = source.var_name
+#     def clone(self, source):
+#         # assert self.basename == source.basename
+#         self.var_name = source.var_name
 
-        # clone source attributes to self
-        self.ssa_version = source.ssa_version
-        self.type = source.type
-        self.holds_const = source.holds_const
-        self.is_const = source.is_const
-        self.is_temp = source.is_temp
-        self.holds_global = source.holds_global
-        self.is_global = source.is_global
-        self.is_ref = source.is_ref
+#         # clone source attributes to self
+#         self.ssa_version = source.ssa_version
+#         self.type = source.type
+#         self.holds_const = source.holds_const
+#         self.is_const = source.is_const
+#         self.is_temp = source.is_temp
+#         self.holds_global = source.holds_global
+#         self.is_global = source.is_global
+#         self.is_ref = source.is_ref
 
-    @property
-    def value(self):
-        assert self.is_const or self.holds_const
+#     @property
+#     def value(self):
+#         assert self.is_const or self.holds_const
 
-        if self.name == 'True':
-            return 1
-        elif self.name == 'False':
-            return 0
-        elif self.type == 'f16':
-            val = float(self.name)
-            if val > 32767.0 or val < -32767.0:
-                raise SyntaxError("Fixed16 out of range, must be between -32767.0 and 32767.0", lineno=kwargs['lineno'])
+#         if self.name == 'True':
+#             return 1
+#         elif self.name == 'False':
+#             return 0
+#         elif self.type == 'f16':
+#             val = float(self.name)
+#             if val > 32767.0 or val < -32767.0:
+#                 raise SyntaxError("Fixed16 out of range, must be between -32767.0 and 32767.0", lineno=kwargs['lineno'])
 
-            return int(val * 65536)
+#             return int(val * 65536)
 
-        elif self.is_const or self.holds_const:
-            if self.basename.startswith('$'):
-                return int(self.basename[1:])
+#         elif self.is_const or self.holds_const:
+#             if self.basename.startswith('$'):
+#                 return int(self.basename[1:])
 
-            return int(self.basename)
+#             return int(self.basename)
 
-        else:
-            return None
-    @property
-    def basename(self):
-        if self.is_ref or self.is_obj:
-            lookups = ''
-            for lookup in self.lookups:
-                if isinstance(lookup, irAttribute):
-                    lookups += '.%s' % (lookup.name)
+#         else:
+#             return None
+#     @property
+#     def basename(self):
+#         if self.is_ref or self.is_obj:
+#             lookups = ''
+#             for lookup in self.lookups:
+#                 if isinstance(lookup, irAttribute):
+#                     lookups += '.%s' % (lookup.name)
 
-                elif isinstance(lookup, str):
-                    lookups += '[%s]' % (lookup)
+#                 elif isinstance(lookup, str):
+#                     lookups += '[%s]' % (lookup)
 
-                else:
-                    lookups += '[%s]' % (lookup.name)
+#                 else:
+#                     lookups += '[%s]' % (lookup.name)
 
-            return f'{self.var_name}{lookups}'
+#             return f'{self.var_name}{lookups}'
 
-        return self.var_name
+#         return self.var_name
 
-    @property
-    def name(self):
-        if self.is_ref:
-            s = f'*{self.basename}'
+#     @property
+#     def name(self):
+#         if self.is_ref:
+#             s = f'*{self.basename}'
 
-        elif self.ssa_version is not None:
-            if self.holds_const:
-                s = f'${self.basename}.v{self.ssa_version}'
+#         elif self.ssa_version is not None:
+#             if self.holds_const:
+#                 s = f'${self.basename}.v{self.ssa_version}'
 
-            else:
-                s = f'{self.basename}.v{self.ssa_version}'
+#             else:
+#                 s = f'{self.basename}.v{self.ssa_version}'
 
-        elif self.is_temp or self.ssa_version is None:
-            if self.holds_const:
-                s = f'${self.basename}'
+#         elif self.is_temp or self.ssa_version is None:
+#             if self.holds_const:
+#                 s = f'${self.basename}'
 
-            else:
-                s = self.basename
+#             else:
+#                 s = self.basename
 
-        else:
-            s = f'{self.basename}.{self.ssa_version}'
+#         else:
+#             s = f'{self.basename}.{self.ssa_version}'
 
-        return s
+#         return s
 
-    # @name.setter
-    # def name(self, value):
-    #     self.var_name = value        
+#     # @name.setter
+#     # def name(self, value):
+#     #     self.var_name = value        
 
-    def __str__(self):
-        if self.type:
-            s = f"{self.name}:{self.type}"
+#     def __str__(self):
+#         if self.type:
+#             s = f"{self.name}:{self.type}"
 
-        else:
-            s = f"{self.name}"
+#         else:
+#             s = f"{self.name}"
 
-        # if self.is_ref:
-        #     s = f'*{s}'
+#         # if self.is_ref:
+#         #     s = f'*{s}'
 
-        if self.register is not None:
-            s += f'@{self.register}'
+#         if self.register is not None:
+#             s += f'@{self.register}'
 
-        elif self.addr is not None:
-            s += f'@[{self.addr}]'
+#         elif self.addr is not None:
+#             s += f'@[{self.addr}]'
 
-        if self.is_global:
-            return f'Global({s})'
+#         if self.is_global:
+#             return f'Global({s})'
 
-        elif self.is_temp:
-            # return f'Temp{s}'
-            return f'{s}'
+#         elif self.is_temp:
+#             # return f'Temp{s}'
+#             return f'{s}'
 
-        elif self.is_const:
-            return f'Const({s})'
+#         elif self.is_const:
+#             return f'Const({s})'
 
-        elif self.holds_global:
-            return f'~{s}'
+#         elif self.holds_global:
+#             return f'~{s}'
 
-        else:
-            # return f'Var{s}'            
-            return f'{s}'
+#         else:
+#             # return f'Var{s}'            
+#             return f'{s}'
 
-    def __repr__(self):
-        return f'{self.name}'
+#     def __repr__(self):
+#         return f'{self.name}'
 
-    def generate(self):
-        if self.is_const:
-            # constants are just that, constants.
-            # they don't have a register
-            return self.value
+#     def generate(self):
+#         if self.is_const:
+#             # constants are just that, constants.
+#             # they don't have a register
+#             return self.value
 
-        # if self.register == None:
-            # raise CompilerFatal("%s does not have a register. Line: %d" % (self, self.lineno))
+#         # if self.register == None:
+#             # raise CompilerFatal("%s does not have a register. Line: %d" % (self, self.lineno))
 
-        if self.register is not None:
-            assert self.addr is None
-            return insReg(self.register, self, lineno=self.lineno)
+#         if self.register is not None:
+#             assert self.addr is None
+#             return insReg(self.register, self, lineno=self.lineno)
 
-        elif self.addr is not None:
-            assert self.register is None
-            return self.addr
+#         elif self.addr is not None:
+#             assert self.register is None
+#             return self.addr
 
-class irString(irVar):
-    def __init__(self, name, length=None, init_val=None, **kwargs):
-        super().__init__(name, 'str', **kwargs)        
+# class irString(irVar):
+#     def __init__(self, name, length=None, init_val=None, **kwargs):
+#         super().__init__(name, 'str', **kwargs)        
 
-        if init_val is not None:
-            self._value = init_val
-            length = self._value.strlen
+#         if init_val is not None:
+#             self._value = init_val
+#             length = self._value.strlen
 
-        else:
-            self._value = ''
-            assert length is not None
+#         else:
+#             self._value = ''
+#             assert length is not None
 
-        if length is not None:
-            self.dimensions = [length]
+#         if length is not None:
+#             self.dimensions = [length]
 
-    @property
-    def value(self):
-        return self._value
+#     @property
+#     def value(self):
+#         return self._value
 
-    @property
-    def element_length(self):
-        return len(self._value) // 4 + 1
+#     @property
+#     def element_length(self):
+#         return len(self._value) // 4 + 1
 
-    @property
-    def total_length(self):
-        return self.element_length
+#     @property
+#     def total_length(self):
+#         return self.element_length
 
-class irStrLiteral(irVar):
-    def __init__(self, string, **kwargs):
-        super().__init__(string, **kwargs)
-        self.strlen = len(self.name)
+# class irStrLiteral(irVar):
+#     def __init__(self, string, **kwargs):
+#         super().__init__(string, **kwargs)
+#         self.strlen = len(self.name)
 
-        if self.strlen == 0:
-            raise SyntaxError("String %s has 0 characters" % (args[0]))
+#         if self.strlen == 0:
+#             raise SyntaxError("String %s has 0 characters" % (args[0]))
 
-        # self.strdata = self.name
-        # check for empty string (reserving storage padded with nulls)
-        # we will want a more descriptive name
-        # if self.name[0] == '\0':
-        #     self.name = '**empty %d chars**' % (self.strlen)
-        #     self.strdata = '\0' * self.strlen
+#         # self.strdata = self.name
+#         # check for empty string (reserving storage padded with nulls)
+#         # we will want a more descriptive name
+#         # if self.name[0] == '\0':
+#         #     self.name = '**empty %d chars**' % (self.strlen)
+#         #     self.strdata = '\0' * self.strlen
 
-        self.addr = None
-        self.length = 1 # this is a reference to a string, so the length is 1
-        self.ref = None
+#         self.addr = None
+#         self.length = 1 # this is a reference to a string, so the length is 1
+#         self.ref = None
 
-        self.size = int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
+#         self.size = int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
         
-    def __str__(self):
-        return 'StrLiteral("%s")[%d]' % (self.name, self.strlen)
+#     def __str__(self):
+#         return 'StrLiteral("%s")[%d]' % (self.name, self.strlen)
 
-    # def generate(self):
-    #     assert self.addr != None
-    #     return insAddr(self.ref, self, lineno=self.lineno)
+#     # def generate(self):
+#     #     assert self.addr != None
+#     #     return insAddr(self.ref, self, lineno=self.lineno)
 
 
-class irStruct(irVar):
-    def __init__(self, name, data_type, fields, **kwargs):
-        super().__init__(name, data_type, **kwargs)        
+# class irStruct(irVar):
+#     def __init__(self, name, data_type, fields, **kwargs):
+#         super().__init__(name, data_type, **kwargs)        
 
-        self.fields = fields
+#         self.fields = fields
 
-        self.offsets = {}
+#         self.offsets = {}
 
-        self._element_length = 0
-        for field in list(self.fields.values()):
-            self.offsets[field.name] = self._element_length
+#         self._element_length = 0
+#         for field in list(self.fields.values()):
+#             self.offsets[field.name] = self._element_length
 
-            self._element_length += field.element_length
+#             self._element_length += field.element_length
 
-    @property
-    def element_length(self):
-        return self._element_length
+#     @property
+#     def element_length(self):
+#         return self._element_length
 
-    def __call__(self, name, dimensions=[], lineno=None):
-        s = copy(self)
-        s.var_name = name
-        s.dimensions = dimensions
+#     def __call__(self, name, dimensions=[], lineno=None):
+#         s = copy(self)
+#         s.var_name = name
+#         s.dimensions = dimensions
 
-        return s
+#         return s
 
 # this is mostly used for optimizations:
 class irExpr(IR):
@@ -3887,14 +3904,14 @@ class irLookup(IR):
     
         return insLookup(self.result.generate(), target.generate(), indexes, counts, strides, lineno=self.lineno)
 
-class irAttribute(irVar):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)    
+# class irAttribute(irVar):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)    
 
-        self.is_temp = True
+#         self.is_temp = True
 
-    def __str__(self):    
-        return "Attr(%s)" % (self.name)
+#     def __str__(self):    
+#         return "Attr(%s)" % (self.name)
 
 
 class irAssert(IR):
