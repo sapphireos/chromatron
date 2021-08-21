@@ -296,6 +296,13 @@ class irBlock(IR):
 
         return blocks
 
+    def recalc_defines(self):
+        self.defines = {}
+
+        for ir in self.code:
+            for o in ir.get_output_vars():
+                self.defines[o.name] = o.var
+
     @property
     def type_manager(self):
         return self.func.type_manager
@@ -1055,6 +1062,7 @@ class irBlock(IR):
                 new_code.append(ir)
 
         self.code = new_code
+        self.recalc_defines()
 
         # collect incoming blocks from all phis
         incoming_blocks = []
@@ -1134,6 +1142,10 @@ class irBlock(IR):
                     ir = irAssign(phi.target, var, lineno=-1)
                     ir.block = merge_block
                     merge_block.code.insert(len(merge_block.code) - 1, ir)
+
+                    merge_block.recalc_defines()
+
+        self.recalc_defines()
 
         return merge_number        
 
@@ -1832,6 +1844,10 @@ class irFunc(IR):
 
         return block
 
+    def recalc_defines(self):
+        for block in self.blocks.values():
+            block.recalc_defines()
+
     def render_dominator_tree(self):
         dot = graphviz.Digraph(comment=self.name)
 
@@ -2142,6 +2158,8 @@ class irFunc(IR):
 
 
     def resolve_phi(self):
+        self.recalc_defines()
+
         merge_number = 0
         for block in self.blocks.values():
             merge_number = block.resolve_phi(merge_number)
@@ -2187,6 +2205,8 @@ class irFunc(IR):
                     changed = True
 
             iterations += 1
+
+        self.recalc_defines()
 
         logging.debug(f'SSA conversion in {iterations} iterations')
 
@@ -2461,7 +2481,7 @@ class irFunc(IR):
         self.resolve_phi()
         
 
-        return
+        # return
         
 
         # blocks may have been rearranged or added at this point
