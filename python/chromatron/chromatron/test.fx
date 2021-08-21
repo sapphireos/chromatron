@@ -1,5 +1,5 @@
-def empty_func():
-    pass
+# def empty_func():
+#     pass
 
 # def simple_func():
 #     return 0
@@ -77,18 +77,18 @@ def empty_func():
 
 #     return b + a
 
-# def double_while_loop():
-#     i = Number()
-#     i = 4
+def double_while_loop():
+    i = Number()
+    i = 4
 
-#     while i > 0:
-#         i -= 1
-#         j = Number()
+    while i > 0:
+        i -= 1
+        j = Number()
 
-#         j = 4
+        j = 4
 
-#         while j > 0:
-#             j -= 1
+        while j > 0:
+            j -= 1
 
 # def while_with_if_loop():
 #     i = Number()
@@ -190,13 +190,13 @@ def empty_func():
 #     a /= b
     
 
-global_a = Number()
-def global_var():
-  global_a += 1
+# global_a = Number()
+# def global_var():
+#   global_a += 1
 
-def global_double_assign():
-  global_a = 1
-  global_a = 2
+# def global_double_assign():
+#   global_a = 1
+#   global_a = 2
 
 
 # A = 4 # named constant.  recommend all caps for these (like C's convention)

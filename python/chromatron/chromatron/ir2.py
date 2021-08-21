@@ -5,6 +5,7 @@ import struct
 
 import graphviz
 
+from .types import *
 from .instructions2 import *
 
 # debug imports:
@@ -905,132 +906,132 @@ class irBlock(IR):
     
     """
 
-    def init_vars(self, scanned, defines=None):
-        if defines is None:
-            defines = {}
+    # def init_vars(self, scanned, defines=None):
+    #     if defines is None:
+    #         defines = {}
 
-        new_code = []
-        for ir in self.code:
-            if ir in scanned:
-                new_code.append(ir)
-                continue
+    #     new_code = []
+    #     for ir in self.code:
+    #         if ir in scanned:
+    #             new_code.append(ir)
+    #             continue
 
-            scanned.append(ir)
+    #         scanned.append(ir)
 
-            if isinstance(ir, irDefine):
-                ir.var.block = self
-                if ir.var.name in self.globals:
-                    raise SyntaxError(f'Variable {ir.var.name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+    #         if isinstance(ir, irDefine):
+    #             ir.var.block = self
+    #             if ir.var.name in self.globals:
+    #                 raise SyntaxError(f'Variable {ir.var.name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
 
-                target = copy(ir.var)
+    #             target = copy(ir.var)
 
-                # init variable to 0
-                assign = irLoadConst(target, self.func.get_zero(ir.lineno), lineno=ir.lineno)
-                assign.block = self
+    #             # init variable to 0
+    #             assign = irLoadConst(target, self.func.get_zero(ir.lineno), lineno=ir.lineno)
+    #             assign.block = self
 
-                defines[ir.var.name] = target
+    #             defines[ir.var.name] = target
                 
-                new_code.append(ir)                
-                new_code.append(assign)
-                continue
+    #             new_code.append(ir)                
+    #             new_code.append(assign)
+    #             continue
 
 
-            for i in ir.get_input_vars():
-                i.block = self
+    #         for i in ir.get_input_vars():
+    #             i.block = self
 
-                if i.const:
-                    if i.name not in defines:
-                        target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
-                        target.block = self
+    #             if i.const:
+    #                 if i.name not in defines:
+    #                     target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
+    #                     target.block = self
 
-                        load = irLoadConst(target, i, lineno=ir.lineno)
-                        load.block = self
+    #                     load = irLoadConst(target, i, lineno=ir.lineno)
+    #                     load.block = self
 
-                        defines[target.name] = target
-                        self.defines[target.name] = target
+    #                     defines[target.name] = target
+    #                     self.defines[target.name] = target
 
-                        new_code.append(load)
+    #                     new_code.append(load)
 
-                    i.clone(defines[i.name])
+    #                 i.clone(defines[i.name])
 
-                # elif i.is_ref:
-                #     assert i.var_name in self.globals
-                #     i.type = self.globals[i.var_name].type
+    #             # elif i.is_ref:
+    #             #     assert i.var_name in self.globals
+    #             #     i.type = self.globals[i.var_name].type
                     
-                #     # need to replace reference with an actual register
-                #     # since this is an input, we need to load from that ref
-                #     # to a register and then replace with that.
+    #             #     # need to replace reference with an actual register
+    #             #     # since this is an input, we need to load from that ref
+    #             #     # to a register and then replace with that.
                     
-                #     ref_addr_name = f'&{i.basename}'
+    #             #     ref_addr_name = f'&{i.basename}'
 
-                #     ref_addr = self.add_temp(ref_addr_name, lineno=ir.lineno)
-                #     ref_addr.is_temp = True
+    #             #     ref_addr = self.add_temp(ref_addr_name, lineno=ir.lineno)
+    #             #     ref_addr.is_temp = True
                     
-                #     lookup = irLookup(ref_addr, copy(i), lineno=ir.lineno)
-                #     lookup.block = self
-                #     new_code.append(lookup)
+    #             #     lookup = irLookup(ref_addr, copy(i), lineno=ir.lineno)
+    #             #     lookup.block = self
+    #             #     new_code.append(lookup)
 
-                #     target = self.add_temp(i.basename, lineno=ir.lineno)
-                #     target.block = self
+    #             #     target = self.add_temp(i.basename, lineno=ir.lineno)
+    #             #     target.block = self
 
-                #     load = irLoad(target, ref_addr, lineno=ir.lineno)
-                #     load.block = self
+    #             #     load = irLoad(target, ref_addr, lineno=ir.lineno)
+    #             #     load.block = self
 
-                #     new_code.append(load)
+    #             #     new_code.append(load)
 
-                #     i.clone(target)
+    #             #     i.clone(target)
 
-                if i.name in defines:
-                    i.type = defines[i.name].type
+    #             if i.name in defines:
+    #                 i.type = defines[i.name].type
 
             
-            new_code.append(ir)
+    #         new_code.append(ir)
 
-            for o in ir.get_output_vars():
-                o.block = self
+    #         for o in ir.get_output_vars():
+    #             o.block = self
                 
-                assert not o.is_const
+    #             assert not o.is_const
 
-                if o.is_ref:
-                    # assert o.var_name in self.globals
-                    if o.var_name in self.globals:
-                        o.type = self.globals[o.var_name].type
+    #             if o.is_ref:
+    #                 # assert o.var_name in self.globals
+    #                 if o.var_name in self.globals:
+    #                     o.type = self.globals[o.var_name].type
                     
-                    ref_addr_name = f'&{o.basename}'
+    #                 ref_addr_name = f'&{o.basename}'
                 
-                    ref_addr = self.add_temp(ref_addr_name, lineno=ir.lineno)
-                    ref_addr.is_temp = True
+    #                 ref_addr = self.add_temp(ref_addr_name, lineno=ir.lineno)
+    #                 ref_addr.is_temp = True
 
-                    lookup = irLookup(ref_addr, copy(o), lineno=ir.lineno)
-                    lookup.block = self
-                    new_code.append(lookup)
+    #                 lookup = irLookup(ref_addr, copy(o), lineno=ir.lineno)
+    #                 lookup.block = self
+    #                 new_code.append(lookup)
 
-                    store = irStore(o, ref_addr, lineno=ir.lineno)
-                    store.block = self
-                    new_code.append(store)
+    #                 store = irStore(o, ref_addr, lineno=ir.lineno)
+    #                 store.block = self
+    #                 new_code.append(store)
 
-                    target = add_reg(o.basename, datatype=o.type, lineno=ir.lineno)
-                    target.block = self
+    #                 target = add_reg(o.basename, datatype=o.type, lineno=ir.lineno)
+    #                 target.block = self
 
-                    defines[target.basename] = target
-                    self.defines[target.basename] = target
-                    o.clone(target)
+    #                 defines[target.basename] = target
+    #                 self.defines[target.basename] = target
+    #                 o.clone(target)
 
-                if o.basename in defines:
-                    o.type = defines[o.basename].type
+    #             if o.basename in defines:
+    #                 o.type = defines[o.basename].type
 
-        changed = self.code != new_code
+    #     changed = self.code != new_code
 
-        self.code = new_code
+    #     self.code = new_code
 
-        if self not in self.func.dominator_tree:
-            return changed
+    #     if self not in self.func.dominator_tree:
+    #         return changed
 
-        for c in self.func.dominator_tree[self]:
-            if c.init_vars(scanned, copy(defines)):
-                changed = True
+    #     for c in self.func.dominator_tree[self]:
+    #         if c.init_vars(scanned, copy(defines)):
+    #             changed = True
 
-        return changed
+    #     return changed
 
 
     def resolve_phi(self, merge_number=0):
@@ -1217,7 +1218,7 @@ class irBlock(IR):
             new_var.convert_to_ssa(self.ssa_next_val)
 
             # this will ensure the lookup will resolve on a loop
-            self.defines[var_name] = new_var
+            self.defines[var_name] = new_var.var
 
             # add the temp phi
             phi = self.add_phi(new_var)
@@ -1238,7 +1239,7 @@ class irBlock(IR):
 
             phi.defines = list(sorted(set(values), key=lambda a: a.name))
 
-            return new_var
+            return new_var.var
 
         # if block is not sealed:
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
@@ -1261,12 +1262,12 @@ class irBlock(IR):
 
             new_var.convert_to_ssa(self.ssa_next_val)
 
-            self.defines[var_name] = new_var
+            self.defines[var_name] = new_var.var
 
             # this requires an incomplete phi which defines a new value
             self.add_incomplete_phi(new_var)
 
-            return new_var
+            return new_var.var
 
         else:
             assert False
@@ -2927,6 +2928,9 @@ class irPhi(IR):
 
         self.target = target
         self.defines = defines
+
+        for d in defines:
+            assert not isinstance(d, VarContainer)
 
         assert self.target not in defines
 

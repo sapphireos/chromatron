@@ -94,7 +94,7 @@ class Builder(object):
         elif value is False:
             value = 0
 
-        name = f'${str(value)}'
+        name = f'{str(value)}'
 
         try:
             return self.get_var(name)

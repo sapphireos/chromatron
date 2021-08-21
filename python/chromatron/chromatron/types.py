@@ -6,6 +6,15 @@ class VarContainer(object):
         self.var = var 
         self.reg = None # what register is signed to this container 
         self.is_container = True
+        
+    @property
+    def var(self):
+        return self._var
+
+    @var.setter
+    def var(self, value):
+        assert isinstance(value, Var)
+        self._var = value
 
     def copy(self):
         return deepcopy(self)
@@ -46,13 +55,13 @@ class VarContainer(object):
         # this will come up during a copy,
         # var won't have been assigned to the class yet,
         # so the getattr on var will recursively fail.
-        if "var" not in self.__dict__:
+        if "_var" not in self.__dict__:
             raise AttributeError
 
         return getattr(self.var, name)
 
     def __setattr__(self, name, value):
-        if name in ['var', 'reg', 'is_container']:
+        if name in ['var', '_var', 'reg', 'is_container']:
             super().__setattr__(name, value)
 
         else:
@@ -112,11 +121,17 @@ class Var(object):
         return base
 
     def __str__(self):
-        if self.addr is None:
-            return f'{self.ssa_name}:{self.data_type}'
+        if self.const:
+            s = f'${self.ssa_name}:{self.data_type}'
 
         else:
-            return f'{self.ssa_name}:{self.data_type}@{self.addr}'
+            s = f'{self.ssa_name}:{self.data_type}'
+
+        if self.addr is None:
+            return s
+
+        else:
+            return f'{s}@{self.addr}'
 
 class varRegister(Var):
     def __init__(self, *args, **kwargs):
