@@ -233,7 +233,7 @@ class Builder(object):
         register = VarContainer(var.copy()) # wrap var
         self.add_var_to_symbol_table(register)
 
-        ir = irLoad(register, var, lineno=lineno)
+        ir = irLoad(register.copy(), var, lineno=lineno)
         self.append_node(ir)
 
         return register
