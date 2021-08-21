@@ -365,6 +365,9 @@ class irBlock(IR):
     def get_input_vars(self):
         v = []
         for node in self.code:
+            for i in node.get_input_vars():
+                assert isinstance(i, VarContainer)
+
             v.extend(node.get_input_vars())
 
         return v
@@ -1050,19 +1053,19 @@ class irBlock(IR):
 
         # collect incoming blocks from all phis
         incoming_blocks = []
-        defines = {}
+        merges = {}
         for phi in phis:
-            defines[phi] = {}
+            merges[phi] = {}
 
             for d in phi.merges:
                 for p in self.predecessors:
                     v = p.lookup_var(d)
                     if v.name == d.name:
-                        # defines[phi][d].append(p)
+                        # merges[phi][d].append(p)
 
-                        assert d not in defines[phi]
+                        assert d not in merges[phi]
 
-                        defines[phi][d] = p
+                        merges[phi][d] = p
 
                         if p not in incoming_blocks:
                             incoming_blocks.append(p)
@@ -1114,8 +1117,8 @@ class irBlock(IR):
 
             merge_blocks[in_block] = merge_block
 
-        for phi, phi_defines in defines.items():
-            for var, pred in phi_defines.items():
+        for phi, phi_merges in merges.items():
+            for var, pred in phi_merges.items():
                 
                 merge_block = merge_blocks[pred]
 
@@ -1236,10 +1239,10 @@ class irBlock(IR):
                 # elif pv is not None:
                 
                 assert pv is not None
-                values.append(pv)
+                values.append(VarContainer(pv))
 
-
-            phi.merges = list(sorted(set(values), key=lambda a: a.name))
+            merges = list(sorted(set(values), key=lambda a: a.name))
+            phi.merges = merges
 
             return new_var.var
 
@@ -1478,19 +1481,19 @@ class irBlock(IR):
 
                 #     changed = True
 
-                # check if only one define
+                # check if only one merge
                 # if so, that means that any user of the target var is a copy of
                 # the singular definition - they must always be equivalent.  thanks SSA!
                 # we can replace all users of the target with the define, eliminating
                 # this phi and also eliminating a variable.
                 elif len(ir.merges) == 1:
-                    define = ir.merges[0]
+                    merge = ir.merges[0]
 
                     # get all users of this variable
                     users = [i for i in self.func.get_input_vars() if i == ir.target]
 
                     for user in users:
-                        user.var = define.var.copy()
+                        user.var = merge.var.copy()
 
                     changed = True                    
                     continue # remove phi from code
