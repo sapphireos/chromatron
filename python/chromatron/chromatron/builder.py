@@ -279,7 +279,7 @@ class Builder(object):
         return ir
 
     def push_symbol_table(self):
-        sym = SymbolTable(self.symbol_tables[-1])
+        sym = SymbolTable(self.symbol_tables[0])
         self.symbol_tables.insert(0, sym)
 
         self.current_symbol_table = sym

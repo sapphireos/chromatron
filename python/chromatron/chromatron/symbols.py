@@ -7,12 +7,13 @@ class SymbolTable(object):
         self.symbols = {}        
         
     def __str__(self):
-        s = 'Symbols:\n'
+        return f'{self.symbols.keys()}'
+        # s = 'Symbols:\n'
 
-        for k, v in self.symbols:
-            s += f'\t{k}: {v.data_type}\n'
+        # for k, v in self.symbols:
+        #     s += f'\t{k}: {v.data_type}\n'
 
-        return s
+        # return s
 
     def __contains__(self, name):
         return name in self.symbols
@@ -36,7 +37,7 @@ class SymbolTable(object):
     def globals(self):
         if self.parent:
             g = self.parent.globals
-            
+
         else:
             g = {}
 
