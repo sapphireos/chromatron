@@ -273,8 +273,8 @@ class irBlock(IR):
     def __repr__(self):
         return self.name
 
-    def add_temp(self, basename='', data_type=None, lineno=None):
-        return self.func.add_temp(basename, data_type, lineno=lineno)
+    # def add_temp(self, basename='', data_type=None, lineno=None):
+    #     return self.func.add_temp(basename, data_type, lineno=lineno)
 
     def get_blocks(self, blocks=None, visited=None):
         if blocks is None:
@@ -1558,21 +1558,21 @@ class irFunc(IR):
         self.register_count = None
         self.registers = {}
 
-    def get_zero(self, lineno=None):
-        return self.consts['0']
+    # def get_zero(self, lineno=None):
+    #     return self.consts['0']
 
-    def add_temp(self, basename='', data_type=None, lineno=None):
-        name = '%' + str(self.next_temp)
+    # def add_temp(self, basename='', data_type=None, lineno=None):
+    #     name = '%' + str(self.next_temp)
         
-        if len(basename) > 0:
-            name = f'{basename}.{name}'
+    #     if len(basename) > 0:
+    #         name = f'{basename}.{name}'
 
-        self.next_temp += 1
+    #     self.next_temp += 1
 
-        ir = irVar(name, datatype=data_type, lineno=lineno)
-        ir.is_temp = True
+    #     ir = irVar(name, datatype=data_type, lineno=lineno)
+    #     ir.is_temp = True
 
-        return ir
+    #     return ir
 
     @property
     def blocks(self):
