@@ -1154,8 +1154,8 @@ class irBlock(IR):
 
         visited.append(self)
 
-        if var.basename in self.defines:
-            return self.defines[var.basename]
+        if var.name in self.defines:
+            return self.defines[var.name]
 
         # search predecessors
         for p in self.predecessors:
@@ -2424,7 +2424,7 @@ class irFunc(IR):
         self.verify_ssa()
         self.verify_variables()
 
-        return
+        # return
         
 
         # fold constants
