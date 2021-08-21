@@ -137,7 +137,7 @@ class IR(object):
 
 
 class irProgram(IR):
-    def __init__(self, funcs={}, symbols=None,**kwargs):
+    def __init__(self, funcs={}, symbols=None, **kwargs):
         super().__init__(**kwargs)
 
         self.funcs = funcs
@@ -289,6 +289,14 @@ class irBlock(IR):
             s.get_blocks(blocks, visited)
 
         return blocks
+
+    @property
+    def type_manager(self):
+        return self.func.type_manager
+
+    @property
+    def ssa_next_val(self):
+        return self.func.ssa_next_val
 
     @property
     def name(self):
@@ -1192,17 +1200,22 @@ class irBlock(IR):
             assert var_name not in self.defines
 
             # create new var and add a phi node
-            new_var = irVar(name=var_name, lineno=-1)
-            new_var.clone(var)
-            
-            if var.is_const:
-                new_var.is_const = False
-                new_var.holds_const = True
+            new_var = self.type_manager.create_var_from_type(var_name, var.data_type, lineno=-1)
 
-            new_var.block = self
-            new_var.type = var.type
-            new_var.ssa_version = None
-            new_var.convert_to_ssa()
+            # new_var = irVar(name=var_name, lineno=-1)
+            # new_var.clone(var)
+            
+            # if var.is_const:
+            #     new_var.is_const = False
+            #     new_var.holds_const = True
+
+            # new_var.block = self
+            # new_var.type = var.type
+            # new_var.ssa_version = None
+            # new_var.convert_to_ssa()
+
+            new_var.convert_to_ssa(self.ssa_next_val)
+
             # this will ensure the lookup will resolve on a loop
             self.defines[var_name] = new_var
 
@@ -1231,17 +1244,23 @@ class irBlock(IR):
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
             assert not self.sealed
 
-            new_var = irVar(name=var_name, lineno=-1)
-            new_var.clone(var)
 
-            if var.is_const:
-                new_var.is_const = False
-                new_var.holds_const = True
+            new_var = self.type_manager.create_var_from_type(var_name, var.data_type, lineno=-1)
 
-            new_var.block = self
-            new_var.ssa_version = None
-            new_var.type = var.type
-            new_var.convert_to_ssa()
+            # new_var = irVar(name=var_name, lineno=-1)
+            # new_var.clone(var)
+
+            # if var.is_const:
+            #     new_var.is_const = False
+            #     new_var.holds_const = True
+
+            # new_var.block = self
+            # new_var.ssa_version = None
+            # new_var.type = var.type
+            # new_var.convert_to_ssa()
+
+            new_var.convert_to_ssa(self.ssa_next_val)
+
             self.defines[var_name] = new_var
 
             # this requires an incomplete phi which defines a new value
@@ -1355,7 +1374,7 @@ class irBlock(IR):
 
                     # assert not o.const # cannot write to a const!
 
-                    o.convert_to_ssa(self.func.ssa_next_val)
+                    o.convert_to_ssa(self.ssa_next_val)
                     self.defines[o.name] = o.var
 
                     # check if we have a definition:
@@ -1404,11 +1423,11 @@ class irBlock(IR):
             if isinstance(ir, irPhi):
 
                 # assign type
-                for d in ir.defines:
-                    if d.type is not None:
-                        ir.target.type = d.type
+                # for d in ir.defines:
+                #     if d.data_type is not None:
+                #         ir.target.data_type = d.type
 
-                        break
+                #         break
 
                 
                 # check if the phi target variable is in it's defines.
@@ -1425,9 +1444,9 @@ class irBlock(IR):
                     continue # skip phi (remove from code)
 
                 # is the phi target a constant register?
-                elif ir.target.holds_const:
+                elif ir.target.const:
                     for d in ir.defines:
-                        assert d.holds_const # ensure all inputs are also consts
+                        assert d.const # ensure all inputs are also consts
 
                     # we don't need to do any actual phi resolution here, since
                     # we already know what value the register will hold.
@@ -1478,7 +1497,7 @@ class irBlock(IR):
         return changed
 
 class irFunc(IR):
-    def __init__(self, name, ret_type='i32', params=None, body=None, global_vars=None, symbol_table=None, **kwargs):
+    def __init__(self, name, ret_type='i32', params=None, body=None, global_vars=None, symbol_table=None, type_manager=None, **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.ret_type = ret_type
@@ -1487,6 +1506,7 @@ class irFunc(IR):
         self.code = [] # output IR
         # self.globals = global_vars
         self.symbol_table = symbol_table
+        self.type_manager = type_manager
 
         self.next_temp = 0
 
