@@ -2048,8 +2048,8 @@ class irFunc(IR):
                 prev_live_in[ir] = copy(live_in[ir])
                 prev_live_out[ir] = copy(live_out[ir])
 
-                in_vars = [a for a in ir.get_input_vars() if not a.is_const]
-                out_vars = [a for a in ir.get_output_vars() if not a.is_const]
+                in_vars = ir.get_input_vars()
+                out_vars = ir.get_output_vars()
 
                 use = set(in_vars)
                 define = set(out_vars)
