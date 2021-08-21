@@ -1054,7 +1054,7 @@ class irBlock(IR):
         for phi in phis:
             defines[phi] = {}
 
-            for d in phi.defines:
+            for d in phi.merges:
                 for p in self.predecessors:
                     v = p.lookup_var(d)
                     if v.name == d.name:
@@ -1228,16 +1228,18 @@ class irBlock(IR):
             for p in self.predecessors:
                 pv = p.ssa_lookup_var(var)
 
-                if isinstance(pv, list):
-                    for item in pv:
-                        if item is not None:
-                            values.append(item)
+                # if isinstance(pv, list):
+                #     for item in pv:
+                #         if item is not None:
+                #             values.append(item)
 
-                elif pv is not None:
-                    values.append(pv)
+                # elif pv is not None:
+                
+                assert pv is not None
+                values.append(pv)
 
 
-            phi.defines = list(sorted(set(values), key=lambda a: a.name))
+            phi.merges = list(sorted(set(values), key=lambda a: a.name))
 
             return new_var.var
 
@@ -1441,34 +1443,40 @@ class irBlock(IR):
                 
                 # no defines?
                 elif len(ir.merges) == 0:
+                    # get users of phi target
+                    users = [i for i in self.func.get_input_vars() if i == ir.target]
+
+                    # ensure no one is actually using this var
+                    # assert len(users) == 0
+    
                     changed = True
                     continue # skip phi (remove from code)
 
                 # is the phi target a constant register?
-                elif ir.target.const:
-                    for d in ir.merges:
-                        assert d.const # ensure all inputs are also consts
+                # elif ir.target.const:
+                #     for d in ir.merges:
+                #         assert d.const # ensure all inputs are also consts
 
-                    # we don't need to do any actual phi resolution here, since
-                    # we already know what value the register will hold.
-                    # we can just do another constant load.
-                    # technically the code will still work without this logic,
-                    # but it significantly reduces extra load on the downstream
-                    # optimizers and generates slightly better unoptimized code.
-                    # const = copy(ir.target)
-                    const = ir.target.copy()
-                    # const.ssa_version = None
+                #     # we don't need to do any actual phi resolution here, since
+                #     # we already know what value the register will hold.
+                #     # we can just do another constant load.
+                #     # technically the code will still work without this logic,
+                #     # but it significantly reduces extra load on the downstream
+                #     # optimizers and generates slightly better unoptimized code.
+                #     # const = copy(ir.target)
+                #     const = ir.target.copy()
+                #     # const.ssa_version = None
                     
 
-                    # const.holds_const = False
-                    # const.is_const = True
-                    # const.is_temp = False
+                #     # const.holds_const = False
+                #     # const.is_const = True
+                #     # const.is_temp = False
 
-                    # replace phi with load const
-                    ir = irLoadConst(ir.target, const, lineno=-1)
-                    ir.block = self
+                #     # replace phi with load const
+                #     ir = irLoadConst(ir.target, const, lineno=-1)
+                #     ir.block = self
 
-                    changed = True
+                #     changed = True
 
                 # check if only one define
                 # if so, that means that any user of the target var is a copy of
@@ -2147,12 +2155,12 @@ class irFunc(IR):
                 block.seal()
 
             iterations += 1
-
+        # return
         for block in blocks:
             assert block.filled
             assert block.sealed
             block.apply_temp_phis()
- 
+        # return
         changed = True
         while changed:
             if iterations > iteration_limit:
