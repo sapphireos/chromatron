@@ -52,12 +52,12 @@
 
 #     return b
 
-# def while_loop():
-#     i = Number()
-#     i = 4
+def while_loop():
+    i = Number()
+    i = 4
 
-#     while i > 0:
-#         i -= 1
+    while i > 0:
+        i -= 1
 
 # def two_ifelse_expr():
 #     a = Number()
@@ -77,18 +77,18 @@
 
 #     return b + a
 
-def double_while_loop():
-    i = Number()
-    i = 4
+# def double_while_loop():
+#     i = Number()
+#     i = 4
 
-    while i > 0:
-        i -= 1
-        j = Number()
+#     while i > 0:
+#         i -= 1
+#         j = Number()
 
-        j = 4
+#         j = 4
 
-        while j > 0:
-            j -= 1
+#         while j > 0:
+#             j -= 1
 
 # def while_with_if_loop():
 #     i = Number()

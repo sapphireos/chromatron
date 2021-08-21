@@ -36,7 +36,7 @@ class VarContainer(object):
             return self.ssa_name == other
 
     def __hash__(self):
-        return hash(self.name)
+        return hash(self.ssa_name)
 
     def __str__(self):
         if self.reg:
@@ -98,7 +98,7 @@ class Var(object):
             return self.ssa_name == other
 
     def __hash__(self):
-        return hash(self.name)
+        return hash(self.ssa_name)
 
     @property
     def name(self):

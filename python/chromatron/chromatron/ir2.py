@@ -1057,12 +1057,11 @@ class irBlock(IR):
         for phi in phis:
             merges[phi] = {}
 
+
             for d in phi.merges:
                 for p in self.predecessors:
                     v = p.lookup_var(d)
-                    if v.name == d.name:
-                        # merges[phi][d].append(p)
-
+                    if v.ssa_name == d.ssa_name:
                         assert d not in merges[phi]
 
                         merges[phi][d] = p
