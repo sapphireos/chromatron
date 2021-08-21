@@ -19,6 +19,16 @@ class VarContainer(object):
         self.var.ssa_version = ssa_vals[self.var.name]
         ssa_vals[self.var.name] += 1
 
+    def __eq__(self, other):
+        try:
+            return self.ssa_name == other.ssa_name
+
+        except AttributeError:
+            return self.ssa_name == other
+
+    def __hash__(self):
+        return hash(self.name)
+
     def __str__(self):
         if self.reg:
             return f'{self.var}@{self.reg}'
