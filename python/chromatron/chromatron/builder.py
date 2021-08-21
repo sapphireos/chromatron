@@ -373,7 +373,14 @@ class Builder(object):
 
         return result
 
+    def store_globals(self, lineno=None):
+        for g in self.current_symbol_table.globals.values():
+            ir = irStore(g, g.var, lineno=lineno)
+            self.append_node(ir)
+
     def ret(self, value, lineno=None):
+        self.store_globals(lineno=lineno)
+
         ir = irReturn(value, lineno=lineno)
 
         self.append_node(ir)

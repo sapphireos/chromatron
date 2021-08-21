@@ -61,14 +61,14 @@
 a = Number()
 def obj():
     
-    b = Number()
-    b += 1
+    # b = Number()
+    # b += 1
 
-    if True:
+    # if True:
         # a = Number()
-        a = 4
+        # a = 4
 
-        a += 4
+    a += 4
 
 
     return a

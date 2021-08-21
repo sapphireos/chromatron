@@ -32,6 +32,18 @@ class SymbolTable(object):
 
         raise KeyError(name)
 
+    @property
+    def globals(self):
+        if self.parent:
+            g = self.parent.globals
+            
+        else:
+            g = {}
+
+        g.update({k: v for k, v in self.symbols.items() if v.is_global})
+
+        return g
+
     def add(self, var):
         if var.name in self.symbols:
             raise KeyError(f'Symbol {var.name} already in symbol table')
