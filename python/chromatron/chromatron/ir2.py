@@ -2110,8 +2110,8 @@ class irFunc(IR):
         # check that used vars have a define
         # this is just a basic check, it does not
         # perform a dataflow analysis
-        outputs = self.local_output_vars
-        for i in self.local_input_vars:
+        outputs = self.get_output_vars()
+        for i in self.get_input_vars():
             if i not in outputs and i not in self.params:
                 raise CompilerFatal(f'Variable {i} used without define')
 
@@ -2401,13 +2401,15 @@ class irFunc(IR):
 
         self.convert_to_ssa()    
         
-        return
+        
         
         # checks
         self.verify_block_links()
         self.verify_block_assignments()
         self.verify_ssa()
         self.verify_variables()
+
+        return
         
 
         # fold constants
@@ -2549,12 +2551,12 @@ class irFunc(IR):
     def verify_ssa(self):
         writes = {}
         for ir in self.get_code_from_blocks():
-            for o in [o for o in ir.get_output_vars() if not o.is_const and not o.is_temp]:
+            for o in ir.get_output_vars():
                 try:
-                    assert o.name not in writes
+                    assert o.ssa_name not in writes
 
                 except AssertionError:
-                    logging.critical(f'FATAL: {o.name} defined by {writes[o.name]} at line {writes[o.name].lineno}, overwritten by {ir} at line {ir.lineno}')
+                    logging.critical(f'FATAL: {o.ssa_name} defined by {writes[o.ssa_name]} at line {writes[o.ssa_name].lineno}, overwritten by {ir} at line {ir.lineno}')
 
                     raise
 
@@ -2562,34 +2564,34 @@ class irFunc(IR):
                     assert o.ssa_version is not None
 
                 except AssertionError:
-                    logging.critical(f'FATAL: {o.name} not assigned to SSA. Line {ir.lineno}')
+                    logging.critical(f'FATAL: {o.ssa_name} not assigned to SSA. Line {ir.lineno}')
 
                     raise
 
                 try:
-                    assert o.type is not None
+                    assert o.data_type is not None
 
                 except AssertionError:
-                    logging.critical(f'FATAL: {o.name} not assigned a type. Line {ir.lineno}')
+                    logging.critical(f'FATAL: {o.ssa_name} not assigned a type. Line {ir.lineno}')
 
                     raise
 
-                writes[o.name] = ir
+                writes[o.ssa_name] = ir
 
-            for i in [i for i in ir.get_input_vars() if not i.is_const and not i.holds_const and not i.is_temp]:
+            for i in ir.get_input_vars():
                 try:
                     assert i.ssa_version is not None
 
                 except AssertionError:
-                    logging.critical(f'FATAL: {i.name} not assigned to SSA. Line {ir.lineno}')
+                    logging.critical(f'FATAL: {i.ssa_name} not assigned to SSA. Line {ir.lineno}')
 
                     raise
 
                 try:
-                    assert i.type is not None
+                    assert i.data_type is not None
 
                 except AssertionError:
-                    logging.critical(f'FATAL: {i.name} not assigned a type. Line {ir.lineno}')
+                    logging.critical(f'FATAL: {i.ssa_name} not assigned a type. Line {ir.lineno}')
 
                     raise
 
