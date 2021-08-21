@@ -2,7 +2,7 @@
 from .symbols import *
 from .types import *
 from .ir2 import *
-
+import logging
 
 class Builder(object):
     def __init__(self, script_name='fx_script', source=[]):
@@ -328,6 +328,8 @@ class Builder(object):
         func_label = self.label(f'func:{func.name}', lineno=kwargs['lineno'])
         self.position_label(func_label)
 
+        logging.info(f'Building function: {func.name}')
+
         return func
 
     def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
@@ -375,6 +377,7 @@ class Builder(object):
 
     def store_globals(self, lineno=None):
         for g in self.current_symbol_table.globals.values():
+            g = g.copy()
             ir = irStore(g, g.var, lineno=lineno)
             self.append_node(ir)
 

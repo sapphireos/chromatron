@@ -1,10 +1,12 @@
 
-# global_a = Number()
-# def global_var():
-#   global_a += 1 + 2
+global_a = Number()
+def global_var():
+  global_a += 1
 
-#   return global_a
-
+# def global_double_assign():
+#   global_a = 1
+#   global_a = 2
+  
 # A = 4 # named constant.  recommend all caps for these (like C's convention)
       # these can be used the same as a const number.
       # instances of A will be replaced with 4.
@@ -339,23 +341,23 @@
 #     return b
 
 
-def two_ifelse():
-    a = Number()
-    b = Number()
+# def two_ifelse():
+#     a = Number()
+#     b = Number()
 
-    if a > 0:
-        b = 1 + 2 + 3 + 4 + 5
+#     if a > 0:
+#         b = 1 + 2 + 3 + 4 + 5
 
-    else:
-        b = 2 + 1
+#     else:
+#         b = 2 + 1
 
-    if b < 0:
-        a = 1
+#     if b < 0:
+#         a = 1
 
-    else:
-        b = 2
+#     else:
+#         b = 2
 
-    return b
+#     return b
 
 
 # def two_ifelse_expr():
