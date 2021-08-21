@@ -814,7 +814,7 @@ class irBlock(IR):
 
             # check if this instruction writes to any vars which are read
             for o in ir.get_output_vars():
-                if o.name in reads:
+                if o.ssa_name in reads:
                     is_read = True
                     break
 
@@ -2476,7 +2476,7 @@ class irFunc(IR):
 
         # return
         self.remove_dead_code()
-
+        # return
         # convert to IR code listing        
         self.code = self.get_code_from_blocks()
 
@@ -2540,7 +2540,7 @@ class irFunc(IR):
                 raise CompilerFatal(f'Remove dead code failed after {iterations} iterations')
                 break
 
-            reads = [a.name for a in self.get_input_vars()]
+            reads = [a.ssa_name for a in self.get_input_vars()]
 
             for block in self.blocks.values():            
                 if block.remove_dead_code(reads=reads):
