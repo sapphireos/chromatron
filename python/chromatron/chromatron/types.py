@@ -70,7 +70,7 @@ class VarContainer(object):
 
 class Var(object):
     def __init__(self, name=None, data_type=None, lineno=None):
-        self.name = name
+        self._name = name
         self.addr = None # assigned address of this variable
         self.data_type = data_type
         self.lineno = lineno
@@ -93,6 +93,17 @@ class Var(object):
 
     def __hash__(self):
         return hash(self.name)
+
+    @property
+    def name(self):
+        if self.const:
+            return f'${self._name}'
+
+        return f'{self._name}'
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     @property
     def ssa_name(self):
@@ -121,17 +132,11 @@ class Var(object):
         return base
 
     def __str__(self):
-        if self.const:
-            s = f'${self.ssa_name}:{self.data_type}'
-
-        else:
-            s = f'{self.ssa_name}:{self.data_type}'
-
         if self.addr is None:
-            return s
+            return f'{self.ssa_name}:{self.data_type}'
 
         else:
-            return f'{s}@{self.addr}'
+            return f'{self.ssa_name}:{self.data_type}@{self.addr}'
 
 class varRegister(Var):
     def __init__(self, *args, **kwargs):

@@ -97,7 +97,7 @@ class Builder(object):
         name = f'{str(value)}'
 
         try:
-            return self.get_var(name)
+            return self.get_var(f'${name}')
 
         except KeyError:
             pass

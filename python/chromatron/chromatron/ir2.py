@@ -2394,7 +2394,7 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        # return
+        return
 
         # self.init_vars()
 
