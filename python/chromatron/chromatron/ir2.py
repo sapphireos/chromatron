@@ -154,10 +154,13 @@ class irProgram(IR):
         for g in self.global_symbols.symbols.values():
             assert g.addr is None
             g.addr = addr
-            addr += g.total_length
+            addr += g.size
 
     def generate(self):
         self._allocate_memory()
+
+        for func in self.funcs.values():
+            func.fixup_globals()
 
         ins_funcs = {}
         for name, func in self.funcs.items():
@@ -1519,14 +1522,13 @@ class irBlock(IR):
         return changed
 
 class irFunc(IR):
-    def __init__(self, name, ret_type='i32', params=None, body=None, global_vars=None, symbol_table=None, type_manager=None, **kwargs):
+    def __init__(self, name, ret_type='i32', params=None, body=None, symbol_table=None, type_manager=None, **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.ret_type = ret_type
         self.params = params
         self.body = [] # input IR
         self.code = [] # output IR
-        # self.globals = global_vars
         self.symbol_table = symbol_table
         self.type_manager = type_manager
 
@@ -1832,6 +1834,16 @@ class irFunc(IR):
     def recalc_defines(self):
         for block in self.blocks.values():
             block.recalc_defines()
+
+    def fixup_globals(self):
+        assert len(self.code) > 0
+
+        for ir in self.code:
+            if isinstance(ir, irLoad) or isinstance(ir, irStore):
+                assert self.symbol_table.globals[ir.ref].addr is not None
+                
+                # assign addresses to globals
+                ir.ref.addr = self.symbol_table.globals[ir.ref].addr
 
     def render_dominator_tree(self):
         dot = graphviz.Digraph(comment=self.name)

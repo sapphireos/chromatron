@@ -317,7 +317,7 @@ class Builder(object):
     def func(self, *args, **kwargs):
         sym = self.push_symbol_table()
 
-        func = irFunc(*args, global_vars={}, symbol_table=sym, type_manager=self.type_manager, **kwargs)
+        func = irFunc(*args, symbol_table=sym, type_manager=self.type_manager, **kwargs)
         self.funcs[func.name] = func
         self.current_func = func
         self.next_temp = 0

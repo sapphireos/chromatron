@@ -72,16 +72,10 @@ class VarContainer(object):
 
 
     def generate(self):
-        if self.reg == None:
+        if self.reg is None:
             raise CompilerFatal(f"{self} does not have a register. Line: {self.lineno}")
 
-        if self.reg is not None:
-            assert self.addr is None
-            return insReg(self.reg, self, lineno=self.lineno)
-
-        elif self.addr is not None:
-            assert self.reg is None
-            return self.addr
+        return insReg(self.reg, self, lineno=self.lineno)
 
 class Var(object):
     def __init__(self, name=None, data_type=None, lineno=None):
@@ -158,6 +152,13 @@ class Var(object):
 
         else:
             return f'{self.ssa_name}:{self.data_type}@{self.addr}'
+
+
+    def generate(self):
+        if self.addr is None:
+            raise CompilerFatal(f"{self} does not have an address. Line: {self.lineno}")
+
+        return self.addr
 
 class varRegister(Var):
     def __init__(self, *args, **kwargs):

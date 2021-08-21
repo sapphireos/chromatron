@@ -70,7 +70,7 @@ class insProgram(object):
         # initialize memory
         memory_size = 0
         for v in self.globals.values():
-            memory_size += v.total_length
+            memory_size += v.size
 
         self.memory = [0] * memory_size
 
