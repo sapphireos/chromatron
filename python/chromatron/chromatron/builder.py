@@ -228,6 +228,7 @@ class Builder(object):
         if var.is_container:
             return var.copy()
 
+        assert var.is_global
         # var does not have a container:
         # we need a load for the current symbol scope
         register = VarContainer(var.copy()) # wrap var
@@ -287,7 +288,8 @@ class Builder(object):
         return sym
 
     def pop_symbol_table(self):
-        self.current_symbol_table = self.symbol_tables.pop(0)
+        self.symbol_tables.pop(0)
+        self.current_symbol_table = self.symbol_tables[0]
 
     def add_var_to_symbol_table(self, var):
         self.current_symbol_table.add(var)
