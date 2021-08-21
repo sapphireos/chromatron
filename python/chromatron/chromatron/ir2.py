@@ -166,7 +166,7 @@ class irProgram(IR):
 
     def _allocate_memory(self):
         addr = 0
-        for g in self.globals.values():
+        for g in self.global_symbols.symbols.values():
             assert g.addr is None
             g.addr = addr
             addr += g.total_length
@@ -255,7 +255,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|\t{str(ir):48}'
 
-            show_liveness = True
+            show_liveness = False
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -1766,7 +1766,7 @@ class irFunc(IR):
         s += "********************************\n"
         s += f'Registers: {len(self.registers)}\n'
         for var, reg in self.registers.items():
-            s += f'\t{var.name:24}: {reg}\n'
+            s += f'\t{var.ssa_name:24}: {reg}\n'
         
         return s
 
