@@ -72,6 +72,9 @@ class Var(object):
         except AttributeError:
             return self.ssa_name == other
 
+    def __hash__(self):
+        return hash(self.name)
+
     @property
     def ssa_name(self):
         if self.ssa_version is not None:
