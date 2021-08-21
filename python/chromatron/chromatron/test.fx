@@ -1,18 +1,8 @@
 
-
-def simple_ifelse():
-    a = Number()
-    b = Number()
-
-    if a > 0:
-        b = 1
-
-    else:
-        b = 2
-
-    assert b == 2
-    assert a == 0
-
+def func_param(a: Number):
+    a += 1
+    
+    assert a == 1
 
 # A = 4 # named constant.  recommend all caps for these (like C's convention)
       # these can be used the same as a const number.

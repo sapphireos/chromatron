@@ -1661,7 +1661,7 @@ class irFunc(IR):
         s += "********************************\n"
 
         for v in self.params:
-            s += f'\t{v.name:16}:{v.type}\n'
+            s += f'\t{v.name:16}:{v.data_type}\n'
 
         # s += "********************************\n"
         # s += "Locals:\n"
@@ -1841,7 +1841,7 @@ class irFunc(IR):
         for ir in self.code:
             if isinstance(ir, irLoad) or isinstance(ir, irStore):
                 assert self.symbol_table.globals[ir.ref].addr is not None
-                
+
                 # assign addresses to globals
                 ir.ref.addr = self.symbol_table.globals[ir.ref].addr
 
@@ -2166,6 +2166,7 @@ class irFunc(IR):
 
         for p in self.params:
             p.convert_to_ssa()
+            self.leader_block.defines[p.name] = p.var
 
         blocks = self.blocks.values()
         
@@ -2403,15 +2404,14 @@ class irFunc(IR):
 
         return insFunc(self.name, instructions, source_code, self.register_count, lineno=self.lineno)
 
-    # def init_vars(self):
+    def init_vars(self):
     #     scanned = []
 
-    #     defines = {}
-    #     for v in self.params:
-    #         defines[v.basename] = v
-    #         v.block = self.leader_block
+        defines = {}
+        for v in self.params:
+            defines[v.name] = v.var
         
-    #     self.leader_block.defines.update(defines)
+        self.leader_block.defines.update(defines)
 
     #     iterations = 0
     #     iteration_limit = 512
@@ -2434,7 +2434,7 @@ class irFunc(IR):
 
         # return
 
-        # self.init_vars()
+        self.init_vars()
 
         # self.render_dominator_tree()
         # self.render_graph()
