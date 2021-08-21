@@ -1031,15 +1031,15 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     # generate instructions
     ins_program = None
-    # try:
-    #     if not e:
-    #         ins_program = ir_program.generate()
+    try:
+        if not e:
+            ins_program = ir_program.generate()
 
-    # except Exception as exc:
-    #     e = exc    
+    except Exception as exc:
+        e = exc    
 
     # if isinstance(e, CompilerFatal):
-    #     raise e
+        # raise e
 
     # save IR to file
     with open(f'{script_name}.fxir', 'w') as f:
