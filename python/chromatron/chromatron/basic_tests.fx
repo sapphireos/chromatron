@@ -10,15 +10,15 @@ def arith():
 def constant_folding():
 	assert 1 + 2 - 3 * 10 / 5 == -3
 
-NAMED_CONST = 4
-def named_const():
-	assert NAMED_CONST == 4
-	assert NAMED_CONST + 1 == 5
+# NAMED_CONST = 4
+# def named_const():
+# 	assert NAMED_CONST == 4
+# 	assert NAMED_CONST + 1 == 5
 
-	a = Number()
+# 	a = Number()
 
-	a = NAMED_CONST * 3
-	assert a == 12
+# 	a = NAMED_CONST * 3
+# 	assert a == 12
 
 
 def simple_ifelse():

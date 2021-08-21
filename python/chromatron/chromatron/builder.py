@@ -333,11 +333,11 @@ class Builder(object):
         return func
 
     def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
-        ir = self._build_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
-        self.locals[name] = ir
-        func.params.append(ir)
+        var = self._build_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
+        self.add_var_to_symbol_table(var)
+        func.params.append(var)
 
-        return ir
+        return var
 
     def finish_func(self, func):
         func.next_temp = self.next_temp
