@@ -59,23 +59,23 @@
 #     while i > 0:
 #         i -= 1
 
-# def two_ifelse_expr():
-#     a = Number()
-#     b = Number()
+def two_ifelse_expr():
+    a = Number()
+    b = Number()
 
-#     if a > 0:
-#         b = 1
+    if a > 0:
+        b = 1
 
-#     else:
-#         b = 2
+    else:
+        b = 2
 
-#     if b < 0:
-#         a = 1
+    if b < 0:
+        a = 1
 
-#     else:
-#         b = 2
+    else:
+        b = 2
 
-#     return b + a
+    return b + a
 
 # def double_while_loop():
 #     i = Number()

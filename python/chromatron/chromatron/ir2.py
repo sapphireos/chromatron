@@ -251,15 +251,16 @@ class irBlock(IR):
 
             ir_s = f'{depth}|\t{str(ir):48}'
 
-            # if self.func.live_in and ir in self.func.live_in:
-            #     s += f'{ir_s}\n'
-            #     ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
-            #     outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
-            #     s += f'{depth}|\t  in:  {ins}\n'
-            #     s += f'{depth}|\t  out: {outs}\n'
+            show_liveness = True
+            if show_liveness and self.func.live_in and ir in self.func.live_in:
+                s += f'{ir_s}\n'
+                ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
+                outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
+                s += f'{depth}|\t  in:  {ins}\n'
+                s += f'{depth}|\t  out: {outs}\n'
 
-            # else:
-            s += f'{ir_s}\n'
+            else:
+                s += f'{ir_s}\n'
 
         s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
 
@@ -1056,19 +1057,21 @@ class irBlock(IR):
         merges = {}
         for phi in phis:
             merges[phi] = {}
-
+            phi_merges = merges[phi]
 
             for d in phi.merges:
                 for p in self.predecessors:
                     v = p.lookup_var(d)
                     if v.ssa_name == d.ssa_name:
-                        assert d not in merges[phi]
+                        assert d not in phi_merges
 
-                        merges[phi][d] = p
+                        phi_merges[d] = p
 
                         if p not in incoming_blocks:
                             incoming_blocks.append(p)
-        
+            
+            assert len(phi_merges) == len(phi.merges)
+
         merge_blocks = {}
 
         # insert a merge block for each incoming block
@@ -2450,7 +2453,7 @@ class irFunc(IR):
         self.resolve_phi()
         
 
-        # return
+        return
         
 
         # blocks may have been rearranged or added at this point
