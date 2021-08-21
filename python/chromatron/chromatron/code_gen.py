@@ -1027,7 +1027,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     except Exception as exc:
         e = exc
-        raise
+        # raise
 
     # generate instructions
     ins_program = None

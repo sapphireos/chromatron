@@ -326,36 +326,36 @@
 #             pass
 
 
-def simple_ifelse():
-    a = Number()
-    b = Number()
-
-    if a > 0:
-        b = 1
-
-    else:
-        b = 2
-
-    return b
-
-
-# def two_ifelse():
+# def simple_ifelse():
 #     a = Number()
 #     b = Number()
 
 #     if a > 0:
-#         b = 1 + 2 + 3 + 4 + 5
-
-#     else:
-#         b = 2 + 1
-
-#     if b < 0:
-#         a = 1
+#         b = 1
 
 #     else:
 #         b = 2
 
 #     return b
+
+
+def two_ifelse():
+    a = Number()
+    b = Number()
+
+    if a > 0:
+        b = 1 + 2 + 3 + 4 + 5
+
+    else:
+        b = 2 + 1
+
+    if b < 0:
+        a = 1
+
+    else:
+        b = 2
+
+    return b
 
 
 # def two_ifelse_expr():

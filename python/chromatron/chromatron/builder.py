@@ -496,8 +496,10 @@ class Builder(object):
 
         self.jump(end_label, lineno=lineno)
 
+        self.pop_scope()
+
     def do_else(self, lineno=None):
-        pass
+        self.push_scope()
 
     def end_ifelse(self, end_label, lineno=None):
         self.jump(end_label, lineno=lineno)
