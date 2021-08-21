@@ -52,12 +52,12 @@
 
 #     return b
 
-def while_loop():
-    i = Number()
-    i = 4
+# def while_loop():
+#     i = Number()
+#     i = 4
 
-    while i > 0:
-        i -= 1
+#     while i > 0:
+#         i -= 1
 
 # def two_ifelse_expr():
 #     a = Number()

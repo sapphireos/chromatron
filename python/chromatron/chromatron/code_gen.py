@@ -1043,11 +1043,17 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
     # save IR to file
     with open(f'{script_name}.fxir', 'w') as f:
-        f.write(str(ir_program))
+        try:
+            f.write(str(ir_program))
 
-        if ins_program:
-            f.write(str(ins_program))
+            if ins_program:
+                f.write(str(ins_program))
 
+        except AttributeError:
+            if e:
+                raise e
+
+            raise
 
     # if debug_print:
     #     print(ir_program)
