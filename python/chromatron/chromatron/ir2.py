@@ -1302,7 +1302,7 @@ class irBlock(IR):
                 for p in self.predecessors:
                     v = p.ssa_lookup_var(ir.var)
 
-                    values.append(v)
+                    values.append(VarContainer(v))
 
                 values = list(sorted(set(values), key=lambda a: a.name))
 
@@ -1434,19 +1434,19 @@ class irBlock(IR):
                 # check if the phi target variable is in it's defines.
                 # this could occur during a previous replace-use (above)
                 # if so, let's remove it
-                if ir.target in ir.defines:
-                    ir.defines.remove(ir.target)
+                if ir.target in ir.merges:
+                    ir.merges.remove(ir.target)
                 
                     changed = True
                 
                 # no defines?
-                elif len(ir.defines) == 0:
+                elif len(ir.merges) == 0:
                     changed = True
                     continue # skip phi (remove from code)
 
                 # is the phi target a constant register?
                 elif ir.target.const:
-                    for d in ir.defines:
+                    for d in ir.merges:
                         assert d.const # ensure all inputs are also consts
 
                     # we don't need to do any actual phi resolution here, since
@@ -1475,23 +1475,23 @@ class irBlock(IR):
                 # the singular definition - they must always be equivalent.  thanks SSA!
                 # we can replace all users of the target with the define, eliminating
                 # this phi and also eliminating a variable.
-                elif len(ir.defines) == 1:
-                    define = ir.defines[0]
+                elif len(ir.merges) == 1:
+                    define = ir.merges[0]
 
                     # get all users of this variable
                     users = [i for i in self.func.get_input_vars() if i == ir.target]
 
                     for user in users:
-                        user.var = define.copy()
+                        user.var = define.var.copy()
 
                     changed = True                    
                     continue # remove phi from code
 
-                elif len(ir.defines) > 1:
-                    old_defines = copy(ir.defines)
-                    ir.defines = list(sorted(set(ir.defines), key=lambda a: a.ssa_name))
+                elif len(ir.merges) > 1:
+                    old_merges = copy(ir.merges)
+                    ir.merges = list(sorted(set(ir.merges), key=lambda a: a.ssa_name))
                     
-                    if old_defines != ir.defines:
+                    if old_merges != ir.merges:
                         changed = True # need to check for changed!
 
             new_code.append(ir)
@@ -2923,20 +2923,20 @@ class irFunc(IR):
         return self.body[-1]
 
 class irPhi(IR):
-    def __init__(self, target, defines=[], **kwargs):
+    def __init__(self, target, merges=[], **kwargs):
         super().__init__(**kwargs)
 
         self.target = target
-        self.defines = defines
+        self.merges = merges
 
-        for d in defines:
-            assert not isinstance(d, VarContainer)
+        for d in merges:
+            assert isinstance(d, VarContainer)
 
-        assert self.target not in defines
+        assert self.target not in merges
 
     def __str__(self):
         s = ''
-        for d in sorted(self.defines, key=lambda a: a.name):
+        for d in sorted(self.merges, key=lambda a: a.name):
             s += f'{d.ssa_name}, '
 
         s = s[:-2]
@@ -2946,7 +2946,7 @@ class irPhi(IR):
         return s
 
     def get_input_vars(self):
-        return copy(self.defines)
+        return copy(self.merges)
 
     def get_output_vars(self):
         return [self.target]
