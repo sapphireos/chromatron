@@ -1455,10 +1455,12 @@ class irBlock(IR):
                     # but it significantly reduces extra load on the downstream
                     # optimizers and generates slightly better unoptimized code.
                     const = copy(ir.target)
-                    const.ssa_version = None
-                    const.holds_const = False
-                    const.is_const = True
-                    const.is_temp = False
+                    # const.ssa_version = None
+                    
+
+                    # const.holds_const = False
+                    # const.is_const = True
+                    # const.is_temp = False
 
                     # replace phi with load const
                     ir = irLoadConst(ir.target, const, lineno=-1)
@@ -1478,7 +1480,7 @@ class irBlock(IR):
                     users = [i for i in self.func.get_input_vars() if i == ir.target]
 
                     for user in users:
-                        user.clone(define)
+                        user.var = define.copy()
 
                     changed = True                    
                     continue # remove phi from code
