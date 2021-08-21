@@ -175,6 +175,8 @@ class insFunc(object):
 
 
     def run(self):
+        logging.info(f'VM run func {self.name}')
+
         if not self.register_count:
             raise VMException("Registers are not initialized!")
 
