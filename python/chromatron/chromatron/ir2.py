@@ -1358,7 +1358,7 @@ class irBlock(IR):
                 inputs = ir.get_input_vars()
 
                 for i in inputs:
-                    i.block = self
+                    # i.block = self
 
                     try:
                         v = self.ssa_lookup_var(i)
@@ -1376,7 +1376,7 @@ class irBlock(IR):
                 outputs = ir.get_output_vars()
 
                 for o in outputs:
-                    o.block = self
+                    # o.block = self
 
                     # assert not o.const # cannot write to a const!
 
@@ -2376,25 +2376,25 @@ class irFunc(IR):
 
         return insFunc(self.name, instructions, source_code, self.register_count, lineno=self.lineno)
 
-    def init_vars(self):
-        scanned = []
+    # def init_vars(self):
+    #     scanned = []
 
-        defines = {}
-        for v in self.params:
-            defines[v.basename] = v
-            v.block = self.leader_block
+    #     defines = {}
+    #     for v in self.params:
+    #         defines[v.basename] = v
+    #         v.block = self.leader_block
         
-        self.leader_block.defines.update(defines)
+    #     self.leader_block.defines.update(defines)
 
-        iterations = 0
-        iteration_limit = 512
-        while self.leader_block.init_vars(scanned, defines=copy(defines)):
-            iterations += 1
+    #     iterations = 0
+    #     iteration_limit = 512
+    #     while self.leader_block.init_vars(scanned, defines=copy(defines)):
+    #         iterations += 1
 
-            if iterations > iteration_limit:
-                raise CompilerFatal(f'Var init failed after {iterations} iterations')
+    #         if iterations > iteration_limit:
+    #             raise CompilerFatal(f'Var init failed after {iterations} iterations')
 
-        logging.debug(f'Init variables in {iterations} iterations')
+    #     logging.debug(f'Init variables in {iterations} iterations')
 
     def analyze_blocks(self):
         self.ssa_next_val = {}

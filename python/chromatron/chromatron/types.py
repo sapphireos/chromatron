@@ -85,7 +85,7 @@ class Var(object):
         return deepcopy(self)
 
     def __setattr__(self, name, value):
-        if name == 'var':
+        if name in ['var', 'block']:
             raise Exception
 
         super().__setattr__(name, value)
