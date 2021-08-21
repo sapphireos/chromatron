@@ -235,11 +235,15 @@ class irBlock(IR):
 
         s += f'{depth}| Predecessors:\n'
         for p in self.predecessors:
-            s += f'{depth}|\t{p.name}\n'
+            s += f'{depth}|\t\t{p.name}\n'
 
         s += f'{depth}| Successors:\n'
         for p in self.successors:
-            s += f'{depth}|\t{p.name}\n'
+            s += f'{depth}|\t\t{p.name}\n'
+
+        s += f'{depth}| Defines:\n'
+        for p in sorted(self.defines.values(), key=lambda a: a.ssa_name):
+            s += f'{depth}|\t\t{p.ssa_name}\n'
 
         lines_printed = []
         s += f'{depth}| Code:\n'
@@ -1452,10 +1456,14 @@ class irBlock(IR):
                     users = [i for i in self.func.get_input_vars() if i == ir.target]
 
                     # ensure no one is actually using this var
-                    # assert len(users) == 0
-    
+                    assert len(users) == 0
+            
+                    # remove target from defines:
+                    del self.defines[ir.target]
+
+                    # skip phi (remove from code)
                     changed = True
-                    continue # skip phi (remove from code)
+                    continue 
 
                 # is the phi target a constant register?
                 # elif ir.target.const:
