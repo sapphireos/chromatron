@@ -65,6 +65,13 @@ class Var(object):
     def copy(self):
         return deepcopy(self)
 
+    def __eq__(self, other):
+        try:
+            return self.ssa_name == other.ssa_name
+
+        except AttributeError:
+            return self.ssa_name == other
+
     @property
     def ssa_name(self):
         if self.ssa_version is not None:
