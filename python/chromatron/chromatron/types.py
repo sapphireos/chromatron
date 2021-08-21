@@ -84,6 +84,12 @@ class Var(object):
     def copy(self):
         return deepcopy(self)
 
+    def __setattr__(self, name, value):
+        if name == 'var':
+            raise Exception
+
+        super().__setattr__(name, value)
+
     def __eq__(self, other):
         try:
             return self.ssa_name == other.ssa_name
