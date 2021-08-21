@@ -1,6 +1,9 @@
 
 from copy import deepcopy
 
+from .exceptions import *
+from .instructions2 import *
+
 class VarContainer(object):
     def __init__(self, var):
         self.var = var 
@@ -39,7 +42,7 @@ class VarContainer(object):
         return hash(self.ssa_name)
 
     def __str__(self):
-        if self.reg:
+        if self.reg is not None:
             return f'{self.var}@{self.reg}'
 
         else:
@@ -67,6 +70,18 @@ class VarContainer(object):
         else:
             setattr(self.var, name, value)
 
+
+    def generate(self):
+        if self.reg == None:
+            raise CompilerFatal(f"{self} does not have a register. Line: {self.lineno}")
+
+        if self.reg is not None:
+            assert self.addr is None
+            return insReg(self.reg, self, lineno=self.lineno)
+
+        elif self.addr is not None:
+            assert self.reg is None
+            return self.addr
 
 class Var(object):
     def __init__(self, name=None, data_type=None, lineno=None):

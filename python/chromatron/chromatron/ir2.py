@@ -7,6 +7,7 @@ import graphviz
 
 from .types import *
 from .instructions2 import *
+from .exceptions import *
 
 # debug imports:
 import sys
@@ -70,22 +71,6 @@ def is_16_bits(value):
 
     except struct.error:
         return False
-
-class SyntaxError(Exception):
-    def __init__(self, message='', lineno=None):
-        self.lineno = lineno
-
-        message += ' (line %d)' % (self.lineno)
-
-        super().__init__(message)
-
-class DivByZero(SyntaxError):
-    pass
-
-class CompilerFatal(Exception):
-    def __init__(self, message=''):
-        super(CompilerFatal, self).__init__(message)
-
 
 class IR(object):
     def __init__(self, lineno=None):
@@ -179,7 +164,7 @@ class irProgram(IR):
             ins_funcs[name] = func.generate()
             ins_funcs[name].prune_jumps()
 
-        return insProgram(funcs=ins_funcs, global_vars=self.globals)
+        return insProgram(funcs=ins_funcs, global_vars=self.global_symbols.symbols)
 
 class Edge(object):
     def __init__(self, from_node, to_node):
@@ -2381,10 +2366,10 @@ class irFunc(IR):
             for i in ir.get_input_vars():
                 assert i in registers
                 # assign register
-                i.register = registers[i]
+                i.reg = registers[i]
 
             for o in ir.get_output_vars():
-                o.register = registers[o]
+                o.reg = registers[o]
 
         self.register_count = max(registers.values()) + 1
         self.registers = registers            
@@ -2743,12 +2728,12 @@ class irFunc(IR):
 
         for ir in self.code:
             if isinstance(ir, irAssign):
-                assert ir.target.register is not None
-                assert ir.value.register is not None
+                assert ir.target.reg is not None
+                assert ir.value.reg is not None
 
                 # src and dst registers are the same, 
                 # that makes this a nop
-                if ir.target.register == ir.value.register:
+                if ir.target.reg == ir.value.reg:
                     continue
 
             new_code.append(ir)
@@ -3307,7 +3292,7 @@ class irLoadConst(IR):
         return [self.target]
 
     def generate(self):
-        value = self.value.generate()
+        value = self.value
 
         if is_16_bits(value):
             # a load immediate will work here
@@ -3442,7 +3427,7 @@ class irBinop(IR):
 
     @property
     def data_type(self):
-        return self.target.type
+        return self.target.data_type
 
     def get_input_vars(self):
         return [self.left, self.right]

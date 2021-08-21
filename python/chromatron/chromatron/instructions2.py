@@ -25,6 +25,8 @@ from catbus import *
 from sapphire.common import catbus_string_hash
 import numpy as np
 
+from .exceptions import *
+
 MAX_INT32 =  2147483647
 MIN_INT32 = -2147483648
 MAX_UINT32 = 4294967295
@@ -279,7 +281,7 @@ class insReg(BaseInstruction):
 
     def __str__(self):
         if self.var is not None:
-            s = "%s(%s @ %s)" % (self.var.name, self.var.type, self.reg)
+            s = "%s(%s @ %s)" % (self.var.ssa_name, self.var.data_type, self.reg)
             return f'{s:18}'
 
         else:
