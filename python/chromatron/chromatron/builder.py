@@ -598,9 +598,19 @@ class Builder(object):
 
         self.current_lookup[0].append(index)
 
+
     def finish_lookup(self, target, is_attr=False, lineno=None):
-        target.is_obj = is_attr
-        target.lookups = self.current_lookup[0]
+        # target.is_obj = is_attr
+        # target.lookups = self.current_lookup[0]
+
+        var = self.add_temp(data_type='i32', lineno=lineno)
+
+        ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
+
+        self.append_node(ir)
+
         self.current_lookup.pop(0)
 
-        return target
+        # return target
+
+        return var

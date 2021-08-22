@@ -3906,23 +3906,24 @@ class irExpr(IR):
         return hash(self) == hash(other)
 
 class irLookup(IR):
-    def __init__(self, result, target, **kwargs):
+    def __init__(self, result, target, lookups=[], **kwargs):
         super().__init__(**kwargs)        
         self.result = result
         self.target = target
+        self.lookups = lookups
 
-        if isinstance(self.target.ref, irStruct):
-            # resolve named lookups on struct
-            new_lookups = []
-            for lookup in self.target.lookups:
-                offset = self.target.ref.offsets[lookup]
+        # if isinstance(self.target.ref, irStruct):
+        #     # resolve named lookups on struct
+        #     new_lookups = []
+        #     for lookup in self.target.lookups:
+        #         offset = self.target.ref.offsets[lookup]
 
-                const = irVar(offset, 'i32', lineno=-1)
-                const.is_const = True
+        #         const = irVar(offset, 'i32', lineno=-1)
+        #         const.is_const = True
 
-                new_lookups.append(const)
+        #         new_lookups.append(const)
 
-            self.target.lookups = new_lookups
+        #     self.target.lookups = new_lookups
 
 
     def __str__(self):
@@ -3930,15 +3931,15 @@ class irLookup(IR):
         for a in self.lookups:
             lookups += f'[{a}]'
 
-        return f'{self.result} = LOOKUP {self.target.var_name} {lookups}'
+        return f'{self.result} = LOOKUP {self.target} {lookups}'
 
     @property
     def base_addr(self):
         return self.target.addr
 
-    @property
-    def lookups(self):
-        return self.target.lookups
+    # @property
+    # def lookups(self):
+    #     return self.target.lookups
 
     def get_input_vars(self):
         return self.lookups
