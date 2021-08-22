@@ -375,7 +375,7 @@ class insLoadMemory(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        src = vm.registers[self.src.reg]
+        src = vm.registers[self.src]
         vm.registers[self.dest.reg] = vm.memory[src]
 
     def assemble(self):
@@ -399,7 +399,7 @@ class insStoreMemory(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        dest = vm.registers[self.dest.reg]
+        dest = vm.registers[self.dest]
         vm.memory[dest] = vm.registers[self.src.reg]
 
     def assemble(self):

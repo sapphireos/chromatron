@@ -1,9 +1,19 @@
 
-def func_param(a: Number):
-    a += 1
-    
-    assert a == 1
+ary = Number()[4]
 
+def array_lookup():
+    b = Number()
+    ary[b] = 1
+    b = 1
+    ary[b] = 2
+
+    assert ary[0] == 1
+    assert ary[1] == 2
+    assert ary[2] == 0
+    assert ary[3] == 0
+
+
+    
 # A = 4 # named constant.  recommend all caps for these (like C's convention)
       # these can be used the same as a const number.
       # instances of A will be replaced with 4.

@@ -2478,7 +2478,7 @@ class irFunc(IR):
         self.resolve_phi()
         
 
-        # return
+        return
         
 
         # blocks may have been rearranged or added at this point
