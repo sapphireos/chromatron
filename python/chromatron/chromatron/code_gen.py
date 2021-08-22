@@ -301,7 +301,7 @@ class cg1Func(cg1CodeNode):
 
         # check if we need a default return
         if not isinstance(self.body[-1], cg1Return):
-            ret = cg1Return(cg1Const(0, lineno=self.lineno), lineno=-1)
+            ret = cg1Return(cg1Const(0, lineno=-1), lineno=-1)
             ret.build(builder)
 
         # check decorators
