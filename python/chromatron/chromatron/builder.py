@@ -168,7 +168,7 @@ class Builder(object):
         # return ir
     
     def _build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
-        return self.type_manager.create_var_from_type(name, data_type, lineno=lineno)
+        return self.type_manager.create_var_from_type(name, data_type, dimensions=dimensions, lineno=lineno)
 
 
         # if data_type in PRIMITIVE_TYPES:
