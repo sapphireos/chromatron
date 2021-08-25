@@ -404,7 +404,7 @@ class Builder(object):
             self.append_node(ir)
             value = var
 
-        elif target.data_type == 'offset':
+        if target.data_type == 'offset':
             ir = irStore(value, target, lineno=lineno)
             self.append_node(ir)
 
