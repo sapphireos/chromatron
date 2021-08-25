@@ -110,7 +110,7 @@ class cg1DeclarationBase(cg1Node):
                 self.keywords[key] = False
 
     def build(self, builder, is_global=False):    
-        return builder.declare_var(self.name, self.type, [a.name for a in self.dimensions], keywords=self.keywords, is_global=is_global, lineno=self.lineno)
+        return builder.declare_var(self.name, self.type, [a.name for a in reversed(self.dimensions)], keywords=self.keywords, is_global=is_global, lineno=self.lineno)
     
 class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
@@ -591,7 +591,7 @@ class cg1Subscript(cg1CodeNode):
         builder.add_lookup(index, lineno=self.lineno)      
 
         if depth == 0:
-            return builder.finish_lookup(target, lineno=self.lineno)
+            return builder.finish_lookup(target, load=self.load, lineno=self.lineno)
 
         return target
 

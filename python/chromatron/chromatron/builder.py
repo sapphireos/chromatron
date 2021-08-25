@@ -398,8 +398,13 @@ class Builder(object):
         self.append_node(ir)
 
     def assign(self, target, value, lineno=None):
+        if value.data_type == 'offset':
+            var = self.add_temp(data_type=target.data_type, lineno=lineno)
+            ir = irLoad(var, value, lineno=lineno)
+            self.append_node(ir)
+            value = var
+
         ir = irAssign(target, value, lineno=lineno)
-            
         self.append_node(ir)
 
         return 
@@ -599,18 +604,29 @@ class Builder(object):
         self.current_lookup[0].append(index)
 
 
-    def finish_lookup(self, target, is_attr=False, lineno=None):
+    def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
         # target.is_obj = is_attr
         # target.lookups = self.current_lookup[0]
 
-        var = self.add_temp(data_type='i32', lineno=lineno)
+        var = self.add_temp(data_type='offset', lineno=lineno)
 
         ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
-
         self.append_node(ir)
+
+        # reg = self.add_temp(data_type=var.lookup(self.current_lookup)[1].data_type, lineno=lineno)
+
+        # if load:
+        #     ir = irLoad(reg, var, lineno=lineno)
+    
+        # else:
+        #     ir = irStore(reg, var, lineno=lineno)
+
+        # self.append_node(ir)
 
         self.current_lookup.pop(0)
 
+        return var
+
         # return target
 
-        return var
+        # return var

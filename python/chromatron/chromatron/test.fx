@@ -5,6 +5,8 @@ def array_lookup():
     b = Number()
     b = ary[1][2][3]
 
+    # ary[1][2][3] = b
+
     return b
 
     # ary[b] = 1

@@ -186,6 +186,23 @@ class varFixed16(varScalar):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='f16', **kwargs)
 
+class varOffset(varRegister):
+    def __init__(self, *args, offset=None, **kwargs):
+        super().__init__(*args, data_type='offset', **kwargs)
+        self.offset = offset
+
+    # @property
+    # def name(self):
+    #     return f'&{self._name}'
+
+    # @name.setter
+    # def name(self, value):
+    #     self._name = value
+
+    def __str__(self):
+        # return f'{super().__str__()} -> {self.offset}'
+        return f'{super().__str__()}'
+
 class varRef(varRegister):
     def __init__(self, *args, target, **kwargs):
         super().__init__(*args, data_type='ref', **kwargs)
@@ -239,9 +256,9 @@ class varArray(varComposite):
 
             addr += offset
 
-            return addr, datatype
+            return varOffset(offset=addr), datatype
 
-        return 0, self
+        return varOffset(offset=0), self
 
 class varStruct(varComposite):
     def __init__(self, *args, fields={}, **kwargs):
@@ -313,18 +330,19 @@ class varString(varComposite):
 
 
 
-_BASE_TYPES = [
-    varInt32('Number'), 
-    varInt32('i32'), 
-    varFixed16('Fixed16'),
-    varFixed16('f16'),
-]
+_BASE_TYPES = {
+    'offset': varOffset(), 
+    'Number': varInt32(), 
+    'i32': varInt32(), 
+    'Fixed16': varFixed16(),
+    'f16': varFixed16(),
+}
 
 class TypeManager(object):
     def __init__(self):
         self.types = {}
-        for t in _BASE_TYPES:
-            self.create_type(t.name, t)
+        for t, v in _BASE_TYPES.items():
+            self.create_type(t, v)
 
     def __str__(self):
         s = 'Types:\n'
@@ -341,7 +359,7 @@ class TypeManager(object):
         var = self.types[data_type].build(name, **kwargs)
 
         for dim in reversed(dimensions):
-            var = varArray(name, element=var, length=dim)
+            var = varArray(name, element=var, length=dim, lineno=kwargs['lineno'])
 
         return VarContainer(var)
 
@@ -351,7 +369,7 @@ if __name__ == '__main__':
 
     # print(m)
 
-    v = m.create_var_from_type('meow', 'Number', [4])
+    v = m.create_var_from_type('meow', 'Number', [4], lineno=-1)
     print(v)
     print(v.lookup([7])) # 0
     # print(v.lookup([0,0,1])) # 1
