@@ -233,6 +233,7 @@ class varArray(varComposite):
         
         if len(indexes) > 0:
             offset = indexes.pop(0) * self.stride
+            offset %= self.length
 
             addr, datatype = self.element.lookup(indexes)
 
@@ -350,13 +351,13 @@ if __name__ == '__main__':
 
     # print(m)
 
-    v = m.create_var_from_type('meow', 'Number', [4, 3, 2])
+    v = m.create_var_from_type('meow', 'Number', [4])
     print(v)
-    print(v.lookup([0,0,0])) # 0
-    print(v.lookup([0,0,1])) # 1
-    print(v.lookup([0,1,0])) # 2
-    print(v.lookup([1,0,0])) # 6
-    print(v.lookup([1])[1])
+    print(v.lookup([7])) # 0
+    # print(v.lookup([0,0,1])) # 1
+    # print(v.lookup([0,1,0])) # 2
+    # print(v.lookup([1,0,0])) # 6
+    # print(v.lookup([1])[1])
 
     # print(v.stuff)
     # print(v.var)
