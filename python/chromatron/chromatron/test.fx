@@ -2,12 +2,13 @@
 ary = Number()[4][3][2]
 
 def array_lookup():
-    b = Number()
-    b = ary[1][2][3]
+    # b = Number()
+    # b = ary[1][2][3]
 
     # ary[1][2][3] = b
+    ary[1][2][3] = ary[4][5][6]
 
-    return b
+    # return b
 
     # ary[b] = 1
     # b = 1
