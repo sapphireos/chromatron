@@ -153,6 +153,8 @@ class Var(object):
         else:
             return f'{self.ssa_name}:{self.data_type}@{self.addr}'
 
+    def lookup(self, index):
+        return 0, self
 
     def generate(self):
         if self.addr is None:
@@ -190,6 +192,7 @@ class varOffset(varRegister):
     def __init__(self, *args, offset=None, **kwargs):
         super().__init__(*args, data_type='offset', **kwargs)
         self.offset = offset
+        self.ref = None
 
     # @property
     # def name(self):
@@ -216,16 +219,9 @@ class varFunction(Var):
         super().__init__(*args, data_type='func', **kwargs)
         self.func = func
 
-    def lookup(self, index):
-        return 0, self
-
-
 class varComposite(Var):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-    def lookup(self, index):
-        return 0, self
 
 class varObject(varComposite):
     def __init__(self, *args, **kwargs):
@@ -331,6 +327,7 @@ class varString(varComposite):
 
 
 _BASE_TYPES = {
+    'var': varScalar(), 
     'offset': varOffset(), 
     'Number': varInt32(), 
     'i32': varInt32(), 

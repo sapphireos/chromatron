@@ -229,6 +229,12 @@ class Builder(object):
             return var.copy()
 
         assert var.is_global
+
+        # if composite, return, we will assume there
+        # is a lookup
+        if isinstance(var, varComposite):
+            return var        
+
         # var does not have a container:
         # we need a load for the current symbol scope
         register = VarContainer(var.copy()) # wrap var
@@ -397,12 +403,18 @@ class Builder(object):
         ir = irJump(target, lineno=lineno)
         self.append_node(ir)
 
-    def assign(self, target, value, lineno=None):
+    def load_value(self, value, lineno=None):
         if value.data_type == 'offset':
-            var = self.add_temp(data_type=target.data_type, lineno=lineno)
+            var = self.add_temp(data_type=value.ref.data_type, lineno=lineno)
             ir = irLoad(var, value, lineno=lineno)
             self.append_node(ir)
-            value = var
+            
+            return var
+
+        return value
+
+    def assign(self, target, value, lineno=None):
+        value = self.load_value(value, lineno=lineno)
 
         if target.data_type == 'offset':
             ir = irStore(value, target, lineno=lineno)
@@ -459,6 +471,9 @@ class Builder(object):
         # self.append_node(ir)
 
     def binop(self, op, left, right, lineno=None):
+        left = self.load_value(left, lineno=lineno)
+        right = self.load_value(right, lineno=lineno)
+
         target = self.add_temp(data_type='i32', lineno=lineno)
         
         ir = irBinop(target, op, left, right, lineno=lineno)
@@ -616,14 +631,17 @@ class Builder(object):
         # target.lookups = self.current_lookup[0]
 
         var = self.add_temp(data_type='offset', lineno=lineno)
+        var.ref = target
 
         ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
         self.append_node(ir)
 
-        # reg = self.add_temp(data_type=var.lookup(self.current_lookup)[1].data_type, lineno=lineno)
-
+    
         # if load:
+        #     reg = self.add_temp(data_type=var.lookup(self.current_lookup)[1].data_type, lineno=lineno)
         #     ir = irLoad(reg, var, lineno=lineno)
+
+        #     var = reg
     
         # else:
         #     ir = irStore(reg, var, lineno=lineno)
