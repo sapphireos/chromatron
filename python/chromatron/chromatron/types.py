@@ -215,22 +215,26 @@ class varObject(varComposite):
         super().__init__(*args, **kwargs)
 
 class varArray(varComposite):
-    def __init__(self, *args, element_type=None, length=1, **kwargs):
-        super().__init__(*args, data_type=f'{element_type.data_type}[{length}]', **kwargs)
+    def __init__(self, *args, element=None, length=1, **kwargs):
+        super().__init__(*args, data_type=f'{element.data_type}[{length}]', **kwargs)
         self.length = length
-        self.element_type = element_type
+        self.element = element
 
     @property
     def size(self):
-        return self.length * self.element_type.size
+        return self.length * self.element.size
+
+    @property
+    def stride(self):
+        return self.element.size
 
     def lookup(self, indexes=[]):
         indexes = deepcopy(indexes)
         
         if len(indexes) > 0:
-            offset = indexes.pop(0)
+            offset = indexes.pop(0) * self.stride
 
-            addr, datatype = self.element_type.lookup(indexes)
+            addr, datatype = self.element.lookup(indexes)
 
             addr += offset
 
@@ -335,8 +339,8 @@ class TypeManager(object):
     def create_var_from_type(self, name, data_type, dimensions=[], **kwargs):
         var = self.types[data_type].build(name, **kwargs)
 
-        for dim in dimensions:
-            var = varArray(name, var, length=dim)
+        for dim in reversed(dimensions):
+            var = varArray(name, element=var, length=dim)
 
         return VarContainer(var)
 
@@ -346,24 +350,31 @@ if __name__ == '__main__':
 
     # print(m)
 
-    v = m.create_var_from_type('meow', 'Number')
+    v = m.create_var_from_type('meow', 'Number', [4, 3, 2])
     print(v)
-    print(v.stuff)
-    print(v.var)
-    from copy import copy
-    v1 = copy(v)
-    print(v1)
-    print(v1.var)
-    print(v1.stuff)
+    print(v.lookup([0,0,0])) # 0
+    print(v.lookup([0,0,1])) # 1
+    print(v.lookup([0,1,0])) # 2
+    print(v.lookup([1,0,0])) # 6
+    print(v.lookup([1])[1])
+
+    # print(v.stuff)
+    # print(v.var)
+
+    # from copy import copy
+    # v1 = copy(v)
+    # print(v1)
+    # print(v1.var)
+    # print(v1.stuff)
     
     # print(copy(v).stuff)
 
-    # a = varArray(element_type=varInt32(), length=4)
-    # b = varArray('my_array', element_type=a, length=3)
+    # a = varArray(element=varInt32(), length=4)
+    # b = varArray('my_array', element=a, length=3)
     # print(a)
     # print(b)
 
-    # s = varStruct(fields={'a': varInt32(), 'b': varArray(element_type=varInt32(), length=4)})
+    # s = varStruct(fields={'a': varInt32(), 'b': varArray(element=varInt32(), length=4)})
 
     # print(s)
     # print(s.lookup(['b']))
