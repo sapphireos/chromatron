@@ -405,7 +405,7 @@ class Builder(object):
 
     def load_value(self, value, lineno=None):
         if value.data_type == 'offset':
-            var = self.add_temp(data_type=value.ref.data_type, lineno=lineno)
+            var = self.add_temp(data_type=value.ref.scalar_type, lineno=lineno)
             ir = irLoad(var, value, lineno=lineno)
             self.append_node(ir)
             

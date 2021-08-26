@@ -234,6 +234,13 @@ class varArray(varComposite):
         self.element = element
 
     @property
+    def scalar_type(self):
+        if not isinstance(self.element, varArray):
+            return self.element.data_type
+
+        return self.element.scalar_type
+
+    @property
     def size(self):
         return self.length * self.element.size
 
