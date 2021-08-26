@@ -86,7 +86,7 @@ s = String("hello!")
 # a = Number()
 def obj():
     
-#     # b = Number()
+    b = Number()
 #     # b += 1
 
 #     # if True:
@@ -100,6 +100,9 @@ def obj():
 
     s2 = String()
     s2 = s
+
+    b = s2.len
+
     # s2 = "meow"
     # s2 = "woofmeow"
     return s2

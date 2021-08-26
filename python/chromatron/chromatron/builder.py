@@ -631,8 +631,8 @@ class Builder(object):
         self.current_lookup.insert(0, [])
 
     def add_lookup(self, index, is_attr=False, lineno=None):
-        if is_attr:
-            index = irAttribute(index, lineno=lineno)
+        # if is_attr:
+            # index = irAttribute(index, lineno=lineno)
 
         self.current_lookup[0].append(index)
 

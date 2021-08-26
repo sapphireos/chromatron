@@ -377,7 +377,10 @@ class TypeManager(object):
     def create_type(self, name, base):
         self.types[name] = deepcopy(base)
 
-    def create_var_from_type(self, name, data_type, dimensions=[], keywords={'init_val': None}, **kwargs):
+    def create_var_from_type(self, name, data_type, dimensions=[], keywords={}, **kwargs):
+        if not keywords:
+            keywords = {'init_val': None}
+
         var = self.types[data_type].build(name, **kwargs)
         var.init_val = keywords['init_val']
 
