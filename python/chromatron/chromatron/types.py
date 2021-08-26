@@ -136,6 +136,10 @@ class Var(object):
         return False
 
     @property
+    def scalar_type(self):
+        return self.data_type
+
+    @property
     def size(self): # size in machine words (32 bits)
         return None
 

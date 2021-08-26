@@ -421,7 +421,7 @@ class Builder(object):
                 ir = irStore(value, target, lineno=lineno)
 
             elif isinstance(target.ref, varArray):
-                ir = irVectorAssign(target.ref, value, lineno=lineno)    
+                ir = irVectorAssign(target, value, lineno=lineno)    
 
             else:
                 raise CompilerFatal()
@@ -489,6 +489,7 @@ class Builder(object):
         return target
 
     def augassign(self, op, target, value, lineno=None):
+        value = self.load_value(value, lineno=lineno)
         # if target.is_obj:
         #     ir = irObjectOp(op, target, value, lineno=lineno)
         #     self.append_node(ir)
@@ -503,11 +504,15 @@ class Builder(object):
 
         # elif value.is_ref and value.ref.is_array and len(value.lookups) == 0:
         #     raise SyntaxError(f'Cannot vector op from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
+        if isinstance(target, varArray) or target.data_type == 'offset':
+            ir = irVectorOp(op, target, value, lineno=lineno)
+            self.append_node(ir)
 
-        result = self.binop(op, target, value, lineno=lineno)
+        else:
+            result = self.binop(op, target, value, lineno=lineno)
 
-        # must copy target, so SSA conversion will work
-        self.assign(copy(target), result, lineno=lineno)
+            # must copy target, so SSA conversion will work
+            self.assign(copy(target), result, lineno=lineno)
 
     def finish_module(self):
         ir = irProgram(self.funcs, self.global_symbols, lineno=0)

@@ -13,8 +13,9 @@ def array_lookup():
     # ary[2] = b + 1 + ary[3]
     # ary[2] += 1
 
-    ary[2] = 1
-    ary = 5
+    # ary[b] += ary[0][0]
+    # ary[2] += 5
+    ary[2][1] = 5
 
     # return b
 
