@@ -85,6 +85,7 @@ class Var(object):
         self.lineno = lineno
 
         self.value = None
+        self.init_val = None
         self.is_global = False
         self.is_container = False
 
@@ -211,12 +212,11 @@ class varOffset(varRegister):
         return f'{super().__str__()}'
 
 class varRef(varRegister):
-    def __init__(self, *args, target, **kwargs):
-        super().__init__(*args, data_type='ref', **kwargs)
-        self.target = target
+    def __init__(self, *args, data_type='ref', **kwargs):
+        super().__init__(*args, data_type=data_type, **kwargs)
 
-    def __str__(self):
-        return f'{super().__str__()} -> {self.target}'
+    # def __str__(self):
+    #     return f'{super().__str__()} -> {self.target}'
 
 class varFunction(Var):
     def __init__(self, *args, func=None, **kwargs):
@@ -323,9 +323,9 @@ class varStruct(varComposite):
 
         return 0, self
 
-class varString(varComposite):
+class varStringLiteral(varComposite):
     def __init__(self, *args, string=None, max_length=None, **kwargs):
-        super().__init__(*args, data_type='str', **kwargs)
+        super().__init__(*args, data_type='strlit', **kwargs)
 
         if string is not None:
             self.value = string
@@ -339,12 +339,15 @@ class varString(varComposite):
         self._size = int(((self.max_length - 1) / 4) + 2) # space for characters + 32 bit length
 
     def __str__(self):
-        return f'String({self.value}[{self.max_length}])'
+        return f'String("{self.value}"[{self.max_length}])'
 
     @property
     def size(self):
         return self._size
 
+class varString(varRef):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, data_type='str', **kwargs)
 
 
 _BASE_TYPES = {
@@ -354,6 +357,7 @@ _BASE_TYPES = {
     'i32': varInt32(), 
     'Fixed16': varFixed16(),
     'f16': varFixed16(),
+    'str': varString(),
 }
 
 class TypeManager(object):
@@ -373,8 +377,9 @@ class TypeManager(object):
     def create_type(self, name, base):
         self.types[name] = deepcopy(base)
 
-    def create_var_from_type(self, name, data_type, dimensions=[], **kwargs):
+    def create_var_from_type(self, name, data_type, dimensions=[], keywords={'init_val': None}, **kwargs):
         var = self.types[data_type].build(name, **kwargs)
+        var.init_val = keywords['init_val']
 
         for dim in reversed(dimensions):
             var = varArray(name, element=var, length=dim, lineno=kwargs['lineno'])

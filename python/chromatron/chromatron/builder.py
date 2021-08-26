@@ -168,7 +168,7 @@ class Builder(object):
         # return ir
     
     def _build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
-        return self.type_manager.create_var_from_type(name, data_type, dimensions=dimensions, lineno=lineno)
+        return self.type_manager.create_var_from_type(name, data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
 
 
         # if data_type in PRIMITIVE_TYPES:
@@ -276,14 +276,14 @@ class Builder(object):
 
     def add_string(self, string, lineno=None):
         try:
-            ir = self.strings[string]
+            var = self.strings[string]
 
         except KeyError:
-            ir = irStrLiteral(string, lineno=lineno)
+            var = varStringLiteral(string=string, lineno=lineno)
 
-            self.strings[string] = ir
+            self.strings[string] = var
 
-        return ir
+        return var
 
     def push_symbol_table(self):
         sym = SymbolTable(self.symbol_tables[0])

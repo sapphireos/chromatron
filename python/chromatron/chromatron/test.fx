@@ -1,25 +1,25 @@
 
-ary = Number()[4][3]
+# ary = Number()[4][3]
 
-def array_lookup():
-    b = Number()
-    # b = ary[1]
-    # ary[1] = b
+# def array_lookup():
+#     b = Number()
+#     # b = ary[1]
+#     # ary[1] = b
 
-    # ary[1][2][3] = b
-    # ary[1][2][3] = ary[4][5][6]
+#     # ary[1][2][3] = b
+#     # ary[1][2][3] = ary[4][5][6]
 
-    # b = 1 + ary[2]
-    # ary[2] = b + 1 + ary[3]
-    # ary[2] += 1
+#     # b = 1 + ary[2]
+#     # ary[2] = b + 1 + ary[3]
+#     # ary[2] += 1
 
-    # ary[b] += ary[0][0]
-    # ary[2] += 5
-    ary[2][1] = 5
+#     # ary[b] += ary[0][0]
+#     # ary[2] += 5
+#     ary[2][1] = 5
 
-    # return b
+#     # return b
 
-    # ary[b] = 1
+#     # ary[b] = 1
     # b = 1
     # ary[b] = 2
 
@@ -79,12 +79,12 @@ def array_lookup():
 # Link system:
 # change to system library call.
 
-# s = String("hello!")
+s = String("hello!")
 
 # # a = Number()[4]
 # # def obj(a: Number):
 # a = Number()
-# def obj():
+def obj():
     
 #     # b = Number()
 #     # b += 1
@@ -98,10 +98,11 @@ def array_lookup():
 
 #     return a
 
-    # s2 = String()
-#     # s2 = s
+    s2 = String()
+    s2 = s
     # s2 = "meow"
-
+    # s2 = "woofmeow"
+    return s2
 #     pass
 
 #     a += 1
@@ -117,7 +118,7 @@ def array_lookup():
     # return a[b]
 
     # b = Number()
-    # b = pixels[7][6].hue
+    # b = pixels[7].hue
 
     # return b
 
