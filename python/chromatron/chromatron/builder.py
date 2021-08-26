@@ -417,17 +417,23 @@ class Builder(object):
         value = self.load_value(value, lineno=lineno)
 
         if target.data_type == 'offset':
-            ir = irStore(value, target, lineno=lineno)
-            self.append_node(ir)
+            if isinstance(target.ref, varScalar):
+                ir = irStore(value, target, lineno=lineno)
 
-            return
+            elif isinstance(target.ref, varArray):
+                ir = irVectorAssign(target.ref, value, lineno=lineno)    
 
+            else:
+                raise CompilerFatal()
 
-        ir = irAssign(target, value, lineno=lineno)
+        elif isinstance(target, varArray):
+            ir = irVectorAssign(target, value, lineno=lineno)
+
+        else:
+            ir = irAssign(target, value, lineno=lineno)
+
+    
         self.append_node(ir)
-
-        return 
-
 
 
         # if target.is_obj:
@@ -627,7 +633,7 @@ class Builder(object):
 
     def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
         var = self.add_temp(data_type='offset', lineno=lineno)
-        var.ref = target
+        var.ref = target.lookup(self.current_lookup[0])
 
         ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
         self.append_node(ir)

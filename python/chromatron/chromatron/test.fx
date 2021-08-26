@@ -1,5 +1,5 @@
 
-ary = Number()[4]
+ary = Number()[4][3]
 
 def array_lookup():
     b = Number()
@@ -13,7 +13,8 @@ def array_lookup():
     # ary[2] = b + 1 + ary[3]
     # ary[2] += 1
 
-    ary = 1
+    ary[2] = 1
+    ary = 5
 
     # return b
 

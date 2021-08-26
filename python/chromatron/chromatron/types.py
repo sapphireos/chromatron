@@ -154,7 +154,7 @@ class Var(object):
             return f'{self.ssa_name}:{self.data_type}@{self.addr}'
 
     def lookup(self, index):
-        return 0, self
+        return self
 
     def generate(self):
         if self.addr is None:
@@ -175,7 +175,7 @@ class varScalar(varRegister):
         super().__init__(*args, **kwargs)
 
     def lookup(self, indexes=[]): # lookup returns address offset and type (self, for scalars)
-        return 0, self
+        return self
 
 class varInt32(varScalar):
     def __init__(self, *args, **kwargs):
@@ -248,20 +248,30 @@ class varArray(varComposite):
     def stride(self):
         return self.element.size
 
+    # def lookup(self, indexes=[]):
+    #     indexes = deepcopy(indexes)
+        
+    #     if len(indexes) > 0:
+    #         offset = indexes.pop(0) * self.stride
+    #         offset %= self.length
+
+    #         addr, datatype = self.element.lookup(indexes)
+
+    #         addr += offset
+
+    #         return varOffset(offset=addr), datatype
+
+    #     return varOffset(offset=0), self
+
     def lookup(self, indexes=[]):
         indexes = deepcopy(indexes)
         
         if len(indexes) > 0:
-            offset = indexes.pop(0) * self.stride
-            offset %= self.length
+            indexes.pop(0)
+            
+            return self.element.lookup(indexes)
 
-            addr, datatype = self.element.lookup(indexes)
-
-            addr += offset
-
-            return varOffset(offset=addr), datatype
-
-        return varOffset(offset=0), self
+        return self
 
 class varStruct(varComposite):
     def __init__(self, *args, fields={}, **kwargs):
