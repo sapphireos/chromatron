@@ -3,12 +3,17 @@ ary = Number()[4]
 
 def array_lookup():
     b = Number()
-    b = ary[1]
+    # b = ary[1]
+    # ary[1] = b
 
     # ary[1][2][3] = b
     # ary[1][2][3] = ary[4][5][6]
 
     # b = 1 + ary[2]
+    # ary[2] = b + 1 + ary[3]
+    # ary[2] += 1
+
+    ary = 1
 
     # return b
 

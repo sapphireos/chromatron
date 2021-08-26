@@ -625,33 +625,14 @@ class Builder(object):
 
         self.current_lookup[0].append(index)
 
-
     def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
-        # target.is_obj = is_attr
-        # target.lookups = self.current_lookup[0]
-
         var = self.add_temp(data_type='offset', lineno=lineno)
         var.ref = target
 
         ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
         self.append_node(ir)
 
-    
-        # if load:
-        #     reg = self.add_temp(data_type=var.lookup(self.current_lookup)[1].data_type, lineno=lineno)
-        #     ir = irLoad(reg, var, lineno=lineno)
-
-        #     var = reg
-    
-        # else:
-        #     ir = irStore(reg, var, lineno=lineno)
-
-        # self.append_node(ir)
-
         self.current_lookup.pop(0)
 
         return var
 
-        # return target
-
-        # return var
