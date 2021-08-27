@@ -105,25 +105,25 @@ def array_lookup():
     assert ary[2] == 0
     assert ary[3] == 0
 
-# def array_store():
-#     ary[0] = 1
-#     ary[1] = ary[0]
+def array_store():
+    ary[0] = 1
+    ary[1] = ary[0]
 
-#     assert ary[0] == 1
-#     assert ary[1] == 1
-#     assert ary[2] == 0
-#     assert ary[3] == 0
+    assert ary[0] == 1
+    assert ary[1] == 1
+    assert ary[2] == 0
+    assert ary[3] == 0
 
-# def array_store2():
-#     b = Number()
+def array_store2():
+    b = Number()
 
-#     ary[b] = 1
-#     ary[b + 1] = ary[0]
+    ary[b] = 1
+    ary[b + 1] = ary[0]
 
-#     assert ary[0] == 1
-#     assert ary[1] == 1
-#     assert ary[2] == 0
-#     assert ary[3] == 0
+    assert ary[0] == 1
+    assert ary[1] == 1
+    assert ary[2] == 0
+    assert ary[3] == 0
 
 
 # ary2 = Number()[2][3]

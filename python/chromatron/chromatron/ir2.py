@@ -1841,9 +1841,9 @@ class irFunc(IR):
         for ir in self.code:
             if isinstance(ir, irLoad) or isinstance(ir, irStore):
                 # assert self.symbol_table.globals[ir.ref].addr is not None
-
-                # assign addresses to globals
-                ir.ref.addr = self.symbol_table.globals[ir.ref].addr
+                if ir.ref.data_type != 'offset':
+                    # assign addresses to globals
+                    ir.ref.addr = self.symbol_table.globals[ir.ref].addr
 
     def render_dominator_tree(self):
         dot = graphviz.Digraph(comment=self.name)
@@ -3326,14 +3326,22 @@ class irLoad(IR):
         return f'LOAD {self.register} <-- {self.ref}'
 
     def get_input_vars(self):
-        # return [self.ref]
+        if self.ref.data_type == 'offset':
+            return [self.ref]
+
         return []
 
     def get_output_vars(self):
         return [self.register]
 
     def generate(self):
-        return insLoadMemory(self.register.generate(), self.ref.generate(), lineno=self.lineno)
+        ref = self.ref.generate()
+
+        if isinstance(ref, insReg):
+            return insLoadMemory(self.register.generate(), ref, lineno=self.lineno)
+
+        else:
+            return insLoadMemoryImmediate(self.register.generate(), ref, lineno=self.lineno)
 
 # Store register to memory
 class irStore(IR):
@@ -3347,13 +3355,24 @@ class irStore(IR):
 
     def get_input_vars(self):
         # return [self.ref, self.register]
-        return [self.register]
+        i = [self.register]
+
+        if self.ref.data_type == 'offset':
+            i.append(self.ref)
+
+        return i
 
     def get_output_vars(self):
         return []
 
     def generate(self):
-        return insStoreMemory(self.ref.generate(), self.register.generate(), lineno=self.lineno)
+        ref = self.ref.generate()
+
+        if isinstance(ref, insReg):
+            return insStoreMemory(ref, self.register.generate(), lineno=self.lineno)
+
+        else:
+            return insStoreMemoryImmediate(ref, self.register.generate(), lineno=self.lineno)
 
 # Spill register to stack
 class irSpill(IR):

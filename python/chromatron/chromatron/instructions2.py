@@ -375,9 +375,31 @@ class insLoadMemory(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        # src = vm.registers[self.src]
-        src = self.src
+        src = vm.registers[self.src.reg]
         vm.registers[self.dest.reg] = vm.memory[src]
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
+
+        return bc
+
+class insLoadMemoryImmediate(BaseInstruction):
+    mnemonic = 'LDMI'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+        assert self.src is not None
+
+    def __str__(self):
+        return "%s %s <- 0x%s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        vm.registers[self.dest.reg] = vm.memory[self.src]
 
     def assemble(self):
         bc = [self.opcode]
@@ -400,8 +422,7 @@ class insStoreMemory(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        # dest = vm.registers[self.dest]
-        dest = self.dest
+        dest = vm.registers[self.dest.reg]
         vm.memory[dest] = vm.registers[self.src.reg]
 
     def assemble(self):
@@ -410,6 +431,30 @@ class insStoreMemory(BaseInstruction):
         bc.extend(self.src.assemble())
 
         return bc
+
+class insStoreMemoryImmediate(BaseInstruction):
+    mnemonic = 'STMI'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+        assert self.dest is not None
+
+    def __str__(self):
+        return "%s 0x%s <- %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        vm.memory[self.dest] = vm.registers[self.src.reg]
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
+
+        return bc
+
 
 class insLookup(BaseInstruction):
     mnemonic = 'LKP'
