@@ -1,4 +1,17 @@
 
+ary = Number()[4]
+
+def array_lookup():
+    b = Number()
+    ary[b] = 1
+    # b = 1
+    # ary[b] = 2
+
+    # assert ary[0] == 1
+    # assert ary[1] == 2
+    # assert ary[2] == 0
+    # assert ary[3] == 0
+
 # ary = Number()[4][3]
 
 # def array_lookup():
@@ -79,33 +92,33 @@
 # Link system:
 # change to system library call.
 
-s = String("hello!")
+# s = String("hello!")
 
-# # a = Number()[4]
-# # def obj(a: Number):
-# a = Number()
-def obj():
+# # # a = Number()[4]
+# # # def obj(a: Number):
+# # a = Number()
+# def obj():
     
-    b = Number()
-#     # b += 1
+#     b = Number()
+# #     # b += 1
 
-#     # if True:
-#         # a = Number()
-#         # a = 4
+# #     # if True:
+# #         # a = Number()
+# #         # a = 4
 
-#     a += 4
+# #     a += 4
 
 
-#     return a
+# #     return a
 
-    s2 = String()
-    s2 = s
+#     s2 = String()
+#     s2 = s
 
-    b = s2.len
+#     b = s2.len
 
-    # s2 = "meow"
-    # s2 = "woofmeow"
-    return s2
+#     # s2 = "meow"
+#     # s2 = "woofmeow"
+#     return s2
 #     pass
 
 #     a += 1

@@ -94,6 +94,10 @@ class Var(object):
     def copy(self):
         return deepcopy(self)
 
+    @property
+    def id_debug(self):
+        return id(self)
+
     def __setattr__(self, name, value):
         if name in ['var', 'block']:
             raise Exception

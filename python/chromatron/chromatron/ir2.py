@@ -1836,6 +1836,9 @@ class irFunc(IR):
             block.recalc_defines()
 
     def fixup_globals(self):
+        return
+
+        
         assert len(self.code) > 0
 
         for ir in self.code:
@@ -2432,7 +2435,7 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        return
+        # return
 
         self.init_vars()
 
@@ -2478,7 +2481,7 @@ class irFunc(IR):
         self.resolve_phi()
         
 
-        return
+        # return
         
 
         # blocks may have been rearranged or added at this point
@@ -3326,8 +3329,8 @@ class irLoad(IR):
         return f'LOAD {self.register} <-- {self.ref}'
 
     def get_input_vars(self):
-        # return [self.ref]
-        return []
+        return [self.ref]
+        # return []
 
     def get_output_vars(self):
         return [self.register]
@@ -3346,8 +3349,8 @@ class irStore(IR):
         return f'STORE {self.register} --> {self.ref}'
 
     def get_input_vars(self):
-        # return [self.ref, self.register]
-        return [self.register]
+        return [self.ref, self.register]
+        # return [self.register]
 
     def get_output_vars(self):
         return []
@@ -3952,11 +3955,11 @@ class irLookup(IR):
         counts = []
         strides = []
 
-        target = self.target.ref
+        target = self.target
 
         for i in range(len(self.lookups)):
             try:
-                count = target.dimensions[i]
+                count = target.length
 
             except IndexError:
 

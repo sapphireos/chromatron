@@ -386,7 +386,7 @@ class Builder(object):
     def store_globals(self, lineno=None):
         # only store globals that were loaded to containers:
         for g in [g for g in self.current_symbol_table.globals.values() if isinstance(g, VarContainer)]:
-            g = g.copy()
+            # g = g.copy()
             ir = irStore(g, g.var, lineno=lineno)
             self.append_node(ir)
 
