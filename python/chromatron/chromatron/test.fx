@@ -1,66 +1,4 @@
 
-# global_a = Number()
-# def global_var():
-#   global_a += 1
-
-#   assert global_a == 1
-
-
-ary = Number()[4]
-
-def array_store2():
-    b = Number()
-
-    ary[b] = 1
-    ary[b + 1] = ary[0]
-
-    assert ary[0] == 1
-    assert ary[1] == 1
-    assert ary[2] == 0
-    assert ary[3] == 0
-
-
-# def array_lookup():
-#     b = Number()
-#     ary[b] = 1
-    # b = 1
-    # ary[b] = 2
-
-    # assert ary[0] == 1
-    # assert ary[1] == 2
-    # assert ary[2] == 0
-    # assert ary[3] == 0
-
-# ary = Number()[4][3]
-
-# def array_lookup():
-#     b = Number()
-#     # b = ary[1]
-#     # ary[1] = b
-
-#     # ary[1][2][3] = b
-#     # ary[1][2][3] = ary[4][5][6]
-
-#     # b = 1 + ary[2]
-#     # ary[2] = b + 1 + ary[3]
-#     # ary[2] += 1
-
-#     # ary[b] += ary[0][0]
-#     # ary[2] += 5
-#     ary[2][1] = 5
-
-#     # return b
-
-#     # ary[b] = 1
-    # b = 1
-    # ary[b] = 2
-
-    # assert ary[0] == 1
-    # assert ary[1] == 2
-    # assert ary[2] == 0
-    # assert ary[3] == 0
-
-
     
 # A = 4 # named constant.  recommend all caps for these (like C's convention)
       # these can be used the same as a const number.
@@ -226,28 +164,28 @@ def array_store2():
     # a = meow.x
 
 
-# a = Number()
-# b = Number()
-# c = Number()
+a = Number()
+b = Number()
+c = Number()
 
-# def simple_binop():
-
-#     a = b + 3 + 2
-#     c = b + 3 + 2
+def simple_binop():
+    b = 1
+    a = b + 3
+    c = b + 3
         
-#     # b = 1 + 2 + 3 # 6
+    # b = 1 + 2 + 3 # 6
 
-#     # a = b + 2 # 8
-#     # c = a # 8
+    # a = b + 2 # 8
+    # c = a # 8
 
-#     # b = b + 2 # 8
+    # b = b + 2 # 8
 
 
-#     # b += 3 # 11
+    # b += 3 # 11
 
-#     # a = a * c * 3 # 193
+    # a = a * c * 3 # 193
 
-#     return a + c
+    return a + c
 
 
 # def copy_prop():

@@ -2439,6 +2439,18 @@ class irFunc(IR):
         # self.render_dominator_tree()
         # self.render_graph()
 
+        self.code = self.get_code_from_blocks()
+        # run trivial prunes
+        # self.prune_jumps()
+        # self.prune_no_ops()
+        # liveness
+        self.liveness_analysis()
+        self.compute_live_ranges()
+        # allocate registers
+        self.allocate_registers()
+        # self.remove_useless_copies()
+        return
+
         # return
 
         self.convert_to_ssa()    
