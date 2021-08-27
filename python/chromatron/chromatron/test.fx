@@ -1,12 +1,24 @@
 
-global_a = Number()
-def global_var():
-  global_a += 1
+# global_a = Number()
+# def global_var():
+#   global_a += 1
 
-  assert global_a == 1
+#   assert global_a == 1
 
 
-# ary = Number()[4]
+ary = Number()[4]
+
+def array_store2():
+    b = Number()
+
+    ary[b] = 1
+    ary[b + 1] = ary[0]
+
+    assert ary[0] == 1
+    assert ary[1] == 1
+    assert ary[2] == 0
+    assert ary[3] == 0
+
 
 # def array_lookup():
 #     b = Number()

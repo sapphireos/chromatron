@@ -2577,7 +2577,7 @@ class irFunc(IR):
             iterations += 1
 
         new_count = len(self.get_code_from_blocks())
-        delta = original_count = new_count
+        delta = original_count - new_count
 
         logging.debug(f'Removed dead code in {iterations} iterations. Eliminated {delta} instructions.')
 
