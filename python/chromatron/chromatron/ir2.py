@@ -1836,14 +1836,11 @@ class irFunc(IR):
             block.recalc_defines()
 
     def fixup_globals(self):
-        return
-
-        
         assert len(self.code) > 0
 
         for ir in self.code:
             if isinstance(ir, irLoad) or isinstance(ir, irStore):
-                assert self.symbol_table.globals[ir.ref].addr is not None
+                # assert self.symbol_table.globals[ir.ref].addr is not None
 
                 # assign addresses to globals
                 ir.ref.addr = self.symbol_table.globals[ir.ref].addr

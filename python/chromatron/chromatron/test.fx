@@ -1,16 +1,16 @@
 
-global_a = Number()
-def global_var():
-  global_a += 1
+# global_a = Number()
+# def global_var():
+#   global_a += 1
 
-  assert global_a == 1
+#   assert global_a == 1
 
 
-# ary = Number()[4]
+ary = Number()[4]
 
-# def array_lookup():
-#     b = Number()
-#     ary[b] = 1
+def array_lookup():
+    b = Number()
+    ary[b] = 1
     # b = 1
     # ary[b] = 2
 
