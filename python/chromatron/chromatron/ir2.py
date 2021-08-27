@@ -3329,8 +3329,8 @@ class irLoad(IR):
         return f'LOAD {self.register} <-- {self.ref}'
 
     def get_input_vars(self):
-        return [self.ref]
-        # return []
+        # return [self.ref]
+        return []
 
     def get_output_vars(self):
         return [self.register]
@@ -3349,8 +3349,8 @@ class irStore(IR):
         return f'STORE {self.register} --> {self.ref}'
 
     def get_input_vars(self):
-        return [self.ref, self.register]
-        # return [self.register]
+        # return [self.ref, self.register]
+        return [self.register]
 
     def get_output_vars(self):
         return []

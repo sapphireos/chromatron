@@ -41,7 +41,7 @@ class SymbolTable(object):
         else:
             g = {}
 
-        g.update({k: v for k, v in self.symbols.items() if v.is_global and not v.is_container})
+        g.update({k: v for k, v in self.symbols.items() if v.is_global and v.is_container})
 
         return g
 

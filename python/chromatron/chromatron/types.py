@@ -42,11 +42,16 @@ class VarContainer(object):
         return hash(self.ssa_name)
 
     def __str__(self):
+        base = f'{self.var}'
+
+        if self.is_global:
+            base = f'~{base}'
+
         if self.reg is not None:
-            return f'{self.var}@{self.reg}'
+            return f'{base}@{self.reg}'
 
         else:
-            return f'{self.var}'
+            return f'{base}'
 
     def __getattribute__(self, name):
         try:
