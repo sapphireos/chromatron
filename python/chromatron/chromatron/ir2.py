@@ -3966,12 +3966,7 @@ class irLookup(IR):
                 raise SyntaxError(f'{target.basename} has only {len(target.dimensions)} dimensions, requested {len(self.lookups)}', lineno=self.lineno)
 
             counts.append(count)
-            
-            stride = target.element_length
-            for d in target.dimensions[i + 1:]:
-                stride *= d
-
-            strides.append(stride)
+            strides.append(target.stride)
     
         return insLookup(self.result.generate(), target.generate(), indexes, counts, strides, lineno=self.lineno)
 
