@@ -235,15 +235,16 @@ class irBlock(IR):
 
         lines_printed = []
         s += f'{depth}| Code:\n'
+        index = 0
         for ir in self.code:
             if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
                 s += f'{depth}|________________________________________________________\n'
-                s += f'{depth}| {ir.lineno}: {depth}{source_code[ir.lineno - 1].strip()}\n'
+                s += f'{depth}| Line: {ir.lineno}: {depth}{source_code[ir.lineno - 1].strip()}\n'
                 lines_printed.append(ir.lineno)
 
-            ir_s = f'{depth}|\t{str(ir):48}'
+            ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = False
+            show_liveness = True
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -253,6 +254,8 @@ class irBlock(IR):
 
             else:
                 s += f'{ir_s}\n'
+
+            index += 1
 
         s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
 
@@ -2375,6 +2378,8 @@ class irFunc(IR):
 
 
         # perform register assignment to instructions:
+        unassigned_ir = []
+        index = 0
         for ir in self.code:
             for i in ir.get_input_vars():
                 assert i in registers
@@ -2382,7 +2387,26 @@ class irFunc(IR):
                 i.reg = registers[i]
 
             for o in ir.get_output_vars():
-                o.reg = registers[o]
+                assert o in registers
+
+                # check if output register is actually live at this instruction:
+                if index not in intervals[o]:
+                    # this register is not live!
+                    o.reg = -1
+                    
+                    if ir not in unassigned_ir:
+                        unassigned_ir.append(ir)
+
+                else:
+                    o.reg = registers[o]
+
+            index += 1
+
+        # prune instructions that have unassigned registers:
+        # this is a form of dead code elimination:
+        # (and is necessary to prevent executing instructions with 
+        # invalid register assignments)
+        self.code = [ir for ir in self.code if ir not in unassigned_ir]
 
         self.register_count = max(registers.values()) + 1
         self.registers = registers            
@@ -2439,17 +2463,13 @@ class irFunc(IR):
         # self.render_dominator_tree()
         # self.render_graph()
 
-        self.code = self.get_code_from_blocks()
-        # run trivial prunes
-        # self.prune_jumps()
-        # self.prune_no_ops()
-        # liveness
-        self.liveness_analysis()
-        self.compute_live_ranges()
-        # allocate registers
-        self.allocate_registers()
-        # self.remove_useless_copies()
-        return
+
+        # self.code = self.get_code_from_blocks()
+        # self.liveness_analysis()
+        # self.compute_live_ranges()
+        # self.allocate_registers()
+        
+        # return
 
         # return
 

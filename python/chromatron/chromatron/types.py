@@ -165,7 +165,7 @@ class Var(object):
             return f'{self.ssa_name}:{self.data_type}'
 
         else:
-            return f'{self.ssa_name}:{self.data_type}@{self.addr}'
+            return f'{self.ssa_name}:{self.data_type}@0x{self.addr}'
 
     def lookup(self, index):
         return self
