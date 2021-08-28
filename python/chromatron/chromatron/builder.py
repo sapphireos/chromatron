@@ -393,6 +393,8 @@ class Builder(object):
             self.append_node(ir)
 
     def ret(self, value, lineno=None):
+        value = self.load_value(value, lineno=lineno)
+
         self.store_globals(lineno=lineno)
 
         ir = irReturn(value, lineno=lineno)
@@ -526,6 +528,10 @@ class Builder(object):
         #     raise SyntaxError(f'Cannot vector op from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
         if isinstance(target, varArray) or target.data_type == 'offset':
             ir = irVectorOp(op, target, value, lineno=lineno)
+            self.append_node(ir)
+
+        elif target.data_type == 'ref':
+            ir = irObjectOp(op, target.ref, value, target.lookups, lineno=lineno)
             self.append_node(ir)
 
         else:

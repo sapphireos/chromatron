@@ -3110,7 +3110,7 @@ class irObjectStore(IR):
         for a in self.lookups:
             lookups += f'[{a}]'
 
-        return f'*{self.target}{lookups}.{self.attr.name} =(object) {self.value}'
+        return f'{self.target}{lookups}.{self.attr.name} =(object) {self.value}'
 
     def get_input_vars(self):
         inputs = [self.value]
@@ -3139,7 +3139,7 @@ class irObjectLoad(IR):
         for a in self.lookups:
             lookups += f'[{a}]'
 
-        return f'{self.target} =(object) *{self.value}{lookups}.{self.attr.name}'
+        return f'{self.target} =(object) {self.value}{lookups}.{self.attr.name}'
 
     def get_input_vars(self):
         inputs = []
@@ -3149,7 +3149,7 @@ class irObjectLoad(IR):
     def get_output_vars(self):
         return [self.target]
 
-    
+
     def generate(self):
         # target = self.target.generate()
         # value = self.value.generate()
@@ -3158,26 +3158,34 @@ class irObjectLoad(IR):
 
 
 class irObjectOp(IR):
-    def __init__(self, op, target, value, **kwargs):
+    def __init__(self, op, target, value, lookups=[], **kwargs):
         super().__init__(**kwargs)
         self.op = op
         self.target = target
         self.value = value
-        self.indexes = target.lookups[:-1]
-        self.attr = target.lookups[-1]
+        self.lookups = lookups[:-1]
+        self.attr = lookups[-1]
         
     def __str__(self):
-        s = '*%s %s=(object) %s' % (self.target, self.op, self.value)
+        lookups = ''
+        for a in self.lookups:
+            lookups += f'[{a}]'
 
-        return s
+        return f'{self.target}{lookups}.{self.attr.name} {self.op}=(object) {self.value}'
 
     def get_input_vars(self):
         inputs = [self.value]
-        inputs.extend(self.indexes)
+        inputs.extend(self.lookups)
         return inputs
 
     def get_output_vars(self):
         return []
+
+    def generate(self):
+        # target = self.target.generate()
+        # value = self.value.generate()
+
+        return insNop(lineno=self.lineno)
 
 # Load constant to register
 class irLoadConst(IR):

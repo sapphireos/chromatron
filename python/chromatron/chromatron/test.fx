@@ -1,8 +1,10 @@
 
 def func():
-    # pixels[1].hue = 2
-    b = Number()
-    b = pixels[1].hue
+    # pixels[1].hue += 2
+    pixels.hue += 2
+    # pixels.hue = 2
+    # b = Number()
+    # b = pixels[1].hue
     # return pixels[1].hue
 
 # A = 4 # named constant.  recommend all caps for these (like C's convention)
