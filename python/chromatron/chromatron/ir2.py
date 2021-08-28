@@ -3099,15 +3099,15 @@ class irObjectAssign(IR):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
-        self.indexes = target.lookups[:-1]
-        self.attr = target.lookups[-1]
+        # self.indexes = target.lookups[:-1]
+        # self.attr = target.lookups[-1]
         
     def __str__(self):
         return '*%s =(object) %s' % (self.target, self.value)
 
     def get_input_vars(self):
         inputs = [self.value]
-        inputs.extend(self.indexes)
+        # inputs.extend(self.indexes)
         return inputs
 
     def get_output_vars(self):
@@ -3859,14 +3859,13 @@ class irLookup(IR):
     
         return insLookup(self.result.generate(), target.generate(), indexes, counts, strides, lineno=self.lineno)
 
-# class irAttribute(irVar):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)    
+class irAttribute(IR):
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)    
+        self.name = name
 
-#         self.is_temp = True
-
-#     def __str__(self):    
-#         return "Attr(%s)" % (self.name)
+    def __str__(self):    
+        return "Attr(%s)" % (self.name)
 
 
 class irAssert(IR):

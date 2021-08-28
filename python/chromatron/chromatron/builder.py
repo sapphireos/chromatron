@@ -45,6 +45,8 @@ class Builder(object):
 
         self.type_manager = TypeManager()
 
+        self.declare_var('pixels', data_type='obj', is_global=True, lineno=-1)
+
     def __str__(self):
         s = "FX IR Builder:\n"
 
@@ -423,6 +425,9 @@ class Builder(object):
             elif isinstance(target.ref, varArray):
                 ir = irVectorAssign(target, value, lineno=lineno)    
 
+            elif isinstance(target.ref, varObject):
+                ir = irObjectAssign(target, value, lineno=lineno)    
+
             else:
                 raise CompilerFatal()
 
@@ -536,7 +541,7 @@ class Builder(object):
     def end_if(self, end_label, lineno=None):
         if isinstance(self.prev_node, irReturn):
             self.pop_scope()
-            
+
             # no need to jump, we have already returned
             return
 
@@ -633,8 +638,8 @@ class Builder(object):
         self.current_lookup.insert(0, [])
 
     def add_lookup(self, index, is_attr=False, lineno=None):
-        # if is_attr:
-            # index = irAttribute(index, lineno=lineno)
+        if is_attr:
+            index = irAttribute(index, lineno=lineno)
 
         self.current_lookup[0].append(index)
 

@@ -1,13 +1,6 @@
 
 def func():
-    a = Number()
-    
-    if True:    
-        if True:
-            a = 2
-            return 3
-    
-        return 2
+    pixels[1].hue = 2
     
     
 # A = 4 # named constant.  recommend all caps for these (like C's convention)

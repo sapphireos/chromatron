@@ -367,6 +367,7 @@ _BASE_TYPES = {
     'Fixed16': varFixed16(),
     'f16': varFixed16(),
     'str': varString(),
+    'obj': varObject(),
 }
 
 class TypeManager(object):
