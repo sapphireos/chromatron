@@ -52,6 +52,16 @@ def two_ifelse():
 
     return b
 
+
+def simple_if_return():
+    a = Number()
+    b = Number()
+
+    if a > 0:
+        return
+
+    return
+
 def while_loop():
     i = Number()
     i = 4

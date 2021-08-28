@@ -650,7 +650,7 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def visit_Return(self, node):
         if node.value == None:
-            value = cg1ConstInt32(0, lineno=node.lineno)
+            value = cg1Const(0, lineno=node.lineno)
 
         else:
             value = self.visit(node.value)
