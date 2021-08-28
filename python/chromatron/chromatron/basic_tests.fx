@@ -125,6 +125,13 @@ def array_store2():
     assert ary[2] == 0
     assert ary[3] == 0
 
+def array_assign():
+    ary = 0
+    ary = 1
+    assert ary[0] == 1
+    assert ary[1] == 1
+    assert ary[2] == 1
+    assert ary[3] == 1
 
 ary2 = Number()[2][3]
 

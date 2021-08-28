@@ -743,7 +743,7 @@ class insVector(BaseInstruction):
 
         #self.type = self.target.var.get_base_type()
 
-        self.length = self.target.var.size
+        self.length = self.target.var.ref.size
 
     def __str__(self):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)

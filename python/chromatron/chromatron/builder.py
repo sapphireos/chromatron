@@ -432,7 +432,14 @@ class Builder(object):
                 raise CompilerFatal()
 
         elif isinstance(target, varArray):
-            ir = irVectorAssign(target, value, lineno=lineno)
+            # load address to register:
+            var = self.add_temp(data_type='offset', lineno=lineno)
+            var.ref = target.lookup()
+
+            ir = irLookup(var, target, lineno=lineno)
+            self.append_node(ir)
+
+            ir = irVectorAssign(var, value, lineno=lineno)
 
         else:
             ir = irAssign(target, value, lineno=lineno)
