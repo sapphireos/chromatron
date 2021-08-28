@@ -1,23 +1,13 @@
 
-def simple_if_return():
+def func():
     a = Number()
-    b = Number()
-
-    if a > 0:
-        return
-
-    return
-
-
-# def func():
-#     a = Number()
     
-#     if True:    
-#         if True:
-#             a = 1
-#             return
+    if True:    
+        if True:
+            a = 2
+            return 3
     
-#         return 1
+        return 2
     
     
 # A = 4 # named constant.  recommend all caps for these (like C's convention)

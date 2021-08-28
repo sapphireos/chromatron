@@ -207,3 +207,15 @@ def global_var():
 def global_double_assign():
   global_a = 1
   global_a = 2
+
+
+def nested_if_with_returns():
+    a = Number()
+    
+    if True:    
+        if True:
+            a = 2
+            return 3
+    
+        return 2
+

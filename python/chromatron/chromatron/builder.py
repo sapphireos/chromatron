@@ -535,6 +535,8 @@ class Builder(object):
 
     def end_if(self, end_label, lineno=None):
         if isinstance(self.prev_node, irReturn):
+            self.pop_scope()
+            
             # no need to jump, we have already returned
             return
 
