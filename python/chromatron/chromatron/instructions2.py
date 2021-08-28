@@ -296,6 +296,27 @@ class insReg(BaseInstruction):
 
         return [l, h]
 
+# pseudo instruction - does not actually produce an opcode
+class insAddr(BaseInstruction):
+    def __init__(self, addr=None, var=None, **kwargs):
+        super().__init__(**kwargs)
+        self.addr = addr
+        self.var = var
+
+    def __str__(self):
+        if self.var != None:
+            return "%s(%s @ %s)" % (self.var.name, self.var.data_type, self.addr)
+
+        else:
+            return "Addr(%s)" % (self.addr)
+    
+    def assemble(self):
+        # convert to 16 bits
+        l = self.addr & 0xff
+        h = (self.addr >> 8) & 0xff
+
+        return [l, h]
+
 
 # register to register move
 class insMov(BaseInstruction):
@@ -473,10 +494,10 @@ class insLookup(BaseInstruction):
         indexes = ''
         for index in self.indexes:
             indexes += '[%s]' % (index)
-        return "%s %s <- 0x%s %s" % (self.mnemonic, self.result, hex(self.base_addr), indexes)
+        return "%s %s <- 0x%s %s" % (self.mnemonic, self.result, hex(self.base_addr.addr), indexes)
 
     def execute(self, vm):
-        addr = self.base_addr
+        addr = self.base_addr.addr
 
         for i in range(len(self.indexes)):
             index = vm.registers[self.indexes[i].reg]
@@ -710,6 +731,52 @@ class insMod(insArith):
 
         else:
             return op1 % op2
+
+
+class insVector(BaseInstruction):
+    mnemonic = 'VECTOR'
+
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+        #self.type = self.target.var.get_base_type()
+
+        self.length = self.target.var.size
+
+    def __str__(self):
+        return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.target.assemble())
+        bc.extend(self.value.assemble())
+
+        # convert to 16 bits
+        l = self.length & 0xff
+        h = (self.length >> 8) & 0xff
+
+        bc.extend([l, h])
+
+        target_type = get_type_id(self.type)
+        bc.append(target_type)
+
+        return bc
+
+class insVectorMov(insVector):
+    mnemonic = 'VMOV'
+    op = "mov"
+    symbol = "="
+
+    def execute(self, vm):
+        value = vm.registers[self.value.reg]
+        addr = self.target.addr
+
+        for i in range(self.length):
+            vm.memory[addr] = value
+            addr += 1
+
 
 
 class insAssert(BaseInstruction):

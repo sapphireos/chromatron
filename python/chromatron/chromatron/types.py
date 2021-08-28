@@ -174,7 +174,7 @@ class Var(object):
         if self.addr is None:
             raise CompilerFatal(f"{self} does not have an address. Line: {self.lineno}")
 
-        return self.addr
+        return insAddr(self.addr, self)
 
 class varRegister(Var):
     def __init__(self, *args, **kwargs):

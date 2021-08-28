@@ -236,7 +236,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = True
+            show_liveness = False
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -3050,6 +3050,9 @@ class irVectorAssign(IR):
 
     def get_output_vars(self):
         return []
+
+    def generate(self):
+        return insVectorMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 class irVectorOp(IR):
     def __init__(self, op, target, value, **kwargs):

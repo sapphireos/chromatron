@@ -45,7 +45,7 @@ class Builder(object):
 
         self.type_manager = TypeManager()
 
-        self.declare_var('pixels', data_type='obj', is_global=True, lineno=-1)
+        # self.declare_var('pixels', data_type='obj', is_global=True, lineno=-1)
 
     def __str__(self):
         s = "FX IR Builder:\n"
