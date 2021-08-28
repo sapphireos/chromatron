@@ -771,7 +771,7 @@ class insVectorMov(insVector):
 
     def execute(self, vm):
         value = vm.registers[self.value.reg]
-        addr = self.target.addr
+        addr = vm.registers[self.target.reg]
 
         for i in range(self.length):
             vm.memory[addr] = value

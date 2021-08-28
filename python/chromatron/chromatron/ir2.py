@@ -3046,7 +3046,7 @@ class irVectorAssign(IR):
         return '*%s =(vector) %s' % (self.target, self.value)
 
     def get_input_vars(self):
-        return [self.value]
+        return [self.target, self.value]
 
     def get_output_vars(self):
         return []
@@ -3067,7 +3067,7 @@ class irVectorOp(IR):
         return s
 
     def get_input_vars(self):
-        return [self.value]
+        return [self.target, self.value]
 
     def get_output_vars(self):
         return []
