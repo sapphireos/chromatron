@@ -1,12 +1,6 @@
-    
-def func_param(a: Number):
-    a += 1
-    
-    assert a == 1
 
-
-# def func():
-#     pixels[1].hue = 2
+def func():
+    pixels[1].hue = 2
     
 
 # A = 4 # named constant.  recommend all caps for these (like C's convention)

@@ -208,14 +208,6 @@ class varOffset(varRegister):
         self.offset = offset
         self.ref = None
 
-    # @property
-    # def name(self):
-    #     return f'&{self._name}'
-
-    # @name.setter
-    # def name(self, value):
-    #     self._name = value
-
     def __str__(self):
         # return f'{super().__str__()} -> {self.offset}'
         return f'{super().__str__()}'
@@ -239,6 +231,23 @@ class varComposite(Var):
 class varObject(varComposite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    @property
+    def size(self):
+        return 0
+
+class varObjectRef(varRef):
+    def __init__(self, *args, ref=None, lookups=[], **kwargs):
+        super().__init__(*args, data_type='ref', **kwargs)
+        self.ref = ref
+        self.lookups = lookups
+
+    def __str__(self):
+        lookups = ''
+        for a in self.lookups:
+            lookups += f'[{a}]'
+
+        return f'{super().__str__()}->{self.ref}{lookups}'
 
 class varArray(varComposite):
     def __init__(self, *args, element=None, length=1, **kwargs):
@@ -368,6 +377,7 @@ _BASE_TYPES = {
     'f16': varFixed16(),
     'str': varString(),
     'obj': varObject(),
+    'ref': varObjectRef(),
 }
 
 class TypeManager(object):

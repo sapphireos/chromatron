@@ -151,7 +151,7 @@ class irProgram(IR):
 
     def _allocate_memory(self):
         addr = 0
-        for g in self.global_symbols.symbols.values():
+        for g in [g for g in self.global_symbols.symbols.values() if not isinstance(g, varObject)]:
             assert g.addr is None
             g.addr = addr
             addr += g.size
@@ -3098,23 +3098,33 @@ class irVectorOp(IR):
 
 
 class irObjectAssign(IR):
-    def __init__(self, target, value, **kwargs):
+    def __init__(self, target, value, lookups=[], **kwargs):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
-        # self.indexes = target.lookups[:-1]
-        # self.attr = target.lookups[-1]
+        self.lookups = lookups[:-1]
+        self.attr = lookups[-1]
         
     def __str__(self):
-        return '*%s =(object) %s' % (self.target, self.value)
+        lookups = ''
+        for a in self.lookups:
+            lookups += f'[{a}]'
+
+        return f'*{self.target}{lookups}.{self.attr.name} =(object) {self.value}'
 
     def get_input_vars(self):
         inputs = [self.value]
-        # inputs.extend(self.indexes)
+        inputs.extend(self.lookups)
         return inputs
 
     def get_output_vars(self):
         return []
+
+    def generate(self):
+        # target = self.target.generate()
+        # value = self.value.generate()
+
+        return insNop(lineno=self.lineno)
 
 class irObjectLoad(IR):
     def __init__(self, target, value, **kwargs):
@@ -3806,20 +3816,6 @@ class irLookup(IR):
         self.result = result
         self.target = target
         self.lookups = lookups
-
-        # if isinstance(self.target.ref, irStruct):
-        #     # resolve named lookups on struct
-        #     new_lookups = []
-        #     for lookup in self.target.lookups:
-        #         offset = self.target.ref.offsets[lookup]
-
-        #         const = irVar(offset, 'i32', lineno=-1)
-        #         const.is_const = True
-
-        #         new_lookups.append(const)
-
-        #     self.target.lookups = new_lookups
-
 
     def __str__(self):
         lookups = ''

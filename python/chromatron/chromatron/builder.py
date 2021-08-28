@@ -45,7 +45,7 @@ class Builder(object):
 
         self.type_manager = TypeManager()
 
-        # self.declare_var('pixels', data_type='obj', is_global=True, lineno=-1)
+        self.declare_var('pixels', data_type='obj', is_global=True, lineno=-1)
 
     def __str__(self):
         s = "FX IR Builder:\n"
@@ -425,11 +425,14 @@ class Builder(object):
             elif isinstance(target.ref, varArray):
                 ir = irVectorAssign(target, value, lineno=lineno)    
 
-            elif isinstance(target.ref, varObject):
-                ir = irObjectAssign(target, value, lineno=lineno)    
+            # elif isinstance(target.ref, varObject):
+            #     ir = irObjectAssign(target, value, lineno=lineno)    
 
             else:
                 raise CompilerFatal()
+
+        elif target.data_type == 'ref':
+            ir = irObjectAssign(target.ref, value, lookups=target.lookups, lineno=lineno)
 
         elif isinstance(target, varArray):
             # load address to register:
@@ -651,11 +654,18 @@ class Builder(object):
         self.current_lookup[0].append(index)
 
     def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
-        var = self.add_temp(data_type='offset', lineno=lineno)
-        var.ref = target.lookup(self.current_lookup[0])
+        if isinstance(target, varObject):
+            var = self.add_temp(data_type='ref', lineno=lineno)
 
-        ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
-        self.append_node(ir)
+            var.ref = target
+            var.lookups = self.current_lookup[0]
+
+        else:
+            var = self.add_temp(data_type='offset', lineno=lineno)
+            var.ref = target.lookup(self.current_lookup[0])
+
+            ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
+            self.append_node(ir)
 
         self.current_lookup.pop(0)
 

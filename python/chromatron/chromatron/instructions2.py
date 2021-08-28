@@ -318,6 +318,14 @@ class insAddr(BaseInstruction):
         return [l, h]
 
 
+class insNop(BaseInstruction):
+    def execute(self, vm):
+        pass
+
+    def assemble(self):
+        return []
+
+
 # register to register move
 class insMov(BaseInstruction):
     mnemonic = 'MOV'
