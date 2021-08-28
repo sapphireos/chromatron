@@ -189,16 +189,11 @@ class irBlock(IR):
         self.predecessors = []
         self.successors = []
         self.code = []
-        # self.locals = {}
         self.func = func
-        # self.globals = self.func.globals
         self.defines = {}
 
         self.entry_label = None
         self.jump_target = None
-
-        # self.local_values = {}
-        # self.local_defines = {}
 
         self.is_ssa = False
         self.filled = False
@@ -260,9 +255,6 @@ class irBlock(IR):
 
     def __repr__(self):
         return self.name
-
-    # def add_temp(self, basename='', data_type=None, lineno=None):
-    #     return self.func.add_temp(basename, data_type, lineno=lineno)
 
     def get_blocks(self, blocks=None, visited=None):
         if blocks is None:
@@ -1212,18 +1204,6 @@ class irBlock(IR):
             # create new var and add a phi node
             new_var = self.type_manager.create_var_from_type(var_name, var.data_type, lineno=-1)
 
-            # new_var = irVar(name=var_name, lineno=-1)
-            # new_var.clone(var)
-            
-            # if var.is_const:
-            #     new_var.is_const = False
-            #     new_var.holds_const = True
-
-            # new_var.block = self
-            # new_var.type = var.type
-            # new_var.ssa_version = None
-            # new_var.convert_to_ssa()
-
             new_var.convert_to_ssa(self.ssa_next_val)
 
             # this will ensure the lookup will resolve on a loop
@@ -1237,13 +1217,6 @@ class irBlock(IR):
             for p in self.predecessors:
                 pv = p.ssa_lookup_var(var)
 
-                # if isinstance(pv, list):
-                #     for item in pv:
-                #         if item is not None:
-                #             values.append(item)
-
-                # elif pv is not None:
-                
                 assert pv is not None
                 values.append(VarContainer(pv))
 
@@ -1256,20 +1229,7 @@ class irBlock(IR):
         elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
             assert not self.sealed
 
-
             new_var = self.type_manager.create_var_from_type(var_name, var.data_type, lineno=-1)
-
-            # new_var = irVar(name=var_name, lineno=-1)
-            # new_var.clone(var)
-
-            # if var.is_const:
-            #     new_var.is_const = False
-            #     new_var.holds_const = True
-
-            # new_var.block = self
-            # new_var.ssa_version = None
-            # new_var.type = var.type
-            # new_var.convert_to_ssa()
 
             new_var.convert_to_ssa(self.ssa_next_val)
 
@@ -1346,66 +1306,23 @@ class irBlock(IR):
         new_code = []
         # start to fill block
         for ir in self.code:
-            # look for defines and set their version to 0
-            # if isinstance(ir, irDefine):
-            #     if ir.var.basename in self.defines:
-            #         raise SyntaxError(f'Variable {ir.var.basename} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
+            inputs = ir.get_input_vars()
 
-            #     assert ir.var.ssa_version is None
+            for i in inputs:
+                try:
+                    v = self.ssa_lookup_var(i)
 
-            #     ir.var.block = self
-            #     ir.var.convert_to_ssa()
-                
-            #     self.defines[ir.var.basename] = ir.var
+                except KeyError:
+                    raise SyntaxError(f'Variable {i.name} is not defined.', lineno=ir.lineno)
 
-            # else:
-            if True:
-                # inputs = [a for a in ir.get_input_vars() if not a.is_temp and not a.is_global]
-                inputs = ir.get_input_vars()
+                i.var = v
 
-                for i in inputs:
-                    # i.block = self
+            # look for writes to current set of vars and increment versions
+            outputs = ir.get_output_vars()
 
-                    try:
-                        v = self.ssa_lookup_var(i)
-
-                    except KeyError:
-                        raise SyntaxError(f'Variable {i.name} is not defined.', lineno=ir.lineno)
-
-                    i.var = v
-
-                    # i.clone(v)
-                    # assert not i.is_const # make sure we properly set up a const register!
-
-                # look for writes to current set of vars and increment versions
-                # outputs = [a for a in ir.get_output_vars() if not a.is_temp and not a.is_global]
-                outputs = ir.get_output_vars()
-
-                for o in outputs:
-                    # o.block = self
-
-                    # assert not o.const # cannot write to a const!
-
-                    o.convert_to_ssa(self.ssa_next_val)
-                    self.defines[o.name] = o.var
-
-                    # check if we have a definition:
-                    # try:
-                    #     v = self.ssa_lookup_var(o)
-
-                    # except KeyError:
-                    #     # raise SyntaxError(f'Variable {o.name} is not defined.', lineno=ir.lineno)
-
-                    #     # add to defines and set SSA number:
-                    #     # self.defines[v.name] = v
-                    #     self.func.ssa_next_val[v.name] = 0
-
-
-                    # # o.clone(v)
-                    # # o.ssa_version = None
-                    # # o.convert_to_ssa()
-                    
-                    # self.defines[o.name] = o
+            for o in outputs:
+                o.convert_to_ssa(self.ssa_next_val)
+                self.defines[o.name] = o.var
         
             new_code.append(ir)
 
@@ -1433,15 +1350,6 @@ class irBlock(IR):
         new_code = []
         for ir in self.code:
             if isinstance(ir, irPhi):
-
-                # assign type
-                # for d in ir.defines:
-                #     if d.data_type is not None:
-                #         ir.target.data_type = d.type
-
-                #         break
-
-                
                 # check if the phi target variable is in it's defines.
                 # this could occur during a previous replace-use (above)
                 # if so, let's remove it
@@ -1464,32 +1372,6 @@ class irBlock(IR):
                     # skip phi (remove from code)
                     changed = True
                     continue 
-
-                # is the phi target a constant register?
-                # elif ir.target.const:
-                #     for d in ir.merges:
-                #         assert d.const # ensure all inputs are also consts
-
-                #     # we don't need to do any actual phi resolution here, since
-                #     # we already know what value the register will hold.
-                #     # we can just do another constant load.
-                #     # technically the code will still work without this logic,
-                #     # but it significantly reduces extra load on the downstream
-                #     # optimizers and generates slightly better unoptimized code.
-                #     # const = copy(ir.target)
-                #     const = ir.target.copy()
-                #     # const.ssa_version = None
-                    
-
-                #     # const.holds_const = False
-                #     # const.is_const = True
-                #     # const.is_temp = False
-
-                #     # replace phi with load const
-                #     ir = irLoadConst(ir.target, const, lineno=-1)
-                #     ir.block = self
-
-                #     changed = True
 
                 # check if only one merge
                 # if so, that means that any user of the target var is a copy of
@@ -1534,10 +1416,6 @@ class irFunc(IR):
 
         self.next_temp = 0
 
-        # ZERO = irVar(0, 'i32', lineno=-1)
-        # ZERO.is_const = True
-        # self.consts = {'0': ZERO}
-        
         if self.params == None:
             self.params = []
 
@@ -1556,22 +1434,6 @@ class irFunc(IR):
         self.instructions = None
         self.register_count = None
         self.registers = {}
-
-    # def get_zero(self, lineno=None):
-    #     return self.consts['0']
-
-    # def add_temp(self, basename='', data_type=None, lineno=None):
-    #     name = '%' + str(self.next_temp)
-        
-    #     if len(basename) > 0:
-    #         name = f'{basename}.{name}'
-
-    #     self.next_temp += 1
-
-    #     ir = irVar(name, datatype=data_type, lineno=lineno)
-    #     ir.is_temp = True
-
-    #     return ir
 
     @property
     def blocks(self):
