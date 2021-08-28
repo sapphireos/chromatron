@@ -424,15 +424,12 @@ class Builder(object):
 
             elif isinstance(target.ref, varArray):
                 ir = irVectorAssign(target, value, lineno=lineno)    
-
-            # elif isinstance(target.ref, varObject):
-            #     ir = irObjectAssign(target, value, lineno=lineno)    
-
+                
             else:
                 raise CompilerFatal()
 
         elif target.data_type == 'ref':
-            ir = irObjectAssign(target.ref, value, lookups=target.lookups, lineno=lineno)
+            ir = irObjectStore(target.ref, value, lookups=target.lookups, lineno=lineno)
 
         elif isinstance(target, varArray):
             # load address to register:

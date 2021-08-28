@@ -3097,7 +3097,7 @@ class irVectorOp(IR):
     #         return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 
-class irObjectAssign(IR):
+class irObjectStore(IR):
     def __init__(self, target, value, lookups=[], **kwargs):
         super().__init__(**kwargs)
         self.target = target
