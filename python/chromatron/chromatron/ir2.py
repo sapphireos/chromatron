@@ -3127,23 +3127,35 @@ class irObjectStore(IR):
         return insNop(lineno=self.lineno)
 
 class irObjectLoad(IR):
-    def __init__(self, target, value, **kwargs):
+    def __init__(self, target, value, lookups=[], **kwargs):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
-        self.indexes = value.lookups[:-1]
-        self.attr = value.lookups[-1]
+        self.lookups = lookups[:-1]
+        self.attr = lookups[-1]
         
     def __str__(self):
-        return '*%s =(object) %s' % (self.target, self.value)
+        lookups = ''
+        for a in self.lookups:
+            lookups += f'[{a}]'
+
+        return f'{self.target} =(object) *{self.value}{lookups}.{self.attr.name}'
 
     def get_input_vars(self):
         inputs = []
-        inputs.extend(self.indexes)
+        inputs.extend(self.lookups)
         return inputs
 
     def get_output_vars(self):
         return [self.target]
+
+    
+    def generate(self):
+        # target = self.target.generate()
+        # value = self.value.generate()
+
+        return insNop(lineno=self.lineno)
+
 
 class irObjectOp(IR):
     def __init__(self, op, target, value, **kwargs):

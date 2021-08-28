@@ -413,6 +413,14 @@ class Builder(object):
             
             return var
 
+        elif value.data_type == 'ref':
+            var = self.add_temp(data_type='var', lineno=lineno)
+            ir = irObjectLoad(var, value.ref, lookups=value.lookups, lineno=lineno)
+
+            self.append_node(ir)
+            
+            return var
+
         return value
 
     def assign(self, target, value, lineno=None):
@@ -424,7 +432,7 @@ class Builder(object):
 
             elif isinstance(target.ref, varArray):
                 ir = irVectorAssign(target, value, lineno=lineno)    
-                
+
             else:
                 raise CompilerFatal()
 

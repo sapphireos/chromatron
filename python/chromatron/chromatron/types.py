@@ -188,6 +188,9 @@ class varScalar(varRegister):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        if self.data_type is None:
+            self.data_type = 'var'
+
     def lookup(self, indexes=[]): # lookup returns address offset and type (self, for scalars)
         return self
 
