@@ -406,44 +406,44 @@ class irBlock(IR):
     # Analysis Passes
     ##############################################
 
-    def value_numbering(self, values=None, visited=None):
-        if visited is None:
-            visited = []
-            values = {}
+    # def value_numbering(self, values=None, visited=None):
+    #     if visited is None:
+    #         visited = []
+    #         values = {}
 
-        if self in visited:
-            return False
+    #     if self in visited:
+    #         return False
 
-        visited.append(self)
+    #     visited.append(self)
 
-        for ir in self.code:
-            # inputs = ir.get_input_vars()
-            # for i in inputs:
+    #     for ir in self.code:
+    #         # inputs = ir.get_input_vars()
+    #         # for i in inputs:
 
-            outputs = ir.get_output_vars()
-            for o in outputs:
-                assert o not in values
+    #         outputs = ir.get_output_vars()
+    #         for o in outputs:
+    #             assert o not in values
 
-                value_number = ir.value_number
+    #             value_number = ir.value_number
 
-                if value_number is None:
-                    continue
+    #             if value_number is None:
+    #                 continue
 
-                value_number = str(value_number)
+    #             value_number = str(value_number)
 
-                if value_number in values:
-                    # print("MEOW!", value_number, values[value_number])
+    #             if value_number in values:
+    #                 # print("MEOW!", value_number, values[value_number])
 
-                    # not sure this will work, the value
-                    # needs to be available on this code path....
-                    value_number = values[value_number]
+    #                 # not sure this will work, the value
+    #                 # needs to be available on this code path....
+    #                 value_number = values[value_number]
                 
-                values[o] = value_number
+    #             values[o] = value_number
 
-        for suc in self.successors:
-            suc.value_numbering(values, visited)
+    #     for suc in self.successors:
+    #         suc.value_numbering(values, visited)
 
-        return values
+    #     return values
 
     # depth first reachability check
     def reachable(self, target, visited=None):
@@ -2166,6 +2166,23 @@ class irFunc(IR):
         return self.leader_block.get_blocks_depth_first()
 
 
+    def compute_live_ranges(self):
+        ranges = {}
+
+        assert len(self.code) > 0
+
+        for index in range(len(self.code)):
+            ir = self.code[index]
+
+            for o in self.live_out[ir]:
+                if o not in ranges:
+                    ranges[o] = []
+
+                ranges[o].append(index)
+
+        self.live_ranges = ranges
+
+
     def allocate_registers(self, max_registers=256):        
         # self.register_count = self.leader_block.allocate_registers(max_registers) 
 
@@ -2379,38 +2396,22 @@ class irFunc(IR):
 
         self.remove_dead_code()
         
-        
-    def fold_constants(self):
-        changes = 0
-        iterations = 0
-        iteration_limit = 512
-        prev_changes = None
 
-        while changes != prev_changes and iterations < iteration_limit:
-            iterations += 1
+    # def fold_constants(self):
+    #     changes = 0
+    #     iterations = 0
+    #     iteration_limit = 512
+    #     prev_changes = None
 
-            prev_changes = changes
+    #     while changes != prev_changes and iterations < iteration_limit:
+    #         iterations += 1
 
-            for block in self.blocks.values():
-                changes += block.fold_constants()
+    #         prev_changes = changes
 
-        logging.debug(f'Folded constants in {iterations} iterations. Folded {changes} instructions.')
+    #         for block in self.blocks.values():
+    #             changes += block.fold_constants()
 
-    def compute_live_ranges(self):
-        ranges = {}
-
-        assert len(self.code) > 0
-
-        for index in range(len(self.code)):
-            ir = self.code[index]
-
-            for o in self.live_out[ir]:
-                if o not in ranges:
-                    ranges[o] = []
-
-                ranges[o].append(index)
-
-        self.live_ranges = ranges
+    #     logging.debug(f'Folded constants in {iterations} iterations. Folded {changes} instructions.')
 
 
     def remove_dead_code(self):
