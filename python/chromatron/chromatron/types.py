@@ -394,7 +394,7 @@ class TypeManager(object):
         var = self.types[data_type].build(name, **kwargs)
         var.init_val = keywords['init_val']
 
-        for dim in reversed(dimensions):
+        for dim in dimensions:
             var = varArray(name, element=var, length=dim, lineno=kwargs['lineno'])
 
         return VarContainer(var)

@@ -3859,8 +3859,9 @@ class irLookup(IR):
 
             counts.append(count)
             strides.append(target.stride)
+            target = target.element
     
-        return insLookup(self.result.generate(), target.generate(), indexes, counts, strides, lineno=self.lineno)
+        return insLookup(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
 class irAttribute(IR):
     def __init__(self, name, **kwargs):
