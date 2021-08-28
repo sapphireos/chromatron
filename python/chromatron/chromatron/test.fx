@@ -1,25 +1,4 @@
 
-ary2 = Number()[2][3]
-
-def array2_lookup():
-    b = Number()
-    # ary2[b][0] = 1
-    # ary2[b][1] = 2
-    # ary2[b][2] = 3
-    # b = 1
-    ary2[b] = 2
-    # ary2[b][0] = 4
-    # ary2[b][1] = 5
-    # ary2[b][2] = 6
-
-    # assert ary2[0][0] == 1
-    # assert ary2[0][1] == 2
-    # assert ary2[0][2] == 3
-    # assert ary2[1][0] == 4
-    # assert ary2[1][1] == 5
-    # assert ary2[1][2] == 6
-    
-
 
 # def func():
 #     pixels[1].hue = 2

@@ -420,7 +420,7 @@ class insLoadMemoryImmediate(BaseInstruction):
         return "%s %s <- 0x%s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.registers[self.dest.reg] = vm.memory[self.src]
+        vm.registers[self.dest.reg] = vm.memory[self.src.addr]
 
     def assemble(self):
         bc = [self.opcode]
@@ -467,7 +467,7 @@ class insStoreMemoryImmediate(BaseInstruction):
         return "%s 0x%s <- %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.memory[self.dest] = vm.registers[self.src.reg]
+        vm.memory[self.dest.addr] = vm.registers[self.src.reg]
 
     def assemble(self):
         bc = [self.opcode]
