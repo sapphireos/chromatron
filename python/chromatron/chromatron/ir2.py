@@ -2211,6 +2211,7 @@ class irFunc(IR):
 
         registers = {}
         address_pool = list(range(max_registers)) # preload with all registers
+        min_address_pool = len(address_pool)
 
         # this is terrible, but is the simplest thing that mostly works:
         # just assign a unique register to every variable.
@@ -2251,6 +2252,8 @@ class irFunc(IR):
 
                         registers[var] = address_pool.pop(0)
 
+                        if len(address_pool) < min_address_pool:
+                            min_address_pool = len(address_pool)
 
 
         # perform register assignment to instructions:
@@ -2285,7 +2288,9 @@ class irFunc(IR):
         self.code = [ir for ir in self.code if ir not in unassigned_ir]
 
         self.register_count = max(registers.values()) + 1
-        self.registers = registers            
+        self.registers = registers          
+
+        logging.debug(f'Allocated {len(registers)} virtual registers and {max_registers - min_address_pool} machine registers')  
 
     def init_vars(self):
         defines = {}
@@ -2296,6 +2301,8 @@ class irFunc(IR):
 
 
     def generate(self):
+        logging.debug('Generating code')
+
          # convert to IR code listing        
         self.code = self.get_code_from_blocks()
 
@@ -2330,9 +2337,15 @@ class irFunc(IR):
             else:
                 instructions.append(ins)
 
-        return insFunc(self.name, instructions, source_code, self.register_count, lineno=self.lineno)
+        func = insFunc(self.name, instructions, source_code, self.register_count, lineno=self.lineno)
+
+        logging.debug(f'Code generation complete with {len(instructions)} machine instructions')
+
+        return func
 
     def analyze_blocks(self, opt_level='ssa'):
+        logging.debug(f'Starting block analysis with optimization level: {opt_level}')
+
         self.ssa_next_val = {}
         
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -2396,6 +2409,7 @@ class irFunc(IR):
 
         self.remove_dead_code()
         
+        logging.debug('Block analysis complete')
 
     # def fold_constants(self):
     #     changes = 0
