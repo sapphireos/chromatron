@@ -153,9 +153,7 @@ def array2_lookup():
     assert ary2[1][1] == 5
     assert ary2[1][2] == 6
     
-
-
-# def func_param(a: Number):
-#     a += 1
+def func_param(a: Number):
+    a += 1
     
-#     assert a == 1
+    assert a == 1

@@ -1,12 +1,8 @@
-ary = Number()[4]
-
-def array_assign():
-    ary = 0
-    ary = 1
-    assert ary[0] == 1
-    assert ary[1] == 1
-    assert ary[2] == 1
-    assert ary[3] == 1
+    
+def func_param(a: Number):
+    a += 1
+    
+    assert a == 1
 
 
 # def func():
