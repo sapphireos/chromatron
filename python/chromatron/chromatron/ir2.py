@@ -159,9 +159,6 @@ class irProgram(IR):
     def generate(self):
         self._allocate_memory()
 
-        for func in self.funcs.values():
-            func.fixup_globals()
-
         ins_funcs = {}
         for name, func in self.funcs.items():
             ins_funcs[name] = func.generate()
@@ -2411,7 +2408,35 @@ class irFunc(IR):
         self.register_count = max(registers.values()) + 1
         self.registers = registers            
 
+    def init_vars(self):
+        defines = {}
+        for v in self.params:
+            defines[v.name] = v.var
+        
+        self.leader_block.defines.update(defines)
+
+
     def generate(self):
+         # convert to IR code listing        
+        self.code = self.get_code_from_blocks()
+
+        self.fixup_globals()
+
+        # run trivial prunes
+        self.prune_jumps()
+        self.prune_no_ops()
+
+        # liveness
+        self.liveness_analysis()
+        
+        self.compute_live_ranges()
+
+        # allocate registers
+        self.allocate_registers()
+
+        self.remove_useless_copies()
+
+
         instructions = []
         assert len(self.code) > 0
         for ir in self.code:
@@ -2428,26 +2453,7 @@ class irFunc(IR):
 
         return insFunc(self.name, instructions, source_code, self.register_count, lineno=self.lineno)
 
-    def init_vars(self):
-    #     scanned = []
-
-        defines = {}
-        for v in self.params:
-            defines[v.name] = v.var
-        
-        self.leader_block.defines.update(defines)
-
-    #     iterations = 0
-    #     iteration_limit = 512
-    #     while self.leader_block.init_vars(scanned, defines=copy(defines)):
-    #         iterations += 1
-
-    #         if iterations > iteration_limit:
-    #             raise CompilerFatal(f'Var init failed after {iterations} iterations')
-
-    #     logging.debug(f'Init variables in {iterations} iterations')
-
-    def analyze_blocks(self, opt_level=None):
+    def analyze_blocks(self, opt_level='ssa'):
         self.ssa_next_val = {}
         
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -2456,22 +2462,10 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-        # return
-
         self.init_vars()
 
         # self.render_dominator_tree()
-        # self.render_graph()
-
-
-        # self.code = self.get_code_from_blocks()
-        # self.liveness_analysis()
-        # self.compute_live_ranges()
-        # self.allocate_registers()
-
-        # return
-
-        # return
+        # self.render_rgaph()
 
         if opt_level is not None:
 
@@ -2499,23 +2493,16 @@ class irFunc(IR):
                 # basic loop invariant code motion:
                 self.loop_invariant_code_motion(self.loops)
 
-            # return
-
             # convert out of SSA form
             self.resolve_phi()
             
 
-        # return
-        
-
         # blocks may have been rearranged or added at this point
-
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
         # redo loop analysis
         self.analyze_loops()
-
 
         # checks
         # self.check_critical_edges()
@@ -2526,29 +2513,11 @@ class irFunc(IR):
         # basic block merging (helps with jump elimination)
         # guide with simple branch prediction:
         # prioritize branches that occur within a loop
-
         self.merge_basic_blocks()
 
-        # return
         self.remove_dead_code()
-        # return
-        # convert to IR code listing        
-        self.code = self.get_code_from_blocks()
-
-        # run trivial prunes
-        self.prune_jumps()
-        self.prune_no_ops()
-
-        # liveness
-        self.liveness_analysis()
         
-        self.compute_live_ranges()
-
-        # allocate registers
-        self.allocate_registers()
-
-        self.remove_useless_copies()
-
+        
     def fold_constants(self):
         changes = 0
         iterations = 0

@@ -582,8 +582,8 @@ def test_programs(target_dir='fuzzer'):
 	os.chdir(cwd)
 
 def main():
-	# generate_programs(1000)
-	test_programs()
+	generate_programs(10000)
+	# test_programs()
 	return
 
 	i = 0
