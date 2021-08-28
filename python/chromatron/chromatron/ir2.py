@@ -2447,7 +2447,7 @@ class irFunc(IR):
 
     #     logging.debug(f'Init variables in {iterations} iterations')
 
-    def analyze_blocks(self):
+    def analyze_blocks(self, opt_level=None):
         self.ssa_next_val = {}
         
         self.leader_block = self.create_block_from_code_at_index(0)
@@ -2468,47 +2468,42 @@ class irFunc(IR):
         # self.liveness_analysis()
         # self.compute_live_ranges()
         # self.allocate_registers()
-        
-        # return
 
         # return
 
-        self.convert_to_ssa()    
-        
-        
-        
-        # checks
-        self.verify_block_links()
-        self.verify_block_assignments()
-        self.verify_ssa()
-        self.verify_variables()
-
-        # return
-        
-
-        # fold constants
-        # self.fold_constants()
-
-        
-        # value numbering
-        # self.leader_block.gvn_optimize()
-        # self.leader_block.gvn_optimize()
-
-        # optimizers
-        optimize = False
-        # optimize = True
-        if optimize:
-            # loop analysis
-            self.analyze_loops()
-        
-            # basic loop invariant code motion:
-            self.loop_invariant_code_motion(self.loops)
-
         # return
 
-        # convert out of SSA form
-        self.resolve_phi()
-        
+        if opt_level is not None:
+
+            self.convert_to_ssa()            
+            
+            
+            # checks
+            self.verify_block_links()
+            self.verify_block_assignments()
+            self.verify_ssa()
+            self.verify_variables()
+
+            
+            # value numbering
+            # self.leader_block.gvn_optimize()
+            # self.leader_block.gvn_optimize()
+
+            # optimizers
+            optimize = False
+            # optimize = True
+            if optimize:
+                # loop analysis
+                self.analyze_loops()
+            
+                # basic loop invariant code motion:
+                self.loop_invariant_code_motion(self.loops)
+
+            # return
+
+            # convert out of SSA form
+            self.resolve_phi()
+            
 
         # return
         

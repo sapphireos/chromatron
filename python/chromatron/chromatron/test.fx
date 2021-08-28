@@ -1,4 +1,140 @@
 
+def func():
+    d = Number()
+    c = Number()
+    b = Number()
+    a = Number()
+    if c == c:
+        pass
+    elif d >= c:
+        while d > b:
+            continue
+        if 96 == c:
+            if b:
+                if d == a:
+                    pass
+                else:
+                    pass
+                while b:
+                    pass
+                while a:
+                    pass
+                if 96 <= d:
+                    pass
+                else:
+                    pass
+                while a:
+                    pass
+            else:
+                pass
+            if c:
+                pass
+            while c >= -76:
+                pass
+            c = d < a
+            b = b > b
+            if a >= -16:
+                pass
+            elif 77 >= c:
+                pass
+            elif c:
+                pass
+            else:
+                pass
+            c %= d
+            c = a % -45
+            while -76 > a:
+                continue
+                while d:
+                    pass
+                while -76 > -45:
+                    pass
+                continue
+            b %= c
+            b = 77 <= b
+            while b < c:
+                pass
+            b -= a
+            d += a
+            return 96 * -45
+        while a:
+            continue
+            if b:
+                while -76 > c:
+                    if c <= -45:
+                        a += b
+                        while -16 > 77:
+                            pass
+                if -76 == c:
+                    if b:
+                        pass
+                while -16 >= -45:
+                    pass
+                if c:
+                    b = d - 77
+                    while -45 >= -45:
+                        pass
+        return a % 77
+        if c:
+            pass
+    d += b
+    return d - -76
+    if d <= a:
+        while c > b:
+            pass
+        a = -16 + -76
+        while -76 >= a:
+            pass
+        return 96 - -76
+        return b
+        while d:
+            pass
+        while b:
+            pass
+        c = c % c
+        while 77 == c:
+            pass
+        if 96 == c:
+            pass
+        else:
+            pass
+        if b:
+            pass
+    else:
+        return -76 // b
+        if -16 == -76:
+            pass
+        a = 96 * -45
+        c = b >= -16
+        a = 96 % b
+        c = 96 * 96
+        return c
+    a //= a
+    b = c + -45
+    return d
+    a -= b
+    b = a > a
+    return d
+    if -45 == 96:
+        d = 77 % 77
+        return b
+        return b - c
+        a = b == -45
+    else:
+        return b
+        c %= c
+        while -16 >= -45:
+            pass
+        a %= a
+        while d:
+            a *= a
+        if d:
+            pass
+        else:
+            while b:
+                pass
+
+
     
 # A = 4 # named constant.  recommend all caps for these (like C's convention)
       # these can be used the same as a const number.
@@ -164,28 +300,28 @@
     # a = meow.x
 
 
-a = Number()
-b = Number()
-c = Number()
+# a = Number()
+# b = Number()
+# c = Number()
 
-def simple_binop():
-    b = 1
-    a = b + 3
-    c = b + 3
+# def simple_binop():
+#     b = 1
+#     a = b + 3
+#     c = b + 3
         
-    # b = 1 + 2 + 3 # 6
+#     # b = 1 + 2 + 3 # 6
 
-    # a = b + 2 # 8
-    # c = a # 8
+#     # a = b + 2 # 8
+#     # c = a # 8
 
-    # b = b + 2 # 8
+#     # b = b + 2 # 8
 
 
-    # b += 3 # 11
+#     # b += 3 # 11
 
-    # a = a * c * 3 # 193
+#     # a = a * c * 3 # 193
 
-    return a + c
+#     return a + c
 
 
 # def copy_prop():

@@ -525,6 +525,7 @@ def generate_valid_program(skip_exc=False):
 def generate_programs(total=None, target_dir='fuzzer'):
 	count = 0
 
+	cwd = os.getcwd()
 	os.chdir(target_dir)
 
 	while total is None or count < total:
@@ -540,7 +541,10 @@ def generate_programs(total=None, target_dir='fuzzer'):
 		count += 1
 		print(count)
 
+	os.chdir(cwd)
+
 def test_programs(target_dir='fuzzer'):
+	cwd = os.getcwd()
 	os.chdir(target_dir)
 
 	count = 0
@@ -575,6 +579,7 @@ def test_programs(target_dir='fuzzer'):
 				print(fx_file)
 				raise
 
+	os.chdir(cwd)
 
 def main():
 	# generate_programs(1000)
