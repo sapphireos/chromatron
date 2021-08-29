@@ -508,7 +508,7 @@ def generate_valid_program(skip_exc=False):
 	output = None
 
 	try:
-		fname = f'_fuzz.py'
+		fname = f'_fuzz_{os.getpid()}.py'
 		output = run_py(pycode, fname=fname)
 		
 		if output is None:
@@ -547,7 +547,7 @@ def generate_programs(total=None, target_dir='fuzzer'):
 		if f is None:
 			continue
 
-		with open(f'fuzzer_{datetime.utcnow().isoformat()}_{count}.fx', 'w') as file:
+		with open(f'fuzzer_{datetime.utcnow().isoformat()}_{count}_{os.getpid()}.fx', 'w') as file:
 			file.write(f'# OUTPUT: {output}\n\n')
 			file.write(f.render())
 			
@@ -594,14 +594,19 @@ def test_programs(target_dir='fuzzer'):
 
 	os.chdir(cwd)
 
+from multiprocessing import Pool
+
 def main():
-	# generate_programs(10)
-	test_programs()
+	with Pool(20) as p:
+		p.map(generate_programs, [1000]*20)
+
+	# generate_programs(10000)
+	# test_programs()
 	return
 
 	i = 0
-	# while i < 1000:
-	while True:
+	while i < 1000:
+	# while True:
 		py_output = None
 
 		try:
