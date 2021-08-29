@@ -556,52 +556,65 @@ def generate_programs(total=None, target_dir='fuzzer'):
 
 	os.chdir(cwd)
 
-def test_programs(target_dir='fuzzer'):
+def test_program(fx_file):
+	with open(fx_file, 'r') as f:
+		fx = f.read()
+
+		tokens = fx.split('\n', maxsplit=1)
+		output = tokens[0]
+		code = tokens[1]
+
+		py_output = output.split('OUTPUT:')[1].strip()
+		fx_output = None
+
+		print(f'Testing {fx_file}')
+
+		try:
+			try:
+				prog = compile_text(code)
+
+			except DivByZero:
+				return # Div by 0 is a syntax error in FX, this is ok
+
+			# run it!
+			fx_output = str(prog.run_func('func'))
+
+			assert fx_output == py_output
+
+		except Exception:
+			print(f'Py:{py_output}, FX:{fx_output}')
+			print(fx_file)
+			raise
+
+
+from multiprocessing import Pool
+
+def test_programs(target_dir='fuzzer', parallel=True):
 	cwd = os.getcwd()
 	os.chdir(target_dir)
 
 	count = 0
-	for fx_file in [a for a in os.listdir() if a.endswith('.fx')]:
-		count += 1
-		print(count)
+	files = [a for a in os.listdir() if a.endswith('.fx')]
 
-		with open(fx_file, 'r') as f:
-			fx = f.read()
+	if parallel:
+		with Pool(24) as p:
+			p.map(test_program, files)
 
-			tokens = fx.split('\n', maxsplit=1)
-			output = tokens[0]
-			code = tokens[1]
+	else:
+		for fx_file in files:
+			count += 1
+			print(count)
 
-			py_output = output.split('OUTPUT:')[1].strip()
-			fx_output = None
-
-			try:
-				try:
-					prog = compile_text(code)
-
-				except DivByZero:
-					continue # Div by 0 is a syntax error in FX, this is ok
-
-				# run it!
-				fx_output = str(prog.run_func('func'))
-
-				assert fx_output == py_output
-
-			except Exception:
-				print(f'Py:{py_output}, FX:{fx_output}')
-				print(fx_file)
-				raise
+			test_program(fx_file)
 
 	os.chdir(cwd)
 
-from multiprocessing import Pool
-
 def main():
-	with Pool(20) as p:
-		p.map(generate_programs, [1000]*20)
+	# with Pool(48) as p:
+		# p.map(generate_programs, [10000]*25)
 
 	# generate_programs(10000)
-	# test_programs()
+	test_programs()
 	return
 
 	i = 0
