@@ -3102,19 +3102,23 @@ class irObjectStore(IR):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
-        self.lookups = lookups[:-1]
-        self.attr = lookups[-1]
-        
+
+        self.lookups = lookups
+
     def __str__(self):
         lookups = ''
         for a in self.lookups:
-            lookups += f'[{a}]'
+            if isinstance(a, irAttribute):
+                lookups += f'.{a.name}'
 
-        return f'{self.target}{lookups}.{self.attr.name} =(object) {self.value}'
+            else:
+                lookups += f'[{a}]'
+
+        return f'{self.target}{lookups} =(object) {self.value}'
 
     def get_input_vars(self):
         inputs = [self.value]
-        inputs.extend(self.lookups)
+        inputs.extend([a for a in self.lookups if not isinstance(a, irAttribute)])
         return inputs
 
     def get_output_vars(self):
@@ -3131,19 +3135,23 @@ class irObjectLoad(IR):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
-        self.lookups = lookups[:-1]
-        self.attr = lookups[-1]
-        
+    
+        self.lookups = lookups
+
     def __str__(self):
         lookups = ''
         for a in self.lookups:
-            lookups += f'[{a}]'
+            if isinstance(a, irAttribute):
+                lookups += f'.{a.name}'
 
-        return f'{self.target} =(object) {self.value}{lookups}.{self.attr.name}'
+            else:
+                lookups += f'[{a}]'
+
+        return f'{self.target} =(object) {self.value}{lookups}'
 
     def get_input_vars(self):
         inputs = []
-        inputs.extend(self.lookups)
+        inputs.extend([a for a in self.lookups if not isinstance(a, irAttribute)])
         return inputs
 
     def get_output_vars(self):
@@ -3163,19 +3171,23 @@ class irObjectOp(IR):
         self.op = op
         self.target = target
         self.value = value
-        self.lookups = lookups[:-1]
-        self.attr = lookups[-1]
+
+        self.lookups = lookups
         
     def __str__(self):
         lookups = ''
         for a in self.lookups:
-            lookups += f'[{a}]'
+            if isinstance(a, irAttribute):
+                lookups += f'.{a.name}'
 
-        return f'{self.target}{lookups}.{self.attr.name} {self.op}=(object) {self.value}'
+            else:
+                lookups += f'[{a}]'
+
+        return f'{self.target}{lookups} {self.op}=(object) {self.value}'
 
     def get_input_vars(self):
         inputs = [self.value]
-        inputs.extend(self.lookups)
+        inputs.extend([a for a in self.lookups if not isinstance(a, irAttribute)])
         return inputs
 
     def get_output_vars(self):
