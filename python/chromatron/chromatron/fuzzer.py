@@ -275,7 +275,20 @@ class Continue(Element):
 
 class ControlFlow(Block):
 	def __init__(self, *args, **kwargs):
-		super().__init__(While, IfBlock, Assign, AugAssign, Return, *args, **kwargs)
+		super().__init__(
+			While,
+			IfBlock,
+			Assign,
+			Assign,
+			Assign,
+			Assign,
+			Assign,
+			Assign,
+			AugAssign,
+			AugAssign,
+			AugAssign,
+			Return,
+			*args, **kwargs)
 
 		self.expr = Selector(CompareVars, Variable).select()
 
@@ -385,7 +398,7 @@ class Func(Block):
 		self.rendered_code = super().render()
 		return self.rendered_code
 
-	def generate(self, max_length=128, max_depth=12, max_vars=8, max_consts=16):
+	def generate(self, max_length=256, max_depth=16, max_vars=16, max_consts=16):
 
 		# global var handling.... not super happy about this but works for now
 		global var_count
@@ -582,7 +595,7 @@ def test_programs(target_dir='fuzzer'):
 	os.chdir(cwd)
 
 def main():
-	# generate_programs(10000)
+	# generate_programs(10)
 	test_programs()
 	return
 
