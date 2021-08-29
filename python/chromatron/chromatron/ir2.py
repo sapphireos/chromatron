@@ -45,15 +45,6 @@ def params_to_string(params):
     return s
 
 
-def add_const_temp(const, datatype=None, lineno=None):
-    name = str(const)
-    
-    ir = irVar(name, datatype=datatype, lineno=lineno)
-    ir.is_temp = False
-    ir.holds_const = True
-
-    return ir
-
 def add_reg(temp, datatype='i32', lineno=None):
     name = str(temp)
     
