@@ -370,19 +370,23 @@ class Builder(object):
         self.append_node(label)
 
     def call(self, func_name, params, lineno=None):
-        result = self.add_temp(lineno=lineno)
+        ret_type = self.funcs[func_name].ret_type
+        result = self.add_temp(data_type=ret_type, lineno=lineno)
 
-        if func_name in ARRAY_FUNCS:
-            if len(params) != 1:
-                raise SyntaxError("Array functions take one argument", lineno=lineno)
+        # if func_name in ARRAY_FUNCS:
+        #     if len(params) != 1:
+        #         raise SyntaxError("Array functions take one argument", lineno=lineno)
 
-            if func_name == 'len':
-                # since arrays are fixed length, we don't need a libcall, we 
-                # can just do an assignment.
-                array_len = params[0].ref.count
-                const = self.add_const(array_len, lineno=lineno)
+        #     if func_name == 'len':
+        #         # since arrays are fixed length, we don't need a libcall, we 
+        #         # can just do an assignment.
+        #         array_len = params[0].ref.count
+        #         const = self.add_const(array_len, lineno=lineno)
 
-                self.assign(result, const, lineno=lineno)
+        #         self.assign(result, const, lineno=lineno)
+
+        ir = irCall(self.funcs[func_name], params, result, lineno=lineno)
+        self.append_node(ir)
 
         return result
 

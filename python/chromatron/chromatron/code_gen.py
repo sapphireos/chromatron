@@ -1042,18 +1042,18 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         # raise e
 
     # save IR to file
-    # with open(f'{script_name}.fxir', 'w') as f:
-    #     try:
-    #         f.write(str(ir_program))
+    with open(f'{script_name}.fxir', 'w') as f:
+        try:
+            f.write(str(ir_program))
 
-    #         if ins_program:
-    #             f.write(str(ins_program))
+            if ins_program:
+                f.write(str(ins_program))
 
-    #     except AttributeError:
-    #         if e:
-    #             raise e
+        except AttributeError:
+            if e:
+                raise e
 
-    #         raise
+            raise
 
     # if debug_print:
     #     print(ir_program)
@@ -1064,10 +1064,10 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     if e:
         raise e
 
-    # if ins_program:
-    #     for func in ins_program.funcs.values():
-    #         ret_val = func.run()
-    #         print(f'VM returned: {ret_val}')
+    if ins_program:
+        for func in ins_program.funcs.values():
+            ret_val = func.run()
+            print(f'VM returned: {ret_val}')
 
     return ins_program
 

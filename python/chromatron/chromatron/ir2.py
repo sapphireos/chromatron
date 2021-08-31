@@ -3906,3 +3906,40 @@ class irAssert(IR):
 
     def generate(self):
         return insAssert(self.value.generate(), lineno=self.lineno)
+
+
+class irCall(IR):
+    def __init__(self, target, params, result, **kwargs):
+        super(irCall, self).__init__(**kwargs)
+        self.target = target
+        self.params = params
+        self.result = result
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = f'CALL {self.target.name}({params}) -> {self.result}'
+
+        return s
+
+    def get_input_vars(self):
+        return self.params
+
+    def get_output_vars(self):
+        return [self.result]
+
+    def generate(self):        
+        # return insNop(lineno=self.lineno)
+        params = [a.generate() for a in self.params]
+        # args = [a.generate() for a in self.args]
+
+        # call func
+        call_ins = insCall(self.target, params, self.result, lineno=self.lineno)
+
+        return call_ins
+
+        # # move return value to result register
+        # mov_ins = insMov(self.result.generate(), insAddr(0), lineno=self.lineno)
+
+        # return [call_ins, mov_ins]
+
+

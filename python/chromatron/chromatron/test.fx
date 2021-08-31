@@ -1,6 +1,13 @@
 
+def stuff():
+    return 1 + 2
+
 def func():
-    db.meow[1] = 2
+    return stuff()
+
+
+# def func():
+    # db.meow[1] = 2
     # pixels[1].hue += 2
     # pixels.hue += 2
     # pixels.hue = 2
