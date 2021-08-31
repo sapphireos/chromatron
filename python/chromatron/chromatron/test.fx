@@ -1,14 +1,14 @@
 
-def stuff():
+def stuff() -> Number:
     return 1 + 2
 
-def my_func():
-    # return stuff()
+# def my_func():
+#     # return stuff()
 
-    # pixels.hue = 0
+#     # pixels.hue = 0
 
-    f = Function()[2]
-    f[1] = stuff
+#     f = Function()[2]
+#     f[1] = stuff
 
     # return f
     # f()

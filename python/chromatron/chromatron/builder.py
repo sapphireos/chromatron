@@ -325,8 +325,10 @@ class Builder(object):
     def nop(self, lineno=None):
         pass
 
-    def func(self, *args, **kwargs):
+    def func(self, *args, returns=None, **kwargs):
         sym = self.push_symbol_table()
+
+        print(returns)
 
         func = irFunc(*args, symbol_table=sym, type_manager=self.type_manager, **kwargs)
         self.funcs[func.name] = func

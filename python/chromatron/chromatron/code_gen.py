@@ -282,15 +282,16 @@ class cg1NoOp(cg1CodeNode):
 class cg1Func(cg1CodeNode):
     _fields = ["name", "params", "body", "decorators"]
 
-    def __init__(self, name, params, body, decorators=[], **kwargs):
+    def __init__(self, name, params, body, returns=None, decorators=[], **kwargs):
         super(cg1Func, self).__init__(**kwargs)
         self.name = name
         self.params = params
         self.body = body
+        self.returns = returns
         self.decorators = decorators
 
     def build(self, builder):
-        func = builder.func(self.name, lineno=self.lineno)
+        func = builder.func(self.name, returns=self.returns, lineno=self.lineno)
 
         for p in self.params:
             builder.add_func_arg(func, p.name, p.type, [], lineno=self.lineno)
@@ -645,9 +646,11 @@ class CodeGenPass1(ast.NodeVisitor):
 
         decorators = [self.visit(a) for a in node.decorator_list]
         
+        returns = self.visit(node.returns).name
+
         self.in_func = False
 
-        return cg1Func(node.name, params, body, decorators, lineno=node.lineno)
+        return cg1Func(node.name, params, body, returns, decorators, lineno=node.lineno)
 
     def visit_Return(self, node):
         if node.value == None:
