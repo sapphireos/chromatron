@@ -463,9 +463,9 @@ class Builder(object):
                 ir = irVectorAssign(target, value, lineno=lineno)    
 
             else:
-                raise CompilerFatal()
+                raise CompilerFatal(target)
 
-        elif target.data_type == 'ref':
+        elif target.data_type in ['objref', 'funcref']:
             ir = irObjectStore(target.ref, value, lookups=target.lookups, lineno=lineno)
 
         elif isinstance(target, varArray):
@@ -694,6 +694,12 @@ class Builder(object):
     def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
         if isinstance(target, varObject):
             var = self.add_temp(data_type='objref', lineno=lineno)
+
+            var.ref = target
+            var.lookups = self.current_lookup[0]
+
+        elif target.var.scalar_type == 'funcref':
+            var = self.add_temp(data_type='funcref', lineno=lineno)
 
             var.ref = target
             var.lookups = self.current_lookup[0]

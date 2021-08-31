@@ -5,11 +5,13 @@ def stuff():
 def my_func():
     # return stuff()
 
-    f = Function()
-    f = stuff
+    # pixels.hue = 0
+
+    f = Function()[2]
+    f[1] = stuff
 
     # return f
-    f()
+    # f()
 
 
 # def func():

@@ -245,7 +245,7 @@ class varFunction(varObject):
 
 class varObjectRef(varRef):
     def __init__(self, *args, ref=None, lookups=[], **kwargs):
-        super().__init__(*args, data_type='ref', **kwargs)
+        super().__init__(*args, data_type='objref', **kwargs)
         self.ref = ref
         self.lookups = lookups
 
