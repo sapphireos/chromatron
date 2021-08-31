@@ -8,7 +8,8 @@ def my_func():
     f = Function()
     f = stuff
 
-    return f
+    # return f
+    f()
 
 
 # def func():

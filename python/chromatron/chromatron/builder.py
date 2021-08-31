@@ -372,8 +372,16 @@ class Builder(object):
         self.append_node(label)
 
     def call(self, func_name, params, lineno=None):
-        ret_type = self.funcs[func_name].ret_type
-        result = self.add_temp(data_type=ret_type, lineno=lineno)
+        if func_name in self.funcs:
+            func = self.funcs[func_name]
+            indirect = False
+
+        else:
+            # check for indirect call:
+            func = self.get_var(func_name, lineno=lineno)
+            indirect = True
+
+        result = self.add_temp(data_type=func.ret_type, lineno=lineno)
 
         # if func_name in ARRAY_FUNCS:
         #     if len(params) != 1:
@@ -386,8 +394,12 @@ class Builder(object):
         #         const = self.add_const(array_len, lineno=lineno)
 
         #         self.assign(result, const, lineno=lineno)
+        if indirect:
+            ir = irIndirectCall(func, params, result, lineno=lineno)
 
-        ir = irCall(self.funcs[func_name], params, result, lineno=lineno)
+        else:
+            ir = irCall(func, params, result, lineno=lineno)
+
         self.append_node(ir)
 
         return result

@@ -793,6 +793,12 @@ class irBlock(IR):
                     # remove instruction
                     continue
 
+            elif isinstance(ir, irCallType):
+                # always include calls, because they may 
+                # have global side-effects:
+                new_code.append(ir)
+                continue
+
             is_read = False
 
             # check if this instruction writes to any vars which are read
@@ -2257,18 +2263,19 @@ class irFunc(IR):
                 i.reg = registers[i]
 
             for o in ir.get_output_vars():
-                assert o in registers
+                if not isinstance(ir, irCallType):
+                    assert o in registers
 
-                # check if output register is actually live at this instruction:
-                if index not in intervals[o]:
-                    # this register is not live!
-                    o.reg = -1
-                    
-                    if ir not in unassigned_ir:
-                        unassigned_ir.append(ir)
+                    # check if output register is actually live at this instruction:
+                    if index not in intervals[o]:
+                        # this register is not live!
+                        o.reg = -1
+                        
+                        if ir not in unassigned_ir:
+                            unassigned_ir.append(ir)
 
-                else:
-                    o.reg = registers[o]
+                    else:
+                        o.reg = registers[o]
 
             index += 1
 
@@ -3907,10 +3914,12 @@ class irAssert(IR):
     def generate(self):
         return insAssert(self.value.generate(), lineno=self.lineno)
 
+class irCallType(IR):
+    pass
 
-class irCall(IR):
+class irCall(irCallType):
     def __init__(self, target, params, result, **kwargs):
-        super(irCall, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.target = target
         self.params = params
         self.result = result
@@ -3923,6 +3932,43 @@ class irCall(IR):
 
     def get_input_vars(self):
         return self.params
+
+    def get_output_vars(self):
+        return [self.result]
+
+    def generate(self):        
+        # return insNop(lineno=self.lineno)
+        params = [a.generate() for a in self.params]
+        # args = [a.generate() for a in self.args]
+
+        # call func
+        call_ins = insCall(self.target, params, self.result, lineno=self.lineno)
+
+        return call_ins
+
+        # # move return value to result register
+        # mov_ins = insMov(self.result.generate(), insAddr(0), lineno=self.lineno)
+
+        # return [call_ins, mov_ins]
+
+
+class irIndirectCall(irCallType):
+    def __init__(self, target, params, result, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.params = params
+        self.result = result
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = f'ICALL {self.target.name}({params}) -> {self.result}'
+
+        return s
+
+    def get_input_vars(self):
+        inputs = [self.target]
+        inputs.extend(self.params)
+        return inputs
 
     def get_output_vars(self):
         return [self.result]

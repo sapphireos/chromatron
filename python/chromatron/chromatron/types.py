@@ -260,6 +260,7 @@ class varFunctionRef(varRef):
     def __init__(self, *args, ref=None, **kwargs):
         super().__init__(*args, data_type='funcref', **kwargs)
         self.ref = ref
+        self.ret_type = 'var'
 
     def __str__(self):
         return f'{super().__str__()}->{self.ref}'
