@@ -339,6 +339,8 @@ class Builder(object):
         func_label = self.label(f'func:{func.name}', lineno=kwargs['lineno'])
         self.position_label(func_label)
 
+        self.declare_var(func.name, data_type='func', is_global=True, lineno=kwargs['lineno'])
+
         logging.info(f'Building function: {func.name}')
 
         return func
@@ -420,9 +422,17 @@ class Builder(object):
             
             return var
 
-        elif value.data_type == 'ref':
+        elif value.data_type == 'objref':
             var = self.add_temp(data_type='var', lineno=lineno)
             ir = irObjectLoad(var, value.ref, lookups=value.lookups, lineno=lineno)
+
+            self.append_node(ir)
+            
+            return var
+
+        elif value.data_type == 'func':
+            var = self.add_temp(data_type='funcref', lineno=lineno)
+            ir = irObjectLoad(var, value, lineno=lineno)
 
             self.append_node(ir)
             
@@ -535,7 +545,7 @@ class Builder(object):
             ir = irVectorOp(op, target, value, lineno=lineno)
             self.append_node(ir)
 
-        elif target.data_type == 'ref':
+        elif target.data_type == 'objref':
             ir = irObjectOp(op, target.ref, value, target.lookups, lineno=lineno)
             self.append_node(ir)
 
@@ -671,7 +681,7 @@ class Builder(object):
 
     def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
         if isinstance(target, varObject):
-            var = self.add_temp(data_type='ref', lineno=lineno)
+            var = self.add_temp(data_type='objref', lineno=lineno)
 
             var.ref = target
             var.lookups = self.current_lookup[0]

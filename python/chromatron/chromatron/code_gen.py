@@ -613,6 +613,7 @@ class CodeGenPass1(ast.NodeVisitor):
             'Number': self._handle_Number,
             'Fixed16': self._handle_Fixed16,
             'String': self._handle_String,
+            'Function': self._handle_Function,
             # 'Array': self._handle_Array,
             'Struct': self._handle_Struct,
             'PixelArray': self.create_GenericObject,
@@ -676,6 +677,16 @@ class CodeGenPass1(ast.NodeVisitor):
             keywords['init_val'] = int(node.args[0].n * 65536) # convert to fixed16
 
         return cg1DeclareVar(type="f16", keywords=keywords, lineno=node.lineno)
+
+    def _handle_Function(self, node):
+        keywords = {}
+        for kw in node.keywords:
+            keywords[kw.arg] = kw.value.value
+
+        if len(node.args) > 0:
+            keywords['init_val'] = node.args[0].n
+
+        return cg1DeclareVar(type="funcref", keywords=keywords, lineno=node.lineno)
 
     def _handle_String(self, node):
         keywords = {}

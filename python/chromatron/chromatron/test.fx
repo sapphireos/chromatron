@@ -2,8 +2,13 @@
 def stuff():
     return 1 + 2
 
-def func():
-    return stuff()
+def my_func():
+    # return stuff()
+
+    f = Function()
+    f = stuff
+
+    return f
 
 
 # def func():

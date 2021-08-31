@@ -222,11 +222,6 @@ class varRef(varRegister):
     # def __str__(self):
     #     return f'{super().__str__()} -> {self.target}'
 
-class varFunction(Var):
-    def __init__(self, *args, func=None, **kwargs):
-        super().__init__(*args, data_type='func', **kwargs)
-        self.func = func
-
 class varComposite(Var):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -238,6 +233,15 @@ class varObject(varComposite):
     @property
     def size(self):
         return 0
+
+class varFunction(varObject):
+    def __init__(self, *args, func=None, **kwargs):
+        super().__init__(*args, data_type='func', **kwargs)
+        self.func = func
+
+    @property
+    def size(self):
+        return 1
 
 class varObjectRef(varRef):
     def __init__(self, *args, ref=None, lookups=[], **kwargs):
@@ -251,6 +255,14 @@ class varObjectRef(varRef):
             lookups += f'[{a}]'
 
         return f'{super().__str__()}->{self.ref}{lookups}'
+
+class varFunctionRef(varRef):
+    def __init__(self, *args, ref=None, **kwargs):
+        super().__init__(*args, data_type='funcref', **kwargs)
+        self.ref = ref
+
+    def __str__(self):
+        return f'{super().__str__()}->{self.ref}'
 
 class varArray(varComposite):
     def __init__(self, *args, element=None, length=1, **kwargs):
@@ -373,14 +385,14 @@ class varString(varRef):
 
 _BASE_TYPES = {
     'var': varScalar(), 
-    'offset': varOffset(), 
-    'Number': varInt32(), 
+    'offset': varOffset(),  
     'i32': varInt32(), 
-    'Fixed16': varFixed16(),
     'f16': varFixed16(),
     'str': varString(),
     'obj': varObject(),
-    'ref': varObjectRef(),
+    'objref': varObjectRef(),
+    'func': varFunction(),
+    'funcref': varFunctionRef(),
 }
 
 class TypeManager(object):
