@@ -328,8 +328,6 @@ class Builder(object):
     def func(self, *args, returns=None, **kwargs):
         sym = self.push_symbol_table()
 
-        print(returns)
-
         func = irFunc(*args, symbol_table=sym, type_manager=self.type_manager, **kwargs)
         self.funcs[func.name] = func
         self.current_func = func
@@ -464,10 +462,14 @@ class Builder(object):
             elif isinstance(target.ref, varArray):
                 ir = irVectorAssign(target, value, lineno=lineno)    
 
+            elif isinstance(target.ref, varRef):
+                ir = irStore(value, target, lineno=lineno)
+
             else:
                 raise CompilerFatal(target)
 
-        elif target.data_type in ['objref', 'funcref']:
+        # elif target.data_type in ['objref', 'funcref']:
+        elif target.data_type == 'objref':
             ir = irObjectStore(target.ref, value, lookups=target.lookups, lineno=lineno)
 
         elif isinstance(target, varArray):
@@ -700,11 +702,11 @@ class Builder(object):
             var.ref = target
             var.lookups = self.current_lookup[0]
 
-        elif target.var.scalar_type == 'funcref':
-            var = self.add_temp(data_type='funcref', lineno=lineno)
+        # elif target.var.scalar_type == 'funcref':
+        #     var = self.add_temp(data_type='funcref', lineno=lineno)
 
-            var.ref = target
-            var.lookups = self.current_lookup[0]
+        #     var.ref = target
+        #     var.lookups = self.current_lookup[0]
 
         else:
             var = self.add_temp(data_type='offset', lineno=lineno)

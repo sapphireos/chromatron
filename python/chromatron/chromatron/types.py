@@ -215,13 +215,6 @@ class varOffset(varRegister):
         # return f'{super().__str__()} -> {self.offset}'
         return f'{super().__str__()}'
 
-class varRef(varRegister):
-    def __init__(self, *args, data_type='ref', **kwargs):
-        super().__init__(*args, data_type=data_type, **kwargs)
-
-    # def __str__(self):
-    #     return f'{super().__str__()} -> {self.target}'
-
 class varComposite(Var):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -243,6 +236,14 @@ class varFunction(varObject):
     def size(self):
         return 1
 
+
+class varRef(varRegister):
+    def __init__(self, *args, data_type='ref', **kwargs):
+        super().__init__(*args, data_type=data_type, **kwargs)
+
+    # def __str__(self):
+    #     return f'{super().__str__()} -> {self.target}'
+
 class varObjectRef(varRef):
     def __init__(self, *args, ref=None, lookups=[], **kwargs):
         super().__init__(*args, data_type='objref', **kwargs)
@@ -261,9 +262,6 @@ class varFunctionRef(varRef):
         super().__init__(*args, data_type='funcref', **kwargs)
         self.ref = ref
         self.ret_type = 'var'
-
-    def __str__(self):
-        return f'{super().__str__()}->{self.ref}'
 
 class varArray(varComposite):
     def __init__(self, *args, element=None, length=1, **kwargs):
