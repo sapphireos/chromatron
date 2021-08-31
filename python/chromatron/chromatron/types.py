@@ -388,12 +388,15 @@ _BASE_TYPES = {
     'var': varScalar(), 
     'offset': varOffset(),  
     'i32': varInt32(), 
+    'Number': varInt32(), 
     'f16': varFixed16(),
+    'Fixed16': varFixed16(),
     'str': varString(),
     'obj': varObject(),
     'objref': varObjectRef(),
     'func': varFunction(),
     'funcref': varFunctionRef(),
+    'Function': varFunctionRef(),
 }
 
 class TypeManager(object):
@@ -416,6 +419,8 @@ class TypeManager(object):
     def create_var_from_type(self, name, data_type, dimensions=[], keywords={}, **kwargs):
         if not keywords:
             keywords = {'init_val': None}
+
+        assert data_type is not None
 
         var = self.types[data_type].build(name, **kwargs)
         var.init_val = keywords['init_val']

@@ -646,7 +646,11 @@ class CodeGenPass1(ast.NodeVisitor):
 
         decorators = [self.visit(a) for a in node.decorator_list]
         
-        returns = self.visit(node.returns).name
+        if node.returns:
+            returns = self.visit(node.returns).name
+        
+        else:
+            returns = None
 
         self.in_func = False
 
@@ -869,16 +873,9 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1Var(node.value, lineno=node.lineno)
 
     def visit_arg(self, node):
-        arg_type = node.annotation.id
+        data_type = node.annotation.id
 
-        datatype = None
-        if arg_type == 'Number':
-            datatype = 'i32'
-
-        elif arg_type == 'Fixed16':
-            datatype = 'f16'
-
-        return cg1Var(node.arg, datatype, lineno=node.lineno)
+        return cg1Var(node.arg, data_type, lineno=node.lineno)
 
     def visit_BinOp(self, node):
         return cg1BinOpNode(self.visit(node.op), self.visit(node.left), self.visit(node.right), lineno=node.lineno)

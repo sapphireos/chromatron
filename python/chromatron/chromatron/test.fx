@@ -1,6 +1,9 @@
 
-def stuff() -> Number:
-    return 1 + 2
+# def stuff() -> Number:
+    # return 1 + 2
+
+def meow(f: Function):
+    return f()
 
 # def my_func():
 #     # return stuff()
