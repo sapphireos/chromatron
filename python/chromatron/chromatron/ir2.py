@@ -142,7 +142,7 @@ class irProgram(IR):
 
     def _allocate_memory(self):
         addr = 0
-        for g in [g for g in self.global_symbols.symbols.values() if not isinstance(g, varObject)]:
+        for g in [g for g in self.global_symbols.symbols.values() if not isinstance(g, varObject) and not isinstance(g, varFunction)]:
             assert g.addr is None
             g.addr = addr
             addr += g.size
@@ -227,7 +227,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = False
+            show_liveness = True
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -1698,7 +1698,10 @@ class irFunc(IR):
         assert len(self.code) > 0
 
         for ir in self.code:
-            if isinstance(ir, irLoad) or isinstance(ir, irStore):
+            if  isinstance(ir, irLoad) or \
+                isinstance(ir, irStore) or \
+                isinstance(ir, irLoadRef):
+
                 # assert self.symbol_table.globals[ir.ref].addr is not None
                 if ir.ref.data_type != 'offset':
                     # assign addresses to globals
@@ -3230,6 +3233,36 @@ class irLoadConst(IR):
             # 32 bits, requires constant pooling
             return insLoadConst(self.target.generate(), value, lineno=self.lineno)
 
+class irLoadRef(IR):
+    def __init__(self, target, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.ref = ref
+
+    @property
+    def value_number(self):
+        return self.ref
+
+    def __str__(self):
+        return f'LOAD REF {self.target} <-- {self.ref}'
+
+    def get_input_vars(self):
+        return []
+
+    def get_output_vars(self):
+        return [self.target]
+
+    def generate(self):
+        pass
+        # value = self.value
+
+        # if is_16_bits(value):
+        #     # a load immediate will work here
+        #     return insLoadImmediate(self.target.generate(), value, lineno=self.lineno)
+
+        # else:
+        #     # 32 bits, requires constant pooling
+        #     return insLoadConst(self.target.generate(), value, lineno=self.lineno)
 
 # Load register from memory
 class irLoad(IR):

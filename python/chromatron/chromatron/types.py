@@ -227,7 +227,7 @@ class varObject(varComposite):
     def size(self):
         return 0
 
-class varFunction(varObject):
+class varFunction(varComposite):
     def __init__(self, *args, func=None, **kwargs):
         super().__init__(*args, data_type='func', **kwargs)
         self.func = func

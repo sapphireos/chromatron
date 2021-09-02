@@ -442,9 +442,9 @@ class Builder(object):
             
             return var
 
-        elif isinstance(value, varObject):
+        elif isinstance(value, varComposite):
             var = self.add_temp(data_type='ref', lineno=lineno)
-            ir = irObjectLoad(var, value, lineno=lineno)
+            ir = irLoadRef(var, value, lineno=lineno)
 
             self.append_node(ir)
             
