@@ -6,15 +6,12 @@ import logging
 
 class Builder(object):
     def __init__(self, script_name='fx_script', source=[]):
-        
         self.script_name = script_name
 
-        # load source code for debug
-        source_code = source
-        if isinstance(source_code, str):
-            source_code = source_code.splitlines()
+        if isinstance(source, str):
+            source = source.splitlines()
 
-        set_source_code(source_code)
+        self.source = source
 
         self.funcs = {}
         self.scope_depth = 0
@@ -332,7 +329,7 @@ class Builder(object):
     def func(self, *args, returns=None, **kwargs):
         sym = self.push_symbol_table()
 
-        func = irFunc(*args, symbol_table=sym, type_manager=self.type_manager, **kwargs)
+        func = irFunc(*args, symbol_table=sym, type_manager=self.type_manager, source_code=self.source, **kwargs)
         self.funcs[func.name] = func
         self.current_func = func
         self.next_temp = 0

@@ -14,8 +14,6 @@ import sys
 from pprint import pprint
 # /debug
 
-source_code = []
-
 COMMUTATIVE_OPS = ['add', 'mul']
 PRIMITIVE_TYPES = ['i32', 'f16']
 ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
@@ -57,12 +55,6 @@ Definitely limit depth.
 
 
 """
-
-
-
-def set_source_code(source):
-    global source_code
-    source_code = source
 
 def params_to_string(params):
     s = ''
@@ -230,6 +222,10 @@ class irBlock(IR):
         self.sealed = False
         self.temp_phis = []
 
+    @property
+    def source_code(self):
+        return self.func.source_code
+
     def __str__(self):
         tab = '\t'
         depth = f'{self.scope_depth * tab}'
@@ -261,7 +257,7 @@ class irBlock(IR):
         for ir in self.code:
             if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
                 s += f'{depth}|________________________________________________________\n'
-                s += f'{depth}| Line: {ir.lineno}: {depth}{source_code[ir.lineno - 1].strip()}\n'
+                s += f'{depth}| Line: {ir.lineno}: {depth}{self.source_code[ir.lineno - 1].strip()}\n'
                 lines_printed.append(ir.lineno)
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
@@ -1440,7 +1436,7 @@ class irBlock(IR):
         return changed
 
 class irFunc(IR):
-    def __init__(self, name, ret_type='i32', params=None, body=None, symbol_table=None, type_manager=None, **kwargs):
+    def __init__(self, name, ret_type='i32', params=None, body=None, symbol_table=None, type_manager=None, source_code=[], **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.ret_type = ret_type
@@ -1449,6 +1445,7 @@ class irFunc(IR):
         self.code = [] # output IR
         self.symbol_table = symbol_table
         self.type_manager = type_manager
+        self.source_code = source_code
 
         self.next_temp = 0
 
@@ -1575,7 +1572,7 @@ class irFunc(IR):
         for ir in self.body:
             if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
                 s += f'________________________________________________________\n'
-                s += f' {ir.lineno}: {source_code[ir.lineno - 1].strip()}\n'
+                s += f' {ir.lineno}: {self.source_code[ir.lineno - 1].strip()}\n'
                 lines_printed.append(ir.lineno)
     
             s += f'\t{ir}\n'
@@ -1631,7 +1628,7 @@ class irFunc(IR):
         for ir in self.code:
             if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
                 s += f'________________________________________________________\n'
-                s += f' Line {ir.lineno}: {source_code[ir.lineno - 1].strip()}\n'
+                s += f' Line {ir.lineno}: {self.source_code[ir.lineno - 1].strip()}\n'
                 lines_printed.append(ir.lineno)
 
             
@@ -2377,7 +2374,7 @@ class irFunc(IR):
             else:
                 instructions.append(ins)
 
-        func = insFunc(self.name, instructions, source_code, self.register_count, lineno=self.lineno)
+        func = insFunc(self.name, instructions, self.source_code, self.register_count, lineno=self.lineno)
 
         logging.debug(f'Code generation complete with {len(instructions)} machine instructions')
 
