@@ -20,6 +20,45 @@ COMMUTATIVE_OPS = ['add', 'mul']
 PRIMITIVE_TYPES = ['i32', 'f16']
 ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
 
+"""
+
+QUESTIONS
+
+Composite vars declared as function local:
+Do these go into global memory and just get treated as global?
+For: This is very convenient
+Against: We cannot support re-entrant functions (which means no recursion)
+
+
+Recursion:
+Should we support it?
+For: Not even sure.  How often do we need recursion for this DSL?
+Against: It kills the stack and has unpredictable bounds.  This is bad for
+determinism especially in memory requirements.
+
+Re-entrancy:
+For: Could support thread yields from nested function calls.
+Against: Requires function local storage for composites and spills
+
+Spills:
+If functions are not re-entrant, we can just spill to global.
+If they are, we need to spill to a local pool.
+
+
+Call stack:
+Definitely limit depth.
+- Easy way: we just recursively call the VM.
+    - We can only yield from top level if we do this.
+- Implement call stack and use a jump.
+    - Could yield in nests if we save the call stack on the VM state.
+    - Requires external call/param stack.
+    - We need a way to handle params anyway...
+
+
+
+"""
+
+
 
 def set_source_code(source):
     global source_code
@@ -1699,8 +1738,8 @@ class irFunc(IR):
 
         for ir in self.code:
             if  isinstance(ir, irLoad) or \
-                isinstance(ir, irStore) or \
-                isinstance(ir, irLoadRef):
+                isinstance(ir, irStore):
+                # isinstance(ir, irLoadRef):
 
                 # assert self.symbol_table.globals[ir.ref].addr is not None
                 if ir.ref.data_type != 'offset':

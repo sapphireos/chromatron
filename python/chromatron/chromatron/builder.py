@@ -214,11 +214,15 @@ class Builder(object):
             # self.locals[name] = var
 
             # ir = irDefine(var, lineno=lineno)
-            ir = irLoadConst(var, 0, lineno=lineno)
 
-            self.append_node(ir)
+            if isinstance(var.var, varComposite):
+                self.add_var_to_symbol_table(var.var)
 
-            self.add_var_to_symbol_table(var)
+            else:
+                ir = irLoadConst(var, 0, lineno=lineno)
+                self.append_node(ir)
+
+                self.add_var_to_symbol_table(var)
 
         # if var.is_ref:
             # self.refs[var.basename] = var
@@ -231,7 +235,7 @@ class Builder(object):
         if var.is_container:
             return var.copy()
 
-        assert var.is_global
+        # assert var.is_global
 
         # if composite, return, we will assume there
         # is a lookup
