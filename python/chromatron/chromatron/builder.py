@@ -442,13 +442,21 @@ class Builder(object):
             
             return var
 
-        elif value.data_type == 'func':
-            var = self.add_temp(data_type='funcref', lineno=lineno)
+        elif isinstance(value, varObject):
+            var = self.add_temp(data_type='ref', lineno=lineno)
             ir = irObjectLoad(var, value, lineno=lineno)
 
             self.append_node(ir)
             
             return var
+
+        # elif value.data_type == 'func':
+        #     var = self.add_temp(data_type='funcref', lineno=lineno)
+        #     ir = irObjectLoad(var, value, lineno=lineno)
+
+        #     self.append_node(ir)
+            
+        #     return var
 
         return value
 

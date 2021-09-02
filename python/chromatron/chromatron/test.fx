@@ -1,6 +1,6 @@
 
-def stuff() -> Number:
-    return 1 + 2
+# def stuff() -> Number:
+    # return 1 + 2
 
 # def meow(f: Function):
     # return f()
@@ -8,10 +8,13 @@ def stuff() -> Number:
 def my_func():
 #     # return stuff()
 
-#     # pixels.hue = 0
+    # pixels.hue = 0
+
+    # f = Function()
+    # f = my_func
 
     f = Function()[2]
-    f[1] = stuff
+    f[1] = my_func
 
     # return f
     # f()

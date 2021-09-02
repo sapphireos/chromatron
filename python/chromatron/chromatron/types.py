@@ -395,6 +395,7 @@ _BASE_TYPES = {
     'func': varFunction(),
     'funcref': varFunctionRef(),
     'Function': varFunctionRef(),
+    'ref': varRef(),
 }
 
 class TypeManager(object):
