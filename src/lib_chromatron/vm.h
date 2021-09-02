@@ -28,13 +28,15 @@
 
 #define VM_THREAD_RATE 		1
 
-void vm_v_init( void );
-void vm_v_start( void );
-void vm_v_stop( void );
-void vm_v_reset( void );
+#define VM_LAST_VM ( VM_MAX_VMS - 1 )
 
-void vm_v_pause( void );
-void vm_v_resume( void );
+void vm_v_init( void );
+void vm_v_start( uint8_t vm_id );
+void vm_v_stop( uint8_t vm_id );
+void vm_v_reset( uint8_t vm_id );
+
+void vm_v_pause( uint8_t vm_id );
+void vm_v_resume( uint8_t vm_id );
 
 void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t slot );
 

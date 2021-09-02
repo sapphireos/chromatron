@@ -1092,29 +1092,39 @@ void vm_v_init( void ){
 
 
 // these are legacy controls from when we only had 1 VM
-void vm_v_start( void ){
+void vm_v_start( uint8_t vm_id ){
 
-    vm_run[0] = TRUE;
+    ASSERT( vm_id < VM_MAX_VMS );
+
+    vm_run[vm_id] = TRUE;
 }
 
-void vm_v_stop( void ){
+void vm_v_stop( uint8_t vm_id ){
 
-    vm_run[0] = FALSE;
+    ASSERT( vm_id < VM_MAX_VMS );
+
+    vm_run[vm_id] = FALSE;
 }
 
-void vm_v_reset( void ){
+void vm_v_reset( uint8_t vm_id ){
 
-    vm_reset[0] = TRUE;
+    ASSERT( vm_id < VM_MAX_VMS );
+
+    vm_reset[vm_id] = TRUE;
 }
 
-void vm_v_pause( void ){
+void vm_v_pause( uint8_t vm_id ){
 
-    vm_pause |= ( 1 << 0 );
+    ASSERT( vm_id < VM_MAX_VMS );
+
+    vm_pause |= ( 1 << vm_id );
 }
 
-void vm_v_resume( void ){
+void vm_v_resume( uint8_t vm_id ){
 
-    vm_pause &= ~( 1 << 0 );
+    ASSERT( vm_id < VM_MAX_VMS );
+
+    vm_pause &= ~( 1 << vm_id );
 }
 
 void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
@@ -1144,8 +1154,16 @@ void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
         ASSERT( FALSE );
     }    
 
-    kv_i8_set( hash, name, FFS_FILENAME_LEN );
+    // set full string in KV, with 0 padding
+    char prog[FFS_FILENAME_LEN];
+    memset( prog, 0, sizeof(prog) );
+    strncpy( prog, name, sizeof(prog) );
 
+    kv_i8_set( hash, prog, FFS_FILENAME_LEN );
+
+    log_v_info_P( PSTR("Starting %s on VM: %d"), prog, vm_id );
+
+    vm_run[vm_id] = TRUE;
     vm_reset[vm_id] = TRUE;
 }
 

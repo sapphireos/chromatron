@@ -786,12 +786,12 @@ link_handle_t link_l_create2( link_state_t *state ){
 
     list_v_insert_tail( &link_list, ln );    
 
-    if( state->mode == LINK_MODE_SEND ){
-        trace_printf("SEND LINK\n");
-    }
-    else if( state->mode == LINK_MODE_RECV ){
-        trace_printf("RECV LINK\n");
-    }
+    // if( state->mode == LINK_MODE_SEND ){
+    //     trace_printf("SEND LINK\n");
+    // }
+    // else if( state->mode == LINK_MODE_RECV ){
+    //     trace_printf("RECV LINK\n");
+    // }
 
     return ln;
 }
@@ -1979,12 +1979,12 @@ static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_
 
             sock_addr_t raddr = consumer->addr;
 
-            trace_printf("LINK: TX consumer data %d.%d.%d.%d\n",
-                consumer->addr.ipaddr.ip3,
-                consumer->addr.ipaddr.ip2,
-                consumer->addr.ipaddr.ip1,
-                consumer->addr.ipaddr.ip0
-            );
+            // trace_printf("LINK: TX consumer data %d.%d.%d.%d\n",
+            //     consumer->addr.ipaddr.ip3,
+            //     consumer->addr.ipaddr.ip2,
+            //     consumer->addr.ipaddr.ip1,
+            //     consumer->addr.ipaddr.ip0
+            // );
 
             if( sock_i16_sendto( sock, (uint8_t *)&msg_buf->msg, msg_len, &raddr ) < 0 ){
 
@@ -2018,7 +2018,7 @@ static void transmit_producer_data( uint64_t hash, catbus_meta_t *meta, uint8_t 
 
     sock_i16_sendto_m( sock, h, raddr );
 
-    trace_printf("LINK: transmit producer data: %d.%d.%d.%d\n", raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );   
+    // trace_printf("LINK: transmit producer data: %d.%d.%d.%d\n", raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );   
 }
 
 static void transmit_shutdown( void ){

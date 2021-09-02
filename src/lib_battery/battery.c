@@ -350,14 +350,16 @@ PT_BEGIN( pt );
 
             batt_state = BATT_STATE_OK;
             gfx_b_disable();
-            vm_v_resume();
+            vm_v_resume( 0 );
+            vm_v_stop( VM_LAST_VM );
         }
         else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
             batt_state = BATT_STATE_OK;
             gfx_b_enable();
             batt_v_enable_pixels();
-            vm_v_resume();
+            vm_v_resume( 0 );
+            vm_v_stop( VM_LAST_VM );
         }
         else{ // DISCHARGE
 
@@ -384,8 +386,8 @@ PT_BEGIN( pt );
                     
                     batt_state = BATT_STATE_CRITICAL;
 
-                    vm_v_pause();
-                    vm_v_run_prog( "crit_batt.fxb", VM_MAX_VMS - 1 );
+                    vm_v_pause( 0 );
+                    vm_v_run_prog( "crit_batt.fxb", VM_LAST_VM );
                 }
             }
             else if( bq25895_u8_get_soc() <= 10 ){
@@ -396,8 +398,8 @@ PT_BEGIN( pt );
 
                     batt_state = BATT_STATE_LOW;
 
-                    vm_v_pause();
-                    vm_v_run_prog( "low_batt.fxb", VM_MAX_VMS - 1 );
+                    vm_v_pause( 0 );
+                    vm_v_run_prog( "low_batt.fxb", VM_LAST_VM );
                 }
             }
 
