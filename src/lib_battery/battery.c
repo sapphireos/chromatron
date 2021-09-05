@@ -40,7 +40,7 @@
 static bool batt_enable;
 static int8_t batt_ui_state;
 static bool pixels_enabled = TRUE;
-// static uint8_t buttons;
+static uint8_t button_state;
 
 static uint8_t batt_state;
 #define BATT_STATE_OK           0
@@ -59,7 +59,7 @@ KV_SECTION_META kv_meta_t ui_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,        0,   "batt_pixel_power" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,            0,   "batt_state" },
     { SAPPHIRE_TYPE_BOOL,   0, 0,                   &batt_request_shutdown, 0,   "batt_request_shutdown" },
-    // { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &buttons,       0,        "batt_button_state" },
+    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,          0,   "batt_button_state" },
 };
 
 
@@ -84,7 +84,7 @@ hold btn 0 for 3 seconds and btn 1 for 6 seconds
 
 */
 
-#define MAX_BUTTONS 2
+#define MAX_BUTTONS 3
 
 static uint8_t button_hold_duration[MAX_BUTTONS];
 
@@ -229,6 +229,13 @@ static bool _ui_b_button_down( uint8_t ch ){
             btn = BATT_IO_S2;
         }
     }    
+    else if( ch == 2 ){
+
+        if( pca9536_enabled ){    
+
+            btn = BATT_IO_SPARE;
+        }
+    }    
     
     if( btn == 255 ){
 
@@ -305,7 +312,6 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
 
-        // buttons = 0;
         if( pca9536_enabled ){
 
             // check if LEDs enabled.
@@ -327,19 +333,6 @@ PT_BEGIN( pt );
                     batt_v_disable_pixels();   
                 }
             }
-
-            // if( pca9536_b_gpio_read( BATT_IO_QON ) ){
-
-            //     buttons |= ( 1 << BATT_IO_QON );
-            // }
-            // if( pca9536_b_gpio_read( BATT_IO_S2 ) ){
-
-            //     buttons |= ( 1 << BATT_IO_S2 );
-            // }
-            // if( pca9536_b_gpio_read( BATT_IO_SPARE ) ){
-
-            //     buttons |= ( 1 << BATT_IO_SPARE );
-            // }
         }
 
         uint8_t charge_status = bq25895_u8_get_charge_status();
@@ -418,9 +411,13 @@ PT_BEGIN( pt );
         }
 
 
+        button_state = 0;
+
         for( uint8_t i = 0; i < MAX_BUTTONS; i++ ){
 
             if( _ui_b_button_down( i ) ){
+
+                button_state |= 1 << i;
 
                 if( button_hold_duration[i] < 255 ){
 
