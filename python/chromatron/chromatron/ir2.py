@@ -3313,7 +3313,7 @@ class irLoadRef(IR):
         return [self.target]
 
     def generate(self):
-        pass
+        return insLoadRef(self.target.generate(), self.ref.generate(), lineno=self.lineno)
         # value = self.value
 
         # if is_16_bits(value):

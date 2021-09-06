@@ -443,6 +443,33 @@ class insLoadLocal(BaseInstruction):
 
         return bc
 
+class insLoadRef(BaseInstruction):
+    mnemonic = 'LDR'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+        assert self.src is not None
+
+    def __str__(self):
+        return "%s %s <-R %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        # src = vm.registers[self.src.reg]
+        # vm.registers[self.dest.reg] = vm.locals[src]
+
+        assert False
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
+
+        return bc
+
+
 
 class insLoadGlobalImmediate(BaseInstruction):
     mnemonic = 'LDGI'
