@@ -53,6 +53,13 @@ Definitely limit depth.
     - We need a way to handle params anyway...
 
 
+Recursion: No
+Yield from nested function: ?
+
+It might be more flexible to allow allocation to a function local region on the function's call frame.
+We need one anyway to pass parameters and return data, and we need to do our own instead of recursing the VM
+so we can control our stack depth.
+
 
 """
 
@@ -173,10 +180,14 @@ class irProgram(IR):
 
     def _allocate_memory(self):
         addr = 0
-        for g in [g for g in self.global_symbols.symbols.values() if not isinstance(g, varObject) and not isinstance(g, varFunction)]:
+        global_vars = [g for g in self.global_symbols.symbols.values() if not isinstance(g, varObject)]
+        for g in global_vars:
             assert g.addr is None
             g.addr = addr
             addr += g.size
+
+        for func in self.funcs.values():
+            func.allocate_locals()
 
     def generate(self):
         self._allocate_memory()
@@ -262,7 +273,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = True
+            show_liveness = False
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -1473,6 +1484,10 @@ class irFunc(IR):
         return {b.name: b for b in self.leader_block.get_blocks()}
 
     @property
+    def locals(self):
+        return [l for l in self.symbol_table.symbols.values() if not isinstance(l, VarContainer)]
+
+    @property
     def global_input_vars(self):
         v = []
         for block in self.blocks.values():
@@ -1558,12 +1573,12 @@ class irFunc(IR):
         for v in self.params:
             s += f'\t{v.name:16}:{v.data_type}\n'
 
-        # s += "********************************\n"
-        # s += "Locals:\n"
-        # s += "********************************\n"
+        s += "********************************\n"
+        s += "Locals:\n"
+        s += "********************************\n"
 
-        # for v in self.locals.values():
-        #     s += f'{v.lineno:3}\t{v.name:16}:{v.type}\n'
+        for v in self.locals:
+            s += f'{v.lineno:3}\t{v.name:16}:{v.data_type}\n'
 
         s += "********************************\n"
         s += "Input Code:\n"
@@ -2218,6 +2233,12 @@ class irFunc(IR):
 
         self.live_ranges = ranges
 
+    def allocate_locals(self):
+        addr = 0
+
+        for l in self.locals:
+            l.addr = addr
+            addr += l.size
 
     def allocate_registers(self, max_registers=256):        
         # self.register_count = self.leader_block.allocate_registers(max_registers) 
@@ -3323,10 +3344,14 @@ class irLoad(IR):
         ref = self.ref.generate()
 
         if isinstance(ref, insReg):
-            return insLoadMemory(self.register.generate(), ref, lineno=self.lineno)
+            if self.ref.is_global:
+                return insLoadGlobal(self.register.generate(), ref, lineno=self.lineno)
+
+            else:
+                return insLoadLocal(self.register.generate(), ref, lineno=self.lineno)
 
         else:
-            return insLoadMemoryImmediate(self.register.generate(), ref, lineno=self.lineno)
+            return insLoadGlobalImmediate(self.register.generate(), ref, lineno=self.lineno)
 
 # Store register to memory
 class irStore(IR):
@@ -3354,10 +3379,14 @@ class irStore(IR):
         ref = self.ref.generate()
 
         if isinstance(ref, insReg):
-            return insStoreMemory(ref, self.register.generate(), lineno=self.lineno)
+            if self.ref.is_global:
+                return insStoreGlobal(ref, self.register.generate(), lineno=self.lineno)
+
+            else:
+                return insStoreLocal(ref, self.register.generate(), lineno=self.lineno)
 
         else:
-            return insStoreMemoryImmediate(ref, self.register.generate(), lineno=self.lineno)
+            return insStoreGlobalImmediate(ref, self.register.generate(), lineno=self.lineno)
 
 # Spill register to stack
 class irSpill(IR):

@@ -390,8 +390,8 @@ class insLoadConst(BaseInstruction):
 
         return bc
 
-class insLoadMemory(BaseInstruction):
-    mnemonic = 'LDM'
+class insLoadGlobal(BaseInstruction):
+    mnemonic = 'LDG'
 
     def __init__(self, dest, src, **kwargs):
         super().__init__(**kwargs)
@@ -401,7 +401,7 @@ class insLoadMemory(BaseInstruction):
         assert self.src is not None
 
     def __str__(self):
-        return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
+        return "%s %s <-G %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
         src = vm.registers[self.src.reg]
@@ -414,8 +414,9 @@ class insLoadMemory(BaseInstruction):
 
         return bc
 
-class insLoadMemoryImmediate(BaseInstruction):
-    mnemonic = 'LDMI'
+
+class insLoadLocal(BaseInstruction):
+    mnemonic = 'LDL'
 
     def __init__(self, dest, src, **kwargs):
         super().__init__(**kwargs)
@@ -425,7 +426,32 @@ class insLoadMemoryImmediate(BaseInstruction):
         assert self.src is not None
 
     def __str__(self):
-        return "%s %s <- 0x%s" % (self.mnemonic, self.dest, self.src)
+        return "%s %s <-L %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        src = vm.registers[self.src.reg]
+        vm.registers[self.dest.reg] = vm.memory[src]
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
+
+        return bc
+
+
+class insLoadGlobalImmediate(BaseInstruction):
+    mnemonic = 'LDGI'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+        assert self.src is not None
+
+    def __str__(self):
+        return "%s %s <-G 0x%s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
         vm.registers[self.dest.reg] = vm.memory[self.src.addr]
@@ -437,8 +463,8 @@ class insLoadMemoryImmediate(BaseInstruction):
 
         return bc
 
-class insStoreMemory(BaseInstruction):
-    mnemonic = 'STM'
+class insStoreGlobal(BaseInstruction):
+    mnemonic = 'STG'
 
     def __init__(self, dest, src, **kwargs):
         super().__init__(**kwargs)
@@ -448,7 +474,7 @@ class insStoreMemory(BaseInstruction):
         assert self.dest is not None
 
     def __str__(self):
-        return "%s %s <- %s" % (self.mnemonic, self.dest, self.src)
+        return "%s %s <-G %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
         dest = vm.registers[self.dest.reg]
@@ -461,8 +487,8 @@ class insStoreMemory(BaseInstruction):
 
         return bc
 
-class insStoreMemoryImmediate(BaseInstruction):
-    mnemonic = 'STMI'
+class insStoreLocal(BaseInstruction):
+    mnemonic = 'STL'
 
     def __init__(self, dest, src, **kwargs):
         super().__init__(**kwargs)
@@ -472,7 +498,31 @@ class insStoreMemoryImmediate(BaseInstruction):
         assert self.dest is not None
 
     def __str__(self):
-        return "%s 0x%s <- %s" % (self.mnemonic, self.dest, self.src)
+        return "%s %s <-L %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        dest = vm.registers[self.dest.reg]
+        vm.memory[dest] = vm.registers[self.src.reg]
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.dest.assemble())
+        bc.extend(self.src.assemble())
+
+        return bc
+
+class insStoreGlobalImmediate(BaseInstruction):
+    mnemonic = 'STGI'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+        assert self.dest is not None
+
+    def __str__(self):
+        return "%s 0x%s <-G %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
         vm.memory[self.dest.addr] = vm.registers[self.src.reg]
