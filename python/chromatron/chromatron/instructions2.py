@@ -95,7 +95,7 @@ class insProgram(object):
         pass
 
 class insFunc(object):
-    def __init__(self, name, code=[], source_code=[], register_count=None, lineno=None):
+    def __init__(self, name, code=[], source_code=[], local_size=None, register_count=None, lineno=None):
         self.name = name
         self.code = code
         self.source_code = source_code
@@ -104,6 +104,8 @@ class insFunc(object):
 
         self.registers = None
         self.memory = None
+        self.locals = None
+        self.local_size = local_size
         self.return_val = None
 
         self.cycle_limit = 16384
@@ -189,8 +191,10 @@ class insFunc(object):
                 labels[ins.name] = i
 
         self.registers = [0] * self.register_count
+        self.locals = [0] * self.local_size
         registers = self.registers # just makes debugging a bit easier
         memory = self.memory
+        local = self.locals
 
         self.return_val = 0
 
@@ -430,7 +434,7 @@ class insLoadLocal(BaseInstruction):
 
     def execute(self, vm):
         src = vm.registers[self.src.reg]
-        vm.registers[self.dest.reg] = vm.memory[src]
+        vm.registers[self.dest.reg] = vm.locals[src]
 
     def assemble(self):
         bc = [self.opcode]
@@ -502,7 +506,7 @@ class insStoreLocal(BaseInstruction):
 
     def execute(self, vm):
         dest = vm.registers[self.dest.reg]
-        vm.memory[dest] = vm.registers[self.src.reg]
+        vm.locals[dest] = vm.registers[self.src.reg]
 
     def assemble(self):
         bc = [self.opcode]

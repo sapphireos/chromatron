@@ -20,7 +20,10 @@ def my_func():
     # f = Function()[2]
     # f[1] = my_func
     a = Number()[2]
-    
+
+    a[0] = 3
+    a[1] = 4
+    a[3] = 8    
 
     return a[1]
     # return b

@@ -1478,6 +1478,7 @@ class irFunc(IR):
         self.instructions = None
         self.register_count = None
         self.registers = {}
+        self.local_size = None
 
     @property
     def blocks(self):
@@ -2240,6 +2241,8 @@ class irFunc(IR):
             l.addr = addr
             addr += l.size
 
+        self.local_size = addr
+
     def allocate_registers(self, max_registers=256):        
         # self.register_count = self.leader_block.allocate_registers(max_registers) 
 
@@ -2395,7 +2398,7 @@ class irFunc(IR):
             else:
                 instructions.append(ins)
 
-        func = insFunc(self.name, instructions, self.source_code, self.register_count, lineno=self.lineno)
+        func = insFunc(self.name, instructions, self.source_code, self.local_size, self.register_count, lineno=self.lineno)
 
         logging.debug(f'Code generation complete with {len(instructions)} machine instructions')
 
