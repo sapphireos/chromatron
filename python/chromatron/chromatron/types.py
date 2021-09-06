@@ -91,7 +91,7 @@ class Var(object):
 
         self.value = None
         self.init_val = None
-        self.is_global = False
+        self._is_global = False
         self.is_container = False
 
         self.ssa_version = None
@@ -137,6 +137,14 @@ class Var(object):
 
         else:
             return self.name
+
+    @property
+    def is_global(self):
+        return self._is_global
+
+    @is_global.setter
+    def is_global(self, value):
+        self._is_global = value
 
     @property
     def const(self):  # flag to indicate if variable is a constant
@@ -268,6 +276,16 @@ class varArray(varComposite):
         super().__init__(*args, data_type=f'{element.data_type}[{length}]', **kwargs)
         self.length = length
         self.element = element
+
+    @property
+    def is_global(self):
+        return self._is_global
+
+    @is_global.setter
+    def is_global(self, value):
+        self._is_global = value
+
+        self.element.is_global = value
 
     @property
     def scalar_type(self):

@@ -3344,7 +3344,7 @@ class irLoad(IR):
         ref = self.ref.generate()
 
         if isinstance(ref, insReg):
-            if self.ref.is_global:
+            if self.ref.ref.is_global:
                 return insLoadGlobal(self.register.generate(), ref, lineno=self.lineno)
 
             else:
@@ -3379,7 +3379,7 @@ class irStore(IR):
         ref = self.ref.generate()
 
         if isinstance(ref, insReg):
-            if self.ref.is_global:
+            if self.ref.ref.is_global:
                 return insStoreGlobal(ref, self.register.generate(), lineno=self.lineno)
 
             else:

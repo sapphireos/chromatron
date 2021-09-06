@@ -7,7 +7,7 @@
 
 # b = Number()
 
-a = Number()[2]
+# a = Number()[2]
 
 def my_func():
 #     # return stuff()
@@ -19,7 +19,7 @@ def my_func():
 
     # f = Function()[2]
     # f[1] = my_func
-    # a = Number()[2]
+    a = Number()[2]
     
 
     return a[1]
