@@ -5,25 +5,25 @@
 # def meow(f: Function):
     # return f()
 
-# a = Number()[2]
+def constant_folding():
+    # assert 1 + 2 - 3 * 10 / 5 == -3
+    return 1 + 2 - 3 * 10 / 5
+    # return 1 + 2 - 3 * 10
 
-def my_func():
-#     # return stuff()
 
-    # pixels.hue = 0
+# def my_func():
+# #     # return stuff()
 
-    # f = Function()
-    # f = my_func
+#     # pixels.hue = 0
 
-    # f = Function()[2]
-    # f[1] = my_func
-  
-    a = Number()[2]
+#     # f = Function()
+#     # f = my_func
 
-    return a
+#     f = Function()[2]
+#     f[1] = my_func
 
-    # return f
-    # f()
+#     # return f
+#     # f()
 
 
 # def func():

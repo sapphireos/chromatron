@@ -23,7 +23,7 @@
 import logging
 from catbus import *
 from sapphire.common import catbus_string_hash
-import numpy as np
+# import numpy as np
 
 from .exceptions import *
 
@@ -695,7 +695,13 @@ class insOr(insBinop):
 
 class insArith(insBinop):    
     def execute(self, vm):
-        vm.registers[self.result.reg] = self.arith(np.int32(vm.registers[self.op1.reg]), np.int32(vm.registers[self.op2.reg]))
+        result = self.arith(vm.registers[self.op1.reg], vm.registers[self.op2.reg]) & 0xffffffff
+
+        if result > 0x8000000:
+            result = result - 0x100000000
+
+        # vm.registers[self.result.reg] = int((self.arith(vm.registers[self.op1.reg] & 0xffffffff, vm.registers[self.op2.reg] & 0xffffffff)) & 0xffffffff)
+        vm.registers[self.result.reg] = result 
 
 class insAdd(insArith):
     mnemonic = 'ADD'
