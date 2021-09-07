@@ -293,6 +293,25 @@ class Builder(object):
 
         return var
 
+    def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
+        print(name, data_type, args, kw)
+
+        var = self.declare_var(name, data_type, lineno=lineno)
+
+        return var
+        
+        # if name in self.objects:
+        #     raise SyntaxError("Object '%s' already defined" % (name), lineno=lineno)
+
+        # if data_type == 'PixelArray':
+        #     self.pixelarray_object(name, args, kw, lineno=lineno)
+
+        # elif data_type == 'Palette':
+        #     self.palette_object(name, args, kw, lineno=lineno)
+
+        # else:
+        #     self.objects[name] = irObject(name, data_type, args, kw, lineno=lineno)
+
     def push_symbol_table(self):
         sym = SymbolTable(self.symbol_tables[0])
         self.symbol_tables.insert(0, sym)

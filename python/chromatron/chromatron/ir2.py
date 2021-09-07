@@ -3320,16 +3320,7 @@ class irLoadRef(IR):
 
     def generate(self):
         return insLoadRef(self.target.generate(), self.ref.generate(), lineno=self.lineno)
-        # value = self.value
-
-        # if is_16_bits(value):
-        #     # a load immediate will work here
-        #     return insLoadImmediate(self.target.generate(), value, lineno=self.lineno)
-
-        # else:
-        #     # 32 bits, requires constant pooling
-        #     return insLoadConst(self.target.generate(), value, lineno=self.lineno)
-
+        
 # Load register from memory
 class irLoad(IR):
     def __init__(self, register, ref, **kwargs):

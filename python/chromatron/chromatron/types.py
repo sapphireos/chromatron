@@ -414,6 +414,7 @@ _BASE_TYPES = {
     'funcref': varFunctionRef(),
     'Function': varFunctionRef(),
     'ref': varRef(),
+    'PixelArray': varObject(),
 }
 
 class TypeManager(object):
