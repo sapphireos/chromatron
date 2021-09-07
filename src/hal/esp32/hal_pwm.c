@@ -56,8 +56,6 @@ int8_t _pwm_kv_handler(
     
     if( op == KV_OP_SET ){
 
-        // pwm = *(uint16_t *)data;
-
         ledc_set_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel, pwm);
         ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
     }
