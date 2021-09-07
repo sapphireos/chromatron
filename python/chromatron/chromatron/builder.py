@@ -38,6 +38,7 @@ class Builder(object):
         self.current_func = None
 
         self.global_symbols = SymbolTable()
+        self.current_symbol_table = self.global_symbols
         self.symbol_tables = [self.global_symbols]
 
         self.type_manager = TypeManager()
@@ -118,6 +119,9 @@ class Builder(object):
         # var.const = True
         var.value = value
         self.add_var_to_symbol_table(var)
+
+        if self.current_func is None:
+            return var
 
         ir = irLoadConst(var, value, lineno=lineno)
         self.append_node(ir)

@@ -3189,6 +3189,9 @@ class irObjectStore(IR):
         # target = self.target.generate()
         # value = self.value.generate()
 
+        print(self.target)
+        print(self.value)
+
         return insNop(lineno=self.lineno)
 
 class irObjectLoad(IR):
@@ -3220,8 +3223,11 @@ class irObjectLoad(IR):
 
 
     def generate(self):
-        # target = self.target.generate()
-        # value = self.value.generate()
+        target = self.target.generate()
+        value = self.value.generate()
+
+        print(target)
+        print(value)
 
         return insNop(lineno=self.lineno)
 
