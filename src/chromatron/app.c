@@ -45,5 +45,8 @@ void app_v_init( void ){
     vm_v_init();
 
     batt_v_init();
+
+
+    pwm_v_init();
 }
 
