@@ -114,6 +114,13 @@ void ffs_v_format( void ){
 	// enable writes
 	flash25_v_write_enable();
 
+    // erase block 0:
+    // DO NOT UNCOMMENT FOR NORMAL OPERATION!
+    // Only uncomment and build if undoing a screw-up!
+    // flash25_v_unlock_block0();
+    // flash25_v_erase_4k( 0 );
+    // </erase block 0>
+
 	// erase entire array
     flash25_v_erase_chip();
 
