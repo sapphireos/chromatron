@@ -4080,7 +4080,7 @@ class irIndirectCall(irCallType):
         # args = [a.generate() for a in self.args]
 
         # call func
-        call_ins = insCall(self.target, params, self.result, lineno=self.lineno)
+        call_ins = insIndirectCall(self.target, params, self.result, lineno=self.lineno)
 
         return call_ins
 

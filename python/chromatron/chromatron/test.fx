@@ -14,13 +14,16 @@ def my_func():
 
     # pixels.hue = 0
 
-    # f = Function()
-    # f = my_func
+    f = Function()
+    f = my_func
+    f()
 
-    f = Function()[2]
-    f[1] = my_func
 
-    return f[1]
+    # f = Function()[2]
+    # f[1] = my_func
+    # f[1]()
+
+    # return f[1]
 
     # a = Number()[2]
 

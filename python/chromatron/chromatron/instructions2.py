@@ -460,7 +460,10 @@ class insLoadRef(BaseInstruction):
         # src = vm.registers[self.src.reg]
         # vm.registers[self.dest.reg] = vm.locals[src]
 
-        assert False
+        print(self.src)
+        print(self.dest)
+
+        raise NotImplementedError
 
     def assemble(self):
         bc = [self.opcode]
@@ -898,6 +901,48 @@ class insAssert(BaseInstruction):
 
 class insCall(BaseInstruction):
     mnemonic = 'CALL'
+
+    def __init__(self, target, params=[], result=None, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.params = params
+        self.result = result
+
+    def __str__(self):
+        params = ''
+        for param in self.params:
+            params += '%s, ' % (param)
+        params = params[:len(params) - 2]
+
+        return "%s %s (%s) -> %s" % (self.mnemonic, self.target.name, params, self.result)
+
+    def execute(self, vm):
+        # load arguments with parameters
+        # for i in range(len(self.params)):
+        #     param = self.params[i]
+        #     arg = self.args[i]
+
+        #     vm.memory[arg.addr] = vm.memory[param.addr]
+
+        # return insLabel(self.target)
+        print(self.target.name)
+        print(self.params)
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(insFuncTarget(self.target).assemble())
+
+        assert len(self.params) == len(self.args)
+
+        bc.append(len(self.params))
+        for i in range(len(self.params)):
+            bc.extend(self.params[i].assemble())
+            bc.extend(self.args[i].assemble())
+
+        return bc
+
+class insIndirectCall(BaseInstruction):
+    mnemonic = 'ICALL'
 
     def __init__(self, target, params=[], result=None, **kwargs):
         super().__init__(**kwargs)
