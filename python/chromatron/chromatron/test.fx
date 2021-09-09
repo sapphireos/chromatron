@@ -16,8 +16,8 @@ def my_func():
 
     # pixels.hue = 0
 
-    p = PixelArray()
-    p = p1
+    p = PixelArray()[2]
+    p[1] = p1
     return p
 
     # return p1

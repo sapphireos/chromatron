@@ -183,7 +183,13 @@ class irProgram(IR):
         global_vars = [g for g in self.global_symbols.symbols.values() if g.is_allocatable]
         for g in global_vars:
             assert g.addr is None
-            g.addr = addr
+
+            if g.size == 0:
+                g.addr = -1
+                
+            else:
+                g.addr = addr
+
             addr += g.size
 
         for func in self.funcs.values():

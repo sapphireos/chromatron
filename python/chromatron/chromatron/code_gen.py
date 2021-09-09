@@ -617,8 +617,8 @@ class CodeGenPass1(ast.NodeVisitor):
             'Function': self._handle_Function,
             # 'Array': self._handle_Array,
             'Struct': self._handle_Struct,
-            'PixelArray': self.create_GenericObject,
-            'Palette': self.create_GenericObject,
+            'PixelArray': self._handle_PixelArray,
+            # 'Palette': self.create_GenericObject,
         }
 
         self._struct_types = {}
@@ -772,6 +772,12 @@ class CodeGenPass1(ast.NodeVisitor):
             fields[field_name] = field_type
 
         return cg1Struct(fields=fields, lineno=node.lineno)
+
+    def _handle_PixelArray(self, node):
+        if len(node.args) > 0 or len(node.keywords) > 0:
+            return self.create_GenericObject(node)
+
+        return cg1DeclareVar(type="ref", lineno=node.lineno)
 
     def create_GenericObject(self, node):
         args = [self.visit(a) for a in node.args]
