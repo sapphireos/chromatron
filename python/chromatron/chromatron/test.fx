@@ -18,7 +18,7 @@ def my_func():
 
     p = PixelArray()[2]
     p[1] = p1
-    return p
+    # return p
 
     # return p1
 
@@ -28,8 +28,8 @@ def my_func():
 
 
     # f = Function()[2]
-    # f[1] = my_func
-    # f[1]()
+    # # f[1] = my_func
+    # # f[1]()
 
     # return f[1]
 
