@@ -93,6 +93,7 @@ class Var(object):
         self.init_val = None
         self._is_global = False
         self.is_container = False
+        self.is_allocatable = True
 
         self.ssa_version = None
 
@@ -235,7 +236,7 @@ class varObject(varComposite):
     def size(self):
         return 0
 
-class varFunction(varComposite):
+class varFunction(varObject):
     def __init__(self, *args, func=None, **kwargs):
         super().__init__(*args, data_type='func', **kwargs)
         self.func = func

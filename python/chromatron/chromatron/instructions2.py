@@ -444,7 +444,7 @@ class insLoadLocal(BaseInstruction):
         return bc
 
 class insLoadRef(BaseInstruction):
-    mnemonic = 'LDR'
+    mnemonic = 'REF'
 
     def __init__(self, dest, src, **kwargs):
         super().__init__(**kwargs)

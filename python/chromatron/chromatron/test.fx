@@ -16,11 +16,15 @@ def my_func():
 
     # pixels.hue = 0
 
-    return p1
+    p = PixelArray()
+    p = p1
+    return p
 
-#     f = Function()
-#     f = my_func
-#     f()
+    # return p1
+
+    # f = Function()
+    # f = my_func
+    # f()
 
 
     # f = Function()[2]

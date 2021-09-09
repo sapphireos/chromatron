@@ -180,7 +180,7 @@ class irProgram(IR):
 
     def _allocate_memory(self):
         addr = 0
-        global_vars = [g for g in self.global_symbols.symbols.values() if not isinstance(g, varObject)]
+        global_vars = [g for g in self.global_symbols.symbols.values() if g.is_allocatable]
         for g in global_vars:
             assert g.addr is None
             g.addr = addr
