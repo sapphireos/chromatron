@@ -95,8 +95,9 @@ class insProgram(object):
         pass
 
 class insFunc(object):
-    def __init__(self, name, code=[], source_code=[], local_size=None, register_count=None, lineno=None):
+    def __init__(self, name, params=[], code=[], source_code=[], local_size=None, register_count=None, lineno=None):
         self.name = name
+        self.params = params
         self.code = code
         self.source_code = source_code
         self.register_count = register_count
@@ -176,7 +177,7 @@ class insFunc(object):
         logging.debug(f'Prune jumps in {iterations} iterations. Eliminated {old_length - len(self.code)} instructions')
 
 
-    def run(self):
+    def run(self, *args, **kwargs):
         logging.info(f'VM run func {self.name}')
 
         if not self.register_count:
@@ -195,6 +196,10 @@ class insFunc(object):
         registers = self.registers # just makes debugging a bit easier
         memory = self.memory
         local = self.locals
+
+        # apply args to registers
+        for i in range(len(args)):
+            self.registers[self.params[i].reg] = args[i]
 
         self.return_val = 0
 
@@ -220,10 +225,6 @@ class insFunc(object):
             try:    
                 ret_val = ins.execute(self)
 
-                # if isinstance(ins, insCall):
-                #     # push PC to return stack
-                #     return_stack.append(pc)
-
                 # if returning label to jump to
                 if ret_val != None:
                     # jump to target
@@ -231,13 +232,8 @@ class insFunc(object):
                 
             except ReturnException:
                 logging.info(f'VM ran func {self.name} in {cycles} cycles. Returned: {self.return_val}')
-                return self.return_val
-                # if len(return_stack) == 0:
-                #     # program is complete
-                #     break
 
-                # # pop PC from return stack
-                # pc = return_stack.pop(-1)
+                return self.return_val
 
             except AssertionError:
                 msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
@@ -917,16 +913,9 @@ class insCall(BaseInstruction):
         return "%s %s (%s) -> %s" % (self.mnemonic, self.target.name, params, self.result)
 
     def execute(self, vm):
-        # load arguments with parameters
-        # for i in range(len(self.params)):
-        #     param = self.params[i]
-        #     arg = self.args[i]
+        ret_val = self.target.run(*[vm.registers[p.reg] for p in self.params])
 
-        #     vm.memory[arg.addr] = vm.memory[param.addr]
-
-        # return insLabel(self.target)
-        print(self.target.name)
-        print(self.params)
+        vm.registers[self.result.reg] = ret_val
 
     def assemble(self):
         bc = [self.opcode]

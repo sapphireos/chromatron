@@ -71,7 +71,7 @@ def params_to_string(params):
 
     for p in params:
         try:
-            s += '%s %s,' % (p.type, p.name)
+            s += '%s %s,' % (p.data_type, p.name)
 
         except AttributeError:
             s += '%s' % (p.name)            
@@ -2348,6 +2348,10 @@ class irFunc(IR):
 
             index += 1
 
+        for param in self.params:
+            if param in registers:
+                param.reg = registers[param]
+
         # prune instructions that have unassigned registers:
         # this is a form of dead code elimination:
         # (and is necessary to prevent executing instructions with 
@@ -2404,7 +2408,7 @@ class irFunc(IR):
             else:
                 instructions.append(ins)
 
-        func = insFunc(self.name, instructions, self.source_code, self.local_size, self.register_count, lineno=self.lineno)
+        func = insFunc(self.name, self.params, instructions, self.source_code, self.local_size, self.register_count, lineno=self.lineno)
 
         logging.debug(f'Code generation complete with {len(instructions)} machine instructions')
 
@@ -4046,7 +4050,7 @@ class irCall(irCallType):
         # args = [a.generate() for a in self.args]
 
         # call func
-        call_ins = insCall(self.target, params, self.result, lineno=self.lineno)
+        call_ins = insCall(self.target.generate(), params, self.result, lineno=self.lineno)
 
         return call_ins
 
