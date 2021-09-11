@@ -948,17 +948,10 @@ class insIndirectCall(BaseInstruction):
         return "%s %s (%s) -> %s" % (self.mnemonic, self.target.name, params, self.result)
 
     def execute(self, vm):
-        # load arguments with parameters
-        # for i in range(len(self.params)):
-        #     param = self.params[i]
-        #     arg = self.args[i]
+        ret_val = self.target.run(*[vm.registers[p.reg] for p in self.params])
 
-        #     vm.memory[arg.addr] = vm.memory[param.addr]
-
-        # return insLabel(self.target)
-        print(self.target.name)
-        print(self.params)
-
+        vm.registers[self.result.reg] = ret_val
+        
     def assemble(self):
         bc = [self.opcode]
         bc.extend(insFuncTarget(self.target).assemble())
