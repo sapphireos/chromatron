@@ -418,8 +418,12 @@ class Builder(object):
         #         const = self.add_const(array_len, lineno=lineno)
 
         #         self.assign(result, const, lineno=lineno)
+        
+        if len(params) != len(func.params):
+            raise SyntaxError(f'Incorrect number of arguments to function: {func.name}. Expected: {len(func.params)} Received: {len(params)}', lineno=lineno)
+
         if indirect:
-            ir = irIndirectCall(func, params, result, lineno=lineno)
+            ir = irIndirectCall(func, paracallms, result, lineno=lineno)
 
         else:
             ir = irCall(func, params, result, lineno=lineno)

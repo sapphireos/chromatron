@@ -3,7 +3,7 @@
     # return 1 + 2
 
 def stuff(a: Number, b: Number) -> Number:
-    return a + b
+    return a - b
 
 
 # def meow(f: Function):
