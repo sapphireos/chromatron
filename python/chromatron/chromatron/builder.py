@@ -402,7 +402,12 @@ class Builder(object):
 
         else:
             # check for indirect call:
-            func = self.get_var(func_name, lineno=lineno)
+            if isinstance(func_name, str):
+                func = self.get_var(func_name, lineno=lineno)
+
+            else:
+                func = self.load_value(func_name, lineno=lineno)
+
             indirect = True
 
         result = self.add_temp(data_type=func.ret_type, lineno=lineno)

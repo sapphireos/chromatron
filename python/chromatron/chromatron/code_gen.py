@@ -348,7 +348,13 @@ class cg1Call(cg1CodeNode):
             else:
                 raise
 
-        return builder.call(self.target, params, lineno=self.lineno)
+        try:
+            target = self.target.build(builder)
+
+        except AttributeError:
+            target = self.target
+
+        return builder.call(target, params, lineno=self.lineno)
 
 class cg1If(cg1CodeNode):
     _fields = ["test", "body", "orelse"]
@@ -792,11 +798,18 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1GenericObject(node.func.id, args, kwargs, lineno=node.lineno)
 
     def visit_Call(self, node):
-        if node.func.id in self._declarations:
-            return self._declarations[node.func.id](node)
+        if isinstance(node.func, ast.Subscript):
+            func = self.visit(node.func)
+            
+        else:
+            ref = None
+            func = node.func.id
 
-        elif node.func.id in self._struct_types:
-            struct_type = self._struct_types[node.func.id]
+        if func in self._declarations:
+            return self._declarations[func](node)
+
+        elif func in self._struct_types:
+            struct_type = self._struct_types[func]
 
             return cg1DeclareStruct(struct=struct_type, lineno=node.lineno)
 
@@ -806,14 +819,14 @@ class CodeGenPass1(ast.NodeVisitor):
                 kwargs.update(kw)
 
             args = list(map(self.visit, node.args))
-            return cg1Call(node.func.id, args, kwargs, lineno=node.lineno)
+            return cg1Call(func, args, kwargs, lineno=node.lineno)
 
         else:
             # function call at module level
-            return cg1Call(node.func.id, list(map(self.visit, node.args)), lineno=node.lineno)
+            return cg1Call(func, list(map(self.visit, node.args)), lineno=node.lineno)
 
     def visit_Yield(self, node):
-        return cg1Call('yield',[], lineno=node.lineno)
+        return cg1Call('yield', [], lineno=node.lineno)
         
     def visit_keyword(self, node):
         return {node.arg: self.visit(node.value)}

@@ -16,6 +16,7 @@ def stuff(a: Number, b: Number) -> Number:
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
 def my_func():
+    # return stuff(1, 2)
     # return my_func()
     # f = Function()
     # f = stuff
@@ -36,11 +37,12 @@ def my_func():
 
     f = Function()[2]
     f[1] = stuff
+    return f[1](1, 2)
 
     # m = Function()
     # m = f[1]
     # return m(1, 2)
-    return f[1](1, 2)
+    
 
     # return f[1]
 
