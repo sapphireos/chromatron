@@ -17,9 +17,9 @@ def stuff(a: Number, b: Number) -> Number:
 
 def my_func():
     # return my_func()
-    f = Function()
-    f = my_func
-    return f(1, 2)
+    # f = Function()
+    # f = stuff
+    # return f(1, 2)
 
     # pixels.hue = 0
 
@@ -34,13 +34,13 @@ def my_func():
     # f()
 
 
-    # f = Function()[2]
-    # f[1] = my_func
+    f = Function()[2]
+    f[1] = stuff
 
     # m = Function()
     # m = f[1]
     # return m(1, 2)
-    # return f[1](1, 2)
+    return f[1](1, 2)
 
     # return f[1]
 

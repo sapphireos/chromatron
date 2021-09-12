@@ -157,3 +157,27 @@ def func_param(a: Number):
     a += 1
     
     assert a == 1
+
+
+def sub(a: Number, b: Number) -> Number:
+    return a - b
+
+def add(a: Number, b: Number) -> Number:
+    return a + b
+
+def func_call():
+    assert sub(1, 2) == -1
+
+def func_indirect_call():
+    f = Function()
+    f = sub
+
+    assert f(1, 2) == -1
+
+def func_indirect_call_array():
+    f = Function()[2]
+    f[0] = sub
+    f[1] = add
+
+    assert f[0](1, 2) == -1
+    assert f[1](1, 2) == 3
