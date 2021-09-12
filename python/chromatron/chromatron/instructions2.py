@@ -76,6 +76,7 @@ class insProgram(object):
 
         for func in self.funcs.values():
             func.memory = self.memory
+            func.program = self
 
     def __str__(self):
         s = 'VM Instructions:\n'
@@ -108,6 +109,7 @@ class insFunc(object):
         self.locals = None
         self.local_size = local_size
         self.return_val = None
+        self.program = None
 
         self.cycle_limit = 16384
 
@@ -453,13 +455,7 @@ class insLoadRef(BaseInstruction):
         return "%s %s <-R %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        # src = vm.registers[self.src.reg]
-        # vm.registers[self.dest.reg] = vm.locals[src]
-
-        print(self.src)
-        print(self.dest)
-
-        raise NotImplementedError
+        vm.registers[self.dest.reg] = self.src
 
     def assemble(self):
         bc = [self.opcode]
@@ -933,9 +929,9 @@ class insCall(BaseInstruction):
 class insIndirectCall(BaseInstruction):
     mnemonic = 'ICALL'
 
-    def __init__(self, target, params=[], result=None, **kwargs):
+    def __init__(self, ref, params=[], result=None, **kwargs):
         super().__init__(**kwargs)
-        self.target = target
+        self.ref = ref
         self.params = params
         self.result = result
 
@@ -945,16 +941,20 @@ class insIndirectCall(BaseInstruction):
             params += '%s, ' % (param)
         params = params[:len(params) - 2]
 
-        return "%s %s (%s) -> %s" % (self.mnemonic, self.target.name, params, self.result)
+        return "%s %s (%s) -> %s" % (self.mnemonic, self.ref, params, self.result)
 
     def execute(self, vm):
-        ret_val = self.target.run(*[vm.registers[p.reg] for p in self.params])
+        func = vm.registers[self.ref.reg]
+
+        target = vm.program.funcs[func.var.name]
+
+        ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
 
         vm.registers[self.result.reg] = ret_val
         
     def assemble(self):
         bc = [self.opcode]
-        bc.extend(insFuncTarget(self.target).assemble())
+        bc.extend(insFuncTarget(self.ref).assemble())
 
         assert len(self.params) == len(self.args)
 

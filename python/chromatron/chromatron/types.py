@@ -245,7 +245,6 @@ class varFunction(varObject):
     def size(self):
         return 1
 
-
 class varRef(varRegister):
     def __init__(self, *args, data_type='ref', **kwargs):
         super().__init__(*args, data_type=data_type, **kwargs)

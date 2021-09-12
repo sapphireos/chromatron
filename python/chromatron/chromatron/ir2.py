@@ -4050,7 +4050,7 @@ class irCall(irCallType):
         # args = [a.generate() for a in self.args]
 
         # call func
-        call_ins = insCall(self.target.generate(), params, self.result, lineno=self.lineno)
+        call_ins = insCall(self.target.generate(), params, self.result.generate(), lineno=self.lineno)
 
         return call_ins
 
@@ -4061,20 +4061,20 @@ class irCall(irCallType):
 
 
 class irIndirectCall(irCallType):
-    def __init__(self, target, params, result, **kwargs):
+    def __init__(self, ref, params, result, **kwargs):
         super().__init__(**kwargs)
-        self.target = target
+        self.ref = ref
         self.params = params
         self.result = result
 
     def __str__(self):
         params = params_to_string(self.params)
-        s = f'ICALL {self.target.name}({params}) -> {self.result}'
+        s = f'ICALL {self.ref.name}({params}) -> {self.result}'
 
         return s
 
     def get_input_vars(self):
-        inputs = [self.target]
+        inputs = [self.ref]
         inputs.extend(self.params)
         return inputs
 
@@ -4087,7 +4087,7 @@ class irIndirectCall(irCallType):
         # args = [a.generate() for a in self.args]
 
         # call func
-        call_ins = insIndirectCall(self.target, params, self.result, lineno=self.lineno)
+        call_ins = insIndirectCall(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
 
         return call_ins
 
