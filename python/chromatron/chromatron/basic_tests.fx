@@ -167,12 +167,17 @@ def add(a: Number, b: Number) -> Number:
 
 def func_call():
     assert sub(1, 2) == -1
+    assert add(1, 2) == 3
 
 def func_indirect_call():
     f = Function()
     f = sub
 
     assert f(1, 2) == -1
+
+    f = add
+
+    assert f(1, 2) == 3
 
 def func_indirect_call_array():
     f = Function()[2]
