@@ -4044,13 +4044,20 @@ class irCall(irCallType):
     def get_output_vars(self):
         return [self.result]
 
-    def generate(self):        
+    def generate(self, stack=[]):        
         # return insNop(lineno=self.lineno)
         params = [a.generate() for a in self.params]
         # args = [a.generate() for a in self.args]
 
+        if self.target in stack:
+            raise SyntaxError(f'Recursive call of {self.target.name}', lineno=self.lineno)
+
+        stack.insert(0, self.target)
+
         # call func
         call_ins = insCall(self.target.generate(), params, self.result.generate(), lineno=self.lineno)
+
+        stack.pop(0)
 
         return call_ins
 

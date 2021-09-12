@@ -96,7 +96,7 @@ class insProgram(object):
         pass
 
 class insFunc(object):
-    def __init__(self, name, params=[], code=[], source_code=[], local_size=None, register_count=None, lineno=None):
+    def __init__(self, name, params=[], code=[], source_code=[], local_size=None, register_count=None, return_stack=[], lineno=None):
         self.name = name
         self.params = params
         self.code = code
@@ -110,6 +110,7 @@ class insFunc(object):
         self.local_size = local_size
         self.return_val = None
         self.program = None
+        self.return_stack = return_stack
 
         self.cycle_limit = 16384
 
@@ -199,6 +200,10 @@ class insFunc(object):
         memory = self.memory
         local = self.locals
 
+        assert self not in self.return_stack
+
+        self.return_stack.insert(0, self)
+
         # apply args to registers
         for i in range(len(args)):
             self.registers[self.params[i].reg] = args[i]
@@ -228,12 +233,14 @@ class insFunc(object):
                 ret_val = ins.execute(self)
 
                 # if returning label to jump to
-                if ret_val != None:
+                if isinstance(ret_val, insLabel):
                     # jump to target
                     pc = labels[ret_val.name]
                 
             except ReturnException:
                 logging.info(f'VM ran func {self.name} in {cycles} cycles. Returned: {self.return_val}')
+
+                self.return_stack.pop(0)
 
                 return self.return_val
 
