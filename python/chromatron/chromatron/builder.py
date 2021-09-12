@@ -294,24 +294,10 @@ class Builder(object):
         return var
 
     def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
-        print(name, data_type, args, kw)
-
         var = self.declare_var(name, data_type, lineno=lineno)
 
         return var
         
-        # if name in self.objects:
-        #     raise SyntaxError("Object '%s' already defined" % (name), lineno=lineno)
-
-        # if data_type == 'PixelArray':
-        #     self.pixelarray_object(name, args, kw, lineno=lineno)
-
-        # elif data_type == 'Palette':
-        #     self.palette_object(name, args, kw, lineno=lineno)
-
-        # else:
-        #     self.objects[name] = irObject(name, data_type, args, kw, lineno=lineno)
-
     def push_symbol_table(self):
         sym = SymbolTable(self.symbol_tables[0])
         self.symbol_tables.insert(0, sym)
@@ -483,14 +469,6 @@ class Builder(object):
             
             return var
 
-        # elif value.data_type == 'func':
-        #     var = self.add_temp(data_type='funcref', lineno=lineno)
-        #     ir = irObjectLoad(var, value, lineno=lineno)
-
-        #     self.append_node(ir)
-            
-        #     return var
-
         return value
 
     def assign(self, target, value, lineno=None):
@@ -509,7 +487,6 @@ class Builder(object):
             else:
                 raise CompilerFatal(target)
 
-        # elif target.data_type in ['objref', 'funcref']:
         elif target.data_type == 'objref':
             ir = irObjectStore(target.ref, value, lookups=target.lookups, lineno=lineno)
 
@@ -529,47 +506,6 @@ class Builder(object):
     
         self.append_node(ir)
 
-
-        # if target.is_obj:
-        #     ir = irObjectAssign(target, value, lineno=lineno)
-
-        # elif value.is_obj:
-        #     ir = irObjectLoad(target, value, lineno=lineno)
-
-        # elif target.is_ref and target.ref.is_array and len(target.lookups) == 0:
-        #     ir = irVectorAssign(target.ref, value, lineno=lineno)
-        
-        # elif value.is_ref and value.ref.is_array and len(value.lookups) == 0:
-        #     raise SyntaxError(f'Cannot vector assign from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
-
-        # elif target.is_ref:
-        #     ir = irAssign(target, value, lineno=lineno)
-
-        # elif value.is_const:
-        #     ir = irLoadConst(target, value, lineno=lineno)
-
-        # # check if previous op is a binop and the binop result
-        # # is the value for this assign
-        # # and the result is a temp register:
-        # elif isinstance(self.prev_node, irBinop) and \
-        #      self.prev_node.target == value and \
-        #      self.prev_node.target.is_temp:
-
-        #     # in this case, just change the binop result to the assign target:
-        #     self.prev_node.target = target
-        #     self.next_temp -= 1 # rewind temp counter
-
-        #     # this is *technically* a peephole optimization, but really it is
-        #     # just correcting for how binops unfold in the code generator.
-
-        #     # skip appending a node
-        #     return
-
-        # else:
-        #     ir = irAssign(target, value, lineno=lineno)
-            
-        # self.append_node(ir)
-
     def binop(self, op, left, right, lineno=None):
         left = self.load_value(left, lineno=lineno)
         right = self.load_value(right, lineno=lineno)
@@ -584,20 +520,7 @@ class Builder(object):
 
     def augassign(self, op, target, value, lineno=None):
         value = self.load_value(value, lineno=lineno)
-        # if target.is_obj:
-        #     ir = irObjectOp(op, target, value, lineno=lineno)
-        #     self.append_node(ir)
-
-        #     return
-
-        # elif target.is_ref and target.ref.is_array and len(target.lookups) == 0:
-        #     ir = irVectorOp(op, target.ref, value, lineno=lineno)
-        #     self.append_node(ir)
-
-        #     return
-
-        # elif value.is_ref and value.ref.is_array and len(value.lookups) == 0:
-        #     raise SyntaxError(f'Cannot vector op from array: {value.basename} to scalar: {target.basename}', lineno=lineno)
+        
         if isinstance(target, varArray) or target.data_type == 'offset':
             ir = irVectorOp(op, target, value, lineno=lineno)
             self.append_node(ir)
@@ -737,6 +660,8 @@ class Builder(object):
         self.current_lookup[0].append(index)
 
     def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
+        # assert not is_attr
+
         if isinstance(target, varObject):
             var = self.add_temp(data_type='objref', lineno=lineno)
 

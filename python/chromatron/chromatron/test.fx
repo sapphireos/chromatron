@@ -2,8 +2,8 @@
 # def stuff() -> Number:
     # return 1 + 2
 
-def stuff(a: Number, b: Number) -> Number:
-    return a - b
+# def stuff(a: Number, b: Number) -> Number:
+#     return a - b
 
 
 # def meow(f: Function):
@@ -13,7 +13,7 @@ def stuff(a: Number, b: Number) -> Number:
 
 # a = Number()[2]
 
-# p1 = PixelArray(2, 12, size_x=3, size_y=4)
+p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
 def my_func():
     # return stuff(1, 2)
@@ -24,9 +24,17 @@ def my_func():
 
     # pixels.hue = 0
 
+    # p1[1].hue = 1
+
     # p = PixelArray()[2]
     # p[1] = p1
-    # return p
+
+    # p1[1].hue = 1.0
+    # p[1].hue = 1.0
+    pm = PixelArray()
+    pm = p1
+    # pm.hue = 1
+    # pm = p[1]
 
     # return p1
 
@@ -35,9 +43,9 @@ def my_func():
     # f()
 
 
-    f = Function()[2]
-    f[1] = stuff
-    return f[1](1, 2)
+    # f = Function()[2]
+    # f[1] = stuff
+    # return f[1](1, 2)
 
     # m = Function()
     # m = f[1]
