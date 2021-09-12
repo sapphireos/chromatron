@@ -200,7 +200,8 @@ class insFunc(object):
         memory = self.memory
         local = self.locals
 
-        assert self not in self.return_stack
+        if self in self.return_stack:
+            raise VMException(f'Recursive call of function: {self.name}')
 
         self.return_stack.insert(0, self)
 

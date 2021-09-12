@@ -16,10 +16,10 @@ def stuff(a: Number, b: Number) -> Number:
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
 def my_func():
-    return my_func()
-    # f = Function()
-    # f = stuff
-    # return f(1, 2)
+    # return my_func()
+    f = Function()
+    f = my_func
+    return f(1, 2)
 
     # pixels.hue = 0
 
