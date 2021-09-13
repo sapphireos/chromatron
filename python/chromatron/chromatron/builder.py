@@ -484,11 +484,14 @@ class Builder(object):
             elif isinstance(target.ref, varRef):
                 ir = irStore(value, target, lineno=lineno)
 
+            elif isinstance(target.ref, varObject):
+                ir = irObjectStore(target.ref, value, lineno=lineno)
+
             else:
                 raise CompilerFatal(target)
 
-        elif target.data_type == 'objref':
-            ir = irObjectStore(target.ref, value, lookups=target.lookups, lineno=lineno)
+        # elif target.data_type == 'objref':
+        #     ir = irObjectStore(target.ref, value, lookups=target.lookups, lineno=lineno)
 
         elif isinstance(target, varArray):
             # load address to register:
@@ -660,26 +663,19 @@ class Builder(object):
         self.current_lookup[0].append(index)
 
     def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
-        # assert not is_attr
-
-        if isinstance(target, varObject):
-            var = self.add_temp(data_type='objref', lineno=lineno)
-
-            var.ref = target
-            var.lookups = self.current_lookup[0]
-
-        # elif target.var.scalar_type == 'funcref':
-        #     var = self.add_temp(data_type='funcref', lineno=lineno)
+        # if isinstance(target, varObject):
+        #     var = self.add_temp(data_type='objref', lineno=lineno)
 
         #     var.ref = target
         #     var.lookups = self.current_lookup[0]
 
-        else:
-            var = self.add_temp(data_type='offset', lineno=lineno)
-            var.ref = target.lookup(self.current_lookup[0])
+        # else:
+        var = self.add_temp(data_type='offset', lineno=lineno)
+        var.ref = target.lookup(self.current_lookup[0])
+        var.lookups = self.current_lookup[0]
 
-            ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
-            self.append_node(ir)
+        ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
+        self.append_node(ir)
 
         self.current_lookup.pop(0)
 

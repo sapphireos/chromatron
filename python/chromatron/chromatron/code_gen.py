@@ -783,7 +783,7 @@ class CodeGenPass1(ast.NodeVisitor):
         if len(node.args) > 0 or len(node.keywords) > 0:
             return self.create_GenericObject(node)
 
-        return cg1DeclareVar(type="objref", lineno=node.lineno)
+        return cg1DeclareVar(type="ref", lineno=node.lineno)
 
     def create_GenericObject(self, node):
         args = [self.visit(a) for a in node.args]

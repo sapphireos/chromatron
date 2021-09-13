@@ -15,7 +15,13 @@
 
 p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-def my_func():
+def func2():
+    p1.hue = 1
+
+# def my_func():
+#     pm = PixelArray()
+#     pm.hue = 1
+
     # return stuff(1, 2)
     # return my_func()
     # f = Function()
@@ -29,12 +35,8 @@ def my_func():
     # p = PixelArray()[2]
     # p[1] = p1
 
-    # p1[1].hue = 1.0
+    # p1.hue = 1.0
     # p[1].hue = 1.0
-    pm = PixelArray()
-    pm = p1
-    # pm.hue = 1
-    # pm = p[1]
 
     # return p1
 

@@ -219,6 +219,7 @@ class varOffset(varRegister):
         super().__init__(*args, data_type='offset', **kwargs)
         self.offset = offset
         self.ref = None
+        self.lookups = []
 
     def __str__(self):
         # return f'{super().__str__()} -> {self.offset}'
