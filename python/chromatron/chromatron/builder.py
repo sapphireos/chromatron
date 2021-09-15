@@ -35,6 +35,7 @@ class Builder(object):
         # self.locals = {}
         # self.refs = {}
         self.current_lookup = []
+        self.current_attr = []
         self.current_func = None
 
         self.global_symbols = SymbolTable()
@@ -657,6 +658,19 @@ class Builder(object):
         ir = irAssert(test, lineno=lineno)
 
         self.append_node(ir)
+
+
+    def start_attr(self, lineno=None):
+        self.current_attr.insert(0, [])
+
+    def add_attr(self, index, lineno=None):
+        index = irAttribute(index, lineno=lineno)
+
+        self.current_attr[0].append(index)
+
+    def finish_attr(self, target, load=False, is_attr=False, lineno=None):
+        self.current_attr.pop(0)
+
 
     def start_lookup(self, lineno=None):
         self.current_lookup.insert(0, [])

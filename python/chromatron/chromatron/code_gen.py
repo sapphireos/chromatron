@@ -556,13 +556,13 @@ class cg1Attribute(cg1CodeNode):
         
     def build(self, builder, depth=0):
         if depth == 0:
-            builder.start_lookup(lineno=self.lineno)
+            builder.start_attr(lineno=self.lineno)
 
         target = self.obj.build(builder, depth=depth + 1)
-        builder.add_lookup(self.attr, is_attr=True, lineno=self.lineno)      
+        builder.add_attr(self.attr, lineno=self.lineno)      
 
         if depth == 0:
-            return builder.finish_lookup(target, is_attr=True, lineno=self.lineno)
+            return builder.finish_attr(target, lineno=self.lineno)
 
         return target
 
