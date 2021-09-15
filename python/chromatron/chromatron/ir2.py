@@ -3177,18 +3177,20 @@ class irObjectStore(IR):
         self.lookups = lookups
 
     def __str__(self):
-        lookups = ''
-        for a in self.lookups:
-            if isinstance(a, irAttribute):
-                lookups += f'.{a.name}'
+        return f'{self.target} =(object) {self.value}'
 
-            else:
-                lookups += f'[{a}]'
+        # lookups = ''
+        # for a in self.lookups:
+        #     if isinstance(a, irAttribute):
+        #         lookups += f'.{a.name}'
 
-        return f'{self.target}{lookups} =(object) {self.value}'
+        #     else:
+        #         lookups += f'[{a}]'
+
+        # return f'{self.target}{lookups} =(object) {self.value}'
 
     def get_input_vars(self):
-        inputs = [self.value]
+        inputs = [self.value, self.target]
         inputs.extend([a for a in self.lookups if not isinstance(a, irAttribute)])
         return inputs
 

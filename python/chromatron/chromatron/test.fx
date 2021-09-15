@@ -11,15 +11,22 @@
 
 # b = Number()
 
-# a = Number()[2]
+a = Number()[2]
+
 
 p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
 def func2():
-    p1.hue = 1
+    # b = Number()
+    # b = a[3]
+
+    # p1[a[3]].hue = 1
+
+    # a[0] = 1
+    # a.hue = 1
 
 # def my_func():
-#     pm = PixelArray()
+    # pm = PixelArray()
 #     pm.hue = 1
 
     # return stuff(1, 2)
@@ -32,11 +39,15 @@ def func2():
 
     # p1[1].hue = 1
 
-    # p = PixelArray()[2]
-    # p[1] = p1
+    pa = PixelArray()[2]
+    pa[1] = p1
 
     # p1.hue = 1.0
-    # p[1].hue = 1.0
+    # pa[1].hue = 1.0
+    p = PixelArray()
+    p = pa[1]
+
+    p.hue = 1
 
     # return p1
 

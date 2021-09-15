@@ -171,12 +171,12 @@ class Var(object):
 
     def __str__(self):
         if self.addr is None:
-            return f'{self.ssa_name}:{self.data_type}'
+            return f'{self.ssa_name}({self.data_type})'
 
         else:
-            return f'{self.ssa_name}:{self.data_type}@0x{self.addr}'
+            return f'{self.ssa_name}({self.data_type})@0x{self.addr}'
 
-    def lookup(self, index):
+    def lookup(self, index, lineno=None):
         return self
 
     def generate(self):
@@ -200,7 +200,7 @@ class varScalar(varRegister):
         if self.data_type is None:
             self.data_type = 'var'
 
-    def lookup(self, indexes=[]): # lookup returns address offset and type (self, for scalars)
+    def lookup(self, indexes=[], lineno=None): # lookup returns address offset and type (self, for scalars)
         return self
 
 class varInt32(varScalar):
@@ -219,7 +219,7 @@ class varOffset(varRegister):
         super().__init__(*args, data_type='offset', **kwargs)
         self.offset = offset
         self.ref = None
-        self.lookups = []
+        # self.lookups = []
 
     def __str__(self):
         # return f'{super().__str__()} -> {self.offset}'
@@ -262,7 +262,11 @@ class varObjectRef(varRef):
     def __str__(self):
         lookups = ''
         for a in self.lookups:
-            lookups += f'[{a}]'
+            if isinstance(a, int) or isinstance(a, VarContainer):
+                lookups += f'[{a}]'
+                
+            else:
+                lookups += f'.{a.name}'
 
         return f'{super().__str__()}->{self.ref}{lookups}'
 
@@ -303,22 +307,12 @@ class varArray(varComposite):
     def stride(self):
         return self.element.size
 
-    # def lookup(self, indexes=[]):
-    #     indexes = deepcopy(indexes)
-        
-    #     if len(indexes) > 0:
-    #         offset = indexes.pop(0) * self.stride
-    #         offset %= self.length
+    def lookup(self, indexes=[], lineno=None):
+        # verify lookups are resolvable:
+        for a in indexes:
+            if not isinstance(a, VarContainer):
+                raise SyntaxError(f'Lookup for "{a.name}" is not resolvable on "{self}"', lineno=lineno)
 
-    #         addr, datatype = self.element.lookup(indexes)
-
-    #         addr += offset
-
-    #         return varOffset(offset=addr), datatype
-
-    #     return varOffset(offset=0), self
-
-    def lookup(self, indexes=[]):
         indexes = deepcopy(indexes)
         
         if len(indexes) > 0:
@@ -355,7 +349,7 @@ class varStruct(varComposite):
 
         assert False
 
-    def lookup(self, indexes=[]):
+    def lookup(self, indexes=[], lineno=None):
         indexes = deepcopy(indexes)
 
         if len(indexes) > 0:
@@ -443,6 +437,9 @@ class TypeManager(object):
 
         var = self.types[data_type].build(name, **kwargs)
         var.init_val = keywords['init_val']
+
+        if var.data_type is None:
+            var.data_type = data_type
 
         for dim in dimensions:
             var = varArray(name, element=var, length=dim, lineno=kwargs['lineno'])

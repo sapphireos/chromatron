@@ -118,7 +118,12 @@ class Builder(object):
         var = self._build_var(name, data_type, lineno=lineno)
         # var.const = True
         var.value = value
-        self.add_var_to_symbol_table(var)
+
+
+        # is this the global symbol table?
+        # if so, we don't add a const to it (otherwise it will not be loaded)
+        if self.current_symbol_table != self.global_symbols:
+            self.add_var_to_symbol_table(var)
 
         if self.current_func is None:
             return var
@@ -484,14 +489,14 @@ class Builder(object):
             elif isinstance(target.ref, varRef):
                 ir = irStore(value, target, lineno=lineno)
 
-            elif isinstance(target.ref, varObject):
-                ir = irObjectStore(target.ref, value, lineno=lineno)
+            # elif isinstance(target.ref, varObject):
+            #     ir = irObjectStore(target.ref, value, lineno=lineno)
 
             else:
                 raise CompilerFatal(target)
 
-        # elif target.data_type == 'objref':
-        #     ir = irObjectStore(target.ref, value, lookups=target.lookups, lineno=lineno)
+        elif target.data_type == 'objref' and len(target.lookups) > 0:
+            ir = irObjectStore(target, value, lookups=target.lookups, lineno=lineno)
 
         elif isinstance(target, varArray):
             # load address to register:
@@ -663,19 +668,23 @@ class Builder(object):
         self.current_lookup[0].append(index)
 
     def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
-        # if isinstance(target, varObject):
-        #     var = self.add_temp(data_type='objref', lineno=lineno)
+        if isinstance(target, varObject):
+            var = self.add_temp(data_type='objref', lineno=lineno)
 
-        #     var.ref = target
-        #     var.lookups = self.current_lookup[0]
+            var.ref = target
+            var.lookups = self.current_lookup[0]
 
-        # else:
-        var = self.add_temp(data_type='offset', lineno=lineno)
-        var.ref = target.lookup(self.current_lookup[0])
-        var.lookups = self.current_lookup[0]
+            ir = irLoadRef(var, target, lineno=lineno)
 
-        ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
-        self.append_node(ir)
+            self.append_node(ir)
+            
+        else:
+            var = self.add_temp(data_type='offset', lineno=lineno)
+            var.ref = target.lookup(self.current_lookup[0], lineno=lineno)
+            # var.lookups = self.current_lookup[0]
+
+            ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
+            self.append_node(ir)
 
         self.current_lookup.pop(0)
 
