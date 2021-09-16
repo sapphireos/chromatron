@@ -134,21 +134,21 @@ class IR(object):
     def loop_depth(self):
         return len(self.loops)
 
-    @property
-    def global_input_vars(self):
-        return [a for a in self.get_input_vars() if a.is_global]
+    # @property
+    # def global_input_vars(self):
+    #     return [a for a in self.get_input_vars() if a.is_global]
 
-    @property
-    def global_output_vars(self):
-        return [a for a in self.get_output_vars() if a.is_global]
+    # @property
+    # def global_output_vars(self):
+    #     return [a for a in self.get_output_vars() if a.is_global]
 
-    @property
-    def local_input_vars(self):
-        return [a for a in self.get_input_vars() if not a.is_temp and not a.is_const and not a.is_global]
+    # @property
+    # def local_input_vars(self):
+    #     return [a for a in self.get_input_vars() if not a.is_temp and not a.is_const and not a.is_global]
 
-    @property
-    def local_output_vars(self):
-        return [a for a in self.get_output_vars() if not a.is_temp and not a.is_const and not a.is_global]
+    # @property
+    # def local_output_vars(self):
+    #     return [a for a in self.get_output_vars() if not a.is_temp and not a.is_const and not a.is_global]
 
 
 class irProgram(IR):
@@ -357,45 +357,45 @@ class irBlock(IR):
     def is_terminator(self):
         return len(self.successors) == 0    
 
-    @property
-    def global_input_vars(self):
-        v = {}
-        for node in self.code:
-            inputs = node.global_input_vars
+    # @property
+    # def global_input_vars(self):
+    #     v = {}
+    #     for node in self.code:
+    #         inputs = node.global_input_vars
 
-            for i in inputs:
-                if i.name not in v:
-                    v[i.name] = i
+    #         for i in inputs:
+    #             if i.name not in v:
+    #                 v[i.name] = i
 
-        return v.values()
+    #     return v.values()
 
-    @property
-    def global_output_vars(self):
-        v = {}
-        for node in self.code:
-            outputs = node.global_output_vars
+    # @property
+    # def global_output_vars(self):
+    #     v = {}
+    #     for node in self.code:
+    #         outputs = node.global_output_vars
 
-            for o in outputs:
-                if o.name not in v:
-                    v[o.name] = o
+    #         for o in outputs:
+    #             if o.name not in v:
+    #                 v[o.name] = o
 
-        return v.values()
+    #     return v.values()
 
-    @property
-    def local_input_vars(self):
-        v = []
-        for node in self.code:
-            v.extend(node.local_input_vars)
+    # @property
+    # def local_input_vars(self):
+    #     v = []
+    #     for node in self.code:
+    #         v.extend(node.local_input_vars)
 
-        return v
+    #     return v
 
-    @property
-    def local_output_vars(self):
-        v = []
-        for node in self.code:
-            v.extend(node.local_output_vars)
+    # @property
+    # def local_output_vars(self):
+    #     v = []
+    #     for node in self.code:
+    #         v.extend(node.local_output_vars)
 
-        return v
+    #     return v
 
     def get_input_vars(self):
         v = []
@@ -1494,37 +1494,37 @@ class irFunc(IR):
     def locals(self):
         return [l for l in self.symbol_table.symbols.values() if not isinstance(l, VarContainer)]
 
-    @property
-    def global_input_vars(self):
-        v = []
-        for block in self.blocks.values():
-            v.extend(block.global_input_vars)
+    # @property
+    # def global_input_vars(self):
+    #     v = []
+    #     for block in self.blocks.values():
+    #         v.extend(block.global_input_vars)
 
-        return v
+    #     return v
 
-    @property
-    def global_output_vars(self):
-        v = []
-        for block in self.blocks.values():
-            v.extend(block.global_output_vars)
+    # @property
+    # def global_output_vars(self):
+    #     v = []
+    #     for block in self.blocks.values():
+    #         v.extend(block.global_output_vars)
 
-        return v
+    #     return v
 
-    @property
-    def local_input_vars(self):
-        v = []
-        for block in self.blocks.values():
-            v.extend(block.local_input_vars)
+    # @property
+    # def local_input_vars(self):
+    #     v = []
+    #     for block in self.blocks.values():
+    #         v.extend(block.local_input_vars)
 
-        return v
+    #     return v
 
-    @property
-    def local_output_vars(self):
-        v = []
-        for block in self.blocks.values():
-            v.extend(block.local_output_vars)
+    # @property
+    # def local_output_vars(self):
+    #     v = []
+    #     for block in self.blocks.values():
+    #         v.extend(block.local_output_vars)
 
-        return v
+    #     return v
 
     def get_input_vars(self):
         v = []

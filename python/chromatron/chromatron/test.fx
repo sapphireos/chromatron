@@ -44,7 +44,7 @@ def func2():
 
     # p1.hue = 1.0
     # pa[1].hue = 1.0
-    p = PixelArray(2)
+    p = PixelArray()
     p = pa[1]
 
     p.hue = 1
