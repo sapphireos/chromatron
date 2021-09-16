@@ -781,6 +781,9 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def _handle_PixelArray(self, node):
         if len(node.args) > 0 or len(node.keywords) > 0:
+            if self.in_func:
+                raise SyntaxError(f'{node.func.id} cannot be created from within a function.', lineno=node.lineno)
+
             return self.create_GenericObject(node)
 
         return cg1DeclareVar(type="objref", lineno=node.lineno)

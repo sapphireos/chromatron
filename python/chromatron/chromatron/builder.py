@@ -668,9 +668,10 @@ class Builder(object):
 
         self.current_attr[0].append(index)
 
-    def finish_attr(self, target, load=False, is_attr=False, lineno=None):
-        self.current_attr.pop(0)
+    def finish_attr(self, target, lineno=None):
+        target.lookups = self.current_attr.pop(0)
 
+        return target
 
     def start_lookup(self, lineno=None):
         self.current_lookup.insert(0, [])
