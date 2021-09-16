@@ -255,7 +255,7 @@ class varRef(varRegister):
 
 class varObjectRef(varRef):
     def __init__(self, *args, ref=None, lookups=[], **kwargs):
-        super().__init__(*args, data_type='objref', **kwargs)
+        super().__init__(*args, data_type=None, **kwargs)
         self.ref = ref
         self.lookups = lookups
 
@@ -405,6 +405,7 @@ _BASE_TYPES = {
     'str': varString(),
     'obj': varObject(),
     'objref': varObjectRef(),
+    'pixref': varObjectRef(),
     'func': varFunction(),
     'funcref': varFunctionRef(),
     'Function': varFunctionRef(),

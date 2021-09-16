@@ -2694,6 +2694,8 @@ class irFunc(IR):
 
             new_code.append(ir)
 
+        logging.debug(f'Removed useless copies. Eliminated {len(self.code) - len(new_code)} instructions')
+
         self.code = new_code
 
     # remove all no-op instructions
@@ -3177,17 +3179,15 @@ class irObjectStore(IR):
         self.lookups = lookups
 
     def __str__(self):
-        return f'{self.target} =(object) {self.value}'
+        lookups = ''
+        for a in self.lookups:
+            if isinstance(a, irAttribute):
+                lookups += f'.{a.name}'
 
-        # lookups = ''
-        # for a in self.lookups:
-        #     if isinstance(a, irAttribute):
-        #         lookups += f'.{a.name}'
+            else:
+                lookups += f'[{a}]'
 
-        #     else:
-        #         lookups += f'[{a}]'
-
-        # return f'{self.target}{lookups} =(object) {self.value}'
+        return f'{self.target}{lookups} =(object) {self.value}'
 
     def get_input_vars(self):
         inputs = [self.value, self.target]

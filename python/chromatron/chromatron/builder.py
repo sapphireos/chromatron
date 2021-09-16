@@ -684,22 +684,21 @@ class Builder(object):
 
     def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
         if isinstance(target, varObject):
-            var = self.add_temp(data_type='objref', lineno=lineno)
+            # var = self.add_temp(data_type='objref', lineno=lineno)
+            # var.ref = target
+            # var.lookups = self.current_lookup[0]
 
-            var.ref = target
-            var.lookups = self.current_lookup[0]
-
-            ir = irLoadRef(var, target, lineno=lineno)
-
-            self.append_node(ir)
-            
+            # ir = irLoadRef(var, target, lineno=lineno)
+            assert False
+    
         else:
             var = self.add_temp(data_type='offset', lineno=lineno)
             var.ref = target.lookup(self.current_lookup[0], lineno=lineno)
-            # var.lookups = self.current_lookup[0]
 
             ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
-            self.append_node(ir)
+
+        
+        self.append_node(ir)
 
         self.current_lookup.pop(0)
 

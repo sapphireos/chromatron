@@ -786,7 +786,7 @@ class CodeGenPass1(ast.NodeVisitor):
 
             return self.create_GenericObject(node)
 
-        return cg1DeclareVar(type="objref", lineno=node.lineno)
+        return cg1DeclareVar(type="pixref", lineno=node.lineno)
 
     def create_GenericObject(self, node):
         args = [self.visit(a) for a in node.args]
