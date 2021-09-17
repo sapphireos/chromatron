@@ -496,7 +496,10 @@ class Builder(object):
             else:
                 raise CompilerFatal(target)
 
-        elif isinstance(target.var, varObjectRef) and len(target.lookups) > 0:
+        elif isinstance(target, VarContainer) and \
+             isinstance(target.var, varObjectRef) and \
+             len(target.lookups) > 0:
+
             ir = irObjectStore(target, value, lookups=target.lookups, lineno=lineno)
 
         elif isinstance(target, varArray):
