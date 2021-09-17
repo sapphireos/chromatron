@@ -180,7 +180,7 @@ class cg1Var(cg1Node):
         
         self.type = datatype
 
-    def build(self, builder, depth=None):
+    def build(self, builder, lookup_depth=None, attr_depth=None):
         return builder.get_var(self.name, self.lineno)
     
     def __str__(self):
@@ -191,7 +191,7 @@ class cg1Const(cg1Var):
         super().__init__(*args, **kwargs)
         self.value = self.name
 
-    def build(self, builder, depth=None):
+    def build(self, builder, lookup_depth=None, attr_depth=None):
         return builder.add_const(self.value, lineno=self.lineno)
 
 class cg1Module(cg1Node):
@@ -554,14 +554,14 @@ class cg1Attribute(cg1CodeNode):
         self.attr = attr
         self.load = load
         
-    def build(self, builder, depth=0):
-        if depth == 0:
+    def build(self, builder, lookup_depth=0, attr_depth=0):
+        if attr_depth == 0:
             builder.start_attr(lineno=self.lineno)
 
-        target = self.obj.build(builder, depth=depth + 1)
+        target = self.obj.build(builder, lookup_depth=lookup_depth, attr_depth=attr_depth + 1)
         builder.add_attr(self.attr, lineno=self.lineno)      
 
-        if depth == 0:
+        if attr_depth == 0:
             return builder.finish_attr(target, lineno=self.lineno)
 
         return target
@@ -588,16 +588,16 @@ class cg1Subscript(cg1CodeNode):
 
         return target, list(reversed(l))
 
-    def build(self, builder, depth=0):
-        if depth == 0:
+    def build(self, builder, lookup_depth=0, attr_depth=0):
+        if lookup_depth == 0:
             builder.start_lookup(lineno=self.lineno)
 
-        target = self.target.build(builder, depth=depth + 1)
+        target = self.target.build(builder, lookup_depth=lookup_depth + 1, attr_depth=attr_depth)
         index = self.index.build(builder)
 
         builder.add_lookup(index, lineno=self.lineno)      
 
-        if depth == 0:
+        if lookup_depth == 0:
             return builder.finish_lookup(target, lineno=self.lineno)
 
         return target
