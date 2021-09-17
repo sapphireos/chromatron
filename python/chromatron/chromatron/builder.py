@@ -496,7 +496,7 @@ class Builder(object):
             else:
                 raise CompilerFatal(target)
 
-        elif target.data_type == 'objref' and len(target.lookups) > 0:
+        elif isinstance(target.var, varObjectRef) and len(target.lookups) > 0:
             ir = irObjectStore(target, value, lookups=target.lookups, lineno=lineno)
 
         elif isinstance(target, varArray):
@@ -669,9 +669,21 @@ class Builder(object):
         self.current_attr[0].append(index)
 
     def finish_attr(self, target, lineno=None):
-        target.lookups = self.current_attr.pop(0)
+        if isinstance(target, VarContainer) and isinstance(target.var, varObjectRef):
+            
+            target.lookups = self.current_attr.pop(0)
+            
+            return target
 
-        return target
+        else:
+            var = self.add_temp(data_type='objref', lineno=lineno)
+            var.ref = target
+            var.lookups = self.current_attr.pop(0)
+
+            ir = irLoadRef(var, target, lineno=lineno)
+            self.append_node(ir)
+
+            return var
 
     def start_lookup(self, lineno=None):
         self.current_lookup.insert(0, [])

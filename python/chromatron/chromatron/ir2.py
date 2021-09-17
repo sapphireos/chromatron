@@ -3177,6 +3177,7 @@ class irObjectStore(IR):
         self.value = value
 
         self.lookups = lookups
+        target.lookups = []
 
     def __str__(self):
         lookups = ''
