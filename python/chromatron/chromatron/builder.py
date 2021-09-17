@@ -673,12 +673,28 @@ class Builder(object):
 
     def finish_attr(self, target, lineno=None):
         if isinstance(target, VarContainer) and isinstance(target.var, varObjectRef):
-            
+            # object access from an existing reference (ref was already loaded, such as to an array)
+            # p(pixref)->None
             target.lookups = self.current_attr.pop(0)
             
             return target
 
-        else:
+        elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
+            print('meow')
+
+            var = self.add_temp(data_type='objref', lineno=lineno)
+            var.ref = target
+            var.lookups = self.current_attr.pop(0)
+
+            # target.lookups = self.current_attr.pop(0)
+            
+            # return target
+            return var
+
+        elif isinstance(target, varObject):
+            # object access direct from an object requires the reference be loaded
+            # p1(PixelArray)
+
             var = self.add_temp(data_type='objref', lineno=lineno)
             var.ref = target
             var.lookups = self.current_attr.pop(0)
@@ -687,6 +703,9 @@ class Builder(object):
             self.append_node(ir)
 
             return var
+
+        else:
+            assert False
 
     def start_lookup(self, lineno=None):
         self.current_lookup.insert(0, [])

@@ -3202,8 +3202,8 @@ class irObjectStore(IR):
         # target = self.target.generate()
         # value = self.value.generate()
 
-        print(self.target)
-        print(self.value)
+        # print(self.target)
+        # print(self.value)
 
         return insNop(lineno=self.lineno)
 
