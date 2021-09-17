@@ -208,3 +208,19 @@ def func_indirect_call_array():
 
     assert f[0](1, 2) == -1
     assert f[1](1, 2) == 3
+
+
+p1 = PixelArray(2, 12, size_x=3, size_y=4)
+
+def obj_store_direct():
+    p1.hue = 1.0
+
+def obj_store_lookup():
+    pa = PixelArray()[2]
+    pa[1] = p1
+
+    p = PixelArray()
+    p = pa[1]
+    
+    p.hue = 1    
+
