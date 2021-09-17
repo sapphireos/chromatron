@@ -598,7 +598,7 @@ class cg1Subscript(cg1CodeNode):
         builder.add_lookup(index, lineno=self.lineno)      
 
         if depth == 0:
-            return builder.finish_lookup(target, load=self.load, lineno=self.lineno)
+            return builder.finish_lookup(target, lineno=self.lineno)
 
         return target
 

@@ -691,13 +691,10 @@ class Builder(object):
     def start_lookup(self, lineno=None):
         self.current_lookup.insert(0, [])
 
-    def add_lookup(self, index, is_attr=False, lineno=None):
-        if is_attr:
-            index = irAttribute(index, lineno=lineno)
-
+    def add_lookup(self, index, lineno=None):
         self.current_lookup[0].append(index)
 
-    def finish_lookup(self, target, load=False, is_attr=False, lineno=None):
+    def finish_lookup(self, target, lineno=None):
         if isinstance(target, varObject):
             # var = self.add_temp(data_type='objref', lineno=lineno)
             # var.ref = target
@@ -706,11 +703,11 @@ class Builder(object):
             # ir = irLoadRef(var, target, lineno=lineno)
             assert False
     
-        else:
-            var = self.add_temp(data_type='offset', lineno=lineno)
-            var.ref = target.lookup(self.current_lookup[0], lineno=lineno)
+        
+        var = self.add_temp(data_type='offset', lineno=lineno)
+        var.ref = target.lookup(self.current_lookup[0], lineno=lineno)
 
-            ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
+        ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
 
         
         self.append_node(ir)
