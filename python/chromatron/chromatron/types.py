@@ -254,8 +254,12 @@ class varRef(varRegister):
     #     return f'{super().__str__()} -> {self.target}'
 
 class varObjectRef(varRef):
-    def __init__(self, *args, ref=None, lookups=[], **kwargs):
+    def __init__(self, *args, ref=None, lookups=None, **kwargs):
         super().__init__(*args, data_type=None, **kwargs)
+
+        if lookups is None:
+            lookups = []
+
         self.ref = ref
         self.lookups = lookups
 

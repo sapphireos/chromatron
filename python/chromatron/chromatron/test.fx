@@ -32,7 +32,7 @@ def obj_store_lookup2():
 
     p = PixelArray()
     # p.hue = 1
-    # p = pa[1]
+    p = pa[1]
     a = Fixed16()
 
     a = p[0].hue

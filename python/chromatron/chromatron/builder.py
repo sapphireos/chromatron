@@ -459,9 +459,15 @@ class Builder(object):
             
             return var
 
-        elif value.data_type == 'objref':
+        elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
             var = self.add_temp(data_type='var', lineno=lineno)
-            ir = irObjectLoad(var, value.ref, lookups=value.lookups, lineno=lineno)
+
+            if value.ref is not None:
+                ir = irObjectLoad(var, value.ref, lookups=value.lookups, lineno=lineno)
+
+            else:
+                ir = irObjectLoad(var, value, lookups=value.lookups, lineno=lineno)
+                value.lookups = []
 
             self.append_node(ir)
             
@@ -675,8 +681,8 @@ class Builder(object):
         if isinstance(target, VarContainer) and isinstance(target.var, varObjectRef):
             # object access from an existing reference (ref was already loaded, such as to an array)
             # p(pixref)->None
-            target.lookups = self.current_attr.pop(0)
-            
+            target.lookups.extend(self.current_attr.pop(0))
+
             return target
 
         elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
@@ -702,8 +708,7 @@ class Builder(object):
 
             return var
 
-        else:
-            assert False
+        raise CompilerFatal(f'Invalid attr for: {target}')
 
     def start_lookup(self, lineno=None):
         self.current_lookup.insert(0, [])
@@ -721,15 +726,20 @@ class Builder(object):
         #     assert False
 
         if isinstance(target, VarContainer) and isinstance(target.var, varObjectRef):
-            print('meow')
+            target.var.lookups.extend(self.current_lookup[0])
+            
+            self.current_lookup.pop(0)
+
+            # ir = irLoadRef(var, target, lineno=lineno)
+            # self.append_node(ir)
+            
+            return target
     
         elif isinstance(target, varArray):
             var = self.add_temp(data_type='offset', lineno=lineno)
             var.ref = target.lookup(self.current_lookup[0], lineno=lineno)
 
             ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
-
-            
             self.append_node(ir)
 
             self.current_lookup.pop(0)
