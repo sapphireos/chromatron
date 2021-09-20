@@ -224,3 +224,6 @@ def obj_store_lookup():
     
     p.hue = 1    
 
+def obj_store_lookup2():
+    pa = PixelArray()[2]
+    pa[1].hue = 1    

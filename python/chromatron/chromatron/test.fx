@@ -28,11 +28,17 @@ p1 = PixelArray(2, 12, size_x=3, size_y=4)
 def obj_store_lookup2():
     pa = PixelArray()[2]
     # pa[1] = p1
+    # pa[1].hue = 1    
 
-    pa[1].hue = 1    
-
-    # p = PixelArray()
+    p = PixelArray()
+    # p.hue = 1
     # p = pa[1]
+    a = Fixed16()
+
+    a = p[0].hue
+    # a = pa[0].hue
+
+    return a
 
 # def func2():
 #     # b = Number()

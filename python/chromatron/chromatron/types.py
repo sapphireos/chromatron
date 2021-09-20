@@ -268,7 +268,11 @@ class varObjectRef(varRef):
             else:
                 lookups += f'.{a.name}'
 
-        return f'{super().__str__()}->{self.ref}{lookups}'
+        if self.ref is not None:
+            return f'{super().__str__()}->{self.ref}{lookups}'
+
+        else:
+            return f'{super().__str__()}{lookups}'
 
 class varFunctionRef(varRef):
     def __init__(self, *args, ref=None, **kwargs):
