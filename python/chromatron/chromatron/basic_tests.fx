@@ -247,3 +247,12 @@ def obj_load_direct():
     a = p1[0].hue
 
     return a
+
+def obj_load_indirect():
+    a = Fixed16()
+    p = PixelArray()    
+
+    p = p1
+    a = p[0].hue
+
+    return a

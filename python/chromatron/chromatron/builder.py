@@ -462,15 +462,15 @@ class Builder(object):
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
             var = self.add_temp(data_type='var', lineno=lineno)
 
-            if value.ref is not None:
-                ir = irObjectLoad(var, value.ref, lookups=value.lookups, lineno=lineno)
+            # if value.ref is not None:
+            #     ir = irObjectLoad(var, value.ref, lookups=value.lookups, lineno=lineno)
 
-            else:
-                ir = irObjectLoad(var, value, lookups=value.lookups, lineno=lineno)
-                value.lookups = []
+            # else:
+            ir = irObjectLoad(var, value, lookups=value.lookups, lineno=lineno)
+            value.lookups = []
 
             self.append_node(ir)
-            
+
             return var
 
         elif isinstance(value, varComposite):

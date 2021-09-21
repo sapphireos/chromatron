@@ -37,25 +37,21 @@ p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
 
 def obj_load_direct():
-    # p1.hue = 1.0
-    # p1[0].hue = 1.0
-    # p1[0][1].hue = 1.0
-
-
-    # pa = PixelArray()[2]
-    # # pa[1] = p1
-    # pa[1][2].hue = 1.0
-
-    p = PixelArray()
-    # # p.hue = 1
-    # p = p1
     a = Fixed16()
 
-    # a = p1[0].hue
-    a = p[0].hue
-    # # a = pa[0].hue
+    a = p1[0].hue
 
     return a
+
+def obj_load_indirect():
+    a = Fixed16()
+    p = PixelArray()    
+
+    p = p1
+    a = p[0].hue
+
+    return a
+
 
 # def func2():
 #     # b = Number()
