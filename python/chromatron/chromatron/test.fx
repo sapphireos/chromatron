@@ -9,9 +9,20 @@
 # def meow(f: Function):
     # return f()
 
+
 # b = Number()
 
-p1 = PixelArray(2, 12, size_x=3, size_y=4)
+
+ary = Number()[4]
+def array_vector():
+    # ary = 0
+    ary += 1
+    # assert ary[0] == 1
+    # assert ary[1] == 1
+    # assert ary[2] == 1
+    # assert ary[3] == 1
+
+# p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
 # def obj_store_direct():
 #     p1.hue = 1.0
@@ -34,17 +45,6 @@ p1 = PixelArray(2, 12, size_x=3, size_y=4)
     
 #     p[2].hue = 1.0    
 
-def obj_load_lookup4():
-    # a = Fixed16()
- 
-    # p = PixelArray()
-
-    # a = p.hue
-
-    # return p1
-    p = PixelArray()
-    p = 1.0
-    # 1.0 = p1
 
 # def func2():
 #     # b = Number()

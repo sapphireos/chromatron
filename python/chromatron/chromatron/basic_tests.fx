@@ -133,6 +133,15 @@ def array_assign():
     assert ary[2] == 1
     assert ary[3] == 1
 
+def array_vector():
+    ary = 1
+    ary += 1
+    assert ary[0] == 2
+    assert ary[1] == 2
+    assert ary[2] == 2
+    assert ary[3] == 2
+
+
 ary2 = Number()[2][3]
 
 def array2_lookup():
@@ -297,4 +306,3 @@ def obj_load_lookup4():
     a = p[2].hue
 
     return a
-    

@@ -2372,7 +2372,7 @@ class irFunc(IR):
 
 
     def generate(self):
-        logging.debug('Generating code')
+        logging.debug(f'Generating code for {self.name}')
 
          # convert to IR code listing        
         self.code = self.get_code_from_blocks()
@@ -3145,7 +3145,7 @@ class irVectorOp(IR):
     def get_output_vars(self):
         return []
 
-    # def generate(self):
+    def generate(self):
     #     ops = {
     #         'add': insVectorAdd,
     #         'sub': insVectorSub,
@@ -3169,6 +3169,13 @@ class irVectorOp(IR):
     #     else:
     #         return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
 
+        target = self.target.generate()
+        value = self.value.generate()
+        
+        print(target)
+        print(value)
+
+        return insNop(lineno=self.lineno)
 
 class irObjectStore(IR):
     def __init__(self, target, value, lookups=[], **kwargs):
@@ -3199,11 +3206,11 @@ class irObjectStore(IR):
         return []
 
     def generate(self):
-        # target = self.target.generate()
-        # value = self.value.generate()
+        target = self.target.generate()
+        value = self.value.generate()
 
-        # print(self.target)
-        # print(self.value)
+        print(target)
+        print(value)
 
         return insNop(lineno=self.lineno)
 
@@ -3239,8 +3246,8 @@ class irObjectLoad(IR):
         target = self.target.generate()
         value = self.value.generate()
 
-        # print(target)
-        # print(value)
+        print(target)
+        print(value)
 
         return insNop(lineno=self.lineno)
 
