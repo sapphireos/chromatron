@@ -2,7 +2,7 @@
 from copy import deepcopy
 
 from .exceptions import *
-from .instructions2 import *
+from .instructions2 import insReg, insAddr
 
 class VarContainer(object):
     def __init__(self, var):

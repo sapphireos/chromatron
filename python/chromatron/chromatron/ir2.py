@@ -203,7 +203,9 @@ class irProgram(IR):
             ins_funcs[name] = func.generate()
             ins_funcs[name].prune_jumps()
 
-        return insProgram(funcs=ins_funcs, global_vars=self.global_symbols.symbols)
+        objects = [o for o in self.global_symbols.symbols.values() if isinstance(o, varObject)]
+
+        return insProgram(funcs=ins_funcs, global_vars=self.global_symbols.symbols, objects=objects)
 
 class Edge(object):
     def __init__(self, from_node, to_node):
@@ -3209,10 +3211,17 @@ class irObjectStore(IR):
         target = self.target.generate()
         value = self.value.generate()
 
-        print(target)
-        print(value)
+        if target.var.ref.data_type == 'PixelArray':
+            attr = self.lookups.pop(-1)
+            attr = attr.name
 
-        return insNop(lineno=self.lineno)
+            if attr == 'hue':
+                return insPixelStoreHue(target.var.ref, attr, self.lookups, value, lineno=self.lineno)
+
+            else:
+                raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
+        
+        raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
 
 class irObjectLoad(IR):
     def __init__(self, target, value, lookups=[], **kwargs):

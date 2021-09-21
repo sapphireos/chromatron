@@ -63,7 +63,7 @@ def convert_to_i32(value):
 
 
 class insProgram(object):
-    def __init__(self, funcs={}, global_vars={}):
+    def __init__(self, funcs={}, global_vars={}, objects=[]):
         self.funcs = funcs
         self.globals = global_vars
 
@@ -77,6 +77,8 @@ class insProgram(object):
         for func in self.funcs.values():
             func.memory = self.memory
             func.program = self
+
+        self.objects = objects
 
     def __str__(self):
         s = 'VM Instructions:\n'
@@ -133,6 +135,10 @@ class insFunc(object):
         s += f'VM Instructions: {len([i for i in self.code if not isinstance(i, insLabel)])}\n'
 
         return s
+
+    @property
+    def objects(self):
+        return self.program.objects
 
     def prune_jumps(self):
         iterations = 0
@@ -463,6 +469,8 @@ class insLoadRef(BaseInstruction):
         return "%s %s <-R %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
+        assert self.src.var in vm.objects
+
         vm.registers[self.dest.reg] = self.src
 
     def assemble(self):
@@ -972,3 +980,89 @@ class insIndirectCall(BaseInstruction):
             bc.extend(self.args[i].assemble())
 
         return bc
+
+    
+class insPixelStore(BaseInstruction):
+    mnemonic = 'PSTORE'
+
+    def __init__(self, pixel_array, attr, indexes, value, **kwargs):
+        super().__init__(**kwargs)
+        self.pixel_array = pixel_array
+        self.attr = attr
+        self.indexes = indexes
+        self.value = value
+
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index)
+
+        return "%s %s.%s%s = %s" % (self.mnemonic, self.pixel_array, self.attr, indexes, self.value)
+
+    def execute(self, vm):
+        # if self.attr in vm.gfx_data:
+        #     array = vm.gfx_data[self.attr]
+
+        #     index_x = vm.memory[self.indexes[0].addr]
+        #     index_y = vm.memory[self.indexes[1].addr]
+
+        #     a = vm.memory[self.value.addr]
+
+        #     # most attributes will rail to 0 to 65535
+        #     if a < 0:
+        #         a = 0
+        #     elif a > 65535:
+        #         a = 65535
+            
+        #     array[vm.calc_index(index_x, index_y)] = a
+
+        # else:
+        #     # pixel attributes not settable in code for now
+        #     pass 
+        pass
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.append(insPixelArray(self.pixel_array))
+
+        index_x = self.indexes[0]
+        bc.extend(index_x.assemble())
+        index_y = self.indexes[1]
+        bc.extend(index_y.assemble())
+
+        bc.extend(self.value.assemble())
+
+        return bc
+
+
+
+class insPixelStoreHue(insPixelStore):
+    mnemonic = 'PSTORE_HUE'
+
+    # def execute(self, vm):
+    #     if self.attr in vm.gfx_data:
+    #         array = vm.gfx_data[self.attr]
+
+    #         index_x = vm.memory[self.indexes[0].addr]
+    #         try:
+    #             index_y = vm.memory[self.indexes[1].addr]
+
+    #         except IndexError:
+    #             index_y = 65535
+
+    #         a = vm.memory[self.value.addr]
+
+    #         # this is a shortcut to allow assignment 1.0 to be maximum, instead
+    #         # of rolling over to 0.0.
+    #         if a == 65536:
+    #             a = 65535
+
+    #         # hue will wrap around
+    #         a %= 65536
+            
+    #         array[vm.calc_index(index_x, index_y)] = a
+
+    #     else:
+    #         # pixel attributes not settable in code for now
+    #         pass 
+    # 
