@@ -3227,7 +3227,7 @@ class irObjectLoad(IR):
         return f'{self.target} =(object) {self.value}{lookups}'
 
     def get_input_vars(self):
-        inputs = []
+        inputs = [self.value]
         inputs.extend([a for a in self.lookups if not isinstance(a, irAttribute)])
         return inputs
 
@@ -3239,8 +3239,8 @@ class irObjectLoad(IR):
         target = self.target.generate()
         value = self.value.generate()
 
-        print(target)
-        print(value)
+        # print(target)
+        # print(value)
 
         return insNop(lineno=self.lineno)
 

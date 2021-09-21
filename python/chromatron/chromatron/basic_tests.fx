@@ -240,3 +240,10 @@ def obj_store_lookup4():
     p = pa[1]
     
     p[2].hue = 1.0    
+
+def obj_load_direct():
+    a = Fixed16()
+
+    a = p1[0].hue
+
+    return a
