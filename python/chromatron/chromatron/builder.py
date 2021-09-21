@@ -688,7 +688,7 @@ class Builder(object):
         elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
             var = self.add_temp(data_type='objref', lineno=lineno)
             var.ref = target.ref
-            var.lookups = self.current_attr.pop(0)
+            var.lookups.extend(self.current_attr.pop(0))
 
             ir = irLoad(var, target, lineno=lineno)
             self.append_node(ir)
@@ -701,7 +701,7 @@ class Builder(object):
 
             var = self.add_temp(data_type='objref', lineno=lineno)
             var.ref = target
-            var.lookups = self.current_attr.pop(0)
+            var.lookups.extend(self.current_attr.pop(0))
 
             ir = irLoadRef(var, target, lineno=lineno)
             self.append_node(ir)
@@ -717,21 +717,20 @@ class Builder(object):
         self.current_lookup[0].append(index)
 
     def finish_lookup(self, target, lineno=None):
-        # if isinstance(target, varObject):
-        #     # var = self.add_temp(data_type='objref', lineno=lineno)
-        #     # var.ref = target
-        #     # var.lookups = self.current_lookup[0]
+        if isinstance(target, varObject):
+            var = self.add_temp(data_type='objref', lineno=lineno)
+            var.ref = target
+            var.lookups.extend(self.current_lookup.pop(0))
 
-        #     # ir = irLoadRef(var, target, lineno=lineno)
-        #     assert False
+            ir = irLoadRef(var, target, lineno=lineno)
+            self.append_node(ir)
 
-        if isinstance(target, VarContainer) and isinstance(target.var, varObjectRef):
+            return var
+
+        elif isinstance(target, VarContainer) and isinstance(target.var, varObjectRef):
             target.var.lookups.extend(self.current_lookup[0])
             
             self.current_lookup.pop(0)
-
-            # ir = irLoadRef(var, target, lineno=lineno)
-            # self.append_node(ir)
             
             return target
     
@@ -747,3 +746,4 @@ class Builder(object):
             return var
 
         raise CompilerFatal(f'Invalid lookup for: {target}')
+
