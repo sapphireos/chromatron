@@ -72,6 +72,10 @@ KV_SECTION_META kv_meta_t pwm_info_kv[] = {
 void pwm_v_init( void ){
 
 
+    #pragma message "PWM is not done!"
+
+    return;
+
     #define MOTOR_IO_0  IO_PIN_16_RX
     #define MOTOR_IO_1  IO_PIN_17_TX
 
