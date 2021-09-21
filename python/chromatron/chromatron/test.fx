@@ -35,23 +35,17 @@ p1 = PixelArray(2, 12, size_x=3, size_y=4)
 #     p[2].hue = 1.0    
 
 
-
-def obj_load_direct():
+def obj_load_lookup4():
     a = Fixed16()
+    pa = PixelArray()[2]
+    pa[1] = p1
 
-    a = p1[0].hue
+    p = PixelArray()
+    p = pa[1]
+
+    a = p[2].hue
 
     return a
-
-def obj_load_indirect():
-    a = Fixed16()
-    p = PixelArray()    
-
-    p = p1
-    a = p[0].hue
-
-    return a
-
 
 # def func2():
 #     # b = Number()
