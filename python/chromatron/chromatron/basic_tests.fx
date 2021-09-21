@@ -222,8 +222,21 @@ def obj_store_lookup():
     p = PixelArray()
     p = pa[1]
     
-    p.hue = 1    
+    p.hue = 1.0    
 
 def obj_store_lookup2():
     pa = PixelArray()[2]
-    pa[1].hue = 1    
+    pa[1].hue = 1.0
+
+def obj_store_lookup3():
+    pa = PixelArray()[2]
+    pa[1][2].hue = 1.0
+
+def obj_store_lookup4():
+    pa = PixelArray()[2]
+    pa[1] = p1
+
+    p = PixelArray()
+    p = pa[1]
+    
+    p[2].hue = 1.0    

@@ -738,6 +738,11 @@ class Builder(object):
             var = self.add_temp(data_type='offset', lineno=lineno)
             var.ref = target.lookup(self.current_lookup[0], lineno=lineno)
 
+            # strip any lookups from an object ref (which will be resolved directly
+            # in the object accessor instruction, instead of the array lookup)
+            if isinstance(var.ref, varObjectRef):
+                self.current_lookup[0] = self.current_lookup[0][:len(self.current_lookup[0]) - len(var.ref.lookups)]
+
             ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
             self.append_node(ir)
 

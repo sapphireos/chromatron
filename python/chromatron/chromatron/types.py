@@ -263,6 +263,10 @@ class varObjectRef(varRef):
         self.ref = ref
         self.lookups = lookups
 
+    def lookup(self, indexes=[], lineno=None):
+        self.lookups.extend(indexes) # add remaining indexes, if any
+        return self
+
     def __str__(self):
         lookups = ''
         for a in self.lookups:
