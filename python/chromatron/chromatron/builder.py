@@ -496,17 +496,20 @@ class Builder(object):
             elif isinstance(target.ref, varRef):
                 ir = irStore(value, target, lineno=lineno)
 
-            # elif isinstance(target.ref, varObject):
-            #     ir = irObjectStore(target.ref, value, lineno=lineno)
-
             else:
                 raise CompilerFatal(target)
 
         elif isinstance(target, VarContainer) and \
-             isinstance(target.var, varObjectRef) and \
-             len(target.lookups) > 0:
+             isinstance(target.var, varObjectRef):
+            
+            if len(target.lookups) > 0:
+                ir = irObjectStore(target, value, lookups=target.lookups, lineno=lineno)
 
-            ir = irObjectStore(target, value, lookups=target.lookups, lineno=lineno)
+            else:
+                if isinstance(value.var, varScalar):
+                    raise SyntaxError(f'Cannot assign scalar to reference: {target} = {value}', lineno=lineno)
+
+                ir = irAssign(target, value, lineno=lineno)
 
         elif isinstance(target, varArray):
             # load address to register:
@@ -518,9 +521,13 @@ class Builder(object):
 
             ir = irVectorAssign(var, value, lineno=lineno)
 
-        else:
+        elif isinstance(target, VarContainer) and \
+             isinstance(target.var, varRegister):
+            
             ir = irAssign(target, value, lineno=lineno)
 
+        else:
+            raise SyntaxError(f'Invalid assign: {target} = {value}', lineno=lineno)
     
         self.append_node(ir)
 

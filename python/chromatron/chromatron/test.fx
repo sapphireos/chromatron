@@ -34,18 +34,17 @@ p1 = PixelArray(2, 12, size_x=3, size_y=4)
     
 #     p[2].hue = 1.0    
 
-
 def obj_load_lookup4():
-    a = Fixed16()
-    pa = PixelArray()[2]
-    pa[1] = p1
+    # a = Fixed16()
+ 
+    # p = PixelArray()
 
+    # a = p.hue
+
+    # return p1
     p = PixelArray()
-    p = pa[1]
-
-    a = p[2].hue
-
-    return a
+    p = 1.0
+    # 1.0 = p1
 
 # def func2():
 #     # b = Number()
