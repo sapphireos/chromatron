@@ -1099,7 +1099,8 @@ class insPixelStore(BaseInstruction):
             elif a > 65535:
                 a = 65535
             
-            array[vm.calc_index(index_x, index_y)] = a
+            index = vm.calc_index(index_x, index_y)
+            array[index] = a
 
         else:
             # pixel attributes not settable in code for now

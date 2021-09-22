@@ -16,7 +16,7 @@
 p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
 def obj_store_direct():
-    p1.hue = 1
+    p1[0].hue = 1
 
 
 
