@@ -44,7 +44,7 @@ class Builder(object):
 
         self.type_manager = TypeManager()
 
-        self.declare_var('pixels', data_type='obj', is_global=True, lineno=-1)
+        self.declare_var('pixels', data_type='PixelArray', is_global=True, lineno=-1)
         self.declare_var('db', data_type='obj', is_global=True, lineno=-1)
 
     def __str__(self):
@@ -299,8 +299,8 @@ class Builder(object):
 
         return var
 
-    def generic_object(self, name, data_type, args=[], kw={}, lineno=None):
-        var = self.declare_var(name, data_type, lineno=lineno)
+    def generic_object(self, name, data_type, kw={}, lineno=None):
+        var = self.declare_var(name, data_type, keywords=kw, lineno=lineno)
 
         return var
         

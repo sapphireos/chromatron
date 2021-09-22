@@ -80,6 +80,61 @@ class insProgram(object):
 
         self.objects = objects
 
+        self.pix_size_x = 4
+        self.pix_size_y = 4
+
+        # set up pixel arrays
+        self.pix_count = self.pix_size_x * self.pix_size_y
+
+        # self.pixel_arrays = {p.name: p for p in self.objects if p.data_type == 'PixelArray'}
+        self.pixel_arrays = {}
+        for p in [p for p in self.objects if p.data_type == 'PixelArray']:
+            if 'pix_count' in p.keywords:
+                pix_count = p.keywords['pix_count']
+
+            else:
+                pix_count = self.pix_count
+
+            if 'pix_offset' in p.keywords:
+                pix_offset = p.keywords['pix_offset']
+
+            else:
+                pix_offset = 0
+
+            if 'pix_size_x' in p.keywords:
+                pix_size_x = p.keywords['pix_size_x']
+
+            else:
+                pix_size_x = self.pix_size_x
+
+            if 'pix_size_y' in p.keywords:
+                pix_size_y = p.keywords['pix_size_y']
+
+            else:
+                pix_size_y = self.pix_size_y
+
+            array = {
+                'count': pix_count,
+                'offset': pix_offset,
+                'size_x': pix_size_x,
+                'size_y': pix_size_y,
+            }
+
+            self.pixel_arrays[p] = array
+
+        self.hue        = [0 for i in range(self.pix_count)]
+        self.sat        = [0 for i in range(self.pix_count)]
+        self.val        = [0 for i in range(self.pix_count)]
+        self.hs_fade    = [0 for i in range(self.pix_count)]
+        self.v_fade     = [0 for i in range(self.pix_count)]
+
+        self.gfx_data   = {'hue': self.hue,
+                           'sat': self.sat,
+                           'val': self.val,
+                           'hs_fade': self.hs_fade,
+                           'v_fade': self.v_fade}
+
+
     def __str__(self):
         s = 'VM Instructions:\n'
 
@@ -139,6 +194,26 @@ class insFunc(object):
     @property
     def objects(self):
         return self.program.objects
+
+    @property
+    def gfx_data(self):
+        return self.program.gfx_data
+
+    def calc_index(self, x, y, pixel_array='pixels'):
+        count = self.pixel_arrays[pixel_array]['count']
+        size_x = self.pixel_arrays[pixel_array]['size_x']
+        size_y = self.pixel_arrays[pixel_array]['size_y']
+
+        if y == 65535:
+            i = x % count
+
+        else:
+            x %= size_x
+            y %= size_y
+
+            i = x + (y * size_x)
+
+        return i
 
     def prune_jumps(self):
         iterations = 0
@@ -987,6 +1062,7 @@ class insPixelStore(BaseInstruction):
 
     def __init__(self, pixel_array, attr, indexes, value, **kwargs):
         super().__init__(**kwargs)
+        
         self.pixel_array = pixel_array
         self.attr = attr
         self.indexes = indexes
@@ -1000,26 +1076,25 @@ class insPixelStore(BaseInstruction):
         return "%s %s.%s%s = %s" % (self.mnemonic, self.pixel_array, self.attr, indexes, self.value)
 
     def execute(self, vm):
-        # if self.attr in vm.gfx_data:
-        #     array = vm.gfx_data[self.attr]
+        if self.attr in vm.gfx_data:
+            array = vm.gfx_data[self.attr]
 
-        #     index_x = vm.memory[self.indexes[0].addr]
-        #     index_y = vm.memory[self.indexes[1].addr]
+            index_x = vm.memory[self.indexes[0].addr]
+            index_y = vm.memory[self.indexes[1].addr]
 
-        #     a = vm.memory[self.value.addr]
+            a = vm.memory[self.value.addr]
 
-        #     # most attributes will rail to 0 to 65535
-        #     if a < 0:
-        #         a = 0
-        #     elif a > 65535:
-        #         a = 65535
+            # most attributes will rail to 0 to 65535
+            if a < 0:
+                a = 0
+            elif a > 65535:
+                a = 65535
             
-        #     array[vm.calc_index(index_x, index_y)] = a
+            array[vm.calc_index(index_x, index_y)] = a
 
-        # else:
-        #     # pixel attributes not settable in code for now
-        #     pass 
-        pass
+        else:
+            # pixel attributes not settable in code for now
+            assert False
 
     def assemble(self):
         bc = [self.opcode]

@@ -155,13 +155,12 @@ class cg1Struct(cg1Node):
 
 
 class cg1GenericObject(cg1Node):
-    _fields = ["name", "args", "kw"]
+    _fields = ["name", "kw"]
 
-    def __init__(self, name, args, kw, **kwargs):
+    def __init__(self, name, kw, **kwargs):
         super(cg1GenericObject, self).__init__(**kwargs)
 
         self.name = name
-        self.args = args
         self.kw = kw
 
     def build(self, builder):
@@ -228,10 +227,10 @@ class cg1Module(cg1Node):
 
             elif isinstance(node, cg1Assign):
                 if isinstance(node.value, cg1GenericObject):
-                    args = [a.build(builder) for a in node.value.args]
-                    kw = {k: v.build(builder) for k, v in list(node.value.kw.items())}
+                    # kw = {k: v.build(builder) for k, v in list(node.value.kw.items())}
+                    kw = {k: v.name for k, v in list(node.value.kw.items())}
 
-                    builder.generic_object(node.target.name, node.value.name, args, kw, lineno=node.lineno)
+                    builder.generic_object(node.target.name, node.value.name, kw, lineno=node.lineno)
 
                 elif isinstance(node.value, cg1Const):
                     if isinstance(node.value.name, float):
@@ -784,21 +783,38 @@ class CodeGenPass1(ast.NodeVisitor):
             if self.in_func:
                 raise SyntaxError(f'{node.func.id} cannot be created from within a function.', lineno=node.lineno)
 
-            return self.create_GenericObject(node)
+            args = [self.visit(a) for a in node.args]
+            kwargs = {}
+
+            for kw in node.keywords:
+                field_name = kw.arg
+                field_type = self.visit(kw.value)
+
+                kwargs[field_name] = field_type
+
+            if len(node.args) >= 1:
+                kwargs['pix_count'] = args[0]
+
+            if len(node.args) >= 2:
+                kwargs['pix_offset'] = args[1]
+
+            return cg1GenericObject(node.func.id, kwargs, lineno=node.lineno)
+
+            # return self.create_GenericObject(node)
 
         return cg1DeclareVar(type="pixref", lineno=node.lineno)
 
-    def create_GenericObject(self, node):
-        args = [self.visit(a) for a in node.args]
-        kwargs = {}
+    # def create_GenericObject(self, node):
+    #     args = [self.visit(a) for a in node.args]
+    #     kwargs = {}
 
-        for kw in node.keywords:
-            field_name = kw.arg
-            field_type = self.visit(kw.value)
+    #     for kw in node.keywords:
+    #         field_name = kw.arg
+    #         field_type = self.visit(kw.value)
 
-            kwargs[field_name] = field_type
+    #         kwargs[field_name] = field_type
 
-        return cg1GenericObject(node.func.id, args, kwargs, lineno=node.lineno)
+    #     return cg1GenericObject(node.func.id, args, kwargs, lineno=node.lineno)
 
     def visit_Call(self, node):
         if isinstance(node.func, ast.Subscript):

@@ -94,6 +94,7 @@ class Var(object):
         self._is_global = False
         self.is_container = False
         self.is_allocatable = True
+        self.keywords = {}
 
         self.ssa_version = None
 
@@ -444,12 +445,18 @@ class TypeManager(object):
 
     def create_var_from_type(self, name, data_type, dimensions=[], keywords={}, **kwargs):
         if not keywords:
-            keywords = {'init_val': None}
+            keywords = {}
+
+        if 'init_val' not in keywords:
+            keywords['init_val'] = None
 
         assert data_type is not None
 
         var = self.types[data_type].build(name, **kwargs)
         var.init_val = keywords['init_val']
+        del keywords['init_val']
+
+        var.keywords = keywords
 
         if var.data_type is None:
             var.data_type = data_type
