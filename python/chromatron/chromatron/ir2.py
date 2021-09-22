@@ -3224,10 +3224,8 @@ class irObjectStore(IR):
                 # 'v_fade': insPixelStoreVFade,
             }
 
-            indexes = []
-            for index in self.lookups:
-                indexes.append(index.generate())
-
+            indexes = [i.generate() for i in self.lookups]
+            
             try:
                 return ins[attr](target.var.ref, attr, indexes, value, lineno=self.lineno)
 

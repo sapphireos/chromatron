@@ -199,6 +199,10 @@ class insFunc(object):
     def gfx_data(self):
         return self.program.gfx_data
 
+    @property
+    def pixel_arrays(self):
+        return self.program.pixel_arrays
+
     def calc_index(self, x, y, pixel_array='pixels'):
         count = self.pixel_arrays[pixel_array]['count']
         size_x = self.pixel_arrays[pixel_array]['size_x']
@@ -1068,8 +1072,6 @@ class insPixelStore(BaseInstruction):
         self.indexes = indexes
         self.value = value
 
-        assert len(self.indexes) == 2
-
     def __str__(self):
         indexes = ''
         for index in self.indexes:
@@ -1081,10 +1083,15 @@ class insPixelStore(BaseInstruction):
         if self.attr in vm.gfx_data:
             array = vm.gfx_data[self.attr]
 
-            index_x = vm.memory[self.indexes[0].addr]
-            index_y = vm.memory[self.indexes[1].addr]
+            index_x = 65535
+            index_y = 65535
 
-            a = vm.memory[self.value.addr]
+            if len(self.indexes) >= 1:
+                index_x = vm.registers[self.indexes[0].reg]
+            if len(self.indexes) >= 2:
+                index_y = vm.registers[self.indexes[1].reg]
+
+            a = vm.registers[self.value.reg]
 
             # most attributes will rail to 0 to 65535
             if a < 0:
