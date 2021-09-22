@@ -1068,6 +1068,8 @@ class insPixelStore(BaseInstruction):
         self.indexes = indexes
         self.value = value
 
+        assert len(self.indexes) == 2
+
     def __str__(self):
         indexes = ''
         for index in self.indexes:

@@ -3215,12 +3215,25 @@ class irObjectStore(IR):
             attr = self.lookups.pop(-1)
             attr = attr.name
 
-            if attr == 'hue':
-                return insPixelStoreHue(target.var.ref, attr, self.lookups, value, lineno=self.lineno)
+            ins = {
+                'hue': insPixelStoreHue,
+                # 'sat': insPixelStoreSat,
+                # 'val': insPixelStoreVal,
+                # 'pval': insPixelStorePVal,
+                # 'hs_fade': insPixelStoreHSFade,
+                # 'v_fade': insPixelStoreVFade,
+            }
 
-            else:
+            indexes = []
+            for index in self.lookups:
+                indexes.append(index.generate())
+
+            try:
+                return ins[attr](target.var.ref, attr, indexes, value, lineno=self.lineno)
+
+            except KeyError:
                 raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
-        
+
         raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
 
 class irObjectLoad(IR):
