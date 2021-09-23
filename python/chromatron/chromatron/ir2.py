@@ -3179,6 +3179,46 @@ class irVectorOp(IR):
 
         return insNop(lineno=self.lineno)
 
+
+class irObjectLookup(IR):
+    def __init__(self, result, target, lookups=[], **kwargs):
+        super().__init__(**kwargs)
+        self.result = result
+        self.target = target
+
+        assert isinstance(self.target, varObject) or isinstance(self.target.var, varObjectRef)
+    
+        self.lookups = lookups
+
+    def __str__(self):
+        lookups = ''
+        for a in self.lookups:
+            if isinstance(a, irAttribute):
+                lookups += f'.{a.name}'
+
+            else:
+                lookups += f'[{a}]'
+
+        return f'{self.result} <-- LOOKUP(object) {self.target}{lookups}'
+
+    def get_input_vars(self):
+        inputs = [self.target]
+        inputs.extend(self.lookups)
+        return inputs
+
+    def get_output_vars(self):
+        return [self.result]
+
+    def generate(self):
+        result = self.result.generate()
+        target = self.target.generate()
+
+        print(result)
+        print(target)
+
+        return insNop(lineno=self.lineno)
+
+
 class irObjectStore(IR):
     def __init__(self, target, value, lookups=[], **kwargs):
         super().__init__(**kwargs)
@@ -3211,7 +3251,7 @@ class irObjectStore(IR):
         target = self.target.generate()
         value = self.value.generate()
 
-        if target.var.ref.data_type == 'PixelArray':
+        if target.var.data_type == 'pixref' or target.var.ref.data_type == 'pixref' or target.var.ref.data_type == 'PixelArray':
             attr = self.lookups.pop(-1)
             attr = attr.name
 
