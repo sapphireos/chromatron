@@ -3206,13 +3206,20 @@ class irObjectLookup(IR):
         return [self.result]
 
     def generate(self):
-        result = self.result.generate()
         target = self.target.generate()
+        result = self.result.generate()
+        lookups = [l.generate() for l in self.lookups]
 
-        print(result)
-        print(target)
+        if target.var.data_type == 'pixref' or target.var.ref.data_type == 'pixref' or target.var.ref.data_type == 'PixelArray':
+            return insPixelLookup(result, target, lookups, lineno=self.lineno)
 
-        return insNop(lineno=self.lineno)
+        # result = self.result.generate()
+        # target = self.target.generate()
+
+        # print(result)
+        # print(target)
+
+        # return insNop(lineno=self.lineno)
 
 
 class irObjectStore(IR):
@@ -3239,7 +3246,6 @@ class irObjectStore(IR):
         value = self.value.generate()
 
         if target.var.data_type == 'pixref' or target.var.ref.data_type == 'pixref' or target.var.ref.data_type == 'PixelArray':
-            # attr = self.lookups.pop(-1)
             attr = self.attr.name
 
             ins = {
@@ -3251,8 +3257,6 @@ class irObjectStore(IR):
                 # 'v_fade': insPixelStoreVFade,
             }
 
-            # indexes = [i.generate() for i in self.lookups]
-            
             try:
                 return ins[attr](target.var.ref, attr, value, lineno=self.lineno)
 
@@ -3283,10 +3287,26 @@ class irObjectLoad(IR):
         target = self.target.generate()
         value = self.value.generate()
 
-        print(target)
-        print(value)
+        if value.var.data_type == 'pixref' or value.var.ref.data_type == 'pixref' or value.var.ref.data_type == 'PixelArray':
+            attr = self.attr.name
 
-        return insNop(lineno=self.lineno)
+            ins = {
+                'hue': insPixelLoadHue,
+                # 'sat': insPixelStoreSat,
+                # 'val': insPixelStoreVal,
+                # 'pval': insPixelStorePVal,
+                # 'hs_fade': insPixelStoreHSFade,
+                # 'v_fade': insPixelStoreVFade,
+            }
+            
+            try:
+                return ins[attr](target, value.var.ref, attr, lineno=self.lineno)
+
+            except KeyError:
+                raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
+
+        raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
+
 
 
 class irObjectOp(IR):

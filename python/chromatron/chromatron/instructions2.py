@@ -1076,6 +1076,50 @@ class insIndirectCall(BaseInstruction):
 
         return bc
 
+class insPixelLookup(BaseInstruction):
+    mnemonic = 'PLOOKUP'
+
+    def __init__(self, result, pixel_array, indexes, **kwargs):
+        super().__init__(**kwargs)
+            
+        self.result = result
+        self.pixel_array = pixel_array
+        self.indexes = indexes
+
+    def __str__(self):
+        indexes = ''
+        for index in self.indexes:
+            indexes += '[%s]' % (index)
+
+        return "%s %s = %s%s" % (self.mnemonic, self.result, self.pixel_array, indexes)
+
+    def execute(self, vm):
+        pass
+        # if self.attr in vm.gfx_data:
+        #     array = vm.gfx_data[self.attr]
+
+            # index_x = 65535
+            # index_y = 65535
+
+            # if len(self.indexes) >= 1:
+            #     index_x = vm.registers[self.indexes[0].reg]
+            # if len(self.indexes) >= 2:
+            #     index_y = vm.registers[self.indexes[1].reg]
+
+            # a = vm.registers[self.value.reg]
+
+            # # most attributes will rail to 0 to 65535
+            # if a < 0:
+            #     a = 0
+            # elif a > 65535:
+            #     a = 65535
+            
+            # index = vm.calc_index(index_x, index_y)
+            # array[index] = a
+
+        # else:
+            # pixel attributes not settable in code for now
+            # assert False
     
 class insPixelStore(BaseInstruction):
     mnemonic = 'PSTORE'
@@ -1162,3 +1206,49 @@ class insPixelStoreHue(insPixelStore):
     #         # pixel attributes not settable in code for now
     #         pass 
     # 
+
+    
+class insPixelLoad(BaseInstruction):
+    mnemonic = 'PLOAD'
+
+    def __init__(self, target, pixel_array, attr, **kwargs):
+        super().__init__(**kwargs)
+        self.pixel_array = pixel_array
+        self.attr = attr
+        self.target = target
+
+    def __str__(self):
+        return "%s %s = %s.%s" % (self.mnemonic, self.target, self.pixel_array, self.attr)
+
+    def execute(self, vm):
+        pass
+        # if self.attr in vm.gfx_data:
+        #     array = vm.gfx_data[self.attr]
+
+        #     index_x = vm.memory[self.indexes[0].addr]
+        #     index_y = vm.memory[self.indexes[1].addr]
+
+        #     vm.memory[self.target.addr] = array[vm.calc_index(index_x, index_y)]
+
+        # else:
+        #     pixel_array = vm.pixel_arrays[self.pixel_array]
+
+        #     vm.memory[self.target.addr] = pixel_array[self.attr]
+
+
+    def assemble(self):
+        bc = [self.opcode]
+        bc.append(insPixelArray(self.pixel_array))
+
+        index_x = self.indexes[0]
+        bc.extend(index_x.assemble())
+        index_y = self.indexes[1]
+        bc.extend(index_y.assemble())
+
+        bc.extend(self.target.assemble())
+
+        return bc
+
+
+class insPixelLoadHue(insPixelLoad):
+    mnemonic = 'PLOAD_HUE'
