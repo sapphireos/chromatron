@@ -112,6 +112,9 @@ class Builder(object):
 
         elif isinstance(value, float):
             data_type = 'f16'
+
+            if value > 32767.0 or value < -32767.0:
+                raise SyntaxError("Fixed16 value out of range, must be between -32767.0 and 32767.0", lineno=lineno)
             
         else:
             assert False

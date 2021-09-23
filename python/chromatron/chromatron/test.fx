@@ -15,12 +15,8 @@
 
 p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-def obj_load_direct():
-    a = Fixed16()
-
-    a = p1[0].hue
-
-    return a
+def obj_store_direct():
+    p1.hue = 1.0
 
 
 # def func2():

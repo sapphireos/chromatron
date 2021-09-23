@@ -93,8 +93,10 @@ def add_reg(temp, datatype='i32', lineno=None):
 
 # return true if value fits in 16 bits
 def is_16_bits(value):
+    if isinstance(value, float):
+        value = int(value * 65536)
+
     try:
-        # TODO add support for f16
         struct.pack('h', value)
         return True
 

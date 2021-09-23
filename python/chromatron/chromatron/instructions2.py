@@ -456,7 +456,12 @@ class insLoadImmediate(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.value)
 
     def execute(self, vm):
-        vm.registers[self.dest.reg] = self.value
+        if isinstance(self.value, float):
+            value = int(self.value * 65536)
+        else:
+            value = self.value
+
+        vm.registers[self.dest.reg] = value
 
     def assemble(self):
         bc = [self.opcode]
@@ -477,7 +482,12 @@ class insLoadConst(BaseInstruction):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.value)
 
     def execute(self, vm):
-        vm.registers[self.dest.reg] = self.value
+        if isinstance(self.value, float):
+            value = int(self.value * 65536)
+        else:
+            value = self.value
+
+        vm.registers[self.dest.reg] = value
 
     def assemble(self):
         bc = [self.opcode]
