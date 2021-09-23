@@ -506,14 +506,19 @@ class Builder(object):
                 if len(target.lookups) > 0:
                     result = self.add_temp(data_type='objref', lineno=lineno)
                     result.ref = target.ref
-                    result.attr = target.attr
-                    ir = irObjectLookup(result, target, lineno=lineno)
+                    
+                    ir = irObjectLookup(result, target, lookups=target.lookups, lineno=lineno)
                     self.append_node(ir)
 
-                    ir = irObjectStore(result, value, lineno=lineno)
+                    target.lookups = []
+
+                    ir = irObjectStore(result, value, target.attr, lineno=lineno)
 
                 else:
-                    ir = irObjectStore(target, value, lineno=lineno)
+                    ir = irObjectStore(target, value, target.attr, lineno=lineno)
+
+                target.attr = None
+
             else:
                 if isinstance(value.var, varScalar):
                     raise SyntaxError(f'Cannot assign scalar to reference: {target} = {value}', lineno=lineno)

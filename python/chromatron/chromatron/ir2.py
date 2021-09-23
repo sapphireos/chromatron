@@ -3181,15 +3181,14 @@ class irVectorOp(IR):
 
 
 class irObjectLookup(IR):
-    def __init__(self, result, target, **kwargs):
+    def __init__(self, result, target, lookups=[], **kwargs):
         super().__init__(**kwargs)
         self.result = result
         self.target = target
 
         assert isinstance(self.target, varObject) or isinstance(self.target.var, varObjectRef)
     
-        self.lookups = copy(target.lookups)
-        target.lookups = []
+        self.lookups = lookups
 
     def __str__(self):
         lookups = ''
@@ -3217,24 +3216,14 @@ class irObjectLookup(IR):
 
 
 class irObjectStore(IR):
-    def __init__(self, target, value, **kwargs):
+    def __init__(self, target, value, attr, **kwargs):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
 
-        self.attr = target.attr
-        target.attr = None
-        target.lookups = []
+        self.attr = attr
 
     def __str__(self):
-        # lookups = ''
-        # for a in self.lookups:
-        #     if isinstance(a, irAttribute):
-        #         lookups += f'.{a.name}'
-
-        #     else:
-        #         lookups += f'[{a}]'
-
         return f'{self.target}.{self.attr.name} =(object) {self.value}'
 
     def get_input_vars(self):
