@@ -3262,32 +3262,22 @@ class irObjectStore(IR):
         raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
 
 class irObjectLoad(IR):
-    def __init__(self, target, value, lookups=[], **kwargs):
+    def __init__(self, target, value, attr, **kwargs):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
     
-        self.lookups = lookups
+        self.attr = attr
 
     def __str__(self):
-        lookups = ''
-        for a in self.lookups:
-            if isinstance(a, irAttribute):
-                lookups += f'.{a.name}'
-
-            else:
-                lookups += f'[{a}]'
-
-        return f'{self.target} =(object) {self.value}{lookups}'
+        return f'{self.target} =(object) {self.value}.{self.attr.name}'
 
     def get_input_vars(self):
         inputs = [self.value]
-        inputs.extend([a for a in self.lookups if not isinstance(a, irAttribute)])
         return inputs
 
     def get_output_vars(self):
         return [self.target]
-
 
     def generate(self):
         target = self.target.generate()

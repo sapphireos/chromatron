@@ -466,8 +466,25 @@ class Builder(object):
             #     ir = irObjectLoad(var, value.ref, lookups=value.lookups, lineno=lineno)
 
             # else:
-            ir = irObjectLoad(var, value, lookups=value.lookups, lineno=lineno)
-            value.lookups = []
+            if len(value.lookups) > 0:
+                result = self.add_temp(data_type='objref', lineno=lineno)
+                    
+                if value.ref:
+                    result.ref = value.ref
+
+                else:
+                    result.ref = value
+                
+                ir = irObjectLookup(result, value, lookups=value.lookups, lineno=lineno)
+                self.append_node(ir)
+
+                value.lookups = []
+                ir = irObjectLoad(var, result, value.attr, lineno=lineno)
+
+            else:
+                ir = irObjectLoad(var, value, value.attr, lineno=lineno)
+
+            value.attr = None
 
             self.append_node(ir)
 
