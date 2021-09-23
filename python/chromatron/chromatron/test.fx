@@ -15,9 +15,18 @@
 
 p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-def obj_store_direct():
-    p1[0].hue = 1
+# def obj_store_direct():
+    # p1[0].hue = 1
     # p1.hue = 1
+
+def obj_store_lookup4():
+    # pa = PixelArray()[2]
+    # pa[1] = p1
+
+    p = PixelArray()
+    # p = pa[1]
+    
+    p[2].hue = 1.0    
 
 
 

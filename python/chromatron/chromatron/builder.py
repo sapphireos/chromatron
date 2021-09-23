@@ -505,7 +505,12 @@ class Builder(object):
             if target.attr is not None:
                 if len(target.lookups) > 0:
                     result = self.add_temp(data_type='objref', lineno=lineno)
-                    result.ref = target.ref
+                    
+                    if target.ref:
+                        result.ref = target.ref
+
+                    else:
+                        result.ref = target
                     
                     ir = irObjectLookup(result, target, lookups=target.lookups, lineno=lineno)
                     self.append_node(ir)
