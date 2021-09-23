@@ -3181,23 +3181,20 @@ class irVectorOp(IR):
 
 
 class irObjectLookup(IR):
-    def __init__(self, result, target, lookups=[], **kwargs):
+    def __init__(self, result, target, **kwargs):
         super().__init__(**kwargs)
         self.result = result
         self.target = target
 
         assert isinstance(self.target, varObject) or isinstance(self.target.var, varObjectRef)
     
-        self.lookups = lookups
+        self.lookups = copy(target.lookups)
+        target.lookups = []
 
     def __str__(self):
         lookups = ''
-        for a in self.lookups:
-            if isinstance(a, irAttribute):
-                lookups += f'.{a.name}'
-
-            else:
-                lookups += f'[{a}]'
+        for a in self.lookups:    
+            lookups += f'[{a}]'
 
         return f'{self.result} <-- LOOKUP(object) {self.target}{lookups}'
 
@@ -3220,28 +3217,29 @@ class irObjectLookup(IR):
 
 
 class irObjectStore(IR):
-    def __init__(self, target, value, lookups=[], **kwargs):
+    def __init__(self, target, value, **kwargs):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
 
-        self.lookups = lookups
+        self.attr = target.attr
+        target.attr = None
         target.lookups = []
 
     def __str__(self):
-        lookups = ''
-        for a in self.lookups:
-            if isinstance(a, irAttribute):
-                lookups += f'.{a.name}'
+        # lookups = ''
+        # for a in self.lookups:
+        #     if isinstance(a, irAttribute):
+        #         lookups += f'.{a.name}'
 
-            else:
-                lookups += f'[{a}]'
+        #     else:
+        #         lookups += f'[{a}]'
 
-        return f'{self.target}{lookups} =(object) {self.value}'
+        return f'{self.target}.{self.attr.name} =(object) {self.value}'
 
     def get_input_vars(self):
         inputs = [self.value, self.target]
-        inputs.extend([a for a in self.lookups if not isinstance(a, irAttribute)])
+        # inputs.extend([a for a in self.lookups if not isinstance(a, irAttribute)])
         return inputs
 
     def get_output_vars(self):
@@ -3252,8 +3250,8 @@ class irObjectStore(IR):
         value = self.value.generate()
 
         if target.var.data_type == 'pixref' or target.var.ref.data_type == 'pixref' or target.var.ref.data_type == 'PixelArray':
-            attr = self.lookups.pop(-1)
-            attr = attr.name
+            # attr = self.lookups.pop(-1)
+            attr = self.attr.name
 
             ins = {
                 'hue': insPixelStoreHue,
@@ -3264,10 +3262,10 @@ class irObjectStore(IR):
                 # 'v_fade': insPixelStoreVFade,
             }
 
-            indexes = [i.generate() for i in self.lookups]
+            # indexes = [i.generate() for i in self.lookups]
             
             try:
-                return ins[attr](target.var.ref, attr, indexes, value, lineno=self.lineno)
+                return ins[attr](target.var.ref, attr, value, lineno=self.lineno)
 
             except KeyError:
                 raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)

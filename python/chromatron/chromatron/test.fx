@@ -15,19 +15,9 @@
 
 p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-# def obj_store_direct():
-    # p1[0].hue = 1
-
-ary = Number()[4]
-
-
-def array_vector():
-    ary = 1
-    ary += 1
-    assert ary[0] == 2
-    assert ary[1] == 2
-    assert ary[2] == 2
-    assert ary[3] == 2
+def obj_store_direct():
+    p1[0].hue = 1
+    # p1.hue = 1
 
 
 

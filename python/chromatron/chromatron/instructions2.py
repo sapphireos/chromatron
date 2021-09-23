@@ -1080,43 +1080,38 @@ class insIndirectCall(BaseInstruction):
 class insPixelStore(BaseInstruction):
     mnemonic = 'PSTORE'
 
-    def __init__(self, pixel_array, attr, indexes, value, **kwargs):
+    def __init__(self, pixel_array, attr, value, **kwargs):
         super().__init__(**kwargs)
         
         self.pixel_array = pixel_array
         self.attr = attr
-        self.indexes = indexes
         self.value = value
 
     def __str__(self):
-        indexes = ''
-        for index in self.indexes:
-            indexes += '[%s]' % (index)
-
-        return "%s %s.%s%s = %s" % (self.mnemonic, self.pixel_array, self.attr, indexes, self.value)
+        return "%s %s.%s = %s" % (self.mnemonic, self.pixel_array, self.attr, self.value)
 
     def execute(self, vm):
         if self.attr in vm.gfx_data:
             array = vm.gfx_data[self.attr]
 
-            index_x = 65535
-            index_y = 65535
+            # index_x = 65535
+            # index_y = 65535
 
-            if len(self.indexes) >= 1:
-                index_x = vm.registers[self.indexes[0].reg]
-            if len(self.indexes) >= 2:
-                index_y = vm.registers[self.indexes[1].reg]
+            # if len(self.indexes) >= 1:
+            #     index_x = vm.registers[self.indexes[0].reg]
+            # if len(self.indexes) >= 2:
+            #     index_y = vm.registers[self.indexes[1].reg]
 
-            a = vm.registers[self.value.reg]
+            # a = vm.registers[self.value.reg]
 
-            # most attributes will rail to 0 to 65535
-            if a < 0:
-                a = 0
-            elif a > 65535:
-                a = 65535
+            # # most attributes will rail to 0 to 65535
+            # if a < 0:
+            #     a = 0
+            # elif a > 65535:
+            #     a = 65535
             
-            index = vm.calc_index(index_x, index_y)
-            array[index] = a
+            # index = vm.calc_index(index_x, index_y)
+            # array[index] = a
 
         else:
             # pixel attributes not settable in code for now

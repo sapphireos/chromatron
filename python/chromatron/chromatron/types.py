@@ -255,7 +255,7 @@ class varRef(varRegister):
     #     return f'{super().__str__()} -> {self.target}'
 
 class varObjectRef(varRef):
-    def __init__(self, *args, ref=None, lookups=None, **kwargs):
+    def __init__(self, *args, ref=None, lookups=None, attr=None, **kwargs):
         super().__init__(*args, data_type=None, **kwargs)
 
         if lookups is None:
@@ -263,6 +263,7 @@ class varObjectRef(varRef):
 
         self.ref = ref
         self.lookups = lookups
+        self.attr = attr
 
     def lookup(self, indexes=[], lineno=None):
         self.lookups.extend(indexes) # add remaining indexes, if any
@@ -271,17 +272,19 @@ class varObjectRef(varRef):
     def __str__(self):
         lookups = ''
         for a in self.lookups:
-            if isinstance(a, int) or isinstance(a, VarContainer):
-                lookups += f'[{a}]'
-                
-            else:
-                lookups += f'.{a.name}'
-
+            assert isinstance(a, int) or isinstance(a, VarContainer)
+            lookups += f'[{a}]'
+              
         if self.ref is not None:
-            return f'{super().__str__()}->{self.ref}{lookups}'
+            base = f'{super().__str__()}->{self.ref}{lookups}'
 
         else:
-            return f'{super().__str__()}{lookups}'
+            base = f'{super().__str__()}{lookups}'
+
+        if self.attr is not None:
+            return f'{base}.{self.attr.name}'
+
+        return base
 
 class varFunctionRef(varRef):
     def __init__(self, *args, ref=None, **kwargs):

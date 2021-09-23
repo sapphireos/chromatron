@@ -502,14 +502,32 @@ class Builder(object):
         elif isinstance(target, VarContainer) and \
              isinstance(target.var, varObjectRef):
             
-            if len(target.lookups) > 0:
-                ir = irObjectStore(target, value, lookups=target.lookups, lineno=lineno)
+            if target.attr is not None:
+                if len(target.lookups) > 0:
+                    result = self.add_temp(data_type='objref', lineno=lineno)
+                    result.ref = target.ref
+                    result.attr = target.attr
+                    ir = irObjectLookup(result, target, lineno=lineno)
+                    self.append_node(ir)
 
+                    ir = irObjectStore(result, value, lineno=lineno)
+
+                else:
+                    ir = irObjectStore(target, value, lineno=lineno)
             else:
                 if isinstance(value.var, varScalar):
                     raise SyntaxError(f'Cannot assign scalar to reference: {target} = {value}', lineno=lineno)
 
                 ir = irAssign(target, value, lineno=lineno)
+
+            # if len(target.lookups) > 0:
+            #     ir = irObjectStore(target, value, lineno=lineno)
+
+            # else:
+            #     if isinstance(value.var, varScalar):
+            #         raise SyntaxError(f'Cannot assign scalar to reference: {target} = {value}', lineno=lineno)
+
+            #     ir = irAssign(target, value, lineno=lineno)
 
         elif isinstance(target, varArray):
             # load address to register:
@@ -694,14 +712,14 @@ class Builder(object):
         if isinstance(target, VarContainer) and isinstance(target.var, varObjectRef):
             # object access from an existing reference (ref was already loaded, such as to an array)
             # p(pixref)->None
-            target.lookups.extend(self.current_attr.pop(0))
+            target.attr = self.current_attr.pop(0)[-1]
 
             return target
 
         elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
             var = self.add_temp(data_type='objref', lineno=lineno)
             var.ref = target.ref
-            var.lookups.extend(self.current_attr.pop(0))
+            var.attr = self.current_attr.pop(0)[-1]
 
             ir = irLoad(var, target, lineno=lineno)
             self.append_node(ir)
@@ -714,7 +732,7 @@ class Builder(object):
 
             var = self.add_temp(data_type='objref', lineno=lineno)
             var.ref = target
-            var.lookups.extend(self.current_attr.pop(0))
+            var.attr = self.current_attr.pop(0)[-1]
 
             ir = irLoadRef(var, target, lineno=lineno)
             self.append_node(ir)
