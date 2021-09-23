@@ -1157,7 +1157,7 @@ class insPixelStore(BaseInstruction):
                 # array reference, this is an array set
                 for i in range(len(array)):
                     array[i] = value
-        
+
         else:
             # pixel attributes not settable in code for now
             assert False
@@ -1225,19 +1225,29 @@ class insPixelLoad(BaseInstruction):
     def execute(self, vm):
         assert self.pixel_array.name in vm.pixel_arrays
 
-        pass
-        # if self.attr in vm.gfx_data:
-        #     array = vm.gfx_data[self.attr]
+        ref = vm.registers[self.pixel_ref.reg]
 
-        #     index_x = vm.memory[self.indexes[0].addr]
-        #     index_y = vm.memory[self.indexes[1].addr]
+        if self.attr in vm.gfx_data:
+            array = vm.gfx_data[self.attr]
 
-        #     vm.memory[self.target.addr] = array[vm.calc_index(index_x, index_y)]
+            if isinstance(ref, int):
+                # if we got an index, this is an indexed access
+                value = array[ref]
 
-        # else:
-        #     pixel_ref = vm.pixel_refs[self.pixel_ref]
+            else:
+                # array reference, this is an array get
+                
+                # not quite sure how to handle this, or if we should?
+                # could be useful for some things, like, check if entire
+                # array is off (all val == 0), or something like that.
+                assert False
 
-        #     vm.memory[self.target.addr] = pixel_ref[self.attr]
+            vm.registers[self.target.reg] = value
+
+        
+        else:
+            # pixel attributes not settable in code for now
+            assert False
 
 
     def assemble(self):
