@@ -962,6 +962,22 @@ class insVectorMov(insVector):
             vm.memory[addr] = value
             addr += 1
 
+class insVectorAdd(insVector):
+    mnemonic = 'VADD'
+    op = "add"
+    symbol = "+"
+
+    def execute(self, vm):
+        value = vm.registers[self.value.reg]
+        addr = vm.registers[self.target.reg]
+
+        for i in range(self.length):
+            vm.memory[addr] += value
+
+            # coerce to int
+            vm.memory[addr] = int(vm.memory[addr])
+        
+            addr += 1
 
 
 class insAssert(BaseInstruction):

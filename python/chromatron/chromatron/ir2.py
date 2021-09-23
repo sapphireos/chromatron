@@ -3148,13 +3148,13 @@ class irVectorOp(IR):
         return []
 
     def generate(self):
-    #     ops = {
-    #         'add': insVectorAdd,
-    #         'sub': insVectorSub,
-    #         'mul': insVectorMul,
-    #         'div': insVectorDiv,
-    #         'mod': insVectorMod,
-    #     }
+        ops = {
+            'add': insVectorAdd,
+            # 'sub': insVectorSub,
+            # 'mul': insVectorMul,
+            # 'div': insVectorDiv,
+            # 'mod': insVectorMod,
+        }
 
     #     pixel_ops = {
     #         'add': insPixelVectorAdd,
@@ -3169,15 +3169,15 @@ class irVectorOp(IR):
     #         return pixel_ops[self.op](target.name, target.attr, self.value.generate(), lineno=self.lineno)
 
     #     else:
-    #         return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
+        return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
 
-        target = self.target.generate()
-        value = self.value.generate()
+        # target = self.target.generate()
+        # value = self.value.generate()
         
-        print(target)
-        print(value)
+        # print(target)
+        # print(value)
 
-        return insNop(lineno=self.lineno)
+        # return insNop(lineno=self.lineno)
 
 
 class irObjectLookup(IR):
