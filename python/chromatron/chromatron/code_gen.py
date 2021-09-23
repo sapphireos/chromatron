@@ -1118,6 +1118,8 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
             ret_val = func.run()
             print(f'VM returned: {ret_val}')
 
+        pprint.pprint(ins_program.gfx_data)
+
     return ins_program
 
     

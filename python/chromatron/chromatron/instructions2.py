@@ -203,10 +203,19 @@ class insFunc(object):
     def pixel_arrays(self):
         return self.program.pixel_arrays
 
-    def calc_index(self, x, y, pixel_array='pixels'):
+    def calc_index(self, indexes=[], pixel_array='pixels'):
         count = self.pixel_arrays[pixel_array]['count']
         size_x = self.pixel_arrays[pixel_array]['size_x']
         size_y = self.pixel_arrays[pixel_array]['size_y']
+
+        if len(indexes) == 0:
+            return 0
+
+        x = indexes[0]
+
+        y = 65535
+        if len(indexes) >= 2:
+            y = indexes[1]
 
         if y == 65535:
             i = x % count
@@ -1089,11 +1098,12 @@ class insIndirectCall(BaseInstruction):
 class insPixelLookup(BaseInstruction):
     mnemonic = 'PLOOKUP'
 
-    def __init__(self, result, pixel_array, indexes, **kwargs):
+    def __init__(self, result, pixel_ref, indexes, **kwargs):
         super().__init__(**kwargs)
             
         self.result = result
-        self.pixel_array = pixel_array
+        self.pixel_ref = pixel_ref
+        self.pixel_array = pixel_ref.var.ref
         self.indexes = indexes
 
     def __str__(self):
@@ -1101,79 +1111,60 @@ class insPixelLookup(BaseInstruction):
         for index in self.indexes:
             indexes += '[%s]' % (index)
 
-        return "%s %s = %s%s" % (self.mnemonic, self.result, self.pixel_array, indexes)
+        return "%s %s = %s%s" % (self.mnemonic, self.result, self.pixel_ref, indexes)
 
     def execute(self, vm):
-        pass
-        # if self.attr in vm.gfx_data:
-        #     array = vm.gfx_data[self.attr]
+        assert self.pixel_array.name in vm.pixel_arrays
 
-            # index_x = 65535
-            # index_y = 65535
+        indexes = []
+        for i in range(len(self.indexes)):
+            indexes.append(vm.registers[self.indexes[i].reg])
 
-            # if len(self.indexes) >= 1:
-            #     index_x = vm.registers[self.indexes[0].reg]
-            # if len(self.indexes) >= 2:
-            #     index_y = vm.registers[self.indexes[1].reg]
+        ref = vm.registers[self.pixel_ref.reg]
 
-            # a = vm.registers[self.value.reg]
+        index = vm.calc_index(indexes, ref.var.name)
 
-            # # most attributes will rail to 0 to 65535
-            # if a < 0:
-            #     a = 0
-            # elif a > 65535:
-            #     a = 65535
-            
-            # index = vm.calc_index(index_x, index_y)
-            # array[index] = a
+        vm.registers[self.result.reg] = index
 
-        # else:
-            # pixel attributes not settable in code for now
-            # assert False
-    
 class insPixelStore(BaseInstruction):
     mnemonic = 'PSTORE'
 
-    def __init__(self, pixel_array, attr, value, **kwargs):
+    def __init__(self, pixel_ref, attr, value, **kwargs):
         super().__init__(**kwargs)
         
-        self.pixel_array = pixel_array
+        self.pixel_ref = pixel_ref
+        self.pixel_array = pixel_ref.var.ref
         self.attr = attr
         self.value = value
 
     def __str__(self):
-        return "%s %s.%s = %s" % (self.mnemonic, self.pixel_array, self.attr, self.value)
+        return "%s %s.%s = %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
 
     def execute(self, vm):
+        assert self.pixel_array.name in vm.pixel_arrays
+
+        ref = vm.registers[self.pixel_ref.reg]
+        value = vm.registers[self.value.reg]
+
         if self.attr in vm.gfx_data:
             array = vm.gfx_data[self.attr]
 
-            # index_x = 65535
-            # index_y = 65535
+            if isinstance(ref, int):
+                # if we got an index, this is an indexed access
+                array[ref] = value
 
-            # if len(self.indexes) >= 1:
-            #     index_x = vm.registers[self.indexes[0].reg]
-            # if len(self.indexes) >= 2:
-            #     index_y = vm.registers[self.indexes[1].reg]
-
-            # a = vm.registers[self.value.reg]
-
-            # # most attributes will rail to 0 to 65535
-            # if a < 0:
-            #     a = 0
-            # elif a > 65535:
-            #     a = 65535
-            
-            # index = vm.calc_index(index_x, index_y)
-            # array[index] = a
-
+            else:
+                # array reference, this is an array set
+                for i in range(len(array)):
+                    array[i] = value
+        
         else:
             # pixel attributes not settable in code for now
             assert False
 
     def assemble(self):
         bc = [self.opcode]
-        bc.append(insPixelArray(self.pixel_array))
+        bc.append(insPixelArray(self.pixel_ref))
 
         index_x = self.indexes[0]
         bc.extend(index_x.assemble())
@@ -1221,16 +1212,19 @@ class insPixelStoreHue(insPixelStore):
 class insPixelLoad(BaseInstruction):
     mnemonic = 'PLOAD'
 
-    def __init__(self, target, pixel_array, attr, **kwargs):
+    def __init__(self, target, pixel_ref, attr, **kwargs):
         super().__init__(**kwargs)
-        self.pixel_array = pixel_array
+        self.pixel_ref = pixel_ref
+        self.pixel_array = pixel_ref.var.ref
         self.attr = attr
         self.target = target
 
     def __str__(self):
-        return "%s %s = %s.%s" % (self.mnemonic, self.target, self.pixel_array, self.attr)
+        return "%s %s = %s.%s" % (self.mnemonic, self.target, self.pixel_ref, self.attr)
 
     def execute(self, vm):
+        assert self.pixel_array.name in vm.pixel_arrays
+
         pass
         # if self.attr in vm.gfx_data:
         #     array = vm.gfx_data[self.attr]
@@ -1241,14 +1235,14 @@ class insPixelLoad(BaseInstruction):
         #     vm.memory[self.target.addr] = array[vm.calc_index(index_x, index_y)]
 
         # else:
-        #     pixel_array = vm.pixel_arrays[self.pixel_array]
+        #     pixel_ref = vm.pixel_refs[self.pixel_ref]
 
-        #     vm.memory[self.target.addr] = pixel_array[self.attr]
+        #     vm.memory[self.target.addr] = pixel_ref[self.attr]
 
 
     def assemble(self):
         bc = [self.opcode]
-        bc.append(insPixelArray(self.pixel_array))
+        bc.append(insPixelArray(self.pixel_ref))
 
         index_x = self.indexes[0]
         bc.extend(index_x.assemble())

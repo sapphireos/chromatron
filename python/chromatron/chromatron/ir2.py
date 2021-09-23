@@ -3212,7 +3212,10 @@ class irObjectLookup(IR):
         result = self.result.generate()
         lookups = [l.generate() for l in self.lookups]
 
-        if target.var.data_type == 'pixref' or target.var.ref.data_type == 'pixref' or target.var.ref.data_type == 'PixelArray':
+        if target.var.data_type == 'pixref' or \
+           target.var.ref.data_type == 'pixref' or \
+           target.var.ref.data_type == 'PixelArray':
+
             return insPixelLookup(result, target, lookups, lineno=self.lineno)
 
         # result = self.result.generate()
@@ -3237,7 +3240,6 @@ class irObjectStore(IR):
 
     def get_input_vars(self):
         inputs = [self.value, self.target]
-        # inputs.extend([a for a in self.lookups if not isinstance(a, irAttribute)])
         return inputs
 
     def get_output_vars(self):
@@ -3247,7 +3249,10 @@ class irObjectStore(IR):
         target = self.target.generate()
         value = self.value.generate()
 
-        if target.var.data_type == 'pixref' or target.var.ref.data_type == 'pixref' or target.var.ref.data_type == 'PixelArray':
+        if target.var.data_type == 'pixref' or \
+           target.var.ref.data_type == 'pixref' or \
+           target.var.ref.data_type == 'PixelArray':
+
             attr = self.attr.name
 
             ins = {
@@ -3260,7 +3265,7 @@ class irObjectStore(IR):
             }
 
             try:
-                return ins[attr](target.var.ref, attr, value, lineno=self.lineno)
+                return ins[attr](target.var, attr, value, lineno=self.lineno)
 
             except KeyError:
                 raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
@@ -3289,7 +3294,10 @@ class irObjectLoad(IR):
         target = self.target.generate()
         value = self.value.generate()
 
-        if value.var.data_type == 'pixref' or value.var.ref.data_type == 'pixref' or value.var.ref.data_type == 'PixelArray':
+        if value.var.data_type == 'pixref' or \
+           value.var.ref.data_type == 'pixref' or \
+           value.var.ref.data_type == 'PixelArray':
+
             attr = self.attr.name
 
             ins = {
@@ -3302,7 +3310,7 @@ class irObjectLoad(IR):
             }
             
             try:
-                return ins[attr](target, value.var.ref, attr, lineno=self.lineno)
+                return ins[attr](target, value.var, attr, lineno=self.lineno)
 
             except KeyError:
                 raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
