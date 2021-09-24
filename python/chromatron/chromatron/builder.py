@@ -291,16 +291,16 @@ class Builder(object):
 
         self.structs[name] = ir
 
-    def add_string(self, string, lineno=None):
-        try:
-            var = self.strings[string]
+    # def add_string(self, string, lineno=None):
+    #     try:
+    #         var = self.strings[string]
 
-        except KeyError:
-            var = varStringLiteral(string=string, lineno=lineno)
+    #     except KeyError:
+    #         var = varStringLiteral(string=string, lineno=lineno)
 
-            self.strings[string] = var
+    #         self.strings[string] = var
 
-        return var
+    #     return var
 
     def generic_object(self, name, data_type, kw={}, lineno=None):
         var = self.declare_var(name, data_type, keywords=kw, lineno=lineno)
