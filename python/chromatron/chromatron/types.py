@@ -248,20 +248,21 @@ class varFunction(varObject):
         return 1
 
 class varRef(varRegister):
-    def __init__(self, *args, data_type='ref', **kwargs):
+    def __init__(self, *args, ref=None, data_type='ref', **kwargs):
         super().__init__(*args, data_type=data_type, **kwargs)
+
+        self.ref = ref
 
     # def __str__(self):
     #     return f'{super().__str__()} -> {self.target}'
 
 class varObjectRef(varRef):
-    def __init__(self, *args, ref=None, lookups=None, attr=None, **kwargs):
+    def __init__(self, *args, lookups=None, attr=None, **kwargs):
         super().__init__(*args, data_type=None, **kwargs)
 
         if lookups is None:
             lookups = []
 
-        self.ref = ref
         self.lookups = lookups
         self.attr = attr
 
@@ -287,9 +288,8 @@ class varObjectRef(varRef):
         return base
 
 class varFunctionRef(varRef):
-    def __init__(self, *args, ref=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='funcref', **kwargs)
-        self.ref = ref
         self.ret_type = 'var'
 
 class varArray(varComposite):

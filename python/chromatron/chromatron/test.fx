@@ -13,22 +13,12 @@
 # b = Number()
 
 
-p1 = PixelArray(2, 12, size_x=3, size_y=4)
+# p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
 # def obj_store_direct():
-#     p1.hue = 1
-#     p1[1].hue = 2
+    # p1[0].hue = 1
+    # p1.hue = 1
 
-
-def obj_load_direct():
-    a = Fixed16()
-
-    p1.hue = 1
-    p1[1].hue = 2
-
-    a = p1[1].hue
-
-    return a
 
 # def func2():
 #     # b = Number()
@@ -152,12 +142,12 @@ def obj_load_direct():
 # Link system:
 # change to system library call.
 
-# s = String("hello!")
+s = String("hello!")
 
 # # # a = Number()[4]
 # # # def obj(a: Number):
 # # a = Number()
-# def obj():
+def obj():
     
 #     b = Number()
 # #     # b += 1
@@ -171,8 +161,10 @@ def obj_load_direct():
 
 # #     return a
 
-#     s2 = String()
-#     s2 = s
+    s2 = String()
+    s2 = s
+
+    return s
 
 #     b = s2.len
 
