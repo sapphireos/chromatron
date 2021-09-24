@@ -1103,7 +1103,6 @@ class insPixelLookup(BaseInstruction):
             
         self.result = result
         self.pixel_ref = pixel_ref
-        self.pixel_array = pixel_ref.var.ref
         self.indexes = indexes
 
     def __str__(self):
@@ -1114,13 +1113,12 @@ class insPixelLookup(BaseInstruction):
         return "%s %s = %s%s" % (self.mnemonic, self.result, self.pixel_ref, indexes)
 
     def execute(self, vm):
-        assert self.pixel_array.name in vm.pixel_arrays
-
         indexes = []
         for i in range(len(self.indexes)):
             indexes.append(vm.registers[self.indexes[i].reg])
 
         ref = vm.registers[self.pixel_ref.reg]
+        assert ref.var.name in vm.pixel_arrays
 
         index = vm.calc_index(indexes, ref.var.name)
 
@@ -1133,7 +1131,6 @@ class insPixelStore(BaseInstruction):
         super().__init__(**kwargs)
         
         self.pixel_ref = pixel_ref
-        self.pixel_array = pixel_ref.var.ref
         self.attr = attr
         self.value = value
 
@@ -1141,8 +1138,6 @@ class insPixelStore(BaseInstruction):
         return "%s %s.%s = %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
 
     def execute(self, vm):
-        assert self.pixel_array.name in vm.pixel_arrays
-
         ref = vm.registers[self.pixel_ref.reg]
         value = vm.registers[self.value.reg]
 
@@ -1215,7 +1210,6 @@ class insPixelLoad(BaseInstruction):
     def __init__(self, target, pixel_ref, attr, **kwargs):
         super().__init__(**kwargs)
         self.pixel_ref = pixel_ref
-        self.pixel_array = pixel_ref.var.ref
         self.attr = attr
         self.target = target
 
@@ -1223,8 +1217,6 @@ class insPixelLoad(BaseInstruction):
         return "%s %s = %s.%s" % (self.mnemonic, self.target, self.pixel_ref, self.attr)
 
     def execute(self, vm):
-        assert self.pixel_array.name in vm.pixel_arrays
-
         ref = vm.registers[self.pixel_ref.reg]
 
         if self.attr in vm.gfx_data:
@@ -1240,7 +1232,7 @@ class insPixelLoad(BaseInstruction):
                 # not quite sure how to handle this, or if we should?
                 # could be useful for some things, like, check if entire
                 # array is off (all val == 0), or something like that.
-                assert False
+                raise CompilerFatal(f'Load from entire array!')
 
             vm.registers[self.target.reg] = value
 

@@ -277,7 +277,7 @@ def obj_load_lookup():
     
     a = Fixed16()
 
-    a = p.hue
+    a = p[1].hue
 
     return a
 
