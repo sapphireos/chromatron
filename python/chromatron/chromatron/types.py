@@ -384,31 +384,37 @@ class varStruct(varComposite):
 
         return 0, self
 
-class varStringLiteral(varComposite):
-    def __init__(self, *args, string=None, max_length=None, **kwargs):
-        super().__init__(*args, data_type='strlit', **kwargs)
+class varString(varComposite):
+    def __init__(self, *args, string='', max_length=None, **kwargs):
+        super().__init__(*args, data_type='str', **kwargs)
 
-        if string is not None:
-            self.value = string
-            self.max_length = len(string)
+        # if string is not None:
+        #     self.value = string
+        #     self.max_length = len(string)
 
-        else:
-            assert max_length is not None
-            self.value = '\0' * max_length
-            self.max_length = max_length
+        # else:
+        #     assert max_length is not None
+        #     self.value = '\0' * max_length
+        #     self.max_length = max_length
 
-        self._size = int(((self.max_length - 1) / 4) + 2) # space for characters + 32 bit length
+        # self._size = int(((self.max_length - 1) / 4) + 2) # space for characters + 32 bit length
 
     def __str__(self):
-        return f'String("{self.value}"[{self.max_length}])'
+        # return f'String("{self.value}"[{self.max_length}])'
+        # return f'String("{self.init_val}")'
+        return f'{self.ssa_name}("{self.init_val}")'
 
     @property
     def size(self):
-        return self._size
+        strlen = len(self.init_val)
 
-class varString(varRef):
+        return int(((strlen - 1) / 4) + 2) # space for characters + 32 bit length
+
+    #     return self._size
+
+class varStringRef(varRef):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, data_type='str', **kwargs)
+        super().__init__(*args, data_type='strref', **kwargs)
 
 
 _BASE_TYPES = {
@@ -419,6 +425,7 @@ _BASE_TYPES = {
     'f16': varFixed16(),
     'Fixed16': varFixed16(),
     'str': varString(),
+    'strref': varStringRef(),
     'obj': varObject(),
     'objref': varObjectRef(),
     'pixref': varObjectRef(),

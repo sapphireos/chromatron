@@ -702,24 +702,27 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1DeclareVar(type="funcref", keywords=keywords, lineno=node.lineno)
 
     def _handle_String(self, node):
-        keywords = {}
-        for kw in node.keywords:
-            keywords[kw.arg] = kw.value.value
+        if len(node.args) > 0 or len(node.keywords) > 0:
+            keywords = {}
+            for kw in node.keywords:
+                keywords[kw.arg] = kw.value.value
 
-        if len(node.args) == 0:
-            keywords['length'] = 1
-            keywords['init_val'] = cg1StrLiteral('\0', lineno=node.lineno)
-
-        else:
-            if isinstance(node.args[0], ast.Str):
-                keywords['length'] = len(node.args[0].s)
-                keywords['init_val'] = self.visit(node.args[0])
+            if len(node.args) == 0:
+                keywords['length'] = 1
+                keywords['init_val'] = cg1StrLiteral('\0', lineno=node.lineno)
 
             else:
-                keywords['length'] = node.args[0].n
-                keywords['init_val'] = cg1StrLiteral('\0' * keywords['length'], lineno=node.lineno)
+                if isinstance(node.args[0], ast.Str):
+                    keywords['length'] = len(node.args[0].s)
+                    keywords['init_val'] = self.visit(node.args[0])
 
-        return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
+                else:
+                    keywords['length'] = node.args[0].n
+                    keywords['init_val'] = cg1StrLiteral('\0' * keywords['length'], lineno=node.lineno)
+
+            return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
+
+        return cg1DeclareVar(type="strref", lineno=node.lineno)
 
     # def _handle_Array(self, node):
     #     dims = [a.n for a in node.args]
