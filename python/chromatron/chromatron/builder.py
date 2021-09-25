@@ -391,7 +391,13 @@ class Builder(object):
         self.append_node(label)
 
     def call(self, func_name, params, lineno=None):
-        if func_name in self.funcs:
+        if func_name == 'print':
+            ir = irPrint(params[0], lineno=lineno)
+            self.append_node(ir)
+
+            return
+
+        elif func_name in self.funcs:
             func = self.funcs[func_name]
             indirect = False
 

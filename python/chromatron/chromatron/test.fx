@@ -143,40 +143,33 @@
 # Link system:
 # change to system library call.
 
-ary = Number()[4]
+s = String("hello!")
+s1 = String(32)
 
-def array_lookup():
-    # b = Number()
-    ary[0] = 1
-    # b = 1
-    ary[0] = 2
-
-
-# s = String("hello!")
-# s1 = String(32)
-
-# # # # a = Number()[4]
-# # # # def obj(a: Number):
-# # # a = Number()
-# def obj():
+# # # a = Number()[4]
+# # # def obj(a: Number):
+# # a = Number()
+def obj():
     
-# # #     b = Number()
-# # # #     # b += 1
+# #     b = Number()
+# # #     # b += 1
 
-# # # #     # if True:
-# # # #         # a = Number()
-# # # #         # a = 4
+# # #     # if True:
+# # #         # a = Number()
+# # #         # a = 4
 
-# # # #     a += 4
+# # #     a += 4
 
 
-# # # #     return a
+# # #     return a
 
-#     s2 = String()
-#     # s2 = s1
-#     s2 = "meow"
+    s2 = String()
+    # s2 = s1
+    s2 = "meow"
 
-#     return s2
+    print(s2)
+
+    # return s2
 
 #     b = s2.len
 

@@ -1061,6 +1061,26 @@ class insAssert(BaseInstruction):
         
         return bc
 
+class insPrint(BaseInstruction):
+    mnemonic = 'PRINT'
+
+    def __init__(self, op1, **kwargs):
+        super().__init__(**kwargs)
+        self.op1 = op1
+
+    def __str__(self):
+        return "%s %s" % (self.mnemonic, self.op1)
+
+    def execute(self, vm):
+        value = vm.registers[self.op1.reg]
+
+        print(self.op1)
+            
+    def assemble(self):
+        bc = [self.opcode]
+        bc.extend(self.op1.assemble())
+        
+        return bc
 
 class insCall(BaseInstruction):
     mnemonic = 'CALL'

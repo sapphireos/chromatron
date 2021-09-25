@@ -4094,9 +4094,25 @@ class irAttribute(IR):
         return "Attr(%s)" % (self.name)
 
 
+class irPrint(IR):
+    def __init__(self, value, **kwargs):
+        super().__init__(**kwargs)        
+        self.value = value
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def __str__(self):
+        s = 'PRINT %s' % (self.value)
+
+        return s   
+
+    def generate(self):
+        return insPrint(self.value.generate(), lineno=self.lineno)
+
 class irAssert(IR):
     def __init__(self, value, **kwargs):
-        super(irAssert, self).__init__(**kwargs)        
+        super().__init__(**kwargs)        
         self.value = value
 
     def get_input_vars(self):
