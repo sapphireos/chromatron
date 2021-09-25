@@ -400,17 +400,27 @@ class varString(varComposite):
         # self._size = int(((self.max_length - 1) / 4) + 2) # space for characters + 32 bit length
 
     def __str__(self):
-        # return f'String("{self.value}"[{self.max_length}])'
-        # return f'String("{self.init_val}")'
-        return f'{self.ssa_name}("{self.init_val}")'
+        if self.init_val[0] == '\0':
+            s_val = f'<Empty {len(self.init_val)} chars>'
+
+        else:
+            s_val = self.init_val
+
+        if self.addr is None:
+            return f'{self.ssa_name}("{s_val}")'
+
+        else:
+            return f'{self.ssa_name}("{s_val}")@0x{self.addr}'
+
+    @property
+    def strlen(self):
+        return len(self.init_val)
 
     @property
     def size(self):
         strlen = len(self.init_val)
 
         return int(((strlen - 1) / 4) + 2) # space for characters + 32 bit length
-
-    #     return self._size
 
 class varStringRef(varRef):
     def __init__(self, *args, **kwargs):
