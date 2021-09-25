@@ -164,8 +164,8 @@ def obj():
 # # #     return a
 
     s2 = String()
-    s2 = s1
-    # s2 = "meow"
+    # s2 = s1
+    s2 = "meow"
 
     return s2
 

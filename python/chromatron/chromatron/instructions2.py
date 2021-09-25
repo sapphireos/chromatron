@@ -153,7 +153,7 @@ class insProgram(object):
         pass
 
 class insFunc(object):
-    def __init__(self, name, params=[], code=[], source_code=[], local_size=None, register_count=None, return_stack=[], lineno=None):
+    def __init__(self, name, params=[], code=[], source_code=[], local_vars=None, register_count=None, return_stack=[], lineno=None):
         self.name = name
         self.params = params
         self.code = code
@@ -164,7 +164,7 @@ class insFunc(object):
         self.registers = None
         self.memory = None
         self.locals = None
-        self.local_size = local_size
+        self.local_vars = local_vars
         self.return_val = None
         self.program = None
         self.return_stack = return_stack
@@ -289,7 +289,11 @@ class insFunc(object):
                 labels[ins.name] = i
 
         self.registers = [0] * self.register_count
-        self.locals = [0] * self.local_size
+        
+        self.locals = []
+        for l in self.local_vars:
+            self.locals.extend(l.assemble())
+
         registers = self.registers # just makes debugging a bit easier
         memory = self.memory
         local = self.locals

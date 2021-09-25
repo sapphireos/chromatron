@@ -1,4 +1,5 @@
 
+import struct
 from copy import deepcopy
 
 from .exceptions import *
@@ -74,7 +75,6 @@ class VarContainer(object):
 
         else:
             setattr(self.var, name, value)
-
 
     def generate(self):
         if self.reg is None:
@@ -185,6 +185,9 @@ class Var(object):
             raise CompilerFatal(f"{self} does not have an address. Line: {self.lineno}")
 
         return insAddr(self.addr, self)
+
+    def assemble(self):
+        return [0]
 
 class varRegister(Var):
     def __init__(self, *args, **kwargs):
@@ -399,6 +402,25 @@ class varString(varComposite):
 
         # self._size = int(((self.max_length - 1) / 4) + 2) # space for characters + 32 bit length
 
+        self._init_val = None
+        self.padding = None
+
+    @property
+    def init_val(self):
+        return self._init_val
+
+    @init_val.setter
+    def init_val(self, value):
+        if value is None:
+            value = '\0'
+
+        # pad to 32 bits:
+        self.padding = 4 - len(value) % 4
+        if self.padding == 4:
+            self.padding = 0
+
+        self._init_val = value + '\0' * self.padding
+
     def __str__(self):
         if self.init_val[0] == '\0':
             s_val = f'<Empty {len(self.init_val)} chars>'
@@ -419,6 +441,21 @@ class varString(varComposite):
     @property
     def size(self):
         return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
+
+    def assemble(self):
+        a = [self.strlen]
+
+        i = 0
+        while i < self.strlen:
+            s = self.init_val[i:i + 4].encode()
+                
+            v = struct.pack('4s', s)
+            a.append(v)
+
+            i += 4
+
+
+        return a
 
 class varStringRef(varRef):
     def __init__(self, *args, **kwargs):
