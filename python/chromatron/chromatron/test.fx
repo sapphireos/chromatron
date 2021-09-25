@@ -139,21 +139,28 @@
 # generic objects could be provided by the VM and discovered dynamically.
 
 
+
+def sub(a: Number, b: Number) -> Number:
+    return a - b
+
+
+def func_indirect_call():
+    f = Function()
+    f = sub
+
+    assert f(1, 2) == -1
+
+
+
 # Link system:
 # change to system library call.
 
-
-ary = Number()[4]
-
-def array_lookup():
-    ary = 1
-    
 # s = String("hello!")
 # s1 = String(32)
 
-# # # # a = Number()[4]
-# # # # def obj(a: Number):
-# # # a = Number()
+# # # a = Number()[4]
+# # # def obj(a: Number):
+# # a = Number()
 # def obj():
     
 # #     b = Number()
@@ -169,9 +176,10 @@ def array_lookup():
 # # #     return a
 
 #     s2 = String()
-#     s2 = s
+#     # s2 = s1
+#     s2 = "meow"
 
-#     return s
+#     return s2
 
 #     b = s2.len
 

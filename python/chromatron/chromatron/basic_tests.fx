@@ -306,3 +306,19 @@ def obj_load_lookup4():
     a = p[2].hue
 
     return a
+
+
+string = String("hello!")
+string2 = String(32)
+
+def load_string():
+    s = String()
+    s = string
+
+    return s
+
+def load_string2():
+    s = String()
+    s = string2
+    
+    return s

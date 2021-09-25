@@ -121,7 +121,7 @@ class cg1DeclareStr(cg1DeclarationBase):
         super(cg1DeclareStr, self).__init__(**kwargs)
 
     def build(self, builder, **kwargs):    
-        self.keywords['init_val'] = self.keywords['init_val'].build(builder)
+        # self.keywords['init_val'] = self.keywords['init_val'].build(builder)
 
         super(cg1DeclareStr, self).build(builder, **kwargs)
 
@@ -610,8 +610,8 @@ class cg1StrLiteral(cg1CodeNode):
         self.s = s
 
     def build(self, builder):
-        # return builder.add_string(self.s, lineno=self.lineno)
-        return self.s
+        return builder.add_string(self.s, lineno=self.lineno)
+        # return self.s
 
 
 class CodeGenPass1(ast.NodeVisitor):
@@ -709,16 +709,16 @@ class CodeGenPass1(ast.NodeVisitor):
 
             if len(node.args) == 0:
                 keywords['length'] = 1
-                keywords['init_val'] = cg1StrLiteral('\0', lineno=node.lineno)
+                keywords['init_val'] = '\0'
 
             else:
                 if isinstance(node.args[0], ast.Str):
                     keywords['length'] = len(node.args[0].s)
-                    keywords['init_val'] = self.visit(node.args[0])
+                    keywords['init_val'] = node.args[0].s
 
                 else:
                     keywords['length'] = node.args[0].n
-                    keywords['init_val'] = cg1StrLiteral('\0' * keywords['length'], lineno=node.lineno)
+                    keywords['init_val'] = '\0' * keywords['length']
 
             return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
 

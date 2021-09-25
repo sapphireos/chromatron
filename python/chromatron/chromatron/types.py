@@ -177,7 +177,7 @@ class Var(object):
         else:
             return f'{self.ssa_name}({self.data_type})@0x{self.addr}'
 
-    def lookup(self, index, lineno=None):
+    def lookup(self, indexes=[], lineno=None):
         return self
 
     def generate(self):

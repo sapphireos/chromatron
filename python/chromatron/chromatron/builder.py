@@ -291,7 +291,8 @@ class Builder(object):
 
         self.structs[name] = ir
 
-    # def add_string(self, string, lineno=None):
+    def add_string(self, string, lineno=None):
+        return self.declare_var(f'_str_{string}', 'str', keywords={'init_val': string}, lineno=lineno)
     #     try:
     #         var = self.strings[string]
 
@@ -303,10 +304,8 @@ class Builder(object):
     #     return var
 
     def generic_object(self, name, data_type, kw={}, lineno=None):
-        var = self.declare_var(name, data_type, keywords=kw, lineno=lineno)
+        return self.declare_var(name, data_type, keywords=kw, lineno=lineno)
 
-        return var
-        
     def push_symbol_table(self):
         sym = SymbolTable(self.symbol_tables[0])
         self.symbol_tables.insert(0, sym)
@@ -493,10 +492,21 @@ class Builder(object):
 
             return var
 
-        elif isinstance(value, varComposite):
+        elif isinstance(value, varObject):
             var = self.add_temp(data_type='ref', lineno=lineno)
             ir = irLoadRef(var, value, lineno=lineno)
+            self.append_node(ir)
+            
+            return var
 
+        elif isinstance(value, varComposite):
+            # var = self.add_temp(data_type='ref', lineno=lineno)
+            # ir = irLoadRef(var, value, lineno=lineno)
+            
+            var = self.add_temp(data_type='offset', lineno=lineno)
+            var.ref = value.lookup()
+
+            ir = irLookup(var, value, lineno=lineno)
             self.append_node(ir)
             
             return var
