@@ -322,3 +322,9 @@ def load_string2():
     s = string2
     
     return s
+
+def load_string_literal():
+    s = String()
+    s = "meow"
+    
+    return s

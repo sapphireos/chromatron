@@ -418,9 +418,7 @@ class varString(varComposite):
 
     @property
     def size(self):
-        strlen = len(self.init_val)
-
-        return int(((strlen - 1) / 4) + 2) # space for characters + 32 bit length
+        return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
 
 class varStringRef(varRef):
     def __init__(self, *args, **kwargs):

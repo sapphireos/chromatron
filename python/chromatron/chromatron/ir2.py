@@ -4058,21 +4058,24 @@ class irLookup(IR):
         counts = []
         strides = []
 
-        target = self.target
-
         for i in range(len(self.lookups)):
             try:
-                count = target.length
+                count = self.target.length
 
             except IndexError:
 
-                raise SyntaxError(f'{target.basename} has only {len(target.dimensions)} dimensions, requested {len(self.lookups)}', lineno=self.lineno)
+                raise SyntaxError(f'{self.target.basename} has only {len(self.target.dimensions)} dimensions, requested {len(self.lookups)}', lineno=self.lineno)
 
             counts.append(count)
-            strides.append(target.stride)
-            target = target.element
-    
-        return insLookup(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+            strides.append(self.target.stride)
+            self.target = self.target.element
+
+        if self.target.is_global:    
+            return insLookupGlobal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+
+        else:
+            return insLookupLocal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+
 
 class irAttribute(IR):
     def __init__(self, name, **kwargs):

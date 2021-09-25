@@ -292,7 +292,8 @@ class Builder(object):
         self.structs[name] = ir
 
     def add_string(self, string, lineno=None):
-        return self.declare_var(f'_str_{string}', 'str', keywords={'init_val': string}, lineno=lineno)
+        var = self.declare_var(f'_str_{string}', 'str', keywords={'init_val': string}, lineno=lineno)
+        return var.var
     #     try:
     #         var = self.strings[string]
 
@@ -502,7 +503,7 @@ class Builder(object):
         elif isinstance(value, varComposite):
             # var = self.add_temp(data_type='ref', lineno=lineno)
             # ir = irLoadRef(var, value, lineno=lineno)
-            
+
             var = self.add_temp(data_type='offset', lineno=lineno)
             var.ref = value.lookup()
 

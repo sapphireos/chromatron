@@ -140,28 +140,16 @@
 
 
 
-def sub(a: Number, b: Number) -> Number:
-    return a - b
-
-
-def func_indirect_call():
-    f = Function()
-    f = sub
-
-    assert f(1, 2) == -1
-
-
-
 # Link system:
 # change to system library call.
 
-# s = String("hello!")
-# s1 = String(32)
+s = String("hello!")
+s1 = String(32)
 
 # # # a = Number()[4]
 # # # def obj(a: Number):
 # # a = Number()
-# def obj():
+def obj():
     
 # #     b = Number()
 # # #     # b += 1
@@ -175,11 +163,11 @@ def func_indirect_call():
 
 # # #     return a
 
-#     s2 = String()
-#     # s2 = s1
-#     s2 = "meow"
+    s2 = String()
+    s2 = s1
+    # s2 = "meow"
 
-#     return s2
+    return s2
 
 #     b = s2.len
 
