@@ -341,6 +341,9 @@ class varArray(varComposite):
 
         return self
 
+    def assemble(self):
+        return [0] * self.size
+
 class varStruct(varComposite):
     def __init__(self, *args, fields={}, **kwargs):
         super().__init__(*args, **kwargs)
