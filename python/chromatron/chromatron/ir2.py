@@ -3245,8 +3245,7 @@ class irObjectStore(IR):
         return f'{self.target}.{self.attr.name} =(object) {self.value}'
 
     def get_input_vars(self):
-        inputs = [self.value, self.target]
-        return inputs
+        return [self.value, self.target]
 
     def get_output_vars(self):
         return []
@@ -3290,8 +3289,7 @@ class irObjectLoad(IR):
         return f'{self.target} =(object) {self.value}.{self.attr.name}'
 
     def get_input_vars(self):
-        inputs = [self.value]
-        return inputs
+        return [self.value]
 
     def get_output_vars(self):
         return [self.target]
@@ -3324,40 +3322,48 @@ class irObjectLoad(IR):
         raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
 
 
-
 class irObjectOp(IR):
-    def __init__(self, op, target, value, lookups=[], **kwargs):
+    def __init__(self, op, target, value, attr, **kwargs):
         super().__init__(**kwargs)
         self.op = op
         self.target = target
         self.value = value
+        self.attr = attr
 
-        self.lookups = lookups
-        
     def __str__(self):
-        lookups = ''
-        for a in self.lookups:
-            if isinstance(a, irAttribute):
-                lookups += f'.{a.name}'
-
-            else:
-                lookups += f'[{a}]'
-
-        return f'{self.target}{lookups} {self.op}=(object) {self.value}'
+        return f'{self.target}.{self.attr.name} {self.op}=(object) {self.value}'
 
     def get_input_vars(self):
-        inputs = [self.value]
-        inputs.extend([a for a in self.lookups if not isinstance(a, irAttribute)])
-        return inputs
+        return [self.value, self.target]
 
     def get_output_vars(self):
         return []
 
     def generate(self):
-        # target = self.target.generate()
-        # value = self.value.generate()
+        target = self.target.generate()
+        value = self.value.generate()
 
-        return insNop(lineno=self.lineno)
+        if target.var.data_type == 'pixref' or \
+           target.var.ref.data_type == 'pixref' or \
+           target.var.ref.data_type == 'PixelArray':
+
+            attr = self.attr.name
+
+            ins = {
+                'hue': {
+                    'add': insPixelAddHue,
+
+                }
+            }
+            
+            try:
+                return ins[attr][self.op](target, attr, value, lineno=self.lineno)
+                
+            except KeyError:
+                raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
+
+        raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
+
 
 # Load constant to register
 class irLoadConst(IR):

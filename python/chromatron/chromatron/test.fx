@@ -1,17 +1,5 @@
 
 
-ary = Number()[4]
-
-def array_lookup():
-    ary[0] = 1
-
-    local_ary = Number()[4]
-
-    local_ary[0] = 2
-
-    assert ary[0] == 1
-    assert local_ary[0] == 2
-
 # s = String("hello!")
 # s1 = String(32)
 
@@ -38,10 +26,10 @@ def array_lookup():
 # b = Number()
 
 
-# p1 = PixelArray(2, 12, size_x=3, size_y=4)
+p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-# def obj_store_direct():
-    # p1[0].hue = 1
+def obj_store_direct():
+    p1[0].hue += 1
     # p1.hue = 1
 
 

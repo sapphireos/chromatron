@@ -622,8 +622,25 @@ class Builder(object):
             self.append_node(ir)
 
         elif target.data_type == 'objref':
-            ir = irObjectOp(op, target.ref, value, target.lookups, lineno=lineno)
-            self.append_node(ir)
+            if len(target.lookups) > 0:
+                result = self.add_temp(data_type='objref', lineno=lineno)
+                
+                if target.ref:
+                    result.ref = target.ref
+
+                else:
+                    result.ref = target
+                
+                ir = irObjectLookup(result, target, lookups=target.lookups, lineno=lineno)
+                self.append_node(ir)
+
+                target.lookups = []
+
+                ir = irObjectOp(op, result, value, target.attr, lineno=lineno)
+                self.append_node(ir)
+
+            else:
+                assert False
 
         else:
             result = self.binop(op, target, value, lineno=lineno)
