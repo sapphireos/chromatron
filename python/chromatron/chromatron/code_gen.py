@@ -1127,7 +1127,12 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
         pprint.pprint(ins_program.gfx_data)
 
-    return ins_program
+        image = ins_program.assemble()
+        print(image)
+
+
+    # return ins_program
+    return
 
     
     

@@ -23,7 +23,7 @@
 import logging
 from catbus import *
 from sapphire.common import catbus_string_hash
-# import numpy as np
+from .image import FXImage
 
 from .exceptions import *
 
@@ -150,7 +150,13 @@ class insProgram(object):
         return self.funcs[func].run()
 
     def assemble(self):
-        pass
+        bytecode = {}
+
+        for func in self.funcs.values():
+            bytecode[func] = func.assemble()
+
+        return FXImage(self, bytecode)
+
 
 class insFunc(object):
     def __init__(self, name, params=[], code=[], source_code=[], local_vars=None, register_count=None, return_stack=[], lineno=None):
@@ -352,7 +358,7 @@ class insFunc(object):
                 raise AssertionError(msg)
 
     def assemble(self):
-        pass
+        return []
 
 
 class BaseInstruction(object):
