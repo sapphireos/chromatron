@@ -640,7 +640,9 @@ class Builder(object):
                 self.append_node(ir)
 
             else:
-                assert False
+
+                ir = irObjectOp(op, target, value, target.attr, lineno=lineno)
+                self.append_node(ir)
 
         else:
             result = self.binop(op, target, value, lineno=lineno)
