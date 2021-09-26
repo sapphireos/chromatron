@@ -4166,8 +4166,11 @@ class irCall(irCallType):
 
         stack.insert(0, self.target)
 
+        target = self.target.generate()
+        result = self.result.generate()
+
         # call func
-        call_ins = insCall(self.target.generate(), params, self.result.generate(), lineno=self.lineno)
+        call_ins = insCall(target, params, result, lineno=self.lineno)
 
         stack.pop(0)
 

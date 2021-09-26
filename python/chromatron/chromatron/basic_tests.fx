@@ -218,6 +218,8 @@ def func_indirect_call_array():
     assert f[0](1, 2) == -1
     assert f[1](1, 2) == 3
 
+def func_call_throwaway_return():
+    add(1, 2)
 
 p1 = PixelArray(2, 12, size_x=3, size_y=4)
 

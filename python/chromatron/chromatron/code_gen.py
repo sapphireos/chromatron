@@ -1118,9 +1118,12 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         raise e
 
     if ins_program:
-        for func in ins_program.funcs.values():
-            ret_val = func.run()
-            print(f'VM returned: {ret_val}')
+        # for func in ins_program.funcs.values():
+        #     ret_val = func.run()
+        #     print(f'VM returned: {ret_val}')
+
+        ret_val = ins_program.funcs['stuff'].run()
+        print(f'VM returned: {ret_val}')
 
         pprint.pprint(ins_program.gfx_data)
 

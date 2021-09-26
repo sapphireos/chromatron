@@ -32,6 +32,9 @@ def obj_store_direct():
     # p1[0].hue += 1
     p1.hue += 1
 
+def stuff():
+    obj_store_direct()
+
 
 # def func2():
 #     # b = Number()
