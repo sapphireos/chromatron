@@ -46,6 +46,52 @@ opcodes = {
     'LDC':                  0x03,
 }
 
+class Opcode(object):
+    def __init__(self, opcode, lineno=None):
+        self.lineno = lineno
+        self.opcode = opcode
+
+    @property
+    def length(self):
+        raise NotImplementedError
+
+    def render(self):
+        return []
+
+class Opcode32(Opcode):
+    @property
+    def length(self):
+        return 4
+
+class Opcode64(Opcode):
+    @property
+    def length(self):
+        return 8
+
+
+class OpcodeFormat1AC(Opcode32):
+    def __init__(self, opcode, op1, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.op1 = op1
+
+class OpcodeFormat2AC(Opcode32):
+    def __init__(self, opcode, dest, op1, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.dest = dest
+        self.op1 = op1
+
+class OpcodeFormat3AC(Opcode32):
+    def __init__(self, opcode, dest, op1, op2, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.dest = dest
+        self.op1 = op1
+        self.op2 = op2
+
+
+
 
 def string_hash_func(s):
     return catbus_string_hash(s)
@@ -363,7 +409,6 @@ class insFunc(object):
 
 class BaseInstruction(object):
     mnemonic = 'NOP'
-    opcode = None
 
     def __init__(self, lineno=None):
         self.lineno = lineno
@@ -382,11 +427,6 @@ class BaseInstruction(object):
 
     def len(self):
         return len(self.assemble())
-
-    @property
-    def opcode(self):
-        global opcodes
-        return opcodes[self.mnemonic]
 
 # pseudo instruction - does not actually produce an opcode
 class insReg(BaseInstruction):
@@ -458,11 +498,7 @@ class insMov(BaseInstruction):
         vm.registers[self.dest.reg] = vm.registers[self.src.reg]
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-        bc.extend(self.src.assemble())
-
-        return bc
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 # loads from 16 bit immediate value
 class insLoadImmediate(BaseInstruction):
@@ -485,10 +521,7 @@ class insLoadImmediate(BaseInstruction):
         vm.registers[self.dest.reg] = value
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-
-        return bc
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.value.assemble(), lineno=self.lineno)
 
 # loads from constant pool
 class insLoadConst(BaseInstruction):
@@ -511,10 +544,7 @@ class insLoadConst(BaseInstruction):
         vm.registers[self.dest.reg] = value
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-
-        return bc
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.value.assemble(), lineno=self.lineno)
 
 class insLoadGlobal(BaseInstruction):
     mnemonic = 'LDG'
@@ -534,12 +564,7 @@ class insLoadGlobal(BaseInstruction):
         vm.registers[self.dest.reg] = vm.memory[src]
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-        bc.extend(self.src.assemble())
-
-        return bc
-
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insLoadLocal(BaseInstruction):
     mnemonic = 'LDL'
@@ -559,11 +584,7 @@ class insLoadLocal(BaseInstruction):
         vm.registers[self.dest.reg] = vm.locals[src]
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-        bc.extend(self.src.assemble())
-
-        return bc
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insLoadRef(BaseInstruction):
     mnemonic = 'REF'
@@ -585,13 +606,7 @@ class insLoadRef(BaseInstruction):
         vm.registers[self.dest.reg] = self.src
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-        bc.extend(self.src.assemble())
-
-        return bc
-
-
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insLoadGlobalImmediate(BaseInstruction):
     mnemonic = 'LDGI'
@@ -610,11 +625,7 @@ class insLoadGlobalImmediate(BaseInstruction):
         vm.registers[self.dest.reg] = vm.memory[self.src.addr]
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-        bc.extend(self.src.assemble())
-
-        return bc
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insStoreGlobal(BaseInstruction):
     mnemonic = 'STG'
@@ -634,11 +645,7 @@ class insStoreGlobal(BaseInstruction):
         vm.memory[dest] = vm.registers[self.src.reg]
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-        bc.extend(self.src.assemble())
-
-        return bc
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insStoreLocal(BaseInstruction):
     mnemonic = 'STL'
@@ -658,11 +665,7 @@ class insStoreLocal(BaseInstruction):
         vm.locals[dest] = vm.registers[self.src.reg]
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-        bc.extend(self.src.assemble())
-
-        return bc
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insStoreGlobalImmediate(BaseInstruction):
     mnemonic = 'STGI'
@@ -681,12 +684,7 @@ class insStoreGlobalImmediate(BaseInstruction):
         vm.memory[self.dest.addr] = vm.registers[self.src.reg]
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.dest.assemble())
-        bc.extend(self.src.assemble())
-
-        return bc
-
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insLookup(BaseInstruction):
     mnemonic = 'LKP'
@@ -873,12 +871,7 @@ class insReturn(BaseInstruction):
         raise ReturnException
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.op1.assemble())
-        
-        return bc
-
-
+        return OpcodeFormat1AC(self.mnemonic, self.op1.assemble(), lineno=self.lineno)
 
 class insBinop(BaseInstruction):
     mnemonic = 'BINOP'
@@ -894,12 +887,7 @@ class insBinop(BaseInstruction):
         return "%-16s %16s <- %16s %4s %16s" % (self.mnemonic, self.result, self.op1, self.symbol, self.op2)
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.result.assemble())
-        bc.extend(self.op1.assemble())
-        bc.extend(self.op2.assemble())
-
-        return bc
+        return OpcodeFormat3AC(self.mnemonic, self.result.assemble(), self.op1.assemble(), self.op2.assemble(), lineno=self.lineno)
 
 class insCompare(insBinop):    
     def execute(self, vm):
@@ -1100,10 +1088,7 @@ class insAssert(BaseInstruction):
         assert value        
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.op1.assemble())
-        
-        return bc
+        return OpcodeFormat1AC(self.mnemonic, self.op1.assemble(), lineno=self.lineno)
 
 class insPrint(BaseInstruction):
     mnemonic = 'PRINT'
@@ -1121,10 +1106,7 @@ class insPrint(BaseInstruction):
         print(self.op1)
             
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.op1.assemble())
-        
-        return bc
+        return OpcodeFormat1AC(self.mnemonic, self.op1.assemble(), lineno=self.lineno)
 
 class insCall(BaseInstruction):
     mnemonic = 'CALL'
