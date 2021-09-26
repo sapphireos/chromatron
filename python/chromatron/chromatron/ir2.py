@@ -283,7 +283,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = True
+            show_liveness = False
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -4145,7 +4145,7 @@ class irCallType(IR):
 class irCall(irCallType):
     def __init__(self, target, params, result, **kwargs):
         super().__init__(**kwargs)
-        self.target = target
+        self.target = target.name
         self.params = params
         self.result = result
 
@@ -4153,7 +4153,7 @@ class irCall(irCallType):
 
     def __str__(self):
         params = params_to_string(self.params)
-        s = f'CALL {self.target.name}({params}) -> {self.result}'
+        s = f'CALL {self.target}({params}) -> {self.result}'
 
         return s
 
@@ -4169,11 +4169,11 @@ class irCall(irCallType):
         # args = [a.generate() for a in self.args]
 
         if self.target in stack:
-            raise SyntaxError(f'Recursive call of {self.target.name}', lineno=self.lineno)
+            raise SyntaxError(f'Recursive call of {self.target}', lineno=self.lineno)
 
         stack.insert(0, self.target)
 
-        target = self.target.generate()
+        target = self.target
         result = self.result.generate()
 
         # call func

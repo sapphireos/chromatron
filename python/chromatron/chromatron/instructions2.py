@@ -1126,6 +1126,7 @@ class insCall(BaseInstruction):
     def __init__(self, target, params=[], result=None, **kwargs):
         super().__init__(**kwargs)
         self.target = target
+        assert isinstance(target, str)
         self.params = params
         self.result = result
 
@@ -1135,10 +1136,11 @@ class insCall(BaseInstruction):
             params += '%s, ' % (param)
         params = params[:len(params) - 2]
 
-        return "%s %s (%s) -> %s" % (self.mnemonic, self.target.name, params, self.result)
+        return "%s %s (%s) -> %s" % (self.mnemonic, self.target, params, self.result)
 
     def execute(self, vm):
-        ret_val = self.target.run(*[vm.registers[p.reg] for p in self.params])
+        target = vm.program.funcs[self.target]
+        ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
 
         vm.registers[self.result.reg] = ret_val
 
