@@ -10,6 +10,7 @@ class VarContainer(object):
         self.var = var 
         self.reg = None # what register is signed to this container 
         self.is_container = True
+        self.force_used = False
         
     @property
     def var(self):

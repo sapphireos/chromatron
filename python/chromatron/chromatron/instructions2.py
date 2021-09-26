@@ -275,6 +275,8 @@ class insFunc(object):
 
 
     def run(self, *args, **kwargs):
+        assert self.program is not None
+
         logging.info(f'VM run func {self.name}')
 
         if not self.register_count:

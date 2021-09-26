@@ -283,7 +283,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = False
+            show_liveness = True
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -2013,6 +2013,12 @@ class irFunc(IR):
             elif prev_live_out != live_out:
                 changed = True
 
+        # force liveness on any outputs marked to be forced:
+        for ir in self.code:
+            for o in ir.get_output_vars():
+                if o.force_used:
+                    live_out[ir] |= set([o])
+
         self.live_in = live_in
         self.live_out = live_out
 
@@ -2302,7 +2308,6 @@ class irFunc(IR):
         #         logging.critical("This terrible allocator has run out of registers!")
         #         raise CompilerFatal("Register allocator failed because it is bad at its job")
 
-
         # Linear Scan:
         # convert ranges to intervals
         intervals = {}
@@ -2342,19 +2347,19 @@ class irFunc(IR):
                 i.reg = registers[i]
 
             for o in ir.get_output_vars():
-                if not isinstance(ir, irCallType):
-                    assert o in registers
+                # if not isinstance(ir, irCallType):
+                assert o in registers
 
-                    # check if output register is actually live at this instruction:
-                    if index not in intervals[o]:
-                        # this register is not live!
-                        o.reg = -1
-                        
-                        if ir not in unassigned_ir:
-                            unassigned_ir.append(ir)
+                # check if output register is actually live at this instruction:
+                if index not in intervals[o]:
+                    # this register is not live!
+                    o.reg = -1
+                    
+                    if ir not in unassigned_ir:
+                        unassigned_ir.append(ir)
 
-                    else:
-                        o.reg = registers[o]
+                else:
+                    o.reg = registers[o]
 
             index += 1
 
@@ -4143,6 +4148,8 @@ class irCall(irCallType):
         self.target = target
         self.params = params
         self.result = result
+
+        self.result.force_used = True
 
     def __str__(self):
         params = params_to_string(self.params)
