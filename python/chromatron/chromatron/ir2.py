@@ -4078,11 +4078,13 @@ class irLookup(IR):
             strides.append(target.stride)
             target = target.element
 
-        if self.target.is_global:    
-            return insLookupGlobal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+        return insLookup(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
-        else:
-            return insLookupLocal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+        # if self.target.is_global:    
+        #     return insLookupGlobal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+
+        # else:
+        #     return insLookupLocal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
 
 class irAttribute(IR):

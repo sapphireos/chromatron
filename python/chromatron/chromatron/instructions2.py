@@ -680,8 +680,8 @@ class insStoreGlobalImmediate(BaseInstruction):
         return bc
 
 
-class insLookupGlobal(BaseInstruction):
-    mnemonic = 'LKPG'
+class insLookup(BaseInstruction):
+    mnemonic = 'LKP'
     
     def __init__(self, result, base_addr, indexes, counts, strides, **kwargs):
         super().__init__(**kwargs)
@@ -716,41 +716,77 @@ class insLookupGlobal(BaseInstruction):
 
         vm.registers[self.result.reg] = addr
 
-class insLookupLocal(BaseInstruction):
-    mnemonic = 'LKPL'
+# class insLookupGlobal(BaseInstruction):
+#     mnemonic = 'LKPG'
     
-    def __init__(self, result, base_addr, indexes, counts, strides, **kwargs):
-        super().__init__(**kwargs)
-        self.result = result
-        self.base_addr = base_addr
-        self.indexes = indexes
-        self.counts = counts
-        self.strides = strides
+#     def __init__(self, result, base_addr, indexes, counts, strides, **kwargs):
+#         super().__init__(**kwargs)
+#         self.result = result
+#         self.base_addr = base_addr
+#         self.indexes = indexes
+#         self.counts = counts
+#         self.strides = strides
 
-        assert base_addr is not None
+#         assert base_addr is not None
 
-    def __str__(self):
-        indexes = ''
-        for index in self.indexes:
-            indexes += '[%s]' % (index)
-        return "%s %s <- 0x%s %s" % (self.mnemonic, self.result, hex(self.base_addr.addr), indexes)
+#     def __str__(self):
+#         indexes = ''
+#         for index in self.indexes:
+#             indexes += '[%s]' % (index)
+#         return "%s %s <- 0x%s %s" % (self.mnemonic, self.result, hex(self.base_addr.addr), indexes)
 
-    def execute(self, vm):
-        addr = self.base_addr.addr
+#     def execute(self, vm):
+#         addr = self.base_addr.addr
 
-        for i in range(len(self.indexes)):
-            index = vm.registers[self.indexes[i].reg]
+#         for i in range(len(self.indexes)):
+#             index = vm.registers[self.indexes[i].reg]
             
-            count = self.counts[i]
-            stride = self.strides[i]            
+#             count = self.counts[i]
+#             stride = self.strides[i]            
 
-            if count > 0:
-                index %= count
-                index *= stride
+#             if count > 0:
+#                 index %= count
+#                 index *= stride
 
-            addr += index
+#             addr += index
 
-        vm.registers[self.result.reg] = addr
+#         vm.registers[self.result.reg] = addr
+
+# class insLookupLocal(BaseInstruction):
+#     mnemonic = 'LKPL'
+    
+#     def __init__(self, result, base_addr, indexes, counts, strides, **kwargs):
+#         super().__init__(**kwargs)
+#         self.result = result
+#         self.base_addr = base_addr
+#         self.indexes = indexes
+#         self.counts = counts
+#         self.strides = strides
+
+#         assert base_addr is not None
+
+#     def __str__(self):
+#         indexes = ''
+#         for index in self.indexes:
+#             indexes += '[%s]' % (index)
+#         return "%s %s <- 0x%s %s" % (self.mnemonic, self.result, hex(self.base_addr.addr), indexes)
+
+#     def execute(self, vm):
+#         addr = self.base_addr.addr
+
+#         for i in range(len(self.indexes)):
+#             index = vm.registers[self.indexes[i].reg]
+            
+#             count = self.counts[i]
+#             stride = self.strides[i]            
+
+#             if count > 0:
+#                 index %= count
+#                 index *= stride
+
+#             addr += index
+
+#         vm.registers[self.result.reg] = addr
 
 class insLabel(BaseInstruction):
     def __init__(self, name=None, **kwargs):

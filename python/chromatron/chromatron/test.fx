@@ -1,4 +1,29 @@
 
+
+ary = Number()[4]
+
+def array_lookup():
+    ary[0] = 1
+
+    local_ary = Number()[4]
+
+    local_ary[0] = 2
+
+    assert ary[0] == 1
+    assert local_ary[0] == 2
+
+# s = String("hello!")
+# s1 = String(32)
+
+# def str_func():
+
+#     s2 = String()
+#     # s2 = s1
+#     s2 = "meow"
+
+#     print(s2)
+
+
 # def stuff() -> Number:
     # return 1 + 2
 
@@ -143,13 +168,21 @@
 # Link system:
 # change to system library call.
 
-s = String("hello!")
-s1 = String(32)
+# s = String("hello!")
+# s1 = String(32)
 
-# # # a = Number()[4]
-# # # def obj(a: Number):
-# # a = Number()
-def obj():
+# # # # a = Number()[4]
+# # # # def obj(a: Number):
+# # # a = Number()
+# def obj():
+
+#     s2 = String()
+#     # s2 = s1
+#     s2 = "meow"
+
+#     print(s2)
+
+
     
 # #     b = Number()
 # # #     # b += 1
@@ -162,13 +195,6 @@ def obj():
 
 
 # # #     return a
-
-    s2 = String()
-    # s2 = s1
-    s2 = "meow"
-
-    print(s2)
-
     # return s2
 
 #     b = s2.len
