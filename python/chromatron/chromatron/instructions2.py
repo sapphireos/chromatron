@@ -417,11 +417,12 @@ class insAddr(BaseInstruction):
             return "Addr(%s)" % (self.addr)
     
     def assemble(self):
+        return self.addr
         # convert to 16 bits
-        l = self.addr & 0xff
-        h = (self.addr >> 8) & 0xff
+        # l = self.addr & 0xff
+        # h = (self.addr >> 8) & 0xff
 
-        return [l, h]
+        # return [l, h]
 
 
 class insNop(BaseInstruction):
@@ -429,7 +430,7 @@ class insNop(BaseInstruction):
         pass
 
     def assemble(self):
-        return []
+        return None
 
 
 # register to register move
@@ -761,7 +762,7 @@ class insLabel(BaseInstruction):
         pass
 
     def assemble(self):
-        return OpcodeLabel(self)
+        return OpcodeLabel(self, lineno=self.lineno)
 
 
 class BaseJmp(BaseInstruction):
@@ -781,7 +782,7 @@ class insJmp(BaseJmp):
         return self.label
 
     def assemble(self):
-        return OpcodeFormat2Imm(self.mnemonic, None, self.label.assemble())
+        return OpcodeFormat2Imm(self.mnemonic, None, self.label.assemble(), lineno=self.lineno)
         
 class insJmpConditional(BaseJmp):
     def __init__(self, op1, label, **kwargs):
@@ -793,7 +794,7 @@ class insJmpConditional(BaseJmp):
         return "%s, %s -> %s" % (self.mnemonic, self.op1, self.label)
 
     def assemble(self):
-        return OpcodeFormat2Imm(self.mnemonic, self.op1.assemble(), self.label.assemble())
+        return OpcodeFormat2Imm(self.mnemonic, self.op1.assemble(), self.label.assemble(), lineno=self.lineno)
 
 class insJmpIfZero(insJmpConditional):
     mnemonic = 'JMPZ'
@@ -973,7 +974,7 @@ class insVector(BaseInstruction):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
 
     def assemble(self):
-        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.value.assemble(), self.length)
+        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.value.assemble(), self.length, lineno=self.lineno)
         # bc = [self.opcode]
         # bc.extend(self.target.assemble())
         # bc.extend(self.value.assemble())

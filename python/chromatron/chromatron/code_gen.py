@@ -1128,7 +1128,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         pprint.pprint(ins_program.gfx_data)
 
         image = ins_program.assemble()
-        print(image.render())
+        stream = image.render()
 
 
     # return ins_program

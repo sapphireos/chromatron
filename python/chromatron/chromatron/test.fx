@@ -12,8 +12,11 @@
 #     print(s2)
 
 
-def stuff() -> Number:
-    return 1 + 2
+def stuff(a: Number) -> Number:
+    if a > 3:
+        return 1 + 2
+
+    return 4
 
 # def stuff(a: Number, b: Number) -> Number:
 #     return a - b

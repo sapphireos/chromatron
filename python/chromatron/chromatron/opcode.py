@@ -38,7 +38,7 @@ opcodes = {
     'STGI':                 0x03,
     'LKP':                  0x03,
     'JMP':                  0x03,
-    'JMPZ':                 0x03,
+    'JMPZ':                 0xAA,
     'RET':                  0x05,
 
     'COMP_EQ':              0x04,
@@ -128,10 +128,14 @@ opcodes = {
 
 class Opcode(object):
     def __init__(self, opcode=None, lineno=None):
+        assert lineno is not None
         self.lineno = lineno
         self.opcode = opcode
         self.format = None
         self.items = []
+
+    def __str__(self):
+        return f'Opcode: {self.opcode} Line: {self.lineno}'
 
     @property
     def length(self):
@@ -140,9 +144,23 @@ class Opcode(object):
     def get_opcode(self):
         return opcodes[self.opcode]
 
+    def assign_addresses(self, labels):
+        for i in range(len(self.items)):
+            item = self.items[i]
+
+            if isinstance(item, OpcodeLabel):
+                assert item.addr is None
+                item.addr = labels[item.label.name]
+                # replace label with actual address
+                self.items[i] = item.render()
+
     def render(self):
         if self.opcode not in opcodes:
             raise CompilerFatal(f'{self.opcode} not defined!')
+
+        for item in self.items:
+            if isinstance(item, OpcodeLabel) and item.addr is None:
+                raise CompilerFatal(f'Label {item.label.name} in opcode {self} does not have an address!')
 
         packed = struct.pack(f'<B{self.format}', self.get_opcode(), *self.items)
 
@@ -204,8 +222,12 @@ class OpcodeFormat3AC(Opcode32):
 
 class OpcodeLabel(Opcode):
     def __init__(self, label, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(opcode='LABEL', **kwargs)
         self.label = label
+        self.addr = None
+
+    def render(self):
+        return self.addr
 
 class OpcodeFormatVector(Opcode64):
     def __init__(self, opcode, target, value, length, **kwargs):

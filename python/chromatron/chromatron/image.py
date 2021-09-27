@@ -99,17 +99,22 @@ class FXImage(object):
         label_addrs = {}
         opcodes = []
 
+        addr = 0
         for func, code in self.funcs.items():
-            function_addrs[func] = len(opcodes)
+            function_addrs[func] = addr
 
             for op in code:
                 if isinstance(op, OpcodeLabel):
-                    label_addrs[op.label.name] = len(opcodes)
+                    label_addrs[op.label.name] = addr
 
                 else:
                     opcodes.append(op)
+                    addr += op.length
 
-
+        # set label addresses
+        for op in opcodes:
+            op.assign_addresses(label_addrs)
+            print(op)
 
         bytecode = []
 
@@ -120,6 +125,8 @@ class FXImage(object):
                 raise CompilerFatal('Bytecode is not 32 bit aligned!')
 
             bytecode.append(bc)
+
+            print(bc)
 
         # return opcodes       
         return bytecode
