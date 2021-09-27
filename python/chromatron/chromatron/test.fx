@@ -12,8 +12,8 @@
 #     print(s2)
 
 
-# def stuff() -> Number:
-    # return 1 + 2
+def stuff() -> Number:
+    return 1 + 2
 
 # def stuff(a: Number, b: Number) -> Number:
 #     return a - b
@@ -25,15 +25,6 @@
 
 # b = Number()
 
-
-p1 = PixelArray(2, 12, size_x=3, size_y=4)
-
-def obj_store_direct():
-    # p1[0].hue += 1
-    p1.hue += 1
-
-def stuff():
-    obj_store_direct()
 
 
 # def func2():

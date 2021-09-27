@@ -47,7 +47,7 @@ opcodes = {
 }
 
 class Opcode(object):
-    def __init__(self, opcode, lineno=None):
+    def __init__(self, opcode=None, lineno=None):
         self.lineno = lineno
         self.opcode = opcode
 
@@ -82,6 +82,13 @@ class OpcodeFormat2AC(Opcode32):
         self.dest = dest
         self.op1 = op1
 
+class OpcodeFormat2Imm(Opcode32):
+    def __init__(self, opcode, reg, value, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.reg = reg
+        self.value = value
+
 class OpcodeFormat3AC(Opcode32):
     def __init__(self, opcode, dest, op1, op2, **kwargs):
         super().__init__(opcode, **kwargs)
@@ -90,6 +97,18 @@ class OpcodeFormat3AC(Opcode32):
         self.op1 = op1
         self.op2 = op2
 
+class OpcodeLabel(Opcode):
+    def __init__(self, label, **kwargs):
+        super().__init__(**kwargs)
+        self.label = label
+
+class OpcodeFormatVector(Opcode64):
+    def __init__(self, opcode, target, value, length, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.target = target
+        self.value = value
+        self.length = length
 
 
 
@@ -521,7 +540,7 @@ class insLoadImmediate(BaseInstruction):
         vm.registers[self.dest.reg] = value
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.value.assemble(), lineno=self.lineno)
 
 # loads from constant pool
 class insLoadConst(BaseInstruction):
@@ -544,7 +563,7 @@ class insLoadConst(BaseInstruction):
         vm.registers[self.dest.reg] = value
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.value.assemble(), lineno=self.lineno)
 
 class insLoadGlobal(BaseInstruction):
     mnemonic = 'LDG'
@@ -625,7 +644,7 @@ class insLoadGlobalImmediate(BaseInstruction):
         vm.registers[self.dest.reg] = vm.memory[self.src.addr]
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insStoreGlobal(BaseInstruction):
     mnemonic = 'STG'
@@ -684,7 +703,7 @@ class insStoreGlobalImmediate(BaseInstruction):
         vm.memory[self.dest.addr] = vm.registers[self.src.reg]
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insLookup(BaseInstruction):
     mnemonic = 'LKP'
@@ -721,6 +740,9 @@ class insLookup(BaseInstruction):
             addr += index
 
         vm.registers[self.result.reg] = addr
+
+    def assemble(self):
+        pass
 
 # class insLookupGlobal(BaseInstruction):
 #     mnemonic = 'LKPG'
@@ -806,8 +828,7 @@ class insLabel(BaseInstruction):
         pass
 
     def assemble(self):
-        # leave room for 16 bits
-        return [self, None]
+        return OpcodeLabel(self)
 
 
 class BaseJmp(BaseInstruction):
@@ -827,11 +848,8 @@ class insJmp(BaseJmp):
         return self.label
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.label.assemble())
-
-        return bc
-
+        return OpcodeFormat2Imm(self.mnemonic, None, self.label.assemble())
+        
 class insJmpConditional(BaseJmp):
     def __init__(self, op1, label, **kwargs):
         super().__init__(label, **kwargs)
@@ -842,11 +860,7 @@ class insJmpConditional(BaseJmp):
         return "%s, %s -> %s" % (self.mnemonic, self.op1, self.label)
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.label.assemble())
-        bc.extend(self.op1.assemble())
-
-        return bc
+        return OpcodeFormat2Imm(self.mnemonic, self.op1.assemble(), self.label.assemble())
 
 class insJmpIfZero(insJmpConditional):
     mnemonic = 'JMPZ'
@@ -1026,20 +1040,21 @@ class insVector(BaseInstruction):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(self.target.assemble())
-        bc.extend(self.value.assemble())
+        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.value.assemble(), self.length)
+        # bc = [self.opcode]
+        # bc.extend(self.target.assemble())
+        # bc.extend(self.value.assemble())
 
-        # convert to 16 bits
-        l = self.length & 0xff
-        h = (self.length >> 8) & 0xff
+        # # convert to 16 bits
+        # l = self.length & 0xff
+        # h = (self.length >> 8) & 0xff
 
-        bc.extend([l, h])
+        # bc.extend([l, h])
 
-        target_type = get_type_id(self.type)
-        bc.append(target_type)
+        # target_type = get_type_id(self.type)
+        # bc.append(target_type)
 
-        return bc
+        # return bc
 
 class insVectorMov(insVector):
     mnemonic = 'VMOV'
@@ -1133,17 +1148,19 @@ class insCall(BaseInstruction):
         vm.registers[self.result.reg] = ret_val
 
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(insFuncTarget(self.target).assemble())
+        pass
 
-        assert len(self.params) == len(self.args)
+        # bc = [self.opcode]
+        # bc.extend(insFuncTarget(self.target).assemble())
 
-        bc.append(len(self.params))
-        for i in range(len(self.params)):
-            bc.extend(self.params[i].assemble())
-            bc.extend(self.args[i].assemble())
+        # assert len(self.params) == len(self.args)
 
-        return bc
+        # bc.append(len(self.params))
+        # for i in range(len(self.params)):
+        #     bc.extend(self.params[i].assemble())
+        #     bc.extend(self.args[i].assemble())
+
+        # return bc
 
 class insIndirectCall(BaseInstruction):
     mnemonic = 'ICALL'
@@ -1172,17 +1189,19 @@ class insIndirectCall(BaseInstruction):
         vm.registers[self.result.reg] = ret_val
         
     def assemble(self):
-        bc = [self.opcode]
-        bc.extend(insFuncTarget(self.ref).assemble())
+        pass
 
-        assert len(self.params) == len(self.args)
+        # bc = [self.opcode]
+        # bc.extend(insFuncTarget(self.ref).assemble())
 
-        bc.append(len(self.params))
-        for i in range(len(self.params)):
-            bc.extend(self.params[i].assemble())
-            bc.extend(self.args[i].assemble())
+        # assert len(self.params) == len(self.args)
 
-        return bc
+        # bc.append(len(self.params))
+        # for i in range(len(self.params)):
+        #     bc.extend(self.params[i].assemble())
+        #     bc.extend(self.args[i].assemble())
+
+        # return bc
 
 class insPixelLookup(BaseInstruction):
     mnemonic = 'PLOOKUP'
@@ -1401,3 +1420,5 @@ class insPixelAdd(BaseInstruction):
 
 class insPixelAddHue(insPixelAdd):
     mnemonic = 'PADD_HUE'
+
+
