@@ -651,7 +651,7 @@ class Builder(object):
             self.assign(copy(target), result, lineno=lineno)
 
     def finish_module(self):
-        ir = irProgram(self.funcs, self.global_symbols, lineno=0)
+        ir = irProgram(self.script_name, self.funcs, self.global_symbols, lineno=0)
 
         return ir
 

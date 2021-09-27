@@ -23,6 +23,7 @@
 import logging
 from catbus import *
 from sapphire.common import catbus_string_hash
+from .opcode import *
 from .image import FXImage
 
 from .exceptions import *
@@ -40,78 +41,6 @@ class VMException(Exception):
 class CycleLimitExceeded(VMException):
     pass
 
-opcodes = {
-    'MOV':                  0x01,
-    'LDI':                  0x02,
-    'LDC':                  0x03,
-}
-
-class Opcode(object):
-    def __init__(self, opcode=None, lineno=None):
-        self.lineno = lineno
-        self.opcode = opcode
-
-    @property
-    def length(self):
-        raise NotImplementedError
-
-    def render(self):
-        return []
-
-class Opcode32(Opcode):
-    @property
-    def length(self):
-        return 4
-
-class Opcode64(Opcode):
-    @property
-    def length(self):
-        return 8
-
-
-class OpcodeFormat1AC(Opcode32):
-    def __init__(self, opcode, op1, **kwargs):
-        super().__init__(opcode, **kwargs)
-
-        self.op1 = op1
-
-class OpcodeFormat2AC(Opcode32):
-    def __init__(self, opcode, dest, op1, **kwargs):
-        super().__init__(opcode, **kwargs)
-
-        self.dest = dest
-        self.op1 = op1
-
-class OpcodeFormat2Imm(Opcode32):
-    def __init__(self, opcode, reg, value, **kwargs):
-        super().__init__(opcode, **kwargs)
-
-        self.reg = reg
-        self.value = value
-
-class OpcodeFormat3AC(Opcode32):
-    def __init__(self, opcode, dest, op1, op2, **kwargs):
-        super().__init__(opcode, **kwargs)
-
-        self.dest = dest
-        self.op1 = op1
-        self.op2 = op2
-
-class OpcodeLabel(Opcode):
-    def __init__(self, label, **kwargs):
-        super().__init__(**kwargs)
-        self.label = label
-
-class OpcodeFormatVector(Opcode64):
-    def __init__(self, opcode, target, value, length, **kwargs):
-        super().__init__(opcode, **kwargs)
-
-        self.target = target
-        self.value = value
-        self.length = length
-
-
-
 def string_hash_func(s):
     return catbus_string_hash(s)
 
@@ -128,7 +57,8 @@ def convert_to_i32(value):
 
 
 class insProgram(object):
-    def __init__(self, funcs={}, global_vars={}, objects=[]):
+    def __init__(self, name, funcs={}, global_vars={}, objects=[]):
+        self.name = name
         self.funcs = funcs
         self.globals = global_vars
 
@@ -218,7 +148,7 @@ class insProgram(object):
         bytecode = {}
 
         for func in self.funcs.values():
-            bytecode[func] = func.assemble()
+            bytecode[func.name] = func.assemble()
 
         return FXImage(self, bytecode)
 
@@ -423,7 +353,7 @@ class insFunc(object):
                 raise AssertionError(msg)
 
     def assemble(self):
-        return []
+        return [ins.assemble() for ins in self.code]
 
 
 class BaseInstruction(object):
@@ -465,11 +395,12 @@ class insReg(BaseInstruction):
             return "Reg(%s)" % (self.reg)
     
     def assemble(self):
+        return self.reg
         # convert to 16 bits
-        l = self.reg & 0xff
-        h = (self.reg >> 8) & 0xff
+        #l = self.reg & 0xff
+        #h = (self.reg >> 8) & 0xff
 
-        return [l, h]
+        #return [l, h]
 
 # pseudo instruction - does not actually produce an opcode
 class insAddr(BaseInstruction):
@@ -526,21 +457,22 @@ class insLoadImmediate(BaseInstruction):
     def __init__(self, dest, value, **kwargs):
         super().__init__(**kwargs)
         self.dest = dest
+
+        if isinstance(value, float):
+            value = int(value * 65536)
+        else:
+            value = value
+
         self.value = value
 
     def __str__(self):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.value)
 
     def execute(self, vm):
-        if isinstance(self.value, float):
-            value = int(self.value * 65536)
-        else:
-            value = self.value
-
-        vm.registers[self.dest.reg] = value
+        vm.registers[self.dest.reg] = self.value
 
     def assemble(self):
-        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.value, lineno=self.lineno)
 
 # loads from constant pool
 class insLoadConst(BaseInstruction):
@@ -549,21 +481,22 @@ class insLoadConst(BaseInstruction):
     def __init__(self, dest, value, **kwargs):
         super().__init__(**kwargs)
         self.dest = dest
+
+        if isinstance(value, float):
+            value = int(value * 65536)
+        else:
+            value = value
+
         self.value = value
 
     def __str__(self):
         return "%s %s <- %s" % (self.mnemonic, self.dest, self.value)
 
     def execute(self, vm):
-        if isinstance(self.value, float):
-            value = int(self.value * 65536)
-        else:
-            value = self.value
-
-        vm.registers[self.dest.reg] = value
+        vm.registers[self.dest.reg] = self.value
 
     def assemble(self):
-        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.value, lineno=self.lineno)
 
 class insLoadGlobal(BaseInstruction):
     mnemonic = 'LDG'

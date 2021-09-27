@@ -22,7 +22,7 @@
 
 from catbus import *
 from elysianfields import *
-
+from .opcode import *
 
 class ProgramHeader(StructField):
     def __init__(self, **kwargs):
@@ -80,9 +80,47 @@ class CronItem(StructField):
 
 
 class FXImage(object):
-    def __init__(self, program, bytecode={}):
+    def __init__(self, program, funcs={}):
         self.program = program
-        self.bytecode = bytecode
+        self.funcs = funcs
+
+    def __str__(self):
+        s = f'FX Image: {self.program.name}\n'
+
+        for func, code in self.funcs.items():
+            s += f'\tFunction: {func}:\n'
+            for c in code:
+                s += f'\t\t{c}\n'
+
+        return s
 
     def render(self, filename=None):
-        pass
+        function_addrs = {}
+        label_addrs = {}
+        opcodes = []
+
+        for func, code in self.funcs.items():
+            function_addrs[func] = len(opcodes)
+
+            for op in code:
+                if isinstance(op, OpcodeLabel):
+                    label_addrs[op.label.name] = len(opcodes)
+
+                else:
+                    opcodes.append(op)
+
+
+
+        bytecode = []
+
+        for op in opcodes:
+            bc = op.render()
+
+            if len(bc) % 4 != 0:
+                raise CompilerFatal('Bytecode is not 32 bit aligned!')
+
+            bytecode.append(bc)
+
+        # return opcodes       
+        return bytecode
+

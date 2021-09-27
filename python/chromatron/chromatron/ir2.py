@@ -154,9 +154,10 @@ class IR(object):
 
 
 class irProgram(IR):
-    def __init__(self, funcs={}, symbols=None, **kwargs):
+    def __init__(self, name, funcs={}, symbols=None, **kwargs):
         super().__init__(**kwargs)
 
+        self.name = name
         self.funcs = funcs
         self.symbols = symbols
         self.global_symbols = symbols
@@ -207,7 +208,7 @@ class irProgram(IR):
 
         objects = [o for o in self.global_symbols.symbols.values() if isinstance(o, varObject)]
 
-        return insProgram(funcs=ins_funcs, global_vars=self.global_symbols.symbols, objects=objects)
+        return insProgram(self.name, funcs=ins_funcs, global_vars=self.global_symbols.symbols, objects=objects)
 
 class Edge(object):
     def __init__(self, from_node, to_node):
