@@ -1410,6 +1410,9 @@ class insConvI32toF16(BaseInstruction):
     def execute(self, vm):
         vm.registers[self.dest.reg] = convert_to_f16(vm.registers[self.src.reg])
 
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+
     
 class insConvF16toI32(BaseInstruction):
     mnemonic = 'CONV_F16_TO_I32'
@@ -1423,6 +1426,8 @@ class insConvF16toI32(BaseInstruction):
         return "%s %s = I32(%s)" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.register[self.dest.reg] = convert_to_i32(vm.register[self.src.reg])
+        vm.registers[self.dest.reg] = convert_to_i32(vm.registers[self.src.reg])
 
-    
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+

@@ -15,11 +15,13 @@ def conv():
 
     a = Number()
     a = 1 + 2.0
+    # a = 1
 
     # b = Fixed16()
     # b = a
 
     return a
+    # return b
 
 
 # def stuff(a: Number) -> Number:
