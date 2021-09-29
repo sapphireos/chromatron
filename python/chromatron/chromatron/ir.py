@@ -179,8 +179,6 @@ def params_to_string(params):
 class IR(object):
     def __init__(self, lineno=None):
         self.lineno = lineno
-        self.block = None
-        self.scope_depth = None
 
         assert self.lineno != None
 
@@ -196,58 +194,10 @@ class IR(object):
     def get_jump_target(self):
         return None
 
-# class irPhi(IR):
-#     def __init__(self, name, joins, target, **kwargs):
-#         super().__init__(**kwargs)
-#         self.name = name
-#         self.joins = joins
-#         self.target = target
-
-#     def __str__(self):
-#         s = ''
-
-#         for join in self.joins:
-#             s += f'{join.name}, '
-        
-#         s = s[:-2]
-
-#         return f'{self.target} = PHI({self.name})[{s}]'
-
-#     def get_input_vars(self):
-#         # return self.joins
-#         return []
-
-#     def get_output_vars(self):
-#         return [self.target]
-
-#     def generate(self):
-
-#         # assert len(self.joins) > 0
-
-#         # if len(self.joins) == 1:
-#         #     return insMov(self.target.generate(), self.joins[0].generate(), lineno=self.lineno)
-
-#         # else:
-#         #     for join in self.joins:
-#         #         print(join, join.block)
-
-#         return insNop()
-
-class irDefine(IR):
-    def __init__(self, var, **kwargs):
-        super().__init__(**kwargs)
-        self.var = var
-    
-    def __str__(self):
-        return f'DEF: {self.var} depth: {self.scope_depth}'
-
-    def get_output_vars(self):
-        return [self.var]
-
 class irVar(IR):
     def __init__(self, name, type='i32', options=None, **kwargs):
         super(irVar, self).__init__(**kwargs)
-        self._name = name
+        self.name = name
         self.type = type
         self.type_str = type
         self.length = 1
@@ -256,7 +206,6 @@ class irVar(IR):
         self.is_const = False
         self.default_value = 0
         self.temp = False
-        self.block = None
 
         self.publish = False
         self.persist = False
@@ -269,14 +218,7 @@ class irVar(IR):
                 self.persist = True
 
             if 'init_val' in options:
-                self.default_value = options['init_val'] 
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        self._name = value
+                self.default_value = options['init_val']
 
     def __str__(self):
         if self.is_global:
@@ -305,38 +247,7 @@ class irVar(IR):
         return self.type
 
 class irVar_simple(irVar):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # self.next_ssa_version = 0
-        self.ssa_version = None
-
-    @property
-    def name(self):
-        if self.temp or self.ssa_version is None:
-            return self._name
-        
-        return f'{self._name}_v{self.ssa_version}'
-        # return self._name
-
-    @name.setter
-    def name(self, value):
-        self._name = value        
-
-    def __str__(self):
-        if self.is_global:
-            return super().__str__()
-
-        elif self.temp or self.ssa_version is None:
-            return "Var(%s, %s)" % (self.name, self.type_str)
-
-        else:
-            return "Var(%s_v%d, %s)" % (self._name, self.ssa_version, self.type_str)            
-
-class irVar_undefined(irVar_simple):
-    def __init__(self, *args, **kwargs):
-        kwargs['type'] = 'var'
-        super().__init__(*args, **kwargs)
+    pass
 
 class irVar_i32(irVar_simple):
     def __init__(self, *args, **kwargs):
@@ -415,10 +326,6 @@ class irConst(irVar_simple):
         self.default_value = self.value
 
         self.is_const = True
-
-    @property
-    def name(self):
-        return self._name    
 
     def __str__(self):
         return "Const(%s, %s)" % (self.name, self.type)
@@ -684,290 +591,49 @@ class irDBAttr(irVar):
     def lookup(self, indexes):
         return self
 
-
-class irPhi(IR):
-    def __init__(self, target, defines=[], **kwargs):
-        super().__init__(**kwargs)
-
-        self.target = target
-        self.defines = defines
-
-    def __str__(self):
-        s = f'{self.target} = PHI({[str(d) for d in self.defines]})'
-
-        return s
-
-
-class irBlock(IR):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.predecessors = []
-        self.successors = []
-        self.code = []
-        self.locals = {}
-        self.defines = {}
-        self.uses = {}
-        self.params = {}
-
-        self.entry_label = None
-        self.jump_target = None
-
-    def __str__(self):
-        tab = '\t'
-        depth = f'{self.scope_depth * tab}'
-        s =  f'{depth}||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n'
-        s += f'{depth}| BLOCK: {self.name} @ {self.lineno}'
-        if self.is_leader:
-            s += ': LEADER'
-
-        if self.is_terminator:
-            s += ': TERMINATOR'
-
-        s += '\n'
-
-        s += f'{depth}| In:\n'
-        for i in self.params.values():
-            s += f'{depth}|\t{i.name}: {i.type}\n'
-        s += f'{depth}| Out:\n'
-        for i in self.defines.values():
-            s += f'{depth}|\t{i.name}: {i.type}\n'
-
-        lines_printed = []
-        s += f'{depth}| Code:\n'
-        for ir in self.code:
-            if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
-                s += f'{depth}|________________________________________________________\n'
-                s += f'{depth}| {ir.lineno}: {depth}{source_code[ir.lineno - 1].strip()}\n'
-                lines_printed.append(ir.lineno)
-
-            s += f'{depth}|\t{ir}\n'
-
-        s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
-
-        return s
-
-    @property
-    def name(self):
-        try:
-            if isinstance(self.code[0], irLabel):
-                return f'{self.code[0].name}'
-            else:
-                assert False
-
-        except IndexError:
-            return 'UNKNOWN BLOCK'
-
-    @name.setter
-    def name(self, value):
-        self._name = value
-
-    def append(self, node):
-        # ensure that each node only belongs to one block:
-
-        assert node.block is None
- 
-        node.block = self
-        self.code.append(node)
-
-    def get_defined(self, name, visited=None):
-        if visited is None:
-            visited = []
-
-        if self in visited:
-            return []
-
-        try:
-            return [self.defines[name]]
-
-        except KeyError:
-            pass
-
-        visited.append(self)
-
-        ds = []
-        for pre in self.predecessors:
-            for d in pre.get_defined(name, visited=visited):
-                if d not in ds:
-                    ds.append(d)
-
-        return ds
-
-    def rename_vars(self, ssa_vars={}, visited=[], defines={}):
-        if self in visited:
-            return
-
-        visited.append(self)
-        
-        self.defines = {}
-        self.params = {} # variables required at the beginning of the block
-        self.uses = {}
-
-        for index in range(len(self.code)):
-            ir = self.code[index]
-
-            # look for defines and set their version to 0
-            if isinstance(ir, irDefine):
-                if ir.var._name in ssa_vars:
-                    raise SyntaxError(f'Variable {ir.var._name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
-
-                assert ir.var.ssa_version is None
-
-                ir.var.ssa_version = 0
-
-                # set current SSA version of this variable
-                ssa_vars[ir.var._name] = ir.var
-
-                ir.var.block = self
-                self.defines[ir.var._name] = ir.var
-
-            else:
-                # look for writes to current set of vars and increment versions
-                outputs = [o for o in ir.get_output_vars() if not o.temp and not o.is_const]
-
-                for o in outputs:
-                    o.block = self
-                    self.defines[o._name] = o
-
-                    if o._name in ssa_vars:
-                        o.ssa_version = ssa_vars[o._name].ssa_version + 1
-                        ssa_vars[o._name] = o
-
-                    else:
-                        assert False
-
-                inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
-
-                for i in inputs:
-                    if i._name not in self.uses:
-                        self.uses[i._name] = []
-
-                    ds = self.get_defined(i._name)
-
-                    if len(ds) == 0:
-                        raise SyntaxError(f'Variable {i._name} is not defined.', lineno=ir.lineno)
-
-                    elif len(ds) == 1:
-                        # take previous definition for the input
-                        i.__dict__ = copy(ds[0].__dict__)
-
-                    else:
-                        # this indicates we'll need a phi to reconcile the 
-                        # values, but we'll get that on the phi conversion step
-                        pass
-
-                # set block parameters
-                # unless we are a leader block
-                if len(self.predecessors) > 0:
-                    inputs = [i for i in ir.get_input_vars() if not i.temp and not i.is_const]
-
-                    for i in inputs:
-                        if i._name in self.params:
-                            continue
-
-                        # set SSA version for param
-                        if i._name in ssa_vars:
-                            i.ssa_version = ssa_vars[i._name].ssa_version + 1
-                            ssa_vars[i._name] = i
-
-                        else:
-                            assert False
-
-                        self.params[i._name] = i
-                        self.defines[i._name] = i
-
-        # continue with successors:
-        for suc in self.successors:
-            suc.rename_vars(ssa_vars, visited, defines=self.defines)
-
-        return ssa_vars
-
-    def insert_phi(self, visited=[]):
-        if self in visited:
-            return
-
-        
-        visited.append(self)
-
-
-        insertion_point = None
-        for i in range(len(self.code)):
-            index = i
-
-            if not isinstance(self.code[index], irLabel):
-                insertion_point = index
-                break
-
-        assert insertion_point is not None
-
-        for k, v in self.params.items():
-            sources = []
-            for pre in self.predecessors:
-                ds = pre.get_defined(k)
-                sources.extend(ds)
-
-            if len(sources) == 1:
-                # if a single source, just use an assign
-                ir = irAssign(v, sources[0], lineno=-1)
-
-            else:
-                ir = irPhi(v, sources, lineno=-1)
-            
-            self.code.insert(insertion_point, ir)
-
-        for suc in self.successors:
-            suc.insert_phi(visited)
-
-    @property
-    def is_leader(self):
-        return len(self.predecessors) == 0
-
-    @property
-    def is_terminator(self):
-        return len(self.successors) == 0    
-
-    # @property
-    # def params(self):
-        # return [v for v in self.input_vars if not v.temp and not v.is_const]
-
-    @property
-    def input_vars(self):
-        v = {}
-        for node in self.code:
-            inputs = node.get_input_vars()
-
-            for i in inputs:
-                if i.name not in v:
-                    v[i.name] = i
-
-        return [a for a in v.values() if not a.temp and not a.is_const]
-
-    @property
-    def output_vars(self):
-        v = {}
-        for node in self.code:
-            outputs = node.get_output_vars()
-
-            for o in outputs:
-                if o.name not in v:
-                    v[o.name] = o
-
-        return [a for a in v.values() if not a.temp and not a.is_const]
-
-
 class irFunc(IR):
     def __init__(self, name, ret_type='i32', params=None, body=None, builder=None, **kwargs):
         super(irFunc, self).__init__(**kwargs)
         self.name = name
         self.ret_type = ret_type
         self.params = params
-        self.body = []
-        
+        self.body = body
+        self.builder = builder
+
         if self.params == None:
             self.params = []
 
-        self.blocks = {}
-        self.leader_block = None
+        if self.body == None:
+            self.body = []
 
+    def append(self, node):
+        self.body.append(node)
+
+    def insert(self, index, node):
+        self.body.insert(index, node)
+
+    def get(self, index):
+        return self.body[index]
+
+    def remove_dead_labels(self):
+        labels = self.labels()
+
+        keep = []
+
+        # get list of labels that are used
+        for label in labels:
+            for node in self.body:
+                target = node.get_jump_target()
+
+                if target != None:
+                    if target.name == label:
+                        keep.append(label)
+                        break
+
+        # remove unused labels from instruction list
+        self.body = [a for a in self.body \
+                        if not isinstance(a, irLabel) or 
+                        (a.name in keep)]
 
     def __str__(self):
         global source_code
@@ -976,173 +642,37 @@ class irFunc(IR):
 
         s = "\n######## Line %4d       ########\n" % (self.lineno)
         s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
+        s += "--------------------------------\n"
 
-        # s += "********************************\n"
-        # s += "Locals:\n"
-        # s += "********************************\n"
-
-        # for v in self.locals.values():
-        #     s += f'{v.lineno:3}\t{v.name:16}:{v.type}\n'
-
-
-        s += "********************************\n"
-        s += "Func blocks:\n"
-        s += "********************************\n"
-
-        blocks = [self.blocks[k] for k in sorted(self.blocks.keys())]
-        for block in blocks:
-            s += f'{block}\n'
-    
-        return s
-
-    def create_block_from_code_at_label(self, label, prev_block=None):
         labels = self.labels()
-        index = labels[label.name]
 
-        # verify instruction at index is actually our label:
-        assert self.body[index].name == label.name
-        assert isinstance(self.body[index], irLabel)
+        current_line = -1
+        for node in self.body:
+            
+            # interleave source code
+            if node.lineno > current_line:
+                current_line = node.lineno
+                try:
+                    s += "%d\t%s\n" % (current_line, source_code[current_line - 1].strip())
 
-        return self.create_block_from_code_at_index(index, prev_block=prev_block)
+                except IndexError:
+                    raise
+                    print("Source interleave from imported files not yet supported")
+                    pass
 
-    def create_block_from_code_at_index(self, index, prev_block=None):
-        # check if we already have a block starting at this index
-        if index in self.blocks:
-            block = self.blocks[index]
-            # check if prev_block is not already as predecessor:
-            if prev_block not in block.predecessors:
-                block.predecessors.append(prev_block)
+            if isinstance(node, irLabel):
+                s += '%s\n' % (node)
 
-            return block
+            else:    
+                label = node.get_jump_target()
 
-        block = irBlock(lineno=self.body[index].lineno)
-        block.scope_depth = self.body[index].scope_depth
-        self.blocks[index] = block
+                if label != None:
+                    s += '\t\t\t%s (Line %d)\n' % (node, label.lineno)
 
-        if prev_block:
-            block.predecessors.append(prev_block)
-        
-        while True:
-            ir = self.body[index]
+                else:
+                    s += '\t\t\t%s\n' % (node)
 
-            # check if label,
-            # if so, this is an entry point for a new block,
-            # possibly a backwards jump
-            if isinstance(ir, irLabel) and (len(block.code) > 0):
-                new_block = self.create_block_from_code_at_label(ir, prev_block=block)
-                block.successors.append(new_block)
-
-                # add a jump to this label in this block, this creates a clean
-                # end point for this block
-                jump = irJump(ir, lineno=ir.lineno)
-                block.append(jump)
-
-                break
-
-            index += 1
-
-            block.append(ir)
-
-            if isinstance(ir, irConditionalJump):
-                # we are branching to two locations:
-                # 1. Fallthrough
-                # This is the next instruction in the list.
-                # 2. Jump target
-                # This code be anywhere, even behind.
-                # fallthrough_block = self.create_block_from_code_at_index(index, prev_block=block)
-                true_block = self.create_block_from_code_at_label(ir.true_label, prev_block=block)
-                block.successors.append(true_block)
-
-                false_block = self.create_block_from_code_at_label(ir.false_label, prev_block=block)
-                block.successors.append(false_block)
-
-                # block.successors.append(fallthrough_block)
-                
-
-                # get successor parameters and add move instructions
-                # to load our values to those parameters
-                # what if we don't use those values at all?
-                # need a method to ask for them from predecessors.
-                # fallthrough_block_params = fallthrough_block.get_params()
-                # target_block_params = target_block.params()
-
-                break
-
-            elif isinstance(ir, irUnconditionalJump):
-                # jump to a single location
-                target_block = self.create_block_from_code_at_label(ir.target, prev_block=block)
-                block.successors.append(target_block)
-                break
-
-            elif isinstance(ir, irReturn):
-                # return from function
-                break
-
-        return block
-
-
-    def analyze_blocks(self):
-        # ensure conditional branches are always followed by an
-        # unconditional jump
-        # for i in range(len(self.body)):
-        #     if isinstance(self.body[i], irConditionalJump):
-        #         assert isinstance(self.body[i + 1], irUnconditionalJump)
-
-
-
-        self.blocks = {}
-        self.leader_block = self.create_block_from_code_at_index(0)
-
-        return
-        
-        # verify all instructions are assigned to a block:
-        # for ir in self.body:
-            # assert ir.block is not None
-
-        # verify all blocks start with a label and end
-        # with an unconditional jump or return
-        for block in self.blocks.values():
-            assert isinstance(block.code[0], irLabel)
-            assert isinstance(block.code[-1], irConditionalJump) or isinstance(block.code[-1], irUnconditionalJump) or isinstance(block.code[-1], irReturn)
-
-        # record jump sources for each label
-        # for ir in self.body:
-        #     target = ir.get_jump_target()
-
-        #     if target is None:
-        #         continue
-
-        #     target.sources.append(ir)
-
-        ssa_vars = self.leader_block.rename_vars()
-        self.leader_block.insert_phi()
-        # self.leader_block.convert_to_ssa2(ssa_vars)
-        # self.leader_block.convert_to_ssa()
-        # self.leader_block.resolve_phi()
-
-
-
-
-    # def remove_dead_labels(self):
-    #     return
-    #     labels = self.labels()
-
-    #     keep = []
-    #     code = self.code()
-
-    #     # get list of labels that are used
-    #     for label in labels:
-    #         for node in code:
-    #             target = node.get_jump_target()
-
-    #             if target != None:
-    #                 if target.name == label:
-    #                     keep.append(label)
-    #                     break
-
-    #     dead_labels = [l for l in labels if l not in keep]
-        
-    #     self.root_block.remove_dead_labels(dead_labels)
+        return s
 
     def labels(self):
         labels = {}
@@ -1155,20 +685,11 @@ class irFunc(IR):
 
         return labels
 
-    def code(self):
-        return self.body
-
-    def append_node(self, ir):
-        self.body.append(ir)
-
-    def resolve_phi(self):
-        self.root_block.resolve_phi()
-
     def generate(self):
-        params = [self.root_block.get_local(a.name).generate() for a in self.params]
+        params = [a.generate() for a in self.params]
         func = insFunction(self.name, params, lineno=self.lineno)
         ins = [func]
-        for ir in self.code():
+        for ir in self.body:
             code = ir.generate()
 
             try:
@@ -1198,25 +719,24 @@ class irFunc(IR):
         cfg.append(sequence)
 
         while True:
-            ir = self.code()[pc]
+            ins = self.body[pc]
 
-            # sequence.append(pc)
-            sequence.append(str(ir))
+            sequence.append(pc)
             
-            if isinstance(ir, irReturn):
+            if isinstance(ins, irReturn):
                 break
 
-            jump = ir.get_jump_target()
+            jump = ins.get_jump_target()
 
             # check if unconditional jump
-            if isinstance(ir, irJump) and ir not in jumps_taken:
+            if isinstance(ins, irJump) and ins not in jumps_taken:
                 pc = labels[jump.name]
 
-                jumps_taken.append(ir)
+                jumps_taken.append(ins)
 
             elif jump != None:
-                if ir not in jumps_taken:
-                    jumps_taken.append(ir)
+                if ins not in jumps_taken:
+                    jumps_taken.append(ins)
 
                     self.control_flow(sequence=copy(sequence), cfg=cfg, pc=labels[jump.name], jumps_taken=jumps_taken)
 
@@ -1253,7 +773,9 @@ class irFunc(IR):
                     if v.target.name not in self.builder.globals:
                         used.append(v.target)
 
+            # use.append([a.name for a in used])
             use.append([a for a in used])
+
 
             defined = ins.get_output_vars()
 
@@ -1265,10 +787,15 @@ class irFunc(IR):
                 if isinstance(v, irAddress):
                     if v.target.name not in self.builder.globals:
                         defined.append(v.target)
+
+            # define.append([a.name for a in defined])
             define.append([a for a in defined])
 
         # attach function params
+        # define[0].extend([a.name for a in self.funcs[func].params])
         define[0].extend([a for a in self.params])
+
+        # define[0].extend(self.globals.keys())
 
         return use, define
 
@@ -1611,6 +1138,23 @@ class irVectorOp(IR):
         else:
             return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
 
+class irClear(IR):
+    def __init__(self, target, **kwargs):
+        super(irClear, self).__init__(**kwargs)
+        self.target = target
+
+        assert self.target.length == 1
+        
+    def __str__(self):
+        return '%s = 0' % (self.target)
+
+    def get_output_vars(self):
+        return [self.target]
+
+    def generate(self):
+        return insClr(self.target.generate(), lineno=self.lineno)
+
+
 class irAssign(IR):
     def __init__(self, target, value, **kwargs):
         super(irAssign, self).__init__(**kwargs)
@@ -1738,8 +1282,6 @@ class irLabel(IR):
     def __init__(self, name, **kwargs):
         super(irLabel, self).__init__(**kwargs)        
         self.name = name
-        # list of jumps that arrive at this label
-        self.sources = []
 
     def __str__(self):
         s = 'LABEL %s' % (self.name)
@@ -1750,10 +1292,7 @@ class irLabel(IR):
         return insLabel(self.name, lineno=self.lineno)
 
 
-class irConditionalJump(IR):
-    pass    
-
-class irBranchConditional(irConditionalJump):
+class irBranchConditional(IR):
     def __init__(self, value, target, **kwargs):
         super(irBranchConditional, self).__init__(**kwargs)        
         self.value = value
@@ -1776,42 +1315,23 @@ class irBranchZero(irBranchConditional):
 
     def generate(self):
         return insJmpIfZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
+        
 
-class irBranch(irConditionalJump):
-    def __init__(self, value, true_label, false_label, **kwargs):
-        super().__init__(**kwargs)        
-        self.value = value
-        self.true_label = true_label
-        self.false_label = false_label
+
+class irBranchNotZero(irBranchConditional):
+    def __init__(self, *args, **kwargs):
+        super(irBranchNotZero, self).__init__(*args, **kwargs)        
 
     def __str__(self):
-        s = 'BR %s -> T: %s | F: %s' % (self.value, self.true_label.name, self.false_label.name)
+        s = 'BR NZ %s -> %s' % (self.value, self.target.name)
 
         return s    
 
-    def get_input_vars(self):
-        return [self.value]
+    def generate(self):
+        return insJmpIfNotZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
+    
 
-    def get_jump_target(self):
-        return self.target
-
-# class irBranchNotZero(irBranchConditional):
-#     def __init__(self, *args, **kwargs):
-#         super(irBranchNotZero, self).__init__(*args, **kwargs)        
-
-#     def __str__(self):
-#         s = 'BR NZ %s -> %s' % (self.value, self.target.name)
-
-#         return s    
-
-#     def generate(self):
-#         return insJmpIfNotZero(self.value.generate(), self.target.generate(), lineno=self.lineno)
-
-
-class irUnconditionalJump(IR):
-    pass
-
-class irJump(irUnconditionalJump):
+class irJump(IR):
     def __init__(self, target, **kwargs):
         super(irJump, self).__init__(**kwargs)        
         self.target = target
@@ -1827,7 +1347,7 @@ class irJump(irUnconditionalJump):
     def get_jump_target(self):
         return self.target
 
-class irJumpLessPreInc(irUnconditionalJump):
+class irJumpLessPreInc(IR):
     def __init__(self, target, op1, op2, **kwargs):
         super(irJumpLessPreInc, self).__init__(**kwargs)        
         self.target = target
@@ -2169,12 +1689,12 @@ class Builder(object):
             source_code = source_code.splitlines()
 
         self.funcs = {}
+        self.locals = {}
         self.globals = {}
         self.objects = {}
         self.pixel_arrays = {}
         self.palettes = {}
         self.labels = {}
-        self.scope_depth = 0
 
         self.data_table = []
         self.data_count = 0
@@ -2207,7 +1727,6 @@ class Builder(object):
         self.current_func = None
 
         self.data_types = {
-            'var': irVar_undefined,
             'i32': irVar_i32,
             'f16': irVar_f16,
             'gfx16': irVar_gfx16,
@@ -2220,10 +1739,10 @@ class Builder(object):
 
         # optimizations
         self.optimizations = {
-            'fold_constants': False,
-            'optimize_register_usage': False,
-            'remove_unreachable_code': False,
-            'optimize_assign_targets': False,
+            'fold_constants': True,
+            'optimize_register_usage': True,
+            'remove_unreachable_code': True,
+            'optimize_assign_targets': True,
         }
 
         # make sure we always have 0 and 65535 const, and a few others
@@ -2263,20 +1782,14 @@ class Builder(object):
         for i in list(self.globals.values()):
             s += '%d\t%s\n' % (i.lineno, i)
 
-        # s += 'Locals:\n'
-        # block_locals = {}
-        # for block in self.blocks:
-        #     if block.func.name not in block_locals:
-        #         block_locals[block.func.name] = {}
-        #     block_locals[block.func.name].update(block.locals)
+        s += 'Locals:\n'
+        for fname in sorted(self.locals.keys()):
+            if len(list(self.locals[fname].values())) > 0:
+                s += '\t%s\n' % (fname)
 
-        # for fname in sorted(block_locals.keys()):
-        #     if len(block_locals[fname].values()) > 0:
-        #         s += '\t%s\n' % (fname)
+                for l in self.locals[fname].values():
+                    s += '%d\t\t%s\n' % (l.lineno, l)
 
-        #         for l in block_locals[fname].values():
-        #             s += '%d\t\t%s\n' % (l.lineno, l)
-        
         s += 'PixelArrays:\n'
         for i in list(self.pixel_arrays.values()):
             s += '%d\t%s\n' % (i.lineno, i)
@@ -2287,13 +1800,21 @@ class Builder(object):
 
         return s
 
-    def analyze_blocks(self):
-        for func in self.funcs.values():
-            func.analyze_blocks()
-
     def finish_module(self):
         # clean up stuff after first pass is done
 
+        for func in list(self.funcs.values()):
+            func.remove_dead_labels()
+
+        for func in list(self.funcs.values()):
+            prev_line = 0
+            for ir in func.body:
+                if isinstance(ir, irLabel):
+                    ir.lineno = prev_line
+
+                else:
+                    if ir.lineno > prev_line:
+                        prev_line = ir.lineno
         return self
 
     def link(self, mode, source, dest, query, aggregation, rate, lineno=None):
@@ -2355,7 +1876,7 @@ class Builder(object):
 
         return self.data_types[name]
 
-    def build_var(self, name, data_type='var', dimensions=[], keywords=None, lineno=None):
+    def build_var(self, name, data_type, dimensions=[], keywords=None, lineno=None):
         data_type = self.get_type(data_type, lineno=lineno)
 
         if len(dimensions) == 0:
@@ -2363,8 +1884,6 @@ class Builder(object):
 
         else:
             ir = irArray(name, data_type(name, lineno=lineno), dimensions=dimensions, options=keywords, lineno=lineno)
-
-        ir.scope_depth = self.scope_depth
 
         return ir
 
@@ -2385,44 +1904,47 @@ class Builder(object):
 
         return ir
 
+    def add_local(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
+        ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
+
+        if isinstance(ir, irVar_str):
+            self.assign(ir, ir.default_value, lineno=lineno)
+
+        else:
+            # add init to 0
+            self.clear(ir, lineno=lineno)
+
+        return ir
+
     def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
         ir = self._add_local_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
-        
+
+        ir.name = '$%s.%s' % (func.name, name)
         func.params.append(ir)
 
         return ir
 
-    def _add_local_var(self, name, data_type='i32', dimensions=[], keywords={}, lineno=None):
+    def _add_local_var(self, name, data_type='i32', dimensions=[], keywords=None, lineno=None):
         # check if this is already in the globals
         if name in self.globals:
             raise VariableAlreadyDeclared("Variable '%s' already declared as global" % (name), lineno=lineno)
 
-        if 'publish' in keywords:
-            raise SyntaxError("Cannot publish a local variable: %s" % (name), lineno=lineno)            
+        # local var redeclaration is allowed
+        if name in self.locals[self.current_func]:
+            return self.locals[self.current_func][name]
 
-        if 'persist' in keywords:
-            raise SyntaxError("Cannot persist a local variable: %s" % (name), lineno=lineno)            
+        if keywords != None:
+            if 'publish' in keywords:
+                raise SyntaxError("Cannot publish a local variable: %s" % (name), lineno=lineno)            
+
+            if 'persist' in keywords:
+                raise SyntaxError("Cannot persist a local variable: %s" % (name), lineno=lineno)            
 
         ir = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
-        ir.scope_depth = self.scope_depth
+
+        self.locals[self.current_func][name] = ir
 
         return ir
-
-    def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
-        if is_global:
-            return self.add_global(name, data_type, dimensions, keywords=keywords, lineno=lineno)
-
-        else: # local
-            if len(keywords) > 0:
-                raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
-
-            var = self.build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
-            
-            ir = irDefine(var, lineno=lineno)
-
-            self.append_node(ir)
-
-            return var
 
     def get_var(self, name, lineno=None):
         name = str(name)
@@ -2440,7 +1962,11 @@ class Builder(object):
         if name in self.globals:
             return self.globals[name]
 
-        return self.build_var(name, lineno=lineno)
+        try:
+            return self.locals[self.current_func][name]
+
+        except KeyError:
+            raise VariableNotDeclared(name, "Variable '%s' not declared" % (name), lineno=lineno)
 
     def get_obj_var(self, obj_name, attr, lineno=None):
         name = '%s.%s' % (obj_name, attr)
@@ -2492,8 +2018,10 @@ class Builder(object):
         self.next_temp += 1
 
         ir = self.build_var(name, data_type, [], lineno=lineno)
+        self.locals[self.current_func][name] = ir
+
         ir.temp = True
-    
+
         return ir
 
     def add_string(self, string, lineno=None):
@@ -2508,24 +2036,22 @@ class Builder(object):
         return ir
 
     def remove_local_var(self, var):
-        debug_print('remove %s' % var)
-        raise NotImplementedError
+        del self.locals[self.current_func][var.name]
 
     def func(self, *args, **kwargs):
         func = irFunc(*args, builder=self, **kwargs)
         self.funcs[func.name] = func
-        self.current_func = func
-        self.next_temp = 0
-        self.scope_depth = 0
-
-        func_label = self.label(f'function:{func.name}', lineno=kwargs['lineno'])
-        self.position_label(func_label)
+        self.locals[func.name] = {}
+        self.current_func = func.name
+        self.next_temp = 0 
 
         return func
 
     def append_node(self, node):
-        node.scope_depth = self.scope_depth
-        self.current_func.append_node(node)
+        self.funcs[self.current_func].append(node)
+
+    def get_current_node(self):
+        return self.funcs[self.current_func].get(-1)
 
     def ret(self, value, lineno=None):
         ir = irReturn(value, lineno=lineno)
@@ -2559,8 +2085,8 @@ class Builder(object):
             raise SyntaxError("Binary operand must be scalar: %s" % (right.name), lineno=lineno)
 
         # if both types are gfx16, use i32
-        # if either type is fixed16, we do the whole thing as fixed16.
         if left.type == 'gfx16' and right.type == 'gfx16':
+            # if either type is fixed16, we do the whole thing as fixed16.
             data_type = 'i32'
 
         else:
@@ -2595,10 +2121,6 @@ class Builder(object):
             # need i32 for comparisons
             data_type = 'i32'
 
-
-        # OVERRIDING DATA TYPE SELECTION!!!
-        data_type = 'var'
-
         # generate result register with target data type
         result = self.add_temp(data_type=data_type, lineno=lineno)
 
@@ -2617,6 +2139,16 @@ class Builder(object):
         self.append_node(ir)
 
         return result
+
+    def clear(self, target, lineno=None):   
+        # check that we aren't clearing a string, which makes no sense
+        assert not isinstance(target, irVar_str)
+        
+        if target.length == 1:
+            ir = irClear(target, lineno=lineno)
+            self.append_node(ir)
+        else:
+            self.assign(target, self.get_var(0, lineno=lineno), lineno=lineno)
     
     def load_value(self, value, dest_hint='gfx16', lineno=None):
         # check if pixel attr
@@ -2696,11 +2228,7 @@ class Builder(object):
                 except AttributeError:
                     # no result, don't do anything
                     pass
-
-            is_temp = target.temp
-            if not is_temp:
-                target = self._add_local_var(target._name, target.type, lineno=lineno)
-
+                    
             ir = irAssign(target, value, lineno=lineno)
             
             self.append_node(ir)
@@ -2735,7 +2263,6 @@ class Builder(object):
 
 
     def convert_type(self, target, value, lineno=None):
-        return value
         # in normal expressions, f16 will take precedence over i32.
         # however, for the assign, the assignment target will 
         # have priority.
@@ -2940,36 +2467,16 @@ class Builder(object):
         else_label = self.label('if.else', lineno=lineno)
         end_label = self.label('if.end', lineno=lineno)
 
-        # this is here so we can do a type conversion,
-        # if needed
-        # if not isinstance(test, irBinop):
-        #     result = self.add_temp(lineno=lineno)
-        #     self.assign(result, test, lineno=lineno)
-        #     test = result
+        if not isinstance(test, irBinop):
+            result = self.add_temp(lineno=lineno)
+            self.assign(result, test, lineno=lineno)
+            test = result
 
-        assert not isinstance(test, irBinop)
-
-        # branch = irBranchZero(test, else_label, lineno=lineno)
-        branch = irBranch(test, body_label, else_label, lineno=lineno)
+        branch = irBranchZero(test, else_label, lineno=lineno)
         self.append_node(branch)
-        # jump = irJump(body_label, lineno=lineno)
-        # self.append_node(jump)
-
-        self.scope_depth += 1
 
         return body_label, else_label, end_label
 
-    def end_if(self, end_label, lineno=None):
-        self.jump(end_label, lineno=lineno)
-
-    def do_else(self, lineno=None):
-        pass
-
-    def end_ifelse(self, end_label, lineno=None):
-        self.jump(end_label, lineno=lineno)
-        self.scope_depth -= 1
-        self.position_label(end_label)
-        
     def position_label(self, label):
         self.append_node(label)
         
@@ -2981,15 +2488,9 @@ class Builder(object):
         self.loop_top.append(top_label)
         self.loop_end.append(end_label)
 
-        self.scope_depth += 1
-
     def test_while(self, test, lineno=None):
         ir = irBranchZero(test, self.loop_end[-1], lineno=lineno)
         self.append_node(ir)
-        body_label = self.label('while.body', lineno=lineno)
-        jump = irJump(body_label, lineno=lineno)
-        self.append_node(jump)
-        self.position_label(body_label)
 
     def end_while(self, lineno=None):
         ir = irJump(self.loop_top[-1], lineno=lineno)
@@ -2999,8 +2500,6 @@ class Builder(object):
 
         self.loop_top.pop(-1)
         self.loop_end.pop(-1)
-
-        self.scope_depth -= 1
 
     def begin_for(self, iterator, lineno=None):
         begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR
@@ -3467,34 +2966,29 @@ class Builder(object):
                         a.addr = trash_var.addr
 
                     
-            # for block in self.blocks:
-            #     for i in block.locals.values():
-            #         # assign block name to var
-            #         i.name = '%s.%s' % (block.name, i.name)
+            for func_name, local in list(self.locals.items()):
+                for i in list(local.values()):
+                    # assign func name to var
+                    i.name = '%s.%s' % (func_name, i.name)
 
-            #         self.data_table.append(i)
+                    self.data_table.append(i)
 
         # NOT optimizing registers
         else:
-            pass
-            # for block in self.blocks:
-            #     for i in block.locals.values():
-            #         i.addr = addr
-            #         addr += i.length
+            for func_name, local in list(self.locals.items()):
+                for i in list(local.values()):
+                    i.addr = addr
+                    addr += i.length
 
-            #         # assign block name to var
-            #         # i.name = '%s.%s' % (block.name, i._name)
+                    # assign func name to var
+                    i.name = '%s.%s' % (func_name, i.name)
 
-            #         # TODO it'll be nice to have block naming
-            #         # but for now, it breaks some of the code gen
-            #         # to change the name here
-
-            #         self.data_table.append(i)
+                    self.data_table.append(i)
 
         # scan instructions for referenced string literals
         used_strings = []
         for func in self.funcs:
-            for ins in self.funcs[func].code():
+            for ins in self.funcs[func].body:
                 for var in ins.get_input_vars():
                     if isinstance(var, irStrLiteral) and var not in used_strings:
                         used_strings.append(var)
@@ -3622,11 +3116,11 @@ class Builder(object):
     def print_control_flow(self):
         print("CONTROL FLOW: ")
         
-        for func in self.funcs.values():
-            cfg = func.control_flow()
+        for func in self.funcs:
+            cfg = self.control_flow(func)
 
-            print(func.name)
-            pprint.pprint(cfg)
+            print(func)
+            print(cfg)
 
     def print_func_addrs(self):
         print("FUNCTION ADDRS: ")
