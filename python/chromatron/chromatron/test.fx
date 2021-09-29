@@ -11,12 +11,22 @@
 
 #     print(s2)
 
+def conv():
 
-def stuff(a: Number) -> Number:
-    if a > 3:
-        return 1 + 2
+    a = Number()
+    a = 1
 
-    return 4.0
+    b = Fixed16()
+    b = a
+
+    return b
+
+
+# def stuff(a: Number) -> Number:
+#     if a > 3:
+#         return 1 + 2
+
+#     return 4.0
 
 # def stuff(a: Number, b: Number) -> Number:
 #     return a - b
