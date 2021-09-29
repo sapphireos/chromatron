@@ -520,8 +520,64 @@ class Builder(object):
 
         return value
 
+    def convert_type(self, target, value, lineno=None):
+        # in normal expressions, f16 will take precedence over i32.
+        # however, for the assign, the assignment target will 
+        # have priority.
+
+        # print target, value
+        # print target.get_base_type(), value.get_base_type()
+
+        # check if value is const 0
+        # if so, we don't need to convert, 0 has the same binary representation
+        # in all data types
+        if value.value == 0:
+            pass
+
+        # check for special case of a database target.
+        # we don't know the type of the database target, the 
+        # database itself will do the conversion.
+        # elif target.get_base_type() == 'db':
+            # pass
+
+        # check if base types don't match, if not, then do a conversion.
+        elif target.data_type != value.data_type:
+            # convert value to target type and replace value with result
+            # first, check if we created a temp reg.  if we did, just
+            # do the conversion in place to avoid creating another, unnecessary
+            # temp reg.
+
+            pass
+
+            # if value.temp:
+            #     # check if one of the types is gfx16.  if it is,
+            #     # then we don't do a conversion
+            #     if (target.get_base_type() == 'gfx16') or \
+            #        (value.get_base_type() == 'gfx16'):
+            #        pass
+
+            #     else:
+            #         ir = irConvertTypeInPlace(value, target.get_base_type(), lineno=lineno)
+            #         self.append_node(ir)
+
+            # else:
+            #     # check if one of the types is gfx16.  if it is,
+            #     # then we don't do a conversion
+            #     if (target.get_base_type() == 'gfx16') or \
+            #        (value.get_base_type() == 'gfx16'):
+            #        pass
+                   
+            #     else:
+            #         temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
+            #         ir = irConvertType(temp, value, lineno=lineno)
+            #         self.append_node(ir)
+            #         value = temp
+
+        return value
+
     def assign(self, target, value, lineno=None):
         value = self.load_value(value, lineno=lineno)
+        value = self.convert_type(target, value, lineno=lineno)
 
         if target.data_type == 'offset':
             if isinstance(target.ref, varScalar):
@@ -567,15 +623,6 @@ class Builder(object):
 
                 ir = irAssign(target, value, lineno=lineno)
 
-            # if len(target.lookups) > 0:
-            #     ir = irObjectStore(target, value, lineno=lineno)
-
-            # else:
-            #     if isinstance(value.var, varScalar):
-            #         raise SyntaxError(f'Cannot assign scalar to reference: {target} = {value}', lineno=lineno)
-
-            #     ir = irAssign(target, value, lineno=lineno)
-
         elif isinstance(target, varArray):
             # load address to register:
             var = self.add_temp(data_type='offset', lineno=lineno)
@@ -600,9 +647,44 @@ class Builder(object):
         left = self.load_value(left, lineno=lineno)
         right = self.load_value(right, lineno=lineno)
 
-        target = self.add_temp(data_type='i32', lineno=lineno)
+        # if both types are gfx16, use i32
+        if left.data_type == 'gfx16' and right.data_type == 'gfx16':
+            # if either type is fixed16, we do the whole thing as fixed16.
+            data_type = 'i32'
+
+        else:
+            # if left is gfx16, use right type
+            if left.data_type == 'gfx16':
+                data_type = right.data_type
+            else:
+                data_type = left.data_type
+
+            if right.data_type == 'f16':
+                data_type = right.data_type
+
+        left_result = left
+        right_result = right
+
+        if data_type == 'f16':
+            if left.data_type != 'f16' and left.data_type != 'gfx16':
+                left_result = self.add_temp(data_type=data_type, lineno=lineno)
+
+                ir = irConvertType(left_result, left, lineno=lineno)
+                self.append_node(ir)
+
+            if right.data_type != 'f16' and right.data_type != 'gfx16':
+                right_result = self.add_temp(data_type=data_type, lineno=lineno)
+
+                ir = irConvertType(right_result, right, lineno=lineno)
+                self.append_node(ir)
+
+        if op in COMPARE_BINOPS:
+            # need i32 for comparisons
+            data_type = 'i32'
+
+        target = self.add_temp(data_type=data_type, lineno=lineno)
         
-        ir = irBinop(target, op, left, right, lineno=lineno)
+        ir = irBinop(target, op, left_result, right_result, lineno=lineno)
 
         self.append_node(ir)
 
@@ -610,6 +692,12 @@ class Builder(object):
 
     def augassign(self, op, target, value, lineno=None):
         value = self.load_value(value, lineno=lineno)
+
+        # do a type conversion here, if needed.
+        # while binop will automatically convert types, 
+        # it gives precedence to f16.  however, in the case
+        # of augassign, we want to convert to the target type.
+        value = self.convert_type(target, value, lineno=lineno)
         
         if isinstance(target, varArray) or target.data_type == 'offset':
             var = self.add_temp(data_type='offset', lineno=lineno)

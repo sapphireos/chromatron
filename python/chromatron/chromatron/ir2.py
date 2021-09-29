@@ -17,6 +17,9 @@ from pprint import pprint
 COMMUTATIVE_OPS = ['add', 'mul']
 PRIMITIVE_TYPES = ['i32', 'f16']
 ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
+COMPARE_BINOPS = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte']
+
+
 
 """
 
@@ -3699,20 +3702,20 @@ class irBinop(IR):
                 'mul': insMul,
                 'div': insDiv,
                 'mod': insMod},
-            # 'f16':
-            #     {'eq': insF16CompareEq,
-            #     'neq': insF16CompareNeq,
-            #     'gt': insF16CompareGt,
-            #     'gte': insF16CompareGtE,
-            #     'lt': insF16CompareLt,
-            #     'lte': insF16CompareLtE,
-            #     'logical_and': insF16And,
-            #     'logical_or': insF16Or,
-            #     'add': insF16Add,
-            #     'sub': insF16Sub,
-            #     'mul': insF16Mul,
-            #     'div': insF16Div,
-            #     'mod': insF16Mod},
+            'f16':
+                {'eq': insCompareEq,
+                'neq': insCompareNeq,
+                'gt': insCompareGt,
+                'gte': insCompareGtE,
+                'lt': insCompareLt,
+                'lte': insCompareLtE,
+                'logical_and': insAnd,
+                'logical_or': insOr,
+                'add': insAdd,
+                'sub': insSub,
+                'mul': insF16Mul,
+                'div': insF16Div,
+                'mod': insMod},
             # 'str':
             #     # placeholders for now
             #     # need actual string instructions
@@ -3724,6 +3727,78 @@ class irBinop(IR):
         }
 
         return ops[self.data_type][self.op](self.target.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
+
+
+type_conversions = {
+    ('i32', 'f16'): insConvF16toI32,
+    ('f16', 'i32'): insConvI32toF16,
+}
+
+class irConvertType(IR):
+    def __init__(self, result, value, **kwargs):
+        super().__init__(**kwargs)
+        self.result = result
+        self.value = value
+
+        # check if either type is gfx16
+        if self.result.data_type == 'gfx16' or self.value.data_type == 'gfx16':
+            raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.value, self.result, self.lineno))
+
+    def __str__(self):
+        if self.skip_conversion():
+            s = '%s = %s' % (self.result, self.value)
+        else:
+            s = '%s = %s(%s)' % (self.result, self.result.data_type, self.value)
+
+        return s
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.result]
+
+    def skip_conversion(self):
+        return self.value.data_type == 'gfx16'
+
+    def generate(self):
+        try:
+            if self.skip_conversion():
+                raise KeyError
+
+            return type_conversions[(self.result.data_type, self.value.data_type)](self.result.generate(), self.value.generate(), lineno=self.lineno)
+
+        except KeyError:
+            ins = insConvMov(self.result.generate(), self.value.generate(), lineno=self.lineno)
+            return ins
+
+class irConvertTypeInPlace(IR):
+    def __init__(self, target, dest_type, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.dest_type = dest_type
+
+        # check if either type is gfx16
+        if self.target.data_type == 'gfx16' or self.dest_type == 'gfx16':
+            raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.target, self.dest_type, self.lineno))
+    
+    def __str__(self):
+        s = '%s = %s(%s)' % (self.target, self.target.data_type, self.target)
+
+        return s
+
+    def get_input_vars(self):
+        return [self.target]
+
+    def get_output_vars(self):
+        return [self.target]
+
+    def generate(self):
+        try:
+            return type_conversions[(self.dest_type, self.target.data_type)](self.target.generate(), self.target.generate(), lineno=self.lineno)
+
+        except KeyError:
+            raise CompilerFatal("Invalid conversion: '%s' to '%s' on line: %d" % (self.target.data_type, self.dest_type, self.lineno))
 
 
 # class irVar(IR):

@@ -14,12 +14,12 @@
 def conv():
 
     a = Number()
-    a = 1
+    a = 1 + 2.0
 
-    b = Fixed16()
-    b = a
+    # b = Fixed16()
+    # b = a
 
-    return b
+    return a
 
 
 # def stuff(a: Number) -> Number:

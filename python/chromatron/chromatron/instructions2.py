@@ -974,6 +974,24 @@ class insMod(insArith):
             return op1 % op2
 
 
+class insF16Mul(insArith):
+    mnemonic = 'MUL_F16'
+    symbol = "*"
+
+    def arith(self, op1, op2):
+        return (op1 * op2) / 65536
+
+class insF16Div(insArith):
+    mnemonic = 'DIV_F16'
+    symbol = "/"
+
+    def arith(self, op1, op2):
+        if op2 == 0:
+            return 0
+
+        else:
+            return (op1 * 65536) // op2
+
 class insVector(BaseInstruction):
     mnemonic = 'VECTOR'
 
@@ -1372,3 +1390,39 @@ class insPixelAddHue(insPixelAdd):
     mnemonic = 'PADD_HUE'
 
 
+
+
+
+class insConvMov(insMov):
+    mnemonic = 'MOV'
+
+class insConvI32toF16(BaseInstruction):
+    mnemonic = 'CONV_I32_TO_F16'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+    def __str__(self):
+        return "%s %s = F16(%s)" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        vm.registers[self.dest.reg] = convert_to_f16(vm.registers[self.src.reg])
+
+    
+class insConvF16toI32(BaseInstruction):
+    mnemonic = 'CONV_F16_TO_I32'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+    def __str__(self):
+        return "%s %s = I32(%s)" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        vm.register[self.dest.reg] = convert_to_i32(vm.register[self.src.reg])
+
+    
