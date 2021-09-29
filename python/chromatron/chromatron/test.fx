@@ -16,7 +16,7 @@ def stuff(a: Number) -> Number:
     if a > 3:
         return 1 + 2
 
-    return 4
+    return 4.0
 
 # def stuff(a: Number, b: Number) -> Number:
 #     return a - b

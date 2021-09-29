@@ -161,6 +161,7 @@ class irProgram(IR):
         self.funcs = funcs
         self.symbols = symbols
         self.global_symbols = symbols
+        self.constant_pool = []
 
     def __str__(self):
         s = "FX IR:\n"
@@ -3376,9 +3377,7 @@ class irLoadConst(IR):
     def __init__(self, target, value, **kwargs):
         super().__init__(**kwargs)
         self.target = target
-        # self.value = copy(value)
         self.value = value
-        # assert value.const
 
     @property
     def value_number(self):

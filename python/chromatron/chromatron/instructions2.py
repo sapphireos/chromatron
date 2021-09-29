@@ -129,6 +129,19 @@ class insProgram(object):
                            'hs_fade': self.hs_fade,
                            'v_fade': self.v_fade}
 
+        # set up constant pool
+        # this is sourced from load const instructions
+        self.constants = []
+
+        for func in self.funcs.values():
+            for ins in func.code:
+                if not isinstance(ins, insLoadConst):
+                    continue
+
+                if ins.value not in self.constants:
+                    self.constants.append(ins.value)
+                    ins.src = self.constants.index(ins.value)
+
 
     def __str__(self):
         s = 'VM Instructions:\n'
@@ -150,7 +163,7 @@ class insProgram(object):
         for func in self.funcs.values():
             bytecode[func.name] = func.assemble()
 
-        return FXImage(self, bytecode)
+        return FXImage(self, bytecode, self.constants)
 
 
 class insFunc(object):
@@ -490,14 +503,17 @@ class insLoadConst(BaseInstruction):
 
         self.value = value
 
+        self.src = None
+
     def __str__(self):
-        return "%s %s <- %s" % (self.mnemonic, self.dest, self.value)
+        return "%s %s <- CONSTANTS[%s](%s)" % (self.mnemonic, self.dest, self.src, self.value)
 
     def execute(self, vm):
         vm.registers[self.dest.reg] = self.value
 
     def assemble(self):
-        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.value, lineno=self.lineno)
+        assert self.src is not None
+        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.src, lineno=self.lineno)
 
 class insLoadGlobal(BaseInstruction):
     mnemonic = 'LDG'

@@ -1129,6 +1129,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
         image = ins_program.assemble()
         stream = image.render()
+        print(image.header)
 
 
     # return ins_program

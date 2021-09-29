@@ -28,7 +28,7 @@ opcodes = {
     'MOV':                  0x01,
     'NOT':                  0x02,
     'LDI':                  0x02,
-    'LDC':                  0x03,
+    'LDC':                  0xBB,
     'LDG':                  0x03,
     'LDL':                  0x03,
     'REF':                  0x03,
@@ -170,7 +170,7 @@ class Opcode(object):
         elif len(packed) < self.length:
             # pad opcode to 32 bits:
             padding = self.length - len(packed)
-            packed += struct.pack(f'<{padding}B', *[0] * padding)
+            packed += struct.pack(f'<{padding}B', *[0xfe] * padding)
 
         return packed
 

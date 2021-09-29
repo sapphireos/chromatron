@@ -94,9 +94,10 @@ class CronItem(StructField):
 
 
 class FXImage(object):
-    def __init__(self, program, funcs={}):
+    def __init__(self, program, funcs={}, constants=[]):
         self.program = program
         self.funcs = funcs
+        self.constants = constants
 
         self.stream = None
         self.header = None
