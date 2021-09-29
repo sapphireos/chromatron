@@ -651,6 +651,20 @@ class Builder(object):
             self.assign(copy(target), result, lineno=lineno)
 
     def finish_module(self):
+        # check if there is no init function
+        if 'init' not in self.funcs:
+            func = self.func('init', lineno=0)
+            zero = self.declare_var(0, lineno=0)
+            self.ret(zero, lineno=0)
+            self.finish_func(func)
+
+        # check if there is no loop function
+        if 'loop' not in self.funcs:
+            func = self.func('loop', lineno=0)
+            zero = self.declare_var(0, lineno=0)
+            self.ret(zero, lineno=0)
+            self.finish_func(func)
+
         ir = irProgram(self.script_name, self.funcs, self.global_symbols, lineno=0)
 
         return ir
