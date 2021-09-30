@@ -977,7 +977,7 @@ class insF16Mul(insArith):
     symbol = "*"
 
     def arith(self, op1, op2):
-        return (op1 * op2) / 65536
+        return (op1 * op2) // 65536
 
 class insF16Div(insArith):
     mnemonic = 'DIV_F16'

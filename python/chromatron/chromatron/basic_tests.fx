@@ -377,3 +377,13 @@ def type_conversions_array():
     assert b == 3.12298583984375
     assert c == 3.0
     assert d == 6
+
+def type_conversions_binop():
+    a = Number()
+    b = Fixed16()
+
+    a = 123
+    b = a * 0.333
+
+    assert a == 123
+    assert b == 40.95808410644531
