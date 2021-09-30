@@ -163,7 +163,7 @@ def array2_lookup():
     assert ary2[1][2] == 6
 
 
-def local_array():
+def local_array_lookup():
     local_ary = Number()[4]
     b = Number()
     local_ary[b] = 1
@@ -183,7 +183,25 @@ def local_array():
     assert local_ary[2] == 0
     assert local_ary[3] == 0
 
-    
+
+def local_array_assign():
+    local_ary = Number()[4]
+    local_ary = 0
+    local_ary = 1
+    assert local_ary[0] == 1
+    assert local_ary[1] == 1
+    assert local_ary[2] == 1
+    assert local_ary[3] == 1
+
+def local_array_vector():
+    local_ary = Number()[4]
+    local_ary = 1
+    local_ary += 1
+    assert local_ary[0] == 2
+    assert local_ary[1] == 2
+    assert local_ary[2] == 2
+    assert local_ary[3] == 2
+
 def func_param(a: Number):
     a += 1
     

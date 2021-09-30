@@ -1,4 +1,21 @@
 
+def local_array_assign():
+    local_ary = Number()[4]
+    local_ary = 0
+    local_ary = 1
+    assert local_ary[0] == 1
+    assert local_ary[1] == 1
+    assert local_ary[2] == 1
+    assert local_ary[3] == 1
+
+def local_array_vector():
+    local_ary = Number()[4]
+    local_ary = 1
+    local_ary += 1
+    assert local_ary[0] == 2
+    assert local_ary[1] == 2
+    assert local_ary[2] == 2
+    assert local_ary[3] == 2
 
 # def type_conversions_array():
 #     a = Number()
@@ -23,7 +40,7 @@
 #     assert a == 3
 #     assert b == 3.12298583984375
 #     assert c == 3.0
-#     assert d == 6
+    # assert d == 6
 
 
 # s = String("hello!")
