@@ -330,3 +330,28 @@ def load_string_literal():
     s = "meow"
     
     return s
+
+
+
+
+
+def type_conversions():
+    a = Number()
+    b = Fixed16()
+    c = Fixed16()
+    d = Number()
+
+    a = 123.456
+    b = 32
+
+    c = 123
+    c += 123
+
+    d = 123.123
+    d += 123.123
+
+    assert a == 123
+    assert b == 32
+    assert c == 246.0
+    assert d == 246
+

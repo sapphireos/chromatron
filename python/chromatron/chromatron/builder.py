@@ -541,15 +541,15 @@ class Builder(object):
             # pass
 
         # check if base types don't match, if not, then do a conversion.
-        elif target.data_type != value.data_type:
+        elif target.scalar_type != value.scalar_type:
             # check if one of the types is gfx16.  if it is,
             # then we don't do a conversion
-            if (target.data_type == 'gfx16') or \
-               (value.data_type == 'gfx16'):
+            if (target.scalar_type == 'gfx16') or \
+               (value.scalar_type == 'gfx16'):
                pass
                
             else:
-                temp = self.add_temp(lineno=lineno, data_type=target.data_type)
+                temp = self.add_temp(lineno=lineno, data_type=target.scalar_type)
                 ir = irConvertType(temp, value, lineno=lineno)
                 self.append_node(ir)
                 value = temp
