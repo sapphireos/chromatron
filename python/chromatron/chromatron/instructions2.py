@@ -140,7 +140,8 @@ class insProgram(object):
 
                 if ins.value not in self.constants:
                     self.constants.append(ins.value)
-                    ins.src = self.constants.index(ins.value)
+                
+                ins.src = self.constants.index(ins.value)
 
 
     def __str__(self):
