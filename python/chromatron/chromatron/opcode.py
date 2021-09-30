@@ -192,6 +192,13 @@ class Opcode64(Opcode):
 
         return opcode
 
+class OpcodeFormatNop(Opcode32):
+    def __init__(self, opcode, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = []
+        self.format = ''
+
 class OpcodeFormat1AC(Opcode32):
     def __init__(self, opcode, op1, **kwargs):
         super().__init__(opcode, **kwargs)

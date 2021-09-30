@@ -1,14 +1,13 @@
 
-ary = Fixed16()[4]
-ary2 = Number()[4]
 
 def type_conversions_array():
     a = Number()
     b = Fixed16()
     c = Fixed16()
     d = Number()
-
-
+        
+    ary = Fixed16()[4]
+    ary2 = Number()[4]
 
     ary = 3.123
 

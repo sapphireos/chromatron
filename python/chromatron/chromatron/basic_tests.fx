@@ -333,8 +333,6 @@ def load_string_literal():
 
 
 
-
-
 def type_conversions():
     a = Number()
     b = Fixed16()
@@ -355,3 +353,27 @@ def type_conversions():
     assert c == 246.0
     assert d == 246
 
+def type_conversions_array():
+    a = Number()
+    b = Fixed16()
+    c = Fixed16()
+    d = Number()
+        
+    ary = Fixed16()[4]
+    ary2 = Number()[4]
+
+    ary = 3.123
+
+    a = ary[1]
+    b = ary[1]
+
+    ary2 = 3.123    
+    c = ary2[1]
+
+    ary2 += 3.123
+    d = ary2[1]
+
+    assert a == 3
+    assert b == 3.12298583984375
+    assert c == 3.0
+    assert d == 6

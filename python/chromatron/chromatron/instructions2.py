@@ -443,9 +443,6 @@ class insNop(BaseInstruction):
     def execute(self, vm):
         pass
 
-    def assemble(self):
-        return None
-
 
 # register to register move
 class insMov(BaseInstruction):
@@ -693,7 +690,7 @@ class insLookup(BaseInstruction):
         vm.registers[self.result.reg] = addr
 
     def assemble(self):
-        pass
+        return OpcodeFormatNop(self.mnemonic, lineno=self.lineno)
 
 # class insLookupGlobal(BaseInstruction):
 #     mnemonic = 'LKPG'
