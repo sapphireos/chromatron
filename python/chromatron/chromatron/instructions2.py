@@ -998,7 +998,7 @@ class insVector(BaseInstruction):
         self.target = target
         self.value = value
 
-        #self.type = self.target.var.get_base_type()
+        self.is_global = self.target.var.ref.is_global
 
         self.length = self.target.var.ref.size
 
@@ -1006,7 +1006,7 @@ class insVector(BaseInstruction):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
 
     def assemble(self):
-        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.value.assemble(), self.length, lineno=self.lineno)
+        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.is_global, self.value.assemble(), self.length, lineno=self.lineno)
         # bc = [self.opcode]
         # bc.extend(self.target.assemble())
         # bc.extend(self.value.assemble())
@@ -1031,8 +1031,15 @@ class insVectorMov(insVector):
         value = vm.registers[self.value.reg]
         addr = vm.registers[self.target.reg]
 
-        for i in range(self.length):
-            vm.memory[addr] = value
+        if self.is_global:
+            array = vm.memory
+
+        else:
+            array = vm.locals
+
+        for i in range(self.length):    
+            array[addr] = value
+        
             addr += 1
 
 class insVectorAdd(insVector):
@@ -1044,11 +1051,17 @@ class insVectorAdd(insVector):
         value = vm.registers[self.value.reg]
         addr = vm.registers[self.target.reg]
 
+        if self.is_global:
+            array = vm.memory
+
+        else:
+            array = vm.locals
+
         for i in range(self.length):
-            vm.memory[addr] += value
+            array[addr] += value
 
             # coerce to int
-            vm.memory[addr] = int(vm.memory[addr])
+            array[addr] = int(array[addr])
         
             addr += 1
 

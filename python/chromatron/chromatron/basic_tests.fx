@@ -187,6 +187,11 @@ def local_array_lookup():
 def local_array_assign():
     local_ary = Number()[4]
     local_ary = 0
+    assert local_ary[0] == 0
+    assert local_ary[1] == 0
+    assert local_ary[2] == 0
+    assert local_ary[3] == 0
+
     local_ary = 1
     assert local_ary[0] == 1
     assert local_ary[1] == 1
@@ -196,6 +201,12 @@ def local_array_assign():
 def local_array_vector():
     local_ary = Number()[4]
     local_ary = 1
+
+    assert local_ary[0] == 1
+    assert local_ary[1] == 1
+    assert local_ary[2] == 1
+    assert local_ary[3] == 1
+
     local_ary += 1
     assert local_ary[0] == 2
     assert local_ary[1] == 2

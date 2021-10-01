@@ -237,8 +237,8 @@ class OpcodeLabel(Opcode):
         return self.addr
 
 class OpcodeFormatVector(Opcode64):
-    def __init__(self, opcode, target, value, length, **kwargs):
+    def __init__(self, opcode, target, value, length, is_global, **kwargs):
         super().__init__(opcode, **kwargs)
 
-        self.items = [target, value, length]
-        self.format = 'BHH'
+        self.items = [target, is_global, value, length]
+        self.format = 'BBHH'

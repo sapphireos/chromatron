@@ -1,16 +1,13 @@
 
-def local_array_assign():
+def local_array_vector():
     local_ary = Number()[4]
-    local_ary = 0
     local_ary = 1
+
     assert local_ary[0] == 1
     assert local_ary[1] == 1
     assert local_ary[2] == 1
     assert local_ary[3] == 1
 
-def local_array_vector():
-    local_ary = Number()[4]
-    local_ary = 1
     local_ary += 1
     assert local_ary[0] == 2
     assert local_ary[1] == 2
