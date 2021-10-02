@@ -4257,7 +4257,23 @@ class irCall(irCallType):
         result = self.result.generate()
 
         # call func
-        call_ins = insCall(target, params, result, lineno=self.lineno)
+        if len(params) == 0:
+            call_ins = insCall0(target, params, result, lineno=self.lineno)
+
+        elif len(params) == 1:
+            call_ins = insCall1(target, params, result, lineno=self.lineno)
+
+        elif len(params) == 2:
+            call_ins = insCall2(target, params, result, lineno=self.lineno)
+
+        elif len(params) == 3:
+            call_ins = insCall3(target, params, result, lineno=self.lineno)
+
+        elif len(params) == 4:
+            call_ins = insCall4(target, params, result, lineno=self.lineno)
+
+        else:
+            raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')
 
         stack.pop(0)
 
@@ -4296,7 +4312,23 @@ class irIndirectCall(irCallType):
         # args = [a.generate() for a in self.args]
 
         # call func
-        call_ins = insIndirectCall(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+        if len(params) == 0:
+            call_ins = insIndirectCall0(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+
+        elif len(params) == 1:
+            call_ins = insIndirectCall1(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+
+        elif len(params) == 2:
+            call_ins = insIndirectCall2(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+
+        elif len(params) == 3:
+            call_ins = insIndirectCall3(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+
+        elif len(params) == 4:
+            call_ins = insIndirectCall4(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+
+        else:
+            raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')
 
         return call_ins
 

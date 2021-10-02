@@ -239,8 +239,57 @@ class OpcodeFormat4AC(Opcode64):
     def __init__(self, opcode, dest, op1, op2, op3, **kwargs):
         super().__init__(opcode, **kwargs)
 
-        self.items = [dest, op1, op2]
+        self.items = [dest, op1, op2, op3]
         self.format = 'BBBB'
+
+class OpcodeFormat5AC(Opcode64):
+    def __init__(self, opcode, dest, op1, op2, op3, op4, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [dest, op1, op2, op3, op4]
+        self.format = 'BBBBB'
+
+class OpcodeFormat6AC(Opcode64):
+    def __init__(self, opcode, dest, op1, op2, op3, op4, op5, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [dest, op1, op2, op3, op4, op5]
+        self.format = 'BBBBBB'
+
+class OpcodeFormat1Imm1Reg(Opcode32):
+    def __init__(self, opcode, imm1, reg1, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [imm1, reg1]
+        self.format = 'HB'
+
+class OpcodeFormat1Imm2Reg(Opcode64):
+    def __init__(self, opcode, imm1, reg1, reg2, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [imm1, reg1, reg2]
+        self.format = 'HBB'
+
+class OpcodeFormat1Imm3Reg(Opcode64):
+    def __init__(self, opcode, imm1, reg1, reg2, reg3, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [imm1, reg1, reg2, reg3]
+        self.format = 'HBBB'
+
+class OpcodeFormat1Imm4Reg(Opcode64):
+    def __init__(self, opcode, imm1, reg1, reg2, reg3, reg4, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [imm1, reg1, reg2, reg3, reg4]
+        self.format = 'HBBBB'
+
+class OpcodeFormat1Imm5Reg(Opcode64):
+    def __init__(self, opcode, imm1, reg1, reg2, reg3, reg4, reg5, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [imm1, reg1, reg2, reg3, reg4, reg5]
+        self.format = 'HBBBBB'
 
 class OpcodeLabel(Opcode):
     def __init__(self, label, **kwargs):

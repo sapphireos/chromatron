@@ -1188,7 +1188,9 @@ class insCall(BaseInstruction):
 
         vm.registers[self.result.reg] = ret_val
 
-    # def assemble(self):
+    def assemble(self):
+        raise NotImplementedError
+
     #     pass
 
         # bc = [self.opcode]
@@ -1202,6 +1204,62 @@ class insCall(BaseInstruction):
         #     bc.extend(self.args[i].assemble())
 
         # return bc
+
+class insCall0(insCall):
+    mnemonic = 'CALL0'
+
+    def assemble(self):
+        return OpcodeFormat1Imm1Reg(self.target, self.result.assemble(), lineno=self.lineno)
+
+class insCall1(insCall):
+    mnemonic = 'CALL1'
+
+    def assemble(self):
+        return OpcodeFormat1Imm2Reg(
+            self.mnemonic,
+            self.target, 
+            self.result.assemble(), 
+            self.params[0].assemble(), 
+            lineno=self.lineno)
+
+class insCall2(insCall):
+    mnemonic = 'CALL2'
+
+    def assemble(self):
+        return OpcodeFormat1Imm3Reg(
+            self.mnemonic,
+            self.target, 
+            self.result.assemble(), 
+            self.params[0].assemble(), 
+            self.params[1].assemble(), 
+            lineno=self.lineno)
+
+class insCall3(insCall):
+    mnemonic = 'CALL3'
+
+    def assemble(self):
+        return OpcodeFormat1Imm4Reg(
+            self.mnemonic,
+            self.target, 
+            self.result.assemble(), 
+            self.params[0].assemble(), 
+            self.params[1].assemble(), 
+            self.params[2].assemble(), 
+            lineno=self.lineno)
+
+class insCall4(insCall):
+    mnemonic = 'CALL4'
+
+    def assemble(self):
+        return OpcodeFormat1Imm5Reg(
+            self.mnemonic,
+            self.target, 
+            self.result.assemble(), 
+            self.params[0].assemble(), 
+            self.params[1].assemble(), 
+            self.params[2].assemble(), 
+            self.params[3].assemble(), 
+            lineno=self.lineno)
 
 class insIndirectCall(BaseInstruction):
     mnemonic = 'ICALL'
@@ -1243,6 +1301,64 @@ class insIndirectCall(BaseInstruction):
         #     bc.extend(self.args[i].assemble())
 
         # return bc
+
+
+class insIndirectCall0(insIndirectCall):
+    mnemonic = 'ICALL0'
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.ref.assemble(), self.result.assemble(), lineno=self.lineno)
+
+class insIndirectCall1(insIndirectCall):
+    mnemonic = 'ICALL1'
+
+    def assemble(self):
+        return OpcodeFormat3AC(
+            self.mnemonic,
+            self.ref.assemble(), 
+            self.result.assemble(), 
+            self.params[0].assemble(), 
+            lineno=self.lineno)
+
+class insIndirectCall2(insIndirectCall):
+    mnemonic = 'ICALL2'
+
+    def assemble(self):
+        return OpcodeFormat4AC(
+            self.mnemonic,
+            self.ref.assemble(), 
+            self.result.assemble(), 
+            self.params[0].assemble(), 
+            self.params[1].assemble(), 
+            lineno=self.lineno)
+
+class insIndirectCall3(insIndirectCall):
+    mnemonic = 'ICALL3'
+
+    def assemble(self):
+        return OpcodeFormat5AC(
+            self.mnemonic,
+            self.ref.assemble(), 
+            self.result.assemble(), 
+            self.params[0].assemble(), 
+            self.params[1].assemble(), 
+            self.params[2].assemble(), 
+            lineno=self.lineno)
+
+class insIndirectCall4(insIndirectCall):
+    mnemonic = 'ICALL4'
+
+    def assemble(self):
+        return OpcodeFormat6AC(
+            self.mnemonic,
+            self.ref.assemble(), 
+            self.result.assemble(), 
+            self.params[0].assemble(), 
+            self.params[1].assemble(), 
+            self.params[2].assemble(), 
+            self.params[3].assemble(), 
+            lineno=self.lineno)
+
 
 class insPixelLookup(BaseInstruction):
     mnemonic = 'PLOOKUP'
