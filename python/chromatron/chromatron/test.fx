@@ -1,18 +1,25 @@
 
-def local_array_vector():
-    local_ary = Number()[4]
-    local_ary = 1
+ary2 = Number()[2][3]
 
-    assert local_ary[0] == 1
-    assert local_ary[1] == 1
-    assert local_ary[2] == 1
-    assert local_ary[3] == 1
+def array2_lookup():
+    b = Number()
+    ary2[b][0] = 1
+    ary2[b][1] = 2
+    ary2[b][2] = 3
+    b = 1
+    ary2[b] = 2
+    ary2[b][0] = 4
+    ary2[b][1] = 5
+    ary2[b][2] = 6
 
-    local_ary += 1
-    assert local_ary[0] == 2
-    assert local_ary[1] == 2
-    assert local_ary[2] == 2
-    assert local_ary[3] == 2
+    assert ary2[0][0] == 1
+    assert ary2[0][1] == 2
+    assert ary2[0][2] == 3
+    assert ary2[1][0] == 4
+    assert ary2[1][1] == 5
+    assert ary2[1][2] == 6
+
+
 
 # def type_conversions_array():
 #     a = Number()
@@ -37,7 +44,7 @@ def local_array_vector():
 #     assert a == 3
 #     assert b == 3.12298583984375
 #     assert c == 3.0
-    # assert d == 6
+#     assert d == 6
 
 
 # s = String("hello!")

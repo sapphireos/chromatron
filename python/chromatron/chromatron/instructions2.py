@@ -664,6 +664,10 @@ class insLookup(BaseInstruction):
         self.counts = counts
         self.strides = strides
 
+        self.len = len(indexes)
+        assert len(counts) == self.len
+        assert len(strides) == self.len
+
         assert base_addr is not None
 
     def __str__(self):
@@ -690,7 +694,42 @@ class insLookup(BaseInstruction):
         vm.registers[self.result.reg] = addr
 
     def assemble(self):
-        return OpcodeFormatNop(self.mnemonic, lineno=self.lineno)
+        indexes = [i.assemble() for i in self.indexes]
+
+        if self.len == 0:
+            return OpcodeFormatLookup0(self.mnemonic, self.base_addr.assemble(), lineno=self.lineno)
+
+        elif self.len == 1:
+            return OpcodeFormatLookup1(
+                self.mnemonic, 
+                self.base_addr.assemble(), 
+                indexes, 
+                self.counts, 
+                self.strides, 
+                lineno=self.lineno)
+
+        elif self.len == 2:
+            return OpcodeFormatLookup2(
+                self.mnemonic, 
+                self.base_addr.assemble(), 
+                indexes, 
+                self.counts, 
+                self.strides, 
+                lineno=self.lineno)
+
+        elif self.len == 3:
+            return OpcodeFormatLookup3(
+                self.mnemonic, 
+                self.base_addr.assemble(), 
+                indexes, 
+                self.counts, 
+                self.strides, 
+                lineno=self.lineno)
+
+        else:
+            raise NotImplementedError
+
+        # return OpcodeFormatNop(self.mnemonic, lineno=self.lineno)
 
 # class insLookupGlobal(BaseInstruction):
 #     mnemonic = 'LKPG'

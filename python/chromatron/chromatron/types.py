@@ -164,6 +164,10 @@ class Var(object):
     def size(self): # size in machine words (32 bits)
         return None
 
+    @property
+    def dimensions(self):
+        return 0
+
     def build(self, name, lineno=None, **kwargs):
         base = deepcopy(self)
         base.name = name
@@ -326,6 +330,10 @@ class varArray(varComposite):
     @property
     def stride(self):
         return self.element.size
+
+    @property
+    def dimensions(self):
+        return 1 + self.element.dimensions
 
     def lookup(self, indexes=[], lineno=None):
         # verify lookups are resolvable:

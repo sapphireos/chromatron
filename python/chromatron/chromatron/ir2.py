@@ -4156,9 +4156,8 @@ class irLookup(IR):
             try:
                 count = target.length
 
-            except IndexError:
-
-                raise SyntaxError(f'{target.basename} has only {len(target.dimensions)} dimensions, requested {len(self.lookups)}', lineno=self.lineno)
+            except (IndexError, AttributeError):
+                raise SyntaxError(f'{self.target.name} has only {self.target.dimensions} dimensions, requested {len(self.lookups)}', lineno=self.lineno)
 
             counts.append(count)
             strides.append(target.stride)

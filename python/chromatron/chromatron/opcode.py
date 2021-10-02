@@ -141,6 +141,10 @@ class Opcode(object):
     def length(self):
         raise NotImplementedError
 
+    @property
+    def byte_length(self):
+        return 1 + struct.calcsize(self.format)
+
     def get_opcode(self):
         return opcodes[self.opcode]
 
@@ -165,7 +169,7 @@ class Opcode(object):
         packed = struct.pack(f'<B{self.format}', self.get_opcode(), *self.items)
 
         if len(packed) > self.length:
-            raise CompilerFatal(f'{self} is improper length!')
+            raise CompilerFatal(f'{self} is improper length! {len(packed)} > {self.length}')
 
         elif len(packed) < self.length:
             # pad opcode to 32 bits:
@@ -187,8 +191,8 @@ class Opcode64(Opcode):
     def get_opcode(self):
         opcode = super().get_opcode()
 
-        if opcode & 0x40 == 0:
-            raise CompilerFatal(f'Incorrect length bit on opcode {self.opcode}')
+        # if opcode & 0x40 == 0:
+            # raise CompilerFatal(f'Incorrect length bit on opcode {self.opcode}')
 
         return opcode
 
@@ -242,3 +246,77 @@ class OpcodeFormatVector(Opcode64):
 
         self.items = [target, is_global, value, length]
         self.format = 'BBHH'
+
+class OpcodeFormatLookup0(Opcode):
+    def __init__(self, opcode, base_addr, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [base_addr]
+        self.format = 'H'
+    
+    @property
+    def length(self):
+        return 4
+
+class OpcodeFormatLookup1(Opcode):
+    def __init__(self, opcode, base_addr, indexes=[], counts=[], strides=[], **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [
+            base_addr, 
+            indexes[0], 
+            counts[0], 
+            strides[0],
+        ]
+
+        self.format = 'HBHH'
+    
+    @property
+    def length(self):
+        return 8
+
+class OpcodeFormatLookup2(Opcode):
+    def __init__(self, opcode, base_addr, indexes=[], counts=[], strides=[], **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [
+            base_addr, 
+            indexes[0], 
+            counts[0], 
+            strides[0],
+            indexes[1], 
+            counts[1], 
+            strides[1],
+        ]
+
+        self.format = 'HBHHBHH'
+    
+    @property
+    def length(self):
+        return 16
+
+class OpcodeFormatLookup3(Opcode):
+    def __init__(self, opcode, base_addr, indexes=[], counts=[], strides=[], **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [
+            base_addr, 
+            indexes[0], 
+            counts[0], 
+            strides[0],
+            indexes[1], 
+            counts[1], 
+            strides[1],
+            indexes[2], 
+            counts[2], 
+            strides[2],
+        ]
+
+        self.format = 'HBHHBHHBHH'
+    
+    @property
+    def length(self):
+        return 16
+
+
+        
