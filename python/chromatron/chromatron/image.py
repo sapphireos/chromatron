@@ -154,7 +154,7 @@ class FXImage(object):
 
             bytecode += bc
 
-            print(bc)
+            # print(bc)
 
 
         ################################

@@ -151,7 +151,7 @@ class Opcode(object):
         self.items = []
 
     def __str__(self):
-        return f'Opcode: {self.opcode} Line: {self.lineno}'
+        return f'Opcode: {self.opcode:16} Line: {self.lineno:3} Bytecode: {" ".join([format(a, "02x") for a in self.render()])}'
 
     @property
     def length(self):
