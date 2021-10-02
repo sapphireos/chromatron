@@ -4122,6 +4122,7 @@ class irLookup(IR):
         super().__init__(**kwargs)        
         self.result = result
         self.target = target
+        assert target.data_type != 'offset'
         self.lookups = lookups
 
     def __str__(self):
@@ -4131,16 +4132,10 @@ class irLookup(IR):
 
         return f'{self.result} = LOOKUP {self.target} {lookups}'
 
-    @property
-    def base_addr(self):
-        return self.target.addr
-
-    # @property
-    # def lookups(self):
-    #     return self.target.lookups
-
     def get_input_vars(self):
-        return self.lookups
+        inputs = []
+        inputs.extend(self.lookups)
+        return inputs
         
     def get_output_vars(self):
         return [self.result]

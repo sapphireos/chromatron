@@ -162,6 +162,43 @@ def array2_lookup():
     assert ary2[1][1] == 5
     assert ary2[1][2] == 6
 
+def array2_vector():
+    ary2 = 3
+
+    assert ary2[0][0] == 3
+    assert ary2[0][1] == 3
+    assert ary2[0][2] == 3
+    assert ary2[1][0] == 3
+    assert ary2[1][1] == 3
+    assert ary2[1][2] == 3
+
+    ary2 += 1
+
+    assert ary2[0][0] == 4
+    assert ary2[0][1] == 4
+    assert ary2[0][2] == 4
+    assert ary2[1][0] == 4
+    assert ary2[1][1] == 4
+    assert ary2[1][2] == 4
+
+    ary2[0] = 5
+
+    assert ary2[0][0] == 5
+    assert ary2[0][1] == 5
+    assert ary2[0][2] == 5
+    assert ary2[1][0] == 4
+    assert ary2[1][1] == 4
+    assert ary2[1][2] == 4
+
+    ary2[0] += 1
+
+    assert ary2[0][0] == 6
+    assert ary2[0][1] == 6
+    assert ary2[0][2] == 6
+    assert ary2[1][0] == 4
+    assert ary2[1][1] == 4
+    assert ary2[1][2] == 4
+
 
 def local_array_lookup():
     local_ary = Number()[4]

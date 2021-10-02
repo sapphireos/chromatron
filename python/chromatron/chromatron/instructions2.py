@@ -729,8 +729,6 @@ class insLookup(BaseInstruction):
         else:
             raise NotImplementedError
 
-        # return OpcodeFormatNop(self.mnemonic, lineno=self.lineno)
-
 # class insLookupGlobal(BaseInstruction):
 #     mnemonic = 'LKPG'
     

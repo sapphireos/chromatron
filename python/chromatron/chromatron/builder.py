@@ -709,7 +709,7 @@ class Builder(object):
         # of augassign, we want to convert to the target type.
         value = self.convert_type(target, value, lineno=lineno)
         
-        if isinstance(target, varArray) or target.data_type == 'offset':
+        if isinstance(target, varArray):
             var = self.add_temp(data_type='offset', lineno=lineno)
             var.ref = target.lookup()
 
@@ -717,6 +717,10 @@ class Builder(object):
             self.append_node(ir)
 
             ir = irVectorOp(op, var, value, lineno=lineno)
+            self.append_node(ir)
+
+        elif target.data_type == 'offset':
+            ir = irVectorOp(op, target, value, lineno=lineno)
             self.append_node(ir)
 
         elif target.data_type == 'objref':
