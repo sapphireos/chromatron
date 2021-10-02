@@ -3232,7 +3232,14 @@ class irObjectLookup(IR):
            target.var.ref.data_type == 'pixref' or \
            target.var.ref.data_type == 'PixelArray':
 
-            return insPixelLookup(result, target, lookups, lineno=self.lineno)
+            if len(lookups) == 1:
+                return insPixelLookup1(result, target, lookups, lineno=self.lineno)
+
+            elif len(lookups) == 2:
+                return insPixelLookup2(result, target, lookups, lineno=self.lineno)
+
+            else:
+                raise CompilerFatal(f'VM does not have an instruction coded for {len(lookups)} indexes')
 
         # result = self.result.generate()
         # target = self.target.generate()
@@ -4149,7 +4156,20 @@ class irLookup(IR):
         counts = [i.generate() for i in self.counts]
         strides = [i.generate() for i in self.strides]
 
-        return insLookup(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+        if len(indexes) == 0:
+            return insLookup0(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+
+        elif len(indexes) == 1:
+            return insLookup1(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+
+        elif len(indexes) == 2:
+            return insLookup2(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+
+        elif len(indexes) == 3:
+            return insLookup3(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+        
+        else:
+            raise CompilerFatal(f'VM does not have an instruction coded for {len(indexes)} indexes')
 
         # if self.target.is_global:    
         #     return insLookupGlobal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)

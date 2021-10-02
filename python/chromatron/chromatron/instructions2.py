@@ -694,15 +694,27 @@ class insLookup(BaseInstruction):
         vm.registers[self.result.reg] = addr
 
     def assemble(self):
+        raise NotImplementedError
+
+class insLookup0(insLookup):
+    mnemonic = 'LKP0'
+
+    def assemble(self):
         indexes = [i.assemble() for i in self.indexes]
         counts = [i.assemble() for i in self.counts]
         strides = [i.assemble() for i in self.strides]
 
-        if self.len == 0:
-            return OpcodeFormatLookup0(self.mnemonic, self.base_addr.assemble(), lineno=self.lineno)
+        return OpcodeFormatLookup0(self.mnemonic, self.base_addr.assemble(), lineno=self.lineno)
 
-        elif self.len == 1:
-            return OpcodeFormatLookup1(
+class insLookup1(insLookup):
+    mnemonic = 'LKP1'
+
+    def assemble(self):
+        indexes = [i.assemble() for i in self.indexes]
+        counts = [i.assemble() for i in self.counts]
+        strides = [i.assemble() for i in self.strides]
+
+        return OpcodeFormatLookup1(
                 self.mnemonic, 
                 self.base_addr.assemble(), 
                 indexes, 
@@ -710,8 +722,15 @@ class insLookup(BaseInstruction):
                 strides, 
                 lineno=self.lineno)
 
-        elif self.len == 2:
-            return OpcodeFormatLookup2(
+class insLookup2(insLookup):
+    mnemonic = 'LKP2'
+
+    def assemble(self):
+        indexes = [i.assemble() for i in self.indexes]
+        counts = [i.assemble() for i in self.counts]
+        strides = [i.assemble() for i in self.strides]
+
+        return OpcodeFormatLookup1(
                 self.mnemonic, 
                 self.base_addr.assemble(), 
                 indexes, 
@@ -719,18 +738,22 @@ class insLookup(BaseInstruction):
                 strides, 
                 lineno=self.lineno)
 
-        elif self.len == 3:
-            return OpcodeFormatLookup3(
+class insLookup3(insLookup):
+    mnemonic = 'LKP3'
+
+    def assemble(self):
+        indexes = [i.assemble() for i in self.indexes]
+        counts = [i.assemble() for i in self.counts]
+        strides = [i.assemble() for i in self.strides]
+
+        return OpcodeFormatLookup1(
                 self.mnemonic, 
                 self.base_addr.assemble(), 
                 indexes, 
                 counts, 
                 strides, 
                 lineno=self.lineno)
-
-        else:
-            raise NotImplementedError
-
+    
 # class insLookupGlobal(BaseInstruction):
 #     mnemonic = 'LKPG'
     
@@ -1165,8 +1188,8 @@ class insCall(BaseInstruction):
 
         vm.registers[self.result.reg] = ret_val
 
-    def assemble(self):
-        pass
+    # def assemble(self):
+    #     pass
 
         # bc = [self.opcode]
         # bc.extend(insFuncTarget(self.target).assemble())
@@ -1206,8 +1229,8 @@ class insIndirectCall(BaseInstruction):
 
         vm.registers[self.result.reg] = ret_val
         
-    def assemble(self):
-        pass
+    # def assemble(self):
+    #     pass
 
         # bc = [self.opcode]
         # bc.extend(insFuncTarget(self.ref).assemble())
@@ -1231,6 +1254,9 @@ class insPixelLookup(BaseInstruction):
         self.pixel_ref = pixel_ref
         self.indexes = indexes
 
+        if len(self.indexes) > 2:
+            raise CompilerFatal(f'Too many indexes for a pixel array!')
+
     def __str__(self):
         indexes = ''
         for index in self.indexes:
@@ -1249,6 +1275,21 @@ class insPixelLookup(BaseInstruction):
         index = vm.calc_index(indexes, ref.var.name)
 
         vm.registers[self.result.reg] = index
+
+    def assemble(self):
+        raise NotImplementedError
+
+class insPixelLookup1(insPixelLookup):
+    mnemonic = 'PLOOKUP1'
+
+    def assemble(self):
+        return OpcodeFormat3AC(self.mnemonic, self.pixel_ref.assemble(), self.result.assemble(), self.indexes[0].assemble(), lineno=self.lineno)
+
+class insPixelLookup2(insPixelLookup):
+    mnemonic = 'PLOOKUP2'
+
+    def assemble(self):
+        return OpcodeFormat4AC(self.mnemonic, self.pixel_ref.assemble(), self.result.assemble(), self.indexes[0].assemble(), self.indexes[1].assemble(), lineno=self.lineno)
 
 
 class insPixelStore(BaseInstruction):
@@ -1284,7 +1325,11 @@ class insPixelStore(BaseInstruction):
             # pixel attributes not settable in code for now
             assert False
 
-    # def assemble(self):
+    def assemble(self):
+        # we don't encode attribute, the opcode itself will encode that
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.assemble(), self.value.assemble(), lineno=self.lineno)
+
+
     #     bc = [self.opcode]
     #     bc.append(insPixelArray(self.pixel_ref))
 
@@ -1368,6 +1413,9 @@ class insPixelLoad(BaseInstruction):
             # pixel attributes not settable in code for now
             assert False
 
+    def assemble(self):
+        # we don't encode attribute, the opcode itself will encode that
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.assemble(), self.target.assemble(), lineno=self.lineno)
 
     # def assemble(self):
     #     bc = [self.opcode]

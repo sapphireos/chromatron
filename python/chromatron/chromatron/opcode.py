@@ -36,7 +36,10 @@ opcodes = {
     'STG':                  0x03,
     'STL':                  0x03,
     'STGI':                 0x03,
-    'LKP':                  0x03,
+    'LKP0':                 0x03,
+    'LKP1':                 0x03,
+    'LKP2':                 0x03,
+    'LKP3':                 0x03,
     'JMP':                  0x03,
     'JMPZ':                 0xAA,
     'RET':                  0x05,
@@ -72,7 +75,8 @@ opcodes = {
     'ICALL':                0x04,
     'LCALL':                0x04,
 
-    'PLOOKUP':              0x04,
+    'PLOOKUP1':             0x04,
+    'PLOOKUP2':             0x04,
     'PSTORE_HUE':           0x04,
     'PSTORE_SAT':           0x04,
     'PSTORE_VAL':           0x04,
@@ -230,6 +234,13 @@ class OpcodeFormat3AC(Opcode32):
 
         self.items = [dest, op1, op2]
         self.format = 'BBB'
+
+class OpcodeFormat4AC(Opcode64):
+    def __init__(self, opcode, dest, op1, op2, op3, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [dest, op1, op2]
+        self.format = 'BBBB'
 
 class OpcodeLabel(Opcode):
     def __init__(self, label, **kwargs):
