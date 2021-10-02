@@ -1,7 +1,20 @@
-p1 = PixelArray(2, 12, size_x=3, size_y=4)
+p1 = PixelArray(2, 3, size_x=3, size_y=4)
 
-def obj_store_direct():
-    p1.hue = 1.0
+
+def obj_store_lookup3():
+    p1.hue = 0.0
+
+    pa = PixelArray()[2]
+    pa[1] = p1
+    pa[1][2].hue = 1.0
+
+    assert p1[0][0].hue == 1.0
+    assert p1[0][1].hue == 1.0
+    assert p1[0][2].hue == 1.0
+    assert p1[1][0].hue == 0.0
+    assert p1[1][1].hue == 0.0
+    assert p1[1][2].hue == 0.0
+
 
 # s = String("hello!")
 # s1 = String(32)

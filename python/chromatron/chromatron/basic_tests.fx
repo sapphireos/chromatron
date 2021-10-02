@@ -286,13 +286,32 @@ def func_indirect_call_array():
 
 def func_call_throwaway_return():
     add(1, 2)
+    # passes if it compiles and runs
 
-p1 = PixelArray(2, 12, size_x=3, size_y=4)
+p1 = PixelArray(2, 3, size_x=3, size_y=4)
 
 def obj_store_direct():
+    p1.hue = 0.0
+
+    assert p1[0][0].hue == 0.0
+    assert p1[0][1].hue == 0.0
+    assert p1[0][2].hue == 0.0
+    assert p1[1][0].hue == 0.0
+    assert p1[1][1].hue == 0.0
+    assert p1[1][2].hue == 0.0
+
     p1.hue = 1.0
 
+    assert p1[0][0].hue == 1.0
+    assert p1[0][1].hue == 1.0
+    assert p1[0][2].hue == 1.0
+    assert p1[1][0].hue == 1.0
+    assert p1[1][1].hue == 1.0
+    assert p1[1][2].hue == 1.0
+
 def obj_store_lookup():
+    p1.hue = 0.0
+
     pa = PixelArray()[2]
     pa[1] = p1
 
@@ -301,17 +320,44 @@ def obj_store_lookup():
     
     p.hue = 1.0    
 
+    assert p1[0][0].hue == 1.0
+    assert p1[0][1].hue == 1.0
+    assert p1[0][2].hue == 1.0
+    assert p1[1][0].hue == 1.0
+    assert p1[1][1].hue == 1.0
+    assert p1[1][2].hue == 1.0
+
 def obj_store_lookup2():
+    p1.hue = 0.0
+
     pa = PixelArray()[2]
     pa[1] = p1
     pa[1].hue = 1.0
 
+    assert p1[0][0].hue == 1.0
+    assert p1[0][1].hue == 1.0
+    assert p1[0][2].hue == 1.0
+    assert p1[1][0].hue == 1.0
+    assert p1[1][1].hue == 1.0
+    assert p1[1][2].hue == 1.0
+
 def obj_store_lookup3():
+    p1.hue = 0.0
+
     pa = PixelArray()[2]
     pa[1] = p1
     pa[1][2].hue = 1.0
 
+    assert p1[0][0].hue == 1.0
+    assert p1[0][1].hue == 1.0
+    assert p1[0][2].hue == 1.0
+    assert p1[1][0].hue == 0.0
+    assert p1[1][1].hue == 0.0
+    assert p1[1][2].hue == 0.0
+
 def obj_store_lookup4():
+    p1.hue = 0.0
+
     pa = PixelArray()[2]
     pa[1] = p1
 
@@ -321,6 +367,8 @@ def obj_store_lookup4():
     p[2].hue = 1.0    
 
 def obj_load_direct():
+    p1.hue = 0.0
+
     a = Fixed16()
 
     a = p1[0].hue
@@ -328,6 +376,8 @@ def obj_load_direct():
     return a
 
 def obj_load_indirect():
+    p1.hue = 0.0
+
     a = Fixed16()
     p = PixelArray()    
 
@@ -337,6 +387,8 @@ def obj_load_indirect():
     return a
 
 def obj_load_lookup():
+    p1.hue = 0.0
+
     pa = PixelArray()[2]
     pa[1] = p1
 
@@ -350,6 +402,8 @@ def obj_load_lookup():
     return a
 
 def obj_load_lookup2():
+    p1.hue = 0.0
+
     a = Fixed16()
     pa = PixelArray()[2]
     a = pa[1].hue
@@ -357,6 +411,8 @@ def obj_load_lookup2():
     return a
 
 def obj_load_lookup3():
+    p1.hue = 0.0
+
     a = Fixed16()
     pa = PixelArray()[2]
     a = pa[1][2].hue
@@ -364,6 +420,8 @@ def obj_load_lookup3():
     return a
 
 def obj_load_lookup4():
+    p1.hue = 0.0
+
     a = Fixed16()
     pa = PixelArray()[2]
     pa[1] = p1
