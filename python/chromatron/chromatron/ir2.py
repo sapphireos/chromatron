@@ -100,7 +100,7 @@ def is_16_bits(value):
         value = int(value * 65536)
 
     try:
-        struct.pack('h', value)
+        struct.pack('H', value)
         return True
 
     except struct.error:

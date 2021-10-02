@@ -71,9 +71,21 @@ opcodes = {
     'ASSERT':               0x04,
     'PRINT':                0x04,
 
-    'CALL':                 0x04,
-    'ICALL':                0x04,
-    'LCALL':                0x04,
+    'CALL0':                0x04,
+    'CALL1':                0x04,
+    'CALL2':                0x04,
+    'CALL3':                0x04,
+    'CALL4':                0x04,
+    'ICALL0':               0x04,
+    'ICALL1':               0x04,
+    'ICALL2':               0x04,
+    'ICALL3':               0x04,
+    'ICALL4':               0x04,
+    'LCALL0':               0x04,
+    'LCALL1':               0x04,
+    'LCALL2':               0x04,
+    'LCALL3':               0x04,
+    'LCALL4':               0x04,
 
     'PLOOKUP1':             0x04,
     'PLOOKUP2':             0x04,
@@ -221,12 +233,19 @@ class OpcodeFormat2AC(Opcode32):
         self.items = [dest, op1]
         self.format = 'BB'
 
-class OpcodeFormat2Imm(Opcode32):
-    def __init__(self, opcode, reg, value, **kwargs):
+class OpcodeFormat1Imm(Opcode32):
+    def __init__(self, opcode, value, **kwargs):
         super().__init__(opcode, **kwargs)
 
-        self.items = [reg, value]
-        self.format = 'BH'
+        self.items = [value]
+        self.format = 'H'
+
+# class OpcodeFormat2Imm(Opcode32):
+#     def __init__(self, opcode, value1, value2, **kwargs):
+#         super().__init__(opcode, **kwargs)
+
+#         self.items = [value1, value2]
+#         self.format = 'HH'
 
 class OpcodeFormat3AC(Opcode32):
     def __init__(self, opcode, dest, op1, op2, **kwargs):

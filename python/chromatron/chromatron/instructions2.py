@@ -484,7 +484,7 @@ class insLoadImmediate(BaseInstruction):
         vm.registers[self.dest.reg] = self.value
 
     def assemble(self):
-        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.value, lineno=self.lineno)
+        return OpcodeFormat1Imm1Reg(self.mnemonic, self.value, self.dest.assemble(), lineno=self.lineno)
 
 # loads from constant pool
 class insLoadConst(BaseInstruction):
@@ -511,7 +511,7 @@ class insLoadConst(BaseInstruction):
 
     def assemble(self):
         assert self.src is not None
-        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.src, lineno=self.lineno)
+        return OpcodeFormat1Imm1Reg(self.mnemonic, self.src, self.dest.assemble(), lineno=self.lineno)
 
 class insLoadGlobal(BaseInstruction):
     mnemonic = 'LDG'
@@ -592,7 +592,7 @@ class insLoadGlobalImmediate(BaseInstruction):
         vm.registers[self.dest.reg] = vm.memory[self.src.addr]
 
     def assemble(self):
-        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm1Reg(self.mnemonic, self.src.assemble(), self.dest.assemble(), lineno=self.lineno)
 
 class insStoreGlobal(BaseInstruction):
     mnemonic = 'STG'
@@ -651,7 +651,7 @@ class insStoreGlobalImmediate(BaseInstruction):
         vm.memory[self.dest.addr] = vm.registers[self.src.reg]
 
     def assemble(self):
-        return OpcodeFormat2Imm(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm1Reg(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insLookup(BaseInstruction):
     mnemonic = 'LKP'
@@ -858,7 +858,7 @@ class insJmp(BaseJmp):
         return self.label
 
     def assemble(self):
-        return OpcodeFormat2Imm(self.mnemonic, None, self.label.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm(self.mnemonic, self.label.assemble(), lineno=self.lineno)
         
 class insJmpConditional(BaseJmp):
     def __init__(self, op1, label, **kwargs):
@@ -870,7 +870,7 @@ class insJmpConditional(BaseJmp):
         return "%s, %s -> %s" % (self.mnemonic, self.op1, self.label)
 
     def assemble(self):
-        return OpcodeFormat2Imm(self.mnemonic, self.op1.assemble(), self.label.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm1Reg(self.mnemonic, self.label.assemble(), self.op1.assemble(), lineno=self.lineno)
 
 class insJmpIfZero(insJmpConditional):
     mnemonic = 'JMPZ'
