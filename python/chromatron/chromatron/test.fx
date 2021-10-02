@@ -1,68 +1,7 @@
+p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-ary2 = Number()[2][3]
-
-def array2_vector():
-    ary2 = 3
-
-    assert ary2[0][0] == 3
-    # assert ary2[0][1] == 3
-    # assert ary2[0][2] == 3
-    # assert ary2[1][0] == 3
-    # assert ary2[1][1] == 3
-    # assert ary2[1][2] == 3
-
-    # ary2 += 1
-
-    # assert ary2[0][0] == 4
-    # assert ary2[0][1] == 4
-    # assert ary2[0][2] == 4
-    # assert ary2[1][0] == 4
-    # assert ary2[1][1] == 4
-    # assert ary2[1][2] == 4
-
-    # ary2[0] = 5
-
-    # assert ary2[0][0] == 5
-    # assert ary2[0][1] == 5
-    # assert ary2[0][2] == 5
-    # assert ary2[1][0] == 4
-    # assert ary2[1][1] == 4
-    # assert ary2[1][2] == 4
-
-    # ary2[0] += 1
-
-    # assert ary2[0][0] == 6
-    # assert ary2[0][1] == 6
-    # assert ary2[0][2] == 6
-    # assert ary2[1][0] == 4
-    # assert ary2[1][1] == 4
-    # assert ary2[1][2] == 4
-
-# def type_conversions_array():
-#     a = Number()
-#     b = Fixed16()
-#     c = Fixed16()
-#     d = Number()
-
-#     ary = Fixed16()[4]
-#     ary2 = Number()[4]
-
-#     ary = 3.123
-
-#     a = ary[1]
-#     b = ary[1]
-
-#     ary2 = 3.123    
-#     c = ary2[1]
-
-#     ary2 += 3.123
-#     d = ary2[1]
-
-#     assert a == 3
-#     assert b == 3.12298583984375
-#     assert c == 3.0
-#     assert d == 6
-
+def obj_store_direct():
+    p1.hue = 1.0
 
 # s = String("hello!")
 # s1 = String(32)

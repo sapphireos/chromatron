@@ -143,7 +143,6 @@ class insProgram(object):
                 
                 ins.src = self.constants.index(ins.value)
 
-
     def __str__(self):
         s = 'VM Instructions:\n'
 
@@ -431,7 +430,10 @@ class insAddr(BaseInstruction):
             return "Addr(%s)" % (self.addr)
     
     def assemble(self):
+        assert self.addr >= 0
+
         return self.addr
+
         # convert to 16 bits
         # l = self.addr & 0xff
         # h = (self.addr >> 8) & 0xff
@@ -573,7 +575,7 @@ class insLoadRef(BaseInstruction):
         vm.registers[self.dest.reg] = self.src
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm1Reg(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insLoadGlobalImmediate(BaseInstruction):
     mnemonic = 'LDGI'

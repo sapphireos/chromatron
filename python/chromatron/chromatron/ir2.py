@@ -202,6 +202,15 @@ class irProgram(IR):
         for func in self.funcs.values():
             func.allocate_locals()
 
+        pix_arrays = {p.name: p for p in self.global_symbols.symbols.values() if p.data_type == 'PixelArray'}
+        pix_arrays['pixels'].addr = 0
+        pix_addr = 1
+
+        for p in [a for a in pix_arrays.values() if a.name != 'pixels']:
+            p.addr = pix_addr
+            pix_addr += 1
+        
+
     def generate(self):
         self._allocate_memory()
 
