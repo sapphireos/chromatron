@@ -1401,13 +1401,13 @@ class insPixelLookup1(insPixelLookup):
     mnemonic = 'PLOOKUP1'
 
     def assemble(self):
-        return OpcodeFormat3AC(self.mnemonic, self.pixel_ref.assemble(), self.result.assemble(), self.indexes[0].assemble(), lineno=self.lineno)
+        return OpcodeFormat3AC(self.mnemonic, self.pixel_ref.reg, self.result.assemble(), self.indexes[0].assemble(), lineno=self.lineno)
 
 class insPixelLookup2(insPixelLookup):
     mnemonic = 'PLOOKUP2'
 
     def assemble(self):
-        return OpcodeFormat4AC(self.mnemonic, self.pixel_ref.assemble(), self.result.assemble(), self.indexes[0].assemble(), self.indexes[1].assemble(), lineno=self.lineno)
+        return OpcodeFormat4AC(self.mnemonic, self.pixel_ref.reg, self.result.assemble(), self.indexes[0].assemble(), self.indexes[1].assemble(), lineno=self.lineno)
 
 
 class insPixelStore(BaseInstruction):
@@ -1445,7 +1445,7 @@ class insPixelStore(BaseInstruction):
 
     def assemble(self):
         # we don't encode attribute, the opcode itself will encode that
-        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.assemble(), self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 
     #     bc = [self.opcode]
@@ -1533,7 +1533,7 @@ class insPixelLoad(BaseInstruction):
 
     def assemble(self):
         # we don't encode attribute, the opcode itself will encode that
-        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.assemble(), self.target.assemble(), lineno=self.lineno)
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)
 
     # def assemble(self):
     #     bc = [self.opcode]
