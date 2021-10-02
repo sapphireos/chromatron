@@ -123,7 +123,7 @@ class FXImage(object):
         db_entries = {}
         cron_tab = {}
 
-        # set up label addresses
+        # set up label and func addresses
 
         addr = 0
         for func, code in self.funcs.items():
@@ -137,9 +137,9 @@ class FXImage(object):
                     opcodes.append(op)
                     addr += op.length
 
-        # set label addresses in opcodes
+        # set label and func addresses in opcodes
         for op in opcodes:
-            op.assign_addresses(label_addrs)
+            op.assign_addresses(label_addrs, function_addrs)
             print(op)
 
 

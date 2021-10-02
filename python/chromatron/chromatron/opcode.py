@@ -164,7 +164,7 @@ class Opcode(object):
     def get_opcode(self):
         return opcodes[self.opcode]
 
-    def assign_addresses(self, labels):
+    def assign_addresses(self, labels, functions):
         for i in range(len(self.items)):
             item = self.items[i]
 
@@ -172,6 +172,12 @@ class Opcode(object):
                 assert item.addr is None
                 item.addr = labels[item.label.name]
                 # replace label with actual address
+                self.items[i] = item.render()
+
+            elif isinstance(item, OpcodeFunc):
+                assert item.addr is None
+                item.addr = functions[item.func]
+                # replace func with actual address
                 self.items[i] = item.render()
 
     def render(self):
@@ -314,6 +320,15 @@ class OpcodeLabel(Opcode):
     def __init__(self, label, **kwargs):
         super().__init__(opcode='LABEL', **kwargs)
         self.label = label
+        self.addr = None
+
+    def render(self):
+        return self.addr
+
+class OpcodeFunc(Opcode):
+    def __init__(self, func, **kwargs):
+        super().__init__(opcode='FUNC', **kwargs)
+        self.func = func
         self.addr = None
 
     def render(self):
