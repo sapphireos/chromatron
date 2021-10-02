@@ -205,6 +205,10 @@ class Builder(object):
         # if data_type not in PRIMITIVE_TYPES and data_type not in self.structs and data_type != 'str':
         #     raise SyntaxError(f'Type {data_type} is unknown', lineno=lineno)
 
+        for dim in dimensions:
+            if not isinstance(dim, int):
+                raise SyntaxError(f'Dimension {dim} is invalid for {name}, requires constant integer.', lineno=lineno)
+
         var = self._build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
         if is_global:
@@ -956,10 +960,32 @@ class Builder(object):
             if isinstance(var.ref, varObjectRef):
                 self.current_lookup[0] = self.current_lookup[0][:len(self.current_lookup[0]) - len(var.ref.lookups)]
 
-            ir = irLookup(var, target, self.current_lookup[0], lineno=lineno)
-            self.append_node(ir)
 
-            self.current_lookup.pop(0)
+            lookup = self.current_lookup.pop(0)
+
+            # load array details as constants
+            counts = []
+            strides = []
+
+            sub_target = target
+
+            for i in range(len(lookup)):
+                try:
+                    count = self.add_const(sub_target.length, lineno=lineno)
+
+                except (IndexError, AttributeError):
+                    raise SyntaxError(f'{target.name} has only {target.dimensions} dimensions, requested {len(lookup)}', lineno=self.lineno)
+
+                counts.append(count)
+
+                stride = self.add_const(sub_target.stride, lineno=lineno)
+                strides.append(stride)
+
+                sub_target = sub_target.element
+
+
+            ir = irLookup(var, target, lookup, counts, strides, lineno=lineno)
+            self.append_node(ir)
 
             return var
 

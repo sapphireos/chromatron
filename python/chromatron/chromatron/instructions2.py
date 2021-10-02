@@ -682,8 +682,8 @@ class insLookup(BaseInstruction):
         for i in range(len(self.indexes)):
             index = vm.registers[self.indexes[i].reg]
             
-            count = self.counts[i]
-            stride = self.strides[i]            
+            count = vm.registers[self.counts[i].reg]
+            stride = vm.registers[self.strides[i].reg]
 
             if count > 0:
                 index %= count
@@ -695,6 +695,8 @@ class insLookup(BaseInstruction):
 
     def assemble(self):
         indexes = [i.assemble() for i in self.indexes]
+        counts = [i.assemble() for i in self.counts]
+        strides = [i.assemble() for i in self.strides]
 
         if self.len == 0:
             return OpcodeFormatLookup0(self.mnemonic, self.base_addr.assemble(), lineno=self.lineno)
@@ -704,8 +706,8 @@ class insLookup(BaseInstruction):
                 self.mnemonic, 
                 self.base_addr.assemble(), 
                 indexes, 
-                self.counts, 
-                self.strides, 
+                counts, 
+                strides, 
                 lineno=self.lineno)
 
         elif self.len == 2:
@@ -713,8 +715,8 @@ class insLookup(BaseInstruction):
                 self.mnemonic, 
                 self.base_addr.assemble(), 
                 indexes, 
-                self.counts, 
-                self.strides, 
+                counts, 
+                strides, 
                 lineno=self.lineno)
 
         elif self.len == 3:
@@ -722,8 +724,8 @@ class insLookup(BaseInstruction):
                 self.mnemonic, 
                 self.base_addr.assemble(), 
                 indexes, 
-                self.counts, 
-                self.strides, 
+                counts, 
+                strides, 
                 lineno=self.lineno)
 
         else:

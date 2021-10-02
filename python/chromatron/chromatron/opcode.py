@@ -269,7 +269,7 @@ class OpcodeFormatLookup1(Opcode):
             strides[0],
         ]
 
-        self.format = 'HBHH'
+        self.format = 'HBBB'
     
     @property
     def length(self):
@@ -289,11 +289,11 @@ class OpcodeFormatLookup2(Opcode):
             strides[1],
         ]
 
-        self.format = 'HBHHBHH'
+        self.format = 'HBBBBBB'
     
     @property
     def length(self):
-        return 16
+        return 12
 
 class OpcodeFormatLookup3(Opcode):
     def __init__(self, opcode, base_addr, indexes=[], counts=[], strides=[], **kwargs):
@@ -312,7 +312,7 @@ class OpcodeFormatLookup3(Opcode):
             strides[2],
         ]
 
-        self.format = 'HBHHBHHBHH'
+        self.format = 'HBBBBBBBBB'
     
     @property
     def length(self):
