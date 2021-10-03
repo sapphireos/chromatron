@@ -38,13 +38,14 @@ from chromatron import Chromatron
 
 
 class MQTTChromatron(MQTTClient):
-    def initialize(self, ct=None):
+    def __init__(self, ct=None):
         self.ct = ct
-
-        super().initialize()
-        
         self.last_update = time.time()
 
+        super().__init__()
+
+        self.connect()
+        
     @property
     def device_name(self):
         return self.ct.name
@@ -130,8 +131,8 @@ class MQTTChromatron(MQTTClient):
 
         self.update_state()
 
-    def loop(self):
-        super().loop()
+    # def _process(self):
+    #     super()._process()
 
         # if time.time() - self.last_update > 4.0:
             # self.update_state()
@@ -150,7 +151,7 @@ class MQTTBridge(Ribbon):
 
         self.devices = {}
 
-        self.update_directory()
+        self.start()
 
     def update_directory(self):
         self._last_directory_update = time.time()
@@ -163,11 +164,7 @@ class MQTTBridge(Ribbon):
 
         self.directory = directory
 
-        from pprint import pprint
-        pprint(self.directory)
-
-
-    def loop(self):
+    def _process(self):
         self.wait(1.0)
 
         self.update_directory()

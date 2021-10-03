@@ -35,8 +35,8 @@ import paho.mqtt.client as mqtt
 
 
 class MQTTClient(Ribbon):
-    def initialize(self, settings={}):
-        super().initialize()
+    def __init__(self, settings={}):
+        super().__init__()
 
         self.settings = settings
 
@@ -45,8 +45,6 @@ class MQTTClient(Ribbon):
         self.mqtt.on_connect = self.on_connect
         self.mqtt.on_disconnect = self.on_disconnect
         self.mqtt.on_message = self.on_message
-
-        self.connect()
 
     def connect(self, host='omnomnom.local'):
         if host is None:
@@ -77,6 +75,6 @@ class MQTTClient(Ribbon):
     def unsubscribe(self, topic):
         self.mqtt.unsubscribe(topic)
 
-    def loop(self):
+    def _process(self):
         self.mqtt.loop(timeout=1.0)
 
