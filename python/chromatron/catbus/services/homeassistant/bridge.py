@@ -202,12 +202,12 @@ class MQTTBridge(Ribbon):
         self.update_directory()
 
         for info in self.directory.values():
+            if 'homeassistant' not in info['query']:
+                continue
+
             device_id = info['device_id']
 
             if device_id not in self.devices:
-                if info['name'] != 'grid':
-                    continue
-
                 ct = Chromatron(info['host'][0])
                 self.devices[device_id] = MQTTChromatron(ct=ct)
 
