@@ -95,7 +95,8 @@ class MQTTChromatron(MQTTClient):
         self.publish(f'homeassistant/light/chromatron/{self.unique_id}/config', json.dumps(self.mqtt_discovery))
 
         power_state = 'OFF'
-        if self.ct.dimmer > 0.0:
+        # if self.ct.dimmer > 0.0:
+        if self.ct.get_key('gfx_enable'):
             power_state = 'ON'
 
         # NOTE:
@@ -123,10 +124,12 @@ class MQTTChromatron(MQTTClient):
 
         if topic == self.command_topic:
             if payload == 'OFF':
-                self.ct.dimmer = 0.0
+                # self.ct.dimmer = 0.0
+                self.ct.set_key('gfx_enable', False)
 
             else:
-                self.ct.dimmer = 1.0
+                # self.ct.dimmer = 1.0
+                self.ct.set_key('gfx_enable', True)
 
         elif topic == self.brightness_command_topic:
             self.ct.sub_dimmer = float(payload) / 65535.0
