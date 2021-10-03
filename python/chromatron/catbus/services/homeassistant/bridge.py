@@ -120,8 +120,6 @@ class MQTTChromatron(MQTTClient):
         topic = msg.topic
         payload = msg.payload.decode('utf8')
 
-        logging.debug(msg)
-
         if topic == self.command_topic:
             if payload == 'OFF':
                 # self.ct.dimmer = 0.0
