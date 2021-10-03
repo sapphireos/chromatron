@@ -130,6 +130,7 @@ class Directory(CatbusService):
                         'data_port': msg.data_port,
                         'version': msg.header.version,
                         'universe': msg.header.universe,
+                        'device_id': msg.header.origin_id,
                         'ttl': TTL}
 
                 self._directory[str(tuple(host))] = info
