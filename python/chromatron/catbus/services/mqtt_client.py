@@ -46,7 +46,7 @@ class MQTTClient(Ribbon):
         self.mqtt.on_disconnect = self.on_disconnect
         self.mqtt.on_message = self.on_message
 
-    def connect(self, host='omnomnom.local'):
+    def connect(self, host='localhost'):
         if host is None:
             try:
                 host = self.settings['host']   
