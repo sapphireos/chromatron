@@ -40,15 +40,17 @@ from chromatron import Chromatron
 class MQTTChromatron(MQTTClient):
     def __init__(self, ct=None):
         super().__init__()
-        
+
         self.ct = ct
         self.name = ct.name
         self.last_update = time.time()
-
-        
+            
+        logging.info(f'Start: {self.name}')
         self.start()
 
+        logging.info(f'Connect: {self.name}')
         self.connect()
+        logging.info(f'Connecting?: {self.name}')
         
     @property
     def device_name(self):
@@ -150,7 +152,6 @@ class MQTTBridge(Ribbon):
         self.settings = settings
 
         # run local catbus directory
-        # self._catbus_directory = Directory()
         self.client = Client()
         self.directory = {}
 
@@ -161,7 +162,6 @@ class MQTTBridge(Ribbon):
     def update_directory(self):
         self._last_directory_update = time.time()
 
-        # self.directory = self._catbus_directory.get_directory()
         directory = self.client.get_directory()
 
         if directory is None:
