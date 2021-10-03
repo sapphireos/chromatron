@@ -185,7 +185,7 @@ class MQTTBridge(Ribbon):
             # device.update_state()
 
         # prune devices
-        self.devices = {k: v for k, v in self.devices.items() if v['host'] in self.directory}
+        self.devices = {k: v for k, v in self.devices.items() if k in [d['device_id'] for d in self.directory.values()]}
 
 def main():
     util.setup_basic_logging(console=True)
