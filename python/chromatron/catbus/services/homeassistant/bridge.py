@@ -131,11 +131,11 @@ class MQTTChromatron(MQTTClient):
 
         self.update_state()
 
-    # def _process(self):
-    #     super()._process()
+    def _process(self):
+        super()._process()
 
-        # if time.time() - self.last_update > 4.0:
-            # self.update_state()
+        if time.time() - self.last_update > 4.0:
+            self.update_state()
 
 class MQTTBridge(Ribbon):
     def __init__(self, settings={}):
