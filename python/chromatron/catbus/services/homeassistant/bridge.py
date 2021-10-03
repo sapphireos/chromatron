@@ -39,11 +39,13 @@ from chromatron import Chromatron
 
 class MQTTChromatron(MQTTClient):
     def __init__(self, ct=None):
+        super().__init__()
+        
         self.ct = ct
         self.name = ct.name
         self.last_update = time.time()
 
-        super().__init__()
+        
         self.start()
 
         self.connect()
