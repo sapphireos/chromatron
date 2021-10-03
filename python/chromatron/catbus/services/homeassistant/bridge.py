@@ -74,6 +74,20 @@ class MQTTChromatron(MQTTClient):
         return f'chromatron/{self.unique_id}/brightness/state'
 
     @property
+    def effect_command_topic(self):
+        return f'chromatron/{self.unique_id}/effect/command'
+
+    @property
+    def effect_state_topic(self):
+        return f'chromatron/{self.unique_id}/effect/state'
+
+    @property
+    def effect_list(self):
+        files = self.ct.list_files()
+
+        return [f[:-4] for f in files if f.endswith('.fxb')]
+
+    @property
     def mqtt_discovery(self):
         payload = {
                     'name':                         self.device_name,
@@ -83,7 +97,9 @@ class MQTTChromatron(MQTTClient):
                     'brightness_state_topic':       self.brightness_state_topic,
                     'brightness_command_topic':     self.brightness_command_topic,
                     'brightness_scale':             65535,
-
+                    'effect_state_topic':           self.effect_state_topic,
+                    'effect_command_topic':         self.effect_command_topic,
+                    'effect_list':                  self.effect_list,
                   }
 
         return payload
@@ -99,17 +115,21 @@ class MQTTChromatron(MQTTClient):
         if self.ct.get_key('gfx_enable'):
             power_state = 'ON'
 
+        effect = self.ct.get_key('vm_prog')[:-4]
+
         # NOTE:
         # after we add gfx on/off support, we can switch from the sub dimmer to master.
 
         self.publish(self.state_topic, power_state)
         self.publish(self.brightness_state_topic, int(self.ct.sub_dimmer * 65535))
+        self.publish(self.effect_state_topic, effect)
 
     def on_connect(self, client, userdata, flags, rc):
         logging.info(f'MQTT connected: {self.name}')
 
         self.subscribe(self.command_topic)
         self.subscribe(self.brightness_command_topic)
+        self.subscribe(self.effect_command_topic)
 
         self.update_state()
 
@@ -132,7 +152,14 @@ class MQTTChromatron(MQTTClient):
         elif topic == self.brightness_command_topic:
             self.ct.sub_dimmer = float(payload) / 65535.0
 
+        elif topic == self.effect_command_topic:
+            effect = payload + '.fxb'
+
+            self.ct.set_key('vm_prog', effect)
+            self.ct.set_key('vm_reset', True)
+
         else:
+            logging.warning(f'Unknown topic: {topic}')
             return
 
         self.update_state()
