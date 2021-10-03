@@ -40,6 +40,7 @@ from chromatron import Chromatron
 class MQTTChromatron(MQTTClient):
     def __init__(self, ct=None):
         self.ct = ct
+        self.name = ct.name
         self.last_update = time.time()
 
         super().__init__()
@@ -103,19 +104,21 @@ class MQTTChromatron(MQTTClient):
         self.publish(self.brightness_state_topic, int(self.ct.sub_dimmer * 65535))
 
     def on_connect(self, client, userdata, flags, rc):
+        logging.info(f'MQTT connected: {self.name}')
+
         self.subscribe(self.command_topic)
         self.subscribe(self.brightness_command_topic)
 
         self.update_state()
 
     def on_disconnect(self, client, userdata, rc):
-        pass
+        logging.info(f'MQTT disconnected: {self.name}')
 
     def on_message(self, client, userdata, msg):
         topic = msg.topic
         payload = msg.payload.decode('utf8')
 
-        print(topic, payload)
+        logging.debug(msg)
 
         if topic == self.command_topic:
             if payload == 'OFF':
