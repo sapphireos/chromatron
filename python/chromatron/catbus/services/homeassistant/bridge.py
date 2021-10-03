@@ -27,11 +27,10 @@ import sys
 import time
 import json
 
-from catbus import CatbusService, Directory
+from catbus import CatbusService, Directory, Client
 from catbus.services.mqtt_client import MQTTClient
-from sapphire.common.ribbon import wait_for_signal
 
-from sapphire.common import util, Ribbon
+from sapphire.common import util, Ribbon, run_all
 
 import logging
 
@@ -138,35 +137,52 @@ class MQTTChromatron(MQTTClient):
             # self.update_state()
 
 class MQTTBridge(Ribbon):
-    def initialize(self, settings={}):
-        super().initialize()
+    def __init__(self, settings={}):
+        super().__init__()
+    
         self.name = 'ha_bridge'
         self.settings = settings
 
         # run local catbus directory
-        self._catbus_directory = Directory()
+        # self._catbus_directory = Directory()
+        self.client = Client()
+        self.directory = {}
 
         self.devices = {}
 
         self.update_directory()
 
     def update_directory(self):
-        self.directory = self._catbus_directory.get_directory()
-
         self._last_directory_update = time.time()
 
+        # self.directory = self._catbus_directory.get_directory()
+        directory = self.client.get_directory()
+
+        if directory is None:
+            return
+
+        self.directory = directory
+
+        from pprint import pprint
+        pprint(self.directory)
+
+
     def loop(self):
-        time.sleep(1.0)
+        self.wait(1.0)
 
         self.update_directory()
 
-        for device_id, info in self.directory.items():
+        for info in self.directory.values():
+            device_id = info['device_id']
+
             if device_id not in self.devices:
-                if info['name'] != 'quadrant':
+                if info['name'] != 'grid':
                     continue
 
                 ct = Chromatron(info['host'][0])
                 self.devices[device_id] = MQTTChromatron(ct=ct)
+
+                logging.info(f'Added device: {info["name"]}')
 
         # for device_id, device in self.devices.items():
             # device.update_state()
@@ -187,10 +203,7 @@ def main():
 
     bridge = MQTTBridge(settings=settings)
 
-    wait_for_signal()
-
-    bridge.stop()
-    bridge.join()   
+    run_all() 
 
 if __name__ == '__main__':
     main()

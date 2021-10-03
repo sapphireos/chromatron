@@ -27,8 +27,6 @@ import sys
 import time
 import json
 
-from sapphire.common.ribbon import wait_for_signal
-
 from sapphire.common import util, Ribbon
 
 import logging
