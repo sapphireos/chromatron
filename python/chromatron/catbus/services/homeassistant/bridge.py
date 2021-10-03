@@ -43,6 +43,7 @@ class MQTTChromatron(MQTTClient):
         self.last_update = time.time()
 
         super().__init__()
+        self.start()
 
         self.connect()
         
