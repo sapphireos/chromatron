@@ -115,7 +115,7 @@ class MQTTChromatron(MQTTClient):
         topic = msg.topic
         payload = msg.payload.decode('utf8')
 
-        # print(topic, payload)
+        print(topic, payload)
 
         if topic == self.command_topic:
             if payload == 'OFF':
