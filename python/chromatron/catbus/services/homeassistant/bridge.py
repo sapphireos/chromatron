@@ -45,12 +45,9 @@ class MQTTChromatron(MQTTClient):
         self.name = ct.name
         self.last_update = time.time()
             
-        logging.info(f'Start: {self.name}')
         self.start()
 
-        logging.info(f'Connect: {self.name}')
         self.connect()
-        logging.info(f'Connecting?: {self.name}')
         
     @property
     def device_name(self):
@@ -140,6 +137,8 @@ class MQTTChromatron(MQTTClient):
         self.update_state()
 
     def _process(self):
+        super()._process() # this is critcal to run MQTT event loop!
+
         if time.time() - self.last_update > 4.0:
             self.update_state()
 
