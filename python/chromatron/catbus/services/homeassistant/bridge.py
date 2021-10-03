@@ -52,7 +52,7 @@ class MQTTChromatron(MQTTClient):
         
     @property
     def device_name(self):
-        return self.ct.name
+        return self.name
 
     @property
     def unique_id(self):
