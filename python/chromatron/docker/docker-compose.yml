@@ -36,7 +36,6 @@ services:
     restart: always
     network_mode: host
 
-
   datalogger:
     container_name: datalogger
     build:
@@ -46,4 +45,11 @@ services:
     network_mode: host
     volumes:
       - /etc/chromatron/datalogger.cfg:/app/datalogger.cfg
-      
+
+  homeassistant_bridge:
+    container_name: homeassistant_bridge
+    build:
+      context: ../
+      dockerfile: docker/ha_bridge/Dockerfile
+    restart: always
+    network_mode: host
