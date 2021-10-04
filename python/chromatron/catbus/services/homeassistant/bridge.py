@@ -26,6 +26,7 @@
 import sys
 import time
 import json
+import socket
 
 from catbus import CatbusService, Directory, Client
 from catbus.services.mqtt_client import MQTTClient
@@ -48,7 +49,15 @@ class MQTTChromatron(MQTTClient):
             
         self.start()
 
-        self.connect()
+        try:
+            self.connect()
+
+        except socket.error:
+            logging.warning(f'MQTT connection failed')
+                    
+            self.stop()
+
+            raise
         
     @property
     def device_name(self):
@@ -210,7 +219,15 @@ class MQTTBridge(Ribbon):
 
             if device_id not in self.devices:
                 ct = Chromatron(info['host'][0])
-                self.devices[device_id] = MQTTChromatron(ct=ct)
+                try:
+                    mqtt = MQTTChromatron(ct=ct)
+
+                except socket.error:
+
+                    # no point processing anything else, wait until next cycle
+                    break
+
+                self.devices[device_id] = mqtt
 
                 logging.info(f'Added device: {info["name"]}')
 
