@@ -27,8 +27,6 @@ import sys
 import time
 import json
 
-from sapphire.common.ribbon import wait_for_signal
-
 from sapphire.common import util, Ribbon
 
 import logging
@@ -37,8 +35,8 @@ import paho.mqtt.client as mqtt
 
 
 class MQTTClient(Ribbon):
-    def initialize(self, settings={}):
-        super().initialize()
+    def __init__(self, settings={}):
+        super().__init__()
 
         self.settings = settings
 
@@ -48,9 +46,7 @@ class MQTTClient(Ribbon):
         self.mqtt.on_disconnect = self.on_disconnect
         self.mqtt.on_message = self.on_message
 
-        self.connect()
-
-    def connect(self, host='omnomnom.local'):
+    def connect(self, host='localhost'):
         if host is None:
             try:
                 host = self.settings['host']   
@@ -79,6 +75,6 @@ class MQTTClient(Ribbon):
     def unsubscribe(self, topic):
         self.mqtt.unsubscribe(topic)
 
-    def loop(self):
+    def _process(self):
         self.mqtt.loop(timeout=1.0)
 

@@ -26,7 +26,7 @@ import sys
 import time
 import logging
 from catbus import CatbusService, Client, NoResponseFromHost
-from sapphire.common import util, wait_for_signal, Ribbon
+from sapphire.common import util, Ribbon, run_all
 
 class ConnectionMonitor(Ribbon):
     def initialize(self, settings={}):
@@ -77,10 +77,7 @@ def main():
 
     service = ConnectionMonitor(settings=settings)
 
-    wait_for_signal()
-
-    service.stop()
-    service.join()
+    run_all()
 
 if __name__ == '__main__':
     main()
