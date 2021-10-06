@@ -90,11 +90,11 @@ class insProgram(object):
             else:
                 pix_count = self.pix_count
 
-            if 'pix_offset' in p.keywords:
-                pix_offset = p.keywords['pix_offset']
+            if 'pix_index' in p.keywords:
+                pix_index = p.keywords['pix_index']
 
             else:
-                pix_offset = 0
+                pix_index = 0
 
             if 'pix_size_x' in p.keywords:
                 pix_size_x = p.keywords['pix_size_x']
@@ -110,7 +110,7 @@ class insProgram(object):
 
             array = {
                 'count': pix_count,
-                'offset': pix_offset,
+                'index': pix_index,
                 'size_x': pix_size_x,
                 'size_y': pix_size_y,
             }
@@ -219,8 +219,10 @@ class insFunc(object):
 
     def calc_index(self, indexes=[], pixel_array='pixels'):
         count = self.pixel_arrays[pixel_array]['count']
+        index = self.pixel_arrays[pixel_array]['index']
         size_x = self.pixel_arrays[pixel_array]['size_x']
         size_y = self.pixel_arrays[pixel_array]['size_y']
+        pix_count = self.pixel_arrays['pixels']['count'] # TOTAL pixel count
 
         if len(indexes) == 0:
             return 0
@@ -239,6 +241,8 @@ class insFunc(object):
             y %= size_y
 
             i = x + (y * size_x)
+
+        i = (i + index) % pix_count
 
         return i
 

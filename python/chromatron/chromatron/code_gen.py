@@ -800,7 +800,7 @@ class CodeGenPass1(ast.NodeVisitor):
                 kwargs['pix_count'] = args[0]
 
             if len(node.args) >= 2:
-                kwargs['pix_offset'] = args[1]
+                kwargs['pix_index'] = args[1]
 
             return cg1GenericObject(node.func.id, kwargs, lineno=node.lineno)
 
