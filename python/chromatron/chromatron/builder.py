@@ -544,6 +544,12 @@ class Builder(object):
         # elif target.get_base_type() == 'db':
             # pass
 
+        # check if target or value is a reference
+        # we don't convert these
+        elif (isinstance(target, VarContainer) and isinstance(target.var, varRef)) or \
+             (isinstance(value, VarContainer) and isinstance(value.var, varRef)):
+            pass
+
         # check if base types don't match, if not, then do a conversion.
         elif target.scalar_type != value.scalar_type:
             # check if one of the types is gfx16.  if it is,
