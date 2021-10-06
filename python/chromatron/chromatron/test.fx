@@ -7,13 +7,13 @@ def obj_store_lookup3():
     # pixels[0].hue = 0.5
     # p1[2].hue = 1.0
 
-    # pa = PixelArray()[2]
-    # pa[1] = p1
-    # pa[1][3].hue = 1.0
+    pa = PixelArray()[2]
+    pa[1] = p1
+    pa[1][3].hue = 1.0
 
-    pb = PixelArray()
-    pb = p1
-    pb[3].hue = 1.0
+    # pb = PixelArray()
+    # pb = p1
+    # pb[3].hue = 1.0
 
     # assert p1[0][0].hue == 1.0
     # assert p1[0][1].hue == 1.0

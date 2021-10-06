@@ -911,6 +911,7 @@ class Builder(object):
         elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
             var = self.add_temp(data_type='objref', lineno=lineno)
             var.ref = target.ref
+            var.lookups = target.ref.lookups
             var.attr = self.current_attr.pop(0)[-1]
 
             ir = irLoad(var, target, lineno=lineno)

@@ -288,6 +288,86 @@ def func_call_throwaway_return():
     add(1, 2)
     # passes if it compiles and runs
 
+string = String("hello!")
+string2 = String(32)
+
+def load_string():
+    s = String()
+    s = string
+
+    return s
+
+def load_string2():
+    s = String()
+    s = string2
+    
+    return s
+
+def load_string_literal():
+    s = String()
+    s = "meow"
+    
+    return s
+
+
+
+def type_conversions():
+    a = Number()
+    b = Fixed16()
+    c = Fixed16()
+    d = Number()
+
+    a = 123.456
+    b = 32
+
+    c = 123
+    c += 123
+
+    d = 123.123
+    d += 123.123
+
+    assert a == 123
+    assert b == 32
+    assert c == 246.0
+    assert d == 246
+
+def type_conversions_array():
+    a = Number()
+    b = Fixed16()
+    c = Fixed16()
+    d = Number()
+        
+    ary = Fixed16()[4]
+    ary2 = Number()[4]
+
+    ary = 3.123
+
+    a = ary[1]
+    b = ary[1]
+
+    ary2 = 3.123    
+    c = ary2[1]
+
+    ary2 += 3.123
+    d = ary2[1]
+
+    assert a == 3
+    assert b == 3.12298583984375
+    assert c == 3.0
+    assert d == 6
+
+def type_conversions_binop():
+    a = Number()
+    b = Fixed16()
+
+    a = 123
+    b = a * 0.333
+
+    assert a == 123
+    assert b == 40.95808410644531
+
+
+
 p1 = PixelArray(2, 3, size_x=3, size_y=4)
 
 def obj_store_direct():
@@ -432,82 +512,3 @@ def obj_load_lookup4():
     a = p[2].hue
 
     return a
-
-
-string = String("hello!")
-string2 = String(32)
-
-def load_string():
-    s = String()
-    s = string
-
-    return s
-
-def load_string2():
-    s = String()
-    s = string2
-    
-    return s
-
-def load_string_literal():
-    s = String()
-    s = "meow"
-    
-    return s
-
-
-
-def type_conversions():
-    a = Number()
-    b = Fixed16()
-    c = Fixed16()
-    d = Number()
-
-    a = 123.456
-    b = 32
-
-    c = 123
-    c += 123
-
-    d = 123.123
-    d += 123.123
-
-    assert a == 123
-    assert b == 32
-    assert c == 246.0
-    assert d == 246
-
-def type_conversions_array():
-    a = Number()
-    b = Fixed16()
-    c = Fixed16()
-    d = Number()
-        
-    ary = Fixed16()[4]
-    ary2 = Number()[4]
-
-    ary = 3.123
-
-    a = ary[1]
-    b = ary[1]
-
-    ary2 = 3.123    
-    c = ary2[1]
-
-    ary2 += 3.123
-    d = ary2[1]
-
-    assert a == 3
-    assert b == 3.12298583984375
-    assert c == 3.0
-    assert d == 6
-
-def type_conversions_binop():
-    a = Number()
-    b = Fixed16()
-
-    a = 123
-    b = a * 0.333
-
-    assert a == 123
-    assert b == 40.95808410644531
