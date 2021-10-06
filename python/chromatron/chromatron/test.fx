@@ -1,19 +1,14 @@
 p1 = PixelArray(2, 3)
 
+def obj_load_lookup3():
+    # pixels.hue = 0.0
 
-
-def obj_store_lookup3():
-    pixels.hue = 0.0
-
+    a = Fixed16()
     pa = PixelArray()[2]
     pa[1] = p1
-    pa[1][2].hue = 1.0
+    a = pa[1][2].hue
 
-    assert p1[0].hue == 1.0
-    assert p1[1].hue == 0.0
-    assert p1[2].hue == 1.0
-    
-
+    return a
 
 
 # s = String("hello!")

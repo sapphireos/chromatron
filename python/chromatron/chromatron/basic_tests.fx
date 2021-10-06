@@ -466,20 +466,22 @@ def obj_load_lookup():
 
     return a
 
-def obj_load_lookup2():
-    pixels.hue = 0.0
+# def obj_load_lookup2():
+#     pixels.hue = 0.0
 
-    a = Fixed16()
-    pa = PixelArray()[2]
-    a = pa[1].hue
+#     a = Fixed16()
+#     pa = PixelArray()[2]
+#     pa[1] = p1
+#     a = pa[1].hue # load from entire array, this will fail to compiler (which is correct behavior)
 
-    return a
+#     return a
 
 def obj_load_lookup3():
     pixels.hue = 0.0
 
     a = Fixed16()
     pa = PixelArray()[2]
+    pa[1] = p1
     a = pa[1][2].hue
 
     return a
