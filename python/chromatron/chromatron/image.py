@@ -36,6 +36,8 @@ META_MAGIC      = 0x4154454d # 'META'
 
 VM_STRING_LEN = 32
 
+DATA_LEN = 4
+
 
 
 class ProgramHeader(StructField):
@@ -45,7 +47,8 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="isa_version"),
                   CatbusHash(_name="program_name_hash"),
                   Uint16Field(_name="code_len"),
-                  Uint16Field(_name="data_len"),
+                  Uint16Field(_name="init_len"),
+                  Uint16Field(_name="constant_len"),
                   Uint16Field(_name="read_keys_len"),
                   Uint16Field(_name="write_keys_len"),
                   Uint16Field(_name="publish_len"),
@@ -53,6 +56,7 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="link_len"),
                   Uint16Field(_name="db_len"),
                   Uint16Field(_name="cron_len"),
+                  Uint16Field(_name="padding"),
                   Uint16Field(_name="init_start"),
                   Uint16Field(_name="loop_start")]
 
@@ -94,9 +98,9 @@ class CronItem(StructField):
 
 
 class FXImage(object):
-    def __init__(self, program, funcs={}, constants=[]):
+    def __init__(self, program, func_bytecode={}, constants=[]):
         self.program = program
-        self.funcs = funcs
+        self.func_bytecode = func_bytecode
         self.constants = constants
 
         self.stream = None
@@ -105,7 +109,7 @@ class FXImage(object):
     def __str__(self):
         s = f'FX Image: {self.program.name}\n'
 
-        for func, code in self.funcs.items():
+        for func, code in self.func_bytecode.items():
             s += f'\tFunction: {func}:\n'
             for c in code:
                 s += f'\t\t{c}\n'
@@ -122,11 +126,13 @@ class FXImage(object):
         links = []
         db_entries = {}
         cron_tab = {}
+        constant_pool = self.constants
+        init_data = []
 
         # set up label and func addresses
 
         addr = 0
-        for func, code in self.funcs.items():
+        for func, code in self.func_bytecode.items():
             function_addrs[func] = addr
 
             for op in code:
@@ -172,6 +178,10 @@ class FXImage(object):
         # padding_len = 4 - (code_len % 4)
         # code_len += padding_len
         assert code_len % 4 == 0
+
+        # set up constant pool and init data
+        constant_len = len(constant_pool) * DATA_LEN
+        init_len = len(init_data) * DATA_LEN
 
         # set up pixel arrays
         pix_obj_len = 0
@@ -252,16 +262,17 @@ class FXImage(object):
                     isa_version=VM_ISA_VERSION,
                     program_name_hash=catbus_string_hash(self.program.name),
                     code_len=code_len,
-                    data_len=data_len,
+                    init_len=init_len,
+                    constant_len=constant_len,
                     pix_obj_len=pix_obj_len,
                     read_keys_len=len(packed_read_keys),
                     write_keys_len=len(packed_write_keys),
                     publish_len=len(packed_publish),
                     link_len=len(packed_links),
                     db_len=len(packed_db),
-                    cron_len=len(packed_cron))
-                    # init_start=function_addrs['init'],
-                    # loop_start=function_addrs['loop'])
+                    cron_len=len(packed_cron),
+                    init_start=function_addrs['init'],
+                    loop_start=function_addrs['loop'])
 
         stream += header.pack()
         stream += packed_read_keys  

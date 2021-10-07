@@ -129,7 +129,8 @@ typedef struct __attribute__((packed)){
     uint16_t isa_version;
     uint32_t program_name_hash;
     uint16_t code_len;
-    uint16_t data_len;
+    uint16_t init_len;
+    uint16_t constant_len;
     uint16_t read_keys_len;     // length in BYTES, not number of objects!
     uint16_t write_keys_len;    // length in BYTES, not number of objects!
     uint16_t publish_len;       // length in BYTES, not number of objects!
@@ -137,9 +138,12 @@ typedef struct __attribute__((packed)){
     uint16_t link_len;          // length in BYTES, not number of objects!
     uint16_t db_len;            // length in BYTES, not number of objects!
     uint16_t cron_len;          // length in BYTES, not number of objects!
+    uint16_t padding;
     uint16_t init_start;
     uint16_t loop_start;
     // variable length data:
+    // - init data
+    // - constant pool
     // - read keys
     // - write keys
     // - publish vars
