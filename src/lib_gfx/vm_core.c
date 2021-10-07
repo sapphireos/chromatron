@@ -88,6 +88,14 @@ static uint32_t cycles;
 // } decodep3_t;
 // #endif
 
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint8_t op1;
+    uint16_t padding;
+} opcode_1ac_t;
+#define DECODE_1AC opcode_1ac = (opcode_1ac_t *)pc; pc += 4;
+
 typedef struct __attribute__((packed)){
     uint8_t opcode;
     uint8_t dest;
@@ -96,6 +104,12 @@ typedef struct __attribute__((packed)){
 } opcode_2ac_t;
 #define DECODE_2AC opcode_2ac = (opcode_2ac_t *)pc; pc += 4;
 
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint16_t imm1;
+    uint8_t reg1;
+} opcode_1i1r_t;
+#define DECODE_1I1R opcode_1i1r = (opcode_1i1r_t *)pc; pc += 4;
 
 
 static int8_t _vm_i8_run_stream(
@@ -103,7 +117,7 @@ static int8_t _vm_i8_run_stream(
     uint16_t func_addr,
     uint16_t pc_offset,
     vm_state_t *state,
-    int32_t *data ){
+    int32_t *registers ){
 
 #if defined(ESP8266)
     static void *opcode_table[] = {
@@ -114,37 +128,35 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 0
 
         &&opcode_mov,               // 1
-        &&opcode_trap,               // 2
-        
-        &&opcode_trap,               // 3
-        
-        &&opcode_trap,            // 4
-        &&opcode_trap,           // 5
-        &&opcode_trap,            // 6
-        &&opcode_trap,           // 7
-        &&opcode_trap,            // 8
-        &&opcode_trap,           // 9
-        &&opcode_trap,               // 10
-        &&opcode_trap,                // 11
-        &&opcode_trap,               // 12
-        &&opcode_trap,               // 13
-        &&opcode_trap,               // 14
-        &&opcode_trap,               // 15
-        &&opcode_trap,               // 16
+        &&opcode_ldi,               // 2
+        &&opcode_ldc,               // 3
+        &&opcode_ldg,               // 4
+        &&opcode_ldl,               // 5
+        &&opcode_ref,               // 6
+        &&opcode_ldgi,              // 7
+        &&opcode_stg,               // 8
+        &&opcode_stl,               // 9
+        &&opcode_stgi,              // 10
+        &&opcode_trap,              // 11
+        &&opcode_trap,              // 12
+        &&opcode_trap,              // 13
+        &&opcode_trap,              // 14
+        &&opcode_trap,              // 15
+        &&opcode_trap,              // 16
 
-        &&opcode_trap,        // 17
-        &&opcode_trap,       // 18
-        &&opcode_trap,        // 19
-        &&opcode_trap,       // 20
-        &&opcode_trap,        // 21
-        &&opcode_trap,       // 22
-        &&opcode_trap,           // 23
-        &&opcode_trap,            // 24
-        &&opcode_trap,           // 25
-        &&opcode_trap,           // 26
-        &&opcode_trap,           // 27
-        &&opcode_trap,           // 28
-        &&opcode_trap,           // 29
+        &&opcode_trap,              // 17
+        &&opcode_trap,              // 18
+        &&opcode_ret,               // 19
+        &&opcode_trap,              // 20
+        &&opcode_trap,              // 21
+        &&opcode_trap,              // 22
+        &&opcode_trap,              // 23
+        &&opcode_trap,              // 24
+        &&opcode_trap,              // 25
+        &&opcode_trap,              // 26
+        &&opcode_trap,              // 27
+        &&opcode_trap,              // 28
+        &&opcode_trap,              // 29
 
         &&opcode_trap,               // 30
         &&opcode_trap,          // 31
@@ -667,6 +679,9 @@ static int8_t _vm_i8_run_stream(
     uint8_t *code = stream + state->code_start;
     uint8_t *pc = code + func_addr + pc_offset;
     uint8_t opcode;
+    int32_t *constant_pool = 0; // NOT FINISHED!!!!!
+    int32_t *local_memory = 0; // NOT FINISHED!!!!!
+    int32_t *global_memory = 0; // NOT FINISHED!!!!!
 
     // uint16_t dest;
     // uint16_t src;
@@ -717,7 +732,15 @@ static int8_t _vm_i8_run_stream(
     // #endif
 
 
+    opcode_1ac_t *opcode_1ac;
     opcode_2ac_t *opcode_2ac;
+    opcode_1i1r_t *opcode_1i1r;
+
+
+    uint8_t *call_stack[VM_MAX_CALL_DEPTH];
+    uint8_t call_depth = 0;
+
+    int32_t return_val;
 
 
     #define DISPATCH cycles--; \
@@ -733,7 +756,98 @@ static int8_t _vm_i8_run_stream(
 opcode_mov:
     DECODE_2AC;    
     
-    data[opcode_2ac->dest] = data[opcode_2ac->op1];    
+    registers[opcode_2ac->dest] = registers[opcode_2ac->op1];    
+
+    DISPATCH;
+
+opcode_ldi:
+    DECODE_1I1R;    
+    
+    registers[opcode_1i1r->reg1] = opcode_1i1r->imm1;
+
+    DISPATCH;
+
+opcode_ldc:
+    DECODE_1I1R;    
+    
+    registers[opcode_1i1r->reg1] = constant_pool[opcode_1i1r->imm1];
+
+    DISPATCH;
+
+opcode_ldg:
+    DECODE_2AC;    
+    
+    registers[opcode_2ac->dest] = global_memory[registers[opcode_2ac->op1]];    
+
+    DISPATCH;
+
+opcode_ldl:
+    DECODE_2AC;    
+    
+    registers[opcode_2ac->dest] = local_memory[registers[opcode_2ac->op1]];    
+
+    DISPATCH;
+
+opcode_ref:
+    DECODE_1I1R;    
+
+    ASSERT(FALSE);
+    
+    DISPATCH;    
+
+opcode_ldgi:
+    DECODE_1I1R;    
+    
+    registers[opcode_1i1r->reg1] = global_memory[opcode_1i1r->imm1];    
+
+    DISPATCH;
+
+opcode_stg:
+    DECODE_2AC;    
+    
+    global_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
+
+    DISPATCH;
+
+opcode_stl:
+    DECODE_2AC;    
+    
+    local_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
+
+    DISPATCH;
+
+opcode_stgi:
+    DECODE_1I1R;    
+    
+    global_memory[opcode_1i1r->imm1] = registers[opcode_1i1r->reg1];    
+
+    DISPATCH;
+
+
+
+
+opcode_ret:
+    DECODE_1AC;    
+    
+    return_val = registers[opcode_1ac->op1];
+
+
+    // check if call depth is 0
+    // if so, we are exiting the VM
+    if( call_depth == 0 ){
+
+        return VM_STATUS_OK;
+    }
+
+    // pop PC from call stack
+    call_depth--;
+
+    if( call_depth > VM_MAX_CALL_DEPTH ){
+
+        return VM_STATUS_CALL_DEPTH_EXCEEDED;
+    }
+
+    pc = call_stack[call_depth];
 
     DISPATCH;
 

@@ -1,14 +1,22 @@
-p1 = PixelArray(2, 3)
 
-def obj_load_lookup3():
-    # pixels.hue = 0.0
+# a = Number()
+# b = Number()
+def init():
+    # a = b
+    return 1
 
-    a = Fixed16()
-    pa = PixelArray()[2]
-    pa[1] = p1
-    a = pa[1][2].hue
 
-    return a
+# p1 = PixelArray(2, 3)
+
+# def obj_load_lookup3():
+#     # pixels.hue = 0.0
+
+#     a = Fixed16()
+#     pa = PixelArray()[2]
+#     pa[1] = p1
+#     a = pa[1][2].hue
+
+#     return a
 
 
 # s = String("hello!")

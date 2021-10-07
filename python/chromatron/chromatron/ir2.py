@@ -3474,6 +3474,7 @@ class irLoad(IR):
                 return insLoadLocal(self.register.generate(), ref, lineno=self.lineno)
 
         else:
+            assert self.ref.is_global
             return insLoadGlobalImmediate(self.register.generate(), ref, lineno=self.lineno)
 
 # Store register to memory
@@ -3509,6 +3510,7 @@ class irStore(IR):
                 return insStoreLocal(ref, self.register.generate(), lineno=self.lineno)
 
         else:
+            assert self.ref.is_global
             return insStoreGlobalImmediate(ref, self.register.generate(), lineno=self.lineno)
 
 # Spill register to stack
