@@ -88,6 +88,16 @@ static uint32_t cycles;
 // } decodep3_t;
 // #endif
 
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint8_t dest;
+    uint8_t op1;
+    uint8_t padding;
+} opcode_2ac_t;
+#define DECODE_2AC opcode_2ac = (opcode_2ac_t *)pc; pc += 4;
+
+
+
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
     uint16_t func_addr,
@@ -103,7 +113,7 @@ static int8_t _vm_i8_run_stream(
 
         &&opcode_trap,              // 0
 
-        &&opcode_trap,               // 1
+        &&opcode_mov,               // 1
         &&opcode_trap,               // 2
         
         &&opcode_trap,               // 3
@@ -707,19 +717,25 @@ static int8_t _vm_i8_run_stream(
     // #endif
 
 
+    opcode_2ac_t *opcode_2ac;
 
 
     #define DISPATCH cycles--; \
                      if( cycles == 0 ){ \
                         return VM_STATUS_ERR_MAX_CYCLES; \
                     } \
-                    opcode = *pc++; \
+                    opcode = *pc; \
                     goto *opcode_table[opcode]
 
 
     DISPATCH;
 
+opcode_mov:
+    DECODE_2AC;    
+    
+    data[opcode_2ac->dest] = data[opcode_2ac->op1];    
 
+    DISPATCH;
 
 opcode_trap:
     return VM_STATUS_TRAP;
