@@ -267,6 +267,6 @@ int8_t vm_i8_load_program(
     vm_state_t *state,
     uint8_t tag );
 */
-void vm_v_clear_db( uint8_t tag );
+// void vm_v_clear_db( uint8_t tag );
 
 #endif

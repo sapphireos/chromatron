@@ -48,45 +48,45 @@
 
 static uint32_t cycles;
 
-#ifdef VM_OPTIMIZED_DECODE
-typedef struct __attribute__((packed)){
-    uint16_t dest;
-    uint16_t src;
-} decode2_t;
+// #ifdef VM_OPTIMIZED_DECODE
+// typedef struct __attribute__((packed)){
+//     uint16_t dest;
+//     uint16_t src;
+// } decode2_t;
 
-typedef struct __attribute__((packed)){
-    uint16_t dest;
-    uint16_t op1;
-    uint16_t op2;
-} decode3_t;
+// typedef struct __attribute__((packed)){
+//     uint16_t dest;
+//     uint16_t op1;
+//     uint16_t op2;
+// } decode3_t;
 
-typedef struct __attribute__((packed)){
-    uint16_t dest;
-    uint16_t src;
-    uint16_t len;
-    uint8_t type;
-} decodev_t;
+// typedef struct __attribute__((packed)){
+//     uint16_t dest;
+//     uint16_t src;
+//     uint16_t len;
+//     uint8_t type;
+// } decodev_t;
 
-typedef struct __attribute__((packed)){
-    uint8_t array;
-    uint8_t attr;
-    uint16_t src;
-} decodep_t;
+// typedef struct __attribute__((packed)){
+//     uint8_t array;
+//     uint8_t attr;
+//     uint16_t src;
+// } decodep_t;
 
-typedef struct __attribute__((packed)){
-    uint8_t array;
-    uint16_t index_x;
-    uint16_t index_y;
-    uint16_t src;
-} decodep2_t;
+// typedef struct __attribute__((packed)){
+//     uint8_t array;
+//     uint16_t index_x;
+//     uint16_t index_y;
+//     uint16_t src;
+// } decodep2_t;
 
-typedef struct __attribute__((packed)){
-    uint8_t array;
-    uint16_t index_x;
-    uint16_t index_y;
-    uint16_t dest;
-} decodep3_t;
-#endif
+// typedef struct __attribute__((packed)){
+//     uint8_t array;
+//     uint16_t index_x;
+//     uint16_t index_y;
+//     uint16_t dest;
+// } decodep3_t;
+// #endif
 
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
@@ -103,331 +103,608 @@ static int8_t _vm_i8_run_stream(
 
         &&opcode_trap,              // 0
 
-        &&opcode_mov,	            // 1
-        &&opcode_clr,	            // 2
+        &&opcode_trap,               // 1
+        &&opcode_trap,               // 2
         
-        &&opcode_not,	            // 3
+        &&opcode_trap,               // 3
         
-        &&opcode_compeq,            // 4
-        &&opcode_compneq,	        // 5
-        &&opcode_compgt,	        // 6
-        &&opcode_compgte,	        // 7
-        &&opcode_complt,	        // 8
-        &&opcode_complte,	        // 9
-        &&opcode_and,	            // 10
-        &&opcode_or,	            // 11
-        &&opcode_add,	            // 12
-        &&opcode_sub,	            // 13
-        &&opcode_mul,	            // 14
-        &&opcode_div,	            // 15
-        &&opcode_mod,	            // 16
+        &&opcode_trap,            // 4
+        &&opcode_trap,           // 5
+        &&opcode_trap,            // 6
+        &&opcode_trap,           // 7
+        &&opcode_trap,            // 8
+        &&opcode_trap,           // 9
+        &&opcode_trap,               // 10
+        &&opcode_trap,                // 11
+        &&opcode_trap,               // 12
+        &&opcode_trap,               // 13
+        &&opcode_trap,               // 14
+        &&opcode_trap,               // 15
+        &&opcode_trap,               // 16
 
-        &&opcode_f16_compeq,        // 17
-        &&opcode_f16_compneq,       // 18
-        &&opcode_f16_compgt,        // 19
-        &&opcode_f16_compgte,       // 20
-        &&opcode_f16_complt,        // 21
-        &&opcode_f16_complte,       // 22
-        &&opcode_f16_and,           // 23
-        &&opcode_f16_or,            // 24
-        &&opcode_f16_add,           // 25
-        &&opcode_f16_sub,           // 26
-        &&opcode_f16_mul,           // 27
-        &&opcode_f16_div,           // 28
-        &&opcode_f16_mod,           // 29
+        &&opcode_trap,        // 17
+        &&opcode_trap,       // 18
+        &&opcode_trap,        // 19
+        &&opcode_trap,       // 20
+        &&opcode_trap,        // 21
+        &&opcode_trap,       // 22
+        &&opcode_trap,           // 23
+        &&opcode_trap,            // 24
+        &&opcode_trap,           // 25
+        &&opcode_trap,           // 26
+        &&opcode_trap,           // 27
+        &&opcode_trap,           // 28
+        &&opcode_trap,           // 29
 
-        &&opcode_jmp,	            // 30
-        &&opcode_jmp_if_z,	        // 31
-        &&opcode_jmp_if_not_z,	    // 32
-        &&opcode_jmp_if_l_pre_inc,  // 33
+        &&opcode_trap,               // 30
+        &&opcode_trap,          // 31
+        &&opcode_trap,      // 32
+        &&opcode_trap,  // 33
 
-        &&opcode_ret,	            // 34
-        &&opcode_call,	            // 35
-        &&opcode_lcall,             // 36
-        &&opcode_dbcall,            // 37
+        &&opcode_trap,               // 34
+        &&opcode_trap,              // 35
+        &&opcode_trap,             // 36
+        &&opcode_trap,            // 37
 
-        &&opcode_index,             // 38
-        &&opcode_load_indirect,     // 39
-        &&opcode_store_indirect,    // 40
+        &&opcode_trap,             // 38
+        &&opcode_trap,     // 39
+        &&opcode_trap,    // 40
 
-        &&opcode_assert,            // 41
-        &&opcode_halt,              // 42
+        &&opcode_trap,            // 41
+        &&opcode_trap,              // 42
 
-        &&opcode_vmov,              // 43
-        &&opcode_vadd,              // 44
-        &&opcode_vsub,              // 45
-        &&opcode_vmul,              // 46
-        &&opcode_vdiv,              // 47
-        &&opcode_vmod,              // 48
+        &&opcode_trap,              // 43
+        &&opcode_trap,              // 44
+        &&opcode_trap,              // 45
+        &&opcode_trap,              // 46
+        &&opcode_trap,              // 47
+        &&opcode_trap,              // 48
 
-        &&opcode_pmov,              // 49
-        &&opcode_padd,              // 50
-        &&opcode_psub,              // 51
-        &&opcode_pmul,              // 52
-        &&opcode_pdiv,              // 53
-        &&opcode_pmod,              // 54
+        &&opcode_trap,              // 49
+        &&opcode_trap,              // 50
+        &&opcode_trap,              // 51
+        &&opcode_trap,              // 52
+        &&opcode_trap,              // 53
+        &&opcode_trap,              // 54
 
-        &&opcode_pstore_hue,        // 55
-        &&opcode_pstore_sat,        // 56
-        &&opcode_pstore_val,        // 57
-        &&opcode_pstore_hsfade,     // 58
-        &&opcode_pstore_vfade,      // 59
+        &&opcode_trap,        // 55
+        &&opcode_trap,        // 56
+        &&opcode_trap,        // 57
+        &&opcode_trap,     // 58
+        &&opcode_trap,      // 59
 
-        &&opcode_pload_hue,         // 60
-        &&opcode_pload_sat,         // 61
-        &&opcode_pload_val,         // 62
-        &&opcode_pload_hsfade,      // 63
-        &&opcode_pload_vfade,       // 64
+        &&opcode_trap,         // 60
+        &&opcode_trap,         // 61
+        &&opcode_trap,         // 62
+        &&opcode_trap,      // 63
+        &&opcode_trap,       // 64
 
-        &&opcode_db_store,          // 65
-        &&opcode_db_load,           // 66
+        &&opcode_trap,          // 65
+        &&opcode_trap,           // 66
 
-        &&opcode_conv_i32_to_f16,   // 67
-        &&opcode_conv_f16_to_i32,   // 68
+        &&opcode_trap,   // 67
+        &&opcode_trap,   // 68
 
-        &&opcode_is_v_fading,	    // 69
-        &&opcode_is_hs_fading,	    // 70
+        &&opcode_trap,       // 69
+        &&opcode_trap,      // 70
 
-        &&opcode_pstore_pval,	    // 71
-        &&opcode_pload_pval,	    // 72
+        &&opcode_trap,       // 71
+        &&opcode_trap,        // 72
 
-        &&opcode_trap,	            // 73
-        &&opcode_trap,	            // 74
-        &&opcode_trap,	            // 75
-        &&opcode_trap,	            // 76
-        &&opcode_trap,	            // 77
-        &&opcode_trap,	            // 78
-        &&opcode_trap,	            // 79
-        &&opcode_trap,	            // 80
-        &&opcode_trap,	            // 81
-        &&opcode_trap,	            // 82
-        &&opcode_trap,	            // 83
-        &&opcode_trap,	            // 84
-        &&opcode_trap,	            // 85
-        &&opcode_trap,	            // 86
-        &&opcode_trap,	            // 87
-        &&opcode_trap,	            // 88
-        &&opcode_trap,	            // 89
-        &&opcode_trap,	            // 90
-        &&opcode_trap,	            // 91
-        &&opcode_trap,	            // 92
-        &&opcode_trap,	            // 93
-        &&opcode_trap,	            // 94
-        &&opcode_trap,	            // 95
-        &&opcode_trap,	            // 96
-        &&opcode_trap,	            // 97
-        &&opcode_trap,	            // 98
-        &&opcode_trap,	            // 99
-        &&opcode_trap,	            // 100
-        &&opcode_trap,	            // 101
-        &&opcode_trap,	            // 102
-        &&opcode_trap,	            // 103
-        &&opcode_trap,	            // 104
-        &&opcode_trap,	            // 105
-        &&opcode_trap,	            // 106
-        &&opcode_trap,	            // 107
-        &&opcode_trap,	            // 108
-        &&opcode_trap,	            // 109
-        &&opcode_trap,	            // 110
-        &&opcode_trap,	            // 111
-        &&opcode_trap,	            // 112
-        &&opcode_trap,	            // 113
-        &&opcode_trap,	            // 114
-        &&opcode_trap,	            // 115
-        &&opcode_trap,	            // 116
-        &&opcode_trap,	            // 117
-        &&opcode_trap,	            // 118
-        &&opcode_trap,	            // 119
-        &&opcode_trap,	            // 120
-        &&opcode_trap,	            // 121
-        &&opcode_trap,	            // 122
-        &&opcode_trap,	            // 123
-        &&opcode_trap,	            // 124
-        &&opcode_trap,	            // 125
-        &&opcode_trap,	            // 126
-        &&opcode_trap,	            // 127
-        &&opcode_trap,	            // 128
-        &&opcode_trap,	            // 129
-        &&opcode_trap,	            // 130
-        &&opcode_trap,	            // 131
-        &&opcode_trap,	            // 132
-        &&opcode_trap,	            // 133
-        &&opcode_trap,	            // 134
-        &&opcode_trap,	            // 135
-        &&opcode_trap,	            // 136
-        &&opcode_trap,	            // 137
-        &&opcode_trap,	            // 138
-        &&opcode_trap,	            // 139
-        &&opcode_trap,	            // 140
-        &&opcode_trap,	            // 141
-        &&opcode_trap,	            // 142
-        &&opcode_trap,	            // 143
-        &&opcode_trap,	            // 144
-        &&opcode_trap,	            // 145
-        &&opcode_trap,	            // 146
-        &&opcode_trap,	            // 147
-        &&opcode_trap,	            // 148
-        &&opcode_trap,	            // 149
-        &&opcode_trap,	            // 150
-        &&opcode_trap,	            // 151
-        &&opcode_trap,	            // 152
-        &&opcode_trap,	            // 153
-        &&opcode_trap,	            // 154
-        &&opcode_trap,	            // 155
-        &&opcode_trap,	            // 156
-        &&opcode_trap,	            // 157
-        &&opcode_trap,	            // 158
-        &&opcode_trap,	            // 159
-        &&opcode_trap,	            // 160
-        &&opcode_trap,	            // 161
-        &&opcode_trap,	            // 162
-        &&opcode_trap,	            // 163
-        &&opcode_trap,	            // 164
-        &&opcode_trap,	            // 165
-        &&opcode_trap,	            // 166
-        &&opcode_trap,	            // 167
-        &&opcode_trap,	            // 168
-        &&opcode_trap,	            // 169
-        &&opcode_trap,	            // 170
-        &&opcode_trap,	            // 171
-        &&opcode_trap,	            // 172
-        &&opcode_trap,	            // 173
-        &&opcode_trap,	            // 174
-        &&opcode_trap,	            // 175
-        &&opcode_trap,	            // 176
-        &&opcode_trap,	            // 177
-        &&opcode_trap,	            // 178
-        &&opcode_trap,	            // 179
-        &&opcode_trap,	            // 180
-        &&opcode_trap,	            // 181
-        &&opcode_trap,	            // 182
-        &&opcode_trap,	            // 183
-        &&opcode_trap,	            // 184
-        &&opcode_trap,	            // 185
-        &&opcode_trap,	            // 186
-        &&opcode_trap,	            // 187
-        &&opcode_trap,	            // 188
-        &&opcode_trap,	            // 189
-        &&opcode_trap,	            // 190
-        &&opcode_trap,	            // 191
-        &&opcode_trap,	            // 192
-        &&opcode_trap,	            // 193
-        &&opcode_trap,	            // 194
-        &&opcode_trap,	            // 195
-        &&opcode_trap,	            // 196
-        &&opcode_trap,	            // 197
-        &&opcode_trap,	            // 198
-        &&opcode_trap,	            // 199
-        &&opcode_trap,	            // 200
-        &&opcode_trap,	            // 201
-        &&opcode_trap,	            // 202
-        &&opcode_trap,	            // 203
-        &&opcode_trap,	            // 204
-        &&opcode_trap,	            // 205
-        &&opcode_trap,	            // 206
-        &&opcode_trap,	            // 207
-        &&opcode_trap,	            // 208
-        &&opcode_trap,	            // 209
-        &&opcode_trap,	            // 210
-        &&opcode_trap,	            // 211
-        &&opcode_trap,	            // 212
-        &&opcode_trap,	            // 213
-        &&opcode_trap,	            // 214
-        &&opcode_trap,	            // 215
-        &&opcode_trap,	            // 216
-        &&opcode_trap,	            // 217
-        &&opcode_trap,	            // 218
-        &&opcode_trap,	            // 219
-        &&opcode_trap,	            // 220
-        &&opcode_trap,	            // 221
-        &&opcode_trap,	            // 222
-        &&opcode_trap,	            // 223
-        &&opcode_trap,	            // 224
-        &&opcode_trap,	            // 225
-        &&opcode_trap,	            // 226
-        &&opcode_trap,	            // 227
-        &&opcode_trap,	            // 228
-        &&opcode_trap,	            // 229
-        &&opcode_trap,	            // 230
-        &&opcode_trap,	            // 231
-        &&opcode_trap,	            // 232
-        &&opcode_trap,	            // 233
-        &&opcode_trap,	            // 234
-        &&opcode_trap,	            // 235
-        &&opcode_trap,	            // 236
-        &&opcode_trap,	            // 237
-        &&opcode_trap,	            // 238
-        &&opcode_trap,	            // 239
-        &&opcode_trap,	            // 240
-        &&opcode_trap,	            // 241
-        &&opcode_trap,	            // 242
-        &&opcode_trap,	            // 243
-        &&opcode_trap,	            // 244
-        &&opcode_trap,	            // 245
-        &&opcode_trap,	            // 246
-        &&opcode_trap,	            // 247
-        &&opcode_trap,	            // 248
-        &&opcode_trap,	            // 249
-        &&opcode_trap,	            // 250
-        &&opcode_trap,	            // 251
-        &&opcode_trap,	            // 252
-        &&opcode_trap,	            // 253
-        &&opcode_trap,	            // 254
-        &&opcode_trap,	            // 255
+        &&opcode_trap,              // 73
+        &&opcode_trap,              // 74
+        &&opcode_trap,              // 75
+        &&opcode_trap,              // 76
+        &&opcode_trap,              // 77
+        &&opcode_trap,              // 78
+        &&opcode_trap,              // 79
+        &&opcode_trap,              // 80
+        &&opcode_trap,              // 81
+        &&opcode_trap,              // 82
+        &&opcode_trap,              // 83
+        &&opcode_trap,              // 84
+        &&opcode_trap,              // 85
+        &&opcode_trap,              // 86
+        &&opcode_trap,              // 87
+        &&opcode_trap,              // 88
+        &&opcode_trap,              // 89
+        &&opcode_trap,              // 90
+        &&opcode_trap,              // 91
+        &&opcode_trap,              // 92
+        &&opcode_trap,              // 93
+        &&opcode_trap,              // 94
+        &&opcode_trap,              // 95
+        &&opcode_trap,              // 96
+        &&opcode_trap,              // 97
+        &&opcode_trap,              // 98
+        &&opcode_trap,              // 99
+        &&opcode_trap,              // 100
+        &&opcode_trap,              // 101
+        &&opcode_trap,              // 102
+        &&opcode_trap,              // 103
+        &&opcode_trap,              // 104
+        &&opcode_trap,              // 105
+        &&opcode_trap,              // 106
+        &&opcode_trap,              // 107
+        &&opcode_trap,              // 108
+        &&opcode_trap,              // 109
+        &&opcode_trap,              // 110
+        &&opcode_trap,              // 111
+        &&opcode_trap,              // 112
+        &&opcode_trap,              // 113
+        &&opcode_trap,              // 114
+        &&opcode_trap,              // 115
+        &&opcode_trap,              // 116
+        &&opcode_trap,              // 117
+        &&opcode_trap,              // 118
+        &&opcode_trap,              // 119
+        &&opcode_trap,              // 120
+        &&opcode_trap,              // 121
+        &&opcode_trap,              // 122
+        &&opcode_trap,              // 123
+        &&opcode_trap,              // 124
+        &&opcode_trap,              // 125
+        &&opcode_trap,              // 126
+        &&opcode_trap,              // 127
+        &&opcode_trap,              // 128
+        &&opcode_trap,              // 129
+        &&opcode_trap,              // 130
+        &&opcode_trap,              // 131
+        &&opcode_trap,              // 132
+        &&opcode_trap,              // 133
+        &&opcode_trap,              // 134
+        &&opcode_trap,              // 135
+        &&opcode_trap,              // 136
+        &&opcode_trap,              // 137
+        &&opcode_trap,              // 138
+        &&opcode_trap,              // 139
+        &&opcode_trap,              // 140
+        &&opcode_trap,              // 141
+        &&opcode_trap,              // 142
+        &&opcode_trap,              // 143
+        &&opcode_trap,              // 144
+        &&opcode_trap,              // 145
+        &&opcode_trap,              // 146
+        &&opcode_trap,              // 147
+        &&opcode_trap,              // 148
+        &&opcode_trap,              // 149
+        &&opcode_trap,              // 150
+        &&opcode_trap,              // 151
+        &&opcode_trap,              // 152
+        &&opcode_trap,              // 153
+        &&opcode_trap,              // 154
+        &&opcode_trap,              // 155
+        &&opcode_trap,              // 156
+        &&opcode_trap,              // 157
+        &&opcode_trap,              // 158
+        &&opcode_trap,              // 159
+        &&opcode_trap,              // 160
+        &&opcode_trap,              // 161
+        &&opcode_trap,              // 162
+        &&opcode_trap,              // 163
+        &&opcode_trap,              // 164
+        &&opcode_trap,              // 165
+        &&opcode_trap,              // 166
+        &&opcode_trap,              // 167
+        &&opcode_trap,              // 168
+        &&opcode_trap,              // 169
+        &&opcode_trap,              // 170
+        &&opcode_trap,              // 171
+        &&opcode_trap,              // 172
+        &&opcode_trap,              // 173
+        &&opcode_trap,              // 174
+        &&opcode_trap,              // 175
+        &&opcode_trap,              // 176
+        &&opcode_trap,              // 177
+        &&opcode_trap,              // 178
+        &&opcode_trap,              // 179
+        &&opcode_trap,              // 180
+        &&opcode_trap,              // 181
+        &&opcode_trap,              // 182
+        &&opcode_trap,              // 183
+        &&opcode_trap,              // 184
+        &&opcode_trap,              // 185
+        &&opcode_trap,              // 186
+        &&opcode_trap,              // 187
+        &&opcode_trap,              // 188
+        &&opcode_trap,              // 189
+        &&opcode_trap,              // 190
+        &&opcode_trap,              // 191
+        &&opcode_trap,              // 192
+        &&opcode_trap,              // 193
+        &&opcode_trap,              // 194
+        &&opcode_trap,              // 195
+        &&opcode_trap,              // 196
+        &&opcode_trap,              // 197
+        &&opcode_trap,              // 198
+        &&opcode_trap,              // 199
+        &&opcode_trap,              // 200
+        &&opcode_trap,              // 201
+        &&opcode_trap,              // 202
+        &&opcode_trap,              // 203
+        &&opcode_trap,              // 204
+        &&opcode_trap,              // 205
+        &&opcode_trap,              // 206
+        &&opcode_trap,              // 207
+        &&opcode_trap,              // 208
+        &&opcode_trap,              // 209
+        &&opcode_trap,              // 210
+        &&opcode_trap,              // 211
+        &&opcode_trap,              // 212
+        &&opcode_trap,              // 213
+        &&opcode_trap,              // 214
+        &&opcode_trap,              // 215
+        &&opcode_trap,              // 216
+        &&opcode_trap,              // 217
+        &&opcode_trap,              // 218
+        &&opcode_trap,              // 219
+        &&opcode_trap,              // 220
+        &&opcode_trap,              // 221
+        &&opcode_trap,              // 222
+        &&opcode_trap,              // 223
+        &&opcode_trap,              // 224
+        &&opcode_trap,              // 225
+        &&opcode_trap,              // 226
+        &&opcode_trap,              // 227
+        &&opcode_trap,              // 228
+        &&opcode_trap,              // 229
+        &&opcode_trap,              // 230
+        &&opcode_trap,              // 231
+        &&opcode_trap,              // 232
+        &&opcode_trap,              // 233
+        &&opcode_trap,              // 234
+        &&opcode_trap,              // 235
+        &&opcode_trap,              // 236
+        &&opcode_trap,              // 237
+        &&opcode_trap,              // 238
+        &&opcode_trap,              // 239
+        &&opcode_trap,              // 240
+        &&opcode_trap,              // 241
+        &&opcode_trap,              // 242
+        &&opcode_trap,              // 243
+        &&opcode_trap,              // 244
+        &&opcode_trap,              // 245
+        &&opcode_trap,              // 246
+        &&opcode_trap,              // 247
+        &&opcode_trap,              // 248
+        &&opcode_trap,              // 249
+        &&opcode_trap,              // 250
+        &&opcode_trap,              // 251
+        &&opcode_trap,              // 252
+        &&opcode_trap,              // 253
+        &&opcode_trap,              // 254
+        &&opcode_trap,              // 255
     };
+
+// #ifdef OLD_VM    
+
+//         &&opcode_trap,              // 0
+
+//         &&opcode_mov,	            // 1
+//         &&opcode_clr,	            // 2
+        
+//         &&opcode_not,	            // 3
+        
+//         &&opcode_compeq,            // 4
+//         &&opcode_compneq,	        // 5
+//         &&opcode_compgt,	        // 6
+//         &&opcode_compgte,	        // 7
+//         &&opcode_complt,	        // 8
+//         &&opcode_complte,	        // 9
+//         &&opcode_and,	            // 10
+//         &&opcode_or,	            // 11
+//         &&opcode_add,	            // 12
+//         &&opcode_sub,	            // 13
+//         &&opcode_mul,	            // 14
+//         &&opcode_div,	            // 15
+//         &&opcode_mod,	            // 16
+
+//         &&opcode_f16_compeq,        // 17
+//         &&opcode_f16_compneq,       // 18
+//         &&opcode_f16_compgt,        // 19
+//         &&opcode_f16_compgte,       // 20
+//         &&opcode_f16_complt,        // 21
+//         &&opcode_f16_complte,       // 22
+//         &&opcode_f16_and,           // 23
+//         &&opcode_f16_or,            // 24
+//         &&opcode_f16_add,           // 25
+//         &&opcode_f16_sub,           // 26
+//         &&opcode_f16_mul,           // 27
+//         &&opcode_f16_div,           // 28
+//         &&opcode_f16_mod,           // 29
+
+//         &&opcode_jmp,	            // 30
+//         &&opcode_jmp_if_z,	        // 31
+//         &&opcode_jmp_if_not_z,	    // 32
+//         &&opcode_jmp_if_l_pre_inc,  // 33
+
+//         &&opcode_ret,	            // 34
+//         &&opcode_call,	            // 35
+//         &&opcode_lcall,             // 36
+//         &&opcode_dbcall,            // 37
+
+//         &&opcode_index,             // 38
+//         &&opcode_load_indirect,     // 39
+//         &&opcode_store_indirect,    // 40
+
+//         &&opcode_assert,            // 41
+//         &&opcode_halt,              // 42
+
+//         &&opcode_vmov,              // 43
+//         &&opcode_vadd,              // 44
+//         &&opcode_vsub,              // 45
+//         &&opcode_vmul,              // 46
+//         &&opcode_vdiv,              // 47
+//         &&opcode_vmod,              // 48
+
+//         &&opcode_pmov,              // 49
+//         &&opcode_padd,              // 50
+//         &&opcode_psub,              // 51
+//         &&opcode_pmul,              // 52
+//         &&opcode_pdiv,              // 53
+//         &&opcode_pmod,              // 54
+
+//         &&opcode_pstore_hue,        // 55
+//         &&opcode_pstore_sat,        // 56
+//         &&opcode_pstore_val,        // 57
+//         &&opcode_pstore_hsfade,     // 58
+//         &&opcode_pstore_vfade,      // 59
+
+//         &&opcode_pload_hue,         // 60
+//         &&opcode_pload_sat,         // 61
+//         &&opcode_pload_val,         // 62
+//         &&opcode_pload_hsfade,      // 63
+//         &&opcode_pload_vfade,       // 64
+
+//         &&opcode_db_store,          // 65
+//         &&opcode_db_load,           // 66
+
+//         &&opcode_conv_i32_to_f16,   // 67
+//         &&opcode_conv_f16_to_i32,   // 68
+
+//         &&opcode_is_v_fading,	    // 69
+//         &&opcode_is_hs_fading,	    // 70
+
+//         &&opcode_pstore_pval,	    // 71
+//         &&opcode_pload_pval,	    // 72
+
+//         &&opcode_trap,	            // 73
+//         &&opcode_trap,	            // 74
+//         &&opcode_trap,	            // 75
+//         &&opcode_trap,	            // 76
+//         &&opcode_trap,	            // 77
+//         &&opcode_trap,	            // 78
+//         &&opcode_trap,	            // 79
+//         &&opcode_trap,	            // 80
+//         &&opcode_trap,	            // 81
+//         &&opcode_trap,	            // 82
+//         &&opcode_trap,	            // 83
+//         &&opcode_trap,	            // 84
+//         &&opcode_trap,	            // 85
+//         &&opcode_trap,	            // 86
+//         &&opcode_trap,	            // 87
+//         &&opcode_trap,	            // 88
+//         &&opcode_trap,	            // 89
+//         &&opcode_trap,	            // 90
+//         &&opcode_trap,	            // 91
+//         &&opcode_trap,	            // 92
+//         &&opcode_trap,	            // 93
+//         &&opcode_trap,	            // 94
+//         &&opcode_trap,	            // 95
+//         &&opcode_trap,	            // 96
+//         &&opcode_trap,	            // 97
+//         &&opcode_trap,	            // 98
+//         &&opcode_trap,	            // 99
+//         &&opcode_trap,	            // 100
+//         &&opcode_trap,	            // 101
+//         &&opcode_trap,	            // 102
+//         &&opcode_trap,	            // 103
+//         &&opcode_trap,	            // 104
+//         &&opcode_trap,	            // 105
+//         &&opcode_trap,	            // 106
+//         &&opcode_trap,	            // 107
+//         &&opcode_trap,	            // 108
+//         &&opcode_trap,	            // 109
+//         &&opcode_trap,	            // 110
+//         &&opcode_trap,	            // 111
+//         &&opcode_trap,	            // 112
+//         &&opcode_trap,	            // 113
+//         &&opcode_trap,	            // 114
+//         &&opcode_trap,	            // 115
+//         &&opcode_trap,	            // 116
+//         &&opcode_trap,	            // 117
+//         &&opcode_trap,	            // 118
+//         &&opcode_trap,	            // 119
+//         &&opcode_trap,	            // 120
+//         &&opcode_trap,	            // 121
+//         &&opcode_trap,	            // 122
+//         &&opcode_trap,	            // 123
+//         &&opcode_trap,	            // 124
+//         &&opcode_trap,	            // 125
+//         &&opcode_trap,	            // 126
+//         &&opcode_trap,	            // 127
+//         &&opcode_trap,	            // 128
+//         &&opcode_trap,	            // 129
+//         &&opcode_trap,	            // 130
+//         &&opcode_trap,	            // 131
+//         &&opcode_trap,	            // 132
+//         &&opcode_trap,	            // 133
+//         &&opcode_trap,	            // 134
+//         &&opcode_trap,	            // 135
+//         &&opcode_trap,	            // 136
+//         &&opcode_trap,	            // 137
+//         &&opcode_trap,	            // 138
+//         &&opcode_trap,	            // 139
+//         &&opcode_trap,	            // 140
+//         &&opcode_trap,	            // 141
+//         &&opcode_trap,	            // 142
+//         &&opcode_trap,	            // 143
+//         &&opcode_trap,	            // 144
+//         &&opcode_trap,	            // 145
+//         &&opcode_trap,	            // 146
+//         &&opcode_trap,	            // 147
+//         &&opcode_trap,	            // 148
+//         &&opcode_trap,	            // 149
+//         &&opcode_trap,	            // 150
+//         &&opcode_trap,	            // 151
+//         &&opcode_trap,	            // 152
+//         &&opcode_trap,	            // 153
+//         &&opcode_trap,	            // 154
+//         &&opcode_trap,	            // 155
+//         &&opcode_trap,	            // 156
+//         &&opcode_trap,	            // 157
+//         &&opcode_trap,	            // 158
+//         &&opcode_trap,	            // 159
+//         &&opcode_trap,	            // 160
+//         &&opcode_trap,	            // 161
+//         &&opcode_trap,	            // 162
+//         &&opcode_trap,	            // 163
+//         &&opcode_trap,	            // 164
+//         &&opcode_trap,	            // 165
+//         &&opcode_trap,	            // 166
+//         &&opcode_trap,	            // 167
+//         &&opcode_trap,	            // 168
+//         &&opcode_trap,	            // 169
+//         &&opcode_trap,	            // 170
+//         &&opcode_trap,	            // 171
+//         &&opcode_trap,	            // 172
+//         &&opcode_trap,	            // 173
+//         &&opcode_trap,	            // 174
+//         &&opcode_trap,	            // 175
+//         &&opcode_trap,	            // 176
+//         &&opcode_trap,	            // 177
+//         &&opcode_trap,	            // 178
+//         &&opcode_trap,	            // 179
+//         &&opcode_trap,	            // 180
+//         &&opcode_trap,	            // 181
+//         &&opcode_trap,	            // 182
+//         &&opcode_trap,	            // 183
+//         &&opcode_trap,	            // 184
+//         &&opcode_trap,	            // 185
+//         &&opcode_trap,	            // 186
+//         &&opcode_trap,	            // 187
+//         &&opcode_trap,	            // 188
+//         &&opcode_trap,	            // 189
+//         &&opcode_trap,	            // 190
+//         &&opcode_trap,	            // 191
+//         &&opcode_trap,	            // 192
+//         &&opcode_trap,	            // 193
+//         &&opcode_trap,	            // 194
+//         &&opcode_trap,	            // 195
+//         &&opcode_trap,	            // 196
+//         &&opcode_trap,	            // 197
+//         &&opcode_trap,	            // 198
+//         &&opcode_trap,	            // 199
+//         &&opcode_trap,	            // 200
+//         &&opcode_trap,	            // 201
+//         &&opcode_trap,	            // 202
+//         &&opcode_trap,	            // 203
+//         &&opcode_trap,	            // 204
+//         &&opcode_trap,	            // 205
+//         &&opcode_trap,	            // 206
+//         &&opcode_trap,	            // 207
+//         &&opcode_trap,	            // 208
+//         &&opcode_trap,	            // 209
+//         &&opcode_trap,	            // 210
+//         &&opcode_trap,	            // 211
+//         &&opcode_trap,	            // 212
+//         &&opcode_trap,	            // 213
+//         &&opcode_trap,	            // 214
+//         &&opcode_trap,	            // 215
+//         &&opcode_trap,	            // 216
+//         &&opcode_trap,	            // 217
+//         &&opcode_trap,	            // 218
+//         &&opcode_trap,	            // 219
+//         &&opcode_trap,	            // 220
+//         &&opcode_trap,	            // 221
+//         &&opcode_trap,	            // 222
+//         &&opcode_trap,	            // 223
+//         &&opcode_trap,	            // 224
+//         &&opcode_trap,	            // 225
+//         &&opcode_trap,	            // 226
+//         &&opcode_trap,	            // 227
+//         &&opcode_trap,	            // 228
+//         &&opcode_trap,	            // 229
+//         &&opcode_trap,	            // 230
+//         &&opcode_trap,	            // 231
+//         &&opcode_trap,	            // 232
+//         &&opcode_trap,	            // 233
+//         &&opcode_trap,	            // 234
+//         &&opcode_trap,	            // 235
+//         &&opcode_trap,	            // 236
+//         &&opcode_trap,	            // 237
+//         &&opcode_trap,	            // 238
+//         &&opcode_trap,	            // 239
+//         &&opcode_trap,	            // 240
+//         &&opcode_trap,	            // 241
+//         &&opcode_trap,	            // 242
+//         &&opcode_trap,	            // 243
+//         &&opcode_trap,	            // 244
+//         &&opcode_trap,	            // 245
+//         &&opcode_trap,	            // 246
+//         &&opcode_trap,	            // 247
+//         &&opcode_trap,	            // 248
+//         &&opcode_trap,	            // 249
+//         &&opcode_trap,	            // 250
+//         &&opcode_trap,	            // 251
+//         &&opcode_trap,	            // 252
+//         &&opcode_trap,	            // 253
+//         &&opcode_trap,	            // 254
+//         &&opcode_trap,	            // 255
+//     };
+//     #endif
 
     uint8_t *code = stream + state->code_start;
     uint8_t *pc = code + func_addr + pc_offset;
     uint8_t opcode;
 
-    uint16_t dest;
-    uint16_t src;
-    uint16_t call_target;
-    uint16_t call_param;
-    uint16_t call_arg;
-    uint8_t call_param_len;
-    uint16_t result;
-    uint16_t base_addr;
-    uint16_t index;
-    uint16_t count;
-    uint16_t stride;
-    uint16_t temp;
-    uint16_t len;
-    uint8_t type;
-    catbus_hash_t32 hash;
-    catbus_hash_t32 db_hash;
-    vm_string_t *string;
-    int32_t *db_ptr;
-    uint16_t db_ptr_len;
-    uint16_t string_addr;
+    // uint16_t dest;
+    // uint16_t src;
+    // uint16_t call_target;
+    // uint16_t call_param;
+    // uint16_t call_arg;
+    // uint8_t call_param_len;
+    // uint16_t result;
+    // uint16_t base_addr;
+    // uint16_t index;
+    // uint16_t count;
+    // uint16_t stride;
+    // uint16_t temp;
+    // uint16_t len;
+    // uint8_t type;
+    // catbus_hash_t32 hash;
+    // catbus_hash_t32 db_hash;
+    // vm_string_t *string;
+    // int32_t *db_ptr;
+    // uint16_t db_ptr_len;
+    // uint16_t string_addr;
     
-    #ifdef VM_ENABLE_GFX
-    int32_t value_i32;
-    gfx_palette_t *palette;
-    gfx_pixel_array_t *pix_array;
-    #endif
+    // #ifdef VM_ENABLE_GFX
+    // int32_t value_i32;
+    // gfx_palette_t *palette;
+    // gfx_pixel_array_t *pix_array;
+    // #endif
 
-    uint8_t *call_stack[VM_MAX_CALL_DEPTH];
-    uint8_t call_depth = 0;
-    int32_t params[8];
-    int32_t indexes[8];
+    // uint8_t *call_stack[VM_MAX_CALL_DEPTH];
+    // uint8_t call_depth = 0;
+    // int32_t params[8];
+    // int32_t indexes[8];
 
-    #ifdef VM_OPTIMIZED_DECODE
-    decode3_t *decode3;
-    decode2_t *decode2;
-    decodev_t *decodev;
-    decodep_t *decodep;
-    decodep2_t *decodep2;
-    decodep3_t *decodep3;
-    #else
-    uint8_t attr;
-    uint16_t op1;
-    uint16_t op2;
-    uint16_t index_x;
-    uint16_t index_y;
-    uint8_t array;
-    #endif
-
+    // #ifdef VM_OPTIMIZED_DECODE
+    // decode3_t *decode3;
+    // decode2_t *decode2;
+    // decodev_t *decodev;
+    // decodep_t *decodep;
+    // decodep2_t *decodep2;
+    // decodep3_t *decodep3;
+    // #else
+    // uint8_t attr;
+    // uint16_t op1;
+    // uint16_t op2;
+    // uint16_t index_x;
+    // uint16_t index_y;
+    // uint8_t array;
+    // #endif
 
 
 
@@ -443,7 +720,12 @@ static int8_t _vm_i8_run_stream(
     DISPATCH;
 
 
-    
+
+opcode_trap:
+    return VM_STATUS_TRAP;
+
+
+#ifdef OLD_VM    
 
 opcode_mov:
 #ifdef VM_OPTIMIZED_DECODE
@@ -2300,8 +2582,10 @@ opcode_is_hs_fading:
     DISPATCH;
 
 
-opcode_trap:
-    return VM_STATUS_TRAP;
+#endif
+
+// opcode_trap:
+//     return VM_STATUS_TRAP;
 }
 
 
@@ -2839,9 +3123,9 @@ int8_t vm_i8_load_program(
 // }
 
 
-void vm_v_clear_db( uint8_t tag ){
+// void vm_v_clear_db( uint8_t tag ){
 
-    // delete existing entries
-    kvdb_v_clear_tag( 0, tag );
-}
+//     // delete existing entries
+//     kvdb_v_clear_tag( 0, tag );
+// }
 
