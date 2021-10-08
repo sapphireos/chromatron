@@ -165,6 +165,7 @@ class irProgram(IR):
         self.symbols = symbols
         self.global_symbols = symbols
         self.constant_pool = []
+        self.call_graph = None
 
     def __str__(self):
         s = "FX IR:\n"
@@ -210,6 +211,18 @@ class irProgram(IR):
             p.addr = pix_addr
             pix_addr += 1
         
+    def analyze_call_graph(self):
+        call_graph = {}
+
+        for func_name in ['init', 'loop']:
+            if func_name not in self.funcs:
+                continue
+
+            func = self.funcs[func_name]
+
+            call_graph[func_name] = func.get_call_graph(self.funcs)
+
+        self.call_graph = call_graph
 
     def generate(self):
         self._allocate_memory()
@@ -221,7 +234,14 @@ class irProgram(IR):
 
         objects = [o for o in self.global_symbols.symbols.values() if isinstance(o, varObject)]
 
-        return insProgram(self.name, funcs=ins_funcs, global_vars=self.global_symbols.symbols, objects=objects)
+        self.analyze_call_graph()
+
+        return insProgram(
+                self.name, 
+                funcs=ins_funcs, 
+                global_vars=self.global_symbols.symbols, 
+                objects=objects,
+                call_graph=self.call_graph)
 
 class Edge(object):
     def __init__(self, from_node, to_node):
@@ -1497,6 +1517,9 @@ class irFunc(IR):
         self.live_out = None
         self.live_ranges = {}
 
+        self.direct_calls = None
+        self.indirect_calls = None
+
         self.ssa_next_val = {}
 
         self.instructions = None
@@ -2055,6 +2078,36 @@ class irFunc(IR):
             ir.live_in = set(self.live_in[ir])
             ir.live_out = set(self.live_out[ir])
 
+    def analyze_calls(self):
+        assert self.code is not None
+
+        direct_calls = []
+        indirect_calls = []
+
+        for ir in self.code:
+            if isinstance(ir, irCall):
+                if ir.target not in direct_calls:
+                    direct_calls.append(ir.target)
+
+            elif isinstance(ir, irLoadRef):
+                if isinstance(ir.ref, varFunction):
+                    indirect_calls.append(ir.ref.name)
+
+        self.direct_calls = direct_calls
+        self.indirect_calls = indirect_calls
+
+    def get_call_graph(self, funcs):
+        calls = []
+        calls.extend(self.direct_calls)
+        calls.extend(self.indirect_calls)
+
+        call_graph = {}
+
+        for call in calls:
+            func = funcs[call]
+            call_graph[call] = func.get_call_graph(funcs)
+
+        return call_graph
 
     def verify_block_assignments(self):
         # verify all instructions are recording their blocks:
@@ -2422,6 +2475,7 @@ class irFunc(IR):
 
         self.remove_useless_copies()
 
+        self.analyze_calls()
 
         instructions = []
         assert len(self.code) > 0
@@ -2437,7 +2491,14 @@ class irFunc(IR):
             else:
                 instructions.append(ins)
 
-        func = insFunc(self.name, self.params, instructions, self.source_code, self.locals, self.register_count, lineno=self.lineno)
+        func = insFunc(
+                self.name, 
+                self.params, 
+                instructions, 
+                self.source_code, 
+                self.locals, 
+                self.register_count, 
+                lineno=self.lineno)
 
         logging.debug(f'Code generation complete with {len(instructions)} machine instructions')
 

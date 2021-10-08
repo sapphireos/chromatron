@@ -1,9 +1,27 @@
 
-# a = Number()
-# b = Number()
+
+def sub(a: Number, b: Number) -> Number:
+    return a - b
+
+def add(a: Number, b: Number) -> Number:
+    return a + b
+
+def func_call():
+    # assert sub(1, 2) == -1
+    # assert add(1, 2) == 3
+
+    f = Function()
+    f = sub
+
+    assert f(1, 2) == -1
+
+    f = add
+
+    assert f(1, 2) == 3
+
+
 def init():
-    # a = b
-    return 1
+    func_call()
 
 
 # p1 = PixelArray(2, 3)

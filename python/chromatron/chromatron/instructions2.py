@@ -57,10 +57,11 @@ def convert_to_i32(value):
 
 
 class insProgram(object):
-    def __init__(self, name, funcs={}, global_vars={}, objects=[]):
+    def __init__(self, name, funcs={}, global_vars={}, objects=[], call_graph={}):
         self.name = name
         self.funcs = funcs
         self.globals = global_vars
+        self.call_graph = call_graph
 
         # initialize memory
         memory_size = 0
@@ -1215,7 +1216,11 @@ class insCall0(insCall):
     mnemonic = 'CALL0'
 
     def assemble(self):
-        return OpcodeFormat1Imm1Reg(OpcodeFunc(self.target, lineno=self.lineno), self.result.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm1Reg(
+            self.mnemonic,
+            OpcodeFunc(self.target, lineno=self.lineno), 
+            self.result.assemble(), 
+            lineno=self.lineno)
 
 class insCall1(insCall):
     mnemonic = 'CALL1'
