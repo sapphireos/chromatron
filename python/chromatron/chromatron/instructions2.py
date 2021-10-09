@@ -64,15 +64,42 @@ class insProgram(object):
         self.call_graph = call_graph
 
         # initialize memory
-        memory_size = 0
+        self.global_memory_size = 0
         for v in self.globals.values():
-            memory_size += v.size
+            self.global_memory_size += v.size 
 
-        self.memory = [0] * memory_size
+        self.memory = [0] * self.global_memory_size
 
         for func in self.funcs.values():
             func.memory = self.memory
             func.program = self
+
+        # get worst case stack depth
+        self.stacks = {}
+        def get_stack(func, call_graph):
+            func_stack = func.local_memory_size
+
+            worst_stack = 0
+            for func_name in call_graph:
+                temp_stack = get_stack(self.funcs[func_name], call_graph[func_name])
+
+                if temp_stack > worst_stack:
+                    worst_stack = temp_stack
+
+            func_stack += worst_stack
+
+            self.stacks[func.name] = func_stack
+
+            return func_stack
+
+        worst_stack = 0
+        for func_name in self.call_graph:
+            func_stack = get_stack(self.funcs[func_name], self.call_graph[func_name])
+
+            if func_stack > worst_stack:
+                worst_stack = func_stack
+
+        self.maximum_stack_depth = worst_stack
 
         self.objects = objects
 
@@ -205,6 +232,16 @@ class insFunc(object):
         s += f'VM Instructions: {len([i for i in self.code if not isinstance(i, insLabel)])}\n'
 
         return s
+
+    @property
+    def local_memory_size(self):
+        # size in WORDS not bytes
+        size = self.register_count
+
+        for l in self.local_vars:
+            size += l.size
+ 
+        return size
 
     @property
     def objects(self):

@@ -47,6 +47,7 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="isa_version"),
                   CatbusHash(_name="program_name_hash"),
                   Uint16Field(_name="code_len"),
+                  Uint16Field(_name="data_len"),
                   Uint16Field(_name="init_len"),
                   Uint16Field(_name="constant_len"),
                   Uint16Field(_name="read_keys_len"),
@@ -56,7 +57,6 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="link_len"),
                   Uint16Field(_name="db_len"),
                   Uint16Field(_name="cron_len"),
-                  Uint16Field(_name="padding"),
                   Uint16Field(_name="init_start"),
                   Uint16Field(_name="loop_start")]
 
@@ -171,13 +171,11 @@ class FXImage(object):
         meta_names = []
 
         code_len = len(bytecode)
-        data_len = 0
-        # data_len = self.data_count * DATA_LEN
+        data_len = self.program.maximum_stack_depth + self.program.global_memory_size
+        data_len *= DATA_LEN
 
-        # set up padding so data start will be on 32 bit boundary
-        # padding_len = 4 - (code_len % 4)
-        # code_len += padding_len
         assert code_len % 4 == 0
+        assert data_len % 4 == 0
 
         # set up constant pool and init data
         constant_len = len(constant_pool) * DATA_LEN
@@ -262,6 +260,7 @@ class FXImage(object):
                     isa_version=VM_ISA_VERSION,
                     program_name_hash=catbus_string_hash(self.program.name),
                     code_len=code_len,
+                    data_len=data_len,
                     init_len=init_len,
                     constant_len=constant_len,
                     pix_obj_len=pix_obj_len,
@@ -299,82 +298,82 @@ class FXImage(object):
         # add data table
         stream += struct.pack('<L', DATA_MAGIC)
 
-        addr = 0
-        data_table = []
+        # addr = 0
+        # data_table = []
         # data_table = sorted(self.data_table, key=lambda a: a.addr)
         # data_table.extend(self.strings)
 
-        for var in data_table:
-            # print var, addr
-            if var.addr < addr:
-                continue
+        # for var in data_table:
+        #     # print var, addr
+        #     if var.addr < addr:
+        #         continue
 
-            if addr != var.addr:
-                raise CompilerFatal("Data address error: %d != %d" % (addr, var.addr))
+        #     if addr != var.addr:
+        #         raise CompilerFatal("Data address error: %d != %d" % (addr, var.addr))
 
-            if isinstance(var, irStrLiteral):
-                # pack string meta data
-                # u16 addr in data table : u16 max length in characters
-                stream += struct.pack('<HH', addr, var.strlen)
-                stream += var.strdata.encode('utf-8')
+        #     if isinstance(var, irStrLiteral):
+        #         # pack string meta data
+        #         # u16 addr in data table : u16 max length in characters
+        #         stream += struct.pack('<HH', addr, var.strlen)
+        #         stream += var.strdata.encode('utf-8')
 
-                padding_len = (4 - (var.strlen % 4)) % 4
-                # add padding if necessary to make sure data is 32 bit aligned
-                stream += bytes([0] * padding_len)
+        #         padding_len = (4 - (var.strlen % 4)) % 4
+        #         # add padding if necessary to make sure data is 32 bit aligned
+        #         stream += bytes([0] * padding_len)
 
-                addr += var.size
+        #         addr += var.size
 
-            elif var.length == 1:
-                try:
-                    default_value = var.default_value
+        #     elif var.length == 1:
+        #         try:
+        #             default_value = var.default_value
 
-                    if isinstance(default_value, irStrLiteral):
-                        default_value = 0
+        #             if isinstance(default_value, irStrLiteral):
+        #                 default_value = 0
 
-                    stream += struct.pack('<l', default_value)
-                    addr += var.length
+        #             stream += struct.pack('<l', default_value)
+        #             addr += var.length
 
-                except struct.error:
-                    print("*********************************")
-                    print("packing error: var: %s type: %s default: %s type: %s" % (var, var.type, default_value, type(default_value)))
-                    print("*********************************")
+        #         except struct.error:
+        #             print("*********************************")
+        #             print("packing error: var: %s type: %s default: %s type: %s" % (var, var.type, default_value, type(default_value)))
+        #             print("*********************************")
 
-                    raise
+        #             raise
 
-            else:
-                try:
-                    for i in range(var.length):
-                        try:
-                            default_value = var.default_value[i]
+        #     else:
+        #         try:
+        #             for i in range(var.length):
+        #                 try:
+        #                     default_value = var.default_value[i]
 
-                        except TypeError:
-                            default_value = var.default_value
+        #                 except TypeError:
+        #                     default_value = var.default_value
 
-                        try:
-                            stream += struct.pack('<l', default_value)
+        #                 try:
+        #                     stream += struct.pack('<l', default_value)
 
-                        except struct.error:
-                            for val in default_value:
-                                if isinstance(val, float):
-                                    stream += struct.pack('<l', int(val * 65536))
-                                else:
-                                    stream += struct.pack('<l', val)
+        #                 except struct.error:
+        #                     for val in default_value:
+        #                         if isinstance(val, float):
+        #                             stream += struct.pack('<l', int(val * 65536))
+        #                         else:
+        #                             stream += struct.pack('<l', val)
 
-                except struct.error:
-                    print("*********************************")
-                    print("packing error: var: %s type: %s default: %s type: %s index: %d" % (var, var.type, default_value, type(default_value), i))
+        #         except struct.error:
+        #             print("*********************************")
+        #             print("packing error: var: %s type: %s default: %s type: %s index: %d" % (var, var.type, default_value, type(default_value), i))
 
-                    raise
+        #             raise
 
-                addr += var.length
+        #         addr += var.length
 
-        # ensure our address counter lines up with the data length
-        try:
-            assert addr * 4 == data_len
+        # # ensure our address counter lines up with the data length
+        # try:
+        #     assert addr * 4 == data_len
 
-        except AssertionError:
-            print("Bad data length. Last addr: %d data len: %d" % (addr * 4, data_len))
-            raise
+        # except AssertionError:
+        #     print("Bad data length. Last addr: %d data len: %d" % (addr * 4, data_len))
+        #     raise
 
         # create hash of stream
         stream_hash = catbus_string_hash(stream)
