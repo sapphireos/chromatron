@@ -30,7 +30,8 @@ FILE_MAGIC      = 0x20205846 # 'FX  '
 PROGRAM_MAGIC   = 0x474f5250 # 'PROG'
 FUNCTION_MAGIC  = 0x434e5546 # 'FUNC'
 CODE_MAGIC      = 0x45444f43 # 'CODE'
-DATA_MAGIC      = 0x41544144 # 'DATA'
+INIT_MAGIC      = 0x54494E49 # 'INIT'
+POOL_MAGIC      = 0x4C4F4F50 # 'POOL'
 KEYS_MAGIC      = 0x5359454B # 'KEYS'
 META_MAGIC      = 0x4154454d # 'META'
 
@@ -116,7 +117,7 @@ class FXImage(object):
 
         return s
 
-    def render(self, filename='meow.fxb'):
+    def render(self, filename=None):
         function_addrs = {}
         label_addrs = {}
         opcodes = []
@@ -128,6 +129,10 @@ class FXImage(object):
         cron_tab = {}
         constant_pool = self.constants
         init_data = []
+
+        if filename is None:
+            filename = self.program.name.replace('.fx', '') + '.fxb'
+
 
         # set up label and func addresses
 
@@ -289,14 +294,26 @@ class FXImage(object):
         for b in bytecode:
             stream += struct.pack('<B', b)
 
-        # add padding if necessary to make sure data is 32 bit aligned
-        # stream += bytes([0] * padding_len)
-
-        # ensure padding is correct
+        # ensure alignment is correct
         assert len(stream) % 4 == 0
 
-        # add data table
-        stream += struct.pack('<L', DATA_MAGIC)
+        # add init data table
+        stream += struct.pack('<L', INIT_MAGIC)
+
+        for init in init_data:
+            print('INIT', init)
+
+        # ensure alignment is correct
+        assert len(stream) % 4 == 0
+
+        # add constant pool
+        stream += struct.pack('<L', POOL_MAGIC)
+
+        for const in constant_pool:
+            print('CONST', const)
+
+        # ensure alignment is correct
+        assert len(stream) % 4 == 0
 
         # addr = 0
         # data_table = []
