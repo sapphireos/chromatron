@@ -1,27 +1,34 @@
 
 
-def sub(a: Number, b: Number) -> Number:
-    return a - b
+# def sub(a: Number, b: Number) -> Number:
+#     return a - b
 
-def add(a: Number, b: Number) -> Number:
-    return a + b
+# def add(a: Number, b: Number) -> Number:
+#     return a + b
 
-def func_call():
-    assert sub(1, 2) == -1
-    assert add(1, 2) == 3
+# def func_call():
+#     assert sub(1, 2) == -1
+#     assert add(1, 2) == 3
 
-    f = Function()
-    f = sub
+#     f = Function()
+#     f = sub
 
-    assert f(1, 2) == -1
+#     assert f(1, 2) == -1
 
-    f = add
+#     f = add
 
-    assert f(1, 2) == 3
+#     assert f(1, 2) == 3
 
+global_a = Number(3)
+global_b = Number()
+global_c = Number(2)
 
 def init():
-    func_call()
+#     func_call()
+
+    
+    global_d = Number(2)
+
 
 
 # p1 = PixelArray(2, 3)

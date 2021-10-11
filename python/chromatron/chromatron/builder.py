@@ -4,6 +4,8 @@ from .types import *
 from .ir2 import *
 import logging
 
+INIT_TEMP_VAR = '__init_temp__'
+
 class Builder(object):
     def __init__(self, script_name='fx_script', source=[]):
         self.script_name = script_name
@@ -233,7 +235,13 @@ class Builder(object):
                 self.add_var_to_symbol_table(var.var)
 
             else:
-                ir = irLoadConst(var, 0, lineno=lineno)
+                const = 0
+
+                # set up init value:
+                if var.init_val is not None:
+                    const = var.init_val
+
+                ir = irLoadConst(var, const, lineno=lineno)
                 self.append_node(ir)
 
                 self.add_var_to_symbol_table(var)
@@ -363,6 +371,10 @@ class Builder(object):
         self.position_label(func_label)
 
         self.declare_var(func.name, data_type='func', is_global=True, lineno=kwargs['lineno'])
+
+        # this is used to load constants to variables that have init values.
+        # if unused the optimizer will remove it.
+        func._init_var = self.declare_var(INIT_TEMP_VAR, data_type='var', lineno=kwargs['lineno'])
 
         logging.info(f'Building function: {func.name}')
 
@@ -777,9 +789,25 @@ class Builder(object):
             self.ret(zero, lineno=0)
             self.finish_func(func)
 
-        ir = irProgram(self.script_name, self.funcs, self.global_symbols, lineno=0)
+        # set up init code for global vars that have init values
+        init_func = self.funcs['init']
+        init_var = init_func._init_var
 
-        return ir
+        for var in self.global_symbols.globals.values():
+            if var.init_val is None:
+                continue
+
+            if not isinstance(var, varScalar):
+                raise SyntaxError(f'Init values only implemented for scalar types', var.lineno)
+
+            init_var = init_var.copy()
+            ir = irLoadConst(init_var, var.init_val, lineno=var.lineno)
+            init_func.body.insert(1, ir)
+            ir = irStore(init_var, var, lineno=var.lineno)
+            init_func.body.insert(2, ir)
+
+
+        return irProgram(self.script_name, self.funcs, self.global_symbols, lineno=0)
 
     def ifelse(self, test, lineno=None):
         body_label = self.label('if.then', lineno=lineno)
