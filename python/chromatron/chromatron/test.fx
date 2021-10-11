@@ -19,15 +19,20 @@
 
 #     assert f(1, 2) == 3
 
-global_a = Number(3)
-global_b = Number()
-global_c = Number(2)
+receive('portal_hue', 'portal_hue', ['portal_gun'])
 
-def init():
-#     func_call()
+# def init():
+    # receive('portal_hue', 'portal_hue', ['portal_gun'])
+
+# global_a = Number(3)
+# global_b = Number()
+# global_c = Number(200000)
+
+# def init():
+# #     func_call()
 
     
-    global_d = Number(2)
+#     global_d = Number(2)
 
 
 

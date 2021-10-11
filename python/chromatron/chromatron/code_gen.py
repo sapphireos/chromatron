@@ -337,15 +337,15 @@ class cg1Call(cg1CodeNode):
         self.keywords = keywords
 
     def build(self, builder):
-        try:
-            params = [p.build(builder) for p in self.params]
+        # try:
+        params = [p.build(builder) for p in self.params]
 
-        except VariableNotDeclared as e:
-            if self.target in THREAD_FUNCS:
-                raise SyntaxError("Parameter '%s' not found for function '%s'.  Thread functions require string parameters." % (e.var, self.target), self.lineno)
+        # except VariableNotDeclared as e:
+        #     if self.target in THREAD_FUNCS:
+        #         raise SyntaxError("Parameter '%s' not found for function '%s'.  Thread functions require string parameters." % (e.var, self.target), self.lineno)
 
-            else:
-                raise
+        #     else:
+        #         raise
 
         try:
             target = self.target.build(builder)

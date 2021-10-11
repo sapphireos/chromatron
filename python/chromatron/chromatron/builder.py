@@ -22,6 +22,7 @@ class Builder(object):
         # self.named_consts = {}
         self.structs = {}
         self.strings = {}
+        self.links = []
 
         self.next_temp = 0
 
@@ -808,6 +809,32 @@ class Builder(object):
 
 
         return irProgram(self.script_name, self.funcs, self.global_symbols, lineno=0)
+
+    def link(self, mode, source, dest, query, aggregation, rate, lineno=None):
+        aggregations = {
+            'any': LINK_AGG_ANY,
+            'min': LINK_AGG_MIN,
+            'max': LINK_AGG_MAX,
+            'sum': LINK_AGG_SUM,
+            'avg': LINK_AGG_AVG,
+        }
+
+        modes = {
+            'send': LINK_MODE_SEND,
+            'receive': LINK_MODE_RECV,
+            'sync': LINK_MODE_SYNC,
+        }
+
+        new_link = {'mode': modes[mode],
+                    'aggregation': aggregations[aggregation],
+                    'rate': int(rate),
+                    'source': source,
+                    'dest': dest,
+                    'query': query}
+
+        pprint(new_link)
+
+        self.links.append(new_link)
 
     def ifelse(self, test, lineno=None):
         body_label = self.label('if.then', lineno=lineno)
