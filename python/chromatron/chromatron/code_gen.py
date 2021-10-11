@@ -1130,6 +1130,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         image = ins_program.assemble()
         stream = image.render()
         print(image.header)
+        print('prog len:', image.prog_len)
 
 
     # return ins_program

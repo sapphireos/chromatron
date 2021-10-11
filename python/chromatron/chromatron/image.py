@@ -49,7 +49,7 @@ class ProgramHeader(StructField):
                   CatbusHash(_name="program_name_hash"),
                   Uint16Field(_name="code_len"),
                   Uint16Field(_name="data_len"),
-                  Uint16Field(_name="init_len"),
+                  # Uint16Field(_name="init_len"),
                   Uint16Field(_name="constant_len"),
                   Uint16Field(_name="read_keys_len"),
                   Uint16Field(_name="write_keys_len"),
@@ -58,6 +58,7 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="link_len"),
                   Uint16Field(_name="db_len"),
                   Uint16Field(_name="cron_len"),
+                  Uint16Field(_name="padding"),
                   Uint16Field(_name="init_start"),
                   Uint16Field(_name="loop_start")]
 
@@ -266,7 +267,7 @@ class FXImage(object):
                     program_name_hash=catbus_string_hash(self.program.name),
                     code_len=code_len,
                     data_len=data_len,
-                    init_len=init_len,
+                    # init_len=init_len,
                     constant_len=constant_len,
                     pix_obj_len=pix_obj_len,
                     read_keys_len=len(packed_read_keys),
@@ -297,11 +298,11 @@ class FXImage(object):
         # ensure alignment is correct
         assert len(stream) % 4 == 0
 
-        # add init data table
-        stream += struct.pack('<L', INIT_MAGIC)
+        # # add init data table
+        # stream += struct.pack('<L', INIT_MAGIC)
 
-        for init in init_data:
-            print('INIT', init)
+        # for init in init_data:
+        #     print('INIT', init)
 
         # ensure alignment is correct
         assert len(stream) % 4 == 0
@@ -405,6 +406,7 @@ class FXImage(object):
         # note all strings will be padded to the VM_STRING_LEN.
         prog_len = len(stream)
         stream = struct.pack('<l', prog_len) + stream
+        self.prog_len = prog_len
 
         meta_data = bytes()
 

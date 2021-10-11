@@ -7,8 +7,8 @@ def add(a: Number, b: Number) -> Number:
     return a + b
 
 def func_call():
-    # assert sub(1, 2) == -1
-    # assert add(1, 2) == 3
+    assert sub(1, 2) == -1
+    assert add(1, 2) == 3
 
     f = Function()
     f = sub
