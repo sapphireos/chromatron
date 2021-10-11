@@ -797,7 +797,7 @@ class Builder(object):
             if var.init_val is None:
                 continue
 
-            if not isinstance(var, varScalar):
+            if not isinstance(var, varScalar) and not isinstance(var, varString):
                 raise SyntaxError(f'Init values only implemented for scalar types', var.lineno)
 
             init_var = init_var.copy()
