@@ -3143,8 +3143,24 @@ int8_t vm_i8_load_program(
 
 
     // set up final items for VM execution
+    state->pool_start = obj_start;
 
-    state->code_start = obj_start;
+    // Not assigning the variable this way - see note below on data_magic.
+    // uint32_t code_magic = *(uint32_t *)( stream + *code_start );
+
+    uint32_t pool_magic = 0;
+    memcpy( (uint8_t *)&pool_magic, stream + state->pool_start, sizeof(pool_magic) );
+
+    if( pool_magic != POOL_MAGIC ){
+
+        return VM_STATUS_ERR_BAD_POOL_MAGIC;
+    }
+
+    state->pool_start += sizeof(uint32_t);
+    state->pool_len = prog_header->constant_len;
+
+
+    state->code_start = state->pool_start + state->pool_len;
 
     // Not assigning the variable this way - see note below on data_magic.
     // uint32_t code_magic = *(uint32_t *)( stream + *code_start );
@@ -3167,23 +3183,23 @@ int8_t vm_i8_load_program(
     // here.
     // So, intead, we'll memcpy into the 32 bit var instead.
     // uint32_t data_magic = *(uint32_t *)( stream + *data_start );
-    uint32_t data_magic = 0;
-    memcpy( (uint8_t *)&data_magic, stream + state->data_start, sizeof(data_magic) );
+    // uint32_t data_magic = 0;
+    // memcpy( (uint8_t *)&data_magic, stream + state->data_start, sizeof(data_magic) );
 
-    // we do the same above on code_magic, although the exception was not seen there.
+    // // we do the same above on code_magic, although the exception was not seen there.
 
-    if( data_magic != DATA_MAGIC ){
+    // if( data_magic != DATA_MAGIC ){
 
-        return VM_STATUS_ERR_BAD_DATA_MAGIC;
-    }
+    //     return VM_STATUS_ERR_BAD_DATA_MAGIC;
+    // }
 
-    state->data_start += sizeof(uint32_t);
+    // state->data_start += sizeof(uint32_t);
 
-    // check that data size does not exceed the file size
-    if( ( state->data_start + state->data_len ) > len ){
+    // // check that data size does not exceed the file size
+    // if( ( state->data_start + state->data_len ) > len ){
 
-        return VM_STATUS_ERR_BAD_LENGTH;        
-    }
+    //     return VM_STATUS_ERR_BAD_LENGTH;        
+    // }
 
     int32_t *data_table = (int32_t *)( stream + state->data_start );
 

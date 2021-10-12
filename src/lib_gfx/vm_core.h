@@ -39,7 +39,7 @@
 #define FILE_MAGIC      0x20205846  // 'FX  '
 #define PROGRAM_MAGIC   0x474f5250  // 'PROG'
 #define CODE_MAGIC      0x45444f43  // 'CODE'
-#define DATA_MAGIC      0x41544144  // 'DATA'
+#define POOL_MAGIC      0x4C4F4F50  // 'POOL'
 #define META_MAGIC      0x4154454d  // 'META'
 
 #define DATA_LEN                    4
@@ -50,7 +50,7 @@
 #define VM_STATUS_ERR_BAD_PROG_MAGIC    -3
 #define VM_STATUS_ERR_INVALID_ISA       -4
 #define VM_STATUS_ERR_BAD_CODE_MAGIC    -5
-#define VM_STATUS_ERR_BAD_DATA_MAGIC    -6
+#define VM_STATUS_ERR_BAD_POOL_MAGIC    -6
 #define VM_STATUS_ERR_BAD_FILE_HASH     -7
 #define VM_STATUS_ERR_BAD_LENGTH        -8
 
@@ -170,12 +170,14 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t data_start;
     uint16_t prog_size;
     uint16_t data_len;
+
+    uint16_t pool_start;
+    uint16_t pool_len;
     
+    uint16_t padding;
     uint16_t data_count;
     uint16_t init_start;
     uint16_t loop_start;
-
-    uint16_t padding;
 
     uint64_t tick;
     uint32_t last_elapsed_us;
