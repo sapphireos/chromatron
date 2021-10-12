@@ -49,7 +49,6 @@ class ProgramHeader(StructField):
                   CatbusHash(_name="program_name_hash"),
                   Uint16Field(_name="code_len"),
                   Uint16Field(_name="data_len"),
-                  # Uint16Field(_name="init_len"),
                   Uint16Field(_name="constant_len"),
                   Uint16Field(_name="read_keys_len"),
                   Uint16Field(_name="write_keys_len"),
@@ -129,7 +128,6 @@ class FXImage(object):
         db_entries = {}
         cron_tab = {}
         constant_pool = self.constants
-        init_data = []
 
         if filename is None:
             filename = self.program.name.replace('.fx', '') + '.fxb'
@@ -185,7 +183,6 @@ class FXImage(object):
 
         # set up constant pool and init data
         constant_len = len(constant_pool) * DATA_LEN
-        init_len = len(init_data) * DATA_LEN
 
         # set up pixel arrays
         pix_obj_len = 0
@@ -267,7 +264,6 @@ class FXImage(object):
                     program_name_hash=catbus_string_hash(self.program.name),
                     code_len=code_len,
                     data_len=data_len,
-                    # init_len=init_len,
                     constant_len=constant_len,
                     pix_obj_len=pix_obj_len,
                     read_keys_len=len(packed_read_keys),

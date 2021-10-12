@@ -8,18 +8,18 @@
 
 # def func_call():
 #     assert sub(1, 2) == -1
-#     assert add(1, 2) == 3
+    # assert add(1, 2) == 3
 
-#     f = Function()
-#     f = sub
+    # f = Function()
+    # f = sub
 
-#     assert f(1, 2) == -1
+    # assert f(1, 2) == -1
 
-#     f = add
+    # f = add
 
-#     assert f(1, 2) == 3
+    # assert f(1, 2) == 3
 
-receive('portal_hue', 'portal_hue', ['portal_gun'])
+# receive('portal_hue', 'portal_hue', ['portal_gun'])
 
 # def init():
     # receive('portal_hue', 'portal_hue', ['portal_gun'])
@@ -28,8 +28,10 @@ receive('portal_hue', 'portal_hue', ['portal_gun'])
 # global_b = Number()
 # global_c = Number(200000)
 
-# def init():
-# #     func_call()
+def init():
+    # func_call()
+
+    return 1 + 2
 
     
 #     global_d = Number(2)

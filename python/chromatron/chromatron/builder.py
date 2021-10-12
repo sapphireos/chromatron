@@ -778,16 +778,16 @@ class Builder(object):
     def finish_module(self):
         # check if there is no init function
         if 'init' not in self.funcs:
-            func = self.func('init', lineno=0)
-            zero = self.declare_var(0, lineno=0)
-            self.ret(zero, lineno=0)
+            func = self.func('init', lineno=-1)
+            zero = self.declare_var(0, lineno=-1)
+            self.ret(zero, lineno=-1)
             self.finish_func(func)
 
         # check if there is no loop function
         if 'loop' not in self.funcs:
-            func = self.func('loop', lineno=0)
-            zero = self.declare_var(0, lineno=0)
-            self.ret(zero, lineno=0)
+            func = self.func('loop', lineno=-1)
+            zero = self.declare_var(0, lineno=-1)
+            self.ret(zero, lineno=-1)
             self.finish_func(func)
 
         # set up init code for global vars that have init values
