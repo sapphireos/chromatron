@@ -29,7 +29,7 @@
 #include "datetime_struct.h"
 #include "target.h"
 
-#define VM_ISA_VERSION              12
+#define VM_ISA_VERSION              13
 
 #define VM_MAX_RUN_TIME             500 // milliseconds
 

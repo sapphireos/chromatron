@@ -31,7 +31,7 @@
 def init():
     # func_call()
 
-    return 1 + 2
+    return 200001 + 200000
 
     
 #     global_d = Number(2)
