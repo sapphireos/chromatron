@@ -143,6 +143,11 @@
 #define BQ25895_REG_CHARGE_CURRENT          0x12
 #define BQ25895_MASK_CHARGE_CURRENT         0x7F
 
+#define BQ25895_REG_IINDPM                  0x13
+#define BQ25895_MASK_IINDPM                 0x3F
+#define BQ25895_BIT_VINDPM                  ( 1 << 7 )
+#define BQ25895_BIT_IINDPM                  ( 1 << 6 )
+
 #define BQ25895_REG_RESET                   0x14
 #define BQ25895_BIT_RESET                   ( 1 << 7 )
 
@@ -216,5 +221,8 @@ uint8_t bq25895_u8_get_soc( void );
 uint8_t bq25895_u8_get_device_id( void );
 void bq25895_v_print_regs( void );
 void bq25895_v_set_vindpm( int16_t mv );
+void bq25895_v_set_iindpm( int16_t ma );
+bool bq25895_b_get_vindpm( void );
+bool bq25895_b_get_iindpm( void );
 
 #endif

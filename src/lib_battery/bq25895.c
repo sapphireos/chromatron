@@ -701,6 +701,46 @@ void bq25895_v_set_vindpm( int16_t mv ){
     bq25895_v_write_reg( BQ25895_REG_VINDPM, reg );
 }
 
+void bq25895_v_set_iindpm( int16_t ma ){
+
+    if( ma < 100 ){
+
+        ma = 100;
+    }
+    else if( ma > 3250 ){
+
+        ma = 3250;
+    }
+
+    ma *= 32;
+
+    ma /= ( ( 3250 * 32 ) / 63 ) - 1;
+
+    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+
+    reg &= ~BQ25895_MASK_IINDPM;
+    // bq25895_v_write_reg( BQ25895_REG_IINDPM, reg );
+
+    reg |= ma;
+
+    bq25895_v_write_reg( BQ25895_REG_IINDPM, reg );
+}
+
+bool bq25895_b_get_vindpm( void ){
+    
+    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+
+    return ( reg & BQ25895_BIT_VINDPM ) != 0;
+}
+
+bool bq25895_b_get_iindpm( void ){
+    
+    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+
+    return ( reg & BQ25895_BIT_IINDPM ) != 0;
+}
+
+
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
