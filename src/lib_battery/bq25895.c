@@ -774,9 +774,6 @@ void init_boost_converter( void ){
     bq25895_v_set_boost_1500khz();
     bq25895_v_set_boost_mode( TRUE );
 
-    bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-    bq25895_v_enable_adc_continuous();
-
     // set boost voltage
     if( boost_voltage == 0 ){
 
@@ -839,6 +836,84 @@ void init_charger( void ){
 static bool enable_solar = TRUE;
 
 
+PT_THREAD( bat_solar_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    static uint16_t ichg_max;
+    static uint16_t vbus_oc;
+    static uint16_t vindpm_mpp;
+
+    while(1){
+
+        ichg_max = 0;
+        vbus_oc = 0;
+
+        init_charger();
+
+
+        THREAD_WAIT_WHILE( pt, !bq25895_b_get_vbus_good() );
+
+
+        // disable boost converter
+        bq25895_v_set_boost_mode( FALSE );
+
+        bq25895_v_set_hiz( TRUE );      
+        // NOTE the boost converter is not operating when in HIZ mode!
+        // PMID powered systems will lose power if there is not enough power available on VBUS!
+
+        TMR_WAIT( pt, 100 );
+
+        // get open circuit VBUS
+        // note if we power from PMID, we won't have a true open circuit reading on VBUS
+        // since we will be drawing current from it!
+        vbus_oc = bq25895_u16_get_vbus_voltage();
+
+        // disable HIZ
+        bq25895_v_set_hiz( FALSE );      
+
+        vindpm = vbus_oc * 0.65;
+
+        bq25895_v_set_vindpm( vindpm );
+
+        bq25895_v_set_charger( TRUE );
+
+        log_v_debug_P( PSTR("MPPT: search VBUS_OC: %d"), vbus_oc );
+
+        // search loop:
+        while( vindpm < ( vbus_oc * 0.9 ) ){
+
+            TMR_WAIT( pt, 1000 );
+
+            // get charge current
+            uint16_t ichg = bq25895_u16_get_charge_current();
+
+            if( ichg > ichg_max ){
+
+                ichg_max = ichg;
+                vindpm_mpp = vindpm;
+            }
+
+            log_v_debug_P( PSTR("vindpm: %d ichg: %d vbus: %d"), vindpm, ichg, bq25895_u16_get_vbus_voltage() );
+
+            vindpm += 100;
+            bq25895_v_set_vindpm( vindpm );
+        }
+
+        log_v_debug_P( PSTR("MPPT: tracking") );
+
+        // tracking:
+        vindpm = vindpm_mpp;
+        bq25895_v_set_vindpm( vindpm );
+
+        TMR_WAIT( pt, 10000 );
+    }
+
+PT_END( pt );
+}
+
+
+
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -846,6 +921,7 @@ PT_BEGIN( pt );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
     bq25895_v_enable_adc_continuous();
     bq25895_v_set_charger( FALSE );
+
     
     // set min sys
     // on battery only mode, the battery voltage must be above MINSYS for the ADC
@@ -875,6 +951,9 @@ PT_BEGIN( pt );
         // turn off charger
         bq25895_v_set_charger( FALSE );
 
+        bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
+        bq25895_v_enable_adc_continuous();
+
         init_boost_converter();
     }
 
@@ -895,7 +974,24 @@ PT_BEGIN( pt );
     bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
     
     init_charger();
-    
+
+    if( enable_solar ){
+
+        log_v_debug_P( PSTR("Solar MPPT enabled, switching control schemes") );
+
+        thread_t_create( bat_solar_thread,
+                     PSTR("bat_solar"),
+                     0,
+                     0 );   
+
+        THREAD_EXIT( pt );
+    }
+
+
+
+    // wall power algorithm follows from here
+
+    bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
 
     while(1){
 
@@ -934,8 +1030,6 @@ PT_BEGIN( pt );
 
             // run auto DPDM (which can override the current limits)
             // bq25895_v_force_dpdm();
-
-            bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );
