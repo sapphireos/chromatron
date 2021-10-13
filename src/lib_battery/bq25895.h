@@ -43,6 +43,7 @@
 #define BQ25895_REG_INPUT_CURRENT           0x00
 #define BQ25895_BIT_ENABLE_ILIM_PIN         ( 1 << 6 )
 #define BQ25895_MASK_INPUT_CURRENT_LIM      0x3F
+#define BQ25895_BIT_ENABLE_HIZ              ( 1 << 7 )
 
 #define BQ25895_REG_ADC                     0x02
 #define BQ25895_BIT_ADC_CONV_RATE           ( 1 << 6 )
@@ -188,10 +189,12 @@ void bq25895_v_clr_reg_bits( uint8_t addr, uint8_t mask );
 
 void bq25895_v_reset( void );
 void bq25895_v_set_inlim_pin( bool enable );
+void bq25895_v_set_hiz( bool enable );
 void bq25895_v_set_inlim( uint16_t current );
 uint16_t bq25895_u16_get_inlim( void );
 void bq25895_v_enable_adc_continuous( void );
 void bq25895_v_set_boost_1500khz( void );
+bool bq25895_b_is_boost_1500khz( void );
 void bq25895_v_set_boost_mode( bool enable );
 void bq25895_v_force_dpdm( void );
 void bq25895_v_set_minsys( uint8_t sysmin );

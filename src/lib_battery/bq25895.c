@@ -79,6 +79,7 @@ static uint16_t soc_state;
 #define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
 #define SOC_FILTER      16
 
+PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
 
@@ -120,6 +121,11 @@ int8_t bq25895_i8_init( void ){
 
     thread_t_create( bat_mon_thread,
                      PSTR("bat_mon"),
+                     0,
+                     0 );
+
+    thread_t_create( bat_control_thread,
+                     PSTR("bat_control"),
                      0,
                      0 );
 
@@ -177,6 +183,19 @@ void bq25895_v_set_inlim_pin( bool enable ){
     }
 }
 
+
+void bq25895_v_set_hiz( bool enable ){
+
+    if( enable ){
+
+        bq25895_v_set_reg_bits( BQ25895_REG_INPUT_CURRENT, BQ25895_BIT_ENABLE_HIZ );
+    }
+    else{
+
+        bq25895_v_clr_reg_bits( BQ25895_REG_INPUT_CURRENT, BQ25895_BIT_ENABLE_HIZ );
+    }
+}
+
 // current in is mA!
 void bq25895_v_set_inlim( uint16_t current ){
 
@@ -216,6 +235,13 @@ void bq25895_v_set_boost_1500khz( void ){
     // default is 500k
 
     bq25895_v_clr_reg_bits( BQ25895_REG_BOOST_FREQ, BQ25895_BIT_BOOST_FREQ );
+}
+
+bool bq25895_b_is_boost_1500khz( void ){
+
+    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_BOOST_FREQ );
+
+    return ( reg & BQ25895_BIT_BOOST_FREQ ) != 0;
 }
 
 void bq25895_v_set_boost_mode( bool enable ){
@@ -741,10 +767,82 @@ bool bq25895_b_get_iindpm( void ){
 }
 
 
-PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
+void init_boost_converter( void ){
+
+    // boost frequency can only be changed when OTG boost is turned off.
+    bq25895_v_set_boost_mode( FALSE );
+    bq25895_v_set_boost_1500khz();
+    bq25895_v_set_boost_mode( TRUE );
+
+    bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
+    bq25895_v_enable_adc_continuous();
+
+    // set boost voltage
+    if( boost_voltage == 0 ){
+
+        boost_voltage = 4700;
+    }
+    else if( boost_voltage > BQ25895_MAX_BOOST_VOLTAGE ){
+
+        boost_voltage = BQ25895_MAX_BOOST_VOLTAGE;
+    }
+    else if( boost_voltage < BQ25895_MIN_BOOST_VOLTAGE ){
+
+        boost_voltage = BQ25895_MIN_BOOST_VOLTAGE;
+    }
+
+    bq25895_v_set_boost_voltage( boost_voltage );
+}
+
+void init_charger( void ){
+
+    // charge config for NCR18650B
+
+    bq25895_v_set_inlim( 3250 );
+    bq25895_v_set_pre_charge_current( 160 );
+    
+    uint8_t n_cells = batt_cells;
+
+    if( n_cells < 1 ){
+
+        n_cells = 1;
+    }
+
+    uint32_t fast_charge_current = 1625 * n_cells;
+
+    if( fast_charge_current > 5000 ){
+
+        fast_charge_current = 5000;
+    }
+
+    // set default max current to the cell count setting
+    if( batt_max_charge_current == 0 ){
+
+        batt_max_charge_current = fast_charge_current;
+    }
+    // apply maximum charge current, if the allowable cell current would exceed it
+    else if( fast_charge_current > batt_max_charge_current ){
+
+        fast_charge_current = batt_max_charge_current;
+    }
+
+    bq25895_v_set_fast_charge_current( fast_charge_current );
+
+    bq25895_v_set_termination_current( 65 );
+    bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
+
+    // disable ILIM pin
+    bq25895_v_set_inlim_pin( FALSE );
+}
+
+
+static bool enable_solar = TRUE;
+
+
+PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
+    
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
     bq25895_v_enable_adc_continuous();
     bq25895_v_set_charger( FALSE );
@@ -756,26 +854,52 @@ PT_BEGIN( pt );
     // it otherwise isn't very important for our designs other than this ADC consideration.
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
 
+    // turn off charger
+    bq25895_v_set_charger( FALSE );
 
-    // init battery SOC state
-    batt_volts = bq25895_u16_get_batt_voltage();
-    soc_state = _calc_batt_soc( batt_volts );
-    batt_soc = calc_batt_soc( batt_volts );
-    batt_soc_startup = batt_soc;
+    if( !bq25895_b_is_boost_1500khz() ){
 
+        // boost controller is set to default
+
+        log_v_debug_P( PSTR("Controller not configured - waiting for VBUS") );
+
+        // we can only change this with VBUS plugged in, since designs powered by PMID
+        // will briefly lose power while the boost switches.
+        THREAD_WAIT_WHILE( pt, !bq25895_b_get_vbus_good() );
+
+        log_v_debug_P( PSTR("VBUS OK - resetting config") );
+        
+        // reset settings
+        bq25895_v_reset();
+
+        // turn off charger
+        bq25895_v_set_charger( FALSE );
+
+        init_boost_converter();
+    }
+
+    // turn off high voltage DCP, and maxcharge
+    bq25895_v_clr_reg_bits( BQ25895_REG_MAXC_EN,   BQ25895_BIT_MAXC_EN );
+    bq25895_v_clr_reg_bits( BQ25895_REG_HVDCP_EN,  BQ25895_BIT_HVDCP_EN );
+
+    // bq25895_v_write_reg( BQ25895_REG_VINDPM, 0 );
+    // bq25895_v_set_reg_bits( BQ25895_REG_VINDPM, BQ25895_BIT_FORCE_VINDPM );
+
+    // turn on auto dpdm
+    // bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+
+    // turn OFF auto dpdm
+    bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+
+    // turn off ICO
+    bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
+    
+    init_charger();
+    
 
     while(1){
 
-        charge_status = bq25895_u8_get_charge_status();
-        batt_volts = bq25895_u16_get_batt_voltage();
-        vbus_volts = bq25895_u16_get_vbus_voltage();
-        sys_volts = bq25895_u16_get_sys_voltage();
-        batt_charge_current = bq25895_u16_get_charge_current();
-        batt_fault = bq25895_u8_get_faults();
-        vbus_status = bq25895_u8_get_vbus_status();
-        therm = bq25895_i8_get_therm();
-
-        /*
+      /*
 
         Charger notes:
 
@@ -803,104 +927,15 @@ PT_BEGIN( pt );
 
         if( bq25895_b_get_vbus_good() && !vbus_connected ){
 
-            log_v_debug_P( PSTR("VBUS OK - resetting config") );
+            // log_v_debug_P( PSTR("VBUS OK - resetting config") );
+            log_v_debug_P( PSTR("VBUS OK") );
 
-            // reset settings
-            bq25895_v_reset();
-
-            // turn off charger
-            bq25895_v_set_charger( FALSE );
-
-            // turn off high voltage DCP, and maxcharge
-            bq25895_v_clr_reg_bits( BQ25895_REG_MAXC_EN,   BQ25895_BIT_MAXC_EN );
-            bq25895_v_clr_reg_bits( BQ25895_REG_HVDCP_EN,  BQ25895_BIT_HVDCP_EN );
-
-            // bq25895_v_write_reg( BQ25895_REG_VINDPM, 0 );
-            // bq25895_v_set_reg_bits( BQ25895_REG_VINDPM, BQ25895_BIT_FORCE_VINDPM );
-
-            // turn on auto dpdm
-            // bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
-
-            // turn OFF auto dpdm
-            bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
-
-
-            // for solar MPPT: DEBUG ONLY!!!
-            if( vindpm > 0 ){
-
-                bq25895_v_set_vindpm( vindpm );    
-            }
-            
-
-            bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
-            // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
-
-            // boost frequency can only be changed when OTG boost is turned off.
-            bq25895_v_set_boost_mode( FALSE );
-            bq25895_v_set_boost_1500khz();
-            bq25895_v_set_boost_mode( TRUE );
-
-            bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-            bq25895_v_enable_adc_continuous();
-
-            // set boost voltage
-            if( boost_voltage == 0 ){
-
-                boost_voltage = 4700;
-            }
-            else if( boost_voltage > BQ25895_MAX_BOOST_VOLTAGE ){
-
-                boost_voltage = BQ25895_MAX_BOOST_VOLTAGE;
-            }
-            else if( boost_voltage < BQ25895_MIN_BOOST_VOLTAGE ){
-
-                boost_voltage = BQ25895_MIN_BOOST_VOLTAGE;
-            }
-
-            bq25895_v_set_boost_voltage( boost_voltage );
-
-            // charge config for NCR18650B
-
-
-            bq25895_v_set_inlim( 3250 );
-            bq25895_v_set_pre_charge_current( 160 );
-            
-            uint8_t n_cells = batt_cells;
-
-            if( n_cells < 1 ){
-
-                n_cells = 1;
-            }
-
-            uint32_t fast_charge_current = 1625 * n_cells;
-
-            if( fast_charge_current > 5000 ){
-
-                fast_charge_current = 5000;
-            }
-
-            // set default max current to the cell count setting
-            if( batt_max_charge_current == 0 ){
-
-                batt_max_charge_current = fast_charge_current;
-            }
-            // apply maximum charge current, if the allowable cell current would exceed it
-            else if( fast_charge_current > batt_max_charge_current ){
-
-                fast_charge_current = batt_max_charge_current;
-            }
-
-            bq25895_v_set_fast_charge_current( fast_charge_current );
-
-            bq25895_v_set_termination_current( 65 );
-            bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
-
-
-            // disable ILIM pin
-            bq25895_v_set_inlim_pin( FALSE );
+            // reset_config(); // reset config.  this will disable the charger.
 
             // run auto DPDM (which can override the current limits)
             // bq25895_v_force_dpdm();
+
+            bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );
@@ -927,7 +962,38 @@ PT_BEGIN( pt );
                 bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
             }
         }
+    
+        TMR_WAIT( pt, 1000 );
+    }
 
+PT_END( pt );
+}
+
+
+PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    // init battery SOC state
+    batt_volts = bq25895_u16_get_batt_voltage();
+    soc_state = _calc_batt_soc( batt_volts );
+    batt_soc = calc_batt_soc( batt_volts );
+    batt_soc_startup = batt_soc;
+
+    TMR_WAIT( pt, 500 );
+
+
+    while(1){
+
+        // update status values
+        charge_status = bq25895_u8_get_charge_status();
+        batt_volts = bq25895_u16_get_batt_voltage();
+        vbus_volts = bq25895_u16_get_vbus_voltage();
+        sys_volts = bq25895_u16_get_sys_voltage();
+        batt_charge_current = bq25895_u16_get_charge_current();
+        batt_fault = bq25895_u8_get_faults();
+        vbus_status = bq25895_u8_get_vbus_status();
+        therm = bq25895_i8_get_therm();
 
         // if( status != 0 ){
 
@@ -948,12 +1014,6 @@ PT_BEGIN( pt );
 
             batt_charging = TRUE;
 
-            // for solar MPPT: DEBUG ONLY!!!
-            if( vindpm > 0 ){
-
-                bq25895_v_set_vindpm( vindpm );    
-            }
-            
             if( ( counter % 60 ) == 0 ){
 
                 log_v_debug_P( PSTR("batt: %d curr: %d"),
@@ -1021,7 +1081,6 @@ PT_BEGIN( pt );
         }
         
         TMR_WAIT( pt, 1000 );
-        // TMR_WAIT( pt, 10000 );
     }
 
 PT_END( pt );
