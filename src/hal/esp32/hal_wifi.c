@@ -161,24 +161,6 @@ void hal_wifi_v_init( void ){
     // set tx power
     esp_wifi_set_max_tx_power( tx_power * 4 );
 
-    // set power state
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        // safe mode, we're not going to do anything fancy
-        esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
-    }
-    else if( cfg_b_get_boolean( CFG_PARAM_BATT_ENABLE ) ){
-
-        // battery enabled, set wifi to modem sleep
-
-        esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
-        // esp_wifi_set_ps( WIFI_PS_MAX_MODEM );
-    }
-    else{
-
-        esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
-    }
-
 	thread_t_create_critical( 
                  wifi_connection_manager_thread,
                  PSTR("wifi_connection_manager"),
@@ -917,6 +899,29 @@ station_mode:
             // trace_printf("esp_wifi_start\r\n");
             esp_wifi_start();
 
+            // set power state
+            if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+                // safe mode, we're not going to do anything fancy
+                esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
+            }
+            else{
+
+                bool batt_enabled = FALSE;
+                kv_i8_get( __KV__batt_enable, &batt_enabled, sizeof(batt_enabled) );
+
+                if( batt_enabled ){
+
+                    // battery enabled, set wifi to modem sleep
+
+                    // esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
+                    esp_wifi_set_ps( WIFI_PS_MAX_MODEM );
+                }
+                else{
+
+                    esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
+                }
+            }
 
             // check if we can try a fast connect with the last connected router
             if( wifi_router >= 0 ){
