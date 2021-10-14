@@ -230,6 +230,14 @@ void bq25895_v_enable_adc_continuous( void ){
     bq25895_v_set_reg_bits( BQ25895_REG_ADC, BQ25895_BIT_ADC_CONV_RATE );
 }
 
+void bq25895_v_start_adc_oneshot( void ){
+
+    bq25895_v_clr_reg_bits( BQ25895_REG_ADC, BQ25895_BIT_ADC_CONV_RATE );
+    bq25895_v_set_reg_bits( BQ25895_REG_ADC, BQ25895_BIT_ADC_CONV_START );
+    
+    _delay_ms( 1 );
+}
+
 void bq25895_v_set_boost_1500khz( void ){
 
     // default is 500k
@@ -795,6 +803,8 @@ void init_charger( void ){
 
     // charge config for NCR18650B
 
+    bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
+
     bq25895_v_set_inlim( 3250 );
     bq25895_v_set_pre_charge_current( 160 );
     
@@ -830,6 +840,8 @@ void init_charger( void ){
 
     // disable ILIM pin
     bq25895_v_set_inlim_pin( FALSE );
+
+    bq25895_v_set_iindpm( 3000 );
 }
 
 
@@ -851,62 +863,75 @@ PT_BEGIN( pt );
 
         init_charger();
 
+        bq25895_v_enable_adc_continuous();
 
         THREAD_WAIT_WHILE( pt, !bq25895_b_get_vbus_good() );
 
+        do{
+            // disable boost converter
+            // bq25895_v_set_boost_mode( FALSE );
 
-        // disable boost converter
-        bq25895_v_set_boost_mode( FALSE );
+            bq25895_v_set_hiz( TRUE );
+            bq25895_v_start_adc_oneshot();      
+            // NOTE the boost converter is not operating when in HIZ mode!
+            // PMID powered systems will lose power if there is not enough power available on VBUS!
 
-        bq25895_v_set_hiz( TRUE );      
-        // NOTE the boost converter is not operating when in HIZ mode!
-        // PMID powered systems will lose power if there is not enough power available on VBUS!
+            // get open circuit VBUS
+            // note if we power from PMID, we won't have a true open circuit reading on VBUS
+            // since we will be drawing current from it!
+            vbus_oc = bq25895_u16_get_vbus_voltage();
 
-        TMR_WAIT( pt, 100 );
+            // disable HIZ
+            bq25895_v_set_hiz( FALSE );      
 
-        // get open circuit VBUS
-        // note if we power from PMID, we won't have a true open circuit reading on VBUS
-        // since we will be drawing current from it!
-        vbus_oc = bq25895_u16_get_vbus_voltage();
+            vindpm = vbus_oc * 0.65;
 
-        // disable HIZ
-        bq25895_v_set_hiz( FALSE );      
+            bq25895_v_set_vindpm( vindpm );
 
-        vindpm = vbus_oc * 0.65;
+            bq25895_v_set_charger( TRUE );
 
-        bq25895_v_set_vindpm( vindpm );
+            log_v_debug_P( PSTR("MPPT: search VBUS_OC: %d"), vbus_oc );
 
-        bq25895_v_set_charger( TRUE );
+            // search loop:
+            while( vindpm < ( vbus_oc * 0.9 ) ){
 
-        log_v_debug_P( PSTR("MPPT: search VBUS_OC: %d"), vbus_oc );
+                TMR_WAIT( pt, 200 );
 
-        // search loop:
-        while( vindpm < ( vbus_oc * 0.9 ) ){
+                bq25895_v_start_adc_oneshot();
 
-            TMR_WAIT( pt, 1000 );
+                // get charge current
+                uint16_t ichg = bq25895_u16_get_charge_current();
 
-            // get charge current
-            uint16_t ichg = bq25895_u16_get_charge_current();
+                if( ichg > ichg_max ){
 
-            if( ichg > ichg_max ){
+                    ichg_max = ichg;
+                    vindpm_mpp = vindpm;
+                }
 
-                ichg_max = ichg;
-                vindpm_mpp = vindpm;
+                log_v_debug_P( PSTR("vindpm: %d ichg: %d vbus: %d"), vindpm, ichg, bq25895_u16_get_vbus_voltage() );
+
+                vindpm += 100;
+                bq25895_v_set_vindpm( vindpm );
             }
 
-            log_v_debug_P( PSTR("vindpm: %d ichg: %d vbus: %d"), vindpm, ichg, bq25895_u16_get_vbus_voltage() );
+            log_v_debug_P( PSTR("MPPT: tracking: vindpm: %d ichg: %d vbus: %d"), vindpm, bq25895_u16_get_charge_current(), bq25895_u16_get_vbus_voltage() );
 
-            vindpm += 100;
+            // tracking:
+            vindpm = vindpm_mpp;
             bq25895_v_set_vindpm( vindpm );
-        }
 
-        log_v_debug_P( PSTR("MPPT: tracking") );
+            bq25895_v_enable_adc_continuous();
 
-        // tracking:
-        vindpm = vindpm_mpp;
-        bq25895_v_set_vindpm( vindpm );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 10000 );
+            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && bq25895_b_get_vbus_good() );
 
-        TMR_WAIT( pt, 10000 );
+        } while( bq25895_b_get_vbus_good() );
+
+
+        log_v_debug_P( PSTR("MPPT VBUS invalid") );
+        
+
+        TMR_WAIT( pt, 100 );
     }
 
 PT_END( pt );
@@ -971,7 +996,7 @@ PT_BEGIN( pt );
     bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
 
     // turn off ICO
-    bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
+    // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
     
     init_charger();
 
@@ -991,7 +1016,7 @@ PT_BEGIN( pt );
 
     // wall power algorithm follows from here
 
-    bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
+    // bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
 
     while(1){
 

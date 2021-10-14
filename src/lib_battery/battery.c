@@ -266,6 +266,9 @@ static bool _ui_b_button_down( uint8_t ch ){
 
 void batt_v_enable_pixels( void ){
 
+// DEBUG!
+return;
+
     if( pca9536_enabled ){
 
         pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output

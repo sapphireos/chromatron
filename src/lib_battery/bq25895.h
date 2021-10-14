@@ -47,6 +47,7 @@
 
 #define BQ25895_REG_ADC                     0x02
 #define BQ25895_BIT_ADC_CONV_RATE           ( 1 << 6 )
+#define BQ25895_BIT_ADC_CONV_START          ( 1 << 7 )
 
 #define BQ25895_REG_ICO                     0x02
 #define BQ25895_BIT_ICO_EN                  ( 1 << 4 )
@@ -193,6 +194,7 @@ void bq25895_v_set_hiz( bool enable );
 void bq25895_v_set_inlim( uint16_t current );
 uint16_t bq25895_u16_get_inlim( void );
 void bq25895_v_enable_adc_continuous( void );
+void bq25895_v_start_adc_oneshot( void );
 void bq25895_v_set_boost_1500khz( void );
 bool bq25895_b_is_boost_1500khz( void );
 void bq25895_v_set_boost_mode( bool enable );
