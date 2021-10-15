@@ -67,6 +67,7 @@
 #define VM_STATUS_LINK_MISALIGN         -48
 #define VM_STATUS_DB_MISALIGN           -49
 #define VM_STATUS_CRON_MISALIGN         -52
+#define VM_STATUS_STREAM_MISALIGN       -53
 
 #define VM_STATUS_LOAD_ALLOC_FAIL       -50
 #define VM_STATUS_SYNC_FAIL             -51
@@ -89,9 +90,6 @@
 #define VM_STATUS_DID_NOT_RUN           3
 #define VM_STATUS_READY                 4
 
-
-
-#define VM_LOAD_FLAGS_CHECK_HEADER      1
 
 // note this needs to pad to 32 bit alignment!
 typedef struct __attribute__((packed)){
@@ -134,10 +132,10 @@ typedef struct __attribute__((packed)){
     uint16_t read_keys_len;     // length in BYTES, not number of objects!
     uint16_t write_keys_len;    // length in BYTES, not number of objects!
     uint16_t publish_len;       // length in BYTES, not number of objects!
-    uint16_t pix_obj_len;       // length in BYTES, not number of objects!
     uint16_t link_len;          // length in BYTES, not number of objects!
     uint16_t db_len;            // length in BYTES, not number of objects!
     uint16_t cron_len;          // length in BYTES, not number of objects!
+    uint16_t pix_obj_len;       // length in BYTES, not number of objects!
     uint16_t padding;
     uint16_t init_start;
     uint16_t loop_start;
@@ -262,8 +260,9 @@ void vm_v_set_data(
     uint16_t addr, 
     int32_t data );
 
+int8_t vm_i8_check_header( uint8_t *stream );
+
 int8_t vm_i8_load_program(
-    uint8_t flags,
     uint8_t *stream,
     uint16_t len,
     vm_state_t *state );

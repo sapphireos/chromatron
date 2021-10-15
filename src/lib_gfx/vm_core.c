@@ -3018,34 +3018,12 @@ void vm_v_set_data(
     data_table[addr] = data;
 }
 
-int8_t vm_i8_load_program(
-    uint8_t flags,
-    uint8_t *stream,
-    uint16_t len,
-    vm_state_t *state ){
 
-    memset( state, 0, sizeof(vm_state_t) );
+int8_t vm_i8_check_header( uint8_t *stream ){
 
-    // reset thread state
-    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+    if( ( (uint32_t)stream % 4 ) != 0 ){
 
-        state->threads[i].func_addr = 0xffff;
-        state->threads[i].tick      = 0;
-    }
-
-    state->current_thread = -1;
-
-    if( ( flags & VM_LOAD_FLAGS_CHECK_HEADER ) == 0 ){
-
-        // verify crc
-        uint32_t check_len = len - sizeof(uint32_t);
-        uint32_t hash;
-        memcpy( &hash, stream + check_len, sizeof(hash) );
-
-        if( hash_u32_data( stream, check_len ) != hash ){
-
-            return VM_STATUS_ERR_BAD_HASH;
-        }
+        return VM_STATUS_STREAM_MISALIGN;
     }
 
     vm_program_header_t *prog_header = (vm_program_header_t *)stream;
@@ -3070,6 +3048,87 @@ int8_t vm_i8_load_program(
 
         return VM_STATUS_HEADER_MISALIGN;
     }
+
+    uint16_t obj_start = sizeof(vm_program_header_t);
+
+    // read keys
+    if( ( obj_start % 4 ) != 0 ){
+
+        return VM_STATUS_READ_KEYS_MISALIGN;
+    }
+    obj_start += prog_header->read_keys_len;
+
+    // write keys
+    if( ( obj_start % 4 ) != 0 ){
+
+        return VM_STATUS_WRITE_KEYS_MISALIGN;
+    }
+    obj_start += prog_header->write_keys_len;
+
+    // publish
+    if( ( obj_start % 4 ) != 0 ){
+
+        return VM_STATUS_PUBLISH_VARS_MISALIGN;
+    }
+    obj_start += prog_header->publish_len;
+
+    // link
+    if( ( obj_start % 4 ) != 0 ){
+
+        return VM_STATUS_LINK_MISALIGN;
+    }
+    obj_start += prog_header->link_len;
+
+    // db
+    if( ( obj_start % 4 ) != 0 ){
+
+        return VM_STATUS_DB_MISALIGN;
+    }
+    obj_start += prog_header->db_len;
+
+    // cron
+    if( ( obj_start % 4 ) != 0 ){
+
+        return VM_STATUS_CRON_MISALIGN;
+    }
+    
+    return VM_STATUS_OK;
+}
+
+int8_t vm_i8_load_program(
+    uint8_t *stream,
+    uint16_t len,
+    vm_state_t *state ){
+
+    memset( state, 0, sizeof(vm_state_t) );
+
+    // reset thread state
+    for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+        state->threads[i].func_addr = 0xffff;
+        state->threads[i].tick      = 0;
+    }
+
+    state->current_thread = -1;
+    
+    // verify crc
+    uint32_t check_len = len - sizeof(uint32_t);
+    uint32_t hash;
+    memcpy( &hash, stream + check_len, sizeof(hash) );
+
+    if( hash_u32_data( stream, check_len ) != hash ){
+
+        return VM_STATUS_ERR_BAD_HASH;
+    }
+
+    int8_t status = vm_i8_check_header( stream );
+
+    if( status != VM_STATUS_OK ){
+
+        return status;
+    }
+
+    vm_program_header_t *prog_header = (vm_program_header_t *)stream;
     
     state->program_name_hash = prog_header->program_name_hash;    
 
@@ -3082,65 +3141,27 @@ int8_t vm_i8_load_program(
     state->read_keys_start = obj_start;
     obj_start += prog_header->read_keys_len;
 
-    if( ( state->read_keys_start % 4 ) != 0 ){
-
-        return VM_STATUS_READ_KEYS_MISALIGN;
-    }
-
     state->write_keys_count = prog_header->write_keys_len / sizeof(uint32_t);
     state->write_keys_start = obj_start;
     obj_start += prog_header->write_keys_len;
-
-    if( ( state->write_keys_start % 4 ) != 0 ){
-
-        return VM_STATUS_WRITE_KEYS_MISALIGN;
-    }
 
     state->publish_count = prog_header->publish_len / sizeof(vm_publish_t);
     state->publish_start = obj_start;
     obj_start += prog_header->publish_len;
 
-    if( ( state->publish_start % 4 ) != 0 ){
-
-        return VM_STATUS_PUBLISH_VARS_MISALIGN;
-    }
-
-    state->pix_obj_count = prog_header->pix_obj_len / sizeof(gfx_pixel_array_t);
-
     state->link_count = prog_header->link_len / sizeof(link_t);
     state->link_start = obj_start;
     obj_start += prog_header->link_len;
-
-    if( ( state->link_start % 4 ) != 0 ){
-
-        return VM_STATUS_LINK_MISALIGN;
-    }
 
     state->db_count = prog_header->db_len / sizeof(catbus_meta_t);
     state->db_start = obj_start;
     obj_start += prog_header->db_len;
 
-    if( ( state->db_start % 4 ) != 0 ){
-
-        return VM_STATUS_DB_MISALIGN;
-    }
-
     state->cron_count = prog_header->cron_len / sizeof(cron_t);
     state->cron_start = obj_start;
     obj_start += prog_header->cron_len;
 
-    if( ( state->cron_start % 4 ) != 0 ){
-
-        return VM_STATUS_CRON_MISALIGN;
-    }
-    
-
-    // if just checking the header, we're done at this point
-    if( ( flags & VM_LOAD_FLAGS_CHECK_HEADER ) != 0 ){
-
-        return VM_STATUS_OK;
-    }
-
+    state->pix_obj_count = prog_header->pix_obj_len / sizeof(gfx_pixel_array_t);
 
     // set up final items for VM execution
     state->pool_start = obj_start;

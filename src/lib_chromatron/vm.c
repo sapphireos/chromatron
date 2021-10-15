@@ -307,7 +307,7 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
     vm_state_t state;
 
-    int8_t status = vm_i8_load_program( VM_LOAD_FLAGS_CHECK_HEADER, (uint8_t *)&header, sizeof(header), &state );
+    int8_t status = vm_i8_check_header( (uint8_t *)&header );
 
     if( status < 0 ){
 
@@ -639,7 +639,7 @@ PT_BEGIN( pt );
         goto exit;        
     }
 
-    state->vm_return = vm_i8_load_program( 0, mem2_vp_get_ptr( state->handle ), mem2_u16_get_size( state->handle ), &state->vm_state );
+    state->vm_return = vm_i8_load_program( mem2_vp_get_ptr( state->handle ), mem2_u16_get_size( state->handle ), &state->vm_state );
 
     if( state->vm_return ){
 
