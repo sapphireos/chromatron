@@ -222,109 +222,108 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
     uint32_t start_time = tmr_u32_get_system_time_ms();
     
-    *handle = -1;
-    
+    // *handle = -1;
 
-    // open file
-    file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
+    // // open file
+    // file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
 
-    if( f < 0 ){
+    // if( f < 0 ){
 
-        // try again, adding .fxb extension
-        char s[FFS_FILENAME_LEN];
-        memset( s, 0, sizeof(s) );
-        strlcpy( s, program_fname, sizeof(s) );
-        strlcat( s, ".fxb", sizeof(s) );
+    //     // try again, adding .fxb extension
+    //     char s[FFS_FILENAME_LEN];
+    //     memset( s, 0, sizeof(s) );
+    //     strlcpy( s, program_fname, sizeof(s) );
+    //     strlcat( s, ".fxb", sizeof(s) );
 
-        f = fs_f_open( s, FS_MODE_READ_ONLY );
+    //     f = fs_f_open( s, FS_MODE_READ_ONLY );
 
-        if( f < 0 ){
+    //     if( f < 0 ){
 
-            log_v_debug_P( PSTR("VM file not found") );
+    //         log_v_debug_P( PSTR("VM file not found") );
 
-            return -1;
-        }
-    }
+    //         return -1;
+    //     }
+    // }
 
     log_v_debug_P( PSTR("Loading VM: %d"), vm_id );
 
     // file found, get program size from file header
-    int32_t vm_size;
-    fs_i16_read( f, (uint8_t *)&vm_size, sizeof(vm_size) );
+    // int32_t vm_size;
+    // fs_i16_read( f, (uint8_t *)&vm_size, sizeof(vm_size) );
 
-    // sanity check
-    if( vm_size > VM_MAX_IMAGE_SIZE ){
+    // // sanity check
+    // if( vm_size > VM_MAX_IMAGE_SIZE ){
 
-        goto error;
-    }
+    //     goto error;
+    // }
 
-    fs_v_seek( f, 0 );    
-    int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
+    // fs_v_seek( f, 0 );    
+    // int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
 
-    uint32_t computed_file_hash = hash_u32_start();
+    // uint32_t computed_file_hash = hash_u32_start();
 
-    // check file hash
-    while( check_len > 0 ){
+    // // check file hash
+    // while( check_len > 0 ){
 
-        uint8_t chunk[512];
+    //     uint8_t chunk[512];
 
-        uint16_t copy_len = sizeof(chunk);
+    //     uint16_t copy_len = sizeof(chunk);
 
-        if( copy_len > check_len ){
+    //     if( copy_len > check_len ){
 
-            copy_len = check_len;
-        }
+    //         copy_len = check_len;
+    //     }
 
-        int16_t read = fs_i16_read( f, chunk, copy_len );
+    //     int16_t read = fs_i16_read( f, chunk, copy_len );
 
-        if( read < 0 ){
+    //     if( read < 0 ){
 
-            // this should not happen. famous last words.
-            goto error;
-        }
+    //         // this should not happen. famous last words.
+    //         goto error;
+    //     }
 
-        // update hash
-        computed_file_hash = hash_u32_partial( computed_file_hash, chunk, copy_len );
+    //     // update hash
+    //     computed_file_hash = hash_u32_partial( computed_file_hash, chunk, copy_len );
         
-        check_len -= read;
-    }
+    //     check_len -= read;
+    // }
 
-    // read file hash
-    uint32_t file_hash = 0;
-    fs_i16_read( f, (uint8_t *)&file_hash, sizeof(file_hash) );
+    // // read file hash
+    // uint32_t file_hash = 0;
+    // fs_i16_read( f, (uint8_t *)&file_hash, sizeof(file_hash) );
 
-    // check hashes
-    if( file_hash != computed_file_hash ){
+    // // check hashes
+    // if( file_hash != computed_file_hash ){
 
-        log_v_debug_P( PSTR("VM load error: %d"), VM_STATUS_ERR_BAD_FILE_HASH );
-        goto error;
-    }
+    //     log_v_debug_P( PSTR("VM load error: %d"), VM_STATUS_ERR_BAD_FILE_HASH );
+    //     goto error;
+    // }
 
-    // read header
-    fs_v_seek( f, sizeof(vm_size) );    
-    vm_program_header_t header;
-    fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
+    // // read header
+    // // fs_v_seek( f, sizeof(vm_size) );    
+    // fs_v_seek( f, 0 );
+    // vm_program_header_t header;
+    // fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
 
-    vm_state_t state;
+    // int8_t status = vm_i8_check_header( (uint8_t *)&header );
 
-    int8_t status = vm_i8_check_header( (uint8_t *)&header );
+    // if( status < 0 ){
 
-    if( status < 0 ){
+    //     log_v_debug_P( PSTR("VM load error: %d"), status );
+    //     goto error;
+    // }
 
-        log_v_debug_P( PSTR("VM load error: %d"), status );
-        goto error;
-    }
+    // // seek back to program start
+    // // fs_v_seek( f, sizeof(vm_size) );
+    // fs_v_seek( f, 0 );
 
-    // seek back to program start
-    fs_v_seek( f, sizeof(vm_size) );
+    // // allocate memory
+    // *handle = mem2_h_alloc2( vm_size, MEM_TYPE_VM_DATA );
 
-    // allocate memory
-    *handle = mem2_h_alloc2( vm_size, MEM_TYPE_VM_DATA );
+    // if( *handle < 0 ){
 
-    if( *handle < 0 ){
-
-        goto error;
-    }
+    //     goto error;
+    // }
 
     // read file
     int16_t read = fs_i16_read( f, mem2_vp_get_ptr( *handle ), vm_size );

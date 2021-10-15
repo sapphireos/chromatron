@@ -33,6 +33,7 @@
 #include "datetime.h"
 #include "logging.h"
 #include "timers.h"
+#include "fs.h"
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
@@ -3019,14 +3020,7 @@ void vm_v_set_data(
 }
 
 
-int8_t vm_i8_check_header( uint8_t *stream ){
-
-    if( ( (uint32_t)stream % 4 ) != 0 ){
-
-        return VM_STATUS_STREAM_MISALIGN;
-    }
-
-    vm_program_header_t *prog_header = (vm_program_header_t *)stream;
+int8_t vm_i8_check_header( vm_program_header_t *prog_header ){
 
     if( prog_header->file_magic != FILE_MAGIC ){
 
@@ -3096,10 +3090,137 @@ int8_t vm_i8_check_header( uint8_t *stream ){
 }
 
 int8_t vm_i8_load_program(
-    uint8_t *stream,
-    uint16_t len,
+    // uint8_t *stream,
+    // uint16_t len,
+    // vm_state_t *state ){
+    uint8_t vm_id, 
+    char *program_fname, 
+    mem_handle_t *handle,
     vm_state_t *state ){
 
+
+    int8_t status = VM_STATUS_ERROR;
+    *handle = -1;
+
+    // open file
+    file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
+
+    if( f < 0 ){
+
+        // try again, adding .fxb extension
+        char s[FFS_FILENAME_LEN];
+        memset( s, 0, sizeof(s) );
+        strlcpy( s, program_fname, sizeof(s) );
+        strlcat( s, ".fxb", sizeof(s) );
+
+        f = fs_f_open( s, FS_MODE_READ_ONLY );
+
+        if( f < 0 ){
+
+            status = VM_STATUS_FX_FILE_NOT_FOUND;
+            goto error;
+        }
+    }
+
+    fs_v_seek( f, 0 );    
+    int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
+
+    uint32_t computed_file_hash = hash_u32_start();
+
+    // check file hash
+    while( check_len > 0 ){
+
+        uint8_t chunk[512];
+
+        uint16_t copy_len = sizeof(chunk);
+
+        if( copy_len > check_len ){
+
+            copy_len = check_len;
+        }
+
+        int16_t read = fs_i16_read( f, chunk, copy_len );
+
+        if( read < 0 ){
+
+            status = VM_STATUS_ERROR;
+
+            // this should not happen. famous last words.
+            goto error;
+        }
+
+        // update hash
+        computed_file_hash = hash_u32_partial( computed_file_hash, chunk, copy_len );
+        
+        check_len -= read;
+    }
+
+    // read file hash
+    uint32_t file_hash = 0;
+    fs_i16_read( f, (uint8_t *)&file_hash, sizeof(file_hash) );
+
+    // check hashes
+    if( file_hash != computed_file_hash ){
+
+        status = VM_STATUS_ERR_BAD_FILE_HASH;
+        goto error;
+    }
+
+    // read header
+    fs_v_seek( f, 0 );
+    vm_program_header_t header;
+    fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
+
+    status = vm_i8_check_header( &header );
+
+    if( status < 0 ){
+
+        goto error;
+    }
+
+    uint32_t vm_size = header.code_len + header.data_len + header.constant_len;
+
+    // allocate memory
+    *handle = mem2_h_alloc2( vm_size, MEM_TYPE_VM_DATA );
+
+    if( *handle < 0 ){
+
+        status = VM_STATUS_LOAD_ALLOC_FAIL;   
+        goto error;
+    }
+
+    uint8_t *stream = mem2_vp_get_ptr( *handle );
+
+    if( ( stream % 4 ) != 0 ) ){
+
+        status = VM_STATUS_STREAM_MISALIGN;
+        goto error;
+    }
+
+    // load code
+    uint8_t *code_start = stream;
+    int16_t read_len = fs_i16_read( f, code_start, header.code_len );
+
+    if( read_len != header.code_len ){
+
+        status = VM_STATUS_ERR_BAD_FILE_READ;
+        goto error;
+    }
+
+    uint8_t *const_start = code_start + header.code_len;
+
+    read_len = fs_i16_read( f, const_start, header.constant_len );
+
+    if( read_len != header.constant_len ){
+
+        status = VM_STATUS_ERR_BAD_FILE_READ;
+        goto error;
+    }
+
+    uint8_t *data_start = const_start + header.constant_len;
+    memset( data_start, 0, header.data_len );
+
+    
     memset( state, 0, sizeof(vm_state_t) );
 
     // reset thread state
@@ -3111,26 +3232,94 @@ int8_t vm_i8_load_program(
 
     state->current_thread = -1;
     
-    // verify crc
-    uint32_t check_len = len - sizeof(uint32_t);
-    uint32_t hash;
-    memcpy( &hash, stream + check_len, sizeof(hash) );
+    state->program_name_hash = prog_header->program_name_hash;            
 
-    if( hash_u32_data( stream, check_len ) != hash ){
+    state->init_start = prog_header->init_start;
+    state->loop_start = prog_header->loop_start;
 
-        return VM_STATUS_ERR_BAD_HASH;
-    }
+    uint16_t obj_start = sizeof(vm_program_header_t);
 
-    int8_t status = vm_i8_check_header( stream );
+    state->read_keys_count = prog_header->read_keys_len / sizeof(uint32_t);
+    state->read_keys_start = obj_start;
+    obj_start += prog_header->read_keys_len;
 
-    if( status != VM_STATUS_OK ){
+    state->write_keys_count = prog_header->write_keys_len / sizeof(uint32_t);
+    state->write_keys_start = obj_start;
+    obj_start += prog_header->write_keys_len;
 
-        return status;
-    }
+    state->publish_count = prog_header->publish_len / sizeof(vm_publish_t);
+    state->publish_start = obj_start;
+    obj_start += prog_header->publish_len;
 
-    vm_program_header_t *prog_header = (vm_program_header_t *)stream;
+    state->link_count = prog_header->link_len / sizeof(link_t);
+    state->link_start = obj_start;
+    obj_start += prog_header->link_len;
+
+    state->db_count = prog_header->db_len / sizeof(catbus_meta_t);
+    state->db_start = obj_start;
+    obj_start += prog_header->db_len;
+
+    state->cron_count = prog_header->cron_len / sizeof(cron_t);
+    state->cron_start = obj_start;
+    obj_start += prog_header->cron_len;
+
+    state->pix_obj_count = prog_header->pix_obj_len / sizeof(gfx_pixel_array_t);
+
+    // set up final items for VM execution
+    state->pool_start = obj_start;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // verify hash
+    // uint32_t check_len = len - sizeof(uint32_t);
+    // uint32_t hash;
+    // memcpy( &hash, stream + check_len, sizeof(hash) );
+
+    // if( hash_u32_data( stream, check_len ) != hash ){
+
+    //     return VM_STATUS_ERR_BAD_HASH;
+    // }
+
+    // vm_program_header_t *prog_header = (vm_program_header_t *)stream;
+
+    // memset( state, 0, sizeof(vm_state_t) );
+
+    // // reset thread state
+    // for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
+
+    //     state->threads[i].func_addr = 0xffff;
+    //     state->threads[i].tick      = 0;
+    // }
+
+    // state->current_thread = -1;
     
-    state->program_name_hash = prog_header->program_name_hash;    
+    // state->program_name_hash = prog_header->program_name_hash;    
 
     state->init_start = prog_header->init_start;
     state->loop_start = prog_header->loop_start;
@@ -3248,6 +3437,20 @@ int8_t vm_i8_load_program(
     }
 
     return VM_STATUS_OK;
+
+error:
+    
+    if( f > 0 ){
+
+        fs_f_close( f );
+    }
+
+    if( *handle > 0 ){
+
+        mem2_v_free( *handle );
+    }
+    
+    return status;
 }
 
 // void vm_v_init_db(
