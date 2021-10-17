@@ -886,6 +886,12 @@ PT_BEGIN( pt );
 
             vindpm = vbus_oc * 0.65;
 
+            // set minimum vindpm
+            if( vindpm < 3900 ){
+
+                vindpm = 3900;
+            }
+
             bq25895_v_set_vindpm( vindpm );
 
             bq25895_v_set_charger( TRUE );
@@ -914,11 +920,12 @@ PT_BEGIN( pt );
                 bq25895_v_set_vindpm( vindpm );
             }
 
-            log_v_debug_P( PSTR("MPPT: tracking: vindpm: %d ichg: %d vbus: %d"), vindpm, bq25895_u16_get_charge_current(), bq25895_u16_get_vbus_voltage() );
-
             // tracking:
             vindpm = vindpm_mpp;
             bq25895_v_set_vindpm( vindpm );
+
+            log_v_debug_P( PSTR("MPPT: tracking: vindpm: %d ichg: %d vbus: %d good: %d"), 
+                vindpm, bq25895_u16_get_charge_current(), bq25895_u16_get_vbus_voltage(), bq25895_b_get_vbus_good() );
 
             bq25895_v_enable_adc_continuous();
 
