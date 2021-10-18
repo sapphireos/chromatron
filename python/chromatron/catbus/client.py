@@ -735,9 +735,14 @@ class Client(BaseClient):
                     self.flush()
                     raise ProtocolErrorException(data_msg.error_code, lookup_error_msg(data_msg.error_code))
 
+                elif isinstance(data_msg, FileConfirmMsg):
+                    # if we had to retry the file open message,
+                    # we might get duplicate file confirms.    
+                    continue
+
                 elif not isinstance(data_msg, FileDataMsg):
                     self.flush()
-                    raise ProtocolErrorException("invalid message")
+                    raise InvalidMessageException(f"Invalid message: {data_msg.header.msg_type}")
 
                 if data_msg.session_id != session_id:
                     continue
