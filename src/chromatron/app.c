@@ -31,6 +31,10 @@
 #include "energy.h"
 #include "battery.h"
 
+#ifdef ESP32
+#include "veml7700.h"
+#endif
+
 #ifdef ESP8266_UPGRADE
 #error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
 #endif
@@ -48,5 +52,9 @@ void app_v_init( void ){
 
 
     pwm_v_init();
+
+    #ifdef ESP32
+    veml7700_v_init();
+    #endif
 }
 
