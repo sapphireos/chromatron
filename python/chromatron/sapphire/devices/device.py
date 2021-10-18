@@ -595,30 +595,6 @@ class Device(object):
 
         return {"sector_erase_counts": gc_array}
 
-    def get_kvlink_info(self):
-        data = self.get_file("kvlinks")
-
-        info = sapphiredata.KVLinkFile()
-        info.unpack(data)
-        
-        return info.links
-
-    def get_kvsend_info(self):
-        data = self.get_file("kvsend")
-
-        info = sapphiredata.KVSendArray()
-        info.unpack(data)
-
-        return info
-
-    def get_kvreceivecache_info(self):
-        data = self.get_file("kvrxcache")
-
-        info = sapphiredata.KVReceiveCacheArray()
-        info.unpack(data)
-
-        return info
-
     def get_thread_info(self):
         data = self.get_file("threadinfo")
 
@@ -876,84 +852,6 @@ class Device(object):
 
         s = "%s" % \
             (fwinfo.board)
-
-        return s
-
-    def cli_linkinfo(self, line):
-        info = self.get_kvlink_info()
-
-        s = "\nFlags Source     Dest       Query ->\n"
-
-        KV_MSG_LINK_FLAG_SOURCE             = 0x01
-        KV_MSG_LINK_FLAG_DEST               = 0x04
-        KV_MSG_LINK_FLAG_VALID              = 0x80
-
-        for n in info:
-            flags = ''
-
-            if n.flags & KV_MSG_LINK_FLAG_VALID == 0:
-                continue
-
-            if n.flags & KV_MSG_LINK_FLAG_SOURCE:
-                flags += 'S'
-
-            else:
-                flags += '-'
-
-            flags += '-'
-            flags += '-'
-            flags += '-'
-
-            s += "%5s %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d" % \
-                (flags,
-                 n.source_hash,
-                 n.dest_hash,
-                 n.query[0],
-                 n.query[1],
-                 n.query[2],
-                 n.query[3],
-                 n.query[4],
-                 n.query[5],
-                 n.query[6],
-                 n.query[7])
-
-            s += "\n"
-
-        return s
-
-    def cli_sendinfo(self, line):
-        info = self.get_kvsend_info()
-
-        s = "\nTTL IP:             Port  Source       Dest         Sequence\n"
-
-        for n in info:
-            s += "%3d %15s %5u %-12d %-12d %5u" % \
-                (n.ttl,
-                 n.ip,
-                 n.port,
-                 n.source_hash,
-                 n.dest_hash,
-                 n.sequence)
-
-            s += "\n"
-
-        return s
-
-    def cli_rxcacheinfo(self, line):
-        info = self.get_kvreceivecache_info()
-
-        s = "\nTTL IP:             Port  Dest         Sequence\n"
-
-        for n in info:
-            s += "%3d %15s %5u %-12d %5u" % \
-                (n.ttl,
-                 n.ip,
-                 n.port,
-                 n.dest_hash,
-                 n.sequence)
-
-
-            s += "\n"
 
         return s
 
