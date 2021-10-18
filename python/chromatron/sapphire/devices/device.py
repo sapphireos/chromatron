@@ -1438,13 +1438,6 @@ class Device(object):
         self.set_key('vm_run', True)
         self.set_key('vm_reset', True)
 
-    def cli_dumpkvmeta(self, line):
-        data = self.get_file("kvmeta")
-        kvmeta = sapphiredata.KVMetaArray().unpack(data)
-
-        for kv in kvmeta:
-            print(kv)
-
     def cli_getfileid(self, line):
         file_id = self.get_file_id(line)
 
