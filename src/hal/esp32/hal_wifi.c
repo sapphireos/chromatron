@@ -914,8 +914,8 @@ station_mode:
 
                     // battery enabled, set wifi to modem sleep
 
-                    // esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
-                    esp_wifi_set_ps( WIFI_PS_MAX_MODEM );
+                    esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
+                    // esp_wifi_set_ps( WIFI_PS_MAX_MODEM );
                 }
                 else{
 
