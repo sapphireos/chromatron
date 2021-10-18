@@ -232,10 +232,26 @@ void bq25895_v_enable_adc_continuous( void ){
 
 void bq25895_v_start_adc_oneshot( void ){
 
-    bq25895_v_clr_reg_bits( BQ25895_REG_ADC, BQ25895_BIT_ADC_CONV_RATE );
-    bq25895_v_set_reg_bits( BQ25895_REG_ADC, BQ25895_BIT_ADC_CONV_START );
-    
-    _delay_ms( 1 );
+    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_ADC );
+    reg &= ~BQ25895_BIT_ADC_CONV_RATE;
+    reg |= BQ25895_BIT_ADC_CONV_START;
+
+    bq25895_v_write_reg( BQ25895_REG_ADC, reg );
+
+    uint32_t start = tmr_u32_get_system_time_us();
+
+    while( tmr_u32_elapsed_time_us( start ) < 5000 ){
+
+        if( ( bq25895_u8_read_reg( BQ25895_REG_ADC ) & BQ25895_BIT_ADC_CONV_START ) != 0 ){
+
+            // conversion complete
+            return;
+        }
+    }
+
+    log_v_error_P( PSTR("ADC conversion timeout") );
+
+    return;
 }
 
 void bq25895_v_set_boost_1500khz( void ){
@@ -879,7 +895,7 @@ PT_BEGIN( pt );
 
         init_charger();
 
-        bq25895_v_enable_adc_continuous();
+        // bq25895_v_enable_adc_continuous();
 
         THREAD_WAIT_WHILE( pt, !vbus_ok() );
 
@@ -903,9 +919,9 @@ PT_BEGIN( pt );
             vindpm = vbus_oc * 0.65;
 
             // set minimum vindpm
-            if( vindpm < 3900 ){
+            if( vindpm < SOLAR_MIN_VBUS ){
 
-                vindpm = 3900;
+                vindpm = SOLAR_MIN_VBUS;
             }
 
             bq25895_v_set_vindpm( vindpm );
@@ -917,7 +933,7 @@ PT_BEGIN( pt );
             // search loop:
             while( vindpm < ( vbus_oc * 0.9 ) ){
 
-                TMR_WAIT( pt, 200 );
+                TMR_WAIT( pt, 100 );
 
                 bq25895_v_start_adc_oneshot();
 
@@ -943,7 +959,7 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("MPPT: tracking: vindpm: %d ichg: %d vbus: %d good: %d"), 
                 vindpm, bq25895_u16_get_charge_current(), bq25895_u16_get_vbus_voltage(), bq25895_b_get_vbus_good() );
 
-            bq25895_v_enable_adc_continuous();
+            // bq25895_v_enable_adc_continuous();
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + 30000 );
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && vbus_ok() );
@@ -967,8 +983,10 @@ PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
     
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-    bq25895_v_enable_adc_continuous();
+    // bq25895_v_enable_adc_continuous();
     bq25895_v_set_charger( FALSE );
+
+    bq25895_v_start_adc_oneshot();
 
     
     // set min sys
@@ -1000,7 +1018,7 @@ PT_BEGIN( pt );
         bq25895_v_set_charger( FALSE );
 
         bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-        bq25895_v_enable_adc_continuous();
+        // bq25895_v_enable_adc_continuous();
 
         init_boost_converter();
     }
@@ -1067,7 +1085,7 @@ PT_BEGIN( pt );
 
         // NOTE reduce battery charge.  Charge to 4.0 or 4.1V and discharge to 
         // 3.0 to 3.2V to increase cycle life.
-        
+
 
         if( bq25895_b_get_vbus_good() && !vbus_connected ){
 
@@ -1116,6 +1134,8 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    bq25895_v_start_adc_oneshot();
+
     // init battery SOC state
     batt_volts = bq25895_u16_get_batt_voltage();
     soc_state = _calc_batt_soc( batt_volts );
@@ -1126,6 +1146,8 @@ PT_BEGIN( pt );
 
 
     while(1){
+
+        bq25895_v_start_adc_oneshot();
 
         // update status values
         charge_status = bq25895_u8_get_charge_status();
