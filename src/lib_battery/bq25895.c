@@ -846,6 +846,22 @@ void init_charger( void ){
 
 
 static bool enable_solar = TRUE;
+#define SOLAR_MIN_VBUS 4200
+
+bool vbus_ok( void ){
+
+    // check fault register
+    if( bq25895_u8_get_faults() != 0 ){
+
+        return FALSE;
+    }
+
+    bq25895_v_start_adc_oneshot();      
+    
+    uint16_t vbus = bq25895_u16_get_vbus_voltage();
+
+    return vbus >= SOLAR_MIN_VBUS;
+}
 
 
 PT_THREAD( bat_solar_thread( pt_t *pt, void *state ) )
@@ -865,7 +881,7 @@ PT_BEGIN( pt );
 
         bq25895_v_enable_adc_continuous();
 
-        THREAD_WAIT_WHILE( pt, !bq25895_b_get_vbus_good() );
+        THREAD_WAIT_WHILE( pt, !vbus_ok() );
 
         do{
             // disable boost converter
@@ -929,10 +945,10 @@ PT_BEGIN( pt );
 
             bq25895_v_enable_adc_continuous();
 
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 10000 );
-            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && bq25895_b_get_vbus_good() );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 30000 );
+            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && vbus_ok() );
 
-        } while( bq25895_b_get_vbus_good() );
+        } while( vbus_ok() );
 
 
         log_v_debug_P( PSTR("MPPT VBUS invalid") );
