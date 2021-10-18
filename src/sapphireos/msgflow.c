@@ -302,10 +302,10 @@ static bool send_data_msg( msgflow_state_t *state, uint8_t type, void *data, uin
     // reset keep alive timer
     state->keepalive = MSGFLOW_KEEPALIVE;
 
-    sock_addr_t raddr = services_a_get( __KV__msgflow, state->service );
-
     // if fire and forget, transmit immediately
     if( state->code == MSGFLOW_CODE_NONE ){
+
+        sock_addr_t raddr = services_a_get( __KV__msgflow, state->service );
         
         if( sock_i16_sendto_m( state->sock, h, &raddr ) < 0 ){
 
