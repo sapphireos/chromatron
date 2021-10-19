@@ -81,7 +81,8 @@ static uint16_t soc_state;
 
 
 static bool enable_solar = TRUE;
-#define SOLAR_MIN_VBUS 4200
+static bool solar_tracking;
+#define SOLAR_MIN_VBUS 4400
 
 
 
@@ -801,10 +802,7 @@ bool bq25895_b_solar_hold( void ){
         return FALSE;
     }
 
-
-    // not quite sure how this would work yet...
-
-    return FALSE;
+    return solar_tracking;    
 }
 
 void init_boost_converter( void ){
@@ -931,7 +929,7 @@ static bool vbus_ok( void ){
     // bq25895_v_start_adc_oneshot();
 
 
-    
+
     // note, current conversion may not be ready,
     // however, this function is used in polling loops so we should
     // have a measurement within the last 1 second
@@ -968,6 +966,8 @@ PT_BEGIN( pt );
         bq25895_v_set_hiz( TRUE );
 
         THREAD_WAIT_WHILE( pt, !vbus_ok() );
+
+        solar_tracking = TRUE;
 
         // bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
