@@ -1455,10 +1455,10 @@ class Device(object):
     def cli_datalog_show(self, line):
         data = self.get_datalog_config()
 
-        s = 'Key                     Rate (ms)\n'
+        s = '\nKey                     Rate (ms)\n'
 
         for item in data:
-            s += f'{self.client.lookup_hash(item.hash)[item.hash]:20}   {item.rate}'
+            s += f'{self._client.lookup_hash(item.hash)[item.hash]:20}   {item.rate}\n'
 
         return s
 
@@ -1499,12 +1499,12 @@ class Device(object):
                 # update
                 item.rate = rate
                 update = True
+                break
 
-        if update:
+        if not update:
             entry = sapphiredata.DatalogEntry(hash=data_hash, rate=rate)
 
             data.append(entry)
-
 
         self.put_file('datalog_config', data.pack())
 
