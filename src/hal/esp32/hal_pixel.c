@@ -58,6 +58,7 @@ static const uint8_t ws2811_lookup[256][4] __attribute__((aligned(4))) = {
 static spi_transaction_t spi_transaction;
 static spi_transaction_t* transaction_ptr = &spi_transaction;
 static bool request_reconfigure;
+static bool transmitting;
 
 static uint16_t setup_pixel_buffer( void ){
 
@@ -245,6 +246,8 @@ PT_BEGIN( pt );
     
     while(1){
 
+        transmitting = FALSE;
+
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
@@ -288,7 +291,9 @@ PT_BEGIN( pt );
             // this is bad, but log and we will try on the next frame
 
             continue;
-        }        
+        }     
+
+        transmitting = TRUE;   
 
         THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
 
@@ -326,3 +331,7 @@ void hal_pixel_v_configure( void ){
     request_reconfigure = TRUE;
 }
 
+bool hal_pixel_b_is_transmitting( void ){
+
+    return transmitting;
+}

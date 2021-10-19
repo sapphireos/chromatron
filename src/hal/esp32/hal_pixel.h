@@ -34,6 +34,7 @@
 
 void hal_pixel_v_init( void );
 void hal_pixel_v_configure( void );
+bool hal_pixel_b_is_transmitting( void );
 
 void hal_pixel_v_transfer_complete_callback( uint8_t driver ) __attribute__((weak));
 void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len );

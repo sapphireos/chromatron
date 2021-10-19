@@ -34,7 +34,7 @@
 #include "bq25895.h"
 #include "pca9536.h"
 
-#include "motor.h"
+#include "hal_pixel.h"
 
 
 static bool batt_enable;
@@ -177,8 +177,6 @@ void batt_v_init( void ){
 
     log_v_info_P( PSTR("BQ25895 detected") );
 
-    // motor_v_init();
-
     if( pca9536_i8_init() == 0 ){
 
         log_v_info_P( PSTR("PCA9536 detected") );
@@ -266,9 +264,6 @@ static bool _ui_b_button_down( uint8_t ch ){
 
 void batt_v_enable_pixels( void ){
 
-// DEBUG!
-return;
-
     if( pca9536_enabled ){
 
         pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
@@ -335,6 +330,9 @@ PT_BEGIN( pt );
 
                 if( batt_b_pixels_enabled() ){
                     
+                    // wait for pixel bus to finish before shutting power off!
+                    THREAD_WAIT_WHILE( pt, hal_pixel_b_is_transmitting() );
+
                     trace_printf("Pixel power disabled\n");
                     batt_v_disable_pixels();   
                 }
@@ -345,6 +343,7 @@ PT_BEGIN( pt );
 
         if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
             ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
+            bq25895_b_solar_hold() ||
             ( bq25895_u8_get_faults() != 0 ) ){
 
             batt_state = BATT_STATE_OK;

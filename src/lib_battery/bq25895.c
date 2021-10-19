@@ -79,6 +79,13 @@ static uint16_t soc_state;
 #define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
 #define SOC_FILTER      16
 
+
+static bool enable_solar = TRUE;
+#define SOLAR_MIN_VBUS 4200
+
+
+
+
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
@@ -785,6 +792,18 @@ bool bq25895_b_get_iindpm( void ){
     return ( reg & BQ25895_BIT_IINDPM ) != 0;
 }
 
+bool bq25895_b_solar_hold( void ){
+
+    if( !enable_solar ){
+
+        return FALSE;
+    }
+
+
+    // not quite sure how this would work yet...
+
+    return FALSE;
+}
 
 void init_boost_converter( void ){
 
@@ -876,9 +895,6 @@ void init_charger( void ){
     // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
 }
 
-
-static bool enable_solar = TRUE;
-#define SOLAR_MIN_VBUS 4200
 
 bool vbus_ok( void ){
 
