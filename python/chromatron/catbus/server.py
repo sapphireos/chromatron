@@ -102,7 +102,7 @@ class Server(MsgServer):
             if host:
                 c = Client(host)
 
-                key = synchronous_call(c.lookup_hash, hashed_key)[hashed_key]
+                key = c.lookup_hash(hashed_key)[hashed_key]
 
                 if len(key) == 0:
                     raise KeyError(hashed_key)

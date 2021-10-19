@@ -1455,7 +1455,8 @@ class Device(object):
     def cli_datalog_show(self, line):
         data = self.get_datalog_config()
 
-        print(data)
+        for item in data:
+            print(item)
 
     def cli_datalog_delete(self, line):
         try:
@@ -1467,9 +1468,13 @@ class Device(object):
 
         data_hash = catbus_string_hash(line)
 
+        array = sapphiredata.DatalogEntryArray()
+
         for item in data:
-            if item.hash == data_hash:
-                print("DEL?", item)
+            if item.hash != data_hash:
+                array.append(item)
+
+        self.put_file('datalog_config', array.pack())
 
     def cli_datalog_add(self, line):
         try:
