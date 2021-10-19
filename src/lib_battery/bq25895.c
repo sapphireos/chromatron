@@ -51,7 +51,7 @@ static uint16_t boost_voltage;
 static uint16_t vindpm;
 static uint16_t iindpm;
 
-static bool enable_solar = TRUE;
+static bool enable_solar = FALSE;
 static bool solar_tracking;
 #define SOLAR_MIN_VBUS 4400
 
@@ -1090,8 +1090,9 @@ PT_BEGIN( pt );
     // wall power algorithm follows from here
 
     bq25895_v_set_hiz( FALSE );
-
     bq25895_v_enable_adc_continuous();
+
+    vbus_connected = FALSE;
 
     while(1){
 
@@ -1130,6 +1131,8 @@ PT_BEGIN( pt );
             bq25895_v_reset();
             init_boost_converter();
             init_charger();
+            bq25895_v_set_hiz( FALSE );
+            bq25895_v_enable_adc_continuous();
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );
