@@ -67,7 +67,7 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &vindpm,                   0,  "batt_vindpm" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                   0,  "batt_vindpm" },
 
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
@@ -1139,15 +1139,18 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    bq25895_v_start_adc_oneshot();
-    THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
-
     // init battery SOC state
-    batt_volts = _bq25895_u16_get_batt_voltage();
-    soc_state = _calc_batt_soc( batt_volts );
-    batt_soc = calc_batt_soc( batt_volts );
-    batt_soc_startup = batt_soc;
+    while( batt_volts == 0 ){
+        // loop until we get a good batt reading
+        bq25895_v_start_adc_oneshot();
+        THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
 
+        batt_volts = _bq25895_u16_get_batt_voltage();
+        soc_state = _calc_batt_soc( batt_volts );
+        batt_soc = calc_batt_soc( batt_volts );
+        batt_soc_startup = batt_soc;
+    }
+    
     TMR_WAIT( pt, 500 );
 
 
@@ -1157,14 +1160,19 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
 
         // update status values
-        charge_status = bq25895_u8_get_charge_status();
-        batt_volts = _bq25895_u16_get_batt_voltage();
-        vbus_volts = bq25895_u16_get_vbus_voltage();
-        sys_volts = bq25895_u16_get_sys_voltage();
-        batt_charge_current = bq25895_u16_get_charge_current();
-        batt_fault = bq25895_u8_get_faults();
-        vbus_status = bq25895_u8_get_vbus_status();
-        therm = bq25895_i8_get_therm();
+        uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
+        if( temp_batt_volts != 0 ){
+
+            batt_volts = temp_batt_volts;
+
+            charge_status = bq25895_u8_get_charge_status();
+            vbus_volts = bq25895_u16_get_vbus_voltage();
+            sys_volts = bq25895_u16_get_sys_voltage();
+            batt_charge_current = bq25895_u16_get_charge_current();
+            batt_fault = bq25895_u8_get_faults();
+            vbus_status = bq25895_u8_get_vbus_status();
+            therm = bq25895_i8_get_therm();
+        }
 
         static uint8_t counter;
 

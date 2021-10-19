@@ -372,7 +372,7 @@ PT_BEGIN( pt );
             if( ( bq25895_u8_get_soc() <= 0 ) || ( batt_volts < EMERGENCY_CUTOFF_VOLTAGE ) ){
                 // for cutoff, we also check voltage as a backup, in case the SOC calculation has a problem.
 
-                if( batt_state != BATT_STATE_CUTOFF ){
+                if( ( batt_state != BATT_STATE_CUTOFF ) && ( batt_volts != 0 ) ){
 
                     log_v_debug_P( PSTR("Batt cutoff, shutting down: %u"), batt_volts );
                 }
