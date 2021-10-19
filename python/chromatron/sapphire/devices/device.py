@@ -1458,7 +1458,12 @@ class Device(object):
         print(data)
 
     def cli_datalog_delete(self, line):
-        data = self.get_datalog_config()
+        try:
+            data = self.get_datalog_config()
+
+        except OSError:
+            # file not found
+            return
 
         data_hash = catbus_string_hash(line)
 
@@ -1466,9 +1471,14 @@ class Device(object):
             if item.hash == data_hash:
                 print("DEL?", item)
 
-
     def cli_datalog_add(self, line):
-        data = self.get_datalog_config()
+        try:
+            data = self.get_datalog_config()
+
+        except OSError:
+            # file not found
+            data = sapphiredata.DatalogEntryArray()
+
         tokens = line.split()
 
         data_hash = catbus_string_hash(tokens[0])
@@ -1478,7 +1488,7 @@ class Device(object):
             if item.hash == data_hash:
                 print("DEL?", item)
 
-        entry = DatalogEntry(hash=data_hash, rate=rate)
+        entry = sapphiredata.DatalogEntry(hash=data_hash, rate=rate)
 
         print(entry)
 

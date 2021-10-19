@@ -46,9 +46,10 @@ class DataLogger(MsgFlowReceiver):
         super().clean_up()
         
     def on_receive(self, host, data):
-        print(host, data)
+        unpacked_data = DatalogData.unpack(data)
+        print(host, unpacked_data)
 
-    
+
 
 # CONFIG_FILE = 'datalogger.cfg'
 

@@ -86,7 +86,10 @@ PT_BEGIN( pt );
 
             read_len = fs_i16_read( f, buf, sizeof(buf) );
 
-            hash = hash_u32_partial( hash, buf, read_len );
+            if( read_len > 0 ){
+
+                hash = hash_u32_partial( hash, buf, read_len );    
+            }
 
         } while( read_len > 0 );
 
