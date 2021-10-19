@@ -793,6 +793,9 @@ bool bq25895_b_get_iindpm( void ){
 
 void init_boost_converter( void ){
 
+    // turn off charger
+    bq25895_v_set_charger( FALSE );
+
     // boost frequency can only be changed when OTG boost is turned off.
     bq25895_v_set_boost_mode( FALSE );
     bq25895_v_set_boost_1500khz();
@@ -816,6 +819,11 @@ void init_boost_converter( void ){
 }
 
 void init_charger( void ){
+
+    // turn off charger
+    bq25895_v_set_charger( FALSE );
+
+    bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
 
     // charge config for NCR18650B
 
@@ -858,6 +866,19 @@ void init_charger( void ){
     bq25895_v_set_inlim_pin( FALSE );
 
     bq25895_v_set_iindpm( 3000 );
+
+    // turn off high voltage DCP, and maxcharge
+    bq25895_v_clr_reg_bits( BQ25895_REG_MAXC_EN,   BQ25895_BIT_MAXC_EN );
+    bq25895_v_clr_reg_bits( BQ25895_REG_HVDCP_EN,  BQ25895_BIT_HVDCP_EN );
+
+    // turn on auto dpdm
+    // bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+
+    // turn OFF auto dpdm
+    bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+
+    // turn off ICO
+    // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
 }
 
 
@@ -897,11 +918,17 @@ PT_BEGIN( pt );
 
         // bq25895_v_enable_adc_continuous();
 
+        // see note in the wall power thread about sysmin and ADC
+        bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+
         THREAD_WAIT_WHILE( pt, !vbus_ok() );
+
+        bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
         do{
             // disable boost converter
-            // bq25895_v_set_boost_mode( FALSE );
+            init_boost_converter();
+            init_charger();
 
             bq25895_v_set_hiz( TRUE );
             bq25895_v_start_adc_oneshot();      
@@ -983,63 +1010,37 @@ PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
     
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-    // bq25895_v_enable_adc_continuous();
-    bq25895_v_set_charger( FALSE );
+    // // bq25895_v_enable_adc_continuous();
+    // bq25895_v_set_charger( FALSE );
 
-    bq25895_v_start_adc_oneshot();
+    // bq25895_v_start_adc_oneshot();
 
     
-    // set min sys
-    // on battery only mode, the battery voltage must be above MINSYS for the ADC
-    // to read correctly.
-    // since MINSYS can only regulate the SYS voltage when plugged in to a power source,
-    // it otherwise isn't very important for our designs other than this ADC consideration.
-    bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+    // // set min sys
+    // // on battery only mode, the battery voltage must be above MINSYS for the ADC
+    // // to read correctly.
+    // // since MINSYS can only regulate the SYS voltage when plugged in to a power source,
+    // // it otherwise isn't very important for our designs other than this ADC consideration.
+    // bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
 
-    // turn off charger
-    bq25895_v_set_charger( FALSE );
+    // // turn off charger
+    // bq25895_v_set_charger( FALSE );
 
-    if( !bq25895_b_is_boost_1500khz() ){
+    // if( !bq25895_b_is_boost_1500khz() ){
 
-        // boost controller is set to default
+    //     // boost controller is set to default
 
-        log_v_debug_P( PSTR("Controller not configured - waiting for VBUS") );
+    //     log_v_debug_P( PSTR("Controller not configured - waiting for VBUS") );
 
-        // we can only change this with VBUS plugged in, since designs powered by PMID
-        // will briefly lose power while the boost switches.
-        THREAD_WAIT_WHILE( pt, !bq25895_b_get_vbus_good() );
+    //     // we can only change this with VBUS plugged in, since designs powered by PMID
+    //     // will briefly lose power while the boost switches.
+    //     THREAD_WAIT_WHILE( pt, !bq25895_b_get_vbus_good() );
 
-        log_v_debug_P( PSTR("VBUS OK - resetting config") );
+    //     log_v_debug_P( PSTR("VBUS OK - resetting config") );
         
-        // reset settings
-        bq25895_v_reset();
-
-        // turn off charger
-        bq25895_v_set_charger( FALSE );
-
-        bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-        // bq25895_v_enable_adc_continuous();
-
-        init_boost_converter();
-    }
-
-    // turn off high voltage DCP, and maxcharge
-    bq25895_v_clr_reg_bits( BQ25895_REG_MAXC_EN,   BQ25895_BIT_MAXC_EN );
-    bq25895_v_clr_reg_bits( BQ25895_REG_HVDCP_EN,  BQ25895_BIT_HVDCP_EN );
-
-    // bq25895_v_write_reg( BQ25895_REG_VINDPM, 0 );
-    // bq25895_v_set_reg_bits( BQ25895_REG_VINDPM, BQ25895_BIT_FORCE_VINDPM );
-
-    // turn on auto dpdm
-    // bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
-
-    // turn OFF auto dpdm
-    bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
-
-    // turn off ICO
-    // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
-    
-    init_charger();
+    //     // reset settings
+    //     bq25895_v_reset();
+    // }
 
     if( enable_solar ){
 
@@ -1054,10 +1055,7 @@ PT_BEGIN( pt );
     }
 
 
-
     // wall power algorithm follows from here
-
-    // bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
 
     while(1){
 
@@ -1092,15 +1090,22 @@ PT_BEGIN( pt );
             // log_v_debug_P( PSTR("VBUS OK - resetting config") );
             log_v_debug_P( PSTR("VBUS OK") );
 
-            // reset_config(); // reset config.  this will disable the charger.
-
-            // run auto DPDM (which can override the current limits)
-            // bq25895_v_force_dpdm();
+            // re-init charger and boost
+            init_boost_converter();
+            init_charger();
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );
 
             vbus_connected = TRUE;
+
+            // set min sys
+            // on battery only mode, the battery voltage must be above MINSYS for the ADC
+            // to read correctly.
+            // since MINSYS can only regulate the SYS voltage when plugged in to a power source,
+            // it otherwise isn't very important for our designs other than this ADC consideration.
+            bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
+
         }
         else if( vbus_connected ){ 
 
@@ -1190,7 +1195,8 @@ PT_BEGIN( pt );
                 }
             }
         }
-        else{
+        else{ // DISCHARGE
+
             batt_charging = FALSE;
 
             if( ( counter % 60 ) == 0 ){
@@ -1204,6 +1210,8 @@ PT_BEGIN( pt );
                 }
             }
         }
+
+
 
         counter++;
 
