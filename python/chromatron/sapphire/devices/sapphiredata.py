@@ -25,7 +25,7 @@
 """
 
 from elysianfields import *
-from catbus import get_field_for_type, CatbusHash
+from catbus import get_field_for_type, CatbusHash, CatbusData
 
 
 class FileInfoField(StructField):

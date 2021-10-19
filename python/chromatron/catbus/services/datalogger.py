@@ -35,7 +35,7 @@ import logging
 
 from influxdb import InfluxDBClient
 
-class DataLogger(MsgFlowReceiver):
+class Datalogger(MsgFlowReceiver):
     def __init__(self, influx_server='omnomnom.local'):
         super().__init__(service='datalogger')
         
@@ -46,7 +46,7 @@ class DataLogger(MsgFlowReceiver):
         super().clean_up()
         
     def on_receive(self, host, data):
-        unpacked_data = DatalogData.unpack(data)
+        unpacked_data = DatalogData().unpack(data)
         print(host, unpacked_data)
 
 

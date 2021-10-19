@@ -187,6 +187,15 @@ PT_BEGIN( pt );
 
                 datalog_entry_t *entry_ptr = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );        
                 
+                // check timeout
+                entry_ptr->ticks--;
+                if( entry_ptr->ticks > 0 ){
+
+                    goto done;
+                }
+
+                entry_ptr->ticks = entry_ptr->tick_rate;
+
                 #define MAX_DATA_LEN 128
 
                 uint8_t buf[sizeof(datalog_data_t) + MAX_DATA_LEN];
@@ -203,6 +212,7 @@ PT_BEGIN( pt );
                     msgflow_b_send( msgflow, buf, msglen );
                 }
 
+            done:
                 entry_ptr++;
             }
 
