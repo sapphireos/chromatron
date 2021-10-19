@@ -131,11 +131,6 @@ int8_t bq25895_i8_init( void ){
                      0,
                      0 );
 
-    thread_t_create( bat_control_thread,
-                     PSTR("bat_control"),
-                     0,
-                     0 );
-
     return 0;
 }
 
@@ -903,7 +898,29 @@ void init_charger( void ){
 }
 
 
-bool vbus_ok( void ){
+static bool read_adc( void ){
+
+    uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
+
+    if( temp_batt_volts != 0 ){
+
+        batt_volts = temp_batt_volts;
+
+        charge_status = bq25895_u8_get_charge_status();
+        vbus_volts = bq25895_u16_get_vbus_voltage();
+        sys_volts = bq25895_u16_get_sys_voltage();
+        batt_charge_current = bq25895_u16_get_charge_current();
+        batt_fault = bq25895_u8_get_faults();
+        vbus_status = bq25895_u8_get_vbus_status();
+        therm = bq25895_i8_get_therm();
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static bool vbus_ok( void ){
 
     // check fault register
     if( bq25895_u8_get_faults() != 0 ){
@@ -911,15 +928,22 @@ bool vbus_ok( void ){
         return FALSE;
     }
 
-    bq25895_v_start_adc_oneshot();
+    // bq25895_v_start_adc_oneshot();
+
+
+    
     // note, current conversion may not be ready,
     // however, this function is used in polling loops so we should
     // have a measurement within the last 1 second
     
-    uint16_t vbus = bq25895_u16_get_vbus_voltage();
+    if( !read_adc() ){
 
-    return vbus >= SOLAR_MIN_VBUS;
+        return FALSE;
+    }
+
+    return vbus_volts >= SOLAR_MIN_VBUS;
 }
+
 
 
 PT_THREAD( bat_solar_thread( pt_t *pt, void *state ) )
@@ -941,13 +965,15 @@ PT_BEGIN( pt );
 
         // see note in the wall power thread about sysmin and ADC
         bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+        bq25895_v_set_hiz( TRUE );
 
         THREAD_WAIT_WHILE( pt, !vbus_ok() );
 
-        bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
+        // bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
         do{
-            // disable boost converter
+            // re-init
+            bq25895_v_reset();
             init_boost_converter();
             init_charger();
 
@@ -987,8 +1013,14 @@ PT_BEGIN( pt );
                 bq25895_v_start_adc_oneshot();
                 THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
 
+                if( !read_adc() ){
+
+                    log_v_debug_P( PSTR("ADC fail") );
+                }
+
                 // get charge current
-                uint16_t ichg = bq25895_u16_get_charge_current();
+                // uint16_t ichg = bq25895_u16_get_charge_current();
+                uint16_t ichg = batt_charge_current;
 
                 if( ichg > ichg_max ){
 
@@ -1009,7 +1041,7 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("MPPT: tracking: vindpm: %d ichg: %d vbus: %d good: %d"), 
                 vindpm, bq25895_u16_get_charge_current(), bq25895_u16_get_vbus_voltage(), bq25895_b_get_vbus_good() );
 
-            // bq25895_v_enable_adc_continuous();
+            bq25895_v_enable_adc_continuous();
 
             thread_v_set_alarm( tmr_u32_get_system_time_ms() + 30000 );
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && vbus_ok() );
@@ -1032,8 +1064,6 @@ PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    init_charger();
-
     // bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
     // bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     // bq25895_v_set_charger( FALSE );
@@ -1069,20 +1099,11 @@ PT_BEGIN( pt );
     //     bq25895_v_reset();
     // }
 
-    if( enable_solar ){
-
-        // log_v_debug_P( PSTR("Solar MPPT enabled, switching control schemes") );
-
-        // thread_t_create( bat_solar_thread,
-        //              PSTR("bat_solar"),
-        //              0,
-        //              0 );   
-
-        THREAD_EXIT( pt );
-    }
-
-
     // wall power algorithm follows from here
+
+    bq25895_v_set_hiz( FALSE );
+
+    bq25895_v_enable_adc_continuous();
 
     while(1){
 
@@ -1166,19 +1187,25 @@ PT_END( pt );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+   init_charger();
 
-    // init battery SOC state
-    while( batt_volts == 0 ){
-        // loop until we get a good batt reading
-        bq25895_v_start_adc_oneshot();
-        // THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
-        TMR_WAIT( pt, 100 );
+   bq25895_v_set_hiz( TRUE );
 
-        batt_volts = _bq25895_u16_get_batt_voltage();
-        soc_state = _calc_batt_soc( batt_volts );
-        batt_soc = calc_batt_soc( batt_volts );
-        batt_soc_startup = batt_soc;
-    }
+   bq25895_v_enable_adc_continuous();
+
+   TMR_WAIT( pt, 1000 );
+
+   if( !read_adc() ){
+
+        log_v_debug_P( PSTR("ADC fail") );
+
+        THREAD_RESTART( pt );
+   }
+
+    soc_state = _calc_batt_soc( batt_volts );
+    batt_soc = calc_batt_soc( batt_volts );
+    batt_soc_startup = batt_soc;
 
     log_v_debug_P( PSTR("Batt monitor running") );
 
@@ -1188,10 +1215,22 @@ PT_BEGIN( pt );
         remaining = ( capacity * batt_soc ) / 100;
     }
         
-    bq25895_v_start_adc_oneshot();
+    if( enable_solar ){
 
-    TMR_WAIT( pt, 500 );
+        log_v_debug_P( PSTR("Solar MPPT enabled, switching control schemes") );
 
+        thread_t_create( bat_solar_thread,
+                     PSTR("bat_solar"),
+                     0,
+                     0 );   
+    }
+    else{
+
+        thread_t_create( bat_control_thread,
+                         PSTR("bat_control"),
+                         0,
+                         0 );
+    }
 
     while(1){
 
@@ -1199,19 +1238,20 @@ PT_BEGIN( pt );
         // THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
 
         // update status values
-        uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
-        if( temp_batt_volts != 0 ){
+        read_adc();
+        // uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
+        // if( temp_batt_volts != 0 ){
 
-            batt_volts = temp_batt_volts;
+        //     batt_volts = temp_batt_volts;
 
-            charge_status = bq25895_u8_get_charge_status();
-            vbus_volts = bq25895_u16_get_vbus_voltage();
-            sys_volts = bq25895_u16_get_sys_voltage();
-            batt_charge_current = bq25895_u16_get_charge_current();
-            batt_fault = bq25895_u8_get_faults();
-            vbus_status = bq25895_u8_get_vbus_status();
-            therm = bq25895_i8_get_therm();
-        }
+        //     charge_status = bq25895_u8_get_charge_status();
+        //     vbus_volts = bq25895_u16_get_vbus_voltage();
+        //     sys_volts = bq25895_u16_get_sys_voltage();
+        //     batt_charge_current = bq25895_u16_get_charge_current();
+        //     batt_fault = bq25895_u8_get_faults();
+        //     vbus_status = bq25895_u8_get_vbus_status();
+        //     therm = bq25895_i8_get_therm();
+        // }
 
         static uint8_t counter;
 
@@ -1290,7 +1330,7 @@ PT_BEGIN( pt );
         }
         
 
-        bq25895_v_start_adc_oneshot();
+        // bq25895_v_start_adc_oneshot();
         TMR_WAIT( pt, 1000 );
     }
 
