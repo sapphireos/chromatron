@@ -237,21 +237,11 @@ void bq25895_v_start_adc_oneshot( void ){
     reg |= BQ25895_BIT_ADC_CONV_START;
 
     bq25895_v_write_reg( BQ25895_REG_ADC, reg );
+}
 
-    uint32_t start = tmr_u32_get_system_time_us();
+bool bq25895_b_adc_ready( void ){
 
-    while( tmr_u32_elapsed_time_us( start ) < 5000 ){
-
-        if( ( bq25895_u8_read_reg( BQ25895_REG_ADC ) & BQ25895_BIT_ADC_CONV_START ) != 0 ){
-
-            // conversion complete
-            return;
-        }
-    }
-
-    log_v_error_P( PSTR("ADC conversion timeout") );
-
-    return;
+    return ( bq25895_u8_read_reg( BQ25895_REG_ADC ) & BQ25895_BIT_ADC_CONV_START ) == 0;
 }
 
 void bq25895_v_set_boost_1500khz( void ){
@@ -469,6 +459,11 @@ uint8_t bq25895_u8_get_faults( void ){
 }
 
 uint16_t bq25895_u16_get_batt_voltage( void ){
+
+    return batt_volts;
+}
+
+static uint16_t _bq25895_u16_get_batt_voltage( void ){
 
     uint8_t data = bq25895_u8_read_reg( BQ25895_REG_BATT_VOLTAGE ) & BQ25895_MASK_BATT_VOLTAGE;
 
@@ -893,7 +888,10 @@ bool vbus_ok( void ){
         return FALSE;
     }
 
-    bq25895_v_start_adc_oneshot();      
+    bq25895_v_start_adc_oneshot();
+    // note, current conversion may not be ready,
+    // however, this function is used in polling loops so we should
+    // have a measurement within the last 1 second
     
     uint16_t vbus = bq25895_u16_get_vbus_voltage();
 
@@ -932,6 +930,7 @@ PT_BEGIN( pt );
 
             bq25895_v_set_hiz( TRUE );
             bq25895_v_start_adc_oneshot();      
+            THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
             // NOTE the boost converter is not operating when in HIZ mode!
             // PMID powered systems will lose power if there is not enough power available on VBUS!
 
@@ -963,6 +962,7 @@ PT_BEGIN( pt );
                 TMR_WAIT( pt, 100 );
 
                 bq25895_v_start_adc_oneshot();
+                THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
 
                 // get charge current
                 uint16_t ichg = bq25895_u16_get_charge_current();
@@ -1140,9 +1140,10 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     bq25895_v_start_adc_oneshot();
+    THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
 
     // init battery SOC state
-    batt_volts = bq25895_u16_get_batt_voltage();
+    batt_volts = _bq25895_u16_get_batt_voltage();
     soc_state = _calc_batt_soc( batt_volts );
     batt_soc = calc_batt_soc( batt_volts );
     batt_soc_startup = batt_soc;
@@ -1153,28 +1154,17 @@ PT_BEGIN( pt );
     while(1){
 
         bq25895_v_start_adc_oneshot();
+        THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
 
         // update status values
         charge_status = bq25895_u8_get_charge_status();
-        batt_volts = bq25895_u16_get_batt_voltage();
+        batt_volts = _bq25895_u16_get_batt_voltage();
         vbus_volts = bq25895_u16_get_vbus_voltage();
         sys_volts = bq25895_u16_get_sys_voltage();
         batt_charge_current = bq25895_u16_get_charge_current();
         batt_fault = bq25895_u8_get_faults();
         vbus_status = bq25895_u8_get_vbus_status();
         therm = bq25895_i8_get_therm();
-
-        // if( status != 0 ){
-
-            // log_v_debug_P( PSTR("batt: %d curr: %d vbus: %x %umV good?:%d chrg: %x inlim: %u fault:%x"),
-            //     bq25895_u16_get_batt_voltage(),
-            //     bq25895_u16_get_charge_current(),
-            //     bq25895_u8_get_vbus_status(),
-            //     bq25895_u16_get_vbus_voltage(),
-            //     bq25895_b_get_vbus_good(),
-            //     status,
-            //     bq25895_u16_get_inlim(),
-            //     bq25895_u8_get_faults() );
 
         static uint8_t counter;
 
@@ -1187,7 +1177,7 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("batt: %d curr: %d"),
                     batt_volts,
-                    bq25895_u16_get_charge_current() );
+                    batt_charge_current );
 
                 if( batt_fault != 0 ){
 

@@ -311,6 +311,9 @@ PT_BEGIN( pt );
         batt_v_disable_pixels();
     }
 
+    // wait until battery controller has started and is reporting voltage
+    THREAD_WAIT_WHILE( pt, bq25895_u16_get_batt_voltage() == 0 );
+
     while(1){
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
@@ -362,14 +365,16 @@ PT_BEGIN( pt );
             gfx_b_enable();
             batt_v_enable_pixels();
 
+            uint16_t batt_volts = bq25895_u16_get_batt_voltage();
+
             // the low battery states are latching, so that a temporary increase in SOC due to voltage fluctuations will not
             // toggle between states.  States only flow towards lower SOC, unless the charger is activated.
-            if( ( bq25895_u8_get_soc() <= 0 ) || ( bq25895_u16_get_batt_voltage() < EMERGENCY_CUTOFF_VOLTAGE ) ){
+            if( ( bq25895_u8_get_soc() <= 0 ) || ( batt_volts < EMERGENCY_CUTOFF_VOLTAGE ) ){
                 // for cutoff, we also check voltage as a backup, in case the SOC calculation has a problem.
 
                 if( batt_state != BATT_STATE_CUTOFF ){
 
-                    log_v_debug_P( PSTR("Batt cutoff, shutting down: %u"), bq25895_u16_get_batt_voltage() );
+                    log_v_debug_P( PSTR("Batt cutoff, shutting down: %u"), batt_volts );
                 }
 
                 batt_state = BATT_STATE_CUTOFF;
@@ -378,7 +383,7 @@ PT_BEGIN( pt );
 
                 if( batt_state < BATT_STATE_CRITICAL ){
 
-                    log_v_debug_P( PSTR("Batt critical: %u"), bq25895_u16_get_batt_voltage() );
+                    log_v_debug_P( PSTR("Batt critical: %u"), batt_volts );
                     
                     batt_state = BATT_STATE_CRITICAL;
 
@@ -390,7 +395,7 @@ PT_BEGIN( pt );
 
                 if( batt_state < BATT_STATE_LOW ){
 
-                    log_v_debug_P( PSTR("Batt low: %u"), bq25895_u16_get_batt_voltage() );
+                    log_v_debug_P( PSTR("Batt low: %u"), batt_volts );
 
                     batt_state = BATT_STATE_LOW;
 
