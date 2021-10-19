@@ -181,11 +181,11 @@ PT_BEGIN( pt );
 
             uint16_t entries = mem2_u16_get_size( datalog_handle ) / sizeof(datalog_entry_t);
 
+            datalog_entry_t *entry_ptr = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );
+
             while( entries > 0 ){
 
                 entries--;
-
-                datalog_entry_t *entry_ptr = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );        
                 
                 // check timeout
                 entry_ptr->ticks--;

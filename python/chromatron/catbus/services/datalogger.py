@@ -60,7 +60,7 @@ class Datalogger(MsgFlowReceiver):
         timestamp = datetime.utcnow()
 
         unpacked_data = DatalogData().unpack(data)
-        print(host, unpacked_data)
+        # print(host, unpacked_data)
 
         host = (host[0], CATBUS_MAIN_PORT)
 
@@ -73,6 +73,8 @@ class Datalogger(MsgFlowReceiver):
             return
 
         key = self.kv._server.resolve_hash(unpacked_data.data.meta.hash, host)
+        value = unpacked_data.data.value
+        print(key, value)
 
         tags = {'name': info['name'],
                 'location': info['location']}
@@ -83,7 +85,7 @@ class Datalogger(MsgFlowReceiver):
                 "tags": tags,
                 "time": timestamp.isoformat(),
                 "fields": {
-                    "value": unpacked_data.data.value
+                    "value": value
                 }
             }
         ]
