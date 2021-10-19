@@ -49,6 +49,11 @@ static int8_t therm;
 static uint8_t batt_cells; // number of cells in system
 static uint16_t boost_voltage;
 static uint16_t vindpm;
+static uint16_t iindpm;
+
+static bool enable_solar = TRUE;
+static bool solar_tracking;
+#define SOLAR_MIN_VBUS 4400
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                 0,  "batt_soc" },
@@ -68,6 +73,8 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                   0,  "batt_vindpm" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                   0,  "batt_iindpm" },
+    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &solar_tracking,           0,  "batt_solar_tracking" },
 
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
@@ -79,10 +86,6 @@ static uint16_t soc_state;
 #define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
 #define SOC_FILTER      16
 
-
-static bool enable_solar = TRUE;
-static bool solar_tracking;
-#define SOLAR_MIN_VBUS 4400
 
 
 
@@ -756,29 +759,11 @@ void bq25895_v_set_vindpm( int16_t mv ){
     bq25895_v_write_reg( BQ25895_REG_VINDPM, reg );
 }
 
-void bq25895_v_set_iindpm( int16_t ma ){
+uint16_t bq25895_u16_get_iindpm( void ){
 
-    if( ma < 100 ){
+    uint16_t data = bq25895_u8_read_reg( BQ25895_REG_IINDPM ) & BQ25895_MASK_IINDPM;
 
-        ma = 100;
-    }
-    else if( ma > 3250 ){
-
-        ma = 3250;
-    }
-
-    ma *= 32;
-
-    ma /= ( ( 3250 * 32 ) / 63 ) - 1;
-
-    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
-
-    reg &= ~BQ25895_MASK_IINDPM;
-    // bq25895_v_write_reg( BQ25895_REG_IINDPM, reg );
-
-    reg |= ma;
-
-    bq25895_v_write_reg( BQ25895_REG_IINDPM, reg );
+    return 50 * data + 100;
 }
 
 bool bq25895_b_get_vindpm( void ){
@@ -879,7 +864,7 @@ void init_charger( void ){
     // disable ILIM pin
     bq25895_v_set_inlim_pin( FALSE );
 
-    bq25895_v_set_iindpm( 3000 );
+    // bq25895_v_set_iindpm( 3000 );
 
     // turn off high voltage DCP, and maxcharge
     bq25895_v_clr_reg_bits( BQ25895_REG_MAXC_EN,   BQ25895_BIT_MAXC_EN );
@@ -911,6 +896,7 @@ static bool read_adc( void ){
         batt_fault = bq25895_u8_get_faults();
         vbus_status = bq25895_u8_get_vbus_status();
         therm = bq25895_i8_get_therm();
+        iindpm = bq25895_u16_get_iindpm();
 
         return TRUE;
     }
@@ -969,14 +955,15 @@ PT_BEGIN( pt );
 
         solar_tracking = TRUE;
 
+        // re-init
+        bq25895_v_reset();
+        init_boost_converter();
+        init_charger();
+
         // bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
         do{
-            // re-init
-            bq25895_v_reset();
-            init_boost_converter();
-            init_charger();
-
+            
             bq25895_v_set_hiz( TRUE );
             bq25895_v_start_adc_oneshot();      
             THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
@@ -1006,7 +993,7 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("MPPT: search VBUS_OC: %d"), vbus_oc );
 
             // search loop:
-            while( vindpm < ( vbus_oc * 0.9 ) ){
+            while( ( vindpm < ( vbus_oc * 0.9 ) ) && vbus_ok() ){
 
                 TMR_WAIT( pt, 100 );
 
@@ -1043,16 +1030,17 @@ PT_BEGIN( pt );
 
             bq25895_v_enable_adc_continuous();
 
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 30000 );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 60000 );
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && vbus_ok() );
 
         } while( vbus_ok() );
 
 
         log_v_debug_P( PSTR("MPPT VBUS invalid") );
-        
 
-        TMR_WAIT( pt, 100 );
+        bq25895_v_set_hiz( TRUE );
+        
+        TMR_WAIT( pt, 10000 );
     }
 
 PT_END( pt );

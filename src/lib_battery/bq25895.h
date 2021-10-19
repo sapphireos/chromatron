@@ -227,7 +227,7 @@ uint8_t bq25895_u8_get_soc( void );
 uint8_t bq25895_u8_get_device_id( void );
 void bq25895_v_print_regs( void );
 void bq25895_v_set_vindpm( int16_t mv );
-void bq25895_v_set_iindpm( int16_t ma );
+uint16_t bq25895_u16_get_iindpm( void );
 bool bq25895_b_get_vindpm( void );
 bool bq25895_b_get_iindpm( void );
 bool bq25895_b_solar_hold( void );
