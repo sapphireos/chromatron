@@ -92,7 +92,7 @@ PT_BEGIN( pt );
 
     log_v_info_P( PSTR("VEML7700 detected") );
 
-    veml7700_v_set_gain( VEML7700_ALS_GAIN_x2 );
+    veml7700_v_set_gain( VEML7700_ALS_GAIN_x0_125 );
     veml7700_v_set_int_time( VEML7700_ALS_INT_TIME_200ms );
 
     while(1){
