@@ -642,6 +642,15 @@ class Device(object):
 
         return None
 
+    def get_datalog_config(self):
+        data = self.get_file("datalog_config")
+
+        info = sapphiredata.DatalogEntryArray()
+        info.unpack(data)
+
+        return info
+
+
     # helper for testing mostly
     def wait_service(self, service_id, group, state=None, timeout=30.0):
         start = time.time()
@@ -1442,6 +1451,41 @@ class Device(object):
         file_id = self.get_file_id(line)
 
         print("File ID: %d" % (file_id))
+
+    def cli_datalog_show(self, line):
+        data = self.get_datalog_config()
+
+        print(data)
+
+    def cli_datalog_delete(self, line):
+        data = self.get_datalog_config()
+
+        data_hash = catbus_string_hash(line)
+
+        for item in data:
+            if item.hash == data_hash:
+                print("DEL?", item)
+
+
+    def cli_datalog_add(self, line):
+        data = self.get_datalog_config()
+        tokens = line.split()
+
+        data_hash = catbus_string_hash(tokens[0])
+        rate = int(tokens[1])
+
+        for item in data:
+            if item.hash == data_hash:
+                print("DEL?", item)
+
+        entry = DatalogEntry(hash=data_hash, rate=rate)
+
+        print(entry)
+
+        data.append(entry)
+
+        self.put_file('datalog_config', data.pack())
+
 
 def createDevice(**kwargs):
     return Device(**kwargs)

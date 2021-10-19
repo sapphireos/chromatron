@@ -25,7 +25,7 @@
 """
 
 from elysianfields import *
-from catbus import get_field_for_type
+from catbus import get_field_for_type, CatbusHash
 
 
 class FileInfoField(StructField):
@@ -367,6 +367,27 @@ class LinkConsumerInfoArray(ArrayField):
 #         field = LinkRemoteInfo
 
 #         super().__init__(_field=field, **kwargs)
+
+class DatalogEntry(StructField):
+    def __init__(self, **kwargs):
+        fields = [CatbusHash(_name="hash"),
+                  Uint16Field(_name="rate"),
+                  Uint16Field(_name="padding")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class DatalogEntryArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = DatalogEntry
+
+        super().__init__(_field=field, **kwargs)
+
+class DatalogData(StructField):
+    def __init__(self, **kwargs):
+        fields = [CatbusData(_name="data")]
+
+        super().__init__(_fields=fields, **kwargs)
+
 
 
 raw_events = """
