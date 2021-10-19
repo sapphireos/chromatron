@@ -1150,6 +1150,12 @@ PT_BEGIN( pt );
         batt_soc = calc_batt_soc( batt_volts );
         batt_soc_startup = batt_soc;
     }
+
+    if( capacity != 0 ){
+
+        // set baseline energy remaining based on SOC
+        remaining = ( capacity * batt_soc ) / 100;
+    }
     
     TMR_WAIT( pt, 500 );
 
