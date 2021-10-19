@@ -44,6 +44,8 @@ class Datalogger(MsgFlowReceiver):
         self.kv = CatbusService(name='datalogger', visible=True, tags=[])
         self.influx = InfluxDBClient(influx_server, 8086, 'root', 'root', 'chromatron')
 
+        self.directory = {}
+
         self.start_timer(DIRECTORY_UPDATE_INTERVAL, self.update_directory)
 
     def clean_up(self):
