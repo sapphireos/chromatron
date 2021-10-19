@@ -240,6 +240,13 @@ void bq25895_v_enable_adc_continuous( void ){
 void bq25895_v_start_adc_oneshot( void ){
 
     uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_ADC );
+
+    // check if ADC is already running:
+    if( ( reg & BQ25895_BIT_ADC_CONV_START ) != 0 ){
+
+        return;
+    }
+
     reg &= ~BQ25895_BIT_ADC_CONV_RATE;
     reg |= BQ25895_BIT_ADC_CONV_START;
 
@@ -836,7 +843,7 @@ void init_charger( void ){
 
     // turn off charger
     bq25895_v_set_charger( FALSE );
-
+    bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
 
     // charge config for NCR18650B
@@ -928,7 +935,7 @@ PT_BEGIN( pt );
         ichg_max = 0;
         vbus_oc = 0;
 
-        init_charger();
+        // init_charger();
 
         // bq25895_v_enable_adc_continuous();
 
@@ -1025,12 +1032,16 @@ PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-    // // bq25895_v_enable_adc_continuous();
+    init_charger();
+
+    // bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
+    // bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+    // bq25895_v_set_charger( FALSE );
+    
     // bq25895_v_set_charger( FALSE );
 
+    // bq25895_v_enable_adc_continuous();
     // bq25895_v_start_adc_oneshot();
-
     
     // // set min sys
     // // on battery only mode, the battery voltage must be above MINSYS for the ADC
@@ -1060,12 +1071,12 @@ PT_BEGIN( pt );
 
     if( enable_solar ){
 
-        log_v_debug_P( PSTR("Solar MPPT enabled, switching control schemes") );
+        // log_v_debug_P( PSTR("Solar MPPT enabled, switching control schemes") );
 
-        thread_t_create( bat_solar_thread,
-                     PSTR("bat_solar"),
-                     0,
-                     0 );   
+        // thread_t_create( bat_solar_thread,
+        //              PSTR("bat_solar"),
+        //              0,
+        //              0 );   
 
         THREAD_EXIT( pt );
     }
@@ -1107,6 +1118,7 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("VBUS OK") );
 
             // re-init charger and boost
+            bq25895_v_reset();
             init_boost_converter();
             init_charger();
 
@@ -1159,7 +1171,8 @@ PT_BEGIN( pt );
     while( batt_volts == 0 ){
         // loop until we get a good batt reading
         bq25895_v_start_adc_oneshot();
-        THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
+        // THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
+        TMR_WAIT( pt, 100 );
 
         batt_volts = _bq25895_u16_get_batt_voltage();
         soc_state = _calc_batt_soc( batt_volts );
@@ -1167,19 +1180,23 @@ PT_BEGIN( pt );
         batt_soc_startup = batt_soc;
     }
 
+    log_v_debug_P( PSTR("Batt monitor running") );
+
     if( capacity != 0 ){
 
         // set baseline energy remaining based on SOC
         remaining = ( capacity * batt_soc ) / 100;
     }
-    
+        
+    bq25895_v_start_adc_oneshot();
+
     TMR_WAIT( pt, 500 );
 
 
     while(1){
 
-        bq25895_v_start_adc_oneshot();
-        THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
+        
+        // THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
 
         // update status values
         uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
@@ -1272,6 +1289,8 @@ PT_BEGIN( pt );
             remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
         }
         
+
+        bq25895_v_start_adc_oneshot();
         TMR_WAIT( pt, 1000 );
     }
 
