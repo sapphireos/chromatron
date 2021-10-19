@@ -1450,13 +1450,17 @@ class Device(object):
     def cli_getfileid(self, line):
         file_id = self.get_file_id(line)
 
-        print("File ID: %d" % (file_id))
+        return f"File ID: {file_id}" 
 
     def cli_datalog_show(self, line):
         data = self.get_datalog_config()
 
+        s = 'Key                     Rate (ms)\n'
+
         for item in data:
-            print(item)
+            s += f'{self.client.lookup_hash(item.hash)[item.hash]:20}   {item.rate}'
+
+        return s
 
     def cli_datalog_delete(self, line):
         try:
@@ -1489,15 +1493,18 @@ class Device(object):
         data_hash = catbus_string_hash(tokens[0])
         rate = int(tokens[1])
 
+        update = False
         for item in data:
             if item.hash == data_hash:
-                print("DEL?", item)
+                # update
+                item.rate = rate
+                update = True
 
-        entry = sapphiredata.DatalogEntry(hash=data_hash, rate=rate)
+        if update:
+            entry = sapphiredata.DatalogEntry(hash=data_hash, rate=rate)
 
-        print(entry)
+            data.append(entry)
 
-        data.append(entry)
 
         self.put_file('datalog_config', data.pack())
 
