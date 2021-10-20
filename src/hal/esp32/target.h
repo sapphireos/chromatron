@@ -34,7 +34,7 @@
 #define ENABLE_FFS
 #define ENABLE_NETWORK
 // #define ENABLE_IP
-// #define ENABLE_POWER
+#define ENABLE_POWER
 #define ENABLE_USB_UDP_TRANSPORT
 // #define ENABLE_USB
 #define ENABLE_MSGFLOW
