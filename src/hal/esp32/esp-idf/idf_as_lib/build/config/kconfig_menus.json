@@ -4543,7 +4543,10 @@
                                 "help": "FreeRTOS will enter light sleep mode if no tasks need to run for this number\nof ticks.\n",
                                 "id": "FREERTOS_IDLE_TIME_BEFORE_SLEEP",
                                 "name": "FREERTOS_IDLE_TIME_BEFORE_SLEEP",
-                                "range": null,
+                                "range": [
+                                    2,
+                                    4294967295
+                                ],
                                 "title": "Minimum number of ticks to enter sleep mode for",
                                 "type": "int"
                             }
