@@ -28,10 +28,17 @@
 #define VEML7700_REG_ALS_CONF_0     0
 #define VEML7700_REG_ALS_WH         1
 #define VEML7700_REG_ALS_WL         2
-#define VEML7700_REG_PWR            3
+#define VEML7700_REG_PSM            3
 #define VEML7700_REG_ALS            4
 #define VEML7700_REG_WHITE          5
 #define VEML7700_REG_ALS_INT        6
+
+// shutdown bit:
+#define VEML7700_BIT_ALS_SD			( 1 << 0 )
+
+// PSM modes;
+#define VEML7700_PSM_MODE_MASK		0b0110
+#define VEML7700_PSM_EN_MASK		0b0001
 
 #define VEML7700_ALS_GAIN_SHIFT      11
 #define VEML7700_ALS_GAIN_MASK       0x03
@@ -51,8 +58,7 @@
 
 void veml7700_v_init( void );
 
-void veml7700_v_set_gain( uint8_t gain );
-void veml7700_v_set_int_time( uint8_t val );
+void veml7700_v_configure( uint8_t _gain, uint8_t _int_time );
 uint16_t veml7700_u16_read_als( void );
 uint16_t veml7700_u16_read_white( void );
 
