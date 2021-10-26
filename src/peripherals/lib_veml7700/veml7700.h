@@ -33,7 +33,7 @@
 #define VEML7700_REG_WHITE          5
 #define VEML7700_REG_ALS_INT        6
 
-// shutdown bit:
+// shutdown bit: (in CONF 0)
 #define VEML7700_BIT_ALS_SD			( 1 << 0 )
 
 // PSM modes;
