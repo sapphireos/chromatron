@@ -109,9 +109,6 @@ PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 
-// debug: 
-static const char *TAG = "wifi station";
-
 static esp_err_t event_handler(void *ctx, system_event_t *event);
 static volatile bool scan_done;
 static bool connect_done;
@@ -607,47 +604,6 @@ static bool _wifi_b_ap_mode_enabled( void ){
 }
 
 
-static int8_t has_ssid( char *check_ssid ){
-
-	char ssid[WIFI_SSID_LEN];
-	
-	memset( ssid, 0, sizeof(ssid) );
-	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 0;
-   	}
-
-   	memset( ssid, 0, sizeof(ssid) );
-   	kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 1;
-   	}
-
-   	memset( ssid, 0, sizeof(ssid) );
-   	kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 2;
-   	}
-
-   	memset( ssid, 0, sizeof(ssid) );
-   	kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 3;
-   	}
-
-   	return -1;
-}
-
-
-
 static void get_pass( int8_t router, char pass[WIFI_PASS_LEN] ){
 
 	memset( pass, 0, WIFI_PASS_LEN );
@@ -710,16 +666,14 @@ static bool is_ssid_configured( void ){
    	return FALSE;
 }
 
-
-#define SCAN_LIST_SIZE      32
-
 static void scan_cb( void ){
 
     scan_done = FALSE;
 
-    uint16_t ap_record_list_size = SCAN_LIST_SIZE;
+    uint16_t ap_count = 0;
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
 
-    mem_handle_t h = mem2_h_alloc( ap_record_list_size * sizeof(wifi_ap_record_t) );
+    mem_handle_t h = mem2_h_alloc( ap_count * sizeof(wifi_ap_record_t) );
 
     if( h < 0 ){
 
@@ -727,22 +681,45 @@ static void scan_cb( void ){
     }
 
     wifi_ap_record_t *ap_info = mem2_vp_get_ptr_fast( h );
-    uint16_t ap_count = 0;
-    memset(ap_info, 0, ap_record_list_size * sizeof(wifi_ap_record_t));
-    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_record_list_size, ap_info));
-    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
-    ESP_LOGI(TAG, "Total APs scanned = %u", ap_count);
+
+    memset(ap_info, 0, ap_count * sizeof(wifi_ap_record_t));
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_count, ap_info));
 
     int8_t best_rssi = -127;
     uint8_t best_channel = 0;
     uint8_t *best_bssid = 0;
     int8_t best_router = -1;
 
+    char ssid[4][WIFI_SSID_LEN];
+    memset( ssid, 0, sizeof(ssid) );
+    cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid[0] );
+    kv_i8_get( __KV__wifi_ssid2, ssid[1], sizeof(ssid[1]) );
+    kv_i8_get( __KV__wifi_ssid3, ssid[2], sizeof(ssid[2]) );
+    kv_i8_get( __KV__wifi_ssid4, ssid[3], sizeof(ssid[3]) );
+
     for( uint32_t i = 0; i < ap_count; i++ ){
 
-        log_v_debug_P( PSTR("%s %u %d"), ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
+        // trace_printf( "%s %u %d", ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
 
-        int8_t router = has_ssid( (char *)ap_info[i].ssid );
+        int8_t router = -1;
+
+        if( strncmp( (char *)ap_info[i].ssid, ssid[0], WIFI_SSID_LEN ) == 0 ){
+
+            router = 0;
+        }
+        else if( strncmp( (char *)ap_info[i].ssid, ssid[1], WIFI_SSID_LEN ) == 0 ){
+
+            router = 1;
+        }
+        else if( strncmp( (char *)ap_info[i].ssid, ssid[2], WIFI_SSID_LEN ) == 0 ){
+
+            router = 2;
+        }
+        else if( strncmp( (char *)ap_info[i].ssid, ssid[3], WIFI_SSID_LEN ) == 0 ){
+
+            router = 3;
+        }
+
         if( router < 0 ){
 
             continue;
@@ -765,8 +742,6 @@ static void scan_cb( void ){
 
         return;
     }
-
-    trace_printf("router: %d\n", best_router);
 
     // select router
     wifi_router = best_router;
