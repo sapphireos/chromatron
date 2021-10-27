@@ -772,48 +772,6 @@ static bool _wifi_b_ap_mode_enabled( void ){
     return wifi_enable_ap;    
 }
 
-
-static int8_t has_ssid( char *check_ssid ){
-
-	char ssid[WIFI_SSID_LEN];
-	
-	memset( ssid, 0, sizeof(ssid) );
-	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 0;
-   	}
-
-   	memset( ssid, 0, sizeof(ssid) );
-   	kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 1;
-   	}
-
-   	memset( ssid, 0, sizeof(ssid) );
-   	kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 2;
-   	}
-
-   	memset( ssid, 0, sizeof(ssid) );
-   	kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 3;
-   	}
-
-   	return -1;
-}
-
-
-
 static void get_pass( int8_t router, char pass[WIFI_PASS_LEN] ){
 
 	memset( pass, 0, WIFI_PASS_LEN );
@@ -840,18 +798,41 @@ void scan_cb( void *result, STATUS status ){
 
 	struct bss_info* info = (struct bss_info*)result;
 
-	trace_printf("scan: %d\n", status);
-
 	int8_t best_rssi = -127;
 	uint8_t best_channel = 0;
 	uint8_t *best_bssid = 0;
 	int8_t best_router = -1;
 
+    char ssid[4][WIFI_SSID_LEN];
+    memset( ssid, 0, sizeof(ssid) );
+    cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid[0] );
+    kv_i8_get( __KV__wifi_ssid2, ssid[1], sizeof(ssid[1]) );
+    kv_i8_get( __KV__wifi_ssid3, ssid[2], sizeof(ssid[2]) );
+    kv_i8_get( __KV__wifi_ssid4, ssid[3], sizeof(ssid[3]) );
+
 	while( info != 0 ){
 
-		trace_printf("%s %u %d\n", info->ssid, info->channel, info->rssi);
+		// trace_printf("%s %u %d\n", info->ssid, info->channel, info->rssi);
 
-		int8_t router = has_ssid( (char *)info->ssid );
+        int8_t router = -1;
+
+        if( strncmp( (char *)info->ssid, ssid[0], WIFI_SSID_LEN ) == 0 ){
+
+            router = 0;
+        }
+        else if( strncmp( (char *)info->ssid, ssid[1], WIFI_SSID_LEN ) == 0 ){
+
+            router = 1;
+        }
+        else if( strncmp( (char *)info->ssid, ssid[2], WIFI_SSID_LEN ) == 0 ){
+
+            router = 2;
+        }
+        else if( strncmp( (char *)info->ssid, ssid[3], WIFI_SSID_LEN ) == 0 ){
+
+            router = 3;
+        }
+
 		if( router < 0 ){
 
 			goto end;
@@ -873,8 +854,6 @@ void scan_cb( void *result, STATUS status ){
 
 		return;
 	}
-
-	trace_printf("router: %d\n", best_router);
 
 	// select router
 	wifi_router = best_router;
