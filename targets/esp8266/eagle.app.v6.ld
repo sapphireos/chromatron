@@ -198,6 +198,7 @@ SECTIONS
     /* Need to manually put object files here so they don't end up in iram! */
     *sapphireos/obj/*.o (.text .text.*)
     *hal/esp8266/obj/*.o (.text .text.*)
+    *lib_coprocessor/obj/*.o (.text .text.*)
     *lib_chromatron/obj/*.o (.text .text.*)
     *lib_gfx/obj/*.o (.text .text.*)
     *lib_battery/obj/*.o (.text .text.*)
