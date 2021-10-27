@@ -31,7 +31,7 @@
 #include "energy.h"
 #include "battery.h"
 
-#ifdef ESP32
+#ifndef ESP8266
 #include "veml7700.h"
 #endif
 
@@ -53,7 +53,7 @@ void app_v_init( void ){
 
     pwm_v_init();
 
-    #ifdef ESP32
+    #ifndef ESP8266
     veml7700_v_init();
     #endif
 }
