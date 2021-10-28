@@ -66,6 +66,8 @@ static bool connected;
 static bool wifi_shutdown;
 static uint8_t disconnect_reason;
 
+static uint8_t scan_backoff;
+
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
@@ -825,6 +827,7 @@ PT_BEGIN( pt );
     // log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
 
     static uint16_t scan_timeout;
+    static uint8_t current_scan_backoff;
 
     connected = FALSE;
     wifi_rssi = -127;
@@ -840,6 +843,21 @@ PT_BEGIN( pt );
     while( !wifi_b_connected() && !wifi_shutdown ){
 
         wifi_rssi = -127;
+
+        esp_wifi_disconnect();
+        TMR_WAIT( pt, 100 ); // this delay seems to be important
+        // without it, esp_wifi_stop might hang for as many as 5 seconds.
+
+        esp_wifi_stop();    
+
+        current_scan_backoff = scan_backoff;
+
+        // scan backoff delay
+        while( ( current_scan_backoff > 0 ) && !_wifi_b_ap_mode_enabled() ){
+
+            current_scan_backoff--;
+            TMR_WAIT( pt, 1000 );
+        }
         
         ap_mode = _wifi_b_ap_mode_enabled();
 
@@ -860,18 +878,8 @@ station_mode:
             connect_done = FALSE;
             disconnect_reason = 0;
         
-            // trace_printf("esp_wifi_disconnect\r\n");   
-            esp_wifi_disconnect();
-            TMR_WAIT( pt, 100 ); // this delay seems to be important
-            // without it, esp_wifi_stop might hang for as many as 5 seconds.
-
-            // trace_printf("esp_wifi_stop\r\n");
-            esp_wifi_stop();    
-
-            // trace_printf("esp_wifi_set_mode\r\n");
             esp_wifi_set_mode( WIFI_MODE_STA );
 
-            // trace_printf("esp_wifi_start\r\n");
             esp_wifi_start();
 
             // set power state
@@ -946,6 +954,21 @@ station_mode:
                 esp_wifi_scan_stop();
 
                 if( wifi_router < 0 ){
+
+                    // router not found
+
+                    if( scan_backoff == 0 ){
+
+                        scan_backoff = 1;
+                    }
+                    else if( scan_backoff < 64 ){
+
+                        scan_backoff *= 2;
+                    }
+                    else if( scan_backoff < 192 ){
+
+                        scan_backoff += 64;
+                    }
 
                     goto end;
                 }
@@ -1140,6 +1163,8 @@ end:
     }
 
     if( wifi_b_connected() ){
+
+        scan_backoff = 0;
 
         if( !_wifi_b_ap_mode_enabled() ){
 
