@@ -61,6 +61,7 @@ static uint16_t target_val[MAX_PIXELS];
 
 static uint16_t global_hs_fade = 1000;
 static uint16_t global_v_fade = 1000;
+static uint16_t dimmer_fade = 1000;
 static uint16_t hs_fade[MAX_PIXELS];
 static uint16_t v_fade[MAX_PIXELS];
 
@@ -228,6 +229,57 @@ static void param_error_check( void ){
     }
 }
 
+
+static uint16_t calc_dimmer( void ){
+
+    return ( (uint32_t)pix_master_dimmer * (uint32_t)pix_sub_dimmer ) / 65536;    
+}
+
+static void update_master_fader( void ){
+
+    uint16_t fade_steps = dimmer_fade / FADER_RATE;
+
+    if( fade_steps <= 1 ){
+
+        fade_steps = 2;
+    }
+
+    if( gfx_enable ){
+
+        target_dimmer = calc_dimmer();
+    }
+    else{
+
+        target_dimmer = 0;
+    }
+
+    int32_t diff = (int32_t)target_dimmer - (int32_t)current_dimmer;
+    int32_t step = diff / fade_steps;
+
+    if( step > 32768 ){
+
+        step = 32768;
+    }
+    else if( step < -32767 ){
+
+        step = -32767;
+    }
+    else if( step == 0 ){
+
+        if( diff >= 0 ){
+
+            step = 1;
+        }
+        else{
+
+            step = -1;
+        }
+    }
+
+    dimmer_step = step;
+}
+
+
 int8_t pix_i8_count_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -291,6 +343,10 @@ int8_t gfx_i8_kv_handler(
                 v_fade[i] = global_v_fade;   
             }
         }
+        else if( hash == __KV__gfx_dimmer_fade ){
+
+            update_master_fader();
+        }
         else if( hash == __KV__gfx_dimmer_curve ){
 
             compute_dimmer_lookup();
@@ -315,6 +371,7 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
     { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
+    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &dimmer_fade,                 gfx_i8_kv_handler,   "gfx_dimmer_fade" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
     { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
         
@@ -344,55 +401,6 @@ static void setup_master_array( void ){
     pix_arrays[0].count = pix_count;
     pix_arrays[0].size_x = pix_size_x;
     pix_arrays[0].size_y = pix_size_y;    
-}
-
-static uint16_t calc_dimmer( void ){
-
-    return ( (uint32_t)pix_master_dimmer * (uint32_t)pix_sub_dimmer ) / 65536;    
-}
-
-static void update_master_fader( void ){
-
-    uint16_t fade_steps = global_v_fade / FADER_RATE;
-
-    if( fade_steps <= 1 ){
-
-        fade_steps = 2;
-    }
-
-    if( gfx_enable ){
-
-        target_dimmer = calc_dimmer();
-    }
-    else{
-
-        target_dimmer = 0;
-    }
-
-    int32_t diff = (int32_t)target_dimmer - (int32_t)current_dimmer;
-    int32_t step = diff / fade_steps;
-
-    if( step > 32768 ){
-
-        step = 32768;
-    }
-    else if( step < -32767 ){
-
-        step = -32767;
-    }
-    else if( step == 0 ){
-
-        if( diff >= 0 ){
-
-            step = 1;
-        }
-        else{
-
-            step = -1;
-        }
-    }
-
-    dimmer_step = step;
 }
 
 void gfx_v_set_pix_mode( uint8_t mode ){
