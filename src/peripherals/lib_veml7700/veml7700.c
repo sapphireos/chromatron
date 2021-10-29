@@ -74,7 +74,7 @@ static uint16_t _read_reg16( uint8_t reg ){
     return val;
 }	
 
-static set_shutdown( bool shutdown ){
+static void set_shutdown( bool shutdown ){
 
     uint16_t reg = _read_reg16( VEML7700_REG_ALS_CONF_0 );
 
@@ -87,7 +87,7 @@ static set_shutdown( bool shutdown ){
         reg &= ~VEML7700_BIT_ALS_SD;
     }
 
-    _write_reg16( reg );
+    _write_reg16( VEML7700_REG_ALS_CONF_0, reg );
 }
 
 void veml7700_v_configure( uint8_t _gain, uint8_t _int_time ){
@@ -102,7 +102,7 @@ void veml7700_v_configure( uint8_t _gain, uint8_t _int_time ){
     config |= ( ( gain & VEML7700_ALS_GAIN_MASK ) << VEML7700_ALS_GAIN_SHIFT );
 
     config &= ~( VEML7700_ALS_INT_TIME_MASK << VEML7700_ALS_INT_TIME_SHIFT );
-    config |= ( ( val & VEML7700_ALS_INT_TIME_MASK ) << VEML7700_ALS_INT_TIME_SHIFT );
+    config |= ( ( int_time & VEML7700_ALS_INT_TIME_MASK ) << VEML7700_ALS_INT_TIME_SHIFT );
 
     _write_reg16( VEML7700_REG_ALS_CONF_0, config );
 

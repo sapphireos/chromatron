@@ -104,6 +104,19 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 
         adc_channel = ADC1_CHANNEL_7;
     }
+    // pin 17 is not actually an ADC pin.
+    // this assumes it is on a chromatron32 board and the solder bridge is closed
+    // to strap IO17 to IO34, which is an ADC input.
+    else if( channel == IO_PIN_17_TX ){
+
+        // actually IO_PIN_34_A2:
+
+        adc_channel = ADC1_CHANNEL_6;
+    }
+    else if( channel == IO_PIN_34_A2 ){
+
+        adc_channel = ADC1_CHANNEL_6;
+    }
     else{
 
         return 0;

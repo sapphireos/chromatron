@@ -51,7 +51,7 @@ static uint16_t boost_voltage;
 static uint16_t vindpm;
 static uint16_t iindpm;
 
-static bool enable_solar = TRUE;
+static bool enable_solar = FALSE;
 static bool solar_tracking;
 #define SOLAR_MIN_VBUS 4400
 

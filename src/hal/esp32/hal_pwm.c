@@ -46,6 +46,7 @@ static ledc_channel_config_t ledc_channel[] = {
 
 
 static uint16_t pwm;
+static uint16_t adc;
 
 int8_t _pwm_kv_handler(
     kv_op_t8 op,
@@ -65,25 +66,65 @@ int8_t _pwm_kv_handler(
 
 KV_SECTION_META kv_meta_t pwm_info_kv[] = {
     { SAPPHIRE_TYPE_UINT16,  0, 0,    &pwm,              _pwm_kv_handler,        "pwm" },
+    { SAPPHIRE_TYPE_UINT16,  0, 0,    &adc,              0,        "pwm_adc" },
 };
 
 
 
+PT_THREAD( adc_pwm_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+        
+    while(1){
+
+        TMR_WAIT( pt, 100 );
+
+        adc = adc_u16_read_raw( IO_PIN_17_TX );
+
+        adc = 4095 - adc;
+
+        adc = ( 100 * adc ) / 4095;
+        
+        pwm = 600 + adc * 4;
+
+        if( pwm < 700 ){
+
+            pwm = 0;
+        }
+
+        ledc_set_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel, pwm);
+        ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
+
+    }
+    
+PT_END( pt );
+}
+
 void pwm_v_init( void ){
 
 
-    #pragma message "PWM is not done!"
+    thread_t_create( adc_pwm_thread,
+                     PSTR("adc_pwm"),
+                     0,
+                     0 );
 
-    return;
+
+    // #pragma message "PWM is not done!"
+
+    // return;
+    #pragma message "PWM test enabled"
+
+    io_v_set_mode( IO_PIN_17_TX, IO_MODE_INPUT );    
+    io_v_set_mode( IO_PIN_34_A2, IO_MODE_INPUT );    
 
     #define MOTOR_IO_0  IO_PIN_16_RX
-    #define MOTOR_IO_1  IO_PIN_17_TX
+    // #define MOTOR_IO_1  IO_PIN_17_TX
 
     io_v_set_mode( MOTOR_IO_0, IO_MODE_OUTPUT );
-    io_v_set_mode( MOTOR_IO_1, IO_MODE_OUTPUT );
+    // io_v_set_mode( MOTOR_IO_1, IO_MODE_OUTPUT );
 
     io_v_digital_write( MOTOR_IO_0, 0 );
-    io_v_digital_write( MOTOR_IO_1, 0 );
+    // io_v_digital_write( MOTOR_IO_1, 0 );
 
 
     ledc_timer_config_t ledc_timer = {
@@ -94,6 +135,8 @@ void pwm_v_init( void ){
     };
     // Set configuration of timer0 for high speed channels
     ledc_timer_config(&ledc_timer);
+
+    // PWM on GPIO 16
 
     /*
      * Prepare individual configuration
