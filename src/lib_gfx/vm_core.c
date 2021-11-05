@@ -3188,7 +3188,7 @@ int8_t vm_i8_load_program(
 
     uint8_t *stream = mem2_vp_get_ptr( *handle );
 
-    if( ( stream % 4 ) != 0 ) ){
+    if( ( (uint32_t)stream % 4 ) != 0 ){
 
         status = VM_STATUS_STREAM_MISALIGN;
         goto error;
@@ -3229,38 +3229,38 @@ int8_t vm_i8_load_program(
 
     state->current_thread = -1;
     
-    state->program_name_hash = prog_header->program_name_hash;            
+    state->program_name_hash = header.program_name_hash;            
 
-    state->init_start = prog_header->init_start;
-    state->loop_start = prog_header->loop_start;
+    state->init_start = header.init_start;
+    state->loop_start = header.loop_start;
 
     uint16_t obj_start = sizeof(vm_program_header_t);
 
-    state->read_keys_count = prog_header->read_keys_len / sizeof(uint32_t);
+    state->read_keys_count = header.read_keys_len / sizeof(uint32_t);
     state->read_keys_start = obj_start;
-    obj_start += prog_header->read_keys_len;
+    obj_start += header.read_keys_len;
 
-    state->write_keys_count = prog_header->write_keys_len / sizeof(uint32_t);
+    state->write_keys_count = header.write_keys_len / sizeof(uint32_t);
     state->write_keys_start = obj_start;
-    obj_start += prog_header->write_keys_len;
+    obj_start += header.write_keys_len;
 
-    state->publish_count = prog_header->publish_len / sizeof(vm_publish_t);
+    state->publish_count = header.publish_len / sizeof(vm_publish_t);
     state->publish_start = obj_start;
-    obj_start += prog_header->publish_len;
+    obj_start += header.publish_len;
 
-    state->link_count = prog_header->link_len / sizeof(link_t);
+    state->link_count = header.link_len / sizeof(link_t);
     state->link_start = obj_start;
-    obj_start += prog_header->link_len;
+    obj_start += header.link_len;
 
-    state->db_count = prog_header->db_len / sizeof(catbus_meta_t);
+    state->db_count = header.db_len / sizeof(catbus_meta_t);
     state->db_start = obj_start;
-    obj_start += prog_header->db_len;
+    obj_start += header.db_len;
 
-    state->cron_count = prog_header->cron_len / sizeof(cron_t);
+    state->cron_count = header.cron_len / sizeof(cron_t);
     state->cron_start = obj_start;
-    obj_start += prog_header->cron_len;
+    obj_start += header.cron_len;
 
-    state->pix_obj_count = prog_header->pix_obj_len / sizeof(gfx_pixel_array_t);
+    state->pix_obj_count = header.pix_obj_len / sizeof(gfx_pixel_array_t);
 
     // set up final items for VM execution
     state->pool_start = obj_start;
@@ -3318,39 +3318,39 @@ int8_t vm_i8_load_program(
     
     // state->program_name_hash = prog_header->program_name_hash;    
 
-    state->init_start = prog_header->init_start;
-    state->loop_start = prog_header->loop_start;
+    // state->init_start = prog_header->init_start;
+    // state->loop_start = prog_header->loop_start;
 
-    uint16_t obj_start = sizeof(vm_program_header_t);
+    // uint16_t obj_start = sizeof(vm_program_header_t);
 
-    state->read_keys_count = prog_header->read_keys_len / sizeof(uint32_t);
-    state->read_keys_start = obj_start;
-    obj_start += prog_header->read_keys_len;
+    // state->read_keys_count = prog_header->read_keys_len / sizeof(uint32_t);
+    // state->read_keys_start = obj_start;
+    // obj_start += prog_header->read_keys_len;
 
-    state->write_keys_count = prog_header->write_keys_len / sizeof(uint32_t);
-    state->write_keys_start = obj_start;
-    obj_start += prog_header->write_keys_len;
+    // state->write_keys_count = prog_header->write_keys_len / sizeof(uint32_t);
+    // state->write_keys_start = obj_start;
+    // obj_start += prog_header->write_keys_len;
 
-    state->publish_count = prog_header->publish_len / sizeof(vm_publish_t);
-    state->publish_start = obj_start;
-    obj_start += prog_header->publish_len;
+    // state->publish_count = prog_header->publish_len / sizeof(vm_publish_t);
+    // state->publish_start = obj_start;
+    // obj_start += prog_header->publish_len;
 
-    state->link_count = prog_header->link_len / sizeof(link_t);
-    state->link_start = obj_start;
-    obj_start += prog_header->link_len;
+    // state->link_count = prog_header->link_len / sizeof(link_t);
+    // state->link_start = obj_start;
+    // obj_start += prog_header->link_len;
 
-    state->db_count = prog_header->db_len / sizeof(catbus_meta_t);
-    state->db_start = obj_start;
-    obj_start += prog_header->db_len;
+    // state->db_count = prog_header->db_len / sizeof(catbus_meta_t);
+    // state->db_start = obj_start;
+    // obj_start += prog_header->db_len;
 
-    state->cron_count = prog_header->cron_len / sizeof(cron_t);
-    state->cron_start = obj_start;
-    obj_start += prog_header->cron_len;
+    // state->cron_count = prog_header->cron_len / sizeof(cron_t);
+    // state->cron_start = obj_start;
+    // obj_start += prog_header->cron_len;
 
-    state->pix_obj_count = prog_header->pix_obj_len / sizeof(gfx_pixel_array_t);
+    // state->pix_obj_count = prog_header->pix_obj_len / sizeof(gfx_pixel_array_t);
 
-    // set up final items for VM execution
-    state->pool_start = obj_start;
+    // // set up final items for VM execution
+    // state->pool_start = obj_start;
 
     // Not assigning the variable this way - see note below on data_magic.
     // uint32_t code_magic = *(uint32_t *)( stream + *code_start );
@@ -3364,7 +3364,7 @@ int8_t vm_i8_load_program(
     }
 
     state->pool_start += sizeof(uint32_t);
-    state->pool_len = prog_header->constant_len;
+    state->pool_len = header.constant_len;
 
 
     state->code_start = state->pool_start + state->pool_len;
@@ -3382,8 +3382,8 @@ int8_t vm_i8_load_program(
 
     state->code_start += sizeof(uint32_t);
 
-    state->data_start = state->code_start + prog_header->code_len;
-    state->data_len = prog_header->data_len;
+    state->data_start = state->code_start + header.code_len;
+    state->data_len = header.data_len;
     state->data_count = state->data_len / DATA_LEN;
 
     // The Xtensa CPU in the ESP8266 will throw an alignment exception 9
