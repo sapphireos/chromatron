@@ -262,11 +262,12 @@ void vm_v_set_data(
     uint16_t addr, 
     int32_t data );
 
-int8_t vm_i8_check_header( uint8_t *stream );
+int8_t vm_i8_check_header( vm_program_header_t *prog_header );
 
 int8_t vm_i8_load_program(
-    uint8_t *stream,
-    uint16_t len,
+    uint8_t vm_id, 
+    char *program_fname, 
+    mem_handle_t *handle,
     vm_state_t *state );
 
 /*void vm_v_init_db(
