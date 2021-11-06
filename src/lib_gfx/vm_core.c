@@ -107,6 +107,14 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
+    uint8_t dest;
+    uint8_t op1;
+    uint8_t op2;
+} opcode_3ac_t;
+#define DECODE_3AC opcode_3ac = (opcode_3ac_t *)pc; pc += 4;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
     uint16_t imm1;
     uint8_t reg1;
 } opcode_1i1r_t;
@@ -173,7 +181,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,     // 39
         &&opcode_trap,    // 40
 
-        &&opcode_trap,            // 41
+        &&opcode_add,            // 41
         &&opcode_trap,              // 42
 
         &&opcode_trap,              // 43
@@ -735,6 +743,7 @@ static int8_t _vm_i8_run_stream(
 
     opcode_1ac_t *opcode_1ac;
     opcode_2ac_t *opcode_2ac;
+    opcode_3ac_t *opcode_3ac;
     opcode_1i1r_t *opcode_1i1r;
 
 
@@ -824,9 +833,6 @@ opcode_stgi:
 
     DISPATCH;
 
-
-
-
 opcode_ret:
     DECODE_1AC;    
     
@@ -852,8 +858,19 @@ opcode_ret:
 
     DISPATCH;
 
+opcode_add:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] + registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+
 opcode_trap:
     return VM_STATUS_TRAP;
+
+
+
 
 
 #ifdef OLD_VM    
