@@ -164,9 +164,6 @@ class FXImage(object):
 
             bytecode += bc
 
-            # print(bc)
-
-
         ################################
         # Generate binary program image:
         ################################

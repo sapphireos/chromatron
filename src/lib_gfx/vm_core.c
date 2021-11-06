@@ -3211,52 +3211,6 @@ int8_t vm_i8_load_program(
         goto error;
     }
 
-    // load constant pool
-    uint8_t *const_ptr = stream;
-
-    // check alignment
-    if( ( (uint32_t)const_ptr % 4 ) != 0 ){
-
-        return VM_STATUS_POOL_MISALIGN;
-    }
-
-    int16_t read_len = fs_i16_read( f, const_ptr, header.constant_len );
-
-    if( read_len != header.constant_len ){
-
-        status = VM_STATUS_ERR_BAD_FILE_READ;
-        goto error;
-    }
-
-    // load code
-    uint8_t *code_ptr = const_ptr + header.constant_len;
-
-    // check alignment
-    if( ( (uint32_t)code_ptr % 4 ) != 0 ){
-
-        return VM_STATUS_CODE_MISALIGN;
-    }
-
-    read_len = fs_i16_read( f, code_ptr, header.code_len );
-
-    if( read_len != header.code_len ){
-
-        status = VM_STATUS_ERR_BAD_FILE_READ;
-        goto error;
-    }
-
-    // zero out data segment
-    uint8_t *data_ptr = code_ptr + header.code_len;
-
-    // check alignment
-    if( ( (uint32_t)data_ptr % 4 ) != 0 ){
-
-        return VM_STATUS_DATA_MISALIGN;
-    }
-
-    memset( data_ptr, 0, header.data_len );
-
-    
     // init VM state:    
     memset( state, 0, sizeof(vm_state_t) );
 
@@ -3305,151 +3259,85 @@ int8_t vm_i8_load_program(
 
     // set up final items for VM execution
     state->pool_start = obj_start;
+    state->pool_len = header.constant_len;
+    state->code_start = state->pool_start + state->pool_len;
+    state->data_start = state->code_start + header.code_len;
+    state->data_len = header.data_len;
+    state->data_count = state->data_len / DATA_LEN;
 
 
+    // ******************
+    // load constant pool:
+    // ******************
+    uint8_t *const_ptr = stream;
 
+    // check alignment
+    if( ( (uint32_t)const_ptr % 4 ) != 0 ){
 
+        return VM_STATUS_POOL_MISALIGN;
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // verify hash
-    // uint32_t check_len = len - sizeof(uint32_t);
-    // uint32_t hash;
-    // memcpy( &hash, stream + check_len, sizeof(hash) );
-
-    // if( hash_u32_data( stream, check_len ) != hash ){
-
-    //     return VM_STATUS_ERR_BAD_HASH;
-    // }
-
-    // vm_program_header_t *prog_header = (vm_program_header_t *)stream;
-
-    // memset( state, 0, sizeof(vm_state_t) );
-
-    // // reset thread state
-    // for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
-
-    //     state->threads[i].func_addr = 0xffff;
-    //     state->threads[i].tick      = 0;
-    // }
-
-    // state->current_thread = -1;
-    
-    // state->program_name_hash = prog_header->program_name_hash;    
-
-    // state->init_start = prog_header->init_start;
-    // state->loop_start = prog_header->loop_start;
-
-    // uint16_t obj_start = sizeof(vm_program_header_t);
-
-    // state->read_keys_count = prog_header->read_keys_len / sizeof(uint32_t);
-    // state->read_keys_start = obj_start;
-    // obj_start += prog_header->read_keys_len;
-
-    // state->write_keys_count = prog_header->write_keys_len / sizeof(uint32_t);
-    // state->write_keys_start = obj_start;
-    // obj_start += prog_header->write_keys_len;
-
-    // state->publish_count = prog_header->publish_len / sizeof(vm_publish_t);
-    // state->publish_start = obj_start;
-    // obj_start += prog_header->publish_len;
-
-    // state->link_count = prog_header->link_len / sizeof(link_t);
-    // state->link_start = obj_start;
-    // obj_start += prog_header->link_len;
-
-    // state->db_count = prog_header->db_len / sizeof(catbus_meta_t);
-    // state->db_start = obj_start;
-    // obj_start += prog_header->db_len;
-
-    // state->cron_count = prog_header->cron_len / sizeof(cron_t);
-    // state->cron_start = obj_start;
-    // obj_start += prog_header->cron_len;
-
-    // state->pix_obj_count = prog_header->pix_obj_len / sizeof(gfx_pixel_array_t);
-
-    // // set up final items for VM execution
-    // state->pool_start = obj_start;
-
-    // Not assigning the variable this way - see note below on data_magic.
-    // uint32_t code_magic = *(uint32_t *)( stream + *code_start );
-
+    // check magic number
     uint32_t pool_magic = 0;
-    memcpy( (uint8_t *)&pool_magic, stream + state->pool_start, sizeof(pool_magic) );
+    fs_i16_read( f, &pool_magic, sizeof(pool_magic) );
 
     if( pool_magic != POOL_MAGIC ){
 
         return VM_STATUS_ERR_BAD_POOL_MAGIC;
     }
 
-    state->pool_start += sizeof(uint32_t);
-    state->pool_len = header.constant_len;
+    // load data from file
+    int16_t read_len = fs_i16_read( f, const_ptr, header.constant_len );
 
+    if( read_len != header.constant_len ){
 
-    state->code_start = state->pool_start + state->pool_len;
+        status = VM_STATUS_ERR_BAD_FILE_READ;
+        goto error;
+    }
 
-    // Not assigning the variable this way - see note below on data_magic.
-    // uint32_t code_magic = *(uint32_t *)( stream + *code_start );
+    // ******************
+    // load code:
+    // ******************
+    uint8_t *code_ptr = stream + state->code_start;
 
+    // check alignment
+    if( ( (uint32_t)code_ptr % 4 ) != 0 ){
+
+        return VM_STATUS_CODE_MISALIGN;
+    }
+
+    // check magic number
     uint32_t code_magic = 0;
-    memcpy( (uint8_t *)&code_magic, stream + state->code_start, sizeof(code_magic) );
+    fs_i16_read( f, &code_magic, sizeof(code_magic) );
 
     if( code_magic != CODE_MAGIC ){
 
         return VM_STATUS_ERR_BAD_CODE_MAGIC;
     }
 
-    state->code_start += sizeof(uint32_t);
+    // load data from file
+    read_len = fs_i16_read( f, code_ptr, header.code_len );
 
-    state->data_start = state->code_start + header.code_len;
-    state->data_len = header.data_len;
-    state->data_count = state->data_len / DATA_LEN;
+    if( read_len != header.code_len ){
 
-    // The Xtensa CPU in the ESP8266 will throw an alignment exception 9
-    // here.
-    // So, intead, we'll memcpy into the 32 bit var instead.
-    // uint32_t data_magic = *(uint32_t *)( stream + *data_start );
-    // uint32_t data_magic = 0;
-    // memcpy( (uint8_t *)&data_magic, stream + state->data_start, sizeof(data_magic) );
-
-    // // we do the same above on code_magic, although the exception was not seen there.
-
-    // if( data_magic != DATA_MAGIC ){
-
-    //     return VM_STATUS_ERR_BAD_DATA_MAGIC;
-    // }
-
-    // state->data_start += sizeof(uint32_t);
-
-    // // check that data size does not exceed the file size
-    // if( ( state->data_start + state->data_len ) > len ){
-
-    //     return VM_STATUS_ERR_BAD_LENGTH;        
-    // }
-
+        status = VM_STATUS_ERR_BAD_FILE_READ;
+        goto error;
+    }
+    
+    // **********************
+    // zero out data segment:
+    // **********************
     int32_t *data_table = (int32_t *)( stream + state->data_start );
+
+    // check alignment
+    if( ( (uint32_t)data_table % 4 ) != 0 ){
+
+        return VM_STATUS_DATA_MISALIGN;
+    }
+
+    memset( data_table, 0, header.data_len );
+
+    
 
     // init RNG seed
     state->rng_seed = 1;
