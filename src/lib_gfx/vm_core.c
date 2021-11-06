@@ -680,7 +680,7 @@ static int8_t _vm_i8_run_stream(
     uint8_t *code = stream + state->code_start;
     uint8_t *pc = code + func_addr + pc_offset;
     uint8_t opcode;
-    int32_t *constant_pool = 0; // NOT FINISHED!!!!!
+    int32_t *constant_pool = (int32_t *)( stream + state->pool_start );
     int32_t *local_memory = 0; // NOT FINISHED!!!!!
     int32_t *global_memory = 0; // NOT FINISHED!!!!!
 
@@ -2752,7 +2752,7 @@ int8_t vm_i8_run(
     #ifdef VM_ENABLE_GFX
 
     // set pixel arrays
-    gfx_v_init_pixel_arrays( (gfx_pixel_array_t *)&data[PIX_ARRAY_ADDR], state->pix_obj_count );
+    // gfx_v_init_pixel_arrays( (gfx_pixel_array_t *)&data[PIX_ARRAY_ADDR], state->pix_obj_count );
 
     #endif
 
@@ -3194,19 +3194,16 @@ int8_t vm_i8_load_program(
         goto error;
     }
 
-    // load code
-    uint8_t *code_start = stream;
-    int16_t read_len = fs_i16_read( f, code_start, header.code_len );
+    // load constant pool
+    uint8_t *const_ptr = stream;
 
-    if( read_len != header.code_len ){
+    // check alignment
+    if( ( (uint32_t)const_ptr % 4 ) != 0 ){
 
-        status = VM_STATUS_ERR_BAD_FILE_READ;
-        goto error;
+        return VM_STATUS_POOL_MISALIGN;
     }
 
-    uint8_t *const_start = code_start + header.code_len;
-
-    read_len = fs_i16_read( f, const_start, header.constant_len );
+    int16_t read_len = fs_i16_read( f, const_ptr, header.constant_len );
 
     if( read_len != header.constant_len ){
 
@@ -3214,10 +3211,36 @@ int8_t vm_i8_load_program(
         goto error;
     }
 
-    uint8_t *data_start = const_start + header.constant_len;
-    memset( data_start, 0, header.data_len );
+    // load code
+    uint8_t *code_ptr = const_ptr + header.constant_len;
+
+    // check alignment
+    if( ( (uint32_t)code_ptr % 4 ) != 0 ){
+
+        return VM_STATUS_CODE_MISALIGN;
+    }
+
+    read_len = fs_i16_read( f, code_ptr, header.code_len );
+
+    if( read_len != header.code_len ){
+
+        status = VM_STATUS_ERR_BAD_FILE_READ;
+        goto error;
+    }
+
+    // zero out data segment
+    uint8_t *data_ptr = code_ptr + header.code_len;
+
+    // check alignment
+    if( ( (uint32_t)data_ptr % 4 ) != 0 ){
+
+        return VM_STATUS_DATA_MISALIGN;
+    }
+
+    memset( data_ptr, 0, header.data_len );
 
     
+    // init VM state:    
     memset( state, 0, sizeof(vm_state_t) );
 
     // reset thread state
@@ -3234,7 +3257,8 @@ int8_t vm_i8_load_program(
     state->init_start = header.init_start;
     state->loop_start = header.loop_start;
 
-    uint16_t obj_start = sizeof(vm_program_header_t);
+    // uint16_t obj_start = sizeof(vm_program_header_t);
+    uint16_t obj_start = 0;
 
     state->read_keys_count = header.read_keys_len / sizeof(uint32_t);
     state->read_keys_start = obj_start;

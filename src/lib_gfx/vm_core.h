@@ -70,6 +70,7 @@
 #define VM_STATUS_DB_MISALIGN           -49
 #define VM_STATUS_CRON_MISALIGN         -52
 #define VM_STATUS_STREAM_MISALIGN       -53
+#define VM_STATUS_POOL_MISALIGN         -54
 
 #define VM_STATUS_LOAD_ALLOC_FAIL       -50
 #define VM_STATUS_SYNC_FAIL             -51
