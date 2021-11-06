@@ -750,8 +750,6 @@ static int8_t _vm_i8_run_stream(
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
     uint8_t call_depth = 0;
 
-    int32_t return_val;
-
 
     #define DISPATCH cycles--; \
                      if( cycles == 0 ){ \
@@ -836,7 +834,7 @@ opcode_stgi:
 opcode_ret:
     DECODE_1AC;    
     
-    return_val = registers[opcode_1ac->op1];
+    state->return_val = registers[opcode_1ac->op1];
 
 
     // check if call depth is 0
@@ -2778,6 +2776,8 @@ int8_t vm_i8_run(
 
     state->frame_number++;
 
+    state->return_val = 0;
+
     int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, data );
 
     cycles = VM_MAX_CYCLES - cycles;
@@ -3337,7 +3337,7 @@ int8_t vm_i8_load_program(
 
     memset( data_table, 0, header.data_len );
 
-    
+
 
     // init RNG seed
     state->rng_seed = 1;

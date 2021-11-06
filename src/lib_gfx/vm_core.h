@@ -185,6 +185,8 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint64_t loop_tick;
     uint32_t frame_number;
 
+    int32_t return_val;
+
     uint32_t program_name_hash;
 
     // MUST BE 32 bit aligned on ESP8266!
