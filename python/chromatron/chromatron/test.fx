@@ -1,4 +1,15 @@
 
+# a = Number()
+
+def loop():
+    # for i in 32:
+        # print(i)
+
+    i = Number()
+    while i < 32:
+        i += 1
+
+
 
 # def sub(a: Number, b: Number) -> Number:
 #     return a - b
@@ -28,10 +39,10 @@
 # global_b = Number()
 # global_c = Number(200000)
 
-def init():
+# def init():
     # func_call()
 
-    return 200001 + 200000
+    # return 200001 + 200000
 
     
 #     global_d = Number(2)

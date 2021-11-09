@@ -869,6 +869,38 @@ class Builder(object):
         self.pop_scope()
         self.position_label(end_label)
 
+    """
+    While loop:
+
+    preheader:
+        if test:
+            jump header
+
+        else:
+            jump end
+
+    header:
+        this is where loop-invariants will go
+
+        jump body
+    
+    body:
+        body code
+
+    top: (referring to the top of the loop as written in source code)
+        if test:
+            jump body
+
+        else:
+            jump end
+
+
+    end:    
+    
+        loop done
+    
+    """
+
     def begin_while(self, lineno=None):
         loop_name = f'while.{self.next_loop}'
         self.loop.append(loop_name)
@@ -930,6 +962,82 @@ class Builder(object):
         self.loop_top.pop(-1)
         self.loop_body.pop(-1)
         self.loop_end.pop(-1)
+
+    """
+    For loop:
+    
+    preheader:
+        i <- 0
+        if i < stop:
+            jump header
+        else:
+            jump end
+
+    header:
+        this is where loop-invariants will go
+
+        jump body
+
+    body:
+        body code
+
+    top: (referring to the top of the loop as written in source code)
+        i++
+        if i < stop:
+            jump body
+
+        else:
+            jump end
+    
+    end:
+        loop done
+
+    """
+
+    def begin_for(self, iterator, lineno=None):
+        loop_name = f'for.{self.next_loop}'
+        self.loop.append(loop_name)
+
+        top_label = self.label(f'{self.loop[-1]}.top', lineno=lineno)
+        end_label = self.label(f'{self.loop[-1]}.end', lineno=lineno)
+        preheader_label = self.label(f'{self.loop[-1]}.preheader', lineno=lineno)
+        # header_label = self.label(f'{self.loop[-1]}.header', lineno=lineno)
+        body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
+
+        # self.loop_preheader.append(preheader_label)
+        # self.loop_header.append(header_label)
+        self.loop_top.append(top_label)
+        self.loop_body.append(body_label)
+        self.loop_end.append(end_label)
+
+        self.position_label(preheader_label)
+
+        self.next_loop += 1
+
+        # init iterator to 0
+        zero = self.declare_var(0, lineno=-1)
+        self.assign(iterator, zero, lineno=lineno)
+
+
+        # begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR
+        # self.position_label(begin_label)
+        # top_label = self.label('for.top', lineno=lineno)
+        # continue_label = self.label('for.cont', lineno=lineno)
+        # end_label = self.label('for.end', lineno=lineno)
+
+        # self.loop_top.append(continue_label)
+        # self.loop_end.append(end_label)
+
+        # # set up iterator code (init to -1, as first pass will increment before the body) 
+        # init_value = self.add_const(-1, lineno=lineno)
+        # ir = irAssign(iterator, init_value, lineno=lineno)
+        # self.append_node(ir)
+
+        # ir = irJump(continue_label, lineno=lineno)
+        # self.append_node(ir)
+
+    def for_preheader(self, iterator, lineno=None):
+        pass
 
 
     def loop_break(self, lineno=None):

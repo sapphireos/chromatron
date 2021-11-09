@@ -451,6 +451,19 @@ class cg1For(cg1CodeNode):
 
         i = self.iterator.build(builder)
         stop = self.stop.build(builder)
+
+        builder.begin_for(i, lineno=self.lineno)
+
+        builder.for_preheader(i, lineno=self.lineno)
+
+        return
+
+
+        i_declare = cg1DeclareVar(name=self.iterator.name, lineno=self.lineno)    
+        i_declare.build(builder)
+
+        i = self.iterator.build(builder)
+        stop = self.stop.build(builder)
         
         top, cont, end = builder.begin_for(i, lineno=self.lineno)
 
