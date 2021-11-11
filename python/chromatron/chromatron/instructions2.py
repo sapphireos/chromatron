@@ -977,7 +977,7 @@ class insBinop(BaseInstruction):
         self.op2 = op2
 
     def __str__(self):
-        return "%-16s %16s <- %16s %4s %16s" % (self.mnemonic, self.result, self.op1, self.symbol, self.op2)
+        return "%-s %s <- %s %4s %s" % (self.mnemonic, self.result, self.op1, self.symbol, self.op2)
 
     def assemble(self):
         return OpcodeFormat3AC(self.mnemonic, self.result.assemble(), self.op1.assemble(), self.op2.assemble(), lineno=self.lineno)
