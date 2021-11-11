@@ -923,6 +923,31 @@ class insJmpIfZero(insJmpConditional):
         if vm.registers[self.op1.reg] == 0:
             return self.label
 
+class insLoop(BaseJmp):
+    mnemonic = 'LOOP'
+
+    def __init__(self, iterator_in, iterator_out, stop, label, **kwargs):
+        super().__init__(label, **kwargs)
+
+        self.iterator_in = iterator_in
+        self.iterator_out = iterator_out
+        self.stop = stop
+
+    def __str__(self):
+        return "%s, %s <- ++%s < %s -> %s" % (self.mnemonic, self.iterator_out, self.iterator_in, self.stop, self.label)
+
+    def execute(self, vm):
+        # increment op1
+        vm.registers[self.iterator_out.reg] = vm.registers[self.iterator_in.reg] + 1
+
+        # compare to op2
+        if vm.registers[self.iterator_out.reg] < vm.registers[self.stop.reg]:
+            # return jump target
+            return self.label
+
+
+
+
 class insReturn(BaseInstruction):
     mnemonic = 'RET'
 

@@ -1766,7 +1766,7 @@ class irFunc(IR):
 
             block.append(ir)
 
-            if isinstance(ir, irBranch):
+            if isinstance(ir, irBranch) or isinstance(ir, irLoop):
                 # conditional branch choosing between 2 locations
                 true_block = self.create_block_from_code_at_label(ir.true_label, prev_block=block, blocks=blocks)
                 block.successors.append(true_block)
@@ -3152,31 +3152,34 @@ class irJump(irControlFlow):
     def get_jump_target(self):
         return [self.target]
 
-# class irLoop(irControlFlow):
-#     def __init__(self, true_label, false_label, iterator, stop, **kwargs):
-#         super().__init__(**kwargs)        
-#         self.true_label = true_label
-#         self.false_label = false_label
-#         self.iterator = iterator
-#         self.stop = stop
+class irLoop(irControlFlow):
+    def __init__(self, true_label, false_label, iterator_in, iterator_out, stop, **kwargs):
+        super().__init__(**kwargs)        
+        self.true_label = true_label
+        self.false_label = false_label
+        self.iterator_in = iterator_in
+        self.iterator_out = iterator_out
+        self.stop = stop
 
-#     def __str__(self):
-#         s = f'LOOP ++{self.iterator} < {self.stop} -> T: {self.true_label.name} | F: {self.false_label.name}'
+    def __str__(self):
+        s = f'LOOP {self.iterator_out} <- ++{self.iterator_in} < {self.stop} -> T: {self.true_label.name} | F: {self.false_label.name}'
 
-#         return s    
+        return s    
 
-#     def get_input_vars(self):
-#         return [self.iterator, self.stop]
+    def get_input_vars(self):
+        return [self.iterator_in, self.stop]
 
-#     def get_output_vars(self):
-#         return [self.iterator]
+    def get_output_vars(self):
+        return [self.iterator_out]
 
-#     def generate(self):
-#         pass
-#         # return insJmp(self.target.generate(), lineno=self.lineno)
+    def generate(self):
+        return [
+            insLoop(self.iterator_in.generate(), self.iterator_out.generate(), self.stop.generate(), self.true_label.generate(), lineno=self.lineno),
+            insJmp(self.false_label.generate(), lineno=self.lineno)
+        ]
 
-#     def get_jump_target(self):
-#         return [self.true_label, self.false_label]
+    def get_jump_target(self):
+        return [self.true_label, self.false_label]
 
 
 class irReturn(irControlFlow):

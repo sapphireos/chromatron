@@ -478,19 +478,8 @@ class Builder(object):
         self.append_node(ir)
 
     def jump_loop(self, true, false, iterator, stop, lineno=None):
-        # increment iterator
-        one = self.declare_var(1, lineno=lineno)
-        result = self.binop('add', iterator, one, lineno=lineno)
-        new_iterator = self.get_var(iterator.name, lineno=lineno)
-        self.assign(new_iterator, result, lineno=lineno)
-
-        compare = self.binop('lt', new_iterator, stop, lineno=lineno)
-
-        ir = irBranch(compare, self.loop_header[-1], self.loop_end[-1], lineno=lineno)
+        ir = irLoop(true, false, self.get_var(iterator.name, lineno=lineno), self.get_var(iterator.name, lineno=lineno), stop, lineno=lineno)
         self.append_node(ir)
-
-        # ir = irLoop(true, false, iterator, stop, lineno=lineno)
-        # self.append_node(ir)
 
     def load_value(self, value, lineno=None):
         if value.data_type == 'offset':

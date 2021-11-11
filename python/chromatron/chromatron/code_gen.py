@@ -1105,7 +1105,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
 
             raise
 
-    return
+    # return
 
     # if debug_print:
     #     print(ir_program)
