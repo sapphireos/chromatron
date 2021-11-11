@@ -1228,7 +1228,7 @@ class insPrint(BaseInstruction):
     def execute(self, vm):
         value = vm.registers[self.op1.reg]
 
-        print(self.op1)
+        print(value)
             
     def assemble(self):
         return OpcodeFormat1AC(self.mnemonic, self.op1.assemble(), lineno=self.lineno)
