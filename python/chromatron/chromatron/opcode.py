@@ -43,7 +43,7 @@ opcodes = {
     'RET':                  0x13,
     'JMP':                  0x14,
     'JMPZ':                 0x15,
-    'JMPZ_INC':             0x16,
+    'LOOP':                 0x16,
     
     'COMP_EQ':              0x20,
     'COMP_NEQ':             0x21,

@@ -945,8 +945,8 @@ class insLoop(BaseJmp):
             # return jump target
             return self.label
 
-
-
+    def assemble(self):
+        return OpcodeFormat1Imm3Reg(self.mnemonic, self.label.assemble(), self.iterator_in.assemble(), self.iterator_out.assemble(), self.stop.assemble(), lineno=self.lineno)
 
 class insReturn(BaseInstruction):
     mnemonic = 'RET'
