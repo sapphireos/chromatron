@@ -2,12 +2,12 @@
 # a = Number()
 
 def loop():
-    # for i in 32:
-        # print(i)
+    for i in 32:
+        print(i)
 
-    i = Number()
-    while i < 32:
-        i += 1
+    # i = Number()
+    # while i < 32:
+    #     i += 1
 
 
 

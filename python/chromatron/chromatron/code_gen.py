@@ -452,32 +452,16 @@ class cg1For(cg1CodeNode):
         i = self.iterator.build(builder)
         stop = self.stop.build(builder)
 
-        builder.begin_for(i, lineno=self.lineno)
+        builder.begin_for(i, stop, lineno=self.lineno)
 
-        builder.for_preheader(i, lineno=self.lineno)
+        builder.test_for_preheader(i, stop, lineno=self.lineno)
 
-        return
-
-
-        i_declare = cg1DeclareVar(name=self.iterator.name, lineno=self.lineno)    
-        i_declare.build(builder)
-
-        i = self.iterator.build(builder)
-        stop = self.stop.build(builder)
-        
-        top, cont, end = builder.begin_for(i, lineno=self.lineno)
-
-        
-        builder.position_label(top)
+        builder.for_header(i, stop, lineno=self.lineno)
 
         for node in self.body:
             node.build(builder)
 
-        builder.position_label(cont)
-
-        builder.end_for(i, stop, top, lineno=self.lineno)
-
-        builder.position_label(end)
+        builder.end_for(i, stop, lineno=self.lineno)
 
 class cg1While(cg1CodeNode):
     _fields = ["test", "body"]
@@ -1120,6 +1104,8 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
                 raise e
 
             raise
+
+    return
 
     # if debug_print:
     #     print(ir_program)

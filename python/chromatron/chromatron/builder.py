@@ -477,6 +477,21 @@ class Builder(object):
         ir = irJump(target, lineno=lineno)
         self.append_node(ir)
 
+    def jump_loop(self, true, false, iterator, stop, lineno=None):
+        # increment iterator
+        one = self.declare_var(1, lineno=lineno)
+        result = self.binop('add', iterator, one, lineno=lineno)
+        new_iterator = self.get_var(iterator.name, lineno=lineno)
+        self.assign(new_iterator, result, lineno=lineno)
+
+        compare = self.binop('lt', new_iterator, stop, lineno=lineno)
+
+        ir = irBranch(compare, self.loop_header[-1], self.loop_end[-1], lineno=lineno)
+        self.append_node(ir)
+
+        # ir = irLoop(true, false, iterator, stop, lineno=lineno)
+        # self.append_node(ir)
+
     def load_value(self, value, lineno=None):
         if value.data_type == 'offset':
             var = self.add_temp(data_type=value.ref.scalar_type, lineno=lineno)
@@ -872,7 +887,7 @@ class Builder(object):
     """
     While loop:
 
-    preheader:
+    preheader: (decides if we run the loop at all)
         if test:
             jump header
 
@@ -940,7 +955,6 @@ class Builder(object):
         self.position_label(self.loop_top[-1])
         ir = irLoopTop(loop_name, lineno=lineno)
         self.append_node(ir)
-
         
     def test_while(self, test, lineno=None):
         ir = irBranch(test, self.loop_body[-1], self.loop_end[-1], lineno=lineno)
@@ -966,7 +980,7 @@ class Builder(object):
     """
     For loop:
     
-    preheader:
+    preheader: (decides if we run the loop at all)
         i <- 0
         if i < stop:
             jump header
@@ -994,18 +1008,18 @@ class Builder(object):
 
     """
 
-    def begin_for(self, iterator, lineno=None):
+    def begin_for(self, iterator, stop, lineno=None):
         loop_name = f'for.{self.next_loop}'
         self.loop.append(loop_name)
 
         top_label = self.label(f'{self.loop[-1]}.top', lineno=lineno)
         end_label = self.label(f'{self.loop[-1]}.end', lineno=lineno)
         preheader_label = self.label(f'{self.loop[-1]}.preheader', lineno=lineno)
-        # header_label = self.label(f'{self.loop[-1]}.header', lineno=lineno)
+        header_label = self.label(f'{self.loop[-1]}.header', lineno=lineno)
         body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
 
-        # self.loop_preheader.append(preheader_label)
-        # self.loop_header.append(header_label)
+        self.loop_preheader.append(preheader_label)
+        self.loop_header.append(header_label)
         self.loop_top.append(top_label)
         self.loop_body.append(body_label)
         self.loop_end.append(end_label)
@@ -1014,31 +1028,48 @@ class Builder(object):
 
         self.next_loop += 1
 
+    def test_for_preheader(self, iterator, stop, lineno=None):
         # init iterator to 0
         zero = self.declare_var(0, lineno=-1)
         self.assign(iterator, zero, lineno=lineno)
 
+        compare = self.binop('lt', iterator, stop, lineno=lineno)
 
-        # begin_label = self.label('for.begin', lineno=lineno) # we don't actually need this label, but it is helpful for reading the IR
-        # self.position_label(begin_label)
-        # top_label = self.label('for.top', lineno=lineno)
-        # continue_label = self.label('for.cont', lineno=lineno)
-        # end_label = self.label('for.end', lineno=lineno)
+        ir = irBranch(compare, self.loop_header[-1], self.loop_end[-1], lineno=lineno)
+        self.append_node(ir)
 
-        # self.loop_top.append(continue_label)
-        # self.loop_end.append(end_label)
+    def for_header(self, iterator, stop, lineno=None):
+        self.position_label(self.loop_header[-1])
 
-        # # set up iterator code (init to -1, as first pass will increment before the body) 
-        # init_value = self.add_const(-1, lineno=lineno)
-        # ir = irAssign(iterator, init_value, lineno=lineno)
-        # self.append_node(ir)
+        loop_name = self.loop[-1]
+        ir = irLoopHeader(loop_name, lineno=lineno)
+        self.append_node(ir)
 
-        # ir = irJump(continue_label, lineno=lineno)
-        # self.append_node(ir)
+        self.jump(self.loop_body[-1], lineno=lineno)
+            
 
-    def for_preheader(self, iterator, lineno=None):
-        pass
+        self.push_scope()
+        
+        self.position_label(self.loop_top[-1])
+        ir = irLoopTop(loop_name, lineno=lineno)
+        self.append_node(ir)
 
+        self.position_label(self.loop_body[-1])
+
+    def end_for(self, iterator, stop, lineno=None):
+        loop_name = self.loop[-1]
+
+        self.jump_loop(self.loop_top[-1], self.loop_end[-1], iterator, stop, lineno=lineno)
+        
+        self.pop_scope()
+        self.position_label(self.loop_end[-1])
+
+        self.loop.pop(-1)
+        self.loop_preheader.pop(-1)
+        self.loop_header.pop(-1)
+        self.loop_top.pop(-1)
+        self.loop_body.pop(-1)
+        self.loop_end.pop(-1)
 
     def loop_break(self, lineno=None):
         assert self.loop_end[-1] != None

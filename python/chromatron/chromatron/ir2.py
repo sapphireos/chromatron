@@ -2505,6 +2505,7 @@ class irFunc(IR):
         return func
 
     def analyze_blocks(self, opt_level='ssa'):
+    # def analyze_blocks(self, opt_level=None):
         logging.debug(f'Starting block analysis with optimization level: {opt_level}')
 
         self.ssa_next_val = {}
@@ -3150,6 +3151,32 @@ class irJump(irControlFlow):
 
     def get_jump_target(self):
         return [self.target]
+
+# class irLoop(irControlFlow):
+#     def __init__(self, true_label, false_label, iterator, stop, **kwargs):
+#         super().__init__(**kwargs)        
+#         self.true_label = true_label
+#         self.false_label = false_label
+#         self.iterator = iterator
+#         self.stop = stop
+
+#     def __str__(self):
+#         s = f'LOOP ++{self.iterator} < {self.stop} -> T: {self.true_label.name} | F: {self.false_label.name}'
+
+#         return s    
+
+#     def get_input_vars(self):
+#         return [self.iterator, self.stop]
+
+#     def get_output_vars(self):
+#         return [self.iterator]
+
+#     def generate(self):
+#         pass
+#         # return insJmp(self.target.generate(), lineno=self.lineno)
+
+#     def get_jump_target(self):
+#         return [self.true_label, self.false_label]
 
 
 class irReturn(irControlFlow):
