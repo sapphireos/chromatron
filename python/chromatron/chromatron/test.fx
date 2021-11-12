@@ -1,16 +1,37 @@
 
-a = Number()
+def local_array_lookup():
+    local_ary = Number()[4]
+    b = Number()
+    local_ary[b] = 1
+    b = 1
+    local_ary[b] = 2
 
-def init():
+    assert local_ary[0] == 1
+    assert local_ary[1] == 2
+    assert local_ary[2] == 0
+    assert local_ary[3] == 0
 
-    a = 123
+    local_ary[0] = 1
+    local_ary[1] = local_ary[0]
 
-    meow = Number()[4]
-    meow = a
+    assert local_ary[0] == 1
+    assert local_ary[1] == 1
+    assert local_ary[2] == 0
+    assert local_ary[3] == 0
 
-    a = meow[1]
 
-    return a
+# a = Number()
+
+# def init():
+
+#     a = 123
+
+#     meow = Number()[4]
+#     meow = a
+
+#     a = meow[1]
+
+#     return a
 
 
     # for i in 32:
