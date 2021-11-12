@@ -6,9 +6,12 @@ def init():
     a = 123
 
     meow = Number()[4]
+    meow = a
 
     a = meow[1]
-    
+
+    return a
+
 
     # for i in 32:
         # print(i)

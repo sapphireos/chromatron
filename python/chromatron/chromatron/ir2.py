@@ -200,9 +200,6 @@ class irProgram(IR):
 
             addr += g.size
 
-        for func in self.funcs.values():
-            func.allocate_locals()
-
         pix_arrays = {p.name: p for p in self.global_symbols.symbols.values() if p.data_type == 'PixelArray'}
         pix_arrays['pixels'].addr = 0
         pix_addr = 1
@@ -2317,7 +2314,7 @@ class irFunc(IR):
         self.live_ranges = ranges
 
     def allocate_locals(self):
-        addr = 0
+        addr = self.register_count
 
         for l in self.locals:
             l.addr = addr
@@ -2470,8 +2467,9 @@ class irFunc(IR):
         
         self.compute_live_ranges()
 
-        # allocate registers
+        # allocate local memory
         self.allocate_registers()
+        self.allocate_locals()
 
         self.remove_useless_copies()
 

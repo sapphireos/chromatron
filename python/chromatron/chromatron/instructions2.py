@@ -346,13 +346,17 @@ class insFunc(object):
             if isinstance(ins, insLabel):
                 labels[ins.name] = i
 
-        self.registers = [0] * self.register_count
+        # self.registers = [0] * self.register_count
         
-        self.locals = []
+        self.locals = [0] * self.register_count
         for l in self.local_vars:
             self.locals.extend(l.assemble())
 
-        registers = self.registers # just makes debugging a bit easier
+        # registers and locals are mirrored
+        self.registers = self.locals
+
+        # just makes debugging a bit easier:
+        registers = self.registers 
         memory = self.memory
         local = self.locals
 
@@ -412,7 +416,7 @@ class insFunc(object):
 
 
 class BaseInstruction(object):
-    mnemonic = 'NOP'
+    mnemonic = '_INS'
 
     def __init__(self, lineno=None):
         self.lineno = lineno
@@ -434,7 +438,7 @@ class BaseInstruction(object):
 
 # pseudo instruction - does not actually produce an opcode
 class insReg(BaseInstruction):
-    mnemonic = ''
+    mnemonic = '_REG'
 
     def __init__(self, reg=None, var=None, **kwargs):
         super().__init__(**kwargs)
@@ -459,6 +463,8 @@ class insReg(BaseInstruction):
 
 # pseudo instruction - does not actually produce an opcode
 class insAddr(BaseInstruction):
+    mnemonic = '_ADDR'
+
     def __init__(self, addr=None, var=None, **kwargs):
         super().__init__(**kwargs)
         self.addr = addr
@@ -484,6 +490,8 @@ class insAddr(BaseInstruction):
 
 
 class insNop(BaseInstruction):
+    mnemonic = 'NOP'
+
     def execute(self, vm):
         pass
 
