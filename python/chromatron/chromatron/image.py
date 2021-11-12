@@ -58,7 +58,6 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="db_len"),
                   Uint16Field(_name="cron_len"),
                   Uint16Field(_name="pix_obj_len"),
-                  Uint16Field(_name="padding"),
                   Uint16Field(_name="init_start"),
                   Uint16Field(_name="loop_start")]
 

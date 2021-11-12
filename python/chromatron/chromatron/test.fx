@@ -5,6 +5,11 @@ def init():
 
     a = 123
 
+    meow = Number()[4]
+
+    a = meow[1]
+    
+
     # for i in 32:
         # print(i)
 
