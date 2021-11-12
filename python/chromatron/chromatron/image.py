@@ -289,7 +289,7 @@ class FXImage(object):
         stream += struct.pack('<L', POOL_MAGIC)
 
         for const in constant_pool:
-            stream += struct.pack('<L', const)
+            stream += struct.pack('<l', const)
 
         # ensure alignment is correct
         assert len(stream) % 4 == 0
