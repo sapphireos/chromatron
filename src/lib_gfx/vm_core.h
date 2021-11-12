@@ -169,6 +169,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t code_start;
     uint16_t data_start;
+    
     uint16_t prog_size;
     uint16_t data_len;
 
@@ -177,12 +178,16 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     
     uint16_t padding;
     uint16_t data_count;
+    
     uint16_t init_start;
     uint16_t loop_start;
 
     uint64_t tick;
+    
     uint32_t last_elapsed_us;
+    
     uint64_t loop_tick;
+    
     uint32_t frame_number;
 
     int32_t return_val;
@@ -193,9 +198,11 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint64_t rng_seed;
 
     vm_thread_t threads[VM_MAX_THREADS];
+    
     uint32_t yield;
 
     int32_t current_thread;
+    
     uint32_t max_cycles;
 
     uint16_t read_keys_count;
@@ -207,8 +214,6 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t publish_count;
     uint16_t publish_start;
 
-    uint16_t pix_obj_count;
-
     uint16_t link_count;
     uint16_t link_start;
 
@@ -217,7 +222,11 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
 
     uint16_t cron_count;
     uint16_t cron_start;
+
     uint16_t last_cron;
+    uint16_t pix_obj_count;
+
+    uint16_t vm_id;
 } vm_state_t;
 
 int8_t vm_i8_run(

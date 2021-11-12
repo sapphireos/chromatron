@@ -635,14 +635,11 @@ PT_BEGIN( pt );
     // reset VM data
     reset_published_data( state->vm_id );
 
-    // if( load_vm( state->vm_id, state->program_fname, &state->handle ) < 0 ){
-
-    //     // error loading VM
-    //     goto exit;        
-    // }
-
-    // state->vm_return = vm_i8_load_program( mem2_vp_get_ptr( state->handle ), mem2_u16_get_size( state->handle ), &state->vm_state );
-    state->vm_return = vm_i8_load_program( state->vm_id, state->program_fname, &state->handle, &state->vm_state );
+    state->vm_return = vm_i8_load_program( 
+                        state->vm_id, 
+                        state->program_fname, 
+                        &state->handle, 
+                        &state->vm_state );
 
     if( state->vm_return ){
 
@@ -667,7 +664,9 @@ PT_BEGIN( pt );
     // vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
 
     // run VM init
-    state->vm_return = vm_i8_run_init( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+    state->vm_return = vm_i8_run_init( 
+                        mem2_vp_get_ptr( state->handle ), 
+                        &state->vm_state );
 
     if( state->vm_return ){
 

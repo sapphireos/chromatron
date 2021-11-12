@@ -1,9 +1,12 @@
 
-# a = Number()
+a = Number()
 
-def loop():
-    for i in 32:
-        print(i)
+def init():
+
+    a = 123
+
+    # for i in 32:
+        # print(i)
 
     # i = Number()
     # while i < 32:
