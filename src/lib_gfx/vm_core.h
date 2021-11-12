@@ -130,7 +130,8 @@ typedef struct __attribute__((packed)){
     uint16_t isa_version;
     uint32_t program_name_hash;
     uint16_t code_len;
-    uint16_t data_len;
+    uint16_t local_data_len;
+    uint16_t global_data_len;
     uint16_t constant_len;
     uint16_t read_keys_len;     // length in BYTES, not number of objects!
     uint16_t write_keys_len;    // length in BYTES, not number of objects!
@@ -167,18 +168,24 @@ typedef struct __attribute__((packed)){
 } vm_string_t;
 
 typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
+    uint16_t vm_id;
     uint16_t code_start;
-    uint16_t data_start;
+
+    uint16_t global_data_start;
+    uint16_t local_data_start;
+
+    uint16_t local_data_count;
+    uint16_t local_data_len;
+
+    uint16_t global_data_count;
+    uint16_t global_data_len;
     
     uint16_t prog_size;
-    uint16_t data_len;
+    uint16_t padding;
 
     uint16_t pool_start;
     uint16_t pool_len;
-    
-    uint16_t padding;
-    uint16_t data_count;
-    
+
     uint16_t init_start;
     uint16_t loop_start;
 
@@ -225,8 +232,6 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
 
     uint16_t last_cron;
     uint16_t pix_obj_count;
-
-    uint16_t vm_id;
 } vm_state_t;
 
 int8_t vm_i8_run(
@@ -252,27 +257,27 @@ uint64_t vm_u64_get_next_tick(
     uint8_t *stream,
     vm_state_t *state );
 
-int32_t vm_i32_get_data( 
-    uint8_t *stream,
-    vm_state_t *state,
-    uint16_t addr );
+// int32_t vm_i32_get_data( 
+//     uint8_t *stream,
+//     vm_state_t *state,
+//     uint16_t addr );
 
-void vm_v_get_data_multi( 
-    uint8_t *stream,
-    vm_state_t *state,
-    uint16_t addr, 
-    uint16_t len,
-    int32_t *dest );
+// void vm_v_get_data_multi( 
+//     uint8_t *stream,
+//     vm_state_t *state,
+//     uint16_t addr, 
+//     uint16_t len,
+//     int32_t *dest );
 
 int32_t* vm_i32p_get_data_ptr( 
     uint8_t *stream,
     vm_state_t *state );
 
-void vm_v_set_data( 
-    uint8_t *stream,
-    vm_state_t *state,
-    uint16_t addr, 
-    int32_t data );
+// void vm_v_set_data( 
+//     uint8_t *stream,
+//     vm_state_t *state,
+//     uint16_t addr, 
+//     int32_t data );
 
 int8_t vm_i8_check_header( vm_program_header_t *prog_header );
 

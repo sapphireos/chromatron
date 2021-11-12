@@ -48,7 +48,8 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="isa_version"),
                   CatbusHash(_name="program_name_hash"),
                   Uint16Field(_name="code_len"),
-                  Uint16Field(_name="data_len"),
+                  Uint16Field(_name="local_data_len"),
+                  Uint16Field(_name="global_data_len"),
                   Uint16Field(_name="constant_len"),
                   Uint16Field(_name="read_keys_len"),
                   Uint16Field(_name="write_keys_len"),
@@ -172,11 +173,15 @@ class FXImage(object):
         meta_names = []
 
         code_len = len(bytecode)
-        data_len = self.program.maximum_stack_depth + self.program.global_memory_size
-        data_len *= DATA_LEN
+        local_data_len = self.program.maximum_stack_depth
+        local_data_len *= DATA_LEN
+
+        global_data_len = self.program.global_memory_size
+        global_data_len *= DATA_LEN
 
         assert code_len % 4 == 0
-        assert data_len % 4 == 0
+        assert local_data_len % 4 == 0
+        assert global_data_len % 4 == 0
 
         # set up constant pool and init data
         constant_len = len(constant_pool) * DATA_LEN
@@ -260,7 +265,8 @@ class FXImage(object):
                     isa_version=VM_ISA_VERSION,
                     program_name_hash=catbus_string_hash(self.program.name),
                     code_len=code_len,
-                    data_len=data_len,
+                    local_data_len=local_data_len,
+                    global_data_len=global_data_len,
                     constant_len=constant_len,
                     pix_obj_len=pix_obj_len,
                     read_keys_len=len(packed_read_keys),

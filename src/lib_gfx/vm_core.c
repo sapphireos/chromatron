@@ -2746,7 +2746,8 @@ int8_t vm_i8_run(
 
     cycles = VM_MAX_CYCLES;
 
-    int32_t *data = (int32_t *)( stream + state->data_start );
+    int32_t *local_data = (int32_t *)( stream + state->local_data_start );
+    int32_t *global_data = (int32_t *)( stream + state->global_data_start );
 
     // load published vars
     vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
@@ -2757,7 +2758,7 @@ int8_t vm_i8_run(
 
         if( !type_b_is_string( publish->type ) ){
 
-            kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+            kvdb_i8_get( publish->hash, publish->type, &global_data[publish->addr], sizeof(global_data[publish->addr]) );
         }
 
         publish++;
@@ -2778,7 +2779,7 @@ int8_t vm_i8_run(
 
     state->return_val = 0;
 
-    int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, data );
+    int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, local_data );
 
     cycles = VM_MAX_CYCLES - cycles;
 
@@ -2794,8 +2795,8 @@ int8_t vm_i8_run(
 
     while( count > 0 ){
 
-        int32_t *ptr = &data[publish->addr];
-        uint32_t len = sizeof(data[publish->addr]);
+        int32_t *ptr = &global_data[publish->addr];
+        uint32_t len = sizeof(global_data[publish->addr]);
 
         // check if string
         // TODO
@@ -2805,7 +2806,7 @@ int8_t vm_i8_run(
 
             publish->type = CATBUS_TYPE_STRING64;
 
-            ptr = &data[*ptr]; // dereference string
+            ptr = &global_data[*ptr]; // dereference string
             len = ( *ptr & 0xffff0000 ) >> 16; // second half of first word of string is length
             ptr++;
             len++; // add null terminator
@@ -2971,70 +2972,70 @@ int8_t vm_i8_run_loop(
     return vm_i8_run( stream, state->loop_start, 0, state );
 }
 
-int32_t vm_i32_get_data( 
-    uint8_t *stream,
-    vm_state_t *state,
-    uint16_t addr ){
+// int32_t vm_i32_get_data( 
+//     uint8_t *stream,
+//     vm_state_t *state,
+//     uint16_t addr ){
 
-    // bounds check
-    if( addr >= state->data_count ){
+//     // bounds check
+//     if( addr >= state->data_count ){
 
-        return 0;
-    }
+//         return 0;
+//     }
 
-    int32_t *data_table = (int32_t *)( stream + state->data_start );
+//     int32_t *data_table = (int32_t *)( stream + state->data_start );
 
-    return data_table[addr];
-}
+//     return data_table[addr];
+// }
 
-void vm_v_get_data_multi( 
-    uint8_t *stream,
-    vm_state_t *state,
-    uint16_t addr, 
-    uint16_t len,
-    int32_t *dest ){
+// void vm_v_get_data_multi( 
+//     uint8_t *stream,
+//     vm_state_t *state,
+//     uint16_t addr, 
+//     uint16_t len,
+//     int32_t *dest ){
 
-    // bounds check
-    if( ( addr + len ) > state->data_count ){
+//     // bounds check
+//     if( ( addr + len ) > state->data_count ){
 
-        return;
-    }
+//         return;
+//     }
 
-    int32_t *data_table = (int32_t *)( stream + state->data_start );
+//     int32_t *data_table = (int32_t *)( stream + state->data_start );
 
-    while( len > 0 ){
+//     while( len > 0 ){
 
-        *dest = data_table[addr];
+//         *dest = data_table[addr];
 
-        dest++;
-        addr++;
-        len--;
-    }
-}
+//         dest++;
+//         addr++;
+//         len--;
+//     }
+// }
 
 int32_t* vm_i32p_get_data_ptr( 
     uint8_t *stream,
     vm_state_t *state ){
 
-    return (int32_t *)( stream + state->data_start );    
+    return (int32_t *)( stream + state->global_data_start );    
 }
 
-void vm_v_set_data( 
-    uint8_t *stream,
-    vm_state_t *state,
-    uint16_t addr, 
-    int32_t data ){
+// void vm_v_set_data( 
+//     uint8_t *stream,
+//     vm_state_t *state,
+//     uint16_t addr, 
+//     int32_t data ){
 
-    // bounds check
-    if( addr >= state->data_count ){
+//     // bounds check
+//     if( addr >= state->data_count ){
 
-        return;
-    }
+//         return;
+//     }
 
-    int32_t *data_table = (int32_t *)( stream + state->data_start );
+//     int32_t *data_table = (int32_t *)( stream + state->data_start );
 
-    data_table[addr] = data;
-}
+//     data_table[addr] = data;
+// }
 
 
 int8_t vm_i8_check_header( vm_program_header_t *prog_header ){
@@ -3192,7 +3193,10 @@ int8_t vm_i8_load_program(
         goto error;
     }
 
-    uint32_t vm_size = header.code_len + header.data_len + header.constant_len;
+    uint32_t vm_size = header.code_len + 
+                       header.global_data_len + 
+                       header.local_data_len + 
+                       header.constant_len;
 
     // allocate memory
     *handle = mem2_h_alloc2( vm_size, MEM_TYPE_VM_DATA );
@@ -3260,12 +3264,18 @@ int8_t vm_i8_load_program(
     state->pix_obj_count = header.pix_obj_len / sizeof(gfx_pixel_array_t);
 
     // set up final items for VM execution
-    state->pool_start = obj_start;
-    state->pool_len = header.constant_len;
-    state->code_start = state->pool_start + state->pool_len;
-    state->data_start = state->code_start + header.code_len;
-    state->data_len = header.data_len;
-    state->data_count = state->data_len / DATA_LEN;
+    state->pool_start   = obj_start;
+    state->pool_len     = header.constant_len;
+
+    state->code_start   = state->pool_start + state->pool_len;
+
+    state->local_data_start     = state->code_start + header.code_len;
+    state->local_data_len       = header.local_data_len;
+    state->local_data_count     = state->local_data_len / DATA_LEN;
+
+    state->global_data_start    = state->local_data_start + header.local_data_len;
+    state->global_data_len      = header.global_data_len;
+    state->global_data_count    = state->global_data_len / DATA_LEN;
 
 
     // ******************
@@ -3327,17 +3337,27 @@ int8_t vm_i8_load_program(
     }
     
     // **********************
-    // zero out data segment:
+    // zero out data segments:
     // **********************
-    int32_t *data_table = (int32_t *)( stream + state->data_start );
+    int32_t *local_data_ptr = (int32_t *)( stream + state->local_data_start );
 
     // check alignment
-    if( ( (uint32_t)data_table % 4 ) != 0 ){
+    if( ( (uint32_t)local_data_ptr % 4 ) != 0 ){
 
         return VM_STATUS_DATA_MISALIGN;
     }
 
-    memset( data_table, 0, header.data_len );
+    memset( local_data_ptr, 0, header.local_data_len );
+
+    int32_t *global_data_ptr = (int32_t *)( stream + state->global_data_start );
+
+    // check alignment
+    if( ( (uint32_t)global_data_ptr % 4 ) != 0 ){
+
+        return VM_STATUS_DATA_MISALIGN;
+    }
+
+    memset( global_data_ptr, 0, header.global_data_len );
 
 
 
@@ -3357,7 +3377,7 @@ int8_t vm_i8_load_program(
 
         if( !type_b_is_string( publish->type ) ){
 
-            kvdb_i8_set( publish->hash, publish->type, &data_table[publish->addr], sizeof(data_table[publish->addr]) );
+            kvdb_i8_set( publish->hash, publish->type, &global_data_ptr[publish->addr], sizeof(global_data_ptr[publish->addr]) );
         }
 
         publish++;

@@ -176,7 +176,7 @@ static void send_sync( sock_addr_t *raddr ){
     msg.checkpoint              = vm_u32_get_checkpoint();
     msg.checkpoint_hash         = vm_u32_get_checkpoint_hash();
     
-    msg.data_len                = state->data_len;
+    msg.data_len                = state->global_data_len;
     msg.max_threads             = VM_MAX_THREADS;
 
     if( msg.max_threads > SYNC_MAX_THREADS ){
