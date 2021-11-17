@@ -116,6 +116,12 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint8_t opcode;
     uint16_t imm1;
+} opcode_1i_t;
+#define DECODE_1I opcode_1i = (opcode_1i_t *)pc; pc += 4;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint16_t imm1;
     uint8_t reg1;
 } opcode_1i1r_t;
 #define DECODE_1I1R opcode_1i1r = (opcode_1i1r_t *)pc; pc += 4;
@@ -147,7 +153,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_stl,               // 9
         &&opcode_stgi,              // 10
         &&opcode_trap,              // 11
-        &&opcode_trap,              // 12
+        &&opcode_assert,            // 12
         &&opcode_trap,              // 13
         &&opcode_trap,              // 14
         &&opcode_trap,              // 15
@@ -156,8 +162,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 17
         &&opcode_trap,              // 18
         &&opcode_ret,               // 19
-        &&opcode_trap,              // 20
-        &&opcode_trap,              // 21
+        &&opcode_jmp,               // 20
+        &&opcode_jmpz,              // 21
         &&opcode_trap,              // 22
         &&opcode_trap,              // 23
         &&opcode_trap,              // 24
@@ -167,21 +173,20 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 28
         &&opcode_trap,              // 29
 
-        &&opcode_trap,               // 30
-        &&opcode_trap,          // 31
-        &&opcode_trap,      // 32
-        &&opcode_trap,  // 33
-
-        &&opcode_trap,               // 34
+        &&opcode_trap,              // 30
+        &&opcode_trap,              // 31
+        &&opcode_compeq,            // 32
+        &&opcode_trap,              // 33
+        &&opcode_compgt,            // 34
         &&opcode_trap,              // 35
-        &&opcode_trap,             // 36
-        &&opcode_trap,            // 37
+        &&opcode_trap,              // 36
+        &&opcode_trap,              // 37
 
-        &&opcode_trap,             // 38
-        &&opcode_trap,     // 39
-        &&opcode_trap,    // 40
+        &&opcode_trap,              // 38
+        &&opcode_trap,              // 39
+        &&opcode_trap,              // 40
 
-        &&opcode_add,            // 41
+        &&opcode_add,               // 41
         &&opcode_trap,              // 42
 
         &&opcode_trap,              // 43
@@ -198,26 +203,26 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 53
         &&opcode_trap,              // 54
 
-        &&opcode_trap,        // 55
-        &&opcode_trap,        // 56
-        &&opcode_trap,        // 57
-        &&opcode_trap,     // 58
-        &&opcode_trap,      // 59
+        &&opcode_trap,              // 55
+        &&opcode_trap,              // 56
+        &&opcode_trap,              // 57
+        &&opcode_trap,              // 58
+        &&opcode_trap,              // 59
 
-        &&opcode_trap,         // 60
-        &&opcode_trap,         // 61
-        &&opcode_trap,         // 62
-        &&opcode_trap,      // 63
-        &&opcode_trap,       // 64
+        &&opcode_trap,              // 60
+        &&opcode_trap,              // 61
+        &&opcode_trap,              // 62
+        &&opcode_trap,              // 63
+        &&opcode_trap,              // 64
 
-        &&opcode_trap,          // 65
-        &&opcode_trap,           // 66
+        &&opcode_trap,              // 65
+        &&opcode_trap,              // 66
 
-        &&opcode_trap,   // 67
-        &&opcode_trap,   // 68
+        &&opcode_trap,              // 67
+        &&opcode_trap,              // 68
 
-        &&opcode_trap,       // 69
-        &&opcode_trap,      // 70
+        &&opcode_trap,              // 69
+        &&opcode_trap,              // 70
 
         &&opcode_load_ret_val,      // 71
         &&opcode_call0,             // 72
@@ -744,6 +749,7 @@ static int8_t _vm_i8_run_stream(
     opcode_1ac_t *opcode_1ac;
     opcode_2ac_t *opcode_2ac;
     opcode_3ac_t *opcode_3ac;
+    opcode_1i_t *opcode_1i;
     opcode_1i1r_t *opcode_1i1r;
 
 
@@ -831,6 +837,18 @@ opcode_stgi:
 
     DISPATCH;
 
+opcode_assert:
+    DECODE_1AC;    
+    
+    if( registers[opcode_1ac->op1] == FALSE ){
+
+        log_v_warn_P( PSTR("VM Assertion") );
+
+        return VM_STATUS_ASSERT;        
+    }
+
+    DISPATCH;
+
 opcode_ret:
     DECODE_1AC;    
     
@@ -856,6 +874,23 @@ opcode_ret:
 
     DISPATCH;
 
+opcode_jmp:
+    DECODE_1I;    
+    
+    pc = code + opcode_1i->imm1;
+
+    DISPATCH;    
+
+opcode_jmpz:
+    DECODE_1I1R;    
+
+    if( registers[opcode_1i1r->reg1] ){
+
+        pc = code + opcode_1i1r->imm1;    
+    }
+
+    DISPATCH;    
+
 opcode_load_ret_val:
     DECODE_1AC;    
     
@@ -877,6 +912,20 @@ opcode_call0:
     
     // call by jumping to target
     pc = code + opcode_1i1r->imm1;
+
+    DISPATCH;
+
+opcode_compeq:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] == registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+opcode_compgt:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] > registers[opcode_3ac->op2];
 
     DISPATCH;
 
