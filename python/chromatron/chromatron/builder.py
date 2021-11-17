@@ -364,8 +364,6 @@ class Builder(object):
         self.funcs[func.name] = func
         self.current_func = func
         self.next_temp = 0
-        # self.refs = {}
-        # self.locals = {}
         self.scope_depth = 0
 
         func_label = self.label(f'func:{func.name}', lineno=kwargs['lineno'])
@@ -492,10 +490,6 @@ class Builder(object):
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
             var = self.add_temp(data_type='var', lineno=lineno)
 
-            # if value.ref is not None:
-            #     ir = irObjectLoad(var, value.ref, lookups=value.lookups, lineno=lineno)
-
-            # else:
             if len(value.lookups) > 0:
                 result = self.add_temp(data_type='objref', lineno=lineno)
                     
@@ -528,9 +522,6 @@ class Builder(object):
             return var
 
         elif isinstance(value, varComposite):
-            # var = self.add_temp(data_type='ref', lineno=lineno)
-            # ir = irLoadRef(var, value, lineno=lineno)
-
             var = self.add_temp(data_type='offset', lineno=lineno)
             var.ref = value.lookup()
 

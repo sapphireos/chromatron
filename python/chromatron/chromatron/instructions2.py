@@ -455,12 +455,7 @@ class insReg(BaseInstruction):
     
     def assemble(self):
         return self.reg
-        # convert to 16 bits
-        #l = self.reg & 0xff
-        #h = (self.reg >> 8) & 0xff
-
-        #return [l, h]
-
+        
 # pseudo instruction - does not actually produce an opcode
 class insAddr(BaseInstruction):
     mnemonic = '_ADDR'
@@ -481,13 +476,6 @@ class insAddr(BaseInstruction):
         assert self.addr >= 0
 
         return self.addr
-
-        # convert to 16 bits
-        # l = self.addr & 0xff
-        # h = (self.addr >> 8) & 0xff
-
-        # return [l, h]
-
 
 class insNop(BaseInstruction):
     mnemonic = 'NOP'
