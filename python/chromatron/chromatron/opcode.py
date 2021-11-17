@@ -74,6 +74,8 @@ opcodes = {
     'LKP2':                 0x42,
     'LKP3':                 0x43,
 
+    'LOAD_RET_VAL':         0x47,
+
     'CALL0':                0x48,
     'CALL1':                0x49,
     'CALL2':                0x4A,

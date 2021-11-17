@@ -14,9 +14,11 @@ def simple_ifelse():
     assert b == 2
     assert a == 0
 
+    return 1
+
 def init():
-    simple_ifelse()
-    
+    return simple_ifelse()
+
     # # return 1 + 2
     # pixels.hue = 0.667
     # pixels[0].hue = 0.667

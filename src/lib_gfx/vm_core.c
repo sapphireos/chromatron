@@ -219,7 +219,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,       // 69
         &&opcode_trap,      // 70
 
-        &&opcode_trap,       // 71
+        &&opcode_load_ret_val,      // 71
         &&opcode_call0,             // 72
         &&opcode_trap,              // 73
         &&opcode_trap,              // 74
@@ -853,6 +853,13 @@ opcode_ret:
     }
 
     pc = call_stack[call_depth];
+
+    DISPATCH;
+
+opcode_load_ret_val:
+    DECODE_1AC;    
+    
+    registers[opcode_1ac->op1] = state->return_val;
 
     DISPATCH;
 

@@ -4319,29 +4319,41 @@ class irAssert(IR):
     def generate(self):
         return insAssert(self.value.generate(), lineno=self.lineno)
 
+class irLoadRetVal(IR):
+    def __init__(self, target, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+
+    def __str__(self):
+        s = 'LOAD RET_VAL -> %s' % (self.target)
+
+        return s   
+
+    def get_output_vars(self):
+        return [self.target]
+
+    def generate(self):
+        return insLoadRetVal(self.target.generate(), lineno=self.lineno)
+
 class irCallType(IR):
     pass
 
 class irCall(irCallType):
-    def __init__(self, target, params, result, **kwargs):
+    def __init__(self, target, params, **kwargs):
         super().__init__(**kwargs)
         self.target = target.name
         self.params = params
-        self.result = result
 
-        self.result.force_used = True
+        # self.result.force_used = True
 
     def __str__(self):
         params = params_to_string(self.params)
-        s = f'CALL {self.target}({params}) -> {self.result}'
+        s = f'CALL {self.target}({params})'
 
         return s
 
     def get_input_vars(self):
         return self.params
-
-    def get_output_vars(self):
-        return [self.result]
 
     def generate(self, stack=[]):        
         # return insNop(lineno=self.lineno)
@@ -4354,23 +4366,22 @@ class irCall(irCallType):
         stack.insert(0, self.target)
 
         target = self.target
-        result = self.result.generate()
 
         # call func
         if len(params) == 0:
-            call_ins = insCall0(target, params, result, lineno=self.lineno)
+            call_ins = insCall0(target, params, lineno=self.lineno)
 
         elif len(params) == 1:
-            call_ins = insCall1(target, params, result, lineno=self.lineno)
+            call_ins = insCall1(target, params, lineno=self.lineno)
 
         elif len(params) == 2:
-            call_ins = insCall2(target, params, result, lineno=self.lineno)
+            call_ins = insCall2(target, params, lineno=self.lineno)
 
         elif len(params) == 3:
-            call_ins = insCall3(target, params, result, lineno=self.lineno)
+            call_ins = insCall3(target, params, lineno=self.lineno)
 
         elif len(params) == 4:
-            call_ins = insCall4(target, params, result, lineno=self.lineno)
+            call_ins = insCall4(target, params, lineno=self.lineno)
 
         else:
             raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')
@@ -4378,11 +4389,6 @@ class irCall(irCallType):
         stack.pop(0)
 
         return call_ins
-
-        # # move return value to result register
-        # mov_ins = insMov(self.result.generate(), insAddr(0), lineno=self.lineno)
-
-        # return [call_ins, mov_ins]
 
 
 class irIndirectCall(irCallType):

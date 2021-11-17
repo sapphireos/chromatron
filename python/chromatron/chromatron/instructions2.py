@@ -212,6 +212,7 @@ class insFunc(object):
         self.return_stack = return_stack
 
         self.cycle_limit = 16384
+        self.ret_val = None
 
     def __str__(self):
         s = ''
@@ -1229,15 +1230,30 @@ class insPrint(BaseInstruction):
     def assemble(self):
         return OpcodeFormat1AC(self.mnemonic, self.op1.assemble(), lineno=self.lineno)
 
+class insLoadRetVal(BaseInstruction):
+    mnemonic = 'LOAD_RET_VAL'
+
+    def __init__(self, target, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        
+    def __str__(self):
+        return "%s %s" % (self.mnemonic, self.target)
+
+    def execute(self, vm):
+        vm.registers[self.target.reg] = vm.ret_val
+
+    def assemble(self):
+        return OpcodeFormat1AC(self.mnemonic, self.target.assemble(), lineno=self.lineno)
+
 class insCall(BaseInstruction):
     mnemonic = 'CALL'
 
-    def __init__(self, target, params=[], result=None, **kwargs):
+    def __init__(self, target, params=[], **kwargs):
         super().__init__(**kwargs)
         self.target = target
         assert isinstance(target, str)
         self.params = params
-        self.result = result
 
     def __str__(self):
         params = ''
@@ -1245,13 +1261,13 @@ class insCall(BaseInstruction):
             params += '%s, ' % (param)
         params = params[:len(params) - 2]
 
-        return "%s %s (%s) -> %s" % (self.mnemonic, self.target, params, self.result)
+        return "%s %s (%s)" % (self.mnemonic, self.target, params)
 
     def execute(self, vm):
         target = vm.program.funcs[self.target]
         ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
 
-        vm.registers[self.result.reg] = ret_val
+        vm.ret_val = ret_val
 
     def assemble(self):
         raise NotImplementedError
@@ -1274,10 +1290,9 @@ class insCall0(insCall):
     mnemonic = 'CALL0'
 
     def assemble(self):
-        return OpcodeFormat1Imm1Reg(
+        return OpcodeFormat1Imm(
             self.mnemonic,
             OpcodeFunc(self.target, lineno=self.lineno), 
-            self.result.assemble(), 
             lineno=self.lineno)
 
 class insCall1(insCall):

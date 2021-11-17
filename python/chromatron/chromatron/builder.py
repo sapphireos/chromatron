@@ -442,14 +442,17 @@ class Builder(object):
     
         if indirect:
             ir = irIndirectCall(func, params, result, lineno=lineno)
+            self.append_node(ir)
 
         else:
             if len(params) != len(func.params):
                 raise SyntaxError(f'Incorrect number of arguments to function: {func.name}. Expected: {len(func.params)} Received: {len(params)}', lineno=lineno)
 
-            ir = irCall(func, params, result, lineno=lineno)
+            ir = irCall(func, params, lineno=lineno)
+            self.append_node(ir)
 
-        self.append_node(ir)
+            ir = irLoadRetVal(result, lineno=lineno)
+            self.append_node(ir)
 
         return result
 
