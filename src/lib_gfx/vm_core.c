@@ -153,13 +153,13 @@ static int8_t _vm_i8_run_stream(
         &&opcode_stl,               // 9
         &&opcode_stgi,              // 10
         &&opcode_trap,              // 11
-        &&opcode_assert,            // 12
+        &&opcode_trap,              // 12
         &&opcode_trap,              // 13
         &&opcode_trap,              // 14
         &&opcode_trap,              // 15
         &&opcode_trap,              // 16
 
-        &&opcode_trap,              // 17
+        &&opcode_assert,            // 17
         &&opcode_trap,              // 18
         &&opcode_ret,               // 19
         &&opcode_jmp,               // 20
@@ -899,7 +899,7 @@ opcode_load_ret_val:
     DISPATCH;
 
 opcode_call0:
-    DECODE_1I1R;
+    DECODE_1I;
 
     // set up return stack
     call_stack[call_depth] = pc;
@@ -911,7 +911,7 @@ opcode_call0:
     }
     
     // call by jumping to target
-    pc = code + opcode_1i1r->imm1;
+    pc = code + opcode_1i->imm1;
 
     DISPATCH;
 
