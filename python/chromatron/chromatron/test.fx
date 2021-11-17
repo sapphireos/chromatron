@@ -4,6 +4,9 @@
 def init():
     # return 1 + 2
     pixels.hue = 0.667
+    pixels[0].hue = 0.667
+    pixels.hue += 0.667
+    pixels[0].hue += 0.667
 #     a = 123
 
 #     meow = Number()[4]

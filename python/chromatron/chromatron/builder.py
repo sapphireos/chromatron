@@ -636,6 +636,7 @@ class Builder(object):
                     ir = irObjectLookup(result, target, lookups=target.lookups, lineno=lineno)
                     self.append_node(ir)
 
+                    result.lookups = target.lookups # object store may need to know if there are any lookups for instruction selection
                     target.lookups = []
 
                     ir = irObjectStore(result, value, target.attr, lineno=lineno)
@@ -754,6 +755,7 @@ class Builder(object):
                 ir = irObjectLookup(result, target, lookups=target.lookups, lineno=lineno)
                 self.append_node(ir)
 
+                result.lookups = target.lookups # object op may need to know if there are any lookups for instruction selection
                 target.lookups = []
 
                 ir = irObjectOp(op, result, value, target.attr, lineno=lineno)
