@@ -220,8 +220,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,      // 70
 
         &&opcode_trap,       // 71
-        &&opcode_trap,        // 72
-
+        &&opcode_call0,             // 72
         &&opcode_trap,              // 73
         &&opcode_trap,              // 74
         &&opcode_trap,              // 75
@@ -691,6 +690,7 @@ static int8_t _vm_i8_run_stream(
     int32_t *constant_pool = (int32_t *)( stream + state->pool_start );
     int32_t *local_memory = 0; // NOT FINISHED!!!!!
     int32_t *global_memory = 0; // NOT FINISHED!!!!!
+    
 
     // uint16_t dest;
     // uint16_t src;
@@ -856,13 +856,29 @@ opcode_ret:
 
     DISPATCH;
 
+opcode_call0:
+    DECODE_1I1R;
+
+    // set up return stack
+    call_stack[call_depth] = pc;
+    call_depth++;
+
+    if( call_depth > VM_MAX_CALL_DEPTH ){
+
+        return VM_STATUS_CALL_DEPTH_EXCEEDED;
+    }
+    
+    // call by jumping to target
+    pc = code + opcode_1i1r->imm1;
+
+    DISPATCH;
+
 opcode_add:
     DECODE_3AC;    
 
     registers[opcode_3ac->dest] = registers[opcode_3ac->op1] + registers[opcode_3ac->op2];
 
     DISPATCH;
-
 
 opcode_trap:
     return VM_STATUS_TRAP;

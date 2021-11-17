@@ -1,12 +1,27 @@
 
 # a = Number()
 
+def simple_ifelse():
+    a = Number()
+    b = Number()
+
+    if a > 0:
+        b = 1
+
+    else:
+        b = 2
+
+    assert b == 2
+    assert a == 0
+
 def init():
-    # return 1 + 2
-    pixels.hue = 0.667
-    pixels[0].hue = 0.667
-    pixels.hue += 0.667
-    pixels[0].hue += 0.667
+    simple_ifelse()
+    
+    # # return 1 + 2
+    # pixels.hue = 0.667
+    # pixels[0].hue = 0.667
+    # pixels.hue += 0.667
+    # pixels[0].hue += 0.667
 #     a = 123
 
 #     meow = Number()[4]
