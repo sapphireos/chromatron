@@ -102,17 +102,17 @@ PT_END( pt );
 
 void pwm_v_init( void ){
 
+    #pragma message "PWM is not done!"
+
+    return;
+
+    #pragma message "PWM test enabled"
 
     thread_t_create( adc_pwm_thread,
-                     PSTR("adc_pwm"),
-                     0,
-                     0 );
+                 PSTR("adc_pwm"),
+                 0,
+                 0 );
 
-
-    // #pragma message "PWM is not done!"
-
-    // return;
-    #pragma message "PWM test enabled"
 
     io_v_set_mode( IO_PIN_17_TX, IO_MODE_INPUT );    
     io_v_set_mode( IO_PIN_34_A2, IO_MODE_INPUT );    
