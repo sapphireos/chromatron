@@ -15,6 +15,9 @@ global_a = Number()
 
 def init():
     # global_var()
+
+    # global_a += 1
+    
     i = Number()
 
     while i < 32:
@@ -23,6 +26,7 @@ def init():
 
         i += 1
 
+    global_a += 2
 
     print(global_a)
 

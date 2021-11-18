@@ -442,31 +442,19 @@ class Builder(object):
     
         if indirect:
             ir = irIndirectCall(func, params, result, lineno=lineno)
-            self.append_node(ir)
 
         else:
             if len(params) != len(func.params):
                 raise SyntaxError(f'Incorrect number of arguments to function: {func.name}. Expected: {len(func.params)} Received: {len(params)}', lineno=lineno)
 
-            ir = irCall(func, params, lineno=lineno)
-            self.append_node(ir)
+            ir = irCall(func, params, result, lineno=lineno)
 
-            ir = irLoadRetVal(result, lineno=lineno)
-            self.append_node(ir)
+        self.append_node(ir)
 
         return result
 
-    def store_globals(self, lineno=None):
-        # only store globals that were loaded to containers:
-        for g in [g for g in self.current_symbol_table.loaded_globals.values() if isinstance(g, VarContainer)]:
-            g = g.copy()
-            ir = irStore(g, g.var, lineno=lineno)
-            self.append_node(ir)
-
     def ret(self, value, lineno=None):
         value = self.load_value(value, lineno=lineno)
-
-        self.store_globals(lineno=lineno)
 
         ir = irReturn(value, lineno=lineno)
 
@@ -668,7 +656,11 @@ class Builder(object):
         elif isinstance(target, VarContainer) and \
              isinstance(target.var, varRegister):
             
-            ir = irAssign(target, value, lineno=lineno)
+            if target.is_global:
+                ir = irStore(value, target.var, lineno=lineno)
+
+            else:
+                ir = irAssign(target, value, lineno=lineno)
 
         else:
             raise SyntaxError(f'Invalid assign: {target} = {value}', lineno=lineno)
