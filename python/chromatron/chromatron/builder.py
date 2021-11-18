@@ -441,7 +441,7 @@ class Builder(object):
         #         self.assign(result, const, lineno=lineno)
     
         if indirect:
-            ir = irIndirectCall(func, params, result, lineno=lineno)
+            ir = irIndirectCall(func, params, lineno=lineno)
             self.append_node(ir)
 
         else:
@@ -451,8 +451,8 @@ class Builder(object):
             ir = irCall(func, params, lineno=lineno)
             self.append_node(ir)
 
-            ir = irLoadRetVal(result, lineno=lineno)
-            self.append_node(ir)
+        ir = irLoadRetVal(result, lineno=lineno)
+        self.append_node(ir)
 
         return result
 

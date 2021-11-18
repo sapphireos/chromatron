@@ -4392,15 +4392,14 @@ class irCall(irCallType):
 
 
 class irIndirectCall(irCallType):
-    def __init__(self, ref, params, result, **kwargs):
+    def __init__(self, ref, params, **kwargs):
         super().__init__(**kwargs)
         self.ref = ref
         self.params = params
-        self.result = result
 
     def __str__(self):
         params = params_to_string(self.params)
-        s = f'ICALL {self.ref.name}({params}) -> {self.result}'
+        s = f'ICALL {self.ref.name}({params})'
 
         return s
 
@@ -4409,9 +4408,6 @@ class irIndirectCall(irCallType):
         inputs.extend(self.params)
         return inputs
 
-    def get_output_vars(self):
-        return [self.result]
-
     def generate(self):        
         # return insNop(lineno=self.lineno)
         params = [a.generate() for a in self.params]
@@ -4419,19 +4415,19 @@ class irIndirectCall(irCallType):
 
         # call func
         if len(params) == 0:
-            call_ins = insIndirectCall0(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+            call_ins = insIndirectCall0(self.ref.generate(), params, lineno=self.lineno)
 
         elif len(params) == 1:
-            call_ins = insIndirectCall1(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+            call_ins = insIndirectCall1(self.ref.generate(), params, lineno=self.lineno)
 
         elif len(params) == 2:
-            call_ins = insIndirectCall2(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+            call_ins = insIndirectCall2(self.ref.generate(), params, lineno=self.lineno)
 
         elif len(params) == 3:
-            call_ins = insIndirectCall3(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+            call_ins = insIndirectCall3(self.ref.generate(), params, lineno=self.lineno)
 
         elif len(params) == 4:
-            call_ins = insIndirectCall4(self.ref.generate(), params, self.result.generate(), lineno=self.lineno)
+            call_ins = insIndirectCall4(self.ref.generate(), params, lineno=self.lineno)
 
         else:
             raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')

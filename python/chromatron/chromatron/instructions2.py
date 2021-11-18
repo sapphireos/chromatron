@@ -1344,11 +1344,10 @@ class insCall4(insCall):
 class insIndirectCall(BaseInstruction):
     mnemonic = 'ICALL'
 
-    def __init__(self, ref, params=[], result=None, **kwargs):
+    def __init__(self, ref, params=[], **kwargs):
         super().__init__(**kwargs)
         self.ref = ref
         self.params = params
-        self.result = result
 
     def __str__(self):
         params = ''
@@ -1356,47 +1355,31 @@ class insIndirectCall(BaseInstruction):
             params += '%s, ' % (param)
         params = params[:len(params) - 2]
 
-        return "%s %s (%s) -> %s" % (self.mnemonic, self.ref, params, self.result)
+        return "%s %s (%s)" % (self.mnemonic, self.ref, params)
 
     def execute(self, vm):
         func = vm.registers[self.ref.reg]
 
         target = vm.program.funcs[func.var.name]
 
-        ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
-
-        vm.registers[self.result.reg] = ret_val
-        
-    # def assemble(self):
-    #     pass
-
-        # bc = [self.opcode]
-        # bc.extend(insFuncTarget(self.ref).assemble())
-
-        # assert len(self.params) == len(self.args)
-
-        # bc.append(len(self.params))
-        # for i in range(len(self.params)):
-        #     bc.extend(self.params[i].assemble())
-        #     bc.extend(self.args[i].assemble())
-
-        # return bc
-
+        vm.ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
 
 class insIndirectCall0(insIndirectCall):
     mnemonic = 'ICALL0'
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.ref.assemble(), self.result.assemble(), lineno=self.lineno)
+        return OpcodeFormat1AC(
+            self.mnemonic, 
+            self.ref.assemble(), 
+            lineno=self.lineno)
 
 class insIndirectCall1(insIndirectCall):
     mnemonic = 'ICALL1'
 
     def assemble(self):
-        return OpcodeFormat3AC(
+        return OpcodeFormat2AC(
             self.mnemonic,
             self.ref.assemble(), 
-            self.result.assemble(), 
             self.params[0].assemble(), 
             lineno=self.lineno)
 
@@ -1404,10 +1387,9 @@ class insIndirectCall2(insIndirectCall):
     mnemonic = 'ICALL2'
 
     def assemble(self):
-        return OpcodeFormat4AC(
+        return OpcodeFormat3AC(
             self.mnemonic,
             self.ref.assemble(), 
-            self.result.assemble(), 
             self.params[0].assemble(), 
             self.params[1].assemble(), 
             lineno=self.lineno)
@@ -1416,10 +1398,9 @@ class insIndirectCall3(insIndirectCall):
     mnemonic = 'ICALL3'
 
     def assemble(self):
-        return OpcodeFormat5AC(
+        return OpcodeFormat4AC(
             self.mnemonic,
             self.ref.assemble(), 
-            self.result.assemble(), 
             self.params[0].assemble(), 
             self.params[1].assemble(), 
             self.params[2].assemble(), 
@@ -1429,10 +1410,9 @@ class insIndirectCall4(insIndirectCall):
     mnemonic = 'ICALL4'
 
     def assemble(self):
-        return OpcodeFormat6AC(
+        return OpcodeFormat5AC(
             self.mnemonic,
             self.ref.assemble(), 
-            self.result.assemble(), 
             self.params[0].assemble(), 
             self.params[1].assemble(), 
             self.params[2].assemble(), 
