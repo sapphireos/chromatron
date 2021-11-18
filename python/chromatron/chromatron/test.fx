@@ -1,23 +1,30 @@
 
-# a = Number()
 
-def simple_ifelse():
-    a = Number()
-    b = Number()
+global_a = Number()
+# def global_var():
+#     i = Number()
 
-    if a > 0:
-        b = 1
+#     while i < 32:
 
-    else:
-        b = 2
+#         global_a += 1
 
-    assert b == 2
-    assert a == 0
+#         i += 1
 
-    return 1
+  # assert global_a == 1
+
 
 def init():
-    return simple_ifelse()
+    # global_var()
+    i = Number()
+
+    while i < 32:
+
+        global_a += 1
+
+        i += 1
+
+
+    print(global_a)
 
     # # return 1 + 2
     # pixels.hue = 0.667

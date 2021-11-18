@@ -160,7 +160,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 16
 
         &&opcode_assert,            // 17
-        &&opcode_trap,              // 18
+        &&opcode_print,             // 18
         &&opcode_ret,               // 19
         &&opcode_jmp,               // 20
         &&opcode_jmpz,              // 21
@@ -179,7 +179,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 33
         &&opcode_compgt,            // 34
         &&opcode_trap,              // 35
-        &&opcode_trap,              // 36
+        &&opcode_complt,            // 36
         &&opcode_trap,              // 37
 
         &&opcode_trap,              // 38
@@ -693,8 +693,8 @@ static int8_t _vm_i8_run_stream(
     uint8_t *pc = code + func_addr + pc_offset;
     uint8_t opcode;
     int32_t *constant_pool = (int32_t *)( stream + state->pool_start );
-    int32_t *local_memory = 0; // NOT FINISHED!!!!!
-    int32_t *global_memory = 0; // NOT FINISHED!!!!!
+    int32_t *local_memory = (int32_t *)( stream + state->local_data_start );
+    int32_t *global_memory = (int32_t *)( stream + state->global_data_start );
     
 
     // uint16_t dest;
@@ -849,6 +849,13 @@ opcode_assert:
 
     DISPATCH;
 
+opcode_print:
+    DECODE_1AC;    
+
+    log_v_info_P( PSTR("VM print: %d"), registers[opcode_1ac->op1] );
+    
+    DISPATCH;
+
 opcode_ret:
     DECODE_1AC;    
     
@@ -926,6 +933,13 @@ opcode_compgt:
     DECODE_3AC;    
 
     registers[opcode_3ac->dest] = registers[opcode_3ac->op1] > registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+opcode_complt:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] < registers[opcode_3ac->op2];
 
     DISPATCH;
 
