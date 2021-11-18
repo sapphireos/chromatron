@@ -884,7 +884,7 @@ opcode_jmp:
 opcode_jmpz:
     DECODE_1I1R;    
 
-    if( registers[opcode_1i1r->reg1] ){
+    if( registers[opcode_1i1r->reg1] == 0 ){
 
         pc = code + opcode_1i1r->imm1;    
     }
