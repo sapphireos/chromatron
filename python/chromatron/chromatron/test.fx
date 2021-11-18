@@ -22,13 +22,13 @@ def init():
 
     while i < 32:
 
-    #     # global_a += 1
+        global_a += 1
 
         i += 1
 
-    # global_a += 2
+    global_a += 2
 
-    # print(global_a)
+    print(global_a)
 
 
 

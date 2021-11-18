@@ -660,9 +660,9 @@ class Builder(object):
              isinstance(target.var, varRegister):
 
             ir = irAssign(target, value, lineno=lineno)
-            self.append_node(ir)
             
             if target.is_global:
+                self.append_node(ir)
                 ir = irStore(target, target.var, lineno=lineno)
 
         else:
