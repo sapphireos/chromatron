@@ -102,6 +102,10 @@ typedef struct __attribute__((packed)){
     uint8_t padding[1];
 } vm_publish_t;
 
+typedef struct __attribute__((packed)){
+    uint16_t addr;
+    uint16_t frame_size;
+} function_info_t;
 
 typedef struct __attribute__((packed)){
     link_mode_t8 mode;
@@ -130,6 +134,8 @@ typedef struct __attribute__((packed)){
     uint16_t isa_version;
     uint32_t program_name_hash;
     uint16_t code_len;
+    uint16_t func_info_len;
+    uint16_t padding;
     uint16_t local_data_len;
     uint16_t global_data_len;
     uint16_t constant_len;
@@ -169,6 +175,9 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t vm_id;
     uint16_t code_start;
+
+    uint16_t func_info_start;
+    uint16_t func_info_len;
 
     uint16_t global_data_start;
     uint16_t local_data_start;

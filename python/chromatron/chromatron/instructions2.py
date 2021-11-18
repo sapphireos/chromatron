@@ -191,7 +191,7 @@ class insProgram(object):
         for func in self.funcs.values():
             bytecode[func.name] = func.assemble()
 
-        return FXImage(self, bytecode, self.constants)
+        return FXImage(self, bytecode)
 
 
 class insFunc(object):
@@ -1272,20 +1272,6 @@ class insCall(BaseInstruction):
     def assemble(self):
         raise NotImplementedError
 
-    #     pass
-
-        # bc = [self.opcode]
-        # bc.extend(insFuncTarget(self.target).assemble())
-
-        # assert len(self.params) == len(self.args)
-
-        # bc.append(len(self.params))
-        # for i in range(len(self.params)):
-        #     bc.extend(self.params[i].assemble())
-        #     bc.extend(self.args[i].assemble())
-
-        # return bc
-
 class insCall0(insCall):
     mnemonic = 'CALL0'
 
@@ -1363,6 +1349,9 @@ class insIndirectCall(BaseInstruction):
         target = vm.program.funcs[func.var.name]
 
         vm.ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
+
+    def assemble(self):
+        raise NotImplementedError
 
 class insIndirectCall0(insIndirectCall):
     mnemonic = 'ICALL0'

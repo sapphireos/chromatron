@@ -48,6 +48,8 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="isa_version"),
                   CatbusHash(_name="program_name_hash"),
                   Uint16Field(_name="code_len"),
+                  Uint16Field(_name="func_len"),
+                  Uint16Field(_name="padding"),
                   Uint16Field(_name="local_data_len"),
                   Uint16Field(_name="global_data_len"),
                   Uint16Field(_name="constant_len"),
@@ -62,6 +64,13 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="loop_start")]
 
         super().__init__(_name="program_header", _fields=fields, **kwargs)
+
+class FunctionInfo(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint16Field(_name="addr"),
+                  Uint16Field(_name="frame_size")]
+
+        super().__init__(_name="function_info", _fields=fields, **kwargs)
 
 class VMPublishVar(StructField):
     def __init__(self, **kwargs):
@@ -99,10 +108,11 @@ class CronItem(StructField):
 
 
 class FXImage(object):
-    def __init__(self, program, func_bytecode={}, constants=[]):
+    def __init__(self, program, func_bytecode={}):
         self.program = program
+        self.funcs = program.funcs
         self.func_bytecode = func_bytecode
-        self.constants = constants
+        self.constants = program.constants
 
         self.stream = None
         self.header = None
@@ -119,6 +129,8 @@ class FXImage(object):
 
     def render(self, filename=None):
         function_addrs = {}
+        function_indexes = {}
+        function_table = []
         label_addrs = {}
         opcodes = []
         read_keys = []
@@ -136,8 +148,8 @@ class FXImage(object):
         # set up label and func addresses
 
         addr = 0
-        for func, code in self.func_bytecode.items():
-            function_addrs[func] = addr
+        for func_name, code in self.func_bytecode.items():
+            function_addrs[func_name] = addr
 
             for op in code:
                 if isinstance(op, OpcodeLabel):
@@ -147,9 +159,18 @@ class FXImage(object):
                     opcodes.append(op)
                     addr += op.length
 
+        # set up function table
+        for func_name, func in self.funcs.items():
+            info = FunctionInfo(addr=function_addrs[func_name], frame_size=func.local_memory_size * DATA_LEN)
+
+            function_table.append(info)
+
+            function_indexes[func_name] = len(function_table) - 1
+
+
         # set label and func addresses in opcodes
         for op in opcodes:
-            op.assign_addresses(label_addrs, function_addrs)
+            op.assign_addresses(label_addrs, function_indexes)
             print(op)
 
 
@@ -181,6 +202,13 @@ class FXImage(object):
         assert code_len % 4 == 0
         assert local_data_len % 4 == 0
         assert global_data_len % 4 == 0
+
+        # set up function table
+        packed_function_table = bytes()
+        for func in function_table:
+            packed_function_table += func.pack()
+
+        func_table_len = len(function_table) * DATA_LEN
 
         # set up constant pool and init data
         constant_len = len(constant_pool) * DATA_LEN
@@ -264,6 +292,7 @@ class FXImage(object):
                     isa_version=VM_ISA_VERSION,
                     program_name_hash=catbus_string_hash(self.program.name),
                     code_len=code_len,
+                    func_len=func_table_len,
                     local_data_len=local_data_len,
                     global_data_len=global_data_len,
                     constant_len=constant_len,
@@ -278,6 +307,7 @@ class FXImage(object):
                     loop_start=function_addrs['loop'])
 
         stream += header.pack()
+        stream += packed_function_table
         stream += packed_read_keys  
         stream += packed_write_keys
         stream += packed_publish

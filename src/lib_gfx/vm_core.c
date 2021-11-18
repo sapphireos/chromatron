@@ -131,8 +131,7 @@ static int8_t _vm_i8_run_stream(
     uint8_t *stream,
     uint16_t func_addr,
     uint16_t pc_offset,
-    vm_state_t *state,
-    int32_t *registers ){
+    vm_state_t *state ){
 
 #if defined(ESP8266)
     static void *opcode_table[] = {
@@ -692,8 +691,10 @@ static int8_t _vm_i8_run_stream(
     uint8_t *code = stream + state->code_start;
     uint8_t *pc = code + func_addr + pc_offset;
     uint8_t opcode;
+    function_info_t *func_table = (function_info_t *)( stream + state->func_info_start );
     int32_t *constant_pool = (int32_t *)( stream + state->pool_start );
     int32_t *local_memory = (int32_t *)( stream + state->local_data_start );
+    int32_t *registers = local_memory;
     int32_t *global_memory = (int32_t *)( stream + state->global_data_start );
     
 
@@ -918,7 +919,7 @@ opcode_call0:
     }
     
     // call by jumping to target
-    pc = code + opcode_1i->imm1;
+    pc = code + func_table[opcode_1i->imm1].addr;
 
     DISPATCH;
 
@@ -2832,7 +2833,6 @@ int8_t vm_i8_run(
 
     cycles = VM_MAX_CYCLES;
 
-    int32_t *local_data = (int32_t *)( stream + state->local_data_start );
     int32_t *global_data = (int32_t *)( stream + state->global_data_start );
 
     // load published vars
@@ -2865,7 +2865,7 @@ int8_t vm_i8_run(
 
     state->return_val = 0;
 
-    int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, local_data );
+    int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state );
 
     cycles = VM_MAX_CYCLES - cycles;
 
@@ -3280,6 +3280,7 @@ int8_t vm_i8_load_program(
     }
 
     uint32_t vm_size = header.code_len + 
+                       header.func_info_len + 
                        header.global_data_len + 
                        header.local_data_len + 
                        header.constant_len;
@@ -3290,14 +3291,6 @@ int8_t vm_i8_load_program(
     if( *handle < 0 ){
 
         status = VM_STATUS_LOAD_ALLOC_FAIL;   
-        goto error;
-    }
-
-    uint8_t *stream = mem2_vp_get_ptr( *handle );
-
-    if( ( (uint32_t)stream % 4 ) != 0 ){
-
-        status = VM_STATUS_STREAM_MISALIGN;
         goto error;
     }
 
@@ -3320,7 +3313,6 @@ int8_t vm_i8_load_program(
     state->init_start = header.init_start;
     state->loop_start = header.loop_start;
 
-    // uint16_t obj_start = sizeof(vm_program_header_t);
     uint16_t obj_start = 0;
 
     state->read_keys_count = header.read_keys_len / sizeof(uint32_t);
@@ -3350,12 +3342,15 @@ int8_t vm_i8_load_program(
     state->pix_obj_count = header.pix_obj_len / sizeof(gfx_pixel_array_t);
 
     // set up final items for VM execution
-    state->pool_start   = obj_start;
-    state->pool_len     = header.constant_len;
+    state->pool_start           = obj_start;
+    state->pool_len             = header.constant_len;
 
-    state->code_start   = state->pool_start + state->pool_len;
+    state->code_start           = state->pool_start + state->pool_len;
 
-    state->local_data_start     = state->code_start + header.code_len;
+    state->func_info_start      = state->code_start + header.code_len;
+    state->func_info_len        = header.func_info_len;
+
+    state->local_data_start     = state->func_info_start + header.func_info_len;
     state->local_data_len       = header.local_data_len;
     state->local_data_count     = state->local_data_len / DATA_LEN;
 
@@ -3363,11 +3358,40 @@ int8_t vm_i8_load_program(
     state->global_data_len      = header.global_data_len;
     state->global_data_count    = state->global_data_len / DATA_LEN;
 
+    uint8_t *stream = mem2_vp_get_ptr( *handle );
 
+    if( ( (uint32_t)stream % 4 ) != 0 ){
+
+        status = VM_STATUS_STREAM_MISALIGN;
+        goto error;
+    }
+
+    // **********************
+    // load function table:
+    // **********************
+    uint8_t *func_info_ptr = stream;
+
+    // load data from file
+    int16_t read_len = fs_i16_read( f, func_info_ptr, header.func_info_len );
+
+    if( read_len != header.func_info_len ){
+
+        status = VM_STATUS_ERR_BAD_FILE_READ;
+        goto error;
+    }
+
+    // ******************
+    // load objects:
+    // ******************
+    // NOT YET IMPLEMENTED!
+
+
+
+    
     // ******************
     // load constant pool:
     // ******************
-    uint8_t *const_ptr = stream;
+    uint8_t *const_ptr = stream + state->func_info_len;
 
     // check alignment
     if( ( (uint32_t)const_ptr % 4 ) != 0 ){
@@ -3385,7 +3409,7 @@ int8_t vm_i8_load_program(
     }
 
     // load data from file
-    int16_t read_len = fs_i16_read( f, const_ptr, header.constant_len );
+    read_len = fs_i16_read( f, const_ptr, header.constant_len );
 
     if( read_len != header.constant_len ){
 
@@ -3421,7 +3445,7 @@ int8_t vm_i8_load_program(
         status = VM_STATUS_ERR_BAD_FILE_READ;
         goto error;
     }
-    
+
     // **********************
     // zero out data segments:
     // **********************

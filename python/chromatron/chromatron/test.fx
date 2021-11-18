@@ -1,23 +1,6 @@
 
 global_a = Number()
-# def global_var():
-#     i = Number()
-
-#     while i < 32:
-
-#         global_a += 1
-
-#         i += 1
-
-  # assert global_a == 1
-
-
-def init():
-    # pass
-    # global_var()
-
-    # global_a += 1
-    
+def global_var():
     i = Number()
 
     while i < 32:
@@ -26,7 +9,24 @@ def init():
 
         i += 1
 
-    global_a += 2
+  # assert global_a == 1
+
+
+def init():
+    # pass
+    global_var()
+
+    # global_a += 1
+    
+    # i = Number()
+
+    # while i < 32:
+
+    #     global_a += 1
+
+    #     i += 1
+
+    # global_a += 2
 
     print(global_a)
 
