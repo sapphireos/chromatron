@@ -1299,10 +1299,9 @@ class insCall1(insCall):
     mnemonic = 'CALL1'
 
     def assemble(self):
-        return OpcodeFormat1Imm2Reg(
+        return OpcodeFormat1Imm1Reg(
             self.mnemonic,
             OpcodeFunc(self.target, lineno=self.lineno),
-            self.result.assemble(), 
             self.params[0].assemble(), 
             lineno=self.lineno)
 
@@ -1310,10 +1309,9 @@ class insCall2(insCall):
     mnemonic = 'CALL2'
 
     def assemble(self):
-        return OpcodeFormat1Imm3Reg(
+        return OpcodeFormat1Imm2Reg(
             self.mnemonic,
             OpcodeFunc(self.target, lineno=self.lineno),
-            self.result.assemble(), 
             self.params[0].assemble(), 
             self.params[1].assemble(), 
             lineno=self.lineno)
@@ -1322,10 +1320,9 @@ class insCall3(insCall):
     mnemonic = 'CALL3'
 
     def assemble(self):
-        return OpcodeFormat1Imm4Reg(
+        return OpcodeFormat1Imm3Reg(
             self.mnemonic,
             OpcodeFunc(self.target, lineno=self.lineno),
-            self.result.assemble(), 
             self.params[0].assemble(), 
             self.params[1].assemble(), 
             self.params[2].assemble(), 
@@ -1335,10 +1332,9 @@ class insCall4(insCall):
     mnemonic = 'CALL4'
 
     def assemble(self):
-        return OpcodeFormat1Imm5Reg(
+        return OpcodeFormat1Imm4Reg(
             self.mnemonic,
             OpcodeFunc(self.target, lineno=self.lineno),
-            self.result.assemble(), 
             self.params[0].assemble(), 
             self.params[1].assemble(), 
             self.params[2].assemble(), 
