@@ -1,16 +1,5 @@
 
-def sub(a: Number, b: Number) -> Number:
-    return a - b
-
-# def add(a: Number, b: Number) -> Number:
-#     return a + b
-
-def func_call():
-    assert sub(1, 2) == -1
-#     assert add(1, 2) == 3
-
-
-# global_a = Number()
+global_a = Number()
 # def global_var():
 #     i = Number()
 
@@ -20,25 +9,26 @@ def func_call():
 
 #         i += 1
 
-#   # assert global_a == 1
+  # assert global_a == 1
 
 
-# def init():
-#     global_var()
+def init():
+    # pass
+    # global_var()
 
-#     # global_a += 1
+    # global_a += 1
     
-#     i = Number()
+    i = Number()
 
-#     while i < 32:
+    while i < 32:
 
-#         global_a += 1
+    #     # global_a += 1
 
-#         i += 1
+        i += 1
 
-#     global_a += 2
+    # global_a += 2
 
-#     print(global_a)
+    # print(global_a)
 
 
 

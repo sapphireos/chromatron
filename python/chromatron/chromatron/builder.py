@@ -658,12 +658,12 @@ class Builder(object):
 
         elif isinstance(target, VarContainer) and \
              isinstance(target.var, varRegister):
+
+            ir = irAssign(target, value, lineno=lineno)
+            self.append_node(ir)
             
             if target.is_global:
-                ir = irStore(value, target.var, lineno=lineno)
-
-            else:
-                ir = irAssign(target, value, lineno=lineno)
+                ir = irStore(target, target.var, lineno=lineno)
 
         else:
             raise SyntaxError(f'Invalid assign: {target} = {value}', lineno=lineno)
