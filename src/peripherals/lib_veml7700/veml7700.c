@@ -49,15 +49,15 @@ Luminance Example
 */
 
 // values in lux
-static uint16_t als;
-static uint16_t white;
+static uint32_t als;
+static uint32_t white;
 
 static uint8_t gain;
 static uint8_t int_time;
 
 KV_SECTION_META kv_meta_t veml7700_kv[] = {
-    {SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &als,    0, "veml7700_als"},   
-    {SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &white,  0, "veml7700_white"},   
+    {SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &als,    0, "veml7700_als"},   
+    {SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,  0, "veml7700_white"},   
 };
 
 
@@ -149,6 +149,8 @@ static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
     }
     else{
 
+        log_v_error_P( PSTR("invalid gain") );
+
         // invalid setting
         return 0;
     }
@@ -179,12 +181,14 @@ static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
     }
     else{
 
+        log_v_error_P( PSTR("invalid int time") );
+
         // invalid setting
         return 0;
     }
 
     // return lux
-    return resolution / 1000000;
+    return ( (uint64_t)val * resolution ) / 1000000;
 }
 
 
@@ -222,7 +226,7 @@ PT_BEGIN( pt );
         als = calc_lux( raw_als, gain, int_time );
         white = calc_lux( raw_white, gain, int_time );
 
-        // log_v_debug_P( PSTR("%d %d"), als, white );
+        // log_v_debug_P( PSTR("%d %d"), raw_als, raw_white );
     }
     
 
