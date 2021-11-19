@@ -51,6 +51,8 @@ Luminance Example
 // values in lux
 static uint32_t als;
 static uint32_t white;
+static uint16_t raw_als;
+static uint16_t raw_white;
 
 static uint8_t gain;
 static uint8_t int_time;
@@ -58,6 +60,8 @@ static uint8_t int_time;
 KV_SECTION_META kv_meta_t veml7700_kv[] = {
     {SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &als,    0, "veml7700_als"},   
     {SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,  0, "veml7700_white"},   
+    {SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_als,    0, "veml7700_raw_als"},   
+    {SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_white,  0, "veml7700_raw_white"},   
 };
 
 
@@ -141,11 +145,11 @@ static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
     }
     else if( _gain == VEML7700_ALS_GAIN_x0_125 ){
 
-        resolution = 7200;
+        resolution = 460800;
     }
     else if( _gain == VEML7700_ALS_GAIN_x0_25 ){
 
-        resolution = 14400;
+        resolution = 230400;
     }
     else{
 
@@ -157,11 +161,11 @@ static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
 
     if( _int_time == VEML7700_ALS_INT_TIME_25ms ){
 
-        resolution /= 4;
+        resolution *= 4;
     }
     else if( _int_time == VEML7700_ALS_INT_TIME_50ms ){
 
-        resolution /= 2;
+        resolution *= 2;
     }
     else if( _int_time == VEML7700_ALS_INT_TIME_100ms ){
 
@@ -169,15 +173,15 @@ static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
     }
     else if( _int_time == VEML7700_ALS_INT_TIME_200ms ){
 
-        resolution *= 2;        
+        resolution /= 2;        
     }
     else if( _int_time == VEML7700_ALS_INT_TIME_400ms ){
 
-        resolution *= 4;
+        resolution /= 4;
     }
     else if( _int_time == VEML7700_ALS_INT_TIME_800ms ){
 
-        resolution *= 8;
+        resolution /= 8;
     }
     else{
 
@@ -214,14 +218,14 @@ PT_BEGIN( pt );
     log_v_info_P( PSTR("VEML7700 detected") );
 
     
-    veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
+    veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_25ms );
 
     while(1){
 
         TMR_WAIT( pt, 1000 );
 
-        uint16_t raw_als = veml7700_u16_read_als();
-        uint16_t raw_white = veml7700_u16_read_white();
+        raw_als = veml7700_u16_read_als();
+        raw_white = veml7700_u16_read_white();
 
         als = calc_lux( raw_als, gain, int_time );
         white = calc_lux( raw_white, gain, int_time );
