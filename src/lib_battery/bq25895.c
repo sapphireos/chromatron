@@ -1106,6 +1106,13 @@ PT_BEGIN( pt );
         OR turn AUTO_DPDM off.  Remember force DPDM will run even if auto is off, so bypass
         that as well if you don't want DPDM at all.
 
+
+        MORE NOTES!!!!!!!!!!!!!!!!!!!
+
+        REGN is turned off in HIZ, if there is no input on VBUS, and boost mode is disabled.
+        This means the batt temp sensor will read incorrectly in those conditions!
+        Also note there is a 200ms power on delay for REGN.
+
         */
 
 
