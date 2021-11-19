@@ -146,10 +146,12 @@ class FXImage(object):
 
 
         # set up label and func addresses
-
+        func_opcodes = {}
         addr = 0
         for func_name, code in self.func_bytecode.items():
             function_addrs[func_name] = addr
+
+            func_opcodes[func_name] = []
 
             for op in code:
                 if isinstance(op, OpcodeLabel):
@@ -158,6 +160,8 @@ class FXImage(object):
                 else:
                     opcodes.append(op)
                     addr += op.length
+
+                func_opcodes[func_name].append(op)
 
         # set up function table
         for func_name, func in self.funcs.items():
@@ -171,8 +175,11 @@ class FXImage(object):
         # set label and func addresses in opcodes
         for op in opcodes:
             op.assign_addresses(label_addrs, function_indexes)
-            print(op)
 
+        for func_name, func_opcodes in func_opcodes.items():
+            print(func_name)
+            for op in func_opcodes:
+                print(' ' * 4, op)
 
         bytecode = bytes()
 

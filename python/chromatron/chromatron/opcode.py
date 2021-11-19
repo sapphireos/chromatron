@@ -327,6 +327,9 @@ class OpcodeLabel(Opcode):
         self.label = label
         self.addr = None
 
+    def __str__(self):
+        return f'LABEL: {self.label.name:16} Line: {self.lineno:3}'
+
     def render(self):
         return self.addr
 

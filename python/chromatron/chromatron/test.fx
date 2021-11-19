@@ -26,7 +26,7 @@ def init():
 
     #     i += 1
 
-    # global_a += 2
+    global_a += 2
 
     print(global_a)
 

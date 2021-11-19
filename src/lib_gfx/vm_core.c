@@ -952,6 +952,9 @@ opcode_add:
     DISPATCH;
 
 opcode_trap:
+    
+    log_v_critical_P( PSTR("VM TRAP: %x"), opcode );
+
     return VM_STATUS_TRAP;
 
 
@@ -3315,6 +3318,10 @@ int8_t vm_i8_load_program(
 
     uint16_t obj_start = 0;
 
+    state->func_info_start      = obj_start;
+    state->func_info_len        = header.func_info_len;
+    obj_start += header.func_info_len;
+
     state->read_keys_count = header.read_keys_len / sizeof(uint32_t);
     state->read_keys_start = obj_start;
     obj_start += header.read_keys_len;
@@ -3342,15 +3349,13 @@ int8_t vm_i8_load_program(
     state->pix_obj_count = header.pix_obj_len / sizeof(gfx_pixel_array_t);
 
     // set up final items for VM execution
+
     state->pool_start           = obj_start;
     state->pool_len             = header.constant_len;
 
     state->code_start           = state->pool_start + state->pool_len;
 
-    state->func_info_start      = state->code_start + header.code_len;
-    state->func_info_len        = header.func_info_len;
-
-    state->local_data_start     = state->func_info_start + header.func_info_len;
+    state->local_data_start     = state->code_start + header.code_len;
     state->local_data_len       = header.local_data_len;
     state->local_data_count     = state->local_data_len / DATA_LEN;
 
