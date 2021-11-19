@@ -51,7 +51,7 @@ static uint16_t boost_voltage;
 static uint16_t vindpm;
 static uint16_t iindpm;
 
-static bool enable_solar = TRUE;
+static bool enable_solar = FALSE;
 static bool solar_tracking;
 #define SOLAR_MIN_VBUS 4400
 
@@ -72,7 +72,7 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                   0,  "batt_vindpm" },
+    { SAPPHIRE_TYPE_UINT16,  0, 0,  &vindpm,                   0,  "batt_vindpm" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                   0,  "batt_iindpm" },
     { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &solar_tracking,           0,  "batt_solar_tracking" },
 
@@ -828,6 +828,9 @@ void init_charger( void ){
 
     bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
 
+    // turn off ICO
+    // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+
     bq25895_v_set_inlim( 3250 );
     bq25895_v_set_pre_charge_current( 160 );
     
@@ -963,6 +966,11 @@ PT_BEGIN( pt );
         // bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
         do{
+
+            // re-init
+            bq25895_v_reset();
+            init_boost_converter();
+            init_charger();
             
             bq25895_v_set_hiz( TRUE );
             bq25895_v_start_adc_oneshot();      
@@ -1141,6 +1149,8 @@ PT_BEGIN( pt );
             bq25895_v_set_hiz( FALSE );
             bq25895_v_enable_adc_continuous();
 
+            bq25895_v_set_vindpm( 5500 );
+
             // re-enable charging
             bq25895_v_set_charger( TRUE );
 
@@ -1155,6 +1165,8 @@ PT_BEGIN( pt );
 
         }
         else if( vbus_connected ){ 
+
+            bq25895_v_set_vindpm( vindpm );
 
             // vbus disconnected, but we were previously connected
 
