@@ -61,6 +61,16 @@ void datalog_v_init( void ){
 
 }
 
+static void reset_config( void ){
+
+    if( datalog_handle > 0 ){
+
+        mem2_v_free( datalog_handle );
+
+        datalog_handle = -1;
+    }
+}
+
 PT_THREAD( datalog_config_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -73,6 +83,8 @@ PT_BEGIN( pt );
         file_t f = fs_f_open_P( PSTR("datalog_config"), FS_MODE_READ_ONLY );
 
         if( f < 0 ){
+
+            reset_config();
 
             goto done;
         }
@@ -108,12 +120,7 @@ PT_BEGIN( pt );
         datalog_file_entry_t entry;
         uint16_t entry_count = fs_i32_get_size( f ) / sizeof(entry);
 
-        if( datalog_handle > 0 ){
-
-            mem2_v_free( datalog_handle );
-
-            datalog_handle = -1;
-        }
+        reset_config();
 
         datalog_handle = mem2_h_alloc( entry_count * sizeof(datalog_entry_t) );
 

@@ -1462,6 +1462,16 @@ class Device(object):
 
         return s
 
+    def cli_datalog_reset(self, line):
+        # get a copy of the datalog config file.
+        # we can put that file back if we didn't want to reset!
+        self.get_datalog_config()
+
+        # delete the file
+        self.delete_file('datalog_config')
+
+        return "Datalogger configuration reset"
+
     def cli_datalog_delete(self, line):
         try:
             data = self.get_datalog_config()
