@@ -42,6 +42,7 @@ typedef struct{
 } datalog_entry_t;
 
 static mem_handle_t datalog_handle = -1;
+static msgflow_t msgflow = -1;
 
 PT_THREAD( datalog_config_thread( pt_t *pt, void *state ) );
 PT_THREAD( datalog_thread( pt_t *pt, void *state ) );
@@ -159,14 +160,31 @@ PT_END( pt );
 }
 
 
+static void record_data( catbus_hash_t32 hash, uint16_t tick_rate ){
+
+    #define MAX_DATA_LEN 128
+
+    uint8_t buf[sizeof(datalog_data_t) + MAX_DATA_LEN];
+    memset( buf, 0, sizeof(buf) );
+    datalog_data_t *data_msg = (datalog_data_t *)buf;
+    uint8_t *data = &data_msg->data.data;
+
+    uint16_t msglen = ( sizeof(datalog_data_t) - 1 ) + kv_i16_len( hash );
+
+    if( ( kv_i8_get( hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ) &&
+        ( kv_i8_get_catbus_meta( hash, &data_msg->data.meta ) == KV_ERR_STATUS_OK ) ){
+
+        // transmit!
+        msgflow_b_send( msgflow, buf, msglen );
+    }
+}
+
 PT_THREAD( datalog_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
     // wait until we have a valid config
     THREAD_WAIT_WHILE( pt, datalog_handle < 0 );
-    
-    static msgflow_t msgflow;
 
     msgflow = msgflow_m_listen( __KV__datalogger, MSGFLOW_CODE_ANY, 128 );
 
@@ -203,21 +221,7 @@ PT_BEGIN( pt );
 
                 entry_ptr->ticks = entry_ptr->tick_rate;
 
-                #define MAX_DATA_LEN 128
-
-                uint8_t buf[sizeof(datalog_data_t) + MAX_DATA_LEN];
-                datalog_data_t *data_msg = (datalog_data_t *)buf;
-                memset( data_msg->reserved, 0, sizeof(data_msg->reserved) );
-                uint8_t *data = &data_msg->data.data;
-
-                uint16_t msglen = ( sizeof(datalog_data_t) - 1 ) + kv_i16_len( entry_ptr->hash );
-
-                if( ( kv_i8_get( entry_ptr->hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ) &&
-                    ( kv_i8_get_catbus_meta( entry_ptr->hash, &data_msg->data.meta ) == KV_ERR_STATUS_OK ) ){
-
-                    // transmit!
-                    msgflow_b_send( msgflow, buf, msglen );
-                }
+                record_data( entry_ptr->hash, entry_ptr->tick_rate );
 
             done:
                 entry_ptr++;

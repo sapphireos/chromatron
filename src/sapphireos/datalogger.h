@@ -37,7 +37,6 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     catbus_data_t data;
-    uint16_t reserved[16];
 } datalog_data_t;
 
 
