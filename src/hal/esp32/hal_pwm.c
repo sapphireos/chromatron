@@ -100,11 +100,13 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+// #define PWM_ENABLED
+
 void pwm_v_init( void ){
 
     #pragma message "PWM is not done!"
 
-    return;
+    #ifdef PWM_ENABLED
 
     #pragma message "PWM test enabled"
 
@@ -162,6 +164,8 @@ void pwm_v_init( void ){
 
     ledc_set_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel, 0);
     ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
+
+    #endif
 }
 
 void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
