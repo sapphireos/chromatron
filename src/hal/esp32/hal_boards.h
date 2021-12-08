@@ -29,7 +29,8 @@
 #define BOARD_TYPE_CHROMATRON32_v0_0        1
 #define BOARD_TYPE_CHROMATRON32_v0_1        2
 #define BOARD_TYPE_WROVER_KIT               3
-#define BOARD_TYPE_COUNT					4
+#define BOARD_TYPE_ELITE                    4
+#define BOARD_TYPE_COUNT					5
 
 #define BOARD_TYPE_UNSET                    0xff
 
