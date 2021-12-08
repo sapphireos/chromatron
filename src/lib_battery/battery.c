@@ -24,6 +24,9 @@
 
 #include "sapphire.h"
 
+#include "hal_boards.h"
+#include "flash_fs.h"
+
 #include "gfx_lib.h"
 #include "vm.h"
 #include "pixel.h"
@@ -41,6 +44,7 @@ static bool batt_enable;
 static int8_t batt_ui_state;
 static bool pixels_enabled = TRUE;
 static uint8_t button_state;
+static uint8_t ui_button;
 
 static uint8_t batt_state;
 #define BATT_STATE_OK           0
@@ -163,6 +167,22 @@ PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
 void batt_v_init( void ){
 
+    #if defined(ESP8266)
+    ui_button = IO_PIN_6_DAC0;
+    #elif defined(ESP32)
+
+    uint8_t board = ffs_u8_read_board_type();
+
+    if( board == BOARD_TYPE_ELITE ){
+
+        ui_button = IO_PIN_21;
+    }
+    else{
+
+        ui_button = IO_PIN_17_TX;
+    }
+    #endif
+
     energy_v_init();
 
     if( !batt_enable ){
@@ -184,7 +204,7 @@ void batt_v_init( void ){
     }
     else{
 
-        io_v_set_mode( UI_BUTTON, IO_MODE_INPUT_PULLUP );    
+        io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
     }
 
     trace_printf("Battery controller enabled\n");
@@ -217,7 +237,7 @@ static bool _ui_b_button_down( uint8_t ch ){
         }
         else{
 
-            btn = UI_BUTTON;
+            btn = ui_button;
         }
     }    
     else if( ch == 1 ){

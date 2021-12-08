@@ -20,26 +20,11 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
-*/
+ */
 
-#ifndef _BATTERY_H
-#define _BATTERY_H
+#ifndef _HAL_BOARDS_H
+#define _HAL_BOARDS_H
 
-#include "sapphire.h"
-
-#define BATT_PIX_COUNT_LOW_POWER_THRESHOLD		100
-
-// PCA9536 connections on Charger2
-#define BATT_IO_QON     0
-#define BATT_IO_S2      1
-#define BATT_IO_SPARE   2
-#define BATT_IO_BOOST   3
-
-
-void batt_v_init( void );
-
-// APIs to control pixel strip power switch
-void batt_v_enable_pixels( void );
-void batt_v_disable_pixels( void );
+#define BOARD_TYPE_UNSET                    0xff
 
 #endif
