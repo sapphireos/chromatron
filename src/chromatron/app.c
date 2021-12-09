@@ -64,7 +64,7 @@ void app_v_init( void ){
 
     if( board == BOARD_TYPE_ELITE ){
 
-        // rfm95w_v_init( IO_PIN_27_A10 );
+        rfm95w_v_init( IO_PIN_27_A10, IO_PIN_26_A0 );
     }
 
     #endif
