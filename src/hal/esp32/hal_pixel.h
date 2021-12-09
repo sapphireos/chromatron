@@ -31,7 +31,6 @@
 
 #define PIXEL_BUF_SIZE (MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING)
 
-
 void hal_pixel_v_init( void );
 void hal_pixel_v_configure( void );
 bool hal_pixel_b_is_transmitting( void );
