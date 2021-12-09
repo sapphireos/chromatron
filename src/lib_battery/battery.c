@@ -165,6 +165,10 @@ static uint16_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
+
+#define FAN_IO IO_PIN_19_MISO
+#define BOOST_IO IO_PIN_4_A5
+
 void batt_v_init( void ){
 
     #if defined(ESP8266)
@@ -176,6 +180,15 @@ void batt_v_init( void ){
     if( board == BOARD_TYPE_ELITE ){
 
         ui_button = IO_PIN_21;
+
+
+        // BOOST
+        io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
+        io_v_digital_write( BOOST_IO, 0 );
+
+        // FAN
+        io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
+        io_v_digital_write( FAN_IO, 0 );
     }
     else{
 
@@ -324,6 +337,26 @@ PT_BEGIN( pt );
         pca9536_v_set_output( BATT_IO_BOOST );
 
         batt_v_disable_pixels();
+    }
+
+
+
+    // TEST
+    uint8_t board = ffs_u8_read_board_type();
+
+    if( board == BOARD_TYPE_ELITE ){
+
+        // BOOST
+        io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
+        io_v_digital_write( BOOST_IO, 1 );
+
+        // FAN
+        io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
+        io_v_digital_write( FAN_IO, 1 );
+
+        TMR_WAIT( pt, 5000 );
+        // io_v_digital_write( BOOST_IO, 0 );
+        io_v_digital_write( FAN_IO, 0 );
     }
 
     // wait until battery controller has started and is reporting voltage
