@@ -144,8 +144,6 @@ void rfm95w_v_init( uint8_t cs, uint8_t reset ){
         ( buf[2] != 3 ) ||
         ( buf[3] != 4 ) ){
 
-        log_v_debug_P( PSTR("no LORA so sad.  %x %x %x %x"), buf[0], buf[1], buf[2], buf[3] );
-
         return;
     }
 
@@ -213,10 +211,10 @@ void rfm95w_v_init( uint8_t cs, uint8_t reset ){
     // log_v_debug_P( PSTR("%d"), rfm95w_u8_get_rssi() );
 
 
-    // thread_t_create( lora_tx_thread,
-    //                  PSTR("lora_tx"),
-    //                  0,
-    //                  0 );
+    thread_t_create( lora_tx_thread,
+                     PSTR("lora_tx"),
+                     0,
+                     0 );
 
     // thread_t_create( lora_rx_thread,
     //                  PSTR("lora_rx"),
@@ -363,7 +361,7 @@ void rfm95w_v_set_power( int8_t data ){
     rfm95w_v_clr_reg_bits( RFM95W_RegPaConfig, RFM95W_MASK_OUT_POWER );
     rfm95w_v_set_reg_bits( RFM95W_RegPaConfig, data & RFM95W_MASK_OUT_POWER );
 
-    log_v_debug_P( PSTR("%x"), rfm95w_u8_read_reg( RFM95W_RegPaConfig ) );
+    // log_v_debug_P( PSTR("%x"), rfm95w_u8_read_reg( RFM95W_RegPaConfig ) );
 }
 
 // can only set frequency in sleep or standby mode
@@ -507,7 +505,7 @@ bool rfm95w_b_transmit( uint8_t *data, uint8_t len ){
     rfm95w_v_clear_irq_flags();
     rfm95w_v_set_mode( RFM95W_OP_MODE_TX );
 
-    tx_busy = TRUE;
+    // tx_busy = TRUE;
 
     return TRUE;
 }
@@ -518,23 +516,37 @@ PT_BEGIN( pt );
     
     while( 1 ){
 
-        THREAD_WAIT_WHILE( pt, !tx_busy );
+        // THREAD_WAIT_WHILE( pt, !tx_busy );
+
+        
+        uint8_t buf[255];
+        for( uint8_t i = 0; i < sizeof(buf); i++ ){
+
+            buf[i] = i;
+        }
+
+
+        rfm95w_b_transmit( buf, sizeof(buf) );
 
         THREAD_WAIT_WHILE( pt, !rfm95w_b_is_tx_done() );
 
-        // return to receiver mode
-        rfm95w_v_clear_irq_flags();
-        rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
 
-        lora_tx++;
-        tx_busy = FALSE;
+        TMR_WAIT( pt, 10 );
 
 
-        // THREAD_YIELD( pt );
+        // // return to receiver mode
+        // rfm95w_v_clear_irq_flags();
+        // rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
 
-        // TMR_WAIT( pt, 1000 );
+        // lora_tx++;
+        // tx_busy = FALSE;
 
-        // uint8_t buf[16];
+
+        // // THREAD_YIELD( pt );
+
+        // // TMR_WAIT( pt, 1000 );
+
+        // uint8_t buf[255];
         // for( uint8_t i = 0; i < sizeof(buf); i++ ){
 
         //     buf[i] = i;
