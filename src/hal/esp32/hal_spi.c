@@ -208,7 +208,7 @@ void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
 	ASSERT( channel < N_SPI_PORTS );
 	
 	spi_transaction_t transaction = { 0 };
-	transaction.length = 0;
+	transaction.length = (uint32_t)length * 8;
 	transaction.rxlength = (uint32_t)length * 8;
 	transaction.tx_buffer = 0;
 	transaction.rx_buffer = data;
