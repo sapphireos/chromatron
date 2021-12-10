@@ -45,6 +45,7 @@ static int8_t batt_ui_state;
 static bool pixels_enabled = TRUE;
 static uint8_t button_state;
 static uint8_t ui_button;
+static bool fan_on;
 
 static uint8_t batt_state;
 #define BATT_STATE_OK           0
@@ -64,6 +65,7 @@ KV_SECTION_META kv_meta_t ui_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,            0,   "batt_state" },
     { SAPPHIRE_TYPE_BOOL,   0, 0,                   &batt_request_shutdown, 0,   "batt_request_shutdown" },
     { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,          0,   "batt_button_state" },
+    { SAPPHIRE_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                0,   "batt_fan_on" },
 };
 
 
@@ -323,6 +325,62 @@ bool batt_b_pixels_enabled( void ){
     return pixels_enabled;
 }
 
+
+
+PT_THREAD( fan_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    // BOOST
+    io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
+    io_v_digital_write( BOOST_IO, 1 );
+
+    // FAN
+    io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
+    io_v_digital_write( FAN_IO, 1 );
+
+    TMR_WAIT( pt, 5000 );
+    // io_v_digital_write( BOOST_IO, 0 );
+    io_v_digital_write( FAN_IO, 0 );
+
+
+    while(1){
+
+        TMR_WAIT( pt, 5000 );
+
+        if( fan_on ){
+
+            if( bq25895_i8_get_temp() <= 37 ){
+
+                fan_on = FALSE;
+            }
+        }
+        else{
+
+            if( bq25895_i8_get_temp() >= 40 ){
+
+                fan_on = TRUE;
+            }
+        }
+
+        // fan control for elite board
+        if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+
+            if( fan_on ){
+
+                io_v_digital_write( FAN_IO, 1 );
+            }
+            else{
+
+                io_v_digital_write( FAN_IO, 0 );
+            }
+        }        
+
+    }
+
+PT_END( pt );
+}
+
 PT_THREAD( ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -343,18 +401,12 @@ PT_BEGIN( pt );
 
     // TEST
     if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+        
+        thread_t_create( fan_thread,
+                         PSTR("fan_control"),
+                         0,
+                         0 );
 
-        // BOOST
-        io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-        io_v_digital_write( BOOST_IO, 1 );
-
-        // FAN
-        io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
-        io_v_digital_write( FAN_IO, 1 );
-
-        TMR_WAIT( pt, 5000 );
-        // io_v_digital_write( BOOST_IO, 0 );
-        io_v_digital_write( FAN_IO, 0 );
     }
 
     // wait until battery controller has started and is reporting voltage
@@ -467,7 +519,6 @@ PT_BEGIN( pt );
                 bq25895_v_enable_ship_mode( FALSE );
             }
         }
-
 
         button_state = 0;
 

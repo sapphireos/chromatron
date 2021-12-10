@@ -77,7 +77,7 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
     // convert IO channel to internal
     if( channel == IO_PIN_36_A4 ){
 
-        adc_channel = ADC1_CHANNEL_0;IO_PIN_34_A2
+        adc_channel = ADC1_CHANNEL_0;
     }
     else if( channel == ADC_CHANNEL_VSUPPLY ){
 

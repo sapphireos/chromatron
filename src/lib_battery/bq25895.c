@@ -692,6 +692,11 @@ int8_t bq25895_i8_get_therm( void ){
     return bq25895_i8_calc_temp( data );
 }
 
+int8_t bq25895_i8_get_temp( void ){
+
+    return therm;
+}
+
 void bq25895_v_set_watchdog( uint8_t setting ){
 
     setting <<= BQ25895_SHIFT_WATCHDOG;
