@@ -1130,6 +1130,8 @@ PT_BEGIN( pt );
 
     vbus_connected = FALSE;
 
+    vindpm = 5200;
+
     while(1){
 
       /*
@@ -1162,7 +1164,7 @@ PT_BEGIN( pt );
         // don't forget max otherwise is 0.5C.  Need a config option for this.
 
         // NOTE reduce battery charge.  Charge to 4.0 or 4.1V and discharge to 
-        // 3.0 to 3.2V to increase cycle life.
+        // 3.0 to 3.2V to increase cycle life.        
 
 
         if( bq25895_b_get_vbus_good() && !vbus_connected ){
@@ -1177,7 +1179,7 @@ PT_BEGIN( pt );
             bq25895_v_set_hiz( FALSE );
             bq25895_v_enable_adc_continuous();
 
-            bq25895_v_set_vindpm( 5500 );
+            bq25895_v_set_vindpm( vindpm );
 
             // re-enable charging
             bq25895_v_set_charger( TRUE );

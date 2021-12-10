@@ -357,7 +357,7 @@ PT_BEGIN( pt );
         }
         else{
 
-            if( bq25895_i8_get_temp() >= 40 ){
+            if( bq25895_i8_get_temp() >= 38 ){
 
                 fan_on = TRUE;
             }
