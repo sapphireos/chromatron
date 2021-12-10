@@ -342,9 +342,7 @@ PT_BEGIN( pt );
 
 
     // TEST
-    uint8_t board = ffs_u8_read_board_type();
-
-    if( board == BOARD_TYPE_ELITE ){
+    if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
         // BOOST
         io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    

@@ -30,6 +30,9 @@
 #include "util.h"
 #include "energy.h"
 
+#include "flash_fs.h"
+#include "hal_boards.h"
+
 static uint8_t batt_soc; // state of charge in percent
 static uint8_t batt_soc_startup; // state of charge at power on
 static uint16_t batt_volts;
@@ -51,9 +54,14 @@ static uint16_t boost_voltage;
 static uint16_t vindpm;
 static uint16_t iindpm;
 
+
+// DEBUG
 static bool enable_solar = FALSE;
 static bool solar_tracking;
 #define SOLAR_MIN_VBUS 4400
+
+static int8_t case_temp;
+static int8_t ambient_temp;
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                 0,  "batt_soc" },
@@ -78,6 +86,11 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
 
 
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
+
+
+    // DEBUG, move to dynamic!
+    { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                 0,  "batt_case_temp" },
+    { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,                 0,  "batt_ambient_temp" },
 };
 
 static uint16_t soc_state;
@@ -657,16 +670,26 @@ static const int8_t temp_table[128] = {
     85  , // 0
 };
 
-int8_t bq25895_i8_get_therm( void ){
+int8_t bq25895_i8_calc_temp( uint8_t ratio ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
+    if( ratio > 127 ){
+
+        ratio = 127;
+    }
 
     // percent conversion from datasheet.
     // we don't need this, our table includes it.
     // float temp = 0.465 * data;
     // temp += 21.0;
 
-    return temp_table[127 - data];
+    return temp_table[127 - ratio];
+}
+
+int8_t bq25895_i8_get_therm( void ){
+
+    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
+
+    return bq25895_i8_calc_temp( data );
 }
 
 void bq25895_v_set_watchdog( uint8_t setting ){
@@ -1242,6 +1265,16 @@ PT_BEGIN( pt );
                          0 );
     }
 
+
+    #define CASE_ADC_IO IO_PIN_32_A7
+    #define AMBIENT_ADC_IO IO_PIN_33_A9
+
+    if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+
+        io_v_set_mode( CASE_ADC_IO, IO_MODE_INPUT );      
+        io_v_set_mode( AMBIENT_ADC_IO, IO_MODE_INPUT );      
+    }
+
     while(1){
 
         
@@ -1262,6 +1295,15 @@ PT_BEGIN( pt );
         //     vbus_status = bq25895_u8_get_vbus_status();
         //     therm = bq25895_i8_get_therm();
         // }
+
+        if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+
+            uint16_t case_adc = adc_u16_read_mv( CASE_ADC_IO );
+            uint16_t ambient_adc = adc_u16_read_mv( AMBIENT_ADC_IO );
+
+            case_temp = bq25895_i8_calc_temp( ( case_adc * 127 ) / 3300 );
+            ambient_temp = bq25895_i8_calc_temp( ( ambient_adc * 127 ) / 3300 );
+        }
 
         static uint8_t counter;
 
