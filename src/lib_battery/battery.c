@@ -346,7 +346,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 5000 );
+        TMR_WAIT( pt, 10000 );
 
         if( fan_on ){
 

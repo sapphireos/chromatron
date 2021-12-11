@@ -164,12 +164,17 @@ static void record_data( catbus_hash_t32 hash, uint16_t tick_rate ){
 
     #define MAX_DATA_LEN 128
 
-    uint8_t buf[sizeof(datalog_data_t) + MAX_DATA_LEN];
+    uint8_t buf[sizeof(datalog_header_t) + sizeof(datalog_data_t) + MAX_DATA_LEN];
     memset( buf, 0, sizeof(buf) );
-    datalog_data_t *data_msg = (datalog_data_t *)buf;
+    datalog_header_t *header = (datalog_header_t *)buf;
+
+    header->magic = DATALOG_MAGIC;
+    header->version = DATALOG_VERSION;
+
+    datalog_data_t *data_msg = (datalog_data_t *)( header + 1 );
     uint8_t *data = &data_msg->data.data;
 
-    uint16_t msglen = ( sizeof(datalog_data_t) - 1 ) + kv_i16_len( hash );
+    uint16_t msglen = ( sizeof(datalog_data_t) - 1 ) + kv_i16_len( hash ) + sizeof(datalog_header_t);
 
     if( ( kv_i8_get( hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ) &&
         ( kv_i8_get_catbus_meta( hash, &data_msg->data.meta ) == KV_ERR_STATUS_OK ) ){

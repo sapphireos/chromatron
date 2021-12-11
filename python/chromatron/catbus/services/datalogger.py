@@ -29,11 +29,35 @@ from datetime import datetime
 from catbus import CatbusService, Client, CATBUS_MAIN_PORT, query_tags
 from sapphire.protocols.msgflow import MsgFlowReceiver
 from sapphire.common import util, run_all, Ribbon
-from sapphire.devices.sapphiredata import DatalogData
 
 import logging
 
 from influxdb import InfluxDBClient
+
+
+DATALOG_MAGIC = 0x41544144
+
+class DatalogHeader(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="magic"),
+                  Uint8Field(_name="version"),
+                  ArrayField(_name="padding", _field=Uint8Field, length=3)]
+
+        super().__init__(_fields=fields, **kwargs)
+    
+class DatalogData(StructField):
+    def __init__(self, **kwargs):
+        fields = [CatbusData(_name="data")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class DatalogMessageV1(StructField):
+    def __init__(self, **kwargs):
+        fields = [DatalogHeader(_name="header"),
+                  DatalogData(_name="data")]
+
+        super().__init__(_fields=fields, **kwargs)
+
 
 DIRECTORY_UPDATE_INTERVAL = 8.0
 
@@ -59,40 +83,50 @@ class Datalogger(MsgFlowReceiver):
     def on_receive(self, host, data):
         timestamp = datetime.utcnow()
 
-        unpacked_data = DatalogData().unpack(data)
-        # print(host, unpacked_data)
+        header = DatalogHeader().unpack(data)
 
-        host = (host[0], CATBUS_MAIN_PORT)
+        if header.magic != DATALOG_MAGIC:
+            logging.warning("Invalid message received")
 
-        # note this will only work with services running on 
-        # port 44632, generally only devices, not Python servers.
-        try:
-            info = self.directory[str(host)]
-
-        except KeyError:
             return
 
-        key = self.kv._server.resolve_hash(unpacked_data.data.meta.hash, host)
-        value = unpacked_data.data.value
-        print(key, value)
+        if header.version == 1:
+            unpacked_data = DatalogData().unpack(data)
+            # print(host, unpacked_data)
 
-        tags = {'name': info['name'],
-                'location': info['location']}
+            host = (host[0], CATBUS_MAIN_PORT)
 
-        json_body = [
-            {
-                "measurement": key,
-                "tags": tags,
-                "time": timestamp.isoformat(),
-                "fields": {
-                    "value": value
+            # note this will only work with services running on 
+            # port 44632, generally only devices, not Python servers.
+            try:
+                info = self.directory[str(host)]
+
+            except KeyError:
+                return
+
+            key = self.kv._server.resolve_hash(unpacked_data.data.meta.hash, host)
+            value = unpacked_data.data.value
+            print(key, value)
+
+            tags = {'name': info['name'],
+                    'location': info['location']}
+
+            json_body = [
+                {
+                    "measurement": key,
+                    "tags": tags,
+                    "time": timestamp.isoformat(),
+                    "fields": {
+                        "value": value
+                    }
                 }
-            }
-        ]
+            ]
 
-        self.influx.write_points(json_body)
+            self.influx.write_points(json_body)
 
-
+        else:
+            logging.warning(f"Unknown message version: {header.version}")
+        
 
 def main():
     util.setup_basic_logging(console=True, level=logging.INFO)

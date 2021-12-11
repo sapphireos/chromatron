@@ -382,12 +382,6 @@ class DatalogEntryArray(ArrayField):
 
         super().__init__(_field=field, **kwargs)
 
-class DatalogData(StructField):
-    def __init__(self, **kwargs):
-        fields = [CatbusData(_name="data")]
-
-        super().__init__(_fields=fields, **kwargs)
-
 
 
 raw_events = """
