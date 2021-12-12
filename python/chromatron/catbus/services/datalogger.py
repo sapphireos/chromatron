@@ -26,9 +26,10 @@
 import sys
 import time
 from datetime import datetime
-from catbus import CatbusService, Client, CATBUS_MAIN_PORT, query_tags
+from catbus import CatbusService, Client, CATBUS_MAIN_PORT, query_tags, CatbusData
 from sapphire.protocols.msgflow import MsgFlowReceiver
 from sapphire.common import util, run_all, Ribbon
+from elysianfields import *
 
 import logging
 
@@ -41,7 +42,7 @@ class DatalogHeader(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="magic"),
                   Uint8Field(_name="version"),
-                  ArrayField(_name="padding", _field=Uint8Field, length=3)]
+                  ArrayField(_name="padding", _field=Uint8Field, _length=3)]
 
         super().__init__(_fields=fields, **kwargs)
     
@@ -91,7 +92,7 @@ class Datalogger(MsgFlowReceiver):
             return
 
         if header.version == 1:
-            unpacked_data = DatalogData().unpack(data)
+            unpacked_data = DatalogMessageV1().unpack(data).data
             # print(host, unpacked_data)
 
             host = (host[0], CATBUS_MAIN_PORT)
@@ -104,7 +105,15 @@ class Datalogger(MsgFlowReceiver):
             except KeyError:
                 return
 
+            # try:
             key = self.kv._server.resolve_hash(unpacked_data.data.meta.hash, host)
+
+            # except TypeError:
+            #     # possibly a hash lookup failed
+            #     logging.warning(f"Hash lookup failed: {unpacked_data.data.meta.hash}")
+            #     return
+
+
             value = unpacked_data.data.value
             print(key, value)
 
@@ -126,7 +135,7 @@ class Datalogger(MsgFlowReceiver):
 
         else:
             logging.warning(f"Unknown message version: {header.version}")
-        
+
 
 def main():
     util.setup_basic_logging(console=True, level=logging.INFO)
