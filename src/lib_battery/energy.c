@@ -47,6 +47,7 @@
 static uint32_t power_cpu;
 static uint32_t power_wifi;
 static uint32_t power_pix;
+static uint32_t power_total;
 
 // total energy recorded
 static uint64_t energy_cpu;
@@ -103,6 +104,7 @@ KV_SECTION_META kv_meta_t energy_info_kv[] = {
     { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_cpu,    0,                    "energy_power_cpu" },
     { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_wifi,   0,                    "energy_power_wifi" },
     { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_pix,    0,                    "energy_power_pix" },
+    { SAPPHIRE_TYPE_UINT32,   0, 0,  &power_total,  0,                    "energy_power_total" },
 };
 
 
@@ -165,6 +167,8 @@ PT_BEGIN( pt );
         energy_total += energy_cpu;
         energy_total += energy_wifi;
         energy_total += energy_pix;
+
+        power_total = power_pix + power_cpu + power_wifi;
     }    
 
 PT_END( pt );

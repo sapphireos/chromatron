@@ -500,6 +500,7 @@ bool wifi_b_ap_mode( void ){
 	return connected && ap_mode;
 }
 
+// replace with actual values!
 #define WIFI_POWER_PS_NONE  80000
 #define WIFI_POWER_PS_MODEM_MIN  25000
 
