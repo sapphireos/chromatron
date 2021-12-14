@@ -303,6 +303,11 @@ void batt_v_enable_pixels( void ){
 
         pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
     }
+    else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+
+        io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
+        io_v_digital_write( BOOST_IO, 1 );
+    }
 
     pixels_enabled = TRUE;
     gfx_v_set_pixel_power( pixels_enabled );
@@ -313,6 +318,13 @@ void batt_v_disable_pixels( void ){
     if( pca9536_enabled ){
 
         pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
+
+        pixels_enabled = FALSE;
+    }
+    else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+
+        io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
+        io_v_digital_write( BOOST_IO, 0 );
 
         pixels_enabled = FALSE;
     }
@@ -401,6 +413,8 @@ PT_BEGIN( pt );
 
     // TEST
     if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+
+        batt_v_disable_pixels();
         
         thread_t_create( fan_thread,
                          PSTR("fan_control"),
@@ -416,7 +430,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
 
-        if( pca9536_enabled ){
+        if( pca9536_enabled || ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ){
 
             // check if LEDs enabled.
             // this will automatically shutdown the pixel strip

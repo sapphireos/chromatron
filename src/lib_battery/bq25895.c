@@ -921,6 +921,9 @@ void init_charger( void ){
 
     // turn off ICO
     // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+
+    // re-enable charging
+    bq25895_v_set_charger( TRUE );
 }
 
 
@@ -1101,7 +1104,7 @@ PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     static uint32_t start_time;
-    
+
     while(1){
 
         bq25895_v_start_adc_oneshot();
@@ -1116,6 +1119,8 @@ PT_BEGIN( pt );
 
                 log_v_warn_P( PSTR("ADC fail") );
 
+                bq25895_v_print_regs();
+
                 TMR_WAIT( pt, 5000 );
 
                 continue;
@@ -1127,7 +1132,8 @@ PT_BEGIN( pt );
 
                 adc_time_min = elapsed;
             }
-            else if( elapsed > adc_time_max ){
+            
+            if( elapsed > adc_time_max ){
 
                 adc_time_max = elapsed;
             }
@@ -1238,6 +1244,9 @@ PT_BEGIN( pt );
         // 3.0 to 3.2V to increase cycle life.        
 
 
+        // NOTE:
+        // VINDPM needs to be set to 0 for wall power!
+
         if( bq25895_b_get_vbus_good() && !vbus_connected ){
 
             // log_v_debug_P( PSTR("VBUS OK - resetting config") );
@@ -1248,12 +1257,9 @@ PT_BEGIN( pt );
             init_boost_converter();
             init_charger();
             bq25895_v_set_hiz( FALSE );
-            bq25895_v_enable_adc_continuous();
+            // bq25895_v_enable_adc_continuous();
 
             bq25895_v_set_vindpm( vindpm );
-
-            // re-enable charging
-            bq25895_v_set_charger( TRUE );
 
             vbus_connected = TRUE;
 
@@ -1384,44 +1390,44 @@ PT_BEGIN( pt );
             ambient_temp = bq25895_i8_calc_temp( ( ambient_adc * 127 ) / 3300 );
         }
 
-        static uint8_t counter;
+        // static uint8_t counter;
 
         if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
             ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
 
             batt_charging = TRUE;
 
-            if( ( counter % 60 ) == 0 ){
+            // if( ( counter % 60 ) == 0 ){
 
-                log_v_debug_P( PSTR("batt: %d curr: %d"),
-                    batt_volts,
-                    batt_charge_current );
+                // log_v_debug_P( PSTR("batt: %d curr: %d"),
+                //     batt_volts,
+                //     batt_charge_current );
 
-                if( batt_fault != 0 ){
+                // if( batt_fault != 0 ){
 
-                    log_v_debug_P( PSTR("flt:%x"), batt_fault );
-                }
-            }
+                //     log_v_debug_P( PSTR("flt:%x"), batt_fault );
+                // }
+            // }
         }
         else{ // DISCHARGE
 
             batt_charging = FALSE;
 
-            if( ( counter % 60 ) == 0 ){
+            // if( ( counter % 60 ) == 0 ){
 
-                log_v_debug_P( PSTR("batt: %d soc: %d"),
-                    batt_volts, batt_soc );
+                // log_v_debug_P( PSTR("batt: %d soc: %d"),
+                //     batt_volts, batt_soc );
 
-                if( batt_fault != 0 ){
+                // if( batt_fault != 0 ){
 
-                    log_v_debug_P( PSTR("flt:%x"), batt_fault );
-                }
-            }
+                //     log_v_debug_P( PSTR("flt:%x"), batt_fault );
+                // }
+            // }
         }
 
 
 
-        counter++;
+        // counter++;
 
 
         if( dump_regs ){
