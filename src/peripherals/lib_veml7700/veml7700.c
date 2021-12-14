@@ -58,10 +58,13 @@ static uint8_t gain;
 static uint8_t int_time;
 
 KV_SECTION_META kv_meta_t veml7700_kv[] = {
-    {SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &als,    0, "veml7700_als"},   
-    {SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,  0, "veml7700_white"},   
-    {SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_als,    0, "veml7700_raw_als"},   
-    {SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_white,  0, "veml7700_raw_white"},   
+    {SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &als,         0, "veml7700_als"},   
+    {SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,       0, "veml7700_white"},   
+    {SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_als,     0, "veml7700_raw_als"},   
+    {SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_white,   0, "veml7700_raw_white"},   
+
+    {SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &gain,        0, "veml7700_gain"},   
+    {SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &int_time,    0, "veml7700_int_time"},   
 };
 
 
@@ -192,7 +195,10 @@ static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
     }
 
     // return lux
-    return ( (uint64_t)val * resolution ) / 1000000;
+    // return ( (uint64_t)val * resolution ) / 1000000;
+
+    // return millilux
+    return ( (uint64_t)val * resolution ) / 1000;
 }
 
 
@@ -218,7 +224,8 @@ PT_BEGIN( pt );
     log_v_info_P( PSTR("VEML7700 detected") );
 
     
-    veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_25ms );
+    // veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_25ms );
+    // veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_800ms );
 
     while(1){
 
@@ -226,6 +233,23 @@ PT_BEGIN( pt );
 
         raw_als = veml7700_u16_read_als();
         raw_white = veml7700_u16_read_white();
+
+        if( ( raw_als < 100 ) &&
+            ( gain != VEML7700_ALS_GAIN_x2 ) ){
+
+            log_v_debug_P( PSTR("VEML7700 switching to high gain") );
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_800ms );
+            continue;
+        }
+        else if( ( raw_als > 20000 ) &&
+            ( gain != VEML7700_ALS_GAIN_x0_125 ) ){
+
+            log_v_debug_P( PSTR("VEML7700 switching to low gain") );
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_25ms );
+            continue;
+        }
 
         als = calc_lux( raw_als, gain, int_time );
         white = calc_lux( raw_white, gain, int_time );
