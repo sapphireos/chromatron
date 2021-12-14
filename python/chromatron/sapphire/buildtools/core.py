@@ -1180,7 +1180,7 @@ class AppBuilder(HexBuilder):
         kv_index = bytes()
         for a in sorted_hashes:
             try:
-                kv_index += struct.pack('<LB', a, kv_meta_by_hash[a][1])
+                kv_index += struct.pack('<LH', a, kv_meta_by_hash[a][1])
             except struct.error:
                 logging.error(f'Index lookup table creation failed with {len(sorted_hashes)} items')
                 raise

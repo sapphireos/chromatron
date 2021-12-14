@@ -109,7 +109,7 @@ typedef struct  __attribute__((packed, aligned(4))){
 
 typedef struct  __attribute__((packed)){
     catbus_hash_t32 hash;
-    uint8_t index;
+    uint16_t index;
 } kv_hash_index_t;
 
 
