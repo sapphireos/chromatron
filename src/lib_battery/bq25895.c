@@ -59,6 +59,9 @@ static uint16_t iindpm;
 static bool enable_solar = FALSE;
 static bool solar_tracking;
 #define SOLAR_MIN_VBUS 4400
+static uint16_t adc_time_min = 65535;
+static uint16_t adc_time_max;
+
 
 static int8_t case_temp;
 static int8_t ambient_temp;
@@ -88,6 +91,9 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
 
 
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_min,                   0,  "batt_adc_time_min" },
+    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_max,                   0,  "batt_adc_time_max" },
+
     // DEBUG, move to dynamic!
     { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                 0,  "batt_case_temp" },
     { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,                 0,  "batt_ambient_temp" },
@@ -103,6 +109,7 @@ static uint16_t soc_state;
 
 
 
+PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
@@ -145,6 +152,11 @@ int8_t bq25895_i8_init( void ){
 
     thread_t_create( bat_mon_thread,
                      PSTR("bat_mon"),
+                     0,
+                     0 );
+
+    thread_t_create( bat_adc_thread,
+                     PSTR("bat_adc"),
                      0,
                      0 );
 
@@ -935,6 +947,7 @@ static bool read_adc( void ){
     return FALSE;
 }
 
+#if 0
 static bool vbus_ok( void ){
 
     // check fault register
@@ -958,8 +971,6 @@ static bool vbus_ok( void ){
 
     return vbus_volts >= SOLAR_MIN_VBUS;
 }
-
-
 
 PT_THREAD( bat_solar_thread( pt_t *pt, void *state ) )
 {
@@ -1081,7 +1092,67 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+#endif
 
+
+
+PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    static uint32_t start_time;
+    
+    while(1){
+
+        bq25895_v_start_adc_oneshot();
+        start_time = tmr_u32_get_system_time_ms();
+
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
+
+        if( bq25895_b_adc_ready() ){
+
+            if( !read_adc() ){
+
+                log_v_warn_P( PSTR("ADC fail") );
+
+                TMR_WAIT( pt, 5000 );
+
+                continue;
+            }
+
+            uint16_t elapsed = tmr_u32_elapsed_time_ms( start_time );
+
+            if( elapsed < adc_time_min ){
+
+                adc_time_min = elapsed;
+            }
+            else if( elapsed > adc_time_max ){
+
+                adc_time_max = elapsed;
+            }
+
+            soc_state = _calc_batt_soc( batt_volts );
+            batt_soc = calc_batt_soc( batt_volts );
+            batt_soc_startup = batt_soc;
+
+            // ADC success
+            TMR_WAIT( pt, 100 );
+        }
+        else{
+
+            log_v_warn_P( PSTR("ADC fail") );
+
+            TMR_WAIT( pt, 5000 );
+
+            continue;
+        }
+
+    }
+
+
+PT_END( pt );
+}    
 
 
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
@@ -1230,24 +1301,23 @@ PT_BEGIN( pt );
     
    init_charger();
 
-   bq25895_v_set_hiz( TRUE );
+   // bq25895_v_set_hiz( TRUE );
 
-   bq25895_v_enable_adc_continuous();
+   // bq25895_v_enable_adc_continuous();
 
-   TMR_WAIT( pt, 1000 );
+   // TMR_WAIT( pt, 1000 );
 
-   if( !read_adc() ){
+   // if( !read_adc() ){
 
-        log_v_debug_P( PSTR("ADC fail") );
+   //      log_v_debug_P( PSTR("ADC fail") );
 
-        THREAD_RESTART( pt );
-   }
+   //      THREAD_RESTART( pt );
+   // }
 
-    soc_state = _calc_batt_soc( batt_volts );
-    batt_soc = calc_batt_soc( batt_volts );
-    batt_soc_startup = batt_soc;
+    // wait until we have a valid connection to the charger
+    THREAD_WAIT_WHILE( pt, bq25895_u16_get_batt_voltage() == 0 );
 
-    log_v_debug_P( PSTR("Batt monitor running") );
+    // log_v_debug_P( PSTR("Batt monitor running") );
 
     if( capacity != 0 ){
 
@@ -1255,22 +1325,22 @@ PT_BEGIN( pt );
         remaining = ( capacity * batt_soc ) / 100;
     }
         
-    if( enable_solar ){
+    // if( enable_solar ){
 
-        log_v_debug_P( PSTR("Solar MPPT enabled, switching control schemes") );
+    //     log_v_debug_P( PSTR("Solar MPPT enabled, switching control schemes") );
 
-        thread_t_create( bat_solar_thread,
-                     PSTR("bat_solar"),
-                     0,
-                     0 );   
-    }
-    else{
+    //     thread_t_create( bat_solar_thread,
+    //                  PSTR("bat_solar"),
+    //                  0,
+    //                  0 );   
+    // }
+    // else{
 
         thread_t_create( bat_control_thread,
                          PSTR("bat_control"),
                          0,
                          0 );
-    }
+    // }
 
 
     #define CASE_ADC_IO IO_PIN_32_A7
@@ -1288,7 +1358,9 @@ PT_BEGIN( pt );
         // THREAD_WAIT_WHILE( pt, !bq25895_b_adc_ready() );
 
         // update status values
-        read_adc();
+        // read_adc();
+
+
         // uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
         // if( temp_batt_volts != 0 ){
 
