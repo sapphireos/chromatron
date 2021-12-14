@@ -254,7 +254,24 @@ void hal_cpu_v_delay_ms( uint16_t ms ){
 	}
 }
 
+
+// replace with actual values!
+#define CPU_POWER_HIGH  30000
+#define CPU_POWER_MED   20000
+#define CPU_POWER_LOW   10000
+
 uint16_t cpu_u16_get_power( void ){
 
-    return 5000;
+    uint32_t cpu_clock = cpu_u32_get_clock_speed();
+
+    if( cpu_clock <= 80000000 ){
+
+        return CPU_POWER_LOW;
+    }
+    else if( cpu_clock <= 160000000 ){
+
+        return CPU_POWER_MED;
+    }
+
+    return CPU_POWER_HIGH;
 }

@@ -500,9 +500,21 @@ bool wifi_b_ap_mode( void ){
 	return connected && ap_mode;
 }
 
+#define WIFI_POWER_PS_NONE  80000
+#define WIFI_POWER_PS_MODEM_MIN  25000
+
 uint16_t wifi_u16_get_power( void ){
 
-    return 50000;
+    wifi_ps_type_t ps_mode = WIFI_PS_NONE;
+
+    esp_wifi_get_ps( &ps_mode );
+
+    if( ps_mode == WIFI_PS_NONE ){
+
+        return WIFI_PS_NONE;
+    }
+    
+    return WIFI_POWER_PS_MODEM_MIN;
 }
 
 int8_t wifi_i8_get_status( void ){

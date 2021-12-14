@@ -44,11 +44,6 @@
 #define MICROAMPS_WHITE_PIX     20000
 #define MICROAMPS_IDLE_PIX       1000 // idle power for an unlit pixel
 
-static uint16_t rate_pix_r;
-static uint16_t rate_pix_g;
-static uint16_t rate_pix_b;
-static uint16_t rate_pix_w;
-
 static uint32_t power_cpu;
 static uint32_t power_wifi;
 static uint32_t power_pix;
@@ -116,11 +111,6 @@ PT_THREAD( energy_monitor_thread( pt_t *pt, void *state ) );
 
 void energy_v_init( void ){
 
-    rate_pix_r  = MICROAMPS_RED_PIX;
-    rate_pix_g  = MICROAMPS_GREEN_PIX;
-    rate_pix_b  = MICROAMPS_BLUE_PIX;
-    rate_pix_w  = MICROAMPS_WHITE_PIX;
-
     thread_t_create( energy_monitor_thread,
                      PSTR("energy_monitor"),
                      0,
@@ -159,10 +149,10 @@ PT_BEGIN( pt );
         if( batt_b_pixels_enabled() ){
 
             power_pix = gfx_u16_get_pix_count() * MICROAMPS_IDLE_PIX;
-            power_pix += ( gfx_u32_get_pixel_r() * rate_pix_r ) / 256;
-            power_pix += ( gfx_u32_get_pixel_g() * rate_pix_g ) / 256;
-            power_pix += ( gfx_u32_get_pixel_b() * rate_pix_b ) / 256;
-            power_pix += ( gfx_u32_get_pixel_w() * rate_pix_w ) / 256;
+            power_pix += ( gfx_u32_get_pixel_r() * MICROAMPS_RED_PIX ) / 256;
+            power_pix += ( gfx_u32_get_pixel_g() * MICROAMPS_GREEN_PIX ) / 256;
+            power_pix += ( gfx_u32_get_pixel_b() * MICROAMPS_BLUE_PIX ) / 256;
+            power_pix += ( gfx_u32_get_pixel_w() * MICROAMPS_WHITE_PIX ) / 256;
         }
         else{
 
