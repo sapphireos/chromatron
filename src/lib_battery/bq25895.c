@@ -61,6 +61,8 @@ static bool solar_tracking;
 #define SOLAR_MIN_VBUS 4400
 static uint16_t adc_time_min = 65535;
 static uint16_t adc_time_max;
+static uint32_t adc_good;
+static uint32_t adc_fail;
 
 
 static int8_t case_temp;
@@ -93,6 +95,9 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
 
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_min,                   0,  "batt_adc_time_min" },
     { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_max,                   0,  "batt_adc_time_max" },
+
+    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_good,                   0,  "batt_adc_reads" },
+    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_fail,                   0,  "batt_adc_fails" },
 
     // DEBUG, move to dynamic!
     { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                 0,  "batt_case_temp" },
@@ -1117,6 +1122,8 @@ PT_BEGIN( pt );
 
             if( !read_adc() ){
 
+                adc_fail++;
+
                 log_v_warn_P( PSTR("ADC fail") );
 
                 bq25895_v_print_regs();
@@ -1142,10 +1149,14 @@ PT_BEGIN( pt );
             batt_soc = calc_batt_soc( batt_volts );
             batt_soc_startup = batt_soc;
 
+            adc_good++;
+
             // ADC success
             TMR_WAIT( pt, 100 );
         }
         else{
+
+            adc_fail++;
 
             log_v_warn_P( PSTR("ADC fail") );
 
@@ -1268,7 +1279,7 @@ PT_BEGIN( pt );
             // to read correctly.
             // since MINSYS can only regulate the SYS voltage when plugged in to a power source,
             // it otherwise isn't very important for our designs other than this ADC consideration.
-            bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
+            // bq25895_v_set_minsys( BQ25895_SYSMIN_3_7V );
 
         }
         else if( vbus_connected ){ 
@@ -1290,7 +1301,7 @@ PT_BEGIN( pt );
                 log_v_debug_P( PSTR("VBUS disconnected") );
 
                 // set min sys to 3.0V for ADC accuracy
-                bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+                // bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
             }
         }
     
