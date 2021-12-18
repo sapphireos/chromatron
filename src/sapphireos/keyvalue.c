@@ -130,11 +130,11 @@ static bool run_persist;
 
 typedef struct{
     catbus_hash_t32 hash;
-    sapphire_type_t8 type;
+    catbus_type_t8 type;
     uint8_t array_len;
     uint8_t reserved[4];
 } kv_persist_block_header_t;
-#define KV_PERSIST_MAX_DATA_LEN     SAPPHIRE_TYPE_MAX_LEN
+#define KV_PERSIST_MAX_DATA_LEN     64
 #define KV_PERSIST_BLOCK_LEN        ( sizeof(kv_persist_block_header_t) + KV_PERSIST_MAX_DATA_LEN )
 
 
@@ -976,7 +976,7 @@ int16_t kv_i16_len( catbus_hash_t32 hash )
     return kv_u16_get_size_meta( &meta );
 }
 
-sapphire_type_t8 kv_i8_type( catbus_hash_t32 hash )
+catbus_type_t8 kv_i8_type( catbus_hash_t32 hash )
 {
 
     kv_meta_t meta;

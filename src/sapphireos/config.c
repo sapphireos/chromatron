@@ -123,7 +123,7 @@ static cfg_ip_config_t ip_config;
 #define CFG_PARAM_DATA_LEN 8
 typedef struct __attribute__((packed)){
     catbus_hash_t32 id;
-    sapphire_type_t8 type;
+    catbus_type_t8 type;
     uint8_t block_number;
     uint16_t reserved;
     uint8_t data[CFG_PARAM_DATA_LEN];
@@ -342,7 +342,7 @@ static void clean_blocks( void ){
             }
         }
 
-        sapphire_type_t8 type = kv_i8_type( block.id );
+        catbus_type_t8 type = kv_i8_type( block.id );
 
         // check if parameter was not found in the KV system
         // (possibly a parameter was removed)
@@ -399,7 +399,7 @@ static void erase_param( catbus_hash_t32 parameter ){
 static void write_param( catbus_hash_t32 parameter, void *value ){
 
     // search for sys config
-    sapphire_type_t8 type = kv_i8_type( parameter );
+    catbus_type_t8 type = kv_i8_type( parameter );
 
     // parameter not found
     if( type < 0 ){
@@ -803,7 +803,7 @@ bool cfg_b_get_boolean( catbus_hash_t32 parameter ){
 
 
     // get type length
-    sapphire_type_t8 type = kv_i8_type( parameter );
+    catbus_type_t8 type = kv_i8_type( parameter );
 
     if( type != SAPPHIRE_TYPE_BOOL ){
 

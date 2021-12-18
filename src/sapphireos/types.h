@@ -27,12 +27,6 @@
 
 #include "catbus_types.h"
 
-typedef catbus_type_t8 sapphire_type_t8;
-
-#define SAPPHIRE_TYPE_MAX_LEN           64
-
-#define SAPPHIRE_TYPE_INVALID           CATBUS_TYPE_INVALID
-
 #define SAPPHIRE_TYPE_NONE              CATBUS_TYPE_NONE
 #define SAPPHIRE_TYPE_BOOL              CATBUS_TYPE_BOOL
 #define SAPPHIRE_TYPE_UINT8             CATBUS_TYPE_UINT8
