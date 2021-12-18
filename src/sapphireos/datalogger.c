@@ -221,18 +221,25 @@ PT_END( pt );
 }
 
 
-static void record_data( datalog_entry_t *entry ){
+static void flush( void ){
 
-    if( entry->hash == 0 ){
+    if( datalog_handle <= 0 ){
 
         return;
     }
 
-    #define MAX_DATA_LEN 128
+    if( !msgflow_b_connected( msgflow ) ){
 
-    uint8_t buf[sizeof(datalog_header_t) + sizeof(datalog_data_t) + MAX_DATA_LEN];
-    memset( buf, 0, sizeof(buf) );
+        return;
+    }
+
+    uint8_t buf[MSGFLOW_MAX_LEN];
+
     datalog_header_t *header = (datalog_header_t *)buf;
+    uint8_t *ptr = (uint8_t *)( header + 1 );
+    uint16_t msg_size = sizeof(datalog_header_t);
+
+    int16_t remaining_space = sizeof(buf) - sizeof(datalog_header_t);
 
     header->magic = DATALOG_MAGIC;
     header->version = DATALOG_VERSION;
@@ -242,18 +249,127 @@ static void record_data( datalog_entry_t *entry ){
         header->flags |= DATALOG_FLAGS_NTP_SYNC;
     }
 
-    datalog_data_t *data_msg = (datalog_data_t *)( header + 1 );
-    uint8_t *data = &data_msg->data.data;
+    datalog_entry_t *entry = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );
 
-    uint16_t msglen = ( sizeof(datalog_data_t) - 1 ) + type_u16_size_meta( &entry->meta ) + sizeof(datalog_header_t);
+    for( uint16_t i = 0; i < mem2_u16_get_size( datalog_handle ) / sizeof(datalog_entry_t); i++ ){
 
-    if( kv_i8_get( entry->hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ){
+        if( entry->buffer <= 0 ){
 
-        data_msg->data.meta = entry->meta;
+            goto next;
+        }
 
-        // transmit!
-        msgflow_b_send( msgflow, buf, msglen );
+        datalog_buffer_t *buffer = (datalog_buffer_t *)mem2_vp_get_ptr( entry->buffer );
+        uint8_t *data = (uint8_t *)( buffer + 1 );
+
+        uint16_t data_len = type_u16_size_meta( &entry->meta ) * buffer->item_count;
+        uint16_t buffer_size = sizeof(entry->meta) + sizeof(buffer->ntp_base) + data_len;
+
+        if( remaining_space < buffer_size ){
+
+            // transmit
+            msgflow_b_send( msgflow, buf, msg_size );
+
+            // reset pointers
+            ptr = (uint8_t *)( header + 1 );
+            msg_size = sizeof(datalog_header_t);
+            remaining_space = sizeof(buf) - sizeof(datalog_header_t);
+        }
+
+        // install meta
+        memcpy( ptr, &entry->meta, sizeof(entry->meta) );
+        ptr += sizeof(entry->meta);
+        remaining_space -= sizeof(entry->meta);
+        msg_size += sizeof(entry->meta);
+
+        // install timestamp
+        memcpy( ptr, &buffer->ntp_base, sizeof(buffer->ntp_base) );
+        ptr += sizeof(buffer->ntp_base);
+        remaining_space -= sizeof(buffer->ntp_base);
+        msg_size += sizeof(buffer->ntp_base);
+
+        // install data
+        memcpy( ptr, data, data_len );
+        ptr += data_len;
+        remaining_space -= data_len;
+        msg_size += data_len;
+
+        // reset buffer
+        buffer->item_count = 0;
+
+    next:
+        entry++;
     }
+
+    if( msg_size > sizeof(datalog_header_t) ){
+
+        // transmit
+        msgflow_b_send( msgflow, buf, msg_size );
+    }
+}
+
+static void record_data( datalog_entry_t *entry ){
+
+    if( entry->hash == 0 ){
+
+        return;
+    }
+
+    if( entry->buffer <= 0 ){
+
+        return;
+    }
+
+    datalog_buffer_t *buffer = (datalog_buffer_t *)mem2_vp_get_ptr( entry->buffer );
+
+    if( buffer->item_count >= buffer->max_items ){
+
+        // flush buffer
+        flush();
+    }
+
+    if( buffer->item_count == 0 ){
+
+        buffer->ntp_base = time_t_now();
+    }
+
+    uint8_t *data_ptr = (uint8_t *)( buffer + 1 );
+    uint16_t data_size = type_u16_size_meta( &entry->meta );
+
+    if( kv_i8_get( entry->hash, &data_ptr[data_size * buffer->item_count], data_size ) != KV_ERR_STATUS_OK ){
+
+        log_v_error_P( PSTR("datalog error") );
+
+        return;
+    }
+
+    buffer->item_count++;
+
+    // #define MAX_DATA_LEN 128
+
+    // uint8_t buf[sizeof(datalog_header_t) + sizeof(datalog_data_t) + MAX_DATA_LEN];
+    // memset( buf, 0, sizeof(buf) );
+    // datalog_header_t *header = (datalog_header_t *)buf;
+
+    // header->magic = DATALOG_MAGIC;
+    // header->version = DATALOG_VERSION;
+
+    // if( time_b_is_ntp_sync() ){
+
+    //     header->flags |= DATALOG_FLAGS_NTP_SYNC;
+    // }
+
+    // datalog_data_t *data_msg = (datalog_data_t *)( header + 1 );
+    // uint8_t *data = &data_msg->data.data;
+
+    // uint16_t msglen = ( sizeof(datalog_data_t) - 1 ) + type_u16_size_meta( &entry->meta ) + sizeof(datalog_header_t);
+
+    // if( kv_i8_get( entry->hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ){
+
+    //     data_msg->data.meta = entry->meta;
+
+    //     // transmit!
+    //     msgflow_b_send( msgflow, buf, msglen );
+    // }
 }
 
 PT_THREAD( datalog_thread( pt_t *pt, void *state ) )

@@ -38,7 +38,7 @@ typedef struct __attribute__((packed)){
 } datalog_file_entry_t;
 
 #define DATALOG_MAGIC 0x41544144 // 'DATA'
-#define DATALOG_VERSION 1
+#define DATALOG_VERSION 2
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
