@@ -185,19 +185,19 @@ PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) );
 
 
 KV_SECTION_META kv_meta_t sys_info_kv[] = {
-    { SAPPHIRE_TYPE_INT8,   0, 0,                   0, sys_kv_reboot_handler,            "reboot" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &sys_mode,                       0,  "sys_mode" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &startup_boot_mode,              0,  "sys_boot_mode" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_minor, 0,  "loader_version_minor" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_major, 0,  "loader_version_major" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_status,        0,  "loader_status" },
-    { SAPPHIRE_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &warnings,                       0,  "sys_warnings" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &reset_source,                   0,  "sys_reset_source" },
-    { SAPPHIRE_TYPE_KEY128,    0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_id" },
-    { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_name" },
-    { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_version" },
-    { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "os_name" },
-    { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "os_version" },
+    { CATBUS_TYPE_INT8,   0, 0,                   0, sys_kv_reboot_handler,            "reboot" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &sys_mode,                       0,  "sys_mode" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &startup_boot_mode,              0,  "sys_boot_mode" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_minor, 0,  "loader_version_minor" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_major, 0,  "loader_version_major" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_status,        0,  "loader_status" },
+    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &warnings,                       0,  "sys_warnings" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &reset_source,                   0,  "sys_reset_source" },
+    { CATBUS_TYPE_KEY128,    0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_id" },
+    { CATBUS_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_name" },
+    { CATBUS_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_version" },
+    { CATBUS_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "os_name" },
+    { CATBUS_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "os_version" },
 };
 
 void sys_v_init( void ){

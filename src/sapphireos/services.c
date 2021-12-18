@@ -43,8 +43,8 @@ static uint8_t test_service_priority;
 static uint8_t test_service_mode;
 
 KV_SECTION_META kv_meta_t services_test_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,  0, 0, &test_service_priority,   0,  "test_service_priority" },
-    { SAPPHIRE_TYPE_UINT8,  0, 0, &test_service_mode,       0,  "test_service_mode" },
+    { CATBUS_TYPE_UINT8,  0, 0, &test_service_priority,   0,  "test_service_priority" },
+    { CATBUS_TYPE_UINT8,  0, 0, &test_service_mode,       0,  "test_service_mode" },
 };
 
 

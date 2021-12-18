@@ -69,11 +69,11 @@ static const PROGMEM char kv_data_fname[] = "kv_data";
 #endif
 
 KV_SECTION_META_START kv_meta_t kv_start[] = {
-    { SAPPHIRE_TYPE_NONE, 0, 0, 0, 0, "kvstart" }
+    { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvstart" }
 };
 
 KV_SECTION_META_END kv_meta_t kv_end[] = {
-    { SAPPHIRE_TYPE_NONE, 0, 0, 0, 0, "kvend" }
+    { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvend" }
 };
 
 
@@ -101,13 +101,13 @@ static int8_t _kv_i8_dynamic_count_handler(
 }
 
 KV_SECTION_META kv_meta_t kv_cfg[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
-    { SAPPHIRE_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
-    { SAPPHIRE_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
-    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_hits,      0,           "kv_cache_hits" },
-    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_misses,    0,           "kv_cache_misses" },
+    { CATBUS_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
+    { CATBUS_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
+    { CATBUS_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
+    { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_hits,      0,           "kv_cache_hits" },
+    { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_misses,    0,           "kv_cache_misses" },
 };
 
 #ifdef __SIM__

@@ -192,18 +192,18 @@ static int8_t mem_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t mem_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.handles_used,  0,  "mem_handles" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, mem_i8_kv_handler,           "mem_max_handles" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, mem_i8_kv_handler,           "mem_stack" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, mem_i8_kv_handler,           "mem_max_stack" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.heap_size,     0,  "mem_heap_size" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.free_space,    0,  "mem_free_space" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.peak_usage,    0,  "mem_peak_usage" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.peak_handles,  0,  "mem_peak_handles" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.used_space,    0,  "mem_used" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.dirty_space,   0,  "mem_dirty" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &mem_allocs,                0,  "mem_allocs" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &mem_alloc_fails,           0,  "mem_alloc_fails" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.handles_used,  0,  "mem_handles" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, mem_i8_kv_handler,           "mem_max_handles" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, mem_i8_kv_handler,           "mem_stack" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, mem_i8_kv_handler,           "mem_max_stack" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.heap_size,     0,  "mem_heap_size" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.free_space,    0,  "mem_free_space" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.peak_usage,    0,  "mem_peak_usage" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.peak_handles,  0,  "mem_peak_handles" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.used_space,    0,  "mem_used" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &mem_rt_data.dirty_space,   0,  "mem_dirty" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &mem_allocs,                0,  "mem_allocs" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &mem_alloc_fails,           0,  "mem_alloc_fails" },
 };
 
 

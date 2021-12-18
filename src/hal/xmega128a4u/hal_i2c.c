@@ -44,8 +44,8 @@ static uint8_t delay_2;
 // map delays to KV system for easy hand tuning
 // #include "keyvalue.h"
 // KV_SECTION_META kv_meta_t meow_info_kv[] = {
-//     { SAPPHIRE_TYPE_UINT8,  0, 0, &delay_1,                   0,   "delay_1" },
-//     { SAPPHIRE_TYPE_UINT8,  0, 0, &delay_2,                   0,   "delay_2" }, 
+//     { CATBUS_TYPE_UINT8,  0, 0, &delay_1,                   0,   "delay_1" },
+//     { CATBUS_TYPE_UINT8,  0, 0, &delay_2,                   0,   "delay_2" }, 
 // };
 
 

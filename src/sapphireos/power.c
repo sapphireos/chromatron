@@ -43,7 +43,7 @@
 static uint32_t delta_ms;
 
 KV_SECTION_META kv_meta_t pwr_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &delta_ms,                 0,  "pwr_delta_ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &delta_ms,                 0,  "pwr_delta_ms" },
 };
 
 void pwr_v_init( void ){

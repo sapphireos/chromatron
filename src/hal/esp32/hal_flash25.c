@@ -38,8 +38,8 @@ static uint32_t flash_id;
 static uint8_t flash_erase_time;
 
 KV_SECTION_META kv_meta_t flash_id_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,          "flash_id" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_erase_time, 0,  "flash_erase_time" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,          "flash_id" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_erase_time, 0,  "flash_erase_time" },
 };
 
 

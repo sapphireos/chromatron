@@ -65,8 +65,8 @@ int8_t _pwm_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t pwm_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,  0, 0,    &pwm,              _pwm_kv_handler,        "pwm" },
-    { SAPPHIRE_TYPE_UINT16,  0, 0,    &adc,              0,        "pwm_adc" },
+    { CATBUS_TYPE_UINT16,  0, 0,    &pwm,              _pwm_kv_handler,        "pwm" },
+    { CATBUS_TYPE_UINT16,  0, 0,    &adc,              0,        "pwm_adc" },
 };
 
 

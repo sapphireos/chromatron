@@ -43,7 +43,7 @@ static uint16_t gc_passes;
 static bool suspend_gc;
 
 KV_SECTION_META kv_meta_t ffs_gc_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &gc_passes,        0,  "flash_fs_gc_passes" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &gc_passes,        0,  "flash_fs_gc_passes" },
 };
 
 

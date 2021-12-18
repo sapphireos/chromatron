@@ -295,21 +295,21 @@ int8_t pix_i8_count_handler(
 }
 
 KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[0],        pix_i8_count_handler,    "pix_count" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[0],        pix_i8_count_handler,    "pix_count" },
     #if N_PIXEL_OUTPUTS > 1
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[1],        pix_i8_count_handler,    "pix_count_1" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[1],        pix_i8_count_handler,    "pix_count_1" },
     #endif
     #if N_PIXEL_OUTPUTS > 2
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[2],        pix_i8_count_handler,    "pix_count_2" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[2],        pix_i8_count_handler,    "pix_count_2" },
     #endif
     #if N_PIXEL_OUTPUTS > 3
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[3],        pix_i8_count_handler,    "pix_count_3" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[3],        pix_i8_count_handler,    "pix_count_3" },
     #endif
     #if N_PIXEL_OUTPUTS > 4
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[4],        pix_i8_count_handler,    "pix_count_4" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[4],        pix_i8_count_handler,    "pix_count_4" },
     #endif
     #if N_PIXEL_OUTPUTS > 5
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[5],        pix_i8_count_handler,    "pix_count_5" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[5],        pix_i8_count_handler,    "pix_count_5" },
     #endif
 };
 
@@ -361,29 +361,29 @@ int8_t gfx_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,                   "pix_size_x" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  0,                   "pix_size_y" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,                   "gfx_interleave_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,                   "gfx_invert_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &dimmer_fade,                 gfx_i8_kv_handler,   "gfx_dimmer_fade" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,                   "pix_size_x" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  0,                   "pix_size_y" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,                   "gfx_interleave_x" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,                   "gfx_invert_x" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &dimmer_fade,                 gfx_i8_kv_handler,   "gfx_dimmer_fade" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
         
     #ifdef ENABLE_VIRTUAL_ARRAY
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,                   "gfx_varray_length" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,                   "gfx_varray_length" },
     #endif
 
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
     
     #ifdef ENABLE_CHANNEL_MASK
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
     #endif
 };
 

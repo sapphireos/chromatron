@@ -40,11 +40,11 @@
 #define CFG_PARAM_COPROC_LOAD_DISABLE          __KV__coproc_load_disable
 
 KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,      0, 0,  0, cfg_i8_kv_handler,  "coproc_load_disable" },
+    { CATBUS_TYPE_BOOL,      0, 0,  0, cfg_i8_kv_handler,  "coproc_load_disable" },
     // backup wifi keys.
     // if these aren't present in the KV index, the config module won't find them.
-    { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
-    { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
+    { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
+    { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
 };
 #endif
 

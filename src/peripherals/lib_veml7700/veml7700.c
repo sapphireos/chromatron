@@ -58,13 +58,13 @@ static uint8_t gain;
 static uint8_t int_time;
 
 KV_SECTION_META kv_meta_t veml7700_kv[] = {
-    {SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &als,         0, "veml7700_als"},   
-    {SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,       0, "veml7700_white"},   
-    {SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_als,     0, "veml7700_raw_als"},   
-    {SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_white,   0, "veml7700_raw_white"},   
+    {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &als,         0, "veml7700_als"},   
+    {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,       0, "veml7700_white"},   
+    {CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_als,     0, "veml7700_raw_als"},   
+    {CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_white,   0, "veml7700_raw_white"},   
 
-    {SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &gain,        0, "veml7700_gain"},   
-    {SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &int_time,    0, "veml7700_int_time"},   
+    {CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &gain,        0, "veml7700_gain"},   
+    {CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &int_time,    0, "veml7700_int_time"},   
 };
 
 

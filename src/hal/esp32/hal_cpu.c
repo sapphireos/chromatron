@@ -47,7 +47,7 @@
 static uint8_t esp_reset;
 
 KV_SECTION_META kv_meta_t hal_cpu_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &esp_reset,                       0,  "esp_reset_reason" }
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &esp_reset,                       0,  "esp_reset_reason" }
 };
 
 uint32_t FW_START_OFFSET;

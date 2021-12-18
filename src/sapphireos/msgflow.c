@@ -45,10 +45,10 @@ static uint32_t net_drops;
 static uint32_t confirmed;
 
 KV_SECTION_META kv_meta_t msgflow_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &max_q_size,  0,     "msgflow_max_q_size" },
-    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &q_drops,     0,     "msgflow_q_drops" },
-    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &net_drops,   0,     "msgflow_net_drops" },
-    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &confirmed,   0,     "msgflow_confirmed" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &max_q_size,  0,     "msgflow_max_q_size" },
+    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &q_drops,     0,     "msgflow_q_drops" },
+    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &net_drops,   0,     "msgflow_net_drops" },
+    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &confirmed,   0,     "msgflow_confirmed" },
 };
 
 typedef struct{

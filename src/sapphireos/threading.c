@@ -116,12 +116,12 @@ static int8_t thread_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t thread_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  0, thread_i8_kv_handler,       "thread_count" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &cpu_info.max_threads,     0,  "thread_peak" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.run_time,        0,  "thread_run_time" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.task_time,       0,  "thread_task_time" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.sleep_time,      0,  "thread_sleep_time" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.scheduler_loops, 0,  "thread_loops" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  0, thread_i8_kv_handler,       "thread_count" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &cpu_info.max_threads,     0,  "thread_peak" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.run_time,        0,  "thread_run_time" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.task_time,       0,  "thread_task_time" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.sleep_time,      0,  "thread_sleep_time" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.scheduler_loops, 0,  "thread_loops" },
 };
 
 

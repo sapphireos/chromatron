@@ -89,13 +89,13 @@ static int8_t fs_i8_kv_handler(
 
 
 KV_SECTION_META kv_meta_t fs_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_free_space" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_total_space" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_disk_files" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_max_disk_files" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_virtual_files" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_max_virtual_files" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_capacity" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_free_space" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_total_space" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_disk_files" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_max_disk_files" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_virtual_files" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_max_virtual_files" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_capacity" },
 };
 
 

@@ -58,10 +58,10 @@ static uint32_t last_rx_ts;
 static uint32_t longest_rx_delta;
 
 KV_SECTION_META kv_meta_t netmsg_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &netmsg_udp_sent,    0,   "netmsg_udp_sent" },
-    { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &netmsg_udp_recv,    0,   "netmsg_udp_recv" },
+    { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &netmsg_udp_sent,    0,   "netmsg_udp_sent" },
+    { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &netmsg_udp_recv,    0,   "netmsg_udp_recv" },
 
-    { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &longest_rx_delta,    0,   "netmsg_max_rx_delta" },
+    { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &longest_rx_delta,    0,   "netmsg_max_rx_delta" },
 };
 
 

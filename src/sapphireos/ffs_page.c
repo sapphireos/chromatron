@@ -62,10 +62,10 @@ static uint32_t flash_fs_page_cache_hits;
 static uint32_t flash_fs_page_cache_misses;
 
 KV_SECTION_META kv_meta_t ffs_page_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_block_copies,        0,  "flash_fs_block_copies" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_page_allocs,         0,  "flash_fs_page_allocs" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_page_cache_hits,     0,  "flash_fs_page_cache_hits" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_page_cache_misses,   0,  "flash_fs_page_cache_misses" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_block_copies,        0,  "flash_fs_block_copies" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_page_allocs,         0,  "flash_fs_page_allocs" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_page_cache_hits,     0,  "flash_fs_page_cache_hits" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_page_cache_misses,   0,  "flash_fs_page_cache_misses" },
 };
 
 

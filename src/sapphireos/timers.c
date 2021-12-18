@@ -74,8 +74,8 @@ static int8_t tmr_i8_kv_handler(
 
 
 KV_SECTION_META kv_meta_t tmr_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, tmr_i8_kv_handler,  "sys_time" },
-    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  0, tmr_i8_kv_handler,  "sys_time_us" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, tmr_i8_kv_handler,  "sys_time" },
+    { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  0, tmr_i8_kv_handler,  "sys_time_us" },
 };
 
 void tmr_v_init( void ){

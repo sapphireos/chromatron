@@ -67,7 +67,7 @@ static uint8_t test_link_mode;
 #define TEST_LINK_TAG __KV__TEST_LINK
 
 KV_SECTION_META kv_meta_t link_test_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,  0, 0, &test_link_mode,       0,  "test_link_mode" },
+    { CATBUS_TYPE_UINT8,  0, 0, &test_link_mode,       0,  "test_link_mode" },
 };
 
 
@@ -115,8 +115,8 @@ static int32_t link_test_key;
 static int32_t link_test_key2;
 
 KV_SECTION_META kv_meta_t link_kv[] = {
-    { SAPPHIRE_TYPE_INT32,   0, 0,                   &link_test_key,        0,  "link_test_key" },
-    { SAPPHIRE_TYPE_INT32,   0, 0,                   &link_test_key2,       0,  "link_test_key2" },
+    { CATBUS_TYPE_INT32,   0, 0,                   &link_test_key,        0,  "link_test_key" },
+    { CATBUS_TYPE_INT32,   0, 0,                   &link_test_key2,       0,  "link_test_key2" },
 };
 
 PT_THREAD( test_thread( pt_t *pt, void *state ) )

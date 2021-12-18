@@ -86,10 +86,10 @@ static uint32_t lora_tx;
 static uint32_t lora_rx_errors;
 
 KV_SECTION_META kv_meta_t rfm95w_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_rx,       0, "lora_rx" },
-    { SAPPHIRE_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,     &lora_rssi,     0, "lora_rssi" },
-    { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_tx,       0, "lora_tx" },
-    { SAPPHIRE_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_rx_errors,0, "lora_rx_errors" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_rx,       0, "lora_rx" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,     &lora_rssi,     0, "lora_rssi" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_tx,       0, "lora_tx" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_rx_errors,0, "lora_rx_errors" },
 };
 
 static bool rx_ready;

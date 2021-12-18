@@ -102,19 +102,19 @@ static int8_t ntp_kv_handler(
 
 
 KV_SECTION_META kv_meta_t time_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
-    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &master_net_time,  0,                      "net_time" },
-    { SAPPHIRE_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &local_source,     0,                      "net_time_local_source" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &filtered_rtt,     0,                      "net_time_filtered_rtt" },
-    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 ntp_kv_handler,         "ntp_seconds" },
-    { SAPPHIRE_TYPE_INT16,      0, KV_FLAGS_PERSIST,   &tz_offset,        0,                      "datetime_tz_offset" },
+    { CATBUS_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
+    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &master_net_time,  0,                      "net_time" },
+    { CATBUS_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &local_source,     0,                      "net_time_local_source" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &filtered_rtt,     0,                      "net_time_filtered_rtt" },
+    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 ntp_kv_handler,         "ntp_seconds" },
+    { CATBUS_TYPE_INT16,      0, KV_FLAGS_PERSIST,   &tz_offset,        0,                      "datetime_tz_offset" },
 
-    { SAPPHIRE_TYPE_INT32,      0, KV_FLAGS_READ_ONLY, &master_sync_difference,          0,       "net_master_sync_diff" },
+    { CATBUS_TYPE_INT32,      0, KV_FLAGS_READ_ONLY, &master_sync_difference,          0,       "net_master_sync_diff" },
 
-    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &good_syncs,       0,                      "net_time_good_syncs" },
-    { SAPPHIRE_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &rejected_syncs,   0,                      "net_time_rejected_syncs" },
+    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &good_syncs,       0,                      "net_time_good_syncs" },
+    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &rejected_syncs,   0,                      "net_time_rejected_syncs" },
 };
 
 

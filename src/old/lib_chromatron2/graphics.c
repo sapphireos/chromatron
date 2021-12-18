@@ -46,7 +46,7 @@ static int16_t frame_rate_adjust;
 static uint16_t vm_fader_time;
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
 };
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );

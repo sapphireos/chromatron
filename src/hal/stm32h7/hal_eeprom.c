@@ -48,7 +48,7 @@ static uint8_t current_block;
 static uint32_t total_block_writes;
 
 KV_SECTION_META kv_meta_t hal_eeprom_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &total_block_writes, 0,  "eeprom_block_writes" },
+    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &total_block_writes, 0,  "eeprom_block_writes" },
 };
 
 
