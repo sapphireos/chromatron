@@ -37,6 +37,7 @@
 
 typedef struct{
     catbus_hash_t32 hash;
+    catbus_meta_t meta;
     uint16_t tick_rate;
     uint16_t ticks;
 } datalog_entry_t;
@@ -118,8 +119,8 @@ PT_BEGIN( pt );
 
         fs_v_seek( f, 0 );
 
-        datalog_file_entry_t entry;
-        uint16_t entry_count = fs_i32_get_size( f ) / sizeof(entry);
+        datalog_file_entry_t file_entry;
+        uint16_t entry_count = fs_i32_get_size( f ) / sizeof(file_entry);
 
         reset_config();
 
@@ -132,18 +133,26 @@ PT_BEGIN( pt );
 
         datalog_entry_t *ptr = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );        
 
-        while( fs_i16_read( f, &entry, sizeof(entry) ) == sizeof(entry) ){
+        while( fs_i16_read( f, &file_entry, sizeof(file_entry) ) == sizeof(file_entry) ){
 
-            // error check
-            if( entry.rate < DATALOG_TICK_RATE ){
+            if( kv_i8_get_catbus_meta( file_entry.hash, &ptr->meta ) != KV_ERR_STATUS_OK ){
 
-                entry.rate = DATALOG_TICK_RATE;
+                ptr->hash = 0;
+
+                goto next;
             }
 
-            ptr->hash = entry.hash;
-            ptr->tick_rate = entry.rate / DATALOG_TICK_RATE;
+            // error check
+            if( file_entry.rate < DATALOG_TICK_RATE ){
+
+                file_entry.rate = DATALOG_TICK_RATE;
+            }
+
+            ptr->hash = file_entry.hash;
+            ptr->tick_rate = file_entry.rate / DATALOG_TICK_RATE;
             ptr->ticks = ptr->tick_rate;
 
+        next:
             ptr++;
         }       
 
@@ -160,7 +169,12 @@ PT_END( pt );
 }
 
 
-static void record_data( catbus_hash_t32 hash, uint16_t tick_rate ){
+static void record_data( datalog_entry_t *entry ){
+
+    if( entry->hash == 0 ){
+
+        return;
+    }
 
     #define MAX_DATA_LEN 128
 
@@ -174,10 +188,11 @@ static void record_data( catbus_hash_t32 hash, uint16_t tick_rate ){
     datalog_data_t *data_msg = (datalog_data_t *)( header + 1 );
     uint8_t *data = &data_msg->data.data;
 
-    uint16_t msglen = ( sizeof(datalog_data_t) - 1 ) + kv_i16_len( hash ) + sizeof(datalog_header_t);
+    uint16_t msglen = ( sizeof(datalog_data_t) - 1 ) + type_u16_size_meta( &entry->meta ) + sizeof(datalog_header_t);
 
-    if( ( kv_i8_get( hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ) &&
-        ( kv_i8_get_catbus_meta( hash, &data_msg->data.meta ) == KV_ERR_STATUS_OK ) ){
+    if( kv_i8_get( entry->hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ){
+
+        data_msg->data.meta = entry->meta;
 
         // transmit!
         msgflow_b_send( msgflow, buf, msglen );
@@ -226,7 +241,7 @@ PT_BEGIN( pt );
 
                 entry_ptr->ticks = entry_ptr->tick_rate;
 
-                record_data( entry_ptr->hash, entry_ptr->tick_rate );
+                record_data( entry_ptr );
 
             done:
                 entry_ptr++;
