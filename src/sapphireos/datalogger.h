@@ -28,6 +28,8 @@
 #include "catbus.h"
 
 #define DATALOG_TICK_RATE       100
+#define DATALOG_FLUSH_RATE      4000
+#define DATALOG_MAX_BUFFER_SIZE 128
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 hash;

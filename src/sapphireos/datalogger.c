@@ -41,7 +41,18 @@ typedef struct{
     catbus_meta_t meta;
     uint16_t tick_rate;
     uint16_t ticks;
+
+    mem_handle_t buffer;
 } datalog_entry_t;
+
+typedef struct{
+    ntp_ts_t ntp_base;
+    uint8_t max_items;
+    uint8_t item_count;
+} datalog_buffer_t;
+
+#define DATALOG_FLUSH_TICKS ( DATALOG_FLUSH_RATE / DATALOG_TICK_RATE )
+
 
 static mem_handle_t datalog_handle = -1;
 static msgflow_t msgflow = -1;
@@ -67,6 +78,18 @@ void datalog_v_init( void ){
 static void reset_config( void ){
 
     if( datalog_handle > 0 ){
+
+        datalog_entry_t *ptr = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );
+
+        for( uint16_t i = 0; i < mem2_u16_get_size( datalog_handle ) / sizeof(datalog_entry_t); i++ ){
+
+            if( ptr->buffer > 0 ){
+
+                mem2_v_free( ptr->buffer );
+            }
+
+            ptr++;
+        }
 
         mem2_v_free( datalog_handle );
 
@@ -136,9 +159,9 @@ PT_BEGIN( pt );
 
         while( fs_i16_read( f, &file_entry, sizeof(file_entry) ) == sizeof(file_entry) ){
 
-            if( kv_i8_get_catbus_meta( file_entry.hash, &ptr->meta ) != KV_ERR_STATUS_OK ){
+            memset( ptr, 0, sizeof(datalog_entry_t) );
 
-                ptr->hash = 0;
+            if( kv_i8_get_catbus_meta( file_entry.hash, &ptr->meta ) != KV_ERR_STATUS_OK ){
 
                 goto next;
             }
@@ -152,6 +175,34 @@ PT_BEGIN( pt );
             ptr->hash = file_entry.hash;
             ptr->tick_rate = file_entry.rate / DATALOG_TICK_RATE;
             ptr->ticks = ptr->tick_rate;
+
+            // allocate buffer
+            uint16_t data_size = type_u16_size_meta( &ptr->meta );
+            uint16_t items_per_flush = DATALOG_FLUSH_TICKS / ptr->tick_rate;
+            uint8_t max_items = DATALOG_MAX_BUFFER_SIZE / data_size;
+
+            if( max_items > items_per_flush ){
+
+                max_items = items_per_flush;
+            }
+
+            uint16_t buffer_size = sizeof(datalog_buffer_t) + ( max_items * data_size );
+
+            ptr->buffer = mem2_h_alloc( buffer_size );
+
+            if( ptr->buffer < 0 ){
+
+                ptr->buffer = 0;
+
+                goto next;
+            }
+
+            datalog_buffer_t *buffer = (datalog_buffer_t *)mem2_vp_get_ptr( ptr->buffer );
+
+            memset( buffer, 0, buffer_size );
+
+            buffer->max_items = max_items;
+
 
         next:
             ptr++;
