@@ -41,8 +41,11 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
-    uint8_t padding[3];
+    uint8_t flags;
+    uint8_t padding[2];
 } datalog_header_t;
+
+#define DATALOG_FLAGS_NTP_SYNC  0x01
 
 typedef struct __attribute__((packed)){
     catbus_data_t data;

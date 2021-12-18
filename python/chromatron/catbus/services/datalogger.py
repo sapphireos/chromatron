@@ -37,12 +37,14 @@ from influxdb import InfluxDBClient
 
 
 DATALOG_MAGIC = 0x41544144
+DATALOG_FLAGS_NTP_SYNC = 0x01
 
 class DatalogHeader(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="magic"),
                   Uint8Field(_name="version"),
-                  ArrayField(_name="padding", _field=Uint8Field, _length=3)]
+                  Uint8Field(_name="flags"),
+                  ArrayField(_name="padding", _field=Uint8Field, _length=2)]
 
         super().__init__(_fields=fields, **kwargs)
     

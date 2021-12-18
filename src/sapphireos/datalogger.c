@@ -31,6 +31,7 @@
 #include "logging.h"
 #include "hash.h"
 #include "keyvalue.h"
+#include "timesync.h"
 #include "datalogger.h"
 
 #ifdef ENABLE_MSGFLOW
@@ -184,6 +185,11 @@ static void record_data( datalog_entry_t *entry ){
 
     header->magic = DATALOG_MAGIC;
     header->version = DATALOG_VERSION;
+
+    if( time_b_is_ntp_sync() ){
+
+        header->flags |= DATALOG_FLAGS_NTP_SYNC;
+    }
 
     datalog_data_t *data_msg = (datalog_data_t *)( header + 1 );
     uint8_t *data = &data_msg->data.data;
