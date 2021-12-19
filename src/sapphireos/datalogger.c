@@ -56,6 +56,7 @@ typedef struct{
 
 static mem_handle_t datalog_handle = -1;
 static msgflow_t msgflow = -1;
+static ntp_ts_t ntp_base;
 
 PT_THREAD( datalog_config_thread( pt_t *pt, void *state ) );
 PT_THREAD( datalog_thread( pt_t *pt, void *state ) );
@@ -309,6 +310,8 @@ static void flush( void ){
 
 static void record_data( datalog_entry_t *entry ){
 
+#if DATALOG_VERSION == 2
+
     if( entry->hash == 0 ){
 
         return;
@@ -344,32 +347,35 @@ static void record_data( datalog_entry_t *entry ){
 
     buffer->item_count++;
 
-    // #define MAX_DATA_LEN 128
+#elif DATALOG_VERSION == 1
 
-    // uint8_t buf[sizeof(datalog_header_t) + sizeof(datalog_data_t) + MAX_DATA_LEN];
-    // memset( buf, 0, sizeof(buf) );
-    // datalog_header_t *header = (datalog_header_t *)buf;
+    #define MAX_DATA_LEN 128
 
-    // header->magic = DATALOG_MAGIC;
-    // header->version = DATALOG_VERSION;
+    uint8_t buf[sizeof(datalog_header_t) + sizeof(datalog_data_v1_t) + MAX_DATA_LEN];
+    memset( buf, 0, sizeof(buf) );
+    datalog_header_t *header = (datalog_header_t *)buf;
 
-    // if( time_b_is_ntp_sync() ){
+    header->magic = DATALOG_MAGIC;
+    header->version = DATALOG_VERSION;
 
-    //     header->flags |= DATALOG_FLAGS_NTP_SYNC;
-    // }
+    if( time_b_is_ntp_sync() ){
 
-    // datalog_data_t *data_msg = (datalog_data_t *)( header + 1 );
-    // uint8_t *data = &data_msg->data.data;
+        header->flags |= DATALOG_FLAGS_NTP_SYNC;
+    }
 
-    // uint16_t msglen = ( sizeof(datalog_data_t) - 1 ) + type_u16_size_meta( &entry->meta ) + sizeof(datalog_header_t);
+    datalog_data_v1_t *data_msg = (datalog_data_v1_t *)( header + 1 );
+    uint8_t *data = &data_msg->data.data;
 
-    // if( kv_i8_get( entry->hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ){
+    uint16_t msglen = ( sizeof(datalog_data_v1_t) - 1 ) + type_u16_size_meta( &entry->meta ) + sizeof(datalog_header_t);
 
-    //     data_msg->data.meta = entry->meta;
+    if( kv_i8_get( entry->hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ){
 
-    //     // transmit!
-    //     msgflow_b_send( msgflow, buf, msglen );
-    // }
+        data_msg->data.meta = entry->meta;
+
+        // transmit!
+        msgflow_b_send( msgflow, buf, msglen );
+    }
+#endif
 }
 
 PT_THREAD( datalog_thread( pt_t *pt, void *state ) )

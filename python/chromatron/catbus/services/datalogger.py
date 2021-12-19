@@ -26,7 +26,7 @@
 import sys
 import time
 from datetime import datetime
-from catbus import CatbusService, Client, CATBUS_MAIN_PORT, query_tags, CatbusData
+from catbus import CatbusService, Client, CATBUS_MAIN_PORT, query_tags, CatbusData, CatbusMeta
 from sapphire.protocols.msgflow import MsgFlowReceiver
 from sapphire.common import util, run_all, Ribbon
 from elysianfields import *
@@ -134,6 +134,13 @@ class Datalogger(MsgFlowReceiver):
             ]
 
             self.influx.write_points(json_body)
+
+        elif header.version == 2:
+
+            print("V2")
+
+            
+            
 
         else:
             logging.warning(f"Unknown message version: {header.version}")

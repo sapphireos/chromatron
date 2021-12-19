@@ -26,6 +26,7 @@
 #define __DATALOGGER_H
 
 #include "catbus.h"
+#include "ntp.h"
 
 #define DATALOG_TICK_RATE       100
 #define DATALOG_FLUSH_RATE      4000
@@ -48,10 +49,20 @@ typedef struct __attribute__((packed)){
 } datalog_header_t;
 
 #define DATALOG_FLAGS_NTP_SYNC  0x01
+#define DATALOG_FLAGS_INDEX     0x02
+
+
+typedef struct __attribute__((packed)){
+    ntp_ts_t ntp_base;
+} datalog_v2_meta_t;
+
+typedef struct __attribute__((packed)){
+    uint16_t ntp_offset;
+} datalog_data_v2_t;
 
 typedef struct __attribute__((packed)){
     catbus_data_t data;
-} datalog_data_t;
+} datalog_data_v1_t;
 
 
 void datalog_v_init( void );
