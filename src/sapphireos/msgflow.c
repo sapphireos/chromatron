@@ -368,6 +368,8 @@ void msgflow_v_close( msgflow_t msgflow ){
     msgflow_state_t *state = thread_vp_get_data( msgflow );
 
     state->shutdown = TRUE;
+
+    services_v_cancel( __KV__msgflow, state->service );
 }
 
 static bool validate_header( msgflow_header_t *header ){
