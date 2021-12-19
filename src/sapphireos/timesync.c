@@ -353,6 +353,13 @@ void time_v_set_ntp_master_clock(
     time_v_set_ntp_master_clock_internal( source_ts, local_system_time, local_system_time, source, 0 );
 }
 
+void time_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
+
+    *system_time = tmr_u32_get_system_time_ms();
+
+    *ntp_now = time_t_from_system_time( *system_time );   
+}
+
 ntp_ts_t time_t_now( void ){
 
     return time_t_from_system_time( tmr_u32_get_system_time_ms() );
