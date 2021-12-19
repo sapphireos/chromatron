@@ -702,6 +702,132 @@ int8_t bq25895_i8_calc_temp( uint8_t ratio ){
     return temp_table[127 - ratio];
 }
 
+
+// percent * 10
+// IE, the first value is 41.8%
+static const uint16_t temp_table2[] = {
+418 , // -20C
+415 ,
+411 ,
+407 ,
+403 ,
+399 ,
+395 ,
+390 ,
+386 ,
+381 ,
+377 ,
+372 ,
+367 ,
+363 ,
+358 ,
+353 ,
+348 ,
+343 ,
+338 ,
+333 ,
+328 , // 0C
+322 ,
+317 ,
+312 ,
+307 ,
+301 ,
+296 ,
+291 ,
+285 ,
+280 ,
+275 ,
+269 ,
+264 ,
+259 ,
+254 ,
+248 ,
+243 ,
+238 ,
+233 ,
+228 ,
+223 ,
+218 ,
+213 ,
+209 ,
+204 ,
+199 , // 25C
+195 ,
+190 ,
+186 ,
+181 ,
+177 ,
+173 ,
+168 ,
+164 ,
+160 ,
+156 ,
+153 ,
+149 ,
+145 ,
+141 ,
+138 ,
+134 ,
+131 ,
+128 ,
+124 ,
+121 ,
+118 ,
+115 ,
+112 ,
+109 ,
+107 ,
+104 ,
+101 ,
+99  ,
+96  ,
+94  ,
+91  ,
+89  ,
+87  ,
+84  ,
+82  ,
+80  ,
+78  ,
+76  ,
+74  ,
+72  ,
+70  ,
+69  ,
+67  ,
+65  ,
+63  ,
+62  ,
+60  ,
+59  ,
+57  ,
+56  ,
+54  ,
+53  ,
+52  ,
+50  ,
+49  ,
+48  ,
+47  ,
+46  ,
+45  ,
+43  , // 85C
+};
+
+// percent * 10, using table 2
+int8_t bq25895_i8_calc_temp2( uint16_t percent ){
+
+    for( uint8_t i = 0; i < cnt_of_array(temp_table2) - 1; i++ ){
+
+        if( ( percent >= temp_table2[i] ) && ( percent <= temp_table2[i + 1] ) ){
+
+            return temp_table2[i];
+        }
+    }
+
+    return -20;
+}
+
 int8_t bq25895_i8_get_therm( void ){
 
     uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
@@ -1394,11 +1520,11 @@ PT_BEGIN( pt );
 
         if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
-            uint16_t case_adc = adc_u16_read_mv( CASE_ADC_IO );
-            uint16_t ambient_adc = adc_u16_read_mv( AMBIENT_ADC_IO );
+            uint32_t case_adc = adc_u16_read_mv( CASE_ADC_IO );
+            uint32_t ambient_adc = adc_u16_read_mv( AMBIENT_ADC_IO );
 
-            case_temp = bq25895_i8_calc_temp( ( case_adc * 127 ) / 3300 );
-            ambient_temp = bq25895_i8_calc_temp( ( ambient_adc * 127 ) / 3300 );
+            case_temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
+            ambient_temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
         }
 
         // static uint8_t counter;
