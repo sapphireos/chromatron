@@ -110,16 +110,6 @@ class ThreadInfoArray(ArrayField):
 
         super(ThreadInfoArray, self).__init__(_field=field, **kwargs)
 
-class NTPTimestampField(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="seconds"),
-                  Uint32Field(_name="fraction")]
-
-        super(NTPTimestampField, self).__init__(_fields=fields, **kwargs)
-
-    def copy(self):
-        return NTPTimestampField()
-
 class KVMetaField(StructField):
     def __init__(self, **kwargs):
         fields = [Int8Field(_name="type"),

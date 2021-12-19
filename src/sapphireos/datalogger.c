@@ -355,6 +355,8 @@ PT_BEGIN( pt );
 
                     datalog_v2_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
+                    // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
+
                     // get NTP time
                     time_v_get_timestamp( &ntp_base, &systime_base );
 
@@ -365,12 +367,18 @@ PT_BEGIN( pt );
 
                 entry_ptr->ticks = entry_ptr->tick_rate;
 
-                if( record_data( entry_ptr ) > 0 ){
+                int8_t status = record_data( entry_ptr );
+
+                if( status > 0 ){
 
                     // queue for transmission
                     flush();
 
                     record_data( entry_ptr );
+                }
+                else if( status < 0 ){
+
+                    log_v_debug_P( PSTR("datalog failed") );
                 }
 
             done:

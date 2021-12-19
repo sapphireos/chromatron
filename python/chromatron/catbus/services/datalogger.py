@@ -141,13 +141,19 @@ class Datalogger(MsgFlowReceiver):
 
             self.influx.write_points(json_body)
 
-        elif header.version == 2:
-
+        elif header.version == 2:            
             print("V2")
+            print(header)
+
+            # slice past header
+            data = data[header.size():]
 
             # get meta
             meta = DatalogMetaV2().unpack(data)
-            data = data[meta.size:] # slice buffer
+
+            print(meta)
+
+            data = data[meta.size():] # slice buffer
 
             # extract chunks
             while len(data) > 0:
@@ -155,7 +161,7 @@ class Datalogger(MsgFlowReceiver):
 
                 print(chunk)
 
-                data = data[chunk.size:]                
+                data = data[chunk.size():]                
 
         else:
             logging.warning(f"Unknown message version: {header.version}")
