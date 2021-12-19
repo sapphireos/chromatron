@@ -25,12 +25,13 @@
 #ifndef __DATALOGGER_H
 #define __DATALOGGER_H
 
+#include "msgflow.h"
 #include "catbus.h"
 #include "ntp.h"
 
 #define DATALOG_TICK_RATE       100
 #define DATALOG_FLUSH_RATE      4000
-#define DATALOG_MAX_BUFFER_SIZE 128
+#define DATALOG_MAX_BUFFER_SIZE ( MSGFLOW_MAX_LEN - sizeof(datalog_header_t) )
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 hash;
@@ -49,8 +50,6 @@ typedef struct __attribute__((packed)){
 } datalog_header_t;
 
 #define DATALOG_FLAGS_NTP_SYNC  0x01
-#define DATALOG_FLAGS_INDEX     0x02
-
 
 typedef struct __attribute__((packed)){
     ntp_ts_t ntp_base;
@@ -58,6 +57,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint16_t ntp_offset;
+    catbus_data_t data;
 } datalog_data_v2_t;
 
 typedef struct __attribute__((packed)){

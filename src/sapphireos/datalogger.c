@@ -41,22 +41,18 @@ typedef struct{
     catbus_meta_t meta;
     uint16_t tick_rate;
     uint16_t ticks;
-
-    mem_handle_t buffer;
 } datalog_entry_t;
 
-typedef struct{
-    ntp_ts_t ntp_base;
-    uint8_t max_items;
-    uint8_t item_count;
-} datalog_buffer_t;
 
 #define DATALOG_FLUSH_TICKS ( DATALOG_FLUSH_RATE / DATALOG_TICK_RATE )
 
 
 static mem_handle_t datalog_handle = -1;
+static mem_handle_t datalog_buffer_handle = -1;
 static msgflow_t msgflow = -1;
 static ntp_ts_t ntp_base;
+static uint32_t systime_base;
+static uint16_t buffer_offset;
 
 PT_THREAD( datalog_config_thread( pt_t *pt, void *state ) );
 PT_THREAD( datalog_thread( pt_t *pt, void *state ) );
@@ -73,24 +69,11 @@ void datalog_v_init( void ){
                      PSTR("datalogger_config"),
                      0,
                      0 );
-
 }
 
 static void reset_config( void ){
 
     if( datalog_handle > 0 ){
-
-        datalog_entry_t *ptr = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );
-
-        for( uint16_t i = 0; i < mem2_u16_get_size( datalog_handle ) / sizeof(datalog_entry_t); i++ ){
-
-            if( ptr->buffer > 0 ){
-
-                mem2_v_free( ptr->buffer );
-            }
-
-            ptr++;
-        }
 
         mem2_v_free( datalog_handle );
 
@@ -153,6 +136,7 @@ PT_BEGIN( pt );
 
         if( datalog_handle < 0 ){
 
+            reset_config();
             goto done;
         }
 
@@ -177,34 +161,6 @@ PT_BEGIN( pt );
             ptr->tick_rate = file_entry.rate / DATALOG_TICK_RATE;
             ptr->ticks = ptr->tick_rate;
 
-            // allocate buffer
-            uint16_t data_size = type_u16_size_meta( &ptr->meta );
-            uint16_t items_per_flush = DATALOG_FLUSH_TICKS / ptr->tick_rate;
-            uint8_t max_items = DATALOG_MAX_BUFFER_SIZE / data_size;
-
-            if( max_items > items_per_flush ){
-
-                max_items = items_per_flush;
-            }
-
-            uint16_t buffer_size = sizeof(datalog_buffer_t) + ( max_items * data_size );
-
-            ptr->buffer = mem2_h_alloc( buffer_size );
-
-            if( ptr->buffer < 0 ){
-
-                ptr->buffer = 0;
-
-                goto next;
-            }
-
-            datalog_buffer_t *buffer = (datalog_buffer_t *)mem2_vp_get_ptr( ptr->buffer );
-
-            memset( buffer, 0, buffer_size );
-
-            buffer->max_items = max_items;
-
-
         next:
             ptr++;
         }       
@@ -222,130 +178,52 @@ PT_END( pt );
 }
 
 
-static void flush( void ){
-
-    if( datalog_handle <= 0 ){
-
-        return;
-    }
-
-    if( !msgflow_b_connected( msgflow ) ){
-
-        return;
-    }
-
-    uint8_t buf[MSGFLOW_MAX_LEN];
-
-    datalog_header_t *header = (datalog_header_t *)buf;
-    uint8_t *ptr = (uint8_t *)( header + 1 );
-    uint16_t msg_size = sizeof(datalog_header_t);
-
-    int16_t remaining_space = sizeof(buf) - sizeof(datalog_header_t);
-
-    header->magic = DATALOG_MAGIC;
-    header->version = DATALOG_VERSION;
-
-    if( time_b_is_ntp_sync() ){
-
-        header->flags |= DATALOG_FLAGS_NTP_SYNC;
-    }
-
-    datalog_entry_t *entry = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );
-
-    for( uint16_t i = 0; i < mem2_u16_get_size( datalog_handle ) / sizeof(datalog_entry_t); i++ ){
-
-        if( entry->buffer <= 0 ){
-
-            goto next;
-        }
-
-        datalog_buffer_t *buffer = (datalog_buffer_t *)mem2_vp_get_ptr( entry->buffer );
-        uint8_t *data = (uint8_t *)( buffer + 1 );
-
-        uint16_t data_len = type_u16_size_meta( &entry->meta ) * buffer->item_count;
-        uint16_t buffer_size = sizeof(entry->meta) + sizeof(buffer->ntp_base) + data_len;
-
-        if( remaining_space < buffer_size ){
-
-            // transmit
-            msgflow_b_send( msgflow, buf, msg_size );
-
-            // reset pointers
-            ptr = (uint8_t *)( header + 1 );
-            msg_size = sizeof(datalog_header_t);
-            remaining_space = sizeof(buf) - sizeof(datalog_header_t);
-        }
-
-        // install meta
-        memcpy( ptr, &entry->meta, sizeof(entry->meta) );
-        ptr += sizeof(entry->meta);
-        remaining_space -= sizeof(entry->meta);
-        msg_size += sizeof(entry->meta);
-
-        // install timestamp
-        memcpy( ptr, &buffer->ntp_base, sizeof(buffer->ntp_base) );
-        ptr += sizeof(buffer->ntp_base);
-        remaining_space -= sizeof(buffer->ntp_base);
-        msg_size += sizeof(buffer->ntp_base);
-
-        // install data
-        memcpy( ptr, data, data_len );
-        ptr += data_len;
-        remaining_space -= data_len;
-        msg_size += data_len;
-
-        // reset buffer
-        buffer->item_count = 0;
-
-    next:
-        entry++;
-    }
-
-    if( msg_size > sizeof(datalog_header_t) ){
-
-        // transmit
-        msgflow_b_send( msgflow, buf, msg_size );
-    }
-}
-
-static void record_data( datalog_entry_t *entry ){
+static int8_t record_data( datalog_entry_t *entry ){
 
 #if DATALOG_VERSION == 2
 
+    uint32_t timestamp = tmr_u32_get_system_time_ms();
+
     if( entry->hash == 0 ){
 
-        return;
+        return -1;
     }
 
-    if( entry->buffer <= 0 ){
+    if( datalog_buffer_handle < 0 ){
 
-        return;
+        return -1;
     }
 
-    datalog_buffer_t *buffer = (datalog_buffer_t *)mem2_vp_get_ptr( entry->buffer );
+    if( buffer_offset == 0 ){
 
-    if( buffer->item_count >= buffer->max_items ){
-
-        // flush buffer
-        flush();
+        return -1;
     }
 
-    if( buffer->item_count == 0 ){
+    uint8_t *ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
-        buffer->ntp_base = time_t_now();
-    }
+    int16_t remaining_space = DATALOG_MAX_BUFFER_SIZE - buffer_offset;
 
-    uint8_t *data_ptr = (uint8_t *)( buffer + 1 );
     uint16_t data_size = type_u16_size_meta( &entry->meta );
+    uint16_t chunk_size = ( sizeof(datalog_data_v2_t) - 1 ) + data_size;
 
-    if( kv_i8_get( entry->hash, &data_ptr[data_size * buffer->item_count], data_size ) != KV_ERR_STATUS_OK ){
+    if( remaining_space < chunk_size ){
 
-        log_v_error_P( PSTR("datalog error") );
-
-        return;
+        return 1;
     }
 
-    buffer->item_count++;
+    datalog_data_v2_t *chunk = (datalog_data_v2_t *)&ptr[buffer_offset];
+
+    chunk->ntp_offset = tmr_u32_elapsed_times( systime_base, timestamp );
+    chunk->data.meta = entry->meta;
+
+    if( kv_i8_get( entry->hash, &chunk->data.data, data_size ) != KV_ERR_STATUS_OK ){
+
+        return -1;
+    }
+
+    buffer_offset += chunk_size;
+
+    return 0;
 
 #elif DATALOG_VERSION == 1
 
@@ -375,8 +253,53 @@ static void record_data( datalog_entry_t *entry ){
         // transmit!
         msgflow_b_send( msgflow, buf, msglen );
     }
+
+    return 0;
 #endif
 }
+
+
+static void flush( void ){
+
+    if( datalog_handle <= 0 ){
+
+        return;
+    }
+
+    if( datalog_buffer_handle <= 0 ){
+
+        return;
+    }
+
+    if( !msgflow_b_connected( msgflow ) ){
+
+        return;
+    }
+
+    uint8_t buf[MSGFLOW_MAX_LEN];
+
+    datalog_header_t *header = (datalog_header_t *)buf;
+    uint8_t *msg_ptr = (uint8_t *)( header + 1 );
+    uint16_t msg_size = sizeof(datalog_header_t);
+
+    header->magic = DATALOG_MAGIC;
+    header->version = DATALOG_VERSION;
+
+    if( time_b_is_ntp_sync() ){
+
+        header->flags |= DATALOG_FLAGS_NTP_SYNC;
+    }
+
+    uint8_t *buf_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
+
+    memcpy( buf_ptr, msg_ptr, buffer_offset );
+    msg_size += buffer_offset;
+
+    buffer_offset = 0;
+
+    msgflow_b_send( msgflow, buf, msg_size );
+}
+
 
 PT_THREAD( datalog_thread( pt_t *pt, void *state ) )
 {
@@ -384,6 +307,14 @@ PT_BEGIN( pt );
     
     // wait until we have a valid config
     THREAD_WAIT_WHILE( pt, datalog_handle < 0 );
+
+    // allocate buffer    
+    datalog_buffer_handle = mem2_h_alloc( DATALOG_MAX_BUFFER_SIZE );
+
+    if( datalog_buffer_handle < 0 ){
+
+        THREAD_EXIT( pt );
+    }
 
     msgflow = msgflow_m_listen( __KV__datalogger, MSGFLOW_CODE_ANY, 128 );
 
@@ -418,9 +349,29 @@ PT_BEGIN( pt );
                     goto done;
                 }
 
+                // item is ready to record
+
+                if( buffer_offset == 0 ){
+
+                    datalog_v2_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
+
+                    // get NTP time
+                    time_v_get_timestamp( &ntp_base, &systime_base );
+
+                    buf_meta_ptr->ntp_base = ntp_base;
+
+                    buffer_offset += sizeof(datalog_v2_meta_t);
+                }
+
                 entry_ptr->ticks = entry_ptr->tick_rate;
 
-                record_data( entry_ptr );
+                if( record_data( entry_ptr ) > 0 ){
+
+                    // queue for transmission
+                    flush();
+
+                    record_data( entry_ptr );
+                }
 
             done:
                 entry_ptr++;
