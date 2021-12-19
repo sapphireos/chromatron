@@ -178,11 +178,9 @@ PT_END( pt );
 }
 
 
-static int8_t record_data( datalog_entry_t *entry ){
+static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
 
 #if DATALOG_VERSION == 2
-
-    uint32_t timestamp = tmr_u32_get_system_time_ms();
 
     if( entry->hash == 0 ){
 
@@ -334,6 +332,8 @@ PT_BEGIN( pt );
 
         while( msgflow_b_connected( msgflow ) && ( datalog_handle > 0 ) ){
 
+            uint32_t timestamp = tmr_u32_get_system_time_ms();
+
             uint16_t entries = mem2_u16_get_size( datalog_handle ) / sizeof(datalog_entry_t);
 
             datalog_entry_t *entry_ptr = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );
@@ -367,14 +367,14 @@ PT_BEGIN( pt );
 
                 entry_ptr->ticks = entry_ptr->tick_rate;
 
-                int8_t status = record_data( entry_ptr );
+                int8_t status = record_data( entry_ptr, timestamp );
 
                 if( status > 0 ){
 
                     // queue for transmission
                     flush();
 
-                    record_data( entry_ptr );
+                    record_data( entry_ptr, timestamp );
                 }
                 else if( status < 0 ){
 

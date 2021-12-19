@@ -25,7 +25,7 @@
 
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from catbus import CatbusService, Client, CATBUS_MAIN_PORT, query_tags, CatbusData, CatbusMeta
 from sapphire.protocols.msgflow import MsgFlowReceiver
 from sapphire.common import util, run_all, Ribbon
@@ -142,8 +142,10 @@ class Datalogger(MsgFlowReceiver):
             self.influx.write_points(json_body)
 
         elif header.version == 2:            
-            print("V2")
-            print(header)
+            host = (host[0], CATBUS_MAIN_PORT)
+
+            # print("V2")
+            # print(header)
 
             # slice past header
             data = data[header.size():]
@@ -151,7 +153,14 @@ class Datalogger(MsgFlowReceiver):
             # get meta
             meta = DatalogMetaV2().unpack(data)
 
-            print(meta)
+            if header.flags & DATALOG_FLAGS_NTP_SYNC == 0:
+                ntp_base = timestamp
+
+            else:
+                ntp_base = util.ntp_to_datetime(meta.ntpbase.seconds, meta.ntpbase.fraction)
+                
+            # print(meta)
+            # print(ntp_base)
 
             data = data[meta.size():] # slice buffer
 
@@ -160,6 +169,43 @@ class Datalogger(MsgFlowReceiver):
             # extract chunks
             while len(data) > 0:
                 chunk = DatalogDataV2().unpack(data)
+
+                delta = timedelta(seconds=chunk.ntp_offset / 1000.0)
+
+                ntp_timestamp = ntp_base + delta
+                # print(ntp_timestamp)
+
+
+                # note this will only work with services running on 
+                # port 44632, generally only devices, not Python servers.
+                try:
+                    info = self.directory[str(host)]
+
+                except KeyError:
+                    return
+
+                key = self.kv._server.resolve_hash(chunk.data.meta.hash, host)
+
+                value = chunk.data.value
+                print(ntp_timestamp, key, value)
+
+                tags = {'name': info['name'],
+                        'location': info['location']}
+
+                json_body = [
+                    {
+                        "measurement": key,
+                        "tags": tags,
+                        "time": ntp_timestamp.isoformat(),
+                        "fields": {
+                            "value": value
+                        }
+                    }
+                ]
+
+                # print(json_body)
+
+                self.influx.write_points(json_body)
 
                 # print(chunk)
 
