@@ -687,6 +687,9 @@ class Builder(object):
     def compile(self):
         logging.info("Compiling %s" % (self.proj_name))
 
+        # add colored diagnostic messages:
+        self.settings["C_FLAGS"].append("-fdiagnostics-color=always")
+
         # save working dir
         cwd = os.getcwd()
 
