@@ -277,6 +277,7 @@ static void flush( void ){
     uint8_t buf[MSGFLOW_MAX_LEN];
 
     datalog_header_t *header = (datalog_header_t *)buf;
+    memset( header, 0, sizeof(datalog_header_t) );
     uint8_t *msg_ptr = (uint8_t *)( header + 1 );
     uint16_t msg_size = sizeof(datalog_header_t);
 

@@ -153,11 +153,11 @@ class Datalogger(MsgFlowReceiver):
             # get meta
             meta = DatalogMetaV2().unpack(data)
 
-            if header.flags & DATALOG_FLAGS_NTP_SYNC == 0:
+            if (header.flags & DATALOG_FLAGS_NTP_SYNC) == 0:
                 ntp_base = timestamp
 
             else:
-                ntp_base = util.ntp_to_datetime(meta.ntpbase.seconds, meta.ntpbase.fraction)
+                ntp_base = util.ntp_to_datetime(meta.ntp_base.seconds, meta.ntp_base.fraction)
                 
             # print(meta)
             # print(ntp_base)
