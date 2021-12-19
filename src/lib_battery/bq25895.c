@@ -819,9 +819,9 @@ int8_t bq25895_i8_calc_temp2( uint16_t percent ){
 
     for( uint8_t i = 0; i < cnt_of_array(temp_table2) - 1; i++ ){
 
-        if( ( percent >= temp_table2[i] ) && ( percent <= temp_table2[i + 1] ) ){
+        if( ( percent <= temp_table2[i] ) && ( percent >= temp_table2[i + 1] ) ){
 
-            return temp_table2[i];
+            return (int16_t)i - 20;
         }
     }
 
