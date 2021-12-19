@@ -292,7 +292,7 @@ static void flush( void ){
 
     uint8_t *buf_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
-    memcpy( buf_ptr, msg_ptr, buffer_offset );
+    memcpy( msg_ptr, buf_ptr, buffer_offset );
     msg_size += buffer_offset;
 
     buffer_offset = 0;

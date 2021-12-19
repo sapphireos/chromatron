@@ -56,7 +56,7 @@ class DatalogMetaV2(StructField):
 
 class DatalogDataV2(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint16Field(_name="ntp_offset"),
+        fields = [Uint32Field(_name="ntp_offset"),
                   CatbusData(_name="data")]
 
         super().__init__(_fields=fields, **kwargs)
@@ -155,13 +155,19 @@ class Datalogger(MsgFlowReceiver):
 
             data = data[meta.size():] # slice buffer
 
+            item_count = 0
+
             # extract chunks
             while len(data) > 0:
                 chunk = DatalogDataV2().unpack(data)
 
-                print(chunk)
+                # print(chunk)
 
                 data = data[chunk.size():]                
+
+                item_count += 1
+
+            print(f'received {item_count} items')
 
         else:
             logging.warning(f"Unknown message version: {header.version}")
