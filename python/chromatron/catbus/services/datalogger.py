@@ -47,8 +47,21 @@ class DatalogHeader(StructField):
                   ArrayField(_name="padding", _field=Uint8Field, _length=2)]
 
         super().__init__(_fields=fields, **kwargs)
+
+class DatalogMetaV2(StructField):
+    def __init__(self, **kwargs):
+        fields = [NTPTimestampField(_name="ntp_base")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class DatalogDataV2(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint16Field(_name="ntp_offset"),
+                  CatbusData(_name="data")]
+
+        super().__init__(_fields=fields, **kwargs)
     
-class DatalogData(StructField):
+class DatalogDataV1(StructField):
     def __init__(self, **kwargs):
         fields = [CatbusData(_name="data")]
 
@@ -57,7 +70,7 @@ class DatalogData(StructField):
 class DatalogMessageV1(StructField):
     def __init__(self, **kwargs):
         fields = [DatalogHeader(_name="header"),
-                  DatalogData(_name="data")]
+                  DatalogDataV1(_name="data")]
 
         super().__init__(_fields=fields, **kwargs)
 
@@ -107,14 +120,7 @@ class Datalogger(MsgFlowReceiver):
             except KeyError:
                 return
 
-            # try:
             key = self.kv._server.resolve_hash(unpacked_data.data.meta.hash, host)
-
-            # except TypeError:
-            #     # possibly a hash lookup failed
-            #     logging.warning(f"Hash lookup failed: {unpacked_data.data.meta.hash}")
-            #     return
-
 
             value = unpacked_data.data.value
             print(key, value)
@@ -139,8 +145,17 @@ class Datalogger(MsgFlowReceiver):
 
             print("V2")
 
-            
-            
+            # get meta
+            meta = DatalogMetaV2().unpack(data)
+            data = data[meta.size:] # slice buffer
+
+            # extract chunks
+            while len(data) > 0:
+                chunk = DatalogDataV2().unpack(data)
+
+                print(chunk)
+
+                data = data[chunk.size:]                
 
         else:
             logging.warning(f"Unknown message version: {header.version}")
