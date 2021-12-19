@@ -303,6 +303,9 @@ static void flush( void ){
 PT_THREAD( datalog_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    static uint8_t ticks;
+    ticks = 0;
     
     // wait until we have a valid config
     THREAD_WAIT_WHILE( pt, datalog_handle < 0 );
@@ -332,6 +335,15 @@ PT_BEGIN( pt );
         thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
         while( msgflow_b_connected( msgflow ) && ( datalog_handle > 0 ) ){
+
+            ticks++;
+
+            if( ticks >= DATALOG_FLUSH_TICKS ){
+
+                ticks = 0;
+
+                flush();
+            }
 
             uint32_t timestamp = tmr_u32_get_system_time_ms();
 
