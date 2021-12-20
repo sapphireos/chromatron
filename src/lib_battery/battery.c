@@ -378,6 +378,8 @@ PT_BEGIN( pt );
         // fan control for elite board
         if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
+            io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
+
             if( fan_on ){
 
                 io_v_digital_write( FAN_IO, 1 );
