@@ -832,6 +832,26 @@ static void set_hostname( void ){
     }
 }
 
+static bool is_low_power_mode( void ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        // safe mode, we're not going to do anything fancy
+
+        return FALSE;
+    }
+
+    bool batt_enabled = FALSE;
+    kv_i8_get( __KV__batt_enable, &batt_enabled, sizeof(batt_enabled) );
+
+    if( batt_enabled ){
+
+        return TRUE;
+    }
+
+
+    return TRUE;
+}
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
@@ -896,29 +916,15 @@ station_mode:
             esp_wifi_start();
 
             // set power state
-            if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+            if( is_low_power_mode() ){
 
-                // safe mode, we're not going to do anything fancy
-                esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
+                esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
             }
             else{
 
-                bool batt_enabled = FALSE;
-                kv_i8_get( __KV__batt_enable, &batt_enabled, sizeof(batt_enabled) );
-
-                if( batt_enabled ){
-
-                    // battery enabled, set wifi to modem sleep
-
-                    esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
-                    // esp_wifi_set_ps( WIFI_PS_MAX_MODEM );
-                }
-                else{
-
-                    esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
-                }
+                esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
             }
-
+            
             // check if we can try a fast connect with the last connected router
             if( wifi_router >= 0 ){
 
