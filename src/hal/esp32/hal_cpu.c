@@ -109,6 +109,9 @@ void cpu_v_init( void ){
     #ifndef BOOTLOADER
     DISABLE_INTERRUPTS;
 
+    // ensure RTC power domain remains enabled during sleep, so GPIOs will retain their state.
+    esp_sleep_pd_config( ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON );
+
     cpu_v_set_clock_speed_high();
 
     vTaskDelay(10);
