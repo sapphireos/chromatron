@@ -166,6 +166,8 @@ class Datalogger(MsgFlowReceiver):
 
             item_count = 0
 
+            points = []
+
             # extract chunks
             while len(data) > 0:
                 chunk = DatalogDataV2().unpack(data)
@@ -192,26 +194,22 @@ class Datalogger(MsgFlowReceiver):
                 tags = {'name': info['name'],
                         'location': info['location']}
 
-                json_body = [
-                    {
-                        "measurement": key,
-                        "tags": tags,
-                        "time": ntp_timestamp.isoformat(),
-                        "fields": {
-                            "value": value
-                        }
+                json_body = {
+                    "measurement": key,
+                    "tags": tags,
+                    "time": ntp_timestamp.isoformat(),
+                    "fields": {
+                        "value": value
                     }
-                ]
+                }
 
-                # print(json_body)
-
-                self.influx.write_points(json_body)
-
-                # print(chunk)
+                points.append(json_body)
 
                 data = data[chunk.size():]                
 
                 item_count += 1
+
+            self.influx.write_points(points)
 
             print(f'received {item_count} items')
 
