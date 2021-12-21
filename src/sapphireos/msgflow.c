@@ -424,7 +424,7 @@ void msgflow_v_process_timeouts( void ){
             // check for timeout
             if( mstate->timeout == 0 ){
 
-                log_v_debug_P( PSTR("msgflow timed out") );
+                // log_v_debug_P( PSTR("msgflow timed out") );
 
                 // restart the thread
                 thread_v_restart( *m );
@@ -469,7 +469,7 @@ PT_THREAD( msgflow_thread( pt_t *pt, msgflow_state_t *state ) )
 {
 PT_BEGIN( pt );
 
-    log_v_debug_P( PSTR("msgflow init") );
+    // log_v_debug_P( PSTR("msgflow init") );
 
     // reset/ready sequence
     while( !state->shutdown ){
@@ -514,7 +514,7 @@ PT_BEGIN( pt );
 
         // got an address
         // send series of resets
-        log_v_debug_P( PSTR("msgflow reset") );
+        // log_v_debug_P( PSTR("msgflow reset") );
 
         // we send 3 times to make sure it makes it
         send_reset( state );
@@ -576,7 +576,7 @@ PT_BEGIN( pt );
         }
     }
 
-    log_v_debug_P( PSTR("msgflow ready") );        
+    // log_v_debug_P( PSTR("msgflow ready") );        
 
 
     // server
@@ -623,7 +623,7 @@ PT_BEGIN( pt );
         }
         else if( header->type == MSGFLOW_TYPE_STOP ){
 
-            log_v_debug_P( PSTR("msgflow stopped by receiver") );
+            // log_v_debug_P( PSTR("msgflow stopped by receiver") );
 
             THREAD_RESTART( pt );
         }
@@ -655,7 +655,7 @@ shutdown:
 
     clear_tx_q( state );
 
-    log_v_debug_P( PSTR("msgflow ended") );
+    // log_v_debug_P( PSTR("msgflow ended") );
 
     // block while system is shutting down.
     // this prevents crashes from the message flow state being freed 
