@@ -186,12 +186,26 @@ void cpu_v_remap_isrs( void ){
 
 void cpu_v_sleep( void ){
 
+    uint32_t delta = thread_u32_get_next_alarm_delta();
+
+    // if next thread alarm is more than 10 ms away, we can sleep for at least 10 ms.
+    if( delta >= 10 ){
+
+        // 10 ms still gives us a reasonable polling rate for threads that don't use timers.
+        vTaskDelay(10);    
+    }   
 }
 
 bool cpu_b_osc_fail( void ){
 
     return 0;
 }
+
+/*
+
+NOTE light sleep will break the JTAG connection when debugging!
+
+*/
 
 void cpu_v_set_clock_speed_low( void ){
 
@@ -204,7 +218,7 @@ void cpu_v_set_clock_speed_low( void ){
     pm_config.min_freq_mhz = 80;
     #endif
 
-    pm_config.light_sleep_enable = FALSE;
+    pm_config.light_sleep_enable = TRUE;
 
     esp_pm_configure( &pm_config );    
 
@@ -222,7 +236,7 @@ void cpu_v_set_clock_speed_high( void ){
     pm_config.min_freq_mhz = 240;
     #endif
 
-    pm_config.light_sleep_enable = FALSE;
+    pm_config.light_sleep_enable = TRUE;
 
     esp_pm_configure( &pm_config );    
 

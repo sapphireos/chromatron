@@ -40,25 +40,12 @@
 
 #ifdef ENABLE_POWER
 
-static uint32_t delta_ms;
-
-KV_SECTION_META kv_meta_t pwr_info_kv[] = {
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &delta_ms,                 0,  "pwr_delta_ms" },
-};
-
 void pwr_v_init( void ){
 
 }
 
 
 void pwr_v_sleep( void ){
-
-    uint32_t delta = thread_u32_get_next_alarm_delta();
-
-    if( delta != 0 ){
-
-        delta_ms = delta;
-    }
 
     // set sleep mode
     cpu_v_sleep();
