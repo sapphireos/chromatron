@@ -532,19 +532,12 @@ uint32_t thread_u32_get_next_alarm_delta( void ){
     uint32_t next_alarm = thread_u32_get_next_alarm();
     uint32_t now = tmr_u32_get_system_time_ms();
 
-    if( tmr_i8_compare_times( now, next_alarm ) <= 0 ){
+    if( tmr_i8_compare_times( now, next_alarm ) >= 0 ){
 
         return 0;
     }
 
     uint32_t delta = tmr_u32_elapsed_times( now, next_alarm );
-
-    // clamp delta to a sane value.
-    // since the background thread runs at 1 second intervals, 1000 ms makes sense for a max alarm delta
-    // if( delta > 1000 ){
-
-    //     delta = 1000;
-    // }
 
     return delta;
 }
