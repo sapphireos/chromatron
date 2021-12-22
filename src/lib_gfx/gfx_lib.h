@@ -157,12 +157,6 @@ uint16_t gfx_u16_get_pix0_blue( void );
 void gfx_v_clear( void );
 void gfx_v_shutdown_graphic( void );
 
-void gfx_b_enable( void );
-void gfx_b_disable( void );
-
-bool gfx_b_enabled( void );
-void gfx_v_set_pixel_power( bool enabled );
-
 void gfxlib_v_init( void );
 
 void gfx_v_sync_array( void );

@@ -70,7 +70,6 @@ static int16_t sat_step[MAX_PIXELS];
 static int16_t val_step[MAX_PIXELS];
 
 static bool gfx_enable = TRUE;
-static bool pixels_powered = TRUE;
 static uint16_t pix_master_dimmer = 0;
 static uint16_t pix_sub_dimmer = 0;
 static uint16_t target_dimmer = 0;
@@ -1539,42 +1538,6 @@ void gfx_v_shutdown_graphic( void ){
     array_red[0] = 16;
     array_green[0] = 16;
     array_blue[0] = 16;    
-}
-
-void gfx_b_enable( void ){
-
-    gfx_enable = TRUE;    
-}
-
-void gfx_b_disable( void ){
-
-    gfx_enable = FALSE;    
-}
-
-bool gfx_b_enabled( void ){
-
-    if( !pixels_powered ){
-
-        return FALSE;
-    }
-
-    // if( gfx_enable && ( current_dimmer > 0 ) ){
-
-    //     return TRUE;
-    // }   
-
-    // return FALSE;
-    if( !gfx_enable && ( current_dimmer == 0 ) ){
-
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-void gfx_v_set_pixel_power( bool enabled ){
-
-    pixels_powered = enabled;
 }
 
 void gfx_v_reset( void ){

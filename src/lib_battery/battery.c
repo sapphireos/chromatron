@@ -216,6 +216,11 @@ void batt_v_init( void ){
 
         log_v_info_P( PSTR("PCA9536 detected") );
         pca9536_enabled = TRUE;
+
+        pca9536_v_set_input( BATT_IO_QON );
+        pca9536_v_set_input( BATT_IO_S2 );
+        pca9536_v_set_input( BATT_IO_SPARE );
+        pca9536_v_set_output( BATT_IO_BOOST );
     }
     else{
 
@@ -230,6 +235,8 @@ void batt_v_init( void ){
 
         cpu_v_set_clock_speed_low();
     }
+
+    batt_v_disable_pixels();
 
     thread_t_create( ui_thread,
                      PSTR("ui"),
@@ -310,7 +317,6 @@ void batt_v_enable_pixels( void ){
     }
 
     pixels_enabled = TRUE;
-    gfx_v_set_pixel_power( pixels_enabled );
 }
 
 void batt_v_disable_pixels( void ){
@@ -328,15 +334,12 @@ void batt_v_disable_pixels( void ){
 
         pixels_enabled = FALSE;
     }
-
-    gfx_v_set_pixel_power( pixels_enabled );
 }
 
 bool batt_b_pixels_enabled( void ){
 
     return pixels_enabled;
 }
-
 
 
 PT_THREAD( fan_thread( pt_t *pt, void *state ) )
@@ -398,26 +401,11 @@ PT_END( pt );
 PT_THREAD( ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
-    // charger2 board, setup IO
-    if( pca9536_enabled ){
-        
-        pca9536_v_set_input( BATT_IO_QON );
-        pca9536_v_set_input( BATT_IO_S2 );
-        pca9536_v_set_input( BATT_IO_SPARE );
-
-        pca9536_v_set_output( BATT_IO_BOOST );
-
-        batt_v_disable_pixels();
-    }
-
 
 
     // TEST
     if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
-        batt_v_disable_pixels();
-        
         thread_t_create( fan_thread,
                          PSTR("fan_control"),
                          0,
@@ -432,32 +420,6 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
 
-        if( pca9536_enabled || ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ){
-
-            // check if LEDs enabled.
-            // this will automatically shutdown the pixel strip
-            // if LED graphics are not enabled.
-            if( gfx_b_enabled() ){
-
-                if( !batt_b_pixels_enabled() ){
-                    
-                    trace_printf("Pixel power enabled\n");
-                    batt_v_enable_pixels();
-                }
-            }
-            else{
-
-                if( batt_b_pixels_enabled() ){
-                    
-                    // wait for pixel bus to finish before shutting power off!
-                    THREAD_WAIT_WHILE( pt, hal_pixel_b_is_transmitting() );
-
-                    trace_printf("Pixel power disabled\n");
-                    batt_v_disable_pixels();   
-                }
-            }
-        }
-
         uint8_t charge_status = bq25895_u8_get_charge_status();
 
         if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
@@ -466,21 +428,20 @@ PT_BEGIN( pt );
             ( bq25895_u8_get_faults() != 0 ) ){
 
             batt_state = BATT_STATE_OK;
-            gfx_b_disable();
+            
             vm_v_resume( 0 );
             vm_v_stop( VM_LAST_VM );
         }
         else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
             batt_state = BATT_STATE_OK;
-            gfx_b_enable();
+            
             batt_v_enable_pixels();
             vm_v_resume( 0 );
             vm_v_stop( VM_LAST_VM );
         }
         else{ // DISCHARGE
 
-            gfx_b_enable();
             batt_v_enable_pixels();
 
             uint16_t batt_volts = bq25895_u16_get_batt_voltage();
@@ -523,8 +484,6 @@ PT_BEGIN( pt );
             }
 
             if( ( batt_state == BATT_STATE_CUTOFF ) || ( batt_request_shutdown ) ){
-
-                gfx_b_disable();
 
                 batt_ui_state = -2;
 
