@@ -187,15 +187,25 @@ void cpu_v_remap_isrs( void ){
 
 }
 
+#define SLEEP_THRESHOLD 4
+#define MAX_SLEEP_PERIOD 20
+
 void cpu_v_sleep( void ){
 
     uint32_t delta = thread_u32_get_next_alarm_delta();
 
-    // if next thread alarm is more than 10 ms away, we can sleep for at least 10 ms.
-    if( delta >= 10 ){
+    // if next thread alarm is more than SLEEP_THRESHOLD ms away, we can sleep for at least SLEEP_THRESHOLD ms.
+    if( delta >= SLEEP_THRESHOLD ){
 
-        // 10 ms still gives us a reasonable polling rate for threads that don't use timers.
-        vTaskDelay(10);    
+        uint32_t sleep_time = delta;
+
+        // MAX_SLEEP_PERIOD ms should be set to give us a reasonable polling rate for threads that don't use timers.
+        if( sleep_time > MAX_SLEEP_PERIOD ){
+
+            sleep_time = MAX_SLEEP_PERIOD;
+        }
+
+        vTaskDelay( sleep_time );    
     }   
 }
 

@@ -47,6 +47,11 @@ void pwr_v_init( void ){
 
 void pwr_v_sleep( void ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }    
+
     // set sleep mode
     cpu_v_sleep();
 }
