@@ -236,7 +236,7 @@ void batt_v_init( void ){
         cpu_v_set_clock_speed_low();
     }
 
-    batt_v_disable_pixels();
+    batt_v_enable_pixels();
 
     thread_t_create( ui_thread,
                      PSTR("ui"),
@@ -428,6 +428,8 @@ PT_BEGIN( pt );
             ( bq25895_u8_get_faults() != 0 ) ){
 
             batt_state = BATT_STATE_OK;
+
+            gfx_v_set_system_enable( FALSE );
             
             vm_v_resume( 0 );
             vm_v_stop( VM_LAST_VM );
@@ -435,14 +437,15 @@ PT_BEGIN( pt );
         else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
             batt_state = BATT_STATE_OK;
-            
-            batt_v_enable_pixels();
+
+            gfx_v_set_system_enable( TRUE );
+
             vm_v_resume( 0 );
             vm_v_stop( VM_LAST_VM );
         }
         else{ // DISCHARGE
 
-            batt_v_enable_pixels();
+            gfx_v_set_system_enable( TRUE );
 
             uint16_t batt_volts = bq25895_u16_get_batt_voltage();
 

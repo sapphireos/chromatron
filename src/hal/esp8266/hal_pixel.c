@@ -175,12 +175,6 @@ void hal_pixel_v_configure( void ){
     coproc_i32_call1( OPCODE_PIX_SET_APA102_DIM, pix_apa102_dimmer );
 }
 
-
-bool hal_pixel_b_is_transmitting( void ){
-
-    return FALSE;
-}
-
 #else
 
 #endif

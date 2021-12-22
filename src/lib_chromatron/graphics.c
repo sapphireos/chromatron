@@ -144,18 +144,13 @@ PT_BEGIN( pt );
 
         vm_fader_time = elapsed;
 
-        // check if LEDs are no longer enabled
-        if( !batt_b_pixels_enabled() ){
+        // is the graphics system enabled?
+        if( !gfx_b_is_system_enabled() ){
 
-            // signal the pixel thread.
-            // if the pixel driver supports power controls, it
-            // will shutdown the IO drivers (so they don't backfeed the pixels)
-            pixel_v_signal();        
-
-            THREAD_WAIT_WHILE( pt, !batt_b_pixels_enabled() );
+            THREAD_WAIT_WHILE( pt, !gfx_b_is_system_enabled() );
 
             // reset alarm
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() );            
         }
     }
 

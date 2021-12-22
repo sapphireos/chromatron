@@ -33,6 +33,7 @@
 #include "pixel.h"
 #include "pixel_vars.h"
 #include "gfx_lib.h"
+#include "battery.h"
 
 #include "logging.h"
 
@@ -59,8 +60,11 @@ static spi_transaction_t spi_transaction;
 static spi_transaction_t* transaction_ptr = &spi_transaction;
 static bool request_reconfigure;
 static bool transmitting;
+static bool zero_output;
 
 static uint16_t setup_pixel_buffer( void ){
+
+    zero_output = TRUE;
 
     uint8_t *buf = outputs;
 
@@ -105,6 +109,13 @@ static uint16_t setup_pixel_buffer( void ){
         r = array_r[i];
         g = array_g[i];
         b = array_b[i];
+
+        if( ( r != 0 ) ||
+            ( g != 0 ) ||
+            ( b != 0 ) ){
+
+            zero_output = FALSE;     
+        }
 
         if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
@@ -243,6 +254,8 @@ static void _pixel_v_configure( void ){
 PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    static uint16_t data_length;
     
     while(1){
 
@@ -252,19 +265,7 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
-        if( !batt_b_pixels_enabled() ){
-
-            // shut down pixel driver IO
-            spi_v_release();
-
-            THREAD_WAIT_WHILE( pt, !batt_b_pixels_enabled() );
-
-            // re-enable pixel drivers
-            _pixel_v_configure();
-            
-            // restart loop
-            continue;
-        }
+        data_length = setup_pixel_buffer();
 
         if( request_reconfigure ){
 
@@ -272,8 +273,6 @@ PT_BEGIN( pt );
 
             request_reconfigure = FALSE;
         }
-
-        uint16_t data_length = setup_pixel_buffer();
 
         // initiate SPI transfers
 
@@ -298,6 +297,30 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
 
         TMR_WAIT( pt, 5 );
+
+        
+        if( zero_output ){
+
+            // shut down pixel driver IO
+            spi_v_release();
+
+            // set up down pixel power
+            batt_v_disable_pixels();
+
+            while( zero_output ){
+
+                THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+
+                data_length = setup_pixel_buffer();
+            }
+
+            // re-enable pixel power
+            batt_v_enable_pixels();
+
+            // re-enable pixel drivers
+            _pixel_v_configure();
+        }
+
     }
 
 PT_END( pt );
@@ -329,9 +352,4 @@ void hal_pixel_v_configure( void ){
     }
 
     request_reconfigure = TRUE;
-}
-
-bool hal_pixel_b_is_transmitting( void ){
-
-    return transmitting;
 }

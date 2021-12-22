@@ -33,6 +33,7 @@
 #include "keyvalue.h"
 #include "gfx_lib.h"
 #include "vm.h"
+#include "battery.h"
 
 #ifdef PIXEL_USE_MALLOC
 static uint8_t *array_red __attribute__((aligned(4)));
@@ -70,6 +71,7 @@ static int16_t sat_step[MAX_PIXELS];
 static int16_t val_step[MAX_PIXELS];
 
 static bool gfx_enable = TRUE;
+static bool sys_enable = TRUE; // internal system control
 static uint16_t pix_master_dimmer = 0;
 static uint16_t pix_sub_dimmer = 0;
 static uint16_t target_dimmer = 0;
@@ -243,7 +245,7 @@ static void update_master_fader( void ){
         fade_steps = 2;
     }
 
-    if( gfx_enable ){
+    if( gfx_enable && sys_enable ){
 
         target_dimmer = calc_dimmer();
     }
@@ -1674,6 +1676,16 @@ uint16_t gfx_u16_get_dimmed_val( uint16_t _val ){
 uint16_t gfx_u16_get_curved_sat( uint16_t _sat ){
 
     return linterp_table_lookup( _sat, sat_lookup );
+}
+
+void gfx_v_set_system_enable( bool enable ){
+
+    sys_enable = enable;
+}
+
+bool gfx_b_is_system_enabled( void ){
+
+    return sys_enable;
 }
 
 void gfx_v_process_faders( void ){
