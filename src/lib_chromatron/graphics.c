@@ -143,15 +143,6 @@ PT_BEGIN( pt );
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
         vm_fader_time = elapsed;
-
-        // is the graphics system enabled?
-        if( !gfx_b_is_system_enabled() ){
-
-            THREAD_WAIT_WHILE( pt, !gfx_b_is_system_enabled() );
-
-            // reset alarm
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() );            
-        }
     }
 
 PT_END( pt );
