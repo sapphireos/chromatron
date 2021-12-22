@@ -43,6 +43,7 @@
 static bool batt_enable;
 static int8_t batt_ui_state;
 static bool request_pixels_enabled = FALSE;
+static bool request_pixels_disabled = FALSE;
 static bool pixels_enabled = FALSE;
 static uint8_t button_state;
 static uint8_t ui_button;
@@ -312,21 +313,7 @@ void batt_v_enable_pixels( void ){
 
 void batt_v_disable_pixels( void ){
 
-    if( pca9536_enabled ){
-
-        pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
-
-        pixels_enabled = FALSE;
-    }
-    else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
-
-        io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-        io_v_digital_write( BOOST_IO, 0 );
-
-        bq25895_v_set_boost_mode( FALSE );
-
-        pixels_enabled = FALSE;
-    }
+    request_pixels_disabled = TRUE;
 }
 
 bool batt_b_pixels_enabled( void ){
@@ -435,6 +422,27 @@ PT_BEGIN( pt );
 
             pixels_enabled = TRUE;
             request_pixels_enabled = FALSE;   
+        }
+
+        if( request_pixels_disabled ){
+
+            if( pca9536_enabled ){
+
+                pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
+
+                pixels_enabled = FALSE;
+            }
+            else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+
+                io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
+                io_v_digital_write( BOOST_IO, 0 );
+
+                bq25895_v_set_boost_mode( FALSE );
+
+                pixels_enabled = FALSE;
+            }
+
+            request_pixels_disabled = FALSE;
         }
 
         // check charger status
