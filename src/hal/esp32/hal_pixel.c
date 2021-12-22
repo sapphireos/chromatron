@@ -59,7 +59,6 @@ static const uint8_t ws2811_lookup[256][4] __attribute__((aligned(4))) = {
 static spi_transaction_t spi_transaction;
 static spi_transaction_t* transaction_ptr = &spi_transaction;
 static bool request_reconfigure;
-static bool transmitting;
 static bool zero_output;
 
 static uint16_t setup_pixel_buffer( void ){
@@ -259,10 +258,7 @@ PT_BEGIN( pt );
     
     while(1){
 
-        transmitting = FALSE;
-
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
-
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
         data_length = setup_pixel_buffer();
@@ -292,8 +288,6 @@ PT_BEGIN( pt );
             continue;
         }     
 
-        transmitting = TRUE;   
-
         THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
 
         TMR_WAIT( pt, 5 );
@@ -316,6 +310,9 @@ PT_BEGIN( pt );
 
             // re-enable pixel power
             batt_v_enable_pixels();
+
+            // wait until pixels have been re-enabled
+            THREAD_WAIT_WHILE( pt, !batt_b_pixels_enabled() );
 
             // re-enable pixel drivers
             _pixel_v_configure();
