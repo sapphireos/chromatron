@@ -426,6 +426,12 @@ class varString(varComposite):
         if value is None:
             value = '\0'
 
+        # ensure string literal ends with at least one null byte.
+        # since we will eventually be processing strings in a C library, we want
+        # to ensure we have null termination.
+        if not value.endswith('\0'):
+            value += '\0'
+
         # pad to 32 bits:
         self.padding = 4 - len(value) % 4
         if self.padding == 4:
