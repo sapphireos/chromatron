@@ -1753,7 +1753,8 @@ def get_fwid():
 
 
 def main():
-    util.setup_basic_logging(level=logging.INFO)
+    log_format = '%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(white)s%(message)s'
+    util.setup_basic_logging(level=logging.INFO, log_format=log_format)
 
     parser = argparse.ArgumentParser(description='SapphireMake')
 
