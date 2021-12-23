@@ -79,7 +79,7 @@ PT_BEGIN( pt );
         VL53L0X_read_byte( &dev, 0xC0, &byte );
         if( byte != 0xEE ){
 
-            log_v_debug_P( PSTR("0x%02x"), byte );
+            // log_v_debug_P( PSTR("0x%02x"), byte );
 
             continue;
         }
@@ -88,7 +88,7 @@ PT_BEGIN( pt );
         VL53L0X_read_byte( &dev, 0xC1, &byte );
         if( byte != 0xAA ){
 
-            log_v_debug_P( PSTR("0x%02x"), byte );
+            // log_v_debug_P( PSTR("0x%02x"), byte );
 
             continue;
         }
@@ -97,7 +97,7 @@ PT_BEGIN( pt );
         VL53L0X_read_byte( &dev, 0xC2, &byte );
         if( byte != 0x10 ){
 
-            log_v_debug_P( PSTR("0x%02x"), byte );
+            // log_v_debug_P( PSTR("0x%02x"), byte );
 
             continue;
         }

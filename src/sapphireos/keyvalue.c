@@ -961,6 +961,13 @@ int8_t kv_i8_array_get(
     return kv_i8_internal_get( &meta, hash, index, count, data, max_len );
 }
 
+bool kv_b_get_boolean( catbus_hash_t32 hash ){
+
+    bool val = FALSE;
+    kv_i8_get( hash, &val, sizeof(val) );
+
+    return val;
+}
 
 int16_t kv_i16_len( catbus_hash_t32 hash )
 {

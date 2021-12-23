@@ -151,6 +151,8 @@ int8_t kv_i8_array_get(
     void *data,
     uint16_t max_len );
 
+bool kv_b_get_boolean( catbus_hash_t32 hash );
+
 int16_t kv_i16_search_hash( catbus_hash_t32 hash );
 int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] );
 uint16_t kv_u16_count( void );

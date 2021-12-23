@@ -841,8 +841,7 @@ static bool is_low_power_mode( void ){
         return FALSE;
     }
 
-    bool batt_enabled = FALSE;
-    kv_i8_get( __KV__batt_enable, &batt_enabled, sizeof(batt_enabled) );
+    bool batt_enabled = kv_b_get_boolean( __KV__batt_enable );
 
     if( batt_enabled ){
 

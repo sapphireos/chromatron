@@ -24,6 +24,8 @@
 
 #include "sapphire.h"
 
+#include "datetime.h"
+
 #include "ssd1306.h"
 
 #include "fonts.h"
@@ -36,8 +38,9 @@ static uint8_t target_dimmer = DEFAULT_CONTRAST;
 static uint16_t debug;
 
 KV_SECTION_META kv_meta_t ssd1306_kv[] = {
-    {CATBUS_TYPE_UINT8,     0, 0, &target_dimmer,    0, "ssd1306_dimmer"},   
-    {CATBUS_TYPE_UINT16,    0, 0, &debug,     0, "ssd1306_debug"},   
+    {CATBUS_TYPE_BOOL,      0, KV_FLAGS_PERSIST, 0,    0, "ssd1306_enable"},   
+    {CATBUS_TYPE_UINT8,     0, 0, &target_dimmer,      0, "ssd1306_dimmer"},   
+    {CATBUS_TYPE_UINT16,    0, 0, &debug,              0, "ssd1306_debug"},   
 };
 
 #define BUF_SIZE 64
@@ -251,11 +254,14 @@ void ssd1306_v_set_contrast( uint8_t contrast ){
     command1( SSD1306_CMD_CONTRAST, contrast );   
 }
 
-#include "datetime.h"
-
 PT_THREAD( ssd1306_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
+
+    if( !kv_b_get_boolean( __KV__ssd1306_enable ) ){
+
+        THREAD_EXIT( pt );
+    }
     
     // send first command twice, the first write seems to consistently fail
     command(  SSD1306_CMD_DISP_OFF );
