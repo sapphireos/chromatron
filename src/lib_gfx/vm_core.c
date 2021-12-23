@@ -693,9 +693,26 @@ static int8_t _vm_i8_run_stream(
     uint8_t opcode;
     function_info_t *func_table = (function_info_t *)( stream + state->func_info_start );
     int32_t *constant_pool = (int32_t *)( stream + state->pool_start );
-    int32_t *local_memory = (int32_t *)( stream + state->local_data_start );
+    int32_t *locals_start = (int32_t *)( stream + state->local_data_start );
+    int32_t *local_memory = locals_start;
     int32_t *registers = local_memory;
     int32_t *global_memory = (int32_t *)( stream + state->global_data_start );
+
+    uint16_t func_count = state->func_info_len / sizeof(function_info_t);
+    uint16_t current_frame_size = 0xffff;
+
+    for( uint8_t i = 0; i < func_count; i++ ){
+
+        if( func_table[i].addr == func_addr ){
+
+            current_frame_size = func_table[i].frame_size;
+        }
+    }
+
+    if( current_frame_size == 0xffff ){
+
+        return VM_STATUS_ERR_FUNC_NOT_FOUND;
+    }
     
 
     // uint16_t dest;
@@ -755,6 +772,7 @@ static int8_t _vm_i8_run_stream(
 
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
+    uint16_t frame_stack[VM_MAX_CALL_DEPTH];
     uint8_t call_depth = 0;
 
 
@@ -873,10 +891,11 @@ opcode_ret:
     // pop PC from call stack
     call_depth--;
 
-    if( call_depth > VM_MAX_CALL_DEPTH ){
+    // adjust local memory pointers:
+    local_memory -= frame_stack[call_depth];
+    registers = local_memory;
 
-        return VM_STATUS_CALL_DEPTH_EXCEEDED;
-    }
+    current_frame_size = frame_stack[call_depth];
 
     pc = call_stack[call_depth];
 
@@ -911,6 +930,21 @@ opcode_call0:
 
     // set up return stack
     call_stack[call_depth] = pc;
+
+    // record frame size of this function
+    frame_stack[call_depth] = current_frame_size;
+
+    current_frame_size = func_table[opcode_1i->imm1].frame_size;
+
+    // adjust local memory pointers:
+    local_memory += frame_stack[call_depth];
+    registers = local_memory;
+
+    if( ( (uint32_t)( local_memory - locals_start ) + current_frame_size ) > state->local_data_len ){
+
+        return VM_STATUS_ERR_LOCAL_OUT_OF_BOUNDS;
+    }
+
     call_depth++;
 
     if( call_depth > VM_MAX_CALL_DEPTH ){

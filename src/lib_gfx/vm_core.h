@@ -44,54 +44,56 @@
 
 #define DATA_LEN                    4
 
-#define VM_STATUS_OK                    0
-#define VM_STATUS_ERR_BAD_HASH          -1
-#define VM_STATUS_ERR_BAD_FILE_MAGIC    -2
-#define VM_STATUS_ERR_BAD_PROG_MAGIC    -3
-#define VM_STATUS_ERR_INVALID_ISA       -4
-#define VM_STATUS_ERR_BAD_CODE_MAGIC    -5
-#define VM_STATUS_ERR_BAD_POOL_MAGIC    -6
-#define VM_STATUS_ERR_BAD_FILE_HASH     -7
-#define VM_STATUS_ERR_BAD_LENGTH        -8
-#define VM_STATUS_FX_FILE_NOT_FOUND     -9
-#define VM_STATUS_ERR_BAD_FILE_READ     -10
+#define VM_STATUS_OK                        0
+#define VM_STATUS_ERR_BAD_HASH              -1
+#define VM_STATUS_ERR_BAD_FILE_MAGIC        -2
+#define VM_STATUS_ERR_BAD_PROG_MAGIC        -3
+#define VM_STATUS_ERR_INVALID_ISA           -4
+#define VM_STATUS_ERR_BAD_CODE_MAGIC        -5
+#define VM_STATUS_ERR_BAD_POOL_MAGIC        -6
+#define VM_STATUS_ERR_BAD_FILE_HASH     -   7
+#define VM_STATUS_ERR_BAD_LENGTH            -8
+#define VM_STATUS_FX_FILE_NOT_FOUND         -9
+#define VM_STATUS_ERR_BAD_FILE_READ         -10
+#define VM_STATUS_ERR_FUNC_NOT_FOUND        -11
+#define VM_STATUS_ERR_LOCAL_OUT_OF_BOUNDS   -12
 
-#define VM_STATUS_ERR_MAX_CYCLES        -30
+#define VM_STATUS_ERR_MAX_CYCLES            -30
 
-#define VM_STATUS_CODE_MISALIGN         -40
-#define VM_STATUS_DATA_MISALIGN         -41
-#define VM_STATUS_IMAGE_TOO_LARGE       -42
-#define VM_STATUS_HEADER_MISALIGN       -43
-#define VM_STATUS_READ_KEYS_MISALIGN    -44
-#define VM_STATUS_WRITE_KEYS_MISALIGN   -45
-#define VM_STATUS_PUBLISH_VARS_MISALIGN -46
-#define VM_STATUS_PIXEL_MISALIGN        -47
-#define VM_STATUS_LINK_MISALIGN         -48
-#define VM_STATUS_DB_MISALIGN           -49
-#define VM_STATUS_CRON_MISALIGN         -52
-#define VM_STATUS_STREAM_MISALIGN       -53
-#define VM_STATUS_POOL_MISALIGN         -54
+#define VM_STATUS_CODE_MISALIGN             -40
+#define VM_STATUS_DATA_MISALIGN             -41
+#define VM_STATUS_IMAGE_TOO_LARGE           -42
+#define VM_STATUS_HEADER_MISALIGN           -43
+#define VM_STATUS_READ_KEYS_MISALIGN        -44
+#define VM_STATUS_WRITE_KEYS_MISALIGN       -45
+#define VM_STATUS_PUBLISH_VARS_MISALIGN     -46
+#define VM_STATUS_PIXEL_MISALIGN            -47
+#define VM_STATUS_LINK_MISALIGN             -48
+#define VM_STATUS_DB_MISALIGN               -49
+#define VM_STATUS_CRON_MISALIGN             -52
+#define VM_STATUS_STREAM_MISALIGN           -53
+#define VM_STATUS_POOL_MISALIGN             -54
 
-#define VM_STATUS_LOAD_ALLOC_FAIL       -50
-#define VM_STATUS_SYNC_FAIL             -51
+#define VM_STATUS_LOAD_ALLOC_FAIL           -50
+#define VM_STATUS_SYNC_FAIL                 -51
 
 
 
-#define VM_STATUS_RESTRICTED_KEY        -70
+#define VM_STATUS_RESTRICTED_KEY            -70
 
-#define VM_STATUS_ERROR                 -80
+#define VM_STATUS_ERROR                     -80
 
-#define VM_STATUS_IMPROPER_YIELD        -96
-#define VM_STATUS_INDEX_OUT_OF_BOUNDS   -97
-#define VM_STATUS_CALL_DEPTH_EXCEEDED   -98
-#define VM_STATUS_ASSERT                -99
-#define VM_STATUS_TRAP                  -100
-#define VM_STATUS_COMM_ERROR            -126
-#define VM_STATUS_NOT_RUNNING           -127
-#define VM_STATUS_HALT                  1
-#define VM_STATUS_YIELDED               2
-#define VM_STATUS_DID_NOT_RUN           3
-#define VM_STATUS_READY                 4
+#define VM_STATUS_IMPROPER_YIELD            -96
+#define VM_STATUS_INDEX_OUT_OF_BOUNDS       -97
+#define VM_STATUS_CALL_DEPTH_EXCEEDED       -98
+#define VM_STATUS_ASSERT                    -99
+#define VM_STATUS_TRAP                      -100
+#define VM_STATUS_COMM_ERROR                -126
+#define VM_STATUS_NOT_RUNNING               -127
+#define VM_STATUS_HALT                      1
+#define VM_STATUS_YIELDED                   2
+#define VM_STATUS_DID_NOT_RUN               3
+#define VM_STATUS_READY                     4
 
 
 // note this needs to pad to 32 bit alignment!

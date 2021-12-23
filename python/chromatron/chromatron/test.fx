@@ -1,8 +1,8 @@
 
 # a = Number(220000)
-string = String("hello!")
-string2 = String("world!")
-# string2 = String(32)
+# string = String("hello!")
+# string2 = String("world!")
+string2 = String(32)
 
 # def load_string():
 #     s = String()
