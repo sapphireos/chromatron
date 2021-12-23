@@ -170,9 +170,6 @@ static uint16_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
 
-#define FAN_IO IO_PIN_19_MISO
-#define BOOST_IO IO_PIN_4_A5
-
 void batt_v_init( void ){
 
     #if defined(ESP8266)
@@ -184,15 +181,6 @@ void batt_v_init( void ){
     if( board == BOARD_TYPE_ELITE ){
 
         ui_button = IO_PIN_21;
-
-
-        // BOOST
-        io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-        io_v_digital_write( BOOST_IO, 0 );
-
-        // FAN
-        io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
-        io_v_digital_write( FAN_IO, 0 );
     }
     else{
 
@@ -241,7 +229,7 @@ void batt_v_init( void ){
     batt_v_enable_pixels();
 
     thread_t_create( ui_thread,
-                     PSTR("ui"),
+                     PSTR("batt_ui"),
                      0,
                      0 );
 
@@ -321,6 +309,10 @@ bool batt_b_pixels_enabled( void ){
     return pixels_enabled;
 }
 
+#if defined(ESP32)
+
+#define FAN_IO IO_PIN_19_MISO
+#define BOOST_IO IO_PIN_4_A5
 
 PT_THREAD( fan_thread( pt_t *pt, void *state ) )
 {
@@ -378,20 +370,31 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#endif
+
 PT_THREAD( ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-
+    
+    #if defined(ESP32)
     // TEST
     if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+
+        // BOOST
+        io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
+        io_v_digital_write( BOOST_IO, 0 );
+
+        // FAN
+        io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
+        io_v_digital_write( FAN_IO, 0 );
 
         thread_t_create( fan_thread,
                          PSTR("fan_control"),
                          0,
                          0 );
-
     }
+    #endif
 
     // wait until battery controller has started and is reporting voltage
     THREAD_WAIT_WHILE( pt, bq25895_u16_get_batt_voltage() == 0 );
@@ -407,6 +410,7 @@ PT_BEGIN( pt );
 
                 pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
             }
+            #if defined(ESP32)
             else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
                 bq25895_v_set_boost_mode( TRUE );
@@ -419,6 +423,7 @@ PT_BEGIN( pt );
 
                 TMR_WAIT( pt, 10 );
             }
+            #endif
 
             pixels_enabled = TRUE;
             request_pixels_enabled = FALSE;   
@@ -432,6 +437,8 @@ PT_BEGIN( pt );
 
                 pixels_enabled = FALSE;
             }
+
+            #if defined(ESP32)
             else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
                 io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
@@ -441,6 +448,7 @@ PT_BEGIN( pt );
 
                 pixels_enabled = FALSE;
             }
+            #endif
 
             request_pixels_disabled = FALSE;
         }

@@ -31,6 +31,7 @@
 #include "util.h"
 #include "logging.h"
 
+#if defined(ESP32)
 
 static uint8_t cs_gpio;
 static uint8_t reset_gpio;
@@ -677,3 +678,12 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+#else
+
+void rfm95w_v_init( uint8_t cs, uint8_t reset ){
+
+    
+}
+
+#endif

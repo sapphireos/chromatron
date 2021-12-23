@@ -1485,6 +1485,7 @@ PT_BEGIN( pt );
                          0 );
     // }
 
+    #if defined(ESP32)
 
     #define CASE_ADC_IO IO_PIN_32_A7
     #define AMBIENT_ADC_IO IO_PIN_33_A9
@@ -1494,6 +1495,8 @@ PT_BEGIN( pt );
         io_v_set_mode( CASE_ADC_IO, IO_MODE_INPUT );      
         io_v_set_mode( AMBIENT_ADC_IO, IO_MODE_INPUT );      
     }
+
+    #endif
 
     while(1){
 
@@ -1518,6 +1521,8 @@ PT_BEGIN( pt );
         //     therm = bq25895_i8_get_therm();
         // }
 
+        #if defined(ESP32)
+        
         if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
             uint32_t case_adc = adc_u16_read_mv( CASE_ADC_IO );
@@ -1526,6 +1531,8 @@ PT_BEGIN( pt );
             case_temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
             ambient_temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
         }
+
+        #endif
 
         // static uint8_t counter;
 

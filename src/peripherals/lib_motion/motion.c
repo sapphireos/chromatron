@@ -147,7 +147,9 @@ void motion_v_enable_channel( uint8_t channel, uint8_t gpio ){
 
 void motion_v_init( void ){
 
+	#if defined(ESP32)
 	motion_v_enable_channel( 0, IO_PIN_13_A12 );
+
 
     thread_t_create( motion_io_thread,
                      PSTR("motion_io"),
@@ -158,5 +160,7 @@ void motion_v_init( void ){
                      PSTR("motion_activity"),
                      0,
                      0 );
+
+   	#endif
 }
 
