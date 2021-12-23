@@ -116,14 +116,14 @@ class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
         super(cg1DeclareVar, self).__init__(**kwargs)
 
-class cg1DeclareStr(cg1DeclarationBase):
-    def __init__(self, **kwargs):
-        super(cg1DeclareStr, self).__init__(**kwargs)
+# class cg1DeclareStr(cg1DeclarationBase):
+#     def __init__(self, **kwargs):
+#         super(cg1DeclareStr, self).__init__(**kwargs)
 
-    def build(self, builder, **kwargs):    
-        # self.keywords['init_val'] = self.keywords['init_val'].build(builder)
+#     def build(self, builder, **kwargs):    
+#         # self.keywords['init_val'] = self.keywords['init_val'].build(builder)
 
-        super(cg1DeclareStr, self).build(builder, **kwargs)
+#         super(cg1DeclareStr, self).build(builder, **kwargs)
 
 # class cg1DeclareArray(cg1DeclarationBase):
 #     def __init__(self, dimensions=[1], **kwargs):
@@ -699,6 +699,7 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1DeclareVar(type="funcref", keywords=keywords, lineno=node.lineno)
 
     def _handle_String(self, node):
+        # check if initialized string
         if len(node.args) > 0 or len(node.keywords) > 0:
             keywords = {}
             for kw in node.keywords:
@@ -717,9 +718,11 @@ class CodeGenPass1(ast.NodeVisitor):
                     keywords['length'] = node.args[0].n
                     keywords['init_val'] = '\0' * keywords['length']
 
-            return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
+            return cg1DeclareVar(type="str", keywords=keywords, lineno=node.lineno)
 
-        return cg1DeclareVar(type="strref", lineno=node.lineno)
+        else:
+            # string reference
+            return cg1DeclareVar(type="strref", lineno=node.lineno)
 
     # def _handle_Array(self, node):
     #     dims = [a.n for a in node.args]

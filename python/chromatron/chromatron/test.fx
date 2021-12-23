@@ -1,34 +1,61 @@
 
-global_a = Number()
-def global_var():
-    i = Number()
+string = String("hello!")
+string2 = String("world!")
+# string2 = String(32)
 
-    while i < 32:
+# def load_string():
+#     s = String()
+#     s = string
 
-        global_a += 1
+#     return s
 
-        i += 1
-
-  # assert global_a == 1
-
-
-def init():
-    # pass
-    global_var()
-
-    # global_a += 1
+# def load_string2():
+#     s = String()
+#     s = string2
     
-    # i = Number()
+#     return s
 
-    # while i < 32:
+# def load_string_literal():
+#     s = String()
+#     s = "meow"
+    
+#     return s
 
-    #     global_a += 1
+# def do_stuff():
+#     s = String()
+#     s = string
+#     print(s)
 
-    #     i += 1
+# global_a = Number()
+# def global_var():
+#     i = Number()
 
-    global_a += 2
+#     while i < 32:
 
-    print(global_a)
+#         global_a += 1
+
+#         i += 1
+
+#   # assert global_a == 1
+
+
+# def init():
+#     # pass
+#     global_var()
+
+#     # global_a += 1
+    
+#     # i = Number()
+
+#     # while i < 32:
+
+#     #     global_a += 1
+
+#     #     i += 1
+
+#     global_a += 2
+
+#     print(global_a)
 
 
 
