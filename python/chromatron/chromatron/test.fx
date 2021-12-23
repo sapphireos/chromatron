@@ -2,7 +2,7 @@
 # a = Number(220000)
 # string = String("hello!")
 # string2 = String("world!")
-string2 = String(32)
+# string2 = String(32)
 
 # def load_string():
 #     s = String()
@@ -40,7 +40,7 @@ string2 = String(32)
 #   # assert global_a == 1
 
 
-# def init():
+def init():
 #     # pass
 #     global_var()
 
@@ -63,8 +63,8 @@ string2 = String(32)
 
 
     # # return 1 + 2
-    # pixels.hue = 0.667
-    # pixels[0].hue = 0.667
+    pixels.hue = 0.667
+    pixels[0].hue = 0.1
     # pixels.hue += 0.667
     # pixels[0].hue += 0.667
 #     a = 123

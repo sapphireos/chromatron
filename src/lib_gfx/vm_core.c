@@ -164,7 +164,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_jmp,               // 20
         &&opcode_jmpz,              // 21
         &&opcode_trap,              // 22
-        &&opcode_trap,              // 23
+        &&opcode_load_ret_val,      // 23
         &&opcode_trap,              // 24
         &&opcode_trap,              // 25
         &&opcode_trap,              // 26
@@ -223,7 +223,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 69
         &&opcode_trap,              // 70
 
-        &&opcode_load_ret_val,      // 71
+        &&opcode_trap,              // 71
         &&opcode_call0,             // 72
         &&opcode_trap,              // 73
         &&opcode_trap,              // 74
