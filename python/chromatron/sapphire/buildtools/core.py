@@ -1758,16 +1758,7 @@ def get_fwid():
 
 
 def main():
-    # set global log level
-    logger = logging.getLogger('')
-    logger.setLevel(logging.DEBUG)
-
-    # add a console handler to print anything INFO and above to the console
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(levelname)s %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
+    util.setup_basic_logging(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description='SapphireMake')
 
