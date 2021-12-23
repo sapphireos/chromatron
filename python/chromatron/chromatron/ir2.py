@@ -64,6 +64,89 @@ We need one anyway to pass parameters and return data, and we need to do our own
 so we can control our stack depth.
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+STRINGS
+
+s = String("hello!")
+
+"hello!" -> string table
+s -> strref in symbol table, init to point to entry in string table
+
+string table addressing needs to be contiguous with global or local memory.
+string table init is a copy from .fxb file data.
+
+
+s2 = String(32)
+
+String(32) -> 32 nulls in string table
+s2 -> strref in symbol table, init to point to entry in string table
+
+
+s3 = String()
+
+s3 -> strref in symbol table, init to null string (string with single null, but it is an actual string)
+
+
+s3 = "hello"
+
+"hello" -> string table
+s3 assigned (load const/immediate) to string table entry
+s3 must have already been declared.
+
+
+
+
+String operations:
+
+The main thing we care about is formatted strings and being able to assign them to DB values.
+
+s = String(32)
+format(s, '%d', 123)
+
+This calls a library function, format, which takes the string reference and then calls the C lib snprintf on it.
+s must reference a string with enough space for the formatting.
+
+
+db.my_string = s
+
+Assigns to db.  The DB store instruction needs to understand storing a string.
+
+
+
+All strings are mutable.  The buffers should be stored separately from the string literals.  Literals are copied into
+target buffers on init.  Maybe we need a string copy instruction to do this and add it to our init code?
+
+You can do:
+s = String("hello!")
+format(s, '%d', 123)
+
+The storage location of String('hello!') is now String('123')
+The literal "hello!" is still stored in the string table, so you can undo the operation:
+s = "hello!"
+This is a string copy into the String('123') buffer from the literal table.
+
+Note that the '%d' for the format string is also a string literal.
+
+
+
+
+
+
+
+
 """
 
 def params_to_string(params):
