@@ -24,25 +24,26 @@
 
 #include "motion.h"
 
-#define N_SENSORS 1
-	
+#define MAX_SENSORS 2
+
 static bool motion_detected;
+static uint8_t n_sensors;
 static uint32_t activity;
 
 KV_SECTION_META kv_meta_t motion_kv[] = {
-    { CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_detected,	0, "motion_detected" },
-    { CATBUS_TYPE_UINT32, 0,  KV_FLAGS_READ_ONLY,     &activity,     		0, "motion_activity" },
+	{CATBUS_TYPE_UINT8,  0, KV_FLAGS_PERSIST, 		 &n_sensors,    	0, "motion_n_sensors"},   
+    {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_detected,	0, "motion_detected" },
+    {CATBUS_TYPE_UINT32, 0,  KV_FLAGS_READ_ONLY,     &activity,     	0, "motion_activity" },
 };
 
-static int8_t motion_io[N_SENSORS] = {
+static int8_t motion_io[MAX_SENSORS] = {
+	-1,
 	-1,
 };
 
-// static bool motion_detected_array[N_SENSORS];
-
-static uint16_t current_activity[N_SENSORS];
-static uint16_t activity_index[N_SENSORS];
-static uint16_t activity_history[N_SENSORS][MOTION_ACTIVITY_TIME];
+static uint16_t current_activity[MAX_SENSORS];
+static uint16_t activity_index[MAX_SENSORS];
+static uint16_t activity_history[MAX_SENSORS][MOTION_ACTIVITY_TIME];
 
 
 PT_THREAD( motion_io_thread( pt_t *pt, void *state ) )
@@ -56,7 +57,7 @@ PT_BEGIN( pt );
 		// bool motion_or = FALSE;
 		motion_detected = FALSE;
 
-		for( uint8_t i = 0; i < N_SENSORS; i++ ){
+		for( uint8_t i = 0; i < n_sensors; i++ ){
 
 			if( motion_io[i] < 0 ){
 
@@ -105,7 +106,7 @@ PT_BEGIN( pt );
 
 		TMR_WAIT( pt, 1000 );
 
-		for( uint8_t i = 0; i < N_SENSORS; i++ ){
+		for( uint8_t i = 0; i < n_sensors; i++ ){
 
 			if( motion_io[i] < 0 ){
 
@@ -132,10 +133,6 @@ PT_BEGIN( pt );
 PT_END( pt );	
 }
 
-bool motion_b_get_motion( void ){
-
-    return motion_detected;
-}
 
 void motion_v_enable_channel( uint8_t channel, uint8_t gpio ){
 
@@ -147,9 +144,21 @@ void motion_v_enable_channel( uint8_t channel, uint8_t gpio ){
 
 void motion_v_init( void ){
 
-	#if defined(ESP32)
-	motion_v_enable_channel( 0, IO_PIN_13_A12 );
+	if( ( n_sensors == 0 ) || ( n_sensors > MAX_SENSORS ) ){
 
+		return;
+	}
+	
+	if( n_sensors >= 1 ){
+
+		motion_v_enable_channel( 0, IO_PIN_13_A12 );
+	}
+	else if( n_sensors >= 2 ){
+
+		log_v_error_P( PSTR("2nd sensor channel is not enabled!") );
+
+		// motion_v_enable_channel( 0, IO_PIN_13_A12 );
+	}
 
     thread_t_create( motion_io_thread,
                      PSTR("motion_io"),
@@ -160,7 +169,5 @@ void motion_v_init( void ){
                      PSTR("motion_activity"),
                      0,
                      0 );
-
-   	#endif
 }
 
