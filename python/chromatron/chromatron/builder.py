@@ -184,7 +184,7 @@ class Builder(object):
         # return ir
     
     def _build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
-        return self.type_manager.create_var_from_type(name, data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
+       return self.type_manager.create_var_from_type(name, data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
 
 
         # if data_type in PRIMITIVE_TYPES:
@@ -305,17 +305,16 @@ class Builder(object):
         self.structs[name] = ir
 
     def add_string(self, string, lineno=None):
-        var = self.declare_var(f'_str_{string}', 'str', keywords={'init_val': string}, lineno=lineno)
+        try:
+            var = self.strings[string]
+
+        except KeyError:
+            # var = self._build_var(f'_str_{string}', 'str', keywords={'init_val': string}, lineno=lineno)
+            var = self._build_var(string, 'str', keywords={'init_val': string}, lineno=lineno)
+
+            self.strings[string] = var
+        
         return var.var
-    #     try:
-    #         var = self.strings[string]
-
-    #     except KeyError:
-    #         var = varStringLiteral(string=string, lineno=lineno)
-
-    #         self.strings[string] = var
-
-    #     return var
 
     def generic_object(self, name, data_type, kw={}, lineno=None):
         return self.declare_var(name, data_type, keywords=kw, lineno=lineno)
@@ -793,8 +792,8 @@ class Builder(object):
             if var.init_val is None:
                 continue
 
-            if not isinstance(var, varScalar) and not isinstance(var, varString):
-                raise SyntaxError(f'Init values only implemented for scalar types', var.lineno)
+            if not isinstance(var, varScalar) and not isinstance(var, varStringRef):
+                raise SyntaxError(f'Init values only implemented for scalar types and strings', var.lineno)
 
             init_var = init_var.copy()
             ir = irLoadConst(init_var, var.init_val, lineno=var.lineno)
@@ -802,8 +801,7 @@ class Builder(object):
             ir = irStore(init_var, var, lineno=var.lineno)
             init_func.body.insert(2, ir)
 
-
-        return irProgram(self.script_name, self.funcs, self.global_symbols, lineno=0)
+        return irProgram(self.script_name, self.funcs, self.global_symbols, self.strings, lineno=0)
 
     def link(self, mode, source, dest, query, aggregation, rate, lineno=None):
         aggregations = {

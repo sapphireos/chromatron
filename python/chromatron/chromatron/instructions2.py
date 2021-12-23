@@ -57,7 +57,7 @@ def convert_to_i32(value):
 
 
 class insProgram(object):
-    def __init__(self, name, funcs={}, global_vars={}, objects=[], call_graph={}):
+    def __init__(self, name, funcs={}, global_vars={}, objects=[], strings={}, call_graph={}):
         self.name = name
         self.funcs = funcs
         self.globals = global_vars
@@ -102,6 +102,8 @@ class insProgram(object):
         self.maximum_stack_depth = worst_stack
 
         self.objects = objects
+
+        self.strings = strings
 
         self.pix_size_x = 4
         self.pix_size_y = 4
@@ -166,8 +168,11 @@ class insProgram(object):
                 if not isinstance(ins, insLoadConst):
                     continue
 
-                if ins.value not in self.constants:
-                    self.constants.append(ins.value)
+                value = ins.value
+
+                assert isinstance(value, int)
+                if value not in self.constants:
+                    self.constants.append(value)
                 
                 ins.src = self.constants.index(ins.value)
 

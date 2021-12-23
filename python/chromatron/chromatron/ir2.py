@@ -157,13 +157,13 @@ class IR(object):
 
 
 class irProgram(IR):
-    def __init__(self, name, funcs={}, symbols=None, **kwargs):
+    def __init__(self, name, funcs={}, symbols=None, strings={}, **kwargs):
         super().__init__(**kwargs)
 
         self.name = name
         self.funcs = funcs
-        self.symbols = symbols
         self.global_symbols = symbols
+        self.strings = strings
         self.constant_pool = []
         self.call_graph = None
 
@@ -173,6 +173,10 @@ class irProgram(IR):
         s += 'Globals:\n'
         # top level symbols are global
         for i in list(self.global_symbols.symbols.values()):
+            s += '%d:\t%s\n' % (i.lineno, i)
+
+        s += 'Strings:\n'
+        for i in list(self.strings.values()):
             s += '%d:\t%s\n' % (i.lineno, i)
 
         s += 'Functions:\n'
@@ -193,7 +197,7 @@ class irProgram(IR):
             assert g.addr is None
 
             if g.size == 0:
-                g.addr = -1
+                g.addr = None
                 
             else:
                 g.addr = addr
@@ -207,6 +211,11 @@ class irProgram(IR):
         for p in [a for a in pix_arrays.values() if a.name != 'pixels']:
             p.addr = pix_addr
             pix_addr += 1
+
+        str_addr = 0
+        for s, var in self.strings.items():
+            var.addr = str_addr
+            str_addr += var.strlen
         
     def analyze_call_graph(self):
         call_graph = {}
@@ -238,6 +247,7 @@ class irProgram(IR):
                 funcs=ins_funcs, 
                 global_vars=self.global_symbols.symbols, 
                 objects=objects,
+                strings=self.strings,
                 call_graph=self.call_graph)
 
 class Edge(object):
@@ -3506,6 +3516,11 @@ class irLoadConst(IR):
         if is_16_bits(value):
             # a load immediate will work here
             return insLoadImmediate(self.target.generate(), value, lineno=self.lineno)
+
+        elif isinstance(value, varString):
+            # a load immediate will work here, unless somehow we are able to exceed 65k bytes of
+            # strings.
+            return insLoadImmediate(self.target.generate(), value.addr, lineno=self.lineno)
 
         else:
             # 32 bits, requires constant pooling
