@@ -214,7 +214,7 @@ def setup_basic_logging(console=True, filename=None, show_thread=True, level=log
         handler = colorlog.StreamHandler()
         handler.setLevel(level)
 
-        if show_thread:
+        if not show_thread:
             log_format = DEFAULT_FORMAT_NO_THREAD
             
         formatter = colorlog.ColoredFormatter(log_format, 
