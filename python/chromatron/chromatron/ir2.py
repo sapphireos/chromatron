@@ -3468,14 +3468,27 @@ class irObjectStore(IR):
 
             attr = self.attr.name
 
-            ins = {
-                'hue': insPixelStoreHue,
-                # 'sat': insPixelStoreSat,
-                # 'val': insPixelStoreVal,
-                # 'pval': insPixelStorePVal,
-                # 'hs_fade': insPixelStoreHSFade,
-                # 'v_fade': insPixelStoreVFade,
-            }
+            # vector:
+            if len(target.var.lookups) == 0:
+                ins = {
+                    'hue': insVPixelStoreHue,
+                    # 'sat': insPixelStoreSat,
+                    # 'val': insPixelStoreVal,
+                    # 'pval': insPixelStorePVal,
+                    # 'hs_fade': insPixelStoreHSFade,
+                    # 'v_fade': insPixelStoreVFade,
+                }
+
+            # scalar:
+            else:
+                ins = {
+                    'hue': insPixelStoreHue,
+                    # 'sat': insPixelStoreSat,
+                    # 'val': insPixelStoreVal,
+                    # 'pval': insPixelStorePVal,
+                    # 'hs_fade': insPixelStoreHSFade,
+                    # 'v_fade': insPixelStoreVFade,
+                }
 
             try:
                 return ins[attr](target.var, attr, value, lineno=self.lineno)

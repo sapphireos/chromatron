@@ -1479,71 +1479,93 @@ class insPixelStore(BaseInstruction):
         ref = vm.registers[self.pixel_ref.reg]
         value = vm.registers[self.value.reg]
 
-        if self.attr in vm.gfx_data:
-            array = vm.gfx_data[self.attr]
+        assert self.attr in vm.gfx_data
 
-            if isinstance(ref, int):
-                # if we got an index, this is an indexed access
-                array[ref] = value
+        array = vm.gfx_data[self.attr]
 
-            else:
-                # array reference, this is an array set
-                for i in range(len(array)):
-                    array[i] = value
+        assert isinstance(ref, int)
 
-        else:
-            # pixel attributes not settable in code for now
-            assert False
+        # if we got an index, this is an indexed access
+        array[ref] = value
+
+    def assemble(self):
+        # we don't encode attribute, the opcode itself will encode that
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+
+class insPixelStoreHue(insPixelStore):
+    mnemonic = 'PSTORE_HUE'
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        value = vm.registers[self.value.reg]
+
+        assert self.attr in vm.gfx_data
+
+        array = vm.gfx_data[self.attr]
+
+        assert isinstance(ref, int)
+
+        # if we got an index, this is an indexed access
+        array[ref] = value
+
+        # this is a shortcut to allow assignment 1.0 to be maximum, instead
+        # of rolling over to 0.0.
+        if array[ref] == 65536:
+            array[ref] = 65535
+
+        # hue will wrap around
+        array[ref] %= 65536        
+
+class insVPixelStore(BaseInstruction):
+    mnemonic = 'VSTORE'
+
+    def __init__(self, pixel_ref, attr, value, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.pixel_ref = pixel_ref
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s.%s = %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        value = vm.registers[self.value.reg]
+
+        assert self.attr in vm.gfx_data
+        array = vm.gfx_data[self.attr]
+
+        # array reference, this is an array set
+        for i in range(len(array)):
+            array[i] = value
 
     def assemble(self):
         # we don't encode attribute, the opcode itself will encode that
         return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 
-    #     bc = [self.opcode]
-    #     bc.append(insPixelArray(self.pixel_ref))
+class insVPixelStoreHue(insVPixelStore):
+    mnemonic = 'VSTORE_HUE'
 
-    #     index_x = self.indexes[0]
-    #     bc.extend(index_x.assemble())
-    #     index_y = self.indexes[1]
-    #     bc.extend(index_y.assemble())
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        value = vm.registers[self.value.reg]
 
-    #     bc.extend(self.value.assemble())
+        # this is a shortcut to allow assignment 1.0 to be maximum, instead
+        # of rolling over to 0.0.
+        if value == 65536:
+            value = 65535
 
-    #     return bc
+        # hue will wrap around
+        value %= 65536
 
+        assert self.attr in vm.gfx_data
+        array = vm.gfx_data[self.attr]
 
-
-class insPixelStoreHue(insPixelStore):
-    mnemonic = 'PSTORE_HUE'
-
-    # def execute(self, vm):
-    #     if self.attr in vm.gfx_data:
-    #         array = vm.gfx_data[self.attr]
-
-    #         index_x = vm.memory[self.indexes[0].addr]
-    #         try:
-    #             index_y = vm.memory[self.indexes[1].addr]
-
-    #         except IndexError:
-    #             index_y = 65535
-
-    #         a = vm.memory[self.value.addr]
-
-    #         # this is a shortcut to allow assignment 1.0 to be maximum, instead
-    #         # of rolling over to 0.0.
-    #         if a == 65536:
-    #             a = 65535
-
-    #         # hue will wrap around
-    #         a %= 65536
-            
-    #         array[vm.calc_index(index_x, index_y)] = a
-
-    #     else:
-    #         # pixel attributes not settable in code for now
-    #         pass 
-    # 
+        # array reference, this is an array set
+        for i in range(len(array)):
+            array[i] = value
 
     
 class insPixelLoad(BaseInstruction):
