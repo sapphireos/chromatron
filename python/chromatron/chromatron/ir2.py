@@ -143,6 +143,61 @@ Note that the '%d' for the format string is also a string literal.
 
 
 
+string = String("hello!")
+s = String()
+s = string
+
+string points to buffer containing space for 6 characters initialied to "hello!"
+s is a string ref pointing to null buffer.
+s = string
+this loads the ref to string to s, so s now references string ('hello!')
+
+If instead we do:
+s = "meow"
+
+This does a str load from the string literal table into whatever
+string buffer s is pointing to.
+In this case, since it is a null buffer, nothing would happen.
+
+
+Hmmm.
+
+This is somewhat confusing.  What if we add:
+s2 = String('woof')
+
+s = s2
+
+Does s now point to s2?  Or does the buffer that s points to get
+loaded with the contents from s2?
+
+Maybe add an explicit data type for this?
+
+StringRef()
+
+So, String() creates a string *buffer*, either with some number
+of characters or initialized with a string literal, and we
+get a StringRef which points to that buffer.
+
+
+OR:
+
+String() always creates a buffer and a reference to that buffer.
+We never change which buffer we point to (that would effectively be a redeclaration).
+
+So, 
+s = string
+performs a string copy from the buffer for string to the buffer for s.
+
+There is no way to actually just switch the reference (since that is kind of confusing).
+
+s = String()
+This is actually invalid - you can't declare an empty string buffer.
+
+String loads to a destination buffer that is too small will just truncate the string.
+
+
+How do we handle an array of strings?
+
 
 
 

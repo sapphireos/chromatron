@@ -4,6 +4,8 @@
 # string2 = String("world!")
 # string2 = String(32)
 
+array = String(32)[4]
+
 # def load_string():
 #     s = String()
 #     s = string
@@ -41,6 +43,12 @@
 
 
 def init():
+    s = String(32)
+    s = array[2]
+    # array[2] = 'meow'
+
+    return s
+
 #     # pass
 #     global_var()
 
@@ -63,8 +71,8 @@ def init():
 
 
     # # return 1 + 2
-    pixels.hue = 0.667
-    pixels[0].hue = 0.1
+    # pixels.hue = 0.667
+    # pixels[0].hue = 0.1
     # pixels.hue += 0.667
     # pixels[0].hue += 0.667
 #     a = 123
