@@ -198,7 +198,18 @@ String loads to a destination buffer that is too small will just truncate the st
 
 How do we handle an array of strings?
 
+Same.  Strings are value types.  The reference is transparent.
 
+
+array = String(32)[4]
+s = String(32)
+s = array[2]
+
+copies the string from array[2] to the buffer for s
+
+format(array[2], "%d", 123)
+
+Replace contents of buffer at array[2] with formatted print.
 
 
 
