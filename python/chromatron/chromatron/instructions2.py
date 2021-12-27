@@ -616,23 +616,6 @@ class insLoadRef(BaseInstruction):
         if self.src.var not in vm.objects:
             raise CompilerFatal(f'Load Ref does not seem to point to an object: {self.src}')
 
-class insLoadRef(BaseInstruction):
-    mnemonic = 'REF'
-
-    def __init__(self, dest, src, **kwargs):
-        super().__init__(**kwargs)
-        self.dest = dest
-        self.src = src
-
-        assert self.src is not None
-
-    def __str__(self):
-        return "%s %s <-R %s" % (self.mnemonic, self.dest, self.src)
-
-    def execute(self, vm):
-        if self.src.var not in vm.objects:
-            raise CompilerFatal(f'Load Ref does not seem to point to an object: {self.src}')
-
         vm.registers[self.dest.reg] = self.src
 
     def assemble(self):

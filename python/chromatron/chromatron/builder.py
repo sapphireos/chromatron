@@ -314,7 +314,7 @@ class Builder(object):
 
             self.strings[string] = var
         
-        return var
+        return var.var
 
     def generic_object(self, name, data_type, kw={}, lineno=None):
         return self.declare_var(name, data_type, keywords=kw, lineno=lineno)
@@ -549,6 +549,12 @@ class Builder(object):
         # we don't convert these
         elif (isinstance(target, VarContainer) and isinstance(target.var, varRef)) or \
              (isinstance(value, VarContainer) and isinstance(value.var, varRef)):
+            pass
+
+        # check if target or value is a offset
+        # we don't convert these
+        elif (isinstance(target, VarContainer) and isinstance(target.var, varOffset)) or \
+             (isinstance(value, VarContainer) and isinstance(value.var, varOffset)):
             pass
 
         # check if base types don't match, if not, then do a conversion.

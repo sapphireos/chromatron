@@ -1781,7 +1781,7 @@ class irFunc(IR):
         s += "********************************\n"
 
         for v in self.locals:
-            s += f'{v.lineno:3}\t{v.name:16}:{v.data_type}/{v.size}\n'
+            s += f'{v.lineno:3}\t{v.name:16}:{v.data_type}/{v.size} @ {v.addr}\n'
 
         s += "********************************\n"
         s += "Input Code:\n"

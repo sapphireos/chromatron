@@ -1,6 +1,6 @@
 
 # a = Number(220000)
-string = String("hello!")
+# string = String("hello!")
 # string2 = String("world!")
 # string2 = String(32)
 
@@ -42,8 +42,12 @@ string = String("hello!")
 #   # assert global_a == 1
 
 
-# def init():
-#     s = String(32)
+def init():
+    s = String(32)
+    s = 'meow'
+
+    return s
+    
 #     s = array[2]
 #     # array[2] = 'meow'
 

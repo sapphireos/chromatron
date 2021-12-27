@@ -288,29 +288,6 @@ def func_call_throwaway_return():
     add(1, 2)
     # passes if it compiles and runs
 
-string = String("hello!")
-string2 = String(32)
-
-def load_string():
-    s = String()
-    s = string
-
-    return s
-
-def load_string2():
-    s = String()
-    s = string2
-    
-    return s
-
-def load_string_literal():
-    s = String()
-    s = "meow"
-    
-    return s
-
-
-
 def type_conversions():
     a = Number()
     b = Fixed16()
@@ -499,3 +476,26 @@ def obj_load_lookup4():
     a = p[2].hue
 
     return a
+
+
+
+# string = String("hello!")
+# string2 = String(32)
+
+# def load_string():
+#     s = String()
+#     s = string
+
+#     return s
+
+# def load_string2():
+#     s = String()
+#     s = string2
+    
+#     return s
+
+# def load_string_literal():
+#     s = String()
+#     s = "meow"
+    
+#     return s

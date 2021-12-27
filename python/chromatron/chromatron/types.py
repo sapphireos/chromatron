@@ -432,6 +432,11 @@ class varString(varComposite):
 
             return
 
+        elif isinstance(value, varString):
+            self._init_val = value
+
+            return
+
         # ensure string literal ends with at least one null byte.
         # since we will eventually be processing strings in a C library, we want
         # to ensure we have null termination.
@@ -475,19 +480,22 @@ class varString(varComposite):
         return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
 
     def assemble(self):
-        a = [self.strlen]
+        return [0] * self.size
 
-        i = 0
-        while i < self.strlen:
-            s = self.init_val[i:i + 4].encode()
+    # def assemble(self):
+    #     a = [self.strlen]
+
+    #     i = 0
+    #     while i < self.strlen:
+    #         s = self.init_val[i:i + 4].encode()
                 
-            v = struct.pack('4s', s)
-            a.append(v)
+    #         v = struct.pack('4s', s)
+    #         a.append(v)
 
-            i += 4
+    #         i += 4
 
 
-        return a
+    #     return a
 
 # class varStringRef(varRef):
 #     def __init__(self, *args, **kwargs):
