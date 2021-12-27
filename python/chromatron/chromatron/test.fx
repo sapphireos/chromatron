@@ -1,10 +1,10 @@
 
 # a = Number(220000)
-# string = String("hello!")
+string = String("hello!")
 # string2 = String("world!")
 # string2 = String(32)
 
-array = String(32)[4]
+# array = String(32)[4]
 
 # def load_string():
 #     s = String()
@@ -42,12 +42,12 @@ array = String(32)[4]
 #   # assert global_a == 1
 
 
-def init():
-    s = String(32)
-    s = array[2]
-    # array[2] = 'meow'
+# def init():
+#     s = String(32)
+#     s = array[2]
+#     # array[2] = 'meow'
 
-    return s
+#     return s
 
 #     # pass
 #     global_var()

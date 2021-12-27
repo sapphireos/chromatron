@@ -116,15 +116,15 @@ class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
         super(cg1DeclareVar, self).__init__(**kwargs)
 
-class cg1DeclareStrRef(cg1DeclarationBase):
+class cg1DeclareStr(cg1DeclarationBase):
     def __init__(self, **kwargs):
-        super(cg1DeclareStrRef, self).__init__(**kwargs)
+        super(cg1DeclareStr, self).__init__(**kwargs)
 
     def build(self, builder, **kwargs):
         if 'init_val' in self.keywords:
             self.keywords['init_val'] = self.keywords['init_val'].build(builder)
 
-        super(cg1DeclareStrRef, self).build(builder, **kwargs)
+        super(cg1DeclareStr, self).build(builder, **kwargs) 
 
 # class cg1DeclareArray(cg1DeclarationBase):
 #     def __init__(self, dimensions=[1], **kwargs):
@@ -721,11 +721,10 @@ class CodeGenPass1(ast.NodeVisitor):
 
             keywords['init_val'] = cg1StrLiteral(init_val, lineno=node.lineno)
 
-            return cg1DeclareStrRef(type="strref", keywords=keywords, lineno=node.lineno)
+            return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
 
         else:
-            # string reference
-            return cg1DeclareStrRef(type="strref", lineno=node.lineno)
+            return cg1DeclareStr(type="str", lineno=node.lineno)
 
     # def _handle_Array(self, node):
     #     dims = [a.n for a in node.args]

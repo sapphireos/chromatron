@@ -400,8 +400,8 @@ class varStruct(varComposite):
         return 0, self
 
 class varString(varComposite):
-    def __init__(self, *args, string='', max_length=None, **kwargs):
-        super().__init__(*args, data_type='str', **kwargs)
+    def __init__(self, *args, string='', max_length=None, data_type='str', **kwargs):
+        super().__init__(*args, data_type=data_type, **kwargs)
 
         # if string is not None:
         #     self.value = string
@@ -423,6 +423,9 @@ class varString(varComposite):
 
     @init_val.setter
     def init_val(self, value):
+        if isinstance(value, varStringLiteral):
+            value = value.init_val
+
         if value is None:
             value = '\0'
 
@@ -475,9 +478,13 @@ class varString(varComposite):
 
         return a
 
-class varStringRef(varRef):
+# class varStringRef(varRef):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, data_type='strref', **kwargs)
+
+class varStringLiteral(varString):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, data_type='strref', **kwargs)
+        super().__init__(*args, data_type='strlit', **kwargs)    
 
 
 _BASE_TYPES = {
@@ -488,7 +495,8 @@ _BASE_TYPES = {
     'f16': varFixed16(),
     'Fixed16': varFixed16(),
     'str': varString(),
-    'strref': varStringRef(),
+    'strlit': varStringLiteral(),
+    # 'strref': varStringRef(),
     'obj': varObject(),
     'objref': varObjectRef(),
     'pixref': varObjectRef(),

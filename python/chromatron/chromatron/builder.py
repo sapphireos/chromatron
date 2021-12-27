@@ -310,7 +310,7 @@ class Builder(object):
 
         except KeyError:
             # var = self._build_var(f'_str_{string}', 'str', keywords={'init_val': string}, lineno=lineno)
-            var = self._build_var(string, 'str', keywords={'init_val': string}, lineno=lineno)
+            var = self._build_var(string, 'strlit', keywords={'init_val': string}, lineno=lineno)
 
             self.strings[string] = var
         
@@ -792,7 +792,7 @@ class Builder(object):
             if var.init_val is None:
                 continue
 
-            if not isinstance(var, varScalar) and not isinstance(var, varStringRef):
+            if not isinstance(var, varScalar) and not isinstance(var, varString):
                 raise SyntaxError(f'Init values only implemented for scalar types and strings', var.lineno)
 
             init_var = init_var.copy()
