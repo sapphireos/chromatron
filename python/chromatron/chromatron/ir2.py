@@ -3682,7 +3682,7 @@ class irLoadConst(IR):
         elif isinstance(value, varString):
             # a load immediate will work here, unless somehow we are able to exceed 65k bytes of
             # strings.
-            return insLoadImmediate(self.target.generate(), value.addr, lineno=self.lineno)
+            return insLoadString(self.target.generate(), value, lineno=self.lineno)
 
         else:
             # 32 bits, requires constant pooling

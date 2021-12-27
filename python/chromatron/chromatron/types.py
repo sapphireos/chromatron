@@ -423,11 +423,14 @@ class varString(varComposite):
 
     @init_val.setter
     def init_val(self, value):
-        if isinstance(value, varStringLiteral):
-            value = value.init_val
-
         if value is None:
             value = '\0'
+
+        if isinstance(value, VarContainer) and value.data_type == 'strlit':
+            # value = value.init_val
+            self._init_val = value.var
+
+            return
 
         # ensure string literal ends with at least one null byte.
         # since we will eventually be processing strings in a C library, we want
@@ -443,11 +446,16 @@ class varString(varComposite):
         self._init_val = value + '\0' * self.padding
 
     def __str__(self):
-        if self.init_val[0] == '\0':
-            s_val = f'<Empty {len(self.init_val)} chars>'
+        init_val = self.init_val
+
+        if isinstance(init_val, varStringLiteral):
+            init_val = init_val.init_val
+
+        if init_val[0] == '\0':
+            s_val = f'<Empty {len(init_val)} chars>'
 
         else:
-            s_val = self.init_val
+            s_val = init_val
 
         if self.addr is None:
             return f'{self.ssa_name}("{s_val}")'
@@ -457,6 +465,9 @@ class varString(varComposite):
 
     @property
     def strlen(self):
+        if isinstance(self.init_val, varStringLiteral):
+            return self.init_val.strlen
+
         return len(self.init_val)
 
     @property

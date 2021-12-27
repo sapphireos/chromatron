@@ -314,7 +314,7 @@ class Builder(object):
 
             self.strings[string] = var
         
-        return var.var
+        return var
 
     def generic_object(self, name, data_type, kw={}, lineno=None):
         return self.declare_var(name, data_type, keywords=kw, lineno=lineno)
@@ -795,11 +795,18 @@ class Builder(object):
             if not isinstance(var, varScalar) and not isinstance(var, varString):
                 raise SyntaxError(f'Init values only implemented for scalar types and strings', var.lineno)
 
-            init_var = init_var.copy()
-            ir = irLoadConst(init_var, var.init_val, lineno=var.lineno)
-            init_func.body.insert(1, ir)
-            ir = irStore(init_var, var, lineno=var.lineno)
-            init_func.body.insert(2, ir)
+            if isinstance(var, varString):
+                # init_var = init_var.copy()
+                ir = irLoadConst(var.copy(), var.init_val, lineno=var.lineno)
+                init_func.body.insert(1, ir)
+                # pass
+                
+            else:
+                init_var = init_var.copy()
+                ir = irLoadConst(init_var, var.init_val, lineno=var.lineno)
+                init_func.body.insert(1, ir)
+                ir = irStore(init_var, var, lineno=var.lineno)
+                init_func.body.insert(2, ir)
 
         return irProgram(self.script_name, self.funcs, self.global_symbols, self.strings, lineno=0)
 
