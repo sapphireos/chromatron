@@ -514,6 +514,9 @@ class Builder(object):
             
             return var
 
+        # elif isinstance(value, varStringLiteral):
+            # return value
+
         elif isinstance(value, varComposite):
             var = self.add_temp(data_type='offset', lineno=lineno)
             var.ref = value.lookup()
@@ -537,6 +540,9 @@ class Builder(object):
         # if so, we don't need to convert, 0 has the same binary representation
         # in all data types
         if value.value == 0:
+            pass
+
+        elif isinstance(value, varStringLiteral):
             pass
 
         # check for special case of a database target.
@@ -669,6 +675,20 @@ class Builder(object):
             if target.is_global:
                 self.append_node(ir)
                 ir = irStore(target, target.var, lineno=lineno)
+
+        elif isinstance(target, varString):
+            # load address to register:
+            var = self.add_temp(data_type='offset', lineno=lineno)
+            var.ref = target.lookup()
+
+            ir = irLookup(var, target, lineno=lineno)
+            self.append_node(ir)
+
+            if isinstance(value.ref, varString):
+                ir = irLoadString(var, value, lineno=lineno)
+
+            else:
+                raise SyntaxError(f'Invalid string assignment', lineno=lineno)
 
         else:
             raise SyntaxError(f'Invalid assign: {target} = {value}', lineno=lineno)

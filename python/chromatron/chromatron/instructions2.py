@@ -718,6 +718,11 @@ class insLoadString(BaseInstruction):
         return "%s %s <-S %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
+        dest = vm.registers[self.dest.reg]
+        src = vm.registers[self.src.reg]
+
+        print(dest, src)
+
         # if self.src.var not in vm.objects:
         #     raise CompilerFatal(f'Load Ref does not seem to point to an object: {self.src}')
 
@@ -725,7 +730,7 @@ class insLoadString(BaseInstruction):
         pass
 
     def assemble(self):
-        return OpcodeFormat1Imm1Reg(self.mnemonic, self.dest.assemble(), self.src.addr, lineno=self.lineno)
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 
 class insLookup(BaseInstruction):

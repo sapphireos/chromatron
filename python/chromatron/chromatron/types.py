@@ -457,7 +457,7 @@ class varString(varComposite):
             init_val = init_val.init_val
 
         if init_val[0] == '\0':
-            s_val = f'<Empty {len(init_val)} chars>'
+            s_val = f'<{len(init_val)} chars>'
 
         else:
             s_val = init_val

@@ -45,9 +45,10 @@
 def init():
     s = String(32)
     s = 'meow'
+    # s = Number()[4]
 
     return s
-    
+
 #     s = array[2]
 #     # array[2] = 'meow'
 

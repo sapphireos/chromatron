@@ -3679,14 +3679,27 @@ class irLoadConst(IR):
             # a load immediate will work here
             return insLoadImmediate(self.target.generate(), value, lineno=self.lineno)
 
-        elif isinstance(value, varString):
-            # a load immediate will work here, unless somehow we are able to exceed 65k bytes of
-            # strings.
-            return insLoadString(self.target.generate(), value, lineno=self.lineno)
-
         else:
             # 32 bits, requires constant pooling
             return insLoadConst(self.target.generate(), value, lineno=self.lineno)
+
+class irLoadString(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+    def __str__(self):
+        return f'LOAD STR {self.target} <-- {self.value}'
+
+    def get_input_vars(self):
+        return [self.target, self.value]
+
+    def get_output_vars(self):
+        return []
+
+    def generate(self):
+        return insLoadString(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 class irLoadRef(IR):
     def __init__(self, target, ref, **kwargs):
@@ -3754,7 +3767,6 @@ class irStore(IR):
         return f'STORE {self.register} --> {self.ref}'
 
     def get_input_vars(self):
-        # return [self.ref, self.register]
         i = [self.register]
 
         if self.ref.data_type == 'offset':
