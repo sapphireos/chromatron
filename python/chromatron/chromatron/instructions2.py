@@ -59,9 +59,10 @@ def convert_to_i32(value):
     return int(value / 65536.0)
 
 class StorageType(Enum):
-    GLOBAL = 0
-    LOCAL = 1
-    PIXEL_ARRAY = 2
+    GLOBAL          = 0
+    LOCAL           = 1
+    PIXEL_ARRAY     = 2
+    STRING_LITERALS = 3
 
 class insProgram(object):
     def __init__(self, name, funcs={}, global_vars={}, objects=[], strings={}, call_graph={}):
@@ -801,6 +802,8 @@ class insLookup(BaseInstruction):
                 index *= stride
 
             addr += index
+
+        print(self.base_addr, addr)
 
         vm.registers[self.result.reg] = addr
 

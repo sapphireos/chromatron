@@ -9,6 +9,7 @@ def stuff():
     # n[0] = l[1]
 
     l = 2
+    n = 2
 
 # a = Number(220000)
 # string = String("hello!")
