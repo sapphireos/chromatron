@@ -428,11 +428,11 @@ class insFunc(object):
 
                 return self.return_val
 
-            except AssertionError:
-                msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
-                logging.error(msg)
+            # except AssertionError:
+            #     msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
+            #     logging.error(msg)
 
-                raise AssertionError(msg)
+            #     raise AssertionError(msg)
 
     def assemble(self):
         return [ins.assemble() for ins in self.code]
