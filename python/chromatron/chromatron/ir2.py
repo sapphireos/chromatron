@@ -296,6 +296,9 @@ class irAddr(IR):
         self.addr = addr
         self.storage = storage
 
+    def __str__(self):
+        return f'{self.addr}: {self.storage}'
+
     def generate(self):
         return insAddr(self.addr, self.var, self.storage)
 

@@ -502,7 +502,7 @@ class insAddr(BaseInstruction):
 
     def __str__(self):
         if self.var != None:
-            return "%s(%s @ %s)" % (self.var.name, self.var.data_type, self.addr)
+            return "%s(%s @ %s: %s)" % (self.var.name, self.var.data_type, self.addr, self.storage)
 
         else:
             return "Addr(%s)" % (self.addr)
