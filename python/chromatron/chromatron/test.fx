@@ -43,6 +43,18 @@
 
 # sg = String(32)
 
+def pix_val_store():
+    pixels.val = 0.0
+
+    pixels[0].val = 0.5
+    pixels[1].val = 1.0
+    pixels[2].val = 1.5
+
+    assert pixels[0].val == 0.5
+    assert pixels[1].val == 1.0
+    assert pixels[2].val == 1.0
+    assert pixels[3].val == 0.0
+
 
 # def init():
 #     s = String(32)

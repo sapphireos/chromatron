@@ -3498,14 +3498,6 @@ class irObjectLookup(IR):
             else:
                 raise CompilerFatal(f'VM does not have an instruction coded for {len(lookups)} indexes')
 
-        # result = self.result.generate()
-        # target = self.target.generate()
-
-        # print(result)
-        # print(target)
-
-        # return insNop(lineno=self.lineno)
-
 
 class irObjectStore(IR):
     def __init__(self, target, value, attr, **kwargs):
@@ -3538,22 +3530,22 @@ class irObjectStore(IR):
             if len(target.var.lookups) == 0:
                 ins = {
                     'hue': insVPixelStoreHue,
-                    # 'sat': insPixelStoreSat,
-                    # 'val': insPixelStoreVal,
-                    # 'pval': insPixelStorePVal,
-                    # 'hs_fade': insPixelStoreHSFade,
-                    # 'v_fade': insPixelStoreVFade,
+                    'sat': insVPixelStoreSat,
+                    'val': insVPixelStoreVal,
+                    # 'pval': insVPixelStorePVal,
+                    'hs_fade': insVPixelStoreHSFade,
+                    'v_fade': insVPixelStoreVFade,
                 }
 
             # scalar:
             else:
                 ins = {
                     'hue': insPixelStoreHue,
-                    # 'sat': insPixelStoreSat,
-                    # 'val': insPixelStoreVal,
+                    'sat': insPixelStoreSat,
+                    'val': insPixelStoreVal,
                     # 'pval': insPixelStorePVal,
-                    # 'hs_fade': insPixelStoreHSFade,
-                    # 'v_fade': insPixelStoreVFade,
+                    'hs_fade': insPixelStoreHSFade,
+                    'v_fade': insPixelStoreVFade,
                 }
 
             try:
@@ -3593,11 +3585,11 @@ class irObjectLoad(IR):
 
             ins = {
                 'hue': insPixelLoadHue,
-                # 'sat': insPixelStoreSat,
-                # 'val': insPixelStoreVal,
-                # 'pval': insPixelStorePVal,
-                # 'hs_fade': insPixelStoreHSFade,
-                # 'v_fade': insPixelStoreVFade,
+                'sat': insPixelLoadSat,
+                'val': insPixelLoadVal,
+                # 'pval': insPixelLoadPVal,
+                'hs_fade': insPixelLoadHSFade,
+                'v_fade': insPixelLoadVFade,
             }
             
             try:

@@ -1570,6 +1570,18 @@ class insPixelStoreHue(insPixelStore):
         # hue will wrap around
         array[ref] %= 65536        
 
+class insPixelStoreVal(insPixelStore):
+    mnemonic = 'PSTORE_VAL'
+
+class insPixelStoreSat(insPixelStore):
+    mnemonic = 'PSTORE_SAT'
+
+class insPixelStoreHSFade(insPixelStore):
+    mnemonic = 'PSTORE_HS_FADE'
+
+class insPixelStoreVFade(insPixelStore):
+    mnemonic = 'PSTORE_V_FADE'
+
 class insVPixelStore(BaseInstruction):
     mnemonic = 'VSTORE'
 
@@ -1630,6 +1642,17 @@ class insVPixelStoreHue(insVPixelStore):
             idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
             array[idx] = value
 
+class insVPixelStoreVal(insVPixelStore):
+    mnemonic = 'VSTORE_VAL'
+
+class insVPixelStoreSat(insVPixelStore):
+    mnemonic = 'VSTORE_SAT'
+
+class insVPixelStoreHSFade(insVPixelStore):
+    mnemonic = 'VSTORE_HS_FADE'
+
+class insVPixelStoreVFade(insVPixelStore):
+    mnemonic = 'VSTORE_V_FADE'
     
 class insPixelLoad(BaseInstruction):
     mnemonic = 'PLOAD'
@@ -1676,7 +1699,17 @@ class insPixelLoad(BaseInstruction):
 class insPixelLoadHue(insPixelLoad):
     mnemonic = 'PLOAD_HUE'
 
+class insPixelLoadVal(insPixelLoad):
+    mnemonic = 'PLOAD_VAL'
 
+class insPixelLoadSat(insPixelLoad):
+    mnemonic = 'PLOAD_SAT'
+
+class insPixelLoadHSFade(insPixelLoad):
+    mnemonic = 'PLOAD_HS_FADE'
+
+class insPixelLoadVFade(insPixelLoad):
+    mnemonic = 'PLOAD_V_FADE'
 
 
 class insPixelAdd(BaseInstruction):
