@@ -354,11 +354,11 @@ def obj_store_direct():
     assert p1[1].hue == 0.0
     assert p1[2].hue == 0.0
     
-    p1.hue = 1.0
+    p1.hue = 0.5
 
-    assert p1[0].hue == 1.0
-    assert p1[1].hue == 1.0
-    assert p1[2].hue == 1.0
+    assert p1[0].hue == 0.5
+    assert p1[1].hue == 0.5
+    assert p1[2].hue == 0.5
 
 def obj_store_lookup():
     pixels.hue = 0.0
@@ -369,33 +369,33 @@ def obj_store_lookup():
     p = PixelArray()
     p = pa[1]
     
-    p.hue = 1.0    
+    p.hue = 0.5    
 
-    assert p1[0].hue == 1.0
-    assert p1[1].hue == 1.0
-    assert p1[2].hue == 1.0
+    assert p1[0].hue == 0.5
+    assert p1[1].hue == 0.5
+    assert p1[2].hue == 0.5
     
 def obj_store_lookup2():
     pixels.hue = 0.0
 
     pa = PixelArray()[2]
     pa[1] = p1
-    pa[1].hue = 1.0
+    pa[1].hue = 0.5
 
-    assert p1[0].hue == 1.0
-    assert p1[1].hue == 1.0
-    assert p1[2].hue == 1.0
+    assert p1[0].hue == 0.5
+    assert p1[1].hue == 0.5
+    assert p1[2].hue == 0.5
     
 def obj_store_lookup3():
     pixels.hue = 0.0
 
     pa = PixelArray()[2]
     pa[1] = p1
-    pa[1][2].hue = 1.0
+    pa[1][2].hue = 0.5
 
-    assert p1[0].hue == 1.0
+    assert p1[0].hue == 0.5
     assert p1[1].hue == 0.0
-    assert p1[2].hue == 1.0
+    assert p1[2].hue == 0.5
 
 def obj_store_lookup4():
     pixels.hue = 0.0
@@ -449,7 +449,7 @@ def obj_load_lookup():
 #     a = Fixed16()
 #     pa = PixelArray()[2]
 #     pa[1] = p1
-#     a = pa[1].hue # load from entire array, this will fail to compiler (which is correct behavior)
+#     a = pa[1].hue # load from entire array, this will fail to compile (which is correct behavior)
 
 #     return a
 

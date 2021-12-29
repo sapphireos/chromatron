@@ -428,11 +428,11 @@ class insFunc(object):
 
                 return self.return_val
 
-            # except AssertionError:
-            #     msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
-            #     logging.error(msg)
+            except AssertionError:
+                msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
+                logging.error(msg)
 
-            #     raise AssertionError(msg)
+                raise AssertionError(msg)
 
     def assemble(self):
         return [ins.assemble() for ins in self.code]
@@ -1534,6 +1534,14 @@ class insPixelStore(BaseInstruction):
 
         array = vm.gfx_data[self.attr]
 
+        # clamp values:
+        if value < 0:
+            value = 0
+
+        # note this also allows using the value 1.0 (which maps to 65536) as the maximum value 65535
+        elif value > 65535:
+            value = 65535
+
         assert isinstance(ref, int)
 
         # if we got an index, this is an indexed access
@@ -1559,11 +1567,6 @@ class insPixelStoreHue(insPixelStore):
         # if we got an index, this is an indexed access
         array[ref] = value
 
-        # this is a shortcut to allow assignment 1.0 to be maximum, instead
-        # of rolling over to 0.0.
-        if array[ref] == 65536:
-            array[ref] = 65535
-
         # hue will wrap around
         array[ref] %= 65536        
 
@@ -1586,6 +1589,14 @@ class insVPixelStore(BaseInstruction):
 
         pixel_array = vm.get_pixel_array(ref.addr)
 
+        # clamp values:
+        if value < 0:
+            value = 0
+
+        # note this also allows using the value 1.0 (which maps to 65536) as the maximum value 65535
+        elif value > 65535:
+            value = 65535
+
         assert self.attr in vm.gfx_data
         array = vm.gfx_data[self.attr]
 
@@ -1607,11 +1618,6 @@ class insVPixelStoreHue(insVPixelStore):
         value = vm.registers[self.value.reg]
 
         pixel_array = vm.get_pixel_array(ref.addr)
-
-        # this is a shortcut to allow assignment 1.0 to be maximum, instead
-        # of rolling over to 0.0.
-        if value == 65536:
-            value = 65535
 
         # hue will wrap around
         value %= 65536
@@ -1665,19 +1671,6 @@ class insPixelLoad(BaseInstruction):
     def assemble(self):
         # we don't encode attribute, the opcode itself will encode that
         return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)
-
-    # def assemble(self):
-    #     bc = [self.opcode]
-    #     bc.append(insPixelArray(self.pixel_ref))
-
-    #     index_x = self.indexes[0]
-    #     bc.extend(index_x.assemble())
-    #     index_y = self.indexes[1]
-    #     bc.extend(index_y.assemble())
-
-    #     bc.extend(self.target.assemble())
-
-    #     return bc
 
 
 class insPixelLoadHue(insPixelLoad):

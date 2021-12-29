@@ -44,21 +44,6 @@
 # sg = String(32)
 
 
-p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
-
-def obj_store_direct():
-    pixels.hue = 0.0
-
-    # assert p1[0].hue == 0.0
-    # assert p1[1].hue == 0.0
-    # assert p1[2].hue == 0.0
-    
-    p1.hue = 1.0
-
-    assert p1[0].hue == 1.0
-    # assert p1[1].hue == 1.0
-    # assert p1[2].hue == 1.0
-
 # def init():
 #     s = String(32)
 #     # s = 'meow'
