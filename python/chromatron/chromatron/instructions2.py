@@ -1196,6 +1196,9 @@ class insVector(BaseInstruction):
         self.target = target
         self.value = value
 
+        if not self.value.var.is_scalar:
+            raise SyntaxError(f'Vector operations must use a scalar operand', lineno=self.lineno)
+
         self.is_global = self.target.var.ref.is_global
 
         self.length = self.target.var.ref.size

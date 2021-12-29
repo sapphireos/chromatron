@@ -142,6 +142,10 @@ class Var(object):
             return self.name
 
     @property
+    def is_scalar(self):
+        return False
+
+    @property
     def is_global(self):
         return self._is_global
 
@@ -211,6 +215,10 @@ class varScalar(varRegister):
 
     def lookup(self, indexes=[], lineno=None): # lookup returns address offset and type (self, for scalars)
         return self
+
+    @property
+    def is_scalar(self):
+        return True
 
 class varInt32(varScalar):
     def __init__(self, *args, **kwargs):
