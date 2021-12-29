@@ -1121,25 +1121,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     if e:
         raise e
 
-    if ins_program:
-        for func in ins_program.funcs.values():
-            ret_val = func.run()
-            print(f'VM returned: {ret_val}')
-
-        # ret_val = ins_program.funcs['stuff'].run()
-        # print(f'VM returned: {ret_val}')
-
-        pprint.pprint(ins_program.gfx_data)
-
-        image = ins_program.assemble()
-        stream = image.render()
-        print(image.header)
-        print('prog len:', image.prog_len)
-
-
-    # return ins_program
-    return
-
+    return ins_program
     
     
     builder.allocate()
@@ -1183,6 +1165,26 @@ def compile_script(path, debug_print=False):
     with open(path) as f:
         return compile_text(f.read(), script_name=script_name, debug_print=debug_print)
 
+def run_script(path, debug_print=False):
+    ins_program = compile_script(path, debug_print=debug_print)
+
+    for func in ins_program.funcs.values():
+        ret_val = func.run()
+        print(f'VM returned: {ret_val}')
+
+    # ret_val = ins_program.funcs['stuff'].run()
+    # print(f'VM returned: {ret_val}')
+
+    pprint.pprint(ins_program.gfx_data)
+
+    image = ins_program.assemble()
+    stream = image.render()
+    print(image.header)
+    print('prog len:', image.prog_len)
+
+
+    return ins_program
+
 
 def main():
     path = sys.argv[1]
@@ -1193,7 +1195,7 @@ def main():
     logging.info(f'Compiling: {script_name}')
 
     try:
-        program = compile_script(path, debug_print=True)
+        program = run_script(path, debug_print=True)
        
         return
 

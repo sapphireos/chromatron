@@ -24,5 +24,5 @@ from chromatron import code_gen
 
 
 def test_basic():
-    code_gen.compile_script('chromatron/basic_tests.fx')
+    code_gen.run_script('chromatron/basic_tests.fx')
 
