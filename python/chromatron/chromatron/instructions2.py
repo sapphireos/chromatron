@@ -261,12 +261,27 @@ class insFunc(object):
     def pixel_arrays(self):
         return self.program.pixel_arrays
 
+    def get_pixel_array(self, index):
+        return list(self.pixel_arrays.values())[index]
+
     def calc_index(self, indexes=[], pixel_array='pixels'):
-        count = self.pixel_arrays[pixel_array]['count']
-        index = self.pixel_arrays[pixel_array]['index']
-        size_x = self.pixel_arrays[pixel_array]['size_x']
-        size_y = self.pixel_arrays[pixel_array]['size_y']
-        pix_count = self.pixel_arrays['pixels']['count'] # TOTAL pixel count
+        try:
+            # pixel array by name
+            array = self.pixel_arrays[pixel_array]
+
+        except IndexError:
+            # pixel array by index
+            array = self.get_pixel_array(pixel_array)
+
+        except TypeError:
+            # pixel array directly
+            array = pixel_array
+
+
+        count = array['count']
+        index = array['index']
+        size_x = array['size_x']
+        size_y = array['size_y']
 
         if len(indexes) == 0:
             return 0
@@ -285,6 +300,8 @@ class insFunc(object):
             y %= size_y
 
             i = x + (y * size_x)
+
+        pix_count = self.pixel_arrays['pixels']['count'] # TOTAL pixel count
 
         i = (i + index) % pix_count
 
@@ -1567,12 +1584,15 @@ class insVPixelStore(BaseInstruction):
         ref = vm.registers[self.pixel_ref.reg]
         value = vm.registers[self.value.reg]
 
+        pixel_array = vm.get_pixel_array(ref.addr)
+
         assert self.attr in vm.gfx_data
         array = vm.gfx_data[self.attr]
 
         # array reference, this is an array set
-        for i in range(len(array)):
-            array[i] = value
+        for i in range(pixel_array['count']):
+            idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
+            array[idx] = value
 
     def assemble(self):
         # we don't encode attribute, the opcode itself will encode that
@@ -1586,6 +1606,8 @@ class insVPixelStoreHue(insVPixelStore):
         ref = vm.registers[self.pixel_ref.reg]
         value = vm.registers[self.value.reg]
 
+        pixel_array = vm.get_pixel_array(ref.addr)
+
         # this is a shortcut to allow assignment 1.0 to be maximum, instead
         # of rolling over to 0.0.
         if value == 65536:
@@ -1598,8 +1620,9 @@ class insVPixelStoreHue(insVPixelStore):
         array = vm.gfx_data[self.attr]
 
         # array reference, this is an array set
-        for i in range(len(array)):
-            array[i] = value
+        for i in range(pixel_array['count']):
+            idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
+            array[idx] = value
 
     
 class insPixelLoad(BaseInstruction):
