@@ -189,7 +189,7 @@ class Var(object):
         if self.addr is None:
             raise CompilerFatal(f"{self} does not have an address. Line: {self.lineno}")
 
-        return insAddr(self.addr, self)
+        return self.addr.generate()
 
     def assemble(self):
         return [0]

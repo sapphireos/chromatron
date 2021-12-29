@@ -21,6 +21,9 @@
 # </license>
 
 import logging
+
+from enum import Enum
+
 from catbus import *
 from sapphire.common import catbus_string_hash
 from .opcode import *
@@ -55,6 +58,10 @@ def convert_to_f16(value):
 def convert_to_i32(value):
     return int(value / 65536.0)
 
+class StorageType(Enum):
+    GLOBAL = 0
+    LOCAL = 1
+    PIXEL_ARRAY = 2
 
 class insProgram(object):
     def __init__(self, name, funcs={}, global_vars={}, objects=[], strings={}, call_graph={}):
@@ -487,10 +494,11 @@ class insReg(BaseInstruction):
 class insAddr(BaseInstruction):
     mnemonic = '_ADDR'
 
-    def __init__(self, addr=None, var=None, **kwargs):
+    def __init__(self, addr=None, var=None, storage=None, **kwargs):
         super().__init__(**kwargs)
         self.addr = addr
         self.var = var
+        self.storage = storage
 
     def __str__(self):
         if self.var != None:

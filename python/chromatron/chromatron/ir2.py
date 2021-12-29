@@ -288,8 +288,16 @@ class IR(object):
     def loop_depth(self):
         return len(self.loops)
 
+class irAddr(IR):
+    def __init__(self, var, addr, storage: StorageType):
+        super().__init__(lineno=var.lineno)
 
+        self.var = var
+        self.addr = addr
+        self.storage = storage
 
+    def generate(self):
+        return insAddr(self.addr, self.var, self.storage)
 
 class irProgram(IR):
     def __init__(self, name, funcs={}, symbols=None, strings={}, **kwargs):
@@ -319,39 +327,11 @@ class irProgram(IR):
             s += '%s\n' % (func)
 
         return s
-
     
     def analyze(self):
         for func in self.funcs.values():
             func.analyze_blocks()
 
-    def _allocate_memory(self):
-        addr = 0
-        global_vars = [g for g in self.global_symbols.symbols.values() if g.is_allocatable]
-        for g in global_vars:
-            assert g.addr is None
-
-            if g.size == 0:
-                g.addr = None
-                
-            else:
-                g.addr = addr
-
-            addr += g.size
-
-        pix_arrays = {p.name: p for p in self.global_symbols.symbols.values() if p.data_type == 'PixelArray'}
-        pix_arrays['pixels'].addr = 0
-        pix_addr = 1
-
-        for p in [a for a in pix_arrays.values() if a.name != 'pixels']:
-            p.addr = pix_addr
-            pix_addr += 1
-
-        str_addr = 0
-        for s, var in self.strings.items():
-            var.addr = str_addr
-            str_addr += var.strlen
-        
     def analyze_call_graph(self):
         call_graph = {}
 
@@ -365,6 +345,33 @@ class irProgram(IR):
 
         self.call_graph = call_graph
 
+    def _allocate_memory(self):
+        addr = 0
+        global_vars = [g for g in self.global_symbols.symbols.values() if g.is_allocatable]
+        for g in global_vars:
+            assert g.addr is None
+
+            if g.size == 0:
+                g.addr = None
+                
+            else:
+                g.addr = irAddr(g, addr, StorageType.GLOBAL)
+
+            addr += g.size
+
+        pix_arrays = {p.name: p for p in self.global_symbols.symbols.values() if p.data_type == 'PixelArray'}
+        pix_arrays['pixels'].addr = irAddr(pix_arrays['pixels'], 0, StorageType.PIXEL_ARRAY)
+        pix_addr = 1
+
+        for p in [a for a in pix_arrays.values() if a.name != 'pixels']:
+            p.addr = irAddr(p, pix_addr, StorageType.PIXEL_ARRAY)
+            pix_addr += 1
+
+        str_addr = 0
+        for s, var in self.strings.items():
+            var.addr = str_addr
+            str_addr += var.strlen
+        
     def generate(self):
         self._allocate_memory()
 
@@ -1636,38 +1643,6 @@ class irFunc(IR):
     def locals(self):
         return [l for l in self.symbol_table.symbols.values() if not isinstance(l, VarContainer)]
 
-    # @property
-    # def global_input_vars(self):
-    #     v = []
-    #     for block in self.blocks.values():
-    #         v.extend(block.global_input_vars)
-
-    #     return v
-
-    # @property
-    # def global_output_vars(self):
-    #     v = []
-    #     for block in self.blocks.values():
-    #         v.extend(block.global_output_vars)
-
-    #     return v
-
-    # @property
-    # def local_input_vars(self):
-    #     v = []
-    #     for block in self.blocks.values():
-    #         v.extend(block.local_input_vars)
-
-    #     return v
-
-    # @property
-    # def local_output_vars(self):
-    #     v = []
-    #     for block in self.blocks.values():
-    #         v.extend(block.local_output_vars)
-
-    #     return v
-
     def get_input_vars(self):
         v = []
         for block in self.blocks.values():
@@ -2418,13 +2393,6 @@ class irFunc(IR):
 
         self.live_ranges = ranges
 
-    def allocate_locals(self):
-        addr = self.register_count
-
-        for l in self.locals:
-            l.addr = addr
-            addr += l.size
-
     @property
     def local_size(self):
         s = 0
@@ -2433,6 +2401,20 @@ class irFunc(IR):
             s += l.size
 
         return s
+
+    def init_vars(self):
+        defines = {}
+        for v in self.params:
+            defines[v.name] = v.var
+        
+        self.leader_block.defines.update(defines)
+
+    def allocate_locals(self):
+        addr = self.register_count
+
+        for l in self.locals:
+            l.addr = irAddr(l, addr, StorageType.LOCAL)
+            addr += l.size
 
     def allocate_registers(self, max_registers=256):        
         # self.register_count = self.leader_block.allocate_registers(max_registers) 
@@ -2546,14 +2528,6 @@ class irFunc(IR):
         self.registers = registers          
 
         logging.debug(f'Allocated {len(registers)} virtual registers and {max_registers - min_address_pool} machine registers')  
-
-    def init_vars(self):
-        defines = {}
-        for v in self.params:
-            defines[v.name] = v.var
-        
-        self.leader_block.defines.update(defines)
-
 
     def generate(self):
         logging.debug(f'Generating code for {self.name}')
