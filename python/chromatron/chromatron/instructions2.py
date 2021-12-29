@@ -1197,20 +1197,6 @@ class insVector(BaseInstruction):
 
     def assemble(self):
         return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.is_global, self.value.assemble(), self.length, lineno=self.lineno)
-        # bc = [self.opcode]
-        # bc.extend(self.target.assemble())
-        # bc.extend(self.value.assemble())
-
-        # # convert to 16 bits
-        # l = self.length & 0xff
-        # h = (self.length >> 8) & 0xff
-
-        # bc.extend([l, h])
-
-        # target_type = get_type_id(self.type)
-        # bc.append(target_type)
-
-        # return bc
 
 class insVectorMov(insVector):
     mnemonic = 'VMOV'

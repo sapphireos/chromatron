@@ -8,7 +8,7 @@ def stuff():
 
     # n[0] = l[1]
 
-    n = l
+    l = n
 
 # a = Number(220000)
 # string = String("hello!")
