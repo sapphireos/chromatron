@@ -1804,3 +1804,29 @@ class insConvF16toI32(BaseInstruction):
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
+
+class insConvGFX16toF16(BaseInstruction):
+    mnemonic = 'CONV_GFX16_TO_F16'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+    def __str__(self):
+        return "%s %s = F16(%s)" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        f16_value = vm.registers[self.src.reg]
+
+        # when converting *gfx16* to f16, we map the integer representation of 65535 to 65536.
+        # this is because 65535 is our maximum value and 1.0 technically maps to 0.0 in f16, but
+        # generally when we use 1.0 what we mean is the maximum value, not the lowest.
+        if f16_value == 65535:
+            f16_value = 65536
+
+        vm.registers[self.dest.reg] = f16_value
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+

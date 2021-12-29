@@ -4020,6 +4020,7 @@ class irBinop(IR):
 type_conversions = {
     ('i32', 'f16'): insConvF16toI32,
     ('f16', 'i32'): insConvI32toF16,
+    ('f16', 'gfx16'): insConvGFX16toF16,
 }
 
 class irConvertType(IR):
@@ -4028,15 +4029,15 @@ class irConvertType(IR):
         self.result = result
         self.value = value
 
-        # check if either type is gfx16
-        if self.result.data_type == 'gfx16' or self.value.data_type == 'gfx16':
-            raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.value, self.result, self.lineno))
+        # # check if either type is gfx16
+        # if self.result.data_type == 'gfx16' or self.value.data_type == 'gfx16':
+        #     raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.value, self.result, self.lineno))
 
     def __str__(self):
-        if self.skip_conversion():
-            s = '%s = %s' % (self.result, self.value)
-        else:
-            s = '%s = %s(%s)' % (self.result, self.result.data_type, self.value)
+        # if self.skip_conversion():
+            # s = '%s = %s' % (self.result, self.value)
+        # else:
+        s = '%s = %s(%s)' % (self.result, self.result.data_type, self.value)
 
         return s
 
@@ -4046,13 +4047,13 @@ class irConvertType(IR):
     def get_output_vars(self):
         return [self.result]
 
-    def skip_conversion(self):
-        return self.value.data_type == 'gfx16'
+    # def skip_conversion(self):
+    #     return self.value.data_type == 'gfx16'
 
     def generate(self):
         try:
-            if self.skip_conversion():
-                raise KeyError
+            # if self.skip_conversion():
+            #     raise KeyError
 
             return type_conversions[(self.result.data_type, self.value.data_type)](self.result.generate(), self.value.generate(), lineno=self.lineno)
 

@@ -489,7 +489,29 @@ def pix_hue_store():
     assert pixels[2].hue == 0.5
     assert pixels[3].hue == 0.0
     
+def pix_val_store():
+    pixels.val = 0.0
 
+    pixels[0].val = 0.5
+    pixels[1].val = 1.0
+    pixels[2].val = 1.5
+
+    assert pixels[0].val == 0.5
+    assert pixels[1].val == 1.0
+    assert pixels[2].val == 1.0
+    assert pixels[3].val == 0.0
+
+def pix_sat_store():
+    pixels.sat = 0.0
+
+    pixels[0].sat = 0.5
+    pixels[1].sat = 1.0
+    pixels[2].sat = 1.5
+
+    assert pixels[0].sat == 0.5
+    assert pixels[1].sat == 1.0
+    assert pixels[2].sat == 1.0
+    assert pixels[3].sat == 0.0
 
 
 # string = String("hello!")

@@ -70,6 +70,7 @@ opcodes = {
 
     'CONV_I32_TO_F16':      0x31,
     'CONV_F16_TO_I32':      0x32,
+    'CONV_GFX16_TO_F16':    0x33,
 
     'PLOOKUP1':             0x38,
     'PLOOKUP2':             0x39,

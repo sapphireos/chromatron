@@ -481,7 +481,7 @@ class Builder(object):
             return var
 
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
-            if value.ref.data_type == 'PixelArray':
+            if not value.ref is None and value.ref.data_type == 'PixelArray':
                 var = self.add_temp(data_type='gfx16', lineno=lineno)
 
             else:
@@ -575,15 +575,17 @@ class Builder(object):
         elif target.scalar_type != value.scalar_type:
             # check if one of the types is gfx16.  if it is,
             # then we don't do a conversion
-            if (target.scalar_type == 'gfx16') or \
-               (value.scalar_type == 'gfx16'):
-               pass
+            # if (target.scalar_type == 'gfx16') or \
+            #    (value.scalar_type == 'gfx16'):
+            #    pass
                
-            else:
-                temp = self.add_temp(lineno=lineno, data_type=target.scalar_type)
-                ir = irConvertType(temp, value, lineno=lineno)
-                self.append_node(ir)
-                value = temp
+            # else:
+
+
+            temp = self.add_temp(lineno=lineno, data_type=target.scalar_type)
+            ir = irConvertType(temp, value, lineno=lineno)
+            self.append_node(ir)
+            value = temp
 
             # convert value to target type and replace value with result
             # first, check if we created a temp reg.  if we did, just
@@ -725,13 +727,13 @@ class Builder(object):
         right_result = right
 
         if target_data_type == 'f16':
-            if left.data_type != 'f16' and left.data_type != 'gfx16':
+            if left.data_type != 'f16':
                 left_result = self.add_temp(data_type=target_data_type, lineno=lineno)
 
                 ir = irConvertType(left_result, left, lineno=lineno)
                 self.append_node(ir)
 
-            if right.data_type != 'f16' and right.data_type != 'gfx16':
+            if right.data_type != 'f16':
                 right_result = self.add_temp(data_type=target_data_type, lineno=lineno)
 
                 ir = irConvertType(right_result, right, lineno=lineno)
