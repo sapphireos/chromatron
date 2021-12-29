@@ -1,4 +1,15 @@
 
+n = Number()[4]
+
+def stuff():
+    l = Number()[4]
+
+    # l[1] = 2
+
+    # n[0] = l[1]
+
+    n = l
+
 # a = Number(220000)
 # string = String("hello!")
 # string2 = String("world!")
@@ -29,27 +40,14 @@
 #     s = string
 #     print(s)
 
-# global_a = Number()
-# def global_var():
-#     i = Number()
-
-#     while i < 32:
-
-#         global_a += 1
-
-#         i += 1
-
-#   # assert global_a == 1
-
 # sg = String(32)
 
 
-def init():
-    s = String(32)
-    s = 'meow'
-#     # s = Number()[4]
+# def init():
+#     s = String(32)
+#     s = 'meow'
 
-    return s
+    # return s
 
 #     s = array[2]
 #     # array[2] = 'meow'
