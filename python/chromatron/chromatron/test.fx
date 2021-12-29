@@ -41,10 +41,11 @@
 
 #   # assert global_a == 1
 
+# sg = String(32)
 
 def init():
     s = String(32)
-    s = 'meow'
+    # s = 'meow'
     # s = Number()[4]
 
     return s

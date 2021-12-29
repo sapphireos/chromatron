@@ -514,8 +514,12 @@ class Builder(object):
             
             return var
 
-        # elif isinstance(value, varStringLiteral):
-            # return value
+        elif isinstance(value, varString):
+            var = self.add_temp(data_type='strref', lineno=lineno)
+            ir = irLoadRef(var, value, lineno=lineno)
+            self.append_node(ir)
+            
+            return var
 
         elif isinstance(value, varComposite):
             var = self.add_temp(data_type='offset', lineno=lineno)
