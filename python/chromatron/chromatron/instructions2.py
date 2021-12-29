@@ -254,6 +254,10 @@ class insFunc(object):
         return self.program.objects
 
     @property
+    def strings(self):
+        return self.program.strings
+
+    @property
     def gfx_data(self):
         return self.program.gfx_data
 
@@ -630,7 +634,9 @@ class insLoadRef(BaseInstruction):
         return "%s %s <-R %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        if self.src.var not in vm.objects:
+        if self.src.var not in vm.objects and \
+           self.src.var.data_type != 'str' and \
+           self.src.var not in vm.strings.values():
             raise CompilerFatal(f'Load Ref does not seem to point to an object: {self.src}')
 
         vm.registers[self.dest.reg] = self.src

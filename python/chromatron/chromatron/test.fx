@@ -46,7 +46,7 @@
 
 def init():
     s = String(32)
-#     # s = 'meow'
+    s = 'meow'
 #     # s = Number()[4]
 
     return s

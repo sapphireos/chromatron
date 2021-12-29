@@ -309,10 +309,11 @@ class Builder(object):
             var = self.strings[string]
 
         except KeyError:
-            # var = self._build_var(f'_str_{string}', 'str', keywords={'init_val': string}, lineno=lineno)
-            var = self._build_var(string, 'strlit', keywords={'init_val': string}, lineno=lineno)
+            var = self.declare_var(f'__lit__{string}', 'strlit', keywords={'init_val': string}, is_global=True, lineno=lineno)
+            # var = self._build_var(f'__lit__{string}', 'strlit', keywords={'init_val': string}, lineno=lineno)
+            # var = self._build_var(string, 'strlit', keywords={'init_val': string}, lineno=lineno)
 
-            self.strings[string] = var
+            self.strings[string] = var.var
         
         return var.var
 
@@ -687,18 +688,22 @@ class Builder(object):
                 ir = irStore(target, target.var, lineno=lineno)
 
         elif isinstance(target, varString):
-            # load address to register:
-            var = self.add_temp(data_type='offset', lineno=lineno)
-            var.ref = target.lookup()
+            target = self.load_value(target, lineno=lineno)
 
-            ir = irLookup(var, target, lineno=lineno)
-            self.append_node(ir)
+            ir = irLoadString(target, value, lineno=lineno)
 
-            if isinstance(value.ref, varString):
-                ir = irLoadString(var, value, lineno=lineno)
+            # # load address to register:
+            # var = self.add_temp(data_type='offset', lineno=lineno)
+            # var.ref = target.lookup()
 
-            else:
-                raise SyntaxError(f'Invalid string assignment', lineno=lineno)
+            # ir = irLookup(var, target, lineno=lineno)
+            # self.append_node(ir)
+
+            # if isinstance(value.ref, varString):
+            #     ir = irLoadString(var, value, lineno=lineno)
+
+            # else:
+            #     raise SyntaxError(f'Invalid string assignment', lineno=lineno)
 
         else:
             raise SyntaxError(f'Invalid assign: {target} = {value}', lineno=lineno)
@@ -832,9 +837,9 @@ class Builder(object):
 
             if isinstance(var, varString):
                 # init_var = init_var.copy()
-                ir = irLoadConst(var.copy(), var.init_val, lineno=var.lineno)
-                init_func.body.insert(1, ir)
-                # pass
+                # ir = irLoadConst(var.copy(), var.init_val, lineno=var.lineno)
+                # init_func.body.insert(1, ir)
+                pass
                 
             else:
                 init_var = init_var.copy()
