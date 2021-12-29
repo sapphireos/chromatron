@@ -481,7 +481,11 @@ class Builder(object):
             return var
 
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
-            var = self.add_temp(data_type='var', lineno=lineno)
+            if value.ref.data_type == 'PixelArray':
+                var = self.add_temp(data_type='gfx16', lineno=lineno)
+
+            else:
+                var = self.add_temp(data_type='var', lineno=lineno)
 
             if len(value.lookups) > 0:
                 result = self.add_temp(data_type='objref', lineno=lineno)
@@ -705,40 +709,39 @@ class Builder(object):
 
         # if both types are gfx16, use i32
         if left.data_type == 'gfx16' and right.data_type == 'gfx16':
-            # if either type is fixed16, we do the whole thing as fixed16.
-            data_type = 'i32'
+            target_data_type = 'i32'
 
         else:
             # if left is gfx16, use right type
             if left.data_type == 'gfx16':
-                data_type = right.data_type
+                target_data_type = right.data_type
             else:
-                data_type = left.data_type
+                target_data_type = left.data_type
 
             if right.data_type == 'f16':
-                data_type = right.data_type
+                target_data_type = right.data_type
 
         left_result = left
         right_result = right
 
-        if data_type == 'f16':
+        if target_data_type == 'f16':
             if left.data_type != 'f16' and left.data_type != 'gfx16':
-                left_result = self.add_temp(data_type=data_type, lineno=lineno)
+                left_result = self.add_temp(data_type=target_data_type, lineno=lineno)
 
                 ir = irConvertType(left_result, left, lineno=lineno)
                 self.append_node(ir)
 
             if right.data_type != 'f16' and right.data_type != 'gfx16':
-                right_result = self.add_temp(data_type=data_type, lineno=lineno)
+                right_result = self.add_temp(data_type=target_data_type, lineno=lineno)
 
                 ir = irConvertType(right_result, right, lineno=lineno)
                 self.append_node(ir)
 
         if op in COMPARE_BINOPS:
             # need i32 for comparisons
-            data_type = 'i32'
+            target_data_type = 'i32'
 
-        target = self.add_temp(data_type=data_type, lineno=lineno)
+        target = self.add_temp(data_type=target_data_type, lineno=lineno)
         
         ir = irBinop(target, op, left_result, right_result, lineno=lineno)
 

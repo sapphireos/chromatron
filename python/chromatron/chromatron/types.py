@@ -223,6 +223,10 @@ class varFixed16(varScalar):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='f16', **kwargs)
 
+class varGfx16(varScalar):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, data_type='gfx16', **kwargs)
+
 class varOffset(varRegister):
     def __init__(self, *args, offset=None, **kwargs):
         super().__init__(*args, data_type='offset', **kwargs)
@@ -512,6 +516,7 @@ _BASE_TYPES = {
     'i32': varInt32(), 
     'Number': varInt32(), 
     'f16': varFixed16(),
+    'gfx16': varGfx16(),
     'Fixed16': varFixed16(),
     'str': varString(),
     'strlit': varStringLiteral(),
