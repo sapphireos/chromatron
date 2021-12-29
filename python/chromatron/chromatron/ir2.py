@@ -4308,10 +4308,3 @@ class irIndirectCall(irCallType):
             raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')
 
         return call_ins
-
-        # # move return value to result register
-        # mov_ins = insMov(self.result.generate(), insAddr(0), lineno=self.lineno)
-
-        # return [call_ins, mov_ins]
-
-
