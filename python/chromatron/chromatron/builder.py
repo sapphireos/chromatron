@@ -310,7 +310,7 @@ class Builder(object):
 
     def add_string(self, string, lineno=None):
         try:
-            var = self.strings[string]
+            return self.strings[string]
 
         except KeyError:
             var = self.declare_var(f'__lit__{string}', 'strlit', keywords={'init_val': string}, is_global=True, lineno=lineno)
@@ -319,7 +319,7 @@ class Builder(object):
 
             self.strings[string] = var.var
         
-        return var.var
+            return var.var
 
     def generic_object(self, name, data_type, kw={}, lineno=None):
         return self.declare_var(name, data_type, keywords=kw, lineno=lineno)
@@ -410,6 +410,8 @@ class Builder(object):
         self.append_node(label)
 
     def call(self, func_name, params, lineno=None):
+        params = [self.load_value(p, lineno=lineno) for p in params]
+
         if func_name == 'print':
             ir = irPrint(params[0], lineno=lineno)
             self.append_node(ir)
@@ -523,12 +525,12 @@ class Builder(object):
             
             return var
 
-        elif isinstance(value, varString):
-            var = self.add_temp(data_type='strref', lineno=lineno)
-            ir = irLoadRef(var, value, lineno=lineno)
-            self.append_node(ir)
+        # elif isinstance(value, varString):
+        #     var = self.add_temp(data_type='strref', lineno=lineno)
+        #     ir = irLoadRef(var, value, lineno=lineno)
+        #     self.append_node(ir)
             
-            return var
+        #     return var
 
         elif isinstance(value, varComposite):
             var = self.add_temp(data_type='offset', lineno=lineno)

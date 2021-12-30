@@ -415,7 +415,7 @@ class varStruct(varComposite):
 
         return 0, self
 
-class varString(varObject):
+class varString(varComposite):
     def __init__(self, *args, string='', max_length=None, data_type='str', **kwargs):
         super().__init__(*args, data_type=data_type, **kwargs)
 
@@ -495,8 +495,11 @@ class varString(varObject):
     def size(self):
         return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
 
+    # def assemble(self):
+        # return OpcodeString(self, lineno=self.lineno)
+
     def assemble(self):
-        return OpcodeString(self, lineno=self.lineno)
+        return [0] * self.size
 
     # def assemble(self):
     #     a = [self.strlen]

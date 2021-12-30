@@ -29,12 +29,17 @@
 #     s = string
 #     print(s)
 
-# sg = String(32)
+sg = String(32)
 
 
 def init():
     s = String(32)
+#     # print(s)
+
     s = 'meow'
+#     # print(s)
+
+    sg = s
 
     return s
 
