@@ -250,9 +250,11 @@ class varComposite(Var):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-class varObject(varComposite):
+class varObject(Var):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # self.is_allocatable = False
 
     @property
     def size(self):
@@ -411,7 +413,7 @@ class varStruct(varComposite):
 
         return 0, self
 
-class varString(varComposite):
+class varString(varObject):
     def __init__(self, *args, string='', max_length=None, data_type='str', **kwargs):
         super().__init__(*args, data_type=data_type, **kwargs)
 

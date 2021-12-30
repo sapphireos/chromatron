@@ -803,8 +803,6 @@ class insLookup(BaseInstruction):
 
             addr += index
 
-        print(self.base_addr, addr)
-
         vm.registers[self.result.reg] = addr
 
     def assemble(self):

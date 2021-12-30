@@ -1,15 +1,41 @@
 
-n = Number()[4]
 
-def stuff():
-    l = Number()[4]
+# def sub(a: Number, b: Number) -> Number:
+#     return a - b
 
-    # l[1] = 2
+# def add(a: Number, b: Number) -> Number:
+#     return a + b
 
-    # n[0] = l[1]
+# def func_indirect_call():
+#     f = Function()
+#     f = sub
 
-    l = 2
-    n = 2
+#     assert f(1, 2) == -1
+
+#     f = add
+
+#     assert f(1, 2) == 3
+
+
+# def func_indirect_call_array():
+#     f = Function()[2]
+#     f[0] = sub
+#     f[1] = add
+
+#     assert f[0](1, 2) == -1
+#     assert f[1](1, 2) == 3
+
+# n = Number()[4]
+
+# def stuff():
+#     l = Number()[4]
+
+#     # l[1] = 2
+
+#     # n[0] = l[1]
+
+#     l = 2
+#     n = 2
 
 # a = Number(220000)
 # string = String("hello!")

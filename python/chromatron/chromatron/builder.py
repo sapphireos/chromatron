@@ -214,6 +214,9 @@ class Builder(object):
 
         var = self._build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
 
+        if isinstance(var.var, varObject):
+            is_global = True
+
         if is_global:
             if name in self.global_symbols:
                 # return self.globals[name]
@@ -262,7 +265,7 @@ class Builder(object):
 
         # if composite, return, we will assume there
         # is a lookup
-        if isinstance(var, varComposite):
+        if isinstance(var, varComposite) or isinstance(var, varObject):
             return var        
 
         # var does not have a container:
