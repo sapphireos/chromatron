@@ -205,7 +205,7 @@ class Opcode(object):
     def get_opcode(self):
         return opcodes[self.opcode]
 
-    def assign_addresses(self, labels, functions):
+    def assign_addresses(self, labels, functions, objects):
         for i in range(len(self.items)):
             item = self.items[i]
 
@@ -220,6 +220,13 @@ class Opcode(object):
                 item.addr = functions[item.func]
                 # replace func with actual address
                 self.items[i] = item.render()
+
+            elif isinstance(item, OpcodeObject):
+                assert item.addr is None
+                # item.addr = objects[item.obj]
+                # replace func with actual address
+                # self.items[i] = item.render()
+                self.items[i] = 0
 
     def render(self):
         if self.opcode not in opcodes:
@@ -240,6 +247,39 @@ class Opcode(object):
             packed += struct.pack(f'<{padding}B', *[0xfe] * padding)
 
         return packed
+
+class OpcodePlaceholder(Opcode):
+    pass
+
+class OpcodeLabel(OpcodePlaceholder):
+    def __init__(self, label, **kwargs):
+        super().__init__(opcode='LABEL', **kwargs)
+        self.label = label
+        self.addr = None
+
+    def __str__(self):
+        return f'LABEL: {self.label.name:16} Line: {self.lineno:3}'
+
+    def render(self):
+        return self.addr
+
+class OpcodeFunc(OpcodePlaceholder):
+    def __init__(self, func, **kwargs):
+        super().__init__(opcode='FUNC', **kwargs)
+        self.func = func
+        self.addr = None
+
+    def render(self):
+        return self.addr
+
+class OpcodeObject(OpcodePlaceholder):
+    def __init__(self, obj, **kwargs):
+        super().__init__(opcode='OBJ', **kwargs)
+        self.obj = obj
+        self.addr = None
+
+    def render(self):
+        return self.addr
 
 class Opcode32(Opcode):
     @property
@@ -356,27 +396,6 @@ class OpcodeFormat1Imm5Reg(Opcode64):
 
         self.items = [imm1, reg1, reg2, reg3, reg4, reg5]
         self.format = 'HBBBBB'
-
-class OpcodeLabel(Opcode):
-    def __init__(self, label, **kwargs):
-        super().__init__(opcode='LABEL', **kwargs)
-        self.label = label
-        self.addr = None
-
-    def __str__(self):
-        return f'LABEL: {self.label.name:16} Line: {self.lineno:3}'
-
-    def render(self):
-        return self.addr
-
-class OpcodeFunc(Opcode):
-    def __init__(self, func, **kwargs):
-        super().__init__(opcode='FUNC', **kwargs)
-        self.func = func
-        self.addr = None
-
-    def render(self):
-        return self.addr
 
 class OpcodeFormatVector(Opcode64):
     def __init__(self, opcode, target, value, length, is_global, **kwargs):

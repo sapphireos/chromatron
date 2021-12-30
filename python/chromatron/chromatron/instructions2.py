@@ -65,7 +65,7 @@ class StorageType(Enum):
     STRING_LITERALS = 3
 
 class insProgram(object):
-    def __init__(self, name, funcs={}, global_vars={}, objects=[], strings={}, call_graph={}):
+    def __init__(self, name, funcs={}, global_vars=[], objects=[], strings={}, call_graph={}):
         self.name = name
         self.funcs = funcs
         self.globals = global_vars
@@ -73,7 +73,7 @@ class insProgram(object):
 
         # initialize memory
         self.global_memory_size = 0
-        for v in self.globals.values():
+        for v in self.globals:
             self.global_memory_size += v.size 
 
         self.memory = [0] * self.global_memory_size
@@ -274,7 +274,11 @@ class insFunc(object):
         return self.program.pixel_arrays
 
     def get_pixel_array(self, index):
-        return list(self.pixel_arrays.values())[index]
+        try:
+            return list(self.pixel_arrays.values())[index]
+
+        except TypeError:
+            return list(self.pixel_arrays.values())[index.addr]
 
     def calc_index(self, indexes=[], pixel_array='pixels'):
         try:
@@ -643,15 +647,8 @@ class insLoadRef(BaseInstruction):
         return "%s %s <-R %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        if self.src.var not in vm.objects and \
-           self.src.var.data_type != 'str' and \
-           self.src.var not in vm.strings.values():
+        if self.src not in vm.objects:
             raise CompilerFatal(f'Load Ref does not seem to point to an object: {self.src}')
-
-        vm.registers[self.dest.reg] = self.src
-
-    def assemble(self):
-        return OpcodeFormat1Imm1Reg(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
         vm.registers[self.dest.reg] = self.src
 
@@ -1311,8 +1308,7 @@ class insCall(BaseInstruction):
 
     def __init__(self, target, params=[], **kwargs):
         super().__init__(**kwargs)
-        self.target = target
-        assert isinstance(target, str)
+        self.target = OpcodeFunc(target, lineno=self.lineno)
         self.params = params
 
     def __str__(self):
@@ -1321,10 +1317,10 @@ class insCall(BaseInstruction):
             params += '%s, ' % (param)
         params = params[:len(params) - 2]
 
-        return "%s %s (%s)" % (self.mnemonic, self.target, params)
+        return "%s %s (%s)" % (self.mnemonic, self.target.func, params)
 
     def execute(self, vm):
-        target = vm.program.funcs[self.target]
+        target = vm.program.funcs[self.target.func]
         ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
 
         vm.ret_val = ret_val
@@ -1338,7 +1334,7 @@ class insCall0(insCall):
     def assemble(self):
         return OpcodeFormat1Imm(
             self.mnemonic,
-            OpcodeFunc(self.target, lineno=self.lineno), 
+            self.target, 
             lineno=self.lineno)
 
 class insCall1(insCall):
@@ -1347,7 +1343,7 @@ class insCall1(insCall):
     def assemble(self):
         return OpcodeFormat1Imm1Reg(
             self.mnemonic,
-            OpcodeFunc(self.target, lineno=self.lineno),
+            self.target,
             self.params[0].assemble(), 
             lineno=self.lineno)
 
@@ -1357,7 +1353,7 @@ class insCall2(insCall):
     def assemble(self):
         return OpcodeFormat1Imm2Reg(
             self.mnemonic,
-            OpcodeFunc(self.target, lineno=self.lineno),
+            self.target,
             self.params[0].assemble(), 
             self.params[1].assemble(), 
             lineno=self.lineno)
@@ -1368,7 +1364,7 @@ class insCall3(insCall):
     def assemble(self):
         return OpcodeFormat1Imm3Reg(
             self.mnemonic,
-            OpcodeFunc(self.target, lineno=self.lineno),
+            self.target,
             self.params[0].assemble(), 
             self.params[1].assemble(), 
             self.params[2].assemble(), 
@@ -1380,7 +1376,7 @@ class insCall4(insCall):
     def assemble(self):
         return OpcodeFormat1Imm4Reg(
             self.mnemonic,
-            OpcodeFunc(self.target, lineno=self.lineno),
+            self.target,
             self.params[0].assemble(), 
             self.params[1].assemble(), 
             self.params[2].assemble(), 
@@ -1406,7 +1402,7 @@ class insIndirectCall(BaseInstruction):
     def execute(self, vm):
         func = vm.registers[self.ref.reg]
 
-        target = vm.program.funcs[func.var.name]
+        target = vm.program.funcs[func.name]
 
         vm.ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
 
@@ -1495,9 +1491,9 @@ class insPixelLookup(BaseInstruction):
             indexes.append(vm.registers[self.indexes[i].reg])
 
         ref = vm.registers[self.pixel_ref.reg]
-        assert ref.var.name in vm.pixel_arrays
+        assert ref.name in vm.pixel_arrays
 
-        index = vm.calc_index(indexes, ref.var.name)
+        index = vm.calc_index(indexes, ref.name)
 
         vm.registers[self.result.reg] = index
 

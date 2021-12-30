@@ -1,20 +1,8 @@
 
+p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
 
-# def sub(a: Number, b: Number) -> Number:
-#     return a - b
-
-# def add(a: Number, b: Number) -> Number:
-#     return a + b
-
-# def func_indirect_call():
-#     f = Function()
-#     f = sub
-
-#     assert f(1, 2) == -1
-
-#     f = add
-
-#     assert f(1, 2) == 3
+def obj_store_direct():
+    pixels.hue = 0.0
 
 
 # def func_indirect_call_array():

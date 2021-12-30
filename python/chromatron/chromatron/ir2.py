@@ -330,6 +330,14 @@ class irProgram(IR):
             s += '%s\n' % (func)
 
         return s
+
+    @property
+    def global_vars(self):
+        return [g for g in self.global_symbols.symbols.values() if g.is_allocatable]
+
+    @property
+    def objects(self):
+        return [o for o in self.global_symbols.symbols.values() if isinstance(o, varObject)]
     
     def analyze(self):
         for func in self.funcs.values():
@@ -350,15 +358,12 @@ class irProgram(IR):
 
     def _allocate_memory(self):
         addr = 0
-        global_vars = [g for g in self.global_symbols.symbols.values() if g.is_allocatable]
-        for g in global_vars:
+
+        for g in self.global_vars:
             assert g.addr is None
 
-            if g.size == 0:
-                g.addr = None
-                
-            else:
-                g.addr = irAddr(g, addr, StorageType.GLOBAL)
+            # if g.size is not None:
+            g.addr = irAddr(g, addr, StorageType.GLOBAL)
 
             addr += g.size
 
@@ -383,15 +388,13 @@ class irProgram(IR):
             ins_funcs[name] = func.generate()
             ins_funcs[name].prune_jumps()
 
-        objects = [o for o in self.global_symbols.symbols.values() if isinstance(o, varObject)]
-
         self.analyze_call_graph()
 
         return insProgram(
                 self.name, 
                 funcs=ins_funcs, 
-                global_vars=self.global_symbols.symbols, 
-                objects=objects,
+                global_vars=self.global_vars, 
+                objects=self.objects,
                 strings=self.strings,
                 call_graph=self.call_graph)
 
@@ -4139,7 +4142,8 @@ class irCallType(IR):
 class irCall(irCallType):
     def __init__(self, target, params, **kwargs):
         super().__init__(**kwargs)
-        self.target = target.name
+
+        self.target = target
         self.params = params
 
         # self.result.force_used = True
@@ -4163,7 +4167,7 @@ class irCall(irCallType):
 
         stack.insert(0, self.target)
 
-        target = self.target
+        target = self.target.name
 
         # call func
         if len(params) == 0:

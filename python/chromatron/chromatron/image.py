@@ -171,10 +171,11 @@ class FXImage(object):
 
             function_indexes[func_name] = len(function_table) - 1
 
+        objects = {}
 
         # set label and func addresses in opcodes
         for op in opcodes:
-            op.assign_addresses(label_addrs, function_indexes)
+            op.assign_addresses(label_addrs, function_indexes, objects)
 
         for func_name, func_opcodes in func_opcodes.items():
             print(func_name)

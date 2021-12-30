@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from .exceptions import *
 from .instructions2 import insReg, insAddr
+from .opcode import OpcodeObject, OpcodeFunc
 
 class VarContainer(object):
     def __init__(self, var):
@@ -195,8 +196,8 @@ class Var(object):
 
         return self.addr.generate()
 
-    def assemble(self):
-        return [0]
+    # def assemble(self):
+    #     return [0]
 
 class varRegister(Var):
     def __init__(self, *args, **kwargs):
@@ -254,20 +255,21 @@ class varObject(Var):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # self.is_allocatable = False
+        self.is_allocatable = False
 
-    @property
-    def size(self):
-        return 0
+    def generate(self):
+        return self
+
+    def assemble(self):
+        return OpcodeObject(self, lineno=self.lineno)
 
 class varFunction(varObject):
     def __init__(self, *args, func=None, **kwargs):
         super().__init__(*args, data_type='func', **kwargs)
         self.func = func
 
-    @property
-    def size(self):
-        return 1
+    def assemble(self):
+        return OpcodeFunc(self, lineno=self.lineno)
 
 class varRef(varRegister):
     def __init__(self, *args, ref=None, data_type='ref', **kwargs):
