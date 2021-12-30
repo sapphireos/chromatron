@@ -171,32 +171,32 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 27
         &&opcode_trap,              // 28
         &&opcode_trap,              // 29
-
         &&opcode_trap,              // 30
         &&opcode_trap,              // 31
-        &&opcode_compeq,            // 32
-        &&opcode_trap,              // 33
-        &&opcode_compgt,            // 34
-        &&opcode_trap,              // 35
-        &&opcode_complt,            // 36
-        &&opcode_trap,              // 37
 
-        &&opcode_trap,              // 38
-        &&opcode_trap,              // 39
-        &&opcode_trap,              // 40
+        &&opcode_compeq,            // 32
+        &&opcode_compneq,           // 33
+        &&opcode_compgt,            // 34
+        &&opcode_compgte,           // 35
+        &&opcode_complt,            // 36
+        &&opcode_complte,           // 37
+
+        &&opcode_not,               // 38
+        &&opcode_and,               // 39
+        &&opcode_or,                // 40
 
         &&opcode_add,               // 41
-        &&opcode_trap,              // 42
+        &&opcode_sub,               // 42
+        &&opcode_mul,               // 43
+        &&opcode_div,               // 44
+        &&opcode_mod,               // 45
+        &&opcode_mul_f16,           // 46
+        &&opcode_div_f16,           // 47
 
-        &&opcode_trap,              // 43
-        &&opcode_trap,              // 44
-        &&opcode_trap,              // 45
-        &&opcode_trap,              // 46
-        &&opcode_trap,              // 47
         &&opcode_trap,              // 48
-
         &&opcode_trap,              // 49
         &&opcode_trap,              // 50
+        
         &&opcode_trap,              // 51
         &&opcode_trap,              // 52
         &&opcode_trap,              // 53
@@ -964,10 +964,24 @@ opcode_compeq:
 
     DISPATCH;
 
+opcode_compneq:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] != registers[opcode_3ac->op2];
+
+    DISPATCH;
+
 opcode_compgt:
     DECODE_3AC;    
 
     registers[opcode_3ac->dest] = registers[opcode_3ac->op1] > registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+opcode_compgte:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] >= registers[opcode_3ac->op2];
 
     DISPATCH;
 
@@ -978,12 +992,86 @@ opcode_complt:
 
     DISPATCH;
 
+opcode_complte:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] <= registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+opcode_not:
+    DECODE_2AC;  
+
+    registers[opcode_2ac->dest] = !registers[opcode_2ac->op1];  
+    
+    DISPATCH;
+
+opcode_and:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] && registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+opcode_or:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] || registers[opcode_3ac->op2];
+
+    DISPATCH;
+
 opcode_add:
     DECODE_3AC;    
 
     registers[opcode_3ac->dest] = registers[opcode_3ac->op1] + registers[opcode_3ac->op2];
 
     DISPATCH;
+
+opcode_sub:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] - registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+opcode_mul:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] * registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+opcode_div:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] / registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+opcode_mod:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] % registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+opcode_mul_f16:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = ( (int64_t)registers[opcode_3ac->op1] * (int64_t)registers[opcode_3ac->op2] ) / 65536;
+
+    DISPATCH;
+
+opcode_div_f16:
+    DECODE_3AC;    
+
+    registers[opcode_3ac->dest] = ( (int64_t)registers[opcode_3ac->op1] * 65536 ) / registers[opcode_3ac->op2];
+
+    DISPATCH;
+
+
+
+
 
 opcode_trap:
     
