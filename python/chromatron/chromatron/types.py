@@ -516,9 +516,9 @@ class varString(varComposite):
 
     #     return a
 
-class varStringRef(varRef):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, data_type='strref', **kwargs)
+# class varStringRef(varRef):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, data_type='strref', **kwargs)
 
 class varStringLiteral(varString):
     def __init__(self, *args, **kwargs):
@@ -535,7 +535,7 @@ _BASE_TYPES = {
     'Fixed16': varFixed16(),
     'str': varString(),
     'strlit': varStringLiteral(),
-    'strref': varStringRef(),
+    # 'strref': varStringRef(),
     'obj': varObject(),
     'objref': varObjectRef(),
     'pixref': varObjectRef(),

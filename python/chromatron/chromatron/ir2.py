@@ -362,7 +362,12 @@ class irProgram(IR):
         for g in self.global_vars:
             assert g.addr is None
 
-            # if g.size is not None:
+            if isinstance(g, varStringLiteral):
+                # check for null string literals, 
+                # we do not need to store those.
+                if g.init_val[0] == '\0':
+                    continue
+
             g.addr = irAddr(g, addr, StorageType.GLOBAL)
 
             addr += g.size
@@ -375,10 +380,10 @@ class irProgram(IR):
             p.addr = irAddr(p, pix_addr, StorageType.PIXEL_ARRAY)
             pix_addr += 1
 
-        str_addr = 0
-        for s, var in self.strings.items():
-            var.addr = irAddr(var, str_addr, StorageType.STRING_LITERALS)
-            str_addr += var.strlen
+        # str_addr = 0
+        # for s, var in self.strings.items():
+        #     var.addr = irAddr(var, str_addr, StorageType.STRING_LITERALS)
+        #     str_addr += var.strlen
         
     def generate(self):
         self._allocate_memory()
@@ -393,7 +398,7 @@ class irProgram(IR):
         return insProgram(
                 self.name, 
                 funcs=ins_funcs, 
-                global_vars=self.global_vars, 
+                global_vars=[g for g in self.global_vars if g.addr is not None], 
                 objects=self.objects,
                 strings=self.strings,
                 call_graph=self.call_graph)

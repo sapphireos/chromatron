@@ -314,9 +314,7 @@ class Builder(object):
 
         except KeyError:
             var = self.declare_var(f'__lit__{string}', 'strlit', keywords={'init_val': string}, is_global=True, lineno=lineno)
-            # var = self._build_var(f'__lit__{string}', 'strlit', keywords={'init_val': string}, lineno=lineno)
-            # var = self._build_var(string, 'strlit', keywords={'init_val': string}, lineno=lineno)
-
+        
             self.strings[string] = var.var
         
             return var.var

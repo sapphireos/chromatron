@@ -29,17 +29,31 @@
 #     s = string
 #     print(s)
 
-sg = String(32)
+# sg = Number()[4]
 
+# def init():
+#     s = Number()[4]
+
+#     sg[0] = s[0]
+
+#     return s
+
+sg = String(32)
+sg2 = String(32)
 
 def init():
     s = String(32)
-#     # print(s)
+    s2 = String(32)
 
     s = 'meow'
-#     # print(s)
 
     sg = s
+
+    sg2 = 'woof'
+
+    sg = sg2
+
+    s2 = s
 
     return s
 

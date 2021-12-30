@@ -78,6 +78,9 @@ class insProgram(object):
 
         self.memory = [0] * self.global_memory_size
 
+        for v in [g for g in self.globals if g.data_type == 'strlit']:
+            self.memory[v.addr.addr] = v.init_val
+
         for func in self.funcs.values():
             func.memory = self.memory
             func.program = self
@@ -750,16 +753,34 @@ class insLoadString(BaseInstruction):
         dest = vm.registers[self.dest.reg]
         src = vm.registers[self.src.reg]
 
-        print(dest, src)
+        dest_global = self.dest.var.ref.is_global
+        src_global = self.src.var.ref.is_global
 
-        # if self.src.var not in vm.objects:
-        #     raise CompilerFatal(f'Load Ref does not seem to point to an object: {self.src}')
+        if src_global:
+            src_str = vm.memory[src]
 
-        # vm.registers[self.dest.reg] = self.src
-        pass
+        else:
+            src_str = vm.locals[src]
+
+        if dest_global:
+            vm.memory[dest] = src_str
+
+        else:
+            vm.locals[dest] = src_str    
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        dest_global = self.dest.var.ref.is_global
+        src_global = self.src.var.ref.is_global
+
+        flags = 0
+
+        if dest_global:
+            flags |= 0x01
+
+        if src_global:
+            flags |=0x02
+
+        return OpcodeFormat3AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), flags, lineno=self.lineno)
 
 
 class insLookup(BaseInstruction):
