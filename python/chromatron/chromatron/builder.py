@@ -224,18 +224,10 @@ class Builder(object):
                 raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
             var.is_global = True
-            # self.globals[name] = var
 
             self.global_symbols.add(var.var) # deref the var container since the global is not technically loaded into a register
 
         else:
-            # if len(keywords) > 0:
-            #     raise SyntaxError("Cannot specify keywords for local variables", lineno=lineno)
-            
-            # self.locals[name] = var
-
-            # ir = irDefine(var, lineno=lineno)
-
             if isinstance(var.var, varComposite):
                 self.add_var_to_symbol_table(var.var)
 
@@ -251,9 +243,6 @@ class Builder(object):
 
                 self.add_var_to_symbol_table(var)
 
-        # if var.is_ref:
-            # self.refs[var.basename] = var
-
         return var
 
     def get_var(self, name, lineno=None):
@@ -261,8 +250,6 @@ class Builder(object):
 
         if var.is_container:
             return var.copy()
-
-        # assert var.is_global
 
         # if composite or object, return, we will assume there
         # is a lookup
@@ -278,20 +265,6 @@ class Builder(object):
         self.append_node(ir)
 
         return register
-
-        # if name in self.named_consts:
-        #     return self.named_consts[name]
-
-        # if name in self.globals:
-        #     return self.add_ref(self.globals[name], lineno=lineno)
-
-        # # elif name in self.refs:
-        # #     return self.add_ref(self.refs[name], lineno=lineno)
-
-        # if name in self.locals:
-        #     return copy(self.locals[name])
-
-        # raise CompilerFatal(f'Var not found: {name}')
 
     def create_struct(self, name, fields, lineno=None):
         new_fields = {}

@@ -778,10 +778,9 @@ class insLoadString(BaseInstruction):
             flags |= 0x01
 
         if src_global:
-            flags |=0x02
+            flags |= 0x02
 
         return OpcodeFormat3AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), flags, lineno=self.lineno)
-
 
 class insLookup(BaseInstruction):
     mnemonic = 'LKP'
