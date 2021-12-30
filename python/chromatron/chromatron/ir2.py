@@ -377,7 +377,7 @@ class irProgram(IR):
 
         str_addr = 0
         for s, var in self.strings.items():
-            var.addr = irAddr(s, str_addr, StorageType.STRING_LITERALS)
+            var.addr = irAddr(var, str_addr, StorageType.STRING_LITERALS)
             str_addr += var.strlen
         
     def generate(self):

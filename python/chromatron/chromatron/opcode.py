@@ -221,6 +221,13 @@ class Opcode(object):
                 # replace func with actual address
                 self.items[i] = item.render()
 
+            elif isinstance(item, OpcodeString):
+                assert item.addr is None
+                # item.addr = objects[item.obj]
+                # replace func with actual address
+                # self.items[i] = item.render()
+                self.items[i] = 0
+
             elif isinstance(item, OpcodeObject):
                 assert item.addr is None
                 # item.addr = objects[item.obj]
@@ -271,6 +278,15 @@ class OpcodeFunc(OpcodePlaceholder):
 
     def render(self):
         return self.addr
+
+class OpcodeString(OpcodePlaceholder):
+    def __init__(self, s, **kwargs):
+        super().__init__(opcode='STR', **kwargs)
+        self.s = s
+        self.addr = None
+
+    def render(self):
+        return self.addr        
 
 class OpcodeObject(OpcodePlaceholder):
     def __init__(self, obj, **kwargs):

@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from .exceptions import *
 from .instructions2 import insReg, insAddr
-from .opcode import OpcodeObject, OpcodeFunc
+from .opcode import OpcodeObject, OpcodeFunc, OpcodeString
 
 class VarContainer(object):
     def __init__(self, var):
@@ -496,7 +496,7 @@ class varString(varObject):
         return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
 
     def assemble(self):
-        return [0] * self.size
+        return OpcodeString(self, lineno=self.lineno)
 
     # def assemble(self):
     #     a = [self.strlen]

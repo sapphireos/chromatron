@@ -1,30 +1,4 @@
 
-p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
-
-def obj_store_direct():
-    pixels.hue = 0.0
-
-
-# def func_indirect_call_array():
-#     f = Function()[2]
-#     f[0] = sub
-#     f[1] = add
-
-#     assert f[0](1, 2) == -1
-#     assert f[1](1, 2) == 3
-
-# n = Number()[4]
-
-# def stuff():
-#     l = Number()[4]
-
-#     # l[1] = 2
-
-#     # n[0] = l[1]
-
-#     l = 2
-#     n = 2
-
 # a = Number(220000)
 # string = String("hello!")
 # string2 = String("world!")
@@ -58,11 +32,11 @@ def obj_store_direct():
 # sg = String(32)
 
 
-# def init():
-#     s = String(32)
-#     s = 'meow'
+def init():
+    s = String(32)
+    s = 'meow'
 
-    # return s
+    return s
 
 #     s = array[2]
 #     # array[2] = 'meow'
