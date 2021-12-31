@@ -860,7 +860,11 @@ class insLookup0(insLookup):
         counts = [i.assemble() for i in self.counts]
         strides = [i.assemble() for i in self.strides]
 
-        return OpcodeFormatLookup0(self.mnemonic, self.base_addr.assemble(), lineno=self.lineno)
+        return OpcodeFormatLookup0(
+                self.mnemonic, 
+                self.result.assemble(),
+                self.base_addr.assemble(), 
+                lineno=self.lineno)
 
 class insLookup1(insLookup):
     mnemonic = 'LKP1'
@@ -872,6 +876,7 @@ class insLookup1(insLookup):
 
         return OpcodeFormatLookup1(
                 self.mnemonic, 
+                self.result.assemble(),
                 self.base_addr.assemble(), 
                 indexes, 
                 counts, 
@@ -888,6 +893,7 @@ class insLookup2(insLookup):
 
         return OpcodeFormatLookup1(
                 self.mnemonic, 
+                self.result.assemble(),
                 self.base_addr.assemble(), 
                 indexes, 
                 counts, 
@@ -904,6 +910,7 @@ class insLookup3(insLookup):
 
         return OpcodeFormatLookup1(
                 self.mnemonic, 
+                self.result.assemble(),
                 self.base_addr.assemble(), 
                 indexes, 
                 counts, 

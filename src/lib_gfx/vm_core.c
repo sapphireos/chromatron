@@ -149,7 +149,7 @@ typedef struct __attribute__((packed)){
     uint8_t reg1;
     uint8_t reg2;
 } opcode_1i2rs_t;
-#define DECODE_1I2RS opcode_1i2rs = (opcode_1i2rs_t *)pc; pc += 8;
+#define DECODE_1I2RS opcode_1i2rs = (opcode_1i2rs_t *)pc; pc += 4;
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
@@ -159,6 +159,13 @@ typedef struct __attribute__((packed)){
     uint8_t reg3;
 } opcode_1i3r_t;
 #define DECODE_1I3R opcode_1i3r = (opcode_1i3r_t *)pc; pc += 8;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint8_t dest;
+    uint16_t base_addr;
+} opcode_lkp0_t;
+#define DECODE_LKP0 opcode_lkp0 = (opcode_lkp0_t *)pc; pc += 4;
 
 
 static int8_t _vm_i8_run_stream(
@@ -249,18 +256,17 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 61
         &&opcode_trap,              // 62
         &&opcode_trap,              // 63
-        &&opcode_trap,              // 64
 
+        &&opcode_lookup0,           // 64
         &&opcode_trap,              // 65
         &&opcode_trap,              // 66
-
         &&opcode_trap,              // 67
-        &&opcode_trap,              // 68
 
+        &&opcode_trap,              // 68
         &&opcode_trap,              // 69
         &&opcode_trap,              // 70
-
         &&opcode_trap,              // 71
+
         &&opcode_call0,             // 72
         &&opcode_trap,              // 73
         &&opcode_trap,              // 74
@@ -800,6 +806,8 @@ static int8_t _vm_i8_run_stream(
     // uint8_t array;
     // #endif
 
+    uint32_t addr;
+
     int32_t *ptr_i32;
     gfx_pixel_array_t *pix_array;
 
@@ -812,6 +820,7 @@ static int8_t _vm_i8_run_stream(
     // opcode_1i2r_t *opcode_1i2r;
     opcode_1i2rs_t *opcode_1i2rs;
     opcode_1i3r_t *opcode_1i3r;
+    opcode_lkp0_t *opcode_lkp0;
 
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
@@ -1215,6 +1224,14 @@ opcode_pstore_attr:
 
     DISPATCH;
 
+opcode_lookup0:
+    DECODE_LKP0;
+
+    addr = opcode_lkp0->base_addr;
+
+    registers[opcode_lkp0->dest] = addr;
+
+    DISPATCH;
 
 
 opcode_trap:
