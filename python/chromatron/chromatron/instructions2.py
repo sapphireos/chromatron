@@ -288,7 +288,7 @@ class insFunc(object):
             # pixel array by name
             array = self.pixel_arrays[pixel_array]
 
-        except IndexError:
+        except KeyError:
             # pixel array by index
             array = self.get_pixel_array(pixel_array)
 
@@ -653,7 +653,7 @@ class insLoadRef(BaseInstruction):
         if self.src not in vm.objects:
             raise CompilerFatal(f'Load Ref does not seem to point to an object: {self.src}')
 
-        vm.registers[self.dest.reg] = self.src
+        vm.registers[self.dest.reg] = self.src.addr.addr
 
     def assemble(self):
         return OpcodeFormat1Imm1Reg(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
@@ -1511,9 +1511,8 @@ class insPixelLookup(BaseInstruction):
             indexes.append(vm.registers[self.indexes[i].reg])
 
         ref = vm.registers[self.pixel_ref.reg]
-        assert ref.name in vm.pixel_arrays
 
-        index = vm.calc_index(indexes, ref.name)
+        index = vm.calc_index(indexes, ref)
 
         vm.registers[self.result.reg] = index
 
@@ -1619,7 +1618,7 @@ class insVPixelStore(BaseInstruction):
         ref = vm.registers[self.pixel_ref.reg]
         value = vm.registers[self.value.reg]
 
-        pixel_array = vm.get_pixel_array(ref.addr)
+        pixel_array = vm.get_pixel_array(ref)
 
         # clamp values:
         if value < 0:
@@ -1730,6 +1729,16 @@ class insPixelLoadHSFade(insPixelLoad):
 
 class insPixelLoadVFade(insPixelLoad):
     mnemonic = 'PLOAD_V_FADE'
+
+class insPixelLoadAttr(insPixelLoad):
+    mnemonic = 'PLOAD_ATTR'
+    
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+
+        pixel_array = vm.get_pixel_array(ref)
+
+        vm.registers[self.target.reg] = pixel_array[self.attr]
 
 
 class insPixelAdd(BaseInstruction):

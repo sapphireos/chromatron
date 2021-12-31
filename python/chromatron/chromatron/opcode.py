@@ -74,6 +74,8 @@ opcodes = {
 
     'PLOOKUP1':             0x38,
     'PLOOKUP2':             0x39,
+    'PLOAD_ATTR':           0x3A,
+    'PSTORE_ATTR':          0x3B,
 
     'LKP0':                 0x40,
     'LKP1':                 0x41,

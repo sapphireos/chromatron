@@ -3521,6 +3521,13 @@ class irObjectLoad(IR):
                 # 'pval': insPixelLoadPVal,
                 'hs_fade': insPixelLoadHSFade,
                 'v_fade': insPixelLoadVFade,
+                'count': insPixelLoadAttr,
+                'size_x': insPixelLoadAttr,
+                'size_y': insPixelLoadAttr,
+                'reverse': insPixelLoadAttr,
+                'mirror': insPixelLoadAttr,
+                'offset': insPixelLoadAttr,
+                'palette': insPixelLoadAttr,
             }
             
             try:

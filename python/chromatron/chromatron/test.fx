@@ -1,4 +1,7 @@
 
+def init():
+    return pixels.count
+
 # a = Number(220000)
 # string = String("hello!")
 # string2 = String("world!")
@@ -36,26 +39,26 @@
 
 #     sg[0] = s[0]
 
+# #     return s
+
+# sg = String(32)
+# sg2 = String(32)
+
+# def init():
+#     s = String(32)
+#     s2 = String(32)
+
+#     s = 'meow'
+
+#     sg = s
+
+#     sg2 = 'woof'
+
+#     sg = sg2
+
+#     s2 = s
+
 #     return s
-
-sg = String(32)
-sg2 = String(32)
-
-def init():
-    s = String(32)
-    s2 = String(32)
-
-    s = 'meow'
-
-    sg = s
-
-    sg2 = 'woof'
-
-    sg = sg2
-
-    s2 = s
-
-    return s
 
 #     s = array[2]
 #     # array[2] = 'meow'
