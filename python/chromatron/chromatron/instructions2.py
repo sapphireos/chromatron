@@ -677,7 +677,7 @@ class insLoadGlobalImmediate(BaseInstruction):
         assert self.src is not None
 
     def __str__(self):
-        return "%s %s <-G 0x%s" % (self.mnemonic, self.dest, self.src)
+        return "%s %s <-G %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
         vm.registers[self.dest.reg] = vm.memory[self.src.addr]
@@ -736,7 +736,7 @@ class insStoreGlobalImmediate(BaseInstruction):
         assert self.dest is not None
 
     def __str__(self):
-        return "%s 0x%s <-G %s" % (self.mnemonic, self.dest, self.src)
+        return "%s %s <-G %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
         vm.memory[self.dest.addr] = vm.registers[self.src.reg]
