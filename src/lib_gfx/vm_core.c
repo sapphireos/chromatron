@@ -126,6 +126,23 @@ typedef struct __attribute__((packed)){
 } opcode_1i1r_t;
 #define DECODE_1I1R opcode_1i1r = (opcode_1i1r_t *)pc; pc += 4;
 
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint16_t imm1;
+    uint8_t reg1;
+    uint8_t reg2;
+} opcode_1i2r_t;
+#define DECODE_1I2R opcode_1i2r = (opcode_1i2r_t *)pc; pc += 8;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint16_t imm1;
+    uint8_t reg1;
+    uint8_t reg2;
+    uint8_t reg3;
+} opcode_1i3r_t;
+#define DECODE_1I3R opcode_1i3r = (opcode_1i3r_t *)pc; pc += 8;
+
 
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
@@ -151,7 +168,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_stg,               // 8
         &&opcode_stl,               // 9
         &&opcode_stgi,              // 10
-        &&opcode_trap,              // 11
+        &&opcode_ldstr,             // 11
+
         &&opcode_trap,              // 12
         &&opcode_trap,              // 13
         &&opcode_trap,              // 14
@@ -164,8 +182,9 @@ static int8_t _vm_i8_run_stream(
         &&opcode_ret,               // 19
         &&opcode_jmp,               // 20
         &&opcode_jmpz,              // 21
-        &&opcode_trap,              // 22
+        &&opcode_loop,              // 22
         &&opcode_load_ret_val,      // 23
+
         &&opcode_trap,              // 24
         &&opcode_trap,              // 25
         &&opcode_trap,              // 26
@@ -770,6 +789,8 @@ static int8_t _vm_i8_run_stream(
     opcode_3ac_t *opcode_3ac;
     opcode_1i_t *opcode_1i;
     opcode_1i1r_t *opcode_1i1r;
+    opcode_1i2r_t *opcode_1i2r;
+    opcode_1i3r_t *opcode_1i3r;
 
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
@@ -857,6 +878,13 @@ opcode_stgi:
 
     DISPATCH;
 
+opcode_ldstr:
+    DECODE_3AC;    
+    
+    // not implemented!
+
+    DISPATCH;
+
 opcode_halt:
     return VM_STATUS_HALT;
 
@@ -922,6 +950,26 @@ opcode_jmpz:
         pc = code + opcode_1i1r->imm1;    
     }
 
+    DISPATCH;    
+
+opcode_loop:
+    DECODE_1I3R;    
+
+    // imm1: jump target
+    // reg1: iterator in
+    // reg2: iterator out
+    // reg3: stop condition
+
+    // increment iterator:
+    // note that inputs and outputs differ!
+    registers[opcode_1i3r->reg2] = registers[opcode_1i3r->reg1] + 1;
+
+    // compare against stop:
+    if( registers[opcode_1i3r->reg2] < registers[opcode_1i3r->reg3] ){
+
+        pc = code + opcode_1i3r->imm1;
+    }
+    
     DISPATCH;    
 
 opcode_load_ret_val:
