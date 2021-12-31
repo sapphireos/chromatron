@@ -106,6 +106,12 @@ uint16_t gfx_u16_get_pix_count( void );
 uint16_t gfx_u16_get_pix_driver_count( uint8_t output );
 uint16_t gfx_u16_get_pix_driver_offset( uint8_t output );
 
+void gfx_v_set_hue_1d( uint16_t a, uint16_t index );
+void gfx_v_set_sat_1d( uint16_t a, uint16_t index );
+void gfx_v_set_val_1d( uint16_t a, uint16_t index );
+void gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index );
+void gfx_v_set_v_fade_1d( uint16_t a, uint16_t index );
+
 void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src );
 void gfx_v_array_add( uint8_t obj, uint8_t attr, int32_t src );
 void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src );

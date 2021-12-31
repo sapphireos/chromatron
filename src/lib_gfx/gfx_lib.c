@@ -687,6 +687,30 @@ static inline void _gfx_v_set_v_fade_1d( uint16_t a, uint16_t index ){
     val_step[index] = 0;
 }
 
+void gfx_v_set_hue_1d( uint16_t a, uint16_t index ){
+
+    _gfx_v_set_hue_1d( a, index );
+}
+
+void gfx_v_set_sat_1d( uint16_t a, uint16_t index ){
+
+    _gfx_v_set_sat_1d( a, index );
+}
+
+void gfx_v_set_val_1d( uint16_t a, uint16_t index ){
+
+    _gfx_v_set_val_1d( a, index );
+}
+
+void gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index ){
+
+    _gfx_v_set_hs_fade_1d( a, index );
+}
+
+void gfx_v_set_v_fade_1d( uint16_t a, uint16_t index ){
+
+    _gfx_v_set_v_fade_1d( a, index );
+}
 
 
 static uint16_t* _gfx_u16p_get_array_ptr( uint8_t attr ){

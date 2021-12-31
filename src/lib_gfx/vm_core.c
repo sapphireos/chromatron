@@ -291,7 +291,9 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 93
         &&opcode_trap,              // 94
         &&opcode_trap,              // 95
-        &&opcode_trap,              // 96
+
+        &&opcode_pstore_hue,        // 96
+
         &&opcode_trap,              // 97
         &&opcode_trap,              // 98
         &&opcode_trap,              // 99
@@ -299,7 +301,9 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 101
         &&opcode_trap,              // 102
         &&opcode_trap,              // 103
-        &&opcode_trap,              // 104
+        
+        &&opcode_vstore_hue,        // 104
+
         &&opcode_trap,              // 105
         &&opcode_trap,              // 106
         &&opcode_trap,              // 107
@@ -806,6 +810,9 @@ static int8_t _vm_i8_run_stream(
     // uint8_t array;
     // #endif
 
+    uint32_t value;
+    uint16_t index;
+
     uint32_t addr;
 
     int32_t *ptr_i32;
@@ -1233,6 +1240,32 @@ opcode_lookup0:
 
     DISPATCH;
 
+opcode_pstore_hue:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    index = registers[opcode_2ac->dest];
+
+    // wrap hue
+    value %= 65536;
+
+    gfx_v_set_hue_1d( value, index );
+
+    DISPATCH;
+
+
+opcode_vstore_hue:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+
+    // wrap hue
+    //value %= 65536;
+
+    // this badly needs to be optimized
+    gfx_v_array_move( registers[opcode_2ac->dest], PIX_ATTR_HUE, value );
+
+    DISPATCH;
 
 opcode_trap:
     
