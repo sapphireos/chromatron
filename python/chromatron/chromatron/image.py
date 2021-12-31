@@ -164,12 +164,12 @@ class FXImage(object):
                 func_opcodes[func_name].append(op)
 
         # set up function table
-        for func_name, func in self.funcs.items():
+        for func in self.funcs:
             info = FunctionInfo(addr=function_addrs[func_name], frame_size=func.local_memory_size * DATA_LEN)
 
             function_table.append(info)
 
-            function_indexes[func_name] = len(function_table) - 1
+            function_indexes[func.name] = len(function_table) - 1
 
         objects = {}
 

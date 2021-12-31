@@ -380,11 +380,11 @@ class irProgram(IR):
             p.addr = irAddr(p, pix_addr, StorageType.PIXEL_ARRAY)
             pix_addr += 1
 
-        # str_addr = 0
-        # for s, var in self.strings.items():
-        #     var.addr = irAddr(var, str_addr, StorageType.STRING_LITERALS)
-        #     str_addr += var.strlen
-        
+        func_addr = 0
+        for f in [g for g in self.global_symbols.symbols.values() if isinstance(g, varFunction)]:
+            f.addr = irAddr(f, func_addr, StorageType.FUNCTIONS)
+            func_addr += 1
+
     def generate(self):
         self._allocate_memory()
 

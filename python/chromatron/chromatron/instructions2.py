@@ -63,11 +63,11 @@ class StorageType(Enum):
     LOCAL           = 1
     PIXEL_ARRAY     = 2
     STRING_LITERALS = 3
+    FUNCTIONS       = 4
 
 class insProgram(object):
     def __init__(self, name, funcs={}, global_vars=[], objects=[], strings={}, call_graph={}):
         self.name = name
-        self.funcs = funcs
         self.globals = global_vars
         self.call_graph = call_graph
 
@@ -81,7 +81,7 @@ class insProgram(object):
         for v in [g for g in self.globals if g.data_type == 'strlit']:
             self.memory[v.addr.addr] = v.init_val
 
-        for func in self.funcs.values():
+        for func in funcs.values():
             func.memory = self.memory
             func.program = self
 
@@ -105,12 +105,16 @@ class insProgram(object):
 
         worst_stack = 0
         for func_name in self.call_graph:
-            func_stack = get_stack(self.funcs[func_name], self.call_graph[func_name])
+            func_stack = get_stack(funcs[func_name], self.call_graph[func_name])
 
             if func_stack > worst_stack:
                 worst_stack = func_stack
 
         self.maximum_stack_depth = worst_stack
+
+        func_refs = sorted([f for f in objects if f.data_type == 'func'], key=lambda f: f.addr.addr)
+
+        self.funcs = [funcs[f.name] for f in func_refs]
 
         self.objects = objects
 
@@ -174,7 +178,7 @@ class insProgram(object):
         # this is sourced from load const instructions
         self.constants = []
 
-        for func in self.funcs.values():
+        for func in self.funcs:
             for ins in func.code:
                 if not isinstance(ins, insLoadConst):
                     continue
@@ -190,7 +194,7 @@ class insProgram(object):
     def __str__(self):
         s = 'VM Instructions:\n'
 
-        for func in self.funcs.values():
+        for func in self.funcs:
             s += str(func)
 
         return s
@@ -204,7 +208,7 @@ class insProgram(object):
     def assemble(self):
         bytecode = {}
 
-        for func in self.funcs.values():
+        for func in self.funcs:
             bytecode[func.name] = func.assemble()
 
         return FXImage(self, bytecode)
@@ -259,6 +263,10 @@ class insFunc(object):
             size += l.size
  
         return size
+
+    @property
+    def funcs(self):
+        return self.program.funcs
 
     @property
     def objects(self):
@@ -1340,7 +1348,12 @@ class insCall(BaseInstruction):
         return "%s %s (%s)" % (self.mnemonic, self.target.func, params)
 
     def execute(self, vm):
-        target = vm.program.funcs[self.target.func]
+        target = None
+        for f in vm.funcs:
+            if f.name == self.target.func:
+                target = f
+                break
+
         ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
 
         vm.ret_val = ret_val
@@ -1422,7 +1435,7 @@ class insIndirectCall(BaseInstruction):
     def execute(self, vm):
         func = vm.registers[self.ref.reg]
 
-        target = vm.program.funcs[func.name]
+        target = vm.funcs[func]
 
         vm.ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
 
@@ -1648,7 +1661,7 @@ class insVPixelStoreHue(insVPixelStore):
         ref = vm.registers[self.pixel_ref.reg]
         value = vm.registers[self.value.reg]
 
-        pixel_array = vm.get_pixel_array(ref.addr)
+        pixel_array = vm.get_pixel_array(ref)
 
         # hue will wrap around
         value %= 65536

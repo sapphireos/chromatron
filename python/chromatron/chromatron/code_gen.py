@@ -1168,7 +1168,7 @@ def compile_script(path, debug_print=False):
 def run_script(path, debug_print=False):
     ins_program = compile_script(path, debug_print=debug_print)
 
-    for func in ins_program.funcs.values():
+    for func in ins_program.funcs:
         ret_val = func.run()
         print(f'VM returned: {ret_val}')
 
