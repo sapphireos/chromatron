@@ -156,10 +156,11 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 13
         &&opcode_trap,              // 14
         &&opcode_trap,              // 15
-        &&opcode_trap,              // 16
 
+        &&opcode_halt,              // 16
         &&opcode_assert,            // 17
         &&opcode_print,             // 18
+
         &&opcode_ret,               // 19
         &&opcode_jmp,               // 20
         &&opcode_jmpz,              // 21
@@ -853,6 +854,11 @@ opcode_stgi:
     DECODE_1I1R;    
     
     global_memory[opcode_1i1r->imm1] = registers[opcode_1i1r->reg1];    
+
+    DISPATCH;
+
+opcode_halt:
+    return VM_STATUS_HALT;
 
     DISPATCH;
 

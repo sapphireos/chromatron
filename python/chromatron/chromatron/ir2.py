@@ -4259,3 +4259,27 @@ class irIndirectCall(irCallType):
             raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')
 
         return call_ins
+
+class irLibCall(irCallType):
+    def __init__(self, target, params, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.params = params
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = f'LCALL {self.target}({params})'
+
+        return s
+
+    def get_input_vars(self):
+        inputs = []
+        inputs.extend(self.params)
+        return inputs
+
+    def generate(self):        
+        params = [a.generate() for a in self.params]
+
+        if self.target == 'halt':
+            return insHalt(lineno=self.lineno)
+

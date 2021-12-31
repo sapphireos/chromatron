@@ -41,6 +41,9 @@ class ReturnException(Exception):
 class VMException(Exception):
     pass
 
+class HaltException(Exception):
+    pass
+
 class CycleLimitExceeded(VMException):
     pass
 
@@ -447,6 +450,10 @@ class insFunc(object):
                 if isinstance(ret_val, insLabel):
                     # jump to target
                     pc = labels[ret_val.name]
+
+            except HaltException:
+                logging.warning(f'VM halted in func {self.name} in {cycles} cycles.')
+                return 0
                 
             except ReturnException:
                 logging.info(f'VM ran func {self.name} in {cycles} cycles. Returned: {self.return_val}')
@@ -1278,6 +1285,20 @@ class insVectorAdd(insVector):
         
             addr += 1
 
+class insHalt(BaseInstruction):
+    mnemonic = 'HALT'
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __str__(self):
+        return "%s" % (self.mnemonic)
+
+    def execute(self, vm):
+        raise HaltException
+
+    def assemble(self):
+        return OpcodeFormatNop(self.mnemonic, lineno=self.lineno)
 
 class insAssert(BaseInstruction):
     mnemonic = 'ASSERT'

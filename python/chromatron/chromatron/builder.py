@@ -383,6 +383,9 @@ class Builder(object):
     def call(self, func_name, params, lineno=None):
         params = [self.load_value(p, lineno=lineno) for p in params]
 
+        indirect = False
+        lib_call = False
+
         if func_name == 'print':
             ir = irPrint(params[0], lineno=lineno)
             self.append_node(ir)
@@ -391,19 +394,31 @@ class Builder(object):
 
         elif func_name in self.funcs:
             func = self.funcs[func_name]
-            indirect = False
 
+        # check for indirect call or libcall:
         else:
-            # check for indirect call:
             if isinstance(func_name, str):
-                func = self.get_var(func_name, lineno=lineno)
+                try:
+                    func = self.get_var(func_name, lineno=lineno)
+
+                    indirect = True
+
+                except KeyError:
+                    func = func_name
+                    lib_call = True
 
             else:
                 func = self.load_value(func_name, lineno=lineno)
 
-            indirect = True
+                indirect = True
 
-        result = self.add_temp(data_type=func.ret_type, lineno=lineno)
+        if lib_call:
+            ret_type = 'gfx16'
+        
+        else:
+            ret_type = func.ret_type
+
+        result = self.add_temp(data_type=ret_type, lineno=lineno)
 
         # if func_name in ARRAY_FUNCS:
         #     if len(params) != 1:
@@ -419,6 +434,10 @@ class Builder(object):
     
         if indirect:
             ir = irIndirectCall(func, params, lineno=lineno)
+            self.append_node(ir)
+
+        elif lib_call:
+            ir = irLibCall(func, params, lineno=lineno)
             self.append_node(ir)
 
         else:
