@@ -460,7 +460,13 @@ class Builder(object):
 
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
             if not value.ref is None and value.ref.data_type == 'PixelArray':
-                var = self.add_temp(data_type='gfx16', lineno=lineno)
+                try:
+                    data_type = PIXEL_ARRAY_FIELDS[value.attr.name]
+
+                except KeyError:
+                    raise SyntaxError(f'Unknown attribute for PixelArray: {value.ref.name} -> {value.attr.name}', lineno=lineno)
+
+                var = self.add_temp(data_type=data_type, lineno=lineno)
 
             else:
                 var = self.add_temp(data_type='var', lineno=lineno)

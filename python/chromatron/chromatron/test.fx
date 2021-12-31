@@ -1,25 +1,4 @@
 
-
-def sub(a: Number, b: Number) -> Number:
-    return a - b
-
-# def add(a: Number, b: Number) -> Number:
-#     return a + b
-
-# def func_call():
-#     assert sub(1, 2) == -1
-#     assert add(1, 2) == 3
-
-def func_indirect_call():
-    f = Function()
-    f = sub
-
-    assert f(1, 2) == -1
-
-    # f = add
-
-    # assert f(1, 2) == 3
-    
 # a = Number(220000)
 # string = String("hello!")
 # string2 = String("world!")
@@ -62,7 +41,8 @@ def func_indirect_call():
 # sg = String(32)
 # sg2 = String(32)
 
-# def init():
+def init():
+    return pixels.count
 #     s = String(32)
 #     s2 = String(32)
 

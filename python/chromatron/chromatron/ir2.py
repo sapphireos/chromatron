@@ -19,6 +19,20 @@ PRIMITIVE_TYPES = ['i32', 'f16']
 ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
 COMPARE_BINOPS = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte']
 
+PIXEL_ARRAY_FIELDS = {
+    'hue': 'gfx16',
+    'sat': 'gfx16',
+    'val': 'gfx16',
+    'hs_fade': 'i32',
+    'v_fade': 'i32',
+    'count': 'i32',
+    'size_x': 'i32',
+    'size_y': 'i32',
+    'reverse': 'i32',
+    'mirror': 'i32',
+    'offset': 'i32',
+    'palette': 'i32',
+}
 
 
 """
@@ -3521,14 +3535,12 @@ class irObjectLoad(IR):
                 # 'pval': insPixelLoadPVal,
                 'hs_fade': insPixelLoadHSFade,
                 'v_fade': insPixelLoadVFade,
-                'count': insPixelLoadAttr,
-                'size_x': insPixelLoadAttr,
-                'size_y': insPixelLoadAttr,
-                'reverse': insPixelLoadAttr,
-                'mirror': insPixelLoadAttr,
-                'offset': insPixelLoadAttr,
-                'palette': insPixelLoadAttr,
             }
+
+            # add attrs to instruction map:
+            for k, v in PIXEL_ARRAY_FIELDS.items():
+                if k not in ins:
+                    ins[k] = insPixelLoadAttr
             
             try:
                 return ins[attr](target, value.var, attr, lineno=self.lineno)
