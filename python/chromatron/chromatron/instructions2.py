@@ -35,6 +35,18 @@ MAX_INT32 =  2147483647
 MIN_INT32 = -2147483648
 MAX_UINT32 = 4294967295
 
+
+PIXEL_ATTR_INDEXES = { # this should match gfx_pixel_array_t in gfx_lib.h
+    'count':    0,
+    'index':    1,
+    'mirror':   2,
+    'offset':   3,
+    'palette':  4,
+    'reverse':  5,
+    'size_x':   6,
+    'size_y':   7,
+}
+
 class ReturnException(Exception):
     pass
 
@@ -1635,6 +1647,19 @@ class insPixelStoreHSFade(insPixelStore):
 class insPixelStoreVFade(insPixelStore):
     mnemonic = 'PSTORE_V_FADE'
 
+class insPixelStoreAttr(insPixelStore):
+    mnemonic = 'PSTORE_ATTR'
+    
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+
+        pixel_array = vm.get_pixel_array(ref)
+
+        pixel_array[self.attr] = vm.registers[self.target.reg]
+
+    def assemble(self):
+        return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)
+
 class insVPixelStore(BaseInstruction):
     mnemonic = 'VSTORE'
 
@@ -1774,6 +1799,8 @@ class insPixelLoadAttr(insPixelLoad):
 
         vm.registers[self.target.reg] = pixel_array[self.attr]
 
+    def assemble(self):
+        return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)
 
 class insPixelAdd(BaseInstruction):
     mnemonic = 'PADD'

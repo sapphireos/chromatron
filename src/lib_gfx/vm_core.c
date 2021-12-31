@@ -115,6 +115,15 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
+    uint8_t dest;
+    uint8_t op1;
+    uint8_t op2;
+    uint8_t op3;
+} opcode_4ac_t;
+#define DECODE_4AC opcode_4ac = (opcode_4ac_t *)pc; pc += 4;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
     uint16_t imm1;
 } opcode_1i_t;
 #define DECODE_1I opcode_1i = (opcode_1i_t *)pc; pc += 4;
@@ -133,6 +142,14 @@ typedef struct __attribute__((packed)){
     uint8_t reg2;
 } opcode_1i2r_t;
 #define DECODE_1I2R opcode_1i2r = (opcode_1i2r_t *)pc; pc += 8;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint8_t imm1;
+    uint8_t reg1;
+    uint8_t reg2;
+} opcode_1i2rs_t;
+#define DECODE_1I2RS opcode_1i2rs = (opcode_1i2rs_t *)pc; pc += 8;
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
@@ -213,20 +230,20 @@ static int8_t _vm_i8_run_stream(
         &&opcode_mul_f16,           // 46
         &&opcode_div_f16,           // 47
 
-        &&opcode_trap,              // 48
-        &&opcode_trap,              // 49
-        &&opcode_trap,              // 50
+        &&opcode_conv_i32_to_f16,   // 48
+        &&opcode_conv_f16_to_i32,   // 49
+        &&opcode_conv_gfx16_to_f16, // 50
         
         &&opcode_trap,              // 51
         &&opcode_trap,              // 52
         &&opcode_trap,              // 53
         &&opcode_trap,              // 54
-
         &&opcode_trap,              // 55
-        &&opcode_trap,              // 56
-        &&opcode_trap,              // 57
-        &&opcode_trap,              // 58
-        &&opcode_trap,              // 59
+
+        &&opcode_plookup1,          // 56
+        &&opcode_plookup2,          // 57
+        &&opcode_pload_attr,        // 58
+        &&opcode_pstore_attr,       // 59
 
         &&opcode_trap,              // 60
         &&opcode_trap,              // 61
@@ -783,13 +800,17 @@ static int8_t _vm_i8_run_stream(
     // uint8_t array;
     // #endif
 
+    int32_t *ptr_i32;
+    gfx_pixel_array_t *pix_array;
 
     opcode_1ac_t *opcode_1ac;
     opcode_2ac_t *opcode_2ac;
     opcode_3ac_t *opcode_3ac;
+    opcode_4ac_t *opcode_4ac;
     opcode_1i_t *opcode_1i;
     opcode_1i1r_t *opcode_1i1r;
-    opcode_1i2r_t *opcode_1i2r;
+    // opcode_1i2r_t *opcode_1i2r;
+    opcode_1i2rs_t *opcode_1i2rs;
     opcode_1i3r_t *opcode_1i3r;
 
 
@@ -1123,7 +1144,76 @@ opcode_div_f16:
 
     DISPATCH;
 
+opcode_conv_i32_to_f16:
+    DECODE_2AC;    
 
+    registers[opcode_2ac->dest] = registers[opcode_2ac->op1] * 65536;
+
+    DISPATCH;
+
+opcode_conv_f16_to_i32:
+    DECODE_2AC;    
+
+    registers[opcode_2ac->dest] = registers[opcode_2ac->op1] / 65536;
+
+    DISPATCH;
+
+opcode_conv_gfx16_to_f16:
+    DECODE_2AC;    
+
+    registers[opcode_2ac->dest] = registers[opcode_2ac->op1];
+
+    // when converting *gfx16* to f16, we map the integer representation of 65535 to 65536.
+    // this is because 65535 is our maximum value and 1.0 technically maps to 0.0 in f16, but
+    // generally when we use 1.0 what we mean is the maximum value, not the lowest.
+    if( registers[opcode_2ac->dest] == 65535 ){
+
+        registers[opcode_2ac->dest] = 65536;
+    }
+
+    DISPATCH;
+
+opcode_plookup1:
+    DECODE_3AC;
+
+    registers[opcode_3ac->dest] = gfx_u16_calc_index( registers[opcode_3ac->op1], registers[opcode_3ac->op2], 65535 );
+    
+    DISPATCH;
+
+opcode_plookup2:
+    DECODE_4AC;
+    
+    registers[opcode_4ac->dest] = gfx_u16_calc_index( registers[opcode_4ac->op1], registers[opcode_4ac->op2], registers[opcode_4ac->op3] );
+    
+    DISPATCH;
+
+opcode_pload_attr:
+    DECODE_1I2RS;
+
+    if( gfx_i8_get_pixel_array( registers[opcode_1i2rs->reg1], &pix_array ) == 0 ){
+
+        ptr_i32 = (int32_t *)pix_array;
+
+        registers[opcode_1i2rs->reg2] = ptr_i32[opcode_1i2rs->imm1];
+    }
+    else{
+
+        registers[opcode_1i2rs->reg2] = 0;
+    }
+
+    DISPATCH;
+
+opcode_pstore_attr:
+    DECODE_1I2RS;
+
+    if( gfx_i8_get_pixel_array( registers[opcode_1i2rs->reg1], &pix_array ) == 0 ){
+
+        ptr_i32 = (int32_t *)pix_array;
+
+        ptr_i32[opcode_1i2rs->imm1] = registers[opcode_1i2rs->reg2];
+    }
+
+    DISPATCH;
 
 
 

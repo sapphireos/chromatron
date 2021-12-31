@@ -126,6 +126,8 @@ uint8_t *gfx_u8p_get_green( void );
 uint8_t *gfx_u8p_get_blue( void );
 uint8_t *gfx_u8p_get_dither( void );
 
+uint16_t gfx_u16_calc_index( uint8_t obj, uint16_t x, uint16_t y );
+
 void gfx_v_set_hsv( int32_t h, int32_t s, int32_t v, uint16_t index );
 void gfx_v_set_hsv_2d( int32_t h, int32_t s, int32_t v, uint16_t x, uint16_t y );
 
@@ -170,6 +172,7 @@ void gfx_v_sync_array( void );
 void gfx_v_reset( void );
 void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count );
 void gfx_v_delete_pixel_arrays( void );
+int8_t gfx_i8_get_pixel_array( uint8_t obj, gfx_pixel_array_t **array_ptr );
 
 void gfx_v_init_noise( void );
 uint16_t gfx_u16_noise( uint16_t x );

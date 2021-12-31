@@ -1270,6 +1270,10 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
     return index;
 }
 
+uint16_t gfx_u16_calc_index( uint8_t obj, uint16_t x, uint16_t y ){
+
+    return calc_index( obj, x, y );
+}
 
 
 void gfx_v_set_hsv( int32_t h, int32_t s, int32_t v, uint16_t index ){
@@ -1667,6 +1671,19 @@ void gfx_v_delete_pixel_arrays( void ){
     pix_arrays = 0;
     pix_array_count = 0;
 }
+
+int8_t gfx_i8_get_pixel_array( uint8_t obj, gfx_pixel_array_t **array_ptr ){
+
+    if( obj >= pix_array_count ){
+
+        return -1;
+   }
+
+   *array_ptr = &pix_arrays[obj];
+
+   return 0;
+}
+
 
 static uint16_t linterp_table_lookup( uint16_t x, uint16_t *table ){
 

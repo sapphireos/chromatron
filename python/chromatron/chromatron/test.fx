@@ -42,8 +42,8 @@
 # sg2 = String(32)
 
 def init():
-    halt()
-    
+    return pixels.count
+
 #     s = String(32)
 #     s2 = String(32)
 
