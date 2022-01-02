@@ -165,7 +165,7 @@ class FXImage(object):
 
         # set up function table
         for func in self.funcs:
-            info = FunctionInfo(addr=function_addrs[func_name], frame_size=func.local_memory_size * DATA_LEN)
+            info = FunctionInfo(addr=function_addrs[func.name], frame_size=func.local_memory_size * DATA_LEN)
 
             function_table.append(info)
 

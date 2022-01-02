@@ -753,7 +753,9 @@ static int8_t _vm_i8_run_stream(
     uint16_t func_count = state->func_info_len / sizeof(function_info_t);
     uint16_t current_frame_size = 0xffff;
 
-    for( uint8_t i = 0; i < func_count; i++ ){
+    for( uint16_t i = 0; i < func_count; i++ ){
+
+        trace_printf("%d\r\n", func_table[i].addr);
 
         if( func_table[i].addr == func_addr ){
 
