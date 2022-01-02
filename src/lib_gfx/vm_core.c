@@ -3691,7 +3691,14 @@ int8_t vm_i8_load_program(
                        header.func_info_len + 
                        header.global_data_len + 
                        header.local_data_len + 
-                       header.constant_len;
+                       header.constant_len +
+                       header.read_keys_len + 
+                       header.write_keys_len +
+                       header.publish_len + 
+                       header.link_len +
+                       header.db_len +
+                       header.cron_len +
+                       header.pix_obj_len;
 
     // allocate memory
     *handle = mem2_h_alloc2( vm_size, MEM_TYPE_VM_DATA );
@@ -3781,10 +3788,10 @@ int8_t vm_i8_load_program(
     // **********************
     // load function table:
     // **********************
-    uint8_t *func_info_ptr = stream;
+    uint8_t *obj_ptr = stream;
 
     // load data from file
-    int16_t read_len = fs_i16_read( f, func_info_ptr, header.func_info_len );
+    int16_t read_len = fs_i16_read( f, obj_ptr, header.func_info_len );
 
     if( read_len != header.func_info_len ){
 
@@ -3792,21 +3799,33 @@ int8_t vm_i8_load_program(
         goto error;
     }
 
+    obj_ptr += header.func_info_len;
+
     // ******************
     // load objects:
     // ******************
     // NOT YET IMPLEMENTED!
 
 
+    if( header.pix_obj_len > 0 ){
+
+        if( fs_i16_read( f, obj_ptr, header.pix_obj_len ) != header.pix_obj_len ){
+
+            status = VM_STATUS_ERR_BAD_FILE_READ;
+            goto error;
+        }       
+
+        obj_ptr += header.pix_obj_len;
+    }
+
 
     
     // ******************
     // load constant pool:
     // ******************
-    uint8_t *const_ptr = stream + state->func_info_len;
 
     // check alignment
-    if( ( (uint32_t)const_ptr % 4 ) != 0 ){
+    if( ( (uint32_t)obj_ptr % 4 ) != 0 ){
 
         return VM_STATUS_POOL_MISALIGN;
     }
@@ -3821,7 +3840,7 @@ int8_t vm_i8_load_program(
     }
 
     // load data from file
-    read_len = fs_i16_read( f, const_ptr, header.constant_len );
+    read_len = fs_i16_read( f, obj_ptr, header.constant_len );
 
     if( read_len != header.constant_len ){
 
