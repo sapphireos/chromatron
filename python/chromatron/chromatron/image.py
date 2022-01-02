@@ -342,13 +342,13 @@ class FXImage(object):
 
         stream += header.pack()
         stream += packed_function_table
+        stream += packed_pixel_arrays
         stream += packed_read_keys  
         stream += packed_write_keys
         stream += packed_publish
         stream += packed_links
         stream += packed_db
         stream += packed_cron
-        stream += packed_pixel_arrays
 
         # add constant pool
         stream += struct.pack('<L', POOL_MAGIC)

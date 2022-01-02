@@ -3262,7 +3262,7 @@ int8_t vm_i8_run(
     #ifdef VM_ENABLE_GFX
 
     // set pixel arrays
-    gfx_v_init_pixel_arrays( (gfx_pixel_array_t *)&state->pix_obj_start, state->pix_obj_count );
+    gfx_v_init_pixel_arrays( (gfx_pixel_array_t *)&stream[state->pix_obj_start], state->pix_obj_count );
 
     #endif
 
@@ -3607,7 +3607,6 @@ int8_t vm_i8_load_program(
     mem_handle_t *handle,
     vm_state_t *state ){
 
-
     int8_t status = VM_STATUS_ERROR;
     *handle = -1;
 
@@ -3734,6 +3733,10 @@ int8_t vm_i8_load_program(
     state->func_info_len        = header.func_info_len;
     obj_start += header.func_info_len;
 
+    state->pix_obj_count = header.pix_obj_len / sizeof(gfx_pixel_array_t);
+    state->pix_obj_start = obj_start;
+    obj_start += header.pix_obj_len;
+
     state->read_keys_count = header.read_keys_len / sizeof(uint32_t);
     state->read_keys_start = obj_start;
     obj_start += header.read_keys_len;
@@ -3757,10 +3760,6 @@ int8_t vm_i8_load_program(
     state->cron_count = header.cron_len / sizeof(cron_t);
     state->cron_start = obj_start;
     obj_start += header.cron_len;
-
-    state->pix_obj_count = header.pix_obj_len / sizeof(gfx_pixel_array_t);
-    state->pix_obj_start = obj_start;
-    obj_start += header.pix_obj_len;
 
     // set up final items for VM execution
 
@@ -3804,9 +3803,6 @@ int8_t vm_i8_load_program(
     // ******************
     // load objects:
     // ******************
-    // NOT YET IMPLEMENTED!
-
-
     if( header.pix_obj_len > 0 ){
 
         if( fs_i16_read( f, obj_ptr, header.pix_obj_len ) != header.pix_obj_len ){
