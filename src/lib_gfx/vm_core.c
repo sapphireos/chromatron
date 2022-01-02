@@ -275,7 +275,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 77
         &&opcode_trap,              // 78
         &&opcode_trap,              // 79
-        &&opcode_trap,              // 80
+
+        &&opcode_icall0,            // 80
         &&opcode_trap,              // 81
         &&opcode_trap,              // 82
         &&opcode_trap,              // 83
@@ -283,7 +284,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 85
         &&opcode_trap,              // 86
         &&opcode_trap,              // 87
-        &&opcode_trap,              // 88
+
+        &&opcode_lcall0,            // 88
         &&opcode_trap,              // 89
         &&opcode_trap,              // 90
         &&opcode_trap,              // 91
@@ -1022,13 +1024,16 @@ opcode_load_ret_val:
 opcode_call0:
     DECODE_1I;
 
+    // look up function
+    index = registers[opcode_1i->imm1];
+
     // set up return stack
     call_stack[call_depth] = pc;
 
     // record frame size of this function
     frame_stack[call_depth] = current_frame_size;
 
-    current_frame_size = func_table[opcode_1i->imm1].frame_size;
+    current_frame_size = func_table[index].frame_size;
 
     // adjust local memory pointers:
     local_memory += frame_stack[call_depth];
@@ -1047,7 +1052,49 @@ opcode_call0:
     }
     
     // call by jumping to target
-    pc = code + func_table[opcode_1i->imm1].addr;
+    pc = code + func_table[index].addr;
+
+    DISPATCH;
+
+opcode_icall0:
+    DECODE_1AC;
+
+    // look up function
+    index = registers[opcode_1ac->op1];
+
+    // set up return stack
+    call_stack[call_depth] = pc;
+
+    // record frame size of this function
+    frame_stack[call_depth] = current_frame_size;
+
+    current_frame_size = func_table[index].frame_size;
+
+    // adjust local memory pointers:
+    local_memory += frame_stack[call_depth];
+    registers = local_memory;
+
+    if( ( (uint32_t)( local_memory - locals_start ) + current_frame_size ) > state->local_data_len ){
+
+        return VM_STATUS_ERR_LOCAL_OUT_OF_BOUNDS;
+    }
+
+    call_depth++;
+
+    if( call_depth > VM_MAX_CALL_DEPTH ){
+
+        return VM_STATUS_CALL_DEPTH_EXCEEDED;
+    }
+    
+    // call by jumping to target
+    pc = code + func_table[index].addr;
+
+
+    DISPATCH;
+
+opcode_lcall0:
+    
+    // TBD
 
     DISPATCH;
 
