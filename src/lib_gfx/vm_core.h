@@ -51,7 +51,7 @@
 #define VM_STATUS_ERR_INVALID_ISA           -4
 #define VM_STATUS_ERR_BAD_CODE_MAGIC        -5
 #define VM_STATUS_ERR_BAD_POOL_MAGIC        -6
-#define VM_STATUS_ERR_BAD_FILE_HASH     -   7
+#define VM_STATUS_ERR_BAD_FILE_HASH         -7
 #define VM_STATUS_ERR_BAD_LENGTH            -8
 #define VM_STATUS_FX_FILE_NOT_FOUND         -9
 #define VM_STATUS_ERR_BAD_FILE_READ         -10

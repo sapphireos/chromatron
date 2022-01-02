@@ -59,7 +59,7 @@
 #define VM_ENABLE_GFX
 #define VM_ENABLE_KV
 #define VM_ENABLE_CATBUS
-#define VM_MAX_IMAGE_SIZE   	4096
+#define VM_MAX_IMAGE_SIZE   	8192
 #define VM_MAX_CYCLES       	16000
 #define VM_MIN_DELAY                10
 #define VM_MAX_VMS                  4
