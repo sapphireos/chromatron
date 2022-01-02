@@ -886,8 +886,8 @@ opcode_ldl:
 opcode_ref:
     DECODE_1I1R;    
 
-    ASSERT(FALSE);
-    
+    registers[opcode_1i1r->reg1] = opcode_1i1r->imm1;    
+
     DISPATCH;    
 
 opcode_ldgi:
@@ -1293,7 +1293,7 @@ opcode_padd_hue:
 
 
 opcode_vadd_hue:
-    DECODE_1I1R;
+    DECODE_2AC;
 
     value = registers[opcode_2ac->op1];
 
