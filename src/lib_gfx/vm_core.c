@@ -3262,7 +3262,7 @@ int8_t vm_i8_run(
     #ifdef VM_ENABLE_GFX
 
     // set pixel arrays
-    // gfx_v_init_pixel_arrays( (gfx_pixel_array_t *)&data[PIX_ARRAY_ADDR], state->pix_obj_count );
+    gfx_v_init_pixel_arrays( (gfx_pixel_array_t *)&state->pix_obj_start, state->pix_obj_count );
 
     #endif
 
@@ -3752,6 +3752,8 @@ int8_t vm_i8_load_program(
     obj_start += header.cron_len;
 
     state->pix_obj_count = header.pix_obj_len / sizeof(gfx_pixel_array_t);
+    state->pix_obj_start = obj_start;
+    obj_start += header.pix_obj_len;
 
     // set up final items for VM execution
 

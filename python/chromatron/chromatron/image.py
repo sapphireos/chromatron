@@ -72,6 +72,24 @@ class FunctionInfo(StructField):
 
         super().__init__(_name="function_info", _fields=fields, **kwargs)
 
+class PixelArray(StructField):
+    def __init__(self, **kwargs):
+        fields = [Int32Field(_name="count"),
+                  Int32Field(_name="index"),
+                  Int32Field(_name="mirror"),
+                  Int32Field(_name="offset"),
+                  Int32Field(_name="palette"),
+                  Int32Field(_name="reverse"),
+                  Int32Field(_name="size_x"),
+                  Int32Field(_name="size_y"),
+                  Int32Field(_name="reserved0"),
+                  Int32Field(_name="reserved1"),
+                  Int32Field(_name="reserved2"),
+                  Int32Field(_name="reserved3")]
+
+        super().__init__(_name="pixel_array", _fields=fields, **kwargs)
+
+
 class VMPublishVar(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="hash"),
@@ -135,7 +153,7 @@ class FXImage(object):
         opcodes = []
         read_keys = []
         write_keys = []
-        pixel_arrays = {}
+        pixel_arrays = []
         links = []
         db_entries = {}
         cron_tab = {}
@@ -193,6 +211,12 @@ class FXImage(object):
 
             bytecode += bc
 
+        # set up pixel arrays
+        for array in self.program.pixel_arrays:
+            pix_array = PixelArray(**array.keywords)
+
+            pixel_arrays.append(pix_array)
+
         ################################
         # Generate binary program image:
         ################################
@@ -222,9 +246,11 @@ class FXImage(object):
         constant_len = len(constant_pool) * DATA_LEN
 
         # set up pixel arrays
-        pix_obj_len = 0
-        for pix in list(pixel_arrays.values()):
-            pix_obj_len += pix.length
+        packed_pixel_arrays = bytes()
+        for pix in pixel_arrays:
+            packed_pixel_arrays += pix.pack()
+        
+        pix_obj_len = len(packed_pixel_arrays)
 
         # set up read keys
         packed_read_keys = bytes()
@@ -322,6 +348,7 @@ class FXImage(object):
         stream += packed_links
         stream += packed_db
         stream += packed_cron
+        stream += packed_pixel_arrays
 
         # add constant pool
         stream += struct.pack('<L', POOL_MAGIC)

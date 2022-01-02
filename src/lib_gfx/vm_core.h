@@ -241,6 +241,9 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t cron_start;
 
     uint16_t last_cron;
+    uint16_t reserved;
+
+    uint16_t pix_obj_start;
     uint16_t pix_obj_count;
 } vm_state_t;
 

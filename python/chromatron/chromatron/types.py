@@ -263,6 +263,10 @@ class varObject(Var):
     def assemble(self):
         return OpcodeObject(self, lineno=self.lineno)
 
+class varPixelArray(varObject):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
 class varFunction(varObject):
     def __init__(self, *args, func=None, **kwargs):
         super().__init__(*args, data_type='func', **kwargs)
@@ -543,7 +547,7 @@ _BASE_TYPES = {
     'funcref': varFunctionRef(),
     'Function': varFunctionRef(),
     # 'ref': varRef(),
-    'PixelArray': varObject(),
+    'PixelArray': varPixelArray(),
 }
 
 class TypeManager(object):

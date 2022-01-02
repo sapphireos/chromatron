@@ -82,6 +82,10 @@ typedef struct  __attribute__((packed)){
     int32_t reverse;
     int32_t size_x;
     int32_t size_y;
+    int32_t reserved0;
+    int32_t reserved1;
+    int32_t reserved2;
+    int32_t reserved3;
 } gfx_pixel_array_t;
 
 // note this needs to pad to 32 bit alignment!

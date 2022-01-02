@@ -41,6 +41,8 @@
 # sg = String(32)
 # sg2 = String(32)
 
+pix1 = PixelArray(2, 3)
+
 def init():
     # return pixels.count
     pixels.hue += 0.1
