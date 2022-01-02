@@ -683,7 +683,7 @@ class insLoadRef(BaseInstruction):
         vm.registers[self.dest.reg] = self.src.addr.addr
 
     def assemble(self):
-        return OpcodeFormat1Imm1Reg(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm1Reg(self.mnemonic, self.src.assemble(), self.dest.assemble(), lineno=self.lineno)
 
 class insLoadGlobalImmediate(BaseInstruction):
     mnemonic = 'LDGI'
@@ -1576,13 +1576,13 @@ class insPixelLookup1(insPixelLookup):
     mnemonic = 'PLOOKUP1'
 
     def assemble(self):
-        return OpcodeFormat3AC(self.mnemonic, self.pixel_ref.reg, self.result.assemble(), self.indexes[0].assemble(), lineno=self.lineno)
+        return OpcodeFormat3AC(self.mnemonic, self.result.assemble(), self.pixel_ref.reg, self.indexes[0].assemble(), lineno=self.lineno)
 
 class insPixelLookup2(insPixelLookup):
     mnemonic = 'PLOOKUP2'
 
     def assemble(self):
-        return OpcodeFormat4AC(self.mnemonic, self.pixel_ref.reg, self.result.assemble(), self.indexes[0].assemble(), self.indexes[1].assemble(), lineno=self.lineno)
+        return OpcodeFormat4AC(self.mnemonic, self.result.assemble(), self.pixel_ref.reg, self.indexes[0].assemble(), self.indexes[1].assemble(), lineno=self.lineno)
 
 
 class insPixelStore(BaseInstruction):
