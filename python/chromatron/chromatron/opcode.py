@@ -60,17 +60,16 @@ opcodes = {
 
     'ADD':                  0x29,
     'SUB':                  0x2A,
-    'SUB':                  0x2B,
-    'MUL':                  0x2C,
-    'DIV':                  0x2D,
-    'MOD':                  0x2E,
+    'MUL':                  0x2B,
+    'DIV':                  0x2C,
+    'MOD':                  0x2D,
 
-    'MUL_F16':              0x2F,
-    'DIV_F16':              0x30,
+    'MUL_F16':              0x2E,
+    'DIV_F16':              0x2F,
 
-    'CONV_I32_TO_F16':      0x31,
-    'CONV_F16_TO_I32':      0x32,
-    'CONV_GFX16_TO_F16':    0x33,
+    'CONV_I32_TO_F16':      0x30,
+    'CONV_F16_TO_I32':      0x31,
+    'CONV_GFX16_TO_F16':    0x32,
 
     'PLOOKUP1':             0x38,
     'PLOOKUP2':             0x39,
