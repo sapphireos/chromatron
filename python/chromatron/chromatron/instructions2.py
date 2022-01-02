@@ -1829,35 +1829,57 @@ class insPixelAdd(BaseInstruction):
         if self.attr in vm.gfx_data:
             array = vm.gfx_data[self.attr]
 
-            if isinstance(ref, int):
-                # if we got an index, this is an indexed access
-                array[ref] += value
-
-            else:
-                # array reference, this is an array set
-                for i in range(len(array)):
-                    array[i] += value
+            assert isinstance(ref, int)
+            
+            # if we got an index, this is an indexed access
+            array[ref] += value
 
         else:
             # pixel attributes not settable in code for now
             assert False
 
-    # def assemble(self):
-    #     bc = [self.opcode]
-    #     bc.append(insPixelArray(self.pixel_ref))
-
-    #     index_x = self.indexes[0]
-    #     bc.extend(index_x.assemble())
-    #     index_y = self.indexes[1]
-    #     bc.extend(index_y.assemble())
-
-    #     bc.extend(self.value.assemble())
-
-    #     return bc
-
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 class insPixelAddHue(insPixelAdd):
     mnemonic = 'PADD_HUE'
+
+class insVPixelAdd(BaseInstruction):
+    mnemonic = 'VADD'
+
+    def __init__(self, pixel_ref, attr, value, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.pixel_ref = pixel_ref
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        value = vm.registers[self.value.reg]
+
+        if self.attr in vm.gfx_data:
+            array = vm.gfx_data[self.attr]
+
+            assert not isinstance(ref, int)
+
+            # array reference, this is an array set
+            for i in range(len(array)):
+                array[i] += value
+
+        else:
+            # pixel attributes not settable in code for now
+            assert False
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+
+class insVPixelAddHue(insPixelAdd):
+    mnemonic = 'VADD_HUE'
+
 
 
 

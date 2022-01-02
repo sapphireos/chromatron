@@ -42,7 +42,9 @@
 # sg2 = String(32)
 
 def init():
-    return pixels.count
+    # return pixels.count
+    pixels.hue += 0.1
+    pixels[0].hue += 0.1
 
 #     s = String(32)
 #     s2 = String(32)

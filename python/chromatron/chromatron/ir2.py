@@ -3578,13 +3578,24 @@ class irObjectOp(IR):
 
             attr = self.attr.name
 
-            ins = {
-                'hue': {
-                    'add': insPixelAddHue,
+            # vector:
+            if len(target.var.lookups) == 0:
+                ins = {
+                    'hue': {
+                        'add': insVPixelAddHue,
 
+                    }
                 }
-            }
-            
+
+            # scalar:
+            else:
+                ins = {
+                    'hue': {
+                        'add': insPixelAddHue,
+
+                    }
+                }
+                
             try:
                 return ins[attr][self.op](target, attr, value, lineno=self.lineno)
                 

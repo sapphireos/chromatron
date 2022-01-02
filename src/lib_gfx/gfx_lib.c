@@ -692,6 +692,13 @@ void gfx_v_set_hue_1d( uint16_t a, uint16_t index ){
     _gfx_v_set_hue_1d( a, index );
 }
 
+uint16_t gfx_u16_get_hue_1d( uint16_t index ){
+
+    index %= pix_count;
+
+    return target_hue[index];
+}
+
 void gfx_v_set_sat_1d( uint16_t a, uint16_t index ){
 
     _gfx_v_set_sat_1d( a, index );
