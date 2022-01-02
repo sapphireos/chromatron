@@ -755,11 +755,11 @@ static int8_t _vm_i8_run_stream(
 
     for( uint16_t i = 0; i < func_count; i++ ){
 
-        trace_printf("%d\r\n", func_table[i].addr);
-
         if( func_table[i].addr == func_addr ){
 
             current_frame_size = func_table[i].frame_size;
+
+            break;
         }
     }
 
@@ -1332,7 +1332,7 @@ opcode_padd_hue:
 
     index = registers[opcode_2ac->dest];
 
-    value = gfx_u16_get_hue_1d( registers[index] );
+    value = gfx_u16_get_hue_1d( index );
 
     value += registers[opcode_2ac->op1];
 
