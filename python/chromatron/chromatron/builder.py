@@ -437,7 +437,11 @@ class Builder(object):
             self.append_node(ir)
 
         elif lib_call:
-            ir = irLibCall(func, params, lineno=lineno)
+            hashed_func = string_hash_func(func)
+
+            const = self.add_const(hashed_func, lineno=lineno)
+
+            ir = irLibCall(const, params, func, lineno=lineno)
             self.append_node(ir)
 
         else:

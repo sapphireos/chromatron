@@ -4272,10 +4272,11 @@ class irIndirectCall(irCallType):
         return call_ins
 
 class irLibCall(irCallType):
-    def __init__(self, target, params, **kwargs):
+    def __init__(self, target, params, func_name, **kwargs):
         super().__init__(**kwargs)
         self.target = target
         self.params = params
+        self.func_name = func_name
 
     def __str__(self):
         params = params_to_string(self.params)
@@ -4284,7 +4285,7 @@ class irLibCall(irCallType):
         return s
 
     def get_input_vars(self):
-        inputs = []
+        inputs = [self.target]
         inputs.extend(self.params)
         return inputs
 
@@ -4294,3 +4295,24 @@ class irLibCall(irCallType):
         if self.target == 'halt':
             return insHalt(lineno=self.lineno)
 
+        else:
+            # call func
+            if len(params) == 0:
+                call_ins = insLibCall0(self.target.generate(), params, self.func_name, lineno=self.lineno)
+
+            elif len(params) == 1:
+                call_ins = insLibCall1(self.target.generate(), params, self.func_name, lineno=self.lineno)
+
+            elif len(params) == 2:
+                call_ins = insLibCall2(self.target.generate(), params, self.func_name, lineno=self.lineno)
+
+            elif len(params) == 3:
+                call_ins = insLibCall3(self.target.generate(), params, self.func_name, lineno=self.lineno)
+
+            elif len(params) == 4:
+                call_ins = insLibCall4(self.target.generate(), params, self.func_name, lineno=self.lineno)
+
+            else:
+                raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')
+
+            return call_ins

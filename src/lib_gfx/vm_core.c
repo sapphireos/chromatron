@@ -819,7 +819,7 @@ static int8_t _vm_i8_run_stream(
 
     uint32_t value;
     uint16_t index;
-
+    int32_t params[8];
     uint32_t addr;
 
     int32_t *ptr_i32;
@@ -1027,7 +1027,7 @@ opcode_call0:
     DECODE_1I;
 
     // look up function
-    index = registers[opcode_1i->imm1];
+    index = opcode_1i->imm1;
 
     // set up return stack
     call_stack[call_depth] = pc;
@@ -1096,7 +1096,38 @@ opcode_icall0:
 
 opcode_lcall0:
     
-    // TBD
+    DECODE_1AC;
+
+    
+    // if( vm_lib_i8_libcall_built_in( registers[opcode_1ac->dest], state, params, &state->ret_val, 0 ) != 0 ){
+
+    //     #ifdef VM_ENABLE_GFX
+    //     // try gfx lib
+        
+
+    //     // data[result] = gfx_i32_lib_call( hash, params, len );
+    //     #endif
+    // }
+    // else{
+
+    //     // internal lib call completed successfully
+
+    //     // check yield flag
+    //     if( state->yield > 0 ){
+
+    //         // check call depth, can only yield from top level functions running as a thread
+    //         if( ( call_depth != 0 ) || ( state->current_thread < 0 ) ){
+
+    //             return VM_STATUS_IMPROPER_YIELD;
+    //         }
+
+    //         // store PC offset
+    //         state->threads[state->current_thread].pc_offset = pc - ( code + func_addr );
+
+    //         // yield!
+    //         return VM_STATUS_YIELDED;
+    //     }
+    // }
 
     DISPATCH;
 

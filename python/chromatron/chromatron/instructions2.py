@@ -62,11 +62,6 @@ class CycleLimitExceeded(VMException):
 def string_hash_func(s):
     return catbus_string_hash(s)
 
-def hash_to_bc(s):
-    h = string_hash_func(s)
-    
-    return [(h >> 24) & 0xff, (h >> 16) & 0xff, (h >> 8) & 0xff, (h >> 0) & 0xff]
-
 def convert_to_f16(value):
     return (value << 16) & 0xffffffff
 
@@ -130,6 +125,8 @@ class insProgram(object):
         func_refs = sorted([f for f in objects if f.data_type == 'func'], key=lambda f: f.addr.addr)
 
         self.funcs = [funcs[f.name] for f in func_refs]
+
+        self.library_funcs = []
 
         self.objects = objects
 
@@ -282,6 +279,10 @@ class insFunc(object):
     @property
     def funcs(self):
         return self.program.funcs
+
+    @property
+    def library_funcs(self):
+        return self.program.library_funcs
 
     @property
     def objects(self):
@@ -1394,9 +1395,7 @@ class insCall(BaseInstruction):
                 target = f
                 break
 
-        ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
-
-        vm.ret_val = ret_val
+        vm.ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
 
     def assemble(self):
         raise NotImplementedError
@@ -1537,6 +1536,95 @@ class insIndirectCall4(insIndirectCall):
             self.params[3].assemble(), 
             lineno=self.lineno)
 
+
+class insLibCall(BaseInstruction):
+    mnemonic = 'LCALL'
+
+    def __init__(self, target, params=[], func_name=None, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.params = params
+        self.func_name = func_name
+
+    def __str__(self):
+        params = ''
+        for param in self.params:
+            params += '%s, ' % (param)
+        params = params[:len(params) - 2]
+
+        return "%s %s {%s} (%s)" % (self.mnemonic, self.target, self.func_name, params)
+
+    def execute(self, vm):
+        target = None
+        for f in vm.library_funcs:
+            if f.name == self.target.func:
+                target = f
+                break
+
+        if target is None:
+            vm.ret_val = 0
+
+            return
+
+        vm.ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
+
+    def assemble(self):
+        raise NotImplementedError
+
+class insLibCall0(insLibCall):
+    mnemonic = 'LCALL0'
+
+    def assemble(self):
+        return OpcodeFormat1AC(
+            self.mnemonic, 
+            self.target.assemble(), 
+            lineno=self.lineno)
+
+class insLibCall1(insLibCall):
+    mnemonic = 'LCALL1'
+
+    def assemble(self):
+        return OpcodeFormat2AC(
+            self.mnemonic,
+            self.target.assemble(), 
+            self.params[0].assemble(), 
+            lineno=self.lineno)
+
+class insLibCall2(insLibCall):
+    mnemonic = 'LCALL2'
+
+    def assemble(self):
+        return OpcodeFormat3AC(
+            self.mnemonic,
+            self.target.assemble(), 
+            self.params[0].assemble(), 
+            self.params[1].assemble(), 
+            lineno=self.lineno)
+
+class insLibCall3(insLibCall):
+    mnemonic = 'LCALL3'
+
+    def assemble(self):
+        return OpcodeFormat4AC(
+            self.mnemonic,
+            self.target.assemble(), 
+            self.params[0].assemble(), 
+            self.params[1].assemble(), 
+            self.params[2].assemble(), 
+            lineno=self.lineno)
+
+class insLibCall4(insLibCall):
+    mnemonic = 'LCALL4'
+
+    def assemble(self):
+        return OpcodeFormat5AC(
+            self.mnemonic,
+            self.target.assemble(), 
+            self.params[0].assemble(), 
+            self.params[1].assemble(), 
+            self.params[2].assemble(), 
+            self.params[3].assemble(), 
+            lineno=self.lineno)
 
 class insPixelLookup(BaseInstruction):
     mnemonic = 'PLOOKUP'
