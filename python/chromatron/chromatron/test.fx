@@ -43,6 +43,8 @@
 
 # pix1 = PixelArray(2, 3)
 
+a = Number()[4]
+
 def init():
     # return pixels.count
     # pixels.hue += 0.1

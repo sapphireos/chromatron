@@ -355,10 +355,15 @@ class FXImage(object):
 
         for const in constant_pool:
             try:
-                stream += struct.pack('<l', const)
+                if const > 2147483647:
+                    stream += struct.pack('<L', const)
+
+                else:
+                    stream += struct.pack('<l', const)
 
             except struct.error:
                 logging.error(f"Invalid item in constant pool: {const} type: {type(const)}")
+                raise
 
         # ensure alignment is correct
         assert len(stream) % 4 == 0
