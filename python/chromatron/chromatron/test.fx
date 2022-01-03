@@ -49,7 +49,11 @@ def init():
     # return pixels.count
     # pixels.hue += 0.1
     # pixels[0].hue += 0.1
-    meow()
+
+    l = Number()[4]
+
+    return test_lib_call(1, 2)
+    # test_lib_call(l)
 
 #     s = String(32)
 #     s2 = String(32)

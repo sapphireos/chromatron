@@ -35,6 +35,8 @@ MAX_INT32 =  2147483647
 MIN_INT32 = -2147483648
 MAX_UINT32 = 4294967295
 
+MAX_UINT16 = 65535
+
 
 PIXEL_ATTR_INDEXES = { # this should match gfx_pixel_array_t in gfx_lib.h
     'count':    0,
@@ -126,7 +128,9 @@ class insProgram(object):
 
         self.funcs = [funcs[f.name] for f in func_refs]
 
-        self.library_funcs = []
+        self.library_funcs = {
+            'test_lib_call': self.test_lib_call,
+        }
 
         self.objects = objects
 
@@ -210,6 +214,11 @@ class insProgram(object):
             s += str(func)
 
         return s
+
+    def test_lib_call(self, vm, param0, param1):
+        # print(args)
+        # print(vm)
+        return param0 + param1
 
     def run(self):
         pass
@@ -536,6 +545,8 @@ class insAddr(BaseInstruction):
         self.var = var
         self.storage = storage
 
+        assert addr >= 0 and addr <= MAX_UINT16
+
     def __str__(self):
         if self.var != None:
             return "%s(%s @ %s: %s)" % (self.var.name, self.var.data_type, self.addr, self.storage)
@@ -546,7 +557,11 @@ class insAddr(BaseInstruction):
     def assemble(self):
         assert self.addr >= 0
 
-        return self.addr
+        if self.storage == StorageType.GLOBAL:
+            return self.addr | 0x8000
+
+        else:
+            return self.addr
 
 class insNop(BaseInstruction):
     mnemonic = 'NOP'
@@ -835,6 +850,9 @@ class insLookup(BaseInstruction):
 
     def execute(self, vm):
         addr = self.base_addr.addr
+
+        if self.base_addr.storage == StorageType.GLOBAL:
+            addr |= 0x8000        
 
         for i in range(len(self.indexes)):
             index = vm.registers[self.indexes[i].reg]
@@ -1555,18 +1573,15 @@ class insLibCall(BaseInstruction):
         return "%s %s {%s} (%s)" % (self.mnemonic, self.target, self.func_name, params)
 
     def execute(self, vm):
-        target = None
-        for f in vm.library_funcs:
-            if f.name == self.target.func:
-                target = f
-                break
-
-        if target is None:
+        if self.func_name not in vm.library_funcs:
             vm.ret_val = 0
-
             return
 
-        vm.ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
+        target = vm.library_funcs[self.func_name]
+
+        params = [vm.registers[p.reg] for p in self.params]
+
+        vm.ret_val = target(vm, *params)
 
     def assemble(self):
         raise NotImplementedError
