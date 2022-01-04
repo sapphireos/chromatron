@@ -281,6 +281,10 @@ class varRef(varRegister):
 
         self.ref = ref
 
+    @property
+    def scalar_type(self):
+        return self.ref.scalar_type
+
     # def __str__(self):
     #     return f'{super().__str__()} -> {self.target}'
 

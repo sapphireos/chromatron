@@ -4060,6 +4060,28 @@ class irExpr(IR):
     def __eq__(self, other):
         return hash(self) == hash(other)
 
+
+class irOffset(IR):
+    def __init__(self, result, ref, lookup, **kwargs):
+        super().__init__(**kwargs)        
+        self.result = result
+        self.ref = ref
+        assert isinstance(ref.var, varRef)
+        self.lookup = lookup
+
+    def __str__(self):
+        return f'{self.result} = OFFSET {self.ref} [{self.lookup}]'
+
+    def get_input_vars(self):
+        inputs = [self.lookup]
+        return inputs
+        
+    def get_output_vars(self):
+        return [self.result]
+
+    def generate(self):
+        pass
+
 class irLookup(IR):
     def __init__(self, result, target, lookups=[], counts=[], strides=[], **kwargs):
         super().__init__(**kwargs)        

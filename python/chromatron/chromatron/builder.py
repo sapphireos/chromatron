@@ -533,19 +533,19 @@ class Builder(object):
         #     return var
 
         elif isinstance(value, varComposite):
-            var = self.add_temp(data_type='ref', lineno=lineno)
-            ir = irLoadRef(var, value, lineno=lineno)
-            self.append_node(ir)
-            
-            return var
-
-            # var = self.add_temp(data_type='offset', lineno=lineno)
-            # var.ref = value.lookup()
-
-            # ir = irLookup(var, value, lineno=lineno)
+            # var = self.add_temp(data_type='objref', lineno=lineno)
+            # ir = irLoadRef(var, value, lineno=lineno)
             # self.append_node(ir)
             
             # return var
+
+            var = self.add_temp(data_type='offset', lineno=lineno)
+            var.ref = value.lookup()
+
+            ir = irLookup(var, value, lineno=lineno)
+            self.append_node(ir)
+            
+            return var
 
         return value
 
@@ -1190,6 +1190,24 @@ class Builder(object):
             return target
     
         elif isinstance(target, varArray):
+            ref = self.add_temp(data_type='ref', lineno=lineno)
+            ref.ref = target
+
+            ir = irLoadRef(ref, target, lineno=lineno)
+            self.append_node(ir)
+
+            # return ref
+            var = self.add_temp(data_type='offset', lineno=lineno)
+            var.ref = ref
+
+            lookup = self.current_lookup.pop(0)[0]
+            ir = irOffset(var, ref, lookup, lineno=lineno)
+            self.append_node(ir)
+
+
+            return var
+
+
             var = self.add_temp(data_type='offset', lineno=lineno)
             var.ref = target.lookup(self.current_lookup[0], lineno=lineno)
 
