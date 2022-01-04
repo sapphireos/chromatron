@@ -546,7 +546,7 @@ _BASE_TYPES = {
     'func': varFunction(),
     'funcref': varFunctionRef(),
     'Function': varFunctionRef(),
-    # 'ref': varRef(),
+    'ref': varRef(),
     'PixelArray': varPixelArray(),
 }
 

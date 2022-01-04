@@ -698,10 +698,16 @@ class insLoadRef(BaseInstruction):
         return "%s %s <-R %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        if self.src not in vm.objects:
-            raise CompilerFatal(f'Load Ref does not seem to point to an object: {self.src}')
+        # if self.src not in vm.objects:
+            # raise CompilerFatal(f'Load Ref does not seem to point to an object: {self.src}')
 
-        vm.registers[self.dest.reg] = self.src.addr.addr
+        try:
+            addr = self.src.addr.addr
+
+        except AttributeError:
+            addr = self.src.addr
+
+        vm.registers[self.dest.reg] = addr
 
     def assemble(self):
         return OpcodeFormat1Imm1Reg(self.mnemonic, self.src.assemble(), self.dest.assemble(), lineno=self.lineno)

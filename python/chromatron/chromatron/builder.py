@@ -533,13 +533,19 @@ class Builder(object):
         #     return var
 
         elif isinstance(value, varComposite):
-            var = self.add_temp(data_type='offset', lineno=lineno)
-            var.ref = value.lookup()
-
-            ir = irLookup(var, value, lineno=lineno)
+            var = self.add_temp(data_type='ref', lineno=lineno)
+            ir = irLoadRef(var, value, lineno=lineno)
             self.append_node(ir)
             
             return var
+
+            # var = self.add_temp(data_type='offset', lineno=lineno)
+            # var.ref = value.lookup()
+
+            # ir = irLookup(var, value, lineno=lineno)
+            # self.append_node(ir)
+            
+            # return var
 
         return value
 

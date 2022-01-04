@@ -47,25 +47,23 @@
 # def woof(a: Number) -> Number:
 #     return a
 
-def add(a: Number, b: Number) -> Number:
-    return a + b
-
-# def wtf():
-    # add(1, 2)
-
-
-# def meow(b: Number[_]):
+# def meow(b: Number[4]):
+    # a = Number()
+    # a = b[0]
+    # return a
     # return b
 
 # a = Number()[4]
 
 def init():
-    # l = Number()[4]
+    l = Number()[4]
 
-    # meow(l)
+    l[1] = 2
+
+    # return meow(l)
 
     # return woof(1)
-    return add(1, 2)
+    # return add(1, 2)
     # pass
 
     # min(a)
