@@ -814,7 +814,7 @@ class Device(object):
         return ""
 
     def cli_putfile(self, line):
-        def progress(length):
+        def progress(length, filename=None):
             sys.stdout.write("\rWrite: %5d bytes" % (length))
             sys.stdout.flush()
 

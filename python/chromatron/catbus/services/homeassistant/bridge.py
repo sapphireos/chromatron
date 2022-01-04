@@ -26,12 +26,12 @@
 import sys
 import time
 import json
+import socket
 
-from catbus import CatbusService, Directory
+from catbus import CatbusService, Directory, Client
 from catbus.services.mqtt_client import MQTTClient
-from sapphire.common.ribbon import wait_for_signal
 
-from sapphire.common import util, Ribbon
+from sapphire.common import util, Ribbon, run_all
 
 import logging
 
@@ -39,16 +39,29 @@ from chromatron import Chromatron
 
 
 class MQTTChromatron(MQTTClient):
-    def initialize(self, ct=None):
+    def __init__(self, ct=None):
+        super().__init__()
+
         self.ct = ct
-
-        super().initialize()
-        
+        self.location = ct.get_key('meta_tag_location')
+        self.name = f'{ct.name}.{self.location}'
         self.last_update = time.time()
+            
+        self.start()
 
+        try:
+            self.connect()
+
+        except socket.error:
+            logging.warning(f'MQTT connection failed')
+                    
+            self.stop()
+
+            raise
+        
     @property
     def device_name(self):
-        return self.ct.name
+        return self.name
 
     @property
     def unique_id(self):
@@ -71,6 +84,20 @@ class MQTTChromatron(MQTTClient):
         return f'chromatron/{self.unique_id}/brightness/state'
 
     @property
+    def effect_command_topic(self):
+        return f'chromatron/{self.unique_id}/effect/command'
+
+    @property
+    def effect_state_topic(self):
+        return f'chromatron/{self.unique_id}/effect/state'
+
+    @property
+    def effect_list(self):
+        files = self.ct.list_files()
+
+        return [f[:-4] for f in files if f.endswith('.fxb')]
+
+    @property
     def mqtt_discovery(self):
         payload = {
                     'name':                         self.device_name,
@@ -80,7 +107,9 @@ class MQTTChromatron(MQTTClient):
                     'brightness_state_topic':       self.brightness_state_topic,
                     'brightness_command_topic':     self.brightness_command_topic,
                     'brightness_scale':             65535,
-
+                    'effect_state_topic':           self.effect_state_topic,
+                    'effect_command_topic':         self.effect_command_topic,
+                    'effect_list':                  self.effect_list,
                   }
 
         return payload
@@ -92,87 +121,121 @@ class MQTTChromatron(MQTTClient):
         self.publish(f'homeassistant/light/chromatron/{self.unique_id}/config', json.dumps(self.mqtt_discovery))
 
         power_state = 'OFF'
-        if self.ct.dimmer > 0.0:
+        # if self.ct.dimmer > 0.0:
+        if self.ct.get_key('gfx_enable'):
             power_state = 'ON'
+
+        effect = self.ct.get_key('vm_prog')[:-4]
 
         # NOTE:
         # after we add gfx on/off support, we can switch from the sub dimmer to master.
 
         self.publish(self.state_topic, power_state)
         self.publish(self.brightness_state_topic, int(self.ct.sub_dimmer * 65535))
+        self.publish(self.effect_state_topic, effect)
 
     def on_connect(self, client, userdata, flags, rc):
+        logging.info(f'MQTT connected: {self.name}')
+
         self.subscribe(self.command_topic)
         self.subscribe(self.brightness_command_topic)
+        self.subscribe(self.effect_command_topic)
 
         self.update_state()
 
     def on_disconnect(self, client, userdata, rc):
-        pass
+        logging.info(f'MQTT disconnected: {self.name}')
 
     def on_message(self, client, userdata, msg):
         topic = msg.topic
         payload = msg.payload.decode('utf8')
 
-        # print(topic, payload)
-
         if topic == self.command_topic:
             if payload == 'OFF':
-                self.ct.dimmer = 0.0
+                # self.ct.dimmer = 0.0
+                self.ct.set_key('gfx_enable', False)
 
             else:
-                self.ct.dimmer = 1.0
+                # self.ct.dimmer = 1.0
+                self.ct.set_key('gfx_enable', True)
 
         elif topic == self.brightness_command_topic:
             self.ct.sub_dimmer = float(payload) / 65535.0
 
+        elif topic == self.effect_command_topic:
+            effect = payload + '.fxb'
+
+            self.ct.set_key('vm_prog', effect)
+            self.ct.set_key('vm_reset', True)
+
         else:
+            logging.warning(f'Unknown topic: {topic}')
             return
 
         self.update_state()
 
-    def loop(self):
-        super().loop()
+    def _process(self):
+        super()._process() # this is critcal to run MQTT event loop!
 
-        # if time.time() - self.last_update > 4.0:
-            # self.update_state()
+        if time.time() - self.last_update > 4.0:
+            self.update_state()
+
 
 class MQTTBridge(Ribbon):
-    def initialize(self, settings={}):
-        super().initialize()
+    def __init__(self, settings={}):
+        super().__init__()
+    
         self.name = 'ha_bridge'
         self.settings = settings
 
         # run local catbus directory
-        self._catbus_directory = Directory()
+        self.client = Client()
+        self.directory = {}
 
         self.devices = {}
 
-        self.update_directory()
+        self.start()
 
     def update_directory(self):
-        self.directory = self._catbus_directory.get_directory()
-
         self._last_directory_update = time.time()
 
-    def loop(self):
-        time.sleep(1.0)
+        directory = self.client.get_directory()
+
+        if directory is None:
+            return
+
+        self.directory = directory
+
+    def _process(self):
+        self.wait(1.0)
 
         self.update_directory()
 
-        for device_id, info in self.directory.items():
-            if device_id not in self.devices:
-                if info['name'] != 'quadrant':
-                    continue
+        for info in self.directory.values():
+            if 'homeassistant' not in info['query']:
+                continue
 
+            device_id = info['device_id']
+
+            if device_id not in self.devices:
                 ct = Chromatron(info['host'][0])
-                self.devices[device_id] = MQTTChromatron(ct=ct)
+                try:
+                    mqtt = MQTTChromatron(ct=ct)
+
+                except socket.error:
+
+                    # no point processing anything else, wait until next cycle
+                    break
+
+                self.devices[device_id] = mqtt
+
+                logging.info(f'Added device: {info["name"]}')
 
         # for device_id, device in self.devices.items():
             # device.update_state()
 
         # prune devices
-        self.devices = {k: v for k, v in self.devices.items() if k in self.directory}
+        self.devices = {k: v for k, v in self.devices.items() if k in [d['device_id'] for d in self.directory.values()]}
 
 def main():
     util.setup_basic_logging(console=True)
@@ -187,10 +250,7 @@ def main():
 
     bridge = MQTTBridge(settings=settings)
 
-    wait_for_signal()
-
-    bridge.stop()
-    bridge.join()   
+    run_all() 
 
 if __name__ == '__main__':
     main()

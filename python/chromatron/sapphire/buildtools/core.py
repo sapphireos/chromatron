@@ -687,6 +687,10 @@ class Builder(object):
     def compile(self):
         logging.info("Compiling %s" % (self.proj_name))
 
+        # add colored diagnostic messages:
+        if not self.settings["TOOLCHAIN"] == "XTENSA":
+            self.settings["C_FLAGS"].append("-fdiagnostics-color=always")
+
         # save working dir
         cwd = os.getcwd()
 
@@ -1750,16 +1754,8 @@ def get_fwid():
 
 
 def main():
-    # set global log level
-    logger = logging.getLogger('')
-    logger.setLevel(logging.DEBUG)
-
-    # add a console handler to print anything INFO and above to the console
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(levelname)s %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
+    log_format = '%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(white)s%(message)s'
+    util.setup_basic_logging(level=logging.INFO, log_format=log_format)
 
     parser = argparse.ArgumentParser(description='SapphireMake')
 

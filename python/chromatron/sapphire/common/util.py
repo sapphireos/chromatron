@@ -191,7 +191,9 @@ def is_wildcard(key):
 
 logging_initalized = False
 
-def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
+DEFAULT_FORMAT = '%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(yellow)s[%(thread)d] %(purple)s%(module)s %(white)s%(message)s'
+
+def setup_basic_logging(console=True, filename=None, level=logging.DEBUG, log_format=DEFAULT_FORMAT):
     global logging_initalized
 
     if logging_initalized:
@@ -210,7 +212,7 @@ def setup_basic_logging(console=True, filename=None, level=logging.DEBUG):
     if console:
         handler = colorlog.StreamHandler()
         handler.setLevel(level)
-        formatter = colorlog.ColoredFormatter('%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(yellow)s[%(thread)d] %(purple)s%(module)s %(white)s%(message)s', 
+        formatter = colorlog.ColoredFormatter(log_format, 
                                                 datefmt=dt_format,
                                                 log_colors={
                                                     'DEBUG':    'cyan',

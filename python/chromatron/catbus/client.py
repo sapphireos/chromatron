@@ -574,6 +574,14 @@ class Client(BaseClient):
                 print("Invalid message received")
                 return answers
 
+            except ProtocolErrorException as e:
+                if e.error_code == CATBUS_ERROR_KEY_NOT_FOUND:
+                    raise KeyError
+
+                raise
+
+
+
         return answers
 
     def get_key(self, key):
