@@ -173,12 +173,12 @@ class cg1GenericObject(cg1Node):
 class cg1Var(cg1Node):
     _fields = ["name", "type"]
 
-    def __init__(self, name="<anon>", datatype=None, **kwargs):
+    def __init__(self, name="<anon>", datatype=None, dimensions=[], **kwargs):
         super(cg1Var, self).__init__(**kwargs)
 
         self.name = name
-        
         self.type = datatype
+        self.dimensions = dimensions
 
     def build(self, builder, lookup_depth=None, attr_depth=None):
         return builder.get_var(self.name, self.lineno)
@@ -294,8 +294,7 @@ class cg1Func(cg1CodeNode):
         func = builder.func(self.name, returns=self.returns, lineno=self.lineno)
 
         for p in self.params:
-            builder.add_func_arg(func, p.name, p.type, [], lineno=self.lineno)
-
+            builder.add_func_arg(func, p.name, p.type, p.dimensions, lineno=self.lineno)
 
         for node in self.body:
             node.build(builder)
@@ -917,9 +916,23 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1Var(node.value, lineno=node.lineno)
 
     def visit_arg(self, node):
-        data_type = node.annotation.id
+        if isinstance(node.annotation, ast.Subscript):
+            temp = self.visit(node.annotation)
+            
+            def get_dimensions(s, dimensions=[]):
+                dimensions.append(s.index.name)
 
-        return cg1Var(node.arg, data_type, lineno=node.lineno)
+                if isinstance(s.target, cg1Subscript):
+                    return get_dimensions(s.target, dimensions)
+
+                return s.target.name, dimensions
+
+            data_type, dimensions = get_dimensions(temp)
+
+        else:
+            data_type = node.annotation.id
+        
+        return cg1Var(node.arg, data_type, dimensions, lineno=node.lineno)
 
     def visit_BinOp(self, node):
         return cg1BinOpNode(self.visit(node.op), self.visit(node.left), self.visit(node.right), lineno=node.lineno)

@@ -43,17 +43,19 @@
 
 # pix1 = PixelArray(2, 3)
 
+
+def meow(b: Number[_]):
+    return b
+
 a = Number()[4]
 
-def init():
-    # return pixels.count
-    # pixels.hue += 0.1
-    # pixels[0].hue += 0.1
+# def init():
+#     l = Number()[4]
 
-    l = Number()[4]
+#     meow(l)
 
-    return test_lib_call(1, 2)
-    # test_lib_call(l)
+    # min(a)
+    # min(l)
 
 #     s = String(32)
 #     s2 = String(32)
