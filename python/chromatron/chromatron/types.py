@@ -276,17 +276,14 @@ class varFunction(varObject):
         return OpcodeFunc(self, lineno=self.lineno)
 
 class varRef(varRegister):
-    def __init__(self, *args, ref=None, data_type='ref', **kwargs):
+    def __init__(self, *args, target=None, data_type='ref', **kwargs):
         super().__init__(*args, data_type=data_type, **kwargs)
 
-        self.ref = ref
+        self.target = target
 
     @property
     def scalar_type(self):
-        return self.ref.scalar_type
-
-    # def __str__(self):
-    #     return f'{super().__str__()} -> {self.target}'
+        return self.target.scalar_type
 
 class varObjectRef(varRef):
     def __init__(self, *args, lookups=None, attr=None, **kwargs):
@@ -359,20 +356,36 @@ class varArray(varComposite):
     def dimensions(self):
         return 1 + self.element.dimensions
 
-    def lookup(self, indexes=[], lineno=None):
-        # verify lookups are resolvable:
-        for a in indexes:
-            if not isinstance(a, VarContainer):
-                raise SyntaxError(f'Lookup for "{a.name}" is not resolvable on "{self}"', lineno=lineno)
+    def get_counts(self):
+        counts = [self.length]
 
-        indexes = deepcopy(indexes)
+        if isinstance(self.element, varArray):
+            counts.extend(self.element.get_counts())
+
+        return counts
+
+    def get_strides(self):
+        strides = [self.stride]
+
+        if isinstance(self.element, varArray):
+            strides.extend(self.element.get_strides())
+
+        return strides
+
+    # def lookup(self, indexes=[], lineno=None):
+    #     # verify lookups are resolvable:
+    #     for a in indexes:
+    #         if not isinstance(a, VarContainer):
+    #             raise SyntaxError(f'Lookup for "{a.name}" is not resolvable on "{self}"', lineno=lineno)
+
+    #     indexes = deepcopy(indexes)
         
-        if len(indexes) > 0:
-            indexes.pop(0)
+    #     if len(indexes) > 0:
+    #         indexes.pop(0)
             
-            return self.element.lookup(indexes)
+    #         return self.element.lookup(indexes)
 
-        return self
+    #     return self
 
     def assemble(self):
         return [0] * self.size

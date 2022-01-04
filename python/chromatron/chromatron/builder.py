@@ -1191,7 +1191,7 @@ class Builder(object):
     
         elif isinstance(target, varArray):
             ref = self.add_temp(data_type='ref', lineno=lineno)
-            ref.ref = target
+            ref.target = target
 
             ir = irLoadRef(ref, target, lineno=lineno)
             self.append_node(ir)
@@ -1200,10 +1200,18 @@ class Builder(object):
             var = self.add_temp(data_type='offset', lineno=lineno)
             var.ref = ref
 
-            lookup = self.current_lookup.pop(0)[0]
-            ir = irOffset(var, ref, lookup, lineno=lineno)
-            self.append_node(ir)
+            lookups = self.current_lookup.pop(0)
+            counts = []
+            strides = []
 
+            for count in ref.target.get_counts():
+                counts.append(self.add_const(count, lineno=lineno))
+
+            for stride in ref.target.get_strides():
+                strides.append(self.add_const(stride, lineno=lineno))
+
+            ir = irOffset(var, ref, lookups, counts, strides, lineno=lineno)
+            self.append_node(ir)
 
             return var
 
