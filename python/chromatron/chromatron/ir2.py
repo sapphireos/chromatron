@@ -4181,8 +4181,6 @@ class irCall(irCallType):
         self.target = target
         self.params = params
 
-        # self.result.force_used = True
-
     def __str__(self):
         params = params_to_string(self.params)
         s = f'CALL {self.target}({params})'
@@ -4193,9 +4191,10 @@ class irCall(irCallType):
         return self.params
 
     def generate(self, stack=[]):        
-        # return insNop(lineno=self.lineno)
-        params = [a.generate() for a in self.params]
-        # args = [a.generate() for a in self.args]
+        params = []
+
+        for i in range(len(self.params)):
+            params.append(self.params[i].generate())
 
         if self.target in stack:
             raise SyntaxError(f'Recursive call of {self.target}', lineno=self.lineno)

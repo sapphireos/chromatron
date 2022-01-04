@@ -442,7 +442,12 @@ class insFunc(object):
 
         # apply args to registers
         for i in range(len(args)):
-            self.registers[self.params[i].reg] = args[i]
+            param = self.params[i]
+
+            if param.reg is None:
+                continue
+
+            self.registers[param.reg] = args[i]
 
         self.return_val = 0
 

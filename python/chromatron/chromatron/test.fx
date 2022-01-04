@@ -38,37 +38,33 @@
 
 # #     return s
 
+
+def sub(a: Number, b: Number, c: Number) -> Number:
+    return a + c
+
+def func_call():
+    return sub(1, 2, 3)
+    # assert sub(1, 2) == -1
+
 # sg = String(32)
 # sg2 = String(32)
 
 # pix1 = PixelArray(2, 3)
 
-
-
-
-ary = Number()[4]
-
-def array_lookup():
-    b = Number()
-    ary[b] = 1
-    # b = 1
-    # ary[b] = 2
-
-    # assert ary[0] == 1
-    # assert ary[1] == 2
-    # assert ary[2] == 0
-    # assert ary[3] == 0
-
+# def woof(a: Number) -> Number:
+    # return a
 
 # def meow(b: Number[_]):
-#     return b
+    # return b
 
 # a = Number()[4]
 
 # def init():
-#     l = Number()[4]
+    # l = Number()[4]
 
-#     meow(l)
+    # meow(l)
+
+    # woof(1)
 
     # min(a)
     # min(l)
