@@ -851,8 +851,8 @@ class insLookup(BaseInstruction):
     def execute(self, vm):
         addr = self.base_addr.addr
 
-        if self.base_addr.storage == StorageType.GLOBAL:
-            addr |= 0x8000        
+        # if self.base_addr.storage == StorageType.GLOBAL:
+            # addr |= 0x8000        
 
         for i in range(len(self.indexes)):
             index = vm.registers[self.indexes[i].reg]
