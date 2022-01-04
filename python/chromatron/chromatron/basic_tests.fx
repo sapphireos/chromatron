@@ -288,6 +288,12 @@ def func_call_throwaway_return():
     add(1, 2)
     # passes if it compiles and runs
 
+def unused(a: Number, b: Number, c: Number) -> Number:
+    return a + c
+
+def func_unused_params():
+    assert unused(1, 2, 3) == 4
+
 def type_conversions():
     a = Number()
     b = Fixed16()
