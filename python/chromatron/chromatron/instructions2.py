@@ -104,7 +104,7 @@ class insProgram(object):
 
             worst_stack = 0
             for func_name in call_graph:
-                temp_stack = get_stack(self.funcs[func_name], call_graph[func_name])
+                temp_stack = get_stack(funcs[func_name], call_graph[func_name])
 
                 if temp_stack > worst_stack:
                     worst_stack = temp_stack

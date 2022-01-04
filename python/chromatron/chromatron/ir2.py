@@ -2205,7 +2205,7 @@ class irFunc(IR):
 
         call_graph = {}
 
-        for call in calls:
+        for call in [c.name for c in calls]:
             func = funcs[call]
             call_graph[call] = func.get_call_graph(funcs)
 

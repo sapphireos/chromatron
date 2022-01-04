@@ -39,32 +39,34 @@
 # #     return s
 
 
-def sub(a: Number, b: Number, c: Number) -> Number:
-    return a + c
-
-def func_call():
-    return sub(1, 2, 3)
-    # assert sub(1, 2) == -1
-
 # sg = String(32)
 # sg2 = String(32)
 
 # pix1 = PixelArray(2, 3)
 
 # def woof(a: Number) -> Number:
-    # return a
+#     return a
+
+def add(a: Number, b: Number) -> Number:
+    return a + b
+
+# def wtf():
+    # add(1, 2)
+
 
 # def meow(b: Number[_]):
     # return b
 
 # a = Number()[4]
 
-# def init():
+def init():
     # l = Number()[4]
 
     # meow(l)
 
-    # woof(1)
+    # return woof(1)
+    return add(1, 2)
+    # pass
 
     # min(a)
     # min(l)
