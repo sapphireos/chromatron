@@ -372,20 +372,20 @@ class varArray(varComposite):
 
         return strides
 
-    # def lookup(self, indexes=[], lineno=None):
-    #     # verify lookups are resolvable:
-    #     for a in indexes:
-    #         if not isinstance(a, VarContainer):
-    #             raise SyntaxError(f'Lookup for "{a.name}" is not resolvable on "{self}"', lineno=lineno)
+    def lookup(self, indexes=[], lineno=None):
+        # verify lookups are resolvable:
+        for a in indexes:
+            if not isinstance(a, VarContainer):
+                raise SyntaxError(f'Lookup for "{a.name}" is not resolvable on "{self}"', lineno=lineno)
 
-    #     indexes = deepcopy(indexes)
+        indexes = deepcopy(indexes)
         
-    #     if len(indexes) > 0:
-    #         indexes.pop(0)
+        if len(indexes) > 0:
+            indexes.pop(0)
             
-    #         return self.element.lookup(indexes)
+            return self.element.lookup(indexes)
 
-    #     return self
+        return self
 
     def assemble(self):
         return [0] * self.size

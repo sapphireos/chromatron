@@ -52,13 +52,20 @@
 
 # a = Number()[4]
 
+
+
 def init():
     l = Number()[2][3]
+
+    l[0][1] = 1
+    l[1][2] = 3
+
+
     a = Number()
 
     a = l[0][1]
 
-    return a
+    return a + l[1][2]
 
     # return l[0] + l[1]
 

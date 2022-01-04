@@ -475,7 +475,7 @@ class Builder(object):
 
     def load_value(self, value, lineno=None):
         if value.data_type == 'offset':
-            var = self.add_temp(data_type=value.ref.scalar_type, lineno=lineno)
+            var = self.add_temp(data_type=value.target.scalar_type, lineno=lineno)
             ir = irLoad(var, value, lineno=lineno)
             self.append_node(ir)
             
@@ -636,13 +636,13 @@ class Builder(object):
         value = self.convert_type(target, value, lineno=lineno)
 
         if target.data_type == 'offset':
-            if isinstance(target.ref, varScalar):
+            if isinstance(target.target, varScalar):
                 ir = irStore(value, target, lineno=lineno)
 
-            elif isinstance(target.ref, varArray):
+            elif isinstance(target.target, varArray):
                 ir = irVectorAssign(target, value, lineno=lineno)    
 
-            elif isinstance(target.ref, varRef):
+            elif isinstance(target.target, varRef):
                 ir = irStore(value, target, lineno=lineno)
 
             else:
@@ -1197,8 +1197,8 @@ class Builder(object):
             self.append_node(ir)
 
             # return ref
-            var = self.add_temp(data_type='offset', lineno=lineno)
-            var.ref = ref
+            offset = self.add_temp(data_type='offset', lineno=lineno)
+            offset.target = target.lookup(self.current_lookup[0], lineno=lineno)
 
             lookups = self.current_lookup.pop(0)
             counts = []
@@ -1210,48 +1210,48 @@ class Builder(object):
             for stride in ref.target.get_strides():
                 strides.append(self.add_const(stride, lineno=lineno))
 
-            ir = irOffset(var, ref, lookups, counts, strides, lineno=lineno)
+            ir = irOffset(offset, ref, lookups, counts, strides, lineno=lineno)
             self.append_node(ir)
 
-            return var
+            return offset
 
 
-            var = self.add_temp(data_type='offset', lineno=lineno)
-            var.ref = target.lookup(self.current_lookup[0], lineno=lineno)
+            # var = self.add_temp(data_type='offset', lineno=lineno)
+            # var.ref = target.lookup(self.current_lookup[0], lineno=lineno)
 
-            # strip any lookups from an object ref (which will be resolved directly
-            # in the object accessor instruction, instead of the array lookup)
-            if isinstance(var.ref, varObjectRef):
-                self.current_lookup[0] = self.current_lookup[0][:len(self.current_lookup[0]) - len(var.ref.lookups)]
-
-
-            lookup = self.current_lookup.pop(0)
-
-            # load array details as constants
-            counts = []
-            strides = []
-
-            sub_target = target
-
-            for i in range(len(lookup)):
-                try:
-                    count = self.add_const(sub_target.length, lineno=lineno)
-
-                except (IndexError, AttributeError):
-                    raise SyntaxError(f'{target.name} has only {target.dimensions} dimensions, requested {len(lookup)}', lineno=self.lineno)
-
-                counts.append(count)
-
-                stride = self.add_const(sub_target.stride, lineno=lineno)
-                strides.append(stride)
-
-                sub_target = sub_target.element
+            # # strip any lookups from an object ref (which will be resolved directly
+            # # in the object accessor instruction, instead of the array lookup)
+            # if isinstance(var.ref, varObjectRef):
+            #     self.current_lookup[0] = self.current_lookup[0][:len(self.current_lookup[0]) - len(var.ref.lookups)]
 
 
-            ir = irLookup(var, target, lookup, counts, strides, lineno=lineno)
-            self.append_node(ir)
+            # lookup = self.current_lookup.pop(0)
 
-            return var
+            # # load array details as constants
+            # counts = []
+            # strides = []
+
+            # sub_target = target
+
+            # for i in range(len(lookup)):
+            #     try:
+            #         count = self.add_const(sub_target.length, lineno=lineno)
+
+            #     except (IndexError, AttributeError):
+            #         raise SyntaxError(f'{target.name} has only {target.dimensions} dimensions, requested {len(lookup)}', lineno=self.lineno)
+
+            #     counts.append(count)
+
+            #     stride = self.add_const(sub_target.stride, lineno=lineno)
+            #     strides.append(stride)
+
+            #     sub_target = sub_target.element
+
+
+            # ir = irLookup(var, target, lookup, counts, strides, lineno=lineno)
+            # self.append_node(ir)
+
+            # return var
 
         raise CompilerFatal(f'Invalid lookup for: {target}')
 
