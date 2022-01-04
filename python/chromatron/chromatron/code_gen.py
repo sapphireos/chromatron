@@ -930,6 +930,7 @@ class CodeGenPass1(ast.NodeVisitor):
             data_type, dimensions = get_dimensions(temp)
 
         else:
+            dimensions = []
             data_type = node.annotation.id
         
         return cg1Var(node.arg, data_type, dimensions, lineno=node.lineno)
