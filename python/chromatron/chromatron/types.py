@@ -240,7 +240,7 @@ class varOffset(varRegister):
     def __init__(self, *args, offset=None, **kwargs):
         super().__init__(*args, data_type='offset', **kwargs)
         self.offset = offset
-        # self.ref = None
+        self.target = None
         # self.lookups = []
 
     def __str__(self):

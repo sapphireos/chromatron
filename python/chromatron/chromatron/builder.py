@@ -682,13 +682,13 @@ class Builder(object):
 
         elif isinstance(target, varArray):
             # load address to register:
-            var = self.add_temp(data_type='offset', lineno=lineno)
-            var.ref = target.lookup()
+            ref = self.add_temp(data_type='ref', lineno=lineno)
+            ref.target = target
 
-            ir = irLookup(var, target, lineno=lineno)
-            self.append_node(ir)
+            ir = irLoadRef(ref, target, lineno=lineno)
+            self.append_node(ir)            
 
-            ir = irVectorAssign(var, value, lineno=lineno)
+            ir = irVectorAssign(ref, value, lineno=lineno)
 
         elif isinstance(target, VarContainer) and \
              isinstance(target.var, varRegister):
@@ -1196,7 +1196,6 @@ class Builder(object):
             ir = irLoadRef(ref, target, lineno=lineno)
             self.append_node(ir)
 
-            # return ref
             offset = self.add_temp(data_type='offset', lineno=lineno)
             offset.target = target.lookup(self.current_lookup[0], lineno=lineno)
 
