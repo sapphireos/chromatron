@@ -778,13 +778,13 @@ class Builder(object):
         value = self.convert_type(target, value, lineno=lineno)
         
         if isinstance(target, varArray):
-            var = self.add_temp(data_type='offset', lineno=lineno)
-            var.ref = target.lookup()
+            ref = self.add_temp(data_type='ref', lineno=lineno)
+            ref.target = target
 
-            ir = irLookup(var, target, lineno=lineno)
+            ir = irLoadRef(ref, target, lineno=lineno)
             self.append_node(ir)
 
-            ir = irVectorOp(op, var, value, lineno=lineno)
+            ir = irVectorOp(op, ref, value, lineno=lineno)
             self.append_node(ir)
 
         elif target.data_type == 'offset':
