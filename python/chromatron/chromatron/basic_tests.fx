@@ -520,23 +520,23 @@ def pix_sat_store():
     assert pixels[3].sat == 0.0
 
 
-string = String("hello!")
-string2 = String(32)
+# string = String("hello!")
+# string2 = String(32)
 
-def load_string():
-    s = String()
-    s = string
+# def load_string():
+#     s = String()
+#     s = string
 
-    return s
+#     return s
 
-def load_string2():
-    s = String()
-    s = string2
+# def load_string2():
+#     s = String()
+#     s = string2
     
-    return s
+#     return s
 
-def load_string_literal():
-    s = String()
-    s = "meow"
+# def load_string_literal():
+#     s = String()
+#     s = "meow"
     
-    return s
+#     return s

@@ -1199,6 +1199,11 @@ class Builder(object):
             offset = self.add_temp(data_type='offset', lineno=lineno)
             offset.target = target.lookup(self.current_lookup[0], lineno=lineno)
 
+            # strip any lookups from an object ref (which will be resolved directly
+            # in the object accessor instruction, instead of the array lookup)
+            if isinstance(offset.target, varObjectRef):
+                self.current_lookup[0] = self.current_lookup[0][:len(self.current_lookup[0]) - len(offset.target.lookups)]
+
             lookups = self.current_lookup.pop(0)
             counts = []
             strides = []
