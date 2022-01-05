@@ -295,6 +295,10 @@ class varObjectRef(varRef):
         self.lookups = lookups
         self.attr = attr
 
+    @property
+    def scalar_type(self):
+        return self.data_type
+
     def lookup(self, indexes=[], lineno=None):
         self.lookups.extend(indexes) # add remaining indexes, if any
         return self
