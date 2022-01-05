@@ -240,7 +240,7 @@ class varOffset(varRegister):
     def __init__(self, *args, offset=None, **kwargs):
         super().__init__(*args, data_type='offset', **kwargs)
         self.offset = offset
-        self.ref = None
+        # self.ref = None
         # self.lookups = []
 
     def __str__(self):
@@ -305,8 +305,8 @@ class varObjectRef(varRef):
             assert isinstance(a, int) or isinstance(a, VarContainer)
             lookups += f'[{a}]'
               
-        if self.ref is not None:
-            base = f'{super().__str__()}->{self.ref}{lookups}'
+        if self.target is not None:
+            base = f'{super().__str__()}->{self.target}{lookups}'
 
         else:
             base = f'{super().__str__()}{lookups}'
@@ -320,6 +320,10 @@ class varFunctionRef(varRef):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='funcref', **kwargs)
         self.ret_type = 'var'
+
+    @property
+    def scalar_type(self):
+        return self.data_type
 
 class varArray(varComposite):
     def __init__(self, *args, element=None, length=1, **kwargs):
