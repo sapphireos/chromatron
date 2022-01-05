@@ -3431,8 +3431,8 @@ class irObjectLookup(IR):
         lookups = [l.generate() for l in self.lookups]
 
         if target.var.data_type == 'pixref' or \
-           target.var.ref.data_type == 'pixref' or \
-           target.var.ref.data_type == 'PixelArray':
+           target.var.target.data_type == 'pixref' or \
+           target.var.target.data_type == 'PixelArray':
 
             if len(lookups) == 1:
                 return insPixelLookup1(result, target, lookups, lineno=self.lineno)
@@ -3466,8 +3466,8 @@ class irObjectStore(IR):
         value = self.value.generate()
 
         if target.var.data_type == 'pixref' or \
-           target.var.ref.data_type == 'pixref' or \
-           target.var.ref.data_type == 'PixelArray':
+           target.var.target.data_type == 'pixref' or \
+           target.var.target.data_type == 'PixelArray':
 
             attr = self.attr.name
 
@@ -3523,8 +3523,8 @@ class irObjectLoad(IR):
         value = self.value.generate()
 
         if value.var.data_type == 'pixref' or \
-           value.var.ref.data_type == 'pixref' or \
-           value.var.ref.data_type == 'PixelArray':
+           value.var.target.data_type == 'pixref' or \
+           value.var.target.data_type == 'PixelArray':
 
             attr = self.attr.name
 
@@ -3573,8 +3573,8 @@ class irObjectOp(IR):
         value = self.value.generate()
 
         if target.var.data_type == 'pixref' or \
-           target.var.ref.data_type == 'pixref' or \
-           target.var.ref.data_type == 'PixelArray':
+           target.var.target.data_type == 'pixref' or \
+           target.var.target.data_type == 'PixelArray':
 
             attr = self.attr.name
 

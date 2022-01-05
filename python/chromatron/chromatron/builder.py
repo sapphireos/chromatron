@@ -482,7 +482,7 @@ class Builder(object):
             return var
 
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
-            if not value.target is None and value.target.data_type == 'PixelArray':
+            if value.target is not None and value.target.data_type == 'PixelArray':
                 try:
                     data_type = PIXEL_ARRAY_FIELDS[value.attr.name]
 
@@ -498,10 +498,10 @@ class Builder(object):
                 result = self.add_temp(data_type='objref', lineno=lineno)
                     
                 if value.target:
-                    result.ref = value.target
+                    result.target = value.target
 
                 else:
-                    result.ref = value
+                    result.target = value
                 
                 ir = irObjectLookup(result, value, lookups=value.lookups, lineno=lineno)
                 self.append_node(ir)
@@ -656,10 +656,10 @@ class Builder(object):
                     result = self.add_temp(data_type='objref', lineno=lineno)
                     
                     if target.target:
-                        result.ref = target.target
+                        result.target = target.target
 
                     else:
-                        result.ref = target
+                        result.target = target
                     
                     ir = irObjectLookup(result, target, lookups=target.lookups, lineno=lineno)
                     self.append_node(ir)
@@ -1141,7 +1141,7 @@ class Builder(object):
 
         elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
             var = self.add_temp(data_type='objref', lineno=lineno)
-            var.ref = target.target
+            var.target = target.target
             var.lookups = target.target.lookups
             var.attr = self.current_attr.pop(0)[-1]
 
@@ -1155,7 +1155,7 @@ class Builder(object):
             # p1(PixelArray)
 
             var = self.add_temp(data_type='objref', lineno=lineno)
-            var.ref = target
+            var.target = target
             var.attr = self.current_attr.pop(0)[-1]
 
             ir = irLoadRef(var, target, lineno=lineno)
@@ -1174,7 +1174,7 @@ class Builder(object):
     def finish_lookup(self, target, lineno=None):
         if isinstance(target, varObject):
             var = self.add_temp(data_type='objref', lineno=lineno)
-            var.ref = target
+            var.target = target
             var.lookups.extend(self.current_lookup.pop(0))
 
             ir = irLoadRef(var, target, lineno=lineno)
