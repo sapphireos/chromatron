@@ -1278,9 +1278,9 @@ class insVector(BaseInstruction):
         if not self.value.var.is_scalar:
             raise SyntaxError(f'Vector operations must use a scalar operand', lineno=self.lineno)
 
-        self.is_global = self.target.var.ref.is_global
+        self.is_global = self.target.var.target.is_global
 
-        self.length = self.target.var.ref.size
+        self.length = self.target.var.target.size
 
     def __str__(self):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)

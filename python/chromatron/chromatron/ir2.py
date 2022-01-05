@@ -3548,7 +3548,7 @@ class irObjectLoad(IR):
             except KeyError:
                 raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
 
-        raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
+        raise SyntaxError(f'Unknown type for object load: {self.target}', lineno=self.lineno)
 
 
 class irObjectOp(IR):

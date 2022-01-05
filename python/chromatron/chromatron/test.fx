@@ -52,22 +52,38 @@
 
 # a = Number()[4]
 
-p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
+# p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
 
-def obj_store_lookup():
-    pixels.hue = 0.0
+# def obj_store_lookup2():
+#     pixels.hue = 0.0
 
-    pa = PixelArray()[2]
-    pa[1] = p1
+#     pa = PixelArray()[2]
+#     pa[1] = p1
+#     pa[1].hue = 0.5
 
-    p = PixelArray()
-    p = pa[1]
-    
-    p.hue = 0.5    
+#     assert p1[0].hue == 0.5
+#     assert p1[1].hue == 0.5
+#     assert p1[2].hue == 0.5
 
-    assert p1[0].hue == 0.5
-    assert p1[1].hue == 0.5
-    assert p1[2].hue == 0.5
+ary2 = Number()[2][3]
+
+def array2_lookup():
+    b = Number()
+    # ary2[b][0] = 1
+    # ary2[b][1] = 2
+    # ary2[b][2] = 3
+    b = 1
+    ary2[b] = 2
+    # ary2[b][0] = 4
+    # ary2[b][1] = 5
+    # ary2[b][2] = 6
+
+    # assert ary2[0][0] == 1
+    # assert ary2[0][1] == 2
+    # assert ary2[0][2] == 3
+    # assert ary2[1][0] == 4
+    # assert ary2[1][1] == 5
+    # assert ary2[1][2] == 6
 
 # def init():
 #     l = Number()[2][3]

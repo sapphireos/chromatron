@@ -482,12 +482,12 @@ class Builder(object):
             return var
 
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
-            if not value.ref is None and value.ref.data_type == 'PixelArray':
+            if not value.target is None and value.target.data_type == 'PixelArray':
                 try:
                     data_type = PIXEL_ARRAY_FIELDS[value.attr.name]
 
                 except KeyError:
-                    raise SyntaxError(f'Unknown attribute for PixelArray: {value.ref.name} -> {value.attr.name}', lineno=lineno)
+                    raise SyntaxError(f'Unknown attribute for PixelArray: {value.target.name} -> {value.attr.name}', lineno=lineno)
 
                 var = self.add_temp(data_type=data_type, lineno=lineno)
 
@@ -497,8 +497,8 @@ class Builder(object):
             if len(value.lookups) > 0:
                 result = self.add_temp(data_type='objref', lineno=lineno)
                     
-                if value.ref:
-                    result.ref = value.ref
+                if value.target:
+                    result.ref = value.target
 
                 else:
                     result.ref = value
@@ -655,8 +655,8 @@ class Builder(object):
                 if len(target.lookups) > 0:
                     result = self.add_temp(data_type='objref', lineno=lineno)
                     
-                    if target.ref:
-                        result.ref = target.ref
+                    if target.target:
+                        result.ref = target.target
 
                     else:
                         result.ref = target
@@ -1141,8 +1141,8 @@ class Builder(object):
 
         elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
             var = self.add_temp(data_type='objref', lineno=lineno)
-            var.ref = target.ref
-            var.lookups = target.ref.lookups
+            var.ref = target.target
+            var.lookups = target.target.lookups
             var.attr = self.current_attr.pop(0)[-1]
 
             ir = irLoad(var, target, lineno=lineno)
@@ -1209,6 +1209,10 @@ class Builder(object):
 
             for stride in ref.target.get_strides():
                 strides.append(self.add_const(stride, lineno=lineno))
+
+            # limit depth to number of indexes
+            counts = counts[:len(lookups)]
+            strides = strides[:len(lookups)]
 
             ir = irOffset(offset, ref, lookups, counts, strides, lineno=lineno)
             self.append_node(ir)
