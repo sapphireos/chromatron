@@ -1421,7 +1421,9 @@ class insCall(BaseInstruction):
                 target = f
                 break
 
-        vm.ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
+        params = [vm.registers[p.reg] for p in self.params]
+
+        vm.ret_val = target.run(*params)
 
     def assemble(self):
         raise NotImplementedError

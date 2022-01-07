@@ -44,44 +44,38 @@
 
 # pix1 = PixelArray(2, 3)
 
+
+# def sub(a: Number, b: Number) -> Number:
+#     return a - b
+
+# def func_call():
+#     return sub(1, 2)
+
+
 # def woof(a: Number) -> Number:
 #     return a
 
-# def meow(b: Number[4]): # we definitely can't return an array reference?
-#     return b[0] + b[1]
+def meow(b: Number[4]): # we definitely can't return an array reference?
+    return b[0] + b[1]
 
 # a = Number()[4]
 
-p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
-
-def obj_store_lookup3():
-    # pixels.hue = 0.0
-
-    pa = PixelArray()[2]
-    pa[1] = p1
-    pa[1][2].hue = 0.5
-
-    # assert p1[0].hue == 0.5
-    # assert p1[1].hue == 0.0
-    # assert p1[2].hue == 0.5
-
-
 # def init():
-#     l = Number()[2][3]
+#     l = Number()[2]
 
-#     l[0][1] = 1
-#     l[1][2] = 3
+#     # l[0][1] = 1
+#     # l[1][2] = 3
 
 
-#     a = Number()
+# #     a = Number()
 
-#     a = l[0][1]
+# #     a = l[0][1]
 
-#     return a + l[1][2]
+# #     return a + l[1][2]
 
-    # return l[0] + l[1]
+#     # return l[0] + l[1]
 
-    # return meow(l)
+#     return meow(l)
 
     # return woof(1)
     # return add(1, 2)
