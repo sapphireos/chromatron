@@ -358,7 +358,14 @@ class Builder(object):
         var = self._build_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
         
         if isinstance(var.var, varComposite):
-            self.add_var_to_symbol_table(var.var)
+            ref = self._build_var(name, data_type='ref', lineno=lineno)
+            ref.target = var.var
+
+            self.add_var_to_symbol_table(ref)
+
+            var = ref
+
+            # self.add_var_to_symbol_table(var.var)
 
         else:
             self.add_var_to_symbol_table(var)
@@ -540,6 +547,8 @@ class Builder(object):
 
         elif isinstance(value, varComposite):
             var = self.add_temp(data_type='ref', lineno=lineno)
+            var.target = value
+
             ir = irLoadRef(var, value, lineno=lineno)
             self.append_node(ir)
             
@@ -551,7 +560,7 @@ class Builder(object):
             # ir = irLookup(var, value, lineno=lineno)
             # self.append_node(ir)
             
-            return var
+            # return var
 
         return value
 
@@ -1194,7 +1203,39 @@ class Builder(object):
             self.current_lookup.pop(0)
             
             return target
-    
+
+        elif isinstance(target, VarContainer) and isinstance(target.var, varRef):
+            ref = target
+            target = ref.target
+
+            if isinstance(ref.target, varArray):
+                offset = self.add_temp(data_type='offset', lineno=lineno)
+                offset.target = target.lookup(self.current_lookup[0], lineno=lineno)
+
+                # strip any lookups from an object ref (which will be resolved directly
+                # in the object accessor instruction, instead of the array lookup)
+                if isinstance(offset.target, varObjectRef):
+                    self.current_lookup[0] = self.current_lookup[0][:len(self.current_lookup[0]) - len(offset.target.lookups)]
+
+                lookups = self.current_lookup.pop(0)
+                counts = []
+                strides = []
+
+                for count in ref.target.get_counts():
+                    counts.append(self.add_const(count, lineno=lineno))
+
+                for stride in ref.target.get_strides():
+                    strides.append(self.add_const(stride, lineno=lineno))
+
+                # limit depth to number of indexes
+                counts = counts[:len(lookups)]
+                strides = strides[:len(lookups)]
+
+                ir = irOffset(offset, ref, lookups, counts, strides, lineno=lineno)
+                self.append_node(ir)
+
+                return offset
+                
         elif isinstance(target, varArray):
             ref = self.add_temp(data_type='ref', lineno=lineno)
             ref.target = target
@@ -1228,44 +1269,6 @@ class Builder(object):
             self.append_node(ir)
 
             return offset
-
-
-            # var = self.add_temp(data_type='offset', lineno=lineno)
-            # var.ref = target.lookup(self.current_lookup[0], lineno=lineno)
-
-            # # strip any lookups from an object ref (which will be resolved directly
-            # # in the object accessor instruction, instead of the array lookup)
-            # if isinstance(var.ref, varObjectRef):
-            #     self.current_lookup[0] = self.current_lookup[0][:len(self.current_lookup[0]) - len(var.ref.lookups)]
-
-
-            # lookup = self.current_lookup.pop(0)
-
-            # # load array details as constants
-            # counts = []
-            # strides = []
-
-            # sub_target = target
-
-            # for i in range(len(lookup)):
-            #     try:
-            #         count = self.add_const(sub_target.length, lineno=lineno)
-
-            #     except (IndexError, AttributeError):
-            #         raise SyntaxError(f'{target.name} has only {target.dimensions} dimensions, requested {len(lookup)}', lineno=self.lineno)
-
-            #     counts.append(count)
-
-            #     stride = self.add_const(sub_target.stride, lineno=lineno)
-            #     strides.append(stride)
-
-            #     sub_target = sub_target.element
-
-
-            # ir = irLookup(var, target, lookup, counts, strides, lineno=lineno)
-            # self.append_node(ir)
-
-            # return var
 
         raise CompilerFatal(f'Invalid lookup for: {target}')
 
