@@ -4233,7 +4233,7 @@ class irCall(irCallType):
 
     def __str__(self):
         params = params_to_string(self.params)
-        s = f'CALL {self.target}({params})'
+        s = f'CALL {self.target.name}({params})'
 
         return s
 
