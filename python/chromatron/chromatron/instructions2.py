@@ -499,7 +499,7 @@ class insFunc(object):
                 logging.error(f'Invalid reference in func {self.name} at instruction: {ins} from line number: {ins.lineno}')
 
                 self.return_stack.pop(0)
-                
+
                 return 0
 
             except AssertionError:
@@ -507,6 +507,12 @@ class insFunc(object):
                 logging.error(msg)
 
                 raise AssertionError(msg)
+
+            except Exception:
+                logging.error(f'Exception raised in func {self.name} at instruction: {ins} from line number: {ins.lineno}')
+
+                raise
+
 
     def assemble(self):
         return [ins.assemble() for ins in self.code]
@@ -712,7 +718,7 @@ class insLoadLocal(BaseInstruction):
 
     def execute(self, vm):
         src = vm.registers[self.src.reg]
-        vm.registers[self.dest.reg] = vm.locals[src]
+        vm.registers[self.dest.reg] = vm.locals[src.addr]
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
@@ -914,7 +920,10 @@ class insLookup(BaseInstruction):
 
             addr += index
 
-        vm.registers[self.result.reg] = addr
+        new_ref = deepcopy(ref)
+        new_ref.addr = addr
+
+        vm.registers[self.result.reg] = new_ref
 
     def assemble(self):
         raise NotImplementedError
