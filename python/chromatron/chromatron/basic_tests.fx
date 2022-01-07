@@ -294,6 +294,11 @@ def unused(a: Number, b: Number, c: Number) -> Number:
 def func_unused_params():
     assert unused(1, 2, 3) == 4
 
+def local_value_init():
+    a = Number(5)
+
+    assert a == 5
+
 def type_conversions():
     a = Number()
     b = Fixed16()
