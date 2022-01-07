@@ -49,16 +49,19 @@ PIXEL_ATTR_INDEXES = { # this should match gfx_pixel_array_t in gfx_lib.h
     'size_y':   7,
 }
 
-class ReturnException(Exception):
-    pass
-
 class VMException(Exception):
     pass
 
-class HaltException(Exception):
+class ReturnException(VMException):
+    pass
+
+class HaltException(VMException):
     pass
 
 class CycleLimitExceeded(VMException):
+    pass
+
+class InvalidReference(VMException):
     pass
 
 def string_hash_func(s):
@@ -480,6 +483,9 @@ class insFunc(object):
 
             except HaltException:
                 logging.warning(f'VM halted in func {self.name} in {cycles} cycles.')
+
+                self.return_stack.pop(0)
+
                 return 0
                 
             except ReturnException:
@@ -488,6 +494,13 @@ class insFunc(object):
                 self.return_stack.pop(0)
 
                 return self.return_val
+
+            except InvalidReference:
+                logging.error(f'Invalid reference in func {self.name} at instruction: {ins} from line number: {ins.lineno}')
+
+                self.return_stack.pop(0)
+                
+                return 0
 
             except AssertionError:
                 msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
@@ -562,11 +575,31 @@ class insAddr(BaseInstruction):
     def assemble(self):
         assert self.addr >= 0
 
-        if self.storage == StorageType.GLOBAL:
-            return self.addr | 0x8000
+        return self.addr
+        
+# pseudo instruction - does not actually produce an opcode
+class insRef(BaseInstruction):
+    mnemonic = '_REF'
 
-        else:
-            return self.addr
+    def __init__(self, addr=None, storage=None, **kwargs):
+        super().__init__(**kwargs)
+        self.addr = addr
+        self.storage = storage
+
+        assert addr >= 0 and addr <= MAX_UINT16
+
+    def __str__(self):
+        return "Ref(%s)" % (self.addr)
+    
+    def assemble(self):
+        assert self.addr >= 0
+
+        # if self.storage == StorageType.GLOBAL:
+        #     return self.addr | 0x8000
+
+        # else:
+        return self.addr
+
 
 class insNop(BaseInstruction):
     mnemonic = 'NOP'
@@ -707,7 +740,9 @@ class insLoadRef(BaseInstruction):
         except AttributeError:
             addr = self.src.addr
 
-        vm.registers[self.dest.reg] = addr
+        ref = insRef(addr, self.src.storage, lineno=self.src.lineno)
+
+        vm.registers[self.dest.reg] = ref
 
     def assemble(self):
         return OpcodeFormat1Imm1Reg(self.mnemonic, self.src.assemble(), self.dest.assemble(), lineno=self.lineno)
@@ -860,7 +895,12 @@ class insLookup(BaseInstruction):
         return "%s %s <- %s %s" % (self.mnemonic, self.result, self.ref, indexes)
 
     def execute(self, vm):
-        addr = vm.registers[self.ref.reg]
+        ref = vm.registers[self.ref.reg]
+        
+        if not isinstance(ref, insRef):
+            raise InvalidReference(self)
+
+        addr = ref.addr
 
         for i in range(len(self.indexes)):
             index = vm.registers[self.indexes[i].reg]
