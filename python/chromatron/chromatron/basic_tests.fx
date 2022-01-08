@@ -567,6 +567,20 @@ def pix_add_hue():
     assert pixels[1].hue == 0.199981689453125 # round off error, this is ok
 
 
+def use_ref_array(b: Number[4]):
+    return b[0] + b[1] + b[2] + b[3]
+
+def ref_array_func_call():
+    l = Number()[4]
+
+    l[0] = 1
+    l[1] = 2
+    l[2] = 3
+    l[3] = 4
+
+    assert use_ref_array(l) == 10
+
+
 
 # string = String("hello!")
 # string2 = String(32)
