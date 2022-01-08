@@ -46,25 +46,31 @@
 
 a = Number()[4]
 
-def meow(b: Number[4]): # we definitely can't return an array reference?
+def woof(b: Number[4]):
     return b[0] + b[2]
+
+def meow(b: Number[4]):
+    # return b[0] + b[2]
     # return b
+    return woof(b)
 
 def init():
-    # l = Number()[4]
+    l = Number()[4]
     # return a
 
-    # l[0] = 1
-    # l[1] = 2
-    # l[2] = 3
-    # l[3] = 4
+    l[0] = 1
+    l[1] = 2
+    l[2] = 3
+    l[3] = 4
 
-    f = Function()
-    f = meow
+    return meow(l)
 
-    f2 = Function()[4]
+    # f = Function()
+    # f = meow
 
-    return f
+    # f2 = Function()[4]
+
+    # return f
 
     # return meow
 

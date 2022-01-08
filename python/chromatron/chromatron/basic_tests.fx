@@ -499,6 +499,16 @@ def pix_hue_store():
     assert pixels[1].hue == 0.0
     assert pixels[2].hue == 0.5
     assert pixels[3].hue == 0.0
+
+def pix_hue_store2():
+    pixels.hue = 1.0
+    assert pixels[0].hue == 0.0
+
+    pixels.hue = 1.5
+    assert pixels[0].hue == 0.5
+
+    pixels.hue = -1.0
+    assert pixels[0].hue == 0.0
     
 def pix_val_store():
     pixels.val = 0.0
@@ -512,6 +522,16 @@ def pix_val_store():
     assert pixels[2].val == 1.0
     assert pixels[3].val == 0.0
 
+def pix_val_store2():
+    pixels.val = 1.0
+    assert pixels[0].val == 1.0
+
+    pixels.val = 1.5
+    assert pixels[0].val == 1.0
+
+    pixels.val = -1.0
+    assert pixels[0].val == 0.0
+
 def pix_sat_store():
     pixels.sat = 0.0
 
@@ -524,6 +544,18 @@ def pix_sat_store():
     assert pixels[2].sat == 1.0
     assert pixels[3].sat == 0.0
 
+def pix_sat_store2():
+    pixels.sat = 1.0
+    assert pixels[0].sat == 1.0
+
+    pixels.sat = 1.5
+    assert pixels[0].sat == 1.0
+
+    pixels.sat = -1.0
+    assert pixels[0].sat == 0.0
+
+def pix_count():
+    assert pixels.count == 16
 
 # string = String("hello!")
 # string2 = String(32)
