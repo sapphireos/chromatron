@@ -2193,7 +2193,7 @@ class irFunc(IR):
 
             elif isinstance(ir, irLoadRef):
                 if isinstance(ir.ref, varFunction):
-                    indirect_calls.append(ir.ref.name)
+                    indirect_calls.append(ir.ref)
 
         self.direct_calls = direct_calls
         self.indirect_calls = indirect_calls

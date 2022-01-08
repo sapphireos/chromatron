@@ -472,10 +472,13 @@ class Builder(object):
     def ret(self, value, lineno=None):
         value = self.load_value(value, lineno=lineno)
 
-        if isinstance(value.var, varRef):
-            raise SyntaxError(f'Cannot return reference to variable "{value.target.name}" from function.', lineno=lineno)
-            # if value.target.name in self.current_symbol_table:
-                # raise Exception
+        if isinstance(value.var, varFunctionRef):
+            # ok to return a scalar function ref
+            pass
+
+        elif isinstance(value.var, varRef):
+            if value.target.name in self.current_symbol_table:
+                raise SyntaxError(f'Cannot return reference to local variable "{value.target.name}" from function {self.current_func.name}', lineno=lineno)
 
         ir = irReturn(value, lineno=lineno)
 
