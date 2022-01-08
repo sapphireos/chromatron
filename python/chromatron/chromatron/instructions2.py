@@ -138,7 +138,7 @@ class insProgram(object):
 
         func_refs = sorted([f for f in objects if f.data_type == 'func'], key=lambda f: f.addr.addr)
 
-        self.funcs = [funcs[f.name] for f in func_refs]
+        self.funcs = StoragePool('_functions', [funcs[f.name] for f in func_refs])
 
         self.library_funcs = {
             'test_lib_call': self.test_lib_call,
@@ -231,8 +231,11 @@ class insProgram(object):
         if pool_type == StorageType.GLOBAL:
             pool = self.global_memory
 
+        elif pool_type == StorageType.FUNCTIONS:
+            pool = self.funcs
+
         else:
-            raise InvalidStoragePool(pool)
+            raise InvalidStoragePool(pool_type)
 
         assert isinstance(pool, StoragePool)
 
@@ -784,18 +787,9 @@ class insLoadRef(BaseInstruction):
         return "%s %s <-R %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        # if self.src not in vm.objects:
-            # raise CompilerFatal(f'Load Ref does not seem to point to an object: {self.src}')
-
-        try:
-            addr = self.src.addr.addr
-
-        except AttributeError:
-            addr = self.src.addr
-
         pool = vm.get_pool(self.src.storage)
 
-        ref = insRef(addr, pool, lineno=self.src.lineno)
+        ref = insRef(self.src.addr, pool, lineno=self.src.lineno)
 
         vm.registers[self.dest.reg] = ref
 
@@ -1617,9 +1611,9 @@ class insIndirectCall(BaseInstruction):
         return "%s %s (%s)" % (self.mnemonic, self.ref, params)
 
     def execute(self, vm):
-        func = vm.registers[self.ref.reg]
+        ref = vm.registers[self.ref.reg]
 
-        target = vm.funcs[func]
+        target = ref.pool[ref.addr]
 
         vm.ret_val = target.run(*[vm.registers[p.reg] for p in self.params])
 

@@ -257,8 +257,8 @@ class varObject(Var):
 
         self.is_allocatable = False
 
-    def generate(self):
-        return self
+    # def generate(self):
+        # return self
 
     def assemble(self):
         return OpcodeObject(self, lineno=self.lineno)
