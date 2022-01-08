@@ -44,31 +44,25 @@
 
 # pix1 = PixelArray(2, 3)
 
+a = Number()[4]
 
-def sub(a: Number, b: Number) -> Number:
-    return a - b
+def meow(b: Number[4]): # we definitely can't return an array reference?
+    # return b[0] + b[2]
+    l = Number()[4]
 
-def func_indirect_call():
-    f = Function()
-    f = sub
+    return a
 
-    assert f(1, 2) == -1
+# a = Number()[4]
 
+def init():
+    l = Number()[4]
 
-# def meow(b: Number[4]): # we definitely can't return an array reference?
-#     return b[0] + b[2]
+    l[0] = 1
+    l[1] = 2
+    l[2] = 3
+    l[3] = 4
 
-# # a = Number()[4]
-
-# def init():
-#     l = Number()[4]
-
-#     l[0] = 1
-#     l[1] = 2
-#     l[2] = 3
-#     l[3] = 4
-
-#     return meow(l)
+    return meow(l)
 
 
 # #     a = Number()
