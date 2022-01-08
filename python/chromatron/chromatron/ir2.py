@@ -3699,11 +3699,13 @@ class irLoad(IR):
         ref = self.ref.generate()
 
         if isinstance(ref, insReg):
-            if self.ref.target.is_global:
-                return insLoadGlobal(self.register.generate(), ref, lineno=self.lineno)
+            return insLoadMem(self.register.generate(), ref, lineno=self.lineno)
 
-            else:
-                return insLoadLocal(self.register.generate(), ref, lineno=self.lineno)
+            # if self.ref.target.is_global:
+            #     return insLoadGlobal(self.register.generate(), ref, lineno=self.lineno)
+
+            # else:
+            #     return insLoadLocal(self.register.generate(), ref, lineno=self.lineno)
 
         else:
             assert self.ref.is_global
@@ -3734,11 +3736,13 @@ class irStore(IR):
         ref = self.ref.generate()
 
         if isinstance(ref, insReg):
-            if self.ref.target.is_global:
-                return insStoreGlobal(ref, self.register.generate(), lineno=self.lineno)
+            return insStoreMem(ref, self.register.generate(), lineno=self.lineno)
 
-            else:
-                return insStoreLocal(ref, self.register.generate(), lineno=self.lineno)
+            # if self.ref.target.is_global:
+            #     return insStoreGlobal(ref, self.register.generate(), lineno=self.lineno)
+
+            # else:
+            #     return insStoreLocal(ref, self.register.generate(), lineno=self.lineno)
 
         else:
             assert self.ref.is_global

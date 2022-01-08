@@ -64,6 +64,9 @@ class CycleLimitExceeded(VMException):
 class InvalidReference(VMException):
     pass
 
+class InvalidStoragePool(VMException):
+    pass
+
 def string_hash_func(s):
     return catbus_string_hash(s)
 
@@ -75,10 +78,17 @@ def convert_to_i32(value):
 
 class StorageType(Enum):
     GLOBAL          = 0
-    LOCAL           = 1
-    PIXEL_ARRAY     = 2
-    STRING_LITERALS = 3
-    FUNCTIONS       = 4
+    PIXEL_ARRAY     = 1
+    STRING_LITERALS = 2
+    FUNCTIONS       = 3
+    LOCAL           = 4
+    STACK           = 5
+
+class StoragePool(list):
+    def __init__(self, name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.name = name
 
 class insProgram(object):
     def __init__(self, name, funcs={}, global_vars=[], objects=[], strings={}, call_graph={}):
@@ -91,13 +101,12 @@ class insProgram(object):
         for v in self.globals:
             self.global_memory_size += v.size 
 
-        self.memory = [0] * self.global_memory_size
+        self.global_memory = StoragePool('_global', [0] * self.global_memory_size)
 
         for v in [g for g in self.globals if g.data_type == 'strlit']:
-            self.memory[v.addr.addr] = v.init_val
+            self.global_memory[v.addr.addr] = v.init_val
 
         for func in funcs.values():
-            func.memory = self.memory
             func.program = self
 
         # get worst case stack depth
@@ -218,6 +227,17 @@ class insProgram(object):
 
         return s
 
+    def get_pool(self, pool_type: StorageType) -> StoragePool:
+        if pool_type == StorageType.GLOBAL:
+            pool = self.global_memory
+
+        else:
+            raise InvalidStoragePool(pool)
+
+        assert isinstance(pool, StoragePool)
+
+        return pool
+
     def test_lib_call(self, vm, param0, param1):
         # print(args)
         # print(vm)
@@ -248,7 +268,7 @@ class insFunc(object):
         self.lineno = lineno
 
         self.registers = None
-        self.memory = None
+        # self.memory = None
         self.locals = None
         self.local_vars = local_vars
         self.return_val = None
@@ -311,6 +331,12 @@ class insFunc(object):
     @property
     def pixel_arrays(self):
         return self.program.pixel_arrays
+
+    def get_pool(self, pool_type: StorageType) -> StoragePool:
+        if pool_type == StorageType.LOCAL:
+            return self.locals
+
+        return self.program.get_pool(pool)
 
     def get_pixel_array(self, index):
         try:
@@ -426,7 +452,7 @@ class insFunc(object):
 
         # self.registers = [0] * self.register_count
         
-        self.locals = [0] * self.register_count
+        self.locals = StoragePool(f'_local_{self.name}', [0] * self.register_count)
         for l in self.local_vars:
             self.locals.extend(l.assemble())
 
@@ -435,7 +461,7 @@ class insFunc(object):
 
         # just makes debugging a bit easier:
         registers = self.registers 
-        memory = self.memory
+        # memory = self.memory
         local = self.locals
 
         if self in self.return_stack:
@@ -587,20 +613,20 @@ class insAddr(BaseInstruction):
 class insRef(BaseInstruction):
     mnemonic = '_REF'
 
-    def __init__(self, addr=None, storage=None, **kwargs):
+    def __init__(self, addr=None, pool: list=None, **kwargs):
         super().__init__(**kwargs)
         self.addr = addr
-        self.storage = storage
+        self.pool = pool
 
         assert addr >= 0 and addr <= MAX_UINT16
 
     def __str__(self):
-        return "Ref(%s)" % (self.addr)
+        return f"Ref({self.addr}@{self.pool.name})"
     
     def assemble(self):
         assert self.addr >= 0
 
-        # if self.storage == StorageType.GLOBAL:
+        # if self.pool == StorageType.GLOBAL:
         #     return self.addr | 0x8000
 
         # else:
@@ -683,8 +709,48 @@ class insLoadConst(BaseInstruction):
         assert self.src is not None
         return OpcodeFormat1Imm1Reg(self.mnemonic, self.src, self.dest.assemble(), lineno=self.lineno)
 
-class insLoadGlobal(BaseInstruction):
-    mnemonic = 'LDG'
+# class insLoadGlobal(BaseInstruction):
+#     mnemonic = 'LDG'
+
+#     def __init__(self, dest, src, **kwargs):
+#         super().__init__(**kwargs)
+#         self.dest = dest
+#         self.src = src
+
+#         assert self.src is not None
+
+#     def __str__(self):
+#         return "%s %s <-G %s" % (self.mnemonic, self.dest, self.src)
+
+#     def execute(self, vm):
+#         src = vm.registers[self.src.reg]
+#         vm.registers[self.dest.reg] = vm.memory[src]
+
+#     def assemble(self):
+#         return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+
+# class insLoadLocal(BaseInstruction):
+#     mnemonic = 'LDL'
+
+#     def __init__(self, dest, src, **kwargs):
+#         super().__init__(**kwargs)
+#         self.dest = dest
+#         self.src = src
+
+#         assert self.src is not None
+
+#     def __str__(self):
+#         return "%s %s <-L %s" % (self.mnemonic, self.dest, self.src)
+
+#     def execute(self, vm):
+#         src = vm.registers[self.src.reg]
+#         vm.registers[self.dest.reg] = vm.locals[src.addr]
+
+#     def assemble(self):
+#         return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+
+class insLoadMem(BaseInstruction):
+    mnemonic = 'LDM'
 
     def __init__(self, dest, src, **kwargs):
         super().__init__(**kwargs)
@@ -694,31 +760,12 @@ class insLoadGlobal(BaseInstruction):
         assert self.src is not None
 
     def __str__(self):
-        return "%s %s <-G %s" % (self.mnemonic, self.dest, self.src)
+        return "%s %s <-M %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        src = vm.registers[self.src.reg]
-        vm.registers[self.dest.reg] = vm.memory[src]
+        ref = vm.registers[self.src.reg]
 
-    def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
-
-class insLoadLocal(BaseInstruction):
-    mnemonic = 'LDL'
-
-    def __init__(self, dest, src, **kwargs):
-        super().__init__(**kwargs)
-        self.dest = dest
-        self.src = src
-
-        assert self.src is not None
-
-    def __str__(self):
-        return "%s %s <-L %s" % (self.mnemonic, self.dest, self.src)
-
-    def execute(self, vm):
-        src = vm.registers[self.src.reg]
-        vm.registers[self.dest.reg] = vm.locals[src.addr]
+        vm.registers[self.dest.reg] = ref.pool[ref.addr]
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
@@ -746,7 +793,9 @@ class insLoadRef(BaseInstruction):
         except AttributeError:
             addr = self.src.addr
 
-        ref = insRef(addr, self.src.storage, lineno=self.src.lineno)
+        pool = vm.get_pool(self.src.storage)
+
+        ref = insRef(addr, pool, lineno=self.src.lineno)
 
         vm.registers[self.dest.reg] = ref
 
@@ -767,13 +816,56 @@ class insLoadGlobalImmediate(BaseInstruction):
         return "%s %s <-G %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.registers[self.dest.reg] = vm.memory[self.src.addr]
+        pool = vm.get_pool(StorageType.GLOBAL)
+
+        vm.registers[self.dest.reg] = pool[self.src.addr]
 
     def assemble(self):
         return OpcodeFormat1Imm1Reg(self.mnemonic, self.src.assemble(), self.dest.assemble(), lineno=self.lineno)
 
-class insStoreGlobal(BaseInstruction):
-    mnemonic = 'STG'
+# class insStoreGlobal(BaseInstruction):
+#     mnemonic = 'STG'
+
+#     def __init__(self, dest, src, **kwargs):
+#         super().__init__(**kwargs)
+#         self.dest = dest
+#         self.src = src
+
+#         assert self.dest is not None
+
+#     def __str__(self):
+#         return "%s %s <-G %s" % (self.mnemonic, self.dest, self.src)
+
+#     def execute(self, vm):
+#         dest = vm.registers[self.dest.reg]
+#         vm.memory[dest] = vm.registers[self.src.reg]
+
+#     def assemble(self):
+#         return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+
+# class insStoreLocal(BaseInstruction):
+#     mnemonic = 'STL'
+
+#     def __init__(self, dest, src, **kwargs):
+#         super().__init__(**kwargs)
+#         self.dest = dest
+#         self.src = src
+
+#         assert self.dest is not None
+
+#     def __str__(self):
+#         return "%s %s <-L %s" % (self.mnemonic, self.dest, self.src)
+
+#     def execute(self, vm):
+#         dest = vm.registers[self.dest.reg]
+#         vm.locals[dest] = vm.registers[self.src.reg]
+
+#     def assemble(self):
+#         return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+
+
+class insStoreMem(BaseInstruction):
+    mnemonic = 'STM'
 
     def __init__(self, dest, src, **kwargs):
         super().__init__(**kwargs)
@@ -783,34 +875,16 @@ class insStoreGlobal(BaseInstruction):
         assert self.dest is not None
 
     def __str__(self):
-        return "%s %s <-G %s" % (self.mnemonic, self.dest, self.src)
+        return "%s %s <-M %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        dest = vm.registers[self.dest.reg]
-        vm.memory[dest] = vm.registers[self.src.reg]
+        ref = vm.registers[self.dest.reg]
+
+        ref.pool[ref.addr] = vm.registers[self.src.reg]
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
-class insStoreLocal(BaseInstruction):
-    mnemonic = 'STL'
-
-    def __init__(self, dest, src, **kwargs):
-        super().__init__(**kwargs)
-        self.dest = dest
-        self.src = src
-
-        assert self.dest is not None
-
-    def __str__(self):
-        return "%s %s <-L %s" % (self.mnemonic, self.dest, self.src)
-
-    def execute(self, vm):
-        dest = vm.registers[self.dest.reg]
-        vm.locals[dest] = vm.registers[self.src.reg]
-
-    def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insStoreGlobalImmediate(BaseInstruction):
     mnemonic = 'STGI'
@@ -826,7 +900,9 @@ class insStoreGlobalImmediate(BaseInstruction):
         return "%s %s <-G %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        vm.memory[self.dest.addr] = vm.registers[self.src.reg]
+        pool = vm.get_pool(StorageType.GLOBAL)
+
+        pool[self.dest.addr] = vm.registers[self.src.reg]
 
     def assemble(self):
         return OpcodeFormat1Imm1Reg(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
@@ -920,7 +996,7 @@ class insLookup(BaseInstruction):
 
             addr += index
 
-        new_ref = deepcopy(ref)
+        new_ref = copy(ref)
         new_ref.addr = addr
 
         vm.registers[self.result.reg] = new_ref
