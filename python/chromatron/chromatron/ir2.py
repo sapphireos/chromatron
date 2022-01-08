@@ -3583,8 +3583,39 @@ class irObjectOp(IR):
                 ins = {
                     'hue': {
                         'add': insVPixelAddHue,
-
-                    }
+                        'sub': insVPixelSubHue,
+                        'mul': insVPixelMulHue,
+                        'div': insVPixelDivHue,
+                        'mod': insVPixelModHue,
+                    },
+                    'sat': {
+                        'add': insVPixelAddSat,
+                        'sub': insVPixelSubSat,
+                        'mul': insVPixelMulSat,
+                        'div': insVPixelDivSat,
+                        'mod': insVPixelModSat,
+                    },
+                    'val': {
+                        'add': insVPixelAddVal,
+                        'sub': insVPixelSubVal,
+                        'mul': insVPixelMulVal,
+                        'div': insVPixelDivVal,
+                        'mod': insVPixelModVal,
+                    },
+                    'hs_fade': {
+                        'add': insVPixelAddHSFade,
+                        'sub': insVPixelSubHSFade,
+                        'mul': insVPixelMulHSFade,
+                        'div': insVPixelDivHSFade,
+                        'mod': insVPixelModHSFade,
+                    },
+                    'v_fade': {
+                        'add': insVPixelAddVFade,
+                        'sub': insVPixelSubVFade,
+                        'mul': insVPixelMulVFade,
+                        'div': insVPixelDivVFade,
+                        'mod': insVPixelModVFade,
+                    },
                 }
 
             # scalar:
@@ -3592,8 +3623,39 @@ class irObjectOp(IR):
                 ins = {
                     'hue': {
                         'add': insPixelAddHue,
-
-                    }
+                        'sub': insPixelSubHue,
+                        'mul': insPixelMulHue,
+                        'div': insPixelDivHue,
+                        'mod': insPixelModHue,
+                    },
+                    'sat': {
+                        'add': insPixelAddSat,
+                        'sub': insPixelSubSat,
+                        'mul': insPixelMulSat,
+                        'div': insPixelDivSat,
+                        'mod': insPixelModSat,
+                    },
+                    'val': {
+                        'add': insPixelAddVal,
+                        'sub': insPixelSubVal,
+                        'mul': insPixelMulVal,
+                        'div': insPixelDivVal,
+                        'mod': insPixelModVal,
+                    },
+                    'hs_fade': {
+                        'add': insPixelAddHSFade,
+                        'sub': insPixelSubHSFade,
+                        'mul': insPixelMulHSFade,
+                        'div': insPixelDivHSFade,
+                        'mod': insPixelModHSFade,
+                    },
+                    'v_fade': {
+                        'add': insPixelAddVFade,
+                        'sub': insPixelSubVFade,
+                        'mul': insPixelMulVFade,
+                        'div': insPixelDivVFade,
+                        'mod': insPixelModVFade,
+                    },
                 }
                 
             try:

@@ -539,7 +539,7 @@ class insFunc(object):
             except AssertionError:
                 msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
                 logging.error(msg)
-                
+
                 raise AssertionError(msg)
 
             except Exception:
@@ -2037,6 +2037,7 @@ class insPixelLoadAttr(insPixelLoad):
     def assemble(self):
         return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)
 
+
 class insPixelAdd(BaseInstruction):
     mnemonic = 'PADD'
 
@@ -2062,6 +2063,176 @@ class insPixelAdd(BaseInstruction):
 
 class insPixelAddHue(insPixelAdd):
     mnemonic = 'PADD_HUE'
+
+class insPixelAddSat(insPixelAdd):
+    mnemonic = 'PADD_SAT'
+
+class insPixelAddVal(insPixelAdd):
+    mnemonic = 'PADD_VAL'
+
+class insPixelAddHSFade(insPixelAdd):
+    mnemonic = 'PADD_HS_FADE'
+
+class insPixelAddVFade(insPixelAdd):
+    mnemonic = 'PADD_V_FADE'
+
+
+class insPixelSub(BaseInstruction):
+    mnemonic = 'PSUB'
+
+    def __init__(self, pixel_index, attr, value, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.pixel_index = pixel_index
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
+
+    def execute(self, vm):
+        index = vm.registers[self.pixel_index.reg]
+        value = vm.registers[self.value.reg]
+
+        array = vm.gfx_data[self.attr]
+        array[index] -= value
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
+
+class insPixelSubHue(insPixelSub):
+    mnemonic = 'PSUB_HUE'
+
+class insPixelSubSat(insPixelSub):
+    mnemonic = 'PSUB_SAT'
+
+class insPixelSubVal(insPixelSub):
+    mnemonic = 'PSUB_VAL'
+
+class insPixelSubHSFade(insPixelSub):
+    mnemonic = 'PSUB_HS_FADE'
+
+class insPixelSubVFade(insPixelSub):
+    mnemonic = 'PSUB_V_FADE'
+
+
+class insPixelMul(BaseInstruction):
+    mnemonic = 'PMUL'
+
+    def __init__(self, pixel_index, attr, value, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.pixel_index = pixel_index
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
+
+    def execute(self, vm):
+        index = vm.registers[self.pixel_index.reg]
+        value = vm.registers[self.value.reg]
+
+        array = vm.gfx_data[self.attr]
+        array[index] *= value
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
+
+class insPixelMulHue(insPixelMul):
+    mnemonic = 'PMUL_HUE'
+
+class insPixelMulSat(insPixelMul):
+    mnemonic = 'PMUL_SAT'
+
+class insPixelMulVal(insPixelMul):
+    mnemonic = 'PMUL_VAL'
+
+class insPixelMulHSFade(insPixelMul):
+    mnemonic = 'PMUL_HS_FADE'
+
+class insPixelMulVFade(insPixelMul):
+    mnemonic = 'PMUL_V_FADE'
+
+
+class insPixelDiv(BaseInstruction):
+    mnemonic = 'PDIV'
+
+    def __init__(self, pixel_index, attr, value, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.pixel_index = pixel_index
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
+
+    def execute(self, vm):
+        index = vm.registers[self.pixel_index.reg]
+        value = vm.registers[self.value.reg]
+
+        array = vm.gfx_data[self.attr]
+        array[index] //= value
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
+
+class insPixelDivHue(insPixelDiv):
+    mnemonic = 'PDIV_HUE'
+
+class insPixelDivSat(insPixelDiv):
+    mnemonic = 'PDIV_SAT'
+
+class insPixelDivVal(insPixelDiv):
+    mnemonic = 'PDIV_VAL'
+
+class insPixelDivHSFade(insPixelDiv):
+    mnemonic = 'PDIV_HS_FADE'
+
+class insPixelDivVFade(insPixelDiv):
+    mnemonic = 'PDIV_V_FADE'
+
+
+class insPixelMod(BaseInstruction):
+    mnemonic = 'PMOD'
+
+    def __init__(self, pixel_index, attr, value, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.pixel_index = pixel_index
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
+
+    def execute(self, vm):
+        index = vm.registers[self.pixel_index.reg]
+        value = vm.registers[self.value.reg]
+
+        array = vm.gfx_data[self.attr]
+        array[index] %= value
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
+
+class insPixelModHue(insPixelMod):
+    mnemonic = 'PMOD_HUE'
+
+class insPixelModSat(insPixelMod):
+    mnemonic = 'PMOD_SAT'
+
+class insPixelModVal(insPixelMod):
+    mnemonic = 'PMOD_VAL'
+
+class insPixelModHSFade(insPixelMod):
+    mnemonic = 'PMOD_HS_FADE'
+
+class insPixelModVFade(insPixelMod):
+    mnemonic = 'PMOD_V_FADE'
+
+
 
 class insVPixelAdd(BaseInstruction):
     mnemonic = 'VADD'
@@ -2103,6 +2274,174 @@ class insVPixelAddHSFade(insVPixelAdd):
 
 class insVPixelAddVFade(insVPixelAdd):
     mnemonic = 'VADD_V_FADE'
+
+
+class insVPixelSub(BaseInstruction):
+    mnemonic = 'VSUB'
+
+    def __init__(self, pixel_ref, attr, value, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.pixel_ref = pixel_ref
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        pixel_array = vm.get_pixel_array(ref)
+        value = vm.registers[self.value.reg]
+        array = vm.gfx_data[self.attr]
+
+        for i in range(pixel_array['count']):
+            idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
+            array[idx] -= value
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+
+class insVPixelSubHue(insVPixelSub):
+    mnemonic = 'VSUB_HUE'
+
+class insVPixelSubSat(insVPixelSub):
+    mnemonic = 'VSUB_SAT'
+
+class insVPixelSubVal(insVPixelSub):
+    mnemonic = 'VSUB_VAL'
+
+class insVPixelSubHSFade(insVPixelSub):
+    mnemonic = 'VSUB_HS_FADE'
+
+class insVPixelSubVFade(insVPixelSub):
+    mnemonic = 'VSUB_V_FADE'
+
+
+class insVPixelMul(BaseInstruction):
+    mnemonic = 'VMUL'
+
+    def __init__(self, pixel_ref, attr, value, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.pixel_ref = pixel_ref
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        pixel_array = vm.get_pixel_array(ref)
+        value = vm.registers[self.value.reg]
+        array = vm.gfx_data[self.attr]
+
+        for i in range(pixel_array['count']):
+            idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
+            array[idx] *= value
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+
+class insVPixelMulHue(insVPixelMul):
+    mnemonic = 'VMUL_HUE'
+
+class insVPixelMulSat(insVPixelMul):
+    mnemonic = 'VMUL_SAT'
+
+class insVPixelMulVal(insVPixelMul):
+    mnemonic = 'VMUL_VAL'
+
+class insVPixelMulHSFade(insVPixelMul):
+    mnemonic = 'VMUL_HS_FADE'
+
+class insVPixelMulVFade(insVPixelMul):
+    mnemonic = 'VMUL_V_FADE'
+
+
+class insVPixelDiv(BaseInstruction):
+    mnemonic = 'VDIV'
+
+    def __init__(self, pixel_ref, attr, value, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.pixel_ref = pixel_ref
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        pixel_array = vm.get_pixel_array(ref)
+        value = vm.registers[self.value.reg]
+        array = vm.gfx_data[self.attr]
+
+        for i in range(pixel_array['count']):
+            idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
+            array[idx] //= value
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+
+class insVPixelDivHue(insVPixelDiv):
+    mnemonic = 'VDIV_HUE'
+
+class insVPixelDivSat(insVPixelDiv):
+    mnemonic = 'VDIV_SAT'
+
+class insVPixelDivVal(insVPixelDiv):
+    mnemonic = 'VDIV_VAL'
+
+class insVPixelDivHSFade(insVPixelDiv):
+    mnemonic = 'VDIV_HS_FADE'
+
+class insVPixelDivVFade(insVPixelDiv):
+    mnemonic = 'VDIV_V_FADE'
+
+
+class insVPixelMod(BaseInstruction):
+    mnemonic = 'VMOD'
+
+    def __init__(self, pixel_ref, attr, value, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.pixel_ref = pixel_ref
+        self.attr = attr
+        self.value = value
+
+    def __str__(self):
+        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        pixel_array = vm.get_pixel_array(ref)
+        value = vm.registers[self.value.reg]
+        array = vm.gfx_data[self.attr]
+
+        for i in range(pixel_array['count']):
+            idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
+            array[idx] += value
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+
+class insVPixelModHue(insVPixelMod):
+    mnemonic = 'VMOD_HUE'
+
+class insVPixelModSat(insVPixelMod):
+    mnemonic = 'VMOD_SAT'
+
+class insVPixelModVal(insVPixelMod):
+    mnemonic = 'VMOD_VAL'
+
+class insVPixelModHSFade(insVPixelMod):
+    mnemonic = 'VMOD_HS_FADE'
+
+class insVPixelModVFade(insVPixelMod):
+    mnemonic = 'VMOD_V_FADE'
 
 
 
