@@ -818,11 +818,11 @@ class Builder(object):
             if len(target.lookups) > 0:
                 result = self.add_temp(data_type='objref', lineno=lineno)
                 
-                if target.ref:
-                    result.ref = target.ref
+                if target.target:
+                    result.target = target.target
 
                 else:
-                    result.ref = target
+                    result.target = target
                 
                 ir = irObjectLookup(result, target, lookups=target.lookups, lineno=lineno)
                 self.append_node(ir)

@@ -539,7 +539,7 @@ class insFunc(object):
             except AssertionError:
                 msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
                 logging.error(msg)
-
+                
                 raise AssertionError(msg)
 
             except Exception:
@@ -1923,7 +1923,6 @@ class insVPixelStore(BaseInstruction):
         elif value > 65535:
             value = 65535
 
-        assert self.attr in vm.gfx_data
         array = vm.gfx_data[self.attr]
 
         # array reference, this is an array set
@@ -2041,32 +2040,25 @@ class insPixelLoadAttr(insPixelLoad):
 class insPixelAdd(BaseInstruction):
     mnemonic = 'PADD'
 
-    def __init__(self, pixel_ref, attr, value, **kwargs):
+    def __init__(self, pixel_index, attr, value, **kwargs):
         super().__init__(**kwargs)
         
-        self.pixel_ref = pixel_ref
+        self.pixel_index = pixel_index
         self.attr = attr
         self.value = value
 
     def __str__(self):
-        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
+        return "%s %s.%s += %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
 
     def execute(self, vm):
-        ref = vm.registers[self.pixel_ref.reg]
+        index = vm.registers[self.pixel_index.reg]
         value = vm.registers[self.value.reg]
 
-        if self.attr in vm.gfx_data:
-            array = vm.gfx_data[self.attr]
-
-            # if we got an index, this is an indexed access
-            array[ref.addr] += value
-
-        else:
-            # pixel attributes not settable in code for now
-            assert False
+        array = vm.gfx_data[self.attr]
+        array[index] += value
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
 
 class insPixelAddHue(insPixelAdd):
     mnemonic = 'PADD_HUE'
@@ -2086,29 +2078,31 @@ class insVPixelAdd(BaseInstruction):
 
     def execute(self, vm):
         ref = vm.registers[self.pixel_ref.reg]
+        pixel_array = vm.get_pixel_array(ref)
         value = vm.registers[self.value.reg]
+        array = vm.gfx_data[self.attr]
 
-        if self.attr in vm.gfx_data:
-            array = vm.gfx_data[self.attr]
-
-            assert not isinstance(ref, int)
-
-            # array reference, this is an array set
-            for i in range(len(array)):
-                array[i] += value
-
-        else:
-            # pixel attributes not settable in code for now
-            assert False
+        for i in range(pixel_array['count']):
+            idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
+            array[idx] += value
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
-class insVPixelAddHue(insPixelAdd):
+class insVPixelAddHue(insVPixelAdd):
     mnemonic = 'VADD_HUE'
 
+class insVPixelAddSat(insVPixelAdd):
+    mnemonic = 'VADD_SAT'
 
+class insVPixelAddVal(insVPixelAdd):
+    mnemonic = 'VADD_VAL'
 
+class insVPixelAddHSFade(insVPixelAdd):
+    mnemonic = 'VADD_HS_FADE'
+
+class insVPixelAddVFade(insVPixelAdd):
+    mnemonic = 'VADD_V_FADE'
 
 
 

@@ -557,7 +557,6 @@ def pix_sat_store2():
 def pix_count():
     assert pixels.count == 16
 
-
 def pix_add_hue():
     pixels.hue = 0.0
 
@@ -565,7 +564,8 @@ def pix_add_hue():
     pixels[1].hue += 0.1
 
     assert pixels[0].hue == 0.1
-    assert pixels[1].hue == 0.2
+    assert pixels[1].hue == 0.199981689453125 # round off error, this is ok
+
 
 
 # string = String("hello!")

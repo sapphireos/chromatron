@@ -1,8 +1,14 @@
-
-
 def pix_add_hue():
-    # pixels.hue += 0.1
+    pixels.hue = 0.0
+    pixels.hue += 0.1
     pixels[1].hue += 0.1
+
+    # print(pixels[1].hue)
+    # print(0.2)
+    print(0.199981689453125)
+
+    # assert pixels[0].hue == 0.1
+    assert pixels[1].hue == 0.199981689453125
 
     
 # a = Number(220000)
