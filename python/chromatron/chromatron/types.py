@@ -282,14 +282,6 @@ class varRef(varRegister):
         self.target = target
 
     @property
-    def ref(self):
-        return None
-
-    @ref.setter
-    def ref(self, value):
-        assert False
-
-    @property
     def scalar_type(self):
         return self.target.scalar_type
 

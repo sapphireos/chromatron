@@ -336,7 +336,7 @@ class insFunc(object):
         if pool_type == StorageType.LOCAL:
             return self.locals
 
-        return self.program.get_pool(pool)
+        return self.program.get_pool(pool_type)
 
     def get_pixel_array(self, index):
         try:
@@ -1403,15 +1403,13 @@ class insVector(BaseInstruction):
         if not self.value.var.is_scalar:
             raise SyntaxError(f'Vector operations must use a scalar operand', lineno=self.lineno)
 
-        self.is_global = self.target.var.target.is_global
-
         self.length = self.target.var.target.size
 
     def __str__(self):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
 
     def assemble(self):
-        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.is_global, self.value.assemble(), self.length, lineno=self.lineno)
+        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.value.assemble(), self.length, lineno=self.lineno)
 
 class insVectorMov(insVector):
     mnemonic = 'VMOV'
@@ -1420,13 +1418,10 @@ class insVectorMov(insVector):
 
     def execute(self, vm):
         value = vm.registers[self.value.reg]
-        addr = vm.registers[self.target.reg]
+        ref = vm.registers[self.target.reg]
 
-        if self.is_global:
-            array = vm.memory
-
-        else:
-            array = vm.locals
+        array = ref.pool
+        addr = ref.addr
 
         for i in range(self.length):    
             array[addr] = value
@@ -1440,13 +1435,10 @@ class insVectorAdd(insVector):
 
     def execute(self, vm):
         value = vm.registers[self.value.reg]
-        addr = vm.registers[self.target.reg]
+        ref = vm.registers[self.target.reg]
 
-        if self.is_global:
-            array = vm.memory
-
-        else:
-            array = vm.locals
+        array = ref.pool
+        addr = ref.addr
 
         for i in range(self.length):
             array[addr] += value

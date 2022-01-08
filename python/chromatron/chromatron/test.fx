@@ -64,23 +64,31 @@
 #     # b = 1
 #     # ary[b] = 2
 
+ary = Number()[4]
 
 
+def array_vector():
+    # ary = 1
+    ary += 1
+    # assert ary[0] == 2
+    # assert ary[1] == 2
+    # assert ary[2] == 2
+    # assert ary[3] == 2
 
-def meow(b: Number[4]): # we definitely can't return an array reference?
-    return b[0] + b[2]
+# def meow(b: Number[4]): # we definitely can't return an array reference?
+#     return b[0] + b[2]
 
-# a = Number()[4]
+# # a = Number()[4]
 
-def init():
-    l = Number()[4]
+# def init():
+#     l = Number()[4]
 
-    l[0] = 1
-    l[1] = 2
-    l[2] = 3
-    l[3] = 4
+#     l[0] = 1
+#     l[1] = 2
+#     l[2] = 3
+#     l[3] = 4
 
-    return meow(l)
+#     return meow(l)
 
 
 # #     a = Number()
