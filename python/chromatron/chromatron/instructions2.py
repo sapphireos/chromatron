@@ -190,6 +190,8 @@ class insProgram(object):
 
             self.pixel_arrays[p] = array
 
+        self.pixel_array_pool = StoragePool('_pixels', list(self.pixel_arrays.values()))
+
         self.hue        = [0 for i in range(self.pix_count)]
         self.sat        = [0 for i in range(self.pix_count)]
         self.val        = [0 for i in range(self.pix_count)]
@@ -233,6 +235,9 @@ class insProgram(object):
 
         elif pool_type == StorageType.FUNCTIONS:
             pool = self.funcs
+
+        elif pool_type == StorageType.PIXEL_ARRAY:
+            pool = self.pixel_array_pool
 
         else:
             raise InvalidStoragePool(pool_type)
