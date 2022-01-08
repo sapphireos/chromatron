@@ -1,4 +1,10 @@
 
+
+def pix_add_hue():
+    # pixels.hue += 0.1
+    pixels[1].hue += 0.1
+
+    
 # a = Number(220000)
 # string = String("hello!")
 # string2 = String("world!")
@@ -44,38 +50,38 @@
 
 # pix1 = PixelArray(2, 3)
 
-a = Number()[4]
+# a = Number()[4]
 
-def woof(b: Number[4]):
-    return b[0] + b[2]
+# def woof(b: Number[4]):
+#     return b[0] + b[2]
 
-def meow(b: Number[4]):
-    # return b[0] + b[2]
-    # return b
-    return woof(b)
+# def meow(b: Number[4]):
+#     # return b[0] + b[2]
+#     # return b
+#     return woof(b)
 
-def init():
-    l = Number()[4]
-    # return a
+# def init():
+#     l = Number()[4]
+#     # return a
 
-    l[0] = 1
-    l[1] = 2
-    l[2] = 3
-    l[3] = 4
+#     l[0] = 1
+#     l[1] = 2
+#     l[2] = 3
+#     l[3] = 4
 
-    return meow(l)
+#     return meow(l)
 
-    # f = Function()
-    # f = meow
+#     # f = Function()
+#     # f = meow
 
-    # f2 = Function()[4]
+#     # f2 = Function()[4]
 
-    # return f
+#     # return f
 
-    # return meow
+#     # return meow
 
 
-# #     a = Number()
+# # #     a = Number()
 
 # #     a = l[0][1]
 

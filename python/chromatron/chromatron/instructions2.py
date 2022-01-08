@@ -2058,10 +2058,8 @@ class insPixelAdd(BaseInstruction):
         if self.attr in vm.gfx_data:
             array = vm.gfx_data[self.attr]
 
-            assert isinstance(ref, int)
-            
             # if we got an index, this is an indexed access
-            array[ref] += value
+            array[ref.addr] += value
 
         else:
             # pixel attributes not settable in code for now

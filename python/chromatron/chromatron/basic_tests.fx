@@ -557,6 +557,17 @@ def pix_sat_store2():
 def pix_count():
     assert pixels.count == 16
 
+
+def pix_add_hue():
+    pixels.hue = 0.0
+
+    pixels.hue += 0.1
+    pixels[1].hue += 0.1
+
+    assert pixels[0].hue == 0.1
+    assert pixels[1].hue == 0.2
+
+
 # string = String("hello!")
 # string2 = String(32)
 
