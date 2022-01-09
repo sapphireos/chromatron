@@ -1226,20 +1226,21 @@ class Builder(object):
                     self.current_lookup[0] = self.current_lookup[0][:len(self.current_lookup[0]) - len(offset.target.lookups)]
 
                 lookups = self.current_lookup.pop(0)
-                counts = []
-                strides = []
+                # counts = []
+                # strides = []
 
-                for count in ref.target.get_counts():
-                    counts.append(self.add_const(count, lineno=lineno))
+                # for count in ref.target.get_counts():
+                #     counts.append(self.add_const(count, lineno=lineno))
 
-                for stride in ref.target.get_strides():
-                    strides.append(self.add_const(stride, lineno=lineno))
+                # for stride in ref.target.get_strides():
+                #     strides.append(self.add_const(stride, lineno=lineno))
 
-                # limit depth to number of indexes
-                counts = counts[:len(lookups)]
-                strides = strides[:len(lookups)]
+                # # limit depth to number of indexes
+                # counts = counts[:len(lookups)]
+                # strides = strides[:len(lookups)]
 
-                ir = irOffset(offset, ref, lookups, counts, strides, lineno=lineno)
+                # ir = irOffset(offset, ref, lookups, counts, strides, lineno=lineno)
+                ir = irLookup(offset, ref, lookups, lineno=lineno)
                 self.append_node(ir)
 
                 return offset
@@ -1260,20 +1261,20 @@ class Builder(object):
                 self.current_lookup[0] = self.current_lookup[0][:len(self.current_lookup[0]) - len(offset.target.lookups)]
 
             lookups = self.current_lookup.pop(0)
-            counts = []
-            strides = []
+            # counts = []t
+            # strides = []
 
-            for count in ref.target.get_counts():
-                counts.append(self.add_const(count, lineno=lineno))
+            # for count in ref.target.get_counts():
+            #     counts.append(self.add_const(count, lineno=lineno))
 
-            for stride in ref.target.get_strides():
-                strides.append(self.add_const(stride, lineno=lineno))
+            # for stride in ref.target.get_strides():
+            #     strides.append(self.add_const(stride, lineno=lineno))
 
-            # limit depth to number of indexes
-            counts = counts[:len(lookups)]
-            strides = strides[:len(lookups)]
+            # # limit depth to number of indexes
+            # counts = counts[:len(lookups)]
+            # strides = strides[:len(lookups)]
 
-            ir = irOffset(offset, ref, lookups, counts, strides, lineno=lineno)
+            ir = irLookup(offset, ref, lookups, lineno=lineno)
             self.append_node(ir)
 
             return offset

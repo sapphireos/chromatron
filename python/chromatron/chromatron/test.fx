@@ -1,11 +1,16 @@
 
 ary = Number()[4]
 
+def meow(a: Number[4]):
+    return a[0]
+
 def init():
     ary[0] = 1
     # ary[0] = 1 + ary[0]
 
-    print(ary[0])
+    return meow(ary)
+
+    # print(ary[0])
 
 # a = Number(220000)
 # string = String("hello!")

@@ -949,17 +949,17 @@ class insLoadString(BaseInstruction):
 class insLookup(BaseInstruction):
     mnemonic = 'LKP'
     
-    def __init__(self, result, ref, indexes, counts, strides, **kwargs):
+    def __init__(self, result, ref, indexes, **kwargs):
         super().__init__(**kwargs)
         self.result = result
         self.ref = ref
         self.indexes = indexes
-        self.counts = counts
-        self.strides = strides
+        # self.counts = counts
+        # self.strides = strides
 
         self.len = len(indexes)
-        assert len(counts) == self.len
-        assert len(strides) == self.len
+        # assert len(counts) == self.len
+        # assert len(strides) == self.len
 
         assert ref is not None
 
@@ -980,8 +980,10 @@ class insLookup(BaseInstruction):
         for i in range(len(self.indexes)):
             index = vm.registers[self.indexes[i].reg]
             
-            count = vm.registers[self.counts[i].reg]
-            stride = vm.registers[self.strides[i].reg]
+            # count = vm.registers[self.counts[i].reg]
+            # stride = vm.registers[self.strides[i].reg]
+            count = 0
+            stride = 0
 
             if count > 0:
                 index %= count
@@ -1002,8 +1004,8 @@ class insLookup0(insLookup):
 
     def assemble(self):
         indexes = [i.assemble() for i in self.indexes]
-        counts = [i.assemble() for i in self.counts]
-        strides = [i.assemble() for i in self.strides]
+        # counts = [i.assemble() for i in self.counts]
+        # strides = [i.assemble() for i in self.strides]
 
         return OpcodeFormatLookup0(
                 self.mnemonic, 
@@ -1016,16 +1018,16 @@ class insLookup1(insLookup):
 
     def assemble(self):
         indexes = [i.assemble() for i in self.indexes]
-        counts = [i.assemble() for i in self.counts]
-        strides = [i.assemble() for i in self.strides]
+        # counts = [i.assemble() for i in self.counts]
+        # strides = [i.assemble() for i in self.strides]
 
         return OpcodeFormatLookup1(
                 self.mnemonic, 
                 self.result.assemble(),
                 self.ref.assemble(), 
                 indexes, 
-                counts, 
-                strides, 
+                # counts, 
+                # strides, 
                 lineno=self.lineno)
 
 class insLookup2(insLookup):
@@ -1050,16 +1052,16 @@ class insLookup3(insLookup):
 
     def assemble(self):
         indexes = [i.assemble() for i in self.indexes]
-        counts = [i.assemble() for i in self.counts]
-        strides = [i.assemble() for i in self.strides]
+        # counts = [i.assemble() for i in self.counts]
+        # strides = [i.assemble() for i in self.strides]
 
         return OpcodeFormatLookup1(
                 self.mnemonic, 
                 self.result.assemble(),
                 self.ref.assemble(), 
                 indexes, 
-                counts, 
-                strides, 
+                # counts, 
+                # strides, 
                 lineno=self.lineno)
     
 # class insLookupGlobal(BaseInstruction):

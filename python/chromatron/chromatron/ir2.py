@@ -4127,28 +4127,28 @@ class irExpr(IR):
         return hash(self) == hash(other)
 
 
-class irOffset(IR):
-    def __init__(self, result, ref, lookups=[], counts=[], strides=[], **kwargs):
+class irLookup(IR):
+    def __init__(self, result, ref, lookups=[], **kwargs):
         super().__init__(**kwargs)        
         self.result = result
         self.ref = ref
         assert isinstance(ref.var, varRef)
         self.lookups = lookups
-        self.counts = counts
-        self.strides = strides
+        # self.counts = counts
+        # self.strides = strides
 
     def __str__(self):
         lookups = ''
         for a in self.lookups:
             lookups += f'[{a}]'
 
-        return f'{self.result} = OFFSET {self.ref} {lookups}'
+        return f'{self.result} = LOOKUP {self.ref} {lookups}'
 
     def get_input_vars(self):
         inputs = [self.ref]
         inputs.extend(self.lookups)
-        inputs.extend(self.counts)
-        inputs.extend(self.strides)
+        # inputs.extend(self.counts)
+        # inputs.extend(self.strides)
         return inputs
         
     def get_output_vars(self):
@@ -4156,78 +4156,78 @@ class irOffset(IR):
 
     def generate(self):
         indexes = [i.generate() for i in self.lookups]
-        counts = [i.generate() for i in self.counts]
-        strides = [i.generate() for i in self.strides]
+        # counts = [i.generate() for i in self.counts]
+        # strides = [i.generate() for i in self.strides]
 
         if len(indexes) == 0:
-            return insLookup0(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
+            return insLookup0(self.result.generate(), self.ref.generate(), indexes, lineno=self.lineno)
 
         elif len(indexes) == 1:
-            return insLookup1(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
+            return insLookup1(self.result.generate(), self.ref.generate(), indexes, lineno=self.lineno)
 
         elif len(indexes) == 2:
-            return insLookup2(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
+            return insLookup2(self.result.generate(), self.ref.generate(), indexes, lineno=self.lineno)
 
         elif len(indexes) == 3:
-            return insLookup3(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
+            return insLookup3(self.result.generate(), self.ref.generate(), indexes, lineno=self.lineno)
         
         else:
             raise CompilerFatal(f'VM does not have an instruction coded for {len(indexes)} indexes')
 
         
 
-class irLookup(IR):
-    def __init__(self, result, target, lookups=[], counts=[], strides=[], **kwargs):
-        super().__init__(**kwargs)        
-        self.result = result
-        self.target = target
-        assert target.data_type != 'offset'
-        self.lookups = lookups
-        self.counts = counts
-        self.strides = strides
+# class irLookup(IR):
+#     def __init__(self, result, target, lookups=[], counts=[], strides=[], **kwargs):
+#         super().__init__(**kwargs)        
+#         self.result = result
+#         self.target = target
+#         assert target.data_type != 'offset'
+#         self.lookups = lookups
+#         self.counts = counts
+#         self.strides = strides
 
-    def __str__(self):
-        lookups = ''
-        for a in self.lookups:
-            lookups += f'[{a}]'
+#     def __str__(self):
+#         lookups = ''
+#         for a in self.lookups:
+#             lookups += f'[{a}]'
 
-        return f'{self.result} = LOOKUP {self.target} {lookups}'
+#         return f'{self.result} = LOOKUP {self.target} {lookups}'
 
-    def get_input_vars(self):
-        inputs = []
-        inputs.extend(self.lookups)
-        inputs.extend(self.counts)
-        inputs.extend(self.strides)
-        return inputs
+#     def get_input_vars(self):
+#         inputs = []
+#         inputs.extend(self.lookups)
+#         inputs.extend(self.counts)
+#         inputs.extend(self.strides)
+#         return inputs
         
-    def get_output_vars(self):
-        return [self.result]
+#     def get_output_vars(self):
+#         return [self.result]
 
-    def generate(self):
-        indexes = [i.generate() for i in self.lookups]
-        counts = [i.generate() for i in self.counts]
-        strides = [i.generate() for i in self.strides]
+#     def generate(self):
+#         indexes = [i.generate() for i in self.lookups]
+#         counts = [i.generate() for i in self.counts]
+#         strides = [i.generate() for i in self.strides]
 
-        if len(indexes) == 0:
-            return insLookup0(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+#         if len(indexes) == 0:
+#             return insLookup0(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
-        elif len(indexes) == 1:
-            return insLookup1(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+#         elif len(indexes) == 1:
+#             return insLookup1(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
-        elif len(indexes) == 2:
-            return insLookup2(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+#         elif len(indexes) == 2:
+#             return insLookup2(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
-        elif len(indexes) == 3:
-            return insLookup3(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+#         elif len(indexes) == 3:
+#             return insLookup3(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
         
-        else:
-            raise CompilerFatal(f'VM does not have an instruction coded for {len(indexes)} indexes')
+#         else:
+#             raise CompilerFatal(f'VM does not have an instruction coded for {len(indexes)} indexes')
 
-        # if self.target.is_global:    
-        #     return insLookupGlobal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+#         # if self.target.is_global:    
+#         #     return insLookupGlobal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
-        # else:
-        #     return insLookupLocal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
+#         # else:
+#         #     return insLookupLocal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
 
 class irAttribute(IR):
