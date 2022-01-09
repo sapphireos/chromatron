@@ -1,10 +1,15 @@
 
 
-def meow(a: Number) -> Number:
-    return a + 1
+# def meow(a: Number) -> Number:
+    # return a + 1
 
 def init():
-    print(meow(1))
+    # print(meow(1))
+    pixels.hue = 0.0
+    pixels[2].hue = 0.1
+
+    pixels.hue += 0.1
+    pixels[2].hue += 0.1
 
 # ary = Number()[4]
 

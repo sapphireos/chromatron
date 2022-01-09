@@ -1445,14 +1445,18 @@ opcode_conv_gfx16_to_f16:
 opcode_plookup1:
     DECODE_3AC;
 
-    registers[opcode_3ac->dest] = gfx_u16_calc_index( registers[opcode_3ac->op1], registers[opcode_3ac->op2], 65535 );
+    ref.n = registers[opcode_3ac->op1];
+
+    registers[opcode_3ac->dest] = gfx_u16_calc_index( ref.ref.addr, registers[opcode_3ac->op2], 65535 );
     
     DISPATCH;
 
 opcode_plookup2:
     DECODE_4AC;
     
-    registers[opcode_4ac->dest] = gfx_u16_calc_index( registers[opcode_4ac->op1], registers[opcode_4ac->op2], registers[opcode_4ac->op3] );
+    ref.n = registers[opcode_4ac->op1];
+
+    registers[opcode_4ac->dest] = gfx_u16_calc_index( ref.ref.addr, registers[opcode_4ac->op2], registers[opcode_4ac->op3] );
     
     DISPATCH;
 
@@ -1568,12 +1572,10 @@ opcode_vstore_hue:
     DECODE_2AC;
 
     value = registers[opcode_2ac->op1];
-
-    // wrap hue
-    //value %= 65536;
+    ref.n = registers[opcode_2ac->dest];
 
     // this badly needs to be optimized
-    gfx_v_array_move( registers[opcode_2ac->dest], PIX_ATTR_HUE, value );
+    gfx_v_array_move( ref.ref.addr, PIX_ATTR_HUE, value );
 
     DISPATCH;
 
@@ -1603,12 +1605,10 @@ opcode_vadd_hue:
     DECODE_2AC;
 
     value = registers[opcode_2ac->op1];
-
-    // wrap hue
-    //value %= 65536;
+    ref.n = registers[opcode_2ac->dest];
 
     // this badly needs to be optimized
-    gfx_v_array_add( registers[opcode_2ac->dest], PIX_ATTR_HUE, value );    
+    gfx_v_array_add( ref.ref.addr, PIX_ATTR_HUE, value );    
 
     DISPATCH;
 
