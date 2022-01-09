@@ -975,6 +975,46 @@ opcode_ldm:
 
 //     DISPATCH;
 
+opcode_ldgi:
+    DECODE_1I1R;    
+    
+    registers[opcode_1i1r->reg1] = global_memory[opcode_1i1r->imm1];    
+
+    DISPATCH;
+
+opcode_stm:
+    DECODE_2AC;    
+
+    ref.n = registers[opcode_2ac->dest];
+
+    *( pools[ref.ref.pool] + ref.ref.addr ) = registers[opcode_2ac->op1];
+    
+    // global_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
+
+    DISPATCH;
+
+// opcode_stg:
+//     DECODE_2AC;    
+    
+//     global_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
+
+//     DISPATCH;
+
+// opcode_stl:
+//     DECODE_2AC;    
+    
+//     local_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
+
+//     DISPATCH;
+
+opcode_stgi:
+    DECODE_1I1R;    
+    
+    global_memory[opcode_1i1r->imm1] = registers[opcode_1i1r->reg1];    
+
+    DISPATCH;
+
+
 opcode_ref:
     DECODE_2I1R;    
 
@@ -1012,42 +1052,69 @@ opcode_ref:
 
     DISPATCH;    
 
-opcode_ldgi:
-    DECODE_1I1R;    
-    
-    registers[opcode_1i1r->reg1] = global_memory[opcode_1i1r->imm1];    
+// opcode_lookup0:
+//     DECODE_LKP0;
 
-    DISPATCH;
 
-opcode_stm:
-    DECODE_2AC;    
+//     // we maybe shoudln't need lookup0....
 
-    ref.n = registers[opcode_2ac->dest];
+//     ref.n = registers[opcode_lkp0->ref];
 
-    *( pools[ref.ref.pool] + ref.ref.addr ) = registers[opcode_2ac->op1];
-    
-    // global_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
-
-    DISPATCH;
-
-// opcode_stg:
-//     DECODE_2AC;    
-    
-//     global_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
+//     registers[opcode_lkp0->dest] = ref.n;
 
 //     DISPATCH;
 
-// opcode_stl:
-//     DECODE_2AC;    
-    
-//     local_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
+opcode_lookup1:
+    DECODE_LKP1;
 
-//     DISPATCH;
+    ref.n = registers[opcode_lkp1->ref];
 
-opcode_stgi:
-    DECODE_1I1R;    
-    
-    global_memory[opcode_1i1r->imm1] = registers[opcode_1i1r->reg1];    
+    index = registers[opcode_lkp1->index1];
+    count = registers[opcode_lkp1->count1];
+    stride = registers[opcode_lkp1->stride1];
+
+    if( count > 0 ){
+
+        index %= count;
+        index *= stride;
+    }
+
+    ref.ref.addr += index;
+
+    registers[opcode_lkp1->dest] = ref.n;
+
+    DISPATCH;
+
+opcode_lookup2:
+    DECODE_LKP2;
+
+    ref.n = registers[opcode_lkp2->ref];
+
+    index = registers[opcode_lkp2->index1];
+    count = registers[opcode_lkp2->count1];
+    stride = registers[opcode_lkp2->stride1];
+
+    if( count > 0 ){
+
+        index %= count;
+        index *= stride;
+    }
+
+    ref.ref.addr += index;
+
+    index = registers[opcode_lkp2->index2];
+    count = registers[opcode_lkp2->count2];
+    stride = registers[opcode_lkp2->stride2];
+
+    if( count > 0 ){
+
+        index %= count;
+        index *= stride;
+    }
+
+    ref.ref.addr += index;
+
+    registers[opcode_lkp2->dest] = ref.n;
 
     DISPATCH;
 
@@ -1485,72 +1552,6 @@ opcode_pstore_attr:
 
         ptr_i32[opcode_1i2rs->imm1] = registers[opcode_1i2rs->reg2];
     }
-
-    DISPATCH;
-
-// opcode_lookup0:
-//     DECODE_LKP0;
-
-
-//     // we maybe shoudln't need lookup0....
-
-//     ref.n = registers[opcode_lkp0->ref];
-
-//     registers[opcode_lkp0->dest] = ref.n;
-
-//     DISPATCH;
-
-opcode_lookup1:
-    DECODE_LKP1;
-
-    ref.n = registers[opcode_lkp1->ref];
-
-    index = registers[opcode_lkp1->index1];
-    count = registers[opcode_lkp1->count1];
-    stride = registers[opcode_lkp1->stride1];
-
-    if( count > 0 ){
-
-        index %= count;
-        index *= stride;
-    }
-
-    ref.ref.addr += index;
-
-    registers[opcode_lkp1->dest] = ref.n;
-
-    DISPATCH;
-
-opcode_lookup2:
-    DECODE_LKP2;
-
-    ref.n = registers[opcode_lkp2->ref];
-
-    index = registers[opcode_lkp2->index1];
-    count = registers[opcode_lkp2->count1];
-    stride = registers[opcode_lkp2->stride1];
-
-    if( count > 0 ){
-
-        index %= count;
-        index *= stride;
-    }
-
-    ref.ref.addr += index;
-
-    index = registers[opcode_lkp2->index2];
-    count = registers[opcode_lkp2->count2];
-    stride = registers[opcode_lkp2->stride2];
-
-    if( count > 0 ){
-
-        index %= count;
-        index *= stride;
-    }
-
-    ref.ref.addr += index;
-
-    registers[opcode_lkp2->dest] = ref.n;
 
     DISPATCH;
 
