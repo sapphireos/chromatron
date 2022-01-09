@@ -89,6 +89,22 @@ static uint32_t cycles;
 // } decodep3_t;
 // #endif
 
+typedef struct __attribute__((packed)){
+    uint8_t pool;
+    uint16_t addr;
+} packed_reference_t;
+
+typedef union{
+    packed_reference_t ref;
+    uint32_t n;
+} reference_t;
+
+
+#define POOL_GLOBAL             0
+#define POOL_PIXEL_ARRAY        1
+#define POOL_STRING_LITERALS    2
+#define POOL_FUNCTIONS          3
+#define POOL_LOCAL              4
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
@@ -134,6 +150,14 @@ typedef struct __attribute__((packed)){
     uint8_t reg1;
 } opcode_1i1r_t;
 #define DECODE_1I1R opcode_1i1r = (opcode_1i1r_t *)pc; pc += 4;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint16_t imm1;
+    uint16_t imm2;
+    uint8_t reg1;
+} opcode_2i1r_t;
+#define DECODE_2I1R opcode_2i1r = (opcode_2i1r_t *)pc; pc += 8;
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
@@ -185,12 +209,14 @@ static int8_t _vm_i8_run_stream(
         &&opcode_mov,               // 1
         &&opcode_ldi,               // 2
         &&opcode_ldc,               // 3
-        &&opcode_ldg,               // 4
-        &&opcode_ldl,               // 5
+        &&opcode_ldm,               // 4
+        // &&opcode_ldg,               // 4
+        // &&opcode_ldl,               // 5
         &&opcode_ref,               // 6
         &&opcode_ldgi,              // 7
-        &&opcode_stg,               // 8
-        &&opcode_stl,               // 9
+        &&opcode_stm,               // 8
+        // &&opcode_stg,               // 8
+        // &&opcode_stl,               // 9
         &&opcode_stgi,              // 10
         &&opcode_ldstr,             // 11
 
@@ -821,6 +847,7 @@ static int8_t _vm_i8_run_stream(
     uint16_t index;
     int32_t params[8];
     uint32_t addr;
+    reference_t ref;
 
     int32_t *ptr_i32;
     gfx_pixel_array_t *pix_array;
@@ -831,6 +858,7 @@ static int8_t _vm_i8_run_stream(
     opcode_4ac_t *opcode_4ac;
     opcode_1i_t *opcode_1i;
     opcode_1i1r_t *opcode_1i1r;
+    opcode_2i1r_t *opcode_2i1r;
     // opcode_1i2r_t *opcode_1i2r;
     opcode_1i2rs_t *opcode_1i2rs;
     opcode_1i3r_t *opcode_1i3r;
@@ -873,24 +901,37 @@ opcode_ldc:
 
     DISPATCH;
 
-opcode_ldg:
+opcode_ldm:
     DECODE_2AC;    
     
-    registers[opcode_2ac->dest] = global_memory[registers[opcode_2ac->op1]];    
+    // registers[opcode_2ac->dest] = global_memory[registers[opcode_2ac->op1]];    
 
     DISPATCH;
 
-opcode_ldl:
-    DECODE_2AC;    
+// opcode_ldg:
+//     DECODE_2AC;    
     
-    registers[opcode_2ac->dest] = local_memory[registers[opcode_2ac->op1]];    
+//     registers[opcode_2ac->dest] = global_memory[registers[opcode_2ac->op1]];    
 
-    DISPATCH;
+//     DISPATCH;
+
+// opcode_ldl:
+//     DECODE_2AC;    
+    
+//     registers[opcode_2ac->dest] = local_memory[registers[opcode_2ac->op1]];    
+
+//     DISPATCH;
 
 opcode_ref:
-    DECODE_1I1R;    
+    DECODE_2I1R;    
 
-    registers[opcode_1i1r->reg1] = opcode_1i1r->imm1;    
+    // imm1 = addr
+    // imm2 = storage pool
+
+    ref.ref.addr = opcode_2i1r->imm1;
+    ref.ref.pool = opcode_2i1r->imm2;
+
+    registers[opcode_2i1r->reg1] = ref.n;    
 
     DISPATCH;    
 
@@ -901,19 +942,26 @@ opcode_ldgi:
 
     DISPATCH;
 
-opcode_stg:
+opcode_stm:
     DECODE_2AC;    
     
-    global_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
+    // global_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
 
     DISPATCH;
 
-opcode_stl:
-    DECODE_2AC;    
+// opcode_stg:
+//     DECODE_2AC;    
     
-    local_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
+//     global_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
 
-    DISPATCH;
+//     DISPATCH;
+
+// opcode_stl:
+//     DECODE_2AC;    
+    
+//     local_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
+
+//     DISPATCH;
 
 opcode_stgi:
     DECODE_1I1R;    

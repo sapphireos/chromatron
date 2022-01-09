@@ -388,6 +388,13 @@ class OpcodeFormat1Imm1Reg(Opcode32):
         self.items = [imm1, reg1]
         self.format = 'HB'
 
+class OpcodeFormat2Imm1Reg(Opcode64):
+    def __init__(self, opcode, imm1, imm2, reg1, **kwargs):
+        super().__init__(opcode, **kwargs)
+
+        self.items = [imm1, imm2, reg1]
+        self.format = 'HHB'
+
 class OpcodeFormat1Imm2Reg(Opcode64):
     def __init__(self, opcode, imm1, reg1, reg2, **kwargs):
         super().__init__(opcode, **kwargs)

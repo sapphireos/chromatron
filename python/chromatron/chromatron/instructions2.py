@@ -28,6 +28,7 @@ from catbus import *
 from sapphire.common import catbus_string_hash
 from .opcode import *
 from .image import FXImage
+from elysianfields import *
 
 from .exceptions import *
 
@@ -82,8 +83,7 @@ class StorageType(Enum):
     STRING_LITERALS = 2
     FUNCTIONS       = 3
     LOCAL           = 4
-    STACK           = 5
-
+        
 class StoragePool(list):
     def __init__(self, name, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -616,7 +616,7 @@ class insAddr(BaseInstruction):
         assert self.addr >= 0
 
         return self.addr
-        
+
 # pseudo instruction - does not actually produce an opcode
 class insRef(BaseInstruction):
     mnemonic = '_REF'
@@ -632,13 +632,7 @@ class insRef(BaseInstruction):
         return f"Ref({self.addr}@{self.pool.name})"
     
     def assemble(self):
-        assert self.addr >= 0
-
-        # if self.pool == StorageType.GLOBAL:
-        #     return self.addr | 0x8000
-
-        # else:
-        return self.addr
+        return Reference(self.addr, self.pool).pack()
 
 
 class insNop(BaseInstruction):
@@ -799,7 +793,7 @@ class insLoadRef(BaseInstruction):
         vm.registers[self.dest.reg] = ref
 
     def assemble(self):
-        return OpcodeFormat1Imm1Reg(self.mnemonic, self.src.assemble(), self.dest.assemble(), lineno=self.lineno)
+        return OpcodeFormat2Imm1Reg(self.mnemonic, self.src.addr, self.src.storage.value, self.dest.assemble(), lineno=self.lineno)
 
 class insLoadGlobalImmediate(BaseInstruction):
     mnemonic = 'LDGI'
