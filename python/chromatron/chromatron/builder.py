@@ -461,6 +461,14 @@ class Builder(object):
             if len(params) != len(func.params):
                 raise SyntaxError(f'Incorrect number of arguments to function: {func.name}. Expected: {len(func.params)} Received: {len(params)}', lineno=lineno)
 
+            for i in range(len(params)):
+                src = params[i]
+                dest = func.params[i]
+
+                param = self.convert_type(dest, src, lineno=lineno)
+                
+                params[i] = param
+
             ir = irCall(func, params, lineno=lineno)
             self.append_node(ir)
 
