@@ -1,16 +1,34 @@
+current_hue = Fixed16()
 
-
-# def meow(a: Number) -> Number:
-    # return a + 1
-
+# init - runs once when script is loaded
 def init():
-    # print(meow(1))
-    # pixels.hue = 0.0
-    # pixels[2].hue = 0.1
+    # set pixels to full colors (maximum saturation)
+    pixels.sat = 1.0
 
-    # pixels.hue += 0.1
-    # pixels[2].hue += 0.1
-    print(pixels.count)
+    # set to maximum brightness
+    pixels.val = 1.0
+
+
+# runs periodically, frame rate is configurable
+def loop():
+    # increment the base hue so the rainbow pattern
+    # shifts across the pixels as we go from one frame
+    # to the next.
+    current_hue += 0.005
+
+    # declare a local variable
+    a = Fixed16()
+    a = current_hue
+
+    # loop over all pixels in array
+    for i in pixels.count:
+        pixels[i].hue = a
+        
+        # shift color for next pixel.
+        # this will distribute the rainbow pattern
+        # across the entire array.
+        a += 1.0 / pixels.count
+
 
 # ary = Number()[4]
 

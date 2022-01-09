@@ -356,9 +356,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 103
         
         &&opcode_vstore_hue,        // 104
-
-        &&opcode_trap,              // 105
-        &&opcode_trap,              // 106
+        &&opcode_vstore_sat,        // 105
+        &&opcode_vstore_val,        // 106
         &&opcode_trap,              // 107
         &&opcode_trap,              // 108
         &&opcode_trap,              // 109
@@ -1202,13 +1201,15 @@ opcode_loop:
 
     // increment iterator:
     // note that inputs and outputs differ!
-    registers[opcode_1i3r->reg2] = registers[opcode_1i3r->reg1] + 1;
+    value = registers[opcode_1i3r->reg1] + 1;
 
     // compare against stop:
-    if( registers[opcode_1i3r->reg2] < registers[opcode_1i3r->reg3] ){
+    if( value < registers[opcode_1i3r->reg3] ){
 
         pc = code + opcode_1i3r->imm1;
     }
+
+    registers[opcode_1i3r->reg2] = value;
     
     DISPATCH;    
 
@@ -1584,6 +1585,27 @@ opcode_vstore_hue:
 
     DISPATCH;
 
+opcode_vstore_sat:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_move( ref.ref.addr, PIX_ATTR_SAT, value );
+
+    DISPATCH;
+
+opcode_vstore_val:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_move( ref.ref.addr, PIX_ATTR_VAL, value );
+
+    DISPATCH;
 
 opcode_pload_hue:
     DECODE_2AC;
