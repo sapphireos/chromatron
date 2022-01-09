@@ -456,13 +456,15 @@ class OpcodeFormatLookup1(Opcode):
             dest,
             ref, 
             indexes[0], 
+            counts[0], 
+            strides[0],
         ]
 
-        self.format = 'BBB'
+        self.format = 'BBBBB'
     
     @property
     def length(self):
-        return 4
+        return 8
 
 class OpcodeFormatLookup2(Opcode):
     def __init__(self, opcode, dest, ref, indexes=[], counts=[], strides=[], **kwargs):
@@ -472,14 +474,18 @@ class OpcodeFormatLookup2(Opcode):
             dest,
             ref, 
             indexes[0], 
+            counts[0], 
+            strides[0],
             indexes[1], 
+            counts[1], 
+            strides[1],
         ]
 
-        self.format = 'BBBB'
+        self.format = 'BBBBBBBB'
     
     @property
     def length(self):
-        return 8
+        return 12
 
 class OpcodeFormatLookup3(Opcode):
     def __init__(self, opcode, dest, ref, indexes=[], counts=[], strides=[], **kwargs):
@@ -489,11 +495,17 @@ class OpcodeFormatLookup3(Opcode):
             dest,
             ref, 
             indexes[0], 
+            counts[0], 
+            strides[0],
             indexes[1], 
+            counts[1], 
+            strides[1],
             indexes[2], 
+            counts[2], 
+            strides[2],
         ]
 
-        self.format = 'BBBBB'
+        self.format = 'BBBBBBBBBBB'
     
     @property
     def length(self):

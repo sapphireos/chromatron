@@ -201,6 +201,19 @@ typedef struct __attribute__((packed)){
 } opcode_lkp1_t;
 #define DECODE_LKP1 opcode_lkp1 = (opcode_lkp1_t *)pc; pc += 8;
 
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint8_t dest;
+    uint8_t ref;
+    uint8_t index1;
+    uint8_t count1;
+    uint8_t stride1;
+    uint8_t index2;
+    uint8_t count2;
+    uint8_t stride2;
+} opcode_lkp2_t;
+#define DECODE_LKP2 opcode_lkp2 = (opcode_lkp2_t *)pc; pc += 12;
+
 
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
@@ -295,9 +308,9 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 62
         &&opcode_trap,              // 63
 
-        &&opcode_lookup0,           // 64
+        &&opcode_trap,              // 64 // lookup0 - not implemented
         &&opcode_lookup1,           // 65
-        &&opcode_trap,              // 66
+        &&opcode_lookup2,           // 66
         &&opcode_trap,              // 67
 
         &&opcode_trap,              // 68
@@ -857,8 +870,10 @@ static int8_t _vm_i8_run_stream(
 
     uint32_t value;
     uint16_t index;
+    uint16_t count;
+    uint16_t stride;
     int32_t params[8];
-    uint32_t addr;
+    // uint32_t addr;
     reference_t ref;
 
     int32_t *ptr_i32;
@@ -876,6 +891,7 @@ static int8_t _vm_i8_run_stream(
     opcode_1i3r_t *opcode_1i3r;
     opcode_lkp0_t *opcode_lkp0;
     opcode_lkp1_t *opcode_lkp1;
+    opcode_lkp2_t *opcode_lkp2;
 
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
@@ -1426,29 +1442,69 @@ opcode_pstore_attr:
 
     DISPATCH;
 
-opcode_lookup0:
-    DECODE_LKP0;
+// opcode_lookup0:
+//     DECODE_LKP0;
 
 
-    // we maybe shoudln't need lookup0....
+//     // we maybe shoudln't need lookup0....
 
+//     ref.n = registers[opcode_lkp0->ref];
 
-    ref.n = registers[opcode_lkp0->ref];
+//     registers[opcode_lkp0->dest] = ref.n;
 
-    registers[opcode_lkp0->dest] = ref.n;
-
-    DISPATCH;
+//     DISPATCH;
 
 opcode_lookup1:
     DECODE_LKP1;
 
-    // NOT FINISHED!!!!!!!!!!
-
     ref.n = registers[opcode_lkp1->ref];
 
-    ref.ref.addr += registers[opcode_lkp1->index1];
+    index = registers[opcode_lkp1->index1];
+    count = registers[opcode_lkp1->count1];
+    stride = registers[opcode_lkp1->stride1];
+
+    if( count > 0 ){
+
+        index %= count;
+        index *= stride;
+    }
+
+    ref.ref.addr += index;
 
     registers[opcode_lkp1->dest] = ref.n;
+
+    DISPATCH;
+
+opcode_lookup2:
+    DECODE_LKP2;
+
+    ref.n = registers[opcode_lkp2->ref];
+
+    index = registers[opcode_lkp2->index1];
+    count = registers[opcode_lkp2->count1];
+    stride = registers[opcode_lkp2->stride1];
+
+    if( count > 0 ){
+
+        index %= count;
+        index *= stride;
+    }
+
+    ref.ref.addr += index;
+
+    index = registers[opcode_lkp2->index2];
+    count = registers[opcode_lkp2->count2];
+    stride = registers[opcode_lkp2->stride2];
+
+    if( count > 0 ){
+
+        index %= count;
+        index *= stride;
+    }
+
+    ref.ref.addr += index;
+
+    registers[opcode_lkp2->dest] = ref.n;
 
     DISPATCH;
 

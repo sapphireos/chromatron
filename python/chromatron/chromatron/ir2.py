@@ -4171,6 +4171,7 @@ class irLookup(IR):
         strides = [i.generate() for i in self.strides]
 
         if len(indexes) == 0:
+            raise CompilerFatal('Lookup with 0 indexes.')
             return insLookup0(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
 
         elif len(indexes) == 1:
