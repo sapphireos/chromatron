@@ -4128,14 +4128,14 @@ class irExpr(IR):
 
 
 class irLookup(IR):
-    def __init__(self, result, ref, lookups=[], **kwargs):
+    def __init__(self, result, ref, lookups=[], counts=[], strides=[], **kwargs):
         super().__init__(**kwargs)        
         self.result = result
         self.ref = ref
         assert isinstance(ref.var, varRef)
         self.lookups = lookups
-        # self.counts = counts
-        # self.strides = strides
+        self.counts = counts
+        self.strides = strides
 
     def __str__(self):
         lookups = ''
@@ -4147,8 +4147,8 @@ class irLookup(IR):
     def get_input_vars(self):
         inputs = [self.ref]
         inputs.extend(self.lookups)
-        # inputs.extend(self.counts)
-        # inputs.extend(self.strides)
+        inputs.extend(self.counts)
+        inputs.extend(self.strides)
         return inputs
         
     def get_output_vars(self):
@@ -4156,20 +4156,20 @@ class irLookup(IR):
 
     def generate(self):
         indexes = [i.generate() for i in self.lookups]
-        # counts = [i.generate() for i in self.counts]
-        # strides = [i.generate() for i in self.strides]
+        counts = [i.generate() for i in self.counts]
+        strides = [i.generate() for i in self.strides]
 
         if len(indexes) == 0:
-            return insLookup0(self.result.generate(), self.ref.generate(), indexes, lineno=self.lineno)
+            return insLookup0(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
 
         elif len(indexes) == 1:
-            return insLookup1(self.result.generate(), self.ref.generate(), indexes, lineno=self.lineno)
+            return insLookup1(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
 
         elif len(indexes) == 2:
-            return insLookup2(self.result.generate(), self.ref.generate(), indexes, lineno=self.lineno)
+            return insLookup2(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
 
         elif len(indexes) == 3:
-            return insLookup3(self.result.generate(), self.ref.generate(), indexes, lineno=self.lineno)
+            return insLookup3(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
         
         else:
             raise CompilerFatal(f'VM does not have an instruction coded for {len(indexes)} indexes')
