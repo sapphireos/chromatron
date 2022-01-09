@@ -464,10 +464,18 @@ class Builder(object):
             for i in range(len(params)):
                 src = params[i]
                 dest = func.params[i]
-
-                param = self.convert_type(dest, src, lineno=lineno)
                 
-                params[i] = param
+                if isinstance(src.var, varRef) or isinstance(dest.var, varRef):
+                    if src.target.data_type != dest.target.data_type:
+                        raise SyntaxError(f'Type mismatch, cannot pass {src.target.data_type} into function expecting {dest.target.data_type}', lineno=lineno)
+
+                elif isinstance(src.var, varScalar) and isinstance(dest.var, varScalar):
+                    param = self.convert_type(dest, src, lineno=lineno)
+                
+                    params[i] = param
+
+                else:
+                    raise SyntaxError(f'Type mismatch, cannot pass {src.data_type} into function expecting {dest.data_type}', lineno=lineno)
 
             ir = irCall(func, params, lineno=lineno)
             self.append_node(ir)
