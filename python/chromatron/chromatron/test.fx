@@ -1,7 +1,4 @@
-def func_param(a: Number):
-    a += 1
-    
-    assert a == 1
+
 # ary = Number()[4]
 
 # def init():

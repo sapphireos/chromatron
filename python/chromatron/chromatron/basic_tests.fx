@@ -582,6 +582,21 @@ def ref_array_func_call():
 
 
 
+# test our hello world!
+current_hue = Fixed16()
+def rainbow_loop():
+    current_hue += 0.005
+
+    a = Fixed16()
+    a = current_hue
+
+    for i in pixels.count:
+        pixels[i].hue = a
+        
+        a += 1.0 / pixels.count
+
+
+
 # string = String("hello!")
 # string2 = String(32)
 

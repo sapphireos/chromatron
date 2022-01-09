@@ -526,7 +526,12 @@ class Builder(object):
         self.append_node(ir)
 
     def jump_loop(self, true, false, iterator, stop, lineno=None):
-        ir = irLoop(true, false, self.get_var(iterator.name, lineno=lineno), self.get_var(iterator.name, lineno=lineno), stop, lineno=lineno)
+        iter_in = self.get_var(iterator.name, lineno=lineno)
+        iter_out = self.get_var(iterator.name, lineno=lineno)
+
+        stop = self.load_value(stop, lineno=lineno)
+
+        ir = irLoop(true, false, iter_in, iter_out, stop, lineno=lineno)
         self.append_node(ir)
 
     def load_value(self, value, lineno=None):
@@ -572,8 +577,6 @@ class Builder(object):
 
             else:
                 ir = irObjectLoad(var, value, value.attr, lineno=lineno)
-
-            value.attr = None
 
             self.append_node(ir)
 
