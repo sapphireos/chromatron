@@ -267,7 +267,7 @@ def func_call():
     assert add(1, 2) == 3
 
 def func_indirect_call():
-    f = Function()
+    f = Function(sub)
     f = sub
 
     assert f(1, 2) == -1
@@ -277,7 +277,7 @@ def func_indirect_call():
     assert f(1, 2) == 3
 
 def func_indirect_call_array():
-    f = Function()[2]
+    f = Function(sub)[2]
     f[0] = sub
     f[1] = add
 

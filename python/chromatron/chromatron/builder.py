@@ -211,8 +211,23 @@ class Builder(object):
         for dim in dimensions:
             if not isinstance(dim, int):
                 raise SyntaxError(f'Dimension {dim} is invalid for {name}, requires constant integer.', lineno=lineno)
-
+        
         var = self._build_var(name, data_type, dimensions, keywords=keywords, lineno=lineno)
+
+        if data_type == 'funcref':
+            if 'init_val' not in keywords:
+                raise SyntaxError(f'Function reference must be specified with a signature function.', lineno=lineno)
+
+            # look up function signature from init value:
+            sig_func = self.funcs[keywords['init_val']]
+
+            if isinstance(var.var, varArray):
+                var.element.params = sig_func.params
+                var.element.ret_type = sig_func.ret_type
+
+            else:
+                var.params = sig_func.params
+                var.ret_type = sig_func.ret_type
 
         # force objects to global symbols:
         if isinstance(var.var, varObject):  
@@ -231,7 +246,7 @@ class Builder(object):
             if isinstance(var.var, varComposite):
                 self.add_var_to_symbol_table(var.var)
 
-            else:
+            elif isinstance(var.var, varScalar):
                 const = 0
 
                 # set up init value:
@@ -241,6 +256,9 @@ class Builder(object):
                 ir = irLoadConst(var, const, lineno=lineno)
                 self.append_node(ir)
 
+                self.add_var_to_symbol_table(var)
+
+            else:
                 self.add_var_to_symbol_table(var)
 
         return var
@@ -445,11 +463,7 @@ class Builder(object):
 
         #         self.assign(result, const, lineno=lineno)
     
-        if indirect:
-            ir = irIndirectCall(func, params, lineno=lineno)
-            self.append_node(ir)
-
-        elif lib_call:
+        if lib_call:
             hashed_func = string_hash_func(func)
 
             const = self.add_const(hashed_func, lineno=lineno)
@@ -477,8 +491,13 @@ class Builder(object):
                 else:
                     raise SyntaxError(f'Type mismatch, cannot pass {src.data_type} into function expecting {dest.data_type}', lineno=lineno)
 
-            ir = irCall(func, params, lineno=lineno)
-            self.append_node(ir)
+            if indirect:
+                ir = irIndirectCall(func, params, lineno=lineno)
+                self.append_node(ir)
+
+            else:
+                ir = irCall(func, params, lineno=lineno)
+                self.append_node(ir)
 
         ir = irLoadRetVal(result, lineno=lineno)
         self.append_node(ir)
@@ -513,6 +532,11 @@ class Builder(object):
     def load_value(self, value, lineno=None):
         if value.data_type == 'offset':
             var = self.add_temp(data_type=value.target.scalar_type, lineno=lineno)
+
+            if isinstance(value.target, varFunctionRef):
+                var.params = value.target.params
+                var.ret_type = value.target.ret_type
+
             ir = irLoad(var, value, lineno=lineno)
             self.append_node(ir)
             

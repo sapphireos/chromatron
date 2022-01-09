@@ -324,6 +324,7 @@ class varFunctionRef(varRef):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='funcref', **kwargs)
         self.ret_type = 'var'
+        self.params = None
 
     @property
     def scalar_type(self):
@@ -595,6 +596,8 @@ class TypeManager(object):
     def create_var_from_type(self, name, data_type, dimensions=[], keywords={}, **kwargs):
         if not keywords:
             keywords = {}
+
+        keywords = deepcopy(keywords)
 
         if 'init_val' not in keywords:
             keywords['init_val'] = None

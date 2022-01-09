@@ -694,7 +694,7 @@ class CodeGenPass1(ast.NodeVisitor):
             keywords[kw.arg] = kw.value.value
 
         if len(node.args) > 0:
-            keywords['init_val'] = node.args[0].n
+            keywords['init_val'] = node.args[0].id
 
         return cg1DeclareVar(type="funcref", keywords=keywords, lineno=node.lineno)
 

@@ -5,33 +5,28 @@
 # def init():
 #     return meow(123)
 
-# def sub(a: Number, b: Number)-> Number:
-#     return a - b
 
-# def func_indirect_call():
-
-#     a = Fixed16()
-
-#     sub(1.2, a)
+def sub(a: Number, b: Number) -> Number:
+    return a - b
 
 
-    # f = Function()
-    # f = sub
-
-    # f(0)
-
-
-def meow(a: Number[4]):
-    return a[0]
+def func_indirect_call_array():
+    f = Function(sub)[2]
+    f[0] = sub
 
 
-ary = Number()[4]
+    assert f[0](1, 2) == -1
+# def meow(a: Number[4]):
+#     return a[0]
 
-def init():
-# #     ary[0] = 1
-# #     # ary[0] = 1 + ary[0]
 
-    return meow(ary)
+# ary = Number()[4]
+
+# def init():
+# # #     ary[0] = 1
+# # #     # ary[0] = 1 + ary[0]
+
+#     return meow(ary)
 
 #     # print(ary[0])
 
