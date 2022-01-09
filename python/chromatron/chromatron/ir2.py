@@ -2488,10 +2488,19 @@ class irFunc(IR):
         # convert ranges to intervals
         intervals = {}
         for var, live_at in self.live_ranges.items():
+            # skip params, we will manually allocate these
+            if var in self.params:
+                continue
+
             live_at = list(sorted(live_at))
 
             intervals[var] = list(range(live_at[0], live_at[-1] + 1))
 
+        # allocate first set of registers directly to params.
+        # even if the param is unused, it still requires a register
+        # so the caller can pass a value to it.
+        for param in self.params:
+            registers[param] = address_pool.pop(0)
 
         for i in range(len(self.code)):
             for var in sorted(intervals.keys(), key=lambda a: a.name):

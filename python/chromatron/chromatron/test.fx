@@ -11,7 +11,7 @@ def sub(a: Number, b: Number) -> Number:
 
 
 def add(a: Number, b: Number) -> Number:
-    return a + b
+    return a+b
 
 def func_indirect_call_array():
     f = Function(sub)[2]
