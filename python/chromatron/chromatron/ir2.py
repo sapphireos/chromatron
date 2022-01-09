@@ -2537,7 +2537,8 @@ class irFunc(IR):
                 assert o in registers
 
                 # check if output register is actually live at this instruction:
-                if index not in intervals[o]:
+                # assume always live this is a param
+                if o not in self.params and index not in intervals[o]:
                     # this register is not live!
                     o.reg = -1
                     
