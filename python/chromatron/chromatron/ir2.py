@@ -2494,7 +2494,8 @@ class irFunc(IR):
 
 
         for i in range(len(self.code)):
-            for var, interval in intervals.items():
+            for var in sorted(intervals.keys(), key=lambda a: a.name):
+                interval = intervals[var]
                 if i == (interval[-1] + 1):
                     # are we terminating liveness?
                     address_pool.insert(0, registers[var])

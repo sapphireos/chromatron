@@ -10,9 +10,13 @@ def sub(a: Number, b: Number) -> Number:
     return a - b
 
 
+def add(a: Number, b: Number) -> Number:
+    return a + b
+
 def func_indirect_call_array():
     f = Function(sub)[2]
     f[0] = sub
+    f[1] = add
 
 
     assert f[0](1, 2) == -1
