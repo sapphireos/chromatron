@@ -1,17 +1,9 @@
 
-def use_ref_array(b: Number[4]):
-    return b[0] + b[1] + b[2] + b[3]
+ary = Number()[4]
 
-def ref_array_func_call():
-    l = Number()[4]
-
-    l[0] = 1
-    l[1] = 2
-    l[2] = 3
-    l[3] = 4
-
-    assert use_ref_array(l) == 10
-
+def init():
+    ary[0] = 1
+    # ary[0] = 1 + ary[0]
 
 # a = Number(220000)
 # string = String("hello!")

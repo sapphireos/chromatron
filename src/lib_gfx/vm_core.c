@@ -210,11 +210,13 @@ static int8_t _vm_i8_run_stream(
         &&opcode_ldi,               // 2
         &&opcode_ldc,               // 3
         &&opcode_ldm,               // 4
+        &&opcode_trap,              // 5
         // &&opcode_ldg,               // 4
         // &&opcode_ldl,               // 5
         &&opcode_ref,               // 6
         &&opcode_ldgi,              // 7
         &&opcode_stm,               // 8
+        &&opcode_trap,              // 9
         // &&opcode_stg,               // 8
         // &&opcode_stl,               // 9
         &&opcode_stgi,              // 10
