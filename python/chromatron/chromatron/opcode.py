@@ -438,41 +438,41 @@ class OpcodeFormatVector(Opcode64):
         self.format = 'BHH'
 
 class OpcodeFormatLookup0(Opcode):
-    def __init__(self, opcode, dest, base_addr, **kwargs):
+    def __init__(self, opcode, dest, ref, **kwargs):
         super().__init__(opcode, **kwargs)
 
-        self.items = [dest, base_addr]
-        self.format = 'BH'
+        self.items = [dest, ref]
+        self.format = 'BB'
     
     @property
     def length(self):
         return 4
 
 class OpcodeFormatLookup1(Opcode):
-    def __init__(self, opcode, dest, base_addr, indexes=[], counts=[], strides=[], **kwargs):
+    def __init__(self, opcode, dest, ref, indexes=[], counts=[], strides=[], **kwargs):
         super().__init__(opcode, **kwargs)
 
         self.items = [
             dest,
-            base_addr, 
+            ref, 
             indexes[0], 
             counts[0], 
             strides[0],
         ]
 
-        self.format = 'BHBBB'
+        self.format = 'BBBBB'
     
     @property
     def length(self):
         return 8
 
 class OpcodeFormatLookup2(Opcode):
-    def __init__(self, opcode, dest, base_addr, indexes=[], counts=[], strides=[], **kwargs):
+    def __init__(self, opcode, dest, ref, indexes=[], counts=[], strides=[], **kwargs):
         super().__init__(opcode, **kwargs)
 
         self.items = [
             dest,
-            base_addr, 
+            ref, 
             indexes[0], 
             counts[0], 
             strides[0],
@@ -481,19 +481,19 @@ class OpcodeFormatLookup2(Opcode):
             strides[1],
         ]
 
-        self.format = 'BHBBBBBB'
+        self.format = 'BBBBBBBB'
     
     @property
     def length(self):
         return 12
 
 class OpcodeFormatLookup3(Opcode):
-    def __init__(self, opcode, dest, base_addr, indexes=[], counts=[], strides=[], **kwargs):
+    def __init__(self, opcode, dest, ref, indexes=[], counts=[], strides=[], **kwargs):
         super().__init__(opcode, **kwargs)
 
         self.items = [
             dest,
-            base_addr, 
+            ref, 
             indexes[0], 
             counts[0], 
             strides[0],
@@ -505,7 +505,7 @@ class OpcodeFormatLookup3(Opcode):
             strides[2],
         ]
 
-        self.format = 'BHBBBBBBBBB'
+        self.format = 'BBBBBBBBBBB'
     
     @property
     def length(self):

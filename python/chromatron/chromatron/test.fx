@@ -5,6 +5,8 @@ def init():
     ary[0] = 1
     # ary[0] = 1 + ary[0]
 
+    print(ary[0])
+
 # a = Number(220000)
 # string = String("hello!")
 # string2 = String("world!")

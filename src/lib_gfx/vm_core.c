@@ -90,7 +90,7 @@ static uint32_t cycles;
 // #endif
 
 typedef struct __attribute__((packed)){
-    uint8_t pool;
+    uint16_t pool;
     uint16_t addr;
 } packed_reference_t;
 
@@ -187,9 +187,19 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint8_t opcode;
     uint8_t dest;
-    uint16_t base_addr;
+    uint8_t ref;
 } opcode_lkp0_t;
 #define DECODE_LKP0 opcode_lkp0 = (opcode_lkp0_t *)pc; pc += 4;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint8_t dest;
+    uint8_t ref;
+    uint8_t index1;
+    uint8_t count1;
+    uint8_t stride1;
+} opcode_lkp1_t;
+#define DECODE_LKP1 opcode_lkp1 = (opcode_lkp1_t *)pc; pc += 8;
 
 
 static int8_t _vm_i8_run_stream(
@@ -286,7 +296,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 63
 
         &&opcode_lookup0,           // 64
-        &&opcode_trap,              // 65
+        &&opcode_lookup1,           // 65
         &&opcode_trap,              // 66
         &&opcode_trap,              // 67
 
@@ -865,6 +875,7 @@ static int8_t _vm_i8_run_stream(
     opcode_1i2rs_t *opcode_1i2rs;
     opcode_1i3r_t *opcode_1i3r;
     opcode_lkp0_t *opcode_lkp0;
+    opcode_lkp1_t *opcode_lkp1;
 
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
@@ -980,8 +991,6 @@ opcode_ref:
         return VM_STATUS_BAD_STORAGE_POOL;
     }
     
-    ref.ref.pool = opcode_2i1r->imm2;
-
     registers[opcode_2i1r->reg1] = ref.n;    
 
     DISPATCH;    
@@ -996,9 +1005,9 @@ opcode_ldgi:
 opcode_stm:
     DECODE_2AC;    
 
-    ref.n = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
 
-    *( pools[ref.ref.pool] + ref.ref.addr ) = registers[opcode_2ac->dest];
+    *( pools[ref.ref.pool] + ref.ref.addr ) = registers[opcode_2ac->op1];
     
     // global_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
 
@@ -1420,9 +1429,26 @@ opcode_pstore_attr:
 opcode_lookup0:
     DECODE_LKP0;
 
-    addr = opcode_lkp0->base_addr;
 
-    registers[opcode_lkp0->dest] = addr;
+    // we maybe shoudln't need lookup0....
+
+
+    ref.n = registers[opcode_lkp0->ref];
+
+    registers[opcode_lkp0->dest] = ref.n;
+
+    DISPATCH;
+
+opcode_lookup1:
+    DECODE_LKP1;
+
+    // NOT FINISHED!!!!!!!!!!
+
+    ref.n = registers[opcode_lkp1->ref];
+
+    ref.ref.addr += registers[opcode_lkp1->index1];
+
+    registers[opcode_lkp1->dest] = ref.n;
 
     DISPATCH;
 
