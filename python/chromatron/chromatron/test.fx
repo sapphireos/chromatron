@@ -1,4 +1,11 @@
 
+
+def meow(a: Number) -> Number:
+    return a + 1
+
+def init():
+    print(meow(1))
+
 # ary = Number()[4]
 
 # def init():

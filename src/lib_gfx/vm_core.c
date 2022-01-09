@@ -909,6 +909,7 @@ static int8_t _vm_i8_run_stream(
     */
     #define N_STATIC_POOLS ( 4 )
     int32_t *pools[VM_MAX_CALL_DEPTH + N_STATIC_POOLS];
+    memset( pools, 0, sizeof(pools) );
 
     pools[POOL_GLOBAL]                  = global_memory;
     pools[POOL_PIXEL_ARRAY]             = (int32_t *)pix_array;
@@ -1098,7 +1099,7 @@ opcode_ret:
     call_depth--;
 
     // adjust local memory pointers:
-    local_memory -= frame_stack[call_depth];
+    local_memory -= frame_stack[call_depth] / 4;
     registers = local_memory;
 
     current_frame_size = frame_stack[call_depth];
@@ -1165,7 +1166,7 @@ opcode_call0:
     current_frame_size = func_table[index].frame_size;
 
     // adjust local memory pointers:
-    local_memory += frame_stack[call_depth];
+    local_memory += frame_stack[call_depth] / 4;
     registers = local_memory;
 
     if( ( (uint32_t)( local_memory - locals_start ) + current_frame_size ) > state->local_data_len ){
@@ -1203,7 +1204,7 @@ opcode_call1:
     params[0] = registers[opcode_1i1r->reg1];
 
     // adjust local memory pointers:
-    local_memory += frame_stack[call_depth];
+    local_memory += frame_stack[call_depth] / 4;
     registers = local_memory;
 
     // write params
@@ -1215,7 +1216,7 @@ opcode_call1:
     }
 
     call_depth++;
-    pools[call_depth] = local_memory;
+    pools[N_STATIC_POOLS + call_depth] = local_memory;
 
     if( call_depth > VM_MAX_CALL_DEPTH ){
 
