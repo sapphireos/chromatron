@@ -1530,7 +1530,9 @@ opcode_plookup2:
 opcode_pload_attr:
     DECODE_1I2RS;
 
-    if( gfx_i8_get_pixel_array( registers[opcode_1i2rs->reg1], &pix_array ) == 0 ){
+    ref.n = registers[opcode_1i2rs->reg1];
+
+    if( gfx_i8_get_pixel_array( ref.ref.addr, &pix_array ) == 0 ){
 
         ptr_i32 = (int32_t *)pix_array;
 
@@ -1546,7 +1548,9 @@ opcode_pload_attr:
 opcode_pstore_attr:
     DECODE_1I2RS;
 
-    if( gfx_i8_get_pixel_array( registers[opcode_1i2rs->reg1], &pix_array ) == 0 ){
+    ref.n = registers[opcode_1i2rs->reg1];
+
+    if( gfx_i8_get_pixel_array( ref.ref.addr, &pix_array ) == 0 ){
 
         ptr_i32 = (int32_t *)pix_array;
 
