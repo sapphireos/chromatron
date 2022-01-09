@@ -184,12 +184,12 @@ typedef struct __attribute__((packed)){
 } opcode_1i3r_t;
 #define DECODE_1I3R opcode_1i3r = (opcode_1i3r_t *)pc; pc += 8;
 
-typedef struct __attribute__((packed)){
-    uint8_t opcode;
-    uint8_t dest;
-    uint8_t ref;
-} opcode_lkp0_t;
-#define DECODE_LKP0 opcode_lkp0 = (opcode_lkp0_t *)pc; pc += 4;
+// typedef struct __attribute__((packed)){
+//     uint8_t opcode;
+//     uint8_t dest;
+//     uint8_t ref;
+// } opcode_lkp0_t;
+// #define DECODE_LKP0 opcode_lkp0 = (opcode_lkp0_t *)pc; pc += 4;
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
@@ -319,7 +319,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 71
 
         &&opcode_call0,             // 72
-        &&opcode_trap,              // 73
+        &&opcode_call1,             // 73
         &&opcode_trap,              // 74
         &&opcode_trap,              // 75
         &&opcode_trap,              // 76
@@ -889,11 +889,12 @@ static int8_t _vm_i8_run_stream(
     // opcode_1i2r_t *opcode_1i2r;
     opcode_1i2rs_t *opcode_1i2rs;
     opcode_1i3r_t *opcode_1i3r;
-    opcode_lkp0_t *opcode_lkp0;
+    // opcode_lkp0_t *opcode_lkp0;
     opcode_lkp1_t *opcode_lkp1;
     opcode_lkp2_t *opcode_lkp2;
 
 
+    uint8_t call_depth = 0;
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
     uint16_t frame_stack[VM_MAX_CALL_DEPTH];
 
@@ -909,13 +910,12 @@ static int8_t _vm_i8_run_stream(
     #define N_STATIC_POOLS ( 4 )
     int32_t *pools[VM_MAX_CALL_DEPTH + N_STATIC_POOLS];
 
-    pools[POOL_GLOBAL]          = global_memory;
-    pools[POOL_PIXEL_ARRAY]     = (int32_t *)pix_array;
-    pools[POOL_STRING_LITERALS] = (int32_t *)0; // not yet implemented
-    pools[POOL_FUNCTIONS]       = (int32_t *)func_table;
-    pools[POOL_LOCAL]           = local_memory;
+    pools[POOL_GLOBAL]                  = global_memory;
+    pools[POOL_PIXEL_ARRAY]             = (int32_t *)pix_array;
+    pools[POOL_STRING_LITERALS]         = (int32_t *)0; // not yet implemented
+    pools[POOL_FUNCTIONS]               = (int32_t *)func_table;
+    pools[N_STATIC_POOLS + call_depth]  = local_memory;
 
-    uint8_t call_depth = 0;
 
 
     #define DISPATCH cycles--; \
@@ -1154,15 +1154,14 @@ opcode_load_ret_val:
 opcode_call0:
     DECODE_1I;
 
-    // look up function
-    index = opcode_1i->imm1;
-
     // set up return stack
     call_stack[call_depth] = pc;
 
     // record frame size of this function
     frame_stack[call_depth] = current_frame_size;
 
+    // look up function
+    index = opcode_1i->imm1;
     current_frame_size = func_table[index].frame_size;
 
     // adjust local memory pointers:
@@ -1175,6 +1174,48 @@ opcode_call0:
     }
 
     call_depth++;
+    pools[call_depth] = local_memory;
+
+    if( call_depth > VM_MAX_CALL_DEPTH ){
+
+        return VM_STATUS_CALL_DEPTH_EXCEEDED;
+    }
+    
+    // call by jumping to target
+    pc = code + func_table[index].addr;
+
+    DISPATCH;
+
+opcode_call1:
+    DECODE_1I1R;
+
+    // set up return stack
+    call_stack[call_depth] = pc;
+
+    // record frame size of this function
+    frame_stack[call_depth] = current_frame_size;
+
+    // look up function
+    index = opcode_1i1r->imm1;
+    current_frame_size = func_table[index].frame_size;
+
+    // load params
+    params[0] = registers[opcode_1i1r->reg1];
+
+    // adjust local memory pointers:
+    local_memory += frame_stack[call_depth];
+    registers = local_memory;
+
+    // write params
+    registers[0] = params[0];
+
+    if( ( (uint32_t)( local_memory - locals_start ) + current_frame_size ) > state->local_data_len ){
+
+        return VM_STATUS_ERR_LOCAL_OUT_OF_BOUNDS;
+    }
+
+    call_depth++;
+    pools[call_depth] = local_memory;
 
     if( call_depth > VM_MAX_CALL_DEPTH ){
 
