@@ -867,6 +867,25 @@ static int8_t _vm_i8_run_stream(
 
     uint8_t *call_stack[VM_MAX_CALL_DEPTH];
     uint16_t frame_stack[VM_MAX_CALL_DEPTH];
+
+    /*
+    Storage Pools:
+
+    0 - global
+    1 - pixel arrays
+    2 - string literals
+    3 - function table
+    4 -> call depth: local pools on call stack
+    */
+    #define N_STATIC_POOLS ( 4 )
+    int32_t *pools[VM_MAX_CALL_DEPTH + N_STATIC_POOLS];
+
+    pools[POOL_GLOBAL]          = global_memory;
+    pools[POOL_PIXEL_ARRAY]     = (int32_t *)pix_array;
+    pools[POOL_STRING_LITERALS] = (int32_t *)0; // not yet implemented
+    pools[POOL_FUNCTIONS]       = (int32_t *)func_table;
+    pools[POOL_LOCAL]           = local_memory;
+
     uint8_t call_depth = 0;
 
 
@@ -903,6 +922,10 @@ opcode_ldc:
 
 opcode_ldm:
     DECODE_2AC;    
+
+    ref.n = registers[opcode_2ac->op1];
+
+    registers[opcode_2ac->dest] = *( pools[ref.ref.pool] + ref.ref.addr );
     
     // registers[opcode_2ac->dest] = global_memory[registers[opcode_2ac->op1]];    
 
@@ -929,6 +952,32 @@ opcode_ref:
     // imm2 = storage pool
 
     ref.ref.addr = opcode_2i1r->imm1;
+
+    if( opcode_2i1r->imm2 == POOL_GLOBAL ){
+
+        ref.ref.pool = POOL_GLOBAL;   
+    }
+    else if( opcode_2i1r->imm2 == POOL_PIXEL_ARRAY ){
+
+        ref.ref.pool = POOL_PIXEL_ARRAY;   
+    }
+    else if( opcode_2i1r->imm2 == POOL_LOCAL ){
+
+        ref.ref.pool = N_STATIC_POOLS + call_depth;   
+    }
+    else if( opcode_2i1r->imm2 == POOL_STRING_LITERALS ){
+
+        ref.ref.pool = POOL_STRING_LITERALS;   
+    }
+    else if( opcode_2i1r->imm2 == POOL_FUNCTIONS ){
+
+        ref.ref.pool = POOL_FUNCTIONS;   
+    }
+    else{
+
+        return VM_STATUS_BAD_STORAGE_POOL;
+    }
+    
     ref.ref.pool = opcode_2i1r->imm2;
 
     registers[opcode_2i1r->reg1] = ref.n;    
@@ -944,6 +993,10 @@ opcode_ldgi:
 
 opcode_stm:
     DECODE_2AC;    
+
+    ref.n = registers[opcode_2ac->op1];
+
+    *( pools[ref.ref.pool] + ref.ref.addr ) = registers[opcode_2ac->dest];
     
     // global_memory[registers[opcode_2ac->op1]] = registers[opcode_2ac->dest];    
 

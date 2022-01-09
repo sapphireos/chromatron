@@ -70,13 +70,12 @@
 #define VM_STATUS_PIXEL_MISALIGN            -47
 #define VM_STATUS_LINK_MISALIGN             -48
 #define VM_STATUS_DB_MISALIGN               -49
+#define VM_STATUS_LOAD_ALLOC_FAIL           -50
+#define VM_STATUS_SYNC_FAIL                 -51
 #define VM_STATUS_CRON_MISALIGN             -52
 #define VM_STATUS_STREAM_MISALIGN           -53
 #define VM_STATUS_POOL_MISALIGN             -54
-
-#define VM_STATUS_LOAD_ALLOC_FAIL           -50
-#define VM_STATUS_SYNC_FAIL                 -51
-
+#define VM_STATUS_BAD_STORAGE_POOL          -55
 
 
 #define VM_STATUS_RESTRICTED_KEY            -70
