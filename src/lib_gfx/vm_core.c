@@ -140,6 +140,16 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
+    uint8_t dest;
+    uint8_t op1;
+    uint8_t op2;
+    uint8_t op3;
+    uint8_t op4;
+} opcode_5ac_t;
+#define DECODE_5AC opcode_5ac = (opcode_5ac_t *)pc; pc += 4;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
     uint16_t imm1;
 } opcode_1i_t;
 #define DECODE_1I opcode_1i = (opcode_1i_t *)pc; pc += 4;
@@ -183,6 +193,16 @@ typedef struct __attribute__((packed)){
     uint8_t reg3;
 } opcode_1i3r_t;
 #define DECODE_1I3R opcode_1i3r = (opcode_1i3r_t *)pc; pc += 8;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint16_t imm1;
+    uint8_t reg1;
+    uint8_t reg2;
+    uint8_t reg3;
+    uint8_t reg4;
+} opcode_1i4r_t;
+#define DECODE_1I4R opcode_1i4r = (opcode_1i4r_t *)pc; pc += 8;
 
 // typedef struct __attribute__((packed)){
 //     uint8_t opcode;
@@ -344,18 +364,19 @@ static int8_t _vm_i8_run_stream(
 
         &&opcode_call0,             // 72
         &&opcode_call1,             // 73
-        &&opcode_trap,              // 74
-        &&opcode_trap,              // 75
-        &&opcode_trap,              // 76
+        &&opcode_call2,             // 74
+        &&opcode_call3,             // 75
+        &&opcode_call4,             // 76
         &&opcode_trap,              // 77
         &&opcode_trap,              // 78
         &&opcode_trap,              // 79
 
         &&opcode_icall0,            // 80
-        &&opcode_trap,              // 81
-        &&opcode_trap,              // 82
-        &&opcode_trap,              // 83
-        &&opcode_trap,              // 84
+        &&opcode_icall1,            // 81
+        &&opcode_icall2,            // 82
+        &&opcode_icall3,            // 83
+        &&opcode_icall4,            // 84
+
         &&opcode_trap,              // 85
         &&opcode_trap,              // 86
         &&opcode_trap,              // 87
@@ -906,12 +927,14 @@ static int8_t _vm_i8_run_stream(
     opcode_2ac_t *opcode_2ac;
     opcode_3ac_t *opcode_3ac;
     opcode_4ac_t *opcode_4ac;
+    opcode_5ac_t *opcode_5ac;
     opcode_1i_t *opcode_1i;
     opcode_1i1r_t *opcode_1i1r;
     opcode_2i1r_t *opcode_2i1r;
-    // opcode_1i2r_t *opcode_1i2r;
+    opcode_1i2r_t *opcode_1i2r;
     opcode_1i2rs_t *opcode_1i2rs;
     opcode_1i3r_t *opcode_1i3r;
+    opcode_1i4r_t *opcode_1i4r;
     // opcode_lkp0_t *opcode_lkp0;
     opcode_lkp1_t *opcode_lkp1;
     opcode_lkp2_t *opcode_lkp2;
@@ -1269,6 +1292,55 @@ opcode_call1:
 
     DISPATCH;
 
+opcode_call2:
+    DECODE_1I2R;
+
+    index = opcode_1i2r->imm1;
+
+    CALL_SETUP;
+
+    // load params
+    params[0] = registers[opcode_1i2r->reg1];
+    params[1] = registers[opcode_1i2r->reg2];
+
+    CALL_FINISH;
+
+    DISPATCH;
+
+opcode_call3:
+    DECODE_1I3R;
+
+    index = opcode_1i3r->imm1;
+
+    CALL_SETUP;
+
+    // load params
+    params[0] = registers[opcode_1i3r->reg1];
+    params[1] = registers[opcode_1i3r->reg2];
+    params[2] = registers[opcode_1i3r->reg3];
+
+    CALL_FINISH;
+
+    DISPATCH;
+
+opcode_call4:
+    DECODE_1I4R;
+
+    index = opcode_1i4r->imm1;
+
+    CALL_SETUP;
+
+    // load params
+    params[0] = registers[opcode_1i4r->reg1];
+    params[1] = registers[opcode_1i4r->reg2];
+    params[2] = registers[opcode_1i4r->reg3];
+    params[2] = registers[opcode_1i4r->reg4];
+
+    CALL_FINISH;
+
+    DISPATCH;
+
+
 opcode_icall0:
     DECODE_1AC;
 
@@ -1280,6 +1352,74 @@ opcode_icall0:
     CALL_FINISH;
 
     DISPATCH;
+
+
+opcode_icall1:
+    DECODE_2AC;
+
+    // look up function
+    index = registers[opcode_2ac->dest];
+
+    CALL_SETUP;
+
+    // load params
+    params[0] = registers[opcode_2ac->op1];
+
+    CALL_FINISH;
+
+    DISPATCH;
+
+opcode_icall2:
+    DECODE_3AC;
+
+    // look up function
+    index = registers[opcode_3ac->dest];
+
+    CALL_SETUP;
+
+    // load params
+    params[0] = registers[opcode_3ac->op1];
+    params[1] = registers[opcode_3ac->op2];
+
+    CALL_FINISH;
+
+    DISPATCH;
+
+opcode_icall3:
+    DECODE_4AC;
+
+    // look up function
+    index = registers[opcode_4ac->dest];
+
+    CALL_SETUP;
+
+    // load params
+    params[0] = registers[opcode_4ac->op1];
+    params[1] = registers[opcode_4ac->op2];
+    params[2] = registers[opcode_4ac->op3];
+
+    CALL_FINISH;
+
+    DISPATCH;
+
+opcode_icall4:
+    DECODE_5AC;
+
+    // look up function
+    index = registers[opcode_5ac->dest];
+
+    CALL_SETUP;
+
+    // load params
+    params[0] = registers[opcode_5ac->op1];
+    params[1] = registers[opcode_5ac->op2];
+    params[2] = registers[opcode_5ac->op3];
+    params[2] = registers[opcode_5ac->op4];
+
+    CALL_FINISH;
+
+    DISPATCH;
+
 
 opcode_lcall0:
     
