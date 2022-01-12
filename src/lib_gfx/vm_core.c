@@ -215,6 +215,30 @@ typedef struct __attribute__((packed)){
 #define DECODE_LKP2 opcode_lkp2 = (opcode_lkp2_t *)pc; pc += 12;
 
 
+#define CALL_SETUP \
+    /* set up return stack */ \
+    call_stack[call_depth] = pc; \
+    /* record frame size of this function */ \
+    frame_stack[call_depth] = current_frame_size; \
+    /* look up function */ \
+    current_frame_size = func_table[index].frame_size;
+
+#define CALL_FINISH \
+    /* adjust local memory pointers: */ \
+    local_memory += frame_stack[call_depth] / 4; \
+    registers = local_memory; \
+    if( ( (uint32_t)( local_memory - locals_start ) + current_frame_size ) > state->local_data_len ){ \
+        return VM_STATUS_ERR_LOCAL_OUT_OF_BOUNDS; \
+    } \
+    call_depth++; \
+    pools[call_depth] = local_memory; \
+    if( call_depth > VM_MAX_CALL_DEPTH ){ \
+        return VM_STATUS_CALL_DEPTH_EXCEEDED; \
+    } \
+    /* call by jumping to target */ \
+    pc = code + func_table[index].addr;
+
+
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
     uint16_t func_addr,
@@ -1223,76 +1247,25 @@ opcode_load_ret_val:
 opcode_call0:
     DECODE_1I;
 
-    // set up return stack
-    call_stack[call_depth] = pc;
-
-    // record frame size of this function
-    frame_stack[call_depth] = current_frame_size;
-
-    // look up function
     index = opcode_1i->imm1;
-    current_frame_size = func_table[index].frame_size;
 
-    // adjust local memory pointers:
-    local_memory += frame_stack[call_depth] / 4;
-    registers = local_memory;
+    CALL_SETUP;
 
-    if( ( (uint32_t)( local_memory - locals_start ) + current_frame_size ) > state->local_data_len ){
-
-        return VM_STATUS_ERR_LOCAL_OUT_OF_BOUNDS;
-    }
-
-    call_depth++;
-    pools[call_depth] = local_memory;
-
-    if( call_depth > VM_MAX_CALL_DEPTH ){
-
-        return VM_STATUS_CALL_DEPTH_EXCEEDED;
-    }
-    
-    // call by jumping to target
-    pc = code + func_table[index].addr;
+    CALL_FINISH;
 
     DISPATCH;
 
 opcode_call1:
     DECODE_1I1R;
 
-    // set up return stack
-    call_stack[call_depth] = pc;
-
-    // record frame size of this function
-    frame_stack[call_depth] = current_frame_size;
-
-    // look up function
     index = opcode_1i1r->imm1;
-    current_frame_size = func_table[index].frame_size;
+
+    CALL_SETUP;
 
     // load params
     params[0] = registers[opcode_1i1r->reg1];
 
-    // adjust local memory pointers:
-    local_memory += frame_stack[call_depth] / 4;
-    registers = local_memory;
-
-    // write params
-    registers[0] = params[0];
-
-    if( ( (uint32_t)( local_memory - locals_start ) + current_frame_size ) > state->local_data_len ){
-
-        return VM_STATUS_ERR_LOCAL_OUT_OF_BOUNDS;
-    }
-
-    call_depth++;
-    pools[N_STATIC_POOLS + call_depth] = local_memory;
-
-    if( call_depth > VM_MAX_CALL_DEPTH ){
-
-        return VM_STATUS_CALL_DEPTH_EXCEEDED;
-    }
-    
-    // call by jumping to target
-    pc = code + func_table[index].addr;
+    CALL_FINISH;
 
     DISPATCH;
 
@@ -1302,33 +1275,9 @@ opcode_icall0:
     // look up function
     index = registers[opcode_1ac->op1];
 
-    // set up return stack
-    call_stack[call_depth] = pc;
+    CALL_SETUP;
 
-    // record frame size of this function
-    frame_stack[call_depth] = current_frame_size;
-
-    current_frame_size = func_table[index].frame_size;
-
-    // adjust local memory pointers:
-    local_memory += frame_stack[call_depth];
-    registers = local_memory;
-
-    if( ( (uint32_t)( local_memory - locals_start ) + current_frame_size ) > state->local_data_len ){
-
-        return VM_STATUS_ERR_LOCAL_OUT_OF_BOUNDS;
-    }
-
-    call_depth++;
-
-    if( call_depth > VM_MAX_CALL_DEPTH ){
-
-        return VM_STATUS_CALL_DEPTH_EXCEEDED;
-    }
-    
-    // call by jumping to target
-    pc = code + func_table[index].addr;
-
+    CALL_FINISH;
 
     DISPATCH;
 
