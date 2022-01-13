@@ -1344,7 +1344,8 @@ PT_BEGIN( pt );
 
     vbus_connected = FALSE;
 
-    vindpm = 5200;
+    // vindpm = 5200;
+    vindpm = 0; // wall power
 
     while(1){
 

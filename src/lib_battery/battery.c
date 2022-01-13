@@ -406,6 +406,8 @@ PT_BEGIN( pt );
         // check if pixels should be enabled:
         if( request_pixels_enabled ){
 
+            request_pixels_disabled = FALSE;
+
             if( pca9536_enabled ){
 
                 pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
