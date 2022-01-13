@@ -237,7 +237,7 @@ PT_BEGIN( pt );
         if( ( raw_als < 100 ) &&
             ( gain != VEML7700_ALS_GAIN_x2 ) ){
 
-            log_v_debug_P( PSTR("VEML7700 switching to high gain") );
+            // log_v_debug_P( PSTR("VEML7700 switching to high gain") );
 
             veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_800ms );
             continue;
@@ -245,7 +245,7 @@ PT_BEGIN( pt );
         else if( ( raw_als > 20000 ) &&
             ( gain != VEML7700_ALS_GAIN_x0_125 ) ){
 
-            log_v_debug_P( PSTR("VEML7700 switching to low gain") );
+            // log_v_debug_P( PSTR("VEML7700 switching to low gain") );
 
             veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_25ms );
             continue;
