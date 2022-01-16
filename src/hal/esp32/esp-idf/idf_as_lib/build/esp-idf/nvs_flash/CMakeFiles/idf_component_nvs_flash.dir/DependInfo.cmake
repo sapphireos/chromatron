@@ -20,7 +20,7 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
   "ESP_PLATFORM"
   "GCC_NOT_5_2_0=0"
   "HAVE_CONFIG_H"
-  "IDF_VER=\"v3.3.5-19-gac6dbdf5f\""
+  "IDF_VER=\"v3.3.5-20-gee8b173eb\""
   "MBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\""
   )
 
