@@ -168,6 +168,6 @@ void cpu_v_set_clock_speed_high( void );
 uint32_t cpu_u32_get_clock_speed( void );
 void cpu_reboot( void );
 
-uint16_t cpu_u16_get_power( void );
+uint32_t cpu_u32_get_power( void );
 
 #endif

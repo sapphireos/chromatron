@@ -594,9 +594,11 @@ void wifi_v_powerup( void ){
     
 }
 
-uint16_t wifi_u16_get_power( void ){
+uint32_t wifi_u32_get_power( void ){
 
-    return 50000;
+    // not a real value....
+    
+    return 50000 *  3.3;
 }
 
 bool wifi_b_connected( void ){

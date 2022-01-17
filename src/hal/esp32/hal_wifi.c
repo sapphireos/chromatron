@@ -500,11 +500,14 @@ bool wifi_b_ap_mode( void ){
 	return connected && ap_mode;
 }
 
-// replace with actual values!
-#define WIFI_POWER_PS_NONE  80000
-#define WIFI_POWER_PS_MODEM_MIN  25000
+#define WIFI_MICROAMPS_PS_NONE  80000
+#define WIFI_MICROAMPS_PS_MODEM_MIN  25000
+#define WIFI_VOLTS 3.3
 
-uint16_t wifi_u16_get_power( void ){
+#define WIFI_POWER_PS_NONE  ( WIFI_MICROAMPS_PS_NONE * WIFI_VOLTS )
+#define WIFI_POWER_PS_MODEM_MIN  ( WIFI_MICROAMPS_PS_MODEM_MIN * WIFI_VOLTS )
+
+uint32_t wifi_u32_get_power( void ){
 
     wifi_ps_type_t ps_mode = WIFI_PS_NONE;
 

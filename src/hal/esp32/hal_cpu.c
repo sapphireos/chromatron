@@ -283,11 +283,11 @@ void hal_cpu_v_delay_ms( uint16_t ms ){
 
 
 // replace with actual values!
-#define CPU_POWER_HIGH  30000
-#define CPU_POWER_MED   20000
-#define CPU_POWER_LOW   10000
+#define CPU_POWER_HIGH  ( 30000 * 3.3 )
+#define CPU_POWER_MED   ( 20000 * 3.3 )
+#define CPU_POWER_LOW   ( 10000 * 3.3 )
 
-uint16_t cpu_u16_get_power( void ){
+uint32_t cpu_u32_get_power( void ){
 
     uint32_t cpu_clock = cpu_u32_get_clock_speed();
 

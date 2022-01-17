@@ -74,7 +74,7 @@ void hal_wifi_v_init( void );
 int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip );
 int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip );
 
-uint16_t wifi_u16_get_power( void );
+uint32_t wifi_u32_get_power( void );
 
 #endif
 

@@ -35,14 +35,14 @@
 #include "wifi.h"
 
 
-#define MICROAMPS_CPU           5000
-
 // pixel calibrations for a single pixel at full power
 #define MICROAMPS_RED_PIX       10000
 #define MICROAMPS_GREEN_PIX     10000
 #define MICROAMPS_BLUE_PIX      10000
 #define MICROAMPS_WHITE_PIX     20000
 #define MICROAMPS_IDLE_PIX       1000 // idle power for an unlit pixel
+
+#define PIXEL_MILLIVOLTS        5000
 
 static uint32_t power_cpu;
 static uint32_t power_wifi;
@@ -55,6 +55,8 @@ static uint64_t energy_wifi;
 static uint64_t energy_pix;
 static uint64_t energy_total;
 
+#define ENERGY_MONITOR_RATE FADER_RATE
+
 
 int8_t energy_kv_handler(
     kv_op_t8 op,
@@ -64,24 +66,45 @@ int8_t energy_kv_handler(
 {
     if( op == KV_OP_GET ){
 
-        // convert raw counts to microamp-hours
+        // energy:
+        // convert raw counts to microwatt-hours
 
         if( hash == __KV__energy_total_cpu ){
 
-            STORE64(data, energy_cpu / ( 3600 * ( 1000 / FADER_RATE ) ) );
+            STORE64(data, energy_cpu / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
         }
         else if( hash == __KV__energy_total_wifi ){
 
-            STORE64(data, energy_wifi / ( 3600 * ( 1000 / FADER_RATE ) ) );
+            STORE64(data, energy_wifi / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
         }
         else if( hash == __KV__energy_total_pix ){
 
-            STORE64(data, energy_pix / ( 3600 * ( 1000 / FADER_RATE ) ) );
+            STORE64(data, energy_pix / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
         }
         else if( hash == __KV__energy_total_all ){
 
-            STORE64(data, energy_total / ( 3600 * ( 1000 / FADER_RATE ) ) );
+            STORE64(data, energy_total / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
         }
+
+        // power:
+        // convert raw microwatts to millwatts
+        else if( hash == __KV__energy_power_cpu ){
+
+            STORE32(data, power_cpu / 1000 );
+        }
+        else if( hash == __KV__energy_power_wifi ){
+
+            STORE32(data, power_wifi / 1000 );
+        }
+        else if( hash == __KV__energy_power_pix ){
+
+            STORE32(data, power_pix / 1000 );
+        }
+        else if( hash == __KV__energy_power_all ){
+
+            STORE32(data, power_total / 1000 );
+        }
+
     }
     else if( op == KV_OP_SET ){
 
@@ -130,7 +153,7 @@ void energy_v_reset( void ){
 
 uint32_t energy_u32_get_total( void ){
 
-    return energy_total / ( 3600 * ( 1000 / FADER_RATE ) ); // convert to microamp hours
+    return energy_total / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ); // convert to microwatt hours
 }
 
 PT_THREAD( energy_monitor_thread( pt_t *pt, void *state ) )
@@ -139,10 +162,10 @@ PT_BEGIN( pt );
 
     while( 1 ){
 
-        TMR_WAIT( pt, FADER_RATE );
+        TMR_WAIT( pt, ENERGY_MONITOR_RATE );
 
-        power_wifi = wifi_u16_get_power();
-        power_cpu = cpu_u16_get_power();
+        power_wifi = wifi_u32_get_power();
+        power_cpu = cpu_u32_get_power();
 
         energy_cpu += power_cpu;
         energy_wifi += power_wifi;
@@ -155,6 +178,10 @@ PT_BEGIN( pt );
             power_pix += ( gfx_u32_get_pixel_g() * MICROAMPS_GREEN_PIX ) / 256;
             power_pix += ( gfx_u32_get_pixel_b() * MICROAMPS_BLUE_PIX ) / 256;
             power_pix += ( gfx_u32_get_pixel_w() * MICROAMPS_WHITE_PIX ) / 256;
+
+            // multiply by voltage to get power in microwatts
+            power_pix *= PIXEL_MILLIVOLTS;
+            power_pix /= 1000;
         }
         else{
 
@@ -163,7 +190,6 @@ PT_BEGIN( pt );
 
         energy_pix += power_pix;
 
-        energy_total = 0;
         energy_total += energy_cpu;
         energy_total += energy_wifi;
         energy_total += energy_pix;

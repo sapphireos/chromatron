@@ -306,6 +306,13 @@ void batt_v_disable_pixels( void ){
 
 bool batt_b_pixels_enabled( void ){
 
+    if( !batt_enable ){
+
+        // pixels are always enabled if battery system is not enabled (since we can't turn them off)
+
+        return TRUE;
+    }
+
     return pixels_enabled;
 }
 
