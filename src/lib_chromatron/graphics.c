@@ -44,13 +44,16 @@
 
 #define PIXEL_MILLIVOLTS        5000
 
+#define PIXEL_HEADROOM_WARNING  500 // warn if within this milliwatts of max power
 
 
 static uint16_t vm_fader_time;
 static uint32_t pixel_power;
+static uint16_t pix_max_power; // in milliwatts
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    &pix_max_power,        0,                  "pix_max_power" },
 };
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
@@ -130,6 +133,34 @@ static void calc_pixel_power( void ){
     }
 }
 
+static void apply_power_limit( void ){
+
+    // if max power is not configured, do nothing:
+    if( pix_max_power == 0 ){
+
+        return;
+    }
+
+    int32_t power_delta = (int32_t)pixel_power - (int32_t)pix_max_power;
+
+    // if power_delta is positive, we have exceeded the power limit by the amount
+    // in power_delta
+
+    // if power_delta is negative, power_delta indicates how much headroom 
+    // is available
+
+    if( power_delta > 0 ){
+
+        log_v_error_P( PSTR("Pixel power limit exceeded by %d mW"), power_delta );
+
+        gfx_v_power_limiter_graphic();
+    }
+    else if( power_delta > -PIXEL_HEADROOM_WARNING ){
+
+        log_v_warn_P( PSTR("Pixel power headroom remaining: %d mW"), -1 * power_delta );
+    }
+}
+
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -157,6 +188,7 @@ PT_BEGIN( pt );
 
             gfx_v_shutdown_graphic();
             calc_pixel_power();
+            apply_power_limit();
             
             pixel_v_signal();        
 
@@ -167,6 +199,8 @@ PT_BEGIN( pt );
 
             gfx_v_process_faders();
             calc_pixel_power();
+            apply_power_limit();
+
             gfx_v_sync_array();
 
             pixel_v_signal();

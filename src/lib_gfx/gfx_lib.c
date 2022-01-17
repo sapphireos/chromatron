@@ -1542,6 +1542,16 @@ void gfx_v_shutdown_graphic( void ){
     array_blue[0] = 16;    
 }
 
+void gfx_v_power_limiter_graphic( void ){
+
+    memset( array_red, 0, MAX_PIXELS );
+    memset( array_green, 0, MAX_PIXELS );
+    memset( array_blue, 0, MAX_PIXELS );
+    memset( array_misc, 0, MAX_PIXELS );
+
+    array_red[0] = 64;
+}
+
 void gfx_v_reset( void ){
 
     // initialize pixel arrays to defaults    

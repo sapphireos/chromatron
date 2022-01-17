@@ -159,6 +159,7 @@ uint16_t gfx_u16_get_pix0_blue( void );
 
 void gfx_v_clear( void );
 void gfx_v_shutdown_graphic( void );
+void gfx_v_power_limiter_graphic( void );
 
 void gfxlib_v_init( void );
 
