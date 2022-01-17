@@ -21,29 +21,33 @@
 // </license>
 
 #include "system.h"
-#include "util.h"
 #include "logging.h"
 #include "keyvalue.h"
 #include "threading.h"
 #include "timers.h"
-#include "list.h"
-#include "catbus_common.h"
-#include "catbus.h"
-#include "datetime.h"
 #include "fs.h"
 
 #include "pixel.h"
-#include "hal_pixel.h"
 #include "graphics.h"
+#include "battery.h"
 #include "vm.h"
-#include "timesync.h"
 #include "vm_sync.h"
-#include "kvdb.h"
-#include "hash.h"
 #include "superconductor.h"
 
 
+// pixel calibrations for a single pixel at full power
+#define MICROAMPS_RED_PIX       10000
+#define MICROAMPS_GREEN_PIX     10000
+#define MICROAMPS_BLUE_PIX      10000
+#define MICROAMPS_WHITE_PIX     20000
+#define MICROAMPS_IDLE_PIX       1000 // idle power for an unlit pixel
+
+#define PIXEL_MILLIVOLTS        5000
+
+
+
 static uint16_t vm_fader_time;
+static uint32_t pixel_power;
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
@@ -100,6 +104,31 @@ void gfx_v_init( void ){
                 0 );
 }
 
+uint32_t gfx_u32_get_pixel_power( void ){
+
+    return pixel_power;
+}
+
+static void calc_pixel_power( void ){
+
+    // update pixel power
+    if( batt_b_pixels_enabled() ){
+
+        pixel_power = gfx_u16_get_pix_count() * MICROAMPS_IDLE_PIX;
+        pixel_power += ( gfx_u32_get_pixel_r() * MICROAMPS_RED_PIX ) / 256;
+        pixel_power += ( gfx_u32_get_pixel_g() * MICROAMPS_GREEN_PIX ) / 256;
+        pixel_power += ( gfx_u32_get_pixel_b() * MICROAMPS_BLUE_PIX ) / 256;
+        pixel_power += ( gfx_u32_get_pixel_w() * MICROAMPS_WHITE_PIX ) / 256;
+
+        // multiply by voltage to get power in microwatts
+        pixel_power *= PIXEL_MILLIVOLTS;
+        pixel_power /= 1000;
+    }
+    else{
+
+        pixel_power = 0;
+    }
+}
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
@@ -114,6 +143,7 @@ PT_BEGIN( pt );
     // init pixel arrays
     gfx_v_process_faders();
     gfx_v_sync_array();
+    calc_pixel_power();
     pixel_v_signal();
 
     while(1){
@@ -126,6 +156,7 @@ PT_BEGIN( pt );
         if( sys_b_is_shutting_down() ){
 
             gfx_v_shutdown_graphic();
+            calc_pixel_power();
             
             pixel_v_signal();        
 
@@ -135,6 +166,7 @@ PT_BEGIN( pt );
         if( vm_b_running() ){
 
             gfx_v_process_faders();
+            calc_pixel_power();
             gfx_v_sync_array();
 
             pixel_v_signal();

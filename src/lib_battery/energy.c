@@ -34,19 +34,8 @@
 #include "energy.h"
 #include "wifi.h"
 
-
-// pixel calibrations for a single pixel at full power
-#define MICROAMPS_RED_PIX       10000
-#define MICROAMPS_GREEN_PIX     10000
-#define MICROAMPS_BLUE_PIX      10000
-#define MICROAMPS_WHITE_PIX     20000
-#define MICROAMPS_IDLE_PIX       1000 // idle power for an unlit pixel
-
-#define PIXEL_MILLIVOLTS        5000
-
 static uint32_t power_cpu;
 static uint32_t power_wifi;
-static uint32_t power_pix;
 static uint32_t power_total;
 
 // total energy recorded
@@ -98,6 +87,8 @@ int8_t energy_kv_handler(
         }
         else if( hash == __KV__energy_power_pix ){
 
+            uint32_t power_pix = gfx_u32_get_pixel_power();
+
             STORE32(data, power_pix / 1000 );
         }
         else if( hash == __KV__energy_power_all ){
@@ -121,13 +112,13 @@ int8_t energy_kv_handler(
 KV_SECTION_META kv_meta_t energy_info_kv[] = {
     { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total_cpu" },
     { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total_wifi" },
-    { CATBUS_TYPE_UINT64,   0, 0,  0,    	        energy_kv_handler,    "energy_total_pix" },
+    { CATBUS_TYPE_UINT64,   0, 0,  0,    	      energy_kv_handler,    "energy_total_pix" },
     { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total_all" },
 
-    { CATBUS_TYPE_UINT32,   0, 0,  &power_cpu,    0,                    "energy_power_cpu" },
-    { CATBUS_TYPE_UINT32,   0, 0,  &power_wifi,   0,                    "energy_power_wifi" },
-    { CATBUS_TYPE_UINT32,   0, 0,  &power_pix,    0,                    "energy_power_pix" },
-    { CATBUS_TYPE_UINT32,   0, 0,  &power_total,  0,                    "energy_power_total" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "energy_power_cpu" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "energy_power_wifi" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "energy_power_pix" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "energy_power_total" },
 };
 
 
@@ -166,35 +157,14 @@ PT_BEGIN( pt );
 
         power_wifi = wifi_u32_get_power();
         power_cpu = cpu_u32_get_power();
+        uint32_t power_pix = gfx_u32_get_pixel_power();
 
         energy_cpu += power_cpu;
         energy_wifi += power_wifi;
-
-        // update pixel power
-        if( batt_b_pixels_enabled() ){
-
-            power_pix = gfx_u16_get_pix_count() * MICROAMPS_IDLE_PIX;
-            power_pix += ( gfx_u32_get_pixel_r() * MICROAMPS_RED_PIX ) / 256;
-            power_pix += ( gfx_u32_get_pixel_g() * MICROAMPS_GREEN_PIX ) / 256;
-            power_pix += ( gfx_u32_get_pixel_b() * MICROAMPS_BLUE_PIX ) / 256;
-            power_pix += ( gfx_u32_get_pixel_w() * MICROAMPS_WHITE_PIX ) / 256;
-
-            // multiply by voltage to get power in microwatts
-            power_pix *= PIXEL_MILLIVOLTS;
-            power_pix /= 1000;
-        }
-        else{
-
-            power_pix = 0;
-        }
-
         energy_pix += power_pix;
 
-        energy_total += energy_cpu;
-        energy_total += energy_wifi;
-        energy_total += energy_pix;
-
         power_total = power_pix + power_cpu + power_wifi;
+        energy_total += power_total;
     }    
 
 PT_END( pt );
