@@ -56,42 +56,42 @@ int8_t energy_kv_handler(
     if( op == KV_OP_GET ){
 
         // energy:
-        // convert raw counts to microwatt-hours
+        // convert raw counts to milliwatt-hours
 
-        if( hash == __KV__energy_total_cpu ){
+        if( hash == __KV__energy_cpu ){
 
-            STORE64(data, energy_cpu / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, energy_cpu / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
         }
-        else if( hash == __KV__energy_total_wifi ){
+        else if( hash == __KV__energy_wifi ){
 
-            STORE64(data, energy_wifi / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, energy_wifi / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
         }
-        else if( hash == __KV__energy_total_pix ){
+        else if( hash == __KV__energy_pix ){
 
-            STORE64(data, energy_pix / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, energy_pix / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
         }
-        else if( hash == __KV__energy_total_all ){
+        else if( hash == __KV__energy_total ){
 
-            STORE64(data, energy_total / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, energy_total / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
         }
 
         // power:
         // convert raw microwatts to millwatts
-        else if( hash == __KV__energy_power_cpu ){
+        else if( hash == __KV__power_cpu ){
 
             STORE32(data, power_cpu / 1000 );
         }
-        else if( hash == __KV__energy_power_wifi ){
+        else if( hash == __KV__power_wifi ){
 
             STORE32(data, power_wifi / 1000 );
         }
-        else if( hash == __KV__energy_power_pix ){
+        else if( hash == __KV__power_pix ){
 
             uint32_t power_pix = gfx_u32_get_pixel_power();
 
             STORE32(data, power_pix / 1000 );
         }
-        else if( hash == __KV__energy_power_all ){
+        else if( hash == __KV__power_total ){
 
             STORE32(data, power_total / 1000 );
         }
@@ -110,15 +110,15 @@ int8_t energy_kv_handler(
 
 
 KV_SECTION_META kv_meta_t energy_info_kv[] = {
-    { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total_cpu" },
-    { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total_wifi" },
-    { CATBUS_TYPE_UINT64,   0, 0,  0,    	      energy_kv_handler,    "energy_total_pix" },
-    { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total_all" },
+    { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_cpu" },
+    { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_wifi" },
+    { CATBUS_TYPE_UINT64,   0, 0,  0,    	      energy_kv_handler,    "energy_pix" },
+    { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total" },
 
-    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "energy_power_cpu" },
-    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "energy_power_wifi" },
-    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "energy_power_pix" },
-    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "energy_power_total" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "power_cpu" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "power_wifi" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "power_pix" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "power_total" },
 };
 
 
