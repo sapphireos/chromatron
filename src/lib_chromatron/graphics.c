@@ -145,7 +145,10 @@ static void apply_power_limit( void ){
         return;
     }
 
-    int32_t power_delta = (int32_t)pixel_power - (int32_t)pix_max_power;
+    // convert pixel power from microwatts to milliwatts
+    uint32_t pixel_power_mw = pixel_power / 1000;
+
+    int32_t power_delta = (int32_t)pixel_power_mw - (int32_t)pix_max_power;
 
     // if power_delta is positive, we have exceeded the power limit by the amount
     // in power_delta
