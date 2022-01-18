@@ -114,23 +114,27 @@ uint32_t gfx_u32_get_pixel_power( void ){
 
 static void calc_pixel_power( void ){
 
+    uint64_t power_temp;
+
     // update pixel power
     if( batt_b_pixels_enabled() ){
 
-        pixel_power = gfx_u16_get_pix_count() * MICROAMPS_IDLE_PIX;
-        pixel_power += ( gfx_u32_get_pixel_r() * MICROAMPS_RED_PIX ) / 256;
-        pixel_power += ( gfx_u32_get_pixel_g() * MICROAMPS_GREEN_PIX ) / 256;
-        pixel_power += ( gfx_u32_get_pixel_b() * MICROAMPS_BLUE_PIX ) / 256;
-        pixel_power += ( gfx_u32_get_pixel_w() * MICROAMPS_WHITE_PIX ) / 256;
+        power_temp = gfx_u16_get_pix_count() * MICROAMPS_IDLE_PIX;
+        power_temp += ( gfx_u32_get_pixel_r() * MICROAMPS_RED_PIX ) / 256;
+        power_temp += ( gfx_u32_get_pixel_g() * MICROAMPS_GREEN_PIX ) / 256;
+        power_temp += ( gfx_u32_get_pixel_b() * MICROAMPS_BLUE_PIX ) / 256;
+        power_temp += ( gfx_u32_get_pixel_w() * MICROAMPS_WHITE_PIX ) / 256;
 
         // multiply by voltage to get power in microwatts
-        pixel_power *= PIXEL_MILLIVOLTS;
-        pixel_power /= 1000;
+        power_temp *= PIXEL_MILLIVOLTS;
+        power_temp /= 1000;
     }
     else{
 
-        pixel_power = 0;
+        power_temp = 0;
     }
+
+    pixel_power = power_temp;
 }
 
 static void apply_power_limit( void ){
