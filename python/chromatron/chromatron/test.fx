@@ -20,6 +20,8 @@ def local_array_lookup():
     assert local_ary[2] == 0
     assert local_ary[3] == 0
 
+def init():
+    local_array_lookup()
 
 # def array_vector():
 #     ary = 1

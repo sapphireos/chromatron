@@ -244,6 +244,16 @@ class Builder(object):
 
         else:
             if isinstance(var.var, varComposite):
+                if isinstance(var.var, varArray):
+                    const = 0
+
+                    # set up init value:
+                    if var.init_val is not None:
+                        const = var.init_val
+
+                    const_var = self.add_const(const, lineno=lineno)
+                    self.assign(var.var, const_var, lineno=lineno)
+
                 self.add_var_to_symbol_table(var.var)
 
             elif isinstance(var.var, varScalar):
