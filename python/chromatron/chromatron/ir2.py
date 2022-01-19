@@ -974,6 +974,24 @@ class irBlock(IR):
             c.gvn_optimize(copy(values))
 
 
+    def gvn_analyze(self, values=None, visited=None):
+        if values is None:
+            values = {}
+        
+        for ir in self.code:
+            if ir.value_number is None:
+                continue
+
+            print(ir)
+        
+        if self not in self.func.dominator_tree:
+            return
+
+        for c in self.func.dominator_tree[self]:
+            c.gvn_analyze(copy(values))
+
+
+
     # def fold_constants(self):
     #     changes = 0
     #     new_code = []
@@ -2655,6 +2673,10 @@ class irFunc(IR):
 
         return func
 
+    def gvn_optimizer(self):
+        self.leader_block.gvn_analyze()
+        
+
     def analyze_blocks(self, opt_level:OptLevels=OptLevels.SSA):
     # def analyze_blocks(self, opt_level=None):
         logging.debug(f'Starting block analysis with optimization level: {opt_level}')
@@ -2672,7 +2694,7 @@ class irFunc(IR):
         # self.render_dominator_tree()
         # self.render_rgaph()
 
-        if opt_level is not None:
+        if opt_level is not OptLevels.NONE:
 
             self.convert_to_ssa()            
             
@@ -2687,6 +2709,9 @@ class irFunc(IR):
             # value numbering
             # self.leader_block.gvn_optimize()
             # self.leader_block.gvn_optimize()
+
+            self.gvn_optimizer()
+
 
             # optimizers
             optimize = False
