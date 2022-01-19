@@ -234,6 +234,15 @@ typedef struct __attribute__((packed)){
 } opcode_lkp2_t;
 #define DECODE_LKP2 opcode_lkp2 = (opcode_lkp2_t *)pc; pc += 12;
 
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint8_t target;
+    uint16_t value;
+    uint16_t length;
+} opcode_vector_t;
+#define DECODE_VECTOR opcode_vector = (opcode_vector_t *)pc; pc += 8;
+
+
 
 #define CALL_SETUP \
     /* set up return stack */ \
@@ -523,7 +532,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 221
         &&opcode_trap,              // 222
         &&opcode_trap,              // 223
-        &&opcode_trap,              // 224
+
+        &&opcode_vmov,              // 224
         &&opcode_trap,              // 225
         &&opcode_trap,              // 226
         &&opcode_trap,              // 227
@@ -938,6 +948,7 @@ static int8_t _vm_i8_run_stream(
     // opcode_lkp0_t *opcode_lkp0;
     opcode_lkp1_t *opcode_lkp1;
     opcode_lkp2_t *opcode_lkp2;
+    opcode_vector_t *opcode_vector;
 
 
     uint8_t call_depth = 0;
@@ -1728,6 +1739,16 @@ opcode_vadd_hue:
 
     DISPATCH;
 
+
+opcode_vmov:
+    DECODE_VECTOR;
+
+    ref.n = registers[opcode_vector->target];
+
+    
+
+
+    DISPATCH;
 
 
 opcode_trap:

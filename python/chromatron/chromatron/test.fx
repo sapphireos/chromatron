@@ -1,34 +1,24 @@
-current_hue = Fixed16()
 
-# init - runs once when script is loaded
+ary = Number()[4]
+
+def array_assign():
+    ary = 0
+    ary = 1
+    assert ary[0] == 1
+    assert ary[1] == 1
+    assert ary[2] == 1
+    assert ary[3] == 1
+
 def init():
-    # set pixels to full colors (maximum saturation)
-    pixels.sat = 1.0
+    array_assign()
 
-    # set to maximum brightness
-    pixels.val = 1.0
-
-
-# runs periodically, frame rate is configurable
-def loop():
-    # increment the base hue so the rainbow pattern
-    # shifts across the pixels as we go from one frame
-    # to the next.
-    current_hue += 0.005
-
-    # declare a local variable
-    a = Fixed16()
-    a = current_hue
-
-    # loop over all pixels in array
-    for i in pixels.count:
-        pixels[i].hue = a
-        
-        # shift color for next pixel.
-        # this will distribute the rainbow pattern
-        # across the entire array.
-        a += 1.0 / pixels.count
-
+# def array_vector():
+#     ary = 1
+#     ary += 1
+#     assert ary[0] == 2
+#     assert ary[1] == 2
+#     assert ary[2] == 2
+#     assert ary[3] == 2
 
 # ary = Number()[4]
 
