@@ -160,26 +160,26 @@ class insProgram(object):
         # self.pixel_arrays = {p.name: p for p in self.objects if p.data_type == 'PixelArray'}
         self.pixel_arrays = {}
         for p in [p for p in self.objects if p.data_type == 'PixelArray']:
-            if 'pix_count' in p.keywords:
-                pix_count = p.keywords['pix_count']
+            if 'count' in p.keywords:
+                pix_count = p.keywords['count']
 
             else:
                 pix_count = self.pix_count
 
-            if 'pix_index' in p.keywords:
-                pix_index = p.keywords['pix_index']
+            if 'index' in p.keywords:
+                pix_index = p.keywords['index']
 
             else:
                 pix_index = 0
 
-            if 'pix_size_x' in p.keywords:
-                pix_size_x = p.keywords['pix_size_x']
+            if 'size_x' in p.keywords:
+                pix_size_x = p.keywords['size_x']
 
             else:
                 pix_size_x = self.pix_size_x
 
-            if 'pix_size_y' in p.keywords:
-                pix_size_y = p.keywords['pix_size_y']
+            if 'size_y' in p.keywords:
+                pix_size_y = p.keywords['size_y']
 
             else:
                 pix_size_y = self.pix_size_y
