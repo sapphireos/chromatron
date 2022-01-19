@@ -260,12 +260,18 @@ typedef struct __attribute__((packed)){
         return VM_STATUS_ERR_LOCAL_OUT_OF_BOUNDS; \
     } \
     call_depth++; \
-    pools[call_depth] = local_memory; \
+    pools[N_STATIC_POOLS + call_depth] = local_memory; \
     if( call_depth > VM_MAX_CALL_DEPTH ){ \
         return VM_STATUS_CALL_DEPTH_EXCEEDED; \
     } \
     /* call by jumping to target */ \
     pc = code + func_table[index].addr;
+
+
+
+
+
+// reference_t ref;
 
 
 static int8_t _vm_i8_run_stream(
@@ -927,7 +933,6 @@ static int8_t _vm_i8_run_stream(
     uint16_t count;
     uint16_t stride;
     int32_t params[8];
-    // uint32_t addr;
     reference_t ref;
 
     int32_t *ptr_i32;
@@ -974,7 +979,7 @@ static int8_t _vm_i8_run_stream(
     pools[POOL_FUNCTIONS]               = (int32_t *)func_table;
     pools[N_STATIC_POOLS + call_depth]  = local_memory;
 
-
+    // return -1;
 
     #define DISPATCH cycles--; \
                      if( cycles == 0 ){ \
