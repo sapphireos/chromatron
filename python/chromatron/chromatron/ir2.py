@@ -2,6 +2,7 @@
 import logging
 from copy import copy, deepcopy
 import struct
+from enum import Enum
 
 import graphviz
 
@@ -33,6 +34,13 @@ PIXEL_ARRAY_FIELDS = {
     'offset': 'i32',
     'palette': 'i32',
 }
+
+
+
+class OptLevels(Enum):
+    NONE          = 0
+    SSA           = 1
+    GVN           = 2
 
 
 """
@@ -2647,7 +2655,7 @@ class irFunc(IR):
 
         return func
 
-    def analyze_blocks(self, opt_level='ssa'):
+    def analyze_blocks(self, opt_level:OptLevels=OptLevels.SSA):
     # def analyze_blocks(self, opt_level=None):
         logging.debug(f'Starting block analysis with optimization level: {opt_level}')
 
