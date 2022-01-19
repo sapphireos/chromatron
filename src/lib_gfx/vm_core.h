@@ -76,6 +76,7 @@
 #define VM_STATUS_STREAM_MISALIGN           -53
 #define VM_STATUS_POOL_MISALIGN             -54
 #define VM_STATUS_BAD_STORAGE_POOL          -55
+#define VM_STATUS_INVALID_FUNC_REF          -56
 
 
 #define VM_STATUS_RESTRICTED_KEY            -70

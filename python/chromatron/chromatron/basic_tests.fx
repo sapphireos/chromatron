@@ -641,7 +641,7 @@ def init():
     local_array_vector()
     func_param(0)
     func_call()
-    # func_indirect_call()
+    func_indirect_call()
     # func_indirect_call_array()
     # func_call_throwaway_return()
     # func_unused_params()

@@ -1390,7 +1390,12 @@ opcode_icall0:
     DECODE_1AC;
 
     // look up function
-    index = registers[opcode_1ac->op1];
+    ref.n = registers[opcode_1ac->op1];
+    if( ref.ref.pool != POOL_FUNCTIONS ){
+
+        return VM_STATUS_INVALID_FUNC_REF;
+    }
+    index = ref.ref.addr;
 
     CALL_SETUP;
 
@@ -1404,7 +1409,12 @@ opcode_icall1:
     DECODE_2AC;
 
     // look up function
-    index = registers[opcode_2ac->dest];
+    ref.n = registers[opcode_2ac->dest];
+    if( ref.ref.pool != POOL_FUNCTIONS ){
+
+        return VM_STATUS_INVALID_FUNC_REF;
+    }
+    index = ref.ref.addr;
 
     CALL_SETUP;
 
@@ -1424,7 +1434,12 @@ opcode_icall2:
     DECODE_3AC;
 
     // look up function
-    index = registers[opcode_3ac->dest];
+    ref.n = registers[opcode_3ac->dest];
+    if( ref.ref.pool != POOL_FUNCTIONS ){
+
+        return VM_STATUS_INVALID_FUNC_REF;
+    }
+    index = ref.ref.addr;
 
     CALL_SETUP;
 
@@ -1446,7 +1461,12 @@ opcode_icall3:
     DECODE_4AC;
 
     // look up function
-    index = registers[opcode_4ac->dest];
+    ref.n = registers[opcode_4ac->dest];
+    if( ref.ref.pool != POOL_FUNCTIONS ){
+
+        return VM_STATUS_INVALID_FUNC_REF;
+    }
+    index = ref.ref.addr;
 
     CALL_SETUP;
 
@@ -1470,7 +1490,12 @@ opcode_icall4:
     DECODE_5AC;
 
     // look up function
-    index = registers[opcode_5ac->dest];
+    ref.n = registers[opcode_5ac->dest];
+    if( ref.ref.pool != POOL_FUNCTIONS ){
+
+        return VM_STATUS_INVALID_FUNC_REF;
+    }
+    index = ref.ref.addr;
 
     CALL_SETUP;
 
@@ -1487,7 +1512,7 @@ opcode_icall4:
     registers[1] = params[1];
     registers[2] = params[2];
     registers[3] = params[3];
-    
+
     CALL_FINISH;
 
     DISPATCH;
