@@ -1039,7 +1039,7 @@ class insLookup2(insLookup):
         counts = [i.assemble() for i in self.counts]
         strides = [i.assemble() for i in self.strides]
 
-        return OpcodeFormatLookup1(
+        return OpcodeFormatLookup2(
                 self.mnemonic, 
                 self.result.assemble(),
                 self.ref.assemble(), 
@@ -1056,7 +1056,7 @@ class insLookup3(insLookup):
         counts = [i.assemble() for i in self.counts]
         strides = [i.assemble() for i in self.strides]
 
-        return OpcodeFormatLookup1(
+        return OpcodeFormatLookup3(
                 self.mnemonic, 
                 self.result.assemble(),
                 self.ref.assemble(), 
