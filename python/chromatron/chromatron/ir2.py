@@ -358,6 +358,9 @@ class irProgram(IR):
             func.analyze_blocks()
 
     def analyze_call_graph(self):
+        for func in self.funcs.values():
+            func.analyze_calls()
+
         call_graph = {}
 
         for func_name in ['init', 'loop']:
@@ -369,6 +372,35 @@ class irProgram(IR):
             call_graph[func_name] = func.get_call_graph(self.funcs)
 
         self.call_graph = call_graph
+
+    def is_called(self, func_name, graph={}):
+        if func_name in graph:
+            return True
+
+        for name in graph:
+            if self.is_called(func_name, graph=graph[name]):
+                return True
+
+        return False
+
+    def remove_unused_functions(self):
+        used_funcs = {}
+
+        for name, func in self.funcs.items():
+            if self.is_called(name, graph=self.call_graph):
+                used_funcs[name] = func
+
+        self.funcs = used_funcs
+
+        sym_table = deepcopy(self.global_symbols)
+
+        for k, v in sym_table.symbols.items():
+            if not isinstance(v, varFunction):
+                continue
+
+            if k not in used_funcs:
+                logging.debug(f'Removing unused function: {k}')
+                del self.global_symbols.symbols[k]
 
     def _allocate_memory(self):
         addr = 0
@@ -400,14 +432,16 @@ class irProgram(IR):
             func_addr += 1
 
     def generate(self):
+        self.analyze_call_graph()
+
+        self.remove_unused_functions()
+
         self._allocate_memory()
 
         ins_funcs = {}
         for name, func in self.funcs.items():
             ins_funcs[name] = func.generate()
             ins_funcs[name].prune_jumps()
-
-        self.analyze_call_graph()
 
         return insProgram(
                 self.name, 
@@ -2181,12 +2215,10 @@ class irFunc(IR):
             ir.live_out = set(self.live_out[ir])
 
     def analyze_calls(self):
-        assert self.code is not None
-
         direct_calls = []
         indirect_calls = []
 
-        for ir in self.code:
+        for ir in self.body:
             if isinstance(ir, irCall):
                 if ir.target not in direct_calls:
                     direct_calls.append(ir.target)
@@ -2587,8 +2619,6 @@ class irFunc(IR):
         self.allocate_locals()
 
         self.remove_useless_copies()
-
-        self.analyze_calls()
 
         instructions = []
         assert len(self.code) > 0
