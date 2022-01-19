@@ -252,7 +252,7 @@ typedef struct __attribute__((packed)){
     /* look up function */ \
     current_frame_size = func_table[index].frame_size;
 
-#define CALL_FINISH \
+#define CALL_SWITCH_CONTEXT \
     /* adjust local memory pointers: */ \
     local_memory += frame_stack[call_depth] / 4; \
     registers = local_memory; \
@@ -263,7 +263,9 @@ typedef struct __attribute__((packed)){
     pools[N_STATIC_POOLS + call_depth] = local_memory; \
     if( call_depth > VM_MAX_CALL_DEPTH ){ \
         return VM_STATUS_CALL_DEPTH_EXCEEDED; \
-    } \
+    }
+
+#define CALL_FINISH \
     /* call by jumping to target */ \
     pc = code + func_table[index].addr;
 
@@ -271,8 +273,8 @@ typedef struct __attribute__((packed)){
 
 
 
-// reference_t ref;
-
+reference_t ref;
+int32_t params[8];
 
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
@@ -932,8 +934,8 @@ static int8_t _vm_i8_run_stream(
     uint16_t index;
     uint16_t count;
     uint16_t stride;
-    int32_t params[8];
-    reference_t ref;
+    // int32_t params[8];
+    // reference_t ref;
 
     int32_t *ptr_i32;
     gfx_pixel_array_t *pix_array;
@@ -1290,6 +1292,7 @@ opcode_call0:
 
     CALL_SETUP;
 
+    CALL_SWITCH_CONTEXT;
     CALL_FINISH;
 
     DISPATCH;
@@ -1303,6 +1306,11 @@ opcode_call1:
 
     // load params
     params[0] = registers[opcode_1i1r->reg1];
+
+    CALL_SWITCH_CONTEXT;
+
+    // store params
+    registers[0] = params[0];
 
     CALL_FINISH;
 
@@ -1318,6 +1326,12 @@ opcode_call2:
     // load params
     params[0] = registers[opcode_1i2r->reg1];
     params[1] = registers[opcode_1i2r->reg2];
+
+    CALL_SWITCH_CONTEXT;
+
+    // store params
+    registers[0] = params[0];
+    registers[1] = params[1];
 
     CALL_FINISH;
 
@@ -1335,6 +1349,13 @@ opcode_call3:
     params[1] = registers[opcode_1i3r->reg2];
     params[2] = registers[opcode_1i3r->reg3];
 
+    CALL_SWITCH_CONTEXT;
+
+    // store params
+    registers[0] = params[0];
+    registers[1] = params[1];
+    registers[2] = params[2];
+
     CALL_FINISH;
 
     DISPATCH;
@@ -1350,7 +1371,15 @@ opcode_call4:
     params[0] = registers[opcode_1i4r->reg1];
     params[1] = registers[opcode_1i4r->reg2];
     params[2] = registers[opcode_1i4r->reg3];
-    params[2] = registers[opcode_1i4r->reg4];
+    params[3] = registers[opcode_1i4r->reg4];
+
+    CALL_SWITCH_CONTEXT;
+    
+    // store params
+    registers[0] = params[0];
+    registers[1] = params[1];
+    registers[2] = params[2];
+    registers[3] = params[3];
 
     CALL_FINISH;
 
@@ -1365,6 +1394,7 @@ opcode_icall0:
 
     CALL_SETUP;
 
+    CALL_SWITCH_CONTEXT;
     CALL_FINISH;
 
     DISPATCH;
@@ -1381,6 +1411,11 @@ opcode_icall1:
     // load params
     params[0] = registers[opcode_2ac->op1];
 
+    CALL_SWITCH_CONTEXT;
+
+    // store params
+    registers[0] = params[0];
+
     CALL_FINISH;
 
     DISPATCH;
@@ -1396,6 +1431,12 @@ opcode_icall2:
     // load params
     params[0] = registers[opcode_3ac->op1];
     params[1] = registers[opcode_3ac->op2];
+
+    CALL_SWITCH_CONTEXT;
+
+    // store params
+    registers[0] = params[0];
+    registers[1] = params[1];    
 
     CALL_FINISH;
 
@@ -1414,6 +1455,13 @@ opcode_icall3:
     params[1] = registers[opcode_4ac->op2];
     params[2] = registers[opcode_4ac->op3];
 
+    CALL_SWITCH_CONTEXT;
+    
+    // store params
+    registers[0] = params[0];
+    registers[1] = params[1];
+    registers[2] = params[2];
+
     CALL_FINISH;
 
     DISPATCH;
@@ -1430,8 +1478,16 @@ opcode_icall4:
     params[0] = registers[opcode_5ac->op1];
     params[1] = registers[opcode_5ac->op2];
     params[2] = registers[opcode_5ac->op3];
-    params[2] = registers[opcode_5ac->op4];
+    params[3] = registers[opcode_5ac->op4];
 
+    CALL_SWITCH_CONTEXT;
+
+    // store params
+    registers[0] = params[0];
+    registers[1] = params[1];
+    registers[2] = params[2];
+    registers[3] = params[3];
+    
     CALL_FINISH;
 
     DISPATCH;

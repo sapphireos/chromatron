@@ -1,27 +1,29 @@
 
+ary2 = Number()[2][3]
 
-def local_array_lookup():
-    local_ary = Number()[4]
-    b = Number()
-    local_ary[b] = 1
-    b = 1
-    local_ary[b] = 2
+def array2_lookup():
+    # b = Number()
 
-    assert local_ary[0] == 1
-    assert local_ary[1] == 2
-    assert local_ary[2] == 0
-    assert local_ary[3] == 0
+    # ary2[b][0] = 1
+    # ary2[b][1] = 2
+    # ary2[b][2] = 3
+    # b = 1
+    # ary2[b] = 2
+    # ary2[b][0] = 4
+    # ary2[b][1] = 5
+    # ary2[b][2] = 6
 
-    local_ary[0] = 1
-    local_ary[1] = local_ary[0]
+    ary2[0][0] = 1
 
-    assert local_ary[0] == 1
-    assert local_ary[1] == 1
-    assert local_ary[2] == 0
-    assert local_ary[3] == 0
+    assert ary2[0][0] == 1
+    # assert ary2[0][1] == 2
+    # assert ary2[0][2] == 3
+    # assert ary2[1][0] == 4
+    # assert ary2[1][1] == 5
+    # assert ary2[1][2] == 6
 
 def init():
-    local_array_lookup()
+    array2_lookup()
 
 # def array_vector():
 #     ary = 1
