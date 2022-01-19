@@ -1180,6 +1180,12 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         return 0xffff;
     }
 
+    // avoid divide by 0 exceptions:
+    if( pix_arrays[obj].count == 0 ){
+
+        return 0;
+    }
+
     if( gfx_transpose ){
 
         uint16_t temp = y;
