@@ -408,9 +408,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 95
 
         &&opcode_pstore_hue,        // 96
-
-        &&opcode_trap,              // 97
-        &&opcode_trap,              // 98
+        &&opcode_pstore_sat,        // 97
+        &&opcode_pstore_val,        // 98
         &&opcode_trap,              // 99
         &&opcode_trap,              // 100
         &&opcode_trap,              // 101
@@ -427,8 +426,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 111
 
         &&opcode_pload_hue,         // 112
-        &&opcode_trap,              // 113
-        &&opcode_trap,              // 114
+        &&opcode_pload_sat,         // 113
+        &&opcode_pload_val,         // 114
         &&opcode_trap,              // 115
         &&opcode_trap,              // 116
         &&opcode_trap,              // 117
@@ -1760,6 +1759,29 @@ opcode_pstore_hue:
     DISPATCH;
 
 
+opcode_pstore_sat:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    index = registers[opcode_2ac->dest];
+
+    gfx_v_set_sat_1d( value, index );
+
+    DISPATCH;
+
+opcode_pstore_val:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    index = registers[opcode_2ac->dest];
+
+    // wrap hue
+    value %= 65536;
+
+    gfx_v_set_val_1d( value, index );
+
+    DISPATCH;
+
 opcode_vstore_hue:
     DECODE_2AC;
 
@@ -1797,6 +1819,20 @@ opcode_pload_hue:
     DECODE_2AC;
 
     registers[opcode_2ac->dest] = gfx_u16_get_hue_1d( registers[opcode_2ac->op1] );
+
+    DISPATCH;
+
+opcode_pload_sat:
+    DECODE_2AC;
+
+    registers[opcode_2ac->dest] = gfx_u16_get_sat_1d( registers[opcode_2ac->op1] );
+
+    DISPATCH;
+
+opcode_pload_val:
+    DECODE_2AC;
+
+    registers[opcode_2ac->dest] = gfx_u16_get_val_1d( registers[opcode_2ac->op1] );
 
     DISPATCH;
 

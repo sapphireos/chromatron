@@ -113,7 +113,9 @@ uint16_t gfx_u16_get_pix_driver_offset( uint8_t output );
 void gfx_v_set_hue_1d( uint16_t a, uint16_t index );
 uint16_t gfx_u16_get_hue_1d( uint16_t index );
 void gfx_v_set_sat_1d( uint16_t a, uint16_t index );
+uint16_t gfx_u16_get_sat_1d( uint16_t index );
 void gfx_v_set_val_1d( uint16_t a, uint16_t index );
+uint16_t gfx_u16_get_val_1d( uint16_t index );
 void gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index );
 void gfx_v_set_v_fade_1d( uint16_t a, uint16_t index );
 
