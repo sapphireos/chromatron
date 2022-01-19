@@ -435,7 +435,7 @@ class OpcodeFormatVector(Opcode64):
         super().__init__(opcode, **kwargs)
 
         self.items = [target, value, length]
-        self.format = 'BHH'
+        self.format = 'BBH'
 
 class OpcodeFormatLookup0(Opcode):
     def __init__(self, opcode, dest, ref, **kwargs):

@@ -237,7 +237,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint8_t opcode;
     uint8_t target;
-    uint16_t value;
+    uint8_t value;
     uint16_t length;
 } opcode_vector_t;
 #define DECODE_VECTOR opcode_vector = (opcode_vector_t *)pc; pc += 8;
@@ -922,7 +922,7 @@ static int8_t _vm_i8_run_stream(
     // uint8_t array;
     // #endif
 
-    uint32_t value;
+    int32_t value;
     uint16_t index;
     uint16_t count;
     uint16_t stride;
@@ -1744,9 +1744,13 @@ opcode_vmov:
     DECODE_VECTOR;
 
     ref.n = registers[opcode_vector->target];
+    value = registers[opcode_vector->value];
+    ptr_i32 = pools[ref.ref.pool];
 
-    
+    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
 
+        ptr_i32[ref.ref.addr + i] = value;
+    }
 
     DISPATCH;
 

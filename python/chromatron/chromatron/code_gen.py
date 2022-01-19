@@ -1192,10 +1192,10 @@ def run_script(path, debug_print=False):
 
     pprint.pprint(ins_program.gfx_data)
 
-    # image = ins_program.assemble()
-    # stream = image.render()
-    # print(image.header)
-    # print('prog len:', image.prog_len)
+    image = ins_program.assemble()
+    stream = image.render()
+    print(image.header)
+    print('prog len:', image.prog_len)
 
 
     return ins_program
