@@ -1765,6 +1765,16 @@ opcode_pstore_sat:
     value = registers[opcode_2ac->op1];
     index = registers[opcode_2ac->dest];
 
+    // clamp value
+    if( value < 0 ){
+
+        value = 0;
+    }
+    else if( value > 65535 ){
+
+        value = 65535;
+    }
+
     gfx_v_set_sat_1d( value, index );
 
     DISPATCH;
@@ -1775,8 +1785,15 @@ opcode_pstore_val:
     value = registers[opcode_2ac->op1];
     index = registers[opcode_2ac->dest];
 
-    // wrap hue
-    value %= 65536;
+    // clamp value
+    if( value < 0 ){
+
+        value = 0;
+    }
+    else if( value > 65535 ){
+
+        value = 65535;
+    }
 
     gfx_v_set_val_1d( value, index );
 
