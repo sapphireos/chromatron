@@ -1182,19 +1182,20 @@ def compile_script(path, debug_print=False):
 def run_script(path, debug_print=False):
     ins_program = compile_script(path, debug_print=debug_print)
 
-    for func in ins_program.funcs:
-        ret_val = func.run()
-        print(f'VM returned: {ret_val}')
+    # for func in ins_program.funcs:
+    func = ins_program.init_func
+    ret_val = func.run()
+    print(f'VM returned: {ret_val}')
 
     # ret_val = ins_program.funcs['stuff'].run()
     # print(f'VM returned: {ret_val}')
 
     pprint.pprint(ins_program.gfx_data)
 
-    image = ins_program.assemble()
-    stream = image.render()
-    print(image.header)
-    print('prog len:', image.prog_len)
+    # image = ins_program.assemble()
+    # stream = image.render()
+    # print(image.header)
+    # print('prog len:', image.prog_len)
 
 
     return ins_program

@@ -617,3 +617,58 @@ def rainbow_loop():
 #     s = "meow"
     
 #     return s
+
+
+
+
+def init():
+    arith()
+    constant_folding()
+    simple_ifelse()
+    simple_ifelse2()
+    while_loop()
+    double_while_loop()
+    global_var()
+    array_lookup()
+    array_store()
+    array_store2()
+    array_assign()
+    array_vector()
+    array2_lookup()
+    array2_vector()
+    local_array_lookup()
+    local_array_assign()
+    local_array_vector()
+    func_param(0)
+    func_call()
+    func_indirect_call()
+    func_indirect_call_array()
+    func_call_throwaway_return()
+    func_unused_params()
+    local_value_init()
+    type_conversions()
+    type_conversions_array()
+    type_conversions_binop()
+    obj_store_direct()
+    obj_store_lookup()
+    obj_store_lookup2()
+    obj_store_lookup3()
+    obj_store_lookup4()
+    obj_load_direct()
+    obj_load_indirect()
+    obj_load_lookup()
+    # obj_load_lookup2() # this function will not compile (and this is expected behavior!)
+    obj_load_lookup3()
+    obj_load_lookup4()
+    pix_hue_store()
+    pix_hue_store2()
+    pix_val_store()
+    pix_val_store2()
+    pix_sat_store()
+    pix_sat_store2()
+    pix_count()
+    pix_add_hue()
+    ref_array_func_call()
+    rainbow_loop()
+
+    

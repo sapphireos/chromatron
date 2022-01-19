@@ -109,6 +109,9 @@ class insProgram(object):
         for func in funcs.values():
             func.program = self
 
+        self.init_func = funcs['init']
+        self.loop_func = funcs['loop']
+
         # get worst case stack depth
         self.stacks = {}
         def get_stack(func, call_graph):
