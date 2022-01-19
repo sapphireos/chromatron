@@ -982,7 +982,7 @@ class irBlock(IR):
             if ir.value_number is None:
                 continue
 
-            print(ir)
+            print(ir, ir.value_number)
         
         if self not in self.func.dominator_tree:
             return
