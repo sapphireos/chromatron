@@ -2003,7 +2003,7 @@ class insPixelLoad(BaseInstruction):
 
     def assemble(self):
         # we don't encode attribute, the opcode itself will encode that
-        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)
+        return OpcodeFormat2AC(self.mnemonic, self.target.assemble(), self.pixel_ref.reg, lineno=self.lineno)
 
 
 class insPixelLoadHue(insPixelLoad):
