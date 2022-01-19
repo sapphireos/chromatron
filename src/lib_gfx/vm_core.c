@@ -1188,11 +1188,11 @@ opcode_halt:
     DISPATCH;
 
 opcode_assert:
-    DECODE_1AC;    
+    DECODE_1I1R;    
     
-    if( registers[opcode_1ac->op1] == FALSE ){
+    if( registers[opcode_1i1r->reg1] == FALSE ){
 
-        log_v_warn_P( PSTR("VM Assertion") );
+        log_v_warn_P( PSTR("VM Assertion at line: %d"), opcode_1i1r->imm1 );
 
         return VM_STATUS_ASSERT;        
     }

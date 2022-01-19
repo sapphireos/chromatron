@@ -1475,7 +1475,7 @@ class insAssert(BaseInstruction):
         assert value        
 
     def assemble(self):
-        return OpcodeFormat1AC(self.mnemonic, self.op1.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm1Reg(self.mnemonic, self.lineno, self.op1.assemble(), lineno=self.lineno)
 
 class insPrint(BaseInstruction):
     mnemonic = 'PRINT'
