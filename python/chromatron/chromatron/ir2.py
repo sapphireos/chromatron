@@ -307,6 +307,10 @@ class IR(object):
         return None
 
     @property
+    def value_expr(self):
+        return None
+
+    @property
     def loop_depth(self):
         return len(self.loops)
 
@@ -533,7 +537,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = False
+            show_liveness = True
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -974,21 +978,52 @@ class irBlock(IR):
             c.gvn_optimize(copy(values))
 
 
-    def gvn_analyze(self, values=None, visited=None):
-        if values is None:
-            values = {}
+    def gvn_analyze(self, VN=None, table=None, visited=None):
+        if VN is None or table is None:
+            VN = {}
+            table = {}
         
+        # from Briggs, Cooper, and Stratton
+
+        new_code = []
+
         for ir in self.code:
-            if ir.value_number is None:
+            if ir.value_number is None or ir.value_expr is None:
+                new_code.append(ir)
                 continue
 
-            print(ir, ir.value_number)
+            
+            ir.apply_value_numbers(VN)
+
+            # print(ir, ir.value_expr)
+
+            x = ir.value_number
+            expr = ir.value_expr # y op z for a binop
+
+            # if expr can be simplified:
+            # TBD
+
+            if expr in table:
+                v = table[expr]
+                VN[x] = v
+
+                print('remove', ir)
+
+            else:
+                VN[x] = x
+                table[expr] = x
+
+                new_code.append(ir)
+
+
+        self.code = new_code
+
         
         if self not in self.func.dominator_tree:
             return
 
         for c in self.func.dominator_tree[self]:
-            c.gvn_analyze(copy(values))
+            c.gvn_analyze(VN, table)
 
 
 
@@ -3390,7 +3425,15 @@ class irAssign(IR):
 
     @property
     def value_number(self):
-        return self.value
+        return self.target
+
+    @property
+    def value_expr(self):
+        return f'={self.value.ssa_name}'
+
+    def apply_value_numbers(self, VN):
+        if self.value in VN:
+            self.value = VN[self.value]
 
     def get_input_vars(self):
         return [self.value]
@@ -3750,7 +3793,7 @@ class irLoadConst(IR):
 
     @property
     def value_number(self):
-        return self.value
+        return self.target
 
     def __str__(self):
         return f'LOAD CONST {self.target} <-- {self.value}'
@@ -3796,9 +3839,9 @@ class irLoadRef(IR):
         self.target = target
         self.ref = ref
 
-    @property
-    def value_number(self):
-        return self.ref
+    # @property
+    # def value_number(self):
+    #     return self.target
 
     def __str__(self):
         return f'LOAD REF {self.target} <-- {self.ref}'
@@ -3964,7 +4007,11 @@ class irBinop(IR):
 
     @property
     def value_number(self):
-        return self.expr
+        return self.target
+
+    @property
+    def value_expr(self):
+        return f'{self.left.ssa_name}{self.op}{self.right.ssa_name}'
 
     @property
     def data_type(self):
@@ -3975,6 +4022,13 @@ class irBinop(IR):
 
     def get_output_vars(self):
         return [self.target]
+
+    def apply_value_numbers(self, VN):
+        if self.left in VN:
+            self.left = VN[self.left]
+
+        if self.right in VN:
+            self.right = VN[self.right]
 
     def reduce_strength(self):
         if self.op == 'add':
