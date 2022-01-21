@@ -537,7 +537,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = True
+            show_liveness = False
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -979,7 +979,10 @@ class irBlock(IR):
 
 
     def gvn_analyze(self, VN=None, table=None, visited=None):
+        # return 
         if VN is None or table is None:
+            logging.debug('GVN: Starting optimizer pass')
+
             VN = {}
             table = {}
         
@@ -1007,7 +1010,7 @@ class irBlock(IR):
                 v = table[expr]
                 VN[x] = v
 
-                print('remove', ir)
+                logging.debug(f'GVN: Removing {ir} at line: {ir.lineno}')
 
             else:
                 VN[x] = x
@@ -3403,6 +3406,18 @@ class irReturn(irControlFlow):
     def __str__(self):
         return "RET %s" % (self.ret_var)
 
+    @property
+    def value_number(self):
+        return self.ret_var
+
+    @property
+    def value_expr(self):
+        return f'RET{self.value_number.ssa_name}'
+
+    def apply_value_numbers(self, VN):
+        if self.ret_var in VN:
+            self.ret_var = VN[self.ret_var]
+
     def generate(self):
         return insReturn(self.ret_var.generate(), lineno=self.lineno)
 
@@ -3902,6 +3917,18 @@ class irStore(IR):
     def __str__(self):
         return f'STORE {self.register} --> {self.ref}'
 
+    @property
+    def value_number(self):
+        return self.ref
+
+    @property
+    def value_expr(self):
+        return f'STORE{self.register.ssa_name}'
+
+    def apply_value_numbers(self, VN):
+        if self.register in VN:
+            self.register = VN[self.register]
+
     def get_input_vars(self):
         i = [self.register]
 
@@ -4015,6 +4042,13 @@ class irBinop(IR):
     def value_expr(self):
         return f'{self.left.ssa_name}{self.op}{self.right.ssa_name}'
 
+    def apply_value_numbers(self, VN):
+        if self.left in VN:
+            self.left = VN[self.left]
+
+        if self.right in VN:
+            self.right = VN[self.right]
+
     @property
     def data_type(self):
         return self.target.data_type
@@ -4024,13 +4058,6 @@ class irBinop(IR):
 
     def get_output_vars(self):
         return [self.target]
-
-    def apply_value_numbers(self, VN):
-        if self.left in VN:
-            self.left = VN[self.left]
-
-        if self.right in VN:
-            self.right = VN[self.right]
 
     def reduce_strength(self):
         if self.op == 'add':
