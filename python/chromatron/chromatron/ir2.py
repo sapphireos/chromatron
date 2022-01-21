@@ -2264,11 +2264,13 @@ class irFunc(IR):
         # so that var will "leak" to the top.
         for v in self.live_in[code[0]]:
             if v not in self.params:
-                raise CompilerFatal(f'Liveness error')
+                logging.error(f'Liveness error: {v}')
+                # raise CompilerFatal(f'Liveness error: {v}')
 
         for v in self.live_out[code[0]]:
             if v not in self.params:
-                raise CompilerFatal(f'Liveness error')
+                logging.error(f'Liveness error {v}')
+                # raise CompilerFatal(f'Liveness error: {v}')
 
         # copy liveness information into instructions:
         for ir in code:
