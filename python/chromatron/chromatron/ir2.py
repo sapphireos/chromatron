@@ -995,7 +995,7 @@ class irBlock(IR):
                 new_code.append(ir)
                 continue
 
-            
+            old_ir = deepcopy(ir) # DEBUG!!!
             ir.apply_value_numbers(VN)
 
             # print(ir, ir.value_expr)
@@ -1011,6 +1011,12 @@ class irBlock(IR):
                 VN[x] = v
 
                 logging.debug(f'GVN: Removing {ir} at line: {ir.lineno}')
+
+            elif isinstance(ir, irAssign):
+                table[expr] = x
+                VN[x] = ir.value
+
+                new_code.append(ir)
 
             else:
                 VN[x] = x
