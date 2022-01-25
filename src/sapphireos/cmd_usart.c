@@ -148,8 +148,8 @@ PT_BEGIN( pt );
 
         THREAD_YIELD( pt );
 
-        // wait until we have enough space to receive a packet:
-        THREAD_WAIT_WHILE( pt, mem2_u16_get_free() < CMD_USART_MAX_PACKET_LEN );
+        // wait until we have enough space (with some headroom) to receive a packet:
+        THREAD_WAIT_WHILE( pt, mem2_u16_get_free() < ( CMD_USART_MAX_PACKET_LEN + 128 ) );
 
         count = 0;
         idx = 0;
