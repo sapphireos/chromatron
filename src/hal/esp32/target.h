@@ -39,6 +39,7 @@
 // #define ENABLE_USB
 #define ENABLE_MSGFLOW
 #define ENABLE_SERVICES
+#define ENABLE_WIFI_ESP8266_COPROC
 
 #define ENABLE_TRACE
 

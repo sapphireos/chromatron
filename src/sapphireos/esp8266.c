@@ -43,7 +43,7 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 
 #include "system.h"
 
-#if defined(ENABLE_WIFI) && !defined(ESP8266) && !defined(ESP32)
+#if defined(ENABLE_WIFI) && defined(ENABLE_WIFI_ESP8266_COPROC)
 
 #include "wifi.h"
 #include "esp8266.h"
