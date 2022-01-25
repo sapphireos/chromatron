@@ -51,9 +51,9 @@ static uint32_t fw_size1;
 static uint32_t fw_size2;
 #endif
 
-#if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
-PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) );
-#endif
+// #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
+// PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) );
+// #endif
 
 typedef struct{
     uint32_t partition_start;
@@ -265,12 +265,12 @@ int8_t ffs_fw_i8_init( void ){
         }
     }
 
-    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
-    thread_t_create( fw2_init_thread,
-                     PSTR("fw2_init_thread"),
-                     0,
-                     0 );
-    #endif
+    // #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
+    // thread_t_create( fw2_init_thread,
+    //                  PSTR("fw2_init_thread"),
+    //                  0,
+    //                  0 );
+    // #endif
 
     return FFS_STATUS_OK;
 }
@@ -577,24 +577,17 @@ int32_t ffs_fw_i32_write( uint8_t partition, uint32_t position, const void *data
     return write_len;
 }
 
-#if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
-PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
+// PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
     
-    if( cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &fw_size2 ) < 0 ){
+//     cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &fw_size2 );
+//     fw_size2 += 16; // add padding for MD5
 
-        // entry not found
-        fw_size2 = 0;
-    }
-    else{
-
-        fw_size2 += 16; // add padding for MD5    
-    }
-
-PT_END( pt );
-}
-#endif
+// PT_END( pt );
+// }
+// #endif
 
 PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *state ) )
 {
