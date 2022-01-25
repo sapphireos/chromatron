@@ -331,6 +331,10 @@ PT_BEGIN( pt );
     // #endif
 
     status_led_v_set( 1, STATUS_LED_WHITE );
+    
+        cmd_usart_v_init();
+
+    THREAD_EXIT( pt );
 
     hal_wifi_v_enter_normal_mode();
 
