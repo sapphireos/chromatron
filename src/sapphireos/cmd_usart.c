@@ -149,6 +149,9 @@ PT_BEGIN( pt );
 
         THREAD_YIELD( pt );
 
+        // wait until we have enough space to receive a packet:
+        THREAD_WAIT_WHILE( pt, mem2_u16_get_free() < CMD_USART_MAX_PACKET_LEN );
+
         count = 0;
         idx = 0;
         netmsg = -1;
@@ -257,7 +260,7 @@ PT_BEGIN( pt );
 
         if( nm_state->data_handle < 0 ){
 
-            log_v_debug_P( PSTR("data alloc fail") );     
+            log_v_debug_P( PSTR("data alloc fail d:%d f:%d r:%d"), mem2_u16_get_dirty(), mem2_u16_get_free(), header.data_len );     
 
             goto cleanup;
         }
