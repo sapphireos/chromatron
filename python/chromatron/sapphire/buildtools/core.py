@@ -688,8 +688,8 @@ class Builder(object):
         logging.info("Compiling %s" % (self.proj_name))
 
         # add colored diagnostic messages:
-        if not self.settings["TOOLCHAIN"] == "XTENSA":
-            self.settings["C_FLAGS"].append("-fdiagnostics-color=always")
+        # for some reason, *appending* will break some compilers:
+        self.settings["C_FLAGS"].insert(0, "-fdiagnostics-color=always")
 
         # save working dir
         cwd = os.getcwd()
