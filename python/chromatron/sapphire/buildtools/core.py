@@ -1362,6 +1362,13 @@ class AppBuilder(HexBuilder):
                     # prepend length (not counting the length field itself or the MD5 - the actual FW length)
                     combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
 
+                    MAX_ESP8266_LEGACY_IMAGE_SIZE = (384 * 1024)
+
+                    if len(combined_image) > MAX_ESP8266_LEGACY_IMAGE_SIZE:
+                        raise Exception(f"Image size exceeds partition length: {len(combined_image)} > {MAX_ESP8266_LEGACY_IMAGE_SIZE}")
+
+                    logging.info(f'!!! Upgrade image size: {len(combined_image)} fits within partition size: {MAX_ESP8266_LEGACY_IMAGE_SIZE}')
+
                     with open("wifi_firmware.bin", 'wb') as f:
                         f.write(combined_image)
 

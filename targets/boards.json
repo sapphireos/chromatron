@@ -4,7 +4,6 @@
 		"target": "esp8266",
 		"defines":
 		[
-			"ENABLE_COPROCESSOR",
 			"NO_STRERROR"
 		]
 	},
@@ -13,7 +12,6 @@
 		"target": "esp8266",
 		"defines":
 		[
-			"ENABLE_COPROCESSOR",
 			"ESP8266_UPGRADE"
 		],
 		"extra_files":
