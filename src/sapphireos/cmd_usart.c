@@ -136,7 +136,6 @@ void cmd_usart_v_init( void ){
 static netmsg_t netmsg;
 static uint16_t idx;
 static uint16_t count;
-static bool start;
 
 PT_THREAD( serial_udp_thread( pt_t *pt, void *state ) )
 {
@@ -157,21 +156,7 @@ PT_BEGIN( pt );
         netmsg = -1;
 
         // wait for a frame start indicator
-        if( start ){
-
-            THREAD_WAIT_WHILE( pt, cmd_usart_i16_get_char() != CMD_USART_UDP_SOF );
-        }
-        else{
-
-            // optimization to reduce polling rate if USB has not be used.
-            while( cmd_usart_i16_get_char() != CMD_USART_UDP_SOF ){
-
-                TMR_WAIT( pt, 100 );
-            }
-        }
-
-        start = TRUE;
-        
+        THREAD_WAIT_WHILE( pt, cmd_usart_i16_get_char() != CMD_USART_UDP_SOF );
 
         // wait for version
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + CMD_USART_TIMEOUT_MS );
