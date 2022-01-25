@@ -582,8 +582,15 @@ PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &fw_size2 );
-    fw_size2 += 16; // add padding for MD5
+    if( cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &fw_size2 ) < 0 ){
+
+        // entry not found
+        fw_size2 = 0;
+    }
+    else{
+
+        fw_size2 += 16; // add padding for MD5    
+    }
 
 PT_END( pt );
 }

@@ -125,8 +125,10 @@ int8_t sapphire_i8_init( void ){
         status_led_v_set( 1, STATUS_LED_RED );
     }
 
-    // init serial port
+    #ifndef SKIP_CMD_USART_INIT
+    // init serial command port
     cmd_usart_v_init();
+    #endif
 
     // init user file system
     fs_v_init();

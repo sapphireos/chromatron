@@ -26,6 +26,9 @@
 		"target": "xmega128a4u",
 		"defines":
 		[
+			"ENABLE_NETWORK",
+			"ENABLE_USB_UDP_TRANSPORT",
+			"SKIP_CMD_USART_INIT",
 			"ENABLE_COPROCESSOR",
 			"ENABLE_ESP_UPGRADE_LOADER"
 		]

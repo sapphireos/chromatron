@@ -50,6 +50,7 @@
 // #define ENABLE_POWER
 #define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
+#define ENABLE_WIFI_ESP8266_COPROC
 
 // wifi
 #define WIFI_MAX_NETMSGS		16

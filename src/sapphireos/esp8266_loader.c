@@ -569,6 +569,13 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
     cmd.len = len;
     cmd.block_size = 0;
 
+    memset( digest, 0, MD5_LEN );
+
+    if( len == 0 ){
+
+        return 0;
+    }
+
     hal_wifi_v_usart_flush();
 
     hal_wifi_v_usart_send_char( SLIP_END );
@@ -770,7 +777,7 @@ restart:
     trace_printf( "Cesanta flasher ready!\r\n" );
     // log_v_debug_P( PSTR("Cesanta flasher ready!") );
 
-    uint32_t file_len;
+    uint32_t file_len = 0;
     #ifdef ENABLE_ESP_UPGRADE_LOADER
     fs_v_seek( state->fw_file, 0 );
     fs_i16_read( state->fw_file, &file_len, sizeof(file_len) );
@@ -786,8 +793,7 @@ restart:
 
         log_v_debug_P( PSTR("error %d"), md5_status );
 
-        TMR_WAIT( pt, 1000 );
-        THREAD_RESTART( pt );
+        goto restart;
     }
 
     #ifdef ENABLE_ESP_UPGRADE_LOADER
@@ -882,7 +888,6 @@ restart:
 
         // wifi matches cfg, this is ok, run.
         // maybe the file is bad.
-        
         goto run_wifi;
     }
     else{

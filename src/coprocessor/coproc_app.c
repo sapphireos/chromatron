@@ -296,28 +296,42 @@ PT_BEGIN( pt );
 
     hal_wifi_v_init();
     
-    #ifdef ENABLE_ESP_UPGRADE_LOADER
+    // #ifdef ENABLE_ESP_UPGRADE_LOADER
 
-    if( !cfg_b_get_boolean( CFG_PARAM_COPROC_LOAD_DISABLE ) ){ 
+    // if( !cfg_b_get_boolean( CFG_PARAM_COPROC_LOAD_DISABLE ) ){ 
 
-        // run firmware loader    
-        wifi_v_start_loader();
+    // run firmware loader    
+    wifi_v_start_loader();
 
-        THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
+    THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
 
-        if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
+    if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
 
-            log_v_debug_P( PSTR("ESP load failed") );
+        log_v_debug_P( PSTR("ESP load failed") );
 
-            THREAD_EXIT( pt );
+        cmd_usart_v_init();
+
+        while(1){
+
+            status_led_v_set( 0, STATUS_LED_RED );
+            status_led_v_set( 1, STATUS_LED_BLUE );
+
+            TMR_WAIT( pt, 250 );
+
+            status_led_v_set( 0, STATUS_LED_BLUE );
+            status_led_v_set( 1, STATUS_LED_RED );
+
+            TMR_WAIT( pt, 250 );
         }
+
+        THREAD_EXIT( pt );
     }
+    // }
 
-    #endif
+    // #endif
 
-    status_led_v_set( 1, STATUS_LED_YELLOW );
+    status_led_v_set( 1, STATUS_LED_WHITE );
 
-// THREAD_EXIT( pt );
     hal_wifi_v_enter_normal_mode();
 
     TMR_WAIT( pt, 300 );
