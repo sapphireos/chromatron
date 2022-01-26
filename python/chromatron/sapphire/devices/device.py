@@ -779,7 +779,7 @@ class Device(object):
     def cli_cat(self, line):
         data = self.get_file(line)
 
-        s = "\n" + data.decode('utf-8')
+        s = "\n" + data.decode('utf-8', errors='ignore')
 
         return s
 

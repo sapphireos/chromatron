@@ -110,6 +110,14 @@ void coproc_v_dispatch(
         *response_len = sizeof(buf);
         memcpy( response, buf, sizeof(buf) );
     }
+    else if( hdr->opcode == OPCODE_DEBUG_PRINT ){
+
+        char *s = (char *)data;
+
+        log_v_debug_P( PSTR("ESP8266: %s"), s );
+
+        // log_v_debug_P( PSTR("ESP8266: %d %x %x %x %x"), len, data[0], data[1], data[2], data[3] );
+    }
     else if( hdr->opcode == OPCODE_IO_SET_MODE ){
 
         io_v_set_mode( params[0], params[1] );

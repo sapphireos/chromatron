@@ -52,6 +52,7 @@ typedef struct __attribute__((packed)){
 #define OPCODE_LOAD_DISABLE			0x03
 #define OPCODE_GET_RESET_SOURCE		0x04
 #define OPCODE_GET_WIFI				0x05
+#define OPCODE_DEBUG_PRINT  		0x06
 #define OPCODE_IO_SET_MODE			0x10
 #define OPCODE_IO_GET_MODE			0x11
 #define OPCODE_IO_DIGITAL_WRITE		0x12
@@ -116,7 +117,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] );
 
 void coproc_v_init( void );
 void coproc_v_sync( void );
-
+int32_t coproc_i32_debug_print( char *s );
 
 void coproc_v_dispatch( 
 	coproc_hdr_t *hdr, 

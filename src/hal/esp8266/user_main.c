@@ -84,6 +84,8 @@ void ICACHE_FLASH_ATTR user_init(void)
     // delay before sending first message
     _delay_ms( 10 );
 
+    trace_printf("Hello!\r\n");
+
     #ifdef ESP8266_UPGRADE
     // coproc_i32_call0(  OPCODE_LOAD_DISABLE );
     #else

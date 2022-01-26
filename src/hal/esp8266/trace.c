@@ -21,7 +21,13 @@
 // </license>
 
 
+#include "system.h"
+#include "target.h"
 #include "trace.h"
+
+#ifdef ENABLE_COPROCESSOR
+#include "coprocessor.h"
+#endif
 
 #include "osapi.h"
 
@@ -43,8 +49,28 @@ int trace_printf(const char* format, ...){
   if (ret > 0)
     {
       
+      #ifdef ENABLE_COPROCESSOR
+      int len = strnlen( buf, sizeof(buf) );
+        
+        // strip EOL characters
+      if( ( buf[len - 1] == '\r' ) ||
+          ( buf[len - 1] == '\n' ) ){
+
+          buf[len - 1] = 0;
+      } 
+
+      if( ( buf[len - 2] == '\r' ) ||
+          ( buf[len - 2] == '\n' ) ){
+
+          buf[len - 2] = 0;
+      } 
+
+      ret = coproc_i32_debug_print( buf );
+      #else
       // Transfer the buffer to the device
       ret = os_printf("%s", buf);
+      #endif
+
     }
 
   va_end (ap);

@@ -45,14 +45,6 @@ static uint8_t board_type;
 
 void ffs_v_init( void ){
 
-
-    // for( uint16_t i = 0; i < 400; i++ ){
-    //     io_v_set_esp_led( 0 );
-    //     _delay_ms( 200 );
-    //     io_v_set_esp_led( 1 );
-    //    _delay_ms( 200 );
-    // }
-
     #ifdef ENABLE_FFS
 
     COMPILER_ASSERT( sizeof(ffs_file_meta0_t) == FFS_PAGE_DATA_SIZE );
@@ -69,14 +61,6 @@ void ffs_v_init( void ){
         return;
     }
 
-    // got to here....
-    // for( uint16_t i = 0; i < 400; i++ ){
-    //     io_v_set_esp_led( 0 );
-    //     _delay_ms( 200 );
-    //     io_v_set_esp_led( 1 );
-    //    _delay_ms( 200 );
-    // }
-
     uint8_t fs_version = flash25_u8_read_byte( FLASH_FS_VERSION_ADDR );
     board_type = flash25_u8_read_byte( FLASH_FS_HW_TYPE_ADDR );
 
@@ -86,44 +70,16 @@ void ffs_v_init( void ){
     if( ( sys_u8_get_mode() == SYS_MODE_FORMAT ) ||
         ( fs_version != FFS_VERSION ) ){
 
-    // ??? did not get to here
-    // for( uint16_t i = 0; i < 400; i++ ){
-    //     io_v_set_esp_led( 0 );
-    //     _delay_ms( 200 );
-    //     io_v_set_esp_led( 1 );
-    //    _delay_ms( 200 );
-    // }
-
         // format the file system.  this will also re-mount.
         ffs_v_format();
-
-    // for( uint16_t i = 0; i < 400; i++ ){
-    //     io_v_set_esp_led( 0 );
-    //     _delay_ms( 200 );
-    //     io_v_set_esp_led( 1 );
-    //    _delay_ms( 200 );
-    // }
 
         // restart in normal mode
         sys_reboot();
     }
 
-    // got to here...
-    // for( uint16_t i = 0; i < 400; i++ ){
-    //     io_v_set_esp_led( 0 );
-    //     _delay_ms( 200 );
-    //     io_v_set_esp_led( 1 );
-    //    _delay_ms( 200 );
-    // }
+    trace_printf("FFS FW init\r\n");
     
     ffs_fw_i8_init();
-
-    for( uint16_t i = 0; i < 400; i++ ){
-        io_v_set_esp_led( 0 );
-        _delay_ms( 200 );
-        io_v_set_esp_led( 1 );
-       _delay_ms( 200 );
-    }
 
     ffs_v_mount();
 
