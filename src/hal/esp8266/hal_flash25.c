@@ -312,6 +312,15 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 
     ASSERT( address < max_address );
 
+    #ifdef ENABLE_COPROCESSOR
+    if( use_coproc ){
+        
+        flash25_v_write( address, &byte, sizeof(byte) );
+        
+        return;
+    }
+    #endif
+
 	// don't write to block 0
 	if( address < FLASH_FS_ERASE_BLOCK_SIZE ){
 
@@ -323,16 +332,6 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 
         block0_unlock = 0;
 	}
-
-    #ifdef ENABLE_COPROCESSOR
-    if( use_coproc ){
-        
-        flash25_v_write( address, &byte, sizeof(byte) );
-        
-        return;
-    }
-    #endif
-
 
     // check cache
     uint32_t word_address = address & ( ~0x03 );

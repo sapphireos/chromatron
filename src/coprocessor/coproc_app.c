@@ -57,7 +57,7 @@ static uint32_t pix_transfer_count;
 static uint32_t flash_start;
 static uint32_t flash_size;
 static uint32_t flash_addr;
-static uint16_t flash_len;
+static uint32_t flash_len;
 
 static i2c_setup_t i2c_setup;
 
@@ -295,10 +295,14 @@ void coproc_v_dispatch(
     else if( hdr->opcode == OPCODE_IO_FLASH25_ADDR ){
         
         flash_addr = params[0];
+
+        log_v_debug_P( PSTR("addr: %lu"), flash_addr );
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_LEN ){
         
         flash_len = params[0];
+
+        log_v_debug_P( PSTR("len: %lu"), flash_len );
 
         if( flash_len > COPROC_BUF_SIZE ){
 
@@ -307,15 +311,22 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_ERASE ){
 
+        log_v_debug_P( PSTR("erase") );
+
         flash25_v_erase_4k( flash_start + flash_addr );
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_READ ){
 
         flash25_v_read( flash_start + flash_addr, response, flash_len );
+        *response_len = flash_len;
+
+        log_v_debug_P( PSTR("read: 0x%02x"), response[0] );
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_WRITE ){
 
         flash25_v_write( flash_start + flash_addr, data, flash_len );
+
+        log_v_debug_P( PSTR("write: 0x%02x -> 0x%02x"), data[0], flash25_u8_read_byte( flash_start + flash_addr ) );
     }
     // #endif
     // else{
@@ -332,6 +343,8 @@ PT_BEGIN( pt );
     
     flash_start = FLASH_FS_FILE_SYSTEM_START + ffs_u32_get_total_space();
     flash_size = flash25_u32_capacity() - flash_start;
+
+    log_v_debug_P( PSTR("start: %lu size: %lu"), flash_start, flash_size );
 
 
     hal_wifi_v_init();
