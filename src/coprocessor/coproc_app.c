@@ -317,7 +317,13 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_READ ){
 
-        flash25_v_read( flash_start + flash_addr, response, flash_len );
+        uint8_t buf[64];
+        memset( buf, 0, sizeof(buf) );
+    
+        flash25_v_read( flash_start + flash_addr, buf, flash_len );
+
+        memcpy( response, buf, flash_len );
+
         *response_len = flash_len;
 
         log_v_debug_P( PSTR("read: 0x%02x"), response[0] );
@@ -326,7 +332,11 @@ void coproc_v_dispatch(
 
         flash25_v_write( flash_start + flash_addr, data, flash_len );
 
-        log_v_debug_P( PSTR("write: 0x%02x -> 0x%02x"), data[0], flash25_u8_read_byte( flash_start + flash_addr ) );
+        uint8_t temp = 0;
+        flash25_v_read( flash_start + flash_addr, &temp, 1 );
+
+
+        log_v_debug_P( PSTR("write: 0x%02x -> 0x%02x"), data[0], temp );
     }
     // #endif
     // else{
@@ -344,7 +354,7 @@ PT_BEGIN( pt );
     flash_start = FLASH_FS_FILE_SYSTEM_START + ffs_u32_get_total_space();
     flash_size = flash25_u32_capacity() - flash_start;
 
-    log_v_debug_P( PSTR("start: %lu size: %lu"), flash_start, flash_size );
+    log_v_debug_P( PSTR("start: %lu size: %lu fs ver: %d"), flash_start, flash_size, flash25_u8_read_byte( flash_start + 16 ) );
 
 
     hal_wifi_v_init();
@@ -382,6 +392,8 @@ cmd_usart_v_init();
 // THREAD_EXIT( pt );
 THREAD_WAIT_WHILE( pt, !boot_esp );
 // TMR_WAIT( pt, 2000 );
+
+    log_v_debug_P( PSTR("fs ver: %d"), flash25_u8_read_byte( flash_start + 16 ) );
 
     status_led_v_set( 1, STATUS_LED_YELLOW );
 
