@@ -132,11 +132,12 @@ void hal_flash25_v_init( void ){
         // invalid flash
         max_address = 0;
     }
+    
+    trace_printf("Flash capacity: %d System partition: %d\r\n", max_address, system_size );
+
     #else
     max_address = 1048576;
     #endif
-
-    trace_printf("Flash capacity: %d System partition: %d\r\n", max_address, system_size );
     
     // enable writes
     flash25_v_write_enable();

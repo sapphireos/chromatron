@@ -51,75 +51,75 @@ void cpu_v_init( void ){
 }
 
 
-void hal_cpu_v_load_bootdata( void ){
+// void hal_cpu_v_load_bootdata( void ){
 
-    uint32_t buf[sizeof(boot_data) + sizeof(uint32_t)];
-    uint32_t *ptr = (uint32_t *)&boot_data;     
+//     uint32_t buf[sizeof(boot_data) + sizeof(uint32_t)];
+//     uint32_t *ptr = (uint32_t *)&boot_data;     
         
-    flash25_v_read( BOOTLOADER_INFO_BLOCK, buf, sizeof(buf) );
+//     flash25_v_read( BOOTLOADER_INFO_BLOCK, buf, sizeof(buf) );
 
-    if( ( buf[0] + buf[1] ) != buf[2] ){
+//     if( ( buf[0] + buf[1] ) != buf[2] ){
 
-        memset( &boot_data, 0, sizeof(boot_data) );
+//         memset( &boot_data, 0, sizeof(boot_data) );
 
-        return;
-    }
+//         return;
+//     }
 
-    *ptr++ = buf[0];
-    *ptr++ = buf[1];
+//     *ptr++ = buf[0];
+//     *ptr++ = buf[1];
 
-    // load bootloader data from RTC
-    // uint32_t *ptr = (uint32_t *)&boot_data;
-    // volatile uint32_t *rtc = RTC_MEM;
-    // uint32_t checksum = 0;
+//     // load bootloader data from RTC
+//     // uint32_t *ptr = (uint32_t *)&boot_data;
+//     // volatile uint32_t *rtc = RTC_MEM;
+//     // uint32_t checksum = 0;
 
-    // for( uint32_t i = 0; i < sizeof(boot_data) / 4; i++ ){
+//     // for( uint32_t i = 0; i < sizeof(boot_data) / 4; i++ ){
 
-    //     *ptr = *rtc;
-    //     checksum += *ptr;
-    //     ptr++;
-    //     rtc++;
-    // }
+//     //     *ptr = *rtc;
+//     //     checksum += *ptr;
+//     //     ptr++;
+//     //     rtc++;
+//     // }
 
-    // if( *rtc != checksum ){
+//     // if( *rtc != checksum ){
 
-    //     trace_printf("RTC checksum fail\r\n");
+//     //     trace_printf("RTC checksum fail\r\n");
 
-    //     memset( (void *)&boot_data, 0, sizeof(boot_data) );
-    // }
-}
+//     //     memset( (void *)&boot_data, 0, sizeof(boot_data) );
+//     // }
+// }
 
-void hal_cpu_v_store_bootdata( void ){
+// void hal_cpu_v_store_bootdata( void ){
     
-    uint32_t buf[sizeof(boot_data) + sizeof(uint32_t)];
-    uint32_t *ptr = (uint32_t *)&boot_data;     
-    uint32_t checksum = 0;
+//     uint32_t buf[sizeof(boot_data) + sizeof(uint32_t)];
+//     uint32_t *ptr = (uint32_t *)&boot_data;     
+//     uint32_t checksum = 0;
 
-    buf[0] = *ptr;
-    checksum += *ptr++;
-    buf[1] = *ptr;
-    checksum += *ptr++;
-    buf[2] = checksum;
+//     buf[0] = *ptr;
+//     checksum += *ptr++;
+//     buf[1] = *ptr;
+//     checksum += *ptr++;
+//     buf[2] = checksum;
 
-    flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );
+//     flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );
 
-    flash25_v_write( BOOTLOADER_INFO_BLOCK, buf, sizeof(buf) );
+//     flash25_v_write( BOOTLOADER_INFO_BLOCK, buf, sizeof(buf) );
 
-    // load bootloader data from RTC
-    // uint32_t *ptr = (uint32_t *)&boot_data;
-    // volatile uint32_t *rtc = RTC_MEM;
-    // uint32_t checksum = 0;
+//     // load bootloader data from RTC
+//     // uint32_t *ptr = (uint32_t *)&boot_data;
+//     // volatile uint32_t *rtc = RTC_MEM;
+//     // uint32_t checksum = 0;
 
-    // for( uint32_t i = 0; i < sizeof(boot_data) / 4; i++ ){
+//     // for( uint32_t i = 0; i < sizeof(boot_data) / 4; i++ ){
 
-    //     *rtc = *ptr;
-    //     checksum += *ptr;
-    //     ptr++;
-    //     rtc++;
-    // }
+//     //     *rtc = *ptr;
+//     //     checksum += *ptr;
+//     //     ptr++;
+//     //     rtc++;
+//     // }
 
-    // *rtc = checksum;
-}
+//     // *rtc = checksum;
+// }
 
 uint8_t cpu_u8_get_reset_source( void ){
 
@@ -213,7 +213,7 @@ uint32_t cpu_u32_get_clock_speed( void ){
 
 void cpu_reboot( void ){
 
-    hal_cpu_v_store_bootdata();
+    // hal_cpu_v_store_bootdata();
 
 #ifndef BOOTLOADER
     #ifdef ENABLE_COPROCESSOR
