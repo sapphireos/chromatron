@@ -92,16 +92,16 @@
 // flash fs
 
 // maximum number of blocks the FS can handle
-#define FFS_BLOCK_MAX_BLOCKS 254
+#define FFS_BLOCK_MAX_BLOCKS 64
 
-#define FLASH_FS_MAX_USER_FILES 24
+#define FLASH_FS_MAX_USER_FILES 8
 
 // virtual fs
-#define FS_MAX_VIRTUAL_FILES 16
+#define FS_MAX_VIRTUAL_FILES 8
 
 #define FLASH_FS_FIRMWARE_0_SIZE_KB     128
-#define FLASH_FS_FIRMWARE_1_SIZE_KB     128
-#define FLASH_FS_FIRMWARE_2_SIZE_KB     384
+#define FLASH_FS_FIRMWARE_1_SIZE_KB     0
+#define FLASH_FS_FIRMWARE_2_SIZE_KB     768
 #define FLASH_FS_EEPROM_SIZE_KB     	0 // MUST be 0 on the Xmega target!
 
 // logging

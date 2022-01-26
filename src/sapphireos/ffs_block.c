@@ -67,11 +67,13 @@ static block_t dirty_list;
 static uint8_t flash_fs_soft_io_errors;
 static uint8_t flash_fs_hard_io_errors;
 static uint32_t flash_fs_block_allocs;
+static uint32_t flash_fs_start;
 
 KV_SECTION_META kv_meta_t ffs_block_info_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_fs_soft_io_errors,        0,  "flash_fs_soft_io_errors" },
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_block_allocs,          0,  "flash_fs_block_allocs" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_fs_hard_io_errors,        0,  "flash_fs_hard_io_errors" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_start,          0,  "flash_fs_start" },
 };
 
 static inline block_info_t *get_block_ptr( void ) __attribute__((always_inline));
@@ -104,12 +106,15 @@ void ffs_block_v_init( void ){
     uint32_t flash_size = flash25_u32_capacity();
     uint16_t n_blocks = flash_size / FLASH_FS_ERASE_BLOCK_SIZE;
 
-    _total_blocks = n_blocks - FLASH_FS_FILE_SYSTEM_START_BLOCK;
+    flash_fs_start = FLASH_FS_FILE_SYSTEM_START_BLOCK;
+    n_blocks -= FLASH_FS_FILE_SYSTEM_START_BLOCK;
 
-    if( _total_blocks > FFS_BLOCK_MAX_BLOCKS ){
+    if( n_blocks > FFS_BLOCK_MAX_BLOCKS ){
 
-        _total_blocks = FFS_BLOCK_MAX_BLOCKS;
+        n_blocks = FFS_BLOCK_MAX_BLOCKS;
     }
+
+    _total_blocks = n_blocks;
 
     // allocate memory
     blocks_h = mem2_h_alloc2( _total_blocks * sizeof(block_info_t), MEM_TYPE_FS_BLOCKS );
