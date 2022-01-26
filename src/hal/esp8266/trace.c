@@ -43,6 +43,7 @@ int trace_printf(const char* format, ...){
   va_start (ap, format);
 
   static char buf[TRACE_BUF_SIZE];
+  memset( buf, 0, sizeof(buf) );
 
   // Print to the local buffer
   ret = vsnprintf (buf, sizeof(buf), format, ap);

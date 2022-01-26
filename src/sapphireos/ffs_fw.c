@@ -198,6 +198,21 @@ int8_t ffs_fw_i8_init( void ){
         fw_size = 0;
     }
 
+    // do we have enough capacity for firmware partitions?
+    uint32_t capacity = flash25_u32_capacity();
+    uint32_t total_fw_partitions_len = 
+        FLASH_FS_FIRMWARE_0_PARTITION_SIZE + 
+        FLASH_FS_FIRMWARE_1_PARTITION_SIZE +
+        FLASH_FS_FIRMWARE_2_PARTITION_SIZE;
+
+    if( capacity < total_fw_partitions_len ){
+
+        trace_printf("FFS FW not enough capacity for firmware partitions!\r\n");
+
+        return -1;
+    }
+
+
     // check CRC or if partition length is bad
     if( ffs_fw_u16_crc() != 0 ){
     // if( ( sys_fw_length != ext_fw_length ) ||

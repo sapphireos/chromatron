@@ -77,9 +77,15 @@ void ffs_v_init( void ){
         sys_reboot();
     }
 
-    trace_printf("FFS FW init\r\n");
-    
-    ffs_fw_i8_init();
+    if( ffs_fw_i8_init() < 0 ){
+
+        trace_printf("Firmware partitions failed to mount\r\n");
+
+        sys_v_set_warnings( SYS_WARN_FLASHFS_FAIL );
+        ffs_fail = TRUE;
+
+        return;
+    }
 
     ffs_v_mount();
 
