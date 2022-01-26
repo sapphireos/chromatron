@@ -100,6 +100,15 @@ typedef struct __attribute__((packed)){
 #define OPCODE_IO_I2C_WRITE_REG8	0x67
 #define OPCODE_IO_I2C_READ_REG8		0x68
 
+// Flash25
+#define OPCODE_IO_FLASH25_SIZE		0x70
+#define OPCODE_IO_FLASH25_ADDR		0x71
+#define OPCODE_IO_FLASH25_LEN		0x72
+#define OPCODE_IO_FLASH25_ERASE		0x73
+#define OPCODE_IO_FLASH25_READ		0x74
+#define OPCODE_IO_FLASH25_WRITE		0x75
+
+
 typedef struct __attribute__((packed, aligned(4))){
 	uint32_t dev_addr;
 	uint32_t len;

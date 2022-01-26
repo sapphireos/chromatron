@@ -27,7 +27,14 @@
 #include "hal_flash25.h"
 #include "hal_io.h"
 
+#ifdef ENABLE_COPROCESSOR
+#include "coprocessor.h"
+
+static bool use_coproc;
+#endif
+
 #ifdef ENABLE_FFS
+
 
 
 // FW_START_OFFSET offsets from the end of the bootloader section.
@@ -132,8 +139,26 @@ void hal_flash25_v_init( void ){
         // invalid flash
         max_address = 0;
     }
+
+    #ifdef ENABLE_COPROCESSOR
+    if( max_address < 1048576 ){
+
+        max_address = coproc_i32_call0( OPCODE_IO_FLASH25_SIZE );
+
+        use_coproc = TRUE;
+
+        trace_printf("Switching FFS to coprocessor\r\n");
+    }
+    #endif
     
     trace_printf("Flash capacity: %d System partition: %d\r\n", max_address, system_size );
+
+    #ifdef ENABLE_COPROCESSOR
+    if( use_coproc ){
+
+        return;
+    }
+    #endif
 
     #else
     max_address = 1048576;
@@ -175,6 +200,18 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 
         return;
     }
+
+    #ifdef ENABLE_COPROCESSOR
+    if( use_coproc ){
+
+        coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
+        coproc_i32_call1( OPCODE_IO_FLASH25_LEN, len );
+        coproc_i32_callp( OPCODE_IO_FLASH25_READ, ptr, len );
+
+        return;
+    }
+    #endif
+
 
     ASSERT( ( address % 4 ) == 0 );
 
@@ -235,6 +272,17 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
     // busy wait
     BUSY_WAIT( flash25_b_busy() );
 
+    #ifdef ENABLE_COPROCESSOR
+    if( use_coproc ){
+        
+        uint8_t byte;    
+        
+        flash25_v_read( address, &byte, sizeof(byte) );
+        
+        return byte;
+    }
+    #endif
+
     // check if byte is in cache
     uint32_t word_address = address & ( ~0x03 );
     uint32_t byte_address = address & (  0x03 );
@@ -275,6 +323,16 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 
         block0_unlock = 0;
 	}
+
+    #ifdef ENABLE_COPROCESSOR
+    if( use_coproc ){
+        
+        flash25_v_write( address, &byte, sizeof(byte) );
+        
+        return;
+    }
+    #endif
+
 
     // check cache
     uint32_t word_address = address & ( ~0x03 );
@@ -323,6 +381,18 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 
         return;
     }
+
+    #ifdef ENABLE_COPROCESSOR
+    if( use_coproc ){
+                
+        coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
+        coproc_i32_call1( OPCODE_IO_FLASH25_LEN, len );
+        coproc_i32_callv( OPCODE_IO_FLASH25_WRITE, ptr, len );
+        
+        return;
+    }
+    #endif
+
 
     ASSERT( ( address % 4 ) == 0 );
 
@@ -420,6 +490,17 @@ void flash25_v_erase_4k( uint32_t address ){
     }
 
     BUSY_WAIT( flash25_b_busy() );
+
+    #ifdef ENABLE_COPROCESSOR
+    if( use_coproc ){
+        
+        coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
+        coproc_i32_call0( OPCODE_IO_FLASH25_ERASE );
+        
+        return;
+    }
+    #endif
+
 
     address += START_ADDRESS;
 

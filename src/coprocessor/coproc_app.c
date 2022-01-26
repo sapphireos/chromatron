@@ -30,6 +30,8 @@
 #include "status_led.h"
 #include "hal_cmd_usart.h"
 
+#include "flash25.h"
+#include "flash_fs.h"
 #include "ffs_fw.h"
 #include "pixel.h"
 
@@ -51,6 +53,11 @@ KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
 
 static uint32_t fw_addr;
 static uint32_t pix_transfer_count;
+
+static uint32_t flash_start;
+static uint32_t flash_size;
+static uint32_t flash_addr;
+static uint16_t flash_len;
 
 static i2c_setup_t i2c_setup;
 
@@ -281,6 +288,35 @@ void coproc_v_dispatch(
 
         *retval = i2c_u8_read_reg8( params[0], params[1] );   
     }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_SIZE ){
+
+        *retval = flash_size;
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_ADDR ){
+        
+        flash_addr = params[0];
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_LEN ){
+        
+        flash_len = params[0];
+
+        if( flash_len > COPROC_BUF_SIZE ){
+
+            flash_len = COPROC_BUF_SIZE;
+        }
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_ERASE ){
+
+        flash25_v_erase_4k( flash_start + flash_addr );
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_READ ){
+
+        flash25_v_read( flash_start + flash_addr, response, flash_len );
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_WRITE ){
+
+        flash25_v_write( flash_start + flash_addr, data, flash_len );
+    }
     // #endif
     // else{
 
@@ -293,6 +329,10 @@ void coproc_v_dispatch(
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
+    
+    flash_start = FLASH_FS_FILE_SYSTEM_START + ffs_u32_get_total_space();
+    flash_size = flash25_u32_capacity() - flash_start;
+
 
     hal_wifi_v_init();
     
