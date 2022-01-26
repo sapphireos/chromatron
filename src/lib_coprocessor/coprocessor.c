@@ -125,7 +125,7 @@ void coproc_v_sync( void ){
 	if( usart_i16_get_byte( UART_CHANNEL ) != COPROC_VERSION ){
 
 		// lets hope this was a bus error and rebooting will recover
-		while(1);
+		sys_reboot();
 	}
 
 	sync = TRUE;

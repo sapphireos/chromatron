@@ -35,18 +35,23 @@
 
 #include "coproc_app.h"
 
-#ifdef ENABLE_ESP_UPGRADE_LOADER
+// #ifdef ENABLE_ESP_UPGRADE_LOADER
 
-#define CFG_PARAM_COPROC_LOAD_DISABLE          __KV__coproc_load_disable
+// #define CFG_PARAM_COPROC_LOAD_DISABLE          __KV__coproc_load_disable
+
+static bool boot_esp;
 
 KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
-    { CATBUS_TYPE_BOOL,      0, 0,  0, cfg_i8_kv_handler,  "coproc_load_disable" },
+    // { CATBUS_TYPE_BOOL,      0, 0,  0, cfg_i8_kv_handler,  "coproc_load_disable" },
     // backup wifi keys.
     // if these aren't present in the KV index, the config module won't find them.
+
+    { CATBUS_TYPE_BOOL,      0, 0,  &boot_esp, 0,  "boot_esp" },
+
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
 };
-#endif
+// #endif
 
 
 
@@ -83,13 +88,13 @@ void coproc_v_dispatch(
 
         while(1);
     }
-    else if( hdr->opcode == OPCODE_LOAD_DISABLE ){
+    // else if( hdr->opcode == OPCODE_LOAD_DISABLE ){
         
-        #ifdef ENABLE_ESP_UPGRADE_LOADER
-        bool value = TRUE;
-        cfg_v_set( CFG_PARAM_COPROC_LOAD_DISABLE, &value );
-        #endif
-    }
+    //     #ifdef ENABLE_ESP_UPGRADE_LOADER
+    //     bool value = TRUE;
+    //     cfg_v_set( CFG_PARAM_COPROC_LOAD_DISABLE, &value );
+    //     #endif
+    // }
     else if( hdr->opcode == OPCODE_GET_RESET_SOURCE ){
 
         *retval = sys_u8_get_reset_source();
@@ -329,12 +334,14 @@ PT_BEGIN( pt );
     // }
 
     // #endif
-
     status_led_v_set( 1, STATUS_LED_WHITE );
-    
-        cmd_usart_v_init();
 
-    THREAD_EXIT( pt );
+cmd_usart_v_init();
+// THREAD_EXIT( pt );
+THREAD_WAIT_WHILE( pt, !boot_esp );
+// TMR_WAIT( pt, 2000 );
+
+    status_led_v_set( 1, STATUS_LED_YELLOW );
 
     hal_wifi_v_enter_normal_mode();
 
@@ -347,7 +354,6 @@ PT_BEGIN( pt );
 
         sys_v_wdt_reset();
     }
-    // if we don't get a sync, the watchdog timer will restart the entire system.
 
     // send confirmation
     hal_wifi_v_usart_send_char( COPROC_SYNC );
@@ -359,6 +365,10 @@ PT_BEGIN( pt );
 
     if( version != 0 ){
 
+        status_led_v_set( 1, STATUS_LED_RED );
+
+        TMR_WAIT( pt, 1000 );
+
         // watchdog timeout here
         while(1);
     }
@@ -369,6 +379,7 @@ PT_BEGIN( pt );
     hal_wifi_v_usart_flush();
 
     log_v_debug_P( PSTR("sync") );
+
 
     // main message loop
     while(1){
