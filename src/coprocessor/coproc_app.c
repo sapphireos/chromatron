@@ -35,24 +35,18 @@
 
 #include "coproc_app.h"
 
-// #ifdef ENABLE_ESP_UPGRADE_LOADER
-
-// #define CFG_PARAM_COPROC_LOAD_DISABLE          __KV__coproc_load_disable
-
 static bool boot_esp;
 
 KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
-    // { CATBUS_TYPE_BOOL,      0, 0,  0, cfg_i8_kv_handler,  "coproc_load_disable" },
+    { CATBUS_TYPE_BOOL,      0, 0,  &boot_esp, 0,  "boot_esp" },
+
     // backup wifi keys.
     // if these aren't present in the KV index, the config module won't find them.
 
-    { CATBUS_TYPE_BOOL,      0, 0,  &boot_esp, 0,  "boot_esp" },
-
+    
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
 };
-// #endif
-
 
 
 static uint32_t fw_addr;
@@ -88,13 +82,6 @@ void coproc_v_dispatch(
 
         while(1);
     }
-    // else if( hdr->opcode == OPCODE_LOAD_DISABLE ){
-        
-    //     #ifdef ENABLE_ESP_UPGRADE_LOADER
-    //     bool value = TRUE;
-    //     cfg_v_set( CFG_PARAM_COPROC_LOAD_DISABLE, &value );
-    //     #endif
-    // }
     else if( hdr->opcode == OPCODE_GET_RESET_SOURCE ){
 
         *retval = sys_u8_get_reset_source();
@@ -201,7 +188,7 @@ void coproc_v_dispatch(
 
         pixel_v_set_pix_count( pix_transfer_count );
     }   
-    #ifndef ENABLE_USB_UDP_TRANSPORT
+    // #ifndef ENABLE_USB_UDP_TRANSPORT
     else if( hdr->opcode == OPCODE_IO_CMD_IS_RX_CHAR ){
 
         *retval = cmd_usart_b_received_char();
@@ -294,11 +281,11 @@ void coproc_v_dispatch(
 
         *retval = i2c_u8_read_reg8( params[0], params[1] );   
     }
-    #endif
-    else{
+    // #endif
+    // else{
 
-        log_v_debug_P( PSTR("bad opcode: 0x%02x"), hdr->opcode );
-    }
+    //     log_v_debug_P( PSTR("bad opcode: 0x%02x"), hdr->opcode );
+    // }
 }
 
 
@@ -309,10 +296,6 @@ PT_BEGIN( pt );
 
     hal_wifi_v_init();
     
-    // #ifdef ENABLE_ESP_UPGRADE_LOADER
-
-    // if( !cfg_b_get_boolean( CFG_PARAM_COPROC_LOAD_DISABLE ) ){ 
-
     // run firmware loader    
     wifi_v_start_loader();
 
@@ -339,9 +322,7 @@ PT_BEGIN( pt );
 
         THREAD_EXIT( pt );
     }
-    // }
 
-    // #endif
     status_led_v_set( 1, STATUS_LED_WHITE );
 
 cmd_usart_v_init();
