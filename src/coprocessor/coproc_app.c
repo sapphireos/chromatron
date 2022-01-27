@@ -33,6 +33,7 @@
 #include "flash25.h"
 #include "flash_fs.h"
 #include "ffs_fw.h"
+#include "ffs_block.h"
 #include "pixel.h"
 
 #include "coproc_app.h"
@@ -351,7 +352,7 @@ PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
     
-    flash_start = FLASH_FS_FILE_SYSTEM_START + ffs_u32_get_total_space();
+    flash_start = FLASH_FS_FILE_SYSTEM_START + ( (uint32_t)ffs_block_u16_total_blocks() * FLASH_FS_ERASE_BLOCK_SIZE );
     flash_size = flash25_u32_capacity() - flash_start;
 
     log_v_debug_P( PSTR("start: %lu size: %lu fs ver: %d"), flash_start, flash_size, flash25_u8_read_byte( flash_start + 16 ) );
@@ -388,9 +389,23 @@ PT_BEGIN( pt );
 
     status_led_v_set( 1, STATUS_LED_WHITE );
 
+    log_v_debug_P( PSTR("fs ver: %d"), flash25_u8_read_byte( flash_start + 16 ) );
+
 cmd_usart_v_init();
 // THREAD_EXIT( pt );
-THREAD_WAIT_WHILE( pt, !boot_esp );
+static bool temp;
+temp = FALSE;
+while( !boot_esp ){
+
+    if( flash25_u8_read_byte( flash_start + 16 ) != 2 && !temp ){
+
+        temp = TRUE;
+        log_v_debug_P( PSTR("WTF fs ver: %d"), flash25_u8_read_byte( flash_start + 16 ) );
+    }
+
+    THREAD_YIELD( pt );
+}
+// THREAD_WAIT_WHILE( pt, !boot_esp );
 // TMR_WAIT( pt, 2000 );
 
     log_v_debug_P( PSTR("fs ver: %d"), flash25_u8_read_byte( flash_start + 16 ) );
