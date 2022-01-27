@@ -322,7 +322,10 @@ class SerialUDPChannel(Channel):
 
         self.open(host)
 
-    def open(self, host):
+    def open(self, host=None):
+        if host is None:
+            host = self.host
+
         self.port = serial.Serial(host, baudrate=115200)
         self.settimeout(timeout=0.5)
         self.host = self.port.port
@@ -532,7 +535,10 @@ class USBUDPChannel(SerialUDPChannel):
             # we'll get a TypeError when __del__ is called
             pass
 
-    def open(self, host):
+    def open(self, host=None):
+        if host is None:
+            host = self.host
+
         try:
             self.port = serial.Serial(host, baudrate=2000000)
             self.settimeout(timeout=0.5)
@@ -580,6 +586,9 @@ class UDPSerialBridge(threading.Thread):
 
                     # print(time.time(), "SOCK SEND", len(response))
 
+                except serial.serialutil.SerialException:
+                    raise
+
                 except Exception as e:
                     # flush
                     print(e)
@@ -594,6 +603,13 @@ class UDPSerialBridge(threading.Thread):
         
             except socket.timeout:
                 pass
+
+            except serial.serialutil.SerialException:
+                time.sleep(1.0)
+
+                # try to reopen port
+                self.channel.close()
+                self.channel.open()
 
             except Exception as e:
                 print(e)
