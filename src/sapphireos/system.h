@@ -186,6 +186,7 @@ void sys_v_disable_watchdog( void );
 
 void sys_v_get_boot_data( boot_data_t *data );
 boot_mode_t8 sys_m_get_boot_mode( void );
+boot_mode_t8 sys_m_get_startup_boot_mode( void );
 
 #ifdef ALLOW_ASSERT_DISABLE
 void sys_v_enable_assertion_trap( void );

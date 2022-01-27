@@ -343,6 +343,11 @@ boot_mode_t8 sys_m_get_boot_mode( void ){
 	return boot_data.boot_mode;
 }
 
+boot_mode_t8 sys_m_get_startup_boot_mode( void ){
+
+    return startup_boot_mode;
+}
+
 #ifdef ALLOW_ASSERT_DISABLE
 void sys_v_enable_assertion_trap( void ){
 

@@ -96,6 +96,10 @@ void coproc_v_dispatch(
 
         *retval = sys_u8_get_reset_source();
     }
+    else if( hdr->opcode == OPCODE_GET_BOOT_MODE ){
+
+        *retval = sys_m_get_startup_boot_mode();
+    }
     else if( hdr->opcode == OPCODE_GET_WIFI ){
 
         uint8_t buf[WIFI_SSID_LEN + WIFI_PASS_LEN];

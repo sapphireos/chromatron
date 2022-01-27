@@ -48,6 +48,10 @@ void cpu_v_init( void ){
     #ifndef BOOTLOADER
     wdg_v_enable( 0, 0 );
     #endif
+
+    #ifdef ENABLE_COPROCESSOR
+    boot_data.boot_mode = coproc_i32_call0( OPCODE_GET_BOOT_MODE );
+    #endif
 }
 
 
