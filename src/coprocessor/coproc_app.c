@@ -297,13 +297,13 @@ void coproc_v_dispatch(
         
         flash_addr = params[0];
 
-        log_v_debug_P( PSTR("addr: %lu"), flash_addr );
+        // log_v_debug_P( PSTR("addr: %lu"), flash_addr );
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_LEN ){
         
         flash_len = params[0];
 
-        log_v_debug_P( PSTR("len: %lu"), flash_len );
+        // log_v_debug_P( PSTR("len: %lu"), flash_len );
 
         if( flash_len > COPROC_BUF_SIZE ){
 
@@ -312,7 +312,7 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_ERASE ){
 
-        log_v_debug_P( PSTR("erase") );
+        // log_v_debug_P( PSTR("erase") );
 
         flash25_v_erase_4k( flash_start + flash_addr );
     }
@@ -327,7 +327,7 @@ void coproc_v_dispatch(
 
         *response_len = flash_len;
 
-        log_v_debug_P( PSTR("read: 0x%02x"), response[0] );
+        // log_v_debug_P( PSTR("read: 0x%02x"), response[0] );
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_WRITE ){
 
@@ -337,7 +337,7 @@ void coproc_v_dispatch(
         flash25_v_read( flash_start + flash_addr, &temp, 1 );
 
 
-        log_v_debug_P( PSTR("write: 0x%02x -> 0x%02x"), data[0], temp );
+        // log_v_debug_P( PSTR("write: 0x%02x -> 0x%02x"), data[0], temp );
     }
     // #endif
     // else{

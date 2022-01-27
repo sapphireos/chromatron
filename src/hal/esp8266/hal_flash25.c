@@ -204,9 +204,23 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
     #ifdef ENABLE_COPROCESSOR
     if( use_coproc ){
 
-        coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
-        coproc_i32_call1( OPCODE_IO_FLASH25_LEN, len );
-        coproc_i32_callp( OPCODE_IO_FLASH25_READ, ptr, len );
+        while( len > 0 ){
+
+            uint32_t xfer_len = len;
+
+            if( xfer_len > COPROC_BUF_SIZE ){
+
+                xfer_len = COPROC_BUF_SIZE;
+            }
+        
+            coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
+            coproc_i32_call1( OPCODE_IO_FLASH25_LEN, xfer_len );
+            coproc_i32_callp( OPCODE_IO_FLASH25_READ, ptr, xfer_len );
+
+            address += xfer_len;
+            ptr += xfer_len;
+            len -= xfer_len;
+        }
 
         return;
     }
@@ -383,11 +397,25 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 
     #ifdef ENABLE_COPROCESSOR
     if( use_coproc ){
-                
-        coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
-        coproc_i32_call1( OPCODE_IO_FLASH25_LEN, len );
-        coproc_i32_callv( OPCODE_IO_FLASH25_WRITE, ptr, len );
+
+        while( len > 0 ){
+
+            uint32_t xfer_len = len;
+
+            if( xfer_len > COPROC_BUF_SIZE ){
+
+                xfer_len = COPROC_BUF_SIZE;
+            }
         
+            coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
+            coproc_i32_call1( OPCODE_IO_FLASH25_LEN, xfer_len );
+            coproc_i32_callp( OPCODE_IO_FLASH25_WRITE, (void *)ptr, xfer_len );
+
+            address += xfer_len;
+            ptr += xfer_len;
+            len -= xfer_len;
+        }
+                
         return;
     }
     #endif
