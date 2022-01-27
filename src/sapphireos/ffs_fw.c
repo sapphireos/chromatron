@@ -142,7 +142,11 @@ static void erase_start_blocks( uint8_t partition ){
 
 int8_t ffs_fw_i8_init( void ){
 
-    trace_printf("FFS FW init...\r\n");\
+    trace_printf("FFS FW init...\r\n");
+
+    #ifdef SKIP_FFS_FW_INIT
+    return 0;
+    #endif
 
     #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
     // init sizes for firmware 1

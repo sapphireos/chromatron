@@ -215,7 +215,7 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         
             coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
             coproc_i32_call1( OPCODE_IO_FLASH25_LEN, xfer_len );
-            coproc_i32_callp( OPCODE_IO_FLASH25_READ, ptr, xfer_len );
+            coproc_i32_callp( OPCODE_IO_FLASH25_READ, (uint8_t *)ptr, xfer_len );
 
             address += xfer_len;
             ptr += xfer_len;
@@ -409,7 +409,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         
             coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
             coproc_i32_call1( OPCODE_IO_FLASH25_LEN, xfer_len );
-            coproc_i32_callp( OPCODE_IO_FLASH25_WRITE, (void *)ptr, xfer_len );
+            coproc_i32_callv( OPCODE_IO_FLASH25_WRITE, (uint8_t *)ptr, xfer_len );
 
             address += xfer_len;
             ptr += xfer_len;

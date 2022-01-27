@@ -56,6 +56,8 @@ static uint32_t fw_addr;
 static uint32_t pix_transfer_count;
 
 static uint32_t flash_start;
+static uint32_t fw0_start;
+static uint32_t fw0_end;
 static uint32_t flash_size;
 static uint32_t flash_addr;
 static uint32_t flash_len;
@@ -312,16 +314,75 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_ERASE ){
 
-        // log_v_debug_P( PSTR("erase") );
+        uint32_t addr;
 
-        flash25_v_erase_4k( flash_start + flash_addr );
+        // check if address is block 0
+        if( flash_addr < FLASH_FS_ERASE_BLOCK_SIZE ){
+
+            addr = flash_start + flash_addr;
+        }
+        // check if address is within firmware partition 0
+        else if( ( flash_addr >= fw0_start ) && ( flash_addr <= fw0_end ) ){
+
+            uint32_t pos = flash_addr - fw0_start;
+
+            addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
+        }
+        // main FS partition
+        else{
+
+            uint32_t pos = flash_addr - fw0_end;
+
+            addr = flash_start + pos;
+        }
+
+        flash25_v_erase_4k( addr );
+
+
+        // // log_v_debug_P( PSTR("erase") );
+
+        // // check if address is within firmware partition 0
+        // if( ( flash_addr >= fw0_start ) && ( flash_addr <= fw0_end ) ){
+
+        //     // redirect to coprocessor's firmware 2 partition
+        //     uint32_t addr = ( flash_addr - fw0_start ) + FLASH_FS_FIRMWARE_2_PARTITION_START;
+
+        //     flash25_v_erase_4k( addr );
+        // }
+        // else{
+
+        //     flash25_v_erase_4k( flash_start + flash_addr - fw0_end );    
+        // }
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_READ ){
 
-        uint8_t buf[64];
+        uint8_t buf[COPROC_BUF_SIZE];
         memset( buf, 0, sizeof(buf) );
     
-        flash25_v_read( flash_start + flash_addr, buf, flash_len );
+        uint32_t addr;
+
+        // check if address is block 0
+        if( flash_addr < FLASH_FS_ERASE_BLOCK_SIZE ){
+
+            addr = flash_start + flash_addr;
+        }
+        // check if address is within firmware partition 0
+        else if( ( flash_addr >= fw0_start ) && ( flash_addr <= fw0_end ) ){
+
+            uint32_t pos = flash_addr - fw0_start;
+
+            addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
+        }
+        // main FS partition
+        else{
+
+            uint32_t pos = flash_addr - fw0_end;
+
+            addr = flash_start + pos;
+        }    
+
+
+        flash25_v_read( addr, buf, flash_len );
 
         memcpy( response, buf, flash_len );
 
@@ -331,13 +392,35 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_WRITE ){
 
-        flash25_v_write( flash_start + flash_addr, data, flash_len );
+        uint32_t addr;
 
-        uint8_t temp = 0;
-        flash25_v_read( flash_start + flash_addr, &temp, 1 );
+        // check if address is block 0
+        if( flash_addr < FLASH_FS_ERASE_BLOCK_SIZE ){
 
+            addr = flash_start + flash_addr;
+        }
+        // check if address is within firmware partition 0
+        else if( ( flash_addr >= fw0_start ) && ( flash_addr <= fw0_end ) ){
 
-        // log_v_debug_P( PSTR("write: 0x%02x -> 0x%02x"), data[0], temp );
+            uint32_t pos = flash_addr - fw0_start;
+
+            addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
+        }
+        // main FS partition
+        else{
+
+            uint32_t pos = flash_addr - fw0_end;
+
+            addr = flash_start + pos;
+        }
+
+        flash25_v_write( addr, data, flash_len );
+
+        // uint8_t temp = 0;
+        // flash25_v_read( addr, &temp, 1 );
+
+        // log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx -> 0x%02lx"), 
+        //     (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0], (uint32_t)temp );
     }
     // #endif
     // else{
@@ -352,10 +435,12 @@ PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
     
-    flash_start = FLASH_FS_FILE_SYSTEM_START + ( (uint32_t)ffs_block_u16_total_blocks() * FLASH_FS_ERASE_BLOCK_SIZE );
-    flash_size = flash25_u32_capacity() - flash_start;
+    flash_start     = FLASH_FS_FILE_SYSTEM_START + ( (uint32_t)ffs_block_u16_total_blocks() * FLASH_FS_ERASE_BLOCK_SIZE );
+    flash_size      = ( flash25_u32_capacity() - flash_start ) + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
+    fw0_start       = FLASH_FS_FIRMWARE_0_PARTITION_START;
+    fw0_end         = fw0_start + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
 
-    log_v_debug_P( PSTR("start: %lu size: %lu fs ver: %d"), flash_start, flash_size, flash25_u8_read_byte( flash_start + 16 ) );
+    log_v_debug_P( PSTR("start: %lu size: %lu fw0: %lu -> %lu"), flash_start, flash_size, fw0_start, fw0_end );
 
 
     hal_wifi_v_init();
@@ -393,19 +478,19 @@ PT_BEGIN( pt );
 
 cmd_usart_v_init();
 // THREAD_EXIT( pt );
-static bool temp;
-temp = FALSE;
-while( !boot_esp ){
+// static bool temp;
+// temp = FALSE;
+// while( !boot_esp ){
 
-    if( flash25_u8_read_byte( flash_start + 16 ) != 2 && !temp ){
+//     if( flash25_u8_read_byte( flash_start + 16 ) != 2 && !temp ){
 
-        temp = TRUE;
-        log_v_debug_P( PSTR("WTF fs ver: %d"), flash25_u8_read_byte( flash_start + 16 ) );
-    }
+//         temp = TRUE;
+//         log_v_debug_P( PSTR("WTF fs ver: %d"), flash25_u8_read_byte( flash_start + 16 ) );
+//     }
 
-    THREAD_YIELD( pt );
-}
-// THREAD_WAIT_WHILE( pt, !boot_esp );
+//     THREAD_YIELD( pt );
+// }
+THREAD_WAIT_WHILE( pt, !boot_esp );
 // TMR_WAIT( pt, 2000 );
 
     log_v_debug_P( PSTR("fs ver: %d"), flash25_u8_read_byte( flash_start + 16 ) );
