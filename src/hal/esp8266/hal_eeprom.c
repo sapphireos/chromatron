@@ -58,7 +58,7 @@ static bool commit;
 static uint8_t ee_data[EE_ARRAY_SIZE] __attribute__((aligned(4)));
 
 
-#define STATUS_ERASED 			0xff
+#define STATUS_ERASED 			0xffffffff
 #define STATUS_PARTIAL_WRITE 	0xef
 #define STATUS_VALID 			0x0f
 #define STATUS_DIRTY 			0x00
@@ -81,6 +81,8 @@ static void set_block_status( uint8_t block, uint32_t status ){
 
 
 void ee_v_init( void ){
+
+	trace_printf("EE init...\r\n");
 
 	memset( ee_data, 0xff, sizeof(ee_data) );
 
@@ -116,6 +118,8 @@ void ee_v_init( void ){
 		// check status
 		if( ( header.status != STATUS_ERASED ) && ( i != current_block ) ){
 
+			trace_printf("Cleaning block: %d\r\n", i);
+
 			// erase block
 			ffs_eeprom_v_erase( i );
 		}
@@ -127,11 +131,15 @@ void ee_v_init( void ){
 	ffs_eeprom_v_read( current_block, 0, (uint8_t *)&header, sizeof(header) );
 
 	if( header.status == STATUS_VALID ){
+
+		trace_printf("Loading EEPROM data. Block: %d\r\n", current_block);
 			
 		// load eeprom contents
 		ffs_eeprom_v_read( current_block, sizeof(header), ee_data, sizeof(ee_data) );
 	}
 	else{
+
+		trace_printf("Initializing EEPROM data. Block: %d\r\n", current_block);
 
 		// erase and initialize
 		ffs_eeprom_v_erase( current_block );
@@ -203,6 +211,8 @@ void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len ){
 
 
 static void commit_to_flash( void ){
+
+	trace_printf("EE commit\r\n");
 	
 	// get next block
 	uint8_t next_block = current_block + 1;

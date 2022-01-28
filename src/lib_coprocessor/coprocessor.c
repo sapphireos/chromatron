@@ -148,7 +148,14 @@ void coproc_v_init( void ){
 
 int32_t coproc_i32_debug_print( char *s ){
 
-	return coproc_i32_callv( OPCODE_DEBUG_PRINT, (uint8_t *)s, strnlen( s, COPROC_BUF_SIZE ) );
+	uint16_t len = strnlen( s, COPROC_BUF_SIZE ) + 1;
+
+	if( len > COPROC_BUF_SIZE ){
+
+		len = COPROC_BUF_SIZE;
+	}
+
+	return coproc_i32_callv( OPCODE_DEBUG_PRINT, (uint8_t *)s, len );
 }
 
 

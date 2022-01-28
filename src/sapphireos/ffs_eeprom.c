@@ -40,12 +40,16 @@ static uint32_t flash_addr( uint8_t block, uint16_t addr ){
 
 void ffs_eeprom_v_write( uint8_t block, uint16_t addr, uint8_t *src, uint16_t len ){
 
+	trace_printf("EE write: %d 0x%x -> 0x%x %d 0x%x", block, addr, flash_addr( block, addr ), len, src[0]);
+
 	flash25_v_write( flash_addr( block, addr ), src, len );
 }
 
 void ffs_eeprom_v_read( uint8_t block, uint16_t addr, uint8_t *dest, uint16_t len ){
 
 	flash25_v_read( flash_addr( block, addr ), dest, len );	
+
+	trace_printf("EE read: %d 0x%x -> 0x%x %d 0x%x", block, addr, flash_addr( block, addr ), len, dest[0]);
 }
 
 void ffs_eeprom_v_erase( uint8_t block ){

@@ -58,6 +58,8 @@ static uint32_t pix_transfer_count;
 static uint32_t flash_start;
 static uint32_t fw0_start;
 static uint32_t fw0_end;
+static uint32_t ee_start;
+static uint32_t ee_end;
 static uint32_t flash_size;
 static uint32_t flash_addr;
 static uint32_t flash_len;
@@ -392,6 +394,11 @@ void coproc_v_dispatch(
 
         *response_len = flash_len;
 
+        if( ( flash_addr >= ee_start ) && ( flash_addr <= ee_end ) ){
+
+            log_v_debug_P( PSTR("read: 0x%0lx/0x%0lx -> 0x%02lx"), (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)response[0] );
+        }
+
         // log_v_debug_P( PSTR("read: 0x%02x"), response[0] );
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_WRITE ){
@@ -410,6 +417,13 @@ void coproc_v_dispatch(
 
             addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
         }
+        // // check if address is within EEPROM partition
+        // else if( ( flash_addr >= ee_start ) && ( flash_addr <= ee_end ) ){
+
+        //     uint32_t pos = flash_addr - ee_start;
+
+        //     addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
+        // }
         // main FS partition
         else{
 
@@ -420,11 +434,14 @@ void coproc_v_dispatch(
 
         flash25_v_write( addr, data, flash_len );
 
-        // uint8_t temp = 0;
-        // flash25_v_read( addr, &temp, 1 );
+        // log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx"), 
+        //     (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0] );
 
-        // log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx -> 0x%02lx"), 
-        //     (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0], (uint32_t)temp );
+        uint8_t temp = 0;
+        flash25_v_read( addr, &temp, 1 );
+
+        log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx -> 0x%02lx"), 
+            (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0], (uint32_t)temp );
     }
     // #endif
     // else{
@@ -443,6 +460,8 @@ PT_BEGIN( pt );
     flash_size      = ( flash25_u32_capacity() - flash_start ) + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
     fw0_start       = FLASH_FS_FIRMWARE_0_PARTITION_START;
     fw0_end         = fw0_start + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
+    ee_start        = fw0_end;
+    ee_end          = ee_start + ( (uint32_t)128 * 1024 ); // this must match the esp8266 target EE config
 
     log_v_debug_P( PSTR("start: %lu size: %lu fw0: %lu -> %lu"), flash_start, flash_size, fw0_start, fw0_end );
 

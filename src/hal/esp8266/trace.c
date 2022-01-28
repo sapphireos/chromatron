@@ -42,7 +42,7 @@ int trace_printf(const char* format, ...){
 
   va_start (ap, format);
 
-  static char buf[TRACE_BUF_SIZE];
+  char buf[TRACE_BUF_SIZE];
   memset( buf, 0, sizeof(buf) );
 
   // Print to the local buffer
@@ -52,19 +52,16 @@ int trace_printf(const char* format, ...){
       
       #ifdef ENABLE_COPROCESSOR
       int len = strnlen( buf, sizeof(buf) );
-        
-        // strip EOL characters
-      if( ( buf[len - 1] == '\r' ) ||
-          ( buf[len - 1] == '\n' ) ){
 
-          buf[len - 1] = 0;
-      } 
+      // strip EOL characters
+      for( int i = 0; i < len; i++ ){
 
-      if( ( buf[len - 2] == '\r' ) ||
-          ( buf[len - 2] == '\n' ) ){
+        if( ( buf[i] == '\r' ) ||
+            ( buf[i] == '\n' ) ){
 
-          buf[len - 2] = 0;
-      } 
+          buf[i] = 0;
+        }   
+      }
 
       ret = coproc_i32_debug_print( buf );
       #else
