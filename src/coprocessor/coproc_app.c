@@ -328,7 +328,7 @@ void coproc_v_dispatch(
             addr = flash_start + flash_addr;
         }
         // check if address is within firmware partition 0
-        else if( ( flash_addr >= fw0_start ) && ( flash_addr <= fw0_end ) ){
+        else if( ( flash_addr >= fw0_start ) && ( flash_addr < fw0_end ) ){
 
             uint32_t pos = flash_addr - fw0_start;
 
@@ -373,7 +373,7 @@ void coproc_v_dispatch(
             addr = flash_start + flash_addr;
         }
         // check if address is within firmware partition 0
-        else if( ( flash_addr >= fw0_start ) && ( flash_addr <= fw0_end ) ){
+        else if( ( flash_addr >= fw0_start ) && ( flash_addr < fw0_end ) ){
 
             uint32_t pos = flash_addr - fw0_start;
 
@@ -411,7 +411,7 @@ void coproc_v_dispatch(
             addr = flash_start + flash_addr;
         }
         // check if address is within firmware partition 0
-        else if( ( flash_addr >= fw0_start ) && ( flash_addr <= fw0_end ) ){
+        else if( ( flash_addr >= fw0_start ) && ( flash_addr < fw0_end ) ){
 
             uint32_t pos = flash_addr - fw0_start;
 
