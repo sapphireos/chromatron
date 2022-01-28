@@ -339,7 +339,7 @@ void coproc_v_dispatch(
 
             uint32_t pos = flash_addr - fw0_end;
 
-            addr = flash_start + pos;
+            addr = flash_start + pos + FLASH_FS_ERASE_BLOCK_SIZE;
         }
 
         flash25_v_write_enable();
@@ -393,7 +393,7 @@ void coproc_v_dispatch(
 
             uint32_t pos = flash_addr - fw0_end;
 
-            addr = flash_start + pos;
+            addr = flash_start + pos + FLASH_FS_ERASE_BLOCK_SIZE;
         }    
 
 
@@ -438,10 +438,11 @@ void coproc_v_dispatch(
 
             uint32_t pos = flash_addr - fw0_end;
 
-            addr = flash_start + pos;
+            addr = flash_start + pos + FLASH_FS_ERASE_BLOCK_SIZE;
         }
 
         flash25_v_write( addr, data, flash_len );
+        flash25_v_write( addr, data, flash_len ); // why does this work?
 
         // log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx"), 
         //     (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0] );
