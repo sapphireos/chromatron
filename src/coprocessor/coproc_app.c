@@ -342,7 +342,16 @@ void coproc_v_dispatch(
             addr = flash_start + pos;
         }
 
+        flash25_v_write_enable();
         flash25_v_erase_4k( addr );
+
+        if( ( flash_addr >= ee_start ) && ( flash_addr <= ee_end ) ){
+
+            uint8_t temp = 0;
+            flash25_v_read( addr, &temp, 1 );
+
+            log_v_debug_P( PSTR("erase: 0x%0lx/0x%0lx -> 0x%02lx"), (uint32_t)addr, (uint32_t)flash_addr, temp );
+        }
 
 
         // // log_v_debug_P( PSTR("erase") );
@@ -437,11 +446,15 @@ void coproc_v_dispatch(
         // log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx"), 
         //     (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0] );
 
-        uint8_t temp = 0;
-        flash25_v_read( addr, &temp, 1 );
 
-        log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx -> 0x%02lx"), 
-            (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0], (uint32_t)temp );
+        if( ( flash_addr >= ee_start ) && ( flash_addr <= ee_end ) ){
+            uint8_t temp = 0;
+            flash25_v_read( addr, &temp, 1 );
+
+            log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx -> 0x%02lx"), 
+                (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0], (uint32_t)temp );
+
+        }
     }
     // #endif
     // else{
