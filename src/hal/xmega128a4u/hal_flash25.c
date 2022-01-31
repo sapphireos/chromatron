@@ -159,11 +159,6 @@ static inline void flash_spi_v_read_block( uint8_t *data, uint16_t length ){
 extern uint16_t block0_unlock;
 static bool aai_write_enabled;
 
-#include "keyvalue.h"
-KV_SECTION_META kv_meta_t flas25_debug_kv[] = {
-    { CATBUS_TYPE_BOOL,      0, 0,  &aai_write_enabled, 0,  "aai_write_enabled" },
-};
-
 static uint32_t max_address;
 
 void hal_flash25_v_init( void ){

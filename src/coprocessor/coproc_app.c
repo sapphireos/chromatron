@@ -58,8 +58,8 @@ static uint32_t pix_transfer_count;
 static uint32_t flash_start;
 static uint32_t fw0_start;
 static uint32_t fw0_end;
-static uint32_t ee_start;
-static uint32_t ee_end;
+// static uint32_t ee_start;
+// static uint32_t ee_end;
 static uint32_t flash_size;
 static uint32_t flash_addr;
 static uint32_t flash_len;
@@ -345,13 +345,13 @@ void coproc_v_dispatch(
         flash25_v_write_enable();
         flash25_v_erase_4k( addr );
 
-        if( ( flash_addr >= ee_start ) && ( flash_addr < ee_end ) ){
+        // if( ( flash_addr >= ee_start ) && ( flash_addr < ee_end ) ){
 
-            uint8_t temp = 0;
-            flash25_v_read( addr, &temp, 1 );
+        //     uint8_t temp = 0;
+        //     flash25_v_read( addr, &temp, 1 );
 
-            log_v_debug_P( PSTR("erase: 0x%0lx/0x%0lx -> 0x%02lx"), (uint32_t)addr, (uint32_t)flash_addr, temp );
-        }
+        //     log_v_debug_P( PSTR("erase: 0x%0lx/0x%0lx -> 0x%02lx"), (uint32_t)addr, (uint32_t)flash_addr, temp );
+        // }
 
 
         // // log_v_debug_P( PSTR("erase") );
@@ -403,10 +403,10 @@ void coproc_v_dispatch(
 
         *response_len = flash_len;
 
-        if( ( flash_addr >= ee_start ) && ( flash_addr < ee_end ) ){
+        // if( ( flash_addr >= ee_start ) && ( flash_addr < ee_end ) ){
 
-            log_v_debug_P( PSTR("read: 0x%0lx/0x%0lx -> 0x%02lx"), (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)response[0] );
-        }
+        //     log_v_debug_P( PSTR("read: 0x%0lx/0x%0lx -> 0x%02lx"), (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)response[0] );
+        // }
 
         // log_v_debug_P( PSTR("read: 0x%02x"), response[0] );
     }
@@ -442,18 +442,18 @@ void coproc_v_dispatch(
         }
 
         flash25_v_write( addr, data, flash_len );
-        flash25_v_write( addr, data, flash_len ); // why does this work?
+        // flash25_v_write( addr, data, flash_len ); // why does this work?
 
         // log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx"), 
         //     (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0] );
 
 
         // if( ( flash_addr >= ee_start ) && ( flash_addr < ee_end ) ){
-            uint8_t temp = 0;
-            flash25_v_read( addr, &temp, 1 );
+            // uint8_t temp = 0;
+            // flash25_v_read( addr, &temp, 1 );
 
-            log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx -> 0x%02lx"), 
-                (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0], (uint32_t)temp );
+            // log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx -> 0x%02lx"), 
+            //     (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0], (uint32_t)temp );
 
         // }
     }
@@ -472,32 +472,36 @@ PT_BEGIN( pt );
     flash_size      = ( flash25_u32_capacity() - flash_start ) + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
     fw0_start       = FLASH_FS_FIRMWARE_0_PARTITION_START;
     fw0_end         = fw0_start + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
-    ee_start        = fw0_end;
-    ee_end          = ee_start + ( (uint32_t)128 * 1024 ); // this must match the esp8266 target EE config
+    // ee_start        = fw0_end;
+    // ee_end          = ee_start + ( (uint32_t)128 * 1024 ); // this must match the esp8266 target EE config
 
-    log_v_debug_P( PSTR("start: %lu size: %lu fw0: %lu -> %lu"), flash_start, flash_size, fw0_start, fw0_end );
+    // log_v_debug_P( PSTR("start: %lu size: %lu fw0: %lu -> %lu"), flash_start, flash_size, fw0_start, fw0_end );
 
 
-    flash25_v_write_enable();
-    flash25_v_erase_4k( flash_start );
-    uint8_t byte = 2;
-    #define ADDR (flash_start + 16)
+    // flash25_v_write_enable();
+    // flash25_v_erase_4k( flash_start );
+    // uint8_t byte = 2;
+    // #define ADDR (flash_start + 16)
 
-    uint8_t read1 = flash25_u8_read_byte( ADDR );
+    // // uint8_t read1 = flash25_u8_read_byte( ADDR );
 
-    flash25_v_write( ADDR, &byte, 1 );
+
+    // flash25_v_write( ADDR, &byte, 1 );
     
-    uint8_t read2 = flash25_u8_read_byte( ADDR );
+    // uint8_t read2 = flash25_u8_read_byte( ADDR );
 
-    flash25_v_write( ADDR, &byte, 1 );
+    // flash25_v_write( ADDR, &byte, 1 );
     
-    uint8_t read3 = flash25_u8_read_byte( ADDR );
+    // uint8_t read3 = flash25_u8_read_byte( ADDR );
 
+    // log_v_debug_P( PSTR("%d %d"), 
+    //     (int16_t)read2,
+    //     (int16_t)read3 );
 
-    log_v_debug_P( PSTR("%d %d %d"), 
-        (int16_t)read1,
-        (int16_t)read2,
-        (int16_t)read3 );
+    // // log_v_debug_P( PSTR("%d %d %d"), 
+    // //     (int16_t)read1,
+    // //     (int16_t)read2,
+    // //     (int16_t)read3 );
 
 
     hal_wifi_v_init();
