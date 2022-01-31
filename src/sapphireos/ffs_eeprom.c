@@ -47,9 +47,9 @@ void ffs_eeprom_v_write( uint8_t block, uint16_t addr, uint8_t *src, uint16_t le
 
 void ffs_eeprom_v_read( uint8_t block, uint16_t addr, uint8_t *dest, uint16_t len ){
 
-	// flash25_v_read( flash_addr( block, addr ), dest, len );	
+	flash25_v_read( flash_addr( block, addr ), dest, len );	
 
-	trace_printf("EE read: %d 0x%x -> 0x%x %d 0x%x", block, addr, flash_addr( block, addr ), len, dest[0]);
+	// trace_printf("EE read: %d 0x%x -> 0x%x %d 0x%x", block, addr, flash_addr( block, addr ), len, dest[0]);
 }
 
 void ffs_eeprom_v_erase( uint8_t block ){
