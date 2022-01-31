@@ -495,6 +495,9 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
     // non-AAI write
     else{
 
+        // busy wait
+        BUSY_WAIT( flash25_b_busy() );
+
         while( len > 0 ){
 
             // compute page data
