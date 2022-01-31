@@ -212,8 +212,6 @@ void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t len ){
 
 static void commit_to_flash( void ){
 
-	trace_printf("EE commit\r\n");
-	
 	// get next block
 	uint8_t next_block = current_block + 1;
 
@@ -222,6 +220,8 @@ static void commit_to_flash( void ){
 		next_block = 0;
 	}
 
+	trace_printf("EE commit: %d\r\n", next_block);
+	
 	// erase next block
 	ffs_eeprom_v_erase( next_block );
 
