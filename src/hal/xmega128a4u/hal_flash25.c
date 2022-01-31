@@ -159,6 +159,11 @@ static inline void flash_spi_v_read_block( uint8_t *data, uint16_t length ){
 extern uint16_t block0_unlock;
 static bool aai_write_enabled;
 
+#include "keyvalue.h"
+KV_SECTION_META kv_meta_t flas25_debug_kv[] = {
+    { CATBUS_TYPE_BOOL,      0, 0,  &aai_write_enabled, 0,  "aai_write_enabled" },
+};
+
 static uint32_t max_address;
 
 void hal_flash25_v_init( void ){
@@ -319,6 +324,33 @@ void flash25_v_write_disable( void ){
     #endif
 }
 
+static void _write_byte( uint32_t address, uint8_t byte ){
+
+    #ifdef __SIM__
+    array[address] = byte;
+    #else
+    // wait on busy bit in status register
+    // note that if the flash chip malfunctions and never completes
+    // an operation, this will cause the entire system to hang
+    // until the watchdog kicks it.  this is acceptable,
+    // since at that point we have a hardware failure anyway.
+    BUSY_WAIT( flash25_b_busy() );
+
+    flash25_v_write_enable();
+
+    CHIP_ENABLE();
+
+    flash_spi_u8_send( FLASH_CMD_WRITE_BYTE );
+    flash_spi_u8_send( address >> 16 );
+    flash_spi_u8_send( address >> 8 );
+    flash_spi_u8_send( address );
+
+    flash_spi_u8_send( byte );
+
+    CHIP_DISABLE();
+    #endif
+}
+
 // write a single byte to the device
 void flash25_v_write_byte( uint32_t address, uint8_t byte ){
 
@@ -336,29 +368,7 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         block0_unlock = 0;
 	}
 
-    #ifdef __SIM__
-    array[address] = byte;
-    #else
-	// wait on busy bit in status register
-	// note that if the flash chip malfunctions and never completes
-	// an operation, this will cause the entire system to hang
-	// until the watchdog kicks it.  this is acceptable,
-	// since at that point we have a hardware failure anyway.
-	BUSY_WAIT( flash25_b_busy() );
-
-	flash25_v_write_enable();
-
-	CHIP_ENABLE();
-
-	flash_spi_u8_send( FLASH_CMD_WRITE_BYTE );
-	flash_spi_u8_send( address >> 16 );
-	flash_spi_u8_send( address >> 8 );
-	flash_spi_u8_send( address );
-
-	flash_spi_u8_send( byte );
-
-	CHIP_DISABLE();
-    #endif
+    _write_byte( address, byte );
 }
 
 // write an array of data
@@ -398,7 +408,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         // check if odd address
         if( ( address & 1 ) != 0 ){
 
-            flash25_v_write_byte( address, *(uint8_t *)ptr );
+            _write_byte( address, *(uint8_t *)ptr );
 
             address++;
             ptr++;
@@ -479,7 +489,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         // this also handles the case where there is only one byte to be written
         if( len == 1 ){
 
-            flash25_v_write_byte( address, *(uint8_t *)ptr );
+            _write_byte( address, *(uint8_t *)ptr );
         }
     }
     // non-AAI write

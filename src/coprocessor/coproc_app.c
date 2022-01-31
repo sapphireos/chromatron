@@ -464,8 +464,6 @@ void coproc_v_dispatch(
     // }
 }
 
-
-
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
@@ -478,6 +476,28 @@ PT_BEGIN( pt );
     ee_end          = ee_start + ( (uint32_t)128 * 1024 ); // this must match the esp8266 target EE config
 
     log_v_debug_P( PSTR("start: %lu size: %lu fw0: %lu -> %lu"), flash_start, flash_size, fw0_start, fw0_end );
+
+
+    flash25_v_write_enable();
+    flash25_v_erase_4k( flash_start );
+    uint8_t byte = 2;
+    #define ADDR (flash_start + 16)
+
+    uint8_t read1 = flash25_u8_read_byte( ADDR );
+
+    flash25_v_write( ADDR, &byte, 1 );
+    
+    uint8_t read2 = flash25_u8_read_byte( ADDR );
+
+    flash25_v_write( ADDR, &byte, 1 );
+    
+    uint8_t read3 = flash25_u8_read_byte( ADDR );
+
+
+    log_v_debug_P( PSTR("%d %d %d"), 
+        (int16_t)read1,
+        (int16_t)read2,
+        (int16_t)read3 );
 
 
     hal_wifi_v_init();
