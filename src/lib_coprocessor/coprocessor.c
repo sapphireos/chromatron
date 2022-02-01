@@ -346,7 +346,10 @@ void coproc_v_get_wifi( void ){
 	uint8_t buf[WIFI_SSID_LEN + WIFI_PASS_LEN];
 	memset( buf, 0, sizeof(buf) );
 
-	cfg_i8_get( CFG_PARAM_WIFI_SSID, buf );
+	if( cfg_i8_get( CFG_PARAM_WIFI_SSID, buf ) < 0 ){
+
+		trace_printf("ssid not found: %d\r\n", cfg_i8_get( CFG_PARAM_WIFI_SSID, buf ));
+	}
 
 	if( buf[0] != 0 ){
 

@@ -84,7 +84,7 @@ void ee_v_init( void ){
 
 	trace_printf("EE init...\r\n");
 
-	memset( ee_data, 0xff, sizeof(ee_data) );
+	memset( ee_data, 0x11, sizeof(ee_data) );
 
 	if( flash25_u32_capacity() == 0 ){
 

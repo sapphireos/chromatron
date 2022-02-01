@@ -405,7 +405,7 @@ void coproc_v_dispatch(
 
         // if( ( flash_addr >= ee_start ) && ( flash_addr < ee_end ) ){
 
-        //     log_v_debug_P( PSTR("read: 0x%0lx/0x%0lx -> 0x%02lx"), (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)response[0] );
+            log_v_debug_P( PSTR("read: 0x%0lx/0x%0lx -> 0x%02lx"), (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)response[0] );
         // }
 
         // log_v_debug_P( PSTR("read: 0x%02x"), response[0] );
@@ -505,7 +505,7 @@ PT_BEGIN( pt );
 
 
     hal_wifi_v_init();
-    
+     
     // run firmware loader    
     wifi_v_start_loader();
 

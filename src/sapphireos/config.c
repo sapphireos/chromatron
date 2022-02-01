@@ -258,10 +258,25 @@ static void read_block( uint16_t block_number, cfg_block_t *block ){
     ee_v_read_block( block_address( block_number ), (uint8_t *)block, sizeof(cfg_block_t) );
 }
 
+// 0x6c3bd049 = __KV__device_id
+// 0x44cd2646 = __KV__cfg_version
+// 0x90c90926 = __KV__cfg_recovery_boot_count
+// 0x5c1d77bc = __KV__max_log_size
+
 static int16_t seek_block( catbus_hash_t32 id, uint8_t n ){
 
     // search array
     for( uint8_t i = 0; i < CFG_TOTAL_BLOCKS; i++ ){
+
+        if( id == __KV__wifi_ssid ){
+
+            catbus_hash_t32 hash = read_block_id( i );
+
+            if( i < 16 ){
+
+                trace_printf("seek 0x%08x %d @ %d\r\n", hash, read_block_number(i), i);
+            }
+        }
 
         if( ( read_block_id( i ) == id ) &&
             ( read_block_number( i ) == n ) ){
@@ -523,8 +538,22 @@ static int8_t read_param( catbus_hash_t32 parameter, void *value ){
             memset( value, 0, len );
         }
 
+        // if( parameter == __KV__wifi_ssid ){
+
+        //     for( uint8_t i = 0; i < CFG_TOTAL_BLOCKS; i++ ){
+
+        //         catbus_hash_t32 hash = read_block_id( i );
+
+        //         if( hash != 0xffffffff ){
+
+        //             trace_printf("ee 0x%08x %d @ %d\r\n", hash, read_block_number(i), i);    
+        //         }
+        //     }
+        // }
+        
+
         // parameter not found
-        return -1;
+        return -2;
     }
 
     // get number of blocks for this parameter
@@ -887,6 +916,8 @@ void cfg_v_reset_on_next_boot( void ){
 // write default values to all config items
 void cfg_v_default_all( void ){
 
+    trace_printf("Config setting defaults...\r\n");
+
     // erase all the things!
     ee_v_erase_block( 0, EE_ARRAY_SIZE );
 
@@ -909,6 +940,15 @@ void cfg_v_default_all( void ){
 void cfg_v_init( void ){
 
     COMPILER_ASSERT( CFG_TOTAL_BLOCKS < 256 );
+
+
+    for( uint8_t i = 0; i < CFG_TOTAL_BLOCKS; i++ ){
+
+        catbus_hash_t32 hash = read_block_id( i );
+
+        trace_printf("ee 0x%08x %d @ %d\r\n", hash, read_block_number(i), i);
+        
+    }
 
     // run block clean algorithm
     clean_blocks();
