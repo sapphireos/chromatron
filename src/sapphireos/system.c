@@ -81,7 +81,7 @@ extern boot_data_t BOOTDATA boot_data;
 static uint8_t startup_boot_mode;
 
 // local functions:
-void reboot( void ) __attribute__((noreturn));
+void reboot( bool commit ) __attribute__((noreturn));
 
 int8_t sys_kv_reboot_handler(
     kv_op_t8 op,
@@ -476,7 +476,7 @@ void sys_reboot( void ){
 
     boot_data.boot_mode = BOOT_MODE_REBOOT;
 
-	reboot();
+	reboot( TRUE );
 }
 
 // immediate reset into bootloader
@@ -485,7 +485,7 @@ void sys_reboot_to_loader( void ){
     boot_data.loader_command = LDR_CMD_SERIAL_BOOT;
     boot_data.boot_mode = BOOT_MODE_REBOOT;
 
-	reboot();
+	reboot( TRUE );
 }
 
 // reboot with a load firmware command to the bootloader
@@ -543,7 +543,7 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
     if( sys_mode == SYS_MODE_SAFE ){
 
         // in safe mode, reboot instantly
-        reboot();
+        reboot( TRUE );
     }
 
     // the thread will perform a graceful reboot
@@ -553,11 +553,11 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
                          0 ) < 0 ){
 
         // if the thread failed to create, just reboot right away so we don't get stuck.
-        reboot();
+        reboot( TRUE );
     }
 }
 
-void reboot( void ){
+void reboot( bool commit ){
 
     trace_printf("Rebooting...\r\n");
 
@@ -569,7 +569,10 @@ void reboot( void ){
     // make sure interrupts are disabled
     DISABLE_INTERRUPTS;
 
-    ee_v_commit();
+    if( commit ){
+
+        ee_v_commit();    
+    }
     
     cpu_reboot();
 
@@ -597,7 +600,7 @@ void sys_v_initiate_shutdown( uint8_t delay_seconds ){
 
         log_v_critical_P( PSTR("shutdown thread failed") );
 
-        reboot();
+        reboot( TRUE);
     }
 }
 
@@ -741,7 +744,7 @@ void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
     }
     #endif
     // reboot
-    reboot();
+    reboot( FALSE );
 #endif
 }
 #endif
@@ -814,7 +817,7 @@ PT_BEGIN( pt );
 
     if( shut_down_state <= 0 ){
 
-        reboot();    
+        reboot( TRUE );    
     }
     else{
 
@@ -825,7 +828,7 @@ PT_BEGIN( pt );
         // in case that does not happen, we will delay and then force a reboot.
         TMR_WAIT( pt, 20000 );
 
-        reboot();
+        reboot( TRUE );
     }
 	
 PT_END( pt );
