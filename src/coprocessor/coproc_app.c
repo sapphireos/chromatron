@@ -313,9 +313,9 @@ void coproc_v_dispatch(
 
         // log_v_debug_P( PSTR("len: %lu"), flash_len );
 
-        if( flash_len > COPROC_BUF_SIZE ){
+        if( flash_len >= COPROC_BUF_SIZE ){
 
-            flash_len = COPROC_BUF_SIZE;
+            flash_len = COPROC_BUF_SIZE - 1;
         }
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_ERASE ){
@@ -405,7 +405,7 @@ void coproc_v_dispatch(
 
         // if( ( flash_addr >= ee_start ) && ( flash_addr < ee_end ) ){
 
-            log_v_debug_P( PSTR("read: 0x%0lx/0x%0lx -> 0x%02lx"), (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)response[0] );
+            // log_v_debug_P( PSTR("read: 0x%0lx/0x%0lx -> 0x%02lx %u"), (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)response[0], (uint32_t)flash_len );
         // }
 
         // log_v_debug_P( PSTR("read: 0x%02x"), response[0] );

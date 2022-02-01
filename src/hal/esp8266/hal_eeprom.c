@@ -84,7 +84,7 @@ void ee_v_init( void ){
 
 	trace_printf("EE init...\r\n");
 
-	memset( ee_data, 0x11, sizeof(ee_data) );
+	memset( ee_data, 0xff, sizeof(ee_data) );
 
 	if( flash25_u32_capacity() == 0 ){
 
@@ -256,10 +256,13 @@ void ee_v_commit( void ){
 		return;
 	}
 
+	#ifndef ENABLE_COPROCESSOR // this will break with the coprocessor
+
 	// assume we are rebooting.  if we've asserted on an error,
 	// we need to make sure the flash interface is re-initialized
 	// in case we were in the middle of an operation.
 	hal_flash25_v_init();
+	#endif
 
 	commit_to_flash();
 }

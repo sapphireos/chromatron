@@ -208,9 +208,9 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 
             uint32_t xfer_len = len;
 
-            if( xfer_len > COPROC_BUF_SIZE ){
+            if( xfer_len > 252 ){
 
-                xfer_len = COPROC_BUF_SIZE;
+                xfer_len = 252;
             }
         
             coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
@@ -225,7 +225,6 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
         return;
     }
     #endif
-
 
     ASSERT( ( address % 4 ) == 0 );
 
@@ -402,9 +401,9 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
 
             uint32_t xfer_len = len;
 
-            if( xfer_len > COPROC_BUF_SIZE ){
+            if( xfer_len > 252 ){
 
-                xfer_len = COPROC_BUF_SIZE;
+                xfer_len = 252;
             }
         
             coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
