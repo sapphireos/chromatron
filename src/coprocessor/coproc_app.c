@@ -58,8 +58,6 @@ static uint32_t pix_transfer_count;
 static uint32_t flash_start;
 static uint32_t fw0_start;
 static uint32_t fw0_end;
-// static uint32_t ee_start;
-// static uint32_t ee_end;
 static uint32_t flash_size;
 static uint32_t flash_addr;
 static uint32_t flash_len;
@@ -118,8 +116,6 @@ void coproc_v_dispatch(
         char *s = (char *)data;
 
         log_v_debug_P( PSTR("ESP8266: %s"), s );
-
-        // log_v_debug_P( PSTR("ESP8266: %d %x %x %x %x"), len, data[0], data[1], data[2], data[3] );
     }
     else if( hdr->opcode == OPCODE_IO_SET_MODE ){
 
@@ -204,7 +200,6 @@ void coproc_v_dispatch(
 
         pixel_v_set_pix_count( pix_transfer_count );
     }   
-    // #ifndef ENABLE_USB_UDP_TRANSPORT
     else if( hdr->opcode == OPCODE_IO_CMD_IS_RX_CHAR ){
 
         *retval = cmd_usart_b_received_char();
@@ -304,18 +299,14 @@ void coproc_v_dispatch(
     else if( hdr->opcode == OPCODE_IO_FLASH25_ADDR ){
         
         flash_addr = params[0];
-
-        // log_v_debug_P( PSTR("addr: %lu"), flash_addr );
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_LEN ){
         
         flash_len = params[0];
 
-        // log_v_debug_P( PSTR("len: %lu"), flash_len );
+        if( flash_len > COPROC_FLASH_XFER_LEN ){
 
-        if( flash_len >= COPROC_BUF_SIZE ){
-
-            flash_len = COPROC_BUF_SIZE - 1;
+            flash_len = COPROC_FLASH_XFER_LEN;
         }
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_ERASE ){
@@ -344,30 +335,6 @@ void coproc_v_dispatch(
 
         flash25_v_write_enable();
         flash25_v_erase_4k( addr );
-
-        // if( ( flash_addr >= ee_start ) && ( flash_addr < ee_end ) ){
-
-        //     uint8_t temp = 0;
-        //     flash25_v_read( addr, &temp, 1 );
-
-        //     log_v_debug_P( PSTR("erase: 0x%0lx/0x%0lx -> 0x%02lx"), (uint32_t)addr, (uint32_t)flash_addr, temp );
-        // }
-
-
-        // // log_v_debug_P( PSTR("erase") );
-
-        // // check if address is within firmware partition 0
-        // if( ( flash_addr >= fw0_start ) && ( flash_addr <= fw0_end ) ){
-
-        //     // redirect to coprocessor's firmware 2 partition
-        //     uint32_t addr = ( flash_addr - fw0_start ) + FLASH_FS_FIRMWARE_2_PARTITION_START;
-
-        //     flash25_v_erase_4k( addr );
-        // }
-        // else{
-
-        //     flash25_v_erase_4k( flash_start + flash_addr - fw0_end );    
-        // }
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_READ ){
 
@@ -402,13 +369,6 @@ void coproc_v_dispatch(
         memcpy( response, buf, flash_len );
 
         *response_len = flash_len;
-
-        // if( ( flash_addr >= ee_start ) && ( flash_addr < ee_end ) ){
-
-            // log_v_debug_P( PSTR("read: 0x%0lx/0x%0lx -> 0x%02lx %u"), (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)response[0], (uint32_t)flash_len );
-        // }
-
-        // log_v_debug_P( PSTR("read: 0x%02x"), response[0] );
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_WRITE ){
 
@@ -426,13 +386,6 @@ void coproc_v_dispatch(
 
             addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
         }
-        // // check if address is within EEPROM partition
-        // else if( ( flash_addr >= ee_start ) && ( flash_addr <= ee_end ) ){
-
-        //     uint32_t pos = flash_addr - ee_start;
-
-        //     addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
-        // }
         // main FS partition
         else{
 
@@ -442,26 +395,7 @@ void coproc_v_dispatch(
         }
 
         flash25_v_write( addr, data, flash_len );
-        // flash25_v_write( addr, data, flash_len ); // why does this work?
-
-        // log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx"), 
-        //     (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0] );
-
-
-        // if( ( flash_addr >= ee_start ) && ( flash_addr < ee_end ) ){
-            // uint8_t temp = 0;
-            // flash25_v_read( addr, &temp, 1 );
-
-            // log_v_debug_P( PSTR("write: 0x%0lx/0x%0lx = 0x%02lx -> 0x%02lx"), 
-            //     (uint32_t)addr, (uint32_t)flash_addr, (uint32_t)data[0], (uint32_t)temp );
-
-        // }
     }
-    // #endif
-    // else{
-
-    //     log_v_debug_P( PSTR("bad opcode: 0x%02x"), hdr->opcode );
-    // }
 }
 
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
@@ -472,38 +406,7 @@ PT_BEGIN( pt );
     flash_size      = ( flash25_u32_capacity() - flash_start ) + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
     fw0_start       = FLASH_FS_FIRMWARE_0_PARTITION_START;
     fw0_end         = fw0_start + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
-    // ee_start        = fw0_end;
-    // ee_end          = ee_start + ( (uint32_t)128 * 1024 ); // this must match the esp8266 target EE config
-
-    // log_v_debug_P( PSTR("start: %lu size: %lu fw0: %lu -> %lu"), flash_start, flash_size, fw0_start, fw0_end );
-
-
-    // flash25_v_write_enable();
-    // flash25_v_erase_4k( flash_start );
-    // uint8_t byte = 2;
-    // #define ADDR (flash_start + 16)
-
-    // // uint8_t read1 = flash25_u8_read_byte( ADDR );
-
-
-    // flash25_v_write( ADDR, &byte, 1 );
     
-    // uint8_t read2 = flash25_u8_read_byte( ADDR );
-
-    // flash25_v_write( ADDR, &byte, 1 );
-    
-    // uint8_t read3 = flash25_u8_read_byte( ADDR );
-
-    // log_v_debug_P( PSTR("%d %d"), 
-    //     (int16_t)read2,
-    //     (int16_t)read3 );
-
-    // // log_v_debug_P( PSTR("%d %d %d"), 
-    // //     (int16_t)read1,
-    // //     (int16_t)read2,
-    // //     (int16_t)read3 );
-
-
     hal_wifi_v_init();
      
     // run firmware loader    
@@ -535,26 +438,8 @@ PT_BEGIN( pt );
 
     status_led_v_set( 1, STATUS_LED_WHITE );
 
-    log_v_debug_P( PSTR("fs ver: %d"), flash25_u8_read_byte( flash_start + 16 ) );
-
 cmd_usart_v_init();
-// THREAD_EXIT( pt );
-// static bool temp;
-// temp = FALSE;
-// while( !boot_esp ){
-
-//     if( flash25_u8_read_byte( flash_start + 16 ) != 2 && !temp ){
-
-//         temp = TRUE;
-//         log_v_debug_P( PSTR("WTF fs ver: %d"), flash25_u8_read_byte( flash_start + 16 ) );
-//     }
-
-//     THREAD_YIELD( pt );
-// }
 THREAD_WAIT_WHILE( pt, !boot_esp );
-// TMR_WAIT( pt, 2000 );
-
-    log_v_debug_P( PSTR("fs ver: %d"), flash25_u8_read_byte( flash_start + 16 ) );
 
     status_led_v_set( 1, STATUS_LED_YELLOW );
 

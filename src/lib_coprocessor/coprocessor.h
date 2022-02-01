@@ -46,6 +46,7 @@ typedef struct __attribute__((packed)){
 } coproc_hdr_t;
 
 #define COPROC_BUF_SIZE				255
+#define COPROC_FLASH_XFER_LEN		252
 
 #define OPCODE_TEST					0x01
 #define OPCODE_REBOOT				0x02
