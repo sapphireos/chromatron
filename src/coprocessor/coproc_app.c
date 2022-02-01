@@ -436,10 +436,11 @@ PT_BEGIN( pt );
         THREAD_EXIT( pt );
     }
 
-    status_led_v_set( 1, STATUS_LED_WHITE );
 
-cmd_usart_v_init();
-THREAD_WAIT_WHILE( pt, !boot_esp );
+// status_led_v_set( 1, STATUS_LED_WHITE );
+// cmd_usart_v_init();
+// THREAD_WAIT_WHILE( pt, !boot_esp );
+
 
     status_led_v_set( 1, STATUS_LED_YELLOW );
 
