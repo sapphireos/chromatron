@@ -410,7 +410,7 @@ PT_BEGIN( pt );
     hal_wifi_v_init();
      
     // run firmware loader    
-    wifi_v_start_loader();
+    wifi_v_start_loader( FALSE );
 
     THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
 

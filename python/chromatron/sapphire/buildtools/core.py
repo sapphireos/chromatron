@@ -1380,7 +1380,7 @@ class AppBuilder(HexBuilder):
                 combined_image[fw_info_addr: fw_info_addr + fw_info_len] = fw_info
 
                 # attach CRC
-                crc = crc_func(combined_image)
+                crc = crc_func(combined_image[:-2])
                 logging.info("crc: 0x%x" % (crc))
                 combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
 
