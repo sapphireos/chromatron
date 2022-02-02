@@ -759,7 +759,6 @@ restart:
 
     uint32_t file_len = 0;
     fs_v_seek( state->fw_file, ESP_FW_INFO_ADDRESS );
-    log_v_debug_P( PSTR("WTF %lu %lu"), ESP_FW_INFO_ADDRESS, fs_i32_tell(state->fw_file) );
     fs_i16_read( state->fw_file, &file_len, sizeof(file_len) );
     log_v_debug_P( PSTR("wifi fw len: %lu"), file_len );
     

@@ -1228,18 +1228,6 @@ class AppBuilder(HexBuilder):
             crc = crc_func(ih.tobinstr())
             ih.puts(ih.maxaddr() + 1, struct.pack('>H', crc))
 
-        logging.info("size: %d" % (size))
-        logging.info("fwid: %s" % (fwid))
-        logging.info("fwinfo: %x" % (fw_info_addr))
-        logging.info("kv index count: %d" % (len(sorted_hashes)))
-        logging.info("kv index len: %d" % (len(kv_index)))
-        logging.info("kv index addr: 0x%0x" % (kv_index_addr))
-        logging.info("os name: %s" % (os_project.proj_name))
-        logging.info("os version: %s" % (os_project.version))
-        logging.info("app name: %s" % (self.settings['PROJ_NAME']))
-        logging.info("app version: %s" % (self.version))
-
-        if self.settings["TOOLCHAIN"] not in  ["ESP32", "XTENSA"]:
             logging.info("crc: 0x%x" % (crc))
 
             size = ih.maxaddr() - ih.minaddr() + 1
@@ -1346,7 +1334,7 @@ class AppBuilder(HexBuilder):
                 bootloader_size = int(loader_project.settings["FW_START_OFFSET"], 16)
 
                 # pad bootloader
-                loader_image += bytes((bootloader_size - len(loader_image) % bootloader_size) * [0])
+                loader_image += bytearray((bootloader_size - len(loader_image) % bootloader_size) * [0])
 
                 with open("firmware.bin", 'rb') as f:
                     firmware_image = f.read()
@@ -1357,11 +1345,13 @@ class AppBuilder(HexBuilder):
                 combined_image = loader_image + firmware_image
 
                 # need to pad to sector length
-                combined_image += bytes((4096 - (len(combined_image) % 4096)) * [0xff])
+                combined_image += bytearray((4096 - (len(combined_image) % 4096)) * [0xff])
 
-                # write a combined image suitable for esptool
-                with open("esptool_image.bin", 'wb') as f:
-                    f.write(combined_image)
+                size = len(combined_image)
+
+                # # write a combined image suitable for esptool
+                # with open("esptool_image.bin", 'wb') as f:
+                #     f.write(combined_image)
 
                 # append MD5
                 md5 = hashlib.md5(combined_image)
@@ -1369,13 +1359,32 @@ class AppBuilder(HexBuilder):
 
                 logging.info(f'Image MD5: {md5.hexdigest()}')
 
+                # the esp8266 is so very very special so we update the fwinfo section:
+                fw_info = struct.pack(fw_info_fmt,
+                                size,
+                                fwid.bytes,
+                                os_project.proj_name.encode('utf-8'),
+                                os_project.version.encode('utf-8'),
+                                self.settings['PROJ_NAME'].encode('utf-8'),
+                                self.version.encode('utf-8'),
+                                self.board_type.encode('utf-8'))
+
+                fw_info_addr += len(loader_image)
+                fw_info_len = len(fw_info)
+
+                # convert back to bytearray because Python really, really wants to get you to use bytes() for some reason.
+                combined_image = bytearray(combined_image)
+
+                # insert fwinfo into binary
+                combined_image[fw_info_addr: fw_info_addr + fw_info_len] = fw_info
+
                 # prepend length (not counting the length field itself or the MD5 - the actual FW length)
-                combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
+                # combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
 
                 # append CRC
                 crc = crc_func(combined_image)
                 logging.info("crc: 0x%x" % (crc))
-                combined_image += bytes(struct.pack('>H', crc))
+                combined_image += bytearray(struct.pack('>H', crc))
 
                 if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
                     assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']
@@ -1433,6 +1442,19 @@ class AppBuilder(HexBuilder):
                 package.add_image(file, None, self.board_type, self.version)
 
         package.save()
+
+
+        logging.info("size: %d" % (size))
+        logging.info("fwid: %s" % (fwid))
+        logging.info("fwinfo: %x" % (fw_info_addr))
+        logging.info("kv index count: %d" % (len(sorted_hashes)))
+        logging.info("kv index len: %d" % (len(kv_index)))
+        logging.info("kv index addr: 0x%0x" % (kv_index_addr))
+        logging.info("os name: %s" % (os_project.proj_name))
+        logging.info("os version: %s" % (os_project.version))
+        logging.info("app name: %s" % (self.settings['PROJ_NAME']))
+        logging.info("app version: %s" % (self.version))
+
 
         logging.info("Package dir: %s" % (get_build_package_dir()))
 
