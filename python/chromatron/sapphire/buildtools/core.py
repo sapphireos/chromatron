@@ -1077,7 +1077,7 @@ class AppBuilder(HexBuilder):
     def post_process(self):
         logging.info("Processing binaries")
 
-        fw_info_fmt = '<I16s128s16s128s16s32s'
+        fw_info_fmt = '<I16s128s16s128s16s32sII'
 
         # save original dir
         cwd = os.getcwd()
@@ -1216,7 +1216,9 @@ class AppBuilder(HexBuilder):
                                 os_project.version.encode('utf-8'),
                                 self.settings['PROJ_NAME'].encode('utf-8'),
                                 self.version.encode('utf-8'),
-                                self.board_type.encode('utf-8'))
+                                self.board_type.encode('utf-8'),
+                                kv_index_addr,
+                                len(kv_index))
 
         # insert fw info into hex
         ih.puts(fw_info_addr, fw_info)
@@ -1354,6 +1356,8 @@ class AppBuilder(HexBuilder):
                 # with open("esptool_image.bin", 'wb') as f:
                 #     f.write(combined_image)
 
+                # kv_index_addr += len(loader_image)
+
                 # the esp8266 is so very very special so we update the fwinfo section:
                 fw_info = struct.pack(fw_info_fmt,
                                 size,
@@ -1362,7 +1366,9 @@ class AppBuilder(HexBuilder):
                                 os_project.version.encode('utf-8'),
                                 self.settings['PROJ_NAME'].encode('utf-8'),
                                 self.version.encode('utf-8'),
-                                self.board_type.encode('utf-8'))
+                                self.board_type.encode('utf-8'),
+                                kv_index_addr,
+                                len(kv_index))
 
                 fw_info_addr += len(loader_image)
                 fw_info_len = len(fw_info)

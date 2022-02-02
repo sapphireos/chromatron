@@ -470,6 +470,15 @@ uint32_t sys_u32_get_fw_length( void ){
     return length;
 }
 
+uint32_t sys_u32_get_kv_index_addr( void ){
+
+    uint32_t addr;
+
+    memcpy_P( &addr, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, kv_index_addr), sizeof(addr) );
+
+    return addr;
+}
+
 // causes a watchdog timeout, which will cause a reset into the bootloader.
 // this will request an immediate reboot from the loader.
 void sys_reboot( void ){

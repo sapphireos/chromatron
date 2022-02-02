@@ -342,7 +342,9 @@ uint32_t ffs_fw_u32_read_internal_length( void ){
 
     uint32_t internal_length = sys_u32_get_fw_length();
 
+    #ifndef ESP8266
     internal_length += sizeof(uint16_t);
+    #endif
 
     #ifdef N_APP_PAGES
     if( internal_length > ( (uint32_t)N_APP_PAGES * (uint32_t)PAGE_SIZE ) ){
