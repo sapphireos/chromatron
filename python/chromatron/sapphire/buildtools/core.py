@@ -1224,7 +1224,7 @@ class AppBuilder(HexBuilder):
         # compute crc
         crc_func = crcmod.predefined.mkCrcFun('crc-aug-ccitt')
 
-        if self.settings["TOOLCHAIN"] != "ESP32":
+        if self.settings["TOOLCHAIN"] not in  ["ESP32", "XTENSA"]:
             crc = crc_func(ih.tobinstr())
             ih.puts(ih.maxaddr() + 1, struct.pack('>H', crc))
 
@@ -1239,7 +1239,7 @@ class AppBuilder(HexBuilder):
         logging.info("app name: %s" % (self.settings['PROJ_NAME']))
         logging.info("app version: %s" % (self.version))
 
-        if self.settings["TOOLCHAIN"] != "ESP32":
+        if self.settings["TOOLCHAIN"] not in  ["ESP32", "XTENSA"]:
             logging.info("crc: 0x%x" % (crc))
 
             size = ih.maxaddr() - ih.minaddr() + 1
@@ -1314,12 +1314,21 @@ class AppBuilder(HexBuilder):
 
             logging.info("ESP32 checksum: 0x%02x" % (checksum))
 
+            # append CRC
             crc = crc_func(firmware_image)
             logging.info("crc: 0x%x" % (crc))
             firmware_image += bytes(struct.pack('>H', crc))
 
             with open("firmware.bin", 'wb') as f:
                 f.write(firmware_image)
+
+        # create firmware package
+        try:
+            package = get_firmware_package(self.settings['PROJ_NAME'])
+        except FirmwarePackageNotFound:
+            package = FirmwarePackage(self.settings['PROJ_NAME'])
+
+        package.FWID = self.settings['FWID']
 
         # get loader info
         try:
@@ -1354,13 +1363,22 @@ class AppBuilder(HexBuilder):
                 with open("esptool_image.bin", 'wb') as f:
                     f.write(combined_image)
 
-                if 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']:
-                    # append MD5
-                    md5 = hashlib.md5(combined_image)
-                    combined_image += md5.digest()
+                # append MD5
+                md5 = hashlib.md5(combined_image)
+                combined_image += md5.digest()
 
-                    # prepend length (not counting the length field itself or the MD5 - the actual FW length)
-                    combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
+                logging.info(f'Image MD5: {md5.hexdigest()}')
+
+                # prepend length (not counting the length field itself or the MD5 - the actual FW length)
+                combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
+
+                # append CRC
+                crc = crc_func(combined_image)
+                logging.info("crc: 0x%x" % (crc))
+                combined_image += bytes(struct.pack('>H', crc))
+
+                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
+                    assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']
 
                     MAX_ESP8266_LEGACY_IMAGE_SIZE = (384 * 1024)
 
@@ -1368,7 +1386,6 @@ class AppBuilder(HexBuilder):
                         raise Exception(f"Image size exceeds partition length: {len(combined_image)} > {MAX_ESP8266_LEGACY_IMAGE_SIZE}")
 
                     logging.info(f'!!! Upgrade image size: {len(combined_image)} fits within partition size: {MAX_ESP8266_LEGACY_IMAGE_SIZE}')
-                    logging.info(f'!!! Upgrade image MD5: {md5.hexdigest()}')
 
                     with open("wifi_firmware.bin", 'wb') as f:
                         f.write(combined_image)
@@ -1388,15 +1405,7 @@ class AppBuilder(HexBuilder):
         except KeyError:
             logging.info("Loader project not found, cannot create loader_image.hex")
 
-
-        # create firmware package
-        try:
-            package = get_firmware_package(self.settings['PROJ_NAME'])
-        except FirmwarePackageNotFound:
-            package = FirmwarePackage(self.settings['PROJ_NAME'])
-
-        package.FWID = self.settings['FWID']
-
+        
         if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
             print("Special handling for ESP8266 upgrade on Chromatron Classic")
             coproc_package = get_firmware_package('coprocessor')
