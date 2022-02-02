@@ -36,6 +36,7 @@
 #define ESP_CESANTA_BAUD                2000000
 #define ESP_CESANTA_BAUD_USART_SETTING  BAUD_2000000
 
+#define ESP_FW_INFO_ADDRESS     0x00012000
 
 #define SLIP_END        0xC0
 #define SLIP_ESC        0xDB
