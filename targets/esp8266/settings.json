@@ -116,7 +116,7 @@
     "OS_PROJECT": "sapphire",
 
     "FW_INFO_ADDR": "0x00010000",
-    "FW_START_OFFSET": "0x00000000",
+    "FW_START_OFFSET": "0x00002000",
 
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 
