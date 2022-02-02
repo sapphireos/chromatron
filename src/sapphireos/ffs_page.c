@@ -338,6 +338,8 @@ int8_t ffs_page_i8_file_scan( ffs_file_t file_id ){
     // iterate over all pages and verify all data
     for( uint16_t i = 0; i < pages; i++ ){
 
+        sys_v_wdt_reset();
+
         if( ffs_page_i8_read( file_id, i ) < 0 ){
 
             return FFS_STATUS_ERROR;
