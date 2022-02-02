@@ -501,8 +501,6 @@ retry:;
 
 void kv_v_init( void ){
 
-    trace_printf("\r\nKV index addr: 0x%0x\r\n", _kv_u32_get_index_addr());
-
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
