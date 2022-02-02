@@ -33,6 +33,8 @@
 #include "flash_fs.h"
 #include "hal_boards.h"
 
+#ifdef ENABLE_BATTERY
+
 static uint8_t batt_soc; // state of charge in percent
 static uint8_t batt_soc_startup; // state of charge at power on
 static uint16_t batt_volts;
@@ -1618,3 +1620,5 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+#endif

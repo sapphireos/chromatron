@@ -34,6 +34,8 @@
 #include "energy.h"
 #include "wifi.h"
 
+#ifdef ENABLE_GFX
+
 static uint32_t power_cpu;
 static uint32_t power_wifi;
 static uint32_t power_total;
@@ -169,3 +171,5 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+#endif

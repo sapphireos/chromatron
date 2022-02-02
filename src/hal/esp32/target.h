@@ -37,8 +37,10 @@
 #define ENABLE_POWER
 #define ENABLE_USB_UDP_TRANSPORT
 // #define ENABLE_USB
+#define ENABLE_GFX
 #define ENABLE_MSGFLOW
 #define ENABLE_SERVICES
+#define ENABLE_BATTERY
 
 #define ENABLE_TRACE
 

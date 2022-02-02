@@ -35,6 +35,8 @@
 #include "vm.h"
 #include "battery.h"
 
+#ifdef ENABLE_GFX
+
 #ifdef PIXEL_USE_MALLOC
 static uint8_t *array_red __attribute__((aligned(4)));
 static uint8_t *array_green __attribute__((aligned(4)));
@@ -2221,6 +2223,8 @@ void gfx_v_log_value_curve( void ){
                 0,
                 0 );
 }
+
+#endif
 
 /*
 dimmer lookup:

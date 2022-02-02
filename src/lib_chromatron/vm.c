@@ -39,6 +39,7 @@
 #include "vm_core.h"
 #include "vm_cron.h"
 
+#ifdef ENABLE_GFX
 
 static thread_t vm_threads[VM_MAX_VMS];
 
@@ -1071,25 +1072,6 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-void vm_v_init( void ){
-
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        return;
-    }
-
-    COMPILER_ASSERT( ( sizeof(vm_state_t) % 4 ) == 0 );
-
-    memset( vm_status, VM_STATUS_NOT_RUNNING, sizeof(vm_status) );
-
-    thread_t_create( vm_loader,
-                     PSTR("vm_loader"),
-                     0,
-                     0 );
-
-    vm_cron_v_init();
-}
-
 
 // these are legacy controls from when we only had 1 VM
 void vm_v_start( uint8_t vm_id ){
@@ -1205,5 +1187,29 @@ int8_t vm_cron_i8_run_func( uint8_t i, uint16_t func_addr ){
     vm_thread_state_t *thread_state = thread_vp_get_data( vm_threads[i] );
 
     return vm_i8_run( mem2_vp_get_ptr( thread_state->handle ), func_addr, 0, &thread_state->vm_state );
+}
+
+#endif
+
+void vm_v_init( void ){
+
+    #ifdef ENABLE_GFX
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    COMPILER_ASSERT( ( sizeof(vm_state_t) % 4 ) == 0 );
+
+    memset( vm_status, VM_STATUS_NOT_RUNNING, sizeof(vm_status) );
+
+    thread_t_create( vm_loader,
+                     PSTR("vm_loader"),
+                     0,
+                     0 );
+
+    vm_cron_v_init();
+    #endif
 }
 

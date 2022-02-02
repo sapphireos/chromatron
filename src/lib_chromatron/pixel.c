@@ -31,6 +31,8 @@
 #include "logging.h"
 #include "hal_pixel.h"
 
+#ifdef ENABLE_GFX
+
 bool pix_dither;
 uint8_t pix_mode;
 uint32_t pix_clock;
@@ -112,3 +114,4 @@ uint8_t pixel_u8_bytes_per_pixel( uint8_t mode ){
     return 3; // WS2801 and others
 }
 
+#endif

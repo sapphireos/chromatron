@@ -39,6 +39,7 @@
 
 #include "hal_pixel.h"
 
+#ifdef ENABLE_BATTERY
 
 static bool batt_enable;
 static int8_t batt_ui_state;
@@ -168,74 +169,6 @@ static uint16_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *
 }
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
-
-
-void batt_v_init( void ){
-
-    #if defined(ESP8266)
-    ui_button = IO_PIN_6_DAC0;
-    #elif defined(ESP32)
-
-    uint8_t board = ffs_u8_read_board_type();
-
-    if( board == BOARD_TYPE_ELITE ){
-
-        ui_button = IO_PIN_21;
-    }
-    else{
-
-        ui_button = IO_PIN_17_TX;
-    }
-    #endif
-
-    energy_v_init();
-
-    if( !batt_enable ){
-
-        return;
-    }
-
-    if( bq25895_i8_init() < 0 ){
-
-        return;
-    }
-
-    log_v_info_P( PSTR("BQ25895 detected") );
-
-    if( pca9536_i8_init() == 0 ){
-
-        log_v_info_P( PSTR("PCA9536 detected") );
-        pca9536_enabled = TRUE;
-
-        pca9536_v_set_input( BATT_IO_QON );
-        pca9536_v_set_input( BATT_IO_S2 );
-        pca9536_v_set_input( BATT_IO_SPARE );
-        pca9536_v_set_output( BATT_IO_BOOST );
-    }
-    else{
-
-        io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
-    }
-
-    trace_printf("Battery controller enabled\n");
-
-    // if pixels are below the low power threshold,
-    // set the CPU to low speed
-    if( gfx_u16_get_pix_count() < BATT_PIX_COUNT_LOW_POWER_THRESHOLD ){
-
-        cpu_v_set_clock_speed_low();
-    }
-
-    batt_v_enable_pixels();
-
-    thread_t_create( ui_thread,
-                     PSTR("batt_ui"),
-                     0,
-                     0 );
-
-    fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
-    fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
-}
 
 static bool _ui_b_button_down( uint8_t ch ){
 
@@ -584,3 +517,76 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#endif
+
+
+void batt_v_init( void ){
+
+    #ifdef ENABLE_BATTERY
+
+    #if defined(ESP8266)
+    ui_button = IO_PIN_6_DAC0;
+    #elif defined(ESP32)
+
+    uint8_t board = ffs_u8_read_board_type();
+
+    if( board == BOARD_TYPE_ELITE ){
+
+        ui_button = IO_PIN_21;
+    }
+    else{
+
+        ui_button = IO_PIN_17_TX;
+    }
+    #endif
+
+    energy_v_init();
+
+    if( !batt_enable ){
+
+        return;
+    }
+
+    if( bq25895_i8_init() < 0 ){
+
+        return;
+    }
+
+    log_v_info_P( PSTR("BQ25895 detected") );
+
+    if( pca9536_i8_init() == 0 ){
+
+        log_v_info_P( PSTR("PCA9536 detected") );
+        pca9536_enabled = TRUE;
+
+        pca9536_v_set_input( BATT_IO_QON );
+        pca9536_v_set_input( BATT_IO_S2 );
+        pca9536_v_set_input( BATT_IO_SPARE );
+        pca9536_v_set_output( BATT_IO_BOOST );
+    }
+    else{
+
+        io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
+    }
+
+    trace_printf("Battery controller enabled\n");
+
+    // if pixels are below the low power threshold,
+    // set the CPU to low speed
+    if( gfx_u16_get_pix_count() < BATT_PIX_COUNT_LOW_POWER_THRESHOLD ){
+
+        cpu_v_set_clock_speed_low();
+    }
+
+    batt_v_enable_pixels();
+
+    thread_t_create( ui_thread,
+                     PSTR("batt_ui"),
+                     0,
+                     0 );
+
+    fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
+    fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
+
+    #endif
+}
