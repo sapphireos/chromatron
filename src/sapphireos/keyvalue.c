@@ -152,6 +152,15 @@ static uint16_t _kv_u16_fixed_count( void ){
     return ( kv_end - kv_start ) - 1;
 }
 
+static uint32_t _kv_u32_get_index_addr( void ){
+
+    #ifdef ESP32
+    return sys_u32_get_kv_index_addr() + FW_SPI_START_OFFSET;
+    #else
+    return sys_u32_get_kv_index_addr() + FLASH_START;
+    #endif
+}
+
 uint16_t kv_u16_count( void ){
 
     uint16_t count = _kv_u16_fixed_count();
@@ -209,7 +218,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     }
 
     // get address of hash index
-    uint32_t kv_index_start = sys_u32_get_kv_index_addr() + FLASH_START;
+    uint32_t kv_index_start = _kv_u32_get_index_addr();
 
     int16_t first = 0;
     int16_t last = _kv_u16_fixed_count() - 1;
@@ -491,6 +500,8 @@ retry:;
 
 
 void kv_v_init( void ){
+
+    trace_printf("\r\nKV index addr: 0x%0x\r\n", _kv_u32_get_index_addr());
 
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
