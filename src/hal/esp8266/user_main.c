@@ -1,11 +1,12 @@
 #include "osapi.h"
 #include "user_interface.h"
 
-#include "uart.h"
+#include "rom_functions.h"
 #include "init.h"
 #include "hal_usart.h"
 #include "sapphire.h"
 #include "threading.h"
+#include "flash25.h"
 
 #ifdef ENABLE_COPROCESSOR
 #include "coprocessor.h"
@@ -41,13 +42,33 @@ void app_v_init( void ) __attribute__((weak));
 void libs_v_init( void ) __attribute__((weak));
 
 
+#define INIT_DATA_ADDR 0x003fc000
+static uint8_t esp_init_data[] = {
+    #include "esp_init_data_default_v08.txt"
+};
+
+void boot( void ){
+
+    // check init data
+    uint8_t init = 0xff;
+    SPIRead( INIT_DATA_ADDR, (void *)&init, 1 );
+    if( init == 0xff ){
+
+        // need to write init data
+        SPIEraseSector( INIT_DATA_ADDR / 4096 );
+        SPIWrite( INIT_DATA_ADDR, esp_init_data, sizeof(esp_init_data) );   
+    }
+}
+
 void ICACHE_FLASH_ATTR user_init(void)
 {
+    boot();
+
     gpio_init();
     
-    uart_init(115200, 115200);
+    // uart_init(115200, 115200);
 
-    os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
+    // os_printf("\r\nESP8266 SDK version:%s\r\n", system_get_sdk_version());
 
     // disable SDK debug prints
     // NOTE this will disable ALL console prints, including ours!

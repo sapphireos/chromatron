@@ -1248,6 +1248,15 @@ class AppBuilder(HexBuilder):
         ih.write_hex_file('main.hex')
         ih.tobinfile('firmware.bin')
 
+        # create firmware package
+        try:
+            package = get_firmware_package(self.settings['PROJ_NAME'])
+        except FirmwarePackageNotFound:
+            package = FirmwarePackage(self.settings['PROJ_NAME'])
+
+        package.FWID = self.settings['FWID']
+
+        # additional post processing:
         if self.settings["TOOLCHAIN"] == "ESP32":
             with open("firmware.bin", 'rb') as f:
                 firmware_image = bytearray(f.read())
@@ -1322,85 +1331,118 @@ class AppBuilder(HexBuilder):
             with open("firmware.bin", 'wb') as f:
                 f.write(firmware_image)
 
-        # create firmware package
-        try:
-            package = get_firmware_package(self.settings['PROJ_NAME'])
-        except FirmwarePackageNotFound:
-            package = FirmwarePackage(self.settings['PROJ_NAME'])
+        elif self.settings["TOOLCHAIN"] == "XTENSA":
+            with open("firmware.bin", 'rb') as f:
+                firmware_image = f.read()
 
-        package.FWID = self.settings['FWID']
+            if firmware_image[0] != 0xE9:
+                raise Exception("invalid esp firmware image")
+
+            # need to pad to sector length
+            firmware_image += bytes((4096 - (len(firmware_image) % 4096)) * [0xff])
+
+            # write a combined image suitable for esptool
+            with open("esptool_image.bin", 'wb') as f:
+                f.write(firmware_image)
+
+            # append MD5
+            md5 = hashlib.md5(firmware_image)
+            firmware_image += md5.digest()
+
+            logging.info(f'Image MD5: {md5.hexdigest()}')
+
+            # prepend length (not counting the length field itself or the MD5 - the actual FW length)
+            firmware_image = struct.pack('<L', len(firmware_image) - 16) + firmware_image
+
+            # append CRC
+            crc = crc_func(firmware_image)
+            logging.info("crc: 0x%x" % (crc))
+            firmware_image += bytes(struct.pack('>H', crc))
+
+            if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
+                assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']
+
+                MAX_ESP8266_LEGACY_IMAGE_SIZE = (384 * 1024)
+
+                if len(firmware_image) > MAX_ESP8266_LEGACY_IMAGE_SIZE:
+                    raise Exception(f"Image size exceeds partition length: {len(firmware_image)} > {MAX_ESP8266_LEGACY_IMAGE_SIZE}")
+
+                logging.info(f'!!! Upgrade image size: {len(firmware_image)} fits within partition size: {MAX_ESP8266_LEGACY_IMAGE_SIZE}')
+
+                with open("wifi_firmware.bin", 'wb') as f:
+                    f.write(firmware_image)
 
         # get loader info
         try:
             loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.board_type)
 
-            if self.settings["TOOLCHAIN"] == "XTENSA":
-                # create loader image
-                with open(os.path.join(loader_project.target_dir, "main.bin"), 'rb') as f:
-                    loader_image = f.read()
+            # if self.settings["TOOLCHAIN"] == "XTENSA":
+            #     # create loader image
+            #     with open(os.path.join(loader_project.target_dir, "main.bin"), 'rb') as f:
+            #         loader_image = f.read()
 
-                # sanity check
-                if loader_image[0] != 0xE9:
-                    raise Exception("invalid esp bootloader image")
+            #     # sanity check
+            #     if loader_image[0] != 0xE9:
+            #         raise Exception("invalid esp bootloader image")
 
-                bootloader_size = int(loader_project.settings["FW_START_OFFSET"], 16)
+            #     bootloader_size = int(loader_project.settings["FW_START_OFFSET"], 16)
 
-                # pad bootloader
-                loader_image += bytes((bootloader_size - len(loader_image) % bootloader_size) * [0])
+            #     # pad bootloader
+            #     loader_image += bytes((bootloader_size - len(loader_image) % bootloader_size) * [0])
 
-                with open("firmware.bin", 'rb') as f:
-                    firmware_image = f.read()
+            #     with open("firmware.bin", 'rb') as f:
+            #         firmware_image = f.read()
 
-                if firmware_image[0] != 0xE9:
-                    raise Exception("invalid esp firmware image")
+            #     if firmware_image[0] != 0xE9:
+            #         raise Exception("invalid esp firmware image")
 
-                combined_image = loader_image + firmware_image
+            #     combined_image = loader_image + firmware_image
 
-                # need to pad to sector length
-                combined_image += bytes((4096 - (len(combined_image) % 4096)) * [0xff])
+            #     # need to pad to sector length
+            #     combined_image += bytes((4096 - (len(combined_image) % 4096)) * [0xff])
 
-                # write a combined image suitable for esptool
-                with open("esptool_image.bin", 'wb') as f:
-                    f.write(combined_image)
+            #     # write a combined image suitable for esptool
+            #     with open("esptool_image.bin", 'wb') as f:
+            #         f.write(combined_image)
 
-                # append MD5
-                md5 = hashlib.md5(combined_image)
-                combined_image += md5.digest()
+            #     # append MD5
+            #     md5 = hashlib.md5(combined_image)
+            #     combined_image += md5.digest()
 
-                logging.info(f'Image MD5: {md5.hexdigest()}')
+            #     logging.info(f'Image MD5: {md5.hexdigest()}')
 
-                # prepend length (not counting the length field itself or the MD5 - the actual FW length)
-                combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
+            #     # prepend length (not counting the length field itself or the MD5 - the actual FW length)
+            #     combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
 
-                # append CRC
-                crc = crc_func(combined_image)
-                logging.info("crc: 0x%x" % (crc))
-                combined_image += bytes(struct.pack('>H', crc))
+            #     # append CRC
+            #     crc = crc_func(combined_image)
+            #     logging.info("crc: 0x%x" % (crc))
+            #     combined_image += bytes(struct.pack('>H', crc))
 
-                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
-                    assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']
+            #     if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
+            #         assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']
 
-                    MAX_ESP8266_LEGACY_IMAGE_SIZE = (384 * 1024)
+            #         MAX_ESP8266_LEGACY_IMAGE_SIZE = (384 * 1024)
 
-                    if len(combined_image) > MAX_ESP8266_LEGACY_IMAGE_SIZE:
-                        raise Exception(f"Image size exceeds partition length: {len(combined_image)} > {MAX_ESP8266_LEGACY_IMAGE_SIZE}")
+            #         if len(combined_image) > MAX_ESP8266_LEGACY_IMAGE_SIZE:
+            #             raise Exception(f"Image size exceeds partition length: {len(combined_image)} > {MAX_ESP8266_LEGACY_IMAGE_SIZE}")
 
-                    logging.info(f'!!! Upgrade image size: {len(combined_image)} fits within partition size: {MAX_ESP8266_LEGACY_IMAGE_SIZE}')
+            #         logging.info(f'!!! Upgrade image size: {len(combined_image)} fits within partition size: {MAX_ESP8266_LEGACY_IMAGE_SIZE}')
 
-                    with open("wifi_firmware.bin", 'wb') as f:
-                        f.write(combined_image)
+            #         with open("wifi_firmware.bin", 'wb') as f:
+            #             f.write(combined_image)
 
-            else:
-                # create loader image
-                loader_hex = os.path.join(loader_project.target_dir, "main.hex")
-                try:
-                    self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
-                
-                except IOError:
-                    logging.info("Loader image not found, cannot create loader_image.hex")
+            # else:
+            # create loader image
+            loader_hex = os.path.join(loader_project.target_dir, "main.hex")
+            try:
+                self.merge_hex('main.hex', loader_hex, 'loader_image.hex')
+            
+            except IOError:
+                logging.info("Loader image not found, cannot create loader_image.hex")
 
-                except Exception as e:
-                    logging.exception(e)
+            except Exception as e:
+                logging.exception(e)
 
         except KeyError:
             logging.info("Loader project not found, cannot create loader_image.hex")
