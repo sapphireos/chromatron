@@ -514,14 +514,7 @@ void flash25_v_erase_4k( uint32_t address ){
             return;
         }
     }
-    #ifdef SKIP_FFS_FW_INIT
-    else if( ( address >= FLASH_FS_FIRMWARE_0_PARTITION_START ) &&
-             ( address <  ( FLASH_FS_FIRMWARE_2_PARTITION_START + FLASH_FS_FIRMWARE_2_PARTITION_SIZE ) ) ){
-
-        return;
-    }   
-    #endif
-
+    
     BUSY_WAIT( flash25_b_busy() );
 
     #ifdef ENABLE_COPROCESSOR

@@ -37,7 +37,6 @@
 // #define ENABLE_EVENT_LOG
 
 #define ENABLE_COPROCESSOR 
-#define SKIP_FFS_FW_INIT
 
 #if !defined(ESP8266_UPGRADE) && !defined(BOOTLOADER)
 #define ENABLE_GFX

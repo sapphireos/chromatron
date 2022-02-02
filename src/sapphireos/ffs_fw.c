@@ -144,10 +144,6 @@ int8_t ffs_fw_i8_init( void ){
 
     trace_printf("FFS FW init...\r\n");
 
-    // #ifdef SKIP_FFS_FW_INIT
-    // return 0;
-    // #endif
-
     #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
     // init sizes for firmware 1
     flash25_v_read( FW_LENGTH_ADDRESS + FLASH_FS_FIRMWARE_1_PARTITION_START, &fw_size1, sizeof(fw_size1) );
@@ -413,6 +409,35 @@ uint32_t ffs_fw_u32_size( uint8_t partition ){
     return 0;
 }
 
+PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+
+    // assumes FAST_ERASE_N_BLOCKS have already been erased before the thread started
+
+    state->i = FAST_ERASE_N_BLOCKS;
+
+    while( state->i < state->n_blocks ){
+
+        // enable writes
+        flash25_v_write_enable();
+
+        // erase current block
+        flash25_v_erase_4k( ( (uint32_t)state->i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + state->partition_start );
+
+        // wait for erase to complete
+        BUSY_WAIT( flash25_b_busy() );
+
+        wdg_v_reset();
+
+        state->i++;
+
+        TMR_WAIT( pt, 4 );
+    }
+
+PT_END( pt );
+}
+
 void ffs_fw_v_erase( uint8_t partition, bool immediate ){
 
     fw_erase_thread_state_t thread_state;
@@ -594,35 +619,5 @@ int32_t ffs_fw_i32_write( uint8_t partition, uint32_t position, const void *data
     #endif
 
     return write_len;
-}
-
-
-PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *state ) )
-{
-PT_BEGIN( pt );
-
-    // assumes FAST_ERASE_N_BLOCKS have already been erased before the thread started
-
-    state->i = FAST_ERASE_N_BLOCKS;
-
-    while( state->i < state->n_blocks ){
-
-        // enable writes
-        flash25_v_write_enable();
-
-        // erase current block
-        flash25_v_erase_4k( ( (uint32_t)state->i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + state->partition_start );
-
-        // wait for erase to complete
-        BUSY_WAIT( flash25_b_busy() );
-
-        wdg_v_reset();
-
-        state->i++;
-
-        TMR_WAIT( pt, 4 );
-    }
-
-PT_END( pt );
 }
 
