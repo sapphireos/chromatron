@@ -144,9 +144,9 @@ int8_t ffs_fw_i8_init( void ){
 
     trace_printf("FFS FW init...\r\n");
 
-    #ifdef SKIP_FFS_FW_INIT
-    return 0;
-    #endif
+    // #ifdef SKIP_FFS_FW_INIT
+    // return 0;
+    // #endif
 
     #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
     // init sizes for firmware 1
@@ -162,8 +162,11 @@ int8_t ffs_fw_i8_init( void ){
     fw_size2 = FLASH_FS_FIRMWARE_2_PARTITION_SIZE;
     #endif
 
-
-    uint32_t sys_fw_length = sys_u32_get_fw_length() + sizeof(uint16_t); // adjust for CRC
+    #ifdef ESP8266
+    uint32_t sys_fw_length = sys_u32_get_fw_length(); // includes CRC
+    #else
+    uint32_t sys_fw_length = sys_u32_get_fw_length() + sizeof(uint16_t); // adjust for CR
+    #endif
     uint32_t ext_fw_length = 0;
 
     // read firmware info from external flash partition
@@ -180,7 +183,9 @@ int8_t ffs_fw_i8_init( void ){
                     sizeof(ext_fw_length) );
     #endif
 
+    #ifndef ESP8266
     ext_fw_length += sizeof(uint16_t); // adjust for CRC
+    #endif
     
     // check for invalid ext firmware length
     if( ext_fw_length > FLASH_FS_FIRMWARE_0_PARTITION_SIZE ){
@@ -216,6 +221,10 @@ int8_t ffs_fw_i8_init( void ){
         return -1;
     }
 
+    #ifdef ESP8266 
+    // esp8266 (with coprocessor) cannot copy fw to coproc
+    return FFS_STATUS_OK;
+    #endif
 
     // check CRC or if partition length is bad
     if( ffs_fw_u16_crc() != 0 ){
