@@ -131,7 +131,7 @@
 #define FW_START_OFFSET 0x00002000
 #define FLASH_START 	( 0x40200000 + FW_START_OFFSET )
 #define FW_INFO_ADDRESS 0x00010000
-#define FW_LENGTH_ADDRESS FW_INFO_ADDRESS
+#define FW_LENGTH_ADDRESS ( FW_INFO_ADDRESS + FW_START_OFFSET )
 
 // asserts
 // comment this out to turn off compiler asserts
