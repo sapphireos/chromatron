@@ -1342,7 +1342,8 @@ class AppBuilder(HexBuilder):
                 if firmware_image[0] != 0xE9:
                     raise Exception("invalid esp firmware image")
 
-                combined_image = loader_image + firmware_image
+                # include length for CRC in combined image:
+                combined_image = loader_image + firmware_image + bytearray([0,0])
 
                 # need to pad to sector length
                 combined_image += bytearray((4096 - (len(combined_image) % 4096)) * [0xff])
@@ -1352,12 +1353,6 @@ class AppBuilder(HexBuilder):
                 # # write a combined image suitable for esptool
                 # with open("esptool_image.bin", 'wb') as f:
                 #     f.write(combined_image)
-
-                # append MD5
-                md5 = hashlib.md5(combined_image)
-                combined_image += md5.digest()
-
-                logging.info(f'Image MD5: {md5.hexdigest()}')
 
                 # the esp8266 is so very very special so we update the fwinfo section:
                 fw_info = struct.pack(fw_info_fmt,
@@ -1378,13 +1373,19 @@ class AppBuilder(HexBuilder):
                 # insert fwinfo into binary
                 combined_image[fw_info_addr: fw_info_addr + fw_info_len] = fw_info
 
-                # prepend length (not counting the length field itself or the MD5 - the actual FW length)
-                # combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
-
-                # append CRC
+                # attach CRC
                 crc = crc_func(combined_image)
                 logging.info("crc: 0x%x" % (crc))
-                combined_image += bytearray(struct.pack('>H', crc))
+                combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
+
+                # append MD5
+                md5 = hashlib.md5(combined_image)
+                combined_image += md5.digest()
+
+                logging.info(f'Image MD5: {md5.hexdigest()}')
+
+                # prepend length (not counting the length field itself or the MD5 - the actual FW length)
+                # combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
 
                 if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
                     assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']

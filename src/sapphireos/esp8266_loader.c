@@ -457,14 +457,23 @@ int8_t esp_i8_load_flash( file_t file ){
 
     int32_t file_len;
 
-    // make sure file is at position 0!
-    fs_v_seek( file, 0 );
+    fs_v_seek( file, ESP_FW_INFO_ADDRESS );
 
     fs_i16_read( file, &file_len, sizeof(file_len) );
 
-    if( file_len < 0 ){
+    log_v_debug_P( PSTR("loader fw len: %lu"), file_len );
+
+    fs_v_seek( file, 0 );
+
+    if( file_len <= 0 ){
 
         return -1;
+    }
+
+    // file length must be a multiple of flash sector size!
+    if( ( file_len % ESP_FLASH_SECTOR ) != 0 ){
+
+        return -2;
     }
 
     uint8_t buf[6];
@@ -494,7 +503,7 @@ int8_t esp_i8_load_flash( file_t file ){
            ( buf[3] == 0 ) &&
            ( buf[4] == 0 ) &&
            ( buf[5] == SLIP_END ) ) ){
-
+        
         return -3;
     }
 
@@ -761,7 +770,7 @@ restart:
     fs_v_seek( state->fw_file, ESP_FW_INFO_ADDRESS );
     fs_i16_read( state->fw_file, &file_len, sizeof(file_len) );
     log_v_debug_P( PSTR("wifi fw len: %lu"), file_len );
-    
+
     uint8_t wifi_digest[MD5_LEN];
 
     int8_t md5_status = esp_i8_md5( file_len, wifi_digest );
@@ -772,7 +781,7 @@ restart:
         goto restart;
     }
     
-    fs_v_seek( state->fw_file, file_len + sizeof(file_len) );
+    fs_v_seek( state->fw_file, file_len );
     
     uint8_t file_digest[MD5_LEN];
     memset( file_digest, 0, MD5_LEN );
