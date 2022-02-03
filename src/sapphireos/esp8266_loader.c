@@ -819,6 +819,8 @@ restart:
             log_v_debug_P( PSTR("wifi ext fw ok") );
             is_ext_fw_valid = TRUE;
         }
+
+        log_v_debug_P( PSTR("wifi ext fw crc: 0x%04x"), crc );
     }
 
 skip_ext_fw:
