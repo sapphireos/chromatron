@@ -180,7 +180,7 @@ int8_t ffs_fw_i8_init( void ){
     #endif
 
     #ifndef ESP8266
-    ext_fw_length += sizeof(uint16_t); // adjust for CRC
+    ext_fw_length += sizeof(uint16_t) + 16; // adjust for CRC and MD5
     #endif
     
     // check for invalid ext firmware length

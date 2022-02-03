@@ -89,8 +89,9 @@ void coproc_v_dispatch(
         // check for valid sequence
         if( !loadfw_enable_1 && !loadfw_enable_2 ){
 
+            log_v_debug_P( PSTR("load 1"));
+
             loadfw_enable_1 = TRUE;
-            loadfw_enable_2 = FALSE;    
         }
         else{
         
@@ -104,6 +105,8 @@ void coproc_v_dispatch(
 
         // check for valid sequence
         if( loadfw_enable_1 && !loadfw_enable_2 ){
+
+            log_v_debug_P( PSTR("load 2"));
 
             loadfw_enable_2 = TRUE;    
         }
@@ -120,12 +123,16 @@ void coproc_v_dispatch(
         // check for valid sequence
         if( loadfw_enable_1 && loadfw_enable_2 ){
 
+            log_v_debug_P( PSTR("load 3"));
+
             // load fw
             loadfw_request = TRUE;
 
             return;
         }   
         else{
+
+            log_v_debug_P( PSTR("reboot"));
 
             sys_reboot();
 
@@ -139,11 +146,6 @@ void coproc_v_dispatch(
         loadfw_enable_2 = FALSE;
         loadfw_request = FALSE;
     }
-    
-    // reset load fw sequence
-    loadfw_enable_1 = FALSE;
-    loadfw_enable_2 = FALSE;
-    loadfw_request = FALSE;
 
     if( hdr->opcode == OPCODE_TEST ){
 
@@ -583,6 +585,8 @@ PT_BEGIN( pt );
         coproc_v_dispatch( &hdr, buf, &response_len, response );
 
         if( loadfw_request && loadfw_enable_1 && loadfw_enable_2 ){
+
+            log_v_debug_P( PSTR("valid load sequence") );
 
             THREAD_RESTART( pt );
         }

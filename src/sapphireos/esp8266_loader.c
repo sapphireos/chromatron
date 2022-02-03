@@ -671,6 +671,11 @@ PT_BEGIN( pt );
     state->tries = WIFI_LOADER_MAX_TRIES;
 
     log_v_debug_P( PSTR("wifi loader starting") );
+
+    if( load_fw ){
+
+        log_v_debug_P( PSTR("load fw command set") );
+    }
     
 restart:
 
@@ -942,10 +947,16 @@ skip_ext_fw:
             goto load_image;
         }
 
-        // check if file MD5 and wifi MD5 do not match and we have a load command
-        if( load_fw && ( memcmp( wifi_digest, file_digest, MD5_LEN ) != 0 ) ){
+        // check if loading fw:
+        if( load_fw ){
 
-            goto run_wifi;
+            // check if file MD5 and wifi MD5 match, if so, we already have this image loaded
+            if( memcmp( wifi_digest, file_digest, MD5_LEN ) == 0 ){
+
+                goto run_wifi;
+            }
+
+            goto load_image;            
         }
     }
 
