@@ -2,7 +2,7 @@
 	"_comment": "This is the project name.",
     "_comment": "The project name is used by the build system",
     "_comment": "to identify and search for projects",
-    "PROJ_NAME": "esp8266_upgrade",
+    "PROJ_NAME": "esp8266_upgrade_1mb",
 
     "_comment": "Project version",
     "PROJ_VERSION": "0.1",
@@ -10,7 +10,7 @@
     "_comment": "Firmware ID",
     "_comment": "This is automatically generated",
     "_comment": "and should not be modified",
-    "FWID": "4b2e4ce5-1f41-494e-8edd-d748c7c81dcb",
+    "FWID": "943dc7f1-e040-4fee-8b63-7c902e0082f8",
 
     "_comment": "Select build type:",
     "_comment": "app - builds as a standalone application",
@@ -20,7 +20,7 @@
  	"BUILD_TYPE": "app",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": ["lib_coprocessor"],
+    "LIBRARIES": [],
 
     "_comment": "The following options are only used for libraries:",
     "_comment": "Init function for library",
