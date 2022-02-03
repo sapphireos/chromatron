@@ -276,11 +276,13 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
+            #ifdef IO_PIN_DEBUG
             io_v_set_mode( IO_PIN_DEBUG, IO_MODE_OUTPUT );
             
             io_v_digital_write( IO_PIN_DEBUG, TRUE );
             _delay_us( 100 );
             io_v_digital_write( IO_PIN_DEBUG, FALSE );
+            #endif
 
             break;
 

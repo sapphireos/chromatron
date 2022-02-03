@@ -1,4 +1,3 @@
-/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,21 +19,22 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef HAL_CMD_USART_H
-#define HAL_CMD_USART_H
+#ifndef _HAL_WIFI_H
+#define _HAL_WIFI_H
 
-#include "usart_bauds.h"
-#include "cmd_usart.h"
+#include "netmsg.h"
 
-#include "udp.h"
 
-#define HAL_CMD_USART 				UART4
+#include "wifi_cmd.h"
 
-#define HAL_CMD_USART_RX_BUF_SIZE 	600
-#define HAL_CMD_USART_TX_BUF_SIZE 	600
 
-void hal_cmd_usart_v_init( void );
+#define WIFI_WATCHDOG_TIMEOUT   8
+
+int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len );
+int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, uint16_t *bytes_read );
+
+extern int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ) __attribute__((weak));
 
 #endif
+

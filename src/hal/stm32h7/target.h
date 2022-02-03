@@ -52,9 +52,15 @@
 #define ENABLE_GFX
 // #define ENABLE_WIFI_USB_LOADER
 #define ENABLE_WIFI_ESP8266_COPROC
+#define ENABLE_SERVICES
+#define ENABLE_MSGFLOW
 
 // wifi
-#define WIFI_MAX_NETMSGS		16
+#define WIFI_MAX_IGMP           8
+
+// msgflow
+#define MSGFLOW_MAX_Q_SIZE		2048
+#define MSGFLOW_MAX_Q_MSGS      32
 
 // pixel config
 #define FADER_RATE              20

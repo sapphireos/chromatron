@@ -1,3 +1,4 @@
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -19,23 +20,11 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+ */
 
-#ifndef _ESP8266_H
-#define _ESP8266_H
+#ifndef _HAL_BOARDS_H
+#define _HAL_BOARDS_H
 
-#include "netmsg.h"
-
-#ifndef ESP8266
-#include "wifi_cmd.h"
-
-
-#define WIFI_WATCHDOG_TIMEOUT   8
-
-int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len );
-int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, uint16_t *bytes_read );
-
-extern int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ) __attribute__((weak));
-
-#endif
+#define BOARD_TYPE_UNSET                    0xff
 
 #endif

@@ -48,20 +48,6 @@ Channel - Port      - DMA
 
 #ifndef BOOTLOADER
 
-static uint16_t pix_counts[N_PIXEL_OUTPUTS];
-
-KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[0],        0,    "pix_count" },
-    #ifdef BOARD_CHROMATRONX
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[1],        0,    "pix_count_1" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[2],        0,    "pix_count_2" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[3],        0,    "pix_count_3" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[4],        0,    "pix_count_4" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[5],        0,    "pix_count_5" },
-    #endif
-};
-
-
 static SPI_HandleTypeDef    pix_spi0;
 
 #ifdef BOARD_CHROMATRONX

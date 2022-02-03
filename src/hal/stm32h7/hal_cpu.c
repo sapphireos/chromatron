@@ -511,7 +511,7 @@ int *__errno( void ){
 
 void _Error_Handler( char *file, int line ){
   
-    assert( 0, file, line );
+    sos_assert( 0, file, line );
 }
     
 #pragma GCC push_options

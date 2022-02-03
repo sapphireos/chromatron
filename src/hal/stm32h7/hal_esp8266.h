@@ -45,7 +45,7 @@
 #define WIFI_THREAD_TIMEOUT 	500
 #endif
 
-void hal_wifi_v_init( void );
+void hal_esp8266_v_init( void );
 
 void hal_wifi_v_reset( void );
 

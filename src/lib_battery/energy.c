@@ -26,7 +26,6 @@
 
 #include "logging.h"
 
-#include "esp8266.h"
 #include "graphics.h"
 #include "pixel.h"
 

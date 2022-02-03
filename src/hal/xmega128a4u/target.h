@@ -74,7 +74,6 @@
 #define VM_MIN_DELAY				10
 
 // wifi
-#define WIFI_MAX_NETMSGS		4
 // software max power limiter - per platform power limit in dbm
 #define WIFI_MAX_SW_TX_POWER    17
 

@@ -46,7 +46,7 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #if defined(ENABLE_WIFI) && defined(ENABLE_WIFI_ESP8266_COPROC)
 
 #include "wifi.h"
-#include "esp8266.h"
+#include "hal_wifi.h"
 
 #include "threading.h"
 #include "timers.h"
@@ -1253,7 +1253,7 @@ PT_BEGIN( pt );
     wifi_status_reg = 0;
     wifi_status = WIFI_STATE_BOOT;
 
-    wifi_v_start_loader();
+    wifi_v_start_loader( TRUE );
 
     THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
 
@@ -1329,10 +1329,9 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 };
 
 
-void wifi_v_init( void ){
-    // return;
-// io_v_set_mode( IO_PIN_1_XCK, IO_MODE_OUTPUT );
-    hal_wifi_v_init();
+void hal_wifi_v_init( void ){
+
+    hal_esp8266_v_init();
 
     wifi_status = WIFI_STATE_BOOT;
 

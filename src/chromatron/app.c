@@ -60,7 +60,7 @@ void app_v_init( void ){
 
     pwm_v_init();
 
-    #ifndef ESP8266
+    #ifdef ESP32
     veml7700_v_init();
 
     // sht40_v_init();
