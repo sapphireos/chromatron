@@ -458,6 +458,31 @@ void coproc_v_dispatch(
     }
 }
 
+
+PT_THREAD( usart_recovery_thread( pt_t *pt, void *state ) )
+{           
+PT_BEGIN( pt );  
+
+    cmd_usart_v_init();
+
+    while(1){
+
+        status_led_v_set( 0, STATUS_LED_RED );
+        status_led_v_set( 1, STATUS_LED_BLUE );
+
+        TMR_WAIT( pt, 250 );
+
+        status_led_v_set( 0, STATUS_LED_BLUE );
+        status_led_v_set( 1, STATUS_LED_RED );
+
+        TMR_WAIT( pt, 250 );
+    }
+ 
+PT_END( pt );   
+}
+
+
+
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
@@ -478,22 +503,37 @@ PT_BEGIN( pt );
 
         log_v_debug_P( PSTR("ESP load failed") );
 
-        cmd_usart_v_init();
+        // flash LEDs, but then try to start ESP chip anyway.
+        // if the coprocessor sync fails, we'll go into recovery mode
+        status_led_v_set( 0, STATUS_LED_RED );
+        status_led_v_set( 1, STATUS_LED_BLUE );
 
-        while(1){
+        TMR_WAIT( pt, 250 );
 
-            status_led_v_set( 0, STATUS_LED_RED );
-            status_led_v_set( 1, STATUS_LED_BLUE );
+        status_led_v_set( 0, STATUS_LED_BLUE );
+        status_led_v_set( 1, STATUS_LED_RED );
 
-            TMR_WAIT( pt, 250 );
+        TMR_WAIT( pt, 250 );
+        
+        status_led_v_set( 0, STATUS_LED_RED );
+        status_led_v_set( 1, STATUS_LED_BLUE );
 
-            status_led_v_set( 0, STATUS_LED_BLUE );
-            status_led_v_set( 1, STATUS_LED_RED );
+        TMR_WAIT( pt, 250 );
 
-            TMR_WAIT( pt, 250 );
-        }
+        status_led_v_set( 0, STATUS_LED_BLUE );
+        status_led_v_set( 1, STATUS_LED_RED );
 
-        THREAD_EXIT( pt );
+        TMR_WAIT( pt, 250 );
+        
+        status_led_v_set( 0, STATUS_LED_RED );
+        status_led_v_set( 1, STATUS_LED_BLUE );
+
+        TMR_WAIT( pt, 250 );
+
+        status_led_v_set( 0, STATUS_LED_BLUE );
+        status_led_v_set( 1, STATUS_LED_RED );
+
+        TMR_WAIT( pt, 250 );
     }
 
     if( loadfw_request ){
@@ -516,10 +556,25 @@ PT_BEGIN( pt );
 
     hal_wifi_v_usart_flush();
 
+    uint32_t start_time = tmr_u32_get_system_time_ms();
+
     // wait for sync
     while( hal_wifi_i16_usart_get_char() != COPROC_SYNC ){
 
         sys_v_wdt_reset();
+
+        if( tmr_u32_elapsed_time_ms( start_time ) > 4000 ){
+
+            log_v_debug_P( PSTR("sync timeout") );
+
+            // start USB recovery mode
+            thread_t_create( usart_recovery_thread,
+                     PSTR("usart_recovery"),
+                     0,
+                     0 );
+
+            THREAD_EXIT( pt );
+        }
     }
 
     // send confirmation
