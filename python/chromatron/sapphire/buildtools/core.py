@@ -1390,6 +1390,9 @@ class AppBuilder(HexBuilder):
 
                 logging.info(f'Image MD5: {md5.hexdigest()}')
 
+                with open("firmware.bin", 'wb') as f:
+                    f.write(combined_image)
+
                 # prepend length (not counting the length field itself or the MD5 - the actual FW length)
                 # combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
 
