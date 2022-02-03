@@ -918,7 +918,8 @@ PT_BEGIN( pt );
                 }       
                 else{
 
-                    log_v_warn_P( PSTR("%lu not found from: %d.%d.%d.%d:%d"), LOAD32(hash), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0, raddr.port );
+                    // this error message is *extremely* annoying
+                    // log_v_warn_P( PSTR("%lu not found from: %d.%d.%d.%d:%d"), LOAD32(hash), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0, raddr.port );
                 }
 
                 hash++;
