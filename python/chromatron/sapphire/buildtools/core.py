@@ -56,7 +56,13 @@ from sapphire.common import util, catbus_string_hash
 from fnvhash import fnv1a_32
 
 
+# old upgrade FW:
 CHROMATRON_ESP_UPGRADE_FWID = '4b2e4ce5-1f41-494e-8edd-d748c7c81dcb'.replace('-', '')
+
+CHROMATRON_ESP_UPGRADE_1MB_FWID = '943dc7f1-e040-4fee-8b63-7c902e0082f8'.replace('-', '')
+CHROMATRON_ESP_UPGRADE_4MB_FWID = '07d3a99e-8546-4447-8463-c9d90077cc40'.replace('-', '')
+
+ESP_UPGRADE_FW = [CHROMATRON_ESP_UPGRADE_1MB_FWID, CHROMATRON_ESP_UPGRADE_4MB_FWID]
 
 
 class SettingsParseException(Exception):
@@ -1396,7 +1402,7 @@ class AppBuilder(HexBuilder):
                 # prepend length (not counting the length field itself or the MD5 - the actual FW length)
                 # combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
 
-                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
+                if package.FWID.replace('-', '') in ESP_UPGRADE_FW:
                     assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']
 
                     MAX_ESP8266_LEGACY_IMAGE_SIZE = (384 * 1024)
@@ -1425,7 +1431,7 @@ class AppBuilder(HexBuilder):
             logging.info("Loader project not found, cannot create loader_image.hex")
 
         
-        if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
+        if package.FWID.replace('-', '') in ESP_UPGRADE_FW:
             print("Special handling for ESP8266 upgrade on Chromatron Classic")
             coproc_package = get_firmware_package('coprocessor')
 
