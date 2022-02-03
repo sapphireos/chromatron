@@ -296,6 +296,8 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
 void flash25_v_write_enable( void ){
 
     #ifndef __SIM__
+    BUSY_WAIT( flash25_b_busy() );
+
 	CHIP_ENABLE();
 
 	flash_spi_u8_send( FLASH_CMD_WRITE_ENABLE );
@@ -309,6 +311,8 @@ void flash25_v_write_enable( void ){
 void flash25_v_write_disable( void ){
 
     #ifndef __SIM__
+    BUSY_WAIT( flash25_b_busy() );
+    
 	CHIP_ENABLE();
 
 	flash_spi_u8_send( FLASH_CMD_WRITE_DISABLE );
