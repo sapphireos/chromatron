@@ -83,7 +83,6 @@ KV_CHARS = lowercase
 KV_CHARS.extend(uppercase)
 KV_CHARS.extend(['_'])
 KV_CHARS.extend(digits)
-# KV_HEADER = '_kv_hashes.h'
     
 SETTINGS_DIR                = os.path.dirname(os.path.abspath(settings.__file__))
 SETTINGS_FILE               = 'settings.json'
@@ -1402,7 +1401,7 @@ class AppBuilder(HexBuilder):
                 # prepend length (not counting the length field itself or the MD5 - the actual FW length)
                 # combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
 
-                if package.FWID.replace('-', '') in ESP_UPGRADE_FW:
+                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_1MB_FWID:
                     assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']
 
                     MAX_ESP8266_LEGACY_IMAGE_SIZE = (384 * 1024)
@@ -1431,7 +1430,7 @@ class AppBuilder(HexBuilder):
             logging.info("Loader project not found, cannot create loader_image.hex")
 
         
-        if package.FWID.replace('-', '') in ESP_UPGRADE_FW:
+        if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_1MB_FWID:
             print("Special handling for ESP8266 upgrade on Chromatron Classic")
             coproc_package = get_firmware_package('coprocessor')
 

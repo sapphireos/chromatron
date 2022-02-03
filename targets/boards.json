@@ -7,16 +7,26 @@
 			"NO_STRERROR"
 		]
 	},
-	"chromatron_classic_upgrade":
+	"chromatron_classic_upgrade_1mb":
 	{
 		"target": "esp8266",
 		"defines":
 		[
-			"ESP8266_UPGRADE"
+			"ESP8266_UPGRADE",
+			"ESP8266_UPGRADE_1MB"
 		],
 		"extra_files":
 		[
 			"wifi_firmware.bin"
+		]
+	},
+	"chromatron_classic_upgrade_4mb":
+	{
+		"target": "esp8266",
+		"defines":
+		[
+			"ESP8266_UPGRADE",
+			"ESP8266_UPGRADE_4MB"
 		]
 	},
 	"coprocessor":

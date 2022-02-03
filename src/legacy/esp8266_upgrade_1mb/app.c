@@ -27,7 +27,8 @@
 #ifndef ESP8266_UPGRADE
 #error "esp8266_upgrade requires ESP8266_UPGRADE defined in target.h!"
 #endif
-	
+
+#pragma message "LEGACY UPGRADE: 1MB chip"
 
 
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
