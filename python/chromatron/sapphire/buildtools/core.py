@@ -1349,8 +1349,15 @@ class AppBuilder(HexBuilder):
                 if firmware_image[0] != 0xE9:
                     raise Exception("invalid esp firmware image")
 
-                # include length for CRC in combined image:
-                combined_image = loader_image + firmware_image + bytearray([0,0])
+                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
+                    # loader image not included in 4MB upgrade version
+                    
+                    # include length for CRC in combined image:
+                    combined_image = firmware_image + bytearray([0,0])
+
+                else:
+                    # include length for CRC in combined image:
+                    combined_image = loader_image + firmware_image + bytearray([0,0])
 
                 # need to pad to sector length
                 combined_image += bytearray((4096 - (len(combined_image) % 4096)) * [0xff])
