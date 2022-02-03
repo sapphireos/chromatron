@@ -949,42 +949,6 @@ skip_ext_fw:
 
     goto error;
 
-    // external fw is valid, and we either have a load command or
-    // the on-chip fw is bad:
-
-
-    // if( memcmp( file_digest, wifi_digest, MD5_LEN ) == 0 ){
-
-    //     // all 3 match, run wifi
-    //     // log_v_debug_P( PSTR("Wifi firmware image valid") );
-
-    //     goto run_wifi;
-    // }
-    // else{
-    //     // wifi does not match file - need to load
-
-    //     log_v_debug_P( PSTR("Wifi firmware image fail") );
-
-    //     goto load_image;
-    // }
-
-    // if( memcmp( wifi_digest, file_digest, MD5_LEN ) == 0 ){
-
-    //     // in this case, file matches wifi, so our wifi image is valid
-    //     // and so is our file.
-    //     // but our cfg is mismatched.
-    //     // so we'll restore it and then run the wifi
-    //     log_v_debug_P( PSTR("Wifi MD5 mismatch, restored from file") );
-
-    //     goto run_wifi;
-    // }
-
-    // probably don't want to actually assert here...
-
-    // try to run anyway
-    // goto run_wifi;
-
-
 
 load_image:
     

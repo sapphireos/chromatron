@@ -55,6 +55,9 @@ typedef struct __attribute__((packed)){
 #define OPCODE_GET_WIFI				0x05
 #define OPCODE_DEBUG_PRINT  		0x06
 #define OPCODE_GET_BOOT_MODE		0x07
+#define OPCODE_LOADFW_1				0x08
+#define OPCODE_LOADFW_2				0x09
+
 #define OPCODE_IO_SET_MODE			0x10
 #define OPCODE_IO_GET_MODE			0x11
 #define OPCODE_IO_DIGITAL_WRITE		0x12

@@ -51,6 +51,9 @@ KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
 };
 
+static bool loadfw_enable_1;
+static bool loadfw_enable_2;
+static bool loadfw_request;
 
 static uint32_t fw_addr;
 static uint32_t pix_transfer_count;
@@ -81,16 +84,71 @@ void coproc_v_dispatch(
 
     *response_len = sizeof(int32_t);
 
+    if( hdr->opcode == OPCODE_LOADFW_1 ){
+
+        // check for valid sequence
+        if( !loadfw_enable_1 && !loadfw_enable_2 ){
+
+            loadfw_enable_1 = TRUE;
+            loadfw_enable_2 = FALSE;    
+        }
+        else{
+        
+            // reset load fw sequence
+            loadfw_enable_1 = FALSE;
+            loadfw_enable_2 = FALSE;
+            loadfw_request = FALSE;
+        }
+    }
+    else if( hdr->opcode == OPCODE_LOADFW_2 ){
+
+        // check for valid sequence
+        if( loadfw_enable_1 && !loadfw_enable_2 ){
+
+            loadfw_enable_2 = TRUE;    
+        }
+        else{
+        
+            // reset load fw sequence
+            loadfw_enable_1 = FALSE;
+            loadfw_enable_2 = FALSE;
+            loadfw_request = FALSE;
+        }
+    }
+    else if( hdr->opcode == OPCODE_REBOOT ){
+
+        // check for valid sequence
+        if( loadfw_enable_1 && loadfw_enable_2 ){
+
+            // load fw
+            loadfw_request = TRUE;
+
+            return;
+        }   
+        else{
+
+            sys_reboot();
+
+            while(1);
+        }
+    }    
+    else{
+
+        // reset load fw sequence
+        loadfw_enable_1 = FALSE;
+        loadfw_enable_2 = FALSE;
+        loadfw_request = FALSE;
+    }
+    
+    // reset load fw sequence
+    loadfw_enable_1 = FALSE;
+    loadfw_enable_2 = FALSE;
+    loadfw_request = FALSE;
+
     if( hdr->opcode == OPCODE_TEST ){
 
         memcpy( response, data, len );
         *response_len = len;
-    }
-    else if( hdr->opcode == OPCODE_REBOOT ){
-
-        sys_reboot();
-
-        while(1);
     }
     else if( hdr->opcode == OPCODE_GET_RESET_SOURCE ){
 
@@ -410,7 +468,7 @@ PT_BEGIN( pt );
     hal_wifi_v_init();
      
     // run firmware loader    
-    wifi_v_start_loader( FALSE );
+    wifi_v_start_loader( loadfw_request );
 
     THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
 
@@ -436,10 +494,15 @@ PT_BEGIN( pt );
         THREAD_EXIT( pt );
     }
 
+    if( loadfw_request ){
 
-status_led_v_set( 1, STATUS_LED_WHITE );
-cmd_usart_v_init();
-THREAD_WAIT_WHILE( pt, !boot_esp );
+        sys_reboot();
+    }
+
+
+// status_led_v_set( 1, STATUS_LED_WHITE );
+// cmd_usart_v_init();
+// THREAD_WAIT_WHILE( pt, !boot_esp );
 
 
     status_led_v_set( 1, STATUS_LED_YELLOW );
@@ -518,6 +581,11 @@ THREAD_WAIT_WHILE( pt, !boot_esp );
         // run command
         coproc_v_dispatch( &hdr, buf, &response_len, response );
 
+        if( loadfw_request && loadfw_enable_1 && loadfw_enable_2 ){
+
+            THREAD_RESTART( pt );
+        }
+
         hdr.length = response_len;
 
         coproc_v_send_block( (uint8_t *)&hdr );
@@ -575,6 +643,11 @@ PT_END( pt );
 
 
 void app_v_init( void ){
+
+    // reset load fw sequence
+    loadfw_enable_1 = FALSE;
+    loadfw_enable_2 = FALSE;
+    loadfw_request = FALSE;
 
     #ifndef ENABLE_WIFI
     thread_t_create( app_thread,

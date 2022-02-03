@@ -54,77 +54,6 @@ void cpu_v_init( void ){
     #endif
 }
 
-
-// void hal_cpu_v_load_bootdata( void ){
-
-//     uint32_t buf[sizeof(boot_data) + sizeof(uint32_t)];
-//     uint32_t *ptr = (uint32_t *)&boot_data;     
-        
-//     flash25_v_read( BOOTLOADER_INFO_BLOCK, buf, sizeof(buf) );
-
-//     if( ( buf[0] + buf[1] ) != buf[2] ){
-
-//         memset( &boot_data, 0, sizeof(boot_data) );
-
-//         return;
-//     }
-
-//     *ptr++ = buf[0];
-//     *ptr++ = buf[1];
-
-//     // load bootloader data from RTC
-//     // uint32_t *ptr = (uint32_t *)&boot_data;
-//     // volatile uint32_t *rtc = RTC_MEM;
-//     // uint32_t checksum = 0;
-
-//     // for( uint32_t i = 0; i < sizeof(boot_data) / 4; i++ ){
-
-//     //     *ptr = *rtc;
-//     //     checksum += *ptr;
-//     //     ptr++;
-//     //     rtc++;
-//     // }
-
-//     // if( *rtc != checksum ){
-
-//     //     trace_printf("RTC checksum fail\r\n");
-
-//     //     memset( (void *)&boot_data, 0, sizeof(boot_data) );
-//     // }
-// }
-
-// void hal_cpu_v_store_bootdata( void ){
-    
-//     uint32_t buf[sizeof(boot_data) + sizeof(uint32_t)];
-//     uint32_t *ptr = (uint32_t *)&boot_data;     
-//     uint32_t checksum = 0;
-
-//     buf[0] = *ptr;
-//     checksum += *ptr++;
-//     buf[1] = *ptr;
-//     checksum += *ptr++;
-//     buf[2] = checksum;
-
-//     flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );
-
-//     flash25_v_write( BOOTLOADER_INFO_BLOCK, buf, sizeof(buf) );
-
-//     // load bootloader data from RTC
-//     // uint32_t *ptr = (uint32_t *)&boot_data;
-//     // volatile uint32_t *rtc = RTC_MEM;
-//     // uint32_t checksum = 0;
-
-//     // for( uint32_t i = 0; i < sizeof(boot_data) / 4; i++ ){
-
-//     //     *rtc = *ptr;
-//     //     checksum += *ptr;
-//     //     ptr++;
-//     //     rtc++;
-//     // }
-
-//     // *rtc = checksum;
-// }
-
 uint8_t cpu_u8_get_reset_source( void ){
 
     #ifdef BOOTLOADER
@@ -217,10 +146,14 @@ uint32_t cpu_u32_get_clock_speed( void ){
 
 void cpu_reboot( void ){
 
-    // hal_cpu_v_store_bootdata();
-
 #ifndef BOOTLOADER
     #ifdef ENABLE_COPROCESSOR
+
+    if( boot_data.loader_command == LDR_CMD_LOAD_FW ){
+
+        coproc_i32_call0( OPCODE_LOADFW_1 );
+        coproc_i32_call0( OPCODE_LOADFW_2 );
+    }
 
     coproc_v_reboot();
 
