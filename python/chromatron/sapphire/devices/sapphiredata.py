@@ -64,11 +64,23 @@ class FirmwareInfoField(StructField):
                   StringField(_name="os_version", _length=16),
                   StringField(_name="firmware_name", _length=128),
                   StringField(_name="firmware_version", _length=16),
+                  StringField(_name="board", _length=32)]
+
+        super(FirmwareInfoField, self).__init__(_name="firmware_info", _fields=fields, **kwargs)
+
+class FirmwareInfoFieldExt(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="firmware_length"),
+                  UuidField(_name="firmware_id"),
+                  StringField(_name="os_name", _length=128),
+                  StringField(_name="os_version", _length=16),
+                  StringField(_name="firmware_name", _length=128),
+                  StringField(_name="firmware_version", _length=16),
                   StringField(_name="board", _length=32),
                   Uint32Field(_name="kv_index_addr"),
                   Uint32Field(_name="kv_index_len")]
 
-        super(FirmwareInfoField, self).__init__(_name="firmware_info", _fields=fields, **kwargs)
+        super(FirmwareInfoField, self).__init__(_name="firmware_info_ext", _fields=fields, **kwargs)
 
 class SerialFrameHeader(StructField):
     def __init__(self, **kwargs):
