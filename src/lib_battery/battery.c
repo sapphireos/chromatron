@@ -226,7 +226,7 @@ void batt_v_init( void ){
         cpu_v_set_clock_speed_low();
     }
 
-    batt_v_enable_pixels();
+    batt_v_disable_pixels();
 
     thread_t_create( ui_thread,
                      PSTR("batt_ui"),
