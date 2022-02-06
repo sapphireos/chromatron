@@ -210,6 +210,7 @@ void batt_v_init( void ){
         pca9536_v_set_input( BATT_IO_QON );
         pca9536_v_set_input( BATT_IO_S2 );
         pca9536_v_set_input( BATT_IO_SPARE );
+        pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
         pca9536_v_set_output( BATT_IO_BOOST );
     }
     else{
@@ -382,7 +383,6 @@ PT_END( pt );
 PT_THREAD( ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
     
     #if defined(ESP32)
     // TEST
@@ -417,6 +417,11 @@ PT_BEGIN( pt );
 
             if( pca9536_enabled ){
 
+                bq25895_v_set_boost_mode( TRUE );
+
+                // wait for boost to start up
+                TMR_WAIT( pt, 40 );
+
                 pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
             }
             #if defined(ESP32)
@@ -443,6 +448,8 @@ PT_BEGIN( pt );
             if( pca9536_enabled ){
 
                 pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
+
+                bq25895_v_set_boost_mode( FALSE );
 
                 pixels_enabled = FALSE;
             }
