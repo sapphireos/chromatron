@@ -343,7 +343,8 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 100 );
 
-        if( ( current_dimmer == 0 ) && ( target_dimmer == 0 ) ){
+        // if( ( current_dimmer == 0 ) && ( target_dimmer == 0 ) ){
+        if( target_dimmer == 0 ){
 
             ssd1306_v_clear();
             refresh_display();
@@ -361,31 +362,35 @@ PT_BEGIN( pt );
         datetime_v_to_iso8601( iso8601, sizeof(iso8601), &now );
 
         ssd1306_v_printf("%d\n%s", debug, iso8601);
-        
+
+        ssd1306_v_set_contrast( target_dimmer );
+
         refresh_display();
 
-        if( target_dimmer > current_dimmer ){
 
-            current_dimmer += 4;
 
-            if( target_dimmer < current_dimmer ){
+        // if( target_dimmer > current_dimmer ){
 
-                current_dimmer = target_dimmer;
-            }
+        //     current_dimmer += 4;
 
-            ssd1306_v_set_contrast( current_dimmer );
-        }
-        else if( target_dimmer < current_dimmer ){
+        //     if( target_dimmer < current_dimmer ){
 
-            current_dimmer += 4;
+        //         current_dimmer = target_dimmer;
+        //     }
 
-            if( target_dimmer > current_dimmer ){
+        //     ssd1306_v_set_contrast( current_dimmer );
+        // }
+        // else if( target_dimmer < current_dimmer ){
 
-                current_dimmer = target_dimmer;
-            }
+        //     current_dimmer += 4;
 
-            ssd1306_v_set_contrast( current_dimmer );
-        }
+        //     if( target_dimmer > current_dimmer ){
+
+        //         current_dimmer = target_dimmer;
+        //     }
+
+        //     ssd1306_v_set_contrast( current_dimmer );
+        // }
     }
 
 PT_END( pt );	
