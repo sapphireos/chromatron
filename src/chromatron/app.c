@@ -33,11 +33,7 @@
 #include "flash_fs.h"
 #include "hal_boards.h"
 
-#ifndef ESP8266
-#include "sht40.h"
-#include "vl53l0x.h"
-#include "ssd1306.h"
-#include "motion.h"
+#ifdef ESP32
 #include "veml7700.h"
 #include "rfm95w.h"
 #endif
