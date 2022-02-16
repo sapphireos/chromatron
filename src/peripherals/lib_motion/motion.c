@@ -46,57 +46,47 @@ static uint16_t activity_index[MAX_SENSORS];
 static uint16_t activity_history[MAX_SENSORS][MOTION_ACTIVITY_TIME];
 
 
-PT_THREAD( motion_io_thread( pt_t *pt, void *state ) )
+PT_THREAD( motion_io_thread( pt_t *pt, uint8_t *channel ) )
 {       	
 PT_BEGIN( pt );  
-	
+
+	if( motion_io[*channel] < 0 ){
+
+		THREAD_EXIT( pt );
+	}
+
 	while( 1 ){
 
 		TMR_WAIT( pt, MOTION_SCAN_RATE );
 
-		// bool motion_or = FALSE;
-		motion_detected = FALSE;
+		// high when motion is detected
+		if( io_b_digital_read( motion_io[*channel] ) ){
 
-		for( uint8_t i = 0; i < n_sensors; i++ ){
+			// validate signal with 2nd sample
+			if( !motion_detected ){
 
-			if( motion_io[i] < 0 ){
+				TMR_WAIT( pt, MOTION_SCAN_RATE );
 
-				continue;
+				if( !io_b_digital_read( motion_io[*channel] ) ){
+
+					// signal was probably noise
+
+					continue;
+				}
 			}
-
-			// high when motion is detected
-			if( io_b_digital_read( motion_io[i] ) ){
-
-				// check if we are on an edge, if so, push to KV
-				// if( !motion_detected_array[i] ){
-
-				// 	motion_detected_array[i] = TRUE;
-				// }
-
-				motion_detected = TRUE;
-				// motion_detected_array[i] = TRUE;
-				current_activity[i]++;
-			}
-			else{
-
-				// same, but for falling edge
-				// if( motion_detected_array[i] ){
-
-				// 	motion_detected_array[i] = FALSE;
-				// }
-
-				// motion_detected_array[i] = FALSE;
-			}
+		
+			motion_detected = TRUE;
+			current_activity[*channel]++;
 		}
+		else{
 
-		// if( motion_detected != motion_or ){
-
-		// motion_detected = motion_or;
-		// }
+			motion_detected = FALSE;
+		}
 	}
 
 PT_END( pt );	
 }
+
 
 PT_THREAD( motion_activity_thread( pt_t *pt, void *state ) )
 {       	
@@ -151,19 +141,22 @@ void motion_v_init( void ){
 	
 	if( n_sensors >= 1 ){
 
+		uint8_t channel = 0;
+
 		motion_v_enable_channel( 0, IO_PIN_13_A12 );
+
+	    thread_t_create( THREAD_CAST(motion_io_thread),
+	                     PSTR("motion_io"),
+	                     &channel,
+	                     sizeof(channel) );
 	}
-	else if( n_sensors >= 2 ){
+	
+	if( n_sensors >= 2 ){
 
 		log_v_error_P( PSTR("2nd sensor channel is not enabled!") );
 
 		// motion_v_enable_channel( 0, IO_PIN_13_A12 );
 	}
-
-    thread_t_create( motion_io_thread,
-                     PSTR("motion_io"),
-                     0,
-                     0 );
 
    	thread_t_create( motion_activity_thread,
                      PSTR("motion_activity"),
