@@ -27,14 +27,14 @@
 #define MAX_SENSORS 2
 
 static bool motion_detected;
-static bool motion_partial;
+static uint8_t motion_partial;
 static uint8_t n_sensors;
 // static uint32_t activity;
 
 KV_SECTION_META kv_meta_t motion_kv[] = {
 	{CATBUS_TYPE_UINT8,  0, KV_FLAGS_PERSIST, 		 &n_sensors,    	0, "motion_n_sensors"},   
     {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_detected,	0, "motion_detected" },
-    {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_partial,	0, "motion_partial" },
+    {CATBUS_TYPE_UINT8,   0,  KV_FLAGS_READ_ONLY,     &motion_partial,	0, "motion_partial" },
     // {CATBUS_TYPE_UINT32, 0,  KV_FLAGS_READ_ONLY,     &activity,     	0, "motion_activity" },
 };
 
@@ -57,6 +57,7 @@ PT_BEGIN( pt );
 		TMR_WAIT( pt, MOTION_SCAN_RATE );
 
 		uint8_t signals = 0;
+		motion_partial = 0;
 
 		for( uint8_t i = 0; i < n_sensors; i++ ){
 
@@ -64,11 +65,12 @@ PT_BEGIN( pt );
 			if( io_b_digital_read( motion_io[i] ) ){
 
 				signals++;
+
+				motion_partial = i;
 			}	
 		}
 
-		motion_detected = FALSE;
-		motion_partial = FALSE;
+		motion_detected = FALSE;		
 
 		if( signals == 0 ){
 
@@ -76,10 +78,10 @@ PT_BEGIN( pt );
 		else if( signals == n_sensors ){
 
 			motion_detected = TRUE;
+			motion_partial = 0;
 		}
 		else{
 
-			motion_partial = TRUE;
 		}
 	}
 
