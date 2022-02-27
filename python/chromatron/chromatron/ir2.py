@@ -870,169 +870,232 @@ class irBlock(IR):
     ##############################################
     # Optimizer Passes
     ##############################################
-    def gvn_optimize(self, values=None, visited=None):
+    # def gvn_optimize(self, values=None, visited=None):
+    #     if values is None:
+    #         values = {}
+
+    #     new_code = []
+    #     for ir in self.code:
+
+    #         # run optimizers on this instruction with currently available values:
+
+
+    #         # attempt to replace inputs with existing values:
+
+    #         # THIS IS PROBLEMATIC???
+    #         for i in ir.get_input_vars():
+    #             if i.is_const or i.holds_const:
+    #                 continue
+
+    #             if i in values:
+    #                 v = values[i]
+    #                 # replace this operand with the looked up value
+    #                 i.__dict__ = copy(values[i].__dict__)
+
+
+    #         # attempt to reduce strength and fold:
+    #         if isinstance(ir, irBinop):
+    #             new_ir = ir.reduce_strength()
+    #             if new_ir is not None:
+    #                 ir = new_ir
+
+    #             val = ir.fold()
+
+    #             if val is None:
+    #                 left = ir.left
+    #                 right = ir.right
+
+    #                 # check existing value numbers and see if we can replace any operands with consts:
+    #                 if ir.left in values and (values[ir.left].is_const or values[ir.left].holds_const):
+    #                     left = values[ir.left]
+
+    #                 if ir.right in values and (values[ir.right].is_const or values[ir.right].holds_const):
+    #                     right = values[ir.right]                
+
+    #                 if (left.is_const or left.holds_const) and (right.is_const or right.holds_const):
+    #                     ir.left = left
+    #                     ir.right = right
+
+    #                     val = ir.fold()
+
+    #             if val is not None:
+    #                 # replace with assign
+    #                 ir = irLoadConst(ir.target, val, lineno=ir.lineno)
+
+    #         # run optimizers with values available at this instruction:
+    #         if isinstance(ir, irAssign):
+    #             # replace intermediate copy with actual value
+    #             if ir.value in values:
+    #                 v = values[ir.value]
+
+    #                 # check if const:
+    #                 if v.is_const or v.holds_const:
+    #                     # replace assignment with load const
+    #                     ir = irLoadConst(ir.target, v, lineno=ir.lineno)
+
+    #                 else:
+    #                     # replace assignment value
+    #                     ir.value = v
+
+    #         elif isinstance(ir, irBinop):
+    #             if ir.expr in values:
+    #                 # replace instruction with assign
+    #                 ir = irAssign(ir.target, values[ir.expr], lineno=ir.lineno)
+          
+    #         # assign value numbers for this instruction:
+    #         for o in ir.get_output_vars():
+    #             assert o not in values
+
+    #             value_number = ir.value_number
+
+    #             # if no value number or if value is a const (which we can't reuse since it isn't a register):
+    #             # skip!
+    #             if value_number is None or value_number.is_const:
+    #                 continue
+
+    #             if isinstance(value_number, irExpr):
+    #                 if value_number not in values:
+    #                     values[value_number] = o
+
+    #             else:
+    #                 # if this value already exists, we can just reuse it directly
+    #                 if value_number in values:
+    #                     value_number = values[value_number]
+                    
+    #                 values[o] = value_number
+
+
+
+    #         ir.block = self
+    #         new_code.append(ir)
+
+    #     self.code = new_code
+
+    #     if self not in self.func.dominator_tree:
+    #         return
+
+    #     for c in self.func.dominator_tree[self]:
+    #         c.gvn_optimize(copy(values))
+
+
+    # def gvn_analyze(self, VN=None, table=None, visited=None):
+    #     # return 
+    #     if VN is None or table is None:
+    #         logging.debug('GVN: Starting optimizer pass')
+
+    #         VN = {}
+    #         table = {}
+        
+    #     # from Briggs, Cooper, and Stratton
+
+    #     new_code = []
+
+    #     for ir in self.code:
+    #         if ir.value_number is None or ir.value_expr is None:
+    #             new_code.append(ir)
+    #             continue
+
+    #         old_ir = deepcopy(ir) # DEBUG!!!
+    #         ir.apply_value_numbers(VN)
+
+    #         # print(ir, ir.value_expr)
+
+    #         x = ir.value_number
+    #         expr = ir.value_expr # y op z for a binop
+
+    #         # if expr can be simplified:
+    #         # TBD
+
+    #         if expr in table:
+    #             v = table[expr]
+    #             VN[x] = v
+
+    #             logging.debug(f'GVN: Removing {ir} at line: {ir.lineno}')
+
+    #         elif isinstance(ir, irAssign):
+    #             table[expr] = x
+    #             VN[x] = ir.value
+
+    #             new_code.append(ir)
+
+    #         else:
+    #             VN[x] = x
+    #             table[expr] = x
+
+    #             new_code.append(ir)
+
+
+    #     self.code = new_code
+
+        
+    #     if self not in self.func.dominator_tree:
+    #         return
+
+    #     for c in self.func.dominator_tree[self]:
+    #         c.gvn_analyze(VN, table)
+
+
+    def gvn_analyze(self, values=None):
+        # return 
         if values is None:
+            logging.debug('GVN: Starting optimizer pass')
+
             values = {}
 
         new_code = []
+
         for ir in self.code:
+            if isinstance(ir, irLoadConst):
+                target = ir.target.ssa_name
+                value = ir.value
 
-            # run optimizers on this instruction with currently available values:
+                values[target] = value
 
+            elif isinstance(ir, irAssign):
+                target = ir.target.ssa_name
+                value = ir.value.ssa_name
 
-            # attempt to replace inputs with existing values:
-
-            # THIS IS PROBLEMATIC???
-            for i in ir.get_input_vars():
-                if i.is_const or i.holds_const:
-                    continue
-
-                if i in values:
-                    v = values[i]
-                    # replace this operand with the looked up value
-                    i.__dict__ = copy(values[i].__dict__)
-
-
-            # attempt to reduce strength and fold:
-            if isinstance(ir, irBinop):
-                new_ir = ir.reduce_strength()
-                if new_ir is not None:
-                    ir = new_ir
-
-                val = ir.fold()
-
-                if val is None:
-                    left = ir.left
-                    right = ir.right
-
-                    # check existing value numbers and see if we can replace any operands with consts:
-                    if ir.left in values and (values[ir.left].is_const or values[ir.left].holds_const):
-                        left = values[ir.left]
-
-                    if ir.right in values and (values[ir.right].is_const or values[ir.right].holds_const):
-                        right = values[ir.right]                
-
-                    if (left.is_const or left.holds_const) and (right.is_const or right.holds_const):
-                        ir.left = left
-                        ir.right = right
-
-                        val = ir.fold()
-
-                if val is not None:
-                    # replace with assign
-                    ir = irLoadConst(ir.target, val, lineno=ir.lineno)
-
-            # run optimizers with values available at this instruction:
-            if isinstance(ir, irAssign):
-                # replace intermediate copy with actual value
-                if ir.value in values:
-                    v = values[ir.value]
-
-                    # check if const:
-                    if v.is_const or v.holds_const:
-                        # replace assignment with load const
-                        ir = irLoadConst(ir.target, v, lineno=ir.lineno)
-
-                    else:
-                        # replace assignment value
-                        ir.value = v
-
-            elif isinstance(ir, irBinop):
-                if ir.expr in values:
-                    # replace instruction with assign
-                    ir = irAssign(ir.target, values[ir.expr], lineno=ir.lineno)
-          
-            # assign value numbers for this instruction:
-            for o in ir.get_output_vars():
-                assert o not in values
-
-                value_number = ir.value_number
-
-                # if no value number or if value is a const (which we can't reuse since it isn't a register):
-                # skip!
-                if value_number is None or value_number.is_const:
-                    continue
-
-                if isinstance(value_number, irExpr):
-                    if value_number not in values:
-                        values[value_number] = o
+                if value in values:
+                    print(f"replace assign value {value} with {values[value]}")
 
                 else:
-                    # if this value already exists, we can just reuse it directly
-                    if value_number in values:
-                        value_number = values[value_number]
-                    
-                    values[o] = value_number
+                    values[target] = value
+
+            elif isinstance(ir, irBinop):
+                target = ir.target.ssa_name
+                left = ir.left.ssa_name
+                right = ir.right.ssa_name
+
+                fold = ir.fold()
+
+                if fold is not None:
+                    print(f'Fold: {fold}')
+
+                    assert isinstance(fold, irLoadConst)
+
+                    ir = fold
+                    ir.block = self
+
+                    values[target] = ir.value
+
+                # if left in values:
+                #     print(f"replace left {left} with {values[left]}")
+
+                # if right in values:
+                #     print(f"replace right {right} with {values[right]}")
 
 
-
-            ir.block = self
             new_code.append(ir)
 
         self.code = new_code
 
+        pprint(values)
+
         if self not in self.func.dominator_tree:
             return
 
         for c in self.func.dominator_tree[self]:
-            c.gvn_optimize(copy(values))
-
-
-    def gvn_analyze(self, VN=None, table=None, visited=None):
-        # return 
-        if VN is None or table is None:
-            logging.debug('GVN: Starting optimizer pass')
-
-            VN = {}
-            table = {}
-        
-        # from Briggs, Cooper, and Stratton
-
-        new_code = []
-
-        for ir in self.code:
-            if ir.value_number is None or ir.value_expr is None:
-                new_code.append(ir)
-                continue
-
-            old_ir = deepcopy(ir) # DEBUG!!!
-            ir.apply_value_numbers(VN)
-
-            # print(ir, ir.value_expr)
-
-            x = ir.value_number
-            expr = ir.value_expr # y op z for a binop
-
-            # if expr can be simplified:
-            # TBD
-
-            if expr in table:
-                v = table[expr]
-                VN[x] = v
-
-                logging.debug(f'GVN: Removing {ir} at line: {ir.lineno}')
-
-            elif isinstance(ir, irAssign):
-                table[expr] = x
-                VN[x] = ir.value
-
-                new_code.append(ir)
-
-            else:
-                VN[x] = x
-                table[expr] = x
-
-                new_code.append(ir)
-
-
-        self.code = new_code
-
-        
-        if self not in self.func.dominator_tree:
-            return
-
-        for c in self.func.dominator_tree[self]:
-            c.gvn_analyze(VN, table)
+            c.gvn_analyze(values)
 
 
 
@@ -4107,7 +4170,7 @@ class irBinop(IR):
         left = self.left
         right = self.right
 
-        if not (left.holds_const or left.is_const) or not (right.holds_const or right.is_const):
+        if left.value is None or right.value is None:
             return None
 
         if op == 'eq':
@@ -4159,10 +4222,11 @@ class irBinop(IR):
         else:
             assert False
 
-        v = irVar(val, lineno=self.lineno)
-        v.is_const = True
+        ir = irLoadConst(self.target, val, lineno=self.lineno)
+        
+        self.target.value = val
 
-        return v
+        return ir
 
     def generate(self):
         ops = {
