@@ -1045,6 +1045,8 @@ class irBlock(IR):
         new_code = []
 
         for ir in self.code:
+            print(f'IR: {ir}')
+
             if isinstance(ir, irLoadConst):
                 target = ir.target.ssa_name
                 value = ir.value
@@ -1078,18 +1080,31 @@ class irBlock(IR):
 
                     values[target] = ir.value
 
-                # if left in values:
-                #     print(f"replace left {left} with {values[left]}")
+                else:
+                    if left in values and isinstance(values[left], irExpr):
+                        print(f"replace left {left} with {values[left]}")
 
-                # if right in values:
-                #     print(f"replace right {right} with {values[right]}")
+                        # if ir.expr.is_commutative and values[left].is_commutative:
+                        #     print('meow')
 
 
+                    if right in values and isinstance(values[right], irExpr):
+                        print(f"replace right {right} with {values[right]}")
+
+                        # if ir.expr.is_commutative and values[right].is_commutative:
+                        #     print('meow')
+
+
+                    print(f'expr {ir.expr} -> {target}')
+                    values[target] = ir.expr
+
+        
             new_code.append(ir)
 
         self.code = new_code
 
-        pprint(values)
+        for k, v in values.items():
+            print(k, v)
 
         if self not in self.func.dominator_tree:
             return
@@ -4223,7 +4238,7 @@ class irBinop(IR):
             assert False
 
         ir = irLoadConst(self.target, val, lineno=self.lineno)
-        
+
         self.target.value = val
 
         return ir
@@ -4343,6 +4358,10 @@ class irExpr(IR):
         self.is_temp = False
         self.holds_const = False
         self.is_const = False
+
+    @property
+    def is_commutative(self):
+        return self.op in COMMUTATIVE_OPS
 
     def __str__(self):
         return f'{self.var1} {self.op} {self.var2}'

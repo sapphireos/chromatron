@@ -1,16 +1,20 @@
 
 
 a = Number()
+# b = Number()
 
 def init():
 
     # a = a + 1
 
     # a = a + 1 + 2 + 3
-    a = 1 + 2 + 3
-    # a = 1 + 2 + 3
 
-    return a
+    a = 4
+
+    a = a + 2 + 3
+    # b = 1 + 2 + 3
+
+    # return a
     
 
 # def array_vector():
