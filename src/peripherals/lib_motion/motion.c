@@ -40,14 +40,14 @@ KV_SECTION_META kv_meta_t motion_kv[] = {
     // {CATBUS_TYPE_UINT32, 0,  KV_FLAGS_READ_ONLY,     &activity,     	0, "motion_activity" },
 };
 
-static int8_t motion_io[MAX_SENSORS] = {
-	-1,
-	-1,
-};
 
 // static uint16_t current_activity[MAX_SENSORS];
 // static uint16_t activity_index[MAX_SENSORS];
 // static uint16_t activity_history[MAX_SENSORS][MOTION_ACTIVITY_TIME];
+
+
+#define MOTION_CH_0 IO_PIN_13_A12
+#define MOTION_CH_1 IO_PIN_4_A5
 
 
 PT_THREAD( motion_io_thread( pt_t *pt, void *state ) )
@@ -64,8 +64,15 @@ PT_BEGIN( pt );
 
 		for( uint8_t i = 0; i < n_sensors; i++ ){
 
+			uint8_t ch = MOTION_CH_1;
+
+			if( i == 0 ){
+
+				ch = MOTION_CH_0;
+			}
+
 			// high when motion is detected
-			if( io_b_digital_read( motion_io[i] ) ){
+			if( io_b_digital_read( ch ) ){
 
 				signals++;
 
@@ -136,10 +143,7 @@ PT_END( pt );
 
 void motion_v_enable_channel( uint8_t channel, uint8_t gpio ){
 
-	motion_io[channel] = gpio;
-
-	io_v_set_mode( (uint8_t)motion_io[channel], IO_MODE_INPUT );
-
+	io_v_set_mode( channel, IO_MODE_INPUT );
 }
 
 void motion_v_init( void ){
@@ -151,7 +155,7 @@ void motion_v_init( void ){
 	
 	if( n_sensors >= 1 ){
 
-		motion_v_enable_channel( 0, IO_PIN_13_A12 );
+		motion_v_enable_channel( 0, MOTION_CH_0 );
 
 	    thread_t_create( motion_io_thread,
 	                     PSTR("motion_io"),
@@ -161,7 +165,7 @@ void motion_v_init( void ){
 	
 	if( n_sensors >= 2 ){
 
-		motion_v_enable_channel( 1, IO_PIN_4_A5 );
+		motion_v_enable_channel( 1, MOTION_CH_1 );
 	}
 
    	// thread_t_create( motion_activity_thread,
