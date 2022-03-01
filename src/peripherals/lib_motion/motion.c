@@ -129,7 +129,7 @@ void motion_v_enable_channel( uint8_t channel, uint8_t gpio ){
 
 	motion_io[channel] = gpio;
 
-	io_v_set_mode( (uint8_t)motion_io[channel], IO_MODE_INPUT_PULLUP );
+	io_v_set_mode( (uint8_t)motion_io[channel], IO_MODE_INPUT );
 
 }
 
