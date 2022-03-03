@@ -665,7 +665,7 @@ class LinkManager(MsgServer):
 
         assert isinstance(v0, int) or isinstance(v0, float)
 
-        remote_data = [r.data.value for r in self._remotes.values()]
+        remote_data = [r.data.value for r in self._remotes.values() if r.link_hash == link.hash]
 
         if link.mode == LINK_MODE_SEND:
             data_set = [local_data]
@@ -699,6 +699,7 @@ class LinkManager(MsgServer):
             raise Exception('WTF', link.aggregation)
 
         data_item.value = value
+
         return data_item
 
     @synchronized
