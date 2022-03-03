@@ -641,7 +641,20 @@ class LinkManager(MsgServer):
         self._remotes = {k: v for k, v in self._remotes.items() if v.host != host}
 
     def _aggregate(self, link):
-        data_item = self._database.get_item(link.source_key)
+        if link.mode == LINK_MODE_SEND:
+            key = link.source_key
+
+        elif link.mode == LINK_MODE_RECV:
+            key = link.dest_key
+
+        try:
+            data_item = self._database.get_item(key)
+
+        except KeyError:
+            logging.error(f"key {key} not found!")
+            return
+
+
         local_data = data_item.value
         
         try:
@@ -694,7 +707,7 @@ class LinkManager(MsgServer):
         self._links[link.hash] = link
 
     @synchronized
-    def link(self, mode, source_key, dest_key, query, aggregation=LINK_AGG_ANY, rate=1000, tag=''):
+    def link(self, mode, source_key, dest_key, query=[], aggregation=LINK_AGG_ANY, rate=1000, tag=''):
         l = Link(
             mode,
             source_key,
@@ -875,7 +888,7 @@ class LinkManager(MsgServer):
                 return
 
             if link.dest_key not in self._database:
-                logging.error("dest key not found!")
+                logging.error(f"dest key {link.dest_key} not found!")
                 return
 
             if msg.data.meta.hash != catbus_string_hash(link.source_key):
@@ -891,10 +904,14 @@ class LinkManager(MsgServer):
 
         # UPDATE REMOTE STATE
         if msg.hash not in self._remotes:
+            item = None
+            if sub:
+                item = sub['item']
+
             r = _Remote(
                     msg.hash,
                     host,
-                    sub=sub['item'])
+                    sub=item)
 
             self._remotes[msg.hash] = r
 
@@ -981,18 +998,17 @@ def main():
     from .catbus import CatbusService
 
     c = CatbusService(tags=['__TEST__'])
-    
-
+        
     import sys
     
-    if len(sys.argv) <= 1:
+    if len(sys.argv) < 1:
         pass
 
     elif sys.argv[1] == 'send':
-        c.send('link_test_key', 'link_test_key2', query=['__TEST__'])
+        c.send('link_test_key', 'link_test_key2', ['grid'])
 
     elif sys.argv[1] == 'receive':
-        c.receive('link_test_key', 'link_test_key2', query=['__TEST__'])
+        c.receive('link_test_key', 'link_test_key2', ['grid'])
 
     elif sys.argv[1] == 'subscribe':
         item = c.subscribe('link_test_key', sys.argv[2], callback=callback)

@@ -43,7 +43,7 @@
 #include "logging.h"
 
 
-#define TEST_MODE
+// #define TEST_MODE
 
 
 #ifdef ENABLE_CATBUS_LINK
@@ -339,6 +339,8 @@ void link_v_init( void )
 
 
     #ifdef TEST_MODE
+
+    log_v_info_P( PSTR("LINK TEST MODE ENABLED") );
 
     thread_t_create( link_test_thread,
                  PSTR("link_test"),
