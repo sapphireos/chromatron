@@ -251,7 +251,7 @@ void hal_wifi_v_init( void ){
     system_phy_set_max_tpw( tx_power * 4 );
 
     // set sleep mode
-    wifi_set_sleep_type( NONE_SLEEP_T );
+    wifi_set_sleep_type( MODEM_SLEEP_T );
 
     // disable auto reconnect (we will manage this)
     wifi_station_set_auto_connect( FALSE );
