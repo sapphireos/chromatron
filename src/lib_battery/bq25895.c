@@ -1264,7 +1264,7 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-   init_charger();
+    init_charger();
 
     // wait until we have a valid connection to the charger
     THREAD_WAIT_WHILE( pt, bq25895_u16_get_batt_voltage() == 0 );
