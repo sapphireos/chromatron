@@ -106,7 +106,8 @@ static uint16_t soc_state;
 #define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
 #define SOC_FILTER      16
 
-
+#define VINDPM_WALL     0
+#define VINDPM_SOLAR    5200
 
 
 
@@ -1145,8 +1146,7 @@ PT_BEGIN( pt );
 
     vbus_connected = FALSE;
 
-    // vindpm = 5200;
-    vindpm = 0; // wall power
+    vindpm = VINDPM_WALL; // wall power
 
     while(1){
 
@@ -1257,6 +1257,46 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+
+PT_THREAD( bat_solar_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
+
+        THREAD_EXIT( pt );
+    }
+
+    while(1){
+
+        // check if constant current mode
+        if( ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
+            ( batt_volts < ( BQ25895_FLOAT_VOLTAGE - 50 ) ) ){
+
+            if( ( vindpm == VINDPM_WALL ) &&
+                ( batt_charge_current < 250 ) ){
+
+                // try solar mode
+                vindpm = VINDPM_SOLAR;
+
+                log_v_debug_P( PSTR("Charge VINDPM set to solar") );
+            }
+            else if( ( vindpm == VINDPM_SOLAR ) &&
+                     ( batt_charge_current < 250 ) ){
+
+                // try wall mode
+                vindpm = VINDPM_WALL;
+
+                log_v_debug_P( PSTR("Charge VINDPM set to wall") );
+            }
+        }        
+
+        TMR_WAIT( pt, 4000 );
+    }
+
+PT_END( pt );
+}
+
 #endif
 
 
@@ -1285,6 +1325,11 @@ PT_BEGIN( pt );
 
     thread_t_create( bat_aux_temp_thread,
                      PSTR("bat_aux_temp"),
+                     0,
+                     0 );
+
+    thread_t_create( bat_solar_thread,
+                     PSTR("bat_solar"),
                      0,
                      0 );
 
