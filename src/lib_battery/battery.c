@@ -344,6 +344,19 @@ PT_BEGIN( pt );
 
 
     while(1){
+        
+        while( sys_b_is_shutting_down() ){
+
+            // ensure fan is off when shutting down.
+            // if it is on, it can kick the battery controller back on as it winds down.
+
+            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+            io_v_digital_write( ELITE_FAN_IO, 0 );            
+
+            fan_on = FALSE;
+
+            TMR_WAIT( pt, 20 );
+        }
 
         while( !fan_on ){
 
