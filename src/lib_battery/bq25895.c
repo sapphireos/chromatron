@@ -979,6 +979,7 @@ void init_charger( void ){
 
     // turn off charger
     bq25895_v_set_charger( FALSE );
+    bq25895_v_set_hiz( FALSE );
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
 
@@ -1047,18 +1048,19 @@ void init_charger( void ){
 
 static bool read_adc( void ){
 
+    batt_fault = bq25895_u8_get_faults();
+    vbus_status = bq25895_u8_get_vbus_status();
+    charge_status = bq25895_u8_get_charge_status();
+
     uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
 
     if( temp_batt_volts != 0 ){
 
         batt_volts = temp_batt_volts;
 
-        charge_status = bq25895_u8_get_charge_status();
         vbus_volts = bq25895_u16_get_vbus_voltage();
         sys_volts = bq25895_u16_get_sys_voltage();
         batt_charge_current = bq25895_u16_get_charge_current();
-        batt_fault = bq25895_u8_get_faults();
-        vbus_status = bq25895_u8_get_vbus_status();
         therm = bq25895_i8_get_therm();
         iindpm = bq25895_u16_get_iindpm();
 
@@ -1140,9 +1142,6 @@ PT_END( pt );
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    bq25895_v_set_hiz( FALSE );
-    bq25895_v_enable_adc_continuous();
 
     vbus_connected = FALSE;
 
@@ -1407,10 +1406,10 @@ PT_BEGIN( pt );
                      0,
                      0 );
 
-    thread_t_create( bat_solar_thread,
-                     PSTR("bat_solar"),
-                     0,
-                     0 );
+    // thread_t_create( bat_solar_thread,
+    //                  PSTR("bat_solar"),
+    //                  0,
+    //                  0 );
 
     #endif
 
