@@ -25,13 +25,12 @@
 #ifndef _HAL_BOARDS_H
 #define _HAL_BOARDS_H
 
-#define BOARD_TYPE_UNKNOWN                  0
-#define BOARD_TYPE_CHROMATRON32_v0_0        1
-#define BOARD_TYPE_CHROMATRON32_v0_1        2
-#define BOARD_TYPE_WROVER_KIT               3
-#define BOARD_TYPE_ELITE                    4
-#define BOARD_TYPE_COUNT					5
+#include "boards.h"
 
-#define BOARD_TYPE_UNSET                    0xff
+// for Elite board:
+#define ELITE_CASE_ADC_IO IO_PIN_32_A7
+#define ELITE_AMBIENT_ADC_IO IO_PIN_33_A9
+
+
 
 #endif

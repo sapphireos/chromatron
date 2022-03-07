@@ -232,6 +232,5 @@ void bq25895_v_set_vindpm( int16_t mv );
 uint16_t bq25895_u16_get_iindpm( void );
 bool bq25895_b_get_vindpm( void );
 bool bq25895_b_get_iindpm( void );
-bool bq25895_b_solar_hold( void );
 
 #endif

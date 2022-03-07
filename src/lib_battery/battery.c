@@ -474,7 +474,6 @@ PT_BEGIN( pt );
 
         if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
             ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
-            bq25895_b_solar_hold() ||
             ( bq25895_u8_get_faults() != 0 ) ){
 
             batt_state = BATT_STATE_OK;
