@@ -27,10 +27,13 @@
 
 #include "boards.h"
 
-// for Elite board:
-#define ELITE_CASE_ADC_IO IO_PIN_32_A7
-#define ELITE_AMBIENT_ADC_IO IO_PIN_33_A9
+#include "hal_io.h"
 
+// for Elite board:
+#define ELITE_CASE_ADC_IO       IO_PIN_32_A7
+#define ELITE_AMBIENT_ADC_IO    IO_PIN_33_A9
+#define ELITE_FAN_IO            IO_PIN_19_MISO
+#define ELITE_BOOST_IO          IO_PIN_4_A5
 
 
 #endif

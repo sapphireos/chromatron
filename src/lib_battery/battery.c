@@ -319,60 +319,57 @@ bool batt_b_pixels_enabled( void ){
 
 #if defined(ESP32)
 
-#define FAN_IO IO_PIN_19_MISO
-#define BOOST_IO IO_PIN_4_A5
-
 PT_THREAD( fan_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
+
+        THREAD_EXIT( pt );
+    }
+
     // BOOST
-    io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-    io_v_digital_write( BOOST_IO, 1 );
+    io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
+    io_v_digital_write( ELITE_BOOST_IO, 1 );
 
     // FAN
-    io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
-    io_v_digital_write( FAN_IO, 1 );
+    io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+    io_v_digital_write( ELITE_FAN_IO, 1 );
 
     TMR_WAIT( pt, 5000 );
-    // io_v_digital_write( BOOST_IO, 0 );
-    io_v_digital_write( FAN_IO, 0 );
+    // io_v_digital_write( ELITE_BOOST_IO, 0 );
+    io_v_digital_write( ELITE_FAN_IO, 0 );
+
+    fan_on = FALSE;
 
 
     while(1){
 
-        TMR_WAIT( pt, 10000 );
+        while( !fan_on ){
 
-        if( fan_on ){
+            TMR_WAIT( pt, 100 );
 
-            if( bq25895_i8_get_temp() <= 37 ){
+            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+            io_v_digital_write( ELITE_FAN_IO, 0 );
 
-                fan_on = FALSE;
-            }
-        }
-        else{
-
-            if( bq25895_i8_get_temp() >= 38 ){
+            if( bq25895_i8_get_temp() > 38 ){
 
                 fan_on = TRUE;
             }
         }
 
-        // fan control for elite board
-        if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+        while( fan_on ){
 
-            io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
+            TMR_WAIT( pt, 100 );
 
-            if( fan_on ){
+            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+            io_v_digital_write( ELITE_FAN_IO, 1 );
 
-                io_v_digital_write( FAN_IO, 1 );
+            if( bq25895_i8_get_temp() < 37 ){
+
+                fan_on = FALSE;
             }
-            else{
-
-                io_v_digital_write( FAN_IO, 0 );
-            }
-        }        
-
+        }
     }
 
 PT_END( pt );
@@ -385,16 +382,8 @@ PT_THREAD( ui_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
     
     #if defined(ESP32)
-    // TEST
+
     if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
-
-        // BOOST
-        io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-        io_v_digital_write( BOOST_IO, 0 );
-
-        // FAN
-        io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
-        io_v_digital_write( FAN_IO, 0 );
 
         thread_t_create( fan_thread,
                          PSTR("fan_control"),
@@ -432,8 +421,8 @@ PT_BEGIN( pt );
                 // wait for boost to start up
                 TMR_WAIT( pt, 40 );
 
-                io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-                io_v_digital_write( BOOST_IO, 1 );
+                io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
+                io_v_digital_write( ELITE_BOOST_IO, 1 );
 
                 TMR_WAIT( pt, 10 );
             }
@@ -457,8 +446,8 @@ PT_BEGIN( pt );
             #if defined(ESP32)
             else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
-                io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-                io_v_digital_write( BOOST_IO, 0 );
+                io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
+                io_v_digital_write( ELITE_BOOST_IO, 0 );
 
                 bq25895_v_set_boost_mode( FALSE );
 
