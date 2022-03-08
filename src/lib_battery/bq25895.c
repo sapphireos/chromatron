@@ -1066,15 +1066,45 @@ static bool read_adc( void ){
     return FALSE;
 }
 
+
+static bool is_recharge_threshold( void ){
+
+    return batt_volts <= ( BQ25895_FLOAT_VOLTAGE - 100 );
+}
+
+static bool is_vbus_ok( void ){
+
+    if( vbus_volts < 4800 ){
+
+        return FALSE;
+    }
+
+    if( !bq25895_b_get_vbus_good() ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static bool is_charging( void ){
+
+    return ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE ) ||
+           ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE );
+
+}
+
+
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
     vbus_connected = FALSE;
-
     vindpm = VINDPM_WALL; // wall power
 
     while(1){
+
+        TMR_WAIT( pt, 20 );
 
       /*
 
@@ -1112,40 +1142,155 @@ PT_BEGIN( pt );
         // NOTE:
         // VINDPM needs to be set to 0 for wall power!
 
-        if( bq25895_b_get_vbus_good() && !vbus_connected ){
+        
 
-            log_v_debug_P( PSTR("VBUS OK") );
 
-            // re-init charger and boost
-            bq25895_v_reset();
+        // init charger
+
+        init_charger();
+
+        TMR_WAIT( pt, 4000 );
+
+
+        // wait for VBUS
+        vbus_connected = FALSE;
+
+        THREAD_WAIT_WHILE( pt, !is_vbus_ok() );
+
+        log_v_debug_P( PSTR("VBUS OK") );
+
+        vbus_connected = TRUE;
+
+        if( mcu_source_pmid ){
+            
+            // re-init boost
             init_boost_converter();
-            init_charger();
-
-            bq25895_v_set_vindpm( vindpm );
-
-            vbus_connected = TRUE;
         }
-        else if( vbus_connected ){ 
 
-            bq25895_v_set_vindpm( vindpm );
+        // check if we need to charge
+        THREAD_WAIT_WHILE( pt, !is_recharge_threshold() &&
+                                is_vbus_ok() );
 
-            // vbus disconnected, but we were previously connected
+        if( !is_vbus_ok() ){
 
-            if( !bq25895_b_get_vbus_good() ){
+            continue;
+        }
+        
+        // set for wall power:
+        vindpm = VINDPM_WALL;
+        bq25895_v_set_vindpm( vindpm );
+
+
+        // enable charger and disable HIZ mode
+
+        bq25895_v_set_hiz( FALSE );
+        bq25895_v_set_charger( TRUE );
+        
+        TMR_WAIT( pt, 4000 );
+
+        // check faults
+        if( batt_fault != 0 ){
+
+            log_v_debug_P( PSTR("faults detected") );
+
+            continue;
+        }
+
+        // are we charging at least a bit?
+        if( batt_charge_current >= 200 ){
+
+            log_v_debug_P( PSTR("Charging on wall power") );
+
+            THREAD_WAIT_WHILE( pt, is_vbus_ok() );
+
+            // unplugged, reset loop
+            log_v_debug_P( PSTR("VBUS disconnected") );
+
+            continue;
+        }
+
+        // not enough current.  try solar mode.
+
+        bq25895_v_set_hiz( TRUE );
+        bq25895_v_set_charger( FALSE );
+
+        vindpm = VINDPM_SOLAR;
+        bq25895_v_set_vindpm( vindpm );
+
+        // re-enable
+        bq25895_v_set_hiz( FALSE );
+        bq25895_v_set_charger( TRUE );
+
+        TMR_WAIT( pt, 4000 );
+
+        // check faults
+        if( batt_fault != 0 ){
+
+            log_v_debug_P( PSTR("faults detected") );
+
+            continue;
+        }
+
+        // check if charging
+        // we don't check for current, it may be very low with solar
+        if( is_charging() ){
+
+            log_v_debug_P( PSTR("Charging on solar power") );
+
+            THREAD_WAIT_WHILE( pt, is_vbus_ok() );
+
+            log_v_debug_P( PSTR("VBUS disconnected") );
+
+            continue;
+        }
+
+
+        // charger isn't working?
+
+        // disconnect charger
+        bq25895_v_set_hiz( TRUE );
+        bq25895_v_set_charger( FALSE );
+
+        log_v_debug_P( PSTR("charger fault?") );
+
+        TMR_WAIT( pt, 10000 );
+
+
+
+        // if( bq25895_b_get_vbus_good() && !vbus_connected ){
+
+        //     log_v_debug_P( PSTR("VBUS OK") );
+
+        //     // re-init charger and boost
+        //     bq25895_v_reset();
+        //     init_boost_converter();
+        //     init_charger();
+
+        //     bq25895_v_set_vindpm( vindpm );
+
+        //     vbus_connected = TRUE;
+        // }
+        // else if( vbus_connected ){ 
+
+        //     bq25895_v_set_vindpm( vindpm );
+
+        //     // vbus disconnected, but we were previously connected
+
+        //     if( !bq25895_b_get_vbus_good() ){
                 
-                // on really crappy USB sources, we might get spurious disconnects.
-                // delay, and then check again before resetting.
-                TMR_WAIT( pt, 3000 );
-            }
+        //         // on really crappy USB sources, we might get spurious disconnects.
+        //         // delay, and then check again before resetting.
+        //         TMR_WAIT( pt, 3000 );
+        //     }
 
-            if( !bq25895_b_get_vbus_good() ){
+        //     if( !bq25895_b_get_vbus_good() ){
 
-                vbus_connected = FALSE;
-                log_v_debug_P( PSTR("VBUS disconnected") );
-            }
-        }
+        //         vbus_connected = FALSE;
+        //         log_v_debug_P( PSTR("VBUS disconnected") );
+        //     }
+        // }
     
-        TMR_WAIT( pt, 1000 );
+        // TMR_WAIT( pt, 1000 );
     }
 
 PT_END( pt );
@@ -1298,8 +1443,6 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    init_charger();
-
     if( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ){
 
         log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
@@ -1314,20 +1457,6 @@ PT_BEGIN( pt );
         init_boost_converter();
     }
 
-    // // wait until we have a valid connection to the charger
-    // thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 );
-
-    // THREAD_WAIT_WHILE( pt, ( bq25895_u16_get_batt_voltage() == 0 ) && 
-    //                        thread_b_alarm_set() );
-
-    // if( bq25895_u16_get_batt_voltage() == 0 ){
-
-    //     log_v_debug_P( PSTR("batt controller connection fail") );
-
-    //     THREAD_RESTART( pt );
-    // }
-    
-
     if( capacity != 0 ){
 
         // set baseline energy remaining based on SOC
@@ -1335,10 +1464,10 @@ PT_BEGIN( pt );
     }
         
 
-    // thread_t_create( bat_control_thread,
-    //                  PSTR("bat_control"),
-    //                  0,
-    //                  0 );
+    thread_t_create( bat_control_thread,
+                     PSTR("bat_control"),
+                     0,
+                     0 );
 
     #if defined(ESP32)
 
