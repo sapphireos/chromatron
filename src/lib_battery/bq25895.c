@@ -159,11 +159,6 @@ int8_t bq25895_i8_init( void ){
                      0,
                      0 );
 
-    thread_t_create( bat_adc_thread,
-                     PSTR("bat_adc"),
-                     0,
-                     0 );
-
     return 0;
 }
 
@@ -1071,82 +1066,6 @@ static bool read_adc( void ){
     return FALSE;
 }
 
-
-PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-    static uint32_t start_time;
-
-    while(1){
-
-        bq25895_v_start_adc_oneshot();
-        start_time = tmr_u32_get_system_time_ms();
-
-        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
-
-        if( bq25895_b_adc_ready() ){
-
-            if( !read_adc() ){
-
-                adc_fail++;
-
-                log_v_warn_P( PSTR("ADC fail") );
-
-                bq25895_v_print_regs();
-
-                TMR_WAIT( pt, 5000 );
-
-                continue;
-            }
-
-            uint16_t elapsed = tmr_u32_elapsed_time_ms( start_time );
-
-            if( elapsed < adc_time_min ){
-
-                adc_time_min = elapsed;
-            }
-            
-            if( elapsed > adc_time_max ){
-
-                adc_time_max = elapsed;
-            }
-
-            soc_state = _calc_batt_soc( batt_volts );
-            batt_soc = calc_batt_soc( batt_volts );
-            batt_soc_startup = batt_soc;
-
-            adc_good++;
-
-            // ADC success
-            TMR_WAIT( pt, 100 );
-        }
-        else{
-
-            adc_fail++;
-
-            log_v_warn_P( PSTR("ADC fail") );
-
-            TMR_WAIT( pt, 5000 );
-
-            continue;
-        }
-
-
-        if( dump_regs ){
-
-            dump_regs = FALSE;
-
-            bq25895_v_print_regs();
-        }
-    }
-
-
-PT_END( pt );
-}    
-
-
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -1394,18 +1313,18 @@ PT_BEGIN( pt );
         init_boost_converter();
     }
 
-    // wait until we have a valid connection to the charger
-    thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 );
+    // // wait until we have a valid connection to the charger
+    // thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 );
 
-    THREAD_WAIT_WHILE( pt, ( bq25895_u16_get_batt_voltage() == 0 ) && 
-                           thread_b_alarm_set() );
+    // THREAD_WAIT_WHILE( pt, ( bq25895_u16_get_batt_voltage() == 0 ) && 
+    //                        thread_b_alarm_set() );
 
-    if( bq25895_u16_get_batt_voltage() == 0 ){
+    // if( bq25895_u16_get_batt_voltage() == 0 ){
 
-        log_v_debug_P( PSTR("batt controller connection fail") );
+    //     log_v_debug_P( PSTR("batt controller connection fail") );
 
-        THREAD_RESTART( pt );
-    }
+    //     THREAD_RESTART( pt );
+    // }
     
 
     if( capacity != 0 ){
@@ -1434,18 +1353,61 @@ PT_BEGIN( pt );
 
     #endif
 
+    
+    static uint32_t start_time;
+
     while(1){
 
+        bq25895_v_start_adc_oneshot();
+        start_time = tmr_u32_get_system_time_ms();
 
-        if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
 
-            batt_charging = TRUE;
+        if( bq25895_b_adc_ready() ){
+
+            if( read_adc() ){
+
+                // ADC success
+
+                uint16_t elapsed = tmr_u32_elapsed_time_ms( start_time );
+
+                if( elapsed < adc_time_min ){
+
+                    adc_time_min = elapsed;
+                }
+                
+                if( elapsed > adc_time_max ){
+
+                    adc_time_max = elapsed;
+                }
+
+                soc_state = _calc_batt_soc( batt_volts );
+                batt_soc = calc_batt_soc( batt_volts );
+                batt_soc_startup = batt_soc;
+
+                adc_good++;
+
+                
+            }
+            else{
+
+                adc_fail++;
+
+                log_v_warn_P( PSTR("ADC fail") );
+
+                TMR_WAIT( pt, 5000 );
+            }
         }
-        else{ // DISCHARGE
+        else{
 
-            batt_charging = FALSE;
+            adc_fail++;
+
+            log_v_warn_P( PSTR("ADC fail") );
+
+            TMR_WAIT( pt, 5000 );
         }
+
 
         // update state of charge
         // this is a simple linear fit
@@ -1474,9 +1436,26 @@ PT_BEGIN( pt );
 
             remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
         }
-        
 
-        TMR_WAIT( pt, 1000 );
+
+        if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
+            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
+
+            batt_charging = TRUE;
+        }
+        else{ // DISCHARGE
+
+            batt_charging = FALSE;
+        }
+
+        if( dump_regs ){
+
+            dump_regs = FALSE;
+
+            bq25895_v_print_regs();
+        }
+
+        TMR_WAIT( pt, 500 );
     }
 
 PT_END( pt );
