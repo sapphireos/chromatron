@@ -52,6 +52,7 @@ static int8_t therm;
 static uint8_t batt_cells; // number of cells in system
 static uint16_t boost_voltage;
 static uint16_t vindpm;
+static uint16_t solar_vindpm = 5200;
 static uint16_t iindpm;
 
 // true if MCU system power is sourced from the boost converter
@@ -85,7 +86,8 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
-    { CATBUS_TYPE_UINT16,  0, 0,                   &vindpm,                   0,  "batt_vindpm" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                   0,  "batt_vindpm" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,             0,  "batt_solar_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                   0,  "batt_iindpm" },
 
     { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                0,  "batt_dump_regs" },
@@ -109,7 +111,7 @@ static uint16_t soc_state;
 #define SOC_FILTER      16
 
 #define VINDPM_WALL     0
-#define VINDPM_SOLAR    5200
+#define VINDPM_SOLAR    solar_vindpm
 
 
 
@@ -1251,7 +1253,7 @@ PT_BEGIN( pt );
         bq25895_v_set_hiz( TRUE );
         bq25895_v_set_charger( FALSE );
 
-        log_v_debug_P( PSTR("charger fault?") );
+        log_v_debug_P( PSTR("Not charging - reset control loop") );
 
         TMR_WAIT( pt, 10000 );
 
