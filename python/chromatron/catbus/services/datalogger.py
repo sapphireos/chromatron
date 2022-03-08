@@ -144,9 +144,6 @@ class Datalogger(MsgFlowReceiver):
         elif header.version == 2:            
             host = (host[0], CATBUS_MAIN_PORT)
 
-            if host[0] != '10.0.0.190':
-                return
-
             # print("V2")
             # print(header)
 
