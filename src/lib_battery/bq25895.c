@@ -54,6 +54,8 @@ static uint16_t boost_voltage;
 static uint16_t vindpm;
 static uint16_t iindpm;
 
+// true if MCU system power is sourced from the boost converter
+static bool mcu_source_pmid;
 
 // DEBUG
 static uint16_t adc_time_min = 65535;
@@ -981,7 +983,7 @@ void init_charger( void ){
 
     // turn off charger
     bq25895_v_set_charger( FALSE );
-    bq25895_v_set_hiz( FALSE );
+    bq25895_v_set_hiz( TRUE );
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
 
@@ -1042,10 +1044,6 @@ void init_charger( void ){
 
     // turn off ICO
     // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
-
-    // re-enable charging
-    // bq25895_v_set_charger( TRUE );
-    bq25895_v_set_hiz( TRUE );
 }
 
 
@@ -1381,6 +1379,20 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
     
     init_charger();
+
+    if( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ){
+
+        log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
+
+        mcu_source_pmid = TRUE;
+
+        // we will not init the boost converter in this instance, because that will cut MCU power.
+        // we have to wait until we have VBUS available.
+    }
+    else{
+
+        init_boost_converter();
+    }
 
     // wait until we have a valid connection to the charger
     thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 );
