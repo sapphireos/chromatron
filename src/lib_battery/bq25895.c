@@ -1169,6 +1169,8 @@ PT_BEGIN( pt );
 
     while(1){
 
+        THREAD_WAIT_WHILE( pt, sys_volts == 0 ); // avoid divide by zero error
+
         uint32_t case_adc = adc_u16_read_mv( ELITE_CASE_ADC_IO );
         uint32_t ambient_adc = adc_u16_read_mv( ELITE_AMBIENT_ADC_IO );
 
@@ -1309,7 +1311,7 @@ PT_BEGIN( pt );
     }
     else{
 
-        // init_boost_converter();
+        init_boost_converter();
     }
 
     // // wait until we have a valid connection to the charger
@@ -1340,10 +1342,10 @@ PT_BEGIN( pt );
 
     #if defined(ESP32)
 
-    // thread_t_create( bat_aux_temp_thread,
-    //                  PSTR("bat_aux_temp"),
-    //                  0,
-    //                  0 );
+    thread_t_create( bat_aux_temp_thread,
+                     PSTR("bat_aux_temp"),
+                     0,
+                     0 );
 
     // thread_t_create( bat_solar_thread,
     //                  PSTR("bat_solar"),
@@ -1352,7 +1354,6 @@ PT_BEGIN( pt );
 
     #endif
 
-    THREAD_EXIT( pt );
 
     static uint32_t start_time;
 
