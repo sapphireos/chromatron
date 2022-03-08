@@ -235,7 +235,7 @@ class Datalogger(MsgFlowReceiver):
 
 
 def main():
-    util.setup_basic_logging(console=True, filename='log.txt', level=logging.INFO)
+    util.setup_basic_logging(console=True, level=logging.INFO)
 
     d = Datalogger()
 
