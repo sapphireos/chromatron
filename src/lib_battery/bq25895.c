@@ -1178,117 +1178,116 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 1000 );
     }
 
-
 PT_END( pt );
 }
 
 
-PT_THREAD( bat_solar_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// PT_THREAD( bat_solar_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
 
-    if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
+//     if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
 
-        THREAD_EXIT( pt );
-    }
+//         THREAD_EXIT( pt );
+//     }
 
-    while(1){
+//     while(1){
 
-        THREAD_WAIT_WHILE( pt, charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE );
+//         THREAD_WAIT_WHILE( pt, charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE );
 
-        THREAD_WAIT_WHILE( pt, !vbus_connected );
+//         THREAD_WAIT_WHILE( pt, !vbus_connected );
 
-        TMR_WAIT( pt, 4000 );
+//         TMR_WAIT( pt, 4000 );
 
-        if( !vbus_connected ){
+//         if( !vbus_connected ){
 
-            continue;
-        }
+//             continue;
+//         }
 
-        // try wall power mode
-        vindpm = VINDPM_WALL;
+//         // try wall power mode
+//         vindpm = VINDPM_WALL;
 
-        TMR_WAIT( pt, 4000 );
+//         TMR_WAIT( pt, 4000 );
 
-        if( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ){
+//         if( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ){
 
-            log_v_debug_P( PSTR("Charge VINDPM set to wall") );
+//             log_v_debug_P( PSTR("Charge VINDPM set to wall") );
 
-            THREAD_WAIT_WHILE( pt, charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE );
+//             THREAD_WAIT_WHILE( pt, charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE );
 
-            continue;
-        }
+//             continue;
+//         }
 
-        // try solar mode
-        vindpm = VINDPM_SOLAR;
+//         // try solar mode
+//         vindpm = VINDPM_SOLAR;
 
-        TMR_WAIT( pt, 4000 );
+//         TMR_WAIT( pt, 4000 );
 
-        if( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ){
+//         if( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ){
 
-            log_v_debug_P( PSTR("Charge VINDPM set to solar") );
+//             log_v_debug_P( PSTR("Charge VINDPM set to solar") );
 
-            THREAD_WAIT_WHILE( pt, charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE );
+//             THREAD_WAIT_WHILE( pt, charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE );
 
-            continue;
-        }
-
-
+//             continue;
+//         }
 
 
 
-        // // if( ( vbus_volts > 5500 ) && ( batt_charge_current < 250 ) ){
+
+
+//         // // if( ( vbus_volts > 5500 ) && ( batt_charge_current < 250 ) ){
 
 
 
-        // // }
+//         // // }
 
 
 
-        //     if( ( vindpm == VINDPM_WALL ) &&
-        //         ( batt_charge_current < 250 ) ){
+//         //     if( ( vindpm == VINDPM_WALL ) &&
+//         //         ( batt_charge_current < 250 ) ){
 
-        //         // try solar mode
-        //         vindpm = VINDPM_SOLAR;
+//         //         // try solar mode
+//         //         vindpm = VINDPM_SOLAR;
 
-        //         log_v_debug_P( PSTR("Charge VINDPM set to solar") );
-        //     }
-        //     else if( ( vindpm == VINDPM_SOLAR ) &&
-        //              ( batt_charge_current < 250 ) ){
+//         //         log_v_debug_P( PSTR("Charge VINDPM set to solar") );
+//         //     }
+//         //     else if( ( vindpm == VINDPM_SOLAR ) &&
+//         //              ( batt_charge_current < 250 ) ){
 
-        //         // try wall mode
-        //         vindpm = VINDPM_WALL;
+//         //         // try wall mode
+//         //         vindpm = VINDPM_WALL;
 
-        //         log_v_debug_P( PSTR("Charge VINDPM set to wall") );
-            // }        
+//         //         log_v_debug_P( PSTR("Charge VINDPM set to wall") );
+//             // }        
 
-        // // check if constant current mode
-        // if( ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
-        //     ( batt_volts < ( BQ25895_FLOAT_VOLTAGE - 50 ) ) ){
+//         // // check if constant current mode
+//         // if( ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
+//         //     ( batt_volts < ( BQ25895_FLOAT_VOLTAGE - 50 ) ) ){
 
-        //     if( ( vindpm == VINDPM_WALL ) &&
-        //         ( batt_charge_current < 250 ) ){
+//         //     if( ( vindpm == VINDPM_WALL ) &&
+//         //         ( batt_charge_current < 250 ) ){
 
-        //         // try solar mode
-        //         vindpm = VINDPM_SOLAR;
+//         //         // try solar mode
+//         //         vindpm = VINDPM_SOLAR;
 
-        //         log_v_debug_P( PSTR("Charge VINDPM set to solar") );
-        //     }
-        //     else if( ( vindpm == VINDPM_SOLAR ) &&
-        //              ( batt_charge_current < 250 ) ){
+//         //         log_v_debug_P( PSTR("Charge VINDPM set to solar") );
+//         //     }
+//         //     else if( ( vindpm == VINDPM_SOLAR ) &&
+//         //              ( batt_charge_current < 250 ) ){
 
-        //         // try wall mode
-        //         vindpm = VINDPM_WALL;
+//         //         // try wall mode
+//         //         vindpm = VINDPM_WALL;
 
-        //         log_v_debug_P( PSTR("Charge VINDPM set to wall") );
-        //     }
-        // }        
+//         //         log_v_debug_P( PSTR("Charge VINDPM set to wall") );
+//         //     }
+//         // }        
 
-        // TMR_WAIT( pt, 4000 );
-    }
+//         // TMR_WAIT( pt, 4000 );
+//     }
 
-PT_END( pt );
-}
+// PT_END( pt );
+// }
 
 #endif
 
@@ -1296,7 +1295,7 @@ PT_END( pt );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+
     init_charger();
 
     if( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ){
@@ -1310,7 +1309,7 @@ PT_BEGIN( pt );
     }
     else{
 
-        init_boost_converter();
+        // init_boost_converter();
     }
 
     // // wait until we have a valid connection to the charger
@@ -1334,17 +1333,17 @@ PT_BEGIN( pt );
     }
         
 
-    thread_t_create( bat_control_thread,
-                     PSTR("bat_control"),
-                     0,
-                     0 );
+    // thread_t_create( bat_control_thread,
+    //                  PSTR("bat_control"),
+    //                  0,
+    //                  0 );
 
     #if defined(ESP32)
 
-    thread_t_create( bat_aux_temp_thread,
-                     PSTR("bat_aux_temp"),
-                     0,
-                     0 );
+    // thread_t_create( bat_aux_temp_thread,
+    //                  PSTR("bat_aux_temp"),
+    //                  0,
+    //                  0 );
 
     // thread_t_create( bat_solar_thread,
     //                  PSTR("bat_solar"),
@@ -1353,7 +1352,8 @@ PT_BEGIN( pt );
 
     #endif
 
-    
+    THREAD_EXIT( pt );
+
     static uint32_t start_time;
 
     while(1){
@@ -1386,9 +1386,7 @@ PT_BEGIN( pt );
                 batt_soc = calc_batt_soc( batt_volts );
                 batt_soc_startup = batt_soc;
 
-                adc_good++;
-
-                
+                adc_good++;   
             }
             else{
 
