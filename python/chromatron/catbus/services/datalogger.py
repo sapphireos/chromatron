@@ -56,7 +56,7 @@ class DatalogMetaV2(StructField):
 
 class DatalogDataV2(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="ntp_offset"),
+        fields = [Int32Field(_name="ntp_offset"),
                   CatbusData(_name="data")]
 
         super().__init__(_fields=fields, **kwargs)
@@ -123,7 +123,7 @@ class Datalogger(MsgFlowReceiver):
             key = self.kv._server.resolve_hash(unpacked_data.data.meta.hash, host)
 
             value = unpacked_data.data.value
-            print(key, value)
+            # print(key, value)
 
             tags = {'name': info['name'],
                     'location': info['location']}
@@ -144,6 +144,9 @@ class Datalogger(MsgFlowReceiver):
         elif header.version == 2:            
             host = (host[0], CATBUS_MAIN_PORT)
 
+            if host[0] != '10.0.0.190':
+                return
+
             # print("V2")
             # print(header)
 
@@ -158,9 +161,17 @@ class Datalogger(MsgFlowReceiver):
 
             else:
                 ntp_base = util.ntp_to_datetime(meta.ntp_base.seconds, meta.ntp_base.fraction)
-                
-            # print(meta)
-            # print(ntp_base)
+            
+            # print(meta, header)
+            # print(ntp_base, timestamp)
+
+            delta = abs(timestamp - ntp_base)
+
+            # check delta for validity
+            if delta.total_seconds() > 600.0: # more than 10 minutes apart
+                logging.error(f'Timestamp mismatch: {timestamp} {ntp_base}')
+
+                return
 
             data = data[meta.size():] # slice buffer
 
@@ -171,6 +182,14 @@ class Datalogger(MsgFlowReceiver):
             # extract chunks
             while len(data) > 0:
                 chunk = DatalogDataV2().unpack(data)
+
+                # print(chunk)
+
+                # sanity check ntp offset:
+                if chunk.ntp_offset > 600000: # 10 minutes is pretty reasonable
+                    logging.error(f'Invalid ntp offset: {chunk.ntp_offset}')
+
+                    return
 
                 delta = timedelta(seconds=chunk.ntp_offset / 1000.0)
 
@@ -189,7 +208,8 @@ class Datalogger(MsgFlowReceiver):
                 key = self.kv._server.resolve_hash(chunk.data.meta.hash, host)
 
                 value = chunk.data.value
-                print(ntp_timestamp, key, value)
+                # print(ntp_timestamp, key, value)
+                # logging.info(f'{key:20}: {value:8} @ {ntp_timestamp}')
 
                 tags = {'name': info['name'],
                         'location': info['location']}
@@ -211,14 +231,14 @@ class Datalogger(MsgFlowReceiver):
 
             self.influx.write_points(points)
 
-            print(f'received {item_count} items')
+            # print(f'received {item_count} items')
 
         else:
             logging.warning(f"Unknown message version: {header.version}")
 
 
 def main():
-    util.setup_basic_logging(console=True, level=logging.INFO)
+    util.setup_basic_logging(console=True, filename='log.txt', level=logging.INFO)
 
     d = Datalogger()
 

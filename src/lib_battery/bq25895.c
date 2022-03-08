@@ -1484,9 +1484,9 @@ PT_BEGIN( pt );
     #endif
 
 
-    static uint32_t start_time;
-
     while(1){
+
+        static uint32_t start_time;
 
         bq25895_v_start_adc_oneshot();
         start_time = tmr_u32_get_system_time_ms();

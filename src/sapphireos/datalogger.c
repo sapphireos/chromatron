@@ -211,7 +211,17 @@ static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
 
     datalog_data_v2_t *chunk = (datalog_data_v2_t *)&ptr[buffer_offset];
 
-    chunk->ntp_offset = tmr_u32_elapsed_times( systime_base, timestamp );
+    uint32_t ntp_offset = tmr_u32_elapsed_times( systime_base, timestamp );
+
+    if( ntp_offset > INT32_MAX ){
+
+        chunk->ntp_offset = (int32_t)ntp_offset;
+    }
+    else{
+
+        chunk->ntp_offset = ntp_offset;
+    }
+
     chunk->data.meta = entry->meta;
 
     if( kv_i8_get( entry->hash, &chunk->data.data, data_size ) != KV_ERR_STATUS_OK ){
