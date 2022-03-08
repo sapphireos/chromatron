@@ -52,7 +52,7 @@ static int8_t therm;
 static uint8_t batt_cells; // number of cells in system
 static uint16_t boost_voltage;
 static uint16_t vindpm;
-static uint16_t solar_vindpm = 5200;
+static uint16_t solar_vindpm = 5800;
 static uint16_t iindpm;
 
 // true if MCU system power is sourced from the boost converter
