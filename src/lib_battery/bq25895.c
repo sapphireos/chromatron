@@ -950,6 +950,8 @@ bool bq25895_b_get_iindpm( void ){
 
 void init_boost_converter( void ){
 
+    log_v_debug_P( PSTR("Init boost converter") );
+
     // turn off charger
     bq25895_v_set_charger( FALSE );
 
@@ -1042,7 +1044,8 @@ void init_charger( void ){
     // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
 
     // re-enable charging
-    bq25895_v_set_charger( TRUE );
+    // bq25895_v_set_charger( TRUE );
+    bq25895_v_set_hiz( TRUE );
 }
 
 
@@ -1051,6 +1054,7 @@ static bool read_adc( void ){
     batt_fault = bq25895_u8_get_faults();
     vbus_status = bq25895_u8_get_vbus_status();
     charge_status = bq25895_u8_get_charge_status();
+    vbus_volts = bq25895_u16_get_vbus_voltage();
 
     uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
 
@@ -1058,7 +1062,6 @@ static bool read_adc( void ){
 
         batt_volts = temp_batt_volts;
 
-        vbus_volts = bq25895_u16_get_vbus_voltage();
         sys_volts = bq25895_u16_get_sys_voltage();
         batt_charge_current = bq25895_u16_get_charge_current();
         therm = bq25895_i8_get_therm();
@@ -1132,6 +1135,13 @@ PT_BEGIN( pt );
             continue;
         }
 
+
+        if( dump_regs ){
+
+            dump_regs = FALSE;
+
+            bq25895_v_print_regs();
+        }
     }
 
 
@@ -1193,7 +1203,6 @@ PT_BEGIN( pt );
             bq25895_v_reset();
             init_boost_converter();
             init_charger();
-            bq25895_v_set_hiz( FALSE );
 
             bq25895_v_set_vindpm( vindpm );
 
@@ -1424,13 +1433,6 @@ PT_BEGIN( pt );
         else{ // DISCHARGE
 
             batt_charging = FALSE;
-        }
-
-        if( dump_regs ){
-
-            dump_regs = FALSE;
-
-            bq25895_v_print_regs();
         }
 
         // update state of charge
