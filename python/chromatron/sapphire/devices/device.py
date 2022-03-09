@@ -437,6 +437,14 @@ class Device(object):
 
         return responses
 
+    def lookup_hash(self, key):
+        value = self._client.lookup_hash(key)[key]
+
+        if value == key:
+            raise KeyError(key)
+
+        return value
+
     def set_security_key(self, key_id, key):
         raise NotImplementedError
         
@@ -1050,7 +1058,7 @@ class Device(object):
                 2: 'server',
             }
         
-        s = "\nService  Group               IP           Port  Priority    Uptime    Timeout | State\n"
+        s = "\nService          Group               IP           Port  Priority    Uptime    Timeout | State\n"
 
         # iterate over service cache entries
         for e in serviceinfo:
@@ -1061,9 +1069,21 @@ class Device(object):
                 uptime = e.server_uptime
                 port = e.server_port
 
-            s += "%8x %16x %15s %5d %3d     %7d     %3d         %-10s\n" % \
-                (e.id,
-                 e.group,
+            try:
+                service_id = self.lookup_hash(e.id)
+
+            except KeyError:
+                service_id = f'{e.id:x}'
+
+            try:
+                group_id = self.lookup_hash(e.group)
+
+            except KeyError:
+                group_id = f'{e.group:x}'
+
+            s += "%16s %16s %15s %5d %3d     %7d     %3d         %-10s\n" % \
+                (service_id,
+                 group_id,
                  e.server_ip,
                  port,
                  e.local_priority,

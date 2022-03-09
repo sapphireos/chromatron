@@ -430,3 +430,8 @@ def lookup_error_msg(error):
     except KeyError:
         return "Unknown error"
 
+SYSTEM_KEYS = [
+    'msgflow',
+    'datalogger',
+    'logserver',
+]
