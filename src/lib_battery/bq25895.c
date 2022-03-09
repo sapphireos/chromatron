@@ -1182,40 +1182,45 @@ PT_BEGIN( pt );
             continue;
         }
         
-        // set for wall power:
-        vindpm = VINDPM_WALL;
-        bq25895_v_set_vindpm( vindpm );
+
+        // check vbus
+        if( vbus_volts < 5500 ){
+
+            // set for wall power:
+            vindpm = VINDPM_WALL;
+            bq25895_v_set_vindpm( vindpm );
 
 
-        // enable charger and disable HIZ mode
+            // enable charger and disable HIZ mode
 
-        bq25895_v_set_hiz( FALSE );
-        bq25895_v_set_charger( TRUE );
-        
-        TMR_WAIT( pt, 4000 );
+            bq25895_v_set_hiz( FALSE );
+            bq25895_v_set_charger( TRUE );
+            
+            TMR_WAIT( pt, 4000 );
 
-        // check faults
-        if( batt_fault != 0 ){
+            // check faults
+            if( batt_fault != 0 ){
 
-            log_v_debug_P( PSTR("faults detected") );
+                log_v_debug_P( PSTR("faults detected") );
 
-            continue;
+                continue;
+            }
+
+            // are we charging at least a bit?
+            if( batt_charge_current >= 200 ){
+
+                log_v_debug_P( PSTR("Charging on wall power") );
+
+                THREAD_WAIT_WHILE( pt, is_vbus_ok() );
+
+                // unplugged, reset loop
+                log_v_debug_P( PSTR("VBUS disconnected") );
+
+                continue;
+            }
         }
 
-        // are we charging at least a bit?
-        if( batt_charge_current >= 200 ){
-
-            log_v_debug_P( PSTR("Charging on wall power") );
-
-            THREAD_WAIT_WHILE( pt, is_vbus_ok() );
-
-            // unplugged, reset loop
-            log_v_debug_P( PSTR("VBUS disconnected") );
-
-            continue;
-        }
-
-        // not enough current.  try solar mode.
+        // not enough current, or VBUS is too high to be a wall charger.  try solar mode.
 
         bq25895_v_set_hiz( TRUE );
         bq25895_v_set_charger( FALSE );
