@@ -476,7 +476,14 @@ PT_BEGIN( pt );
 
         if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
             ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
+            ( bq25895_u16_read_vbus() > 5500 ) ||
             ( bq25895_u8_get_faults() != 0 ) ){
+
+            // disable pixels if:
+            // charging
+            // battery controller reports a fault
+            // if vbus is too high, since that could fry the pixels
+            // this can occur with solar panels, hitting just over 7 volts.
 
             batt_state = BATT_STATE_OK;
 
