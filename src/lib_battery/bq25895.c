@@ -1075,7 +1075,7 @@ static bool read_adc( void ){
 
 static bool is_recharge_threshold( void ){
 
-    return batt_volts <= ( BQ25895_FLOAT_VOLTAGE - 100 );
+    return batt_volts <= ( BQ25895_FLOAT_VOLTAGE - 50 );
 }
 
 static bool is_vbus_ok( void ){
