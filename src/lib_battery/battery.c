@@ -358,7 +358,7 @@ PT_BEGIN( pt );
             TMR_WAIT( pt, 20 );
         }
 
-        while( !fan_on ){
+        while( !fan_on && !sys_b_is_shutting_down() ){
 
             TMR_WAIT( pt, 100 );
 
@@ -371,7 +371,7 @@ PT_BEGIN( pt );
             }
         }
 
-        while( fan_on ){
+        while( fan_on && !sys_b_is_shutting_down() ){
 
             TMR_WAIT( pt, 100 );
 
