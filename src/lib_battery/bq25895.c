@@ -838,6 +838,16 @@ int8_t bq25895_i8_get_temp( void ){
     return therm;
 }
 
+int8_t bq25895_i8_get_case_temp( void ){
+
+    return case_temp;
+}
+
+int8_t bq25895_i8_get_ambient_temp( void ){
+
+    return ambient_temp;
+}
+
 uint16_t bq25895_u16_read_vbus( void ){
 
     return vbus_volts;

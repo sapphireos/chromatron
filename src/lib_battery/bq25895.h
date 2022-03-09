@@ -233,5 +233,7 @@ uint16_t bq25895_u16_get_iindpm( void );
 bool bq25895_b_get_vindpm( void );
 bool bq25895_b_get_iindpm( void );
 uint16_t bq25895_u16_read_vbus( void );
+int8_t bq25895_i8_get_case_temp( void );
+int8_t bq25895_i8_get_ambient_temp( void );
 
 #endif
