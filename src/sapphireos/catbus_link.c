@@ -1061,7 +1061,7 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
     }
 
     consumer_state_t new_consumer = {
-        link,
+        hash,
         *raddr,
         LINK_CONSUMER_TIMEOUT
     };

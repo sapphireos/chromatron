@@ -1209,9 +1209,15 @@ class Device(object):
                 raise IOError
 
             s += 'Consumers:\n'
+            s += 'Hash                IP           Port   Timeout\n'
             
             for info in linkinfo:
-                s += str(info) + '\n'
+                s += "%16x %15s %5d %5d\n" % \
+                    (info.link_hash,
+                     info.ip,
+                     info.port,
+                     info.timeout)
+                
 
         except IOError:
             pass
