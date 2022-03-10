@@ -1183,7 +1183,7 @@ class Device(object):
                 raise IOError
 
             s += 'Producers:\n'
-            s += 'Source                Leader: IP Port   Rate Hash\n'
+            s += 'Source                Leader: IP Port   Rate Timeout Hash\n'
 
             for info in linkinfo:
                 try:
@@ -1192,11 +1192,12 @@ class Device(object):
                 except KeyError:
                     source = f'{info.source_key:x}'                
                 
-                s += "%16s %15s %5d %5d %16x \n" % \
+                s += "%16s %15s %5d %5d %5d   %16x\n" % \
                     (source,
                      info.leader_ip,
                      info.leader_port,
                      info.rate,
+                     info.timeout,
                      info.link_hash)
 
         except IOError:
@@ -1209,7 +1210,7 @@ class Device(object):
                 raise IOError
 
             s += 'Consumers:\n'
-            s += 'Hash                IP           Port   Timeout\n'
+            s += 'Hash                IP           Port  Timeout\n'
             
             for info in linkinfo:
                 s += "%16x %15s %5d %5d\n" % \
