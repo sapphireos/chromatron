@@ -93,7 +93,7 @@ typedef struct __attribute__((packed)){
 // remote producer:
 // producer state tracked by the leader
 typedef struct __attribute__((packed)){
-    link_handle_t link;
+    uint64_t link_hash;
     sock_addr_t addr;
     int32_t timeout;
     catbus_data_t data;
@@ -1194,7 +1194,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, catbus_data_t
 
         remote = list_vp_get_data( ln );
         
-        if( remote->link != link ){
+        if( remote->link_hash != link_state->hash ){
 
             goto next;
         }
@@ -1241,7 +1241,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, catbus_data_t
     remote = list_vp_get_data( ln );
     memset( remote, 0, remote_len );
         
-    remote->link        = link;
+    remote->link_hash   = link_state->hash;
     remote->addr        = *raddr;
     remote->timeout     = LINK_REMOTE_TIMEOUT;
     
@@ -1826,6 +1826,11 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
 
     uint16_t array_len = meta.array_len + 1;
     uint16_t data_len = kv_u16_get_size_meta( &meta );
+
+    if( data_len == 0 ){
+
+        return 0;
+    }
     
     if( link_state->mode == LINK_MODE_SEND ){
         
@@ -1840,9 +1845,10 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
     }
     
     void *ptr = &msg_buf->msg.data.data;
-    list_node_t ln = remote_list.head;
-    remote_state_t *remote = 0;
     uint16_t count = 1;
+
+    remote_state_t *remote = 0;
+    list_node_t ln = remote_list.head;
 
     if( meta.type == CATBUS_TYPE_FLOAT ){
 
@@ -1865,80 +1871,77 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
         // load initial data for recv link
         else if( link_state->mode == LINK_MODE_RECV ){
 
-            if( ln < 0 ){ // there are no remotes, so we have no data
+            // warp to first remote that matches this link
+            while( ln > 0 ){
 
-                return 0;
+                remote = list_vp_get_data( ln );
+
+                ln = list_ln_next( ln );    
+
+                if( remote->link_hash == link_state->hash ){
+
+                    accumulator = specific_to_i64( meta.type, &remote->data.data );
+
+                    break;
+                }
             }
-
-            remote = list_vp_get_data( ln );
-            ln = list_ln_next( ln );
-
-            accumulator = specific_to_i64( meta.type, &remote->data.data );
         }
 
         // for ANY, we return the first value
         if( link_state->aggregation == LINK_AGG_ANY ){
 
             i64_to_specific( accumulator, meta.type, ptr );
-
-            goto done;
         }
+        else{ // run aggregation
 
-        while( ln > 0 ){
+            while( ln > 0 ){
 
-            remote = list_vp_get_data( ln );
+                remote = list_vp_get_data( ln );
 
-            if( remote->link != link ){
+                if( remote->link_hash != link_state->hash ){
 
-                goto next;
-            }
-
-            count++;
-        
-            // convert to i64
-            int64_t temp = specific_to_i64( meta.type, &remote->data.data );
-
-            if( link_state->aggregation == LINK_AGG_MIN ){
-
-                if( temp < accumulator ){
-
-                    accumulator = temp;
+                    goto next;
                 }
-            }
-            else if( link_state->aggregation == LINK_AGG_MAX ){
 
-                if( temp > accumulator ){
+                count++;
+            
+                // convert to i64
+                int64_t temp = specific_to_i64( meta.type, &remote->data.data );
 
-                    accumulator = temp;
+                if( link_state->aggregation == LINK_AGG_MIN ){
+
+                    if( temp < accumulator ){
+
+                        accumulator = temp;
+                    }
                 }
+                else if( link_state->aggregation == LINK_AGG_MAX ){
+
+                    if( temp > accumulator ){
+
+                        accumulator = temp;
+                    }
+                }
+                else if( link_state->aggregation == LINK_AGG_SUM ){
+
+                    accumulator += temp;
+                }
+                else if( link_state->aggregation == LINK_AGG_AVG ){
+
+                    accumulator += temp;
+                }
+
+    next:
+                ln = list_ln_next( ln );
+            };
+
+            if( link_state->aggregation == LINK_AGG_AVG ){
+
+                accumulator /= count;
             }
-            else if( link_state->aggregation == LINK_AGG_SUM ){
 
-                accumulator += temp;
-            }
-            else if( link_state->aggregation == LINK_AGG_AVG ){
-
-                accumulator += temp;
-            }
-
-next:
-            ln = list_ln_next( ln );
-        };
-
-        if( link_state->aggregation == LINK_AGG_AVG ){
-
-            accumulator /= count;
+            i64_to_specific( accumulator, meta.type, ptr );
         }
-
-        i64_to_specific( accumulator, meta.type, ptr );
-    }
-    
-
-done:
-
-    if( data_len == 0 ){
-
-        return 0;
     }
 
     // check if data changed
