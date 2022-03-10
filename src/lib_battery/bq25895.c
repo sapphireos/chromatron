@@ -840,12 +840,20 @@ int8_t bq25895_i8_get_temp( void ){
 
 int8_t bq25895_i8_get_case_temp( void ){
 
+    #ifdef ESP32
     return case_temp;
+    #else
+    return 0;
+    #endif
 }
 
 int8_t bq25895_i8_get_ambient_temp( void ){
 
+    #ifdef ESP32
     return ambient_temp;
+    #else
+    return 0;
+    #endif
 }
 
 uint16_t bq25895_u16_read_vbus( void ){
