@@ -27,6 +27,7 @@
 
 from elysianfields import *
 from catbus import get_type_name, Client, CATBUS_MAIN_PORT, NoResponseFromHost, ProtocolErrorException
+from catbus.link import *
 
 from . import sapphiredata
 from . import channel
@@ -1097,8 +1098,74 @@ class Device(object):
         s = 'Links:\n'
         try:
             linkinfo = self.get_link_info()
+
+            s += 'Source           Dest             Mode Agg  Rate Query\n'
+
             for info in linkinfo:
-                s += str(info) + '\n'
+                try:
+                    source = self.lookup_hash(info.source_key)
+
+                except KeyError:
+                    source = f'{info.source_key:x}'                
+
+                try:
+                    dest = self.lookup_hash(info.dest_key)
+
+                except KeyError:
+                    dest = f'{info.dest_key:x}'       
+
+                if info.mode == LINK_MODE_SEND:
+                    mode = "send"
+                
+                elif info.mode == LINK_MODE_RECV:
+                    mode = "recv"
+
+                elif info.mode == LINK_MODE_SYNC:
+                    mode = "sync"
+
+                else:
+                    mode = "????"
+
+                if info.aggregation == LINK_AGG_ANY:
+                    agg = "any"
+
+                elif info.aggregation == LINK_AGG_MIN:
+                    agg = "min"
+
+                elif info.aggregation == LINK_AGG_MAX:
+                    agg = "max"
+
+                elif info.aggregation == LINK_AGG_SUM:
+                    agg = "sum"
+
+                elif info.aggregation == LINK_AGG_AVG:
+                    agg = "avg"
+
+                else:
+                    agg = "???"
+
+
+                query_s = ''
+                for q in info.query:
+                    try:
+                        v = self.lookup_hash(q)
+
+                        if v is None:
+                            continue
+
+                    except KeyError:
+                        v = f'{q:x}'
+
+                    query_s += f'{v} '
+
+                # s += str(info) + '\n'
+                s += "%16s %16s %4s %3s %5d %s\n" % \
+                    (source,
+                     dest,
+                     mode,
+                     agg,
+                     info.rate,
+                     query_s)
 
         except IOError:
             pass
