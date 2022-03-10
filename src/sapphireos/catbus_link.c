@@ -1509,7 +1509,7 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == LINK_MSG_TYPE_CONSUMER_DATA ){
 
-            trace_printf("LINK: RX consumer DATA\n");
+            // trace_printf("LINK: RX consumer DATA\n");
 
             link_msg_data_t *msg = (link_msg_data_t *)header;
 
@@ -1551,7 +1551,7 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_DATA ){
 
-            trace_printf("LINK: RX producer DATA\n");
+            // trace_printf("LINK: RX producer DATA\n");
 
             link_msg_data_t *msg = (link_msg_data_t *)header;
 
@@ -2083,7 +2083,6 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
         if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
             
             // run aggregation
-            // uint16_t data_len = aggregate( link, producer->source_key, &msg_buf );
             uint16_t data_len = aggregate( link, link_state->source_key, &msg_buf );
 
             // transmit!
