@@ -535,12 +535,6 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
 
     reboot_delay = 2;
 
-    if( sys_mode == SYS_MODE_SAFE ){
-
-        // in safe mode, reboot instantly
-        reboot();
-    }
-
     // the thread will perform a graceful reboot
     if( thread_t_create( THREAD_CAST(sys_reboot_thread),
                          PSTR("reboot"),
@@ -779,6 +773,16 @@ PT_END( pt );
 PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    if( sys_mode == SYS_MODE_SAFE ){
+
+        // in safe mode, reboot after short delay, without signalling a shutdown
+        // to the rest of the system (in case there is a crash in shutdown handling)
+
+        TMR_WAIT( pt, 1000 );
+
+        reboot();
+    }
 
     shutting_down = TRUE;
 
