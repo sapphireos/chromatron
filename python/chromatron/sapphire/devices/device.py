@@ -1099,7 +1099,7 @@ class Device(object):
         try:
             linkinfo = self.get_link_info()
 
-            s += 'Source           Dest             Mode Agg  Rate Query\n'
+            s += 'Source           Dest             Mode Agg  Rate Hash             Query\n'
 
             for info in linkinfo:
                 try:
@@ -1158,13 +1158,13 @@ class Device(object):
 
                     query_s += f'{v} '
 
-                # s += str(info) + '\n'
-                s += "%16s %16s %4s %3s %5d %s\n" % \
+                s += "%16s %16s %4s %3s %5d %16x %s\n" % \
                     (source,
                      dest,
                      mode,
                      agg,
                      info.rate,
+                     info.hash,
                      query_s)
 
         except IOError:
@@ -1173,8 +1173,22 @@ class Device(object):
         s += 'Producers:\n'
         try:
             linkinfo = self.get_link_producer_info()
+
+            s += 'Source                Leader: IP Port   Rate Hash\n'
+
             for info in linkinfo:
-                s += str(info) + '\n'
+                try:
+                    source = self.lookup_hash(info.source_key)
+
+                except KeyError:
+                    source = f'{info.source_key:x}'                
+                
+                s += "%16s %15s %5d %5d %16x \n" % \
+                    (source,
+                     info.leader_ip,
+                     info.leader_port,
+                     info.rate,
+                     info.link_hash)
 
         except IOError:
             pass
