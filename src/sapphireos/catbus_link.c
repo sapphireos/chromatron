@@ -712,6 +712,8 @@ link_handle_t link_l_create2( link_state_t *state ){
 
     if( list_u8_count( &link_list ) >= LINK_MAX_LINKS ){
 
+        log_v_error_P( PSTR("Too many links") );
+
         return -1;
     }
 
@@ -734,7 +736,9 @@ link_handle_t link_l_create2( link_state_t *state ){
     }
     else{
 
-        ASSERT( FALSE );
+        log_v_error_P( PSTR("Invalid link mode") );
+
+        return -1;
     }
 
     // check data type
