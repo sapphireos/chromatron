@@ -1093,12 +1093,17 @@ static bool is_recharge_threshold( void ){
     return batt_volts <= ( BQ25895_FLOAT_VOLTAGE - 25 );
 }
 
-static bool is_vbus_ok( void ){
+static bool is_vbus_volts_ok( void ){
 
     if( vbus_volts < 4800 ){
 
         return FALSE;
     }
+
+    return TRUE;
+}
+
+static bool is_vbus_good( void ){
 
     if( !bq25895_b_get_vbus_good() ){
 
@@ -1170,13 +1175,27 @@ PT_BEGIN( pt );
 
         init_charger();
 
-        TMR_WAIT( pt, 4000 );
-
 
         // wait for VBUS
         vbus_connected = FALSE;
 
-        THREAD_WAIT_WHILE( pt, !is_vbus_ok() );
+        THREAD_WAIT_WHILE( pt, !is_vbus_volts_ok() );
+
+        if( !is_vbus_volts_ok() ){
+
+            continue;
+        }
+
+        // disable HIZ and check VBUS good
+        bq25895_v_set_hiz( FALSE );
+
+        TMR_WAIT( pt, 500 );
+
+        if( !is_vbus_good() ){
+
+            continue;
+        }
+        
 
         log_v_debug_P( PSTR("VBUS OK") );
 
@@ -1190,9 +1209,9 @@ PT_BEGIN( pt );
 
         // check if we need to charge
         THREAD_WAIT_WHILE( pt, !is_recharge_threshold() &&
-                                is_vbus_ok() );
+                                is_vbus_good() );
 
-        if( !is_vbus_ok() ){
+        if( !is_vbus_good() ){
 
             continue;
         }
@@ -1226,7 +1245,7 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("Charging on wall power") );
 
-                THREAD_WAIT_WHILE( pt, is_vbus_ok() );
+                THREAD_WAIT_WHILE( pt, is_vbus_good() );
 
                 // unplugged, reset loop
                 log_v_debug_P( PSTR("VBUS disconnected") );
@@ -1263,7 +1282,7 @@ PT_BEGIN( pt );
 
             log_v_debug_P( PSTR("Charging on solar power") );
 
-            THREAD_WAIT_WHILE( pt, is_vbus_ok() );
+            THREAD_WAIT_WHILE( pt, is_vbus_good() );
 
             log_v_debug_P( PSTR("VBUS disconnected") );
 
