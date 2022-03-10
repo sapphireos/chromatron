@@ -1106,7 +1106,7 @@ class Device(object):
             s += 'Links:\n'
             s += 'Source           Dest             Mode Agg  Rate Hash             Query\n'
 
-            for info in linkinfo:
+            for info in sorted(linkinfo, key=lambda x: x.hash):
                 try:
                     source = self.lookup_hash(info.source_key)
 
@@ -1185,7 +1185,7 @@ class Device(object):
             s += 'Producers:\n'
             s += 'Source                Leader: IP Port   Rate Timeout Hash\n'
 
-            for info in linkinfo:
+            for info in sorted(linkinfo, key=lambda x: x.link_hash):
                 try:
                     source = self.lookup_hash(info.source_key)
 
@@ -1212,7 +1212,7 @@ class Device(object):
             s += 'Consumers:\n'
             s += 'Hash                IP           Port  Timeout\n'
             
-            for info in linkinfo:
+            for info in sorted(linkinfo, key=lambda x: x.link_hash):
                 s += "%16x %15s %5d %5d\n" % \
                     (info.link_hash,
                      info.ip,
