@@ -271,6 +271,9 @@ class Client(BaseClient):
             except TypeError:
                 arg_list.append(arg)
 
+        # filter out requested hashes that are out of range (like if we got a 64 bit hash instead of 32)
+        arg_list = [a for a in arg_list if a >= 0 and a <= 4294967295]
+            
         # filter out any items in the cache
         for k, v in cache.items():
             if k in arg_list and isinstance(v, str):
