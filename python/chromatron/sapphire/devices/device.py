@@ -318,7 +318,7 @@ class Device(object):
     # TODO this should move to the console
     def who(self):
         try:
-            name = str(self._keys['name'].value)
+            name = self.name
 
         except KeyError:
             name = ''
@@ -1095,10 +1095,15 @@ class Device(object):
         return s
 
     def cli_linkinfo(self, line):
-        s = 'Links:\n'
+        s = '\n'
+
         try:
             linkinfo = self.get_link_info()
 
+            if len(linkinfo) == 0:
+                raise IOError
+
+            s += 'Links:\n'
             s += 'Source           Dest             Mode Agg  Rate Hash             Query\n'
 
             for info in linkinfo:
@@ -1170,10 +1175,14 @@ class Device(object):
         except IOError:
             pass
 
-        s += 'Producers:\n'
+        
         try:
             linkinfo = self.get_link_producer_info()
 
+            if len(linkinfo) == 0:
+                raise IOError
+
+            s += 'Producers:\n'
             s += 'Source                Leader: IP Port   Rate Hash\n'
 
             for info in linkinfo:
@@ -1193,9 +1202,14 @@ class Device(object):
         except IOError:
             pass
 
-        s += 'Consumers:\n'
         try:
             linkinfo = self.get_link_consumer_info()
+
+            if len(linkinfo) == 0:
+                raise IOError
+
+            s += 'Consumers:\n'
+            
             for info in linkinfo:
                 s += str(info) + '\n'
 
