@@ -95,6 +95,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint64_t link_hash;
     sock_addr_t addr;
+    uint16_t padding; // padding to ensure data is 32 bit aligned.  the ESP8266 will crash if it isn't.
     int32_t timeout;
     catbus_data_t data;
     // variable length data follows
