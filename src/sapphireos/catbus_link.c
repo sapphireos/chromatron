@@ -103,7 +103,7 @@ typedef struct __attribute__((packed)){
 // consumer:
 // stored on leader, tracks consumers to transmit data to
 typedef struct __attribute__((packed)){
-    link_handle_t link;
+    uint64_t link_hash;
     sock_addr_t addr;
     int32_t timeout;
 } consumer_state_t;
@@ -841,7 +841,7 @@ static void delete_link( link_handle_t link ){
 
         consumer_state_t *consumer = list_vp_get_data( ln );
 
-        if( consumer->link == link ){
+        if( consumer->link_hash == state->hash ){
 
             // remove consumer
             list_v_remove( &consumer_list, ln );
@@ -1021,9 +1021,8 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
     while( ln >= 0 ){
 
         consumer_state_t *consumer = list_vp_get_data( ln );
-        link_state_t *link_state = link_ls_get_data( consumer->link );
 
-        if( link_state->hash != hash ){
+        if( consumer->link_hash != hash ){
 
             goto next;
         }
@@ -1091,8 +1090,17 @@ static void process_consumer_timeouts( uint32_t elapsed_ms ){
 
         consumer->timeout -= elapsed_ms;
 
+        link_handle_t link = link_l_lookup_by_hash( consumer->link_hash );
+
+        if( link < 0 ){
+
+            log_v_error_P( PSTR("error") );
+
+            goto next;
+        }
+
         // if timeout expires, or we are not link leader
-        if( ( consumer->timeout < 0 ) || ( !is_link_leader( consumer->link ) ) ){
+        if( ( consumer->timeout < 0 ) || ( !is_link_leader( link ) ) ){
 
             // remove consumer
             list_v_remove( &consumer_list, ln );
@@ -1101,6 +1109,7 @@ static void process_consumer_timeouts( uint32_t elapsed_ms ){
             trace_printf("LINK: pruned consumer for timeout\n");
         }
 
+    next:
         ln = next_ln;
     }
 }
@@ -1981,7 +1990,7 @@ static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_
 
         consumer_state_t *consumer = list_vp_get_data( ln );
 
-        if( consumer->link == link ){
+        if( consumer->link_hash == link_state->hash ){
 
             sock_addr_t raddr = consumer->addr;
 
