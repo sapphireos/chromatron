@@ -1182,6 +1182,9 @@ PT_BEGIN( pt );
         // init charger
 
         init_charger();
+        
+        bq25895_v_set_charger( TRUE );
+        bq25895_v_set_hiz( FALSE );
 
 
         // wait for VBUS
@@ -1235,8 +1238,8 @@ PT_BEGIN( pt );
 
             // enable charger and disable HIZ mode
 
-            bq25895_v_set_hiz( FALSE );
-            bq25895_v_set_charger( TRUE );
+            // bq25895_v_set_hiz( FALSE );
+            // bq25895_v_set_charger( TRUE );
             
             TMR_WAIT( pt, 4000 );
 
@@ -1264,15 +1267,15 @@ PT_BEGIN( pt );
 
         // not enough current, or VBUS is too high to be a wall charger.  try solar mode.
 
-        bq25895_v_set_hiz( TRUE );
-        bq25895_v_set_charger( FALSE );
+        // bq25895_v_set_hiz( TRUE );
+        // bq25895_v_set_charger( FALSE );
 
         vindpm = VINDPM_SOLAR;
         bq25895_v_set_vindpm( vindpm );
 
         // re-enable
-        bq25895_v_set_hiz( FALSE );
-        bq25895_v_set_charger( TRUE );
+        // bq25895_v_set_hiz( FALSE );
+        // bq25895_v_set_charger( TRUE );
 
         TMR_WAIT( pt, 4000 );
 
@@ -1301,8 +1304,8 @@ PT_BEGIN( pt );
         // charger isn't working?
 
         // disconnect charger
-        bq25895_v_set_hiz( TRUE );
-        bq25895_v_set_charger( FALSE );
+        // bq25895_v_set_hiz( TRUE );
+        // bq25895_v_set_charger( FALSE );
 
         log_v_debug_P( PSTR("Not charging - reset control loop") );
 
