@@ -1176,13 +1176,19 @@ PT_BEGIN( pt );
         // NOTE:
         // VINDPM needs to be set to 0 for wall power!
 
+        // NOTE:
+        // if the charger is disabled and there is a source on VBUS, the Q4 BATFET will
+        // be *disabled*.  If VBUS cannot support the load on SYS, the system will brownout.
+        // if the charger is enabled, Q4 is still turned on, so the battery can supplement SYS
+        // even if VBUS is weak.
+
         
 
 
         // init charger
 
         init_charger();
-        
+
         bq25895_v_set_charger( TRUE );
         bq25895_v_set_hiz( FALSE );
 
