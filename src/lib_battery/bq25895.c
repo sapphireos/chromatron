@@ -1289,7 +1289,7 @@ PT_BEGIN( pt );
         // check faults
         if( batt_fault != 0 ){
 
-            log_v_debug_P( PSTR("faults detected") );
+            log_v_debug_P( PSTR("faults detected: 0x%2x"), batt_fault );
 
             continue;
         }
@@ -1585,18 +1585,18 @@ PT_BEGIN( pt );
 
                 adc_fail++;
 
-                log_v_warn_P( PSTR("ADC fail") );
+                log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
 
-                TMR_WAIT( pt, 5000 );
+                TMR_WAIT( pt, 4000 );
             }
         }
         else{
 
             adc_fail++;
 
-            log_v_warn_P( PSTR("ADC fail") );
+            log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
 
-            TMR_WAIT( pt, 5000 );
+            TMR_WAIT( pt, 4000 );
         }
 
 
