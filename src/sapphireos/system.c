@@ -788,7 +788,15 @@ PT_BEGIN( pt );
 
     catbus_v_shutdown();
     kv_v_shutdown();
-    log_v_info_P( PSTR("Shutting down...") );
+
+    if( boot_data.loader_command == LDR_CMD_LOAD_FW ){
+
+        log_v_info_P( PSTR("Shutting down for firmware update...") );
+    }
+    else{
+
+        log_v_info_P( PSTR("Shutting down...") );
+    }
     
     while( reboot_delay > 0 ){
 
