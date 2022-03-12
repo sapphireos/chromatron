@@ -1004,7 +1004,8 @@ void init_boost_converter( void ){
 void init_charger( void ){
 
     // turn off charger
-    bq25895_v_set_charger( FALSE );
+    // bq25895_v_set_charger( FALSE );
+    bq25895_v_set_charger( TRUE );
     bq25895_v_set_hiz( TRUE );
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
