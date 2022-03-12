@@ -189,7 +189,6 @@ int8_t sapphire_i8_init( void ){
     status_led_v_init();
 
     #ifdef ENABLE_WIFI
-
     wifi_v_init();
     #endif
 
@@ -201,7 +200,6 @@ int8_t sapphire_i8_init( void ){
     catbus_v_init();
 
     #ifdef ENABLE_TIME_SYNC
-
     time_v_init();
     sntp_v_init();
     #endif
@@ -225,7 +223,7 @@ int8_t sapphire_i8_init( void ){
     dns_v_init();
     #endif
 
-    log_v_info_P( PSTR("Sapphire start: %d"), cpu_u8_get_reset_source() );
+    log_v_info_P( PSTR("Sapphire start") );
     trace_printf( "SapphireOS ready\r\n" );
 
     trace_printf( "HW Rev: %u\r\n", io_u8_get_board_rev() );

@@ -127,6 +127,9 @@ static char hostname[32];
 
 void hal_wifi_v_init( void ){
 
+    // log reset reason for ESP32
+    log_v_info_P( PSTR("ESP reset reason: %d"), esp_reset_reason() );
+
     tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
 
