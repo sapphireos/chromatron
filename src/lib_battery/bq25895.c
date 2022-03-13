@@ -984,9 +984,6 @@ void init_boost_converter( void ){
 
     log_v_debug_P( PSTR("Init boost converter") );
 
-    // turn off charger
-    bq25895_v_set_charger( FALSE );
-
     // boost frequency can only be changed when OTG boost is turned off.
     bq25895_v_set_boost_mode( FALSE );
     bq25895_v_set_boost_1500khz();
@@ -1014,7 +1011,7 @@ void init_charger( void ){
     // turn off charger
     // bq25895_v_set_charger( FALSE );
     bq25895_v_set_charger( TRUE );
-    bq25895_v_set_hiz( TRUE );
+    bq25895_v_set_hiz( FALSE );
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
 
@@ -1075,6 +1072,8 @@ void init_charger( void ){
 
     // turn off ICO
     // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+
+    bq25895_v_set_vindpm( 0 );
 }
 
 
@@ -1141,6 +1140,13 @@ static bool is_charging( void ){
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+// bq25895_v_reset();
+
+// init_charger();
+// init_boost_converter();
+
+// THREAD_EXIT( pt );
 
     vbus_connected = FALSE;
     vindpm = VINDPM_WALL; // wall power
