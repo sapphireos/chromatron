@@ -177,10 +177,10 @@ void _log_v_print_P( uint8_t level, PGM_P file, uint16_t line, PGM_P format, ...
         return;
     }
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return;
-    }
+    //     return;
+    // }
 
     EVENT( EVENT_ID_LOG_RECORD, 0 );
 
