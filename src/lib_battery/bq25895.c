@@ -1020,10 +1020,10 @@ void init_charger( void ){
 
     // charge config for NCR18650B
 
-    bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
+    // bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
 
     // turn off ICO
-    // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+    bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
 
     bq25895_v_set_inlim( 3250 );
     bq25895_v_set_pre_charge_current( 160 );
