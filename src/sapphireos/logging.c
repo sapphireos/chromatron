@@ -75,11 +75,6 @@ static uint32_t max_log_size;
 
 void log_v_init( void ){
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        return;
-    }
-
     if( f > 0 ){
 
         f = fs_f_close( f );
@@ -96,6 +91,11 @@ void log_v_init( void ){
 
         max_log_size = LOG_MAX_SIZE;
         cfg_v_set( CFG_PARAM_MAX_LOG_SIZE, &max_log_size );
+    }
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
     }
 
     #ifdef ENABLE_MSGFLOW
