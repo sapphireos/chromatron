@@ -555,6 +555,8 @@ PT_BEGIN( pt );
                 THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
                 bq25895_v_enable_ship_mode( FALSE );
+                bq25895_v_enable_ship_mode( FALSE );
+                bq25895_v_enable_ship_mode( FALSE );
 
                 _delay_ms( 1000 );
             }
@@ -591,6 +593,8 @@ PT_BEGIN( pt );
 
                 THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
+                bq25895_v_enable_ship_mode( FALSE );
+                bq25895_v_enable_ship_mode( FALSE );
                 bq25895_v_enable_ship_mode( FALSE );
 
                 _delay_ms( 1000 );
