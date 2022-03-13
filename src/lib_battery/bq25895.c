@@ -924,6 +924,8 @@ void bq25895_v_print_regs( void ){
 
 void bq25895_v_set_vindpm( int16_t mv ){
 
+    uint16_t original_mv = mv;
+
     if( mv < 3900 ){
 
         mv = 3900;
@@ -938,15 +940,21 @@ void bq25895_v_set_vindpm( int16_t mv ){
 
     uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_VINDPM );
 
-    // set the force bit
-    reg |= BQ25895_BIT_FORCE_VINDPM;
-
     reg &= ~BQ25895_MASK_VINDPM;
 
-    // make sure force bit is set before we update the setting
-    bq25895_v_write_reg( BQ25895_REG_VINDPM, reg );
-
     reg |= mv;
+
+    // if setting to 0, use relative mode
+    if( original_mv == 0 ){
+
+        // clear the force bit
+        reg &= ~BQ25895_BIT_FORCE_VINDPM;            
+    }
+    else{
+
+        // set the force bit
+        reg |= BQ25895_BIT_FORCE_VINDPM;
+    }
 
     bq25895_v_write_reg( BQ25895_REG_VINDPM, reg );
 }
