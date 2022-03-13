@@ -1148,8 +1148,16 @@ PT_BEGIN( pt );
 
 // THREAD_EXIT( pt );
 
+    init_charger();
+    bq25895_v_set_hiz( TRUE );
+
     vbus_connected = FALSE;
     vindpm = VINDPM_WALL; // wall power
+
+    // wait until we see the battery
+    THREAD_WAIT_WHILE( pt, adc_good == 0 );
+
+    bq25895_v_set_hiz( FALSE );
 
     while(1){
 
@@ -1203,8 +1211,6 @@ PT_BEGIN( pt );
         // init charger
 
         init_charger();
-
-        bq25895_v_set_charger( TRUE );
         bq25895_v_set_hiz( FALSE );
 
 
