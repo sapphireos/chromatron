@@ -1008,10 +1008,11 @@ void init_boost_converter( void ){
 
 void init_charger( void ){
 
-    // turn off charger
-    // bq25895_v_set_charger( FALSE );
+    // enable charger and set HIZ
+    bq25895_v_set_hiz( TRUE );
     bq25895_v_set_charger( TRUE );
-    bq25895_v_set_hiz( FALSE );
+        
+    
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
 
@@ -1086,21 +1087,21 @@ static bool read_adc( void ){
 
     uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
 
-    if( temp_batt_volts != 0 ){
+    if( temp_batt_volts == 0 ){
 
-        batt_volts = temp_batt_volts;
-
-        sys_volts = bq25895_u16_get_sys_voltage();
-        batt_charge_current = bq25895_u16_get_charge_current();
-        therm = bq25895_i8_get_therm();
-        iindpm = bq25895_u16_get_iindpm();
-
-        batt_charge_power = ( (uint32_t)batt_charge_current * (uint32_t)batt_volts ) / 1000;
-
-        return TRUE;
+        return FALSE;
     }
 
-    return FALSE;
+    batt_volts = temp_batt_volts;
+
+    sys_volts = bq25895_u16_get_sys_voltage();
+    batt_charge_current = bq25895_u16_get_charge_current();
+    therm = bq25895_i8_get_therm();
+    iindpm = bq25895_u16_get_iindpm();
+
+    batt_charge_power = ( (uint32_t)batt_charge_current * (uint32_t)batt_volts ) / 1000;
+
+    return TRUE;
 }
 
 
@@ -1141,23 +1142,13 @@ PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-// bq25895_v_reset();
-
-// init_charger();
-// init_boost_converter();
-
-// THREAD_EXIT( pt );
-
     init_charger();
-    bq25895_v_set_hiz( TRUE );
 
     vbus_connected = FALSE;
     vindpm = VINDPM_WALL; // wall power
 
     // wait until we see the battery
     THREAD_WAIT_WHILE( pt, adc_good == 0 );
-
-    bq25895_v_set_hiz( FALSE );
 
     while(1){
 
@@ -1211,8 +1202,6 @@ PT_BEGIN( pt );
         // init charger
 
         init_charger();
-        bq25895_v_set_hiz( FALSE );
-
 
         // wait for VBUS
         vbus_connected = FALSE;
@@ -1262,12 +1251,6 @@ PT_BEGIN( pt );
             vindpm = VINDPM_WALL;
             bq25895_v_set_vindpm( vindpm );
 
-
-            // enable charger and disable HIZ mode
-
-            // bq25895_v_set_hiz( FALSE );
-            // bq25895_v_set_charger( TRUE );
-            
             TMR_WAIT( pt, 4000 );
 
             // check faults
@@ -1294,15 +1277,8 @@ PT_BEGIN( pt );
 
         // not enough current, or VBUS is too high to be a wall charger.  try solar mode.
 
-        // bq25895_v_set_hiz( TRUE );
-        // bq25895_v_set_charger( FALSE );
-
         vindpm = VINDPM_SOLAR;
         bq25895_v_set_vindpm( vindpm );
-
-        // re-enable
-        // bq25895_v_set_hiz( FALSE );
-        // bq25895_v_set_charger( TRUE );
 
         TMR_WAIT( pt, 4000 );
 
@@ -1330,50 +1306,12 @@ PT_BEGIN( pt );
 
         // charger isn't working?
 
-        // disconnect charger
-        // bq25895_v_set_hiz( TRUE );
-        // bq25895_v_set_charger( FALSE );
+        // disconnect vbus
+        bq25895_v_set_hiz( TRUE );
 
         log_v_debug_P( PSTR("Not charging - reset control loop") );
 
         TMR_WAIT( pt, 10000 );
-
-
-
-        // if( bq25895_b_get_vbus_good() && !vbus_connected ){
-
-        //     log_v_debug_P( PSTR("VBUS OK") );
-
-        //     // re-init charger and boost
-        //     bq25895_v_reset();
-        //     init_boost_converter();
-        //     init_charger();
-
-        //     bq25895_v_set_vindpm( vindpm );
-
-        //     vbus_connected = TRUE;
-        // }
-        // else if( vbus_connected ){ 
-
-        //     bq25895_v_set_vindpm( vindpm );
-
-        //     // vbus disconnected, but we were previously connected
-
-        //     if( !bq25895_b_get_vbus_good() ){
-                
-        //         // on really crappy USB sources, we might get spurious disconnects.
-        //         // delay, and then check again before resetting.
-        //         TMR_WAIT( pt, 3000 );
-        //     }
-
-        //     if( !bq25895_b_get_vbus_good() ){
-
-        //         vbus_connected = FALSE;
-        //         log_v_debug_P( PSTR("VBUS disconnected") );
-        //     }
-        // }
-    
-        // TMR_WAIT( pt, 1000 );
     }
 
 PT_END( pt );
@@ -1410,114 +1348,6 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
-
-
-// PT_THREAD( bat_solar_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-
-//     if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
-
-//         THREAD_EXIT( pt );
-//     }
-
-//     while(1){
-
-//         THREAD_WAIT_WHILE( pt, charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE );
-
-//         THREAD_WAIT_WHILE( pt, !vbus_connected );
-
-//         TMR_WAIT( pt, 4000 );
-
-//         if( !vbus_connected ){
-
-//             continue;
-//         }
-
-//         // try wall power mode
-//         vindpm = VINDPM_WALL;
-
-//         TMR_WAIT( pt, 4000 );
-
-//         if( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ){
-
-//             log_v_debug_P( PSTR("Charge VINDPM set to wall") );
-
-//             THREAD_WAIT_WHILE( pt, charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE );
-
-//             continue;
-//         }
-
-//         // try solar mode
-//         vindpm = VINDPM_SOLAR;
-
-//         TMR_WAIT( pt, 4000 );
-
-//         if( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ){
-
-//             log_v_debug_P( PSTR("Charge VINDPM set to solar") );
-
-//             THREAD_WAIT_WHILE( pt, charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE );
-
-//             continue;
-//         }
-
-
-
-
-
-//         // // if( ( vbus_volts > 5500 ) && ( batt_charge_current < 250 ) ){
-
-
-
-//         // // }
-
-
-
-//         //     if( ( vindpm == VINDPM_WALL ) &&
-//         //         ( batt_charge_current < 250 ) ){
-
-//         //         // try solar mode
-//         //         vindpm = VINDPM_SOLAR;
-
-//         //         log_v_debug_P( PSTR("Charge VINDPM set to solar") );
-//         //     }
-//         //     else if( ( vindpm == VINDPM_SOLAR ) &&
-//         //              ( batt_charge_current < 250 ) ){
-
-//         //         // try wall mode
-//         //         vindpm = VINDPM_WALL;
-
-//         //         log_v_debug_P( PSTR("Charge VINDPM set to wall") );
-//             // }        
-
-//         // // check if constant current mode
-//         // if( ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
-//         //     ( batt_volts < ( BQ25895_FLOAT_VOLTAGE - 50 ) ) ){
-
-//         //     if( ( vindpm == VINDPM_WALL ) &&
-//         //         ( batt_charge_current < 250 ) ){
-
-//         //         // try solar mode
-//         //         vindpm = VINDPM_SOLAR;
-
-//         //         log_v_debug_P( PSTR("Charge VINDPM set to solar") );
-//         //     }
-//         //     else if( ( vindpm == VINDPM_SOLAR ) &&
-//         //              ( batt_charge_current < 250 ) ){
-
-//         //         // try wall mode
-//         //         vindpm = VINDPM_WALL;
-
-//         //         log_v_debug_P( PSTR("Charge VINDPM set to wall") );
-//         //     }
-//         // }        
-
-//         // TMR_WAIT( pt, 4000 );
-//     }
-
-// PT_END( pt );
-// }
 
 #endif
 
@@ -1558,11 +1388,6 @@ PT_BEGIN( pt );
                      PSTR("bat_aux_temp"),
                      0,
                      0 );
-
-    // thread_t_create( bat_solar_thread,
-    //                  PSTR("bat_solar"),
-    //                  0,
-    //                  0 );
 
     #endif
 
