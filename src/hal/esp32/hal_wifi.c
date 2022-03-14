@@ -104,12 +104,19 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
 };
 
+// this lives in the wifi driver because it is the easiest place to get to hardware specific code
+// this will init in safe mode
+KV_SECTION_META kv_meta_t safe_mode_config_kv[] = {
+    { CATBUS_TYPE_BOOL,          0, 0,                          0, cfg_i8_kv_handler,             "enable_brownout_restart" },
+};
+
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
+PT_THREAD( brownout_restart_thread( pt_t *pt, void *state ) );
 
 static esp_err_t event_handler(void *ctx, system_event_t *event);
 static volatile bool scan_done;
@@ -129,6 +136,18 @@ void hal_wifi_v_init( void ){
 
     // log reset reason for ESP32
     log_v_info_P( PSTR("ESP reset reason: %d"), esp_reset_reason() );
+
+    if( esp_reset_reason() == ESP_RST_BROWNOUT ){
+
+        if( cfg_b_get_boolean( __KV__enable_brownout_restart ) ){
+
+            thread_t_create( 
+                 brownout_restart_thread,
+                 PSTR("brownout_restart"),
+                 0,
+                 0 );
+        }
+    }
 
     tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
@@ -1290,6 +1309,24 @@ PT_BEGIN( pt );
             
         }
     }
+
+PT_END( pt );
+}
+
+
+#define BROWNOUT_RESTART_TIME 60000
+
+PT_THREAD( brownout_restart_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    log_v_info_P( PSTR("Restart from brownout in %d seconds"), BROWNOUT_RESTART_TIME / 1000 );
+
+    TMR_WAIT( pt, BROWNOUT_RESTART_TIME );
+
+    log_v_info_P( PSTR("Restart from brownout...") );
+
+    sys_v_reboot_delay( SYS_MODE_NORMAL );
 
 PT_END( pt );
 }
