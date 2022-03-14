@@ -250,15 +250,28 @@ uint16_t util_u16_ewma( uint16_t new, uint16_t old, uint8_t ratio ){
         }
     }   
 
-    // check for rounding errors
-    // if( ( new > old ) && ( temp < old ) ){
+    return temp;
+}
 
-    //     temp = old;
-    // }
-    // else if( ( new < old ) && ( temp > old ) ){
 
-    //     temp = old;
-    // }
+uint32_t util_u32_ewma( uint32_t new, uint32_t old, uint8_t ratio ){
+
+    uint32_t temp = ( ( (uint32_t)ratio * new ) / 256 ) +  
+                    ( ( (uint32_t)( 256 - ratio ) * old ) / 256 );
+
+    // check if filter is unchanging
+    if( temp == old ){
+
+        // adjust by minimum
+        if( new > old ){
+
+            temp++;
+        }
+        else if( new < old ){
+
+            temp--;
+        }
+    }   
 
     return temp;
 }
