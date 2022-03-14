@@ -93,6 +93,8 @@
 #define BQ25895_REG_CHARGE_VOLTS            0x06
 #define BQ25895_MASK_CHARGE_VOLTS           0xFC
 #define BQ25895_SHIFT_CHARGE_VOLTS          2
+#define BQ25895_BIT_BATLOWV                ( 1 << 1 )
+#define BQ25895_BIT_VRECHG                 ( 1 << 0 )
 
 #define BQ25895_REG_WATCHDOG                0x07
 #define BQ25895_MASK_WATCHDOG               0x30
@@ -121,14 +123,24 @@
 
 #define BQ25895_REG_POWER_GOOD              0x0B
 #define BQ25895_BIT_POWER_GOOD              ( 1 << 2 )
+#define BQ25895_BIT_SDP_STAT                ( 1 << 1 )
+#define BQ25895_BIT_VSYS_STAT               ( 1 << 0 )
 
 #define BQ25895_REG_FAULT                   0x0C
+#define BQ25895_BIT_WATCHDOG_FAULT          ( 1 << 7 )
+#define BQ25895_BIT_BOOST_FAULT             ( 1 << 6 )
+#define BQ25895_MASK_CHRG_FAULT             0x30
+#define BQ25895_SHIFT_CHRG_FAULT            4
+#define BQ25895_BIT_BAT_FAULT               ( 1 << 3 )
+#define BQ25895_MASK_NTC_FAULT              0x07
+#define BQ25895_SHIFT_NTC_FAULT             0
 
 #define BQ25895_REG_VINDPM                  0x0D
 #define BQ25895_BIT_FORCE_VINDPM            ( 1 << 7 )
 #define BQ25895_MASK_VINDPM                 0x7F
 
 #define BQ25895_REG_BATT_VOLTAGE            0x0E
+#define BQ25895_BIT_THERM_STAT              ( 1 << 7 )
 #define BQ25895_MASK_BATT_VOLTAGE           0x7F
 
 #define BQ25895_REG_SYS_VOLTAGE             0x0F

@@ -911,15 +911,138 @@ uint8_t bq25895_u8_get_device_id( void ){
 }
 
 void bq25895_v_print_regs( void ){
+    
+    uint8_t data;
 
     log_v_debug_P( PSTR("BQ25895:") );
+    
+    data = bq25895_u8_read_reg( 0x00 );
+    bool hiz            = ( data & BQ25895_BIT_ENABLE_HIZ ) != 0;
+    bool en_ilim        = ( data & BQ25895_BIT_ENABLE_ILIM_PIN ) != 0;
+    uint8_t iinlim      = data & BQ25895_MASK_INPUT_CURRENT_LIM;
+    log_v_debug_P( PSTR("0x00 = 0x%02x | HIZ: %d EN_ILIM: %d IINLIM: %d"), data, hiz, en_ilim, iinlim );
 
-    for( uint8_t addr = 0; addr < 0x15; addr++ ){
+    data = bq25895_u8_read_reg( 0x01 );
+    log_v_debug_P( PSTR("0x01 = 0x%02x"), data );    
 
-        uint8_t data = bq25895_u8_read_reg( addr );
+    data = bq25895_u8_read_reg( 0x02 );
+    bool conv_start     = ( data & BQ25895_BIT_ADC_CONV_START ) != 0;
+    bool conv_rate      = ( data & BQ25895_BIT_ADC_CONV_RATE ) != 0;
+    bool boost_freq     = ( data & BQ25895_BIT_BOOST_FREQ ) != 0;
+    bool ico_en         = ( data & BQ25895_BIT_ICO_EN ) != 0;
+    bool hvdcp_en       = ( data & BQ25895_BIT_HVDCP_EN ) != 0;
+    bool maxc_en        = ( data & BQ25895_BIT_MAXC_EN ) != 0;
+    bool force_dpdm     = ( data & BQ25895_BIT_FORCE_DPDM ) != 0;
+    bool auto_dpdm_en   = ( data & BQ25895_BIT_AUTO_DPDM ) != 0;
+    log_v_debug_P( PSTR("0x02 = 0x%02x | CONV_START: %d CONV_RATE: %d BOOST_FREQ: %d ICO_EN: %d HVDCP_EN: %d MAXC_EN: %d FORCE_DPDM: %d AUTO_DPDM_EN: %d"), 
+        data,
+        conv_start,
+        conv_rate,
+        boost_freq,
+        ico_en,
+        hvdcp_en,
+        maxc_en,
+        force_dpdm,
+        auto_dpdm_en );
 
-        log_v_debug_P( PSTR("0x%02x = 0x%02x"), addr, data );
-    }
+    data = bq25895_u8_read_reg( 0x03 );
+    bool otg_config     = ( data & BQ25895_BIT_BOOST_EN ) != 0;
+    bool chg_config     = ( data & BQ25895_BIT_CHARGE_EN ) != 0;
+    uint8_t sys_min     = ( data & BQ25895_MASK_MINSYS ) >> BQ25895_SHIFT_MINSYS;
+    log_v_debug_P( PSTR("0x03 = 0x%02x | OTG_CONFIG: %d CHG_CONFIG: %d SYS_MIN: %d"), data, otg_config, chg_config, sys_min );
+
+    data = bq25895_u8_read_reg( 0x04 );
+    uint8_t ichg        = data & BQ25895_MASK_FAST_CHARGE;
+    log_v_debug_P( PSTR("0x04 = 0x%02x | ICHG: %d"), data, ichg );
+
+    data = bq25895_u8_read_reg( 0x05 );
+    uint8_t iprechg     = ( data & BQ25895_MASK_PRE_CHARGE ) >> BQ25895_SHIFT_PRE_CHARGE;
+    uint8_t iterm       = ( data & BQ25895_MASK_TERM );
+    log_v_debug_P( PSTR("0x05 = 0x%02x | IPRECHG: %d ITERM: %d"), data, iprechg, iterm );
+
+    data = bq25895_u8_read_reg( 0x06 );
+    uint8_t vreg        = ( data & BQ25895_MASK_CHARGE_VOLTS ) >> BQ25895_SHIFT_CHARGE_VOLTS;
+    bool batlowv        = ( data & BQ25895_BIT_BATLOWV ) != 0;
+    bool vrechg         = ( data & BQ25895_BIT_VRECHG ) != 0;
+    log_v_debug_P( PSTR("0x06 = 0x%02x | VREG: %d BATLOWV: %d VRECHG: %d"), data, vreg, batlowv, vrechg );
+
+    data = bq25895_u8_read_reg( 0x07 );
+    log_v_debug_P( PSTR("0x07 = 0x%02x"), data );    
+
+    data = bq25895_u8_read_reg( 0x08 );
+    log_v_debug_P( PSTR("0x08 = 0x%02x"), data );    
+
+    data = bq25895_u8_read_reg( 0x09 );
+    uint8_t batfet_dis  = ( data & BQ25895_BIT_BATFET_DIS ) != 0;
+    uint8_t batfet_dly  = ( data & BQ25895_BIT_BATFET_DLY ) != 0;
+    uint8_t batfet_rst_en  = ( data & BQ25895_BIT_BATFET_RST_EN ) != 0;
+    log_v_debug_P( PSTR("0x09 = 0x%02x | BATFET_DIS: %d BATFET_DLY: %d BATFET_RST_EN: %d"), data, batfet_dis, batfet_dly, batfet_rst_en );
+
+    data = bq25895_u8_read_reg( 0x0A );
+    uint8_t boostv       = ( data & BQ25895_MASK_BOOST_VOLTS ) >> BQ25895_SHIFT_BOOST_VOLTS;
+    log_v_debug_P( PSTR("0x0A = 0x%02x | BOOSTV: %d"), data, boostv );
+
+    data = bq25895_u8_read_reg( 0x0B );
+    uint8_t vbus_stat   = ( data & BQ25895_MASK_VBUS_STATUS ) >> BQ25895_SHIFT_VBUS_STATUS;
+    uint8_t charge_stat = ( data & BQ25895_MASK_CHARGE_STATUS ) >> BQ25895_SHIFT_CHARGE_STATUS;
+    bool pg_stat        = ( data & BQ25895_BIT_POWER_GOOD ) != 0;
+    bool sdp_stat       = ( data & BQ25895_BIT_SDP_STAT ) != 0;
+    bool vsys_stat      = ( data & BQ25895_BIT_VSYS_STAT ) != 0;
+    log_v_debug_P( PSTR("0x0B = 0x%02x | VBUS_STAT: %d CHARGE_STAT: %d PG_STAT: %d SDP_STAT: %d VSYS_STAT: %d"), data, vbus_stat, charge_stat, pg_stat, sdp_stat, vsys_stat );    
+
+    data = bq25895_u8_read_reg( 0x0C );
+    bool watchdog_fault = ( data & BQ25895_BIT_WATCHDOG_FAULT ) != 0;
+    bool boost_fault    = ( data & BQ25895_BIT_BOOST_FAULT ) != 0;
+    uint8_t chrg_fault  = ( data & BQ25895_MASK_CHRG_FAULT ) >> BQ25895_SHIFT_CHRG_FAULT;
+    bool bat_fault      = ( data & BQ25895_BIT_BAT_FAULT ) != 0;
+    uint8_t ntc_fault   = ( data & BQ25895_MASK_NTC_FAULT ) >> BQ25895_SHIFT_NTC_FAULT;
+    log_v_debug_P( PSTR("0x0C = 0x%02x | WATCHDOG_FAULT: %d BOOST_FAULT: %d CHRG_FAULT: %d BAT_FAULT: %d NTC_FAULT: %d"), data, watchdog_fault, boost_fault, chrg_fault, bat_fault, ntc_fault );
+
+    data = bq25895_u8_read_reg( 0x0D );
+    bool force_vindpm   = ( data & BQ25895_BIT_FORCE_VINDPM ) != 0;
+    uint8_t vindpm_reg  = ( data & BQ25895_MASK_VINDPM );
+    log_v_debug_P( PSTR("0x0D = 0x%02x | FORCE_VINDPM: %d VINDPM: %d"), data, force_vindpm, vindpm_reg );
+
+    data = bq25895_u8_read_reg( 0x0E );
+    bool therm_stat    = ( data & BQ25895_BIT_THERM_STAT ) != 0;
+    uint8_t batv       = ( data & BQ25895_MASK_BATT_VOLTAGE );
+    log_v_debug_P( PSTR("0x0E = 0x%02x | THERM_STAT: %d BATV: %d"), data, therm_stat, batv );
+
+    data = bq25895_u8_read_reg( 0x0F );
+    uint8_t sysv       = ( data & BQ25895_MASK_SYS_VOLTAGE );
+    log_v_debug_P( PSTR("0x0F = 0x%02x | SYSV: %d"), data, sysv );
+
+    data = bq25895_u8_read_reg( 0x10 );
+    uint8_t tspct      = data;
+    log_v_debug_P( PSTR("0x10 = 0x%02x | TSPCT: %d"), data, tspct );
+
+    data = bq25895_u8_read_reg( 0x11 );
+    bool vbus_gd       = ( data & BQ25895_BIT_VBUS_GOOD ) != 0;
+    uint8_t vbusv      = ( data & BQ25895_MASK_VBUS_VOLTAGE );
+    log_v_debug_P( PSTR("0x11 = 0x%02x | VBUS_GD: %d VBUSV: %d"), data, vbus_gd, vbusv );    
+
+    data = bq25895_u8_read_reg( 0x12 );
+    uint8_t ichgr      = data;
+    log_v_debug_P( PSTR("0x12 = 0x%02x | ICHGR: %d"), data, ichgr );
+
+    data = bq25895_u8_read_reg( 0x13 );
+    bool vdpm_stat     = ( data & BQ25895_BIT_VINDPM ) != 0;
+    bool idpm_stat     = ( data & BQ25895_BIT_IINDPM ) != 0;
+    uint8_t idpm_lim   = ( data & BQ25895_MASK_IINDPM );
+    log_v_debug_P( PSTR("0x13 = 0x%02x | VDPM_STAT: %d IDPM_STAT: %d IDPM_LIM: %d"), data, vdpm_stat, idpm_stat, idpm_lim );    
+
+    data = bq25895_u8_read_reg( 0x14 );
+    log_v_debug_P( PSTR("0x14 = 0x%02x"), data );    
+
+
+
+
+    // for( uint8_t addr = 0; addr < 0x15; addr++ ){
+
+    //     uint8_t data = bq25895_u8_read_reg( addr );
+
+    //     log_v_debug_P( PSTR("0x%02x = 0x%02x"), addr, data );
+    // }
 }
 
 void bq25895_v_set_vindpm( int16_t mv ){
@@ -1012,7 +1135,7 @@ void init_charger( void ){
     bq25895_v_set_hiz( TRUE );
     bq25895_v_set_charger( TRUE );
         
-    
+
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
 
