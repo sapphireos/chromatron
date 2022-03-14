@@ -242,7 +242,7 @@ PT_BEGIN( pt );
 
         if( gain == VEML7700_ALS_GAIN_x0_125 ){
 
-            if( raw_als < 100 ){
+            if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
 
                 veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
                 continue;
@@ -250,12 +250,12 @@ PT_BEGIN( pt );
         }
         else if( gain == VEML7700_ALS_GAIN_x0_25 ){
 
-            if( raw_als < 100 ){
+            if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
 
                 veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
                 continue;
             }
-            else if( raw_als > 60000 ){
+            else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
 
                 veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
                 continue;
@@ -263,12 +263,12 @@ PT_BEGIN( pt );
         }
         else if( gain == VEML7700_ALS_GAIN_x1 ){
 
-            if( raw_als < 100 ){
+            if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
 
                 veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_100ms );
                 continue;
             }                
-            else if( raw_als > 60000 ){
+            else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
 
                 veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
                 continue;
@@ -276,7 +276,7 @@ PT_BEGIN( pt );
         }
         else if( gain == VEML7700_ALS_GAIN_x2 ){
         
-            if( raw_als > 60000 ){
+            if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
 
                 veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
                 continue;
