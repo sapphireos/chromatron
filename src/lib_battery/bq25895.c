@@ -1275,6 +1275,11 @@ PT_BEGIN( pt );
 
     while(1){
 
+        vbus_connected = FALSE;
+
+        // init charger
+        init_charger();
+
         TMR_WAIT( pt, 20 );
 
       /*
@@ -1318,17 +1323,7 @@ PT_BEGIN( pt );
         // be *disabled*.  If VBUS cannot support the load on SYS, the system will brownout.
         // if the charger is enabled, Q4 is still turned on, so the battery can supplement SYS
         // even if VBUS is weak.
-
         
-
-
-        // init charger
-
-        init_charger();
-
-        // wait for VBUS
-        vbus_connected = FALSE;
-
         THREAD_WAIT_WHILE( pt, !is_vbus_volts_ok() );
 
         if( !is_vbus_volts_ok() ){
@@ -1339,7 +1334,7 @@ PT_BEGIN( pt );
         // disable HIZ and check VBUS good
         bq25895_v_set_hiz( FALSE );
 
-        TMR_WAIT( pt, 500 );
+        TMR_WAIT( pt, 100 );
 
         if( !is_vbus_good() ){
 
@@ -1374,7 +1369,7 @@ PT_BEGIN( pt );
             vindpm = VINDPM_WALL;
             bq25895_v_set_vindpm( vindpm );
 
-            TMR_WAIT( pt, 4000 );
+            TMR_WAIT( pt, 1000 );
 
             // check faults
             if( batt_fault != 0 ){
@@ -1385,7 +1380,7 @@ PT_BEGIN( pt );
             }
 
             // are we charging at least a bit?
-            if( batt_charge_current >= 200 ){
+            if( batt_charge_current >= 100 ){
 
                 log_v_debug_P( PSTR("Charging on wall power") );
 
@@ -1403,7 +1398,7 @@ PT_BEGIN( pt );
         vindpm = VINDPM_SOLAR;
         bq25895_v_set_vindpm( vindpm );
 
-        TMR_WAIT( pt, 4000 );
+        TMR_WAIT( pt, 1000 );
 
         // check faults
         if( batt_fault != 0 ){
@@ -1479,6 +1474,9 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    static bool adc_fault;
+    adc_fault = FALSE;
+
     if( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ){
 
         log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
@@ -1522,41 +1520,30 @@ PT_BEGIN( pt );
         bq25895_v_start_adc_oneshot();
         start_time = tmr_u32_get_system_time_ms();
 
-        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 );
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
 
-        if( bq25895_b_adc_ready() ){
+        if( bq25895_b_adc_ready() && read_adc() ){
 
-            if( read_adc() ){
+            // ADC success
 
-                // ADC success
+            uint16_t elapsed = tmr_u32_elapsed_time_ms( start_time );
 
-                uint16_t elapsed = tmr_u32_elapsed_time_ms( start_time );
+            if( elapsed < adc_time_min ){
 
-                if( elapsed < adc_time_min ){
-
-                    adc_time_min = elapsed;
-                }
-                
-                if( elapsed > adc_time_max ){
-
-                    adc_time_max = elapsed;
-                }
-
-                soc_state = _calc_batt_soc( batt_volts );
-                batt_soc = calc_batt_soc( batt_volts );
-                batt_soc_startup = batt_soc;
-
-                adc_good++;   
+                adc_time_min = elapsed;
             }
-            else{
+            
+            if( elapsed > adc_time_max ){
 
-                adc_fail++;
-
-                log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
-
-                TMR_WAIT( pt, 4000 );
+                adc_time_max = elapsed;
             }
+
+            soc_state = _calc_batt_soc( batt_volts );
+            batt_soc = calc_batt_soc( batt_volts );
+            batt_soc_startup = batt_soc;
+
+            adc_good++;   
         }
         else{
 
@@ -1564,7 +1551,9 @@ PT_BEGIN( pt );
 
             log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
 
-            TMR_WAIT( pt, 4000 );
+            // try hiz mode
+            bq25895_v_set_hiz( TRUE );
+            continue;
         }
 
 
