@@ -1323,6 +1323,10 @@ PT_BEGIN( pt );
         // be *disabled*.  If VBUS cannot support the load on SYS, the system will brownout.
         // if the charger is enabled, Q4 is still turned on, so the battery can supplement SYS
         // even if VBUS is weak.
+
+        // NOTE:
+        // HIZ will be reset to disabled each time VBUS comes up.
+        
         
         THREAD_WAIT_WHILE( pt, !is_vbus_volts_ok() );
 
