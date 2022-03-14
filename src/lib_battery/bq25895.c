@@ -1115,7 +1115,7 @@ void init_boost_converter( void ){
     // set boost voltage
     if( boost_voltage == 0 ){
 
-        boost_voltage = 4700;
+        boost_voltage = 5100;
     }
     else if( boost_voltage > BQ25895_MAX_BOOST_VOLTAGE ){
 
