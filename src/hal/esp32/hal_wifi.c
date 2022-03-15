@@ -1320,6 +1320,11 @@ PT_THREAD( brownout_restart_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        THREAD_EXIT( pt );
+    }
+
     log_v_info_P( PSTR("Restart from brownout in %d seconds"), BROWNOUT_RESTART_TIME / 1000 );
 
     TMR_WAIT( pt, BROWNOUT_RESTART_TIME );
