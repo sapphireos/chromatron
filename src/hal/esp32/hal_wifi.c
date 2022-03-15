@@ -49,7 +49,7 @@
 static uint8_t wifi_mac[6];
 static int8_t wifi_rssi;
 static uint8_t wifi_bssid[6];
-static int8_t wifi_router;
+static int8_t wifi_router = -1;
 static int8_t wifi_channel;
 static uint32_t wifi_uptime;
 static uint8_t wifi_connects;
