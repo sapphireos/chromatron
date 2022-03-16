@@ -59,6 +59,8 @@ static uint16_t raw_white;
 static uint8_t gain;
 static uint8_t int_time;
 
+#define FILTER_RATIO 16
+
 KV_SECTION_META kv_meta_t veml7700_kv[] = {
     {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &als,               0, "veml7700_als"},   
     {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,             0, "veml7700_white"},   
@@ -286,8 +288,8 @@ PT_BEGIN( pt );
         als = calc_lux( raw_als, gain, int_time );
         white = calc_lux( raw_white, gain, int_time );
 
-        filtered_als = util_u32_ewma( als, filtered_als, 32 );
-        filtered_white = util_u32_ewma( white, filtered_white, 32 );
+        filtered_als = util_u32_ewma( als, filtered_als, FILTER_RATIO );
+        filtered_white = util_u32_ewma( white, filtered_white, FILTER_RATIO );
 
         // log_v_debug_P( PSTR("%d %d"), raw_als, raw_white );
     }
