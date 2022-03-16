@@ -137,16 +137,13 @@ void hal_wifi_v_init( void ){
     // log reset reason for ESP32
     log_v_info_P( PSTR("ESP reset reason: %d"), esp_reset_reason() );
 
-    if( esp_reset_reason() == ESP_RST_BROWNOUT ){
+    if( cfg_b_get_boolean( __KV__enable_brownout_restart ) ){
 
-        if( cfg_b_get_boolean( __KV__enable_brownout_restart ) ){
-
-            thread_t_create( 
-                 brownout_restart_thread,
-                 PSTR("brownout_restart"),
-                 0,
-                 0 );
-        }
+        thread_t_create( 
+             brownout_restart_thread,
+             PSTR("brownout_restart"),
+             0,
+             0 );
     }
 
     tcpip_adapter_init();
@@ -1325,11 +1322,23 @@ PT_BEGIN( pt );
         THREAD_EXIT( pt );
     }
 
-    log_v_info_P( PSTR("Restart from brownout in %d seconds"), BROWNOUT_RESTART_TIME / 1000 );
+    if( esp_reset_reason() == ESP_RST_BROWNOUT ){
 
+        log_v_info_P( PSTR("Restart from brownout in %d seconds"), BROWNOUT_RESTART_TIME / 1000 );
+    }
+    else if( esp_reset_reason() == ESP_RST_PANIC ){
+
+        log_v_info_P( PSTR("Restart from panic in %d seconds"), BROWNOUT_RESTART_TIME / 1000 );
+    }
+    else{
+
+        THREAD_EXIT( pt );    
+    }
+
+    
     TMR_WAIT( pt, BROWNOUT_RESTART_TIME );
 
-    log_v_info_P( PSTR("Restart from brownout...") );
+    log_v_info_P( PSTR("Restart from safe mode...") );
 
     sys_v_reboot_delay( SYS_MODE_NORMAL );
 
