@@ -125,8 +125,8 @@ class Var(object):
 
     @property
     def name(self):
-        if self.const:
-            return f'${self._name}'
+        # if self.const:
+            # return f'${self._name}'
 
         return f'{self._name}'
 
@@ -182,10 +182,15 @@ class Var(object):
 
     def __str__(self):
         if self.addr is None:
-            return f'{self.ssa_name}({self.data_type})'
+            s = f'{self.ssa_name}({self.data_type})'
 
         else:
-            return f'{self.ssa_name}({self.data_type})@0x{self.addr}'
+            s = f'{self.ssa_name}({self.data_type})@0x{self.addr}'
+
+        if self.const:
+            s = f'${s}'
+
+        return s
 
     def lookup(self, indexes=[], lineno=None):
         return self

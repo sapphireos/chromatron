@@ -4,7 +4,7 @@ from .types import *
 from .ir2 import *
 import logging
 
-INIT_TEMP_VAR = '__init_zero__'
+INIT_TEMP_VAR = '__init_temp__'
 
 class Builder(object):
     def __init__(self, script_name='fx_script', source=[]):

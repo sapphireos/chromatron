@@ -3961,6 +3961,8 @@ class irLoadConst(IR):
         self.target = target
         self.value = value
 
+        self.target.value = value
+
     @property
     def value_number(self):
         return self.target
@@ -4307,7 +4309,7 @@ class irBinop(IR):
             assert False
 
         ir = irLoadConst(self.target, val, lineno=self.lineno)
-        self.target.name = f'{val}'
+        # self.target.name = f'{val}'
 
         self.target.value = val
 

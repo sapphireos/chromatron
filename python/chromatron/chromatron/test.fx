@@ -9,13 +9,15 @@ def init():
     a = Number()
     b = Number()
 
-    # b = 3
+    b = 3
 
-    # a = b + 1 + 2 + 7 + b
+    a = b + 1 + 2 + 7 + b
     # a += 1
     # a = 1 + 2
 
-    a = a + 1 + 2 + 3
+    # a = 2
+    # # a = a + 1
+    # a = a + 1 + a + 3 + a
 
     # a = a + 2 + 3
     # b = 1 + 2 + 3
@@ -44,7 +46,7 @@ def init():
 #     b = a
 #     a = b
 
-#     return 
+#     return a
         
 
 
