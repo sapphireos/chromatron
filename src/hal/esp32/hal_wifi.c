@@ -67,6 +67,7 @@ static bool wifi_shutdown;
 static uint8_t disconnect_reason;
 
 static uint8_t scan_backoff;
+static uint8_t current_scan_backoff;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
@@ -540,6 +541,12 @@ uint32_t wifi_u32_get_power( void ){
     return WIFI_POWER_PS_MODEM_MIN;
 }
 
+void wifi_v_reset_scan_timeout( void ){
+
+    scan_backoff = 0;
+    current_scan_backoff = 0;
+}
+
 int8_t wifi_i8_get_status( void ){
 
     return 0;
@@ -881,7 +888,6 @@ PT_BEGIN( pt );
     // log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
 
     static uint16_t scan_timeout;
-    static uint8_t current_scan_backoff;
 
     connected = FALSE;
     wifi_rssi = -127;
@@ -1222,7 +1228,7 @@ end:
 
     THREAD_WAIT_WHILE( pt, wifi_b_connected() && !wifi_shutdown );
     
-    log_v_debug_P( PSTR("Wifi disconnected") );
+    log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d ch: %d"), wifi_rssi, wifi_channel );
 
     THREAD_RESTART( pt );
 

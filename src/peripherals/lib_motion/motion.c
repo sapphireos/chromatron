@@ -24,6 +24,8 @@
 
 #include "motion.h"
 
+#ifdef ESP32
+
 #define MAX_SENSORS 2
 
 static bool motion_detected;
@@ -174,3 +176,4 @@ void motion_v_init( void ){
     //                  0 );
 }
 
+#endif

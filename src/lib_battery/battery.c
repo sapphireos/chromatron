@@ -592,6 +592,14 @@ PT_BEGIN( pt );
             }
         }
 
+        // if button 0 was pressed:
+        if( button_state & 1 ){
+
+            // quick way to force a wifi scan if the device has the wifi powered down
+            // if it couldn't find a router.
+            wifi_v_reset_scan_timeout();
+        }
+
 
         // check for shutdown
         if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){
