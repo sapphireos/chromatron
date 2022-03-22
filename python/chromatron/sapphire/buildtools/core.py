@@ -1183,7 +1183,11 @@ class AppBuilder(HexBuilder):
         # create binary look up table
         kv_index = bytes()
         for a in sorted_hashes:
-            kv_index += struct.pack('<LB', a, kv_meta_by_hash[a][1])
+            try:
+                kv_index += struct.pack('<LH', a, kv_meta_by_hash[a][1])
+            except struct.error:
+                logging.error(f'Index lookup table creation failed with {len(sorted_hashes)} items')
+                raise
 
         # get temp size with index and 16 bit crc
         temp_size = ih.maxaddr() - ih.minaddr() + 1 + len(kv_index) + 2
@@ -1227,6 +1231,7 @@ class AppBuilder(HexBuilder):
         logging.info("size: %d" % (size))
         logging.info("fwid: %s" % (fwid))
         logging.info("fwinfo: %x" % (fw_info_addr))
+        logging.info("kv index count: %d" % (len(sorted_hashes)))
         logging.info("kv index len: %d" % (len(kv_index)))
         logging.info("kv index addr: 0x%0x" % (kv_index_addr))
         logging.info("os name: %s" % (os_project.proj_name))

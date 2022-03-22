@@ -33,6 +33,7 @@
 #include "keyvalue.h"
 #include "gfx_lib.h"
 #include "vm.h"
+#include "battery.h"
 
 #ifdef PIXEL_USE_MALLOC
 static uint8_t *array_red __attribute__((aligned(4)));
@@ -61,6 +62,7 @@ static uint16_t target_val[MAX_PIXELS];
 
 static uint16_t global_hs_fade = 1000;
 static uint16_t global_v_fade = 1000;
+static uint16_t dimmer_fade = 1000;
 static uint16_t hs_fade[MAX_PIXELS];
 static uint16_t v_fade[MAX_PIXELS];
 
@@ -69,7 +71,7 @@ static int16_t sat_step[MAX_PIXELS];
 static int16_t val_step[MAX_PIXELS];
 
 static bool gfx_enable = TRUE;
-static bool pixels_powered = TRUE;
+static bool sys_enable = TRUE; // internal system control
 static uint16_t pix_master_dimmer = 0;
 static uint16_t pix_sub_dimmer = 0;
 static uint16_t target_dimmer = 0;
@@ -228,6 +230,57 @@ static void param_error_check( void ){
     }
 }
 
+
+static uint16_t calc_dimmer( void ){
+
+    return ( (uint32_t)pix_master_dimmer * (uint32_t)pix_sub_dimmer ) / 65536;    
+}
+
+static void update_master_fader( void ){
+
+    uint16_t fade_steps = dimmer_fade / FADER_RATE;
+
+    if( fade_steps <= 1 ){
+
+        fade_steps = 2;
+    }
+
+    if( gfx_enable && sys_enable ){
+
+        target_dimmer = calc_dimmer();
+    }
+    else{
+
+        target_dimmer = 0;
+    }
+
+    int32_t diff = (int32_t)target_dimmer - (int32_t)current_dimmer;
+    int32_t step = diff / fade_steps;
+
+    if( step > 32768 ){
+
+        step = 32768;
+    }
+    else if( step < -32767 ){
+
+        step = -32767;
+    }
+    else if( step == 0 ){
+
+        if( diff >= 0 ){
+
+            step = 1;
+        }
+        else{
+
+            step = -1;
+        }
+    }
+
+    dimmer_step = step;
+}
+
+
 int8_t pix_i8_count_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -243,21 +296,21 @@ int8_t pix_i8_count_handler(
 }
 
 KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[0],        pix_i8_count_handler,    "pix_count" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[0],        pix_i8_count_handler,    "pix_count" },
     #if N_PIXEL_OUTPUTS > 1
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[1],        pix_i8_count_handler,    "pix_count_1" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[1],        pix_i8_count_handler,    "pix_count_1" },
     #endif
     #if N_PIXEL_OUTPUTS > 2
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[2],        pix_i8_count_handler,    "pix_count_2" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[2],        pix_i8_count_handler,    "pix_count_2" },
     #endif
     #if N_PIXEL_OUTPUTS > 3
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[3],        pix_i8_count_handler,    "pix_count_3" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[3],        pix_i8_count_handler,    "pix_count_3" },
     #endif
     #if N_PIXEL_OUTPUTS > 4
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[4],        pix_i8_count_handler,    "pix_count_4" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[4],        pix_i8_count_handler,    "pix_count_4" },
     #endif
     #if N_PIXEL_OUTPUTS > 5
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[5],        pix_i8_count_handler,    "pix_count_5" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST, &pix_counts[5],        pix_i8_count_handler,    "pix_count_5" },
     #endif
 };
 
@@ -291,6 +344,10 @@ int8_t gfx_i8_kv_handler(
                 v_fade[i] = global_v_fade;   
             }
         }
+        else if( hash == __KV__gfx_dimmer_fade ){
+
+            update_master_fader();
+        }
         else if( hash == __KV__gfx_dimmer_curve ){
 
             compute_dimmer_lookup();
@@ -305,28 +362,29 @@ int8_t gfx_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,                   "pix_size_x" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  0,                   "pix_size_y" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,                   "gfx_interleave_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,                   "gfx_invert_x" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,                   "pix_size_x" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  0,                   "pix_size_y" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,                   "gfx_interleave_x" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,                   "gfx_invert_x" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &dimmer_fade,                 gfx_i8_kv_handler,   "gfx_dimmer_fade" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
         
     #ifdef ENABLE_VIRTUAL_ARRAY
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,                   "gfx_varray_length" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,                   "gfx_varray_length" },
     #endif
 
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
     
     #ifdef ENABLE_CHANNEL_MASK
-    { SAPPHIRE_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
     #endif
 };
 
@@ -344,55 +402,6 @@ static void setup_master_array( void ){
     pix_arrays[0].count = pix_count;
     pix_arrays[0].size_x = pix_size_x;
     pix_arrays[0].size_y = pix_size_y;    
-}
-
-static uint16_t calc_dimmer( void ){
-
-    return ( (uint32_t)pix_master_dimmer * (uint32_t)pix_sub_dimmer ) / 65536;    
-}
-
-static void update_master_fader( void ){
-
-    uint16_t fade_steps = global_v_fade / FADER_RATE;
-
-    if( fade_steps <= 1 ){
-
-        fade_steps = 2;
-    }
-
-    if( gfx_enable ){
-
-        target_dimmer = calc_dimmer();
-    }
-    else{
-
-        target_dimmer = 0;
-    }
-
-    int32_t diff = (int32_t)target_dimmer - (int32_t)current_dimmer;
-    int32_t step = diff / fade_steps;
-
-    if( step > 32768 ){
-
-        step = 32768;
-    }
-    else if( step < -32767 ){
-
-        step = -32767;
-    }
-    else if( step == 0 ){
-
-        if( diff >= 0 ){
-
-            step = 1;
-        }
-        else{
-
-            step = -1;
-        }
-    }
-
-    dimmer_step = step;
 }
 
 void gfx_v_set_pix_mode( uint8_t mode ){
@@ -1588,40 +1597,14 @@ void gfx_v_shutdown_graphic( void ){
     array_blue[0] = 16;    
 }
 
-void gfx_b_enable( void ){
+void gfx_v_power_limiter_graphic( void ){
 
-    gfx_enable = TRUE;    
-}
+    memset( array_red, 0, MAX_PIXELS );
+    memset( array_green, 0, MAX_PIXELS );
+    memset( array_blue, 0, MAX_PIXELS );
+    memset( array_misc, 0, MAX_PIXELS );
 
-void gfx_b_disable( void ){
-
-    gfx_enable = FALSE;    
-}
-
-bool gfx_b_enabled( void ){
-
-    if( !pixels_powered ){
-
-        return FALSE;
-    }
-
-    // if( gfx_enable && ( current_dimmer > 0 ) ){
-
-    //     return TRUE;
-    // }   
-
-    // return FALSE;
-    if( !gfx_enable && ( current_dimmer == 0 ) ){
-
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-void gfx_v_set_pixel_power( bool enabled ){
-
-    pixels_powered = enabled;
+    array_red[0] = 64;
 }
 
 void gfx_v_reset( void ){
@@ -1771,6 +1754,16 @@ uint16_t gfx_u16_get_dimmed_val( uint16_t _val ){
 uint16_t gfx_u16_get_curved_sat( uint16_t _sat ){
 
     return linterp_table_lookup( _sat, sat_lookup );
+}
+
+void gfx_v_set_system_enable( bool enable ){
+
+    sys_enable = enable;
+}
+
+bool gfx_b_is_system_enabled( void ){
+
+    return sys_enable;
 }
 
 void gfx_v_process_faders( void ){

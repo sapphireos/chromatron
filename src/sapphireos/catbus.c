@@ -59,17 +59,17 @@ static int8_t _catbus_i8_meta_handler(
     uint16_t len );
 
 KV_SECTION_META kv_meta_t catbus_metatags_kv[] = {
-    { SAPPHIRE_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_name" },
-    { SAPPHIRE_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_location" },
-    { SAPPHIRE_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_0" },
-    { SAPPHIRE_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_1" },
-    { SAPPHIRE_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_2" },
-    { SAPPHIRE_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_3" },
-    { SAPPHIRE_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_4" },
-    { SAPPHIRE_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_5" },
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_name" },
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_location" },
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_0" },
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_1" },
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_2" },
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_3" },
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_4" },
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler,  "meta_tag_5" },
 
-    { SAPPHIRE_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler, "meta_cmd_add" },
-    { SAPPHIRE_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler, "meta_cmd_rm" },
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler, "meta_cmd_add" },
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _catbus_i8_meta_handler, "meta_cmd_rm" },
 };
 
 static const PROGMEM catbus_hash_t32 meta_tag_names[CATBUS_QUERY_LEN] = {

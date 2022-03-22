@@ -97,7 +97,7 @@ typedef int8_t ( *kv_handler_t )(
     uint16_t len );
     
 typedef struct  __attribute__((packed, aligned(4))){
-    sapphire_type_t8 type;
+    catbus_type_t8 type;
     uint8_t array_len;
     kv_flags_t8 flags;
     void *ptr;
@@ -109,7 +109,7 @@ typedef struct  __attribute__((packed, aligned(4))){
 
 typedef struct  __attribute__((packed)){
     catbus_hash_t32 hash;
-    uint8_t index;
+    uint16_t index;
 } kv_hash_index_t;
 
 
@@ -120,7 +120,7 @@ typedef struct  __attribute__((packed)){
 void kv_v_init( void );
 
 int16_t kv_i16_len( catbus_hash_t32 hash );
-sapphire_type_t8 kv_i8_type( catbus_hash_t32 hash );
+catbus_type_t8 kv_i8_type( catbus_hash_t32 hash );
 void kv_v_reset_cache( void );
 
 int8_t kv_i8_persist( catbus_hash_t32 hash );
@@ -150,6 +150,8 @@ int8_t kv_i8_array_get(
     uint16_t count,
     void *data,
     uint16_t max_len );
+
+bool kv_b_get_boolean( catbus_hash_t32 hash );
 
 int16_t kv_i16_search_hash( catbus_hash_t32 hash );
 int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN] );

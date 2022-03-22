@@ -254,7 +254,10 @@ class cg1Module(cg1Node):
                     dest = node.params[0].s
                     query = [a.s for a in node.params[2].items]
                     try:
-                        rate = node.params[3].s
+                        rate = int(node.params[3].s)
+
+                    except AttributeError:
+                        rate = int(node.params[3].name)
                     
                     except IndexError:
                         rate = 1000

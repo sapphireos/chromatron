@@ -43,8 +43,8 @@ static uint8_t test_service_priority;
 static uint8_t test_service_mode;
 
 KV_SECTION_META kv_meta_t services_test_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,  0, 0, &test_service_priority,   0,  "test_service_priority" },
-    { SAPPHIRE_TYPE_UINT8,  0, 0, &test_service_mode,       0,  "test_service_mode" },
+    { CATBUS_TYPE_UINT8,  0, 0, &test_service_priority,   0,  "test_service_priority" },
+    { CATBUS_TYPE_UINT8,  0, 0, &test_service_mode,       0,  "test_service_mode" },
 };
 
 
@@ -332,7 +332,7 @@ static void load_cached_service( service_state_t *service ){
 }
 
 
-static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -1070,7 +1070,7 @@ static bool compare_self( service_state_t *service ){
                 // log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
             // }
 
-            log_v_debug_P( PSTR("uptime ***") );
+            // log_v_debug_P( PSTR("uptime ***") );
 
             return FALSE;
         }

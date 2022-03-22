@@ -31,12 +31,12 @@
 
 #include "driver/spi_master.h"
 
-static spi_device_handle_t spi;
-static spi_device_interface_config_t devcfg;
+static spi_device_handle_t spi[N_SPI_PORTS];
+static spi_device_interface_config_t devcfg[N_SPI_PORTS];
 
 spi_device_handle_t hal_spi_s_get_handle( void ){
 
-    return spi;
+    return spi[0];
 }
 
 void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
@@ -44,84 +44,133 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 	ASSERT( channel < N_SPI_PORTS );
 	ASSERT( freq > 0 );
 
-    io_v_set_mode( HAL_SPI_MISO, IO_MODE_INPUT );
-    io_v_set_mode( HAL_SPI_MOSI, IO_MODE_OUTPUT );
-    io_v_set_mode( HAL_SPI_SCK, IO_MODE_OUTPUT );
+    if( spi[channel] != 0 ){
 
-	if( spi != 0 ){
-
-		spi_bus_remove_device( spi );
-		spi = 0;
+		spi_bus_remove_device( spi[channel] );
+		spi[channel] = 0;
 	}
 
-	spi_bus_free( HAL_SPI_PORT );
+    
+    spi_bus_config_t buscfg = {
+            .quadwp_io_num      = -1,
+            .quadhd_io_num      = -1,
+            .max_transfer_sz    = 256,
+            .intr_flags         = ESP_INTR_FLAG_IRAM,
+        };
 
-	spi_bus_config_t buscfg = {
-        .miso_io_num 		= hal_io_i32_get_gpio_num( HAL_SPI_MISO ),
-        .mosi_io_num 		= hal_io_i32_get_gpio_num( HAL_SPI_MOSI ),
-        .sclk_io_num 		= hal_io_i32_get_gpio_num( HAL_SPI_SCK ),
-        .quadwp_io_num 		= -1,
-        .quadhd_io_num 		= -1,
-        .max_transfer_sz    = PIXEL_BUF_SIZE, // increase max transfer size to pixel bufs
-        // if this is the default (0), it is set to 4094 bytes which is the max for a single
-        // DMA transfer.
-        // if increased beyond that limit, the ESP32 library code will allocate additional
-        // DMA descriptors and link them.
-        .intr_flags         = ESP_INTR_FLAG_IRAM,
-    };
+    uint8_t port;
 
-	ESP_ERROR_CHECK(spi_bus_initialize( HAL_SPI_PORT, &buscfg, 1 )); // DMA channel 1
+    if( channel == PIXEL_SPI_CHANNEL ){
+
+        port = HAL_PIXEL_PORT;
+
+        io_v_set_mode( HAL_PIXEL_MISO, IO_MODE_INPUT );
+        io_v_set_mode( HAL_PIXEL_MOSI, IO_MODE_OUTPUT );
+        io_v_set_mode( HAL_PIXEL_SCK, IO_MODE_OUTPUT );
+
+        buscfg.miso_io_num = hal_io_i32_get_gpio_num( HAL_PIXEL_MISO );
+        buscfg.mosi_io_num = hal_io_i32_get_gpio_num( HAL_PIXEL_MOSI );
+        buscfg.sclk_io_num = hal_io_i32_get_gpio_num( HAL_PIXEL_SCK );
+        buscfg.max_transfer_sz = PIXEL_BUF_SIZE; // increase max transfer size to pixel bufs
+    }
+    else{
+
+        port = HAL_SPI_PORT;   
+    
+        io_v_set_mode( HAL_SPI_MISO, IO_MODE_INPUT );
+        io_v_set_mode( HAL_SPI_MOSI, IO_MODE_OUTPUT );
+        io_v_set_mode( HAL_SPI_SCK, IO_MODE_OUTPUT );
+
+        buscfg.miso_io_num = hal_io_i32_get_gpio_num( HAL_SPI_MISO );
+        buscfg.mosi_io_num = hal_io_i32_get_gpio_num( HAL_SPI_MOSI );
+        buscfg.sclk_io_num = hal_io_i32_get_gpio_num( HAL_SPI_SCK );
+    }
+
+	spi_bus_free( port );
+
+    if( channel == PIXEL_SPI_CHANNEL ){
+    
+	   ESP_ERROR_CHECK(spi_bus_initialize( port, &buscfg, 1 )); // DMA channel 1
+    }
+    else{
+
+        ESP_ERROR_CHECK(spi_bus_initialize( port, &buscfg, 0 )); // no DMA
+    }
 
 	
-    devcfg.clock_speed_hz   = freq;
-    devcfg.mode             = mode;                            
-    devcfg.spics_io_num     = -1;
-    devcfg.queue_size       = 7;       
+    devcfg[channel].clock_speed_hz   = freq;
+    devcfg[channel].mode             = mode;                            
+    devcfg[channel].spics_io_num     = -1;
+    devcfg[channel].queue_size       = 7;       
 
-    ESP_ERROR_CHECK(spi_bus_add_device( HAL_SPI_PORT, &devcfg, &spi ));   
+    ESP_ERROR_CHECK(spi_bus_add_device( port, &devcfg[channel], &spi[channel] ));   
 }
 
 void spi_v_release( void ){
 
 	// tristate all IO
-	io_v_set_mode( HAL_SPI_MISO, IO_MODE_INPUT );
-    io_v_set_mode( HAL_SPI_MOSI, IO_MODE_INPUT );
-    io_v_set_mode( HAL_SPI_SCK, IO_MODE_INPUT );
+	io_v_set_mode( HAL_PIXEL_MISO, IO_MODE_INPUT );
+    io_v_set_mode( HAL_PIXEL_MOSI, IO_MODE_INPUT );
+    io_v_set_mode( HAL_PIXEL_SCK, IO_MODE_INPUT );
 }
 
 void spi_v_set_freq( uint8_t channel, uint32_t freq ){
 
     ASSERT( channel < N_SPI_PORTS );
 
-    if( spi != 0 ){
+    uint8_t port;
 
-        spi_bus_remove_device( spi );
-        spi = 0;
+    if( channel == PIXEL_SPI_CHANNEL ){
+
+        port = HAL_PIXEL_PORT;
+
+    }
+    else{
+
+        port = HAL_SPI_PORT;   
     }
 
-    devcfg.clock_speed_hz = freq;
+    if( spi[channel] != 0 ){
 
-    ESP_ERROR_CHECK(spi_bus_add_device( HAL_SPI_PORT, &devcfg, &spi ));   
+        spi_bus_remove_device( spi[channel] );
+        spi[channel] = 0;
+    }
+
+    devcfg[channel].clock_speed_hz = freq;
+
+    ESP_ERROR_CHECK(spi_bus_add_device( port, &devcfg[channel], &spi[channel] ));   
 }
 
 uint32_t spi_u32_get_freq( uint8_t channel ){
 
 	ASSERT( channel < N_SPI_PORTS );
 
-	return devcfg.clock_speed_hz;
+	return devcfg[channel].clock_speed_hz;
 }
 
 void spi_v_set_mode( uint8_t channel, uint8_t mode ){
 
-    if( spi != 0 ){
+    if( spi[channel] != 0 ){
 
-        spi_bus_remove_device( spi );
-        spi = 0;
+        spi_bus_remove_device( spi[channel] );
+        spi[channel] = 0;
     }
 
-    devcfg.mode = mode;
+    devcfg[channel].mode = mode;
 
-    ESP_ERROR_CHECK(spi_bus_add_device( HAL_SPI_PORT, &devcfg, &spi ));   
+    uint8_t port;
+
+    if( channel == PIXEL_SPI_CHANNEL ){
+
+        port = HAL_PIXEL_PORT;
+
+    }
+    else{
+
+        port = HAL_SPI_PORT;   
+    }
+
+    ESP_ERROR_CHECK(spi_bus_add_device( port, &devcfg[channel], &spi[channel] ));   
 }
 
 uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
@@ -136,7 +185,7 @@ uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
 	transaction.tx_buffer = &data;
 	transaction.rx_buffer = &rx_data;
 
-	spi_device_polling_transmit( spi, &transaction );
+	spi_device_polling_transmit( spi[channel], &transaction );
 
 	return rx_data;
 }
@@ -151,7 +200,7 @@ void spi_v_write_block( uint8_t channel, const uint8_t *data, uint16_t length ){
 	transaction.tx_buffer = data;
 	transaction.rx_buffer = 0;
 
-	spi_device_polling_transmit( spi, &transaction );
+	spi_device_polling_transmit( spi[channel], &transaction );
 }
 
 void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
@@ -159,11 +208,11 @@ void spi_v_read_block( uint8_t channel, uint8_t *data, uint16_t length ){
 	ASSERT( channel < N_SPI_PORTS );
 	
 	spi_transaction_t transaction = { 0 };
-	transaction.length = 0;
+	transaction.length = (uint32_t)length * 8;
 	transaction.rxlength = (uint32_t)length * 8;
 	transaction.tx_buffer = 0;
 	transaction.rx_buffer = data;
 
-	spi_device_polling_transmit( spi, &transaction );
+	spi_device_polling_transmit( spi[channel], &transaction );
 }
 

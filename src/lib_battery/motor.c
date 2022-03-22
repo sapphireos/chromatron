@@ -34,11 +34,11 @@ static volatile uint16_t position;
 static int16_t diff;
 
 KV_SECTION_META kv_meta_t motor_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,  0, 0,    &motor_state,              0,        "motor_state" },
-    { SAPPHIRE_TYPE_UINT16, 0, 0,    &target_position,          0,        "motor_target" },
-    { SAPPHIRE_TYPE_UINT16, 0, 0,    (uint16_t *)&position,     0,        "motor_position" },
+    { CATBUS_TYPE_UINT8,  0, 0,    &motor_state,              0,        "motor_state" },
+    { CATBUS_TYPE_UINT16, 0, 0,    &target_position,          0,        "motor_target" },
+    { CATBUS_TYPE_UINT16, 0, 0,    (uint16_t *)&position,     0,        "motor_position" },
 
-    { SAPPHIRE_TYPE_INT32,  0, 0,    &diff,                     0,        "motor_diff" },
+    { CATBUS_TYPE_INT32,  0, 0,    &diff,                     0,        "motor_diff" },
 };
 
 #define MOTOR_IO_0 	IO_PIN_16_RX

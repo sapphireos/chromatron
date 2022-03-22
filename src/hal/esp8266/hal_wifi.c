@@ -65,44 +65,49 @@ static bool default_ap_mode;
 
 static bool connected;
 
+static bool wifi_shutdown;
+
+static uint8_t scan_backoff;
+static uint8_t current_scan_backoff;
+
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
-    { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
-    { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
-    { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_ssid2" },
-    { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_password2" },
-    { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_ssid3" },
-    { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_password3" },
-    { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_ssid4" },
-    { SAPPHIRE_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_password4" },
-    { SAPPHIRE_TYPE_BOOL,          0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_enable_ap" },    
-    { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_ssid" },
-    { SAPPHIRE_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_password" },
+    { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
+    { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
+    { CATBUS_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_ssid2" },
+    { CATBUS_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_password2" },
+    { CATBUS_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_ssid3" },
+    { CATBUS_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_password3" },
+    { CATBUS_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_ssid4" },
+    { CATBUS_TYPE_STRING32,      0, KV_FLAGS_PERSIST,           0,                  0,                   "wifi_password4" },
+    { CATBUS_TYPE_BOOL,          0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_enable_ap" },    
+    { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_ssid" },
+    { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_password" },
 
-    { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_PERSIST,           &tx_power,          0,                   "wifi_tx_power" },
+    { CATBUS_TYPE_UINT8,         0, KV_FLAGS_PERSIST,           &tx_power,          0,                   "wifi_tx_power" },
 };
 
 KV_SECTION_META kv_meta_t wifi_info_kv[] = {
-    { SAPPHIRE_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY,   &wifi_mac,                         0,   "wifi_mac" },
-    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY,   &wifi_rssi,                        0,   "wifi_rssi" },
-    { SAPPHIRE_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,   &wifi_uptime,                      0,   "wifi_uptime" },
-    { SAPPHIRE_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_connects,                    0,   "wifi_connects" },
+    { CATBUS_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY,   &wifi_mac,                         0,   "wifi_mac" },
+    { CATBUS_TYPE_INT8,          0, KV_FLAGS_READ_ONLY,   &wifi_rssi,                        0,   "wifi_rssi" },
+    { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,   &wifi_uptime,                      0,   "wifi_uptime" },
+    { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_connects,                    0,   "wifi_connects" },
 
-    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_channel,  0,   "wifi_channel" },
-    { SAPPHIRE_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_bssid,    0,   "wifi_bssid" },
-    { SAPPHIRE_TYPE_INT8,          0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_router,   0,   "wifi_router" },
+    { CATBUS_TYPE_INT8,          0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_channel,  0,   "wifi_channel" },
+    { CATBUS_TYPE_MAC48,         0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_bssid,    0,   "wifi_bssid" },
+    { CATBUS_TYPE_INT8,          0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,   &wifi_router,   0,   "wifi_router" },
 
-    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_received,                0,   "wifi_udp_received" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_sent,                    0,   "wifi_udp_sent" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_dropped,                 0,   "wifi_udp_dropped" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_udp_high_load,               0,   "wifi_udp_high_load" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_max_rx_size,                 0,   "wifi_max_rx_size" },
+    { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_udp_received,                0,   "wifi_udp_received" },
+    { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_udp_sent,                    0,   "wifi_udp_sent" },
+    { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_udp_dropped,                 0,   "wifi_udp_dropped" },
+    { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_udp_high_load,               0,   "wifi_udp_high_load" },
+    { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_max_rx_size,                 0,   "wifi_max_rx_size" },
 
-    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_hits,                    0,   "wifi_arp_hits" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_msg_recovered,           0,   "wifi_arp_msg_recovered" },
-    { SAPPHIRE_TYPE_UINT32,        0, 0,                    &wifi_arp_msg_fails,               0,   "wifi_arp_msg_fails" },
+    { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_hits,                    0,   "wifi_arp_hits" },
+    { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
+    { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_msg_recovered,           0,   "wifi_arp_msg_recovered" },
+    { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_msg_fails,               0,   "wifi_arp_msg_fails" },
 };
 
 
@@ -251,7 +256,7 @@ void hal_wifi_v_init( void ){
     system_phy_set_max_tpw( tx_power * 4 );
 
     // set sleep mode
-    wifi_set_sleep_type( NONE_SLEEP_T );
+    wifi_set_sleep_type( MODEM_SLEEP_T );
 
     // disable auto reconnect (we will manage this)
     wifi_station_set_auto_connect( FALSE );
@@ -586,17 +591,25 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 void wifi_v_shutdown( void ){
 
-
+    wifi_shutdown = TRUE;
 }
 
 void wifi_v_powerup( void ){
 
-    
+    wifi_shutdown = FALSE;
 }
 
-uint16_t wifi_u16_get_power( void ){
+uint32_t wifi_u32_get_power( void ){
 
-    return 50000;
+    // not a real value....
+    
+    return 50000 *  3.3;
+}
+
+void wifi_v_reset_scan_timeout( void ){
+
+    scan_backoff = 0;
+    current_scan_backoff = 0;
 }
 
 bool wifi_b_connected( void ){
@@ -772,48 +785,6 @@ static bool _wifi_b_ap_mode_enabled( void ){
     return wifi_enable_ap;    
 }
 
-
-static int8_t has_ssid( char *check_ssid ){
-
-	char ssid[WIFI_SSID_LEN];
-	
-	memset( ssid, 0, sizeof(ssid) );
-	cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 0;
-   	}
-
-   	memset( ssid, 0, sizeof(ssid) );
-   	kv_i8_get( __KV__wifi_ssid2, ssid, sizeof(ssid) );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 1;
-   	}
-
-   	memset( ssid, 0, sizeof(ssid) );
-   	kv_i8_get( __KV__wifi_ssid3, ssid, sizeof(ssid) );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 2;
-   	}
-
-   	memset( ssid, 0, sizeof(ssid) );
-   	kv_i8_get( __KV__wifi_ssid4, ssid, sizeof(ssid) );
-       
-   	if( strncmp( check_ssid, ssid, WIFI_SSID_LEN ) == 0 ){
-
-   		return 3;
-   	}
-
-   	return -1;
-}
-
-
-
 static void get_pass( int8_t router, char pass[WIFI_PASS_LEN] ){
 
 	memset( pass, 0, WIFI_PASS_LEN );
@@ -840,18 +811,41 @@ void scan_cb( void *result, STATUS status ){
 
 	struct bss_info* info = (struct bss_info*)result;
 
-	trace_printf("scan: %d\n", status);
-
 	int8_t best_rssi = -127;
 	uint8_t best_channel = 0;
 	uint8_t *best_bssid = 0;
 	int8_t best_router = -1;
 
+    char ssid[4][WIFI_SSID_LEN];
+    memset( ssid, 0, sizeof(ssid) );
+    cfg_i8_get( CFG_PARAM_WIFI_SSID, ssid[0] );
+    kv_i8_get( __KV__wifi_ssid2, ssid[1], sizeof(ssid[1]) );
+    kv_i8_get( __KV__wifi_ssid3, ssid[2], sizeof(ssid[2]) );
+    kv_i8_get( __KV__wifi_ssid4, ssid[3], sizeof(ssid[3]) );
+
 	while( info != 0 ){
 
-		trace_printf("%s %u %d\n", info->ssid, info->channel, info->rssi);
+		// trace_printf("%s %u %d\n", info->ssid, info->channel, info->rssi);
 
-		int8_t router = has_ssid( (char *)info->ssid );
+        int8_t router = -1;
+
+        if( strncmp( (char *)info->ssid, ssid[0], WIFI_SSID_LEN ) == 0 ){
+
+            router = 0;
+        }
+        else if( strncmp( (char *)info->ssid, ssid[1], WIFI_SSID_LEN ) == 0 ){
+
+            router = 1;
+        }
+        else if( strncmp( (char *)info->ssid, ssid[2], WIFI_SSID_LEN ) == 0 ){
+
+            router = 2;
+        }
+        else if( strncmp( (char *)info->ssid, ssid[3], WIFI_SSID_LEN ) == 0 ){
+
+            router = 3;
+        }
+
 		if( router < 0 ){
 
 			goto end;
@@ -873,8 +867,6 @@ void scan_cb( void *result, STATUS status ){
 
 		return;
 	}
-
-	trace_printf("router: %d\n", best_router);
 
 	// select router
 	wifi_router = best_router;
@@ -970,11 +962,28 @@ PT_BEGIN( pt );
     static uint8_t scan_timeout;
 
     connected = FALSE;
+    wifi_rssi = -127;
+
+    wifi_set_opmode_current( NULL_MODE );
+
+    THREAD_WAIT_WHILE( pt, wifi_shutdown );
 
     // check if we are connected
-    while( !wifi_b_connected() ){
+    while( !wifi_b_connected() && !wifi_shutdown ){
 
         wifi_rssi = -127;
+
+        wifi_set_opmode_current( NULL_MODE );
+
+        current_scan_backoff = scan_backoff;
+
+        // scan backoff delay
+        while( ( current_scan_backoff > 0 ) && !_wifi_b_ap_mode_enabled() ){
+
+            current_scan_backoff--;
+            TMR_WAIT( pt, 1000 );
+        }
+
         
         bool ap_mode = _wifi_b_ap_mode_enabled();
 
@@ -1027,6 +1036,21 @@ PT_BEGIN( pt );
                 io_v_set_esp_led( 0 );
 
                 if( wifi_router < 0 ){
+
+                    // router not found
+
+                    if( scan_backoff == 0 ){
+
+                        scan_backoff = 1;
+                    }
+                    else if( scan_backoff < 64 ){
+
+                        scan_backoff *= 2;
+                    }
+                    else if( scan_backoff < 192 ){
+
+                        scan_backoff += 64;
+                    }
 
                     goto end;
                 }            
@@ -1177,7 +1201,7 @@ end:
         // start_mdns();
     }
 
-    THREAD_WAIT_WHILE( pt, wifi_b_connected() );
+    THREAD_WAIT_WHILE( pt, wifi_b_connected()  && !wifi_shutdown );
     
     log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d ch: %d"), wifi_rssi, wifi_channel );
 

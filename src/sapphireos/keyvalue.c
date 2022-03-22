@@ -69,11 +69,11 @@ static const PROGMEM char kv_data_fname[] = "kv_data";
 #endif
 
 KV_SECTION_META_START kv_meta_t kv_start[] = {
-    { SAPPHIRE_TYPE_NONE, 0, 0, 0, 0, "kvstart" }
+    { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvstart" }
 };
 
 KV_SECTION_META_END kv_meta_t kv_end[] = {
-    { SAPPHIRE_TYPE_NONE, 0, 0, 0, 0, "kvend" }
+    { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvend" }
 };
 
 
@@ -101,13 +101,13 @@ static int8_t _kv_i8_dynamic_count_handler(
 }
 
 KV_SECTION_META kv_meta_t kv_cfg[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
-    { SAPPHIRE_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
-    { SAPPHIRE_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
-    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_hits,      0,           "kv_cache_hits" },
-    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_misses,    0,           "kv_cache_misses" },
+    { CATBUS_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
+    { CATBUS_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
+    { CATBUS_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
+    { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_hits,      0,           "kv_cache_hits" },
+    { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_misses,    0,           "kv_cache_misses" },
 };
 
 #ifdef __SIM__
@@ -130,11 +130,11 @@ static bool run_persist;
 
 typedef struct{
     catbus_hash_t32 hash;
-    sapphire_type_t8 type;
+    catbus_type_t8 type;
     uint8_t array_len;
     uint8_t reserved[4];
 } kv_persist_block_header_t;
-#define KV_PERSIST_MAX_DATA_LEN     SAPPHIRE_TYPE_MAX_LEN
+#define KV_PERSIST_MAX_DATA_LEN     64
 #define KV_PERSIST_BLOCK_LEN        ( sizeof(kv_persist_block_header_t) + KV_PERSIST_MAX_DATA_LEN )
 
 
@@ -961,6 +961,13 @@ int8_t kv_i8_array_get(
     return kv_i8_internal_get( &meta, hash, index, count, data, max_len );
 }
 
+bool kv_b_get_boolean( catbus_hash_t32 hash ){
+
+    bool val = FALSE;
+    kv_i8_get( hash, &val, sizeof(val) );
+
+    return val;
+}
 
 int16_t kv_i16_len( catbus_hash_t32 hash )
 {
@@ -976,7 +983,7 @@ int16_t kv_i16_len( catbus_hash_t32 hash )
     return kv_u16_get_size_meta( &meta );
 }
 
-sapphire_type_t8 kv_i8_type( catbus_hash_t32 hash )
+catbus_type_t8 kv_i8_type( catbus_hash_t32 hash )
 {
 
     kv_meta_t meta;

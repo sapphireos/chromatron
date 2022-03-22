@@ -96,7 +96,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/Kconfig"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/CMakeLists.txt"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/Kconfig.projbuild"
-  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/partitions_singleapp.csv"
+  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/partitions_singleapp_coredump.csv"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/project_include.cmake"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/protobuf-c/protobuf-c/.git"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/pthread/CMakeLists.txt"

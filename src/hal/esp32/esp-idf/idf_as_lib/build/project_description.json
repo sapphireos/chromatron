@@ -6,7 +6,7 @@
     "config_defaults":    "",
     "app_elf":            "idf_as_lib.elf",
     "app_bin":            "idf_as_lib.bin",
-    "git_revision":       "v3.3.5-19-gac6dbdf5f",
+    "git_revision":       "v3.3.4-467-g0b08d3827",
     "phy_data_partition": "",
     "monitor_baud" : "115200",
     "config_environment" : {

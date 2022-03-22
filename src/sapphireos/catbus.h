@@ -40,7 +40,7 @@
 #define CATBUS_ANNOUNCE_MCAST_ADDR          239,43,96,30
 
 #define CATBUS_ANNOUNCE_INTERVAL            24
-#define CATBUS_MAX_FILE_SESSIONS            4
+#define CATBUS_MAX_FILE_SESSIONS            8
 
 typedef struct __attribute__((packed)){
     uint32_t meow;

@@ -44,6 +44,7 @@ void util_v_bubble_sort_u32( uint32_t *array, uint8_t len );
 void util_v_bubble_sort_reversed_u32( uint32_t *array, uint8_t len );
 int16_t util_i16_ewma( int16_t new, int16_t old, uint8_t ratio );
 uint16_t util_u16_ewma( uint16_t new, uint16_t old, uint8_t ratio );
+uint32_t util_u32_ewma( uint32_t new, uint32_t old, uint8_t ratio );
 uint8_t util_u8_average( uint8_t data[], uint8_t len );
 int16_t util_i16_average( int16_t data[], uint16_t len );
 uint16_t util_u16_average( uint16_t data[], uint16_t len );

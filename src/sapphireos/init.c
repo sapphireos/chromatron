@@ -72,6 +72,7 @@
 
 #ifdef ENABLE_MSGFLOW
 #include "msgflow.h"
+#include "datalogger.h"
 #endif
 
 #include "init.h"
@@ -188,7 +189,6 @@ int8_t sapphire_i8_init( void ){
     status_led_v_init();
 
     #ifdef ENABLE_WIFI
-
     wifi_v_init();
     #endif
 
@@ -200,17 +200,18 @@ int8_t sapphire_i8_init( void ){
     catbus_v_init();
 
     #ifdef ENABLE_TIME_SYNC
-
     time_v_init();
     sntp_v_init();
     #endif
 
     #ifdef ENABLE_MSGFLOW
     msgflow_v_init();
+    datalog_v_init();
     #endif
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
+        log_v_info_P( PSTR("SapphireOS SAFE MODE") );
         trace_printf( "SapphireOS SAFE MODE\r\n" );
 
         return -1;
@@ -223,7 +224,8 @@ int8_t sapphire_i8_init( void ){
     dns_v_init();
     #endif
 
-    log_v_info_P( PSTR("Sapphire start") );
+    log_v_info_P( PSTR("SapphireOS start") );
+
     trace_printf( "SapphireOS ready\r\n" );
 
     trace_printf( "HW Rev: %u\r\n", io_u8_get_board_rev() );

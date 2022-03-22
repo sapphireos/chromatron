@@ -37,27 +37,6 @@
 #ifndef BOOTLOADER
 #include <esp_adc_cal.h>
 
-static int8_t hal_adc_kv_handler(
-    kv_op_t8 op,
-    catbus_hash_t32 hash,
-    void *data,
-    uint16_t len )
-{
-    if( op == KV_OP_GET ){
-
-       if( hash == __KV__vcc ){
-
-            uint16_t mv = adc_u16_read_vcc();
-            memcpy( data, &mv, sizeof(mv) );
-        }
-    }
-
-    return 0;
-}
-
-KV_SECTION_META kv_meta_t hal_adc_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, hal_adc_kv_handler,   "vcc" },
-};
 
 #define V_REF 1100
 
@@ -102,7 +81,28 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
     }
     else if( channel == ADC_CHANNEL_VSUPPLY ){
 
-        adc_channel = ADC1_CHANNEL_7;
+        adc_channel = ADC1_CHANNEL_7; // IO35
+    }
+    // pin 17 is not actually an ADC pin.
+    // this assumes it is on a chromatron32 board and the solder bridge is closed
+    // to strap IO17 to IO34, which is an ADC input.
+    else if( channel == IO_PIN_17_TX ){
+
+        // actually IO_PIN_34_A2:
+
+        adc_channel = ADC1_CHANNEL_6;
+    }
+    else if( channel == IO_PIN_32_A7 ){
+
+        adc_channel = ADC1_CHANNEL_4;
+    }
+    else if( channel == IO_PIN_33_A9 ){
+
+        adc_channel = ADC1_CHANNEL_5;
+    }
+    else if( channel == IO_PIN_34_A2 ){
+
+        adc_channel = ADC1_CHANNEL_6;
     }
     else{
 

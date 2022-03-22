@@ -34,7 +34,7 @@
 #define ENABLE_FFS
 #define ENABLE_NETWORK
 // #define ENABLE_IP
-// #define ENABLE_POWER
+#define ENABLE_POWER
 #define ENABLE_USB_UDP_TRANSPORT
 // #define ENABLE_USB
 #define ENABLE_MSGFLOW
@@ -51,6 +51,7 @@
 #define MAX_PIXELS              1024
 #define N_PIXEL_OUTPUTS         1
 #define PIXEL_SPI_CHANNEL		0
+#define USER_SPI_CHANNEL        1
 
 // if defined, places pixel buffers in malloc region
 #define PIXEL_USE_MALLOC

@@ -1,0 +1,28 @@
+########################################################
+# ReleaseNotes: 1.0.6 - November 2016
+########################################################
+November 03, 2016
+--------
+
+Overview
+    - Driver 1.0.6
+		. API upgraded.
+
+    - API 1.0.2
+		. please see API release note
+
+########################################################
+# ReleaseNotes: 1.0.5 - June 2016
+########################################################
+June 27, 2016
+--------
+
+Overview
+    - Driver 1.0.5
+		. First driver release.
+
+    - API 1.0.1
+		. please see API release note
+
+
+

@@ -53,8 +53,8 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 # Include the progress variables for this target.
 include esp-idf/app_update/CMakeFiles/read_otadata.dir/progress.make
 
-esp-idf/app_update/CMakeFiles/read_otadata: ../../../../../components/partition_table/partitions_singleapp.csv
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/app_update && python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/app_update/otatool.py --partition-table-file /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/partitions_singleapp.csv read_otadata
+esp-idf/app_update/CMakeFiles/read_otadata: ../../../../../components/partition_table/partitions_singleapp_coredump.csv
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/app_update && python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/app_update/otatool.py --partition-table-file /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/partitions_singleapp_coredump.csv read_otadata
 
 read_otadata: esp-idf/app_update/CMakeFiles/read_otadata
 read_otadata: esp-idf/app_update/CMakeFiles/read_otadata.dir/build.make

@@ -185,19 +185,19 @@ PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) );
 
 
 KV_SECTION_META kv_meta_t sys_info_kv[] = {
-    { SAPPHIRE_TYPE_INT8,   0, 0,                   0, sys_kv_reboot_handler,            "reboot" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &sys_mode,                       0,  "sys_mode" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &startup_boot_mode,              0,  "sys_boot_mode" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_minor, 0,  "loader_version_minor" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_major, 0,  "loader_version_major" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_status,        0,  "loader_status" },
-    { SAPPHIRE_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &warnings,                       0,  "sys_warnings" },
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &reset_source,                   0,  "sys_reset_source" },
-    { SAPPHIRE_TYPE_KEY128,    0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_id" },
-    { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_name" },
-    { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_version" },
-    { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "os_name" },
-    { SAPPHIRE_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "os_version" },
+    { CATBUS_TYPE_INT8,   0, 0,                   0, sys_kv_reboot_handler,            "reboot" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &sys_mode,                       0,  "sys_mode" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &startup_boot_mode,              0,  "sys_boot_mode" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_minor, 0,  "loader_version_minor" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_major, 0,  "loader_version_major" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_status,        0,  "loader_status" },
+    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &warnings,                       0,  "sys_warnings" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &reset_source,                   0,  "sys_reset_source" },
+    { CATBUS_TYPE_KEY128,    0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_id" },
+    { CATBUS_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_name" },
+    { CATBUS_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "firmware_version" },
+    { CATBUS_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "os_name" },
+    { CATBUS_TYPE_STRING32,  0, KV_FLAGS_READ_ONLY,  0, sys_kv_fw_info_handler,        "os_version" },
 };
 
 void sys_v_init( void ){
@@ -533,13 +533,9 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
 
     set_reboot_mode( mode );
 
+    log_v_debug_P( PSTR("Reboot to mode: %d"), mode );
+
     reboot_delay = 2;
-
-    if( sys_mode == SYS_MODE_SAFE ){
-
-        // in safe mode, reboot instantly
-        reboot();
-    }
 
     // the thread will perform a graceful reboot
     if( thread_t_create( THREAD_CAST(sys_reboot_thread),
@@ -780,11 +776,29 @@ PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    if( sys_mode == SYS_MODE_SAFE ){
+
+        // in safe mode, reboot after short delay, without signalling a shutdown
+        // to the rest of the system (in case there is a crash in shutdown handling)
+
+        TMR_WAIT( pt, 1000 );
+
+        reboot();
+    }
+
     shutting_down = TRUE;
 
     catbus_v_shutdown();
     kv_v_shutdown();
-    log_v_info_P( PSTR("Shutting down...") );
+
+    if( boot_data.loader_command == LDR_CMD_LOAD_FW ){
+
+        log_v_info_P( PSTR("Shutting down for firmware update...") );
+    }
+    else{
+
+        log_v_info_P( PSTR("Shutting down...") );
+    }
     
     while( reboot_delay > 0 ){
 

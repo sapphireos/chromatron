@@ -41,11 +41,11 @@ static uint16_t irq_longest_addr2;
 static uint64_t irq_time;
 
 KV_SECTION_META kv_meta_t os_irq_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &irq_time,          0,  "irq_time" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &irq_longest_time,          0,  "irq_longest_time" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &irq_longest_addr,          0,  "irq_longest_addr" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &irq_longest_time2,         0,  "irq_longest_time2" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &irq_longest_addr2,         0,  "irq_longest_addr2" },
+    { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &irq_time,          0,  "irq_time" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &irq_longest_time,          0,  "irq_longest_time" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &irq_longest_addr,          0,  "irq_longest_addr" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &irq_longest_time2,         0,  "irq_longest_time2" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &irq_longest_addr2,         0,  "irq_longest_addr2" },
 };
 
 #endif

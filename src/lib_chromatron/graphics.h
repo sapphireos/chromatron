@@ -28,5 +28,6 @@
 #include "keyvalue.h"
 
 void gfx_v_init( void );
+uint32_t gfx_u32_get_pixel_power( void );
 
 #endif

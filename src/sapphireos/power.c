@@ -28,6 +28,8 @@
 #include "hal_cpu.h"
 
 #include "power.h"
+#include "threading.h"
+#include "keyvalue.h"
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -44,6 +46,11 @@ void pwr_v_init( void ){
 
 
 void pwr_v_sleep( void ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }    
 
     // set sleep mode
     cpu_v_sleep();

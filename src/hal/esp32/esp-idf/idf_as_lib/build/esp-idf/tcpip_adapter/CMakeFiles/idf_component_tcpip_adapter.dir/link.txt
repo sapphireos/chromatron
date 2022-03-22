@@ -1,2 +1,2 @@
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc libtcpip_adapter.a  CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib libtcpip_adapter.a
+/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc libtcpip_adapter.a  CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj
+/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib libtcpip_adapter.a

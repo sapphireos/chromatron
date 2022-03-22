@@ -891,9 +891,7 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, DATA
  13 .bss          00000000  00000000  00000000  000002d0  2**0
                   ALLOC
- 14 .text.wdt_reset_cpu0_info_enable 00000027  00000000  00000000  000002d0  2**2
-                  CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE
- 15 .rodata.str1.4 00000432  00000000  00000000  000002f8  2**2
+  7 .rodata.str1.1 000003fc  00000000  00000000  00000280  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
  16 .text.wdt_reset_info_dump 000000e6  00000000  00000000  0000072c  2**2
                   CONTENTS, ALLOC, LOAD, RELOC, READONLY, CODE

@@ -21,32 +21,39 @@
 // </license>
 
 #include "system.h"
-#include "util.h"
 #include "logging.h"
 #include "keyvalue.h"
 #include "threading.h"
 #include "timers.h"
-#include "list.h"
-#include "catbus_common.h"
-#include "catbus.h"
-#include "datetime.h"
 #include "fs.h"
 
 #include "pixel.h"
-#include "hal_pixel.h"
 #include "graphics.h"
+#include "battery.h"
 #include "vm.h"
-#include "timesync.h"
 #include "vm_sync.h"
-#include "kvdb.h"
-#include "hash.h"
 #include "superconductor.h"
 
 
+// pixel calibrations for a single pixel at full power
+#define MICROAMPS_RED_PIX       10000
+#define MICROAMPS_GREEN_PIX     10000
+#define MICROAMPS_BLUE_PIX      10000
+#define MICROAMPS_WHITE_PIX     20000
+#define MICROAMPS_IDLE_PIX       1000 // idle power for an unlit pixel
+
+#define PIXEL_MILLIVOLTS        5000
+
+#define PIXEL_HEADROOM_WARNING  500 // warn if within this milliwatts of max power
+
+
 static uint16_t vm_fader_time;
+static uint32_t pixel_power;
+static uint16_t pix_max_power; // in milliwatts
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    &pix_max_power,        0,                  "pix_max_power" },
 };
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
@@ -57,9 +64,9 @@ static uint8_t fx_rainbow[] __attribute__((aligned(4))) = {
 };
 
 
-static uint16_t fx_rainbow_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t fx_rainbow_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    uint16_t ret_val = len;
+    uint32_t ret_val = len;
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -100,6 +107,66 @@ void gfx_v_init( void ){
                 0 );
 }
 
+uint32_t gfx_u32_get_pixel_power( void ){
+
+    return pixel_power;
+}
+
+static void calc_pixel_power( void ){
+
+    uint64_t power_temp;
+
+    // update pixel power
+    if( batt_b_pixels_enabled() ){
+
+        power_temp = gfx_u16_get_pix_count() * MICROAMPS_IDLE_PIX;
+        power_temp += ( gfx_u32_get_pixel_r() * MICROAMPS_RED_PIX ) / 256;
+        power_temp += ( gfx_u32_get_pixel_g() * MICROAMPS_GREEN_PIX ) / 256;
+        power_temp += ( gfx_u32_get_pixel_b() * MICROAMPS_BLUE_PIX ) / 256;
+        power_temp += ( gfx_u32_get_pixel_w() * MICROAMPS_WHITE_PIX ) / 256;
+
+        // multiply by voltage to get power in microwatts
+        power_temp *= PIXEL_MILLIVOLTS;
+        power_temp /= 1000;
+    }
+    else{
+
+        power_temp = 0;
+    }
+
+    pixel_power = power_temp;
+}
+
+static void apply_power_limit( void ){
+
+    // if max power is not configured, do nothing:
+    if( pix_max_power == 0 ){
+
+        return;
+    }
+
+    // convert pixel power from microwatts to milliwatts
+    uint32_t pixel_power_mw = pixel_power / 1000;
+
+    int32_t power_delta = (int32_t)pixel_power_mw - (int32_t)pix_max_power;
+
+    // if power_delta is positive, we have exceeded the power limit by the amount
+    // in power_delta
+
+    // if power_delta is negative, power_delta indicates how much headroom 
+    // is available
+
+    if( power_delta > 0 ){
+
+        log_v_error_P( PSTR("Pixel power limit exceeded by %d mW"), power_delta );
+
+        gfx_v_power_limiter_graphic();
+    }
+    else if( power_delta > -PIXEL_HEADROOM_WARNING ){
+
+        log_v_warn_P( PSTR("Pixel power headroom remaining: %d mW"), -1 * power_delta );
+    }
+}
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
@@ -114,6 +181,7 @@ PT_BEGIN( pt );
     // init pixel arrays
     gfx_v_process_faders();
     gfx_v_sync_array();
+    calc_pixel_power();
     pixel_v_signal();
 
     while(1){
@@ -126,6 +194,8 @@ PT_BEGIN( pt );
         if( sys_b_is_shutting_down() ){
 
             gfx_v_shutdown_graphic();
+            calc_pixel_power();
+            apply_power_limit();
             
             pixel_v_signal();        
 
@@ -135,6 +205,9 @@ PT_BEGIN( pt );
         if( vm_b_running() ){
 
             gfx_v_process_faders();
+            calc_pixel_power();
+            apply_power_limit();
+
             gfx_v_sync_array();
 
             pixel_v_signal();
@@ -143,20 +216,6 @@ PT_BEGIN( pt );
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
         vm_fader_time = elapsed;
-
-        // check if LEDs are no longer enabled
-        if( !batt_b_pixels_enabled() ){
-
-            // signal the pixel thread.
-            // if the pixel driver supports power controls, it
-            // will shutdown the IO drivers (so they don't backfeed the pixels)
-            pixel_v_signal();        
-
-            THREAD_WAIT_WHILE( pt, !batt_b_pixels_enabled() );
-
-            // reset alarm
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() );
-        }
     }
 
 PT_END( pt );

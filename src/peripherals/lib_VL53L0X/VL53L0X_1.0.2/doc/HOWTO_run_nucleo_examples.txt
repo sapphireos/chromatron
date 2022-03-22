@@ -1,0 +1,15 @@
+RUN NUCLEO EXAMPES
+==================
+
+1. Connect Nucleo F401 board (equipped with X-NUCLEO-53L0A1 expansion board) to the PC through USB (wait for the board to be recognized : drivers install the first time)
+2. Program Nucleo FW : drag & drop .bin file from ApiExample\Firmware to Nucleo NODE_F401RE mass storage (Windows Explorer)
+   => This FW will ensure Serial to I2C bridging from PC to VL53L0X
+4. Double-click on any pre-compiled executable : vl53l0x_SingleRanging_Example.exe for instance
+   => Ranging is displayed in the Windows console
+
+The examples will automatically detect the COM port number to connect to Nucleo.
+It is also possible to provide this COM port number manually through the command line like : vl53l0x_SingleRanging_Example.exe COM12
+
+All the examples can be re-compiled using the associated .bat files.
+You need to compile the API dll before : double-click on BUILD_vl53l0x_API_LIB_WIN32.bat file in ApiExample directory
+It is assumed that GCC is installed and available in the PATH.

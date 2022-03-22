@@ -89,13 +89,13 @@ static int8_t fs_i8_kv_handler(
 
 
 KV_SECTION_META kv_meta_t fs_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_free_space" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_total_space" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_disk_files" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_max_disk_files" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_virtual_files" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_max_virtual_files" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_capacity" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_free_space" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_total_space" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_disk_files" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_max_disk_files" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_virtual_files" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_max_virtual_files" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  0, fs_i8_kv_handler,  "fs_capacity" },
 };
 
 
@@ -109,7 +109,7 @@ typedef struct{
 
 typedef struct{
     PGM_P filename;
-    uint16_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len );
+    uint32_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len );
 } vfile_t; // virtual file
 
 static vfile_t vfiles[FS_MAX_VIRTUAL_FILES];
@@ -295,7 +295,7 @@ file_t fs_f_open_id( file_id_t8 file_id, uint8_t mode ){
 }
 
 file_t fs_f_create_virtual( PGM_P filename,
-                            uint16_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ) ){
+                            uint32_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ) ){
 
     for( uint8_t i = 0; i < FS_MAX_VIRTUAL_FILES; i++ ){
 
