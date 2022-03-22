@@ -1,21 +1,25 @@
 
 
-a = Number()
-b = Number()
 
 def init():
+
+    a = Number()
+    b = Number()
 
     # a = a + 1
 
     # a = a + 1 + 2 + 3
 
     a = 4
+    # b = 4
     b = a
+
+    a = b
 
     # a = a + 2 + 3
     # b = 1 + 2 + 3
 
-    # return a
+    return a
     
 
 # def array_vector():

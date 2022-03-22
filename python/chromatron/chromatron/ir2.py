@@ -1048,19 +1048,40 @@ class irBlock(IR):
 
             if isinstance(ir, irLoadConst):
                 target = ir.target.ssa_name
-                value = ir.value
+                # value = ir.value
+                value = ir.target
 
+                assert target not in values
                 values[target] = value
 
             elif isinstance(ir, irAssign):
                 target = ir.target.ssa_name
                 value = ir.value.ssa_name
 
-                if value in values:
-                    print(f"replace assign {target} = {value} with {values[value]}")
+                ir.apply_value_numbers(values)
 
-                else:
-                    values[target] = value
+                if value in values:
+                    # print(f"replace assign {target} = {value} with {values[value]}")
+                    value = values[value]
+                    
+                assert target not in values
+                values[target] = value
+
+            elif isinstance(ir, irLoad):
+                target = ir.register
+                value = ir.ref
+
+                assert target not in values
+                values[target] = value
+
+            elif isinstance(ir, irStore):
+                target = ir.ref
+                value = ir.register
+
+                ir.apply_value_numbers(values)
+
+            elif isinstance(ir, irReturn):
+                ir.apply_value_numbers(values)
 
             # elif isinstance(ir, irBinop):
             #     target = ir.target.ssa_name
@@ -1105,7 +1126,7 @@ class irBlock(IR):
         print("\nVALUES:")
 
         for k, v in values.items():
-            print(k, v)
+            print(f'{str(k):20} = {v}')
 
         if self not in self.func.dominator_tree:
             return
