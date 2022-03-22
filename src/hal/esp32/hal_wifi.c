@@ -775,7 +775,7 @@ static void scan_cb( void ){
 
     if( best_rssi == -127 ){
 
-        log_v_debug_P( PSTR("no routers found") );
+        // log_v_debug_P( PSTR("no routers found") );
 
         return;
     }
@@ -955,7 +955,7 @@ station_mode:
 
                 // scan first
                 wifi_router = -1;
-                log_v_debug_P( PSTR("Scanning...") );
+                // log_v_debug_P( PSTR("Scanning...") );
                 
                 scan_done = FALSE;
                     
