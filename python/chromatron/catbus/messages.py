@@ -434,4 +434,5 @@ SYSTEM_KEYS = [
     'msgflow',
     'datalogger',
     'logserver',
+    'timesync',
 ]
