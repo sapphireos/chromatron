@@ -1,26 +1,42 @@
 
 
 
+g1 = Number()    
+g2 = Number()    
+
 def init():
 
-    a = Number()
+    
     b = Number()
 
     # a = a + 1
 
     # a = a + 1 + 2 + 3
 
-    a = 4
-    # b = 4
-    b = a
+    # a = 4
+    b = 4
+    # b = a
 
-    a = b
+    g1 = b
+    g2 = b
 
     # a = a + 2 + 3
     # b = 1 + 2 + 3
 
-    return a
-    
+    return b
+
+
+# def init():
+#     a = Number()    
+#     b = Number()
+
+#     a = 4
+#     b = a
+#     a = b
+
+#     return a
+        
+
 
 # def array_vector():
 #     ary = 1

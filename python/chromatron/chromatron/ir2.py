@@ -1047,7 +1047,7 @@ class irBlock(IR):
             print(f'IR: {ir}')
 
             if isinstance(ir, irLoadConst):
-                target = ir.target.ssa_name
+                target = ir.target
                 # value = ir.value
                 value = ir.target
 
@@ -1055,8 +1055,8 @@ class irBlock(IR):
                 values[target] = value
 
             elif isinstance(ir, irAssign):
-                target = ir.target.ssa_name
-                value = ir.value.ssa_name
+                target = ir.target
+                value = ir.value
 
                 ir.apply_value_numbers(values)
 
