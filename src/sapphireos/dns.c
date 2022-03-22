@@ -343,6 +343,14 @@ PT_BEGIN( pt );
 done:
     sock_v_release( state->sock );
 
+    dns_query_t *query_state = list_vp_get_data( state->query );
+
+    // check if resolution failed
+    if( query_state->status == DNS_ENTRY_STATUS_RESOLVING ){
+
+        query_state->status = DNS_ENTRY_STATUS_INVALID;
+    }
+
 PT_END( pt );
 }
 
