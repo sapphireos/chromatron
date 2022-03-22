@@ -1040,6 +1040,7 @@ class irBlock(IR):
             logging.debug('GVN: Starting optimizer pass')
 
             values = {}
+            registers = {}
 
         new_code = []
 
@@ -1048,21 +1049,30 @@ class irBlock(IR):
 
             if isinstance(ir, irLoadConst):
                 target = ir.target
-                # value = ir.value
-                value = ir.target
+                value = ir.value
+                # value = ir.target
 
                 assert target not in values
                 values[target] = value
+
+                if value not in registers:
+                    registers[value] = target
 
             elif isinstance(ir, irAssign):
                 target = ir.target
                 value = ir.value
 
-                ir.apply_value_numbers(values)
+                # ir.apply_value_numbers(values)
+
+                if value in values:
+                    ir.value = registers[values[value]]
 
                 if value in values:
                     # print(f"replace assign {target} = {value} with {values[value]}")
                     value = values[value]
+
+                if value not in registers:
+                    registers[value] = target
                     
                 assert target not in values
                 values[target] = value
@@ -1074,49 +1084,57 @@ class irBlock(IR):
                 assert target not in values
                 values[target] = value
 
-            elif isinstance(ir, irStore):
-                target = ir.ref
-                value = ir.register
+                if value not in registers:
+                    registers[value] = target
 
-                ir.apply_value_numbers(values)
+            # elif isinstance(ir, irStore):
+            #     target = ir.ref
+            #     value = ir.register
+
+            #     ir.apply_value_numbers(values)
 
             elif isinstance(ir, irReturn):
-                ir.apply_value_numbers(values)
+                value = ir.ret_var
+                # ir.apply_value_numbers(values)
 
-            # elif isinstance(ir, irBinop):
-            #     target = ir.target.ssa_name
-            #     left = ir.left.ssa_name
-            #     right = ir.right.ssa_name
-
-            #     fold = ir.fold()
-
-            #     if fold is not None:
-            #         print(f'Fold: {fold}')
-
-            #         assert isinstance(fold, irLoadConst)
-
-            #         ir = fold
-            #         ir.block = self
-
-            #         values[target] = ir.value
-
-            #     else:
-            #         if left in values and isinstance(values[left], irExpr):
-            #             print(f"replace left {left} with {values[left]}")
-
-            #             # if ir.expr.is_commutative and values[left].is_commutative:
-            #             #     print('meow')
+                if value in values:
+                    ir.ret_var = registers[values[value]]
 
 
-            #         if right in values and isinstance(values[right], irExpr):
-            #             print(f"replace right {right} with {values[right]}")
+            elif isinstance(ir, irBinop):
+                target = ir.target.ssa_name
+                left = ir.left.ssa_name
+                right = ir.right.ssa_name
 
-            #             # if ir.expr.is_commutative and values[right].is_commutative:
-            #             #     print('meow')
+                fold = ir.fold()
+
+                if fold is not None:
+                    print(f'Fold: {fold}')
+
+                    assert isinstance(fold, irLoadConst)
+
+                    ir = fold
+                    ir.block = self
+
+                    values[target] = ir.value
+
+                else:
+                    if left in values and isinstance(values[left], irExpr):
+                        print(f"replace left {left} with {values[left]}")
+
+                        # if ir.expr.is_commutative and values[left].is_commutative:
+                        #     print('meow')
 
 
-            #         print(f'expr {ir.expr} -> {target}')
-            #         values[target] = ir.expr
+                    if right in values and isinstance(values[right], irExpr):
+                        print(f"replace right {right} with {values[right]}")
+
+                        # if ir.expr.is_commutative and values[right].is_commutative:
+                        #     print('meow')
+
+
+                    print(f'expr {ir.expr} -> {target}')
+                    values[target] = ir.expr
 
         
             new_code.append(ir)
@@ -1127,6 +1145,12 @@ class irBlock(IR):
 
         for k, v in values.items():
             print(f'{str(k):20} = {v}')
+
+        print("\nREGISTERS:")
+
+        for k, v in registers.items():
+            print(f'{str(k):20} = {v}')
+
 
         if self not in self.func.dominator_tree:
             return
