@@ -292,10 +292,10 @@ void netmsg_v_receive( netmsg_t netmsg ){
 
                 longest_rx_delta = delta;
 
-                if( longest_rx_delta > 8000 ){
+                // if( longest_rx_delta > 8000 ){
 
-                    log_v_debug_P( PSTR("longest delta: %lu"), longest_rx_delta );
-                }
+                //     log_v_debug_P( PSTR("longest delta: %lu"), longest_rx_delta );
+                // }
             }
         }
 
