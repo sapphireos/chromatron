@@ -373,6 +373,9 @@ class StringField(Field):
 
             # set length, adding one byte for the null terminator
             self._length = len(s) + 1
+    
+            s = ''.join([c for c in s if c in printable])
+            s += '\0'
 
         else:
             unpack_len = self.size()
@@ -383,8 +386,10 @@ class StringField(Field):
             s = struct.unpack_from('<' + str(unpack_len) + 's', buf)[0].decode('ascii')
             padding_len = self.size() - unpack_len
             s += '\0' * padding_len
+
+            s = ''.join([c for c in s if c in printable])
     
-        self._value = ''.join([c for c in s if c in printable])
+        self._value = s
         
         return self
 
