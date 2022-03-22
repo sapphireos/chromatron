@@ -195,10 +195,10 @@ class FXImage(object):
         for op in opcodes:
             op.assign_addresses(label_addrs, function_indexes, objects)
 
-        for func_name, func_opcodes in func_opcodes.items():
-            print(func_name)
-            for op in func_opcodes:
-                print(' ' * 4, op)
+        # for func_name, func_opcodes in func_opcodes.items():
+        #     print(func_name)
+        #     for op in func_opcodes:
+        #         print(' ' * 4, op)
 
         bytecode = bytes()
 

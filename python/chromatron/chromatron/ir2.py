@@ -365,9 +365,9 @@ class irProgram(IR):
     def objects(self):
         return [o for o in self.global_symbols.symbols.values() if isinstance(o, varObject)]
     
-    def analyze(self):
+    def analyze(self, opt_level:OptLevels=OptLevels.SSA):
         for func in self.funcs.values():
-            func.analyze_blocks()
+            func.analyze_blocks(opt_level=opt_level)
 
     def analyze_call_graph(self):
         for func in self.funcs.values():
@@ -1036,7 +1036,6 @@ class irBlock(IR):
 
 
     def gvn_analyze(self, values=None):
-        # return 
         if values is None:
             logging.debug('GVN: Starting optimizer pass')
 
@@ -1058,50 +1057,52 @@ class irBlock(IR):
                 value = ir.value.ssa_name
 
                 if value in values:
-                    print(f"replace assign value {value} with {values[value]}")
+                    print(f"replace assign {target} = {value} with {values[value]}")
 
                 else:
                     values[target] = value
 
-            elif isinstance(ir, irBinop):
-                target = ir.target.ssa_name
-                left = ir.left.ssa_name
-                right = ir.right.ssa_name
+            # elif isinstance(ir, irBinop):
+            #     target = ir.target.ssa_name
+            #     left = ir.left.ssa_name
+            #     right = ir.right.ssa_name
 
-                fold = ir.fold()
+            #     fold = ir.fold()
 
-                if fold is not None:
-                    print(f'Fold: {fold}')
+            #     if fold is not None:
+            #         print(f'Fold: {fold}')
 
-                    assert isinstance(fold, irLoadConst)
+            #         assert isinstance(fold, irLoadConst)
 
-                    ir = fold
-                    ir.block = self
+            #         ir = fold
+            #         ir.block = self
 
-                    values[target] = ir.value
+            #         values[target] = ir.value
 
-                else:
-                    if left in values and isinstance(values[left], irExpr):
-                        print(f"replace left {left} with {values[left]}")
+            #     else:
+            #         if left in values and isinstance(values[left], irExpr):
+            #             print(f"replace left {left} with {values[left]}")
 
-                        # if ir.expr.is_commutative and values[left].is_commutative:
-                        #     print('meow')
-
-
-                    if right in values and isinstance(values[right], irExpr):
-                        print(f"replace right {right} with {values[right]}")
-
-                        # if ir.expr.is_commutative and values[right].is_commutative:
-                        #     print('meow')
+            #             # if ir.expr.is_commutative and values[left].is_commutative:
+            #             #     print('meow')
 
 
-                    print(f'expr {ir.expr} -> {target}')
-                    values[target] = ir.expr
+            #         if right in values and isinstance(values[right], irExpr):
+            #             print(f"replace right {right} with {values[right]}")
+
+            #             # if ir.expr.is_commutative and values[right].is_commutative:
+            #             #     print('meow')
+
+
+            #         print(f'expr {ir.expr} -> {target}')
+            #         values[target] = ir.expr
 
         
             new_code.append(ir)
 
         self.code = new_code
+
+        print("\nVALUES:")
 
         for k, v in values.items():
             print(k, v)
@@ -2802,7 +2803,6 @@ class irFunc(IR):
         
 
     def analyze_blocks(self, opt_level:OptLevels=OptLevels.SSA):
-    # def analyze_blocks(self, opt_level=None):
         logging.debug(f'Starting block analysis with optimization level: {opt_level}')
 
         self.ssa_next_val = {}
@@ -2834,8 +2834,8 @@ class irFunc(IR):
             # self.leader_block.gvn_optimize()
             # self.leader_block.gvn_optimize()
 
-            self.gvn_optimizer()
-
+            if opt_level == OptLevels.GVN:
+                self.gvn_optimizer()
 
             # optimizers
             optimize = False

@@ -1078,8 +1078,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     import colored_traceback
     colored_traceback.add_hook()
     
-    tree = parse(source)
-
+    # tree = parse(source)
     # if debug_print:
     #     print("Python AST:")
     #     print(pformat_ast(tree))
@@ -1091,41 +1090,48 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
         print("CG Pass 1:")
         print(pformat_ast(cg1_data))
 
-    ir_program = cg1_data.build(script_name=script_name, source=source)
 
-    e = None
-    try:
-        ir_program.analyze()
 
-    except Exception as exc:
-        e = exc
-        # raise
+    from .ir2 import OptLevels
 
-    # generate instructions
-    ins_program = None
-    try:
-        if not e:
-            ins_program = ir_program.generate()
+    for opt_level in [OptLevels.SSA, OptLevels.GVN]:
+        
+        ir_program = cg1_data.build(script_name=script_name, source=source)
 
-    except Exception as exc:
-        e = exc    
-
-    # if isinstance(e, CompilerFatal):
-        # raise e
-
-    # save IR to file
-    with open(f'{script_name}.fxir', 'w') as f:
+        e = None
         try:
-            f.write(str(ir_program))
+            ir_program.analyze(opt_level=opt_level)
 
-            if ins_program:
-                f.write(str(ins_program))
+        except Exception as exc:
+            e = exc
+            # raise
 
-        except AttributeError:
-            if e:
-                raise e
+        # generate instructions
+        ins_program = None
+        try:
+            if not e:
+                ins_program = ir_program.generate()
 
-            raise
+        except Exception as exc:
+            e = exc    
+
+        # if isinstance(e, CompilerFatal):
+            # raise e
+
+        # save IR to file
+        debug_filename = f'{script_name}_{opt_level}.fxir'
+        with open(debug_filename, 'w') as f:
+            try:
+                f.write(str(ir_program))
+
+                if ins_program:
+                    f.write(str(ins_program))
+
+            except AttributeError:
+                if e:
+                    raise e
+
+                raise
 
     # return
 
@@ -1141,37 +1147,37 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     return ins_program
     
     
-    builder.allocate()
-    builder.generate_instructions()
+    # builder.allocate()
+    # builder.generate_instructions()
 
-    if debug_print:
-        builder.print_instructions()
-        builder.print_data_table()
-        # builder.print_control_flow()
+    # if debug_print:
+    #     builder.print_instructions()
+    #     builder.print_data_table()
+    #     # builder.print_control_flow()
 
-    builder.assemble()
-    builder.generate_binary()
+    # builder.assemble()
+    # builder.generate_binary()
 
-    if debug_print:
-        builder.print_func_addrs()
+    # if debug_print:
+    #     builder.print_func_addrs()
 
-    if debug_print or summarize:
-        print("VM ISA:  %d" % (VM_ISA_VERSION))
-        print("Program name: %s Hash: 0x%08x" % (builder.script_name, builder.header.program_name_hash))
-        print("Stream length:   %d bytes"   % (len(builder.stream)))
-        print("Code length:     %d bytes"   % (builder.header.code_len))
-        print("Data length:     %d bytes"   % (builder.header.data_len))
-        print("Functions:       %d"         % (len(builder.funcs)))
-        print("Read keys:       %d"         % (len(builder.read_keys)))
-        print("Write keys:      %d"         % (len(builder.write_keys)))
-        print("Published vars:  %d"         % (builder.published_var_count))
-        print("Pixel arrays:    %d"         % (len(builder.pixel_arrays)))
-        print("Links:           %d"         % (len(builder.links)))
-        print("DB entries:      %d"         % (len(builder.db_entries)))
-        print("Cron entries:    %d"         % (len(builder.cron_tab)))
-        print("Stream hash:     0x%08x"     % (builder.stream_hash))
+    # if debug_print or summarize:
+    #     print("VM ISA:  %d" % (VM_ISA_VERSION))
+    #     print("Program name: %s Hash: 0x%08x" % (builder.script_name, builder.header.program_name_hash))
+    #     print("Stream length:   %d bytes"   % (len(builder.stream)))
+    #     print("Code length:     %d bytes"   % (builder.header.code_len))
+    #     print("Data length:     %d bytes"   % (builder.header.data_len))
+    #     print("Functions:       %d"         % (len(builder.funcs)))
+    #     print("Read keys:       %d"         % (len(builder.read_keys)))
+    #     print("Write keys:      %d"         % (len(builder.write_keys)))
+    #     print("Published vars:  %d"         % (builder.published_var_count))
+    #     print("Pixel arrays:    %d"         % (len(builder.pixel_arrays)))
+    #     print("Links:           %d"         % (len(builder.links)))
+    #     print("DB entries:      %d"         % (len(builder.db_entries)))
+    #     print("Cron entries:    %d"         % (len(builder.cron_tab)))
+    #     print("Stream hash:     0x%08x"     % (builder.stream_hash))
 
-    return builder
+    # return builder
 
 
 def compile_script(path, debug_print=False):
@@ -1197,8 +1203,8 @@ def run_script(path, debug_print=False):
 
     image = ins_program.assemble()
     stream = image.render()
-    print(image.header)
-    print('prog len:', image.prog_len)
+    # print(image.header)
+    # print('prog len:', image.prog_len)
 
 
     return ins_program
