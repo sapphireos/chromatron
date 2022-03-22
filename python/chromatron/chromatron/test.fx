@@ -19,7 +19,7 @@ def init():
     # # a = a + 1
     # a = a + 1 + a + 3 + a
 
-    # a = a + 2 + 3
+    a = a + 2 + 3
     # b = 1 + 2 + 3
 
     return a
