@@ -1033,10 +1033,16 @@ class Device(object):
 
         # iterate over DNS cache entries, filtering out the empty ones
         for d in [d for d in dnsinfo if d.status != 0]:
-            if d.status == 1:
+            if d.status == 0:
+                status = "empty"
+            elif d.status == 1:
                 status = "valid"
-            else:
+            elif d.status == 2:
                 status = "invalid"
+            elif d.status == 3:
+                status = "resolving"
+            else:
+                status = "unknown"
 
             s += "IP:%15s Status:%8s TTL:%8d Query:%s" % \
                 (d.ip,
