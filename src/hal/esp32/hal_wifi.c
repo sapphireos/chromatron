@@ -133,6 +133,48 @@ static esp_conn_t esp_conn[WIFI_MAX_PORTS];
 static char hostname[32];
 
 
+#include "esp_partition.h"
+ 
+static uint16_t coredump_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+
+    const esp_partition_t *pt = esp_partition_find_first( ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_COREDUMP, "coredump" );
+
+    if( pt == NULL ){
+
+        trace_printf( "wow no core dump, ok.\r\n" );
+
+        return 0;
+    }
+
+    trace_printf( "%d %x\r\n", pt->size, pt->address );
+
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            esp_partition_read( pt, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = pt->size;
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            len = 0;
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+
+
 void hal_wifi_v_init( void ){
 
     // log reset reason for ESP32
@@ -146,6 +188,14 @@ void hal_wifi_v_init( void ){
              0,
              0 );
     }
+
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        uint32_t *ptr = 0;
+        *ptr += 1;
+    }
+
+    fs_f_create_virtual( PSTR("coredump"), coredump_vfile_handler );
 
     tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
