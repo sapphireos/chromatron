@@ -1,17 +1,20 @@
 /*
+ * SPDX-FileCopyrightText: 2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/*
  * Tests for bootloader_support esp_load(ESP_IMAGE_VERIFY, ...)
  */
 
 #include <esp_types.h>
 #include <stdio.h>
 #include "string.h"
-#include "rom/ets_sys.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "freertos/queue.h"
-#include "freertos/xtensa_api.h"
 #include "unity.h"
 #include "bootloader_common.h"
 #include "bootloader_util.h"

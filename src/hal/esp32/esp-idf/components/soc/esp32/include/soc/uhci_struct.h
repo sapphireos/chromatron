@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-typedef volatile struct {
+typedef volatile struct uhci_dev_s {
     union {
         struct {
             uint32_t in_rst:             1;                /*Set this bit to reset in link operations.*/
@@ -277,7 +277,7 @@ typedef volatile struct {
         };
         uint32_t val;
     } quick_sent;
-    struct{
+    struct {
         uint32_t w_data[2];                                /*This register stores the content of short packet's dword*/
     } q_data[7];
     union {

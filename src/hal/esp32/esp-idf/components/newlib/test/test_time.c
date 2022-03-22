@@ -4,38 +4,68 @@
 #include "driver/adc.h"
 #include <time.h>
 #include <sys/time.h>
-#include "soc/rtc_cntl_reg.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "sdkconfig.h"
 #include "soc/rtc.h"
-#include "esp_clk.h"
+#include "soc/rtc_cntl_reg.h"
 #include "esp_system.h"
 #include "test_utils.h"
+#include "esp_log.h"
+#include "esp_rom_sys.h"
+#include "esp_system.h"
+#include "esp_timer.h"
+#include "esp_private/system_internal.h"
+#include "esp_private/esp_timer_private.h"
+#include "../priv_include/esp_time_impl.h"
+
+#include "esp_private/system_internal.h"
+
+#if CONFIG_IDF_TARGET_ESP32
+#include "esp32/clk.h"
+#include "esp32/rtc.h"
+#define TARGET_DEFAULT_CPU_FREQ_MHZ CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ
+#elif CONFIG_IDF_TARGET_ESP32S2
+#include "esp32s2/clk.h"
+#include "esp32s2/rtc.h"
+#define TARGET_DEFAULT_CPU_FREQ_MHZ CONFIG_ESP32S2_DEFAULT_CPU_FREQ_MHZ
+#elif CONFIG_IDF_TARGET_ESP32S3
+#include "esp32s3/clk.h"
+#include "esp32s3/rtc.h"
+#define TARGET_DEFAULT_CPU_FREQ_MHZ CONFIG_ESP32S3_DEFAULT_CPU_FREQ_MHZ
+#elif CONFIG_IDF_TARGET_ESP32C3
+#include "esp32c3/clk.h"
+#include "esp32c3/rtc.h"
+#define TARGET_DEFAULT_CPU_FREQ_MHZ CONFIG_ESP32C3_DEFAULT_CPU_FREQ_MHZ
+#elif CONFIG_IDF_TARGET_ESP32H2
+#include "esp32h2/clk.h"
+#include "esp32h2/rtc.h"
+#define TARGET_DEFAULT_CPU_FREQ_MHZ CONFIG_ESP32H2_DEFAULT_CPU_FREQ_MHZ
+#endif
 
 #if portNUM_PROCESSORS == 2
+
+// This runs on APP CPU:
+static void time_adc_test_task(void* arg)
+{
+    for (int i = 0; i < 200000; ++i) {
+        // wait for 20us, reading one of RTC registers
+        uint32_t ccount = xthal_get_ccount();
+        while (xthal_get_ccount() - ccount < 20 * TARGET_DEFAULT_CPU_FREQ_MHZ) {
+            volatile uint32_t val = REG_READ(RTC_CNTL_STATE0_REG);
+            (void) val;
+        }
+    }
+    SemaphoreHandle_t * p_done = (SemaphoreHandle_t *) arg;
+    xSemaphoreGive(*p_done);
+    vTaskDelay(1);
+    vTaskDelete(NULL);
+}
 
 // https://github.com/espressif/arduino-esp32/issues/120
 TEST_CASE("Reading RTC registers on APP CPU doesn't affect clock", "[newlib]")
 {
-    // This runs on APP CPU:
-    void time_adc_test_task(void* arg)
-    {
-        for (int i = 0; i < 200000; ++i) {
-            // wait for 20us, reading one of RTC registers
-            uint32_t ccount = xthal_get_ccount();
-            while (xthal_get_ccount() - ccount < 20 * CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ) {
-                volatile uint32_t val = REG_READ(RTC_CNTL_STATE0_REG);
-                (void) val;
-            }
-        }
-        SemaphoreHandle_t * p_done = (SemaphoreHandle_t *) arg;
-        xSemaphoreGive(*p_done);
-        vTaskDelay(1);
-        vTaskDelete(NULL);
-    }
-
     SemaphoreHandle_t done = xSemaphoreCreateBinary();
     xTaskCreatePinnedToCore(&time_adc_test_task, "time_adc", 4096, &done, 5, NULL, 1);
 
@@ -82,25 +112,27 @@ TEST_CASE("test adjtime function", "[newlib]")
     tv_delta.tv_sec = 0;
     tv_delta.tv_usec = -900000;
     TEST_ASSERT_EQUAL(adjtime(&tv_delta, &tv_outdelta), 0);
-    TEST_ASSERT_TRUE(tv_outdelta.tv_usec <= 0);
-
-    tv_delta.tv_sec = 0;
-    tv_delta.tv_usec = 900000;
-    TEST_ASSERT_EQUAL(adjtime(&tv_delta, &tv_outdelta), 0);
-    TEST_ASSERT_TRUE(tv_outdelta.tv_usec >= 0);
+    TEST_ASSERT_EQUAL(tv_outdelta.tv_sec, 0);
+    TEST_ASSERT_EQUAL(tv_outdelta.tv_usec, 0);
+    TEST_ASSERT_EQUAL(adjtime(NULL, &tv_outdelta), 0);
+    TEST_ASSERT_LESS_THAN(-800000, tv_outdelta.tv_usec);
 
     tv_delta.tv_sec = -4;
     tv_delta.tv_usec = -900000;
-    TEST_ASSERT_EQUAL(adjtime(&tv_delta, &tv_outdelta), 0);
+    TEST_ASSERT_EQUAL(adjtime(&tv_delta, NULL), 0);
+    TEST_ASSERT_EQUAL(adjtime(NULL, &tv_outdelta), 0);
     TEST_ASSERT_EQUAL(tv_outdelta.tv_sec,  -4);
-    TEST_ASSERT_TRUE(tv_outdelta.tv_usec <= 0);
+    TEST_ASSERT_LESS_THAN(-800000, tv_outdelta.tv_usec);
 
     // after settimeofday() adjtime() is stopped
     tv_delta.tv_sec = 15;
     tv_delta.tv_usec = 900000;
     TEST_ASSERT_EQUAL(adjtime(&tv_delta, &tv_outdelta), 0);
+    TEST_ASSERT_EQUAL(tv_outdelta.tv_sec, -4);
+    TEST_ASSERT_LESS_THAN(-800000, tv_outdelta.tv_usec);
+    TEST_ASSERT_EQUAL(adjtime(NULL, &tv_outdelta), 0);
     TEST_ASSERT_EQUAL(tv_outdelta.tv_sec,  15);
-    TEST_ASSERT_TRUE(tv_outdelta.tv_usec >= 0);
+    TEST_ASSERT_GREATER_OR_EQUAL(800000, tv_outdelta.tv_usec);
 
     TEST_ASSERT_EQUAL(gettimeofday(&tv_time, NULL), 0);
     TEST_ASSERT_EQUAL(settimeofday(&tv_time, NULL), 0);
@@ -113,21 +145,24 @@ TEST_CASE("test adjtime function", "[newlib]")
     tv_delta.tv_sec = 15;
     tv_delta.tv_usec = 900000;
     TEST_ASSERT_EQUAL(adjtime(&tv_delta, &tv_outdelta), 0);
+    TEST_ASSERT_EQUAL(tv_outdelta.tv_sec,  0);
+    TEST_ASSERT_EQUAL(tv_outdelta.tv_usec, 0);
+    TEST_ASSERT_EQUAL(adjtime(NULL, &tv_outdelta), 0);
     TEST_ASSERT_EQUAL(tv_outdelta.tv_sec,  15);
-    TEST_ASSERT_TRUE(tv_outdelta.tv_usec >= 0);
+    TEST_ASSERT_GREATER_OR_EQUAL(800000, tv_outdelta.tv_usec);
 
     TEST_ASSERT_EQUAL(gettimeofday(&tv_time, NULL), 0);
 
     TEST_ASSERT_EQUAL(adjtime(NULL, &tv_outdelta), 0);
     TEST_ASSERT_EQUAL(tv_outdelta.tv_sec,  15);
-    TEST_ASSERT_TRUE(tv_outdelta.tv_usec >= 0);
+    TEST_ASSERT_GREATER_OR_EQUAL(800000, tv_outdelta.tv_usec);
 
     tv_delta.tv_sec = 1;
     tv_delta.tv_usec = 0;
     TEST_ASSERT_EQUAL(adjtime(&tv_delta, NULL), 0);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     TEST_ASSERT_EQUAL(adjtime(NULL, &tv_outdelta), 0);
-    TEST_ASSERT_TRUE(tv_outdelta.tv_sec == 0);
+    TEST_ASSERT_EQUAL(tv_outdelta.tv_sec, 0);
     // the correction will be equal to (1_000_000us >> 6) = 15_625 us.
     TEST_ASSERT_TRUE(1000000L - tv_outdelta.tv_usec >= 15600);
     TEST_ASSERT_TRUE(1000000L - tv_outdelta.tv_usec <= 15650);
@@ -216,6 +251,7 @@ static void get_time_task(void *pvParameters)
     // although exit flag is set in another task, checking (exit_flag == false) is safe
     while (exit_flag == false) {
         gettimeofday(&tv_time, NULL);
+        vTaskDelay(1500 / portTICK_PERIOD_MS);
     }
     xSemaphoreGive(*sema);
     vTaskDelete(NULL);
@@ -224,13 +260,9 @@ static void get_time_task(void *pvParameters)
 static void start_measure(int64_t* sys_time, int64_t* real_time)
 {
     struct timeval tv_time;
-    int64_t t1, t2;
-    do {
-        t1 = esp_timer_get_time();
-        gettimeofday(&tv_time, NULL);
-        t2 = esp_timer_get_time();
-    } while (t2 - t1 > 40);
-    *real_time = t2;
+    // there shouldn't be much time between gettimeofday and esp_timer_get_time
+    gettimeofday(&tv_time, NULL);
+    *real_time = esp_timer_get_time();
     *sys_time = (int64_t)tv_time.tv_sec * 1000000L + tv_time.tv_usec;
 }
 
@@ -266,7 +298,7 @@ static void measure_time_task(void *pvParameters)
         int64_t sys_time_us[2] = { main_sys_time_us[0], 0};
         // although exit flag is set in another task, checking (exit_flag == false) is safe
         while (exit_flag == false) {
-            ets_delay_us(2 * 1000000); // 2 sec
+            vTaskDelay(2000 / portTICK_PERIOD_MS);
 
             start_measure(&sys_time_us[1], &real_time_us[1]);
             result_adjtime_correction_us[1] += calc_correction("measure", sys_time_us, real_time_us);
@@ -287,7 +319,7 @@ static void measure_time_task(void *pvParameters)
     vTaskDelete(NULL);
 }
 
-TEST_CASE("test time adjustment happens linearly", "[newlib][timeout=35]")
+TEST_CASE("test time adjustment happens linearly", "[newlib][timeout=15]")
 {
     exit_flag = false;
 
@@ -300,8 +332,8 @@ TEST_CASE("test time adjustment happens linearly", "[newlib][timeout=35]")
     xTaskCreatePinnedToCore(get_time_task, "get_time_task", 4096, &exit_sema[0], UNITY_FREERTOS_PRIORITY - 1, NULL, 0);
     xTaskCreatePinnedToCore(measure_time_task, "measure_time_task", 4096, &exit_sema[1], UNITY_FREERTOS_PRIORITY - 1, NULL, 1);
 
-    printf("start waiting for 30 seconds\n");
-    vTaskDelay(30000 / portTICK_PERIOD_MS);
+    printf("start waiting for 10 seconds\n");
+    vTaskDelay(10000 / portTICK_PERIOD_MS);
 
     // set exit flag to let thread exit
     exit_flag = true;
@@ -318,28 +350,21 @@ TEST_CASE("test time adjustment happens linearly", "[newlib][timeout=35]")
 }
 #endif
 
-#if defined( CONFIG_ESP32_TIME_SYSCALL_USE_RTC ) || defined( CONFIG_ESP32_TIME_SYSCALL_USE_RTC_FRC1 )
-#define WITH_RTC 1
-#endif
-
-#if defined( CONFIG_ESP32_TIME_SYSCALL_USE_FRC1 ) || defined( CONFIG_ESP32_TIME_SYSCALL_USE_RTC_FRC1 )
-#define WITH_FRC 1
-#endif
 void test_posix_timers_clock (void)
 {
 #ifndef _POSIX_TIMERS
     TEST_ASSERT_MESSAGE(false, "_POSIX_TIMERS - is not defined");
 #endif
 
-#if defined( WITH_FRC )
-    printf("WITH_FRC    ");
+#if defined( CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER )
+    printf("CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER    ");
 #endif
 
-#if defined( WITH_RTC )
-    printf("WITH_RTC    ");
+#if defined( CONFIG_ESP_TIME_FUNCS_USE_RTC_TIMER )
+    printf("CONFIG_ESP_TIME_FUNCS_USE_RTC_TIMER    ");
 #endif
 
-#ifdef CONFIG_ESP32_RTC_CLOCK_SOURCE_EXTERNAL_CRYSTAL
+#ifdef CONFIG_ESP32_RTC_CLK_SRC_EXT_CRYS
     printf("External (crystal) Frequency = %d Hz\n", rtc_clk_slow_freq_get_hz());
 #else
     printf("Internal Frequency = %d Hz\n", rtc_clk_slow_freq_get_hz());
@@ -353,7 +378,7 @@ void test_posix_timers_clock (void)
     TEST_ASSERT(clock_gettime(CLOCK_MONOTONIC, NULL) == -1);
     TEST_ASSERT(clock_getres(CLOCK_MONOTONIC,  NULL) == -1);
 
-#if defined( WITH_FRC ) || defined( WITH_RTC )
+#if defined( CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER ) || defined( CONFIG_ESP_TIME_FUNCS_USE_RTC_TIMER )
     struct timeval now = {0};
     now.tv_sec  = 10L;
     now.tv_usec = 100000L;
@@ -374,13 +399,13 @@ void test_posix_timers_clock (void)
     ts.tv_nsec = 100000000L;
     TEST_ASSERT(clock_settime(CLOCK_REALTIME, &ts) == 0);
     TEST_ASSERT(gettimeofday(&now, NULL) == 0);
-    TEST_ASSERT(now.tv_sec == ts.tv_sec);
-    TEST_ASSERT_INT_WITHIN(5000L, now.tv_usec,  ts.tv_nsec / 1000L);
+    TEST_ASSERT_EQUAL(ts.tv_sec, now.tv_sec);
+    TEST_ASSERT_INT_WITHIN(5000L, ts.tv_nsec / 1000L, now.tv_usec);
 
     TEST_ASSERT(clock_settime(CLOCK_MONOTONIC, &ts) == -1);
 
     uint64_t delta_monotonic_us = 0;
-#if defined( WITH_FRC )
+#if defined( CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER )
 
     TEST_ASSERT(clock_getres(CLOCK_REALTIME, &ts) == 0);
     TEST_ASSERT_EQUAL_INT(1000, ts.tv_nsec);
@@ -388,11 +413,11 @@ void test_posix_timers_clock (void)
     TEST_ASSERT_EQUAL_INT(1000, ts.tv_nsec);
 
     TEST_ASSERT(clock_gettime(CLOCK_MONOTONIC, &ts) == 0);
-    delta_monotonic_us = esp_timer_get_time() - (ts.tv_sec * 1000000L + ts.tv_nsec / 1000L);
+    delta_monotonic_us = esp_system_get_time() - (ts.tv_sec * 1000000L + ts.tv_nsec / 1000L);
     TEST_ASSERT(delta_monotonic_us > 0 || delta_monotonic_us == 0);
     TEST_ASSERT_INT_WITHIN(5000L, 0, delta_monotonic_us);
 
-    #elif defined( WITH_RTC )
+#elif defined( CONFIG_ESP_TIME_FUNCS_USE_RTC_TIMER )
 
     TEST_ASSERT(clock_getres(CLOCK_REALTIME, &ts) == 0);
     TEST_ASSERT_EQUAL_INT(1000000000L / rtc_clk_slow_freq_get_hz(), ts.tv_nsec);
@@ -404,7 +429,7 @@ void test_posix_timers_clock (void)
     TEST_ASSERT(delta_monotonic_us > 0 || delta_monotonic_us == 0);
     TEST_ASSERT_INT_WITHIN(5000L, 0, delta_monotonic_us);
 
-#endif // WITH_FRC
+#endif // CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER
 
 #else
     struct timespec ts = {0};
@@ -415,10 +440,197 @@ void test_posix_timers_clock (void)
     TEST_ASSERT(clock_settime(CLOCK_MONOTONIC, &ts) == -1);
     TEST_ASSERT(clock_gettime(CLOCK_MONOTONIC, &ts) == -1);
     TEST_ASSERT(clock_getres(CLOCK_MONOTONIC,  &ts) == -1);
-#endif // defined( WITH_FRC ) || defined( WITH_RTC )
+#endif // defined( CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER ) || defined( CONFIG_ESP_TIME_FUNCS_USE_RTC_TIMER )
 }
 
 TEST_CASE("test posix_timers clock_... functions", "[newlib]")
 {
     test_posix_timers_clock();
 }
+
+#ifdef CONFIG_SDK_TOOLCHAIN_SUPPORTS_TIME_WIDE_64_BITS
+#include <string.h>
+
+static struct timeval get_time(const char *desc, char *buffer)
+{
+    struct timeval timestamp;
+    gettimeofday(&timestamp, NULL);
+    struct tm* tm_info = localtime(&timestamp.tv_sec);
+    strftime(buffer, 32, "%c", tm_info);
+    ESP_LOGI("TAG", "%s: %016llX (%s)", desc, timestamp.tv_sec, buffer);
+    return timestamp;
+}
+
+TEST_CASE("test time_t wide 64 bits", "[newlib]")
+{
+    static char buffer[32];
+    ESP_LOGI("TAG", "sizeof(time_t): %d (%d-bit)", sizeof(time_t), sizeof(time_t)*8);
+    TEST_ASSERT_EQUAL(8, sizeof(time_t));
+
+    struct tm tm = {4, 14, 3, 19, 0, 138, 0, 0, 0};
+    struct timeval timestamp = { mktime(&tm), 0 };
+    ESP_LOGI("TAG", "timestamp: %016llX", timestamp.tv_sec);
+    settimeofday(&timestamp, NULL);
+    get_time("Set time", buffer);
+
+    while (timestamp.tv_sec < 0x80000003LL) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        timestamp = get_time("Time now", buffer);
+    }
+    TEST_ASSERT_EQUAL_MEMORY("Tue Jan 19 03:14:11 2038", buffer, strlen(buffer));
+}
+
+TEST_CASE("test time functions wide 64 bits", "[newlib]")
+{
+    static char origin_buffer[32];
+    char strftime_buf[64];
+
+    int year = 2018;
+    struct tm tm = {0, 14, 3, 19, 0, year - 1900, 0, 0, 0};
+    time_t t = mktime(&tm);
+    while (year < 2119) {
+        struct timeval timestamp = { t, 0 };
+        ESP_LOGI("TAG", "year: %d", year);
+        settimeofday(&timestamp, NULL);
+        get_time("Time now", origin_buffer);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+        t += 86400 * 366;
+        struct tm timeinfo = { 0 };
+        time_t now;
+        time(&now);
+        localtime_r(&now, &timeinfo);
+
+        time_t t = mktime(&timeinfo);
+        ESP_LOGI("TAG", "Test mktime(). Time: %016llX", t);
+        TEST_ASSERT_EQUAL(timestamp.tv_sec, t);
+        // mktime() has error in newlib-3.0.0. It fixed in newlib-3.0.0.20180720
+        TEST_ASSERT_EQUAL((timestamp.tv_sec >> 32), (t >> 32));
+
+        strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+        ESP_LOGI("TAG", "Test time() and localtime_r(). Time: %s", strftime_buf);
+        TEST_ASSERT_EQUAL(timeinfo.tm_year, year - 1900);
+        TEST_ASSERT_EQUAL_MEMORY(origin_buffer, strftime_buf, strlen(origin_buffer));
+
+        struct tm *tm2 = localtime(&now);
+        strftime(strftime_buf, sizeof(strftime_buf), "%c", tm2);
+        ESP_LOGI("TAG", "Test localtime(). Time: %s", strftime_buf);
+        TEST_ASSERT_EQUAL(tm2->tm_year, year - 1900);
+        TEST_ASSERT_EQUAL_MEMORY(origin_buffer, strftime_buf, strlen(origin_buffer));
+
+        struct tm *gm = gmtime(&now);
+        strftime(strftime_buf, sizeof(strftime_buf), "%c", gm);
+        ESP_LOGI("TAG", "Test gmtime(). Time: %s", strftime_buf);
+        TEST_ASSERT_EQUAL_MEMORY(origin_buffer, strftime_buf, strlen(origin_buffer));
+
+        const char* time_str1 = ctime(&now);
+        ESP_LOGI("TAG", "Test ctime(). Time: %s", time_str1);
+        TEST_ASSERT_EQUAL_MEMORY(origin_buffer, time_str1, strlen(origin_buffer));
+
+        const char* time_str2 = asctime(&timeinfo);
+        ESP_LOGI("TAG", "Test asctime(). Time: %s", time_str2);
+        TEST_ASSERT_EQUAL_MEMORY(origin_buffer, time_str2, strlen(origin_buffer));
+
+        printf("\n");
+        ++year;
+    }
+}
+
+#endif // CONFIG_SDK_TOOLCHAIN_SUPPORTS_TIME_WIDE_64_BITS
+
+#if defined( CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER ) && defined( CONFIG_ESP_TIME_FUNCS_USE_RTC_TIMER )
+
+extern int64_t s_microseconds_offset;
+static const uint64_t s_start_timestamp  = 1606838354;
+static RTC_NOINIT_ATTR uint64_t s_saved_time;
+static RTC_NOINIT_ATTR uint64_t s_time_in_reboot;
+
+typedef enum {
+    TYPE_REBOOT_ABORT = 0,
+    TYPE_REBOOT_RESTART,
+} type_reboot_t;
+
+static void print_counters(void)
+{
+    int64_t frc = esp_system_get_time();
+    int64_t rtc = esp_rtc_get_time_us();
+    uint64_t boot_time = esp_time_impl_get_boot_time();
+    printf("\tFRC %lld (us)\n", frc);
+    printf("\tRTC %lld (us)\n", rtc);
+    printf("\tBOOT %lld (us)\n", boot_time);
+    printf("\ts_microseconds_offset %lld (us)\n", s_microseconds_offset);
+    printf("delta RTC - FRC counters %lld (us)\n", rtc - frc);
+}
+
+static void set_initial_condition(type_reboot_t type_reboot, int error_time)
+{
+    print_counters();
+
+    struct timeval tv = { .tv_sec = s_start_timestamp, .tv_usec = 0, };
+    settimeofday(&tv, NULL);
+    printf("set timestamp %lld (s)\n", s_start_timestamp);
+
+    print_counters();
+
+    int delay_s = abs(error_time) * 2;
+    printf("Waiting for %d (s) ...\n", delay_s);
+    vTaskDelay(delay_s * 1000 / portTICK_RATE_MS);
+
+    print_counters();
+
+    printf("FRC counter increased to %d (s)\n", error_time);
+    esp_timer_private_advance(error_time * 1000000ULL);
+
+    print_counters();
+
+    gettimeofday(&tv, NULL);
+    s_saved_time = tv.tv_sec;
+    printf("s_saved_time %lld (s)\n", s_saved_time);
+    int dt = s_saved_time - s_start_timestamp;
+    printf("delta timestamp = %d (s)\n", dt);
+    TEST_ASSERT_GREATER_OR_EQUAL(error_time, dt);
+    s_time_in_reboot = esp_rtc_get_time_us();
+
+    if (type_reboot == TYPE_REBOOT_ABORT) {
+        printf("Update boot time based on diff\n");
+        esp_sync_counters_rtc_and_frc();
+        print_counters();
+        printf("reboot as abort\n");
+        abort();
+    } else if (type_reboot == TYPE_REBOOT_RESTART) {
+        printf("reboot as restart\n");
+        esp_restart();
+    }
+}
+
+static void set_timestamp1(void)
+{
+    set_initial_condition(TYPE_REBOOT_ABORT, 5);
+}
+
+static void set_timestamp2(void)
+{
+    set_initial_condition(TYPE_REBOOT_RESTART, 5);
+}
+
+static void set_timestamp3(void)
+{
+    set_initial_condition(TYPE_REBOOT_RESTART, -5);
+}
+
+static void check_time(void)
+{
+    print_counters();
+    int latency_before_run_ut = 1 + (esp_rtc_get_time_us() - s_time_in_reboot) / 1000000;
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    printf("timestamp %ld (s)\n", tv.tv_sec);
+    int dt = tv.tv_sec - s_saved_time;
+    printf("delta timestamp = %d (s)\n", dt);
+    TEST_ASSERT_GREATER_OR_EQUAL(0, dt);
+    TEST_ASSERT_LESS_OR_EQUAL(latency_before_run_ut, dt);
+}
+
+TEST_CASE_MULTIPLE_STAGES("Timestamp after abort is correct in case RTC & FRC have + big error", "[newlib][reset=abort,SW_CPU_RESET]", set_timestamp1, check_time);
+TEST_CASE_MULTIPLE_STAGES("Timestamp after restart is correct in case RTC & FRC have + big error", "[newlib][reset=SW_CPU_RESET]", set_timestamp2, check_time);
+TEST_CASE_MULTIPLE_STAGES("Timestamp after restart is correct in case RTC & FRC have - big error", "[newlib][reset=SW_CPU_RESET]", set_timestamp3, check_time);
+#endif // CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER && CONFIG_ESP_TIME_FUNCS_USE_RTC_TIMER

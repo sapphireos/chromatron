@@ -1,6 +1,13 @@
+/*
+ * SPDX-FileCopyrightText: 2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #include "test/test_common_spi.h"
 #include "driver/spi_slave.h"
 #include "esp_log.h"
+#include "driver/gpio.h"
+#include "hal/gpio_hal.h"
 
 int test_freq_default[]=TEST_FREQ_DEFAULT();
 
@@ -44,7 +51,7 @@ esp_err_t init_slave_context(spi_slave_task_context_t *context)
     if ( context->data_received == NULL ) {
         return ESP_ERR_NO_MEM;
     }
-    context->spi=VSPI_HOST;
+    context->spi=TEST_SLAVE_HOST;
     return ESP_OK;
 }
 
@@ -86,7 +93,7 @@ void spitest_slave_task(void* arg)
         } while ( t.trans_len <= 2 );
         memcpy(recvbuf, &t.trans_len, sizeof(uint32_t));
         *(uint8_t**)(recvbuf+4) = (uint8_t*)txdata.start;
-        ESP_LOGI( SLAVE_TAG, "received: %d", t.trans_len );
+        ESP_LOGD( SLAVE_TAG, "received: %d", t.trans_len );
         xRingbufferSend( ringbuf, recvbuf, 8+(t.trans_len+7)/8, portMAX_DELAY );
     }
 }
@@ -160,21 +167,35 @@ void spitest_slave_print_data(slave_rxdata_t *t, bool print_rxdata)
 
 esp_err_t spitest_check_data(int len, spi_transaction_t *master_t, slave_rxdata_t *slave_t, bool check_master_data, bool check_slave_len, bool check_slave_data)
 {
+    esp_err_t ret = ESP_OK;
+    uint32_t rcv_len = slave_t->len;
     //currently the rcv_len can be in range of [t->length-1, t->length+3]
-    if (check_slave_len) {
-        uint32_t rcv_len = slave_t->len;
-        TEST_ASSERT(rcv_len >= len - 1 && rcv_len <= len + 4);
+    if (check_slave_len &&
+        (rcv_len < len - 1 || rcv_len > len + 4)) {
+            ret = ESP_FAIL;
     }
 
-        //if (dup!=HALF_DUPLEX_MOSI) {
-    if (check_master_data) {
+    if (check_master_data &&
+        memcmp(slave_t->tx_start, master_t->rx_buffer, (len + 7) / 8) != 0 ) {
+            ret = ESP_FAIL;
+    }
+
+    if (check_slave_data &&
+        memcmp(master_t->tx_buffer, slave_t->data, (len + 7) / 8) != 0 ) {
+            ret = ESP_FAIL;
+    }
+    if (ret != ESP_OK) {
+        ESP_LOGI(SLAVE_TAG, "slave_recv_len: %d", rcv_len);
+        spitest_master_print_data(master_t, len);
+        spitest_slave_print_data(slave_t, true);
+        //already failed, try to use the TEST_ASSERT to output the reason...
+        if (check_slave_len) {
+            TEST_ASSERT(rcv_len >= len - 1 && rcv_len <= len + 4);
+        }
         TEST_ASSERT_EQUAL_HEX8_ARRAY(slave_t->tx_start, master_t->rx_buffer, (len + 7) / 8);
-    }
-
-    //if (dup!=HALF_DUPLEX_MISO) {
-    if (check_slave_data) {
         TEST_ASSERT_EQUAL_HEX8_ARRAY(master_t->tx_buffer, slave_t->data, (len + 7) / 8);
     }
+
     return ESP_OK;
 }
 
@@ -187,6 +208,42 @@ void master_free_device_bus(spi_device_handle_t spi)
 
 void spitest_gpio_output_sel(uint32_t gpio_num, int func, uint32_t signal_idx)
 {
-    PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio_num], func);
-    GPIO.func_out_sel_cfg[gpio_num].func_sel=signal_idx;
+    gpio_hal_iomux_func_sel(GPIO_PIN_MUX_REG[gpio_num], func);
+    GPIO.func_out_sel_cfg[gpio_num].func_sel = signal_idx;
+}
+
+void spitest_gpio_input_sel(uint32_t gpio_num, int func, uint32_t signal_idx)
+{
+    gpio_hal_iomux_func_sel(GPIO_PIN_MUX_REG[gpio_num], func);
+    GPIO.func_in_sel_cfg[signal_idx].func_sel = gpio_num;
+}
+
+//Note this cs_num is the ID of the connected devices' ID, e.g. if 2 devices are connected to the bus,
+//then the cs_num of the 1st and 2nd devices are 0 and 1 respectively.
+void same_pin_func_sel(spi_bus_config_t bus, spi_device_interface_config_t dev, uint8_t cs_num)
+{
+    spitest_gpio_output_sel(bus.mosi_io_num, FUNC_GPIO, spi_periph_signal[TEST_SPI_HOST].spid_out);
+    spitest_gpio_input_sel(bus.mosi_io_num, FUNC_GPIO, spi_periph_signal[TEST_SLAVE_HOST].spid_in);
+
+    spitest_gpio_output_sel(bus.miso_io_num, FUNC_GPIO, spi_periph_signal[TEST_SLAVE_HOST].spiq_out);
+    spitest_gpio_input_sel(bus.miso_io_num, FUNC_GPIO, spi_periph_signal[TEST_SPI_HOST].spiq_in);
+
+    spitest_gpio_output_sel(dev.spics_io_num, FUNC_GPIO, spi_periph_signal[TEST_SPI_HOST].spics_out[cs_num]);
+    spitest_gpio_input_sel(dev.spics_io_num, FUNC_GPIO, spi_periph_signal[TEST_SLAVE_HOST].spics_in);
+
+    spitest_gpio_output_sel(bus.sclk_io_num, FUNC_GPIO, spi_periph_signal[TEST_SPI_HOST].spiclk_out);
+    spitest_gpio_input_sel(bus.sclk_io_num, FUNC_GPIO, spi_periph_signal[TEST_SLAVE_HOST].spiclk_in);
+
+#if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
+    GPIO.func_in_sel_cfg[FSPIQ_IN_IDX].sig_in_sel = 1;
+#endif
+}
+
+void get_tx_buffer(uint32_t seed, uint8_t *master_send_buf, uint8_t *slave_send_buf, int send_buf_size)
+{
+    srand(seed);
+    for (int i = 0; i < send_buf_size; i++) {
+        slave_send_buf[i] = rand();
+        master_send_buf[i] = rand();
+    }
 }

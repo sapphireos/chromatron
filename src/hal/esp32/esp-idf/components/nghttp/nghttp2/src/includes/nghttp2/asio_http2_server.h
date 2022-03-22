@@ -142,8 +142,8 @@ public:
   // incoming requests in cleartext TCP connection.  If |asynchronous|
   // is false, this function blocks forever unless there is an error.
   // If it is true, after server has started, this function returns
-  // immediately, and the caller should call join() to shutdown server
-  // gracefully.
+  // immediately, and the caller should call stop() and join() to
+  // shutdown server gracefully.
   boost::system::error_code listen_and_serve(boost::system::error_code &ec,
                                              const std::string &address,
                                              const std::string &port,
@@ -213,6 +213,9 @@ public:
   // Get access to the io_service objects.
   const std::vector<std::shared_ptr<boost::asio::io_service>> &
   io_services() const;
+
+  // Returns a vector with the ports in use
+  std::vector<int> ports() const;
 
 private:
   std::unique_ptr<http2_impl> impl_;

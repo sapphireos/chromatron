@@ -6,7 +6,7 @@ SOURCE_FILES := \
 	spiffs_gc.c \
 	spiffs_hydrogen.c \
 	spiffs_nucleus.c \
-	) 
+	)
 
 INCLUDE_DIRS := \
 	. \
@@ -16,18 +16,27 @@ INCLUDE_DIRS := \
 	$(addprefix ../../spi_flash/sim/stubs/, \
 	app_update/include \
 	driver/include \
-	esp32/include \
 	freertos/include \
-	log/include \
 	newlib/include \
 	sdmmc/include \
 	vfs/include \
 	) \
 	$(addprefix ../../../components/, \
+	esp_rom/include \
+	esp_common/include \
+	esp_hw_support/include \
+	esp_hw_support/include/soc \
+	esp_system/include \
+	log/include \
+	xtensa/include \
+	xtensa/esp32/include \
 	soc/esp32/include \
+      	heap/include \
+	soc/include \
 	esp32/include \
 	bootloader_support/include \
 	app_update/include \
 	spi_flash/include \
+	hal/include \
 	wear_levelling/include \
 	)

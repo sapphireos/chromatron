@@ -6,6 +6,9 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wunused
 LDFLAGS ?=
 
+# Set this to -v to see the details of failing test cases
+TEST_FLAGS ?= $(if $(filter-out 0 OFF Off off NO No no FALSE False false N n,$(CTEST_OUTPUT_ON_FAILURE)),-v,)
+
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library			\
 		-lmbedtls$(SHARED_SUFFIX)	\
@@ -39,13 +42,16 @@ LOCAL_LDFLAGS += -lws2_32
 ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
-PYTHON ?= python
 else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
-# python2 for POSIX since FreeBSD has only python2 as default.
-PYTHON ?= python2
+endif
+
+ifdef WINDOWS
+PYTHON ?= python
+else
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
 endif
 
 # Zlib shared library extensions:
@@ -63,7 +69,7 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
 .SILENT:
 
-.PHONY: all check test clean
+.PHONY: all c_files check test clean
 
 all: $(BINARIES)
 
@@ -71,6 +77,7 @@ $(DEP):
 	$(MAKE) -C ../library
 
 C_FILES := $(addsuffix .c,$(APPS))
+c_files: $(C_FILES)
 
 # Wildcard target for test code generation:
 # A .c file is generated for each .data file in the suites/ directory. Each .c
@@ -115,7 +122,7 @@ endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 check: $(BINARIES)
-	perl scripts/run-test-suites.pl --skip=$(SKIP_TEST_SUITES)
+	perl scripts/run-test-suites.pl $(TEST_FLAGS) --skip=$(SKIP_TEST_SUITES)
 
 test: check
 

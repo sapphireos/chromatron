@@ -2,7 +2,9 @@
 # Component Makefile
 #
 
-COMPONENT_OBJS := heap_caps_init.o heap_caps.o multi_heap.o heap_trace.o
+COMPONENT_SRCDIRS := . port port/$(IDF_TARGET)
+COMPONENT_ADD_INCLUDEDIRS := include
+COMPONENT_OBJS := heap_caps_init.o heap_caps.o multi_heap.o heap_tlsf.o port/memory_layout_utils.o port/$(IDF_TARGET)/memory_layout.o
 
 ifndef CONFIG_HEAP_POISONING_DISABLED
 COMPONENT_OBJS += multi_heap_poisoning.o
@@ -10,6 +12,12 @@ COMPONENT_OBJS += multi_heap_poisoning.o
 ifdef CONFIG_HEAP_TASK_TRACKING
 COMPONENT_OBJS += heap_task_info.o
 endif
+endif
+
+ifdef CONFIG_HEAP_TRACING_STANDALONE
+
+COMPONENT_OBJS += heap_trace_standalone.o
+
 endif
 
 ifdef CONFIG_HEAP_TRACING
@@ -22,3 +30,5 @@ COMPONENT_ADD_LDFLAGS = -l$(COMPONENT_NAME) $(addprefix $(WRAP_ARGUMENT),$(WRAP_
 endif
 
 COMPONENT_ADD_LDFRAGMENTS += linker.lf
+
+CFLAGS += -DMULTI_HEAP_FREERTOS

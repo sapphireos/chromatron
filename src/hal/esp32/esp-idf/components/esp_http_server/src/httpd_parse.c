@@ -1,16 +1,8 @@
-// Copyright 2018 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2018-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 
 #include <stdlib.h>
@@ -374,13 +366,36 @@ static esp_err_t cb_headers_complete(http_parser *parser)
     ESP_LOGD(TAG, LOG_FMT("bytes read     = %d"),  parser->nread);
     ESP_LOGD(TAG, LOG_FMT("content length = %zu"), r->content_len);
 
+    /* Handle upgrade requests - only WebSocket is supported for now */
     if (parser->upgrade) {
-        ESP_LOGW(TAG, LOG_FMT("upgrade from HTTP not supported"));
-        /* There is no specific HTTP error code to notify the client that
-         * upgrade is not supported, thus sending 400 Bad Request */
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+        ESP_LOGD(TAG, LOG_FMT("Got an upgrade request"));
+
+        /* If there's no "Upgrade" header field, then it's not WebSocket. */
+        char ws_upgrade_hdr_val[] = "websocket";
+        if (httpd_req_get_hdr_value_str(r, "Upgrade", ws_upgrade_hdr_val, sizeof(ws_upgrade_hdr_val)) != ESP_OK) {
+            ESP_LOGW(TAG, LOG_FMT("Upgrade header does not match the length of \"websocket\""));
+            parser_data->error = HTTPD_400_BAD_REQUEST;
+            parser_data->status = PARSING_FAILED;
+            return ESP_FAIL;
+        }
+
+        /* If "Upgrade" field's key is not "websocket", then we should also forget about it. */
+        if (strcasecmp("websocket", ws_upgrade_hdr_val) != 0) {
+            ESP_LOGW(TAG, LOG_FMT("Upgrade header found but it's %s"), ws_upgrade_hdr_val);
+            parser_data->error = HTTPD_400_BAD_REQUEST;
+            parser_data->status = PARSING_FAILED;
+            return ESP_FAIL;
+        }
+
+        /* Now set handshake flag to true */
+        ra->ws_handshake_detect = true;
+#else
+        ESP_LOGD(TAG, LOG_FMT("WS functions has been disabled, Upgrade request is not supported."));
         parser_data->error = HTTPD_400_BAD_REQUEST;
         parser_data->status = PARSING_FAILED;
         return ESP_FAIL;
+#endif
     }
 
     parser_data->status = PARSING_BODY;
@@ -667,6 +682,9 @@ static void init_req_aux(struct httpd_req_aux *ra, httpd_config_t *config)
     ra->first_chunk_sent = 0;
     ra->req_hdrs_count = 0;
     ra->resp_hdrs_count = 0;
+#if CONFIG_HTTPD_WS_SUPPORT
+    ra->ws_handshake_detect = false;
+#endif
     memset(ra->resp_hdrs, 0, config->max_resp_headers * sizeof(struct resp_hdr));
 }
 
@@ -678,6 +696,15 @@ static void httpd_req_cleanup(httpd_req_t *r)
     if ((r->ignore_sess_ctx_changes == false) && (ra->sd->ctx != r->sess_ctx)) {
         httpd_sess_free_ctx(ra->sd->ctx, ra->sd->free_ctx);
     }
+
+#if CONFIG_HTTPD_WS_SUPPORT
+    /* Close the socket when a WebSocket Close request is received */
+    if (ra->sd->ws_close) {
+        ESP_LOGD(TAG, LOG_FMT("Try closing WS connection at FD: %d"), ra->sd->fd);
+        httpd_sess_trigger_close(r->handle, ra->sd->fd);
+    }
+#endif
+
     /* Retrieve session info from the request into the socket database. */
     ra->sd->ctx = r->sess_ctx;
     ra->sd->free_ctx = r->free_ctx;
@@ -687,6 +714,7 @@ static void httpd_req_cleanup(httpd_req_t *r)
     ra->sd = NULL;
     r->handle = NULL;
     r->aux = NULL;
+    r->user_ctx = NULL;
 }
 
 /* Function that processes incoming TCP data and
@@ -699,23 +727,65 @@ esp_err_t httpd_req_new(struct httpd_data *hd, struct sock_db *sd)
     init_req_aux(&hd->hd_req_aux, &hd->config);
     r->handle = hd;
     r->aux = &hd->hd_req_aux;
+
     /* Associate the request to the socket */
     struct httpd_req_aux *ra = r->aux;
     ra->sd = sd;
+
     /* Set defaults */
     ra->status = (char *)HTTPD_200;
     ra->content_type = (char *)HTTPD_TYPE_TEXT;
     ra->first_chunk_sent = false;
+
     /* Copy session info to the request */
     r->sess_ctx = sd->ctx;
     r->free_ctx = sd->free_ctx;
     r->ignore_sess_ctx_changes = sd->ignore_sess_ctx_changes;
+
+    esp_err_t ret;
+
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    /* Copy user_ctx to the request */
+    r->user_ctx = sd->ws_user_ctx;
+    /* Handle WebSocket */
+    ESP_LOGD(TAG, LOG_FMT("New request, has WS? %s, sd->ws_handler valid? %s, sd->ws_close? %s"),
+             sd->ws_handshake_done ? "Yes" : "No",
+             sd->ws_handler != NULL ? "Yes" : "No",
+             sd->ws_close ? "Yes" : "No");
+    if (sd->ws_handshake_done && sd->ws_handler != NULL) {
+        ret = httpd_ws_get_frame_type(r);
+        ESP_LOGD(TAG, LOG_FMT("New WS request from existing socket, ws_type=%d"), ra->ws_type);
+
+        /*  Stop and return here immediately if it's a CLOSE frame */
+        if (ra->ws_type == HTTPD_WS_TYPE_CLOSE) {
+            sd->ws_close = true;
+            return ret;
+        }
+
+        if (ra->ws_type == HTTPD_WS_TYPE_PONG) {
+            /* Pass the PONG frames to the handler as well, as user app might send PINGs */
+            ESP_LOGD(TAG, LOG_FMT("Received PONG frame"));
+        }
+
+        /* Call handler if it's a non-control frame (or if handler requests control frames, as well) */
+        if (ret == ESP_OK &&
+            (ra->ws_type < HTTPD_WS_TYPE_CLOSE || sd->ws_control_frames)) {
+            ret = sd->ws_handler(r);
+        }
+
+        if (ret != ESP_OK) {
+            httpd_req_cleanup(r);
+        }
+        return ret;
+    }
+#endif
+
     /* Parse request */
-    esp_err_t err = httpd_parse_req(hd);
-    if (err != ESP_OK) {
+    ret = httpd_parse_req(hd);
+    if (ret != ESP_OK) {
         httpd_req_cleanup(r);
     }
-    return err;
+    return ret;
 }
 
 /* Function that resets the http request data
@@ -732,7 +802,7 @@ esp_err_t httpd_req_delete(struct httpd_data *hd)
         char dummy[CONFIG_HTTPD_PURGE_BUF_LEN];
         int recv_len = MIN(sizeof(dummy), ra->remaining_len);
         recv_len = httpd_req_recv(r, dummy, recv_len);
-        if (recv_len < 0) {
+        if (recv_len <= 0) {
             httpd_req_cleanup(r);
             return ESP_FAIL;
         }
@@ -999,4 +1069,93 @@ esp_err_t httpd_req_get_hdr_value_str(httpd_req_t *r, const char *field, char *v
         return ESP_OK;
     }
     return ESP_ERR_NOT_FOUND;
+}
+
+/* Helper function to get a cookie value from a cookie string of the type "cookie1=val1; cookie2=val2" */
+esp_err_t static httpd_cookie_key_value(const char *cookie_str, const char *key, char *val, size_t *val_size)
+{
+    if (cookie_str == NULL || key == NULL || val == NULL) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    const char *cookie_ptr = cookie_str;
+    const size_t buf_len = *val_size;
+    size_t _val_size = *val_size;
+
+    while (strlen(cookie_ptr)) {
+        /* Search for the '=' character. Else, it would mean
+         * that the parameter is invalid */
+        const char *val_ptr = strchr(cookie_ptr, '=');
+        if (!val_ptr) {
+            break;
+        }
+        size_t offset = val_ptr - cookie_ptr;
+
+        /* If the key, does not match, continue searching.
+         * Compare lengths first as key from cookie string is not
+         * null terminated (has '=' in the end) */
+        if ((offset != strlen(key)) || (strncasecmp(cookie_ptr, key, offset) != 0)) {
+            /* Get the name=val string. Multiple name=value pairs
+             * are separated by '; ' */
+            cookie_ptr = strchr(val_ptr, ' ');
+            if (!cookie_ptr) {
+                break;
+            }
+            cookie_ptr++;
+            continue;
+        }
+
+        /* Locate start of next query */
+        cookie_ptr = strchr(++val_ptr, ';');
+        /* Or this could be the last query, in which
+         * case get to the end of query string */
+        if (!cookie_ptr) {
+            cookie_ptr = val_ptr + strlen(val_ptr);
+        }
+
+        /* Update value length, including one byte for null */
+        _val_size = cookie_ptr - val_ptr + 1;
+
+        /* Copy value to the caller's buffer. */
+        strlcpy(val, val_ptr, MIN(_val_size, buf_len));
+
+        /* If buffer length is smaller than needed, return truncation error */
+        if (buf_len < _val_size) {
+            *val_size = _val_size;
+            return ESP_ERR_HTTPD_RESULT_TRUNC;
+        }
+        /* Save amount of bytes copied to caller's buffer */
+        *val_size = MIN(_val_size, buf_len);
+        return ESP_OK;
+    }
+    ESP_LOGD(TAG, LOG_FMT("cookie %s not found"), key);
+    return ESP_ERR_NOT_FOUND;
+}
+
+/* Get the value of a cookie from the request headers */
+esp_err_t httpd_req_get_cookie_val(httpd_req_t *req, const char *cookie_name, char *val, size_t *val_size)
+{
+    esp_err_t ret;
+    size_t hdr_len_cookie = httpd_req_get_hdr_value_len(req, "Cookie");
+    char *cookie_str = NULL;
+
+    if (hdr_len_cookie <= 0) {
+        return ESP_ERR_NOT_FOUND;
+    }
+    cookie_str = malloc(hdr_len_cookie + 1);
+    if (cookie_str == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate memory for cookie string");
+        return ESP_ERR_NO_MEM;
+    }
+
+    if (httpd_req_get_hdr_value_str(req, "Cookie", cookie_str, hdr_len_cookie + 1) != ESP_OK) {
+        ESP_LOGW(TAG, "Cookie not found in header uri:[%s]", req->uri);
+        free(cookie_str);
+        return ESP_ERR_NOT_FOUND;
+    }
+
+    ret = httpd_cookie_key_value(cookie_str, cookie_name, val, val_size);
+    free(cookie_str);
+    return ret;
+
 }

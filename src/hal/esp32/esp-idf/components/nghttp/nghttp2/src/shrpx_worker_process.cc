@@ -26,7 +26,7 @@
 
 #include <sys/types.h>
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif // HAVE_UNISTD_H
 #include <sys/resource.h>
 #include <sys/wait.h>
@@ -67,7 +67,7 @@ void drop_privileges(
 #ifdef HAVE_NEVERBLEED
     neverbleed_t *nb
 #endif // HAVE_NEVERBLEED
-    ) {
+) {
   std::array<char, STRERROR_BUFSIZE> errbuf;
   auto config = get_config();
 
@@ -114,12 +114,10 @@ void graceful_shutdown(ConnectionHandler *conn_handler) {
 
   conn_handler->set_graceful_shutdown(true);
 
-  conn_handler->disable_acceptor();
-
-  // After disabling accepting new connection, disptach incoming
-  // connection in backlog.
-
+  // TODO What happens for the connections not established in the
+  // kernel?
   conn_handler->accept_pending_connection();
+  conn_handler->delete_acceptor();
 
   conn_handler->graceful_shutdown_worker();
 
@@ -272,14 +270,14 @@ void memcached_get_ticket_key_cb(struct ev_loop *loop, ev_timer *w,
   auto conn_handler = static_cast<ConnectionHandler *>(w->data);
   auto dispatcher = conn_handler->get_tls_ticket_key_memcached_dispatcher();
 
-  auto req = make_unique<MemcachedRequest>();
+  auto req = std::make_unique<MemcachedRequest>();
   req->key = "nghttpx:tls-ticket-key";
-  req->op = MEMCACHED_OP_GET;
+  req->op = MemcachedOp::GET;
   req->cb = [conn_handler, w](MemcachedRequest *req, MemcachedResult res) {
     switch (res.status_code) {
-    case MEMCACHED_ERR_NO_ERROR:
+    case MemcachedStatusCode::NO_ERROR:
       break;
-    case MEMCACHED_ERR_EXT_NETWORK_ERROR:
+    case MemcachedStatusCode::EXT_NETWORK_ERROR:
       conn_handler->on_tls_ticket_key_network_error(w);
       return;
     default:
@@ -413,35 +411,30 @@ int worker_process_event_loop(WorkerProcessConfig *wpconf) {
 
   auto gen = util::make_mt19937();
 
-  ConnectionHandler conn_handler(loop, gen);
+  auto conn_handler = std::make_unique<ConnectionHandler>(loop, gen);
 
   for (auto &addr : config->conn.listener.addrs) {
-    conn_handler.add_acceptor(make_unique<AcceptHandler>(&addr, &conn_handler));
+    conn_handler->add_acceptor(
+        std::make_unique<AcceptHandler>(&addr, conn_handler.get()));
   }
 
 #ifdef HAVE_NEVERBLEED
-  {
-    std::array<char, NEVERBLEED_ERRBUF_SIZE> nb_errbuf;
-    auto nb = make_unique<neverbleed_t>();
-    if (neverbleed_init(nb.get(), nb_errbuf.data()) != 0) {
-      LOG(FATAL) << "neverbleed_init failed: " << nb_errbuf.data();
-      return -1;
-    }
-
-    LOG(NOTICE) << "neverbleed process [" << nb->daemon_pid << "] spawned";
-
-    conn_handler.set_neverbleed(std::move(nb));
+  std::array<char, NEVERBLEED_ERRBUF_SIZE> nb_errbuf;
+  auto nb = std::make_unique<neverbleed_t>();
+  if (neverbleed_init(nb.get(), nb_errbuf.data()) != 0) {
+    LOG(FATAL) << "neverbleed_init failed: " << nb_errbuf.data();
+    return -1;
   }
 
-  auto nb = conn_handler.get_neverbleed();
+  LOG(NOTICE) << "neverbleed process [" << nb->daemon_pid << "] spawned";
+
+  conn_handler->set_neverbleed(nb.get());
 
   ev_child nb_childev;
-  if (nb) {
-    ev_child_init(&nb_childev, nb_child_cb, nb->daemon_pid, 0);
-    nb_childev.data = nullptr;
-    ev_child_start(loop, &nb_childev);
-  }
 
+  ev_child_init(&nb_childev, nb_child_cb, nb->daemon_pid, 0);
+  nb_childev.data = nullptr;
+  ev_child_start(loop, &nb_childev);
 #endif // HAVE_NEVERBLEED
 
   MemchunkPool mcpool;
@@ -455,17 +448,17 @@ int worker_process_event_loop(WorkerProcessConfig *wpconf) {
       SSL_CTX *ssl_ctx = nullptr;
 
       if (memcachedconf.tls) {
-        ssl_ctx = conn_handler.create_tls_ticket_key_memcached_ssl_ctx();
+        ssl_ctx = conn_handler->create_tls_ticket_key_memcached_ssl_ctx();
       }
 
-      conn_handler.set_tls_ticket_key_memcached_dispatcher(
-          make_unique<MemcachedDispatcher>(
+      conn_handler->set_tls_ticket_key_memcached_dispatcher(
+          std::make_unique<MemcachedDispatcher>(
               &ticketconf.memcached.addr, loop, ssl_ctx,
               StringRef{memcachedconf.host}, &mcpool, gen));
 
       ev_timer_init(&renew_ticket_key_timer, memcached_get_ticket_key_cb, 0.,
                     0.);
-      renew_ticket_key_timer.data = &conn_handler;
+      renew_ticket_key_timer.data = conn_handler.get();
       // Get first ticket keys.
       memcached_get_ticket_key_cb(loop, &renew_ticket_key_timer, 0);
     } else {
@@ -485,14 +478,14 @@ int worker_process_event_loop(WorkerProcessConfig *wpconf) {
         if (!ticket_keys) {
           LOG(WARN) << "Use internal session ticket key generator";
         } else {
-          conn_handler.set_ticket_keys(std::move(ticket_keys));
+          conn_handler->set_ticket_keys(std::move(ticket_keys));
           auto_tls_ticket_key = false;
         }
       }
       if (auto_tls_ticket_key) {
         // Generate new ticket key every 1hr.
         ev_timer_init(&renew_ticket_key_timer, renew_ticket_key_cb, 0., 1_h);
-        renew_ticket_key_timer.data = &conn_handler;
+        renew_ticket_key_timer.data = conn_handler.get();
         ev_timer_again(loop, &renew_ticket_key_timer);
 
         // Generate first session ticket key before running workers.
@@ -502,7 +495,7 @@ int worker_process_event_loop(WorkerProcessConfig *wpconf) {
   }
 
   if (config->single_thread) {
-    rv = conn_handler.create_single_worker();
+    rv = conn_handler->create_single_worker();
     if (rv != 0) {
       return -1;
     }
@@ -520,7 +513,7 @@ int worker_process_event_loop(WorkerProcessConfig *wpconf) {
     }
 #endif // !NOTHREADS
 
-    rv = conn_handler.create_worker_thread(config->num_worker);
+    rv = conn_handler->create_worker_thread(config->num_worker);
     if (rv != 0) {
       return -1;
     }
@@ -537,22 +530,22 @@ int worker_process_event_loop(WorkerProcessConfig *wpconf) {
 
   drop_privileges(
 #ifdef HAVE_NEVERBLEED
-      nb
+      nb.get()
 #endif // HAVE_NEVERBLEED
-      );
+  );
 
   ev_io ipcev;
   ev_io_init(&ipcev, ipc_readcb, wpconf->ipc_fd, EV_READ);
-  ipcev.data = &conn_handler;
+  ipcev.data = conn_handler.get();
   ev_io_start(loop, &ipcev);
 
   if (tls::upstream_tls_enabled(config->conn) && !config->tls.ocsp.disabled) {
     if (config->tls.ocsp.startup) {
-      conn_handler.set_enable_acceptor_on_ocsp_completion(true);
-      conn_handler.disable_acceptor();
+      conn_handler->set_enable_acceptor_on_ocsp_completion(true);
+      conn_handler->disable_acceptor();
     }
 
-    conn_handler.proceed_next_cert_ocsp();
+    conn_handler->proceed_next_cert_ocsp();
   }
 
   if (LOG_ENABLED(INFO)) {
@@ -561,27 +554,29 @@ int worker_process_event_loop(WorkerProcessConfig *wpconf) {
 
   ev_run(loop, 0);
 
-  conn_handler.cancel_ocsp_update();
+  conn_handler->cancel_ocsp_update();
+
+  // Destroy SSL_CTX held in conn_handler before killing neverbleed
+  // daemon.  Otherwise priv_rsa_finish yields "write error" and
+  // worker process aborts.
+  conn_handler.reset();
 
 #ifdef HAVE_NEVERBLEED
-  if (nb) {
-    assert(nb->daemon_pid > 0);
+  assert(nb->daemon_pid > 0);
 
-    rv = kill(nb->daemon_pid, SIGTERM);
-    if (rv != 0) {
-      auto error = errno;
-      LOG(ERROR) << "Could not send signal to neverbleed daemon: errno="
-                 << error;
-    }
+  rv = kill(nb->daemon_pid, SIGTERM);
+  if (rv != 0) {
+    auto error = errno;
+    LOG(ERROR) << "Could not send signal to neverbleed daemon: errno=" << error;
+  }
 
-    while ((rv = waitpid(nb->daemon_pid, nullptr, 0)) == -1 && errno == EINTR)
-      ;
-    if (rv == -1) {
-      auto error = errno;
-      LOG(ERROR) << "Error occurred while we were waiting for the completion "
-                    "of neverbleed process: errno="
-                 << error;
-    }
+  while ((rv = waitpid(nb->daemon_pid, nullptr, 0)) == -1 && errno == EINTR)
+    ;
+  if (rv == -1) {
+    auto error = errno;
+    LOG(ERROR) << "Error occurred while we were waiting for the completion "
+                  "of neverbleed process: errno="
+               << error;
   }
 #endif // HAVE_NEVERBLEED
 

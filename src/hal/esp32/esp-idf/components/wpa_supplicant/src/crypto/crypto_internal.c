@@ -6,18 +6,13 @@
  * See README for more details.
  */
 
-#include "crypto/includes.h"
-#include "crypto/common.h"
-//#include "wpa/common.h"
-#include "crypto/crypto.h"
-//#include "crypto/sha256_i.h"
-#include "crypto/sha1_i.h"
-#include "crypto/md5_i.h"
+#include "includes.h"
 
-#ifdef MEMLEAK_DEBUG
-static const char mem_debug_file[] ICACHE_RODATA_ATTR = __FILE__;
-#endif
-
+#include "common.h"
+#include "crypto.h"
+#include "sha256_i.h"
+#include "sha1_i.h"
+#include "md5_i.h"
 
 struct crypto_hash {
 	enum crypto_hash_alg alg;
@@ -27,13 +22,19 @@ struct crypto_hash {
 #ifdef CONFIG_SHA256
 		struct sha256_state sha256;
 #endif /* CONFIG_SHA256 */
+#ifdef CONFIG_INTERNAL_SHA384
+		struct sha384_state sha384;
+#endif /* CONFIG_INTERNAL_SHA384 */
+#ifdef CONFIG_INTERNAL_SHA512
+		struct sha512_state sha512;
+#endif /* CONFIG_INTERNAL_SHA512 */
 	} u;
 	u8 key[64];
 	size_t key_len;
 };
 
 
-struct crypto_hash *  crypto_hash_init(enum crypto_hash_alg alg, const u8 *key,
+struct crypto_hash * crypto_hash_init(enum crypto_hash_alg alg, const u8 *key,
 				      size_t key_len)
 {
 	struct crypto_hash *ctx;
@@ -41,7 +42,7 @@ struct crypto_hash *  crypto_hash_init(enum crypto_hash_alg alg, const u8 *key,
 	u8 tk[32];
 	size_t i;
 
-	ctx = (struct crypto_hash *)os_zalloc(sizeof(*ctx));
+	ctx = os_zalloc(sizeof(*ctx));
 	if (ctx == NULL)
 		return NULL;
 
@@ -59,6 +60,16 @@ struct crypto_hash *  crypto_hash_init(enum crypto_hash_alg alg, const u8 *key,
 		sha256_init(&ctx->u.sha256);
 		break;
 #endif /* CONFIG_SHA256 */
+#ifdef CONFIG_INTERNAL_SHA384
+	case CRYPTO_HASH_ALG_SHA384:
+		sha384_init(&ctx->u.sha384);
+		break;
+#endif /* CONFIG_INTERNAL_SHA384 */
+#ifdef CONFIG_INTERNAL_SHA512
+	case CRYPTO_HASH_ALG_SHA512:
+		sha512_init(&ctx->u.sha512);
+		break;
+#endif /* CONFIG_INTERNAL_SHA512 */
 	case CRYPTO_HASH_ALG_HMAC_MD5:
 		if (key_len > sizeof(k_pad)) {
 			MD5Init(&ctx->u.md5);
@@ -127,7 +138,7 @@ struct crypto_hash *  crypto_hash_init(enum crypto_hash_alg alg, const u8 *key,
 }
 
 
-void  crypto_hash_update(struct crypto_hash *ctx, const u8 *data, size_t len)
+void crypto_hash_update(struct crypto_hash *ctx, const u8 *data, size_t len)
 {
 	if (ctx == NULL)
 		return;
@@ -147,13 +158,23 @@ void  crypto_hash_update(struct crypto_hash *ctx, const u8 *data, size_t len)
 		sha256_process(&ctx->u.sha256, data, len);
 		break;
 #endif /* CONFIG_SHA256 */
+#ifdef CONFIG_INTERNAL_SHA384
+	case CRYPTO_HASH_ALG_SHA384:
+		sha384_process(&ctx->u.sha384, data, len);
+		break;
+#endif /* CONFIG_INTERNAL_SHA384 */
+#ifdef CONFIG_INTERNAL_SHA512
+	case CRYPTO_HASH_ALG_SHA512:
+		sha512_process(&ctx->u.sha512, data, len);
+		break;
+#endif /* CONFIG_INTERNAL_SHA512 */
 	default:
 		break;
 	}
 }
 
 
-int  crypto_hash_finish(struct crypto_hash *ctx, u8 *mac, size_t *len)
+int crypto_hash_finish(struct crypto_hash *ctx, u8 *mac, size_t *len)
 {
 	u8 k_pad[64];
 	size_t i;
@@ -196,6 +217,28 @@ int  crypto_hash_finish(struct crypto_hash *ctx, u8 *mac, size_t *len)
 		sha256_done(&ctx->u.sha256, mac);
 		break;
 #endif /* CONFIG_SHA256 */
+#ifdef CONFIG_INTERNAL_SHA384
+	case CRYPTO_HASH_ALG_SHA384:
+		if (*len < 48) {
+			*len = 48;
+			os_free(ctx);
+			return -1;
+		}
+		*len = 48;
+		sha384_done(&ctx->u.sha384, mac);
+		break;
+#endif /* CONFIG_INTERNAL_SHA384 */
+#ifdef CONFIG_INTERNAL_SHA512
+	case CRYPTO_HASH_ALG_SHA512:
+		if (*len < 64) {
+			*len = 64;
+			os_free(ctx);
+			return -1;
+		}
+		*len = 64;
+		sha512_done(&ctx->u.sha512, mac);
+		break;
+#endif /* CONFIG_INTERNAL_SHA512 */
 	case CRYPTO_HASH_ALG_HMAC_MD5:
 		if (*len < 16) {
 			*len = 16;
@@ -265,16 +308,19 @@ int  crypto_hash_finish(struct crypto_hash *ctx, u8 *mac, size_t *len)
 
 	os_free(ctx);
 
+	if (TEST_FAIL())
+		return -1;
+
 	return 0;
 }
 
 
-int  crypto_global_init(void)
+int crypto_global_init(void)
 {
 	return 0;
 }
 
 
-void  crypto_global_deinit(void)
+void crypto_global_deinit(void)
 {
 }

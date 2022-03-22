@@ -1,25 +1,16 @@
-// Copyright 2015-2018 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+/*
+ * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-#ifndef _DRIVER_SDIO_SLAVE_H_
-#define _DRIVER_SDIO_SLAVE_H_
+#pragma once
 
 #include "freertos/FreeRTOS.h"
-#include "freertos/portmacro.h"
 #include "esp_err.h"
-#include "rom/queue.h"
+#include "sys/queue.h"
 
+#include "hal/sdio_slave_types.h"
 #include "soc/sdio_slave_periph.h"
 
 #ifdef __cplusplus
@@ -30,36 +21,6 @@ extern "C" {
 
 typedef void(*sdio_event_cb_t)(uint8_t event);
 
-/// Mask of interrupts sending to the host.
-typedef enum {
-    SDIO_SLAVE_HOSTINT_SEND_NEW_PACKET =  HOST_SLC0_RX_NEW_PACKET_INT_ENA,  ///< New packet available
-    SDIO_SLAVE_HOSTINT_RECV_OVF        =  HOST_SLC0_TX_OVF_INT_ENA,         ///< Slave receive buffer overflow
-    SDIO_SLAVE_HOSTINT_SEND_UDF        =  HOST_SLC0_RX_UDF_INT_ENA,         ///< Slave sending buffer underflow (this case only happen when the host do not request for packet according to the packet len).
-    SDIO_SLAVE_HOSTINT_BIT7            =  HOST_SLC0_TOHOST_BIT7_INT_ENA,    ///< General purpose interrupt bits that can be used by the user.
-    SDIO_SLAVE_HOSTINT_BIT6            =  HOST_SLC0_TOHOST_BIT6_INT_ENA,
-    SDIO_SLAVE_HOSTINT_BIT5            =  HOST_SLC0_TOHOST_BIT5_INT_ENA,
-    SDIO_SLAVE_HOSTINT_BIT4            =  HOST_SLC0_TOHOST_BIT4_INT_ENA,
-    SDIO_SLAVE_HOSTINT_BIT3            =  HOST_SLC0_TOHOST_BIT3_INT_ENA,
-    SDIO_SLAVE_HOSTINT_BIT2            =  HOST_SLC0_TOHOST_BIT2_INT_ENA,
-    SDIO_SLAVE_HOSTINT_BIT1            =  HOST_SLC0_TOHOST_BIT1_INT_ENA,
-    SDIO_SLAVE_HOSTINT_BIT0            =  HOST_SLC0_TOHOST_BIT0_INT_ENA,
-} sdio_slave_hostint_t;
-
-/// Timing of SDIO slave
-typedef enum {
-    SDIO_SLAVE_TIMING_PSEND_PSAMPLE = 0,/**< Send at posedge, and sample at posedge. Default value for HS mode.
-                                         *   Normally there's no problem using this to work in DS mode.
-                                         */
-    SDIO_SLAVE_TIMING_NSEND_PSAMPLE    ,///< Send at negedge, and sample at posedge. Default value for DS mode and below.
-    SDIO_SLAVE_TIMING_PSEND_NSAMPLE,    ///< Send at posedge, and sample at negedge
-    SDIO_SLAVE_TIMING_NSEND_NSAMPLE,    ///< Send at negedge, and sample at negedge
-} sdio_slave_timing_t;
-
-/// Configuration of SDIO slave mode
-typedef enum {
-    SDIO_SLAVE_SEND_STREAM = 0, ///< Stream mode, all packets to send will be combined as one if possible
-    SDIO_SLAVE_SEND_PACKET = 1, ///< Packet mode, one packets will be sent one after another (only increase packet_len if last packet sent).
-} sdio_slave_sending_mode_t;
 
 /// Configuration of SDIO slave
 typedef struct {
@@ -111,7 +72,7 @@ esp_err_t sdio_slave_initialize(sdio_slave_config_t *config);
 
 /** De-initialize the sdio slave driver to release the resources.
  */
-void sdio_slave_deinit();
+void sdio_slave_deinit(void);
 
 /** Start hardware for sending and receiving, as well as set the IOREADY1 to 1.
  *
@@ -122,19 +83,19 @@ void sdio_slave_deinit();
  *  - ESP_ERR_INVALID_STATE if already started.
  *  - ESP_OK otherwise.
  */
-esp_err_t sdio_slave_start();
+esp_err_t sdio_slave_start(void);
 
 /** Stop hardware from sending and receiving, also set IOREADY1 to 0.
  *
  * @note this will not clear the data already in the driver, and also not reset the PKT_LEN and TOKEN1 counting. Call ``sdio_slave_reset`` to do that.
  */
-void sdio_slave_stop();
+void sdio_slave_stop(void);
 
 /** Clear the data still in the driver, as well as reset the PKT_LEN and TOKEN1 counting.
  *
  * @return always return ESP_OK.
  */
-esp_err_t sdio_slave_reset();
+esp_err_t sdio_slave_reset(void);
 
 /*---------------------------------------------------------------------------
  *                  Receive
@@ -169,6 +130,28 @@ esp_err_t sdio_slave_recv_unregister_buf(sdio_slave_buf_handle_t handle);
  *     - ESP_OK if success
  */
 esp_err_t sdio_slave_recv_load_buf(sdio_slave_buf_handle_t handle);
+
+/** Get buffer of received data if exist with packet information. The driver returns the ownership of the buffer to the app.
+ *
+ * When you see return value is ``ESP_ERR_NOT_FINISHED``, you should call this API iteratively until the return value is ``ESP_OK``.
+ * All the continuous buffers returned with ``ESP_ERR_NOT_FINISHED``, together with the last buffer returned with ``ESP_OK``, belong to one packet from the host.
+ *
+ * You can call simpler ``sdio_slave_recv`` instead, if the host never send data longer than the Receiving buffer size,
+ * or you don't care about the packet boundary (e.g. the data is only a byte stream).
+ *
+ * @param handle_ret Handle of the buffer holding received data. Use this handle in ``sdio_slave_recv_load_buf()`` to receive in the same buffer again.
+ * @param wait Time to wait before data received.
+ *
+ * @note Call ``sdio_slave_load_buf`` with the handle to re-load the buffer onto the link list, and receive with the same buffer again.
+ *       The address and length of the buffer got here is the same as got from `sdio_slave_get_buffer`.
+ *
+ * @return
+ *     - ESP_ERR_INVALID_ARG    if handle_ret is NULL
+ *     - ESP_ERR_TIMEOUT        if timeout before receiving new data
+ *     - ESP_ERR_NOT_FINISHED   if returned buffer is not the end of a packet from the host, should call this API again until the end of a packet
+ *     - ESP_OK if success
+ */
+esp_err_t sdio_slave_recv_packet(sdio_slave_buf_handle_t* handle_ret, TickType_t wait);
 
 /** Get received data if exist. The driver returns the ownership of the buffer to the app.
  *
@@ -263,13 +246,13 @@ esp_err_t sdio_slave_write_reg(int pos, uint8_t reg);
  *
  * @return the interrupt mask.
  */
-sdio_slave_hostint_t sdio_slave_get_host_intena();
+sdio_slave_hostint_t sdio_slave_get_host_intena(void);
 
 /** Set the interrupt enable for host.
  *
- * @param ena Enable mask for host interrupt.
+ * @param mask Enable mask for host interrupt.
  */
-void sdio_slave_set_host_intena(sdio_slave_hostint_t ena);
+void sdio_slave_set_host_intena(sdio_slave_hostint_t mask);
 
 /** Interrupt the host by general purpose interrupt.
  *
@@ -285,7 +268,7 @@ esp_err_t sdio_slave_send_host_int(uint8_t pos);
  *
  * @param mask Interrupt bits to clear, by bit mask.
  */
-void sdio_slave_clear_host_int(uint8_t mask);
+void sdio_slave_clear_host_int(sdio_slave_hostint_t mask);
 
 /** Wait for general purpose interrupt from host.
  *
@@ -303,7 +286,3 @@ esp_err_t sdio_slave_wait_int(int pos, TickType_t wait);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*_DRIVER_SDIO_SLAVE_H */
-
-

@@ -6,14 +6,20 @@
 #
 
 LINKER_SCRIPTS := \
-	esp32.bootloader.ld \
-	$(IDF_PATH)/components/esp32/ld/esp32.rom.ld \
-	$(IDF_PATH)/components/esp32/ld/esp32.rom.spiram_incompatible_fns.ld \
-	$(IDF_PATH)/components/esp32/ld/esp32.peripherals.ld \
-	esp32.bootloader.rom.ld
+    $(COMPONENT_PATH)/ld/$(IDF_TARGET)/bootloader.ld \
+    $(COMPONENT_PATH)/ld/$(IDF_TARGET)/bootloader.rom.ld \
+    $(IDF_PATH)/components/esp_rom/$(IDF_TARGET)/ld/$(IDF_TARGET).rom.ld \
+    $(IDF_PATH)/components/esp_rom/$(IDF_TARGET)/ld/$(IDF_TARGET).rom.newlib-funcs.ld \
+    $(IDF_PATH)/components/esp_rom/$(IDF_TARGET)/ld/$(IDF_TARGET).rom.api.ld
 
-ifndef CONFIG_SPI_FLASH_ROM_DRIVER_PATCH
-LINKER_SCRIPTS += $(IDF_PATH)/components/esp32/ld/esp32.rom.spiflash.ld
+# SPI driver patch for ROM is only needed in ESP32
+ifdef CONFIG_IDF_TARGET_ESP32
+    ifndef CONFIG_SPI_FLASH_ROM_DRIVER_PATCH
+        LINKER_SCRIPTS += $(IDF_PATH)/components/esp_rom/$(IDF_TARGET)/ld/$(IDF_TARGET).rom.spiflash.ld
+    endif
+    ifdef CONFIG_ESP32_REV_MIN_3
+        LINKER_SCRIPTS += $(IDF_PATH)/components/esp_rom/$(IDF_TARGET)/ld/$(IDF_TARGET).rom.eco3.ld
+    endif
 endif
 
 COMPONENT_ADD_LDFLAGS += -L $(COMPONENT_PATH) $(addprefix -T ,$(LINKER_SCRIPTS))

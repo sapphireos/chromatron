@@ -33,8 +33,9 @@
 #include <unordered_map>
 #include <deque>
 #include <thread>
+#include <queue>
 #ifndef NOTHREADS
-#include <future>
+#  include <future>
 #endif // NOTHREADS
 
 #include <openssl/ssl.h>
@@ -73,6 +74,8 @@ namespace tls {
 class CertLookupTree;
 } // namespace tls
 
+struct WeightGroup;
+
 struct DownstreamAddr {
   Address addr;
   // backend address.  If |host_unix| is true, this is UNIX domain
@@ -96,48 +99,99 @@ struct DownstreamAddr {
   size_t rise;
   // Client side TLS session cache
   tls::TLSSessionCache tls_session_cache;
-  // Http2Session object created for this address.  This list chains
-  // all Http2Session objects that is not in group scope
-  // http2_avail_freelist, and is not reached in maximum concurrency.
-  //
-  // If session affinity is enabled, http2_avail_freelist is not used,
-  // and this list is solely used.
+  // List of Http2Session which is not fully utilized (i.e., the
+  // server advertised maximum concurrency is not reached).  We will
+  // coalesce as much stream as possible in one Http2Session to fully
+  // utilize TCP connection.
   DList<Http2Session> http2_extra_freelist;
-  // true if Http2Session for this address is in group scope
-  // SharedDownstreamAddr.http2_avail_freelist
-  bool in_avail;
+  WeightGroup *wg;
   // total number of streams created in HTTP/2 connections for this
   // address.
   size_t num_dconn;
+  // the sequence number of this address to randomize the order access
+  // threads.
+  size_t seq;
   // Application protocol used in this backend
-  shrpx_proto proto;
+  Proto proto;
+  // cycle is used to prioritize this address.  Lower value takes
+  // higher priority.
+  uint32_t cycle;
+  // penalty which is applied to the next cycle calculation.
+  uint32_t pending_penalty;
+  // Weight of this address inside a weight group.  Its range is [1,
+  // 256], inclusive.
+  uint32_t weight;
+  // name of group which this address belongs to.
+  StringRef group;
+  // Weight of the weight group which this address belongs to.  Its
+  // range is [1, 256], inclusive.
+  uint32_t group_weight;
   // true if TLS is used in this backend
   bool tls;
   // true if dynamic DNS is enabled
   bool dns;
+  // true if :scheme pseudo header field should be upgraded to secure
+  // variant (e.g., "https") when forwarding request to a backend
+  // connected by TLS connection.
+  bool upgrade_scheme;
+  // true if this address is queued.
+  bool queued;
 };
 
-// Simplified weighted fair queuing.  Actually we don't use queue here
-// since we have just 2 items.  This is the same algorithm used in
-// stream priority, but ignores remainder.
-struct WeightedPri {
-  // current cycle of this item.  The lesser cycle has higher
-  // priority.  This is unsigned 32 bit integer, so it may overflow.
-  // But with the same theory described in stream priority, it is no
-  // problem.
+constexpr uint32_t MAX_DOWNSTREAM_ADDR_WEIGHT = 256;
+
+struct DownstreamAddrEntry {
+  DownstreamAddr *addr;
+  size_t seq;
   uint32_t cycle;
-  // weight, larger weight means more frequent use.
+};
+
+struct DownstreamAddrEntryGreater {
+  bool operator()(const DownstreamAddrEntry &lhs,
+                  const DownstreamAddrEntry &rhs) const {
+    auto d = lhs.cycle - rhs.cycle;
+    if (d == 0) {
+      return rhs.seq < lhs.seq;
+    }
+    return d <= MAX_DOWNSTREAM_ADDR_WEIGHT;
+  }
+};
+
+struct WeightGroup {
+  std::priority_queue<DownstreamAddrEntry, std::vector<DownstreamAddrEntry>,
+                      DownstreamAddrEntryGreater>
+      pq;
+  size_t seq;
   uint32_t weight;
+  uint32_t cycle;
+  uint32_t pending_penalty;
+  // true if this object is queued.
+  bool queued;
+};
+
+struct WeightGroupEntry {
+  WeightGroup *wg;
+  size_t seq;
+  uint32_t cycle;
+};
+
+struct WeightGroupEntryGreater {
+  bool operator()(const WeightGroupEntry &lhs,
+                  const WeightGroupEntry &rhs) const {
+    auto d = lhs.cycle - rhs.cycle;
+    if (d == 0) {
+      return rhs.seq < lhs.seq;
+    }
+    return d <= MAX_DOWNSTREAM_ADDR_WEIGHT;
+  }
 };
 
 struct SharedDownstreamAddr {
   SharedDownstreamAddr()
       : balloc(1024, 1024),
-        next{0},
-        http1_pri{},
-        http2_pri{},
-        affinity{AFFINITY_NONE},
-        redirect_if_not_tls{false} {}
+        affinity{SessionAffinity::NONE},
+        redirect_if_not_tls{false},
+        timeout{} {}
 
   SharedDownstreamAddr(const SharedDownstreamAddr &) = delete;
   SharedDownstreamAddr(SharedDownstreamAddr &&) = delete;
@@ -146,39 +200,32 @@ struct SharedDownstreamAddr {
 
   BlockAllocator balloc;
   std::vector<DownstreamAddr> addrs;
+  std::vector<WeightGroup> wgs;
+  std::priority_queue<WeightGroupEntry, std::vector<WeightGroupEntry>,
+                      WeightGroupEntryGreater>
+      pq;
   // Bunch of session affinity hash.  Only used if affinity ==
-  // AFFINITY_IP.
+  // SessionAffinity::IP.
   std::vector<AffinityHash> affinity_hash;
-  // List of Http2Session which is not fully utilized (i.e., the
-  // server advertised maximum concurrency is not reached).  We will
-  // coalesce as much stream as possible in one Http2Session to fully
-  // utilize TCP connection.
-  //
-  // If session affinity is enabled, this list is not used.  Per
-  // address http2_extra_freelist is used instead.
-  //
-  // TODO Verify that this approach performs better in performance
-  // wise.
-  DList<Http2Session> http2_avail_freelist;
-  DownstreamConnectionPool dconn_pool;
-  // Next http/1.1 downstream address index in addrs.
-  size_t next;
-  // http1_pri and http2_pri are used to which protocols are used
-  // between HTTP/1.1 or HTTP/2 if they both are available in
-  // backends.  They are choosed proportional to the number available
-  // backend.  Usually, if http1_pri.cycle < http2_pri.cycle, choose
-  // HTTP/1.1.  Otherwise, choose HTTP/2.
-  WeightedPri http1_pri;
-  WeightedPri http2_pri;
+#ifdef HAVE_MRUBY
+  std::shared_ptr<mruby::MRubyContext> mruby_ctx;
+#endif // HAVE_MRUBY
+  // Configuration for session affinity
+  AffinityConfig affinity;
   // Session affinity
-  shrpx_session_affinity affinity;
   // true if this group requires that client connection must be TLS,
   // and the request must be redirected to https URI.
   bool redirect_if_not_tls;
+  // Timeouts for backend connection.
+  struct {
+    ev_tstamp read;
+    ev_tstamp write;
+  } timeout;
 };
 
 struct DownstreamAddrGroup {
-  DownstreamAddrGroup() : retired{false} {};
+  DownstreamAddrGroup();
+  ~DownstreamAddrGroup();
 
   DownstreamAddrGroup(const DownstreamAddrGroup &) = delete;
   DownstreamAddrGroup(DownstreamAddrGroup &&) = delete;
@@ -197,7 +244,7 @@ struct WorkerStat {
   size_t num_connections;
 };
 
-enum WorkerEventType {
+enum class WorkerEventType {
   NEW_CONNECTION = 0x01,
   REOPEN_LOG = 0x02,
   GRACEFUL_SHUTDOWN = 0x03,

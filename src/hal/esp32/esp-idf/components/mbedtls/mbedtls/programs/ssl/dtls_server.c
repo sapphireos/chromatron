@@ -1,7 +1,7 @@
 /*
  *  Simple DTLS server demonstration program
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -42,8 +42,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -116,7 +114,7 @@ int main( void )
 #include "mbedtls/ssl_cache.h"
 #endif
 
-#define READ_TIMEOUT_MS 10000   /* 5 seconds */
+#define READ_TIMEOUT_MS 10000   /* 10 seconds */
 #define DEBUG_LEVEL 0
 
 
@@ -252,6 +250,7 @@ int main( void )
 
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
+    mbedtls_ssl_conf_read_timeout( &conf, READ_TIMEOUT_MS );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_conf_session_cache( &conf, &cache,

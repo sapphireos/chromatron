@@ -1,4 +1,4 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2015-2020 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,86 +12,154 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <stdarg.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <string.h>
 #include <errno.h>
-#include <sys/reent.h>
-#include <stdlib.h>
-#include "esp_attr.h"
-#include "freertos/FreeRTOS.h"
-#include "esp_heap_caps.h"
+#include <reent.h>
+#include <sys/fcntl.h>
+#include "sdkconfig.h"
+#include "esp_rom_uart.h"
 
-
-/*
- These contain the business logic for the malloc() and realloc() implementation. Because of heap tracing
- wrapping reasons, we do not want these to be a public api, however, so they're not defined publicly.
-*/
-extern void *heap_caps_malloc_default( size_t size );
-extern void *heap_caps_realloc_default( void *ptr, size_t size );
-
-
-void* IRAM_ATTR _malloc_r(struct _reent *r, size_t size)
+static int syscall_not_implemented(struct _reent *r, ...)
 {
-    return heap_caps_malloc_default( size );
+    __errno_r(r) = ENOSYS;
+    return -1;
 }
 
-void IRAM_ATTR _free_r(struct _reent *r, void* ptr)
+static int syscall_not_implemented_aborts(void)
 {
-    heap_caps_free( ptr );
+    abort();
 }
 
-void* IRAM_ATTR _realloc_r(struct _reent *r, void* ptr, size_t size)
+ssize_t _write_r_console(struct _reent *r, int fd, const void * data, size_t size)
 {
-    return heap_caps_realloc_default( ptr, size );
-}
-
-void* IRAM_ATTR _calloc_r(struct _reent *r, size_t nmemb, size_t size)
-{
-    void *result;
-    size_t size_bytes;
-    if (__builtin_mul_overflow(nmemb, size, &size_bytes)) {
-        return NULL;
+    const char* cdata = (const char*) data;
+    if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
+        for (size_t i = 0; i < size; ++i) {
+            esp_rom_uart_tx_one_char(cdata[i]);
+        }
+        return size;
     }
-
-    result = malloc(size_bytes);
-    if (result != NULL) {
-        bzero(result, size_bytes);
-    }
-    return result;
+    __errno_r(r) = EBADF;
+    return -1;
 }
 
+ssize_t _read_r_console(struct _reent *r, int fd, void * data, size_t size)
+{
+    char* cdata = (char*) data;
+    if (fd == STDIN_FILENO) {
+        size_t received;
+        for (received = 0; received < size; ++received) {
+            int status = esp_rom_uart_rx_one_char((uint8_t*) &cdata[received]);
+            if (status != 0) {
+                break;
+            }
+        }
+        return received;
+    }
+    __errno_r(r) = EBADF;
+    return -1;
+}
+
+static ssize_t _fstat_r_console(struct _reent *r, int fd, struct stat * st)
+{
+    if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
+        memset(st, 0, sizeof(*st));
+        /* This needs to be set so that stdout and stderr are line buffered. */
+        st->st_mode = S_IFCHR;
+        return 0;
+    }
+    __errno_r(r) = EBADF;
+    return -1;
+}
+
+
+/* The following weak definitions of syscalls will be used unless
+ * another definition is provided. That definition may come from
+ * VFS, LWIP, or the application.
+ */
+ssize_t _read_r(struct _reent *r, int fd, void * dst, size_t size)
+    __attribute__((weak,alias("_read_r_console")));
+ssize_t _write_r(struct _reent *r, int fd, const void * data, size_t size)
+    __attribute__((weak,alias("_write_r_console")));
+int _fstat_r (struct _reent *r, int fd, struct stat *st)
+    __attribute__((weak,alias("_fstat_r_console")));
+
+
+/* The aliases below are to "syscall_not_implemented", which
+ * doesn't have the same signature as the original function.
+ * Disable type mismatch warnings for this reason.
+ */
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattribute-alias"
+#endif
+
+int _open_r(struct _reent *r, const char * path, int flags, int mode)
+    __attribute__((weak,alias("syscall_not_implemented")));
+int _close_r(struct _reent *r, int fd)
+    __attribute__((weak,alias("syscall_not_implemented")));
+off_t _lseek_r(struct _reent *r, int fd, off_t size, int mode)
+    __attribute__((weak,alias("syscall_not_implemented")));
+int _fcntl_r(struct _reent *r, int fd, int cmd, int arg)
+    __attribute__((weak,alias("syscall_not_implemented")));
+int _stat_r(struct _reent *r, const char * path, struct stat * st)
+    __attribute__((weak,alias("syscall_not_implemented")));
+int _link_r(struct _reent *r, const char* n1, const char* n2)
+    __attribute__((weak,alias("syscall_not_implemented")));
+int _unlink_r(struct _reent *r, const char *path)
+    __attribute__((weak,alias("syscall_not_implemented")));
+int _rename_r(struct _reent *r, const char *src, const char *dst)
+    __attribute__((weak,alias("syscall_not_implemented")));
+int _isatty_r(struct _reent *r, int fd)
+    __attribute__((weak,alias("syscall_not_implemented")));
+
+
+/* These functions are not expected to be overridden */
 int _system_r(struct _reent *r, const char *str)
-{
-    __errno_r(r) = ENOSYS;
-    return -1;
-}
-
+    __attribute__((alias("syscall_not_implemented")));
+int raise(int sig)
+    __attribute__((alias("syscall_not_implemented_aborts")));
 int _raise_r(struct _reent *r, int sig)
-{
-    abort();
-}
-
+    __attribute__((alias("syscall_not_implemented_aborts")));
 void* _sbrk_r(struct _reent *r, ptrdiff_t sz)
-{
-    abort();
-}
-
+    __attribute__((alias("syscall_not_implemented_aborts")));
 int _getpid_r(struct _reent *r)
-{
-    __errno_r(r) = ENOSYS;
-    return -1;
-}
-
+    __attribute__((alias("syscall_not_implemented")));
 int _kill_r(struct _reent *r, int pid, int sig)
+    __attribute__((alias("syscall_not_implemented")));
+void _exit(int __status)
+    __attribute__((alias("syscall_not_implemented_aborts")));
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+/* Similar to syscall_not_implemented, but not taking struct _reent argument */
+int system(const char* str)
 {
-    __errno_r(r) = ENOSYS;
+    errno = ENOSYS;
     return -1;
 }
 
-void _exit(int __status)
+/* Replaces newlib fcntl, which has been compiled without HAVE_FCNTL */
+int fcntl(int fd, int cmd, ...)
 {
-    abort();
+    va_list args;
+    va_start(args, cmd);
+    int arg = va_arg(args, int);
+    va_end(args);
+    struct _reent* r = __getreent();
+    return _fcntl_r(r, fd, cmd, arg);
 }
 
+/* No-op function, used to force linking this file,
+   instead of the syscalls implementation from libgloss.
+ */
+void newlib_include_syscalls_impl(void)
+{
+}

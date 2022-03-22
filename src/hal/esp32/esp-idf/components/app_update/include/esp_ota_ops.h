@@ -1,16 +1,8 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef _OTA_OPS_H
 #define _OTA_OPS_H
@@ -21,7 +13,8 @@
 #include "esp_err.h"
 #include "esp_partition.h"
 #include "esp_image_format.h"
-#include "esp_flash_data_types.h"
+#include "esp_flash_partitions.h"
+#include "soc/soc_caps.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -29,6 +22,7 @@ extern "C"
 #endif
 
 #define OTA_SIZE_UNKNOWN 0xffffffff /*!< Used for esp_ota_begin() if new image size is unknown */
+#define OTA_WITH_SEQUENTIAL_WRITES 0xfffffffe /*!< Used for esp_ota_begin() if new image size is unknown and erase can be done in incremental manner (assuming write operation is in continuous sequence) */
 
 #define ESP_ERR_OTA_BASE                         0x1500                     /*!< Base error code for ota_ops api */
 #define ESP_ERR_OTA_PARTITION_CONFLICT           (ESP_ERR_OTA_BASE + 0x01)  /*!< Error if request was to write or erase the current running partition */
@@ -49,7 +43,7 @@ typedef uint32_t esp_ota_handle_t;
 
 /**
  * @brief   Return esp_app_desc structure. This structure includes app version.
- * 
+ *
  * Return description for running app.
  * @return Pointer to esp_app_desc structure.
  */
@@ -118,6 +112,29 @@ esp_err_t esp_ota_begin(const esp_partition_t* partition, size_t image_size, esp
 esp_err_t esp_ota_write(esp_ota_handle_t handle, const void* data, size_t size);
 
 /**
+ * @brief   Write OTA update data to partition
+ *
+ * This function can write data in non contiguous manner.
+ * If flash encryption is enabled, data should be 16 byte aligned.
+ *
+ * @param handle  Handle obtained from esp_ota_begin
+ * @param data    Data buffer to write
+ * @param size    Size of data buffer in bytes
+ * @param offset  Offset in flash partition
+ *
+ * @note While performing OTA, if the packets arrive out of order, esp_ota_write_with_offset() can be used to write data in non contiguous manner.
+ *       Use of esp_ota_write_with_offset() in combination with esp_ota_write() is not recommended.
+ *
+ * @return
+ *    - ESP_OK: Data was written to flash successfully.
+ *    - ESP_ERR_INVALID_ARG: handle is invalid.
+ *    - ESP_ERR_OTA_VALIDATE_FAILED: First byte of image contains invalid app image magic byte.
+ *    - ESP_ERR_FLASH_OP_TIMEOUT or ESP_ERR_FLASH_OP_FAIL: Flash write failed.
+ *    - ESP_ERR_OTA_SELECT_INFO_INVALID: OTA data partition has invalid contents
+ */
+esp_err_t esp_ota_write_with_offset(esp_ota_handle_t handle, const void *data, size_t size, uint32_t offset);
+
+/**
  * @brief Finish OTA update and validate newly written app image.
  *
  * @param handle  Handle obtained from esp_ota_begin().
@@ -132,6 +149,18 @@ esp_err_t esp_ota_write(esp_ota_handle_t handle, const void* data, size_t size);
  *    - ESP_ERR_INVALID_STATE: If flash encryption is enabled, this result indicates an internal error writing the final encrypted bytes to flash.
  */
 esp_err_t esp_ota_end(esp_ota_handle_t handle);
+
+/**
+ * @brief Abort OTA update, free the handle and memory associated with it.
+ *
+ * @param handle obtained from esp_ota_begin().
+ *
+ * @return
+ *    - ESP_OK: Handle and its associated memory is freed successfully.
+ *    - ESP_ERR_NOT_FOUND: OTA handle was not found.
+ */
+esp_err_t esp_ota_abort(esp_ota_handle_t handle);
+
 
 /**
  * @brief Configure OTA data for a new boot partition
@@ -201,7 +230,7 @@ const esp_partition_t* esp_ota_get_next_update_partition(const esp_partition_t *
 
 /**
  * @brief Returns esp_app_desc structure for app partition. This structure includes app version.
- * 
+ *
  * Returns a description for the requested app partition.
  * @param[in] partition     Pointer to app partition. (only app partition)
  * @param[out] app_desc     Structure of info about app.
@@ -216,12 +245,20 @@ const esp_partition_t* esp_ota_get_next_update_partition(const esp_partition_t *
 esp_err_t esp_ota_get_partition_description(const esp_partition_t *partition, esp_app_desc_t *app_desc);
 
 /**
+ * @brief Returns number of ota partitions provided in partition table.
+ *
+ * @return
+ *  - Number of OTA partitions
+ */
+uint8_t esp_ota_get_app_partition_count(void);
+
+/**
  * @brief This function is called to indicate that the running app is working well.
  *
  * @return
  *  - ESP_OK: if successful.
  */
-esp_err_t esp_ota_mark_app_valid_cancel_rollback();
+esp_err_t esp_ota_mark_app_valid_cancel_rollback(void);
 
 /**
  * @brief This function is called to roll back to the previously workable app with reboot.
@@ -233,14 +270,14 @@ esp_err_t esp_ota_mark_app_valid_cancel_rollback();
  *  - ESP_FAIL: if not successful.
  *  - ESP_ERR_OTA_ROLLBACK_FAILED: The rollback is not possible due to flash does not have any apps.
  */
-esp_err_t esp_ota_mark_app_invalid_rollback_and_reboot();
+esp_err_t esp_ota_mark_app_invalid_rollback_and_reboot(void);
 
 /**
  * @brief Returns last partition with invalid state (ESP_OTA_IMG_INVALID or ESP_OTA_IMG_ABORTED).
  *
  * @return partition.
  */
-const esp_partition_t* esp_ota_get_last_invalid_partition();
+const esp_partition_t* esp_ota_get_last_invalid_partition(void);
 
 /**
  * @brief Returns state for given partition.
@@ -275,6 +312,34 @@ esp_err_t esp_ota_erase_last_boot_app_partition(void);
  *        - False: The rollback is not possible.
  */
 bool esp_ota_check_rollback_is_possible(void);
+
+#if SOC_EFUSE_SECURE_BOOT_KEY_DIGESTS > 1 && (CONFIG_SECURE_BOOT_V2_ENABLED || __DOXYGEN__)
+
+/**
+ * Secure Boot V2 public key indexes.
+ */
+typedef enum {
+    SECURE_BOOT_PUBLIC_KEY_INDEX_0,     /*!< Points to the 0th index of the Secure Boot v2 public key */
+    SECURE_BOOT_PUBLIC_KEY_INDEX_1,     /*!< Points to the 1st index of the Secure Boot v2 public key */
+    SECURE_BOOT_PUBLIC_KEY_INDEX_2      /*!< Points to the 2nd index of the Secure Boot v2 public key */
+} esp_ota_secure_boot_public_key_index_t;
+
+/**
+ * @brief Revokes the old signature digest. To be called in the application after the rollback logic.
+ *
+ * Relevant for Secure boot v2 on ESP32-S2 where upto 3 key digests can be stored (Key #N-1, Key #N, Key #N+1).
+ * When key #N-1 used to sign an app is invalidated, an OTA update is to be sent with an app signed with key #N-1 & Key #N.
+ * After successfully booting the OTA app should call this function to revoke Key #N-1.
+ *
+ * @param index - The index of the signature block to be revoked
+ *
+ * @return
+ *        - ESP_OK: If revocation is successful.
+ *        - ESP_ERR_INVALID_ARG: If the index of the public key to be revoked is incorrect.
+ *        - ESP_FAIL: If secure boot v2 has not been enabled.
+ */
+esp_err_t esp_ota_revoke_secure_boot_public_key(esp_ota_secure_boot_public_key_index_t index);
+#endif /* SOC_EFUSE_SECURE_BOOT_KEY_DIGESTS > 1 */
 
 #ifdef __cplusplus
 }

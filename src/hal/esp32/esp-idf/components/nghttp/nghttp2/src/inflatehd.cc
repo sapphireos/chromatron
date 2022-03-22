@@ -23,11 +23,11 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif // HAVE_CONFIG_H
 
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif // HAVE_UNISTD_H
 #include <getopt.h>
 
@@ -48,7 +48,9 @@
 
 namespace nghttp2 {
 
-typedef struct { int dump_header_table; } inflate_config;
+typedef struct {
+  int dump_header_table;
+} inflate_config;
 
 static inflate_config config;
 

@@ -25,10 +25,10 @@
 #include "shrpx_http2_downstream_connection.h"
 
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif // HAVE_UNISTD_H
 
-#include "http-parser/http_parser.h"
+#include "llhttp.h"
 
 #include "shrpx_client_handler.h"
 #include "shrpx_upstream.h"
@@ -41,6 +41,7 @@
 #include "shrpx_log.h"
 #include "http2.h"
 #include "util.h"
+#include "ssl_compat.h"
 
 using namespace nghttp2;
 
@@ -61,16 +62,16 @@ Http2DownstreamConnection::~Http2DownstreamConnection() {
     downstream_->disable_downstream_wtimer();
 
     uint32_t error_code;
-    if (downstream_->get_request_state() == Downstream::STREAM_CLOSED &&
+    if (downstream_->get_request_state() == DownstreamState::STREAM_CLOSED &&
         downstream_->get_upgraded()) {
       // For upgraded connection, send NO_ERROR.  Should we consider
-      // request states other than Downstream::STREAM_CLOSED ?
+      // request states other than DownstreamState::STREAM_CLOSED ?
       error_code = NGHTTP2_NO_ERROR;
     } else {
       error_code = NGHTTP2_INTERNAL_ERROR;
     }
 
-    if (http2session_->get_state() == Http2Session::CONNECTED &&
+    if (http2session_->get_state() == Http2SessionState::CONNECTED &&
         downstream_->get_downstream_stream_id() != -1) {
       submit_rst_stream(downstream_, error_code);
 
@@ -104,7 +105,7 @@ int Http2DownstreamConnection::attach_downstream(Downstream *downstream) {
   auto &req = downstream_->request();
 
   // HTTP/2 disables HTTP Upgrade.
-  if (req.method != HTTP_CONNECT) {
+  if (req.method != HTTP_CONNECT && req.connect_proto == ConnectProto::NONE) {
     req.upgrade_request = false;
   }
 
@@ -139,12 +140,12 @@ void Http2DownstreamConnection::detach_downstream(Downstream *downstream) {
 int Http2DownstreamConnection::submit_rst_stream(Downstream *downstream,
                                                  uint32_t error_code) {
   int rv = -1;
-  if (http2session_->get_state() == Http2Session::CONNECTED &&
+  if (http2session_->get_state() == Http2SessionState::CONNECTED &&
       downstream->get_downstream_stream_id() != -1) {
     switch (downstream->get_response_state()) {
-    case Downstream::MSG_RESET:
-    case Downstream::MSG_BAD_HEADER:
-    case Downstream::MSG_COMPLETE:
+    case DownstreamState::MSG_RESET:
+    case DownstreamState::MSG_BAD_HEADER:
+    case DownstreamState::MSG_COMPLETE:
       break;
     default:
       if (LOG_ENABLED(INFO)) {
@@ -187,12 +188,12 @@ ssize_t http2_data_read_callback(nghttp2_session *session, int32_t stream_id,
   *data_flags |= NGHTTP2_DATA_FLAG_NO_COPY;
 
   if (input_empty &&
-      downstream->get_request_state() == Downstream::MSG_COMPLETE &&
+      downstream->get_request_state() == DownstreamState::MSG_COMPLETE &&
       // If connection is upgraded, don't set EOF flag, since HTTP/1
       // will set MSG_COMPLETE to request state after upgrade response
       // header is seen.
       (!req.upgrade_request ||
-       (downstream->get_response_state() == Downstream::HEADER_COMPLETE &&
+       (downstream->get_response_state() == DownstreamState::HEADER_COMPLETE &&
         !downstream->get_upgraded()))) {
 
     *data_flags |= NGHTTP2_DATA_FLAG_EOF;
@@ -230,7 +231,7 @@ int Http2DownstreamConnection::push_request_headers() {
   if (!downstream_) {
     return 0;
   }
-  if (!http2session_->can_push_request()) {
+  if (!http2session_->can_push_request(downstream_)) {
     // The HTTP2 session to the backend has not been established or
     // connection is now being checked.  This function will be called
     // again just after it is established.
@@ -243,6 +244,11 @@ int Http2DownstreamConnection::push_request_headers() {
 
   const auto &req = downstream_->request();
 
+  if (req.connect_proto != ConnectProto::NONE &&
+      !http2session_->get_allow_connect_proto()) {
+    return -1;
+  }
+
   auto &balloc = downstream_->get_block_allocator();
 
   auto config = get_config();
@@ -250,7 +256,7 @@ int Http2DownstreamConnection::push_request_headers() {
   auto &http2conf = config->http2;
 
   auto no_host_rewrite = httpconf.no_host_rewrite || config->http2_proxy ||
-                         req.method == HTTP_CONNECT;
+                         req.regular_connect_method();
 
   // http2session_ has already in CONNECTED state, so we can get
   // addr_idx here.
@@ -271,27 +277,41 @@ int Http2DownstreamConnection::push_request_headers() {
     num_cookies = downstream_->count_crumble_request_cookie();
   }
 
-  // 9 means:
+  // 11 means:
   // 1. :method
   // 2. :scheme
   // 3. :path
   // 4. :authority (or host)
-  // 5. via (optional)
-  // 6. x-forwarded-for (optional)
-  // 7. x-forwarded-proto (optional)
-  // 8. te (optional)
-  // 9. forwarded (optional)
+  // 5. :protocol (optional)
+  // 6. via (optional)
+  // 7. x-forwarded-for (optional)
+  // 8. x-forwarded-proto (optional)
+  // 9. te (optional)
+  // 10. forwarded (optional)
+  // 11. early-data (optional)
   auto nva = std::vector<nghttp2_nv>();
-  nva.reserve(req.fs.headers().size() + 9 + num_cookies +
+  nva.reserve(req.fs.headers().size() + 11 + num_cookies +
               httpconf.add_request_headers.size());
 
-  nva.push_back(
-      http2::make_nv_ls_nocopy(":method", http2::to_method_string(req.method)));
+  if (req.connect_proto == ConnectProto::WEBSOCKET) {
+    nva.push_back(http2::make_nv_ll(":method", "CONNECT"));
+    nva.push_back(http2::make_nv_ll(":protocol", "websocket"));
+  } else {
+    nva.push_back(http2::make_nv_ls_nocopy(
+        ":method", http2::to_method_string(req.method)));
+  }
 
-  if (req.method != HTTP_CONNECT) {
+  if (!req.regular_connect_method()) {
     assert(!req.scheme.empty());
 
-    nva.push_back(http2::make_nv_ls_nocopy(":scheme", req.scheme));
+    auto addr = http2session_->get_addr();
+    assert(addr);
+    // We will handle more protocol scheme upgrade in the future.
+    if (addr->tls && addr->upgrade_scheme && req.scheme == "http") {
+      nva.push_back(http2::make_nv_ll(":scheme", "https"));
+    } else {
+      nva.push_back(http2::make_nv_ls_nocopy(":scheme", req.scheme));
+    }
 
     if (req.method == HTTP_OPTIONS && req.path.empty()) {
       nva.push_back(http2::make_nv_ll(":path", "*"));
@@ -299,7 +319,7 @@ int Http2DownstreamConnection::push_request_headers() {
       nva.push_back(http2::make_nv_ls_nocopy(":path", req.path));
     }
 
-    if (!req.no_authority) {
+    if (!req.no_authority || req.connect_proto != ConnectProto::NONE) {
       nva.push_back(http2::make_nv_ls_nocopy(":authority", authority));
     } else {
       nva.push_back(http2::make_nv_ls_nocopy("host", authority));
@@ -311,11 +331,14 @@ int Http2DownstreamConnection::push_request_headers() {
   auto &fwdconf = httpconf.forwarded;
   auto &xffconf = httpconf.xff;
   auto &xfpconf = httpconf.xfp;
+  auto &earlydataconf = httpconf.early_data;
 
   uint32_t build_flags =
       (fwdconf.strip_incoming ? http2::HDOP_STRIP_FORWARDED : 0) |
       (xffconf.strip_incoming ? http2::HDOP_STRIP_X_FORWARDED_FOR : 0) |
-      (xfpconf.strip_incoming ? http2::HDOP_STRIP_X_FORWARDED_PROTO : 0);
+      (xfpconf.strip_incoming ? http2::HDOP_STRIP_X_FORWARDED_PROTO : 0) |
+      (earlydataconf.strip_incoming ? http2::HDOP_STRIP_EARLY_DATA : 0) |
+      http2::HDOP_STRIP_SEC_WEBSOCKET_KEY;
 
   http2::copy_headers_to_nva_nocopy(nva, req.fs.headers(), build_flags);
 
@@ -326,13 +349,21 @@ int Http2DownstreamConnection::push_request_headers() {
   auto upstream = downstream_->get_upstream();
   auto handler = upstream->get_client_handler();
 
+#if OPENSSL_1_1_1_API
+  auto conn = handler->get_connection();
+
+  if (conn->tls.ssl && !SSL_is_init_finished(conn->tls.ssl)) {
+    nva.push_back(http2::make_nv_ll("early-data", "1"));
+  }
+#endif // OPENSSL_1_1_1_API
+
   auto fwd =
       fwdconf.strip_incoming ? nullptr : req.fs.header(http2::HD_FORWARDED);
 
   if (fwdconf.params) {
     auto params = fwdconf.params;
 
-    if (config->http2_proxy || req.method == HTTP_CONNECT) {
+    if (config->http2_proxy || req.regular_connect_method()) {
       params &= ~FORWARDED_PROTO;
     }
 
@@ -373,7 +404,7 @@ int Http2DownstreamConnection::push_request_headers() {
     nva.push_back(http2::make_nv_ls_nocopy("x-forwarded-for", xff->value));
   }
 
-  if (!config->http2_proxy && req.method != HTTP_CONNECT) {
+  if (!config->http2_proxy && !req.regular_connect_method()) {
     auto xfp = xfpconf.strip_incoming
                    ? nullptr
                    : req.fs.header(http2::HD_X_FORWARDED_PROTO);
@@ -432,6 +463,11 @@ int Http2DownstreamConnection::push_request_headers() {
   if (LOG_ENABLED(INFO)) {
     std::stringstream ss;
     for (auto &nv : nva) {
+      if (util::streq_l("authorization", nv.name, nv.namelen)) {
+        ss << TTY_HTTP_HD << StringRef{nv.name, nv.namelen} << TTY_RST
+           << ": <redacted>\n";
+        continue;
+      }
       ss << TTY_HTTP_HD << StringRef{nv.name, nv.namelen} << TTY_RST << ": "
          << StringRef{nv.value, nv.valuelen} << "\n";
     }
@@ -445,8 +481,8 @@ int Http2DownstreamConnection::push_request_headers() {
 
   // Add body as long as transfer-encoding is given even if
   // req.fs.content_length == 0 to forward trailer fields.
-  if (req.method == HTTP_CONNECT || transfer_encoding ||
-      req.fs.content_length > 0 || req.http2_expect_body) {
+  if (req.method == HTTP_CONNECT || req.connect_proto != ConnectProto::NONE ||
+      transfer_encoding || req.fs.content_length > 0 || req.http2_expect_body) {
     // Request-body is expected.
     data_prd = {{}, http2_data_read_callback};
     data_prdptr = &data_prd;
@@ -468,6 +504,14 @@ int Http2DownstreamConnection::push_request_headers() {
 
 int Http2DownstreamConnection::push_upload_data_chunk(const uint8_t *data,
                                                       size_t datalen) {
+  if (!downstream_->get_request_header_sent()) {
+    auto output = downstream_->get_blocked_request_buf();
+    auto &req = downstream_->request();
+    output->append(data, datalen);
+    req.unconsumed_body_length += datalen;
+    return 0;
+  }
+
   int rv;
   auto output = downstream_->get_request_buf();
   output->append(data, datalen);
@@ -485,6 +529,11 @@ int Http2DownstreamConnection::push_upload_data_chunk(const uint8_t *data,
 }
 
 int Http2DownstreamConnection::end_upload_data() {
+  if (!downstream_->get_request_header_sent()) {
+    downstream_->set_blocked_request_data_eof(true);
+    return 0;
+  }
+
   int rv;
   if (downstream_->get_downstream_stream_id() != -1) {
     rv = http2session_->resume_data(this);
@@ -503,7 +552,7 @@ int Http2DownstreamConnection::resume_read(IOCtrlReason reason,
                                            size_t consumed) {
   int rv;
 
-  if (http2session_->get_state() != Http2Session::CONNECTED) {
+  if (http2session_->get_state() != Http2SessionState::CONNECTED) {
     return 0;
   }
 

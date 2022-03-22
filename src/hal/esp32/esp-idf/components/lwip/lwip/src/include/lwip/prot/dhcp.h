@@ -39,14 +39,12 @@
 #define LWIP_HDR_PROT_DHCP_H
 
 #include "lwip/opt.h"
+#include "lwip/arch.h"
+#include "lwip/prot/ip4.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define DHCP_CLIENT_PORT  68
-#define DHCP_SERVER_PORT  67
-
 
  /* DHCP message item offsets and length */
 #define DHCP_CHADDR_LEN   16U
@@ -128,9 +126,6 @@ typedef enum {
 #define DHCP_RELEASE                7
 #define DHCP_INFORM                 8
 
-/** DHCP hardware type, currently only ethernet is supported */
-#define DHCP_HTYPE_ETH              1
-
 #define DHCP_MAGIC_COOKIE           0x63825363UL
 
 /* This is a list of options for BOOTP and DHCP, see RFC 2132 for descriptions */
@@ -148,18 +143,6 @@ typedef enum {
 #define DHCP_OPTION_NTP             42
 #define DHCP_OPTION_END             255
 
-#if ESP_LWIP
-/**add options for support more router by liuHan**/
-#define DHCP_OPTION_DOMAIN_NAME     15
-#define DHCP_OPTION_PRD             31
-#define DHCP_OPTION_STATIC_ROUTER   33
-#define DHCP_OPTION_VSN             43
-#define DHCP_OPTION_NB_TINS         44
-#define DHCP_OPTION_NB_TINT         46
-#define DHCP_OPTION_NB_TIS          47
-#define DHCP_OPTION_CLASSLESS_STATIC_ROUTER 121
-#endif
-
 /* DHCP options */
 #define DHCP_OPTION_REQUESTED_IP    50 /* RFC 2132 9.1, requested IP address */
 #define DHCP_OPTION_LEASE_TIME      51 /* RFC 2132 9.2, time in seconds, in 4 bytes */
@@ -176,7 +159,8 @@ typedef enum {
 
 #define DHCP_OPTION_T1              58 /* T1 renewal time */
 #define DHCP_OPTION_T2              59 /* T2 rebinding time */
-#define DHCP_OPTION_US              60
+#define DHCP_OPTION_VCI             60
+#define DHCP_OPTION_VSI             43
 #define DHCP_OPTION_CLIENT_ID       61
 #define DHCP_OPTION_TFTP_SERVERNAME 66
 #define DHCP_OPTION_BOOTFILE        67
@@ -187,9 +171,17 @@ typedef enum {
 #define DHCP_OVERLOAD_SNAME         2
 #define DHCP_OVERLOAD_SNAME_FILE    3
 
+/* DHCP OPTION 61 TYPE */
+#if ESP_DHCP
+#define DHCP_OPTION_CLIENT_ID_MAC   0x01
+#define DHCP_OPTION_CLIENT_ID_DUID  0x02
+#define DHCP_OPTION_CLIENT_ID_IAID  0xff
+
+#define DHCP_OPTION_CLIENT_ID_MAC_LEN   7
+#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /*LWIP_HDR_PROT_DHCP_H*/
+#endif /* LWIP_HDR_PROT_DHCP_H */

@@ -69,7 +69,7 @@ Additional information:
 
     Packets with IDs 24..31 are standard packets with extendible
     structure and contain a length field.
-    <ID><Lenght><Data><TimeStampDelta>
+    <ID><Length><Data><TimeStampDelta>
 
     Packets with IDs >= 32 always contain a length field.
     <ID><Length><Data><TimeStampDelta>
@@ -402,7 +402,7 @@ static U8 *_EncodeStr(U8 *pPayload, const char *pText, unsigned int Limit) {
   // Write Len
   //
   if (Len < 255)  {
-    *pPayload++ = Len; 
+    *pPayload++ = Len;
   } else {
     *pPayload++ = 255;
     *pPayload++ = (Len & 255);
@@ -556,7 +556,7 @@ static int _TrySendOverflowPacket(void) {
 *       _SendSyncInfo()
 *
 *  Function description
-*    Send SystemView sync packet and system information in 
+*    Send SystemView sync packet and system information in
 *    post mortem mode.
 *
 *  Additional information
@@ -792,7 +792,7 @@ static void _VPrintHost(const char* s, U32 Options, va_list* pParamList) {
   U32 aParas[SEGGER_SYSVIEW_MAX_ARGUMENTS];
   U32 NumArguments;
   const char* p;
-  
+
   p = s;
   NumArguments = 0;
   while (*p) {
@@ -1687,6 +1687,10 @@ void SEGGER_SYSVIEW_Stop(void) {
     _SYSVIEW_Globals.EnableState = 0;
   }
   RECORD_END();
+}
+
+U8 SEGGER_SYSVIEW_Started(void) {
+    return _SYSVIEW_Globals.EnableState;
 }
 
 /*********************************************************************
@@ -2678,7 +2682,7 @@ void SEGGER_SYSVIEW_ErrorfTarget(const char* s, ...) {
 void SEGGER_SYSVIEW_Print(const char* s) {
   U8* pPayload;
   U8* pPayloadStart;
-  RECORD_START(SEGGER_SYSVIEW_INFO_SIZE + 2 * SEGGER_SYSVIEW_QUANTA_U32 + SEGGER_SYSVIEW_MAX_STRING_LEN);
+  RECORD_START(SEGGER_SYSVIEW_INFO_SIZE + 2 * SEGGER_SYSVIEW_QUANTA_U32 + SEGGER_SYSVIEW_MAX_STRING_LEN + 3/*1 or 3 bytes for string length*/);
   //
   pPayload = _EncodeStr(pPayloadStart, s, SEGGER_SYSVIEW_MAX_STRING_LEN);
   ENCODE_U32(pPayload, SEGGER_SYSVIEW_LOG);

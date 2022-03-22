@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 /** @file
  *  @brief Bluetooth Mesh Generic Client Model APIs.
@@ -367,10 +359,10 @@ typedef struct {
 
 /** Parameters of Generic Battery Status. */
 typedef struct {
-    u32_t battery_level     : 8;  /*!< Value of Generic Battery Level state */
-    u32_t time_to_discharge : 24; /*!< Value of Generic Battery Time to Discharge state */
-    u32_t time_to_charge    : 24; /*!< Value of Generic Battery Time to Charge state */
-    u32_t flags             : 8;  /*!< Value of Generic Battery Flags state */
+    uint32_t battery_level     : 8;  /*!< Value of Generic Battery Level state */
+    uint32_t time_to_discharge : 24; /*!< Value of Generic Battery Time to Discharge state */
+    uint32_t time_to_charge    : 24; /*!< Value of Generic Battery Time to Charge state */
+    uint32_t flags             : 8;  /*!< Value of Generic Battery Flags state */
 } esp_ble_mesh_gen_battery_status_cb_t;
 
 /** Parameters of Generic Location Global Status. */
@@ -1302,4 +1294,3 @@ esp_err_t esp_ble_mesh_register_generic_server_callback(esp_ble_mesh_generic_ser
 #endif
 
 #endif /* _ESP_BLE_MESH_GENERIC_MODEL_API_H_ */
-

@@ -14,7 +14,7 @@
 
 #include "soc/gpio_periph.h"
 
-const uint32_t GPIO_PIN_MUX_REG[GPIO_PIN_COUNT] = {
+const uint32_t GPIO_PIN_MUX_REG[SOC_GPIO_PIN_COUNT] = {
     IO_MUX_GPIO0_REG,
     IO_MUX_GPIO1_REG,
     IO_MUX_GPIO2_REG,
@@ -35,7 +35,7 @@ const uint32_t GPIO_PIN_MUX_REG[GPIO_PIN_COUNT] = {
     IO_MUX_GPIO17_REG,
     IO_MUX_GPIO18_REG,
     IO_MUX_GPIO19_REG,
-    0,
+    IO_MUX_GPIO20_REG, // This corresponding pin is only available on ESP32-PICO-V3 chip package
     IO_MUX_GPIO21_REG,
     IO_MUX_GPIO22_REG,
     IO_MUX_GPIO23_REG,
@@ -55,4 +55,47 @@ const uint32_t GPIO_PIN_MUX_REG[GPIO_PIN_COUNT] = {
     IO_MUX_GPIO37_REG,
     IO_MUX_GPIO38_REG,
     IO_MUX_GPIO39_REG,
+};
+
+const uint32_t GPIO_HOLD_MASK[SOC_GPIO_PIN_COUNT] = {
+    0,
+    BIT(1),
+    0,
+    BIT(0),
+    0,
+    BIT(8),
+    BIT(2),
+    BIT(3),
+    BIT(4),
+    BIT(5),
+    BIT(6),
+    BIT(7),
+    0,
+    0,
+    0,
+    0,
+    BIT(9),
+    BIT(10),
+    BIT(11),
+    BIT(12),
+    0,
+    BIT(14),
+    BIT(15),
+    BIT(16),
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 };

@@ -12,14 +12,14 @@
 
 #include "sdkconfig.h"
 
-extern "C" void init_spi_flash(const char* chip_size, size_t block_size, size_t sector_size, size_t page_size, const char* partition_bin);
+extern "C" void _spi_flash_init(const char* chip_size, size_t block_size, size_t sector_size, size_t page_size, const char* partition_bin);
 extern SpiFlash spiflash;
 
 #define TEST_COUNT_MAX 100
 
 TEST_CASE("write and read back data", "[wear_levelling]")
 {
-    init_spi_flash(CONFIG_ESPTOOLPY_FLASHSIZE, CONFIG_WL_SECTOR_SIZE * 16, CONFIG_WL_SECTOR_SIZE, CONFIG_WL_SECTOR_SIZE, "partition_table.bin");
+    _spi_flash_init(CONFIG_ESPTOOLPY_FLASHSIZE, CONFIG_WL_SECTOR_SIZE * 16, CONFIG_WL_SECTOR_SIZE, CONFIG_WL_SECTOR_SIZE, "partition_table.bin");
 
     esp_err_t result;
     wl_handle_t wl_handle;
@@ -92,7 +92,7 @@ TEST_CASE("write and read back data", "[wear_levelling]")
 
 TEST_CASE("power down test", "[wear_levelling]")
 {
-    init_spi_flash(CONFIG_ESPTOOLPY_FLASHSIZE, CONFIG_WL_SECTOR_SIZE * 16, CONFIG_WL_SECTOR_SIZE, CONFIG_WL_SECTOR_SIZE, "partition_table.bin");
+    _spi_flash_init(CONFIG_ESPTOOLPY_FLASHSIZE, CONFIG_WL_SECTOR_SIZE * 16, CONFIG_WL_SECTOR_SIZE, CONFIG_WL_SECTOR_SIZE, "partition_table.bin");
 
     esp_err_t result;
     wl_handle_t wl_handle;
@@ -135,7 +135,7 @@ TEST_CASE("power down test", "[wear_levelling]")
     // Perform test
     int32_t max_count = 100;
     int32_t max_check_count = TEST_COUNT_MAX;
-    
+
     printf("used_sectors_count=%d\n", max_check_count);
 
     for (int32_t k = 0; k < max_check_count; k++) {

@@ -16,8 +16,7 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
-
-#define _POSIX_TIMEOUTS     // For pthread_mutex_timedlock
+#include <sys/features.h>
 
 #include_next <pthread.h>
 

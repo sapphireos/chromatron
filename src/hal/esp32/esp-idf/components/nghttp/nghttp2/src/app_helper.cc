@@ -24,19 +24,19 @@
  */
 #include <sys/types.h>
 #ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
+#  include <sys/socket.h>
 #endif // HAVE_SYS_SOCKET_H
 #ifdef HAVE_NETDB_H
-#include <netdb.h>
+#  include <netdb.h>
 #endif // HAVE_NETDB_H
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif // HAVE_UNISTD_H
 #ifdef HAVE_FCNTL_H
-#include <fcntl.h>
+#  include <fcntl.h>
 #endif // HAVE_FCNTL_H
 #ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
+#  include <netinet/in.h>
 #endif // HAVE_NETINET_IN_H
 #include <netinet/tcp.h>
 #include <poll.h>
@@ -77,6 +77,8 @@ const char *strsettingsid(int32_t id) {
     return "SETTINGS_MAX_FRAME_SIZE";
   case NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE:
     return "SETTINGS_MAX_HEADER_LIST_SIZE";
+  case NGHTTP2_SETTINGS_ENABLE_CONNECT_PROTOCOL:
+    return "SETTINGS_ENABLE_CONNECT_PROTOCOL";
   default:
     return "UNKNOWN";
   }
@@ -106,6 +108,8 @@ std::string strframetype(uint8_t type) {
     return "WINDOW_UPDATE";
   case NGHTTP2_ALTSVC:
     return "ALTSVC";
+  case NGHTTP2_ORIGIN:
+    return "ORIGIN";
   }
 
   std::string s = "extension(0x";
@@ -155,7 +159,7 @@ void print_nv(nghttp2_nv *nva, size_t nvlen) {
     print_nv(nva);
   }
 }
-} // namelen
+} // namespace
 
 void print_timer() {
   auto millis = get_timer();
@@ -327,8 +331,9 @@ void print_frame(print_type ptype, const nghttp2_frame *frame) {
     break;
   case NGHTTP2_GOAWAY:
     print_frame_attr_indent();
-    fprintf(outfile, "(last_stream_id=%d, error_code=%s(0x%02x), "
-                     "opaque_data(%u)=[%s])\n",
+    fprintf(outfile,
+            "(last_stream_id=%d, error_code=%s(0x%02x), "
+            "opaque_data(%u)=[%s])\n",
             frame->goaway.last_stream_id,
             nghttp2_http2_strerror(frame->goaway.error_code),
             frame->goaway.error_code,
@@ -348,6 +353,15 @@ void print_frame(print_type ptype, const nghttp2_frame *frame) {
     fprintf(outfile, "(origin=[%.*s], altsvc_field_value=[%.*s])\n",
             static_cast<int>(altsvc->origin_len), altsvc->origin,
             static_cast<int>(altsvc->field_value_len), altsvc->field_value);
+    break;
+  }
+  case NGHTTP2_ORIGIN: {
+    auto origin = static_cast<nghttp2_ext_origin *>(frame->ext.payload);
+    for (size_t i = 0; i < origin->nov; ++i) {
+      auto ent = &origin->ov[i];
+      print_frame_attr_indent();
+      fprintf(outfile, "[%.*s]\n", (int)ent->origin_len, ent->origin);
+    }
     break;
   }
   default:
@@ -425,8 +439,8 @@ int verbose_on_data_chunk_recv_callback(nghttp2_session *session, uint8_t flags,
   return 0;
 }
 
-int verbose_error_callback(nghttp2_session *session, const char *msg,
-                           size_t len, void *user_data) {
+int verbose_error_callback(nghttp2_session *session, int lib_error_code,
+                           const char *msg, size_t len, void *user_data) {
   print_timer();
   fprintf(outfile, " [ERROR] %.*s\n", (int)len, msg);
   fflush(outfile);

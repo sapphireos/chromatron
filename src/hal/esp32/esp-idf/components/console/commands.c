@@ -1,16 +1,8 @@
-// Copyright 2016-2017 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2016-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -18,9 +10,10 @@
 #include <sys/param.h>
 #include "esp_log.h"
 #include "esp_console.h"
+#include "esp_system.h"
 #include "linenoise/linenoise.h"
 #include "argtable3/argtable3.h"
-#include "rom/queue.h"
+#include "sys/queue.h"
 
 #define ANSI_COLOR_DEFAULT      39      /** Default foreground color */
 
@@ -56,6 +49,9 @@ static const cmd_item_t *find_command_by_name(const char *name);
 
 esp_err_t esp_console_init(const esp_console_config_t *config)
 {
+    if (!config) {
+        return ESP_ERR_INVALID_ARG;
+    }
     if (s_tmp_line_buf) {
         return ESP_ERR_INVALID_STATE;
     }
@@ -70,14 +66,16 @@ esp_err_t esp_console_init(const esp_console_config_t *config)
     return ESP_OK;
 }
 
-esp_err_t esp_console_deinit()
+esp_err_t esp_console_deinit(void)
 {
     if (!s_tmp_line_buf) {
         return ESP_ERR_INVALID_STATE;
     }
     free(s_tmp_line_buf);
+    s_tmp_line_buf = NULL;
     cmd_item_t *it, *tmp;
     SLIST_FOREACH_SAFE(it, &s_cmd_list, next, tmp) {
+        SLIST_REMOVE(&s_cmd_list, it, cmd_item_, next);
         free(it->hint);
         free(it);
     }
@@ -86,17 +84,24 @@ esp_err_t esp_console_deinit()
 
 esp_err_t esp_console_cmd_register(const esp_console_cmd_t *cmd)
 {
-    cmd_item_t *item = (cmd_item_t *) calloc(1, sizeof(*item));
-    if (item == NULL) {
-        return ESP_ERR_NO_MEM;
-    }
-    if (cmd->command == NULL) {
-        free(item);
+    cmd_item_t *item = NULL;
+    if (!cmd || cmd->command == NULL) {
         return ESP_ERR_INVALID_ARG;
     }
     if (strchr(cmd->command, ' ') != NULL) {
-        free(item);
         return ESP_ERR_INVALID_ARG;
+    }
+    item = (cmd_item_t *)find_command_by_name(cmd->command);
+    if (!item) {
+        // not registered before
+        item = calloc(1, sizeof(*item));
+        if (item == NULL) {
+            return ESP_ERR_NO_MEM;
+        }
+    } else {
+        // remove from list and free the old hint, because we will alloc new hint for the command
+        SLIST_REMOVE(&s_cmd_list, item, cmd_item_, next);
+        free(item->hint);
     }
     item->command = cmd->command;
     item->help = cmd->help;
@@ -149,7 +154,7 @@ void esp_console_get_completion(const char *buf, linenoiseCompletions *lc)
 
 const char *esp_console_get_hint(const char *buf, int *color, int *bold)
 {
-    int len = strlen(buf);
+    size_t len = strlen(buf);
     cmd_item_t *it;
     SLIST_FOREACH(it, &s_cmd_list, next) {
         if (strlen(it->command) == len &&
@@ -166,8 +171,10 @@ static const cmd_item_t *find_command_by_name(const char *name)
 {
     const cmd_item_t *cmd = NULL;
     cmd_item_t *it;
+    size_t len = strlen(name);
     SLIST_FOREACH(it, &s_cmd_list, next) {
-        if (strcmp(name, it->command) == 0) {
+        if (strlen(it->command) == len &&
+                strcmp(name, it->command) == 0) {
             cmd = it;
             break;
         }
@@ -231,8 +238,7 @@ static int help_command(int argc, char **argv)
     return 0;
 }
 
-
-esp_err_t esp_console_register_help_command()
+esp_err_t esp_console_register_help_command(void)
 {
     esp_console_cmd_t command = {
         .command = "help",

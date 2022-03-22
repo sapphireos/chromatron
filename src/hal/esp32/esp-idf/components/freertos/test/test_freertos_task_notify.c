@@ -11,9 +11,17 @@
 #include "freertos/task.h"
 #include <freertos/semphr.h>
 #include "driver/timer.h"
+#ifndef CONFIG_FREERTOS_UNICORE
 #include "esp_ipc.h"
+#endif
 #include "unity.h"
 #include "test_utils.h"
+
+#ifdef CONFIG_IDF_TARGET_ESP32S2
+#define int_clr_timers int_clr
+#define update update.update
+#define int_st_timers int_st
+#endif
 
 #define NO_OF_NOTIFS    4
 #define NO_OF_TASKS     2       //Sender and receiver
@@ -94,19 +102,13 @@ static void receiver_task (void* arg){
     vTaskDelete(NULL);
 }
 
-static void IRAM_ATTR sender_ISR ()
+static void IRAM_ATTR sender_ISR (void *arg)
 {
     int curcore = xPortGetCoreID();
-    if(curcore == 0){      //Clear timer interrupt
-        //Clear intr and pause via direct reg access as IRAM ISR cannot access timer APIs
-        TIMERG0.int_clr_timers.t0 = 1;
-        TIMERG0.hw_timer[0].config.enable = 0;
-    }else{
-        TIMERG0.int_clr_timers.t1 = 1;
-        TIMERG0.hw_timer[1].config.enable = 0;
-    }
+    timer_group_clr_intr_status_in_isr(TIMER_GROUP_0, curcore);
+    timer_group_set_counter_enable_in_isr(TIMER_GROUP_0, curcore, TIMER_PAUSE);
     //Re-enable alarm
-    TIMERG0.hw_timer[curcore].config.alarm_en = 1;
+    timer_group_enable_alarm_in_isr(TIMER_GROUP_0, curcore);
 
     if(isr_give){   //Test vTaskNotifyGiveFromISR() on same core
         notifs_sent++;
@@ -187,7 +189,7 @@ TEST_CASE("Test Task_Notify", "[freertos]")
 
             xSemaphoreGive(trigger_send_semphr);    //Trigger sender task
             for(int k = 0; k < NO_OF_TASKS; k++){             //Wait for sender and receiver task deletion
-                xSemaphoreTake(task_delete_semphr, portMAX_DELAY);
+                TEST_ASSERT( xSemaphoreTake(task_delete_semphr, 1000 / portTICK_PERIOD_MS) );
             }
             vTaskDelay(5);      //Give time tasks to delete
 
@@ -207,5 +209,3 @@ TEST_CASE("Test Task_Notify", "[freertos]")
     isr_handle_1 = NULL;
 #endif
 }
-
-

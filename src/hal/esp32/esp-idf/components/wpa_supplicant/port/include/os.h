@@ -19,9 +19,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "esp_err.h"
-#include "rom/ets_sys.h"
+#include "supplicant_opt.h"
 
-typedef long os_time_t;
+typedef time_t os_time_t;
 
 /**
  * os_sleep - Sleep (sec, usec)
@@ -32,7 +32,18 @@ void os_sleep(os_time_t sec, os_time_t usec);
 
 struct os_time {
 	os_time_t sec;
-	os_time_t usec;
+	suseconds_t usec;
+};
+
+#define os_reltime os_time
+
+struct os_tm {
+    int sec; /* 0..59 or 60 for leap seconds */
+    int min; /* 0..59 */
+    int hour; /* 0..23 */
+    int day; /* 1..31 */
+    int month; /* 1..12 */
+    int year; /* Four digit year */
 };
 
 /**
@@ -41,7 +52,7 @@ struct os_time {
  * Returns: 0 on success, -1 on failure
  */
 int os_get_time(struct os_time *t);
-
+#define os_get_reltime os_get_time
 
 /* Helper macros for handling struct os_time */
 
@@ -49,6 +60,7 @@ int os_get_time(struct os_time *t);
 	((a)->sec < (b)->sec || \
 	 ((a)->sec == (b)->sec && (a)->usec < (b)->usec))
 
+#define os_reltime_before os_time_before
 #define os_time_sub(a, b, res) do { \
 	(res)->sec = (a)->sec - (b)->sec; \
 	(res)->usec = (a)->usec - (b)->usec; \
@@ -57,6 +69,7 @@ int os_get_time(struct os_time *t);
 		(res)->usec += 1000000; \
 	} \
 } while (0)
+#define os_reltime_sub os_time_sub
 
 /**
  * os_mktime - Convert broken-down time into seconds since 1970-01-01
@@ -76,6 +89,7 @@ int os_get_time(struct os_time *t);
 int os_mktime(int year, int month, int day, int hour, int min, int sec,
 	      os_time_t *t);
 
+int os_gmtime(os_time_t t, struct os_tm *tm);
 
 /**
  * os_daemonize - Run in the background (detach from the controlling terminal)
@@ -188,7 +202,7 @@ char * os_readfile(const char *name, size_t *len);
  * OS_NO_C_LIB_DEFINES can be defined to skip all defines here in which case
  * these functions need to be implemented in os_*.c file for the target system.
  */
- 
+
 #ifndef os_malloc
 #define os_malloc(s) malloc((s))
 #endif
@@ -198,13 +212,17 @@ char * os_readfile(const char *name, size_t *len);
 #ifndef os_zalloc
 #define os_zalloc(s) calloc(1, (s))
 #endif
+#ifndef os_calloc
+#define os_calloc(p, s) calloc((p), (s))
+#endif
+
 #ifndef os_free
 #define os_free(p) free((p))
 #endif
 
 #ifndef os_bzero
 #define os_bzero(s, n) bzero(s, n)
-#endif 
+#endif
 
 
 #ifndef os_strdup
@@ -228,6 +246,10 @@ char * ets_strdup(const char *s);
 #ifndef os_memcmp
 #define os_memcmp(s1, s2, n) memcmp((s1), (s2), (n))
 #endif
+#ifndef os_memcmp_const
+#define os_memcmp_const(s1, s2, n) memcmp((s1), (s2), (n))
+#endif
+
 
 #ifndef os_strlen
 #define os_strlen(s) strlen(s)
@@ -259,11 +281,13 @@ char * ets_strdup(const char *s);
 #define os_strncpy(d, s, n) strncpy((d), (s), (n))
 #endif
 #ifndef os_strrchr
-//hard cold
-#define os_strrchr(s, c)  NULL
+#define os_strrchr(s, c)  strrchr((s), (c))
 #endif
 #ifndef os_strstr
 #define os_strstr(h, n) strstr((h), (n))
+#endif
+#ifndef os_strlcpy
+#define os_strlcpy(d, s, n) strlcpy((d), (s), (n))
 #endif
 
 #ifndef os_snprintf
@@ -274,18 +298,38 @@ char * ets_strdup(const char *s);
 #endif
 #endif
 
-/**
- * os_strlcpy - Copy a string with size bound and NUL-termination
- * @dest: Destination
- * @src: Source
- * @siz: Size of the target buffer
- * Returns: Total length of the target string (length of src) (not including
- * NUL-termination)
- *
- * This function matches in behavior with the strlcpy(3) function in OpenBSD.
- */
-size_t os_strlcpy(char *dest, const char *src, size_t siz);
+static inline int os_snprintf_error(size_t size, int res)
+{
+        return res < 0 || (unsigned int) res >= size;
+}
 
+static inline void * os_realloc_array(void *ptr, size_t nmemb, size_t size)
+{
+	if (size && nmemb > (~(size_t) 0) / size)
+		return NULL;
+	return os_realloc(ptr, nmemb * size);
+}
 
+#ifdef USE_MBEDTLS_CRYPTO
+void forced_memzero(void *ptr, size_t len);
+#else
+/* Try to prevent most compilers from optimizing out clearing of memory that
+ * becomes unaccessible after this function is called. This is mostly the case
+ * for clearing local stack variables at the end of a function. This is not
+ * exactly perfect, i.e., someone could come up with a compiler that figures out
+ * the pointer is pointing to memset and then end up optimizing the call out, so
+ * try go a bit further by storing the first octet (now zero) to make this even
+ * a bit more difficult to optimize out. Once memset_s() is available, that
+ * could be used here instead. */
+static void * (* const volatile memset_func)(void *, int, size_t) = memset;
+static uint8_t forced_memzero_val;
 
+static inline void forced_memzero(void *ptr, size_t len)
+{
+	memset_func(ptr, 0, len);
+	if (len) {
+		forced_memzero_val = ((uint8_t *) ptr)[0];
+	}
+}
+#endif
 #endif /* OS_H */

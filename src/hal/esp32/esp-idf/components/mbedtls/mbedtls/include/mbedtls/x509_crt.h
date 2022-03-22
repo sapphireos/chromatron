@@ -4,7 +4,7 @@
  * \brief X.509 certificate parsing and writing
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -45,8 +45,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_X509_CRT_H
 #define MBEDTLS_X509_CRT_H
@@ -231,12 +229,21 @@ typedef void mbedtls_x509_crt_restart_ctx;
 /**
  * Default security profile. Should provide a good balance between security
  * and compatibility with current deployments.
+ *
+ * This profile permits:
+ * - SHA2 hashes.
+ * - All supported elliptic curves.
+ * - RSA with 2048 bits and above.
+ *
+ * New minor versions of Mbed TLS may extend this profile, for example if
+ * new curves are added to the library. New minor versions of Mbed TLS will
+ * not reduce this profile unless serious security concerns require it.
  */
 extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default;
 
 /**
  * Expected next default profile. Recommended for new deployments.
- * Currently targets a 128-bit security level, except for RSA-2048.
+ * Currently targets a 128-bit security level, except for allowing RSA-2048.
  */
 extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next;
 

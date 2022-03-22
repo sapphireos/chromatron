@@ -1,10 +1,5 @@
 file(REMOVE_RECURSE
-  "bootloader/bootloader.bin"
-  "bootloader/bootloader.elf"
-  "bootloader/bootloader.map"
-  "config/sdkconfig.cmake"
-  "config/sdkconfig.h"
-  "CMakeFiles/idf_as_lib.elf.dir/main.c.obj"
+  "CMakeFiles/idf_as_lib.elf.dir/main.c.o"
   "idf_as_lib.elf"
   "idf_as_lib.elf.pdb"
 )

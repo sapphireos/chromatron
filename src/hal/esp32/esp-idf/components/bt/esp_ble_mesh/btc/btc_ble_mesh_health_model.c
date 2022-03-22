@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <string.h>
 #include <errno.h>
@@ -121,7 +113,7 @@ static void btc_ble_mesh_health_client_copy_req_data(btc_msg_t *msg, void *p_des
 {
     esp_ble_mesh_health_client_cb_param_t *p_dest_data = (esp_ble_mesh_health_client_cb_param_t *)p_dest;
     esp_ble_mesh_health_client_cb_param_t *p_src_data = (esp_ble_mesh_health_client_cb_param_t *)p_src;
-    u16_t length = 0U;
+    uint16_t length = 0U;
 
     if (!msg || !p_src_data || !p_dest_data) {
         BT_ERR("%s, Invalid parameter", __func__);
@@ -243,10 +235,10 @@ static void btc_ble_mesh_health_client_callback(esp_ble_mesh_health_client_cb_pa
                          btc_ble_mesh_health_client_copy_req_data);
 }
 
-void bt_mesh_health_client_cb_evt_to_btc(u32_t opcode, u8_t evt_type,
+void bt_mesh_health_client_cb_evt_to_btc(uint32_t opcode, uint8_t evt_type,
                                          struct bt_mesh_model *model,
                                          struct bt_mesh_msg_ctx *ctx,
-                                         const u8_t *val, u16_t len)
+                                         const uint8_t *val, uint16_t len)
 {
     esp_ble_mesh_health_client_cb_param_t cb_params = {0};
     esp_ble_mesh_client_common_param_t params = {0};
@@ -297,7 +289,7 @@ void bt_mesh_health_client_cb_evt_to_btc(u32_t opcode, u8_t evt_type,
     return;
 }
 
-void btc_ble_mesh_health_publish_callback(u32_t opcode, struct bt_mesh_model *model,
+void btc_ble_mesh_health_publish_callback(uint32_t opcode, struct bt_mesh_model *model,
                                           struct bt_mesh_msg_ctx *ctx,
                                           struct net_buf_simple *buf)
 {
@@ -602,7 +594,7 @@ void btc_ble_mesh_health_server_cb_handler(btc_msg_t *msg)
     return;
 }
 
-void btc_ble_mesh_health_server_fault_clear(struct bt_mesh_model *model, u16_t company_id)
+void btc_ble_mesh_health_server_fault_clear(struct bt_mesh_model *model, uint16_t company_id)
 {
     esp_ble_mesh_health_server_cb_param_t param = {0};
 
@@ -613,7 +605,7 @@ void btc_ble_mesh_health_server_fault_clear(struct bt_mesh_model *model, u16_t c
 }
 
 void btc_ble_mesh_health_server_fault_test(struct bt_mesh_model *model,
-                                           u8_t test_id, u16_t company_id)
+                                           uint8_t test_id, uint16_t company_id)
 {
     esp_ble_mesh_health_server_cb_param_t param = {0};
 
@@ -624,7 +616,7 @@ void btc_ble_mesh_health_server_fault_test(struct bt_mesh_model *model,
     btc_ble_mesh_health_server_callback(&param, ESP_BLE_MESH_HEALTH_SERVER_FAULT_TEST_EVT);
 }
 
-void btc_ble_mesh_health_server_attention_on(struct bt_mesh_model *model, u8_t time)
+void btc_ble_mesh_health_server_attention_on(struct bt_mesh_model *model, uint8_t time)
 {
     esp_ble_mesh_health_server_cb_param_t param = {0};
 

@@ -1,5 +1,5 @@
-Programming ULP coprocessor using C macros
-==========================================
+Programming ULP coprocessor using C macros (legacy)
+===================================================
 
 In addition to the existing binutils port for the ESP32 ULP coprocessor, it is possible to generate programs for the ULP by embedding assembly-like macros into an ESP32 application. Here is an example how this can be done::
 
@@ -24,7 +24,7 @@ The ``program`` array is an array of ``ulp_insn_t``, i.e. ULP coprocessor instru
 
 Load and store instructions use addresses expressed in 32-bit words. Address 0 corresponds to the first word of ``RTC_SLOW_MEM`` (which is address 0x50000000 as seen by the main CPUs).
 
-To generate branch instructions, special ``M_`` preprocessor defines are used. ``M_LABEL`` define can be used to define a branch target. Label identifier is a 16-bit integer. ``M_Bxxx`` defines can be used to generate branch instructions with target set to a particular label. 
+To generate branch instructions, special ``M_`` preprocessor defines are used. ``M_LABEL`` define can be used to define a branch target. Label identifier is a 16-bit integer. ``M_Bxxx`` defines can be used to generate branch instructions with target set to a particular label.
 
 Implementation note: these ``M_`` preprocessor defines will be translated into two ``ulp_insn_t`` values: one is a token value which contains label number, and the other is the actual instruction. ``ulp_process_macros_and_load`` function resolves the label number to the address, modifies the branch instruction to use the correct address, and removes the the extra ``ulp_insn_t`` token which contains the label numer.
 
@@ -51,6 +51,24 @@ Here is an example of using labels and branches::
     ulp_run(load_addr);
 
 
+Application Example
+-------------------
+
+Demonstration of entering into deep sleep mode and waking up using several wake up sources: :example:`system/deep_sleep`.
+
+
+API Reference
+-------------
+
+Header File
+^^^^^^^^^^^
+
+.. list::
+
+    :esp32: - :component_file:`ulp/include/esp32/ulp.h`
+    :esp32s2: - :component_file:`ulp/include/esp32s2/ulp.h`
+    :esp32s3: - :component_file:`ulp/include/esp32s3/ulp.h`
+
 Functions
 ^^^^^^^^^
 
@@ -71,12 +89,12 @@ ULP coprocessor registers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ULP co-processor has 4 16-bit general purpose registers. All registers have same functionality, with one exception. R0 register is used by some of the compare-and-branch instructions as a source register.
- 
+
 These definitions can be used for all instructions which require a register.
 
 .. doxygengroup:: ulp_registers
     :content-only:
-    
+
 ULP coprocessor instruction defines
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

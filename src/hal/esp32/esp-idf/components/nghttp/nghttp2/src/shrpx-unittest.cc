@@ -23,7 +23,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif // HAVE_CONFIG_H
 
 #include <stdio.h>
@@ -115,6 +115,10 @@ int main(int argc, char *argv[]) {
                    shrpx::test_downstream_assemble_request_cookie) ||
       !CU_add_test(pSuite, "downstream_rewrite_location_response_header",
                    shrpx::test_downstream_rewrite_location_response_header) ||
+      !CU_add_test(pSuite, "downstream_supports_non_final_response",
+                   shrpx::test_downstream_supports_non_final_response) ||
+      !CU_add_test(pSuite, "downstream_find_affinity_cookie",
+                   shrpx::test_downstream_find_affinity_cookie) ||
       !CU_add_test(pSuite, "config_parse_header",
                    shrpx::test_shrpx_config_parse_header) ||
       !CU_add_test(pSuite, "config_parse_log_format",
@@ -129,6 +133,8 @@ int main(int argc, char *argv[]) {
                    shrpx::test_shrpx_http_create_forwarded) ||
       !CU_add_test(pSuite, "http_create_via_header_value",
                    shrpx::test_shrpx_http_create_via_header_value) ||
+      !CU_add_test(pSuite, "http_create_affinity_cookie",
+                   shrpx::test_shrpx_http_create_affinity_cookie) ||
       !CU_add_test(pSuite, "router_match", shrpx::test_shrpx_router_match) ||
       !CU_add_test(pSuite, "router_match_wildcard",
                    shrpx::test_shrpx_router_match_wildcard) ||
@@ -189,6 +195,8 @@ int main(int argc, char *argv[]) {
       !CU_add_test(pSuite, "util_decode_hex", shrpx::test_util_decode_hex) ||
       !CU_add_test(pSuite, "util_extract_host",
                    shrpx::test_util_extract_host) ||
+      !CU_add_test(pSuite, "util_split_hostport",
+                   shrpx::test_util_split_hostport) ||
       !CU_add_test(pSuite, "gzip_inflate", test_nghttp2_gzip_inflate) ||
       !CU_add_test(pSuite, "buffer_write", nghttp2::test_buffer_write) ||
       !CU_add_test(pSuite, "pool_recycle", nghttp2::test_pool_recycle) ||

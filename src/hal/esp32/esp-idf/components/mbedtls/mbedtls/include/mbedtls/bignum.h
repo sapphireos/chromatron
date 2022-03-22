@@ -4,7 +4,7 @@
  * \brief Multi-precision integer library
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -45,8 +45,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_BIGNUM_H
 #define MBEDTLS_BIGNUM_H
@@ -64,14 +62,22 @@
 #include <stdio.h>
 #endif
 
-#define MBEDTLS_ERR_MPI_FILE_IO_ERROR                     -0x0002  /**< An error occurred while reading from or writing to a file. */
-#define MBEDTLS_ERR_MPI_BAD_INPUT_DATA                    -0x0004  /**< Bad input parameters to function. */
-#define MBEDTLS_ERR_MPI_INVALID_CHARACTER                 -0x0006  /**< There is an invalid character in the digit string. */
-#define MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL                  -0x0008  /**< The buffer is too small to write to. */
-#define MBEDTLS_ERR_MPI_NEGATIVE_VALUE                    -0x000A  /**< The input arguments are negative or result in illegal output. */
-#define MBEDTLS_ERR_MPI_DIVISION_BY_ZERO                  -0x000C  /**< The input argument for division is zero, which is not allowed. */
-#define MBEDTLS_ERR_MPI_NOT_ACCEPTABLE                    -0x000E  /**< The input arguments are not acceptable. */
-#define MBEDTLS_ERR_MPI_ALLOC_FAILED                      -0x0010  /**< Memory allocation failed. */
+/** An error occurred while reading from or writing to a file. */
+#define MBEDTLS_ERR_MPI_FILE_IO_ERROR                     -0x0002
+/** Bad input parameters to function. */
+#define MBEDTLS_ERR_MPI_BAD_INPUT_DATA                    -0x0004
+/** There is an invalid character in the digit string. */
+#define MBEDTLS_ERR_MPI_INVALID_CHARACTER                 -0x0006
+/** The buffer is too small to write to. */
+#define MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL                  -0x0008
+/** The input arguments are negative or result in illegal output. */
+#define MBEDTLS_ERR_MPI_NEGATIVE_VALUE                    -0x000A
+/** The input argument for division is zero, which is not allowed. */
+#define MBEDTLS_ERR_MPI_DIVISION_BY_ZERO                  -0x000C
+/** The input arguments are not acceptable. */
+#define MBEDTLS_ERR_MPI_NOT_ACCEPTABLE                    -0x000E
+/** Memory allocation failed. */
+#define MBEDTLS_ERR_MPI_ALLOC_FAILED                      -0x0010
 
 #define MBEDTLS_MPI_CHK(f)       \
     do                           \
@@ -90,12 +96,12 @@
  * Maximum window size used for modular exponentiation. Default: 6
  * Minimum value: 1. Maximum value: 6.
  *
- * Result is an array of ( 2 << MBEDTLS_MPI_WINDOW_SIZE ) MPIs used
+ * Result is an array of ( 2 ** MBEDTLS_MPI_WINDOW_SIZE ) MPIs used
  * for the sliding window calculation. (So 64 by default)
  *
  * Reduction in size, reduces speed.
  */
-#define MBEDTLS_MPI_WINDOW_SIZE                           6        /**< Maximum windows size used. */
+#define MBEDTLS_MPI_WINDOW_SIZE                           6        /**< Maximum window size used. */
 #endif /* !MBEDTLS_MPI_WINDOW_SIZE */
 
 #if !defined(MBEDTLS_MPI_MAX_SIZE)
@@ -825,14 +831,14 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A,
  * \param E        The exponent MPI. This must point to an initialized MPI.
  * \param N        The base for the modular reduction. This must point to an
  *                 initialized MPI.
- * \param _RR      A helper MPI depending solely on \p N which can be used to
+ * \param prec_RR  A helper MPI depending solely on \p N which can be used to
  *                 speed-up multiple modular exponentiations for the same value
  *                 of \p N. This may be \c NULL. If it is not \c NULL, it must
  *                 point to an initialized MPI. If it hasn't been used after
  *                 the call to mbedtls_mpi_init(), this function will compute
- *                 the helper value and store it in \p _RR for reuse on
+ *                 the helper value and store it in \p prec_RR for reuse on
  *                 subsequent calls to this function. Otherwise, the function
- *                 will assume that \p _RR holds the helper value set by a
+ *                 will assume that \p prec_RR holds the helper value set by a
  *                 previous call to mbedtls_mpi_exp_mod(), and reuse it.
  *
  * \return         \c 0 if successful.
@@ -844,7 +850,7 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A,
  */
 int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
                          const mbedtls_mpi *E, const mbedtls_mpi *N,
-                         mbedtls_mpi *_RR );
+                         mbedtls_mpi *prec_RR );
 
 /**
  * \brief          Fill an MPI with a number of random bytes.

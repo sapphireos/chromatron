@@ -1,7 +1,7 @@
 /*
  *  Key writing application
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -42,8 +42,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -226,7 +224,9 @@ int main( int argc, char *argv[] )
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
-    char buf[1024];
+#if defined(MBEDTLS_ERROR_C)
+    char buf[200];
+#endif
     int i;
     char *p, *q;
 
@@ -237,7 +237,9 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     mbedtls_pk_init( &key );
+#if defined(MBEDTLS_ERROR_C)
     memset( buf, 0, sizeof( buf ) );
+#endif
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
     mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &DP );
@@ -325,8 +327,7 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x", -ret );
             goto exit;
         }
 
@@ -386,8 +387,7 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_key returned -0x%04x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_key returned -0x%04x", -ret );
             goto exit;
         }
 

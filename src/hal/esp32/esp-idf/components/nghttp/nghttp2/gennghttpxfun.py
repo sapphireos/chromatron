@@ -168,6 +168,13 @@ OPTIONS = [
     "no-strip-incoming-x-forwarded-proto",
     "ocsp-startup",
     "no-verify-ocsp",
+    "verify-client-tolerate-expired",
+    "ignore-per-pattern-mruby-error",
+    "tls-no-postpone-early-data",
+    "tls-max-early-data",
+    "tls13-ciphers",
+    "tls13-client-ciphers",
+    "no-strip-incoming-early-data",
 ]
 
 LOGVARS = [
@@ -191,10 +198,15 @@ LOGVARS = [
     "tls_session_id",
     "tls_session_reused",
     "tls_sni",
+    "tls_client_fingerprint_sha256",
+    "tls_client_fingerprint_sha1",
+    "tls_client_subject_name",
+    "tls_client_issuer_name",
+    "tls_client_serial",
     "backend_host",
     "backend_port",
 ]
 
 if __name__ == '__main__':
-    gentokenlookup(OPTIONS, 'SHRPX_OPTID', value_type='char', comp_fun='util::strieq_l')
-    gentokenlookup(LOGVARS, 'SHRPX_LOGF', value_type='char', comp_fun='util::strieq_l', return_type='LogFragmentType', fail_value='SHRPX_LOGF_NONE')
+    gentokenlookup(OPTIONS, 'SHRPX_OPTID_', value_type='char', comp_fun='util::strieq_l')
+    gentokenlookup(LOGVARS, 'LogFragmentType::', value_type='char', comp_fun='util::strieq_l', return_type='LogFragmentType', fail_value='LogFragmentType::NONE')

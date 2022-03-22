@@ -1,16 +1,8 @@
-// Copyright 2015-2018 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #pragma once
 
@@ -46,6 +38,17 @@ esp_err_t sdmmc_card_init(const sdmmc_host_t* host,
 void sdmmc_card_print_info(FILE* stream, const sdmmc_card_t* card);
 
 /**
+ * Get status of SD/MMC card
+ *
+ * @param card  pointer to card information structure previously initialized
+ *              using sdmmc_card_init
+ * @return
+ *      - ESP_OK on success
+ *      - One of the error codes from SDMMC host controller
+ */
+esp_err_t sdmmc_get_status(sdmmc_card_t* card);
+
+/**
  * Write given number of sectors to SD/MMC card
  *
  * @param card  pointer to card information structure previously initialized
@@ -62,7 +65,7 @@ esp_err_t sdmmc_write_sectors(sdmmc_card_t* card, const void* src,
         size_t start_sector, size_t sector_count);
 
 /**
- * Write given number of sectors to SD/MMC card
+ * Read given number of sectors from the SD/MMC card
  *
  * @param card  pointer to card information structure previously initialized
  *              using sdmmc_card_init
@@ -219,6 +222,55 @@ esp_err_t sdmmc_io_enable_int(sdmmc_card_t* card);
  *      - ESP_ERR_TIMEOUT if the interrupt does not happen in timeout_ticks
  */
 esp_err_t sdmmc_io_wait_int(sdmmc_card_t* card, TickType_t timeout_ticks);
+
+/**
+ * Get the data of CIS region of an SDIO card.
+ *
+ * You may provide a buffer not sufficient to store all the CIS data. In this
+ * case, this function stores as much data into your buffer as possible. Also,
+ * this function will try to get and return the size required for you.
+ *
+ * @param card  pointer to card information structure previously initialized
+ *              using sdmmc_card_init
+ * @param out_buffer Output buffer of the CIS data
+ * @param buffer_size Size of the buffer.
+ * @param inout_cis_size Mandatory, pointer to a size, input and output.
+ *              - input: Limitation of maximum searching range, should be 0 or larger than
+ *                      buffer_size. The function searches for CIS_CODE_END until this range. Set to
+ *                      0 to search infinitely.
+ *              - output: The size required to store all the CIS data, if CIS_CODE_END is found.
+ *
+ * @return
+ *      - ESP_OK: on success
+ *      - ESP_ERR_INVALID_RESPONSE: if the card does not (correctly) support CIS.
+ *      - ESP_ERR_INVALID_SIZE: CIS_CODE_END found, but buffer_size is less than
+ *              required size, which is stored in the inout_cis_size then.
+ *      - ESP_ERR_NOT_FOUND: if the CIS_CODE_END not found. Increase input value of
+ *              inout_cis_size or set it to 0, if you still want to search for the end;
+ *              output value of inout_cis_size is invalid in this case.
+ *      - and other error code return from sdmmc_io_read_bytes
+ */
+esp_err_t sdmmc_io_get_cis_data(sdmmc_card_t* card, uint8_t* out_buffer, size_t buffer_size, size_t* inout_cis_size);
+
+/**
+ * Parse and print the CIS information of an SDIO card.
+ *
+ * @note Not all the CIS codes and all kinds of tuples are supported. If you
+ * see some unresolved code, you can add the parsing of these code in
+ * sdmmc_io.c and contribute to the IDF through the Github repository.
+ *
+ *              using sdmmc_card_init
+ * @param buffer Buffer to parse
+ * @param buffer_size Size of the buffer.
+ * @param fp File pointer to print to, set to NULL to print to stdout.
+ *
+ * @return
+ *      - ESP_OK: on success
+ *      - ESP_ERR_NOT_SUPPORTED: if the value from the card is not supported to be parsed.
+ *      - ESP_ERR_INVALID_SIZE: if the CIS size fields are not correct.
+ */
+esp_err_t sdmmc_io_print_cis_info(uint8_t* buffer, size_t buffer_size, FILE* fp);
+
 
 #ifdef __cplusplus
 }

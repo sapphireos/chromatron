@@ -66,6 +66,10 @@ tv(void)
         printf("m != m2\n");
     }
     memset(m2, 0, m2len);
+    assert(crypto_aead_chacha20poly1305_decrypt_detached(NULL, NULL,
+                                                         c, MLEN, mac,
+                                                         ad, ADLEN,
+                                                         nonce, firstkey) == 0);
     if (crypto_aead_chacha20poly1305_decrypt_detached(m2, NULL,
                                                       c, MLEN, mac,
                                                       ad, ADLEN,
@@ -111,7 +115,7 @@ tv(void)
     }
     m2len = 1;
     if (crypto_aead_chacha20poly1305_decrypt(
-            m2, &m2len, NULL, NULL,
+            m2, &m2len, NULL, guard_page,
             randombytes_uniform(crypto_aead_chacha20poly1305_ABYTES),
             NULL, 0U, nonce, firstkey) != -1) {
         printf("crypto_aead_chacha20poly1305_decrypt() worked with a short "
@@ -163,6 +167,12 @@ tv(void)
     assert(crypto_aead_chacha20poly1305_keybytes() > 0U);
     assert(crypto_aead_chacha20poly1305_npubbytes() > 0U);
     assert(crypto_aead_chacha20poly1305_nsecbytes() == 0U);
+    assert(crypto_aead_chacha20poly1305_messagebytes_max() > 0U);
+    assert(crypto_aead_chacha20poly1305_messagebytes_max() == crypto_aead_chacha20poly1305_MESSAGEBYTES_MAX);
+    assert(crypto_aead_chacha20poly1305_keybytes() == crypto_aead_chacha20poly1305_KEYBYTES);
+    assert(crypto_aead_chacha20poly1305_nsecbytes() == crypto_aead_chacha20poly1305_NSECBYTES);
+    assert(crypto_aead_chacha20poly1305_npubbytes() == crypto_aead_chacha20poly1305_NPUBBYTES);
+    assert(crypto_aead_chacha20poly1305_abytes() == crypto_aead_chacha20poly1305_ABYTES);
 
     return 0;
 }
@@ -239,6 +249,10 @@ tv_ietf(void)
         printf("m != m2\n");
     }
     memset(m2, 0, m2len);
+    assert(crypto_aead_chacha20poly1305_ietf_decrypt_detached(NULL, NULL,
+                                                              c, MLEN, mac,
+                                                              ad, ADLEN,
+                                                              nonce, firstkey) == 0);
     if (crypto_aead_chacha20poly1305_ietf_decrypt_detached(m2, NULL,
                                                            c, MLEN, mac,
                                                            ad, ADLEN,
@@ -282,7 +296,7 @@ tv_ietf(void)
     }
     m2len = 1;
     if (crypto_aead_chacha20poly1305_ietf_decrypt(
-            m2, &m2len, NULL, NULL,
+            m2, &m2len, NULL, guard_page,
             randombytes_uniform(crypto_aead_chacha20poly1305_ietf_ABYTES),
             NULL, 0U, nonce, firstkey) != -1) {
         printf("crypto_aead_chacha20poly1305_ietf_decrypt() worked with a short "
@@ -338,10 +352,12 @@ tv_ietf(void)
     assert(crypto_aead_chacha20poly1305_ietf_npubbytes() > crypto_aead_chacha20poly1305_npubbytes());
     assert(crypto_aead_chacha20poly1305_ietf_nsecbytes() == 0U);
     assert(crypto_aead_chacha20poly1305_ietf_nsecbytes() == crypto_aead_chacha20poly1305_nsecbytes());
+    assert(crypto_aead_chacha20poly1305_ietf_messagebytes_max() == crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX);
     assert(crypto_aead_chacha20poly1305_IETF_KEYBYTES  == crypto_aead_chacha20poly1305_ietf_KEYBYTES);
     assert(crypto_aead_chacha20poly1305_IETF_NSECBYTES == crypto_aead_chacha20poly1305_ietf_NSECBYTES);
     assert(crypto_aead_chacha20poly1305_IETF_NPUBBYTES == crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
     assert(crypto_aead_chacha20poly1305_IETF_ABYTES    == crypto_aead_chacha20poly1305_ietf_ABYTES);
+    assert(crypto_aead_chacha20poly1305_IETF_MESSAGEBYTES_MAX == crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX);
 
     return 0;
 }

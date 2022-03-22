@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <sys/param.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/semphr.h>
@@ -9,6 +10,23 @@
 #include "driver/timer.h"
 #include "esp_intr_alloc.h"
 #include "test_utils.h"
+#include "ccomp_timer.h"
+#include "esp_log.h"
+#include "esp_rom_sys.h"
+#include "esp_timer.h"
+
+#include "bootloader_flash.h"   //for bootloader_flash_xmc_startup
+
+#include "sdkconfig.h"
+#if CONFIG_IDF_TARGET_ESP32
+#include "esp32/rom/spi_flash.h"
+#elif CONFIG_IDF_TARGET_ESP32S2
+#include "esp32s2/rom/spi_flash.h"
+#elif CONFIG_IDF_TARGET_ESP32S3
+#include "esp32s3/rom/spi_flash.h"
+#elif CONFIG_IDF_TARGET_ESP32C3
+#include "esp32c3/rom/spi_flash.h"
+#endif
 
 struct flash_test_ctx {
     uint32_t offset;
@@ -16,11 +34,23 @@ struct flash_test_ctx {
     SemaphoreHandle_t done;
 };
 
+/* Base offset in flash for tests. */
+static size_t start;
+
+static void setup_tests(void)
+{
+    if (start == 0) {
+        const esp_partition_t *part = get_test_data_partition();
+        start = part->address;
+        printf("Test data partition @ 0x%x\n", start);
+    }
+}
+
 static void flash_test_task(void *arg)
 {
     struct flash_test_ctx *ctx = (struct flash_test_ctx *) arg;
     vTaskDelay(100 / portTICK_PERIOD_MS);
-    const uint32_t sector = ctx->offset;
+    const uint32_t sector = start / SPI_FLASH_SEC_SIZE + ctx->offset;
     printf("t%d\n", sector);
     printf("es%d\n", sector);
     if (spi_flash_erase_sector(sector) != ESP_OK) {
@@ -65,13 +95,15 @@ static void flash_test_task(void *arg)
 
 TEST_CASE("flash write and erase work both on PRO CPU and on APP CPU", "[spi_flash][ignore]")
 {
+    setup_tests();
+
     SemaphoreHandle_t done = xSemaphoreCreateCounting(4, 0);
     struct flash_test_ctx ctx[] = {
-            { .offset = 0x100 + 6, .done = done },
-            { .offset = 0x100 + 7, .done = done },
-            { .offset = 0x100 + 8, .done = done },
+            { .offset = 0x10 + 6, .done = done },
+            { .offset = 0x10 + 7, .done = done },
+            { .offset = 0x10 + 8, .done = done },
 #ifndef CONFIG_FREERTOS_UNICORE
-            { .offset = 0x100 + 9, .done = done }
+            { .offset = 0x10 + 9, .done = done }
 #endif
     };
 
@@ -106,11 +138,15 @@ typedef struct {
     size_t repeat_count;
 } block_task_arg_t;
 
+#ifdef CONFIG_IDF_TARGET_ESP32S2
+#define int_clr_timers int_clr
+#endif
+
 static void IRAM_ATTR timer_isr(void* varg) {
     block_task_arg_t* arg = (block_task_arg_t*) varg;
-    TIMERG0.int_clr_timers.t0 = 1;
-    TIMERG0.hw_timer[0].config.alarm_en = 1;
-    ets_delay_us(arg->delay_time_us);
+    timer_group_clr_intr_status_in_isr(TIMER_GROUP_0, TIMER_0);
+    timer_group_enable_alarm_in_isr(TIMER_GROUP_0, TIMER_0);
+    esp_rom_delay_us(arg->delay_time_us);
     arg->repeat_count++;
 }
 
@@ -124,7 +160,7 @@ static void read_task(void* varg) {
     vTaskDelete(NULL);
 }
 
-TEST_CASE("spi flash functions can run along with IRAM interrupts", "[spi_flash]")
+TEST_CASE("spi flash functions can run along with IRAM interrupts", "[spi_flash][esp_flash]")
 {
     const size_t size = 128;
     read_task_arg_t read_arg = {
@@ -168,9 +204,146 @@ TEST_CASE("spi flash functions can run along with IRAM interrupts", "[spi_flash]
     free(read_arg.buf);
 }
 
+#if !TEMPORARY_DISABLED_FOR_TARGETS(ESP32S3)
+// TODO ESP32-S3 IDF-2021
+
+static const char TAG[] = "test_spi_flash";
+
+typedef struct {
+    uint32_t us_start;
+    size_t len;
+    const char* name;
+} time_meas_ctx_t;
+
+static void time_measure_start(time_meas_ctx_t* ctx)
+{
+    ctx->us_start = esp_timer_get_time();
+    ccomp_timer_start();
+}
+
+static uint32_t time_measure_end(time_meas_ctx_t* ctx)
+{
+    uint32_t c_time_us = ccomp_timer_stop();
+    uint32_t time_us = esp_timer_get_time() - ctx->us_start;
+
+    ESP_LOGI(TAG, "%s: compensated: %.2lf kB/s, typical: %.2lf kB/s", ctx->name, ctx->len / (c_time_us/1000.), ctx->len / (time_us/1000.));
+    return ctx->len * 1000 / (c_time_us / 1000);
+}
+
+#define TEST_TIMES      20
+#define TEST_SECTORS    4
+
+static uint32_t measure_erase(const esp_partition_t* part)
+{
+    const int total_len = SPI_FLASH_SEC_SIZE * TEST_SECTORS;
+    time_meas_ctx_t time_ctx = {.name = "erase", .len = total_len};
+
+    time_measure_start(&time_ctx);
+    esp_err_t err = spi_flash_erase_range(part->address, total_len);
+    TEST_ESP_OK(err);
+    return time_measure_end(&time_ctx);
+}
+
+// should called after measure_erase
+static uint32_t measure_write(const char* name, const esp_partition_t* part, const uint8_t* data_to_write, int seg_len)
+{
+    const int total_len = SPI_FLASH_SEC_SIZE;
+    time_meas_ctx_t time_ctx = {.name = name, .len = total_len * TEST_TIMES};
+
+    time_measure_start(&time_ctx);
+    for (int i = 0; i < TEST_TIMES; i ++) {
+        // Erase one time, but write 100 times the same data
+        size_t len = total_len;
+        int offset = 0;
+
+        while (len) {
+            int len_write = MIN(seg_len, len);
+            esp_err_t err = spi_flash_write(part->address + offset, data_to_write + offset, len_write);
+            TEST_ESP_OK(err);
+
+            offset += len_write;
+            len -= len_write;
+        }
+    }
+    return time_measure_end(&time_ctx);
+}
+
+static uint32_t measure_read(const char* name, const esp_partition_t* part, uint8_t* data_read, int seg_len)
+{
+    const int total_len = SPI_FLASH_SEC_SIZE;
+    time_meas_ctx_t time_ctx = {.name = name, .len = total_len * TEST_TIMES};
+
+    time_measure_start(&time_ctx);
+    for (int i = 0; i < TEST_TIMES; i ++) {
+        size_t len = total_len;
+        int offset = 0;
+
+        while (len) {
+            int len_read = MIN(seg_len, len);
+            esp_err_t err = spi_flash_read(part->address + offset, data_read + offset, len_read);
+            TEST_ESP_OK(err);
+
+            offset += len_read;
+            len -= len_read;
+        }
+    }
+    return time_measure_end(&time_ctx);
+}
+
+#define MEAS_WRITE(n)   (measure_write("write in "#n"-byte chunks", part, data_to_write, n))
+#define MEAS_READ(n)    (measure_read("read in "#n"-byte chunks", part, data_read, n))
+
+TEST_CASE("Test spi_flash read/write performance", "[spi_flash]")
+{
+    const esp_partition_t *part = get_test_data_partition();
+
+    const int total_len = SPI_FLASH_SEC_SIZE;
+    uint8_t *data_to_write = heap_caps_malloc(total_len, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    uint8_t *data_read = heap_caps_malloc(total_len, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+
+    srand(777);
+    for (int i = 0; i < total_len; i++) {
+        data_to_write[i] = rand();
+    }
+
+    uint32_t erase_1 = measure_erase(part);
+    uint32_t speed_WR_4B = MEAS_WRITE(4);
+    uint32_t speed_RD_4B = MEAS_READ(4);
+    uint32_t erase_2 = measure_erase(part);
+    uint32_t speed_WR_2KB = MEAS_WRITE(2048);
+    uint32_t speed_RD_2KB = MEAS_READ(2048);
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(data_to_write, data_read, total_len);
+
+// Data checks are disabled when PSRAM is used or in Freertos compliance check test
+#if !CONFIG_SPIRAM && !CONFIG_FREERTOS_CHECK_PORT_CRITICAL_COMPLIANCE
+#  define CHECK_DATA(suffix) TEST_PERFORMANCE_CCOMP_GREATER_THAN(FLASH_SPEED_BYTE_PER_SEC_LEGACY_##suffix, "%d", speed_##suffix)
+#  define CHECK_ERASE(var) TEST_PERFORMANCE_CCOMP_GREATER_THAN(FLASH_SPEED_BYTE_PER_SEC_LEGACY_ERASE, "%d", var)
+#else
+#  define CHECK_DATA(suffix) ((void)speed_##suffix)
+#  define CHECK_ERASE(var) ((void)var)
+#endif
+
+    CHECK_DATA(WR_4B);
+    CHECK_DATA(RD_4B);
+    CHECK_DATA(WR_2KB);
+    CHECK_DATA(RD_2KB);
+
+    // Erase time may vary a lot, can increase threshold if this fails with a reasonable speed
+    CHECK_ERASE(erase_1);
+    CHECK_ERASE(erase_2);
+
+    free(data_to_write);
+    free(data_read);
+}
+
+#endif //!TEMPORARY_DISABLED_FOR_TARGETS(ESP32S3)
+
+//  TODO: This test is disabled on S3 with legacy impl - IDF-3505
+#if !TEMPORARY_DISABLED_FOR_TARGETS(ESP32, ESP32S2, ESP32S3, ESP32C3)
 
 #if portNUM_PROCESSORS > 1
-TEST_CASE("spi_flash deadlock with high priority busy-waiting task", "[spi_flash]")
+TEST_CASE("spi_flash deadlock with high priority busy-waiting task", "[spi_flash][esp_flash]")
 {
     typedef struct {
         QueueHandle_t queue;
@@ -226,3 +399,51 @@ TEST_CASE("spi_flash deadlock with high priority busy-waiting task", "[spi_flash
     TEST_ASSERT_EQUAL_INT(uxTaskPriorityGet(NULL), UNITY_FREERTOS_PRIORITY);
 }
 #endif // portNUM_PROCESSORS > 1
+
+#endif // !TEMPORARY_DISABLED_FOR_TARGETS(ESP32, ESP32S2, ESP32S3, ESP32C3)
+
+TEST_CASE("WEL is cleared after boot", "[spi_flash]")
+{
+    esp_rom_spiflash_chip_t *legacy_chip = &g_rom_flashchip;
+    uint32_t status;
+    esp_rom_spiflash_read_status(legacy_chip, &status);
+
+    TEST_ASSERT((status & 0x2) == 0);
+}
+
+#if CONFIG_ESPTOOLPY_FLASHMODE_QIO
+// ISSI chip has its QE bit on other chips' BP4, which may get cleared by accident
+TEST_CASE("rom unlock will not erase QE bit", "[spi_flash]")
+{
+    esp_rom_spiflash_chip_t *legacy_chip = &g_rom_flashchip;
+    uint32_t status;
+    printf("dev_id: %08X \n", legacy_chip->device_id);
+
+    if (((legacy_chip->device_id >> 16) & 0xff) != 0x9D) {
+        TEST_IGNORE_MESSAGE("This test is only for ISSI chips. Ignore.");
+    }
+    esp_rom_spiflash_unlock();
+    esp_rom_spiflash_read_status(legacy_chip, &status);
+    printf("status: %08x\n", status);
+
+    TEST_ASSERT(status & 0x40);
+}
+#endif
+
+static IRAM_ATTR NOINLINE_ATTR void test_xmc_startup(void)
+{
+    extern void spi_flash_disable_interrupts_caches_and_other_cpu(void);
+    extern void spi_flash_enable_interrupts_caches_and_other_cpu(void);
+    esp_err_t ret = ESP_OK;
+
+    spi_flash_disable_interrupts_caches_and_other_cpu();
+    ret = bootloader_flash_xmc_startup();
+    spi_flash_enable_interrupts_caches_and_other_cpu();
+
+    TEST_ASSERT_EQUAL(ESP_OK, ret);
+}
+
+TEST_CASE("bootloader_flash_xmc_startup can be called when cache disabled", "[spi_flash]")
+{
+    test_xmc_startup();
+}
