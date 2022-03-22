@@ -26,7 +26,7 @@ esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj)
                               esp-idf/bootloader_support/libbootloader_support.a(bootloader_utility.c.obj) (bootloader_sha256_start)
 esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
                               esp-idf/bootloader_support/libbootloader_support.a(bootloader_init.c.obj) (bootloader_read_flash_id)
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
                               esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj) (__bswapsi2)
 esp-idf/soc/libsoc.a(cpu_util.c.obj)
                               esp-idf/bootloader_support/libbootloader_support.a(esp_image_format.c.obj) (esp_cpu_in_ocd_debug_mode)
@@ -44,7 +44,7 @@ esp-idf/soc/libsoc.a(rtc_wdt.c.obj)
                               esp-idf/bootloader_support/libbootloader_support.a(bootloader_init.c.obj) (rtc_wdt_protect_off)
 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
                               esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj) (esp_rom_spiflash_wait_idle)
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
                               esp-idf/soc/libsoc.a(rtc_clk_init.c.obj) (__udivdi3)
 
 Discarded input sections
@@ -225,10 +225,10 @@ Discarded input sections
                 0x0000000000000000       0x6c esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
  .xt.lit        0x0000000000000000       0x58 esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
  .xt.prop       0x0000000000000000      0x2c4 esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
- .data          0x0000000000000000        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
- .bss           0x0000000000000000        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
- .xt.lit        0x0000000000000000        0x8 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
- .xt.prop       0x0000000000000000       0x30 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .data          0x0000000000000000        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .bss           0x0000000000000000        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .xt.lit        0x0000000000000000        0x8 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .xt.prop       0x0000000000000000       0x30 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
  .iram1.0.literal
                 0x0000000000000000       0x18 esp-idf/soc/libsoc.a(cpu_util.c.obj)
  .iram1.1.literal
@@ -395,10 +395,10 @@ Discarded input sections
                 0x0000000000000000       0x18 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
  .xt.lit        0x0000000000000000       0x88 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
  .xt.prop       0x0000000000000000      0x7d4 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
- .data          0x0000000000000000        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
- .bss           0x0000000000000000        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
- .eh_frame      0x0000000000000000       0x28 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
- .xt.prop       0x0000000000000000      0x264 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .data          0x0000000000000000        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .bss           0x0000000000000000        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .eh_frame      0x0000000000000000       0x28 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .xt.prop       0x0000000000000000      0x264 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
 
 Memory Configuration
 
@@ -420,7 +420,7 @@ LOAD esp-idf/micro-ecc/libmicro-ecc.a
 LOAD esp-idf/efuse/libefuse.a
 LOAD esp-idf/bootloader_support/libbootloader_support.a
 LOAD esp-idf/main/libmain.a
-LOAD /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a
+LOAD /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a
 
 .iram_loader.text
                 0x0000000040078000     0x2baf
@@ -439,7 +439,7 @@ LOAD /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xte
                 0x0000000040078070        0x4 esp-idf/soc/libsoc.a(cpu_util.c.obj)
  .literal.esp_log_early_timestamp
                 0x0000000040078074        0x8 esp-idf/log/liblog.a(log.c.obj)
- .literal       0x000000004007807c        0x8 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .literal       0x000000004007807c        0x8 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
  .literal.bootloader_common_ota_select_crc
                 0x0000000040078084        0x4 esp-idf/bootloader_support/libbootloader_support.a(bootloader_common.c.obj)
  .literal.bootloader_common_ota_select_valid
@@ -600,11 +600,11 @@ LOAD /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xte
  *fill*         0x000000004007875f        0x0 
  *libgcc.a:(.literal .text .literal.* .text.*)
  *fill*         0x000000004007875f        0x1 
- .text          0x0000000040078760       0x26 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .text          0x0000000040078760       0x26 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
                 0x0000000040078760                __bswapsi2
  *fill*         0x0000000040078786        0x0 
  *fill*         0x0000000040078786        0x2 
- .text          0x0000000040078788      0x281 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .text          0x0000000040078788      0x281 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
                 0x0000000040078788                __udivdi3
  *libbootloader_support.a:bootloader_clock.*(.literal.esp_clk_apb_freq .text.esp_clk_apb_freq)
  *libbootloader_support.a:bootloader_common.*(.literal .text .literal.* .text.*)
@@ -1236,11 +1236,11 @@ LOAD /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xte
  .rodata.str1.1
                 0x000000003fff0aaf      0x15c esp-idf/bootloader_support/libbootloader_support.a(flash_partitions.c.obj)
  .rodata.str1.1
-                0x000000003fff0c0b      0x3f6 esp-idf/bootloader_support/libbootloader_support.a(bootloader_init.c.obj)
-                                        0x3fb (size before relaxing)
+                0x000000003fff0c0b      0x3f7 esp-idf/bootloader_support/libbootloader_support.a(bootloader_init.c.obj)
+                                        0x3fc (size before relaxing)
  .rodata.CSWTCH$33
-                0x000000003fff1001        0x5 esp-idf/bootloader_support/libbootloader_support.a(bootloader_init.c.obj)
- *fill*         0x000000003fff1006        0x2 
+                0x000000003fff1002        0x5 esp-idf/bootloader_support/libbootloader_support.a(bootloader_init.c.obj)
+ *fill*         0x000000003fff1007        0x1 
  .rodata.CSWTCH$25
                 0x000000003fff1008       0x14 esp-idf/bootloader_support/libbootloader_support.a(bootloader_init.c.obj)
  .rodata.CSWTCH$24
@@ -3067,7 +3067,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_line    0x000000000000467a      0x4e8 esp-idf/bootloader_support/libbootloader_support.a(bootloader_random.c.obj)
  .debug_line    0x0000000000004b62      0x584 esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj)
  .debug_line    0x00000000000050e6      0x66d esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
- .debug_line    0x0000000000005753       0x89 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .debug_line    0x0000000000005753       0x89 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
  .debug_line    0x00000000000057dc      0x236 esp-idf/soc/libsoc.a(cpu_util.c.obj)
  .debug_line    0x0000000000005a12      0x187 esp-idf/soc/libsoc.a(gpio_periph.c.obj)
  .debug_line    0x0000000000005b99      0xeb1 esp-idf/soc/libsoc.a(rtc_clk.c.obj)
@@ -3076,7 +3076,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_line    0x00000000000073ac      0x526 esp-idf/soc/libsoc.a(rtc_time.c.obj)
  .debug_line    0x00000000000078d2      0x55d esp-idf/soc/libsoc.a(rtc_wdt.c.obj)
  .debug_line    0x0000000000007e2f      0xaf7 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
- .debug_line    0x0000000000008926      0x18e /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .debug_line    0x0000000000008926      0x18e /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
 
 .debug_str      0x0000000000000000     0x535f
  .debug_str     0x0000000000000000       0xf0 CMakeFiles/bootloader.elf.dir/dummy_main_src.c.obj
@@ -3106,7 +3106,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
                                         0x3bd (size before relaxing)
  .debug_str     0x00000000000027a4     0x189e esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
                                        0x1c1d (size before relaxing)
- .debug_str     0x0000000000004042      0x138 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .debug_str     0x0000000000004042      0x138 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
                                         0x1de (size before relaxing)
  .debug_str     0x000000000000417a       0x8b esp-idf/soc/libsoc.a(cpu_util.c.obj)
                                         0x197 (size before relaxing)
@@ -3124,7 +3124,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
                                         0x576 (size before relaxing)
  .debug_str     0x0000000000004ee6      0x39d esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
                                         0x78b (size before relaxing)
- .debug_str     0x0000000000005283       0xdc /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .debug_str     0x0000000000005283       0xdc /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
                                         0x258 (size before relaxing)
 
 .comment        0x0000000000000000       0x3a
@@ -3143,7 +3143,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .comment       0x000000000000003a       0x3b esp-idf/bootloader_support/libbootloader_support.a(bootloader_random.c.obj)
  .comment       0x000000000000003a       0x3b esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj)
  .comment       0x000000000000003a       0x3b esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
- .comment       0x000000000000003a       0x3b /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .comment       0x000000000000003a       0x3b /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
  .comment       0x000000000000003a       0x3b esp-idf/soc/libsoc.a(cpu_util.c.obj)
  .comment       0x000000000000003a       0x3b esp-idf/soc/libsoc.a(gpio_periph.c.obj)
  .comment       0x000000000000003a       0x3b esp-idf/soc/libsoc.a(rtc_clk.c.obj)
@@ -3152,7 +3152,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .comment       0x000000000000003a       0x3b esp-idf/soc/libsoc.a(rtc_time.c.obj)
  .comment       0x000000000000003a       0x3b esp-idf/soc/libsoc.a(rtc_wdt.c.obj)
  .comment       0x000000000000003a       0x3b esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
- .comment       0x000000000000003a       0x3b /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .comment       0x000000000000003a       0x3b /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
 
 .xtensa.info    0x0000000000000000       0x38
  .xtensa.info   0x0000000000000000       0x38 CMakeFiles/bootloader.elf.dir/dummy_main_src.c.obj
@@ -3169,7 +3169,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .xtensa.info   0x0000000000000038        0x0 esp-idf/bootloader_support/libbootloader_support.a(bootloader_random.c.obj)
  .xtensa.info   0x0000000000000038        0x0 esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj)
  .xtensa.info   0x0000000000000038        0x0 esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
- .xtensa.info   0x0000000000000038        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .xtensa.info   0x0000000000000038        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
  .xtensa.info   0x0000000000000038        0x0 esp-idf/soc/libsoc.a(cpu_util.c.obj)
  .xtensa.info   0x0000000000000038        0x0 esp-idf/soc/libsoc.a(gpio_periph.c.obj)
  .xtensa.info   0x0000000000000038        0x0 esp-idf/soc/libsoc.a(rtc_clk.c.obj)
@@ -3178,7 +3178,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .xtensa.info   0x0000000000000038        0x0 esp-idf/soc/libsoc.a(rtc_time.c.obj)
  .xtensa.info   0x0000000000000038        0x0 esp-idf/soc/libsoc.a(rtc_wdt.c.obj)
  .xtensa.info   0x0000000000000038        0x0 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
- .xtensa.info   0x0000000000000038        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .xtensa.info   0x0000000000000038        0x0 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
 
 .debug_frame    0x0000000000000000      0xfa0
  .debug_frame   0x0000000000000000       0x28 esp-idf/main/libmain.a(bootloader_start.c.obj)
@@ -3194,7 +3194,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_frame   0x0000000000000598       0x58 esp-idf/bootloader_support/libbootloader_support.a(bootloader_random.c.obj)
  .debug_frame   0x00000000000005f0       0x70 esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj)
  .debug_frame   0x0000000000000660      0x118 esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
- .debug_frame   0x0000000000000778       0x28 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .debug_frame   0x0000000000000778       0x28 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
  .debug_frame   0x00000000000007a0       0x70 esp-idf/soc/libsoc.a(cpu_util.c.obj)
  .debug_frame   0x0000000000000810      0x340 esp-idf/soc/libsoc.a(rtc_clk.c.obj)
  .debug_frame   0x0000000000000b50       0x40 esp-idf/soc/libsoc.a(rtc_clk_init.c.obj)
@@ -3202,7 +3202,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_frame   0x0000000000000be8       0xb8 esp-idf/soc/libsoc.a(rtc_time.c.obj)
  .debug_frame   0x0000000000000ca0      0x130 esp-idf/soc/libsoc.a(rtc_wdt.c.obj)
  .debug_frame   0x0000000000000dd0      0x1a8 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
- .debug_frame   0x0000000000000f78       0x28 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .debug_frame   0x0000000000000f78       0x28 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
 
 .debug_info     0x0000000000000000     0xe7c2
  .debug_info    0x0000000000000000      0x3c5 esp-idf/main/libmain.a(bootloader_start.c.obj)
@@ -3218,7 +3218,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_info    0x0000000000007812      0x25a esp-idf/bootloader_support/libbootloader_support.a(bootloader_random.c.obj)
  .debug_info    0x0000000000007a6c      0x419 esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj)
  .debug_info    0x0000000000007e85     0x2af3 esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
- .debug_info    0x000000000000a978       0xcd /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .debug_info    0x000000000000a978       0xcd /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
  .debug_info    0x000000000000aa45      0x11a esp-idf/soc/libsoc.a(cpu_util.c.obj)
  .debug_info    0x000000000000ab5f       0x95 esp-idf/soc/libsoc.a(gpio_periph.c.obj)
  .debug_info    0x000000000000abf4     0x15d8 esp-idf/soc/libsoc.a(rtc_clk.c.obj)
@@ -3227,7 +3227,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_info    0x000000000000ccd3      0x4ad esp-idf/soc/libsoc.a(rtc_time.c.obj)
  .debug_info    0x000000000000d180      0x483 esp-idf/soc/libsoc.a(rtc_wdt.c.obj)
  .debug_info    0x000000000000d603      0xbf7 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
- .debug_info    0x000000000000e1fa      0x5c8 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .debug_info    0x000000000000e1fa      0x5c8 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
 
 .debug_abbrev   0x0000000000000000     0x3070
  .debug_abbrev  0x0000000000000000      0x16c esp-idf/main/libmain.a(bootloader_start.c.obj)
@@ -3243,7 +3243,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_abbrev  0x0000000000001945      0x16c esp-idf/bootloader_support/libbootloader_support.a(bootloader_random.c.obj)
  .debug_abbrev  0x0000000000001ab1      0x177 esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj)
  .debug_abbrev  0x0000000000001c28      0x3a1 esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
- .debug_abbrev  0x0000000000001fc9       0x60 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .debug_abbrev  0x0000000000001fc9       0x60 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
  .debug_abbrev  0x0000000000002029       0xa5 esp-idf/soc/libsoc.a(cpu_util.c.obj)
  .debug_abbrev  0x00000000000020ce       0x5b esp-idf/soc/libsoc.a(gpio_periph.c.obj)
  .debug_abbrev  0x0000000000002129      0x3d6 esp-idf/soc/libsoc.a(rtc_clk.c.obj)
@@ -3252,7 +3252,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_abbrev  0x000000000000284a      0x1b8 esp-idf/soc/libsoc.a(rtc_time.c.obj)
  .debug_abbrev  0x0000000000002a02      0x205 esp-idf/soc/libsoc.a(rtc_wdt.c.obj)
  .debug_abbrev  0x0000000000002c07      0x30a esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
- .debug_abbrev  0x0000000000002f11      0x15f /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .debug_abbrev  0x0000000000002f11      0x15f /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
 
 .debug_loc      0x0000000000000000     0x5bd8
  .debug_loc     0x0000000000000000       0xa9 esp-idf/main/libmain.a(bootloader_start.c.obj)
@@ -3268,7 +3268,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_loc     0x0000000000002cd0       0x26 esp-idf/bootloader_support/libbootloader_support.a(bootloader_random.c.obj)
  .debug_loc     0x0000000000002cf6      0x3be esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj)
  .debug_loc     0x00000000000030b4      0x23c esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
- .debug_loc     0x00000000000032f0       0x21 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+ .debug_loc     0x00000000000032f0       0x21 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
  .debug_loc     0x0000000000003311       0x34 esp-idf/soc/libsoc.a(cpu_util.c.obj)
  .debug_loc     0x0000000000003345      0xb32 esp-idf/soc/libsoc.a(rtc_clk.c.obj)
  .debug_loc     0x0000000000003e77      0x244 esp-idf/soc/libsoc.a(rtc_clk_init.c.obj)
@@ -3276,7 +3276,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_loc     0x00000000000044d4      0x2ce esp-idf/soc/libsoc.a(rtc_time.c.obj)
  .debug_loc     0x00000000000047a2      0x2b6 esp-idf/soc/libsoc.a(rtc_wdt.c.obj)
  .debug_loc     0x0000000000004a58      0x798 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
- .debug_loc     0x00000000000051f0      0x9e8 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .debug_loc     0x00000000000051f0      0x9e8 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
 
 .debug_aranges  0x0000000000000000      0x6e8
  .debug_aranges
@@ -3306,7 +3306,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_aranges
                 0x0000000000000300       0x70 esp-idf/bootloader_support/libbootloader_support.a(flash_qio_mode.c.obj)
  .debug_aranges
-                0x0000000000000370       0x20 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+                0x0000000000000370       0x20 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
  .debug_aranges
                 0x0000000000000390       0x38 esp-idf/soc/libsoc.a(cpu_util.c.obj)
  .debug_aranges
@@ -3324,7 +3324,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_aranges
                 0x0000000000000628       0xa0 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
  .debug_aranges
-                0x00000000000006c8       0x20 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+                0x00000000000006c8       0x20 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
 
 .debug_ranges   0x0000000000000000      0xb10
  .debug_ranges  0x0000000000000000       0x10 esp-idf/main/libmain.a(bootloader_start.c.obj)
@@ -3347,7 +3347,7 @@ OUTPUT(bootloader.elf elf32-xtensa-le)
  .debug_ranges  0x00000000000008e0       0x40 esp-idf/soc/libsoc.a(rtc_time.c.obj)
  .debug_ranges  0x0000000000000920       0xb0 esp-idf/soc/libsoc.a(rtc_wdt.c.obj)
  .debug_ranges  0x00000000000009d0       0xe0 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
- .debug_ranges  0x0000000000000ab0       0x60 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+ .debug_ranges  0x0000000000000ab0       0x60 /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
 
 Cross Reference Table
 
@@ -3371,10 +3371,10 @@ __assert_func                                     esp-idf/bootloader_support/lib
                                                   esp-idf/soc/libsoc.a(rtc_time.c.obj)
                                                   esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj)
                                                   esp-idf/bootloader_support/libbootloader_support.a(bootloader_random.c.obj)
-__bswapsi2                                        /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
+__bswapsi2                                        /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_bswapsi2.o)
                                                   esp-idf/bootloader_support/libbootloader_support.a(bootloader_sha.c.obj)
 __ctype_ptr__                                     esp-idf/log/liblog.a(log.c.obj)
-__udivdi3                                         /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
+__udivdi3                                         /home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/../lib/gcc/xtensa-esp32-elf/5.2.0/libgcc.a(_udivdi3.o)
                                                   esp-idf/soc/libsoc.a(rtc_wdt.c.obj)
                                                   esp-idf/soc/libsoc.a(rtc_time.c.obj)
                                                   esp-idf/soc/libsoc.a(rtc_clk_init.c.obj)
