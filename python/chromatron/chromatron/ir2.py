@@ -1102,9 +1102,25 @@ class irBlock(IR):
 
 
             elif isinstance(ir, irBinop):
-                target = ir.target.ssa_name
-                left = ir.left.ssa_name
-                right = ir.right.ssa_name
+                target = ir.target
+                left = ir.left
+                right = ir.right
+
+                if left in values:
+                    print(f"replace left {left} with {registers[values[left]]}")
+
+                    # if ir.expr.is_commutative and values[left].is_commutative:
+                    #     print('meow')
+                    ir.left = registers[values[left]]
+
+
+                if right in values:
+                    print(f"replace right {right} with {registers[values[right]]}")
+
+                    # if ir.expr.is_commutative and values[right].is_commutative:
+                    #     print('meow')
+                    ir.right = registers[values[right]]
+
 
                 fold = ir.fold()
 
@@ -1116,25 +1132,33 @@ class irBlock(IR):
                     ir = fold
                     ir.block = self
 
-                    values[target] = ir.value
+                    value = ir.value
+                    values[target] = value
+
+                    if value not in registers:
+                        registers[value] = target
 
                 else:
-                    if left in values and isinstance(values[left], irExpr):
-                        print(f"replace left {left} with {values[left]}")
+                #     if left in values:
+                #         print(f"replace left {left} with {registers[values[left]]}")
 
-                        # if ir.expr.is_commutative and values[left].is_commutative:
-                        #     print('meow')
+                #         # if ir.expr.is_commutative and values[left].is_commutative:
+                #         #     print('meow')
 
 
-                    if right in values and isinstance(values[right], irExpr):
-                        print(f"replace right {right} with {values[right]}")
+                #     if right in values:
+                #         print(f"replace right {right} with {registers[values[right]]}")
 
-                        # if ir.expr.is_commutative and values[right].is_commutative:
-                        #     print('meow')
+                #         # if ir.expr.is_commutative and values[right].is_commutative:
+                #         #     print('meow')
 
 
                     print(f'expr {ir.expr} -> {target}')
-                    values[target] = ir.expr
+                    value = ir.expr
+                    values[target] = value
+
+                if value not in registers:
+                    registers[value] = target
 
         
             new_code.append(ir)
@@ -4283,6 +4307,7 @@ class irBinop(IR):
             assert False
 
         ir = irLoadConst(self.target, val, lineno=self.lineno)
+        self.target.name = f'{val}'
 
         self.target.value = val
 

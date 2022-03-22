@@ -4,43 +4,37 @@
 g1 = Number()    
 g2 = Number()    
 
-# def init():
-
-#     a = Number()
-#     b = Number()
-
-#     a = a + 1
-#     # a = 1 + 2
-
-#     # a = a + 1 + 2 + 3
-
-#     # a = 4
-#     # a = g1
-#     # b = g1
-
-#     # b = a
-
-#     # g1 = b
-#     # g2 = b
-
-#     # a = a + 2 + 3
-#     # b = 1 + 2 + 3
-
-#     return a
-
-
-
 def init():
 
     a = Number()
     b = Number()
 
-    
-    a = 4
-    a = g1
-    b = g1
+    # b = 3
+
+    # a = b + 1 + 2 + 7 + b
+    # a += 1
+    # a = 1 + 2
+
+    a = a + 1 + 2 + 3
+
+    # a = a + 2 + 3
+    # b = 1 + 2 + 3
 
     return a
+
+
+
+# def init():
+
+#     a = Number()
+#     b = Number()
+
+    
+#     a = 4
+#     a = g1
+#     b = g1
+
+#     return a
 
 # def init():
 #     a = Number()    
