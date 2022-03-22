@@ -533,6 +533,8 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
 
     set_reboot_mode( mode );
 
+    log_v_debug_P( PSTR("Reboot to mode: %d"), mode );
+
     reboot_delay = 2;
 
     // the thread will perform a graceful reboot

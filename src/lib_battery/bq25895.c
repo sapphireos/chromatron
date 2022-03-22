@@ -1596,6 +1596,15 @@ PT_BEGIN( pt );
 
             batt_charging = TRUE;
         }
+        else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
+
+            if( batt_charging ){
+
+                log_v_info_P( PSTR("Charging done") );
+            }
+
+            batt_charging = FALSE;
+        }
         else{ // DISCHARGE
 
             batt_charging = FALSE;

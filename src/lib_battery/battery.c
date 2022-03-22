@@ -548,6 +548,15 @@ PT_BEGIN( pt );
 
             if( ( batt_state == BATT_STATE_CUTOFF ) || ( batt_request_shutdown ) ){
 
+                if( batt_request_shutdown ){
+
+                    log_v_debug_P( PSTR("Remotely commanded shutdown") );
+                }
+                else{
+
+                    log_v_debug_P( PSTR("Low battery cutoff") );
+                }
+
                 batt_ui_state = -2;
 
                 sys_v_initiate_shutdown( 5 );
@@ -588,6 +597,8 @@ PT_BEGIN( pt );
         if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){
 
             if( button_hold_duration[1] < BUTTON_WIFI_TIME ){
+
+                log_v_debug_P( PSTR("Button commanded shutdown") );
 
                 batt_ui_state = -1;
 
