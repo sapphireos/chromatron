@@ -186,12 +186,6 @@ void hal_wifi_v_init( void ){
              0 );
     }
 
-    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
-
-        uint32_t *ptr = 0;
-        *ptr += 1;
-    }
-
     fs_f_create_virtual( PSTR("coredump"), coredump_vfile_handler );
 
     tcpip_adapter_init();
