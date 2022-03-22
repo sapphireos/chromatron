@@ -60,6 +60,11 @@ PT_THREAD( datalog_thread( pt_t *pt, void *state ) );
 
 void datalog_v_init( void ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
     thread_t_create( datalog_thread,
                      PSTR("datalogger"),
                      0,
