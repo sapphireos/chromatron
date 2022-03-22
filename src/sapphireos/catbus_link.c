@@ -135,7 +135,7 @@ PT_END( pt );
 }
 
 
-static uint16_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -156,7 +156,7 @@ static uint16_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t le
     return len;
 }
 
-static uint16_t consumer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t consumer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -177,7 +177,7 @@ static uint16_t consumer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_
     return len;
 }
 
-static uint16_t producer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t producer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -198,7 +198,7 @@ static uint16_t producer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_
     return len;
 }
 
-static uint16_t remote_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t remote_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){

@@ -135,19 +135,16 @@ static char hostname[32];
 
 #include "esp_partition.h"
  
-static uint16_t coredump_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t coredump_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     const esp_partition_t *pt = esp_partition_find_first( ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_COREDUMP, "coredump" );
 
     if( pt == NULL ){
 
-        trace_printf( "wow no core dump, ok.\r\n" );
+        trace_printf( "Core dump partition not found.\r\n" );
 
         return 0;
     }
-
-    trace_printf( "%d %x\r\n", pt->size, pt->address );
-
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){

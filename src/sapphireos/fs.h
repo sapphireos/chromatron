@@ -71,7 +71,7 @@ file_t fs_f_open( char filename[], mode_t8 mode );
 file_t fs_f_open_P( PGM_P filename, mode_t8 mode );
 file_t fs_f_open_id( file_id_t8 file_id, uint8_t mode );
 file_t fs_f_create_virtual( PGM_P filename, 
-                            uint16_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ) );
+                            uint32_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ) );
 
 bool fs_b_busy( void );
 

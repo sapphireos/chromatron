@@ -52,7 +52,7 @@ uint16_t build_query( char *name, uint16_t id, void *buf, uint16_t bufsize );
 PT_THREAD( dns_thread( pt_t *pt, void *state ) );
 PT_THREAD( resolver_thread( pt_t *pt, resolver_state_t *state ) );
 
-static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){

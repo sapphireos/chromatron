@@ -332,7 +332,7 @@ static void load_cached_service( service_state_t *service ){
 }
 
 
-static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
