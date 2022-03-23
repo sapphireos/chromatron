@@ -1092,6 +1092,11 @@ class irBlock(IR):
         if self in visited:
             return
 
+        # ensure all predecessors have been processed first
+        for p in self.predecessors:
+            if p not in visited:
+                raise CompilerFatal
+
         visited.append(self)
 
         new_code = []
@@ -1102,7 +1107,6 @@ class irBlock(IR):
             if isinstance(ir, irLoadConst):
                 target = ir.target
                 value = ir.value
-                # value = ir.target
 
                 assert target not in values
                 values[target] = value
@@ -1118,9 +1122,7 @@ class irBlock(IR):
 
                 if value in values:
                     ir.value = registers[values[value]]
-
-                if value in values:
-                    # print(f"replace assign {target} = {value} with {values[value]}")
+                    print(f"replace assign {target} = {value} with {values[value]}")
                     value = values[value]
 
                 if value not in registers:
@@ -1150,6 +1152,7 @@ class irBlock(IR):
                 # ir.apply_value_numbers(values)
 
                 if value in values:
+                    print(f"replace return {ir.ret_var} with {registers[values[value]]}")
                     ir.ret_var = registers[values[value]]
 
 
@@ -1158,7 +1161,7 @@ class irBlock(IR):
                 left = ir.left
                 right = ir.right
 
-                if left in values:
+                if left in values and left != registers[values[left]]:
                     print(f"replace left {left} with {registers[values[left]]}")
 
                     # if ir.expr.is_commutative and values[left].is_commutative:
@@ -1166,7 +1169,7 @@ class irBlock(IR):
                     ir.left = registers[values[left]]
 
 
-                if right in values:
+                if right in values and right != registers[values[right]]:
                     print(f"replace right {right} with {registers[values[right]]}")
 
                     # if ir.expr.is_commutative and values[right].is_commutative:
