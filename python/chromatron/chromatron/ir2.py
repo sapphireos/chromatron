@@ -1180,25 +1180,13 @@ class irBlock(IR):
                         ir = irJump(ir.true_label, lineno=ir.lineno)
                         ir.block = self
 
+            elif isinstance(ir, irPhi):
+                print(ir)
+
         
             new_code.append(ir)
 
         self.code = new_code
-
-        # re-evaluate block flow
-        last_ir = self.code[-1]
-        targets = [t.name for t in last_ir.get_jump_target()]
-
-
-        remove = []
-        for succ in self.successors:
-            if succ.name not in targets:
-                remove.append(succ)
-                succ.predecessors.remove(self)
-
-        self.successors = [s for s in self.successors if s not in remove]
-
-
 
         print("\nVALUES:")
 
