@@ -1160,6 +1160,21 @@ class irBlock(IR):
                 if value not in registers:
                     registers[value] = target
 
+            elif isinstance(ir, irBranch):
+                value = ir.value
+                if value in values:
+                    ir.value = registers[values[value]]
+
+                if ir.value.const:
+                    # replace branch with jump
+                    if ir.value.value == 0:
+                        ir = irJump(ir.false_label, lineno=ir.lineno)
+                        ir.block = self
+
+                    else:
+                        ir = irJump(ir.true_label, lineno=ir.lineno)
+                        ir.block = self
+
         
             new_code.append(ir)
 
