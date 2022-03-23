@@ -19,15 +19,15 @@
 #include "esp_attr.h"
 #include "esp_log.h"
 
-#include "rom/cache.h"
-#include "rom/efuse.h"
-#include "rom/ets_sys.h"
-#include "rom/spi_flash.h"
-#include "rom/crc.h"
-#include "rom/rtc.h"
-#include "rom/uart.h"
-#include "rom/gpio.h"
-#include "rom/secure_boot.h"
+#include "esp32/rom/cache.h"
+#include "esp32/rom/efuse.h"
+#include "esp32/rom/ets_sys.h"
+#include "esp32/rom/spi_flash.h"
+#include "esp32/rom/crc.h"
+#include "esp32/rom/rtc.h"
+#include "esp32/rom/uart.h"
+#include "esp32/rom/gpio.h"
+#include "esp32/rom/secure_boot.h"
 
 #include "soc/soc.h"
 #include "soc/cpu.h"
@@ -44,7 +44,9 @@
 #include "esp_secure_boot.h"
 #include "esp_flash_encrypt.h"
 #include "esp_flash_partitions.h"
+#include "bootloader_mem.h"
 #include "bootloader_flash.h"
+#include "bootloader_flash_priv.h"
 #include "bootloader_random.h"
 #include "bootloader_config.h"
 #include "bootloader_clock.h"
@@ -70,13 +72,12 @@ static void wdt_reset_check(void);
 
 esp_err_t bootloader_init()
 {
-    cpu_configure_region_protection();
-    cpu_init_memctl();
+    bootloader_init_mem();
 
     /* Sanity check that static RAM is after the stack */
 #ifndef NDEBUG
     {
-        int *sp = get_sp();
+        int *sp = esp_cpu_get_sp();
         assert(&_bss_start <= &_bss_end);
         assert(&_data_start <= &_data_end);
         assert(sp < &_bss_start);
@@ -311,7 +312,7 @@ static void uart_console_configure(void)
     ets_install_putc1(NULL);
     ets_install_putc2(NULL);
 #else // CONFIG_CONSOLE_UART_NONE
-    const int uart_num = CONFIG_CONSOLE_UART_NUM;
+    const int uart_num = CONFIG_ESP_CONSOLE_UART_NUM;
 
     uartAttach();
     ets_install_uart_printf();
@@ -352,7 +353,7 @@ static void uart_console_configure(void)
 #endif // CONFIG_CONSOLE_UART_CUSTOM
 
     // Set configured UART console baud rate
-    const int uart_baud = CONFIG_CONSOLE_UART_BAUDRATE;
+    const int uart_baud = CONFIG_ESP_CONSOLE_UART_BAUDRATE;
     uart_div_modify(uart_num, (rtc_clk_apb_freq_get() << 4) / uart_baud);
 
 #endif // CONFIG_CONSOLE_UART_NONE

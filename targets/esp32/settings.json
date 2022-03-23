@@ -11,7 +11,7 @@
         "-DHAVE_CONFIG_H",
         "-D_GNU_SOURCE",
         "-D_POSIX_READER_WRITER_LOCKS",
-        "-DIDF_VER=\"v4.4-1-gb230c64b0f-dirty\"",
+        "-DIDF_VER=\\\"v4.4-1-gb230c64b0f-dirty\\\"",
         "-DMBEDTLS_CONFIG_FILE=\\\"mbedtls/esp_config.h\\\"",
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/soc/esp32/include",
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/soc/include",

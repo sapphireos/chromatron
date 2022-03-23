@@ -41,10 +41,11 @@
 #include "loader.h"
 
 #include "bootloader_flash.h"
+#include "bootloader_flash_priv.h"
 #include "esp_image_format.h"
 #include "soc/soc.h"
 #include "soc/dport_reg.h"
-#include "rom/cache.h"
+#include "esp32/rom/cache.h"
 
 #include <string.h>
 

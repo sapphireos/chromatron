@@ -32,6 +32,7 @@
 
 #ifdef BOOTLOADER
 #include "bootloader_flash.h"
+#include "bootloader_flash_priv.h"
 #else
 #include "esp_spi_flash.h"
 #endif
