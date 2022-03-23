@@ -1260,20 +1260,7 @@ class irBlock(IR):
                     ir = irAssign(target, value, lineno=ir.lineno)
                     ir.block = self
 
-                    # # check assign values
-                    # value = ir.value
-                    # target = ir.target
-
-                    # if value in values:
-                    #     ir.value = registers[values[value]]
-                    #     print(f"replace assign {target} = {value} with {values[value]}")
-                    #     value = values[value]
-
-                    # if value not in registers:
-                    #     registers[value] = target
-                    
-                    # assert target not in values
-                    # values[target] = value
+                    # further optimizations may be made on this assign in a secondary pass
 
                 else:
                     # update values/registers for phi node

@@ -4,28 +4,30 @@
 g1 = Number()    
 g2 = Number()    
 
-# def init():
-#     a = Number()
-
-#     while a < 4:
-#         a += 1
-
-#     return a
-
-
-
 def init():
     a = Number()
-    b = Number()
 
-    if a > 0:
-        b = 1
+    a = 5
 
-    else:
-        b = 2
+    while a < 4:
+        a += 1
 
-    assert b == 2
-    assert a == 0
+    return a
+
+
+
+# def init():
+#     a = Number()
+#     b = Number()
+
+#     if a > 0:
+#         b = 1
+
+#     else:
+#         b = 2
+
+#     assert b == 2
+#     assert a == 0
 
 
 
