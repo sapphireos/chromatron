@@ -1081,9 +1081,9 @@ class irBlock(IR):
     #         c.gvn_analyze(VN, table)
 
 
-    def gvn_analyze(self, values=None, registers=None, visited=None):
+    def gvn_analyze(self, values=None, registers=None, visited=None, pass_number=1):
         if values is None:
-            logging.debug('GVN: Starting optimizer pass')
+            logging.debug(f'GVN: Starting optimizer pass: {pass_number}')
 
             values = {}
             registers = {}
@@ -1216,30 +1216,73 @@ class irBlock(IR):
                     registers[value] = target
 
             elif isinstance(ir, irBranch):
-                pass
+                # pass
 
-                # value = ir.value
-                # if value in values:
-                #     ir.value = registers[values[value]]
+                value = ir.value
+                if value in values:
+                    ir.value = registers[values[value]]
 
-                # if ir.value.const:
-                #     # replace branch with jump
-                #     if ir.value.value == 0:
-                #         ir = irJump(ir.false_label, lineno=ir.lineno)
-                #         ir.block = self
+                if ir.value.const:
+                    # replace branch with jump
+                    if ir.value.value == 0:
+                        print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
+                        ir = irJump(ir.false_label, lineno=ir.lineno)
+                        ir.block = self
 
-                #     else:
-                #         ir = irJump(ir.true_label, lineno=ir.lineno)
-                #         ir.block = self
+                    else:
+                        print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
+                        ir = irJump(ir.true_label, lineno=ir.lineno)
+                        ir.block = self
 
             elif isinstance(ir, irPhi):
-                value = ir.expr
+                # search predecessors for incoming merges on all edges
+                found = []
+                for d in ir.merges:
+                    for p in self.predecessors:
+                        v = p.lookup_var(d)            
+                        if v.ssa_name == d.ssa_name:    
+                            found.append(v)
+
+                # remove merges that were not found in the predecessor search
+                # these would be merges coming from blocks whose paths we have
+                # optimized out.
+                ir.merges = [d for d in ir.merges if d in found]
+
                 target = ir.target
 
-                values[target] = value
+                if len(ir.merges) == 0:
+                    print('removing useless phi node')
+                    continue
+                
+                elif len(ir.merges) == 1:
+                    value = ir.merges[0]
+                    print(f'replace phi with assign {target} = {value}')
+                    ir = irAssign(target, value, lineno=ir.lineno)
+                    ir.block = self
 
-                if value not in registers:
-                    registers[value] = target
+                    # # check assign values
+                    # value = ir.value
+                    # target = ir.target
+
+                    # if value in values:
+                    #     ir.value = registers[values[value]]
+                    #     print(f"replace assign {target} = {value} with {values[value]}")
+                    #     value = values[value]
+
+                    # if value not in registers:
+                    #     registers[value] = target
+                    
+                    # assert target not in values
+                    # values[target] = value
+
+                else:
+                    # update values/registers for phi node
+                    value = ir.expr
+                    
+                    values[target] = value
+
+                    if value not in registers:
+                        registers[value] = target
 
         
             new_code.append(ir)
@@ -2957,9 +3000,12 @@ class irFunc(IR):
 
         return func
 
-    def gvn_optimizer(self):
-        self.leader_block.gvn_analyze()
-        
+    def gvn_optimizer(self, *args, **kwargs):
+        self.leader_block.gvn_analyze(*args, **kwargs)
+    
+    def recalc_dominators(self):
+        self.dominators = self.calc_dominance()
+        self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
     def analyze_blocks(self, opt_level:OptLevels=OptLevels.SSA):
         logging.debug(f'Starting block analysis with optimization level: {opt_level}')
@@ -2969,13 +3015,15 @@ class irFunc(IR):
         self.leader_block = self.create_block_from_code_at_index(0)
         self.verify_block_links()
 
-        self.dominators = self.calc_dominance()
-        self.dominator_tree = self.calc_dominator_tree(self.dominators)
-
+        self.recalc_dominators()
+        
         self.init_vars()
 
         # self.render_dominator_tree()
         # self.render_graph()
+        # if opt_level == OptLevels.GVN:
+        #     if self.name == 'init':
+        #         self.render_graph()
 
         if opt_level is not OptLevels.NONE:
 
@@ -2994,7 +3042,9 @@ class irFunc(IR):
             # self.leader_block.gvn_optimize()
 
             if opt_level == OptLevels.GVN:
-                self.gvn_optimizer()
+                self.gvn_optimizer(pass_number=1)
+                self.recalc_dominators()
+                self.gvn_optimizer(pass_number=2)
 
 
             # optimizers
@@ -3007,13 +3057,16 @@ class irFunc(IR):
                 # basic loop invariant code motion:
                 self.loop_invariant_code_motion(self.loops)
 
+            # if opt_level == OptLevels.GVN:
+            #     if self.name == 'init':
+            #         self.render_graph()
+
             # convert out of SSA form
             self.resolve_phi()
             
 
         # blocks may have been rearranged or added at this point
-        self.dominators = self.calc_dominance()
-        self.dominator_tree = self.calc_dominator_tree(self.dominators)
+        self.recalc_dominators()
 
         # redo loop analysis
         self.analyze_loops()
@@ -3030,9 +3083,9 @@ class irFunc(IR):
         self.remove_dead_code()
 
         # self.render_dominator_tree()
-        if opt_level == OptLevels.GVN:
-            if self.name == 'init':
-                self.render_graph()
+        # if opt_level == OptLevels.GVN:
+        #     if self.name == 'init':
+        #         self.render_graph()
         
         logging.debug('Block analysis complete')
 
