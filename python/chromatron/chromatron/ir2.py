@@ -1034,12 +1034,18 @@ class irBlock(IR):
     #         c.gvn_analyze(VN, table)
 
 
-    def gvn_analyze(self, values=None, registers=None):
+    def gvn_analyze(self, values=None, registers=None, visited=None):
         if values is None:
             logging.debug('GVN: Starting optimizer pass')
 
             values = {}
             registers = {}
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
 
         new_code = []
 
@@ -1209,7 +1215,7 @@ class irBlock(IR):
             return
 
         for c in self.func.dominator_tree[self]:
-            c.gvn_analyze(copy(values), copy(registers))
+            c.gvn_analyze(copy(values), copy(registers), visited=visited)
 
 
 
