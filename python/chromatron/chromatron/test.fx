@@ -5,24 +5,42 @@ g1 = Number()
 g2 = Number()    
 
 def init():
-
     a = Number()
     b = Number()
 
-    b = 3
+    if a > 0:
+        b = 1
 
-    a = b + 1 + 2 + 7 + b
-    # a += 1
-    # a = 1 + 2
+    else:
+        b = 2
 
-    # a = 2
-    # # a = a + 1
-    # a = a + 1 + a + 3 + a
+    assert b == 2
+    assert a == 0
 
-    a = a + 2 + 3
-    # b = 1 + 2 + 3
 
-    return a
+
+
+
+
+# def init():
+
+#     a = Number()
+#     b = Number()
+
+#     b = 3
+
+#     a = b + 1 + 2 + 7 + b
+#     # a += 1
+#     # a = 1 + 2
+
+#     # a = 2
+#     # # a = a + 1
+#     # a = a + 1 + a + 3 + a
+
+#     a = a + 2 + 3
+#     # b = 1 + 2 + 3
+
+#     return a
 
 
 

@@ -1035,7 +1035,7 @@ class irBlock(IR):
     #         c.gvn_analyze(VN, table)
 
 
-    def gvn_analyze(self, values=None):
+    def gvn_analyze(self, values=None, registers=None):
         if values is None:
             logging.debug('GVN: Starting optimizer pass')
 
@@ -1180,7 +1180,7 @@ class irBlock(IR):
             return
 
         for c in self.func.dominator_tree[self]:
-            c.gvn_analyze(values)
+            c.gvn_analyze(values, registers)
 
 
 
@@ -4292,11 +4292,11 @@ class irBinop(IR):
         elif op == 'mul':
             val = left.value * right.value
 
-            if left.type == 'f16':
+            if left.data_type == 'f16':
                 val /= 65536
 
         elif op == 'div':
-            if left.type == 'f16':
+            if left.data_type == 'f16':
                 val = (left.value * 65536) // right.value
 
             else:
