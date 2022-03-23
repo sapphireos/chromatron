@@ -1213,22 +1213,30 @@ class irBlock(IR):
                     registers[value] = target
 
             elif isinstance(ir, irBranch):
-                value = ir.value
-                if value in values:
-                    ir.value = registers[values[value]]
+                pass
 
-                if ir.value.const:
-                    # replace branch with jump
-                    if ir.value.value == 0:
-                        ir = irJump(ir.false_label, lineno=ir.lineno)
-                        ir.block = self
+                # value = ir.value
+                # if value in values:
+                #     ir.value = registers[values[value]]
 
-                    else:
-                        ir = irJump(ir.true_label, lineno=ir.lineno)
-                        ir.block = self
+                # if ir.value.const:
+                #     # replace branch with jump
+                #     if ir.value.value == 0:
+                #         ir = irJump(ir.false_label, lineno=ir.lineno)
+                #         ir.block = self
+
+                #     else:
+                #         ir = irJump(ir.true_label, lineno=ir.lineno)
+                #         ir.block = self
 
             elif isinstance(ir, irPhi):
-                print(ir)
+                value = ir.expr
+                target = ir.target
+
+                values[target] = value
+
+                if value not in registers:
+                    registers[value] = target
 
         
             new_code.append(ir)
@@ -1237,16 +1245,19 @@ class irBlock(IR):
 
         self.relink_blocks()
 
+        print(f"\nGVN Summary: {self.name}")
+
         print("\nVALUES:")
 
         for k, v in values.items():
-            print(f'{str(k):20} = {v}')
+            print(f'{str(k):32} = {v}')
 
         print("\nREGISTERS:")
 
         for k, v in registers.items():
-            print(f'{str(k):20} = {v}')
+            print(f'{str(k):32} = {v}')
 
+        print('\n')
 
         if self not in self.func.dominator_tree:
             return
@@ -2941,12 +2952,6 @@ class irFunc(IR):
 
     def gvn_optimizer(self):
         self.leader_block.gvn_analyze()
-
-    def remove_unreachable_blocks(self):
-        # for block in self.blocks.values():
-        pass
-
-
         
 
     def analyze_blocks(self, opt_level:OptLevels=OptLevels.SSA):
@@ -2984,8 +2989,6 @@ class irFunc(IR):
             if opt_level == OptLevels.GVN:
                 self.gvn_optimizer()
 
-            self.remove_unreachable_blocks()
-
             # optimizers
             optimize = False
             # optimize = True
@@ -3014,8 +3017,6 @@ class irFunc(IR):
 
 
         # basic block merging (helps with jump elimination)
-        # guide with simple branch prediction:
-        # prioritize branches that occur within a loop
         self.merge_basic_blocks()
 
         self.remove_dead_code()
@@ -3466,6 +3467,16 @@ class irPhi(IR):
         s = s[:-2]
 
         s = f'{self.target} = PHI({s})'
+
+        return s
+
+    @property
+    def expr(self):
+        s = ''
+        for m in sorted(self.merges, key=lambda x: x.ssa_name):
+            s += f'{m.ssa_name} phi '
+
+        s = s[:-5]
 
         return s
 
