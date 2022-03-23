@@ -489,7 +489,6 @@ class irBlock(IR):
         self.func = func
         self.defines = {}
 
-        self.entry_label = None
         self.jump_target = None
 
         self.is_ssa = False
@@ -1179,6 +1178,21 @@ class irBlock(IR):
             new_code.append(ir)
 
         self.code = new_code
+
+        # re-evaluate block flow
+        last_ir = self.code[-1]
+        targets = [t.name for t in last_ir.get_jump_target()]
+
+
+        remove = []
+        for succ in self.successors:
+            if succ.name not in targets:
+                remove.append(succ)
+                succ.predecessors.remove(self)
+
+        self.successors = [s for s in self.successors if s not in remove]
+
+
 
         print("\nVALUES:")
 
@@ -3592,6 +3606,8 @@ class irReturn(irControlFlow):
     def get_input_vars(self):
         return [self.ret_var]
 
+    def get_jump_target(self):
+        return []
 
 class irAssign(IR):
     def __init__(self, target, value, **kwargs):
