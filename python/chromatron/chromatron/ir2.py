@@ -887,6 +887,35 @@ class irBlock(IR):
     ##############################################
     # Optimizer Passes
     ##############################################
+    def relink_blocks(self):
+        # run after optimizers that change or eliminate branchs
+
+        # check if block has no predecessors and is not the leader
+        if (len(self.predecessors) == 0) and (self is not self.func.leader_block):
+            # unlink all successors
+            remove = self.successors
+
+        else:
+            # unlink successors that this block can no longer branch to
+            exit_branch = self.code[-1]
+            assert isinstance(exit_branch, irControlFlow)
+
+            exit_targets = [t.name for t in exit_branch.get_jump_target()]
+
+            remove = [s for s in self.successors if s.name not in exit_targets]
+            
+        # filter out removed successors
+        self.successors = [s for s in self.successors if s not in remove]
+
+        # remove this block from predecessors from pruned successors
+        for s in remove:
+            s.predecessors.remove(self)
+
+        # apply relink down the tree
+        for s in remove:
+            s.relink_blocks()
+
+
     # def gvn_optimize(self, values=None, visited=None):
     #     if values is None:
     #         values = {}
@@ -1205,6 +1234,8 @@ class irBlock(IR):
             new_code.append(ir)
 
         self.code = new_code
+
+        self.relink_blocks()
 
         print("\nVALUES:")
 
@@ -2910,6 +2941,12 @@ class irFunc(IR):
 
     def gvn_optimizer(self):
         self.leader_block.gvn_analyze()
+
+    def remove_unreachable_blocks(self):
+        # for block in self.blocks.values():
+        pass
+
+
         
 
     def analyze_blocks(self, opt_level:OptLevels=OptLevels.SSA):
@@ -2946,6 +2983,8 @@ class irFunc(IR):
 
             if opt_level == OptLevels.GVN:
                 self.gvn_optimizer()
+
+            self.remove_unreachable_blocks()
 
             # optimizers
             optimize = False
