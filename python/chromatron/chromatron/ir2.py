@@ -865,6 +865,24 @@ class irBlock(IR):
 
         return blocks
 
+    def get_blocks_breadth_first(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        visited.append(self)
+
+        blocks = [self]
+        blocks.extend(self.successors)
+
+        for s in self.successors:
+            succ_blocks = s.get_blocks_breadth_first(visited=visited)
+            blocks.extend([s for s in succ_blocks if s not in blocks])
+
+        return blocks
+
         
     ##############################################
     # Optimizer Passes
@@ -2674,7 +2692,7 @@ class irFunc(IR):
 
     @property
     def sorted_blocks(self):
-        return self.leader_block.get_blocks_depth_first()
+        return self.leader_block.get_blocks_breadth_first()
 
 
     def compute_live_ranges(self):
