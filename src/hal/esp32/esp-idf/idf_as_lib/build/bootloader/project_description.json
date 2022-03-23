@@ -1,0 +1,21 @@
+{
+    "project_name":       "bootloader",
+    "project_path":       "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject",
+    "build_dir":          "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader",
+    "config_file":        "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/sdkconfig",
+    "config_defaults":    "",
+    "app_elf":            "bootloader.elf",
+    "app_bin":            "bootloader.bin",
+    "git_revision":       "v4.4-1-gb230c64b0f-dirty",
+    "target":             "esp32",
+    "rev":                "0",
+    "phy_data_partition": "",
+    "monitor_baud" :      "115200",
+    "monitor_toolprefix": "xtensa-esp32-elf-",
+    "config_environment" : {
+        "COMPONENT_KCONFIGS" : "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/Kconfig;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/Kconfig;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_common/Kconfig;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_hw_support/Kconfig;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system/Kconfig;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/freertos/Kconfig;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/Kconfig;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/log/Kconfig;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/Kconfig;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/spi_flash/Kconfig",
+        "COMPONENT_KCONFIGS_PROJBUILD" : "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/Kconfig.projbuild;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_rom/Kconfig.projbuild;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esptool_py/Kconfig.projbuild;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/Kconfig.projbuild"
+    },
+    "build_components" : [ "bootloader", "bootloader_support", "efuse", "esp32", "esp_common", "esp_hw_support", "esp_rom", "esp_system", "esptool_py", "freertos", "hal", "log", "main", "micro-ecc", "newlib", "partition_table", "soc", "spi_flash", "xtensa", "" ],
+    "build_component_paths" : [ "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_common", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_hw_support", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_rom", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esptool_py", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/freertos", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/log", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject/main", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject/components/micro-ecc", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/soc", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/spi_flash", "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa", "" ]
+}
