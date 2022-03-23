@@ -2261,14 +2261,18 @@ class irFunc(IR):
         dot = graphviz.Digraph(comment=self.name)
 
         for block in self.blocks.values():
-            label = block.name
+            name = block.name
+            # replace colons, as they are part of the DOT syntax
+            name = name.replace(':', '() ')
+
+            label = name
             label += '\n--------------------\n'
             label += '\n'.join([str(a) for a in block.code if not isinstance(a, irLabel)])
 
-            dot.node(block.name, label=label)
+            dot.node(name, label=label)
 
             for suc in block.successors:
-                dot.edge(block.name, suc.name)
+                dot.edge(name, suc.name)
 
         dot.render('___fx_graph___.gv', view=True, cleanup=True)
 
