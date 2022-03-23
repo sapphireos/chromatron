@@ -70,6 +70,7 @@
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/esp_system/include",
         "-mlongcalls",
         "-Os",
+        "-g3",
         "-ffunction-sections",
         "-fdata-sections",
         "-fstrict-volatile-bitfields",
