@@ -14,7 +14,7 @@
         "-DMBEDTLS_CONFIG_FILE=\\\"mbedtls/esp_config.h\\\"",
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/soc/esp32/include",
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/soc/include",
-        "-I%(BASE_DIR)/src/hal/esp32/esp-idf/idf_as_lib/config",
+        "-I%(BASE_DIR)/src/hal/esp32/esp-idf/idf_as_lib/build/config",
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/log/include",
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/heap/include",
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/xtensa-debug-module/include",

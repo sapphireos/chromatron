@@ -119,7 +119,7 @@ PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 PT_THREAD( brownout_restart_thread( pt_t *pt, void *state ) );
 
-static esp_err_t event_handler(void *ctx, system_event_t *event);
+static void event_handler( void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data );
 static volatile bool scan_done;
 static bool connect_done;
 
@@ -188,8 +188,20 @@ void hal_wifi_v_init( void ){
 
     fs_f_create_virtual( PSTR("coredump"), coredump_vfile_handler );
 
-    tcpip_adapter_init();
-    ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
+
+
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+    // tcpip_adapter_init();
+    // ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
+
+    esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_START,        event_handler, NULL );
+    esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_STOP,         event_handler, NULL );
+    esp_event_handler_register( WIFI_EVENT, IP_EVENT_STA_GOT_IP,         event_handler, NULL );
+    esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_CONNECTED,    event_handler, NULL );
+    esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, event_handler, NULL );
+    esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_SCAN_DONE,        event_handler, NULL );
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -835,49 +847,46 @@ static void scan_cb( void ){
 }
 
 
-static esp_err_t event_handler(void *ctx, system_event_t *event)
-{
-    switch(event->event_id) {
+static void event_handler( void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data ){
 
-        case SYSTEM_EVENT_STA_START:
-            trace_printf("SYSTEM_EVENT_STA_START\r\n");
-            break;
+    if( event_id == WIFI_EVENT_STA_START ){
 
-        case SYSTEM_EVENT_STA_STOP:
-            trace_printf("SYSTEM_EVENT_STA_STOP\r\n");
-            break;
-
-        case SYSTEM_EVENT_STA_GOT_IP:
-            trace_printf("wifi connected, IP:%s\n", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
-            connect_done = TRUE;
-            connected = TRUE;
-
-            break;
-
-        case SYSTEM_EVENT_STA_CONNECTED:
-            trace_printf("SYSTEM_EVENT_STA_CONNECTED\r\n");
-            break;
-
-        case SYSTEM_EVENT_STA_DISCONNECTED:
-            trace_printf("SYSTEM_EVENT_STA_DISCONNECTED\r\n");
-            disconnect_reason = event->event_info.disconnected.reason;
-            connected = FALSE;
-            connect_done = TRUE;
-
-            break;
-        
-        case SYSTEM_EVENT_SCAN_DONE:
-            trace_printf("SYSTEM_EVENT_SCAN_DONE\r\n");
-            scan_done = TRUE;
-
-            break;
-
-        default:
-            trace_printf("event: %d\r\n", event->event_id);
-            break;
+        trace_printf("WIFI_EVENT_STA_START\r\n");
     }
+    else if( event_id == WIFI_EVENT_STA_STOP ){
 
-    return ESP_OK;
+        trace_printf("WIFI_EVENT_STA_STOP\r\n");
+    }
+    else if( event_id == IP_EVENT_STA_GOT_IP ){
+
+        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+
+        trace_printf("wifi connected, IP:%s\n", IP2STR(&event->ip_info.ip));
+        connect_done = TRUE;
+        connected = TRUE;
+    }
+    else if( event_id == WIFI_EVENT_STA_CONNECTED ){
+
+        trace_printf("WIFI_EVENT_STA_CONNECTED\r\n");
+    }
+    else if( event_id == WIFI_EVENT_STA_DISCONNECTED ){
+
+        wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*)event_data;
+
+        trace_printf("WIFI_EVENT_STA_DISCONNECTED\r\n");
+        disconnect_reason = event->reason;
+        connected = FALSE;
+        connect_done = TRUE;
+    }
+    else if( event_id == WIFI_EVENT_SCAN_DONE ){
+
+        trace_printf("WIFI_EVENT_SCAN_DONE\r\n");
+        scan_done = TRUE;
+    }
+    else{
+
+        trace_printf("event: %d\r\n", event_id);
+    }
 }
 
 static void set_hostname( void ){
@@ -1105,7 +1114,7 @@ station_mode:
                 cfg_v_set( CFG_PARAM_INTERNET_GATEWAY, &info.gw );
 
                 tcpip_adapter_dns_info_t dns_info;
-                tcpip_adapter_get_dns_info( TCPIP_ADAPTER_IF_STA, TCPIP_ADAPTER_DNS_MAIN, &dns_info );
+                tcpip_adapter_get_dns_info( TCPIP_ADAPTER_IF_STA, ESP_NETIF_DNS_MAIN, &dns_info );
 			    cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_info.ip );
 
                 // get RSSI
@@ -1165,7 +1174,7 @@ station_mode:
                 snprintf_P( &mac[2], 3, PSTR("%02x"), wifi_mac[4] ); 
                 snprintf_P( &mac[4], 3, PSTR("%02x"), wifi_mac[5] );
 
-                strncat( ap_ssid, mac, sizeof(ap_ssid) );
+                strncat( ap_ssid, mac, sizeof(ap_ssid) - strnlen( ap_ssid, sizeof(ap_ssid) ) );
 
                 strlcpy_P( ap_pass, PSTR("12345678"), sizeof(ap_pass) );
 
