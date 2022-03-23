@@ -1180,7 +1180,7 @@ class irBlock(IR):
             return
 
         for c in self.func.dominator_tree[self]:
-            c.gvn_analyze(values, registers)
+            c.gvn_analyze(copy(values), copy(registers))
 
 
 
