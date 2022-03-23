@@ -4,6 +4,16 @@
 g1 = Number()    
 g2 = Number()    
 
+# def init():
+#     a = Number()
+
+#     while a < 4:
+#         a += 1
+
+#     return a
+
+
+
 def init():
     a = Number()
     b = Number()

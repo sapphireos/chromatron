@@ -1093,9 +1093,9 @@ class irBlock(IR):
             return
 
         # ensure all predecessors have been processed first
-        for p in self.predecessors:
-            if p not in visited:
-                raise CompilerFatal
+        # for p in self.predecessors:
+        #     if p not in visited:
+        #         raise CompilerFatal
 
         visited.append(self)
 
@@ -2971,7 +2971,7 @@ class irFunc(IR):
         self.init_vars()
 
         # self.render_dominator_tree()
-        # self.render_rgaph()
+        # self.render_graph()
 
         if opt_level is not OptLevels.NONE:
 
@@ -2991,6 +2991,7 @@ class irFunc(IR):
 
             if opt_level == OptLevels.GVN:
                 self.gvn_optimizer()
+
 
             # optimizers
             optimize = False
@@ -3023,6 +3024,11 @@ class irFunc(IR):
         self.merge_basic_blocks()
 
         self.remove_dead_code()
+
+        # self.render_dominator_tree()
+        if opt_level == OptLevels.GVN:
+            if self.name == 'init':
+                self.render_graph()
         
         logging.debug('Block analysis complete')
 
