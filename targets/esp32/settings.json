@@ -224,7 +224,7 @@
 
     "OS_PROJECT": "sapphire",
 
-    "FW_INFO_ADDR": "0x400d0020",
+    "FW_INFO_ADDR": "0x400d0018",
 
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 
