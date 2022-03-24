@@ -387,7 +387,6 @@ set(CMAKE_DEPEND_INFO_FILES
   "esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/DependInfo.cmake"
   "esp-idf/hal/CMakeFiles/__idf_hal.dir/DependInfo.cmake"
   "esp-idf/vfs/CMakeFiles/__idf_vfs.dir/DependInfo.cmake"
-  "esp-idf/esp_eth/CMakeFiles/__idf_esp_eth.dir/DependInfo.cmake"
   "esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/DependInfo.cmake"
   "esp-idf/esp_netif/CMakeFiles/__idf_esp_netif.dir/DependInfo.cmake"
   "esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/DependInfo.cmake"

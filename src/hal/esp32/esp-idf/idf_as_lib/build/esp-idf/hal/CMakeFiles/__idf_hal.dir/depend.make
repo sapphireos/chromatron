@@ -126,33 +126,6 @@ esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.obj: ../../../../../components/so
 esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.obj: ../../../../../components/hal/dac_hal.c
 esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.obj: config/sdkconfig.h
 
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/esp_common/include/esp_assert.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/esp_common/include/esp_attr.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/esp_common/include/esp_bit_defs.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/esp_common/include/esp_compiler.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/esp_common/include/esp_err.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/hal/esp32/include/hal/emac_ll.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/hal/esp32/include/hal/gpio_ll.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/hal/include/hal/emac_hal.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/hal/include/hal/eth_types.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/hal/include/hal/gpio_types.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/hal/platform_port/include/hal/misc.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/newlib/platform_include/assert.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/emac_dma_struct.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/emac_ext_struct.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/emac_mac_struct.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/gpio_reg.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/gpio_sig_map.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/gpio_struct.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/io_mux_reg.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/rtc_cntl_reg.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/rtc_io_reg.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/soc.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/esp32/include/soc/soc_caps.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/soc/include/soc/gpio_periph.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/hal/emac_hal.c
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: config/sdkconfig.h
-
 esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.obj: ../../../../../components/esp_common/include/esp_assert.h
 esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.obj: ../../../../../components/esp_common/include/esp_attr.h
 esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.obj: ../../../../../components/esp_common/include/esp_bit_defs.h

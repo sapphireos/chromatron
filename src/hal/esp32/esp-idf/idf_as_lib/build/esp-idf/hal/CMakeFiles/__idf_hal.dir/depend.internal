@@ -126,33 +126,6 @@ esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.obj
  ../../../../../components/soc/include/soc/rtc_periph.h
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/dac_hal.c
  config/sdkconfig.h
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj
- ../../../../../components/esp_common/include/esp_assert.h
- ../../../../../components/esp_common/include/esp_attr.h
- ../../../../../components/esp_common/include/esp_bit_defs.h
- ../../../../../components/esp_common/include/esp_compiler.h
- ../../../../../components/esp_common/include/esp_err.h
- ../../../../../components/hal/esp32/include/hal/emac_ll.h
- ../../../../../components/hal/esp32/include/hal/gpio_ll.h
- ../../../../../components/hal/include/hal/emac_hal.h
- ../../../../../components/hal/include/hal/eth_types.h
- ../../../../../components/hal/include/hal/gpio_types.h
- ../../../../../components/hal/platform_port/include/hal/misc.h
- ../../../../../components/newlib/platform_include/assert.h
- ../../../../../components/soc/esp32/include/soc/emac_dma_struct.h
- ../../../../../components/soc/esp32/include/soc/emac_ext_struct.h
- ../../../../../components/soc/esp32/include/soc/emac_mac_struct.h
- ../../../../../components/soc/esp32/include/soc/gpio_reg.h
- ../../../../../components/soc/esp32/include/soc/gpio_sig_map.h
- ../../../../../components/soc/esp32/include/soc/gpio_struct.h
- ../../../../../components/soc/esp32/include/soc/io_mux_reg.h
- ../../../../../components/soc/esp32/include/soc/rtc_cntl_reg.h
- ../../../../../components/soc/esp32/include/soc/rtc_io_reg.h
- ../../../../../components/soc/esp32/include/soc/soc.h
- ../../../../../components/soc/esp32/include/soc/soc_caps.h
- ../../../../../components/soc/include/soc/gpio_periph.h
- /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/emac_hal.c
- config/sdkconfig.h
 esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.obj
  ../../../../../components/esp_common/include/esp_assert.h
  ../../../../../components/esp_common/include/esp_attr.h

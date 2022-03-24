@@ -885,19 +885,6 @@ __idf_vfs/fast:
 .PHONY : __idf_vfs/fast
 
 #=============================================================================
-# Target rules for targets named __idf_esp_eth
-
-# Build rule for target.
-__idf_esp_eth: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 __idf_esp_eth
-.PHONY : __idf_esp_eth
-
-# fast build rule for target.
-__idf_esp_eth/fast:
-	$(MAKE) -f esp-idf/esp_eth/CMakeFiles/__idf_esp_eth.dir/build.make esp-idf/esp_eth/CMakeFiles/__idf_esp_eth.dir/build
-.PHONY : __idf_esp_eth/fast
-
-#=============================================================================
 # Target rules for targets named __idf_tcpip_adapter
 
 # Build rule for target.
@@ -1200,7 +1187,6 @@ help:
 	@echo "... __idf_esp_rom"
 	@echo "... __idf_hal"
 	@echo "... __idf_vfs"
-	@echo "... __idf_esp_eth"
 	@echo "... __idf_tcpip_adapter"
 	@echo "... __idf_esp_netif"
 	@echo "... __idf_esp_event"

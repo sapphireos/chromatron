@@ -564,19 +564,6 @@ esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.s"
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/hal && /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/esp32/gpio_hal_workaround.c -o CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.s
 
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: esp-idf/hal/CMakeFiles/__idf_hal.dir/flags.make
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj: ../../../../../components/hal/emac_hal.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Building C object esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/hal && /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/__idf_hal.dir/emac_hal.c.obj   -c /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/emac_hal.c
-
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/__idf_hal.dir/emac_hal.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/hal && /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/emac_hal.c > CMakeFiles/__idf_hal.dir/emac_hal.c.i
-
-esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/__idf_hal.dir/emac_hal.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/hal && /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/emac_hal.c -o CMakeFiles/__idf_hal.dir/emac_hal.c.s
-
 # Object files for target __idf_hal
 __idf_hal_OBJECTS = \
 "CMakeFiles/__idf_hal.dir/wdt_hal_iram.c.obj" \
@@ -617,8 +604,7 @@ __idf_hal_OBJECTS = \
 "CMakeFiles/__idf_hal.dir/esp32/brownout_hal.c.obj" \
 "CMakeFiles/__idf_hal.dir/esp32/interrupt_descriptor_table.c.obj" \
 "CMakeFiles/__idf_hal.dir/esp32/touch_sensor_hal.c.obj" \
-"CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.obj" \
-"CMakeFiles/__idf_hal.dir/emac_hal.c.obj"
+"CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.obj"
 
 # External object files for target __idf_hal
 __idf_hal_EXTERNAL_OBJECTS =
@@ -662,10 +648,9 @@ esp-idf/hal/libhal.a: esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/brownout_hal.c.
 esp-idf/hal/libhal.a: esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/interrupt_descriptor_table.c.obj
 esp-idf/hal/libhal.a: esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/touch_sensor_hal.c.obj
 esp-idf/hal/libhal.a: esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.obj
-esp-idf/hal/libhal.a: esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj
 esp-idf/hal/libhal.a: esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make
 esp-idf/hal/libhal.a: esp-idf/hal/CMakeFiles/__idf_hal.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_41) "Linking C static library libhal.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Linking C static library libhal.a"
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/hal && $(CMAKE_COMMAND) -P CMakeFiles/__idf_hal.dir/cmake_clean_target.cmake
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/hal && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/__idf_hal.dir/link.txt --verbose=$(VERBOSE)
 

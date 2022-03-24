@@ -238,20 +238,6 @@ soc/sens_struct.h
 hal/dac_types.h
 ../../../../../components/hal/esp32/include/hal/hal/dac_types.h
 
-../../../../../components/hal/esp32/include/hal/emac_ll.h
-stdint.h
--
-hal/misc.h
-../../../../../components/hal/esp32/include/hal/hal/misc.h
-hal/eth_types.h
-../../../../../components/hal/esp32/include/hal/hal/eth_types.h
-soc/emac_dma_struct.h
-../../../../../components/hal/esp32/include/hal/soc/emac_dma_struct.h
-soc/emac_mac_struct.h
-../../../../../components/hal/esp32/include/hal/soc/emac_mac_struct.h
-soc/emac_ext_struct.h
-../../../../../components/hal/esp32/include/hal/soc/emac_ext_struct.h
-
 ../../../../../components/hal/esp32/include/hal/gpio_ll.h
 stdbool.h
 -
@@ -616,29 +602,11 @@ hal/adc_types.h
 sdkconfig.h
 ../../../../../components/hal/include/hal/sdkconfig.h
 
-../../../../../components/hal/include/hal/emac_hal.h
-stdint.h
--
-stdbool.h
--
-esp_err.h
-../../../../../components/hal/include/hal/esp_err.h
-hal/eth_types.h
-../../../../../components/hal/include/hal/hal/eth_types.h
-soc/emac_dma_struct.h
-../../../../../components/hal/include/hal/soc/emac_dma_struct.h
-soc/emac_mac_struct.h
-../../../../../components/hal/include/hal/soc/emac_mac_struct.h
-soc/emac_ext_struct.h
-../../../../../components/hal/include/hal/soc/emac_ext_struct.h
-
 ../../../../../components/hal/include/hal/esp_flash_err.h
 stdint.h
 -
 esp_err.h
 ../../../../../components/hal/include/hal/esp_err.h
-
-../../../../../components/hal/include/hal/eth_types.h
 
 ../../../../../components/hal/include/hal/gpio_hal.h
 soc/gpio_periph.h
@@ -1047,18 +1015,6 @@ soc.h
 ../../../../../components/soc/esp32/include/soc/soc.h
 dport_access.h
 ../../../../../components/soc/esp32/include/soc/dport_access.h
-
-../../../../../components/soc/esp32/include/soc/emac_dma_struct.h
-stdint.h
--
-
-../../../../../components/soc/esp32/include/soc/emac_ext_struct.h
-stdint.h
--
-
-../../../../../components/soc/esp32/include/soc/emac_mac_struct.h
-stdint.h
--
 
 ../../../../../components/soc/esp32/include/soc/flash_encryption_reg.h
 soc.h
@@ -1651,20 +1607,6 @@ soc/soc_caps.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/dac_hal.c
 hal/dac_hal.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/hal/dac_hal.h
-
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/emac_hal.c
-string.h
--
-sdkconfig.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/sdkconfig.h
-esp_attr.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/esp_attr.h
-hal/emac_hal.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/hal/emac_hal.h
-hal/emac_ll.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/hal/emac_ll.h
-hal/gpio_ll.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/hal/gpio_ll.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/esp32/adc_hal.c
 hal/adc_hal.h

@@ -4359,10 +4359,7 @@
                                 "help": "ESP32 only supports GPIO0 to input the RMII clock.",
                                 "id": "ETH_RMII_CLK_IN_GPIO",
                                 "name": "ETH_RMII_CLK_IN_GPIO",
-                                "range": [
-                                    0,
-                                    0
-                                ],
+                                "range": null,
                                 "title": null,
                                 "type": "int"
                             },
@@ -4392,10 +4389,7 @@
                                 "help": "Set the size of each buffer used by Ethernet MAC DMA.",
                                 "id": "ETH_DMA_BUFFER_SIZE",
                                 "name": "ETH_DMA_BUFFER_SIZE",
-                                "range": [
-                                    256,
-                                    1600
-                                ],
+                                "range": null,
                                 "title": "Ethernet DMA buffer size (Byte)",
                                 "type": "int"
                             },
@@ -4405,10 +4399,7 @@
                                 "help": "Number of DMA receive buffers. Each buffer's size is ETH_DMA_BUFFER_SIZE.\nLarger number of buffers could increase throughput somehow.",
                                 "id": "ETH_DMA_RX_BUFFER_NUM",
                                 "name": "ETH_DMA_RX_BUFFER_NUM",
-                                "range": [
-                                    3,
-                                    30
-                                ],
+                                "range": null,
                                 "title": "Amount of Ethernet DMA Rx buffers",
                                 "type": "int"
                             },
@@ -4418,10 +4409,7 @@
                                 "help": "Number of DMA transmit buffers. Each buffer's size is ETH_DMA_BUFFER_SIZE.\nLarger number of buffers could increase throughput somehow.",
                                 "id": "ETH_DMA_TX_BUFFER_NUM",
                                 "name": "ETH_DMA_TX_BUFFER_NUM",
-                                "range": [
-                                    3,
-                                    30
-                                ],
+                                "range": null,
                                 "title": "Amount of Ethernet DMA Tx buffers",
                                 "type": "int"
                             },

@@ -9,11 +9,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../..
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_common/include/esp_err.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_common/include/esp_idf_version.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_common/include/esp_types.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_eth/include/esp_eth.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_eth/include/esp_eth_com.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_eth/include/esp_eth_mac.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_eth/include/esp_eth_phy.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_event/include/esp_event.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_event/include/esp_event_base.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -81,7 +76,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../..
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/hal/esp32/include/hal/interrupt_controller_ll.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/hal/include/hal/cpu_hal.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/hal/include/hal/cpu_types.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/hal/include/hal/eth_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/hal/include/hal/interrupt_controller_hal.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/hal/include/hal/interrupt_controller_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj: ../../../../../components/heap/include/esp_heap_caps.h
@@ -206,11 +200,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../..
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_common/include/esp_compiler.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_common/include/esp_err.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_common/include/esp_idf_version.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_eth/include/esp_eth.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_eth/include/esp_eth_com.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_eth/include/esp_eth_mac.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_eth/include/esp_eth_phy.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_event/include/esp_event.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_event/include/esp_event_base.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -256,7 +245,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../..
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/hal/esp32/include/hal/cpu_ll.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/hal/include/hal/cpu_hal.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/hal/include/hal/cpu_types.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/hal/include/hal/eth_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/heap/include/esp_heap_caps.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/heap/include/heap_memory_layout.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../../../../components/heap/include/multi_heap.h
@@ -317,11 +305,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../.
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_common/include/esp_compiler.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_common/include/esp_err.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_common/include/esp_idf_version.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_eth/include/esp_eth.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_eth/include/esp_eth_com.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_eth/include/esp_eth_mac.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_eth/include/esp_eth_phy.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_event/include/esp_event.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_event/include/esp_event_base.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -379,7 +362,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../.
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/hal/esp32/include/hal/cpu_ll.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/hal/include/hal/cpu_hal.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/hal/include/hal/cpu_types.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/hal/include/hal/eth_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/heap/include/esp_heap_caps.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/heap/include/heap_memory_layout.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj: ../../../../../components/heap/include/multi_heap.h
@@ -442,11 +424,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_common/include/esp_compiler.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_common/include/esp_err.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_common/include/esp_idf_version.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_eth/include/esp_eth.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_eth/include/esp_eth_com.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_eth/include/esp_eth_mac.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_eth/include/esp_eth_phy.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_event/include/esp_event.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_event/include/esp_event_base.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -501,7 +478,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/hal/esp32/include/hal/cpu_ll.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/hal/include/hal/cpu_hal.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/hal/include/hal/cpu_types.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/hal/include/hal/eth_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/heap/include/esp_heap_caps.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/heap/include/heap_memory_layout.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj: ../../../../../components/heap/include/multi_heap.h
@@ -577,11 +553,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_common/include/esp_compiler.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_common/include/esp_err.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_common/include/esp_idf_version.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_eth/include/esp_eth.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_eth/include/esp_eth_com.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_eth/include/esp_eth_mac.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_eth/include/esp_eth_phy.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_event/include/esp_event.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_event/include/esp_event_base.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -638,7 +609,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/hal/esp32/include/hal/cpu_ll.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/hal/include/hal/cpu_hal.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/hal/include/hal/cpu_types.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/hal/include/hal/eth_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/heap/include/esp_heap_caps.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/heap/include/heap_memory_layout.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_default.c.obj: ../../../../../components/heap/include/multi_heap.h
@@ -705,11 +675,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_common/include/esp_err.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_common/include/esp_idf_version.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_common/include/esp_types.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_eth/include/esp_eth.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_eth/include/esp_eth_com.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_eth/include/esp_eth_mac.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_eth/include/esp_eth_phy.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_event/include/esp_event.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_event/include/esp_event_base.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -785,7 +750,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/hal/include/hal/adc_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/hal/include/hal/cpu_hal.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/hal/include/hal/cpu_types.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/hal/include/hal/eth_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/hal/include/hal/gpio_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/hal/include/hal/touch_sensor_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_init.c.obj: ../../../../../components/heap/include/esp_heap_caps.h
@@ -866,11 +830,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../..
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_common/include/esp_compiler.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_common/include/esp_err.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_common/include/esp_idf_version.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_eth/include/esp_eth.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_eth/include/esp_eth_com.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_eth/include/esp_eth_mac.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_eth/include/esp_eth_phy.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_event/include/esp_event.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_event/include/esp_event_base.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -927,7 +886,6 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../..
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/hal/esp32/include/hal/cpu_ll.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/hal/include/hal/cpu_hal.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/hal/include/hal/cpu_types.h
-esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/hal/include/hal/eth_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/heap/include/esp_heap_caps.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/heap/include/heap_memory_layout.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/wifi_netif.c.obj: ../../../../../components/heap/include/multi_heap.h

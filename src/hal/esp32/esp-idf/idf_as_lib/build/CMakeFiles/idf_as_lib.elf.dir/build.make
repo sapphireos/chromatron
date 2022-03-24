@@ -105,7 +105,6 @@ idf_as_lib.elf: esp-idf/esp_ringbuf/libesp_ringbuf.a
 idf_as_lib.elf: esp-idf/pthread/libpthread.a
 idf_as_lib.elf: esp-idf/vfs/libvfs.a
 idf_as_lib.elf: esp-idf/esp_wifi/libesp_wifi.a
-idf_as_lib.elf: esp-idf/esp_eth/libesp_eth.a
 idf_as_lib.elf: esp-idf/esp_netif/libesp_netif.a
 idf_as_lib.elf: esp-idf/tcpip_adapter/libtcpip_adapter.a
 idf_as_lib.elf: esp-idf/nvs_flash/libnvs_flash.a
@@ -153,7 +152,6 @@ idf_as_lib.elf: esp-idf/esp_ringbuf/libesp_ringbuf.a
 idf_as_lib.elf: esp-idf/pthread/libpthread.a
 idf_as_lib.elf: esp-idf/vfs/libvfs.a
 idf_as_lib.elf: esp-idf/esp_wifi/libesp_wifi.a
-idf_as_lib.elf: esp-idf/esp_eth/libesp_eth.a
 idf_as_lib.elf: esp-idf/esp_netif/libesp_netif.a
 idf_as_lib.elf: esp-idf/tcpip_adapter/libtcpip_adapter.a
 idf_as_lib.elf: esp-idf/nvs_flash/libnvs_flash.a
@@ -201,7 +199,6 @@ idf_as_lib.elf: esp-idf/esp_ringbuf/libesp_ringbuf.a
 idf_as_lib.elf: esp-idf/pthread/libpthread.a
 idf_as_lib.elf: esp-idf/vfs/libvfs.a
 idf_as_lib.elf: esp-idf/esp_wifi/libesp_wifi.a
-idf_as_lib.elf: esp-idf/esp_eth/libesp_eth.a
 idf_as_lib.elf: esp-idf/esp_netif/libesp_netif.a
 idf_as_lib.elf: esp-idf/tcpip_adapter/libtcpip_adapter.a
 idf_as_lib.elf: esp-idf/nvs_flash/libnvs_flash.a
@@ -249,7 +246,6 @@ idf_as_lib.elf: esp-idf/esp_ringbuf/libesp_ringbuf.a
 idf_as_lib.elf: esp-idf/pthread/libpthread.a
 idf_as_lib.elf: esp-idf/vfs/libvfs.a
 idf_as_lib.elf: esp-idf/esp_wifi/libesp_wifi.a
-idf_as_lib.elf: esp-idf/esp_eth/libesp_eth.a
 idf_as_lib.elf: esp-idf/esp_netif/libesp_netif.a
 idf_as_lib.elf: esp-idf/tcpip_adapter/libtcpip_adapter.a
 idf_as_lib.elf: esp-idf/nvs_flash/libnvs_flash.a

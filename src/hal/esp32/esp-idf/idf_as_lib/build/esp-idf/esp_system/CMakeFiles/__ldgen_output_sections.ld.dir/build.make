@@ -101,7 +101,6 @@ esp-idf/esp_system/ld/sections.ld: esp-idf/esp_common/libesp_common.a
 esp-idf/esp_system/ld/sections.ld: esp-idf/esp_rom/libesp_rom.a
 esp-idf/esp_system/ld/sections.ld: esp-idf/hal/libhal.a
 esp-idf/esp_system/ld/sections.ld: esp-idf/vfs/libvfs.a
-esp-idf/esp_system/ld/sections.ld: esp-idf/esp_eth/libesp_eth.a
 esp-idf/esp_system/ld/sections.ld: esp-idf/tcpip_adapter/libtcpip_adapter.a
 esp-idf/esp_system/ld/sections.ld: esp-idf/esp_netif/libesp_netif.a
 esp-idf/esp_system/ld/sections.ld: esp-idf/esp_event/libesp_event.a

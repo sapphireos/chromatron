@@ -3,7 +3,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/__idf_hal.dir/aes_hal.c.obj"
   "CMakeFiles/__idf_hal.dir/cpu_hal.c.obj"
   "CMakeFiles/__idf_hal.dir/dac_hal.c.obj"
-  "CMakeFiles/__idf_hal.dir/emac_hal.c.obj"
   "CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.obj"
   "CMakeFiles/__idf_hal.dir/esp32/brownout_hal.c.obj"
   "CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.obj"

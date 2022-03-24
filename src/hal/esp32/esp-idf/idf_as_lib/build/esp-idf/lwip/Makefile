@@ -2439,33 +2439,6 @@ port/esp32/netif/dhcp_state.c.s:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/dhcp_state.c.s
 .PHONY : port/esp32/netif/dhcp_state.c.s
 
-port/esp32/netif/ethernetif.obj: port/esp32/netif/ethernetif.c.obj
-
-.PHONY : port/esp32/netif/ethernetif.obj
-
-# target to build an object file
-port/esp32/netif/ethernetif.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/ethernetif.c.obj
-.PHONY : port/esp32/netif/ethernetif.c.obj
-
-port/esp32/netif/ethernetif.i: port/esp32/netif/ethernetif.c.i
-
-.PHONY : port/esp32/netif/ethernetif.i
-
-# target to preprocess a source file
-port/esp32/netif/ethernetif.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/ethernetif.c.i
-.PHONY : port/esp32/netif/ethernetif.c.i
-
-port/esp32/netif/ethernetif.s: port/esp32/netif/ethernetif.c.s
-
-.PHONY : port/esp32/netif/ethernetif.s
-
-# target to generate assembly for a file
-port/esp32/netif/ethernetif.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/ethernetif.c.s
-.PHONY : port/esp32/netif/ethernetif.c.s
-
 port/esp32/netif/wlanif.obj: port/esp32/netif/wlanif.c.obj
 
 .PHONY : port/esp32/netif/wlanif.obj
@@ -2785,9 +2758,6 @@ help:
 	@echo "... port/esp32/netif/dhcp_state.obj"
 	@echo "... port/esp32/netif/dhcp_state.i"
 	@echo "... port/esp32/netif/dhcp_state.s"
-	@echo "... port/esp32/netif/ethernetif.obj"
-	@echo "... port/esp32/netif/ethernetif.i"
-	@echo "... port/esp32/netif/ethernetif.s"
 	@echo "... port/esp32/netif/wlanif.obj"
 	@echo "... port/esp32/netif/wlanif.i"
 	@echo "... port/esp32/netif/wlanif.s"

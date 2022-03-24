@@ -304,7 +304,7 @@ static bool is_rx( void ){
 
         if( rc < 0 ){
 
-            trace_printf("err %d\n", rc);
+            trace_printf("is_rx err %d\n", rc);
         }
 
         if( s > 0 ){

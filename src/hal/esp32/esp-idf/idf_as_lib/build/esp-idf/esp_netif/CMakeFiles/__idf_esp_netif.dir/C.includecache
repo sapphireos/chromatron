@@ -36,42 +36,6 @@ esp_compiler.h
 
 ../../../../../components/esp_common/include/esp_idf_version.h
 
-../../../../../components/esp_eth/include/esp_eth.h
-esp_eth_com.h
-../../../../../components/esp_eth/include/esp_eth_com.h
-esp_eth_mac.h
-../../../../../components/esp_eth/include/esp_eth_mac.h
-esp_eth_phy.h
-../../../../../components/esp_eth/include/esp_eth_phy.h
-
-../../../../../components/esp_eth/include/esp_eth_com.h
-esp_err.h
-../../../../../components/esp_eth/include/esp_err.h
-esp_event_base.h
-../../../../../components/esp_eth/include/esp_event_base.h
-hal/eth_types.h
-../../../../../components/esp_eth/include/hal/eth_types.h
-
-../../../../../components/esp_eth/include/esp_eth_mac.h
-stdbool.h
--
-esp_eth_com.h
-../../../../../components/esp_eth/include/esp_eth_com.h
-sdkconfig.h
-../../../../../components/esp_eth/include/sdkconfig.h
-
-../../../../../components/esp_eth/include/esp_eth_netif_glue.h
-esp_eth.h
-../../../../../components/esp_eth/include/esp_eth.h
-
-../../../../../components/esp_eth/include/esp_eth_phy.h
-stdbool.h
--
-esp_eth_com.h
-../../../../../components/esp_eth/include/esp_eth_com.h
-sdkconfig.h
-../../../../../components/esp_eth/include/sdkconfig.h
-
 ../../../../../components/esp_event/include/esp_event.h
 esp_err.h
 ../../../../../components/esp_event/include/esp_err.h
@@ -693,8 +657,6 @@ hal/cpu_ll.h
 ../../../../../components/hal/include/hal/hal/cpu_ll.h
 
 ../../../../../components/hal/include/hal/cpu_types.h
-
-../../../../../components/hal/include/hal/eth_types.h
 
 ../../../../../components/heap/include/esp_heap_caps.h
 stdint.h

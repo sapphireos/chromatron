@@ -9,11 +9,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -65,7 +60,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -146,11 +140,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -202,7 +191,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -286,11 +274,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -346,7 +329,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -440,11 +422,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -496,7 +473,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -577,11 +553,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -637,7 +608,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -734,11 +704,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -790,7 +755,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -871,11 +835,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -930,7 +889,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/es
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -1059,11 +1017,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ap_config.c.ob
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -1115,7 +1068,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ap_config.c.ob
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -1199,11 +1151,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ieee802_1x.c.o
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -1255,7 +1202,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ieee802_1x.c.o
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -1340,11 +1286,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth.c.obj
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -1399,7 +1340,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth.c.obj
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -1491,11 +1431,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth_ie.c.
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -1547,7 +1482,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth_ie.c.
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -1708,11 +1642,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/wpa_common
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -1764,7 +1693,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/wpa_common
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -2878,11 +2806,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap.c.ob
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -2934,7 +2857,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap.c.ob
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -3061,11 +2983,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_msch
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -3117,7 +3034,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_msch
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -3447,11 +3363,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/pmksa_ca
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -3503,7 +3414,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/pmksa_ca
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -3585,11 +3495,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa.c.ob
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -3641,7 +3546,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa.c.ob
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -3729,11 +3633,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa_ie.c
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -3785,7 +3684,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa_ie.c
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -4109,11 +4007,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps.c.obj
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
  ../../../../../components/esp_common/include/esp_types.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -4165,7 +4058,6 @@ esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps.c.obj
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h

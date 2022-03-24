@@ -18,7 +18,6 @@ $<TARGET_FILE:__idf_esp_common>
 $<TARGET_FILE:__idf_esp_rom>
 $<TARGET_FILE:__idf_hal>
 $<TARGET_FILE:__idf_vfs>
-$<TARGET_FILE:__idf_esp_eth>
 $<TARGET_FILE:__idf_tcpip_adapter>
 $<TARGET_FILE:__idf_esp_netif>
 $<TARGET_FILE:__idf_esp_event>

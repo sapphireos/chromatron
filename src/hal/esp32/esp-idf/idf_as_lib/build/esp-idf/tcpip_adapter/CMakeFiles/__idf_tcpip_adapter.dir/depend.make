@@ -7,11 +7,6 @@ esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_common/include/esp_compiler.h
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_common/include/esp_err.h
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_common/include/esp_idf_version.h
-esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_eth/include/esp_eth.h
-esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_eth/include/esp_eth_com.h
-esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_eth/include/esp_eth_mac.h
-esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
-esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_eth/include/esp_eth_phy.h
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_event/include/esp_event.h
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_event/include/esp_event_base.h
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -69,7 +64,6 @@ esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/hal/esp32/include/hal/cpu_ll.h
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/hal/include/hal/cpu_hal.h
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/hal/include/hal/cpu_types.h
-esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/hal/include/hal/eth_types.h
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/heap/include/esp_heap_caps.h
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/heap/include/heap_memory_layout.h
 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj: ../../../../../components/heap/include/multi_heap.h

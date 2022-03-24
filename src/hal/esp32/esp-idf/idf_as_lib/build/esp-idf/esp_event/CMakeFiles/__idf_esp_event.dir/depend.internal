@@ -8,11 +8,6 @@ esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/default_event_loop.c.obj
  ../../../../../components/esp_common/include/esp_compiler.h
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -61,7 +56,6 @@ esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/default_event_loop.c.obj
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -125,11 +119,6 @@ esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event.c.obj
  ../../../../../components/esp_common/include/esp_compiler.h
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -179,7 +168,6 @@ esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event.c.obj
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -242,11 +230,6 @@ esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event_private.c.obj
  ../../../../../components/esp_common/include/esp_compiler.h
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -296,7 +279,6 @@ esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event_private.c.obj
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -359,11 +341,6 @@ esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/event_loop_legacy.c.obj
  ../../../../../components/esp_common/include/esp_compiler.h
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -411,7 +388,6 @@ esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/event_loop_legacy.c.obj
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h
@@ -474,11 +450,6 @@ esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/event_send.c.obj
  ../../../../../components/esp_common/include/esp_compiler.h
  ../../../../../components/esp_common/include/esp_err.h
  ../../../../../components/esp_common/include/esp_idf_version.h
- ../../../../../components/esp_eth/include/esp_eth.h
- ../../../../../components/esp_eth/include/esp_eth_com.h
- ../../../../../components/esp_eth/include/esp_eth_mac.h
- ../../../../../components/esp_eth/include/esp_eth_netif_glue.h
- ../../../../../components/esp_eth/include/esp_eth_phy.h
  ../../../../../components/esp_event/include/esp_event.h
  ../../../../../components/esp_event/include/esp_event_base.h
  ../../../../../components/esp_event/include/esp_event_legacy.h
@@ -526,7 +497,6 @@ esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/event_send.c.obj
  ../../../../../components/hal/esp32/include/hal/cpu_ll.h
  ../../../../../components/hal/include/hal/cpu_hal.h
  ../../../../../components/hal/include/hal/cpu_types.h
- ../../../../../components/hal/include/hal/eth_types.h
  ../../../../../components/heap/include/esp_heap_caps.h
  ../../../../../components/heap/include/heap_memory_layout.h
  ../../../../../components/heap/include/multi_heap.h

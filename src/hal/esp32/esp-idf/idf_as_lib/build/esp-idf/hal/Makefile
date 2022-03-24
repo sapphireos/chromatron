@@ -279,33 +279,6 @@ dac_hal.c.s:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.s
 .PHONY : dac_hal.c.s
 
-emac_hal.obj: emac_hal.c.obj
-
-.PHONY : emac_hal.obj
-
-# target to build an object file
-emac_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.obj
-.PHONY : emac_hal.c.obj
-
-emac_hal.i: emac_hal.c.i
-
-.PHONY : emac_hal.i
-
-# target to preprocess a source file
-emac_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.i
-.PHONY : emac_hal.c.i
-
-emac_hal.s: emac_hal.c.s
-
-.PHONY : emac_hal.s
-
-# target to generate assembly for a file
-emac_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/emac_hal.c.s
-.PHONY : emac_hal.c.s
-
 esp32/adc_hal.obj: esp32/adc_hal.c.obj
 
 .PHONY : esp32/adc_hal.obj
@@ -1276,9 +1249,6 @@ help:
 	@echo "... dac_hal.obj"
 	@echo "... dac_hal.i"
 	@echo "... dac_hal.s"
-	@echo "... emac_hal.obj"
-	@echo "... emac_hal.i"
-	@echo "... emac_hal.s"
 	@echo "... esp32/adc_hal.obj"
 	@echo "... esp32/adc_hal.i"
 	@echo "... esp32/adc_hal.s"

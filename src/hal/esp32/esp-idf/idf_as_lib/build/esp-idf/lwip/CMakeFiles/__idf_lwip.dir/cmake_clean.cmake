@@ -83,7 +83,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/__idf_lwip.dir/port/esp32/hooks/lwip_default_hooks.c.obj"
   "CMakeFiles/__idf_lwip.dir/port/esp32/hooks/tcp_isn_default.c.obj"
   "CMakeFiles/__idf_lwip.dir/port/esp32/netif/dhcp_state.c.obj"
-  "CMakeFiles/__idf_lwip.dir/port/esp32/netif/ethernetif.c.obj"
   "CMakeFiles/__idf_lwip.dir/port/esp32/netif/wlanif.c.obj"
   "CMakeFiles/__idf_lwip.dir/port/esp32/vfs_lwip.c.obj"
   "liblwip.a"
