@@ -172,6 +172,34 @@ static uint32_t coredump_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr,
 
 
 
+
+static void set_hostname( void ){
+
+    // set up hostname
+    char mac_str[16];
+    memset( mac_str, 0, sizeof(mac_str) );
+    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
+    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
+    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
+
+    memset( hostname, 0, sizeof(hostname) );
+    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
+
+    strlcat( hostname, mac_str, sizeof(hostname) );
+
+    // esp_err_t err = tcpip_adapter_set_hostname( TCPIP_ADAPTER_IF_STA, hostname );
+
+    esp_netif_t *esp_netif = NULL;
+    esp_netif = esp_netif_next( esp_netif );
+    esp_err_t err = esp_netif_set_hostname( esp_netif, "meow" );
+
+    if( err != ESP_OK ){
+
+        log_v_error_P( PSTR("fail to set hostname: %d"), err );
+    }
+}
+
+
 void hal_wifi_v_init( void ){
 
     // log reset reason for ESP32
@@ -198,10 +226,14 @@ void hal_wifi_v_init( void ){
 
     esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_START,        event_handler, NULL );
     esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_STOP,         event_handler, NULL );
-    esp_event_handler_register( WIFI_EVENT, IP_EVENT_STA_GOT_IP,         event_handler, NULL );
+    esp_event_handler_register( IP_EVENT,   IP_EVENT_STA_GOT_IP,         event_handler, NULL );
     esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_CONNECTED,    event_handler, NULL );
     esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, event_handler, NULL );
     esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_SCAN_DONE,        event_handler, NULL );
+
+
+    // hostname must be set before esp_wifi_init in IDF 4.x
+    set_hostname();
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -849,67 +881,48 @@ static void scan_cb( void ){
 
 static void event_handler( void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data ){
 
-    if( event_id == WIFI_EVENT_STA_START ){
+    if( event_base == WIFI_EVENT ){
 
-        trace_printf("WIFI_EVENT_STA_START\r\n");
+        if( event_id == WIFI_EVENT_STA_START ){
+
+            trace_printf("WIFI_EVENT_STA_START\r\n");
+        }
+        else if( event_id == WIFI_EVENT_STA_STOP ){
+
+            trace_printf("WIFI_EVENT_STA_STOP\r\n");
+        }
+        else if( event_id == WIFI_EVENT_STA_CONNECTED ){
+
+            trace_printf("WIFI_EVENT_STA_CONNECTED\r\n");
+        }
+        else if( event_id == WIFI_EVENT_STA_DISCONNECTED ){
+
+            wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*)event_data;
+
+            trace_printf("WIFI_EVENT_STA_DISCONNECTED\r\n");
+            disconnect_reason = event->reason;
+            connected = FALSE;
+            connect_done = TRUE;
+        }
+        else if( event_id == WIFI_EVENT_SCAN_DONE ){
+
+            trace_printf("WIFI_EVENT_SCAN_DONE\r\n");
+            scan_done = TRUE;
+        }
     }
-    else if( event_id == WIFI_EVENT_STA_STOP ){
+    else if( event_base == IP_EVENT ){
 
-        trace_printf("WIFI_EVENT_STA_STOP\r\n");
-    }
-    else if( event_id == IP_EVENT_STA_GOT_IP ){
+        if( event_id == IP_EVENT_STA_GOT_IP ){
 
-        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+            ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
 
-        trace_printf("wifi connected, IP:%s\n", IP2STR(&event->ip_info.ip));
-        connect_done = TRUE;
-        connected = TRUE;
-    }
-    else if( event_id == WIFI_EVENT_STA_CONNECTED ){
-
-        trace_printf("WIFI_EVENT_STA_CONNECTED\r\n");
-    }
-    else if( event_id == WIFI_EVENT_STA_DISCONNECTED ){
-
-        wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*)event_data;
-
-        trace_printf("WIFI_EVENT_STA_DISCONNECTED\r\n");
-        disconnect_reason = event->reason;
-        connected = FALSE;
-        connect_done = TRUE;
-    }
-    else if( event_id == WIFI_EVENT_SCAN_DONE ){
-
-        trace_printf("WIFI_EVENT_SCAN_DONE\r\n");
-        scan_done = TRUE;
-    }
-    else{
-
-        trace_printf("event: %d\r\n", event_id);
-    }
-}
-
-static void set_hostname( void ){
-
-    // set up hostname
-    char mac_str[16];
-    memset( mac_str, 0, sizeof(mac_str) );
-    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
-    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
-    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
-
-    memset( hostname, 0, sizeof(hostname) );
-    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
-
-    strlcat( hostname, mac_str, sizeof(hostname) );
-
-    esp_err_t err = tcpip_adapter_set_hostname( TCPIP_ADAPTER_IF_STA, hostname );
-
-    if( err != ESP_OK ){
-
-        log_v_error_P( PSTR("fail to set hostname: %d"), err );
+            trace_printf("wifi connected, IP:%s\n", IP2STR(&event->ip_info.ip));
+            connect_done = TRUE;
+            connected = TRUE;
+        }
     }
 }
+
 
 static bool is_low_power_mode( void ){
 
@@ -1074,7 +1087,7 @@ station_mode:
 
             connect_done = FALSE;
 
-            set_hostname();
+            // set_hostname();
             
             wifi_config_t wifi_config = {0};
             wifi_config.sta.bssid_set = 1;
