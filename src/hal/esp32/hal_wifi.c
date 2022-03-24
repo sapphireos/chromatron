@@ -220,23 +220,17 @@ void hal_wifi_v_init( void ){
 
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
-
-    // tcpip_adapter_init();
-    // ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
-
-    esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_START,        event_handler, NULL );
-    esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_STOP,         event_handler, NULL );
-    esp_event_handler_register( IP_EVENT,   IP_EVENT_STA_GOT_IP,         event_handler, NULL );
-    esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_CONNECTED,    event_handler, NULL );
-    esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, event_handler, NULL );
-    esp_event_handler_register( WIFI_EVENT, WIFI_EVENT_SCAN_DONE,        event_handler, NULL );
-
-
+    esp_netif_create_default_wifi_sta();
+    
     // hostname must be set before esp_wifi_init in IDF 4.x
     set_hostname();
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    esp_event_handler_instance_register( WIFI_EVENT, ESP_EVENT_ANY_ID,            event_handler, NULL, NULL );
+    esp_event_handler_instance_register( IP_EVENT,   IP_EVENT_STA_GOT_IP,         event_handler, NULL, NULL );
+    
 
     wifi_config_t wifi_config = {
         .sta = {
@@ -915,8 +909,9 @@ static void event_handler( void* arg, esp_event_base_t event_base, int32_t event
         if( event_id == IP_EVENT_STA_GOT_IP ){
 
             ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+            ip_addr4_t *ip = (ip_addr4_t *)&event->ip_info.ip;
 
-            trace_printf("wifi connected, IP:%s\n", IP2STR(&event->ip_info.ip));
+            trace_printf("wifi connected, IP: %d.%d.%d.%d\n", ip->ip3, ip->ip2, ip->ip1, ip->ip0);
             connect_done = TRUE;
             connected = TRUE;
         }
