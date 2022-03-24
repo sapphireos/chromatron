@@ -568,8 +568,10 @@ class irBlock(IR):
 
         visited.append(self)
 
-        blocks.append(self)
-        blocks.extend(self.successors)
+        if self not in blocks:
+            blocks.append(self)
+
+        blocks.extend([s for s in self.successors if s not in blocks])
 
         for s in self.successors:
             s.get_blocks(blocks, visited)
@@ -887,8 +889,44 @@ class irBlock(IR):
     ##############################################
     # Optimizer Passes
     ##############################################
-    def relink_blocks(self):
+    # def relink_blocks(self):
+    #     # run after optimizers that change or eliminate branchs
+
+    #     # check if block has no predecessors and is not the leader
+    #     if (len(self.predecessors) == 0) and (self is not self.func.leader_block):
+    #         # unlink all successors
+    #         remove = self.successors
+
+    #     else:
+    #         # unlink successors that this block can no longer branch to
+    #         exit_branch = self.code[-1]
+    #         assert isinstance(exit_branch, irControlFlow)
+
+    #         exit_targets = [t.name for t in exit_branch.get_jump_target()]
+
+    #         remove = [s for s in self.successors if s.name not in exit_targets]
+            
+    #     # filter out removed successors
+    #     self.successors = [s for s in self.successors if s not in remove]
+
+    #     # remove this block from predecessors from pruned successors
+    #     for s in remove:
+    #         s.predecessors.remove(self)
+
+    #     # apply relink down the tree
+    #     for s in remove:
+    #         s.relink_blocks()
+
+    def relink_blocks(self, visited=None):
         # run after optimizers that change or eliminate branchs
+
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
 
         # check if block has no predecessors and is not the leader
         if (len(self.predecessors) == 0) and (self is not self.func.leader_block):
@@ -903,17 +941,25 @@ class irBlock(IR):
             exit_targets = [t.name for t in exit_branch.get_jump_target()]
 
             remove = [s for s in self.successors if s.name not in exit_targets]
-            
-        # filter out removed successors
-        self.successors = [s for s in self.successors if s not in remove]
 
         # remove this block from predecessors from pruned successors
         for s in remove:
             s.predecessors.remove(self)
 
-        # apply relink down the tree
-        for s in remove:
-            s.relink_blocks()
+        # apply relink down the tree (including successors that are about to be unlinked)
+        for s in self.successors:
+            s.relink_blocks(visited=visited)
+
+        # filter out removed successors
+        self.successors = [s for s in self.successors if s not in remove]
+
+    def prune_unreachable_blocks(self):
+        # get_blocks will walk the tree and return all reachable blocks
+        blocks = self.get_blocks()
+
+        for block in blocks:
+            # prune predecessors that are not reachable
+            block.predecessors = [p for p in block.predecessors if p in blocks]
 
 
     # def gvn_optimize(self, values=None, visited=None):
@@ -1276,7 +1322,7 @@ class irBlock(IR):
 
         self.code = new_code
 
-        self.relink_blocks()
+        # self.relink_blocks()
 
         print(f"\nGVN Summary: {self.name}")
 
@@ -3012,7 +3058,7 @@ class irFunc(IR):
 
         # self.render_dominator_tree()
         # self.render_graph()
-        # if opt_level == OptLevels.GVN:
+        # if opt_level == OptLevels.NONE:
         #     if self.name == 'init':
         #         self.render_graph()
 
@@ -3034,6 +3080,12 @@ class irFunc(IR):
 
             if opt_level == OptLevels.GVN:
                 self.gvn_optimizer(pass_number=1)
+                
+                self.leader_block.relink_blocks()
+                self.leader_block.prune_unreachable_blocks()
+                self.verify_block_assignments()
+                self.verify_block_links()
+                
                 self.recalc_dominators()
                 self.gvn_optimizer(pass_number=2)
 
@@ -3074,9 +3126,9 @@ class irFunc(IR):
         self.remove_dead_code()
 
         # self.render_dominator_tree()
-        # if opt_level == OptLevels.GVN:
-        #     if self.name == 'init':
-        #         self.render_graph()
+        if opt_level == OptLevels.GVN:
+            if self.name == 'init':
+                self.render_graph()
         
         logging.debug('Block analysis complete')
 
