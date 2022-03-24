@@ -245,7 +245,7 @@ IDF_TARGET:STRING=esp32
 IDF_TOOLCHAIN:STRING=gcc
 
 //No help, variable specified on the command line.
-LEGACY_INCLUDE_COMMON_HEADERS:UNINITIALIZED=y
+LEGACY_INCLUDE_COMMON_HEADERS:UNINITIALIZED=
 
 //No help, variable specified on the command line.
 PROJECT_SOURCE_DIR:UNINITIALIZED=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib
@@ -260,43 +260,43 @@ PYTHON_DEPS_CHECKED:UNINITIALIZED=1
 SDKCONFIG:UNINITIALIZED=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/sdkconfig
 
 //Dependencies for the target
-__idf_bootloader_support_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_soc;general;__idf_hal;general;__idf_esp32;
+__idf_bootloader_support_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
 
 //Dependencies for the target
-__idf_efuse_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_soc;general;__idf_hal;general;__idf_esp32;
+__idf_efuse_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
 
 //Dependencies for the target
-__idf_esp_common_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_soc;general;__idf_hal;general;__idf_efuse;general;__idf_bootloader_support;general;__idf_spi_flash;general;__idf_soc;
+__idf_esp_common_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_efuse;general;__idf_bootloader_support;general;__idf_spi_flash;general;__idf_soc;
 
 //Dependencies for the target
-__idf_esp_hw_support_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_hal;general;__idf_soc;general;__idf_hal;general;__idf_esp32;
+__idf_esp_hw_support_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_hal;general;__idf_esp32;
 
 //Dependencies for the target
-__idf_esp_rom_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_soc;general;__idf_hal;
+__idf_esp_rom_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;
 
 //Dependencies for the target
-__idf_esp_system_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_soc;general;__idf_hal;general;__idf_esp32;
+__idf_esp_system_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
 
 //Dependencies for the target
-__idf_hal_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_soc;general;__idf_esp32;
+__idf_hal_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_esp32;
 
 //Dependencies for the target
-__idf_log_LIB_DEPENDS:STATIC=general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_soc;general;__idf_hal;
+__idf_log_LIB_DEPENDS:STATIC=general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;
 
 //Dependencies for the target
-__idf_main_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_soc;general;__idf_hal;
+__idf_main_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;
 
 //Dependencies for the target
-__idf_micro-ecc_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_soc;general;__idf_hal;general;__idf_esp32;
+__idf_micro-ecc_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
 
 //Dependencies for the target
-__idf_soc_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_hal;general;__idf_esp32;
+__idf_soc_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
 
 //Dependencies for the target
-__idf_spi_flash_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_soc;general;__idf_hal;general;__idf_esp32;
+__idf_spi_flash_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
 
 //Dependencies for the target
-__idf_xtensa_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_soc;general;__idf_hal;general;__idf_esp32;general;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa/esp32/libxt_hal.a;
+__idf_xtensa_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;general;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa/esp32/libxt_hal.a;
 
 //Value Computed by CMake
 bootloader_BINARY_DIR:STATIC=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader

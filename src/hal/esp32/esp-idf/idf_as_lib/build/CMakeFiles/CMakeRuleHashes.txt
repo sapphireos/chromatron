@@ -11,7 +11,7 @@ a41f0158a7732774b2a169a6647ba98a CMakeFiles/flash
 c83d9f20c9706c15c47cc787e83dba3f CMakeFiles/menuconfig
 3309a7be27870cd1ff73f4271facc6a4 CMakeFiles/monitor
 e72931cfa0fba80f54c9a00d5c55d4cc bootloader-prefix/src/bootloader-stamp/bootloader-build
-88aedb141e5448414ef2504a717594b1 bootloader-prefix/src/bootloader-stamp/bootloader-configure
+55592ac8002389ec0e008e282ff5dc9f bootloader-prefix/src/bootloader-stamp/bootloader-configure
 09c4927e45e33a4219db82d6a7e9225a bootloader-prefix/src/bootloader-stamp/bootloader-download
 bf58e6b6f77ecbd29728fe2397170a92 bootloader-prefix/src/bootloader-stamp/bootloader-install
 591264fdbaf5d4319a89c262d72edfab bootloader-prefix/src/bootloader-stamp/bootloader-mkdir
@@ -36,10 +36,10 @@ a8e7f2bd8c1e22335b63040b52e93454 esp-idf/mbedtls/mbedtls/CMakeFiles/apidoc
 b76ba1ef57b37d645828524733557c59 esp-idf/mbedtls/mbedtls/library/CMakeFiles/lib
 007da1059098ba4c04e485edd02becf9 esp-idf/mbedtls/x509_crt_bundle
 e749132f5709e9115c0dae95b74aa2de esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash
-dc4302a457670e62de70d5a26450d96c esp-idf/partition_table/CMakeFiles/partition-table
+f80f0a46857055693ef6d0c512876331 esp-idf/partition_table/CMakeFiles/partition-table
 54cf036db2ac8f9e173efe04ae172406 esp-idf/partition_table/CMakeFiles/partition-table-flash
 89b32b9752c7e7de48cabeb7ab322067 esp-idf/partition_table/CMakeFiles/partition_table
 f243123afe29c46164e988cc4586628f esp-idf/partition_table/CMakeFiles/partition_table-flash
 10405f1c50a1fb8fb6cc12cfc35daa54 esp-idf/partition_table/CMakeFiles/partition_table_bin
-f3d8116a41533220f70d4375715f2034 partition_table/partition-table.bin
+8d3ee387c88e7cb5750375789d5a1398 partition_table/partition-table.bin
 ee932227bfdd0c09875c4bc0586ccc4a x509_crt_bundle.S

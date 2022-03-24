@@ -27,10 +27,10 @@ set(CMAKE_C_TARGET_INCLUDE_PATH
   "../../../../../../components/hal/include"
   "../../../../../../components/hal/platform_port/include"
   "../../../../../../components/newlib/platform_include"
+  "../../../../../../components/esp32/include"
   "../../../../../../components/soc/include"
   "../../../../../../components/soc/esp32/."
   "../../../../../../components/soc/esp32/include"
-  "../../../../../../components/esp32/include"
   "../../../../../../components/efuse/include"
   "../../../../../../components/efuse/esp32/include"
   )
