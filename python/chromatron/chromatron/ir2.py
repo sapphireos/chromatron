@@ -3079,15 +3079,17 @@ class irFunc(IR):
             # self.leader_block.gvn_optimize()
 
             if opt_level == OptLevels.GVN:
-                self.gvn_optimizer(pass_number=1)
-                
-                self.leader_block.relink_blocks()
-                self.leader_block.prune_unreachable_blocks()
-                self.verify_block_assignments()
-                self.verify_block_links()
-                
-                self.recalc_dominators()
-                self.gvn_optimizer(pass_number=2)
+                # should change the fixed pass count to a 
+                # fixed point iteration
+                for pass_number in [1, 2, 3]:
+                    self.gvn_optimizer(pass_number=pass_number)
+                    
+                    self.leader_block.relink_blocks()
+                    self.leader_block.prune_unreachable_blocks()
+                    self.verify_block_assignments()
+                    self.verify_block_links()
+                    self.recalc_dominators()
+
 
 
             # optimizers
