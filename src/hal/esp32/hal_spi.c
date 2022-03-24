@@ -33,6 +33,7 @@
 
 static spi_device_handle_t spi[N_SPI_PORTS];
 static spi_device_interface_config_t devcfg[N_SPI_PORTS];
+static bool initialized[N_SPI_PORTS]; // thanks IDF 4.4, I really wanted to waste 2 bytes on this.
 
 spi_device_handle_t hal_spi_s_get_handle( void ){
 
@@ -86,7 +87,11 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
         buscfg.sclk_io_num = hal_io_i32_get_gpio_num( HAL_SPI_SCK );
     }
 
-	spi_bus_free( port );
+    if( initialized[channel] ){
+
+        spi_bus_free( port );    
+        initialized[channel] = FALSE;
+    }
 
     if( channel == PIXEL_SPI_CHANNEL ){
     
@@ -96,6 +101,8 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
         ESP_ERROR_CHECK(spi_bus_initialize( port, &buscfg, 0 )); // no DMA
     }
+
+    initialized[channel] = TRUE;
 
 	
     devcfg[channel].clock_speed_hz   = freq;
