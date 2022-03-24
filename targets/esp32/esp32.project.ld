@@ -460,6 +460,16 @@ SECTIONS
     *(.tbss.*)
     _thread_local_end = ABSOLUTE(.);
 
+    /* Routing table entry sections */
+    *(.routing_start)
+    KEEP(*(.routing_start))
+    *(.routing)
+    KEEP(*(.routing))
+    *(.routing_end)
+    KEEP(*(.routing_end))
+    /* End SapphireOS */
+
+
     . = ALIGN(4);
   } >default_rodata_seg
 
@@ -496,15 +506,6 @@ SECTIONS
     KEEP(*(.service))
     *(.service_end)
     KEEP(*(.service_end))
-    
-    /* Routing table entry sections */
-    *(.routing_start)
-    KEEP(*(.routing_start))
-    *(.routing)
-    KEEP(*(.routing))
-    *(.routing_end)
-    KEEP(*(.routing_end))
-    /* End SapphireOS */
 
     /* end SapphireOS */
 
