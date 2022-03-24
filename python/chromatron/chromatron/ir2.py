@@ -1216,7 +1216,7 @@ class irBlock(IR):
                     registers[value] = target
 
             elif isinstance(ir, irBranch):
-                # pass
+                pass
 
                 value = ir.value
                 if value in values:
@@ -2078,111 +2078,115 @@ class irFunc(IR):
         return d
 
     def __str__(self):
-        params = params_to_string(self.params)
+        try:
+            params = params_to_string(self.params)
 
-        s = "\n######## Line %4d       ########\n" % (self.lineno)
-        s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
+            s = "\n######## Line %4d       ########\n" % (self.lineno)
+            s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
 
-        s += "********************************\n"
-        s += "Params:\n"
-        s += "********************************\n"
+            s += "********************************\n"
+            s += "Params:\n"
+            s += "********************************\n"
 
-        for v in self.params:
-            s += f'\t{v.name:16}:{v.data_type}\n'
+            for v in self.params:
+                s += f'\t{v.name:16}:{v.data_type}\n'
 
-        s += "********************************\n"
-        s += "Locals:\n"
-        s += "********************************\n"
+            s += "********************************\n"
+            s += "Locals:\n"
+            s += "********************************\n"
 
-        for v in self.locals:
-            s += f'{v.lineno:3}\t{v.name:16}:{v.data_type}/{v.size} @ {v.addr}\n'
+            for v in self.locals:
+                s += f'{v.lineno:3}\t{v.name:16}:{v.data_type}/{v.size} @ {v.addr}\n'
 
-        s += "********************************\n"
-        s += "Input Code:\n"
-        s += "********************************\n"
-        lines_printed = []
-        for ir in self.body:
-            if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
-                s += f'________________________________________________________\n'
-                s += f' {ir.lineno}: {self.source_code[ir.lineno - 1].strip()}\n'
-                lines_printed.append(ir.lineno)
-    
-            s += f'\t{ir}\n'
+            s += "********************************\n"
+            s += "Input Code:\n"
+            s += "********************************\n"
+            lines_printed = []
+            for ir in self.body:
+                if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
+                    s += f'________________________________________________________\n'
+                    s += f' {ir.lineno}: {self.source_code[ir.lineno - 1].strip()}\n'
+                    lines_printed.append(ir.lineno)
+        
+                s += f'\t{ir}\n'
 
-        s += "********************************\n"
-        s += "Dominance:\n"
-        s += "********************************\n"
-        for n, dom in self.dominators.items():
-            s += f'\t{n.name}\n'
-            for d in dom:
-                s += f'\t\t{d.name}\n'
-
-        s += "********************************\n"
-        s += "Dominator Tree:\n"
-        s += "********************************\n"
-        for n, dom in self.dominator_tree.items():
-            s += f'\t{n.name}\n'
-            if len(dom) == 0:
-                s += '\t\tNone\n'
-            else:
+            s += "********************************\n"
+            s += "Dominance:\n"
+            s += "********************************\n"
+            for n, dom in self.dominators.items():
+                s += f'\t{n.name}\n'
                 for d in dom:
                     s += f'\t\t{d.name}\n'
 
-        s += "********************************\n"
-        s += "Loops:\n"
-        s += "********************************\n"
-        for loop, info in self.loops.items():
-            s += f'{loop}\n'
-            s += f'\tHeader: {info["header"].name}\n'
-            s += f'\tTop:    {info["top"].name}\n'
-            s += '\tBody:\n'
-            for block in info['body']:
-                s += f'\t\t\t{block.name}\n'
+            s += "********************************\n"
+            s += "Dominator Tree:\n"
+            s += "********************************\n"
+            for n, dom in self.dominator_tree.items():
+                s += f'\t{n.name}\n'
+                if len(dom) == 0:
+                    s += '\t\tNone\n'
+                else:
+                    for d in dom:
+                        s += f'\t\t{d.name}\n'
 
-            s += '\tBody Vars:\n'
-            for v in sorted(list(set([v.name for v in info['body_vars']]))):
-                s += f'\t\t\t{v}\n'
+            s += "********************************\n"
+            s += "Loops:\n"
+            s += "********************************\n"
+            for loop, info in self.loops.items():
+                s += f'{loop}\n'
+                s += f'\tHeader: {info["header"].name}\n'
+                s += f'\tTop:    {info["top"].name}\n'
+                s += '\tBody:\n'
+                for block in info['body']:
+                    s += f'\t\t\t{block.name}\n'
 
-        s += "********************************\n"
-        s += "Blocks:\n"
-        s += "********************************\n"
+                s += '\tBody Vars:\n'
+                for v in sorted(list(set([v.name for v in info['body_vars']]))):
+                    s += f'\t\t\t{v}\n'
 
-        # blocks = [self.blocks[k] for k in sorted(self.blocks.keys())]
-        blocks = self.blocks.values()
-        for block in blocks:
-            s += f'{block}\n'
+            s += "********************************\n"
+            s += "Blocks:\n"
+            s += "********************************\n"
 
-        s += "********************************\n"
-        s += "IR:\n"
-        s += "********************************\n"
-        lines_printed = []
-        index = 0
-        for ir in self.code:
-            if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
-                s += f'________________________________________________________\n'
-                s += f' Line {ir.lineno}: {self.source_code[ir.lineno - 1].strip()}\n'
-                lines_printed.append(ir.lineno)
+            # blocks = [self.blocks[k] for k in sorted(self.blocks.keys())]
+            blocks = self.blocks.values()
+            for block in blocks:
+                s += f'{block}\n'
 
+            s += "********************************\n"
+            s += "IR:\n"
+            s += "********************************\n"
+            lines_printed = []
+            index = 0
+            for ir in self.code:
+                if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
+                    s += f'________________________________________________________\n'
+                    s += f' Line {ir.lineno}: {self.source_code[ir.lineno - 1].strip()}\n'
+                    lines_printed.append(ir.lineno)
+
+                
+                if self.live_vars:
+                    live = sorted(list(set([a.name for a in self.live_vars[ir]])))
+                    s += f'\t{str(ir):48}\tlive: {live}\n'
+
+                else:
+                    s += f'{index:3}\t{ir}\n'
+
+                index += 1
+
+            s += f'IR Instructions: {len([i for i in self.get_code_from_blocks() if not isinstance(i, irLabel)])}\n'
+
+            s += "********************************\n"
+            s += "Virtual Registers:\n"
+            s += "********************************\n"
+            s += f'Registers: {len(self.registers)}\n'
+            for var, reg in self.registers.items():
+                s += f'\t{var.ssa_name:24}: {reg}\n'
             
-            if self.live_vars:
-                live = sorted(list(set([a.name for a in self.live_vars[ir]])))
-                s += f'\t{str(ir):48}\tlive: {live}\n'
+            return s
 
-            else:
-                s += f'{index:3}\t{ir}\n'
-
-            index += 1
-
-        s += f'IR Instructions: {len([i for i in self.get_code_from_blocks() if not isinstance(i, irLabel)])}\n'
-
-        s += "********************************\n"
-        s += "Virtual Registers:\n"
-        s += "********************************\n"
-        s += f'Registers: {len(self.registers)}\n'
-        for var, reg in self.registers.items():
-            s += f'\t{var.ssa_name:24}: {reg}\n'
-        
-        return s
+        except Exception as e:
+            return f'!!! Exception during string rendering for func "{self.name}": {e} !!!'
 
     def create_block_from_code_at_label(self, label, prev_block=None, blocks=None):
         labels = self.labels()
