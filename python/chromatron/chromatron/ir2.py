@@ -1156,6 +1156,13 @@ class irBlock(IR):
                 target = ir.target
                 value = ir.value
 
+                # assign value to target
+                target.value = value
+
+                # since this is a constant load, we can assert that the target
+                # is now marked as const
+                assert target.const
+
                 assert target not in values
                 values[target] = value
 
@@ -1182,6 +1189,11 @@ class irBlock(IR):
                     
                 assert target not in values
                 values[target] = value
+
+                # check if value is const
+                if ir.value.const:
+                    # assign value to target
+                    ir.target.value = ir.value.value
 
             elif isinstance(ir, irLoad):
                 target = ir.register
@@ -4206,7 +4218,7 @@ class irLoadConst(IR):
         self.target = target
         self.value = value
 
-        self.target.value = value
+        # self.target.value = value
 
     @property
     def value_number(self):
