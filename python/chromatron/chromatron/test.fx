@@ -4,10 +4,12 @@
 g1 = Number()    
 g2 = Number()    
 
+
+
 def init():
     a = Number()
 
-    a = 5
+    a = 0
 
     while a < 4:
         a += 1

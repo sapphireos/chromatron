@@ -1136,7 +1136,9 @@ class irBlock(IR):
             visited = []
 
         if self in visited:
-            return
+            return False
+
+        changed = False
 
         # ensure all predecessors have been processed first
         # for p in self.predecessors:
@@ -1167,9 +1169,13 @@ class irBlock(IR):
                 # ir.apply_value_numbers(values)
 
                 if value in values:
-                    ir.value = registers[values[value]]
-                    print(f"replace assign {target} = {value} with {values[value]}")
-                    value = values[value]
+                    replacement = registers[values[value]]
+                    if ir.value != replacement:
+                        ir.value = replacement
+                        print(f"replace assign {target} = {value} with {values[value]}")
+                        value = values[value]
+
+                        changed = True
 
                 if value not in registers:
                     registers[value] = target
@@ -1198,8 +1204,13 @@ class irBlock(IR):
                 # ir.apply_value_numbers(values)
 
                 if value in values:
-                    print(f"replace return {ir.ret_var} with {registers[values[value]]}")
-                    ir.ret_var = registers[values[value]]
+                    replacement = registers[values[value]]
+
+                    if ir.ret_var != replacement:
+                        print(f"replace return {ir.ret_var} with {replacement}")
+                        ir.ret_var = replacement
+
+                        changed = True
 
 
             elif isinstance(ir, irBinop):
@@ -1214,6 +1225,7 @@ class irBlock(IR):
                     #     print('meow')
                     ir.left = registers[values[left]]
 
+                    changed = True
 
                 if right in values and right != registers[values[right]]:
                     print(f"replace right {right} with {registers[values[right]]}")
@@ -1222,10 +1234,14 @@ class irBlock(IR):
                     #     print('meow')
                     ir.right = registers[values[right]]
 
+                    changed = True
+
 
                 fold = ir.fold()
 
                 if fold is not None:
+                    changed = True
+
                     print(f'Fold: {fold}')
 
                     assert isinstance(fold, irLoadConst)
@@ -1265,10 +1281,15 @@ class irBlock(IR):
                 pass
 
                 value = ir.value
+
                 if value in values:
+                    changed = True
+
                     ir.value = registers[values[value]]
 
                 if ir.value.const:
+                    changed = True
+
                     # replace branch with jump
                     if ir.value.value == 0:
                         print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
@@ -1292,15 +1313,24 @@ class irBlock(IR):
                 # remove merges that were not found in the predecessor search
                 # these would be merges coming from blocks whose paths we have
                 # optimized out.
-                ir.merges = [d for d in ir.merges if d in found]
+                filtered_merges = [d for d in ir.merges if d in found]
+
+                if filtered_merges != ir.merges:
+                    changed = True
+
+                ir.merges = filtered_merges
 
                 target = ir.target
 
                 if len(ir.merges) == 0:
+                    changed = True
+
                     print('removing useless phi node')
                     continue
                 
                 elif len(ir.merges) == 1:
+                    changed = True
+
                     value = ir.merges[0]
                     print(f'replace phi with assign {target} = {value}')
                     ir = irAssign(target, value, lineno=ir.lineno)
@@ -1339,12 +1369,13 @@ class irBlock(IR):
         print('\n')
 
         if self not in self.func.dominator_tree:
-            return
+            return changed
 
         for c in self.func.dominator_tree[self]:
-            c.gvn_analyze(copy(values), copy(registers), visited=visited)
+            if c.gvn_analyze(copy(values), copy(registers), visited=visited):
+                changed = True
 
-
+        return changed
 
     # def fold_constants(self):
     #     changes = 0
@@ -3038,7 +3069,7 @@ class irFunc(IR):
         return func
 
     def gvn_optimizer(self, *args, **kwargs):
-        self.leader_block.gvn_analyze(*args, **kwargs)
+        return self.leader_block.gvn_analyze(*args, **kwargs)
     
     def recalc_dominators(self):
         self.dominators = self.calc_dominance()
@@ -3079,10 +3110,14 @@ class irFunc(IR):
             # self.leader_block.gvn_optimize()
 
             if opt_level == OptLevels.GVN:
-                # should change the fixed pass count to a 
-                # fixed point iteration
-                for pass_number in [1, 2, 3]:
-                    self.gvn_optimizer(pass_number=pass_number)
+                
+                MAX_GVN_ITERATIONS = 100
+
+                changed = True
+                i = 1
+                while changed and i <= MAX_GVN_ITERATIONS:
+                    changed = self.gvn_optimizer(pass_number=i)
+                    i += 1
                     
                     self.leader_block.relink_blocks()
                     self.leader_block.prune_unreachable_blocks()
@@ -3090,6 +3125,8 @@ class irFunc(IR):
                     self.verify_block_links()
                     self.recalc_dominators()
 
+                if i >= MAX_GVN_ITERATIONS:
+                    raise CompilerFatal(f'GVN failed to complete after {i} iterations')
 
 
             # optimizers
@@ -3128,9 +3165,9 @@ class irFunc(IR):
         self.remove_dead_code()
 
         # self.render_dominator_tree()
-        if opt_level == OptLevels.GVN:
-            if self.name == 'init':
-                self.render_graph()
+        # if opt_level == OptLevels.GVN:
+        #     if self.name == 'init':
+        #         self.render_graph()
         
         logging.debug('Block analysis complete')
 
