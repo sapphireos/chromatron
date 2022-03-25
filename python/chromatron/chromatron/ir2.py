@@ -286,7 +286,7 @@ class IR(object):
         self.live_out = []
         self.is_nop = False
 
-        self.loops = []
+        # self.loops = []
 
         assert self.lineno != None
 
@@ -489,12 +489,12 @@ class irBlock(IR):
         self.func = func
         self.defines = {}
 
-        self.jump_target = None
-
         self.is_ssa = False
         self.filled = False
         self.sealed = False
         self.temp_phis = []
+
+        self.loops = []
 
     @property
     def source_code(self):
@@ -1280,26 +1280,26 @@ class irBlock(IR):
             elif isinstance(ir, irBranch):
                 pass
 
-                value = ir.value
+                # value = ir.value
 
-                if value in values:
-                    changed = True
+                # if value in values:
+                #     changed = True
 
-                    ir.value = registers[values[value]]
+                #     ir.value = registers[values[value]]
 
-                if ir.value.const:
-                    changed = True
+                # if ir.value.const:
+                #     changed = True
 
-                    # replace branch with jump
-                    if ir.value.value == 0:
-                        print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
-                        ir = irJump(ir.false_label, lineno=ir.lineno)
-                        ir.block = self
+                #     # replace branch with jump
+                #     if ir.value.value == 0:
+                #         print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
+                #         ir = irJump(ir.false_label, lineno=ir.lineno)
+                #         ir.block = self
 
-                    else:
-                        print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
-                        ir = irJump(ir.true_label, lineno=ir.lineno)
-                        ir.block = self
+                #     else:
+                #         print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
+                #         ir = irJump(ir.true_label, lineno=ir.lineno)
+                #         ir.block = self
 
             elif isinstance(ir, irPhi):
                 # search predecessors for incoming merges on all edges
@@ -2844,9 +2844,9 @@ class irFunc(IR):
                 block.loops.append(loop)
 
         # attach loop information to IR code
-        for block in self.blocks.values():
-            for ir in block.code:
-                ir.loops = loops.keys()
+        # for block in self.blocks.values():
+        #     for ir in block.code:
+        #         ir.loops = loops.keys()
 
         self.loops = loops
 
@@ -3084,6 +3084,7 @@ class irFunc(IR):
         self.verify_block_links()
 
         self.recalc_dominators()
+        self.analyze_loops()
         
         self.init_vars()
 
@@ -3118,12 +3119,15 @@ class irFunc(IR):
                 while changed and i <= MAX_GVN_ITERATIONS:
                     changed = self.gvn_optimizer(pass_number=i)
                     i += 1
-                    
+                        
+                    # we may have eliminated instructions, or entire blocks:
+                    # relink blocks, prune, verify, recalc dominance, and re-analyze loops
                     self.leader_block.relink_blocks()
                     self.leader_block.prune_unreachable_blocks()
                     self.verify_block_assignments()
                     self.verify_block_links()
                     self.recalc_dominators()
+                    self.analyze_loops()
 
                 if i >= MAX_GVN_ITERATIONS:
                     raise CompilerFatal(f'GVN failed to complete after {i} iterations')
