@@ -1282,7 +1282,7 @@ class irBlock(IR):
                 #         #     print('meow')
 
 
-                    print(f'expr {ir.expr} -> {target}')
+                    # print(f'expr {ir.expr} -> {target}')
                     value = ir.expr
                     values[target] = value
 
@@ -1292,26 +1292,28 @@ class irBlock(IR):
             elif isinstance(ir, irBranch):
                 pass
 
-                # value = ir.value
+                value = ir.value
 
-                # if value in values:
-                #     changed = True
+                if value in values:
+                    replacement = registers[values[value]]
 
-                #     ir.value = registers[values[value]]
+                    if ir.value != replacement:
+                        ir.value = replacement
+                        changed = True
 
-                # if ir.value.const:
-                #     changed = True
+                if ir.value.const:
+                    changed = True
 
-                #     # replace branch with jump
-                #     if ir.value.value == 0:
-                #         print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
-                #         ir = irJump(ir.false_label, lineno=ir.lineno)
-                #         ir.block = self
+                    # replace branch with jump
+                    if ir.value.value == 0:
+                        print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
+                        ir = irJump(ir.false_label, lineno=ir.lineno)
+                        ir.block = self
 
-                #     else:
-                #         print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
-                #         ir = irJump(ir.true_label, lineno=ir.lineno)
-                #         ir.block = self
+                    else:
+                        print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
+                        ir = irJump(ir.true_label, lineno=ir.lineno)
+                        ir.block = self
 
             elif isinstance(ir, irPhi):
                 # search predecessors for incoming merges on all edges
