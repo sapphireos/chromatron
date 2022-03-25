@@ -96,6 +96,7 @@ class Var(object):
         self._is_global = False
         self.is_container = False
         self.is_allocatable = True
+        self.is_phi_merge = False
         self.keywords = {}
 
         self.ssa_version = None
@@ -189,6 +190,9 @@ class Var(object):
 
         if self.const:
             s = f'${s}'
+
+        if self.is_phi_merge:
+            s = f'{s}[phi]'
 
         return s
 

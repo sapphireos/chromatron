@@ -585,6 +585,15 @@ class irBlock(IR):
             for o in ir.get_output_vars():
                 self.defines[o.name] = o.var
 
+                # also annotate phi targets:
+                if isinstance(ir, irPhi):
+                    if o == ir.target:
+                        if len(ir.merges) > 1:
+                            o.is_phi_merge = True
+
+                        else:
+                            o.is_phi_merge = False
+
     @property
     def type_manager(self):
         return self.func.type_manager
