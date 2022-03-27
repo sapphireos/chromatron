@@ -158,6 +158,8 @@ static uint32_t coredump_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr,
             break;
 
         case FS_VFILE_OP_DELETE:
+            esp_partition_erase_range( pt, 0, pt->size );
+
             len = 0;
             break;
 
