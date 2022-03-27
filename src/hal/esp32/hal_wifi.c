@@ -146,6 +146,8 @@ static uint32_t coredump_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr,
         return 0;
     }
 
+    uint32_t temp = 0xffffffff;
+
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
 
@@ -154,7 +156,18 @@ static uint32_t coredump_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr,
             break;
 
         case FS_VFILE_OP_SIZE:
-            len = pt->size;
+            esp_partition_read( pt, 0, &temp, sizeof(temp) );
+
+            // check if partition is erased
+            if( temp == 0xffffffff ){
+
+                len = 0;
+            }
+            else{
+
+                len = pt->size;    
+            }
+
             break;
 
         case FS_VFILE_OP_DELETE:
