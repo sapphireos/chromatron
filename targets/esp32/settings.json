@@ -167,7 +167,7 @@
         "-u start_app",
         "-u start_app_other_cores",
         "-L %(BASE_DIR)/src/hal/esp32/esp-idf/idf_as_lib/build/esp-idf/esp_system/ld",
-        "-T memory.ld",
+        "-T %(BASE_DIR)/src/hal/esp32/esp-idf/idf_as_lib/build/esp32_chromatron.ld",
         "-u __ubsan_include",
         "-L \"%(BASE_DIR)/src/hal/esp-idf/components/esp_rom/esp32/ld\"",
         "-T esp32.rom.ld",
