@@ -46,7 +46,7 @@ MEMORY
   iram0_0_seg (RX) : org = 0x40080000, len = 0x20000
   /* Even though the segment name is iram, it is actually mapped to flash
   */
-  iram0_2_seg (RX) : org = 0x400D0018, len = 0x330000-0x18
+  iram0_2_seg (RX) : org = 0x400D0020, len = 0x330000-0x20
   /*
     (0x20 offset above is a convenience for the app binary image generation.
     Flash cache has 64KB pages. The .bin file which is flashed to the chip
