@@ -717,7 +717,15 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
     if( status < 0 ){
 
-        log_v_debug_P( PSTR("msg failed %d"), status );
+        log_v_debug_P( PSTR("msg failed %d from %d to %d.%d.%d.%d:%d err: %d"), 
+            status,
+            netmsg_state->laddr.port,
+            netmsg_state->raddr.ipaddr.ip3,
+            netmsg_state->raddr.ipaddr.ip2,
+            netmsg_state->raddr.ipaddr.ip1,
+            netmsg_state->raddr.ipaddr.ip0,
+            netmsg_state->raddr.port,
+            errno );
 
         return NETMSG_TX_ERR_RELEASE;   
     }
