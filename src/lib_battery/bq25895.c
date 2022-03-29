@@ -304,7 +304,7 @@ void bq25895_v_set_boost_mode( bool enable ){
     if( enable ){
 
 // DEBUG!!!!!!!!!!!!!!!!!!!!!
-return;
+// return;
 
         bq25895_v_set_reg_bits( BQ25895_REG_BOOST_EN, BQ25895_BIT_BOOST_EN );
     }
@@ -1107,8 +1107,6 @@ bool bq25895_b_get_iindpm( void ){
 }
 
 void init_boost_converter( void ){
-
-    return;
 
     log_v_debug_P( PSTR("Init boost converter") );
 
