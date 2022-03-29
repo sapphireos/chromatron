@@ -1376,35 +1376,35 @@ PT_BEGIN( pt );
         
 
         // // check vbus
-        // if( vbus_volts < 5500 ){
+        if( vbus_volts < 5500 ){
 
-        //     // set for wall power:
-        //     vindpm = VINDPM_WALL;
-        //     bq25895_v_set_vindpm( vindpm );
+            // set for wall power:
+            vindpm = VINDPM_WALL;
+            bq25895_v_set_vindpm( vindpm );
 
-        //     TMR_WAIT( pt, 1000 );
+            TMR_WAIT( pt, 1000 );
 
-        //     // check faults
-        //     if( batt_fault != 0 ){
+            // check faults
+            if( batt_fault != 0 ){
 
-        //         log_v_debug_P( PSTR("faults detected") );
+                log_v_debug_P( PSTR("faults detected") );
 
-        //         continue;
-        //     }
+                continue;
+            }
 
-        //     // are we charging at least a bit?
-        //     if( batt_charge_current >= 100 ){
+            // are we charging at least a bit?
+            if( batt_charge_current >= 100 ){
 
-        //         log_v_debug_P( PSTR("Charging on wall power") );
+                log_v_debug_P( PSTR("Charging on wall power") );
 
-        //         THREAD_WAIT_WHILE( pt, is_vbus_good() );
+                THREAD_WAIT_WHILE( pt, is_vbus_good() );
 
-        //         // unplugged, reset loop
-        //         log_v_debug_P( PSTR("VBUS disconnected") );
+                // unplugged, reset loop
+                log_v_debug_P( PSTR("VBUS disconnected") );
 
-        //         continue;
-        //     }
-        // }
+                continue;
+            }
+        }
 
         // not enough current, or VBUS is too high to be a wall charger.  try solar mode.
 
