@@ -269,7 +269,7 @@ void hal_wifi_v_init( void ){
     }
 
 
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
+    esp_wifi_set_mode( WIFI_MODE_NULL );
 
     // set tx power
     esp_wifi_set_max_tx_power( tx_power * 4 );
