@@ -1,7 +1,7 @@
 
 {
 
-    "TOOLCHAIN": "ESP32",
+    "TOOLCHAIN": "ESP32_bootloader",
 
     "LOG_FILENAME": "build.log",
 
