@@ -303,9 +303,6 @@ void bq25895_v_set_boost_mode( bool enable ){
 
     if( enable ){
 
-// DEBUG!!!!!!!!!!!!!!!!!!!!!
-// return;
-
         bq25895_v_set_reg_bits( BQ25895_REG_BOOST_EN, BQ25895_BIT_BOOST_EN );
     }
     else{
@@ -1106,7 +1103,7 @@ bool bq25895_b_get_iindpm( void ){
     return ( reg & BQ25895_BIT_IINDPM ) != 0;
 }
 
-void init_boost_converter( void ){
+static void init_boost_converter( void ){
 
     log_v_debug_P( PSTR("Init boost converter") );
 
@@ -1132,15 +1129,11 @@ void init_boost_converter( void ){
     bq25895_v_set_boost_voltage( boost_voltage );
 }
 
-void init_charger( void ){
+static void init_charger( void ){
 
     // enable charger and set HIZ
     bq25895_v_set_hiz( TRUE );
     bq25895_v_set_charger( TRUE );
-
-
-bq25895_v_set_boost_mode( FALSE );
-        
 
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
