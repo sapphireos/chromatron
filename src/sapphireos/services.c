@@ -1449,7 +1449,7 @@ PT_BEGIN( pt );
 
         if( header->origin == 0 ){
 
-            log_v_debug_P( PSTR("origin should not be 0: %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+            log_v_error_P( PSTR("origin should not be 0: %d.%d.%d.%d"), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 
             continue;
         }
@@ -1466,18 +1466,8 @@ PT_BEGIN( pt );
 
             if( sock_i16_get_bytes_read( sock ) != len ){
 
-                log_v_debug_P( PSTR("bad size") );
+                log_v_error_P( PSTR("bad size") );
                 continue;
-            }
-
-            if( header->flags & SERVICE_FLAGS_SHUTDOWN ){
-
-                log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d:%u"), 
-                    raddr.ipaddr.ip3, 
-                    raddr.ipaddr.ip2, 
-                    raddr.ipaddr.ip1, 
-                    raddr.ipaddr.ip0,
-                    raddr.port );    
             }
 
             while( offer_hdr->count > 0 ){
@@ -1488,6 +1478,17 @@ PT_BEGIN( pt );
 
                     if( service != 0 ){
 
+                        if( service->state != STATE_LISTEN ){
+
+                            log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d:%u service: %0x"), 
+                                raddr.ipaddr.ip3, 
+                                raddr.ipaddr.ip2, 
+                                raddr.ipaddr.ip1, 
+                                raddr.ipaddr.ip0,
+                                raddr.port,
+                                service->id );        
+                        }
+                        
                         reset_state( service );
                     }
                 }
