@@ -167,7 +167,7 @@ static uint16_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *
     return ret_val;
 }
 
-PT_THREAD( ui_thread( pt_t *pt, void *state ) );
+PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
 
 
 void batt_v_init( void ){
@@ -229,7 +229,7 @@ void batt_v_init( void ){
 
     batt_v_disable_pixels();
 
-    thread_t_create( ui_thread,
+    thread_t_create( battery_ui_thread,
                      PSTR("batt_ui"),
                      0,
                      0 );
@@ -392,7 +392,7 @@ PT_END( pt );
 
 #endif
 
-PT_THREAD( ui_thread( pt_t *pt, void *state ) )
+PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
