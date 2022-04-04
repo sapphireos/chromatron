@@ -233,7 +233,7 @@ void cpu_v_set_clock_speed_low( void ){
     pm_config.min_freq_mhz = 80;
     #endif
 
-    pm_config.light_sleep_enable = TRUE;
+    pm_config.light_sleep_enable = FALSE;
 
     esp_pm_configure( &pm_config );    
 
@@ -251,7 +251,7 @@ void cpu_v_set_clock_speed_high( void ){
     pm_config.min_freq_mhz = 240;
     #endif
 
-    pm_config.light_sleep_enable = TRUE;
+    pm_config.light_sleep_enable = FALSE;
 
     esp_pm_configure( &pm_config );    
 

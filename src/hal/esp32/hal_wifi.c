@@ -959,7 +959,7 @@ static bool is_low_power_mode( void ){
     }
 
 
-    return TRUE;
+    return FALSE;
 }
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
