@@ -636,6 +636,18 @@ def opt_constant_fold():
     assert a == 21
 
 
+def redundant_assign():
+    a = Number()    
+    b = Number()
+
+    a = 4
+    b = a
+    a = b
+
+    assert a == 4
+
+
+
 def init():
     arith()
     constant_folding()
@@ -687,7 +699,7 @@ def init():
     rainbow_loop()
 
     opt_constant_fold()
-
+    redundant_assign()
 
 
     

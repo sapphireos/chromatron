@@ -181,6 +181,10 @@ class FXImage(object):
 
                 func_opcodes[func_name].append(op)
 
+        # check if loop is not present
+        if 'loop' not in function_addrs:
+            function_addrs['loop'] = 65535
+
         # set up function table
         for func in self.funcs:
             info = FunctionInfo(addr=function_addrs[func.name], frame_size=func.local_memory_size * DATA_LEN)
@@ -188,6 +192,7 @@ class FXImage(object):
             function_table.append(info)
 
             function_indexes[func.name] = len(function_table) - 1
+
 
         objects = {}
 

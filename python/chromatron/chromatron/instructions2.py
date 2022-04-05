@@ -110,7 +110,12 @@ class insProgram(object):
             func.program = self
 
         self.init_func = funcs['init']
-        self.loop_func = funcs['loop']
+        
+        try:
+            self.loop_func = funcs['loop'] 
+
+        except KeyError:
+            self.loop_func = None
 
         # get worst case stack depth
         self.stacks = {}
