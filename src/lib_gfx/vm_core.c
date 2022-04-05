@@ -47,6 +47,20 @@
 #error "VM_OPTIMIZED_DECODE does not work on ESP8266!"
 #endif
 
+
+// keys that we really don't want the VM be to be able to write to.
+// generally, these are going to be things that would allow it to 
+// brick hardware, mess up the wifi connection, or mess up the pixel 
+// array.
+// static const PROGMEM uint32_t restricted_keys[] = {
+//     __KV__reboot,
+//     __KV__wifi_enable_ap,
+//     __KV__wifi_router,
+//     __KV__pix_clock,
+//     __KV__pix_count,
+//     __KV__pix_mode,    
+// };
+
 static uint32_t cycles;
 
 // #ifdef VM_OPTIMIZED_DECODE
@@ -975,7 +989,8 @@ static int8_t _vm_i8_run_stream(
     memset( pools, 0, sizeof(pools) );
 
     pools[POOL_GLOBAL]                  = global_memory;
-    pools[POOL_PIXEL_ARRAY]             = (int32_t *)pix_array;
+    // pools[POOL_PIXEL_ARRAY]             = (int32_t *)pix_array;
+    pools[POOL_PIXEL_ARRAY]             = (int32_t *)0;
     pools[POOL_STRING_LITERALS]         = (int32_t *)0; // not yet implemented
     pools[POOL_FUNCTIONS]               = (int32_t *)func_table;
     pools[N_STATIC_POOLS + call_depth]  = local_memory;
