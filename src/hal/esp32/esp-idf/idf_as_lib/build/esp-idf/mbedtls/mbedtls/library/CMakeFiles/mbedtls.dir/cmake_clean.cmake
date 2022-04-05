@@ -1,10 +1,4 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/mbedtls.dir/__/__/port/esp_bignum.c.obj"
-  "CMakeFiles/mbedtls.dir/__/__/port/esp_hardware.c.obj"
-  "CMakeFiles/mbedtls.dir/__/__/port/esp_mem.c.obj"
-  "CMakeFiles/mbedtls.dir/__/__/port/esp_sha1.c.obj"
-  "CMakeFiles/mbedtls.dir/__/__/port/esp_sha256.c.obj"
-  "CMakeFiles/mbedtls.dir/__/__/port/esp_sha512.c.obj"
   "CMakeFiles/mbedtls.dir/__/__/port/mbedtls_debug.c.obj"
   "CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj"
   "CMakeFiles/mbedtls.dir/debug.c.obj"

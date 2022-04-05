@@ -116,21 +116,21 @@ static int8_t thread_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t thread_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  0, thread_i8_kv_handler,       "thread_count" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &cpu_info.max_threads,     0,  "thread_peak" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.run_time,        0,  "thread_run_time" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.task_time,       0,  "thread_task_time" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.sleep_time,      0,  "thread_sleep_time" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.scheduler_loops, 0,  "thread_loops" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  0, thread_i8_kv_handler,       "thread_count" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &cpu_info.max_threads,     0,  "thread_peak" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.run_time,        0,  "thread_run_time" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.task_time,       0,  "thread_task_time" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.sleep_time,      0,  "thread_sleep_time" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.scheduler_loops, 0,  "thread_loops" },
 };
 
 
 PT_THREAD( cpu_stats_thread( pt_t *pt, void *state ) );
 
 
-static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    uint16_t ret_val = 0;
+    uint32_t ret_val = 0;
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -532,19 +532,12 @@ uint32_t thread_u32_get_next_alarm_delta( void ){
     uint32_t next_alarm = thread_u32_get_next_alarm();
     uint32_t now = tmr_u32_get_system_time_ms();
 
-    if( tmr_i8_compare_times( now, next_alarm ) <= 0 ){
+    if( tmr_i8_compare_times( now, next_alarm ) >= 0 ){
 
         return 0;
     }
 
     uint32_t delta = tmr_u32_elapsed_times( now, next_alarm );
-
-    // clamp delta to a sane value.
-    // since the background thread runs at 1 second intervals, 1000 ms makes sense for a max alarm delta
-    if( delta > 1000 ){
-
-        delta = 1000;
-    }
 
     return delta;
 }

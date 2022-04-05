@@ -4,7 +4,7 @@
  * \brief Generic ASN.1 parsing
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -45,8 +45,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_ASN1_H
 #define MBEDTLS_ASN1_H
@@ -75,13 +73,20 @@
  * ASN1 is a standard to specify data structures.
  * \{
  */
-#define MBEDTLS_ERR_ASN1_OUT_OF_DATA                      -0x0060  /**< Out of data when parsing an ASN1 data structure. */
-#define MBEDTLS_ERR_ASN1_UNEXPECTED_TAG                   -0x0062  /**< ASN1 tag was of an unexpected value. */
-#define MBEDTLS_ERR_ASN1_INVALID_LENGTH                   -0x0064  /**< Error when trying to determine the length or invalid length. */
-#define MBEDTLS_ERR_ASN1_LENGTH_MISMATCH                  -0x0066  /**< Actual length differs from expected length. */
-#define MBEDTLS_ERR_ASN1_INVALID_DATA                     -0x0068  /**< Data is invalid. (not used) */
-#define MBEDTLS_ERR_ASN1_ALLOC_FAILED                     -0x006A  /**< Memory allocation failed */
-#define MBEDTLS_ERR_ASN1_BUF_TOO_SMALL                    -0x006C  /**< Buffer too small when writing ASN.1 data structure. */
+/** Out of data when parsing an ASN1 data structure. */
+#define MBEDTLS_ERR_ASN1_OUT_OF_DATA                      -0x0060
+/** ASN1 tag was of an unexpected value. */
+#define MBEDTLS_ERR_ASN1_UNEXPECTED_TAG                   -0x0062
+/** Error when trying to determine the length or invalid length. */
+#define MBEDTLS_ERR_ASN1_INVALID_LENGTH                   -0x0064
+/** Actual length differs from expected length. */
+#define MBEDTLS_ERR_ASN1_LENGTH_MISMATCH                  -0x0066
+/** Data is invalid. (not used) */
+#define MBEDTLS_ERR_ASN1_INVALID_DATA                     -0x0068
+/** Memory allocation failed */
+#define MBEDTLS_ERR_ASN1_ALLOC_FAILED                     -0x006A
+/** Buffer too small when writing ASN.1 data structure. */
+#define MBEDTLS_ERR_ASN1_BUF_TOO_SMALL                    -0x006C
 
 /* \} name */
 

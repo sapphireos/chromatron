@@ -27,12 +27,6 @@
 
 #include "sapphire.h"
 
-#if defined(ESP8266)
-#define UI_BUTTON   IO_PIN_6_DAC0
-#elif defined(ESP32)
-#define UI_BUTTON   IO_PIN_17_TX
-#endif
-
 #define BATT_PIX_COUNT_LOW_POWER_THRESHOLD		100
 
 // PCA9536 connections on Charger2
@@ -47,5 +41,7 @@ void batt_v_init( void );
 // APIs to control pixel strip power switch
 void batt_v_enable_pixels( void );
 void batt_v_disable_pixels( void );
+
+bool batt_b_pixels_enabled( void );
 
 #endif

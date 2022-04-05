@@ -354,10 +354,17 @@ class Builder(object):
 
         elif settings["TOOLCHAIN"] == "ESP32":
             if "CC" not in settings:
-                settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf', 'bin', 'xtensa-esp32-elf-gcc')
+                settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_idf_4.4', 'bin', 'xtensa-esp32-elf-gcc')
 
             if "BINTOOLS" not in settings:
-                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf', 'bin')
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_idf_4.4', 'bin')
+
+        elif settings["TOOLCHAIN"] == "ESP32_bootloader":
+            if "CC" not in settings:
+                settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin', 'xtensa-esp32-elf-gcc')
+
+            if "BINTOOLS" not in settings:
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin')
 
         else:
             raise SettingsParseException("Unknown toolchain")
@@ -688,8 +695,8 @@ class Builder(object):
         logging.info("Compiling %s" % (self.proj_name))
 
         # add colored diagnostic messages:
-        if not self.settings["TOOLCHAIN"] == "XTENSA":
-            self.settings["C_FLAGS"].append("-fdiagnostics-color=always")
+        # for some reason, *appending* will break some compilers:
+        self.settings["C_FLAGS"].insert(0, "-fdiagnostics-color=always")
 
         # save working dir
         cwd = os.getcwd()
@@ -779,7 +786,7 @@ class Builder(object):
             for flag in self.settings["C_FLAGS"]:
                 cmd += flag + ' '
 
-            if self.settings["TOOLCHAIN"] not in  ["XTENSA", "ESP32"]:
+            if self.settings["TOOLCHAIN"] not in  ["XTENSA", "ESP32", "ESP32_bootloader"]:
                 cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
 
             cmd += '-o ' + '%(OBJ_DIR)/%(SOURCE_FNAME).o' + ' '
@@ -788,7 +795,7 @@ class Builder(object):
             cmd = cmd.replace('%(SOURCE_FNAME)', source_fname)
             cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
 
-            if self.settings["TOOLCHAIN"] not in  ["XTENSA", "ESP32"]:
+            if self.settings["TOOLCHAIN"] not in  ["XTENSA", "ESP32", "ESP32_bootloader"]:
                 cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
 
             # replace windows path separators with unix
@@ -937,7 +944,7 @@ class HexBuilder(Builder):
         for flag in self.settings["C_FLAGS"]:
             cmd += flag + ' '
 
-        if self.settings["TOOLCHAIN"] not in ["XTENSA", "ESP32"]:
+        if self.settings["TOOLCHAIN"] not in ["XTENSA", "ESP32", "ESP32_bootloader"]:
             cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
 
         # save working dir
@@ -973,7 +980,7 @@ class HexBuilder(Builder):
             cmd += flag + ' '
 
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
-        if self.settings["TOOLCHAIN"] not in ["XTENSA", "ESP32"]:
+        if self.settings["TOOLCHAIN"] not in ["XTENSA", "ESP32", "ESP32_bootloader"]:
             cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
         # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
@@ -1009,7 +1016,7 @@ class HexBuilder(Builder):
             runcmd(os.path.join(bintools, 'xtensa-lx106-elf-nm -n main.elf'), tofile='main.sym')            
             # runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
 
-        elif self.settings["TOOLCHAIN"] == "ESP32":
+        elif self.settings["TOOLCHAIN"] in ["ESP32", "ESP32_bootloader"]:
             runcmd(os.path.join(bintools, 'xtensa-esp32-elf-size -B main.elf'))
             runcmd(os.path.join(bintools, 'xtensa-esp32-elf-nm -n main.elf'), tofile='main.sym')            
             # runcmd(os.path.join(bintools, 'xtensa-esp32-elf-objdump -h -S -l main.elf'), tofile='main.lss')
@@ -1018,7 +1025,7 @@ class HexBuilder(Builder):
             raise Exception("Unsupported toolchain")
 
         # convert to bin
-        if self.settings["TOOLCHAIN"] == "ESP32":
+        if self.settings["TOOLCHAIN"] in ["ESP32", "ESP32_bootloader"]:
             # esptool.main('--chip esp32 elf2image --flash_mode dio --flash_freq 40m --flash_size 4MB --elf-sha256-offset 0xb0 -o main.bin main.elf'.split())
             esptool.main('--chip esp32 elf2image --flash_mode dio --flash_freq 40m --flash_size 4MB -o main.bin main.elf'.split())
             ih = IntelHex()
@@ -1120,7 +1127,7 @@ class AppBuilder(HexBuilder):
         # get KV meta start
         kv_meta_addr = fw_info_addr + struct.calcsize(fw_info_fmt)
 
-        if self.settings['TOOLCHAIN'] in ['ARM', 'XTENSA', 'ESP32']:
+        if self.settings['TOOLCHAIN'] in ['ARM', 'XTENSA', 'ESP32', 'ESP32_bootloader']:
             kv_meta_len = KVMetaFieldWidePtr().size()
 
         else:
@@ -1135,7 +1142,7 @@ class AppBuilder(HexBuilder):
             kv_meta_s = bindata[addr:addr + kv_meta_len]
 
             try:
-                if self.settings['TOOLCHAIN'] in ['ARM', 'XTENSA', 'ESP32']:
+                if self.settings['TOOLCHAIN'] in ['ARM', 'XTENSA', 'ESP32', 'ESP32_bootloader']:
                     kv_meta = KVMetaFieldWidePtr().unpack(kv_meta_s)
 
                 else:
@@ -1183,7 +1190,11 @@ class AppBuilder(HexBuilder):
         # create binary look up table
         kv_index = bytes()
         for a in sorted_hashes:
-            kv_index += struct.pack('<LB', a, kv_meta_by_hash[a][1])
+            try:
+                kv_index += struct.pack('<LH', a, kv_meta_by_hash[a][1])
+            except struct.error:
+                logging.error(f'Index lookup table creation failed with {len(sorted_hashes)} items')
+                raise
 
         # get temp size with index and 16 bit crc
         temp_size = ih.maxaddr() - ih.minaddr() + 1 + len(kv_index) + 2
@@ -1220,13 +1231,14 @@ class AppBuilder(HexBuilder):
         # compute crc
         crc_func = crcmod.predefined.mkCrcFun('crc-aug-ccitt')
 
-        if self.settings["TOOLCHAIN"] != "ESP32":
+        if self.settings["TOOLCHAIN"] not in ["ESP32", "ESP32_bootloader"]:
             crc = crc_func(ih.tobinstr())
             ih.puts(ih.maxaddr() + 1, struct.pack('>H', crc))
 
         logging.info("size: %d" % (size))
         logging.info("fwid: %s" % (fwid))
         logging.info("fwinfo: %x" % (fw_info_addr))
+        logging.info("kv index count: %d" % (len(sorted_hashes)))
         logging.info("kv index len: %d" % (len(kv_index)))
         logging.info("kv index addr: 0x%0x" % (kv_index_addr))
         logging.info("os name: %s" % (os_project.proj_name))
@@ -1234,7 +1246,7 @@ class AppBuilder(HexBuilder):
         logging.info("app name: %s" % (self.settings['PROJ_NAME']))
         logging.info("app version: %s" % (self.version))
 
-        if self.settings["TOOLCHAIN"] != "ESP32":
+        if self.settings["TOOLCHAIN"] not in ["ESP32", "ESP32_bootloader"]:
             logging.info("crc: 0x%x" % (crc))
 
             size = ih.maxaddr() - ih.minaddr() + 1
@@ -1243,7 +1255,7 @@ class AppBuilder(HexBuilder):
         ih.write_hex_file('main.hex')
         ih.tobinfile('firmware.bin')
 
-        if self.settings["TOOLCHAIN"] == "ESP32":
+        if self.settings["TOOLCHAIN"] in ["ESP32", "ESP32_bootloader"]:
             with open("firmware.bin", 'rb') as f:
                 firmware_image = bytearray(f.read())
 

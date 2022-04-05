@@ -30,6 +30,13 @@
 #include "vm.h"
 #include "energy.h"
 #include "battery.h"
+#include "flash_fs.h"
+#include "hal_boards.h"
+
+#ifdef ESP32
+#include "veml7700.h"
+#include "rfm95w.h"
+#endif
 
 #ifdef ESP8266_UPGRADE
 #error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
@@ -46,7 +53,26 @@ void app_v_init( void ){
 
     batt_v_init();
 
-
     pwm_v_init();
+
+    #ifndef ESP8266
+    veml7700_v_init();
+
+    // sht40_v_init();
+
+    // vl53l0x_v_init();
+
+    // ssd1306_v_init();
+
+    // motion_v_init();
+
+    // uint8_t board = ffs_u8_read_board_type();
+
+    // if( board == BOARD_TYPE_ELITE ){
+
+    //     // rfm95w_v_init( IO_PIN_27_A10, IO_PIN_26_A0 );
+    // }
+
+    #endif
 }
 

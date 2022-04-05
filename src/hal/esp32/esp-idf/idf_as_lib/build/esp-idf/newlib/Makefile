@@ -80,6 +80,17 @@ install/local/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
 .PHONY : install/local/fast
 
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
+
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -112,17 +123,6 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
-
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -157,34 +157,100 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/rule
-.PHONY : esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/rule
+esp-idf/newlib/CMakeFiles/__idf_newlib.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/newlib/CMakeFiles/__idf_newlib.dir/rule
+.PHONY : esp-idf/newlib/CMakeFiles/__idf_newlib.dir/rule
 
 # Convenience name for target.
-idf_component_newlib_sections_info: esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/rule
+__idf_newlib: esp-idf/newlib/CMakeFiles/__idf_newlib.dir/rule
 
-.PHONY : idf_component_newlib_sections_info
+.PHONY : __idf_newlib
 
 # fast build rule for target.
-idf_component_newlib_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib_sections_info.dir/build
-.PHONY : idf_component_newlib_sections_info/fast
+__idf_newlib/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build
+.PHONY : __idf_newlib/fast
 
-# Convenience name for target.
-esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/rule
-.PHONY : esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/rule
+abort.obj: abort.c.obj
 
-# Convenience name for target.
-idf_component_newlib: esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/rule
+.PHONY : abort.obj
 
-.PHONY : idf_component_newlib
+# target to build an object file
+abort.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/abort.c.obj
+.PHONY : abort.c.obj
 
-# fast build rule for target.
-idf_component_newlib/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build
-.PHONY : idf_component_newlib/fast
+abort.i: abort.c.i
+
+.PHONY : abort.i
+
+# target to preprocess a source file
+abort.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/abort.c.i
+.PHONY : abort.c.i
+
+abort.s: abort.c.s
+
+.PHONY : abort.s
+
+# target to generate assembly for a file
+abort.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/abort.c.s
+.PHONY : abort.c.s
+
+assert.obj: assert.c.obj
+
+.PHONY : assert.obj
+
+# target to build an object file
+assert.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/assert.c.obj
+.PHONY : assert.c.obj
+
+assert.i: assert.c.i
+
+.PHONY : assert.i
+
+# target to preprocess a source file
+assert.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/assert.c.i
+.PHONY : assert.c.i
+
+assert.s: assert.c.s
+
+.PHONY : assert.s
+
+# target to generate assembly for a file
+assert.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/assert.c.s
+.PHONY : assert.c.s
+
+heap.obj: heap.c.obj
+
+.PHONY : heap.obj
+
+# target to build an object file
+heap.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/heap.c.obj
+.PHONY : heap.c.obj
+
+heap.i: heap.c.i
+
+.PHONY : heap.i
+
+# target to preprocess a source file
+heap.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/heap.c.i
+.PHONY : heap.c.i
+
+heap.s: heap.c.s
+
+.PHONY : heap.s
+
+# target to generate assembly for a file
+heap.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/heap.c.s
+.PHONY : heap.c.s
 
 locks.obj: locks.c.obj
 
@@ -192,7 +258,7 @@ locks.obj: locks.c.obj
 
 # target to build an object file
 locks.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/locks.c.obj
 .PHONY : locks.c.obj
 
 locks.i: locks.c.i
@@ -201,7 +267,7 @@ locks.i: locks.c.i
 
 # target to preprocess a source file
 locks.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/locks.c.i
 .PHONY : locks.c.i
 
 locks.s: locks.c.s
@@ -210,8 +276,35 @@ locks.s: locks.c.s
 
 # target to generate assembly for a file
 locks.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/locks.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/locks.c.s
 .PHONY : locks.c.s
+
+newlib_init.obj: newlib_init.c.obj
+
+.PHONY : newlib_init.obj
+
+# target to build an object file
+newlib_init.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/newlib_init.c.obj
+.PHONY : newlib_init.c.obj
+
+newlib_init.i: newlib_init.c.i
+
+.PHONY : newlib_init.i
+
+# target to preprocess a source file
+newlib_init.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/newlib_init.c.i
+.PHONY : newlib_init.c.i
+
+newlib_init.s: newlib_init.c.s
+
+.PHONY : newlib_init.s
+
+# target to generate assembly for a file
+newlib_init.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/newlib_init.c.s
+.PHONY : newlib_init.c.s
 
 poll.obj: poll.c.obj
 
@@ -219,7 +312,7 @@ poll.obj: poll.c.obj
 
 # target to build an object file
 poll.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/poll.c.obj
 .PHONY : poll.c.obj
 
 poll.i: poll.c.i
@@ -228,7 +321,7 @@ poll.i: poll.c.i
 
 # target to preprocess a source file
 poll.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/poll.c.i
 .PHONY : poll.c.i
 
 poll.s: poll.c.s
@@ -237,8 +330,35 @@ poll.s: poll.c.s
 
 # target to generate assembly for a file
 poll.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/poll.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/poll.c.s
 .PHONY : poll.c.s
+
+port/esp_time_impl.obj: port/esp_time_impl.c.obj
+
+.PHONY : port/esp_time_impl.obj
+
+# target to build an object file
+port/esp_time_impl.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/port/esp_time_impl.c.obj
+.PHONY : port/esp_time_impl.c.obj
+
+port/esp_time_impl.i: port/esp_time_impl.c.i
+
+.PHONY : port/esp_time_impl.i
+
+# target to preprocess a source file
+port/esp_time_impl.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/port/esp_time_impl.c.i
+.PHONY : port/esp_time_impl.c.i
+
+port/esp_time_impl.s: port/esp_time_impl.c.s
+
+.PHONY : port/esp_time_impl.s
+
+# target to generate assembly for a file
+port/esp_time_impl.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/port/esp_time_impl.c.s
+.PHONY : port/esp_time_impl.c.s
 
 pthread.obj: pthread.c.obj
 
@@ -246,7 +366,7 @@ pthread.obj: pthread.c.obj
 
 # target to build an object file
 pthread.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/pthread.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/pthread.c.obj
 .PHONY : pthread.c.obj
 
 pthread.i: pthread.c.i
@@ -255,7 +375,7 @@ pthread.i: pthread.c.i
 
 # target to preprocess a source file
 pthread.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/pthread.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/pthread.c.i
 .PHONY : pthread.c.i
 
 pthread.s: pthread.c.s
@@ -264,7 +384,7 @@ pthread.s: pthread.c.s
 
 # target to generate assembly for a file
 pthread.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/pthread.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/pthread.c.s
 .PHONY : pthread.c.s
 
 random.obj: random.c.obj
@@ -273,7 +393,7 @@ random.obj: random.c.obj
 
 # target to build an object file
 random.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/random.c.obj
 .PHONY : random.c.obj
 
 random.i: random.c.i
@@ -282,7 +402,7 @@ random.i: random.c.i
 
 # target to preprocess a source file
 random.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/random.c.i
 .PHONY : random.c.i
 
 random.s: random.c.s
@@ -291,8 +411,35 @@ random.s: random.c.s
 
 # target to generate assembly for a file
 random.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/random.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/random.c.s
 .PHONY : random.c.s
+
+realpath.obj: realpath.c.obj
+
+.PHONY : realpath.obj
+
+# target to build an object file
+realpath.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/realpath.c.obj
+.PHONY : realpath.c.obj
+
+realpath.i: realpath.c.i
+
+.PHONY : realpath.i
+
+# target to preprocess a source file
+realpath.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/realpath.c.i
+.PHONY : realpath.c.i
+
+realpath.s: realpath.c.s
+
+.PHONY : realpath.s
+
+# target to generate assembly for a file
+realpath.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/realpath.c.s
+.PHONY : realpath.c.s
 
 reent_init.obj: reent_init.c.obj
 
@@ -300,7 +447,7 @@ reent_init.obj: reent_init.c.obj
 
 # target to build an object file
 reent_init.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/reent_init.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/reent_init.c.obj
 .PHONY : reent_init.c.obj
 
 reent_init.i: reent_init.c.i
@@ -309,7 +456,7 @@ reent_init.i: reent_init.c.i
 
 # target to preprocess a source file
 reent_init.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/reent_init.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/reent_init.c.i
 .PHONY : reent_init.c.i
 
 reent_init.s: reent_init.c.s
@@ -318,62 +465,35 @@ reent_init.s: reent_init.c.s
 
 # target to generate assembly for a file
 reent_init.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/reent_init.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/reent_init.c.s
 .PHONY : reent_init.c.s
 
-select.obj: select.c.obj
+stdatomic.obj: stdatomic.c.obj
 
-.PHONY : select.obj
-
-# target to build an object file
-select.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.obj
-.PHONY : select.c.obj
-
-select.i: select.c.i
-
-.PHONY : select.i
-
-# target to preprocess a source file
-select.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.i
-.PHONY : select.c.i
-
-select.s: select.c.s
-
-.PHONY : select.s
-
-# target to generate assembly for a file
-select.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/select.c.s
-.PHONY : select.c.s
-
-syscall_table.obj: syscall_table.c.obj
-
-.PHONY : syscall_table.obj
+.PHONY : stdatomic.obj
 
 # target to build an object file
-syscall_table.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.obj
-.PHONY : syscall_table.c.obj
+stdatomic.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/stdatomic.c.obj
+.PHONY : stdatomic.c.obj
 
-syscall_table.i: syscall_table.c.i
+stdatomic.i: stdatomic.c.i
 
-.PHONY : syscall_table.i
+.PHONY : stdatomic.i
 
 # target to preprocess a source file
-syscall_table.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.i
-.PHONY : syscall_table.c.i
+stdatomic.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/stdatomic.c.i
+.PHONY : stdatomic.c.i
 
-syscall_table.s: syscall_table.c.s
+stdatomic.s: stdatomic.c.s
 
-.PHONY : syscall_table.s
+.PHONY : stdatomic.s
 
 # target to generate assembly for a file
-syscall_table.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscall_table.c.s
-.PHONY : syscall_table.c.s
+stdatomic.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/stdatomic.c.s
+.PHONY : stdatomic.c.s
 
 syscalls.obj: syscalls.c.obj
 
@@ -381,7 +501,7 @@ syscalls.obj: syscalls.c.obj
 
 # target to build an object file
 syscalls.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/syscalls.c.obj
 .PHONY : syscalls.c.obj
 
 syscalls.i: syscalls.c.i
@@ -390,7 +510,7 @@ syscalls.i: syscalls.c.i
 
 # target to preprocess a source file
 syscalls.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/syscalls.c.i
 .PHONY : syscalls.c.i
 
 syscalls.s: syscalls.c.s
@@ -399,8 +519,35 @@ syscalls.s: syscalls.c.s
 
 # target to generate assembly for a file
 syscalls.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/syscalls.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/syscalls.c.s
 .PHONY : syscalls.c.s
+
+sysconf.obj: sysconf.c.obj
+
+.PHONY : sysconf.obj
+
+# target to build an object file
+sysconf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/sysconf.c.obj
+.PHONY : sysconf.c.obj
+
+sysconf.i: sysconf.c.i
+
+.PHONY : sysconf.i
+
+# target to preprocess a source file
+sysconf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/sysconf.c.i
+.PHONY : sysconf.c.i
+
+sysconf.s: sysconf.c.s
+
+.PHONY : sysconf.s
+
+# target to generate assembly for a file
+sysconf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/sysconf.c.s
+.PHONY : sysconf.c.s
 
 termios.obj: termios.c.obj
 
@@ -408,7 +555,7 @@ termios.obj: termios.c.obj
 
 # target to build an object file
 termios.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/termios.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/termios.c.obj
 .PHONY : termios.c.obj
 
 termios.i: termios.c.i
@@ -417,7 +564,7 @@ termios.i: termios.c.i
 
 # target to preprocess a source file
 termios.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/termios.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/termios.c.i
 .PHONY : termios.c.i
 
 termios.s: termios.c.s
@@ -426,7 +573,7 @@ termios.s: termios.c.s
 
 # target to generate assembly for a file
 termios.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/termios.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/termios.c.s
 .PHONY : termios.c.s
 
 time.obj: time.c.obj
@@ -435,7 +582,7 @@ time.obj: time.c.obj
 
 # target to build an object file
 time.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/time.c.obj
 .PHONY : time.c.obj
 
 time.i: time.c.i
@@ -444,7 +591,7 @@ time.i: time.c.i
 
 # target to preprocess a source file
 time.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/time.c.i
 .PHONY : time.c.i
 
 time.s: time.c.s
@@ -453,35 +600,8 @@ time.s: time.c.s
 
 # target to generate assembly for a file
 time.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/time.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/__idf_newlib.dir/build.make esp-idf/newlib/CMakeFiles/__idf_newlib.dir/time.c.s
 .PHONY : time.c.s
-
-utime.obj: utime.c.obj
-
-.PHONY : utime.obj
-
-# target to build an object file
-utime.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.obj
-.PHONY : utime.c.obj
-
-utime.i: utime.c.i
-
-.PHONY : utime.i
-
-# target to preprocess a source file
-utime.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.i
-.PHONY : utime.c.i
-
-utime.s: utime.c.s
-
-.PHONY : utime.s
-
-# target to generate assembly for a file
-utime.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/build.make esp-idf/newlib/CMakeFiles/idf_component_newlib.dir/utime.c.s
-.PHONY : utime.c.s
 
 # Help Target
 help:
@@ -491,45 +611,59 @@ help:
 	@echo "... depend"
 	@echo "... install/strip"
 	@echo "... install/local"
+	@echo "... edit_cache"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... edit_cache"
-	@echo "... idf_component_newlib_sections_info"
-	@echo "... idf_component_newlib"
+	@echo "... __idf_newlib"
+	@echo "... abort.obj"
+	@echo "... abort.i"
+	@echo "... abort.s"
+	@echo "... assert.obj"
+	@echo "... assert.i"
+	@echo "... assert.s"
+	@echo "... heap.obj"
+	@echo "... heap.i"
+	@echo "... heap.s"
 	@echo "... locks.obj"
 	@echo "... locks.i"
 	@echo "... locks.s"
+	@echo "... newlib_init.obj"
+	@echo "... newlib_init.i"
+	@echo "... newlib_init.s"
 	@echo "... poll.obj"
 	@echo "... poll.i"
 	@echo "... poll.s"
+	@echo "... port/esp_time_impl.obj"
+	@echo "... port/esp_time_impl.i"
+	@echo "... port/esp_time_impl.s"
 	@echo "... pthread.obj"
 	@echo "... pthread.i"
 	@echo "... pthread.s"
 	@echo "... random.obj"
 	@echo "... random.i"
 	@echo "... random.s"
+	@echo "... realpath.obj"
+	@echo "... realpath.i"
+	@echo "... realpath.s"
 	@echo "... reent_init.obj"
 	@echo "... reent_init.i"
 	@echo "... reent_init.s"
-	@echo "... select.obj"
-	@echo "... select.i"
-	@echo "... select.s"
-	@echo "... syscall_table.obj"
-	@echo "... syscall_table.i"
-	@echo "... syscall_table.s"
+	@echo "... stdatomic.obj"
+	@echo "... stdatomic.i"
+	@echo "... stdatomic.s"
 	@echo "... syscalls.obj"
 	@echo "... syscalls.i"
 	@echo "... syscalls.s"
+	@echo "... sysconf.obj"
+	@echo "... sysconf.i"
+	@echo "... sysconf.s"
 	@echo "... termios.obj"
 	@echo "... termios.i"
 	@echo "... termios.s"
 	@echo "... time.obj"
 	@echo "... time.i"
 	@echo "... time.s"
-	@echo "... utime.obj"
-	@echo "... utime.i"
-	@echo "... utime.s"
 .PHONY : help
 
 

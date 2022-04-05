@@ -19,7 +19,7 @@
 #include "bt_common.h"
 #include "osi/thread.h"
 
-#if CONFIG_BLUEDROID_ENABLED
+#if CONFIG_BT_BLUEDROID_ENABLED
 #include "common/bt_target.h"
 #endif
 
@@ -58,16 +58,22 @@ typedef enum {
 #endif  ///BLUFI_INCLUDED == TRUE
     BTC_PID_DM_SEC,
     BTC_PID_ALARM,
-#if CONFIG_CLASSIC_BT_ENABLED
+#if (CLASSIC_BT_INCLUDED == TRUE)
     BTC_PID_GAP_BT,
     BTC_PID_PRF_QUE,
     BTC_PID_A2DP,
-    BTC_PID_AVRC,
+    BTC_PID_AVRC_CT,
+    BTC_PID_AVRC_TG,
     BTC_PID_SPP,
-#if BTC_HF_CLIENT_INCLUDED
+    BTC_PID_HD,
+    BTC_PID_HH,
+#if (BTC_HF_INCLUDED == TRUE)
+    BTC_PID_HF,
+#endif /* BTC_HF_INCLUDED */
+#if (BTC_HF_CLIENT_INCLUDED == TRUE)
     BTC_PID_HF_CLIENT,
 #endif /* BTC_HF_CLIENT_INCLUDED */
-#endif  /* CONFIG_CLASSIC_BT_ENABLED */
+#endif  /* CLASSIC_BT_INCLUDED */
 #if CONFIG_BLE_MESH
     BTC_PID_PROV,
     BTC_PID_MODEL,
@@ -83,6 +89,7 @@ typedef enum {
     BTC_PID_LIGHTING_SERVER,
     BTC_PID_SENSOR_SERVER,
     BTC_PID_TIME_SCENE_SERVER,
+    BTC_PID_BLE_MESH_BLE_COEX,
 #endif /* CONFIG_BLE_MESH */
     BTC_PID_NUM,
 } btc_pid_t; //btc profile id
@@ -93,6 +100,10 @@ typedef struct {
 } btc_func_t;
 
 typedef void (* btc_arg_deep_copy_t)(btc_msg_t *msg, void *dst, void *src);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * transfer an message to another module in the different task.
@@ -117,5 +128,10 @@ bt_status_t btc_inter_profile_call(btc_msg_t *msg, void *arg);
 bt_status_t btc_init(void);
 void btc_deinit(void);
 bool btc_check_queue_is_congest(void);
+int get_btc_work_queue_size(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BTC_TASK_H__ */

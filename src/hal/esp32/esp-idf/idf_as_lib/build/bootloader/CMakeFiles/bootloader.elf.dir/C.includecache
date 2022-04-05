@@ -6,3 +6,5 @@
 
 #IncludeRegexTransform: 
 
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/project_elf_src_esp32.c
+

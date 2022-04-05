@@ -53,19 +53,10 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 # Include the progress variables for this target.
 include esp-idf/partition_table/CMakeFiles/partition_table.dir/progress.make
 
-esp-idf/partition_table/CMakeFiles/partition_table: partition_table/partition-table.bin
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/partition_table && /usr/bin/cmake -E echo "Partition table binary generated. Contents:"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/partition_table && /usr/bin/cmake -E echo "*******************************************************************************"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/partition_table && python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/gen_esp32part.py -q --offset 0x8000 --disable-md5sum --flash-size 4MB /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/partition_table/partition-table.bin
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/partition_table && /usr/bin/cmake -E echo "*******************************************************************************"
-
-partition_table/partition-table.bin: ../../../../../components/partition_table/partitions_singleapp.csv
-partition_table/partition-table.bin: ../../../../../components/partition_table/gen_esp32part.py
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating ../../partition_table/partition-table.bin"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/partition_table && python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/gen_esp32part.py -q --offset 0x8000 --disable-md5sum --flash-size 4MB /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/partitions_singleapp.csv /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/partition_table/partition-table.bin
+esp-idf/partition_table/CMakeFiles/partition_table:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/partition_table && /usr/bin/cmake -E echo Warning:\ Command\ "partition_table"\ is\ deprecated\ and\ will\ be\ removed\ in\ the\ next\ major\ release.\ \ \ \ \ \ \ \ \ Please\ use\ "partition-table"\ instead.
 
 partition_table: esp-idf/partition_table/CMakeFiles/partition_table
-partition_table: partition_table/partition-table.bin
 partition_table: esp-idf/partition_table/CMakeFiles/partition_table.dir/build.make
 
 .PHONY : partition_table

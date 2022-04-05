@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * SPDX-FileCopyrightText: 2016 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -465,4 +465,3 @@ static inline bool sys_slist_find_and_remove(sys_slist_t *list,
 #endif
 
 #endif /* _BLE_MESH_SLIST_H_ */
-

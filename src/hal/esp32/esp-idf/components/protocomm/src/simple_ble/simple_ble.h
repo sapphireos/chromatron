@@ -1,16 +1,8 @@
-// Copyright 2015-2018 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #ifndef _SIMPLE_BLE_
 #define _SIMPLE_BLE_
 
@@ -57,6 +49,8 @@ typedef struct {
     simple_ble_cb_t *connect_fn;
     /** MTU set callback */
     simple_ble_cb_t *set_mtu_fn;
+    /* BLE bonding */
+     unsigned ble_bonding:1;
 } simple_ble_cfg_t;
 
 
@@ -67,7 +61,7 @@ typedef struct {
  *
  * @return simple_ble_cfg_t* Pointer to configuration structure
  */
-simple_ble_cfg_t *simple_ble_init();
+simple_ble_cfg_t *simple_ble_init(void);
 
 /** Deallocates memory
  *
@@ -75,7 +69,7 @@ simple_ble_cfg_t *simple_ble_init();
  *
  * @return ESP_OK
  */
-esp_err_t simple_ble_deinit();
+esp_err_t simple_ble_deinit(void);
 
 /** Starts BLE service
  *
@@ -97,7 +91,7 @@ esp_err_t simple_ble_start(simple_ble_cfg_t *cfg);
  *
  * @return ESP_OK on success, and appropriate error code for failure
  */
-esp_err_t simple_ble_stop();
+esp_err_t simple_ble_stop(void);
 
 /** Convert handle to 128 bit UUID of characteristic
  *

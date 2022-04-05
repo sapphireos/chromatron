@@ -42,6 +42,7 @@ set(APIDOCS
   nghttp2_option_set_no_recv_client_magic.rst
   nghttp2_option_set_peer_max_concurrent_streams.rst
   nghttp2_option_set_user_recv_extension_type.rst
+  nghttp2_option_set_max_settings.rst
   nghttp2_pack_settings_payload.rst
   nghttp2_priority_spec_check_default.rst
   nghttp2_priority_spec_default_init.rst
@@ -49,6 +50,7 @@ set(APIDOCS
   nghttp2_rcbuf_decref.rst
   nghttp2_rcbuf_get_buf.rst
   nghttp2_rcbuf_incref.rst
+  nghttp2_rcbuf_is_static.rst
   nghttp2_select_next_protocol.rst
   nghttp2_session_callbacks_del.rst
   nghttp2_session_callbacks_new.rst

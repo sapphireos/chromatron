@@ -43,7 +43,11 @@ enum {
 static osi_mutex_t alarm_mutex;
 static int alarm_state;
 
+#if (BT_BLE_DYNAMIC_ENV_MEMORY == FALSE)
 static struct alarm_t alarm_cbs[ALARM_CBS_NUM];
+#else
+static struct alarm_t *alarm_cbs;
+#endif
 
 static osi_alarm_err_t alarm_free(osi_alarm_t *alarm);
 static osi_alarm_err_t alarm_set(osi_alarm_t *alarm, period_ms_t timeout, bool is_periodic);
@@ -77,7 +81,14 @@ void osi_alarm_init(void)
         OSI_TRACE_WARNING("%s, invalid state %d\n", __func__, alarm_state);
         goto end;
     }
-    memset(alarm_cbs, 0x00, sizeof(alarm_cbs));
+#if (BT_BLE_DYNAMIC_ENV_MEMORY == TRUE)
+    if ((alarm_cbs = (osi_alarm_t *)osi_malloc(sizeof(osi_alarm_t) * ALARM_CBS_NUM)) == NULL) {
+        OSI_TRACE_ERROR("%s, malloc failed\n", __func__);
+        goto end;
+    }
+#endif
+
+    memset(alarm_cbs, 0x00, sizeof(osi_alarm_t) * ALARM_CBS_NUM);
     alarm_state = ALARM_STATE_OPEN;
 
 end:
@@ -99,6 +110,12 @@ void osi_alarm_deinit(void)
             alarm_free(&alarm_cbs[i]);
         }
     }
+
+#if (BT_BLE_DYNAMIC_ENV_MEMORY == TRUE)
+    osi_free(alarm_cbs);
+    alarm_cbs = NULL;
+#endif
+
     alarm_state = ALARM_STATE_IDLE;
 
 end:
@@ -126,7 +143,7 @@ static void alarm_cb_handler(struct alarm_t *alarm)
         OSI_TRACE_WARNING("%s, invalid state %d\n", __func__, alarm_state);
         return;
     }
-    btc_msg_t msg;
+    btc_msg_t msg = {0};
     btc_alarm_args_t arg;
     msg.sig = BTC_SIG_API_CALL;
     msg.pid = BTC_PID_ALARM;
@@ -156,7 +173,7 @@ osi_alarm_t *osi_alarm_new(const char *alarm_name, osi_alarm_callback_t callback
         goto end;
     }
 
-    esp_timer_create_args_t tca;
+    esp_timer_create_args_t tca = {0};
     tca.callback = (esp_timer_cb_t)alarm_cb_handler;
     tca.arg = timer_id;
     tca.dispatch_method = ESP_TIMER_TASK;
@@ -300,4 +317,15 @@ period_ms_t osi_alarm_get_remaining_ms(const osi_alarm_t *alarm)
 uint32_t osi_time_get_os_boottime_ms(void)
 {
     return (uint32_t)(esp_timer_get_time() / 1000);
+}
+
+bool osi_alarm_is_active(osi_alarm_t *alarm)
+{
+    assert(alarm != NULL);
+
+    if (alarm->alarm_hdl != NULL) {
+        return esp_timer_is_active(alarm->alarm_hdl);
+    }
+
+    return false;
 }

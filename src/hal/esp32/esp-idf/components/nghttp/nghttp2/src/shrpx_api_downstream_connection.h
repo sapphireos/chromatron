@@ -43,6 +43,13 @@ enum APIMethod {
   API_METHOD_MAX,
 };
 
+// API status code, which is independent from HTTP status code.  But
+// generally, 2xx code for SUCCESS, and otherwise FAILURE.
+enum class APIStatusCode {
+  SUCCESS,
+  FAILURE,
+};
+
 class APIDownstreamConnection;
 
 struct APIEndpoint {
@@ -83,7 +90,7 @@ public:
   get_downstream_addr_group() const;
   virtual DownstreamAddr *get_addr() const;
 
-  int send_reply(unsigned int http_status, int api_status,
+  int send_reply(unsigned int http_status, APIStatusCode api_status,
                  const StringRef &data = StringRef{});
   int error_method_not_allowed();
 
@@ -96,6 +103,8 @@ private:
   Worker *worker_;
   // This points to the requested APIEndpoint struct.
   const APIEndpoint *api_;
+  // The file descriptor for temporary file to store request body.
+  int fd_;
   // true if we stop reading request body.
   bool shutdown_read_;
 };

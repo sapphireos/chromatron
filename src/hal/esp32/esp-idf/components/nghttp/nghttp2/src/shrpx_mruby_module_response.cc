@@ -138,14 +138,15 @@ mrb_value response_mod_header(mrb_state *mrb, mrb_value self, bool repl) {
         continue;
       }
       if (i != p) {
-        headers[p++] = std::move(kv);
+        headers[p] = std::move(kv);
       }
+      ++p;
     }
     headers.resize(p);
   }
 
   if (mrb_array_p(values)) {
-    auto n = mrb_ary_len(mrb, values);
+    auto n = RARRAY_LEN(values);
     for (int i = 0; i < n; ++i) {
       auto value = mrb_ary_ref(mrb, values, i);
       if (!mrb_string_p(value)) {
@@ -208,7 +209,7 @@ mrb_value response_return(mrb_state *mrb, mrb_value self) {
 
   auto &balloc = downstream->get_block_allocator();
 
-  if (downstream->get_response_state() == Downstream::MSG_COMPLETE) {
+  if (downstream->get_response_state() == DownstreamState::MSG_COMPLETE) {
     mrb_raise(mrb, E_RUNTIME_ERROR, "response has already been committed");
   }
 
@@ -282,7 +283,7 @@ mrb_value response_send_info(mrb_state *mrb, mrb_value self) {
   auto &resp = downstream->response();
   int rv;
 
-  if (downstream->get_response_state() == Downstream::MSG_COMPLETE) {
+  if (downstream->get_response_state() == DownstreamState::MSG_COMPLETE) {
     mrb_raise(mrb, E_RUNTIME_ERROR, "response has already been committed");
   }
 
@@ -298,7 +299,7 @@ mrb_value response_send_info(mrb_state *mrb, mrb_value self) {
   auto &balloc = downstream->get_block_allocator();
 
   auto keys = mrb_hash_keys(mrb, hash);
-  auto keyslen = mrb_ary_len(mrb, keys);
+  auto keyslen = RARRAY_LEN(keys);
 
   for (int i = 0; i < keyslen; ++i) {
     auto key = mrb_ary_ref(mrb, keys, i);
@@ -321,7 +322,7 @@ mrb_value response_send_info(mrb_state *mrb, mrb_value self) {
     auto token = http2::lookup_token(keyref.byte(), keyref.size());
 
     if (mrb_array_p(values)) {
-      auto n = mrb_ary_len(mrb, values);
+      auto n = RARRAY_LEN(values);
       for (int i = 0; i < n; ++i) {
         auto value = mrb_ary_ref(mrb, values, i);
         if (!mrb_string_p(value)) {
@@ -355,6 +356,10 @@ mrb_value response_send_info(mrb_state *mrb, mrb_value self) {
   if (rv != 0) {
     mrb_raise(mrb, E_RUNTIME_ERROR, "could not send non-final response");
   }
+
+  auto handler = upstream->get_client_handler();
+
+  handler->signal_write();
 
   return self;
 }

@@ -111,61 +111,73 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/soc/CMakeFiles/idf_component_soc_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/soc/CMakeFiles/idf_component_soc_sections_info.dir/rule
-.PHONY : esp-idf/soc/CMakeFiles/idf_component_soc_sections_info.dir/rule
+esp-idf/soc/CMakeFiles/__idf_soc.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/soc/CMakeFiles/__idf_soc.dir/rule
+.PHONY : esp-idf/soc/CMakeFiles/__idf_soc.dir/rule
 
 # Convenience name for target.
-idf_component_soc_sections_info: esp-idf/soc/CMakeFiles/idf_component_soc_sections_info.dir/rule
+__idf_soc: esp-idf/soc/CMakeFiles/__idf_soc.dir/rule
 
-.PHONY : idf_component_soc_sections_info
+.PHONY : __idf_soc
 
 # fast build rule for target.
-idf_component_soc_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc_sections_info.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc_sections_info.dir/build
-.PHONY : idf_component_soc_sections_info/fast
+__idf_soc/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/build
+.PHONY : __idf_soc/fast
 
-# Convenience name for target.
-esp-idf/soc/CMakeFiles/idf_component_soc.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/soc/CMakeFiles/idf_component_soc.dir/rule
-.PHONY : esp-idf/soc/CMakeFiles/idf_component_soc.dir/rule
+esp32/adc_periph.obj: esp32/adc_periph.c.obj
 
-# Convenience name for target.
-idf_component_soc: esp-idf/soc/CMakeFiles/idf_component_soc.dir/rule
-
-.PHONY : idf_component_soc
-
-# fast build rule for target.
-idf_component_soc/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/build
-.PHONY : idf_component_soc/fast
-
-esp32/cpu_util.obj: esp32/cpu_util.c.obj
-
-.PHONY : esp32/cpu_util.obj
+.PHONY : esp32/adc_periph.obj
 
 # target to build an object file
-esp32/cpu_util.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/cpu_util.c.obj
-.PHONY : esp32/cpu_util.c.obj
+esp32/adc_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/adc_periph.c.obj
+.PHONY : esp32/adc_periph.c.obj
 
-esp32/cpu_util.i: esp32/cpu_util.c.i
+esp32/adc_periph.i: esp32/adc_periph.c.i
 
-.PHONY : esp32/cpu_util.i
+.PHONY : esp32/adc_periph.i
 
 # target to preprocess a source file
-esp32/cpu_util.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/cpu_util.c.i
-.PHONY : esp32/cpu_util.c.i
+esp32/adc_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/adc_periph.c.i
+.PHONY : esp32/adc_periph.c.i
 
-esp32/cpu_util.s: esp32/cpu_util.c.s
+esp32/adc_periph.s: esp32/adc_periph.c.s
 
-.PHONY : esp32/cpu_util.s
+.PHONY : esp32/adc_periph.s
 
 # target to generate assembly for a file
-esp32/cpu_util.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/cpu_util.c.s
-.PHONY : esp32/cpu_util.c.s
+esp32/adc_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/adc_periph.c.s
+.PHONY : esp32/adc_periph.c.s
+
+esp32/dac_periph.obj: esp32/dac_periph.c.obj
+
+.PHONY : esp32/dac_periph.obj
+
+# target to build an object file
+esp32/dac_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/dac_periph.c.obj
+.PHONY : esp32/dac_periph.c.obj
+
+esp32/dac_periph.i: esp32/dac_periph.c.i
+
+.PHONY : esp32/dac_periph.i
+
+# target to preprocess a source file
+esp32/dac_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/dac_periph.c.i
+.PHONY : esp32/dac_periph.c.i
+
+esp32/dac_periph.s: esp32/dac_periph.c.s
+
+.PHONY : esp32/dac_periph.s
+
+# target to generate assembly for a file
+esp32/dac_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/dac_periph.c.s
+.PHONY : esp32/dac_periph.c.s
 
 esp32/gpio_periph.obj: esp32/gpio_periph.c.obj
 
@@ -173,7 +185,7 @@ esp32/gpio_periph.obj: esp32/gpio_periph.c.obj
 
 # target to build an object file
 esp32/gpio_periph.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/gpio_periph.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/gpio_periph.c.obj
 .PHONY : esp32/gpio_periph.c.obj
 
 esp32/gpio_periph.i: esp32/gpio_periph.c.i
@@ -182,7 +194,7 @@ esp32/gpio_periph.i: esp32/gpio_periph.c.i
 
 # target to preprocess a source file
 esp32/gpio_periph.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/gpio_periph.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/gpio_periph.c.i
 .PHONY : esp32/gpio_periph.c.i
 
 esp32/gpio_periph.s: esp32/gpio_periph.c.s
@@ -191,224 +203,251 @@ esp32/gpio_periph.s: esp32/gpio_periph.c.s
 
 # target to generate assembly for a file
 esp32/gpio_periph.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/gpio_periph.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/gpio_periph.c.s
 .PHONY : esp32/gpio_periph.c.s
 
-esp32/rtc_clk.obj: esp32/rtc_clk.c.obj
+esp32/i2c_periph.obj: esp32/i2c_periph.c.obj
 
-.PHONY : esp32/rtc_clk.obj
-
-# target to build an object file
-esp32/rtc_clk.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_clk.c.obj
-.PHONY : esp32/rtc_clk.c.obj
-
-esp32/rtc_clk.i: esp32/rtc_clk.c.i
-
-.PHONY : esp32/rtc_clk.i
-
-# target to preprocess a source file
-esp32/rtc_clk.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_clk.c.i
-.PHONY : esp32/rtc_clk.c.i
-
-esp32/rtc_clk.s: esp32/rtc_clk.c.s
-
-.PHONY : esp32/rtc_clk.s
-
-# target to generate assembly for a file
-esp32/rtc_clk.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_clk.c.s
-.PHONY : esp32/rtc_clk.c.s
-
-esp32/rtc_clk_init.obj: esp32/rtc_clk_init.c.obj
-
-.PHONY : esp32/rtc_clk_init.obj
+.PHONY : esp32/i2c_periph.obj
 
 # target to build an object file
-esp32/rtc_clk_init.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_clk_init.c.obj
-.PHONY : esp32/rtc_clk_init.c.obj
+esp32/i2c_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/i2c_periph.c.obj
+.PHONY : esp32/i2c_periph.c.obj
 
-esp32/rtc_clk_init.i: esp32/rtc_clk_init.c.i
+esp32/i2c_periph.i: esp32/i2c_periph.c.i
 
-.PHONY : esp32/rtc_clk_init.i
+.PHONY : esp32/i2c_periph.i
 
 # target to preprocess a source file
-esp32/rtc_clk_init.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_clk_init.c.i
-.PHONY : esp32/rtc_clk_init.c.i
+esp32/i2c_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/i2c_periph.c.i
+.PHONY : esp32/i2c_periph.c.i
 
-esp32/rtc_clk_init.s: esp32/rtc_clk_init.c.s
+esp32/i2c_periph.s: esp32/i2c_periph.c.s
 
-.PHONY : esp32/rtc_clk_init.s
+.PHONY : esp32/i2c_periph.s
 
 # target to generate assembly for a file
-esp32/rtc_clk_init.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_clk_init.c.s
-.PHONY : esp32/rtc_clk_init.c.s
+esp32/i2c_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/i2c_periph.c.s
+.PHONY : esp32/i2c_periph.c.s
 
-esp32/rtc_init.obj: esp32/rtc_init.c.obj
+esp32/i2s_periph.obj: esp32/i2s_periph.c.obj
 
-.PHONY : esp32/rtc_init.obj
+.PHONY : esp32/i2s_periph.obj
 
 # target to build an object file
-esp32/rtc_init.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_init.c.obj
-.PHONY : esp32/rtc_init.c.obj
+esp32/i2s_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/i2s_periph.c.obj
+.PHONY : esp32/i2s_periph.c.obj
 
-esp32/rtc_init.i: esp32/rtc_init.c.i
+esp32/i2s_periph.i: esp32/i2s_periph.c.i
 
-.PHONY : esp32/rtc_init.i
+.PHONY : esp32/i2s_periph.i
 
 # target to preprocess a source file
-esp32/rtc_init.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_init.c.i
-.PHONY : esp32/rtc_init.c.i
+esp32/i2s_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/i2s_periph.c.i
+.PHONY : esp32/i2s_periph.c.i
 
-esp32/rtc_init.s: esp32/rtc_init.c.s
+esp32/i2s_periph.s: esp32/i2s_periph.c.s
 
-.PHONY : esp32/rtc_init.s
+.PHONY : esp32/i2s_periph.s
 
 # target to generate assembly for a file
-esp32/rtc_init.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_init.c.s
-.PHONY : esp32/rtc_init.c.s
+esp32/i2s_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/i2s_periph.c.s
+.PHONY : esp32/i2s_periph.c.s
 
-esp32/rtc_periph.obj: esp32/rtc_periph.c.obj
+esp32/interrupts.obj: esp32/interrupts.c.obj
 
-.PHONY : esp32/rtc_periph.obj
+.PHONY : esp32/interrupts.obj
 
 # target to build an object file
-esp32/rtc_periph.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_periph.c.obj
-.PHONY : esp32/rtc_periph.c.obj
+esp32/interrupts.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/interrupts.c.obj
+.PHONY : esp32/interrupts.c.obj
 
-esp32/rtc_periph.i: esp32/rtc_periph.c.i
+esp32/interrupts.i: esp32/interrupts.c.i
 
-.PHONY : esp32/rtc_periph.i
+.PHONY : esp32/interrupts.i
 
 # target to preprocess a source file
-esp32/rtc_periph.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_periph.c.i
-.PHONY : esp32/rtc_periph.c.i
+esp32/interrupts.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/interrupts.c.i
+.PHONY : esp32/interrupts.c.i
 
-esp32/rtc_periph.s: esp32/rtc_periph.c.s
+esp32/interrupts.s: esp32/interrupts.c.s
 
-.PHONY : esp32/rtc_periph.s
+.PHONY : esp32/interrupts.s
 
 # target to generate assembly for a file
-esp32/rtc_periph.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_periph.c.s
-.PHONY : esp32/rtc_periph.c.s
+esp32/interrupts.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/interrupts.c.s
+.PHONY : esp32/interrupts.c.s
 
-esp32/rtc_pm.obj: esp32/rtc_pm.c.obj
+esp32/lcd_periph.obj: esp32/lcd_periph.c.obj
 
-.PHONY : esp32/rtc_pm.obj
+.PHONY : esp32/lcd_periph.obj
 
 # target to build an object file
-esp32/rtc_pm.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_pm.c.obj
-.PHONY : esp32/rtc_pm.c.obj
+esp32/lcd_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/lcd_periph.c.obj
+.PHONY : esp32/lcd_periph.c.obj
 
-esp32/rtc_pm.i: esp32/rtc_pm.c.i
+esp32/lcd_periph.i: esp32/lcd_periph.c.i
 
-.PHONY : esp32/rtc_pm.i
+.PHONY : esp32/lcd_periph.i
 
 # target to preprocess a source file
-esp32/rtc_pm.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_pm.c.i
-.PHONY : esp32/rtc_pm.c.i
+esp32/lcd_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/lcd_periph.c.i
+.PHONY : esp32/lcd_periph.c.i
 
-esp32/rtc_pm.s: esp32/rtc_pm.c.s
+esp32/lcd_periph.s: esp32/lcd_periph.c.s
 
-.PHONY : esp32/rtc_pm.s
+.PHONY : esp32/lcd_periph.s
 
 # target to generate assembly for a file
-esp32/rtc_pm.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_pm.c.s
-.PHONY : esp32/rtc_pm.c.s
+esp32/lcd_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/lcd_periph.c.s
+.PHONY : esp32/lcd_periph.c.s
 
-esp32/rtc_sleep.obj: esp32/rtc_sleep.c.obj
+esp32/ledc_periph.obj: esp32/ledc_periph.c.obj
 
-.PHONY : esp32/rtc_sleep.obj
+.PHONY : esp32/ledc_periph.obj
 
 # target to build an object file
-esp32/rtc_sleep.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_sleep.c.obj
-.PHONY : esp32/rtc_sleep.c.obj
+esp32/ledc_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/ledc_periph.c.obj
+.PHONY : esp32/ledc_periph.c.obj
 
-esp32/rtc_sleep.i: esp32/rtc_sleep.c.i
+esp32/ledc_periph.i: esp32/ledc_periph.c.i
 
-.PHONY : esp32/rtc_sleep.i
+.PHONY : esp32/ledc_periph.i
 
 # target to preprocess a source file
-esp32/rtc_sleep.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_sleep.c.i
-.PHONY : esp32/rtc_sleep.c.i
+esp32/ledc_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/ledc_periph.c.i
+.PHONY : esp32/ledc_periph.c.i
 
-esp32/rtc_sleep.s: esp32/rtc_sleep.c.s
+esp32/ledc_periph.s: esp32/ledc_periph.c.s
 
-.PHONY : esp32/rtc_sleep.s
+.PHONY : esp32/ledc_periph.s
 
 # target to generate assembly for a file
-esp32/rtc_sleep.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_sleep.c.s
-.PHONY : esp32/rtc_sleep.c.s
+esp32/ledc_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/ledc_periph.c.s
+.PHONY : esp32/ledc_periph.c.s
 
-esp32/rtc_time.obj: esp32/rtc_time.c.obj
+esp32/mcpwm_periph.obj: esp32/mcpwm_periph.c.obj
 
-.PHONY : esp32/rtc_time.obj
+.PHONY : esp32/mcpwm_periph.obj
 
 # target to build an object file
-esp32/rtc_time.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_time.c.obj
-.PHONY : esp32/rtc_time.c.obj
+esp32/mcpwm_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/mcpwm_periph.c.obj
+.PHONY : esp32/mcpwm_periph.c.obj
 
-esp32/rtc_time.i: esp32/rtc_time.c.i
+esp32/mcpwm_periph.i: esp32/mcpwm_periph.c.i
 
-.PHONY : esp32/rtc_time.i
+.PHONY : esp32/mcpwm_periph.i
 
 # target to preprocess a source file
-esp32/rtc_time.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_time.c.i
-.PHONY : esp32/rtc_time.c.i
+esp32/mcpwm_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/mcpwm_periph.c.i
+.PHONY : esp32/mcpwm_periph.c.i
 
-esp32/rtc_time.s: esp32/rtc_time.c.s
+esp32/mcpwm_periph.s: esp32/mcpwm_periph.c.s
 
-.PHONY : esp32/rtc_time.s
+.PHONY : esp32/mcpwm_periph.s
 
 # target to generate assembly for a file
-esp32/rtc_time.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_time.c.s
-.PHONY : esp32/rtc_time.c.s
+esp32/mcpwm_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/mcpwm_periph.c.s
+.PHONY : esp32/mcpwm_periph.c.s
 
-esp32/rtc_wdt.obj: esp32/rtc_wdt.c.obj
+esp32/pcnt_periph.obj: esp32/pcnt_periph.c.obj
 
-.PHONY : esp32/rtc_wdt.obj
+.PHONY : esp32/pcnt_periph.obj
 
 # target to build an object file
-esp32/rtc_wdt.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_wdt.c.obj
-.PHONY : esp32/rtc_wdt.c.obj
+esp32/pcnt_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/pcnt_periph.c.obj
+.PHONY : esp32/pcnt_periph.c.obj
 
-esp32/rtc_wdt.i: esp32/rtc_wdt.c.i
+esp32/pcnt_periph.i: esp32/pcnt_periph.c.i
 
-.PHONY : esp32/rtc_wdt.i
+.PHONY : esp32/pcnt_periph.i
 
 # target to preprocess a source file
-esp32/rtc_wdt.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_wdt.c.i
-.PHONY : esp32/rtc_wdt.c.i
+esp32/pcnt_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/pcnt_periph.c.i
+.PHONY : esp32/pcnt_periph.c.i
 
-esp32/rtc_wdt.s: esp32/rtc_wdt.c.s
+esp32/pcnt_periph.s: esp32/pcnt_periph.c.s
 
-.PHONY : esp32/rtc_wdt.s
+.PHONY : esp32/pcnt_periph.s
 
 # target to generate assembly for a file
-esp32/rtc_wdt.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/rtc_wdt.c.s
-.PHONY : esp32/rtc_wdt.c.s
+esp32/pcnt_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/pcnt_periph.c.s
+.PHONY : esp32/pcnt_periph.c.s
+
+esp32/rmt_periph.obj: esp32/rmt_periph.c.obj
+
+.PHONY : esp32/rmt_periph.obj
+
+# target to build an object file
+esp32/rmt_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/rmt_periph.c.obj
+.PHONY : esp32/rmt_periph.c.obj
+
+esp32/rmt_periph.i: esp32/rmt_periph.c.i
+
+.PHONY : esp32/rmt_periph.i
+
+# target to preprocess a source file
+esp32/rmt_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/rmt_periph.c.i
+.PHONY : esp32/rmt_periph.c.i
+
+esp32/rmt_periph.s: esp32/rmt_periph.c.s
+
+.PHONY : esp32/rmt_periph.s
+
+# target to generate assembly for a file
+esp32/rmt_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/rmt_periph.c.s
+.PHONY : esp32/rmt_periph.c.s
+
+esp32/rtc_io_periph.obj: esp32/rtc_io_periph.c.obj
+
+.PHONY : esp32/rtc_io_periph.obj
+
+# target to build an object file
+esp32/rtc_io_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/rtc_io_periph.c.obj
+.PHONY : esp32/rtc_io_periph.c.obj
+
+esp32/rtc_io_periph.i: esp32/rtc_io_periph.c.i
+
+.PHONY : esp32/rtc_io_periph.i
+
+# target to preprocess a source file
+esp32/rtc_io_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/rtc_io_periph.c.i
+.PHONY : esp32/rtc_io_periph.c.i
+
+esp32/rtc_io_periph.s: esp32/rtc_io_periph.c.s
+
+.PHONY : esp32/rtc_io_periph.s
+
+# target to generate assembly for a file
+esp32/rtc_io_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/rtc_io_periph.c.s
+.PHONY : esp32/rtc_io_periph.c.s
 
 esp32/sdio_slave_periph.obj: esp32/sdio_slave_periph.c.obj
 
@@ -416,7 +455,7 @@ esp32/sdio_slave_periph.obj: esp32/sdio_slave_periph.c.obj
 
 # target to build an object file
 esp32/sdio_slave_periph.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/sdio_slave_periph.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/sdio_slave_periph.c.obj
 .PHONY : esp32/sdio_slave_periph.c.obj
 
 esp32/sdio_slave_periph.i: esp32/sdio_slave_periph.c.i
@@ -425,7 +464,7 @@ esp32/sdio_slave_periph.i: esp32/sdio_slave_periph.c.i
 
 # target to preprocess a source file
 esp32/sdio_slave_periph.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/sdio_slave_periph.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/sdio_slave_periph.c.i
 .PHONY : esp32/sdio_slave_periph.c.i
 
 esp32/sdio_slave_periph.s: esp32/sdio_slave_periph.c.s
@@ -434,7 +473,7 @@ esp32/sdio_slave_periph.s: esp32/sdio_slave_periph.c.s
 
 # target to generate assembly for a file
 esp32/sdio_slave_periph.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/sdio_slave_periph.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/sdio_slave_periph.c.s
 .PHONY : esp32/sdio_slave_periph.c.s
 
 esp32/sdmmc_periph.obj: esp32/sdmmc_periph.c.obj
@@ -443,7 +482,7 @@ esp32/sdmmc_periph.obj: esp32/sdmmc_periph.c.obj
 
 # target to build an object file
 esp32/sdmmc_periph.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/sdmmc_periph.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/sdmmc_periph.c.obj
 .PHONY : esp32/sdmmc_periph.c.obj
 
 esp32/sdmmc_periph.i: esp32/sdmmc_periph.c.i
@@ -452,7 +491,7 @@ esp32/sdmmc_periph.i: esp32/sdmmc_periph.c.i
 
 # target to preprocess a source file
 esp32/sdmmc_periph.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/sdmmc_periph.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/sdmmc_periph.c.i
 .PHONY : esp32/sdmmc_periph.c.i
 
 esp32/sdmmc_periph.s: esp32/sdmmc_periph.c.s
@@ -461,35 +500,35 @@ esp32/sdmmc_periph.s: esp32/sdmmc_periph.c.s
 
 # target to generate assembly for a file
 esp32/sdmmc_periph.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/sdmmc_periph.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/sdmmc_periph.c.s
 .PHONY : esp32/sdmmc_periph.c.s
 
-esp32/soc_memory_layout.obj: esp32/soc_memory_layout.c.obj
+esp32/sigmadelta_periph.obj: esp32/sigmadelta_periph.c.obj
 
-.PHONY : esp32/soc_memory_layout.obj
+.PHONY : esp32/sigmadelta_periph.obj
 
 # target to build an object file
-esp32/soc_memory_layout.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/soc_memory_layout.c.obj
-.PHONY : esp32/soc_memory_layout.c.obj
+esp32/sigmadelta_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/sigmadelta_periph.c.obj
+.PHONY : esp32/sigmadelta_periph.c.obj
 
-esp32/soc_memory_layout.i: esp32/soc_memory_layout.c.i
+esp32/sigmadelta_periph.i: esp32/sigmadelta_periph.c.i
 
-.PHONY : esp32/soc_memory_layout.i
+.PHONY : esp32/sigmadelta_periph.i
 
 # target to preprocess a source file
-esp32/soc_memory_layout.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/soc_memory_layout.c.i
-.PHONY : esp32/soc_memory_layout.c.i
+esp32/sigmadelta_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/sigmadelta_periph.c.i
+.PHONY : esp32/sigmadelta_periph.c.i
 
-esp32/soc_memory_layout.s: esp32/soc_memory_layout.c.s
+esp32/sigmadelta_periph.s: esp32/sigmadelta_periph.c.s
 
-.PHONY : esp32/soc_memory_layout.s
+.PHONY : esp32/sigmadelta_periph.s
 
 # target to generate assembly for a file
-esp32/soc_memory_layout.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/soc_memory_layout.c.s
-.PHONY : esp32/soc_memory_layout.c.s
+esp32/sigmadelta_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/sigmadelta_periph.c.s
+.PHONY : esp32/sigmadelta_periph.c.s
 
 esp32/spi_periph.obj: esp32/spi_periph.c.obj
 
@@ -497,7 +536,7 @@ esp32/spi_periph.obj: esp32/spi_periph.c.obj
 
 # target to build an object file
 esp32/spi_periph.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/spi_periph.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/spi_periph.c.obj
 .PHONY : esp32/spi_periph.c.obj
 
 esp32/spi_periph.i: esp32/spi_periph.c.i
@@ -506,7 +545,7 @@ esp32/spi_periph.i: esp32/spi_periph.c.i
 
 # target to preprocess a source file
 esp32/spi_periph.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/spi_periph.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/spi_periph.c.i
 .PHONY : esp32/spi_periph.c.i
 
 esp32/spi_periph.s: esp32/spi_periph.c.s
@@ -515,35 +554,143 @@ esp32/spi_periph.s: esp32/spi_periph.c.s
 
 # target to generate assembly for a file
 esp32/spi_periph.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/esp32/spi_periph.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/spi_periph.c.s
 .PHONY : esp32/spi_periph.c.s
 
-src/memory_layout_utils.obj: src/memory_layout_utils.c.obj
+esp32/timer_periph.obj: esp32/timer_periph.c.obj
 
-.PHONY : src/memory_layout_utils.obj
+.PHONY : esp32/timer_periph.obj
 
 # target to build an object file
-src/memory_layout_utils.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/src/memory_layout_utils.c.obj
-.PHONY : src/memory_layout_utils.c.obj
+esp32/timer_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/timer_periph.c.obj
+.PHONY : esp32/timer_periph.c.obj
 
-src/memory_layout_utils.i: src/memory_layout_utils.c.i
+esp32/timer_periph.i: esp32/timer_periph.c.i
 
-.PHONY : src/memory_layout_utils.i
+.PHONY : esp32/timer_periph.i
 
 # target to preprocess a source file
-src/memory_layout_utils.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/src/memory_layout_utils.c.i
-.PHONY : src/memory_layout_utils.c.i
+esp32/timer_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/timer_periph.c.i
+.PHONY : esp32/timer_periph.c.i
 
-src/memory_layout_utils.s: src/memory_layout_utils.c.s
+esp32/timer_periph.s: esp32/timer_periph.c.s
 
-.PHONY : src/memory_layout_utils.s
+.PHONY : esp32/timer_periph.s
 
 # target to generate assembly for a file
-src/memory_layout_utils.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/idf_component_soc.dir/build.make esp-idf/soc/CMakeFiles/idf_component_soc.dir/src/memory_layout_utils.c.s
-.PHONY : src/memory_layout_utils.c.s
+esp32/timer_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/timer_periph.c.s
+.PHONY : esp32/timer_periph.c.s
+
+esp32/touch_sensor_periph.obj: esp32/touch_sensor_periph.c.obj
+
+.PHONY : esp32/touch_sensor_periph.obj
+
+# target to build an object file
+esp32/touch_sensor_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/touch_sensor_periph.c.obj
+.PHONY : esp32/touch_sensor_periph.c.obj
+
+esp32/touch_sensor_periph.i: esp32/touch_sensor_periph.c.i
+
+.PHONY : esp32/touch_sensor_periph.i
+
+# target to preprocess a source file
+esp32/touch_sensor_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/touch_sensor_periph.c.i
+.PHONY : esp32/touch_sensor_periph.c.i
+
+esp32/touch_sensor_periph.s: esp32/touch_sensor_periph.c.s
+
+.PHONY : esp32/touch_sensor_periph.s
+
+# target to generate assembly for a file
+esp32/touch_sensor_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/touch_sensor_periph.c.s
+.PHONY : esp32/touch_sensor_periph.c.s
+
+esp32/uart_periph.obj: esp32/uart_periph.c.obj
+
+.PHONY : esp32/uart_periph.obj
+
+# target to build an object file
+esp32/uart_periph.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/uart_periph.c.obj
+.PHONY : esp32/uart_periph.c.obj
+
+esp32/uart_periph.i: esp32/uart_periph.c.i
+
+.PHONY : esp32/uart_periph.i
+
+# target to preprocess a source file
+esp32/uart_periph.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/uart_periph.c.i
+.PHONY : esp32/uart_periph.c.i
+
+esp32/uart_periph.s: esp32/uart_periph.c.s
+
+.PHONY : esp32/uart_periph.s
+
+# target to generate assembly for a file
+esp32/uart_periph.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/uart_periph.c.s
+.PHONY : esp32/uart_periph.c.s
+
+lldesc.obj: lldesc.c.obj
+
+.PHONY : lldesc.obj
+
+# target to build an object file
+lldesc.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/lldesc.c.obj
+.PHONY : lldesc.c.obj
+
+lldesc.i: lldesc.c.i
+
+.PHONY : lldesc.i
+
+# target to preprocess a source file
+lldesc.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/lldesc.c.i
+.PHONY : lldesc.c.i
+
+lldesc.s: lldesc.c.s
+
+.PHONY : lldesc.s
+
+# target to generate assembly for a file
+lldesc.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/lldesc.c.s
+.PHONY : lldesc.c.s
+
+soc_include_legacy_warn.obj: soc_include_legacy_warn.c.obj
+
+.PHONY : soc_include_legacy_warn.obj
+
+# target to build an object file
+soc_include_legacy_warn.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/soc_include_legacy_warn.c.obj
+.PHONY : soc_include_legacy_warn.c.obj
+
+soc_include_legacy_warn.i: soc_include_legacy_warn.c.i
+
+.PHONY : soc_include_legacy_warn.i
+
+# target to preprocess a source file
+soc_include_legacy_warn.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/soc_include_legacy_warn.c.i
+.PHONY : soc_include_legacy_warn.c.i
+
+soc_include_legacy_warn.s: soc_include_legacy_warn.c.s
+
+.PHONY : soc_include_legacy_warn.s
+
+# target to generate assembly for a file
+soc_include_legacy_warn.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/soc/CMakeFiles/__idf_soc.dir/build.make esp-idf/soc/CMakeFiles/__idf_soc.dir/soc_include_legacy_warn.c.s
+.PHONY : soc_include_legacy_warn.c.s
 
 # Help Target
 help:
@@ -553,53 +700,70 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_soc_sections_info"
-	@echo "... idf_component_soc"
-	@echo "... esp32/cpu_util.obj"
-	@echo "... esp32/cpu_util.i"
-	@echo "... esp32/cpu_util.s"
+	@echo "... __idf_soc"
+	@echo "... esp32/adc_periph.obj"
+	@echo "... esp32/adc_periph.i"
+	@echo "... esp32/adc_periph.s"
+	@echo "... esp32/dac_periph.obj"
+	@echo "... esp32/dac_periph.i"
+	@echo "... esp32/dac_periph.s"
 	@echo "... esp32/gpio_periph.obj"
 	@echo "... esp32/gpio_periph.i"
 	@echo "... esp32/gpio_periph.s"
-	@echo "... esp32/rtc_clk.obj"
-	@echo "... esp32/rtc_clk.i"
-	@echo "... esp32/rtc_clk.s"
-	@echo "... esp32/rtc_clk_init.obj"
-	@echo "... esp32/rtc_clk_init.i"
-	@echo "... esp32/rtc_clk_init.s"
-	@echo "... esp32/rtc_init.obj"
-	@echo "... esp32/rtc_init.i"
-	@echo "... esp32/rtc_init.s"
-	@echo "... esp32/rtc_periph.obj"
-	@echo "... esp32/rtc_periph.i"
-	@echo "... esp32/rtc_periph.s"
-	@echo "... esp32/rtc_pm.obj"
-	@echo "... esp32/rtc_pm.i"
-	@echo "... esp32/rtc_pm.s"
-	@echo "... esp32/rtc_sleep.obj"
-	@echo "... esp32/rtc_sleep.i"
-	@echo "... esp32/rtc_sleep.s"
-	@echo "... esp32/rtc_time.obj"
-	@echo "... esp32/rtc_time.i"
-	@echo "... esp32/rtc_time.s"
-	@echo "... esp32/rtc_wdt.obj"
-	@echo "... esp32/rtc_wdt.i"
-	@echo "... esp32/rtc_wdt.s"
+	@echo "... esp32/i2c_periph.obj"
+	@echo "... esp32/i2c_periph.i"
+	@echo "... esp32/i2c_periph.s"
+	@echo "... esp32/i2s_periph.obj"
+	@echo "... esp32/i2s_periph.i"
+	@echo "... esp32/i2s_periph.s"
+	@echo "... esp32/interrupts.obj"
+	@echo "... esp32/interrupts.i"
+	@echo "... esp32/interrupts.s"
+	@echo "... esp32/lcd_periph.obj"
+	@echo "... esp32/lcd_periph.i"
+	@echo "... esp32/lcd_periph.s"
+	@echo "... esp32/ledc_periph.obj"
+	@echo "... esp32/ledc_periph.i"
+	@echo "... esp32/ledc_periph.s"
+	@echo "... esp32/mcpwm_periph.obj"
+	@echo "... esp32/mcpwm_periph.i"
+	@echo "... esp32/mcpwm_periph.s"
+	@echo "... esp32/pcnt_periph.obj"
+	@echo "... esp32/pcnt_periph.i"
+	@echo "... esp32/pcnt_periph.s"
+	@echo "... esp32/rmt_periph.obj"
+	@echo "... esp32/rmt_periph.i"
+	@echo "... esp32/rmt_periph.s"
+	@echo "... esp32/rtc_io_periph.obj"
+	@echo "... esp32/rtc_io_periph.i"
+	@echo "... esp32/rtc_io_periph.s"
 	@echo "... esp32/sdio_slave_periph.obj"
 	@echo "... esp32/sdio_slave_periph.i"
 	@echo "... esp32/sdio_slave_periph.s"
 	@echo "... esp32/sdmmc_periph.obj"
 	@echo "... esp32/sdmmc_periph.i"
 	@echo "... esp32/sdmmc_periph.s"
-	@echo "... esp32/soc_memory_layout.obj"
-	@echo "... esp32/soc_memory_layout.i"
-	@echo "... esp32/soc_memory_layout.s"
+	@echo "... esp32/sigmadelta_periph.obj"
+	@echo "... esp32/sigmadelta_periph.i"
+	@echo "... esp32/sigmadelta_periph.s"
 	@echo "... esp32/spi_periph.obj"
 	@echo "... esp32/spi_periph.i"
 	@echo "... esp32/spi_periph.s"
-	@echo "... src/memory_layout_utils.obj"
-	@echo "... src/memory_layout_utils.i"
-	@echo "... src/memory_layout_utils.s"
+	@echo "... esp32/timer_periph.obj"
+	@echo "... esp32/timer_periph.i"
+	@echo "... esp32/timer_periph.s"
+	@echo "... esp32/touch_sensor_periph.obj"
+	@echo "... esp32/touch_sensor_periph.i"
+	@echo "... esp32/touch_sensor_periph.s"
+	@echo "... esp32/uart_periph.obj"
+	@echo "... esp32/uart_periph.i"
+	@echo "... esp32/uart_periph.s"
+	@echo "... lldesc.obj"
+	@echo "... lldesc.i"
+	@echo "... lldesc.s"
+	@echo "... soc_include_legacy_warn.obj"
+	@echo "... soc_include_legacy_warn.i"
+	@echo "... soc_include_legacy_warn.s"
 .PHONY : help
 
 

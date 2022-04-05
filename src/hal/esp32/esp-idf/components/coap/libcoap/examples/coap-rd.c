@@ -5,65 +5,83 @@
  *
  * Copyright (C) 2010--2015 Olaf Bergmann <bergmann@tzi.org>
  *
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  * This file is part of the CoAP library libcoap. Please see README for terms of
  * use.
  */
 
 
 /**
- * @file rd.c
+ * @file coap-rd.c
  * @brief CoRE resource directory
  *
- * @see http://tools.ietf.org/id/draft-shelby-core-resource-directory
+ * @see https://tools.ietf.org/html/draft-ietf-core-resource-directory
  */
 
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <sys/select.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <signal.h>
+#ifdef _WIN32
+#define strcasecmp _stricmp
+#include "getopt.c"
+#if !defined(S_ISDIR)
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+#else
+#include <unistd.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <sys/stat.h>
 #include <dirent.h>
-#include <errno.h>
-#include <signal.h>
+#endif
 
-#include "coap_config.h"
-#include "utlist.h"
-#include "resource.h"
-#include "coap.h"
+#include <coap3/coap.h>
 
 #define COAP_RESOURCE_CHECK_TIME 2
 
-#define RD_ROOT_STR   ((unsigned char *)"rd")
+#define RD_ROOT_STR   "rd"
 #define RD_ROOT_SIZE  2
+
+static char *cert_file = NULL; /* Combined certificate and private key in PEM */
+static char *ca_file = NULL;   /* CA for cert_file - for cert checking in PEM */
+static char *root_ca_file = NULL; /* List of trusted Root CAs in PEM */
+static int verify_peer_cert = 1; /* PKI granularity - by default set */
+#define MAX_KEY   64 /* Maximum length of a pre-shared key in bytes. */
+static uint8_t key[MAX_KEY];
+static ssize_t key_length = 0;
+static int key_defined = 0;
+static const char *hint = "CoAP";
 
 #ifndef min
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
 typedef struct rd_t {
-  UT_hash_handle hh;      /**< hash handle (for internal use only) */
-  coap_key_t key;         /**< the actual key bytes for this resource */
-
   size_t etag_len;        /**< actual length of @c etag */
   unsigned char etag[8];  /**< ETag for current description */
 
-  str data;               /**< points to the resource description  */
+  coap_string_t data;     /**< points to the resource description  */
 } rd_t;
 
 rd_t *resources = NULL;
 
-#ifdef __GNUC__
-#define UNUSED_PARAM __attribute__ ((unused))
-#else /* not a GCC */
-#define UNUSED_PARAM
-#endif /* GCC */
+static ssize_t
+cmdline_read_key(char *arg, unsigned char *buf, size_t maxlen) {
+  size_t len = strnlen(arg, maxlen);
+  if (len) {
+    memcpy(buf, arg, len);
+    return len;
+  }
+  return -1;
+}
 
 static inline rd_t *
 rd_new(void) {
@@ -75,7 +93,7 @@ rd_new(void) {
   return rd;
 }
 
-static inline void
+static void
 rd_delete(rd_t *rd) {
   if (rd) {
     coap_free(rd->data.s);
@@ -83,35 +101,35 @@ rd_delete(rd_t *rd) {
   }
 }
 
-/* temporary storage for dynamic resource representations */
+static void
+resource_rd_delete(void *ptr) {
+  rd_delete(ptr);
+}
+
 static int quit = 0;
 
 /* SIGINT handler: set quit to 1 for graceful termination */
 static void
-handle_sigint(int signum UNUSED_PARAM) {
+handle_sigint(int signum COAP_UNUSED) {
   quit = 1;
 }
 
 static void
-hnd_get_resource(coap_context_t  *ctx UNUSED_PARAM,
-                 struct coap_resource_t *resource,
-                 const coap_endpoint_t *local_interface UNUSED_PARAM,
-                 coap_address_t *peer UNUSED_PARAM,
-                 coap_pdu_t *request UNUSED_PARAM,
-                 str *token UNUSED_PARAM,
+hnd_get_resource(coap_resource_t *resource,
+                 coap_session_t *session COAP_UNUSED,
+                 const coap_pdu_t *request COAP_UNUSED,
+                 const coap_string_t *query COAP_UNUSED,
                  coap_pdu_t *response) {
-  rd_t *rd = NULL;
+  rd_t *rd = coap_resource_get_userdata(resource);
   unsigned char buf[3];
 
-  HASH_FIND(hh, resources, resource->key, sizeof(coap_key_t), rd);
-
-  response->hdr->code = COAP_RESPONSE_CODE(205);
+  coap_pdu_set_code(response, COAP_RESPONSE_CODE_CONTENT);
 
   coap_add_option(response,
                   COAP_OPTION_CONTENT_TYPE,
-                  coap_encode_var_bytes(buf,
-                                        COAP_MEDIATYPE_APPLICATION_LINK_FORMAT),
-                                        buf);
+                  coap_encode_var_safe(buf, sizeof(buf),
+                                       COAP_MEDIATYPE_APPLICATION_LINK_FORMAT),
+                                       buf);
 
   if (rd && rd->etag_len)
     coap_add_option(response, COAP_OPTION_ETAG, rd->etag_len, rd->etag);
@@ -121,15 +139,13 @@ hnd_get_resource(coap_context_t  *ctx UNUSED_PARAM,
 }
 
 static void
-hnd_put_resource(coap_context_t  *ctx UNUSED_PARAM,
-                 struct coap_resource_t *resource UNUSED_PARAM,
-                 const coap_endpoint_t *local_interface UNUSED_PARAM,
-                 coap_address_t *peer UNUSED_PARAM,
-                 coap_pdu_t *request UNUSED_PARAM,
-                 str *token UNUSED_PARAM,
+hnd_put_resource(coap_resource_t *resource COAP_UNUSED,
+                 coap_session_t *session COAP_UNUSED,
+                 const coap_pdu_t *request COAP_UNUSED,
+                 const coap_string_t *query COAP_UNUSED,
                  coap_pdu_t *response) {
 #if 1
-  response->hdr->code = COAP_RESPONSE_CODE(501);
+  coap_pdu_set_code(response, COAP_RESPONSE_CODE_NOT_IMPLEMENTED);
 #else /* FIXME */
   coap_opt_iterator_t opt_iter;
   coap_opt_t *token, *etag;
@@ -139,10 +155,10 @@ hnd_put_resource(coap_context_t  *ctx UNUSED_PARAM,
     ? COAP_MESSAGE_ACK : COAP_MESSAGE_NON;
   rd_t *rd = NULL;
   unsigned char code;     /* result code */
-  unsigned char *data;
-  str tmp;
+  const uint8_t *data;
+  coap_string_t tmp;
 
-  HASH_FIND(hh, resources, resource->key, sizeof(coap_key_t), rd);
+  HASH_FIND(hh, resources, resource->uri_path.s, resource->uri_path.length, rd);
   if (rd) {
     /* found resource object, now check Etag */
     etag = coap_check_option(request, COAP_OPTION_ETAG, &opt_iter);
@@ -153,8 +169,9 @@ hnd_put_resource(coap_context_t  *ctx UNUSED_PARAM,
 
         tmp.s = (unsigned char *)coap_malloc(tmp.length);
         if (!tmp.s) {
-          debug("hnd_put_rd: cannot allocate storage for new rd\n");
-          code = COAP_RESPONSE_CODE(503);
+          coap_log(LOG_DEBUG,
+                   "hnd_put_rd: cannot allocate storage for new rd\n");
+          code = COAP_RESPONSE_CODE_SERVICE_UNAVAILABLE;
           goto finish;
         }
 
@@ -170,12 +187,12 @@ hnd_put_resource(coap_context_t  *ctx UNUSED_PARAM,
       memcpy(rd->etag, COAP_OPT_VALUE(etag), rd->etag_len);
     }
 
-    code = COAP_RESPONSE_CODE(204);
+    code = COAP_RESPONSE_CODE_CHANGED;
     /* FIXME: update lifetime */
 
     } else {
 
-    code = COAP_RESPONSE_CODE(503);
+    code = COAP_RESPONSE_CODE_SERVICE_UNAVAILABLE;
   }
 
   finish:
@@ -183,75 +200,69 @@ hnd_put_resource(coap_context_t  *ctx UNUSED_PARAM,
   response = coap_pdu_init(type, code, request->hdr->id, size);
 
   if (!response) {
-    debug("cannot create response for message %d\n", request->hdr->id);
+    coap_log(LOG_DEBUG, "cannot create response for mid=0x%x\n",
+             request->hdr->id);
     return;
   }
 
   if (request->hdr->token_length)
     coap_add_token(response, request->hdr->token_length, request->hdr->token);
 
-  if (coap_send(ctx, peer, response) == COAP_INVALID_TID) {
-    debug("hnd_get_rd: cannot send response for message %d\n",
+  if (coap_send(ctx, peer, response) == COAP_INVALID_MID) {
+    coap_log(LOG_DEBUG, "hnd_get_rd: cannot send response for mid=0x%x\n",
     request->hdr->id);
   }
-  coap_delete_pdu(response);
 #endif
 }
 
 static void
-hnd_delete_resource(coap_context_t  *ctx,
-                    struct coap_resource_t *resource,
-                    const coap_endpoint_t *local_interface UNUSED_PARAM,
-                    coap_address_t *peer UNUSED_PARAM,
-                    coap_pdu_t *request UNUSED_PARAM,
-                    str *token UNUSED_PARAM,
+hnd_delete_resource(coap_resource_t *resource,
+                    coap_session_t *session COAP_UNUSED,
+                    const coap_pdu_t *request COAP_UNUSED,
+                    const coap_string_t *query COAP_UNUSED,
                     coap_pdu_t *response) {
-  rd_t *rd = NULL;
+  rd_t *rd = coap_resource_get_userdata(resource);
 
-  HASH_FIND(hh, resources, resource->key, sizeof(coap_key_t), rd);
   if (rd) {
-    HASH_DELETE(hh, resources, rd);
     rd_delete(rd);
   }
   /* FIXME: link attributes for resource have been created dynamically
    * using coap_malloc() and must be released. */
-  coap_delete_resource(ctx, resource->key);
+  coap_delete_resource(coap_session_get_context(session), resource);
 
-  response->hdr->code = COAP_RESPONSE_CODE(202);
+  coap_pdu_set_code(response, COAP_RESPONSE_CODE_DELETED);
 }
 
 static void
-hnd_get_rd(coap_context_t  *ctx UNUSED_PARAM,
-           struct coap_resource_t *resource UNUSED_PARAM,
-           const coap_endpoint_t *local_interface UNUSED_PARAM,
-           coap_address_t *peer UNUSED_PARAM,
-           coap_pdu_t *request UNUSED_PARAM,
-           str *token UNUSED_PARAM,
+hnd_get_rd(coap_resource_t *resource COAP_UNUSED,
+           coap_session_t *session COAP_UNUSED,
+           const coap_pdu_t *request COAP_UNUSED,
+           const coap_string_t *query COAP_UNUSED,
            coap_pdu_t *response) {
   unsigned char buf[3];
 
-  response->hdr->code = COAP_RESPONSE_CODE(205);
+  coap_pdu_set_code(response, COAP_RESPONSE_CODE_CONTENT);
 
   coap_add_option(response,
                   COAP_OPTION_CONTENT_TYPE,
-                  coap_encode_var_bytes(buf,
-                                        COAP_MEDIATYPE_APPLICATION_LINK_FORMAT),
-                                        buf);
+                  coap_encode_var_safe(buf, sizeof(buf),
+                                       COAP_MEDIATYPE_APPLICATION_LINK_FORMAT),
+                                       buf);
 
   coap_add_option(response,
                   COAP_OPTION_MAXAGE,
-                  coap_encode_var_bytes(buf, 0x2ffff), buf);
+                  coap_encode_var_safe(buf, sizeof(buf), 0x2ffff), buf);
 }
 
 static int
-parse_param(unsigned char *search,
+parse_param(const uint8_t *search,
             size_t search_len,
             unsigned char *data,
             size_t data_len,
-            str *result) {
+            coap_string_t *result) {
 
   if (result)
-    memset(result, 0, sizeof(str));
+    memset(result, 0, sizeof(coap_string_t));
 
   if (!search_len)
     return 0;
@@ -291,11 +302,12 @@ parse_param(unsigned char *search,
 }
 
 static void
-add_source_address(struct coap_resource_t *resource,
-                   coap_address_t *peer) {
+add_source_address(coap_resource_t *resource,
+                   const coap_address_t *peer) {
 #define BUFSIZE 64
   char *buf;
   size_t n = 1;
+  coap_str_const_t attr_val;
 
   buf = (char *)coap_malloc(BUFSIZE);
   if (!buf)
@@ -342,33 +354,34 @@ add_source_address(struct coap_resource_t *resource,
   if (n < BUFSIZE)
     buf[n++] = '"';
 
+  attr_val.s = (const uint8_t *)buf;
+  attr_val.length = n;
   coap_add_attr(resource,
-                (unsigned char *)"A",
-                1,
-                (unsigned char *)buf,
-                n,
-                COAP_ATTR_FLAGS_RELEASE_VALUE);
+                coap_make_str_const("A"),
+                &attr_val,
+                0);
+  coap_free(buf);
 #undef BUFSIZE
 }
 
 static rd_t *
-make_rd(coap_address_t *peer UNUSED_PARAM, coap_pdu_t *pdu) {
+make_rd(const coap_pdu_t *pdu) {
   rd_t *rd;
-  unsigned char *data;
+  const uint8_t *data;
   coap_opt_iterator_t opt_iter;
   coap_opt_t *etag;
 
   rd = rd_new();
 
   if (!rd) {
-    debug("hnd_get_rd: cannot allocate storage for rd\n");
+    coap_log(LOG_DEBUG, "hnd_get_rd: cannot allocate storage for rd\n");
     return NULL;
   }
 
   if (coap_get_data(pdu, &rd->data.length, &data)) {
     rd->data.s = (unsigned char *)coap_malloc(rd->data.length);
     if (!rd->data.s) {
-      debug("hnd_get_rd: cannot allocate storage for rd->data\n");
+      coap_log(LOG_DEBUG, "hnd_get_rd: cannot allocate storage for rd->data\n");
       rd_delete(rd);
       return NULL;
     }
@@ -377,33 +390,31 @@ make_rd(coap_address_t *peer UNUSED_PARAM, coap_pdu_t *pdu) {
 
   etag = coap_check_option(pdu, COAP_OPTION_ETAG, &opt_iter);
   if (etag) {
-    rd->etag_len = min(COAP_OPT_LENGTH(etag), sizeof(rd->etag));
-    memcpy(rd->etag, COAP_OPT_VALUE(etag), rd->etag_len);
+    rd->etag_len = min(coap_opt_length(etag), sizeof(rd->etag));
+    memcpy(rd->etag, coap_opt_value(etag), rd->etag_len);
   }
 
   return rd;
 }
 
 static void
-hnd_post_rd(coap_context_t  *ctx,
-            struct coap_resource_t *resource UNUSED_PARAM,
-            const coap_endpoint_t *local_interface UNUSED_PARAM,
-            coap_address_t *peer,
-            coap_pdu_t *request,
-            str *token UNUSED_PARAM,
+hnd_post_rd(coap_resource_t *resource COAP_UNUSED,
+            coap_session_t *session,
+            const coap_pdu_t *request,
+            const coap_string_t *query COAP_UNUSED,
             coap_pdu_t *response) {
   coap_resource_t *r;
-  coap_opt_iterator_t opt_iter;
-  coap_opt_t *query;
 #define LOCSIZE 68
   unsigned char *loc;
   size_t loc_size;
-  str h = {0, NULL}, ins = {0, NULL}, rt = {0, NULL}, lt = {0, NULL}; /* store query parameters */
+  coap_string_t h = {0, NULL}, ins = {0, NULL}, rt = {0, NULL}, lt = {0, NULL}; /* store query parameters */
   unsigned char *buf;
+  coap_str_const_t attr_val;
+  coap_str_const_t resource_val;
 
   loc = (unsigned char *)coap_malloc(LOCSIZE);
   if (!loc) {
-    response->hdr->code = COAP_RESPONSE_CODE(500);
+    coap_pdu_set_code(response, COAP_RESPONSE_CODE_INTERNAL_ERROR);
     return;
   }
   memcpy(loc, RD_ROOT_STR, RD_ROOT_SIZE);
@@ -412,16 +423,11 @@ hnd_post_rd(coap_context_t  *ctx,
   loc[loc_size++] = '/';
 
   /* store query parameters for later use */
-  query = coap_check_option(request, COAP_OPTION_URI_QUERY, &opt_iter);
   if (query) {
-    parse_param((unsigned char *)"h", 1,
-    COAP_OPT_VALUE(query), COAP_OPT_LENGTH(query), &h);
-    parse_param((unsigned char *)"ins", 3,
-    COAP_OPT_VALUE(query), COAP_OPT_LENGTH(query), &ins);
-    parse_param((unsigned char *)"lt", 2,
-    COAP_OPT_VALUE(query), COAP_OPT_LENGTH(query), &lt);
-    parse_param((unsigned char *)"rt", 2,
-    COAP_OPT_VALUE(query), COAP_OPT_LENGTH(query), &rt);
+    parse_param((const uint8_t *)"h", 1, query->s, query->length, &h);
+    parse_param((const uint8_t *)"ins", 3, query->s, query->length, &ins);
+    parse_param((const uint8_t *)"lt", 2, query->s, query->length, &lt);
+    parse_param((const uint8_t *)"rt", 2, query->s, query->length, &rt);
   }
 
   if (h.length) {   /* client has specified a node name */
@@ -438,7 +444,7 @@ hnd_post_rd(coap_context_t  *ctx,
   } else {      /* generate node identifier */
     loc_size +=
       snprintf((char *)(loc + loc_size), LOCSIZE - loc_size - 1,
-               "%x", request->hdr->id);
+               "%x", coap_pdu_get_mid(request));
 
     if (loc_size > 1) {
       if (ins.length) {
@@ -463,7 +469,9 @@ hnd_post_rd(coap_context_t  *ctx,
    *   - use lt to check expiration
    */
 
-  r = coap_resource_init(loc, loc_size, COAP_RESOURCE_FLAGS_RELEASE_URI);
+  resource_val.s = loc;
+  resource_val.length = loc_size;
+  r = coap_resource_init(&resource_val, 0);
   coap_register_handler(r, COAP_REQUEST_GET, hnd_get_resource);
   coap_register_handler(r, COAP_REQUEST_PUT, hnd_put_resource);
   coap_register_handler(r, COAP_REQUEST_DELETE, hnd_delete_resource);
@@ -475,12 +483,13 @@ hnd_post_rd(coap_context_t  *ctx,
       buf[0] = '"';
       memcpy(buf + 1, ins.s, ins.length);
       buf[ins.length + 1] = '"';
+      attr_val.s = buf;
+      attr_val.length = ins.length + 2;
       coap_add_attr(r,
-                    (unsigned char *)"ins",
-                    3,
-                    buf,
-                    ins.length + 2,
-                    COAP_ATTR_FLAGS_RELEASE_VALUE);
+                    coap_make_str_const("ins"),
+                    &attr_val,
+                    0);
+      coap_free(buf);
     }
   }
 
@@ -491,33 +500,34 @@ hnd_post_rd(coap_context_t  *ctx,
       buf[0] = '"';
       memcpy(buf + 1, rt.s, rt.length);
       buf[rt.length + 1] = '"';
+      attr_val.s = buf;
+      attr_val.length = rt.length + 2;
       coap_add_attr(r,
-                    (unsigned char *)"rt",
-                    2,
-                    buf,
-                    rt.length + 2,COAP_ATTR_FLAGS_RELEASE_VALUE);
+                    coap_make_str_const("rt"),
+                    &attr_val,
+                    0);
+      coap_free(buf);
     }
   }
 
-  add_source_address(r, peer);
+  add_source_address(r, coap_session_get_addr_remote(session));
 
   {
     rd_t *rd;
-    rd = make_rd(peer, request);
+    rd = make_rd(request);
     if (rd) {
-      coap_hash_path(loc, loc_size, rd->key);
-      HASH_ADD(hh, resources, key, sizeof(coap_key_t), rd);
+      coap_resource_set_userdata(r, rd);
     } else {
       /* FIXME: send error response and delete r */
     }
   }
 
-  coap_add_resource(ctx, r);
+  coap_add_resource(coap_session_get_context(session), r);
 
 
   /* create response */
 
-  response->hdr->code = COAP_RESPONSE_CODE(201);
+  coap_pdu_set_code(response, COAP_RESPONSE_CODE_CREATED);
 
   { /* split path into segments and add Location-Path options */
     unsigned char _b[LOCSIZE];
@@ -529,44 +539,158 @@ hnd_post_rd(coap_context_t  *ctx,
     while (nseg--) {
       coap_add_option(response,
                       COAP_OPTION_LOCATION_PATH,
-                      COAP_OPT_LENGTH(b),
-                      COAP_OPT_VALUE(b));
-      b += COAP_OPT_SIZE(b);
+                      coap_opt_length(b),
+                      coap_opt_value(b));
+      b += coap_opt_size(b);
     }
   }
+  coap_free(loc);
 }
 
 static void
 init_resources(coap_context_t *ctx) {
   coap_resource_t *r;
 
-  r = coap_resource_init(RD_ROOT_STR, RD_ROOT_SIZE, 0);
+  r = coap_resource_init(coap_make_str_const(RD_ROOT_STR), 0);
   coap_register_handler(r, COAP_REQUEST_GET, hnd_get_rd);
   coap_register_handler(r, COAP_REQUEST_POST, hnd_post_rd);
 
-  coap_add_attr(r, (unsigned char *)"ct", 2, (unsigned char *)"40", 2, 0);
-  coap_add_attr(r, (unsigned char *)"rt", 2, (unsigned char *)"\"core.rd\"", 9, 0);
-  coap_add_attr(r, (unsigned char *)"ins", 2, (unsigned char *)"\"default\"", 9, 0);
+  coap_add_attr(r, coap_make_str_const("ct"), coap_make_str_const("40"), 0);
+  coap_add_attr(r, coap_make_str_const("rt"), coap_make_str_const("\"core.rd\""), 0);
+  coap_add_attr(r, coap_make_str_const("ins"), coap_make_str_const("\"default\""), 0);
 
   coap_add_resource(ctx, r);
 
+  coap_resource_release_userdata_handler(ctx, resource_rd_delete);
 }
 
 static void
 usage( const char *program, const char *version) {
   const char *p;
+  char buffer[72];
+  const char *lib_version = coap_package_version();
 
   p = strrchr( program, '/' );
   if ( p )
     program = ++p;
 
   fprintf( stderr, "%s v%s -- CoRE Resource Directory implementation\n"
-     "(c) 2011-2012 Olaf Bergmann <bergmann@tzi.org>\n\n"
-     "usage: %s [-A address] [-p port]\n\n"
-     "\t-A address\tinterface address to bind to\n"
-     "\t-p port\t\tlisten on specified port\n"
-     "\t-v num\t\tverbosity level (default: 3)\n",
-     program, version, program );
+     "(c) 2011-2012,2019-2021 Olaf Bergmann <bergmann@tzi.org> and others\n\n"
+     "%s\n"
+     "%s\n"
+    , program, version, lib_version,
+    coap_string_tls_version(buffer, sizeof(buffer)));
+  fprintf(stderr, "%s\n", coap_string_tls_support(buffer, sizeof(buffer)));
+  fprintf(stderr, "\n"
+     "Usage: %s [-g group] [-G group_if] [-p port] [-v num] [-A address]\n"
+     "\t       [[-h hint] [-k key]]\n"
+     "\t       [[-c certfile] [-C cafile] [-n] [-R trust_casfile]]\n"
+     "General Options\n"
+     "\t-g group\tJoin the given multicast group.\n"
+     "\t       \t\tNote: DTLS over multicast is not currently supported\n"
+     "\t-G group_if\tUse this interface for listening for the multicast\n"
+     "\t       \t\tgroup. This can be different from the implied interface\n"
+     "\t       \t\tif the -A option is used\n"
+     "\t-p port\t\tListen on specified port\n"
+     "\t-v num \t\tVerbosity level (default 3, maximum is 9). Above 7,\n"
+     "\t       \t\tthere is increased verbosity in GnuTLS and OpenSSL logging\n"
+     "\t-A address\tInterface address to bind to\n"
+     "PSK Options (if supported by underlying (D)TLS library)\n"
+     "\t-h hint\t\tIdentity Hint. Default is CoAP. Zero length is no hint\n"
+     "\t-k key \t\tPre-Shared Key. This argument requires (D)TLS with PSK\n"
+     "\t       \t\tto be available. This cannot be empty if defined.\n"
+     "\t       \t\tNote that both -c and -k need to be defined\n"
+     "\t       \t\tfor both PSK and PKI to be concurrently supported\n"
+     "PKI Options (if supported by underlying (D)TLS library)\n"
+     "\t-c certfile\tPEM file containing both CERTIFICATE and PRIVATE KEY\n"
+     "\t       \t\tThis argument requires (D)TLS with PKI to be available\n"
+     "\t-n     \t\tDisable remote peer certificate checking. This gives\n"
+     "\t       \t\tclients the ability to use PKI, but without any defined\n"
+     "\t       \t\tcertificates\n"
+     "\t-C cafile\tPEM file that contains a list of one or\n"
+     "\t       \t\tmore CAs that are to be passed to the client for the\n"
+     "\t       \t\tclient to determine what client certificate to use.\n"
+     "\t       \t\tNormally, this list of CAs would be the root CA and and\n"
+     "\t       \t\tany intermediate CAs. Ideally the server certificate\n"
+     "\t       \t\tshould be signed by the same CA so that mutual\n"
+     "\t       \t\tauthentication can take place. The contents of cafile\n"
+     "\t       \t\tare added to the trusted store of root CAs.\n"
+     "\t       \t\tUsing the -C or -R options will will trigger the\n"
+     "\t       \t\tvalidation of the client certificate unless overridden\n"
+     "\t       \t\tby the -n option\n"
+     "\t-R trust_casfile\tPEM file containing the set of trusted root CAs\n"
+     "\t       \t\tthat are to be used to validate the client certificate.\n"
+     "\t       \t\tAlternatively, this can point to a directory containing\n"
+     "\t       \t\ta set of CA PEM files.\n"
+     "\t       \t\tUsing '-R trust_casfile' disables common CA mutual\n"
+     "\t       \t\tauthentication which can only be done by using\n"
+     "\t       \t\t'-C cafile'.\n"
+     "\t       \t\tUsing the -C or -R options will will trigger the\n"
+     "\t       \t\tvalidation of the client certificate unless overridden\n"
+     "\t       \t\tby the -n option\n"
+     ,
+     program);
+}
+
+static void
+fill_keystore(coap_context_t *ctx) {
+  if (cert_file == NULL && key_defined == 0) {
+    if (coap_dtls_is_supported() || coap_tls_is_supported()) {
+      coap_log(LOG_DEBUG,
+               "(D)TLS not enabled as neither -k or -c options specified\n");
+    }
+  }
+  if (cert_file) {
+    coap_dtls_pki_t dtls_pki;
+    memset (&dtls_pki, 0, sizeof(dtls_pki));
+    dtls_pki.version = COAP_DTLS_PKI_SETUP_VERSION;
+    if (ca_file || root_ca_file) {
+      /*
+       * Add in additional certificate checking.
+       * This list of enabled can be tuned for the specific
+       * requirements - see 'man coap_encryption'.
+       */
+      dtls_pki.verify_peer_cert        = verify_peer_cert;
+      dtls_pki.check_common_ca         = !root_ca_file;
+      dtls_pki.allow_self_signed       = 1;
+      dtls_pki.allow_expired_certs     = 1;
+      dtls_pki.cert_chain_validation   = 1;
+      dtls_pki.cert_chain_verify_depth = 2;
+      dtls_pki.check_cert_revocation   = 1;
+      dtls_pki.allow_no_crl            = 1;
+      dtls_pki.allow_expired_crl       = 1;
+      dtls_pki.validate_cn_call_back   = NULL;
+      dtls_pki.cn_call_back_arg        = NULL;
+      dtls_pki.validate_sni_call_back  = NULL;
+      dtls_pki.sni_call_back_arg       = NULL;
+    }
+    dtls_pki.pki_key.key_type = COAP_PKI_KEY_PEM;
+    dtls_pki.pki_key.key.pem.public_cert = cert_file;
+    dtls_pki.pki_key.key.pem.private_key = cert_file;
+    dtls_pki.pki_key.key.pem.ca_file = ca_file;
+    /* If general root CAs are defined */
+    if (root_ca_file) {
+      struct stat stbuf;
+      if ((stat(root_ca_file, &stbuf) == 0) && S_ISDIR(stbuf.st_mode)) {
+        coap_context_set_pki_root_cas(ctx, NULL, root_ca_file);
+      } else {
+        coap_context_set_pki_root_cas(ctx, root_ca_file, NULL);
+      }
+    }
+    coap_context_set_pki(ctx, &dtls_pki);
+  }
+  if (key_defined) {
+    coap_dtls_spsk_t dtls_psk;
+    memset (&dtls_psk, 0, sizeof(dtls_psk));
+    dtls_psk.version = COAP_DTLS_SPSK_SETUP_VERSION;
+    dtls_psk.validate_id_call_back = NULL;
+    dtls_psk.validate_sni_call_back = NULL;
+    dtls_psk.psk_info.hint.s = (const uint8_t *)hint;
+    dtls_psk.psk_info.hint.length = hint ? strlen(hint) : 0;
+    dtls_psk.psk_info.key.s = key;
+    dtls_psk.psk_info.key.length = key_length;
+    coap_context_set_psk2(ctx, &dtls_psk);
+  }
 }
 
 static coap_context_t *
@@ -576,6 +700,13 @@ get_context(const char *node, const char *port) {
   struct addrinfo hints;
   struct addrinfo *result, *rp;
 
+  ctx = coap_new_context(NULL);
+  if (!ctx) {
+    return NULL;
+  }
+  /* Need PSK set up before we set up (D)TLS endpoints */
+  fill_keystore(ctx);
+
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
   hints.ai_socktype = SOCK_DGRAM; /* Coap uses UDP */
@@ -584,114 +715,115 @@ get_context(const char *node, const char *port) {
   s = getaddrinfo(node, port, &hints, &result);
   if ( s != 0 ) {
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
+    coap_free_context(ctx);
     return NULL;
   }
 
   /* iterate through results until success */
   for (rp = result; rp != NULL; rp = rp->ai_next) {
-    coap_address_t addr;
+    coap_address_t addr, addrs;
+    coap_endpoint_t *ep_udp = NULL, *ep_dtls = NULL, *ep_tcp = NULL, *ep_tls = NULL;
 
-    if (rp->ai_addrlen <= sizeof(addr.addr)) {
+    if (rp->ai_addrlen <= (socklen_t)sizeof(addr.addr)) {
       coap_address_init(&addr);
-      addr.size = rp->ai_addrlen;
+      addr.size = (socklen_t)rp->ai_addrlen;
       memcpy(&addr.addr, rp->ai_addr, rp->ai_addrlen);
-
-      ctx = coap_new_context(&addr);
-      if (ctx) {
-        /* TODO: output address:port for successful binding */
+      addrs = addr;
+      if (addr.addr.sa.sa_family == AF_INET) {
+        uint16_t temp = ntohs(addr.addr.sin.sin_port) + 1;
+        addrs.addr.sin.sin_port = htons(temp);
+      } else if (addr.addr.sa.sa_family == AF_INET6) {
+        uint16_t temp = ntohs(addr.addr.sin6.sin6_port) + 1;
+        addrs.addr.sin6.sin6_port = htons(temp);
+      } else {
         goto finish;
       }
+
+      ep_udp = coap_new_endpoint(ctx, &addr, COAP_PROTO_UDP);
+      if (ep_udp) {
+        if (coap_dtls_is_supported() && (key_defined || cert_file)) {
+          ep_dtls = coap_new_endpoint(ctx, &addrs, COAP_PROTO_DTLS);
+          if (!ep_dtls)
+            coap_log(LOG_CRIT, "cannot create DTLS endpoint\n");
+        }
+      } else {
+        coap_log(LOG_CRIT, "cannot create UDP endpoint\n");
+        continue;
+      }
+      ep_tcp = coap_new_endpoint(ctx, &addr, COAP_PROTO_TCP);
+      if (ep_tcp) {
+        if (coap_tls_is_supported() && (key_defined || cert_file)) {
+          ep_tls = coap_new_endpoint(ctx, &addrs, COAP_PROTO_TLS);
+          if (!ep_tls)
+            coap_log(LOG_CRIT, "cannot create TLS endpoint\n");
+        }
+      } else {
+        coap_log(LOG_CRIT, "cannot create TCP endpoint\n");
+      }
+      if (ep_udp)
+        goto finish;
     }
   }
 
   fprintf(stderr, "no context available for interface '%s'\n", node);
 
- finish:
+finish:
   freeaddrinfo(result);
   return ctx;
-}
-
-static int
-join(coap_context_t *ctx, char *group_name) {
-  struct ipv6_mreq mreq;
-  struct addrinfo   *reslocal = NULL, *resmulti = NULL, hints, *ainfo;
-  int result = -1;
-
-  /* we have to resolve the link-local interface to get the interface id */
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_INET6;
-  hints.ai_socktype = SOCK_DGRAM;
-
-  result = getaddrinfo("::", NULL, &hints, &reslocal);
-  if ( result < 0 ) {
-    perror("join: cannot resolve link-local interface");
-    goto finish;
-  }
-
-  /* get the first suitable interface identifier */
-  for (ainfo = reslocal; ainfo != NULL; ainfo = ainfo->ai_next) {
-    if ( ainfo->ai_family == AF_INET6 ) {
-      mreq.ipv6mr_interface =
-              ((struct sockaddr_in6 *)ainfo->ai_addr)->sin6_scope_id;
-      break;
-    }
-  }
-
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_INET6;
-  hints.ai_socktype = SOCK_DGRAM;
-
-  /* resolve the multicast group address */
-  result = getaddrinfo(group_name, NULL, &hints, &resmulti);
-
-  if ( result < 0 ) {
-    perror("join: cannot resolve multicast address");
-    goto finish;
-  }
-
-  for (ainfo = resmulti; ainfo != NULL; ainfo = ainfo->ai_next) {
-    if ( ainfo->ai_family == AF_INET6 ) {
-      mreq.ipv6mr_multiaddr =
-        ((struct sockaddr_in6 *)ainfo->ai_addr)->sin6_addr;
-      break;
-    }
-  }
-
-  result = setsockopt(ctx->sockfd,
-                      IPPROTO_IPV6, IPV6_JOIN_GROUP,
-                      (char *)&mreq, sizeof(mreq) );
-  if ( result < 0 )
-    perror("join: setsockopt");
-
- finish:
-  freeaddrinfo(resmulti);
-  freeaddrinfo(reslocal);
-
-  return result;
 }
 
 int
 main(int argc, char **argv) {
   coap_context_t  *ctx;
-  fd_set readfds;
-  struct timeval tv, *timeout;
   int result;
-  coap_tick_t now;
-  coap_queue_t *nextpdu;
   char addr_str[NI_MAXHOST] = "::";
   char port_str[NI_MAXSERV] = "5683";
   char *group = NULL;
+  char *group_if = NULL;
   int opt;
   coap_log_t log_level = LOG_WARNING;
+#ifndef _WIN32
+  struct sigaction sa;
+#endif
 
-  while ((opt = getopt(argc, argv, "A:g:p:v:")) != -1) {
+  while ((opt = getopt(argc, argv, "A:c:C:g:G:h:k:n:R:p:v:")) != -1) {
     switch (opt) {
     case 'A' :
       strncpy(addr_str, optarg, NI_MAXHOST-1);
       addr_str[NI_MAXHOST - 1] = '\0';
       break;
+    case 'c' :
+      cert_file = optarg;
+      break;
+    case 'C' :
+      ca_file = optarg;
+      break;
     case 'g' :
       group = optarg;
+      break;
+    case 'G' :
+      group_if = optarg;
+      break;
+    case 'h' :
+      if (!optarg[0]) {
+        hint = NULL;
+        break;
+      }
+      hint = optarg;
+      break;
+    case 'k' :
+      key_length = cmdline_read_key(optarg, key, MAX_KEY);
+      if (key_length < 0) {
+        coap_log( LOG_CRIT, "Invalid Pre-Shared Key specified\n" );
+        break;
+      }
+      key_defined = 1;
+      break;
+    case 'n':
+      verify_peer_cert = 0;
+      break;
+    case 'R' :
+      root_ca_file = optarg;
       break;
     case 'p' :
       strncpy(port_str, optarg, NI_MAXSERV-1);
@@ -701,11 +833,13 @@ main(int argc, char **argv) {
       log_level = strtol(optarg, NULL, 10);
       break;
     default:
-      usage( argv[0], PACKAGE_VERSION );
+      usage( argv[0], LIBCOAP_PACKAGE_VERSION );
       exit( 1 );
     }
   }
 
+  coap_startup();
+  coap_dtls_set_log_level(log_level);
   coap_set_log_level(log_level);
 
   ctx = get_context(addr_str, port_str);
@@ -713,51 +847,33 @@ main(int argc, char **argv) {
     return -1;
 
   if (group)
-    join(ctx, group);
+    coap_join_mcast_group_intf(ctx, group, group_if);
 
   init_resources(ctx);
 
+#ifdef _WIN32
   signal(SIGINT, handle_sigint);
+#else
+  memset (&sa, 0, sizeof(sa));
+  sigemptyset(&sa.sa_mask);
+  sa.sa_handler = handle_sigint;
+  sa.sa_flags = 0;
+  sigaction (SIGINT, &sa, NULL);
+  sigaction (SIGTERM, &sa, NULL);
+  /* So we do not exit on a SIGPIPE */
+  sa.sa_handler = SIG_IGN;
+  sigaction (SIGPIPE, &sa, NULL);
+#endif
 
   while ( !quit ) {
-    FD_ZERO(&readfds);
-    FD_SET( ctx->sockfd, &readfds );
-
-    nextpdu = coap_peek_next( ctx );
-
-    coap_ticks(&now);
-    while ( nextpdu && nextpdu->t <= now ) {
-      coap_retransmit( ctx, coap_pop_next( ctx ) );
-      nextpdu = coap_peek_next( ctx );
-    }
-
-    if ( nextpdu && nextpdu->t <= now + COAP_RESOURCE_CHECK_TIME ) {
-      /* set timeout if there is a pdu to send before our automatic
-         timeout occurs */
-      tv.tv_usec = ((nextpdu->t - now) % COAP_TICKS_PER_SECOND) * 1000000 / COAP_TICKS_PER_SECOND;
-      tv.tv_sec = (nextpdu->t - now) / COAP_TICKS_PER_SECOND;
-      timeout = &tv;
-    } else {
-      tv.tv_usec = 0;
-      tv.tv_sec = COAP_RESOURCE_CHECK_TIME;
-      timeout = &tv;
-    }
-    result = select( FD_SETSIZE, &readfds, 0, 0, timeout );
-
-    if ( result < 0 ) {     /* error */
-      if (errno != EINTR)
-        perror("select");
-      } else if ( result > 0 ) {  /* read from socket */
-        if ( FD_ISSET( ctx->sockfd, &readfds ) ) {
-          coap_read( ctx ); /* read received data */
-          /* coap_dispatch( ctx );  /\* and dispatch PDUs from receivequeue *\/ */
-        }
-      } else {            /* timeout */
-        /* coap_check_resource_list( ctx ); */
+    result = coap_io_process( ctx, COAP_RESOURCE_CHECK_TIME * 1000 );
+    if ( result >= 0 ) {
+      /* coap_check_resource_list( ctx ); */
     }
   }
 
   coap_free_context( ctx );
+  coap_cleanup();
 
   return 0;
 }

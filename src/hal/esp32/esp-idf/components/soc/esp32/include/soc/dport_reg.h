@@ -19,7 +19,7 @@
 #ifndef __ASSEMBLER__
 #include "dport_access.h"
 #endif
-   
+
 /* Registers defined in this header file must be accessed using special macros,
  * prefixed with DPORT_. See soc/dport_access.h file for details.
  */
@@ -958,10 +958,10 @@
 #define DPORT_SPI_DMA_CLK_EN   (BIT(22))
 #define DPORT_I2S1_CLK_EN   (BIT(21))
 #define DPORT_PWM1_CLK_EN   (BIT(20))
-#define DPORT_CAN_CLK_EN   (BIT(19))
+#define DPORT_TWAI_CLK_EN   (BIT(19))
+#define DPORT_CAN_CLK_EN    DPORT_TWAI_CLK_EN
 #define DPORT_I2C_EXT1_CLK_EN   (BIT(18))
 #define DPORT_PWM0_CLK_EN   (BIT(17))
-#define DPORT_SPI_CLK_EN_2   (BIT(16)) /** Deprecated, please use DPORT_SPI3_CLK_EN **/
 #define DPORT_SPI3_CLK_EN   (BIT(16))
 #define DPORT_TIMERGROUP1_CLK_EN   (BIT(15))
 #define DPORT_EFUSE_CLK_EN   (BIT(14))
@@ -972,13 +972,11 @@
 #define DPORT_RMT_CLK_EN   (BIT(9))
 #define DPORT_UHCI0_CLK_EN   (BIT(8))
 #define DPORT_I2C_EXT0_CLK_EN   (BIT(7))
-#define DPORT_SPI_CLK_EN   (BIT(6)) /** Deprecated, please use DPORT_SPI2_CLK_EN **/
 #define DPORT_SPI2_CLK_EN   (BIT(6))
 #define DPORT_UART1_CLK_EN   (BIT(5))
 #define DPORT_I2S0_CLK_EN   (BIT(4))
 #define DPORT_WDG_CLK_EN   (BIT(3))
 #define DPORT_UART_CLK_EN   (BIT(2))
-#define DPORT_SPI_CLK_EN_1   (BIT(1)) /** Deprecated, please use DPORT_SPI01_CLK_EN **/
 #define DPORT_SPI01_CLK_EN   (BIT(1))
 #define DPORT_TIMERS_CLK_EN   (BIT(0))
 #define DPORT_PERIP_RST_EN_REG          (DR_REG_DPORT_BASE + 0x0C4)
@@ -995,10 +993,10 @@
 #define DPORT_SPI_DMA_RST   (BIT(22))
 #define DPORT_I2S1_RST   (BIT(21))
 #define DPORT_PWM1_RST   (BIT(20))
-#define DPORT_CAN_RST   (BIT(19))
+#define DPORT_TWAI_RST   (BIT(19))
+#define DPORT_CAN_RST    DPORT_TWAI_RST
 #define DPORT_I2C_EXT1_RST   (BIT(18))
 #define DPORT_PWM0_RST   (BIT(17))
-#define DPORT_SPI_RST_2   (BIT(16)) /** Deprecated, please use DPORT_SPI3_RST **/
 #define DPORT_SPI3_RST   (BIT(16))
 #define DPORT_TIMERGROUP1_RST   (BIT(15))
 #define DPORT_EFUSE_RST   (BIT(14))
@@ -1009,13 +1007,11 @@
 #define DPORT_RMT_RST   (BIT(9))
 #define DPORT_UHCI0_RST   (BIT(8))
 #define DPORT_I2C_EXT0_RST   (BIT(7))
-#define DPORT_SPI_RST   (BIT(6)) /** Deprecated, please use DPORT_SPI2_RST **/
 #define DPORT_SPI2_RST   (BIT(6))
 #define DPORT_UART1_RST   (BIT(5))
 #define DPORT_I2S0_RST   (BIT(4))
 #define DPORT_WDG_RST   (BIT(3))
 #define DPORT_UART_RST   (BIT(2))
-#define DPORT_SPI_RST_1   (BIT(1)) /** Deprecated, please use DPORT_SPI01_RST **/
 #define DPORT_SPI01_RST   (BIT(1))
 #define DPORT_TIMERS_RST   (BIT(0))
 #define DPORT_SLAVE_SPI_CONFIG_REG          (DR_REG_DPORT_BASE + 0x0C8)
@@ -1090,7 +1086,7 @@
 #define DPORT_BT_RST (BIT(3))
 #define DPORT_MAC_RST (BIT(2))
 #define DPORT_FE_RST (BIT(1))
-#define DPORT_BB_RST (BIT(0))  
+#define DPORT_BB_RST (BIT(0))
 
 #define DPORT_BT_LPCK_DIV_INT_REG          (DR_REG_DPORT_BASE + 0x0D4)
 /* DPORT_BTEXTWAKEUP_REQ : R/W ;bitpos:[12] ;default: 1'b0 ; */
@@ -1160,6 +1156,8 @@
 #define DPORT_CPU_INTR_FROM_CPU_1_V  0x1
 #define DPORT_CPU_INTR_FROM_CPU_1_S  0
 
+#define SYSTEM_CPU_INTR_FROM_CPU_2_REG          DPORT_CPU_INTR_FROM_CPU_2_REG
+#define SYSTEM_CPU_INTR_FROM_CPU_2              DPORT_CPU_INTR_FROM_CPU_2
 #define DPORT_CPU_INTR_FROM_CPU_2_REG          (DR_REG_DPORT_BASE + 0x0E4)
 /* DPORT_CPU_INTR_FROM_CPU_2 : R/W ;bitpos:[0] ;default: 1'b0 ; */
 /*description: */
@@ -1168,6 +1166,8 @@
 #define DPORT_CPU_INTR_FROM_CPU_2_V  0x1
 #define DPORT_CPU_INTR_FROM_CPU_2_S  0
 
+#define SYSTEM_CPU_INTR_FROM_CPU_3_REG          DPORT_CPU_INTR_FROM_CPU_3_REG
+#define SYSTEM_CPU_INTR_FROM_CPU_3              DPORT_CPU_INTR_FROM_CPU_3
 #define DPORT_CPU_INTR_FROM_CPU_3_REG          (DR_REG_DPORT_BASE + 0x0E8)
 /* DPORT_CPU_INTR_FROM_CPU_3 : R/W ;bitpos:[0] ;default: 1'b0 ; */
 /*description: */
@@ -4283,6 +4283,11 @@
 
 #define DPORT_FLASH_MMU_TABLE_INVALID_VAL 0x100
 
+#define DPORT_MMU_ADDRESS_MASK 0xff
+
+#define TRACEMEM_MUX_PROBLK0_APPBLK1    0
+#define TRACEMEM_MUX_BLK0_ONLY          1
+#define TRACEMEM_MUX_BLK1_ONLY          2
+#define TRACEMEM_MUX_PROBLK1_APPBLK0    3
+
 #endif /*_SOC_DPORT_REG_H_ */
-
-

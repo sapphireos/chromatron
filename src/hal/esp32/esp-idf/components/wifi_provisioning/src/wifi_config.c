@@ -82,6 +82,7 @@ static esp_err_t cmd_get_status_handler(WiFiConfigPayload *req,
             WifiConnectedState *connected = (WifiConnectedState *)(
                                             malloc(sizeof(WifiConnectedState)));
             if (!connected) {
+                free(resp_payload);
                 ESP_LOGE(TAG, "Error allocating memory");
                 return ESP_ERR_NO_MEM;
             }
@@ -219,9 +220,7 @@ static esp_err_t cmd_apply_config_handler(WiFiConfigPayload *req,
 
 static int lookup_cmd_handler(int cmd_id)
 {
-    int i;
-
-    for (i = 0; i < sizeof(cmd_table)/sizeof(wifi_prov_config_cmd_t); i++) {
+    for (size_t i = 0; i < sizeof(cmd_table)/sizeof(wifi_prov_config_cmd_t); i++) {
         if (cmd_table[i].cmd_num == cmd_id) {
             return i;
         }

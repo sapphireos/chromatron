@@ -56,6 +56,18 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 #=============================================================================
 # Targets provided globally by CMake.
 
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
+
 # Special rule for the target install/local
 install/local: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
@@ -67,17 +79,6 @@ install/local/fast: preinstall/fast
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
 	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
 .PHONY : install/local/fast
-
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
 
 # Special rule for the target install
 install: preinstall
@@ -112,17 +113,16 @@ rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
 
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
 
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -157,34 +157,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/rule
-.PHONY : esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/rule
+esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/rule
+.PHONY : esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/rule
 
 # Convenience name for target.
-idf_component_spi_flash_sections_info: esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/rule
+__idf_spi_flash: esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/rule
 
-.PHONY : idf_component_spi_flash_sections_info
+.PHONY : __idf_spi_flash
 
 # fast build rule for target.
-idf_component_spi_flash_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/build
-.PHONY : idf_component_spi_flash_sections_info/fast
-
-# Convenience name for target.
-esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/rule
-.PHONY : esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/rule
-
-# Convenience name for target.
-idf_component_spi_flash: esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/rule
-
-.PHONY : idf_component_spi_flash
-
-# fast build rule for target.
-idf_component_spi_flash/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build
-.PHONY : idf_component_spi_flash/fast
+__idf_spi_flash/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build
+.PHONY : __idf_spi_flash/fast
 
 cache_utils.obj: cache_utils.c.obj
 
@@ -192,7 +177,7 @@ cache_utils.obj: cache_utils.c.obj
 
 # target to build an object file
 cache_utils.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/cache_utils.c.obj
 .PHONY : cache_utils.c.obj
 
 cache_utils.i: cache_utils.c.i
@@ -201,7 +186,7 @@ cache_utils.i: cache_utils.c.i
 
 # target to preprocess a source file
 cache_utils.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/cache_utils.c.i
 .PHONY : cache_utils.c.i
 
 cache_utils.s: cache_utils.c.s
@@ -210,8 +195,116 @@ cache_utils.s: cache_utils.c.s
 
 # target to generate assembly for a file
 cache_utils.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/cache_utils.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/cache_utils.c.s
 .PHONY : cache_utils.c.s
+
+esp32/flash_ops_esp32.obj: esp32/flash_ops_esp32.c.obj
+
+.PHONY : esp32/flash_ops_esp32.obj
+
+# target to build an object file
+esp32/flash_ops_esp32.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp32/flash_ops_esp32.c.obj
+.PHONY : esp32/flash_ops_esp32.c.obj
+
+esp32/flash_ops_esp32.i: esp32/flash_ops_esp32.c.i
+
+.PHONY : esp32/flash_ops_esp32.i
+
+# target to preprocess a source file
+esp32/flash_ops_esp32.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp32/flash_ops_esp32.c.i
+.PHONY : esp32/flash_ops_esp32.c.i
+
+esp32/flash_ops_esp32.s: esp32/flash_ops_esp32.c.s
+
+.PHONY : esp32/flash_ops_esp32.s
+
+# target to generate assembly for a file
+esp32/flash_ops_esp32.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp32/flash_ops_esp32.c.s
+.PHONY : esp32/flash_ops_esp32.c.s
+
+esp32/spi_flash_rom_patch.obj: esp32/spi_flash_rom_patch.c.obj
+
+.PHONY : esp32/spi_flash_rom_patch.obj
+
+# target to build an object file
+esp32/spi_flash_rom_patch.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp32/spi_flash_rom_patch.c.obj
+.PHONY : esp32/spi_flash_rom_patch.c.obj
+
+esp32/spi_flash_rom_patch.i: esp32/spi_flash_rom_patch.c.i
+
+.PHONY : esp32/spi_flash_rom_patch.i
+
+# target to preprocess a source file
+esp32/spi_flash_rom_patch.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp32/spi_flash_rom_patch.c.i
+.PHONY : esp32/spi_flash_rom_patch.c.i
+
+esp32/spi_flash_rom_patch.s: esp32/spi_flash_rom_patch.c.s
+
+.PHONY : esp32/spi_flash_rom_patch.s
+
+# target to generate assembly for a file
+esp32/spi_flash_rom_patch.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp32/spi_flash_rom_patch.c.s
+.PHONY : esp32/spi_flash_rom_patch.c.s
+
+esp_flash_api.obj: esp_flash_api.c.obj
+
+.PHONY : esp_flash_api.obj
+
+# target to build an object file
+esp_flash_api.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp_flash_api.c.obj
+.PHONY : esp_flash_api.c.obj
+
+esp_flash_api.i: esp_flash_api.c.i
+
+.PHONY : esp_flash_api.i
+
+# target to preprocess a source file
+esp_flash_api.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp_flash_api.c.i
+.PHONY : esp_flash_api.c.i
+
+esp_flash_api.s: esp_flash_api.c.s
+
+.PHONY : esp_flash_api.s
+
+# target to generate assembly for a file
+esp_flash_api.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp_flash_api.c.s
+.PHONY : esp_flash_api.c.s
+
+esp_flash_spi_init.obj: esp_flash_spi_init.c.obj
+
+.PHONY : esp_flash_spi_init.obj
+
+# target to build an object file
+esp_flash_spi_init.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp_flash_spi_init.c.obj
+.PHONY : esp_flash_spi_init.c.obj
+
+esp_flash_spi_init.i: esp_flash_spi_init.c.i
+
+.PHONY : esp_flash_spi_init.i
+
+# target to preprocess a source file
+esp_flash_spi_init.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp_flash_spi_init.c.i
+.PHONY : esp_flash_spi_init.c.i
+
+esp_flash_spi_init.s: esp_flash_spi_init.c.s
+
+.PHONY : esp_flash_spi_init.s
+
+# target to generate assembly for a file
+esp_flash_spi_init.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp_flash_spi_init.c.s
+.PHONY : esp_flash_spi_init.c.s
 
 flash_mmap.obj: flash_mmap.c.obj
 
@@ -219,7 +312,7 @@ flash_mmap.obj: flash_mmap.c.obj
 
 # target to build an object file
 flash_mmap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/flash_mmap.c.obj
 .PHONY : flash_mmap.c.obj
 
 flash_mmap.i: flash_mmap.c.i
@@ -228,7 +321,7 @@ flash_mmap.i: flash_mmap.c.i
 
 # target to preprocess a source file
 flash_mmap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/flash_mmap.c.i
 .PHONY : flash_mmap.c.i
 
 flash_mmap.s: flash_mmap.c.s
@@ -237,7 +330,7 @@ flash_mmap.s: flash_mmap.c.s
 
 # target to generate assembly for a file
 flash_mmap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_mmap.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/flash_mmap.c.s
 .PHONY : flash_mmap.c.s
 
 flash_ops.obj: flash_ops.c.obj
@@ -246,7 +339,7 @@ flash_ops.obj: flash_ops.c.obj
 
 # target to build an object file
 flash_ops.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/flash_ops.c.obj
 .PHONY : flash_ops.c.obj
 
 flash_ops.i: flash_ops.c.i
@@ -255,7 +348,7 @@ flash_ops.i: flash_ops.c.i
 
 # target to preprocess a source file
 flash_ops.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/flash_ops.c.i
 .PHONY : flash_ops.c.i
 
 flash_ops.s: flash_ops.c.s
@@ -264,8 +357,35 @@ flash_ops.s: flash_ops.c.s
 
 # target to generate assembly for a file
 flash_ops.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/flash_ops.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/flash_ops.c.s
 .PHONY : flash_ops.c.s
+
+memspi_host_driver.obj: memspi_host_driver.c.obj
+
+.PHONY : memspi_host_driver.obj
+
+# target to build an object file
+memspi_host_driver.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/memspi_host_driver.c.obj
+.PHONY : memspi_host_driver.c.obj
+
+memspi_host_driver.i: memspi_host_driver.c.i
+
+.PHONY : memspi_host_driver.i
+
+# target to preprocess a source file
+memspi_host_driver.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/memspi_host_driver.c.i
+.PHONY : memspi_host_driver.c.i
+
+memspi_host_driver.s: memspi_host_driver.c.s
+
+.PHONY : memspi_host_driver.s
+
+# target to generate assembly for a file
+memspi_host_driver.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/memspi_host_driver.c.s
+.PHONY : memspi_host_driver.c.s
 
 partition.obj: partition.c.obj
 
@@ -273,7 +393,7 @@ partition.obj: partition.c.obj
 
 # target to build an object file
 partition.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/partition.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/partition.c.obj
 .PHONY : partition.c.obj
 
 partition.i: partition.c.i
@@ -282,7 +402,7 @@ partition.i: partition.c.i
 
 # target to preprocess a source file
 partition.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/partition.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/partition.c.i
 .PHONY : partition.c.i
 
 partition.s: partition.c.s
@@ -291,35 +411,278 @@ partition.s: partition.c.s
 
 # target to generate assembly for a file
 partition.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/partition.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/partition.c.s
 .PHONY : partition.c.s
 
-spi_flash_rom_patch.obj: spi_flash_rom_patch.c.obj
+spi_flash_chip_boya.obj: spi_flash_chip_boya.c.obj
 
-.PHONY : spi_flash_rom_patch.obj
+.PHONY : spi_flash_chip_boya.obj
 
 # target to build an object file
-spi_flash_rom_patch.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/spi_flash_rom_patch.c.obj
-.PHONY : spi_flash_rom_patch.c.obj
+spi_flash_chip_boya.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_boya.c.obj
+.PHONY : spi_flash_chip_boya.c.obj
 
-spi_flash_rom_patch.i: spi_flash_rom_patch.c.i
+spi_flash_chip_boya.i: spi_flash_chip_boya.c.i
 
-.PHONY : spi_flash_rom_patch.i
+.PHONY : spi_flash_chip_boya.i
 
 # target to preprocess a source file
-spi_flash_rom_patch.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/spi_flash_rom_patch.c.i
-.PHONY : spi_flash_rom_patch.c.i
+spi_flash_chip_boya.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_boya.c.i
+.PHONY : spi_flash_chip_boya.c.i
 
-spi_flash_rom_patch.s: spi_flash_rom_patch.c.s
+spi_flash_chip_boya.s: spi_flash_chip_boya.c.s
 
-.PHONY : spi_flash_rom_patch.s
+.PHONY : spi_flash_chip_boya.s
 
 # target to generate assembly for a file
-spi_flash_rom_patch.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/spi_flash_rom_patch.c.s
-.PHONY : spi_flash_rom_patch.c.s
+spi_flash_chip_boya.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_boya.c.s
+.PHONY : spi_flash_chip_boya.c.s
+
+spi_flash_chip_drivers.obj: spi_flash_chip_drivers.c.obj
+
+.PHONY : spi_flash_chip_drivers.obj
+
+# target to build an object file
+spi_flash_chip_drivers.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_drivers.c.obj
+.PHONY : spi_flash_chip_drivers.c.obj
+
+spi_flash_chip_drivers.i: spi_flash_chip_drivers.c.i
+
+.PHONY : spi_flash_chip_drivers.i
+
+# target to preprocess a source file
+spi_flash_chip_drivers.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_drivers.c.i
+.PHONY : spi_flash_chip_drivers.c.i
+
+spi_flash_chip_drivers.s: spi_flash_chip_drivers.c.s
+
+.PHONY : spi_flash_chip_drivers.s
+
+# target to generate assembly for a file
+spi_flash_chip_drivers.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_drivers.c.s
+.PHONY : spi_flash_chip_drivers.c.s
+
+spi_flash_chip_gd.obj: spi_flash_chip_gd.c.obj
+
+.PHONY : spi_flash_chip_gd.obj
+
+# target to build an object file
+spi_flash_chip_gd.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_gd.c.obj
+.PHONY : spi_flash_chip_gd.c.obj
+
+spi_flash_chip_gd.i: spi_flash_chip_gd.c.i
+
+.PHONY : spi_flash_chip_gd.i
+
+# target to preprocess a source file
+spi_flash_chip_gd.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_gd.c.i
+.PHONY : spi_flash_chip_gd.c.i
+
+spi_flash_chip_gd.s: spi_flash_chip_gd.c.s
+
+.PHONY : spi_flash_chip_gd.s
+
+# target to generate assembly for a file
+spi_flash_chip_gd.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_gd.c.s
+.PHONY : spi_flash_chip_gd.c.s
+
+spi_flash_chip_generic.obj: spi_flash_chip_generic.c.obj
+
+.PHONY : spi_flash_chip_generic.obj
+
+# target to build an object file
+spi_flash_chip_generic.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_generic.c.obj
+.PHONY : spi_flash_chip_generic.c.obj
+
+spi_flash_chip_generic.i: spi_flash_chip_generic.c.i
+
+.PHONY : spi_flash_chip_generic.i
+
+# target to preprocess a source file
+spi_flash_chip_generic.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_generic.c.i
+.PHONY : spi_flash_chip_generic.c.i
+
+spi_flash_chip_generic.s: spi_flash_chip_generic.c.s
+
+.PHONY : spi_flash_chip_generic.s
+
+# target to generate assembly for a file
+spi_flash_chip_generic.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_generic.c.s
+.PHONY : spi_flash_chip_generic.c.s
+
+spi_flash_chip_issi.obj: spi_flash_chip_issi.c.obj
+
+.PHONY : spi_flash_chip_issi.obj
+
+# target to build an object file
+spi_flash_chip_issi.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_issi.c.obj
+.PHONY : spi_flash_chip_issi.c.obj
+
+spi_flash_chip_issi.i: spi_flash_chip_issi.c.i
+
+.PHONY : spi_flash_chip_issi.i
+
+# target to preprocess a source file
+spi_flash_chip_issi.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_issi.c.i
+.PHONY : spi_flash_chip_issi.c.i
+
+spi_flash_chip_issi.s: spi_flash_chip_issi.c.s
+
+.PHONY : spi_flash_chip_issi.s
+
+# target to generate assembly for a file
+spi_flash_chip_issi.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_issi.c.s
+.PHONY : spi_flash_chip_issi.c.s
+
+spi_flash_chip_mxic.obj: spi_flash_chip_mxic.c.obj
+
+.PHONY : spi_flash_chip_mxic.obj
+
+# target to build an object file
+spi_flash_chip_mxic.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_mxic.c.obj
+.PHONY : spi_flash_chip_mxic.c.obj
+
+spi_flash_chip_mxic.i: spi_flash_chip_mxic.c.i
+
+.PHONY : spi_flash_chip_mxic.i
+
+# target to preprocess a source file
+spi_flash_chip_mxic.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_mxic.c.i
+.PHONY : spi_flash_chip_mxic.c.i
+
+spi_flash_chip_mxic.s: spi_flash_chip_mxic.c.s
+
+.PHONY : spi_flash_chip_mxic.s
+
+# target to generate assembly for a file
+spi_flash_chip_mxic.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_mxic.c.s
+.PHONY : spi_flash_chip_mxic.c.s
+
+spi_flash_chip_mxic_opi.obj: spi_flash_chip_mxic_opi.c.obj
+
+.PHONY : spi_flash_chip_mxic_opi.obj
+
+# target to build an object file
+spi_flash_chip_mxic_opi.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_mxic_opi.c.obj
+.PHONY : spi_flash_chip_mxic_opi.c.obj
+
+spi_flash_chip_mxic_opi.i: spi_flash_chip_mxic_opi.c.i
+
+.PHONY : spi_flash_chip_mxic_opi.i
+
+# target to preprocess a source file
+spi_flash_chip_mxic_opi.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_mxic_opi.c.i
+.PHONY : spi_flash_chip_mxic_opi.c.i
+
+spi_flash_chip_mxic_opi.s: spi_flash_chip_mxic_opi.c.s
+
+.PHONY : spi_flash_chip_mxic_opi.s
+
+# target to generate assembly for a file
+spi_flash_chip_mxic_opi.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_mxic_opi.c.s
+.PHONY : spi_flash_chip_mxic_opi.c.s
+
+spi_flash_chip_winbond.obj: spi_flash_chip_winbond.c.obj
+
+.PHONY : spi_flash_chip_winbond.obj
+
+# target to build an object file
+spi_flash_chip_winbond.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_winbond.c.obj
+.PHONY : spi_flash_chip_winbond.c.obj
+
+spi_flash_chip_winbond.i: spi_flash_chip_winbond.c.i
+
+.PHONY : spi_flash_chip_winbond.i
+
+# target to preprocess a source file
+spi_flash_chip_winbond.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_winbond.c.i
+.PHONY : spi_flash_chip_winbond.c.i
+
+spi_flash_chip_winbond.s: spi_flash_chip_winbond.c.s
+
+.PHONY : spi_flash_chip_winbond.s
+
+# target to generate assembly for a file
+spi_flash_chip_winbond.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_winbond.c.s
+.PHONY : spi_flash_chip_winbond.c.s
+
+spi_flash_os_func_app.obj: spi_flash_os_func_app.c.obj
+
+.PHONY : spi_flash_os_func_app.obj
+
+# target to build an object file
+spi_flash_os_func_app.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_os_func_app.c.obj
+.PHONY : spi_flash_os_func_app.c.obj
+
+spi_flash_os_func_app.i: spi_flash_os_func_app.c.i
+
+.PHONY : spi_flash_os_func_app.i
+
+# target to preprocess a source file
+spi_flash_os_func_app.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_os_func_app.c.i
+.PHONY : spi_flash_os_func_app.c.i
+
+spi_flash_os_func_app.s: spi_flash_os_func_app.c.s
+
+.PHONY : spi_flash_os_func_app.s
+
+# target to generate assembly for a file
+spi_flash_os_func_app.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_os_func_app.c.s
+.PHONY : spi_flash_os_func_app.c.s
+
+spi_flash_os_func_noos.obj: spi_flash_os_func_noos.c.obj
+
+.PHONY : spi_flash_os_func_noos.obj
+
+# target to build an object file
+spi_flash_os_func_noos.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_os_func_noos.c.obj
+.PHONY : spi_flash_os_func_noos.c.obj
+
+spi_flash_os_func_noos.i: spi_flash_os_func_noos.c.i
+
+.PHONY : spi_flash_os_func_noos.i
+
+# target to preprocess a source file
+spi_flash_os_func_noos.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_os_func_noos.c.i
+.PHONY : spi_flash_os_func_noos.c.i
+
+spi_flash_os_func_noos.s: spi_flash_os_func_noos.c.s
+
+.PHONY : spi_flash_os_func_noos.s
+
+# target to generate assembly for a file
+spi_flash_os_func_noos.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_os_func_noos.c.s
+.PHONY : spi_flash_os_func_noos.c.s
 
 # Help Target
 help:
@@ -327,29 +690,70 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
+	@echo "... install/strip"
 	@echo "... install/local"
-	@echo "... edit_cache"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... idf_component_spi_flash_sections_info"
-	@echo "... install/strip"
-	@echo "... idf_component_spi_flash"
+	@echo "... edit_cache"
+	@echo "... __idf_spi_flash"
 	@echo "... cache_utils.obj"
 	@echo "... cache_utils.i"
 	@echo "... cache_utils.s"
+	@echo "... esp32/flash_ops_esp32.obj"
+	@echo "... esp32/flash_ops_esp32.i"
+	@echo "... esp32/flash_ops_esp32.s"
+	@echo "... esp32/spi_flash_rom_patch.obj"
+	@echo "... esp32/spi_flash_rom_patch.i"
+	@echo "... esp32/spi_flash_rom_patch.s"
+	@echo "... esp_flash_api.obj"
+	@echo "... esp_flash_api.i"
+	@echo "... esp_flash_api.s"
+	@echo "... esp_flash_spi_init.obj"
+	@echo "... esp_flash_spi_init.i"
+	@echo "... esp_flash_spi_init.s"
 	@echo "... flash_mmap.obj"
 	@echo "... flash_mmap.i"
 	@echo "... flash_mmap.s"
 	@echo "... flash_ops.obj"
 	@echo "... flash_ops.i"
 	@echo "... flash_ops.s"
+	@echo "... memspi_host_driver.obj"
+	@echo "... memspi_host_driver.i"
+	@echo "... memspi_host_driver.s"
 	@echo "... partition.obj"
 	@echo "... partition.i"
 	@echo "... partition.s"
-	@echo "... spi_flash_rom_patch.obj"
-	@echo "... spi_flash_rom_patch.i"
-	@echo "... spi_flash_rom_patch.s"
+	@echo "... spi_flash_chip_boya.obj"
+	@echo "... spi_flash_chip_boya.i"
+	@echo "... spi_flash_chip_boya.s"
+	@echo "... spi_flash_chip_drivers.obj"
+	@echo "... spi_flash_chip_drivers.i"
+	@echo "... spi_flash_chip_drivers.s"
+	@echo "... spi_flash_chip_gd.obj"
+	@echo "... spi_flash_chip_gd.i"
+	@echo "... spi_flash_chip_gd.s"
+	@echo "... spi_flash_chip_generic.obj"
+	@echo "... spi_flash_chip_generic.i"
+	@echo "... spi_flash_chip_generic.s"
+	@echo "... spi_flash_chip_issi.obj"
+	@echo "... spi_flash_chip_issi.i"
+	@echo "... spi_flash_chip_issi.s"
+	@echo "... spi_flash_chip_mxic.obj"
+	@echo "... spi_flash_chip_mxic.i"
+	@echo "... spi_flash_chip_mxic.s"
+	@echo "... spi_flash_chip_mxic_opi.obj"
+	@echo "... spi_flash_chip_mxic_opi.i"
+	@echo "... spi_flash_chip_mxic_opi.s"
+	@echo "... spi_flash_chip_winbond.obj"
+	@echo "... spi_flash_chip_winbond.i"
+	@echo "... spi_flash_chip_winbond.s"
+	@echo "... spi_flash_os_func_app.obj"
+	@echo "... spi_flash_os_func_app.i"
+	@echo "... spi_flash_os_func_app.s"
+	@echo "... spi_flash_os_func_noos.obj"
+	@echo "... spi_flash_os_func_noos.i"
+	@echo "... spi_flash_os_func_noos.s"
 .PHONY : help
 
 

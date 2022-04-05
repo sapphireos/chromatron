@@ -29,10 +29,10 @@
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
+#  include <sys/socket.h>
 #endif // HAVE_SYS_SOCKET_H
 #ifdef HAVE_NETDB_H
-#include <netdb.h>
+#  include <netdb.h>
 #endif // HAVE_NETDB_H
 
 #include <string>
@@ -47,7 +47,7 @@
 
 #include <nghttp2/nghttp2.h>
 
-#include "http-parser/http_parser.h"
+#include "llhttp.h"
 
 #include "memchunk.h"
 #include "http2.h"
@@ -265,7 +265,7 @@ struct HttpClient {
   std::string host;
   std::string hostport;
   // Used for parse the HTTP upgrade response from server
-  std::unique_ptr<http_parser> htp;
+  std::unique_ptr<llhttp_t> htp;
   SessionTiming timing;
   ev_io wev;
   ev_io rev;

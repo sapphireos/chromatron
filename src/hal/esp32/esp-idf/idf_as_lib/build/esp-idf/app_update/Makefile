@@ -157,64 +157,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/app_update/CMakeFiles/erase_otadata.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/app_update/CMakeFiles/erase_otadata.dir/rule
-.PHONY : esp-idf/app_update/CMakeFiles/erase_otadata.dir/rule
+esp-idf/app_update/CMakeFiles/__idf_app_update.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/app_update/CMakeFiles/__idf_app_update.dir/rule
+.PHONY : esp-idf/app_update/CMakeFiles/__idf_app_update.dir/rule
 
 # Convenience name for target.
-erase_otadata: esp-idf/app_update/CMakeFiles/erase_otadata.dir/rule
+__idf_app_update: esp-idf/app_update/CMakeFiles/__idf_app_update.dir/rule
 
-.PHONY : erase_otadata
+.PHONY : __idf_app_update
 
 # fast build rule for target.
-erase_otadata/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/erase_otadata.dir/build.make esp-idf/app_update/CMakeFiles/erase_otadata.dir/build
-.PHONY : erase_otadata/fast
-
-# Convenience name for target.
-esp-idf/app_update/CMakeFiles/read_otadata.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/app_update/CMakeFiles/read_otadata.dir/rule
-.PHONY : esp-idf/app_update/CMakeFiles/read_otadata.dir/rule
-
-# Convenience name for target.
-read_otadata: esp-idf/app_update/CMakeFiles/read_otadata.dir/rule
-
-.PHONY : read_otadata
-
-# fast build rule for target.
-read_otadata/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/read_otadata.dir/build.make esp-idf/app_update/CMakeFiles/read_otadata.dir/build
-.PHONY : read_otadata/fast
-
-# Convenience name for target.
-esp-idf/app_update/CMakeFiles/idf_component_app_update_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/app_update/CMakeFiles/idf_component_app_update_sections_info.dir/rule
-.PHONY : esp-idf/app_update/CMakeFiles/idf_component_app_update_sections_info.dir/rule
-
-# Convenience name for target.
-idf_component_app_update_sections_info: esp-idf/app_update/CMakeFiles/idf_component_app_update_sections_info.dir/rule
-
-.PHONY : idf_component_app_update_sections_info
-
-# fast build rule for target.
-idf_component_app_update_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/idf_component_app_update_sections_info.dir/build.make esp-idf/app_update/CMakeFiles/idf_component_app_update_sections_info.dir/build
-.PHONY : idf_component_app_update_sections_info/fast
-
-# Convenience name for target.
-esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/rule
-.PHONY : esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/rule
-
-# Convenience name for target.
-idf_component_app_update: esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/rule
-
-.PHONY : idf_component_app_update
-
-# fast build rule for target.
-idf_component_app_update/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/build.make esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/build
-.PHONY : idf_component_app_update/fast
+__idf_app_update/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/__idf_app_update.dir/build.make esp-idf/app_update/CMakeFiles/__idf_app_update.dir/build
+.PHONY : __idf_app_update/fast
 
 esp_app_desc.obj: esp_app_desc.c.obj
 
@@ -222,7 +177,7 @@ esp_app_desc.obj: esp_app_desc.c.obj
 
 # target to build an object file
 esp_app_desc.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/build.make esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_app_desc.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/__idf_app_update.dir/build.make esp-idf/app_update/CMakeFiles/__idf_app_update.dir/esp_app_desc.c.obj
 .PHONY : esp_app_desc.c.obj
 
 esp_app_desc.i: esp_app_desc.c.i
@@ -231,7 +186,7 @@ esp_app_desc.i: esp_app_desc.c.i
 
 # target to preprocess a source file
 esp_app_desc.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/build.make esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_app_desc.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/__idf_app_update.dir/build.make esp-idf/app_update/CMakeFiles/__idf_app_update.dir/esp_app_desc.c.i
 .PHONY : esp_app_desc.c.i
 
 esp_app_desc.s: esp_app_desc.c.s
@@ -240,7 +195,7 @@ esp_app_desc.s: esp_app_desc.c.s
 
 # target to generate assembly for a file
 esp_app_desc.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/build.make esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_app_desc.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/__idf_app_update.dir/build.make esp-idf/app_update/CMakeFiles/__idf_app_update.dir/esp_app_desc.c.s
 .PHONY : esp_app_desc.c.s
 
 esp_ota_ops.obj: esp_ota_ops.c.obj
@@ -249,7 +204,7 @@ esp_ota_ops.obj: esp_ota_ops.c.obj
 
 # target to build an object file
 esp_ota_ops.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/build.make esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/__idf_app_update.dir/build.make esp-idf/app_update/CMakeFiles/__idf_app_update.dir/esp_ota_ops.c.obj
 .PHONY : esp_ota_ops.c.obj
 
 esp_ota_ops.i: esp_ota_ops.c.i
@@ -258,7 +213,7 @@ esp_ota_ops.i: esp_ota_ops.c.i
 
 # target to preprocess a source file
 esp_ota_ops.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/build.make esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/__idf_app_update.dir/build.make esp-idf/app_update/CMakeFiles/__idf_app_update.dir/esp_ota_ops.c.i
 .PHONY : esp_ota_ops.c.i
 
 esp_ota_ops.s: esp_ota_ops.c.s
@@ -267,7 +222,7 @@ esp_ota_ops.s: esp_ota_ops.c.s
 
 # target to generate assembly for a file
 esp_ota_ops.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/build.make esp-idf/app_update/CMakeFiles/idf_component_app_update.dir/esp_ota_ops.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_update/CMakeFiles/__idf_app_update.dir/build.make esp-idf/app_update/CMakeFiles/__idf_app_update.dir/esp_ota_ops.c.s
 .PHONY : esp_ota_ops.c.s
 
 # Help Target
@@ -282,10 +237,7 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... erase_otadata"
-	@echo "... read_otadata"
-	@echo "... idf_component_app_update_sections_info"
-	@echo "... idf_component_app_update"
+	@echo "... __idf_app_update"
 	@echo "... esp_app_desc.obj"
 	@echo "... esp_app_desc.i"
 	@echo "... esp_app_desc.s"

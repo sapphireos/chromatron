@@ -20,15 +20,16 @@ tv(void)
         };
 #undef  MESSAGE
 #define MESSAGE "Ladies and Gentlemen of the class of '99: If I could offer you " \
-"only one tip for the future, sunscreen would be it."
+    "only one tip for the future, sunscreen would be it."
     unsigned char *m = (unsigned char *) sodium_malloc(MLEN);
     static const unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES]
         = { 0x07, 0x00, 0x00, 0x00, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
-            0x48, 0x49, 0x4a, 0x4b };
+            0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f, 0x50, 0x51, 0x52, 0x53 };
     static const unsigned char ad[ADLEN]
         = { 0x50, 0x51, 0x52, 0x53, 0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7 };
     unsigned char *c = (unsigned char *) sodium_malloc(CLEN);
     unsigned char *detached_c = (unsigned char *) sodium_malloc(MLEN);
+    unsigned char *key2 = (unsigned char *) sodium_malloc(crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
     unsigned char *mac = (unsigned char *) sodium_malloc(crypto_aead_xchacha20poly1305_ietf_ABYTES);
     unsigned char *m2 = (unsigned char *) sodium_malloc(MLEN);
     unsigned long long found_clen;
@@ -39,8 +40,8 @@ tv(void)
     assert(sizeof MESSAGE - 1U == MLEN);
     memcpy(m, MESSAGE, MLEN);
     crypto_aead_xchacha20poly1305_ietf_encrypt(c, &found_clen, m, MLEN,
-                                              ad, ADLEN,
-                                              NULL, nonce, firstkey);
+                                               ad, ADLEN,
+                                               NULL, nonce, firstkey);
     if (found_clen != MLEN + crypto_aead_xchacha20poly1305_ietf_abytes()) {
         printf("found_clen is not properly set\n");
     }
@@ -52,10 +53,10 @@ tv(void)
     }
     printf("\n");
     crypto_aead_xchacha20poly1305_ietf_encrypt_detached(detached_c,
-                                                       mac, &found_maclen,
-                                                       m, MLEN,
-                                                       ad, ADLEN,
-                                                       NULL, nonce, firstkey);
+                                                        mac, &found_maclen,
+                                                        m, MLEN,
+                                                        ad, ADLEN,
+                                                        NULL, nonce, firstkey);
     if (found_maclen != crypto_aead_xchacha20poly1305_ietf_abytes()) {
         printf("found_maclen is not properly set\n");
     }
@@ -63,8 +64,12 @@ tv(void)
         printf("detached ciphertext is bogus\n");
     }
 
+    if (crypto_aead_xchacha20poly1305_ietf_decrypt(NULL, 0, NULL, c, CLEN, ad,
+                                                   ADLEN, nonce, firstkey) != 0) {
+        printf("crypto_aead_xchacha20poly1305_ietf_decrypt() tag-only verification failed\n");
+    }
     if (crypto_aead_xchacha20poly1305_ietf_decrypt(m2, &m2len, NULL, c, CLEN, ad,
-                                                  ADLEN, nonce, firstkey) != 0) {
+                                                   ADLEN, nonce, firstkey) != 0) {
         printf("crypto_aead_xchacha20poly1305_ietf_decrypt() failed\n");
     }
     if (m2len != MLEN) {
@@ -75,9 +80,9 @@ tv(void)
     }
     memset(m2, 0, m2len);
     if (crypto_aead_xchacha20poly1305_ietf_decrypt_detached(m2, NULL,
-                                                           c, MLEN, mac,
-                                                           ad, ADLEN,
-                                                           nonce, firstkey) != 0) {
+                                                            c, MLEN, mac,
+                                                            ad, ADLEN,
+                                                            nonce, firstkey) != 0) {
         printf("crypto_aead_xchacha20poly1305_ietf_decrypt_detached() failed\n");
     }
     if (memcmp(m, m2, MLEN) != 0) {
@@ -87,14 +92,14 @@ tv(void)
     for (i = 0U; i < CLEN; i++) {
         c[i] ^= (i + 1U);
         if (crypto_aead_xchacha20poly1305_ietf_decrypt(m2, NULL, NULL, c, CLEN,
-                                                      ad, ADLEN, nonce, firstkey)
+                                                       ad, ADLEN, nonce, firstkey)
             == 0 || memcmp(m, m2, MLEN) == 0) {
             printf("message can be forged\n");
         }
         c[i] ^= (i + 1U);
     }
     crypto_aead_xchacha20poly1305_ietf_encrypt(c, &found_clen, m, MLEN,
-                                              NULL, 0U, NULL, nonce, firstkey);
+                                               NULL, 0U, NULL, nonce, firstkey);
     if (found_clen != CLEN) {
         printf("clen is not properly set (adlen=0)\n");
     }
@@ -106,7 +111,7 @@ tv(void)
     }
     printf("\n");
     if (crypto_aead_xchacha20poly1305_ietf_decrypt(m2, &m2len, NULL, c, CLEN,
-                                                  NULL, 0U, nonce, firstkey) != 0) {
+                                                   NULL, 0U, nonce, firstkey) != 0) {
         printf("crypto_aead_xchacha20poly1305_ietf_decrypt() failed (adlen=0)\n");
     }
     if (m2len != MLEN) {
@@ -117,7 +122,7 @@ tv(void)
     }
     m2len = 1;
     if (crypto_aead_xchacha20poly1305_ietf_decrypt(
-            m2, &m2len, NULL, NULL,
+            m2, &m2len, NULL, guard_page,
             randombytes_uniform(crypto_aead_xchacha20poly1305_ietf_ABYTES),
             NULL, 0U, nonce, firstkey) != -1) {
         printf("crypto_aead_xchacha20poly1305_ietf_decrypt() worked with a short "
@@ -138,7 +143,7 @@ tv(void)
 
     memcpy(c, m, MLEN);
     crypto_aead_xchacha20poly1305_ietf_encrypt(c, &found_clen, c, MLEN,
-                                              NULL, 0U, NULL, nonce, firstkey);
+                                               NULL, 0U, NULL, nonce, firstkey);
     if (found_clen != CLEN) {
         printf("clen is not properly set (adlen=0)\n");
     }
@@ -151,7 +156,7 @@ tv(void)
     printf("\n");
 
     if (crypto_aead_xchacha20poly1305_ietf_decrypt(c, &m2len, NULL, c, CLEN,
-                                                  NULL, 0U, nonce, firstkey) != 0) {
+                                                   NULL, 0U, nonce, firstkey) != 0) {
         printf("crypto_aead_xchacha20poly1305_ietf_decrypt() failed (adlen=0)\n");
     }
     if (m2len != MLEN) {
@@ -161,20 +166,30 @@ tv(void)
         printf("m != c (adlen=0)\n");
     }
 
+    crypto_aead_xchacha20poly1305_ietf_keygen(key2);
+    if (crypto_aead_xchacha20poly1305_ietf_decrypt(c, &m2len, NULL, c, CLEN,
+                                                   NULL, 0U, nonce, key2) == 0) {
+        printf("crypto_aead_xchacha20poly1305_ietf_decrypt() with a wrong key should have failed\n");
+    }
+
     sodium_free(c);
     sodium_free(detached_c);
+    sodium_free(key2);
     sodium_free(mac);
     sodium_free(m2);
     sodium_free(m);
 
+    assert(crypto_aead_xchacha20poly1305_ietf_abytes() == crypto_aead_xchacha20poly1305_ietf_ABYTES);
     assert(crypto_aead_xchacha20poly1305_ietf_keybytes() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
     assert(crypto_aead_xchacha20poly1305_ietf_npubbytes() == crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
     assert(crypto_aead_xchacha20poly1305_ietf_nsecbytes() == 0U);
     assert(crypto_aead_xchacha20poly1305_ietf_nsecbytes() == crypto_aead_xchacha20poly1305_ietf_NSECBYTES);
+    assert(crypto_aead_xchacha20poly1305_ietf_messagebytes_max() == crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX);
     assert(crypto_aead_xchacha20poly1305_IETF_KEYBYTES  == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
     assert(crypto_aead_xchacha20poly1305_IETF_NSECBYTES == crypto_aead_xchacha20poly1305_ietf_NSECBYTES);
     assert(crypto_aead_xchacha20poly1305_IETF_NPUBBYTES == crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
     assert(crypto_aead_xchacha20poly1305_IETF_ABYTES    == crypto_aead_xchacha20poly1305_ietf_ABYTES);
+    assert(crypto_aead_xchacha20poly1305_IETF_MESSAGEBYTES_MAX == crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX);
 
     return 0;
 }

@@ -124,6 +124,7 @@ remote server. It's defined as::
       bev = bufferevent_openssl_socket_new(
           evbase, -1, ssl, BUFFEREVENT_SSL_CONNECTING,
           BEV_OPT_DEFER_CALLBACKS | BEV_OPT_CLOSE_ON_FREE);
+      bufferevent_enable(bev, EV_READ | EV_WRITE);
       bufferevent_setcb(bev, readcb, writecb, eventcb, session_data);
       rv = bufferevent_socket_connect_hostname(bev, session_data->dnsbase,
                                                AF_UNSPEC, host, port);
@@ -421,7 +422,7 @@ the ``on_header_callback()`` is called for each name/value pair::
       return 0;
     }
 
-In this tutorial, we just print the name/value pairs on stdout.
+In this tutorial, we just print the name/value pairs on stderr.
 
 After the HEADERS frame has been fully received (and thus all response
 header name/value pairs have been received), the

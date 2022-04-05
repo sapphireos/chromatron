@@ -23,9 +23,9 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
+#include "osi/semaphore.h"
 
-
-#define OSI_MUTEX_MAX_TIMEOUT 0xffffffffUL
+#define OSI_MUTEX_MAX_TIMEOUT OSI_SEM_MAX_TIMEOUT
 
 #define osi_mutex_valid( x ) ( ( ( *x ) == NULL) ? pdFALSE : pdTRUE )
 #define osi_mutex_set_invalid( x ) ( ( *x ) = NULL )
@@ -50,4 +50,3 @@ void osi_mutex_global_lock(void);
 void osi_mutex_global_unlock(void);
 
 #endif /* __MUTEX_H__ */
-

@@ -448,7 +448,7 @@ void flash25_v_erase_chip( void ){
 static uint32_t flash_id;
 
 KV_SECTION_META kv_meta_t flash_id_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,  "flash_id" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,  "flash_id" },
 };
 
 void flash25_v_read_device_info( flash25_device_info_t *info ){

@@ -84,32 +84,32 @@ int8_t _info_kv_handler(
 // static uint32_t slowest_id;
 
 KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "cfg_version" },
-    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, _info_kv_handler,   "cfg_total_blocks" },
-    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, _info_kv_handler,   "cfg_free_blocks" },
-    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip" },
-    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_subnet" },
-    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_dns_server" },
-    { SAPPHIRE_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_gateway" },
-    { SAPPHIRE_TYPE_UINT64,      0, 0,                   0, cfg_i8_kv_handler,  "device_id" },
-    { SAPPHIRE_TYPE_UINT16,      0, 0,                   0, cfg_i8_kv_handler,  "fw_load_count" },
-    { SAPPHIRE_TYPE_UINT32,      0, 0,                   0, cfg_i8_kv_handler,  "max_log_size" },
-    { SAPPHIRE_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_led_quiet" },
-    { SAPPHIRE_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_low_power" },
-    // { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
-    // { SAPPHIRE_TYPE_UINT32,      0, 0,                   &slowest_id, 0,        "cfg_slowest_id" },
+    { CATBUS_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "cfg_version" },
+    { CATBUS_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, _info_kv_handler,   "cfg_total_blocks" },
+    { CATBUS_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY,  0, _info_kv_handler,   "cfg_free_blocks" },
+    { CATBUS_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip" },
+    { CATBUS_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_subnet" },
+    { CATBUS_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_dns_server" },
+    { CATBUS_TYPE_IPv4,        0, KV_FLAGS_READ_ONLY,  0, cfg_i8_kv_handler,  "ip_gateway" },
+    { CATBUS_TYPE_UINT64,      0, 0,                   0, cfg_i8_kv_handler,  "device_id" },
+    { CATBUS_TYPE_UINT16,      0, 0,                   0, cfg_i8_kv_handler,  "fw_load_count" },
+    { CATBUS_TYPE_UINT32,      0, 0,                   0, cfg_i8_kv_handler,  "max_log_size" },
+    { CATBUS_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_led_quiet" },
+    { CATBUS_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_low_power" },
+    // { CATBUS_TYPE_UINT32,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
+    // { CATBUS_TYPE_UINT32,      0, 0,                   &slowest_id, 0,        "cfg_slowest_id" },
     #ifndef DISABLE_RECOVERY_MODE
-    { SAPPHIRE_TYPE_UINT8,       0, 0,                   0, cfg_i8_kv_handler,  "cfg_recovery_boot_count" },
+    { CATBUS_TYPE_UINT8,       0, 0,                   0, cfg_i8_kv_handler,  "cfg_recovery_boot_count" },
     #endif
 };
 
 #ifdef CFG_INCLUDE_MANUAL_IP
 KV_SECTION_META kv_meta_t sys_cfg_manual_ip_kv[] = {
-    { SAPPHIRE_TYPE_IPv4,        0, 0,                   0, cfg_i8_kv_handler,  "manual_ip" },
-    { SAPPHIRE_TYPE_IPv4,        0, 0,                   0, cfg_i8_kv_handler,  "manual_subnet" },
-    { SAPPHIRE_TYPE_IPv4,        0, 0,                   0, cfg_i8_kv_handler,  "manual_dns_server" },
-    { SAPPHIRE_TYPE_IPv4,        0, 0,                   0, cfg_i8_kv_handler,  "manual_internet_gateway" },
-    { SAPPHIRE_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_manual_ip" },
+    { CATBUS_TYPE_IPv4,        0, 0,                   0, cfg_i8_kv_handler,  "manual_ip" },
+    { CATBUS_TYPE_IPv4,        0, 0,                   0, cfg_i8_kv_handler,  "manual_subnet" },
+    { CATBUS_TYPE_IPv4,        0, 0,                   0, cfg_i8_kv_handler,  "manual_dns_server" },
+    { CATBUS_TYPE_IPv4,        0, 0,                   0, cfg_i8_kv_handler,  "manual_internet_gateway" },
+    { CATBUS_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_manual_ip" },
 }
 #endif
 
@@ -123,7 +123,7 @@ static cfg_ip_config_t ip_config;
 #define CFG_PARAM_DATA_LEN 8
 typedef struct __attribute__((packed)){
     catbus_hash_t32 id;
-    sapphire_type_t8 type;
+    catbus_type_t8 type;
     uint8_t block_number;
     uint16_t reserved;
     uint8_t data[CFG_PARAM_DATA_LEN];
@@ -133,7 +133,7 @@ typedef struct __attribute__((packed)){
 
 
 
-static uint16_t error_log_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t error_log_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -164,7 +164,7 @@ static uint16_t error_log_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr
 #include "esp_spi_flash.h"
 #endif
 
-static uint16_t fw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t fw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -192,7 +192,7 @@ static uint16_t fw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, 
 
 
 #ifdef ENABLE_CFG_VFILE
-static uint16_t eeprom_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t eeprom_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -342,7 +342,7 @@ static void clean_blocks( void ){
             }
         }
 
-        sapphire_type_t8 type = kv_i8_type( block.id );
+        catbus_type_t8 type = kv_i8_type( block.id );
 
         // check if parameter was not found in the KV system
         // (possibly a parameter was removed)
@@ -399,7 +399,7 @@ static void erase_param( catbus_hash_t32 parameter ){
 static void write_param( catbus_hash_t32 parameter, void *value ){
 
     // search for sys config
-    sapphire_type_t8 type = kv_i8_type( parameter );
+    catbus_type_t8 type = kv_i8_type( parameter );
 
     // parameter not found
     if( type < 0 ){
@@ -803,9 +803,9 @@ bool cfg_b_get_boolean( catbus_hash_t32 parameter ){
 
 
     // get type length
-    sapphire_type_t8 type = kv_i8_type( parameter );
+    catbus_type_t8 type = kv_i8_type( parameter );
 
-    if( type != SAPPHIRE_TYPE_BOOL ){
+    if( type != CATBUS_TYPE_BOOL ){
 
         return FALSE;
     }

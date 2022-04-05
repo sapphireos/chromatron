@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <errno.h>
 
@@ -31,7 +23,7 @@
  */
 #define INSTANTANEOUS_TRANS_TIME      0
 
-u8_t bt_mesh_get_default_trans_time(struct bt_mesh_model *model)
+uint8_t bt_mesh_get_default_trans_time(struct bt_mesh_model *model)
 {
     /**
      * 1. If a Generic Default Transition Time Server model is present on the
@@ -46,10 +38,10 @@ u8_t bt_mesh_get_default_trans_time(struct bt_mesh_model *model)
      */
     struct bt_mesh_elem *element = bt_mesh_model_elem(model);
     struct bt_mesh_gen_def_trans_time_srv *state = NULL;
-    u16_t primary_addr = bt_mesh_primary_addr();
+    uint16_t primary_addr = bt_mesh_primary_addr();
     struct bt_mesh_model *srv = NULL;
 
-    for (u16_t addr = element->addr; addr >= primary_addr; addr--) {
+    for (uint16_t addr = element->addr; addr >= primary_addr; addr--) {
         element = bt_mesh_elem_find(addr);
         if (element) {
             srv = bt_mesh_model_find(element, BLE_MESH_MODEL_ID_GEN_DEF_TRANS_TIME_SRV);
@@ -65,10 +57,10 @@ u8_t bt_mesh_get_default_trans_time(struct bt_mesh_model *model)
     return INSTANTANEOUS_TRANS_TIME;
 }
 
-int bt_mesh_get_light_lc_trans_time(struct bt_mesh_model *model, u8_t *trans_time)
+int bt_mesh_get_light_lc_trans_time(struct bt_mesh_model *model, uint8_t *trans_time)
 {
     struct bt_mesh_light_lc_srv *srv = NULL;
-    u32_t value = 0U;
+    uint32_t value = 0U;
 
     if (model == NULL || trans_time == NULL) {
         BT_ERR("%s, Invalid parameter", __func__);
@@ -123,7 +115,7 @@ int bt_mesh_get_light_lc_trans_time(struct bt_mesh_model *model, u8_t *trans_tim
 int bt_mesh_server_get_optional(struct bt_mesh_model *model,
                                 struct bt_mesh_msg_ctx *ctx,
                                 struct net_buf_simple *buf,
-                                u8_t *trans_time, u8_t *delay,
+                                uint8_t *trans_time, uint8_t *delay,
                                 bool *optional)
 {
     if (model == NULL || buf == NULL || trans_time == NULL ||
@@ -205,7 +197,7 @@ void bt_mesh_server_free_ctx(struct k_work *work)
 #endif /* CONFIG_BLE_MESH_DEINIT */
 
 bool bt_mesh_is_server_recv_last_msg(struct bt_mesh_last_msg_info *last,
-                                     u8_t tid, u16_t src, u16_t dst, s64_t *now)
+                                     uint8_t tid, uint16_t src, uint16_t dst, int64_t *now)
 {
     *now = k_uptime_get();
 
@@ -223,7 +215,7 @@ bool bt_mesh_is_server_recv_last_msg(struct bt_mesh_last_msg_info *last,
 }
 
 void bt_mesh_server_update_last_msg(struct bt_mesh_last_msg_info *last,
-                                    u8_t tid, u16_t src, u16_t dst, s64_t *now)
+                                    uint8_t tid, uint16_t src, uint16_t dst, int64_t *now)
 {
     /* Currently we only update msg info which dst is set to a unicast address */
     if (!BLE_MESH_ADDR_IS_UNICAST(dst)) {
@@ -237,7 +229,7 @@ void bt_mesh_server_update_last_msg(struct bt_mesh_last_msg_info *last,
     return;
 }
 
-struct net_buf_simple *bt_mesh_server_get_pub_msg(struct bt_mesh_model *model, u16_t msg_len)
+struct net_buf_simple *bt_mesh_server_get_pub_msg(struct bt_mesh_model *model, uint16_t msg_len)
 {
     struct net_buf_simple *buf = NULL;
 

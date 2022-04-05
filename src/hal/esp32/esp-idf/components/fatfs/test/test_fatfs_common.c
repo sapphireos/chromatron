@@ -16,8 +16,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <fcntl.h>
 #include <sys/time.h>
 #include <sys/unistd.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <utime.h>
 #include "unity.h"
@@ -29,6 +31,7 @@
 #include "freertos/task.h"
 #include "ff.h"
 #include "test_fatfs_common.h"
+#include "esp_rom_sys.h"
 
 const char* fatfs_test_hello_str = "Hello, World!\n";
 const char* fatfs_test_hello_str_utf = "世界，你好！\n";
@@ -98,6 +101,88 @@ void test_fatfs_read_file_utf_8(const char* filename)
     TEST_ASSERT_EQUAL(0, fclose(f));
 }
 
+void test_fatfs_pread_file(const char* filename)
+{
+    char buf[32] = { 0 };
+    const int fd = open(filename, O_RDONLY);
+    TEST_ASSERT_NOT_EQUAL(-1, fd);
+
+    int r = pread(fd, buf, sizeof(buf), 0); // it is a regular read() with offset==0
+    TEST_ASSERT_EQUAL(0, strcmp(fatfs_test_hello_str, buf));
+    TEST_ASSERT_EQUAL(strlen(fatfs_test_hello_str), r);
+
+    memset(buf, 0, sizeof(buf));
+    r = pread(fd, buf, sizeof(buf), 1); // offset==1
+    TEST_ASSERT_EQUAL(0, strcmp(fatfs_test_hello_str + 1, buf));
+    TEST_ASSERT_EQUAL(strlen(fatfs_test_hello_str) - 1, r);
+
+    memset(buf, 0, sizeof(buf));
+    r = pread(fd, buf, sizeof(buf), 5); // offset==5
+    TEST_ASSERT_EQUAL(0, strcmp(fatfs_test_hello_str + 5, buf));
+    TEST_ASSERT_EQUAL(strlen(fatfs_test_hello_str) - 5, r);
+
+    // regular read() should work now because pread() should not affect the current position in file
+
+    memset(buf, 0, sizeof(buf));
+    r = read(fd, buf, sizeof(buf)); // note that this is read() and not pread()
+    TEST_ASSERT_EQUAL(0, strcmp(fatfs_test_hello_str, buf));
+    TEST_ASSERT_EQUAL(strlen(fatfs_test_hello_str), r);
+
+    memset(buf, 0, sizeof(buf));
+    r = pread(fd, buf, sizeof(buf), 10); // offset==10
+    TEST_ASSERT_EQUAL(0, strcmp(fatfs_test_hello_str + 10, buf));
+    TEST_ASSERT_EQUAL(strlen(fatfs_test_hello_str) - 10, r);
+
+    memset(buf, 0, sizeof(buf));
+    r = pread(fd, buf, sizeof(buf), strlen(fatfs_test_hello_str) + 1); // offset to EOF
+    TEST_ASSERT_EQUAL(0, r);
+
+    TEST_ASSERT_EQUAL(0, close(fd));
+}
+
+static void test_pwrite(const char *filename, off_t offset, const char *msg)
+{
+    const int fd = open(filename, O_WRONLY);
+    TEST_ASSERT_NOT_EQUAL(-1, fd);
+
+    const off_t current_pos = lseek(fd, 0, SEEK_END); // O_APPEND is not the same - jumps to the end only before write()
+
+    const int r = pwrite(fd, msg, strlen(msg), offset);
+    TEST_ASSERT_EQUAL(strlen(msg), r);
+
+    TEST_ASSERT_EQUAL(current_pos, lseek(fd, 0, SEEK_CUR)); // pwrite should not move the pointer
+
+    TEST_ASSERT_EQUAL(0, close(fd));
+}
+
+static void test_file_content(const char *filename, const char *msg)
+{
+    char buf[32] = { 0 };
+    const int fd = open(filename, O_RDONLY);
+    TEST_ASSERT_NOT_EQUAL(-1, fd);
+
+    int r = read(fd, buf, sizeof(buf));
+    TEST_ASSERT_NOT_EQUAL(-1, r);
+    TEST_ASSERT_EQUAL(0, strcmp(msg, buf));
+
+    TEST_ASSERT_EQUAL(0, close(fd));
+}
+
+void test_fatfs_pwrite_file(const char *filename)
+{
+    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC);
+    TEST_ASSERT_NOT_EQUAL(-1, fd);
+    TEST_ASSERT_EQUAL(0, close(fd));
+
+    test_pwrite(filename, 0, "Hello");
+    test_file_content(filename, "Hello");
+
+    test_pwrite(filename, strlen("Hello"), ", world!");
+    test_file_content(filename, "Hello, world!");
+    test_pwrite(filename, strlen("Hello, "), "Dolly");
+    test_file_content(filename, "Hello, Dolly!");
+}
+
 void test_fatfs_open_max_files(const char* filename_prefix, size_t files_count)
 {
     FILE** files = calloc(files_count, sizeof(FILE*));
@@ -132,11 +217,27 @@ void test_fatfs_lseek(const char* filename)
     TEST_ASSERT_EQUAL(18, ftell(f));
     TEST_ASSERT_EQUAL(0, fseek(f, 0, SEEK_SET));
     char buf[20];
+
     TEST_ASSERT_EQUAL(18, fread(buf, 1, sizeof(buf), f));
     const char ref_buf[] = "0123456789\n\0\0\0abc\n";
     TEST_ASSERT_EQUAL_INT8_ARRAY(ref_buf, buf, sizeof(ref_buf) - 1);
-
     TEST_ASSERT_EQUAL(0, fclose(f));
+
+#ifdef CONFIG_FATFS_USE_FASTSEEK
+    f = fopen(filename, "rb+");
+    TEST_ASSERT_NOT_NULL(f);
+    TEST_ASSERT_EQUAL(0, fseek(f, 0, SEEK_END));
+    TEST_ASSERT_EQUAL(18, ftell(f));
+    TEST_ASSERT_EQUAL(0, fseek(f, -4, SEEK_CUR));
+    TEST_ASSERT_EQUAL(14, ftell(f));
+    TEST_ASSERT_EQUAL(0, fseek(f, -14, SEEK_CUR));
+    TEST_ASSERT_EQUAL(0, ftell(f));
+
+    TEST_ASSERT_EQUAL(18, fread(buf, 1, sizeof(buf), f));
+    TEST_ASSERT_EQUAL_INT8_ARRAY(ref_buf, buf, sizeof(ref_buf) - 1);
+    TEST_ASSERT_EQUAL(0, fclose(f));
+#endif
+
 }
 
 void test_fatfs_truncate_file(const char* filename)
@@ -160,7 +261,7 @@ void test_fatfs_truncate_file(const char* filename)
     TEST_ASSERT_EQUAL(errno, EPERM);
 
     TEST_ASSERT_EQUAL(-1, truncate(filename, -1));
-    TEST_ASSERT_EQUAL(errno, EPERM);
+    TEST_ASSERT_EQUAL(errno, EINVAL);
 
 
     // Truncating should succeed
@@ -171,17 +272,17 @@ void test_fatfs_truncate_file(const char* filename)
 
     f = fopen(filename, "rb");
     TEST_ASSERT_NOT_NULL(f);
-    
+
     memset(output, 0, sizeof(output));
     read = fread(output, 1, sizeof(output), f);
-    
+
     TEST_ASSERT_EQUAL(truncated_len, read);
     TEST_ASSERT_EQUAL_STRING_LEN(truncated_1, output, truncated_len);
 
     TEST_ASSERT_EQUAL(0, fclose(f));
 
 
-    // Once truncated, the new file size should be the basis 
+    // Once truncated, the new file size should be the basis
     // whether truncation should succeed or not
     TEST_ASSERT_EQUAL(-1, truncate(filename, truncated_len + 1));
     TEST_ASSERT_EQUAL(EPERM, errno);
@@ -193,7 +294,7 @@ void test_fatfs_truncate_file(const char* filename)
     TEST_ASSERT_EQUAL(EPERM, errno);
 
     TEST_ASSERT_EQUAL(-1, truncate(filename, -1));
-    TEST_ASSERT_EQUAL(EPERM, errno);
+    TEST_ASSERT_EQUAL(EINVAL, errno);
 
 
     // Truncating a truncated file should succeed
@@ -204,10 +305,10 @@ void test_fatfs_truncate_file(const char* filename)
 
     f = fopen(filename, "rb");
     TEST_ASSERT_NOT_NULL(f);
-    
+
     memset(output, 0, sizeof(output));
     read = fread(output, 1, sizeof(output), f);
-    
+
     TEST_ASSERT_EQUAL(truncated_len, read);
     TEST_ASSERT_EQUAL_STRING_LEN(truncated_2, output, truncated_len);
 
@@ -614,7 +715,7 @@ static void read_write_task(void* param)
         if (args->write) {
             int cnt = fwrite(&val, sizeof(val), 1, f);
             if (cnt != 1) {
-                ets_printf("E(w): i=%d, cnt=%d val=%d\n\n", i, cnt, val);
+                esp_rom_printf("E(w): i=%d, cnt=%d val=%d\n\n", i, cnt, val);
                 args->result = ESP_FAIL;
                 goto close;
             }
@@ -622,7 +723,7 @@ static void read_write_task(void* param)
             uint32_t rval;
             int cnt = fread(&rval, sizeof(rval), 1, f);
             if (cnt != 1 || rval != val) {
-                ets_printf("E(r): i=%d, cnt=%d rval=%d val=%d\n\n", i, cnt, rval, val);
+                esp_rom_printf("E(r): i=%d, cnt=%d rval=%d val=%d\n\n", i, cnt, rval, val);
                 args->result = ESP_FAIL;
                 goto close;
             }

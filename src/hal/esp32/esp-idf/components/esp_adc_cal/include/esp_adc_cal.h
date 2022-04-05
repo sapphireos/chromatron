@@ -15,13 +15,13 @@
 #ifndef __ESP_ADC_CAL_H__
 #define __ESP_ADC_CAL_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include "esp_err.h"
 #include "driver/adc.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief Type of calibration value used in characterization
@@ -30,6 +30,9 @@ typedef enum {
     ESP_ADC_CAL_VAL_EFUSE_VREF = 0,         /**< Characterization based on reference voltage stored in eFuse*/
     ESP_ADC_CAL_VAL_EFUSE_TP = 1,           /**< Characterization based on Two Point values stored in eFuse*/
     ESP_ADC_CAL_VAL_DEFAULT_VREF = 2,       /**< Characterization based on default reference voltage*/
+    ESP_ADC_CAL_VAL_EFUSE_TP_FIT = 3,       /**< Characterization based on Two Point values and fitting curve coefficients stored in eFuse */
+    ESP_ADC_CAL_VAL_MAX,
+    ESP_ADC_CAL_VAL_NOT_SUPPORTED = ESP_ADC_CAL_VAL_MAX,
 } esp_adc_cal_value_t;
 
 /**
@@ -46,6 +49,7 @@ typedef struct {
     uint32_t vref;                          /**< Vref used by lookup table*/
     const uint32_t *low_curve;              /**< Pointer to low Vref curve of lookup table (NULL if unused)*/
     const uint32_t *high_curve;             /**< Pointer to high Vref curve of lookup table (NULL if unused)*/
+    uint8_t version;                        /**< ADC Calibration */
 } esp_adc_cal_characteristics_t;
 
 /**
@@ -55,6 +59,8 @@ typedef struct {
  * burned to the eFuse of the current ESP32
  *
  * @param   value_type  Type of calibration value (ESP_ADC_CAL_VAL_EFUSE_VREF or ESP_ADC_CAL_VAL_EFUSE_TP)
+ * @note in ESP32S2, only ESP_ADC_CAL_VAL_EFUSE_TP is supported. Some old ESP32S2s do not support this, either.
+ * In which case you have to calibrate it manually, possibly by performing your own two-point calibration on the chip.
  *
  * @return
  *      - ESP_OK: The calibration mode is supported in eFuse
@@ -71,12 +77,15 @@ esp_err_t esp_adc_cal_check_efuse(esp_adc_cal_value_t value_type);
  * Characterization can be based on Two Point values, eFuse Vref, or default Vref
  * and the calibration values will be prioritized in that order.
  *
- * @note Two Point values and eFuse Vref can be enabled/disabled using menuconfig.
+ * @note
+ * For ESP32, Two Point values and eFuse Vref calibration can be enabled/disabled using menuconfig.
+ * For ESP32s2, only Two Point values calibration and only ADC_WIDTH_BIT_13 is supported. The parameter default_vref is unused.
+ *
  *
  * @param[in]   adc_num         ADC to characterize (ADC_UNIT_1 or ADC_UNIT_2)
  * @param[in]   atten           Attenuation to characterize
  * @param[in]   bit_width       Bit width configuration of ADC
- * @param[in]   default_vref    Default ADC reference voltage in mV (used if eFuse values is not available)
+ * @param[in]   default_vref    Default ADC reference voltage in mV (Only in ESP32, used if eFuse values is not available)
  * @param[out]  chars           Pointer to empty structure used to store ADC characteristics
  *
  * @return
@@ -122,28 +131,10 @@ uint32_t esp_adc_cal_raw_to_voltage(uint32_t adc_reading, const esp_adc_cal_char
  *
  * @return
  *      - ESP_OK: ADC read and converted to mV
- *      - ESP_ERR_TIMEOUT: Error, timed out attempting to read ADC
  *      - ESP_ERR_INVALID_ARG: Error due to invalid arguments
+ *      - ESP_ERR_INVALID_STATE: Reading result is invalid. Try to read again.
  */
 esp_err_t esp_adc_cal_get_voltage(adc_channel_t channel, const esp_adc_cal_characteristics_t *chars, uint32_t *voltage);
-
-/* -------------------------- Deprecated API ------------------------------- */
-
-/** @cond */    //Doxygen command to hide deprecated function from API Reference
-/**
- * @deprecated  ADC1 characterization function. Deprecated in order to accommodate
- *              ADC2 and eFuse functionality. Use esp_adc_cal_characterize() instead
- */
-void esp_adc_cal_get_characteristics(uint32_t vref, adc_atten_t atten, adc_bits_width_t bit_width, esp_adc_cal_characteristics_t *chars) __attribute__((deprecated));
-
-/*
- * @deprecated  This function reads ADC1 and returns the corrected voltage. This
- *              has been deprecated in order to accommodate ADC2 support. Use the
- *              new function esp_adc_cal_get_voltage() instead.
- */
-uint32_t adc1_to_voltage(adc1_channel_t channel, const esp_adc_cal_characteristics_t *chars) __attribute__((deprecated));
-
-/** @endcond */
 
 #ifdef __cplusplus
 }

@@ -27,7 +27,7 @@ extern "C" {
  * This is called once in the IDF startup code. Do not call it
  * at other times.
  */
-void heap_caps_init();
+void heap_caps_init(void);
 
 /**
  * @brief Enable heap(s) in memory regions where the startup stacks are located.
@@ -37,7 +37,7 @@ void heap_caps_init();
  * completely started, they do not use that memory anymore and heap(s) there can
  * be enabled.
  */
-void heap_caps_enable_nonos_stack_heaps();
+void heap_caps_enable_nonos_stack_heaps(void);
 
 /**
  * @brief Add a region of memory to the collection of heaps at runtime.
@@ -77,7 +77,7 @@ esp_err_t heap_caps_add_region(intptr_t start, intptr_t end);
  * @param start Start address of new region.
  * @param end End address of new region.
  *
- * @return 
+ * @return
  *         - ESP_OK on success
  *         - ESP_ERR_INVALID_ARG if a parameter is invalid
  *         - ESP_ERR_NO_MEM if no memory to register new heap.

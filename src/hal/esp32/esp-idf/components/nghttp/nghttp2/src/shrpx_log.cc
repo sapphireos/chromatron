@@ -25,18 +25,18 @@
 #include "shrpx_log.h"
 
 #ifdef HAVE_SYSLOG_H
-#include <syslog.h>
+#  include <syslog.h>
 #endif // HAVE_SYSLOG_H
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif // HAVE_UNISTD_H
 #ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif // HAVE_INTTYPES_H
 #include <sys/types.h>
 #include <sys/stat.h>
 #ifdef HAVE_FCNTL_H
-#include <fcntl.h>
+#  include <fcntl.h>
 #endif // HAVE_FCNTL_H
 #include <sys/wait.h>
 
@@ -74,15 +74,52 @@ constexpr const char *SEVERITY_COLOR[] = {
 };
 } // namespace
 
+#ifndef NOTHREADS
+#  ifdef HAVE_THREAD_LOCAL
+namespace {
+thread_local LogBuffer logbuf_;
+} // namespace
+
+namespace {
+LogBuffer *get_logbuf() { return &logbuf_; }
+} // namespace
+#  else  // !HAVE_THREAD_LOCAL
+namespace {
+pthread_key_t lckey;
+pthread_once_t lckey_once = PTHREAD_ONCE_INIT;
+} // namespace
+
+namespace {
+void make_key() { pthread_key_create(&lckey, NULL); }
+} // namespace
+
+LogBuffer *get_logbuf() {
+  pthread_once(&lckey_once, make_key);
+  auto buf = static_cast<LogBuffer *>(pthread_getspecific(lckey));
+  if (!buf) {
+    buf = new LogBuffer();
+    pthread_setspecific(lckey, buf);
+  }
+  return buf;
+}
+#  endif // !HAVE_THREAD_LOCAL
+#else    // NOTHREADS
+namespace {
+LogBuffer *get_logbuf() {
+  static LogBuffer logbuf;
+  return &logbuf;
+}
+} // namespace
+#endif   // NOTHREADS
+
 int Log::severity_thres_ = NOTICE;
 
 void Log::set_severity_level(int severity) { severity_thres_ = severity; }
 
-int Log::set_severity_level_by_name(const StringRef &name) {
+int Log::get_severity_level_by_name(const StringRef &name) {
   for (size_t i = 0, max = array_size(SEVERITY_STR); i < max; ++i) {
     if (name == SEVERITY_STR[i]) {
-      severity_thres_ = i;
-      return 0;
+      return i;
     }
   }
   return -1;
@@ -106,7 +143,15 @@ int severity_to_syslog_level(int severity) {
 }
 
 Log::Log(int severity, const char *filename, int linenum)
-    : filename_(filename), severity_(severity), linenum_(linenum) {}
+    : buf_(*get_logbuf()),
+      begin_(buf_.data()),
+      end_(begin_ + buf_.size()),
+      last_(begin_),
+      filename_(filename),
+      flags_(0),
+      severity_(severity),
+      linenum_(linenum),
+      full_(false) {}
 
 Log::~Log() {
   int rv;
@@ -127,12 +172,13 @@ Log::~Log() {
 
   if (errorconf.syslog) {
     if (severity_ == NOTICE) {
-      syslog(severity_to_syslog_level(severity_), "[%s] %s",
-             SEVERITY_STR[severity_].c_str(), stream_.str().c_str());
+      syslog(severity_to_syslog_level(severity_), "[%s] %.*s",
+             SEVERITY_STR[severity_].c_str(), static_cast<int>(rleft()),
+             begin_);
     } else {
-      syslog(severity_to_syslog_level(severity_), "[%s] %s (%s:%d)",
-             SEVERITY_STR[severity_].c_str(), stream_.str().c_str(), filename_,
-             linenum_);
+      syslog(severity_to_syslog_level(severity_), "[%s] %.*s (%s:%d)",
+             SEVERITY_STR[severity_].c_str(), static_cast<int>(rleft()), begin_,
+             filename_, linenum_);
     }
 
     return;
@@ -145,11 +191,11 @@ Log::~Log() {
 
   // Error log format: <datetime> <master-pid> <current-pid>
   // <thread-id> <level> (<filename>:<line>) <msg>
-  rv = snprintf(buf, sizeof(buf), "%s %d %d %s %s%s%s (%s:%d) %s\n",
+  rv = snprintf(buf, sizeof(buf), "%s %d %d %s %s%s%s (%s:%d) %.*s\n",
                 lgconf->tstamp->time_iso8601.c_str(), config->pid, lgconf->pid,
                 lgconf->thread_id.c_str(), tty ? SEVERITY_COLOR[severity_] : "",
                 SEVERITY_STR[severity_].c_str(), tty ? "\033[0m" : "",
-                filename_, linenum_, stream_.str().c_str());
+                filename_, linenum_, static_cast<int>(rleft()), begin_);
 
   if (rv < 0) {
     return;
@@ -160,6 +206,156 @@ Log::~Log() {
   while (write(lgconf->errorlog_fd, buf, nwrite) == -1 && errno == EINTR)
     ;
 }
+
+Log &Log::operator<<(const std::string &s) {
+  write_seq(std::begin(s), std::end(s));
+  return *this;
+}
+
+Log &Log::operator<<(const StringRef &s) {
+  write_seq(std::begin(s), std::end(s));
+  return *this;
+}
+
+Log &Log::operator<<(const char *s) {
+  write_seq(s, s + strlen(s));
+  return *this;
+}
+
+Log &Log::operator<<(const ImmutableString &s) {
+  write_seq(std::begin(s), std::end(s));
+  return *this;
+}
+
+Log &Log::operator<<(long long n) {
+  if (n >= 0) {
+    return *this << static_cast<uint64_t>(n);
+  }
+
+  if (flags_ & fmt_hex) {
+    write_hex(n);
+    return *this;
+  }
+
+  if (full_) {
+    return *this;
+  }
+
+  n *= -1;
+
+  size_t nlen = 0;
+  for (auto t = n; t; t /= 10, ++nlen)
+    ;
+  if (wleft() < 1 /* sign */ + nlen) {
+    full_ = true;
+    return *this;
+  }
+  *last_++ = '-';
+  *last_ += nlen;
+  update_full();
+
+  auto p = last_ - 1;
+  for (; n; n /= 10) {
+    *p-- = (n % 10) + '0';
+  }
+  return *this;
+}
+
+Log &Log::operator<<(unsigned long long n) {
+  if (flags_ & fmt_hex) {
+    write_hex(n);
+    return *this;
+  }
+
+  if (full_) {
+    return *this;
+  }
+
+  if (n == 0) {
+    *last_++ = '0';
+    update_full();
+    return *this;
+  }
+  size_t nlen = 0;
+  for (auto t = n; t; t /= 10, ++nlen)
+    ;
+  if (wleft() < nlen) {
+    full_ = true;
+    return *this;
+  }
+
+  last_ += nlen;
+  update_full();
+
+  auto p = last_ - 1;
+  for (; n; n /= 10) {
+    *p-- = (n % 10) + '0';
+  }
+  return *this;
+}
+
+Log &Log::operator<<(double n) {
+  if (full_) {
+    return *this;
+  }
+
+  auto left = wleft();
+  auto rv = snprintf(reinterpret_cast<char *>(last_), left, "%.9f", n);
+  if (rv > static_cast<int>(left)) {
+    full_ = true;
+    return *this;
+  }
+
+  last_ += rv;
+  update_full();
+
+  return *this;
+}
+
+Log &Log::operator<<(long double n) {
+  if (full_) {
+    return *this;
+  }
+
+  auto left = wleft();
+  auto rv = snprintf(reinterpret_cast<char *>(last_), left, "%.9Lf", n);
+  if (rv > static_cast<int>(left)) {
+    full_ = true;
+    return *this;
+  }
+
+  last_ += rv;
+  update_full();
+
+  return *this;
+}
+
+Log &Log::operator<<(bool n) {
+  if (full_) {
+    return *this;
+  }
+
+  *last_++ = n ? '1' : '0';
+  update_full();
+
+  return *this;
+}
+
+Log &Log::operator<<(const void *p) {
+  if (full_) {
+    return *this;
+  }
+
+  write_hex(reinterpret_cast<uintptr_t>(p));
+
+  return *this;
+}
+
+namespace log {
+void hex(Log &log) { log.set_flags(Log::fmt_hex); };
+
+void dec(Log &log) { log.set_flags(Log::fmt_dec); };
+} // namespace log
 
 namespace {
 template <typename OutputIterator>
@@ -397,35 +593,35 @@ void upstream_accesslog(const std::vector<LogFragment> &lfv,
   auto &balloc = downstream->get_block_allocator();
 
   auto downstream_addr = downstream->get_addr();
-  auto method = http2::to_method_string(req.method);
+  auto method = req.method == -1 ? StringRef::from_lit("<unknown>")
+                                 : http2::to_method_string(req.method);
   auto path = req.method == HTTP_CONNECT
                   ? req.authority
                   : config->http2_proxy
                         ? construct_absolute_request_uri(balloc, req)
-                        : req.path.empty()
-                              ? req.method == HTTP_OPTIONS
-                                    ? StringRef::from_lit("*")
-                                    : StringRef::from_lit("-")
-                              : req.path;
+                        : req.path.empty() ? req.method == HTTP_OPTIONS
+                                                 ? StringRef::from_lit("*")
+                                                 : StringRef::from_lit("-")
+                                           : req.path;
 
   auto p = std::begin(buf);
   auto last = std::end(buf) - 2;
 
   for (auto &lf : lfv) {
     switch (lf.type) {
-    case SHRPX_LOGF_LITERAL:
+    case LogFragmentType::LITERAL:
       std::tie(p, last) = copy(lf.value, p, last);
       break;
-    case SHRPX_LOGF_REMOTE_ADDR:
+    case LogFragmentType::REMOTE_ADDR:
       std::tie(p, last) = copy(lgsp.remote_addr, p, last);
       break;
-    case SHRPX_LOGF_TIME_LOCAL:
+    case LogFragmentType::TIME_LOCAL:
       std::tie(p, last) = copy(tstamp->time_local, p, last);
       break;
-    case SHRPX_LOGF_TIME_ISO8601:
+    case LogFragmentType::TIME_ISO8601:
       std::tie(p, last) = copy(tstamp->time_iso8601, p, last);
       break;
-    case SHRPX_LOGF_REQUEST:
+    case LogFragmentType::REQUEST:
       std::tie(p, last) = copy(method, p, last);
       std::tie(p, last) = copy(' ', p, last);
       std::tie(p, last) = copy_escape(path, p, last);
@@ -436,13 +632,13 @@ void upstream_accesslog(const std::vector<LogFragment> &lfv,
         std::tie(p, last) = copy(req.http_minor, p, last);
       }
       break;
-    case SHRPX_LOGF_STATUS:
+    case LogFragmentType::STATUS:
       std::tie(p, last) = copy(resp.http_status, p, last);
       break;
-    case SHRPX_LOGF_BODY_BYTES_SENT:
+    case LogFragmentType::BODY_BYTES_SENT:
       std::tie(p, last) = copy(downstream->response_sent_body_length, p, last);
       break;
-    case SHRPX_LOGF_HTTP: {
+    case LogFragmentType::HTTP: {
       auto hd = req.fs.header(lf.value);
       if (hd) {
         std::tie(p, last) = copy_escape((*hd).value, p, last);
@@ -453,7 +649,7 @@ void upstream_accesslog(const std::vector<LogFragment> &lfv,
 
       break;
     }
-    case SHRPX_LOGF_AUTHORITY:
+    case LogFragmentType::AUTHORITY:
       if (!req.authority.empty()) {
         std::tie(p, last) = copy(req.authority, p, last);
         break;
@@ -462,13 +658,13 @@ void upstream_accesslog(const std::vector<LogFragment> &lfv,
       std::tie(p, last) = copy('-', p, last);
 
       break;
-    case SHRPX_LOGF_REMOTE_PORT:
+    case LogFragmentType::REMOTE_PORT:
       std::tie(p, last) = copy(lgsp.remote_port, p, last);
       break;
-    case SHRPX_LOGF_SERVER_PORT:
+    case LogFragmentType::SERVER_PORT:
       std::tie(p, last) = copy(lgsp.server_port, p, last);
       break;
-    case SHRPX_LOGF_REQUEST_TIME: {
+    case LogFragmentType::REQUEST_TIME: {
       auto t = std::chrono::duration_cast<std::chrono::milliseconds>(
                    lgsp.request_end_time - downstream->get_request_start_time())
                    .count();
@@ -482,64 +678,138 @@ void upstream_accesslog(const std::vector<LogFragment> &lfv,
       std::tie(p, last) = copy(frac, p, last);
       break;
     }
-    case SHRPX_LOGF_PID:
+    case LogFragmentType::PID:
       std::tie(p, last) = copy(lgsp.pid, p, last);
       break;
-    case SHRPX_LOGF_ALPN:
+    case LogFragmentType::ALPN:
       std::tie(p, last) = copy_escape(lgsp.alpn, p, last);
       break;
-    case SHRPX_LOGF_TLS_CIPHER:
-      if (!lgsp.tls_info) {
+    case LogFragmentType::TLS_CIPHER:
+      if (!lgsp.ssl) {
         std::tie(p, last) = copy('-', p, last);
         break;
       }
-      std::tie(p, last) = copy(lgsp.tls_info->cipher, p, last);
+      std::tie(p, last) = copy(SSL_get_cipher_name(lgsp.ssl), p, last);
       break;
-    case SHRPX_LOGF_TLS_PROTOCOL:
-      if (!lgsp.tls_info) {
-        std::tie(p, last) = copy('-', p, last);
-        break;
-      }
-      std::tie(p, last) = copy(lgsp.tls_info->protocol, p, last);
-      break;
-    case SHRPX_LOGF_TLS_SESSION_ID:
-      if (!lgsp.tls_info || lgsp.tls_info->session_id_length == 0) {
-        std::tie(p, last) = copy('-', p, last);
-        break;
-      }
-      std::tie(p, last) = copy_hex_low(
-          lgsp.tls_info->session_id, lgsp.tls_info->session_id_length, p, last);
-      break;
-    case SHRPX_LOGF_TLS_SESSION_REUSED:
-      if (!lgsp.tls_info) {
+    case LogFragmentType::TLS_PROTOCOL:
+      if (!lgsp.ssl) {
         std::tie(p, last) = copy('-', p, last);
         break;
       }
       std::tie(p, last) =
-          copy(lgsp.tls_info->session_reused ? 'r' : '.', p, last);
+          copy(nghttp2::tls::get_tls_protocol(lgsp.ssl), p, last);
       break;
-    case SHRPX_LOGF_TLS_SNI:
+    case LogFragmentType::TLS_SESSION_ID: {
+      auto session = SSL_get_session(lgsp.ssl);
+      if (!session) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      unsigned int session_id_length = 0;
+      auto session_id = SSL_SESSION_get_id(session, &session_id_length);
+      if (session_id_length == 0) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      std::tie(p, last) = copy_hex_low(session_id, session_id_length, p, last);
+      break;
+    }
+    case LogFragmentType::TLS_SESSION_REUSED:
+      if (!lgsp.ssl) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      std::tie(p, last) =
+          copy(SSL_session_reused(lgsp.ssl) ? 'r' : '.', p, last);
+      break;
+    case LogFragmentType::TLS_SNI:
       if (lgsp.sni.empty()) {
         std::tie(p, last) = copy('-', p, last);
         break;
       }
       std::tie(p, last) = copy_escape(lgsp.sni, p, last);
       break;
-    case SHRPX_LOGF_BACKEND_HOST:
+    case LogFragmentType::TLS_CLIENT_FINGERPRINT_SHA1:
+    case LogFragmentType::TLS_CLIENT_FINGERPRINT_SHA256: {
+      if (!lgsp.ssl) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      auto x = SSL_get_peer_certificate(lgsp.ssl);
+      if (!x) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      std::array<uint8_t, 32> buf;
+      auto len = tls::get_x509_fingerprint(
+          buf.data(), buf.size(), x,
+          lf.type == LogFragmentType::TLS_CLIENT_FINGERPRINT_SHA256
+              ? EVP_sha256()
+              : EVP_sha1());
+      X509_free(x);
+      if (len <= 0) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      std::tie(p, last) = copy_hex_low(buf.data(), len, p, last);
+      break;
+    }
+    case LogFragmentType::TLS_CLIENT_ISSUER_NAME:
+    case LogFragmentType::TLS_CLIENT_SUBJECT_NAME: {
+      if (!lgsp.ssl) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      auto x = SSL_get_peer_certificate(lgsp.ssl);
+      if (!x) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      auto name = lf.type == LogFragmentType::TLS_CLIENT_ISSUER_NAME
+                      ? tls::get_x509_issuer_name(balloc, x)
+                      : tls::get_x509_subject_name(balloc, x);
+      X509_free(x);
+      if (name.empty()) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      std::tie(p, last) = copy(name, p, last);
+      break;
+    }
+    case LogFragmentType::TLS_CLIENT_SERIAL: {
+      if (!lgsp.ssl) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      auto x = SSL_get_peer_certificate(lgsp.ssl);
+      if (!x) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      auto sn = tls::get_x509_serial(balloc, x);
+      X509_free(x);
+      if (sn.empty()) {
+        std::tie(p, last) = copy('-', p, last);
+        break;
+      }
+      std::tie(p, last) = copy(sn, p, last);
+      break;
+    }
+    case LogFragmentType::BACKEND_HOST:
       if (!downstream_addr) {
         std::tie(p, last) = copy('-', p, last);
         break;
       }
       std::tie(p, last) = copy(downstream_addr->host, p, last);
       break;
-    case SHRPX_LOGF_BACKEND_PORT:
+    case LogFragmentType::BACKEND_PORT:
       if (!downstream_addr) {
         std::tie(p, last) = copy('-', p, last);
         break;
       }
       std::tie(p, last) = copy(downstream_addr->port, p, last);
       break;
-    case SHRPX_LOGF_NONE:
+    case LogFragmentType::NONE:
       break;
     default:
       break;
@@ -624,8 +894,9 @@ void log_chld(pid_t pid, int rstatus, const char *msg) {
 
   LOG(NOTICE) << msg << ": [" << pid << "] exited "
               << (WIFEXITED(rstatus) ? "normally" : "abnormally")
-              << " with status " << std::hex << rstatus << std::oct
-              << "; exit status " << WEXITSTATUS(rstatus)
+              << " with status " << log::hex << rstatus << log::dec
+              << "; exit status "
+              << (WIFEXITED(rstatus) ? WEXITSTATUS(rstatus) : 0)
               << (signalstr.empty() ? "" : signalstr.c_str());
 }
 

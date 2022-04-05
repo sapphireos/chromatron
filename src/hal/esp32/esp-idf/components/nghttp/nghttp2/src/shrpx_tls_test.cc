@@ -36,7 +36,7 @@ using namespace nghttp2;
 namespace shrpx {
 
 void test_shrpx_tls_create_lookup_tree(void) {
-  auto tree = make_unique<tls::CertLookupTree>();
+  auto tree = std::make_unique<tls::CertLookupTree>();
 
   constexpr StringRef hostnames[] = {
       StringRef::from_lit("example.com"),             // 0
@@ -70,7 +70,7 @@ void test_shrpx_tls_create_lookup_tree(void) {
   CU_ASSERT(-1 == tree->lookup(StringRef{}));
   CU_ASSERT(5 == tree->lookup(hostnames[5]));
   CU_ASSERT(6 == tree->lookup(hostnames[6]));
-  constexpr char h6[] = "pdylay.sourceforge.net";
+  static constexpr char h6[] = "pdylay.sourceforge.net";
   for (int i = 0; i < 7; ++i) {
     CU_ASSERT(-1 == tree->lookup(StringRef{h6 + i, str_size(h6) - i}));
   }
@@ -85,7 +85,7 @@ void test_shrpx_tls_create_lookup_tree(void) {
   };
   num = array_size(names);
 
-  tree = make_unique<tls::CertLookupTree>();
+  tree = std::make_unique<tls::CertLookupTree>();
   for (size_t idx = 0; idx < num; ++idx) {
     tree->add_cert(names[idx], idx);
   }
@@ -119,20 +119,22 @@ void test_shrpx_tls_create_lookup_tree(void) {
 void test_shrpx_tls_cert_lookup_tree_add_ssl_ctx(void) {
   int rv;
 
-  constexpr char nghttp2_certfile[] = NGHTTP2_SRC_DIR "/test.nghttp2.org.pem";
+  static constexpr char nghttp2_certfile[] =
+      NGHTTP2_SRC_DIR "/test.nghttp2.org.pem";
   auto nghttp2_ssl_ctx = SSL_CTX_new(SSLv23_server_method());
   auto nghttp2_ssl_ctx_del = defer(SSL_CTX_free, nghttp2_ssl_ctx);
-  auto nghttp2_tls_ctx_data = make_unique<tls::TLSContextData>();
+  auto nghttp2_tls_ctx_data = std::make_unique<tls::TLSContextData>();
   nghttp2_tls_ctx_data->cert_file = nghttp2_certfile;
   SSL_CTX_set_app_data(nghttp2_ssl_ctx, nghttp2_tls_ctx_data.get());
   rv = SSL_CTX_use_certificate_chain_file(nghttp2_ssl_ctx, nghttp2_certfile);
 
   CU_ASSERT(1 == rv);
 
-  constexpr char examples_certfile[] = NGHTTP2_SRC_DIR "/test.example.com.pem";
+  static constexpr char examples_certfile[] =
+      NGHTTP2_SRC_DIR "/test.example.com.pem";
   auto examples_ssl_ctx = SSL_CTX_new(SSLv23_server_method());
   auto examples_ssl_ctx_del = defer(SSL_CTX_free, examples_ssl_ctx);
-  auto examples_tls_ctx_data = make_unique<tls::TLSContextData>();
+  auto examples_tls_ctx_data = std::make_unique<tls::TLSContextData>();
   examples_tls_ctx_data->cert_file = examples_certfile;
   SSL_CTX_set_app_data(examples_ssl_ctx, examples_tls_ctx_data.get());
   rv = SSL_CTX_use_certificate_chain_file(examples_ssl_ctx, examples_certfile);

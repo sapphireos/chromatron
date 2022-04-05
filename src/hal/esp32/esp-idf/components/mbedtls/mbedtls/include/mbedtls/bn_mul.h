@@ -4,7 +4,7 @@
  * \brief Multi-precision integer library
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -45,8 +45,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
  *      Multiply source vector [s] with b, add result
@@ -72,6 +70,46 @@
 #endif
 
 #include "bignum.h"
+
+
+/*
+ * Conversion macros for embedded constants:
+ * build lists of mbedtls_mpi_uint's from lists of unsigned char's grouped by 8, 4 or 2
+ */
+#if defined(MBEDTLS_HAVE_INT32)
+
+#define MBEDTLS_BYTES_TO_T_UINT_4( a, b, c, d )               \
+    ( (mbedtls_mpi_uint) (a) <<  0 ) |                        \
+    ( (mbedtls_mpi_uint) (b) <<  8 ) |                        \
+    ( (mbedtls_mpi_uint) (c) << 16 ) |                        \
+    ( (mbedtls_mpi_uint) (d) << 24 )
+
+#define MBEDTLS_BYTES_TO_T_UINT_2( a, b )                   \
+    MBEDTLS_BYTES_TO_T_UINT_4( a, b, 0, 0 )
+
+#define MBEDTLS_BYTES_TO_T_UINT_8( a, b, c, d, e, f, g, h ) \
+    MBEDTLS_BYTES_TO_T_UINT_4( a, b, c, d ),                \
+    MBEDTLS_BYTES_TO_T_UINT_4( e, f, g, h )
+
+#else /* 64-bits */
+
+#define MBEDTLS_BYTES_TO_T_UINT_8( a, b, c, d, e, f, g, h )   \
+    ( (mbedtls_mpi_uint) (a) <<  0 ) |                        \
+    ( (mbedtls_mpi_uint) (b) <<  8 ) |                        \
+    ( (mbedtls_mpi_uint) (c) << 16 ) |                        \
+    ( (mbedtls_mpi_uint) (d) << 24 ) |                        \
+    ( (mbedtls_mpi_uint) (e) << 32 ) |                        \
+    ( (mbedtls_mpi_uint) (f) << 40 ) |                        \
+    ( (mbedtls_mpi_uint) (g) << 48 ) |                        \
+    ( (mbedtls_mpi_uint) (h) << 56 )
+
+#define MBEDTLS_BYTES_TO_T_UINT_4( a, b, c, d )             \
+    MBEDTLS_BYTES_TO_T_UINT_8( a, b, c, d, 0, 0, 0, 0 )
+
+#define MBEDTLS_BYTES_TO_T_UINT_2( a, b )                   \
+    MBEDTLS_BYTES_TO_T_UINT_8( a, b, 0, 0, 0, 0, 0, 0 )
+
+#endif /* bits in mbedtls_mpi_uint */
 
 #if defined(MBEDTLS_HAVE_ASM)
 
@@ -218,9 +256,9 @@
         "addq   $8, %%rdi\n"
 
 #define MULADDC_STOP                        \
-        : "+c" (c), "+D" (d), "+S" (s)      \
-        : "b" (b)                           \
-        : "rax", "rdx", "r8"                \
+        : "+c" (c), "+D" (d), "+S" (s), "+m" (*(uint64_t (*)[16]) d) \
+        : "b" (b), "m" (*(const uint64_t (*)[16]) s)                 \
+        : "rax", "rdx", "r8"                                         \
     );
 
 #endif /* AMD64 */

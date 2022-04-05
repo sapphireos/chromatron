@@ -1,807 +1,597 @@
-/**
- * please connect GPIO18 to GPIO19
+/*
+ * SPDX-FileCopyrightText: 2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
-#include "stdio.h"
+// RMT driver unit test is based on extended NEC protocol
+#include <stdio.h>
 #include <string.h>
-#include "driver/rmt.h"
-#include "unity.h"
-#include "test_utils.h"
+#include "sdkconfig.h"
+#include "hal/cpu_hal.h"
+#include "hal/gpio_hal.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "freertos/queue.h"
-#include "freertos/semphr.h"
-#include "esp_err.h"
 #include "esp_log.h"
-#include "driver/periph_ctrl.h"
-#include "soc/rmt_reg.h"
+#include "driver/rmt.h"
+#include "ir_tools.h"
+#include "unity.h"
+#include "test_utils.h"
+#include "esp_rom_gpio.h"
 
-static const char* TAG = "RMT";
+#define RMT_RX_CHANNEL_ENCODING_START (SOC_RMT_CHANNELS_PER_GROUP-SOC_RMT_TX_CANDIDATES_PER_GROUP)
+#define RMT_TX_CHANNEL_ENCODING_END   (SOC_RMT_TX_CANDIDATES_PER_GROUP-1)
 
+// CI ONLY: Don't connect any other signals to this GPIO
+#define RMT_DATA_IO (4) // bind signal RMT_SIG_OUT0_IDX and RMT_SIG_IN0_IDX on the same GPIO
 
-#define RMT_RX_ACTIVE_LEVEL  1   /*!< Data bit is active high for self test mode */
-#define RMT_TX_CARRIER_EN    0   /*!< Disable carrier for self test mode  */
+#define RMT_TESTBENCH_FLAGS_ALWAYS_ON (1<<0)
+#define RMT_TESTBENCH_FLAGS_CARRIER_ON (1<<1)
+#define RMT_TESTBENCH_FLAGS_LOOP_ON (1<<2)
 
-#define RMT_TX_CHANNEL    1     /*!< RMT channel for transmitter */
-#define RMT_TX_GPIO_NUM  18     /*!< GPIO number for transmitter signal */
-#define RMT_RX_CHANNEL    0     /*!< RMT channel for receiver */
-#define RMT_RX_GPIO_NUM  19     /*!< GPIO number for receiver */
-#define RMT_CLK_DIV      100    /*!< RMT counter clock divider */
-#define RMT_TICK_10_US    (80000000/RMT_CLK_DIV/100000)   /*!< RMT counter value for 10 us.(Source clock is APB clock) */
+static const char *TAG = "RMT.test";
+static ir_builder_t *s_ir_builder = NULL;
+static ir_parser_t *s_ir_parser = NULL;
 
-#define HEADER_HIGH_US    9000                         /*!< NEC protocol header: positive 9ms */
-#define HEADER_LOW_US     4500                         /*!< NEC protocol header: negative 4.5ms*/
-#define BIT_ONE_HIGH_US    560                         /*!< NEC protocol data bit 1: positive 0.56ms */
-#define BIT_ONE_LOW_US    (2250-BIT_ONE_HIGH_US)   /*!< NEC protocol data bit 1: negative 1.69ms */
-#define BIT_ZERO_HIGH_US   560                         /*!< NEC protocol data bit 0: positive 0.56ms */
-#define BIT_ZERO_LOW_US   (1120-BIT_ZERO_HIGH_US)  /*!< NEC protocol data bit 0: negative 0.56ms */
-#define BIT_END            560                         /*!< NEC protocol end: positive 0.56ms */
-#define BIT_MARGIN         20                          /*!< NEC parse margin time */
-
-#define ITEM_DURATION(d)  ((d & 0x7fff)*10/RMT_TICK_10_US)  /*!< Parse duration time from memory register value */
-#define DATA_ITEM_NUM   34  /*!< NEC code item number: header + 32bit data + end */
-#define RMT_TX_DATA_NUM  100    /*!< NEC tx test data number */
-#define RMT_ITEM32_TIMEOUT_US  9500   /*!< RMT receiver timeout value(us) */
-
-/**
- * @brief Build register value of waveform for NEC one data bit
- */
-static inline void fill_item_level(rmt_item32_t* item, int high_us, int low_us)
+static void rmt_setup_testbench(int tx_channel, int rx_channel, uint32_t flags)
 {
-    item->level0 = 1;
-    item->duration0 = (high_us) / 10 * RMT_TICK_10_US;
-    item->level1 = 0;
-    item->duration1 = (low_us) / 10 * RMT_TICK_10_US;
-}
-
-/**
- * @brief Generate NEC header value: active 9ms + negative 4.5ms
- */
-static void fill_item_header(rmt_item32_t* item)
-{
-    fill_item_level(item, HEADER_HIGH_US, HEADER_LOW_US);
-}
-
-/*
- * @brief Generate NEC data bit 1: positive 0.56ms + negative 1.69ms
- */
-static void fill_item_bit_one(rmt_item32_t* item)
-{
-    fill_item_level(item, BIT_ONE_HIGH_US, BIT_ONE_LOW_US);
-}
-
-/**
- * @brief Generate NEC data bit 0: positive 0.56ms + negative 0.56ms
- */
-static void fill_item_bit_zero(rmt_item32_t* item)
-{
-    fill_item_level(item, BIT_ZERO_HIGH_US, BIT_ZERO_LOW_US);
-}
-
-/**
- * @brief Generate NEC end signal: positive 0.56ms
- */
-static void fill_item_end(rmt_item32_t* item)
-{
-    fill_item_level(item, BIT_END, 0x7fff);
-}
-
-/**
- * @brief Check whether duration is around target_us
- */
-static inline bool check_in_range(int duration_ticks, int target_us, int margin_us)
-{
-    if(( ITEM_DURATION(duration_ticks) < (target_us + margin_us))
-        && ( ITEM_DURATION(duration_ticks) > (target_us - margin_us))) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * @brief Check whether this value represents an NEC header
- */
-static bool header_if(rmt_item32_t* item)
-{
-    if((item->level0 == RMT_RX_ACTIVE_LEVEL && item->level1 != RMT_RX_ACTIVE_LEVEL)
-        && check_in_range(item->duration0, HEADER_HIGH_US, BIT_MARGIN)
-        && check_in_range(item->duration1, HEADER_LOW_US, BIT_MARGIN)) {
-        return true;
-    }
-    return false;
-}
-
-/**
- * @brief Check whether this value represents an NEC data bit 1
- */
-static bool bit_one_if(rmt_item32_t* item)
-{
-    if((item->level0 == RMT_RX_ACTIVE_LEVEL && item->level1 != RMT_RX_ACTIVE_LEVEL)
-        && check_in_range(item->duration0, BIT_ONE_HIGH_US, BIT_MARGIN)
-        && check_in_range(item->duration1, BIT_ONE_LOW_US, BIT_MARGIN)) {
-        return true;
-    }
-    return false;
-}
-
-/**
- * @brief Check whether this value represents an NEC data bit 0
- */
-static bool bit_zero_if(rmt_item32_t* item)
-{
-    if((item->level0 == RMT_RX_ACTIVE_LEVEL && item->level1 != RMT_RX_ACTIVE_LEVEL)
-        && check_in_range(item->duration0, BIT_ZERO_HIGH_US, BIT_MARGIN)
-        && check_in_range(item->duration1, BIT_ZERO_LOW_US, BIT_MARGIN)) {
-        return true;
-    }
-    return false;
-}
-
-
-/**
- * @brief Parse NEC 32 bit waveform to address and command.
- */
-static int parse_items(rmt_item32_t* item, int item_num, uint16_t* addr, uint16_t* data)
-{
-    int w_len = item_num;
-    if(w_len < DATA_ITEM_NUM) {
-        return -1;
-    }
-    int i = 0, j = 0;
-    if(!header_if(item++)) {
-        return -1;
-    }
-    uint16_t addr_t = 0;
-    for(j = 0; j < 16; j++) {
-        if(bit_one_if(item)) {
-            addr_t |= (1 << j);
-        } else if(bit_zero_if(item)) {
-            addr_t |= (0 << j);
-        } else {
-            return -1;
+    // RMT channel configuration
+    if (tx_channel >= 0) {
+        rmt_config_t tx_config = RMT_DEFAULT_CONFIG_TX(RMT_DATA_IO, tx_channel);
+        if (flags & RMT_TESTBENCH_FLAGS_ALWAYS_ON) {
+            tx_config.flags |= RMT_CHANNEL_FLAGS_AWARE_DFS;
         }
-        item++;
-        i++;
-    }
-    uint16_t data_t = 0;
-    for(j = 0; j < 16; j++) {
-        if(bit_one_if(item)) {
-            data_t |= (1 << j);
-        } else if(bit_zero_if(item)) {
-            data_t |= (0 << j);
-        } else {
-            return -1;
+        if (flags & RMT_TESTBENCH_FLAGS_CARRIER_ON) {
+            tx_config.tx_config.carrier_en = true;
         }
-        item++;
-        i++;
-    }
-    *addr = addr_t;
-    *data = data_t;
-    return i;
-}
-
-/**
- * @brief Build NEC 32bit waveform.
- */
-static int build_items(int channel, rmt_item32_t* item, int item_num, uint16_t addr, uint16_t cmd_data)
-{
-    int i = 0, j = 0;
-    if(item_num < DATA_ITEM_NUM) {
-        return -1;
-    }
-    fill_item_header(item++);
-    i++;
-    for(j = 0; j < 16; j++) {
-        if(addr & 0x1) {
-            fill_item_bit_one(item);
-        } else {
-            fill_item_bit_zero(item);
+#if SOC_RMT_SUPPORT_TX_LOOP_COUNT
+        if (flags & RMT_TESTBENCH_FLAGS_LOOP_ON) {
+            tx_config.tx_config.loop_en = true;
+            tx_config.tx_config.loop_count = 10;
         }
-        item++;
-        i++;
-        addr >>= 1;
+#endif
+        TEST_ESP_OK(rmt_config(&tx_config));
     }
-    for(j = 0; j < 16; j++) {
-        if(cmd_data & 0x1) {
-            fill_item_bit_one(item);
-        } else {
-            fill_item_bit_zero(item);
+
+    if (rx_channel >= 0) {
+        rmt_config_t rx_config = RMT_DEFAULT_CONFIG_RX(RMT_DATA_IO, rx_channel);
+        if (flags & RMT_TESTBENCH_FLAGS_ALWAYS_ON) {
+            rx_config.flags |= RMT_CHANNEL_FLAGS_AWARE_DFS;
         }
-        item++;
-        i++;
-        cmd_data >>= 1;
-    }
-    fill_item_end(item);
-    i++;
-    return i;
-}
-
-static void set_tx_data(int tx_channel, uint16_t cmd, uint16_t addr, int item_num, rmt_item32_t* item, int offset)
-{
-    while(1) {
-        int i = build_items(tx_channel, item + offset, item_num - offset, ((~addr) << 8) | addr, cmd);
-        printf("cmd :%d\n", cmd);
-        if(i < 0) {
-            break;
+#if SOC_RMT_SUPPORT_RX_DEMODULATION
+        if (flags & RMT_TESTBENCH_FLAGS_CARRIER_ON) {
+            rx_config.rx_config.rm_carrier = true;
+            rx_config.rx_config.carrier_freq_hz = 38000;
+            rx_config.rx_config.carrier_duty_percent = 33;
+            rx_config.rx_config.carrier_level = RMT_CARRIER_LEVEL_HIGH;
         }
-        cmd++;
-        addr++;
-        offset += i;
+#endif
+        TEST_ESP_OK(rmt_config(&rx_config));
+    }
+
+    // Routing internal signals by IO Matrix (bind rmt tx and rx signal on the same GPIO)
+    gpio_hal_iomux_func_sel(GPIO_PIN_MUX_REG[RMT_DATA_IO], PIN_FUNC_GPIO);
+    TEST_ESP_OK(gpio_set_direction(RMT_DATA_IO, GPIO_MODE_INPUT_OUTPUT));
+    esp_rom_gpio_connect_out_signal(RMT_DATA_IO, RMT_SIG_OUT0_IDX + tx_channel, 0, 0);
+    esp_rom_gpio_connect_in_signal(RMT_DATA_IO, RMT_SIG_IN0_IDX + rx_channel, 0);
+
+    // install driver
+    if (tx_channel >= 0) {
+        TEST_ESP_OK(rmt_driver_install(tx_channel, 0, 0));
+
+        ir_builder_config_t ir_builder_config = IR_BUILDER_DEFAULT_CONFIG((ir_dev_t)tx_channel);
+        ir_builder_config.flags = IR_TOOLS_FLAGS_PROTO_EXT;
+        s_ir_builder = ir_builder_rmt_new_nec(&ir_builder_config);
+        TEST_ASSERT_NOT_NULL(s_ir_builder);
+    }
+
+    if (rx_channel >= 0) {
+        TEST_ESP_OK(rmt_driver_install(rx_channel, 3000, 0));
+
+        ir_parser_config_t ir_parser_config = IR_PARSER_DEFAULT_CONFIG((ir_dev_t)rx_channel);
+        ir_parser_config.flags = IR_TOOLS_FLAGS_PROTO_EXT | IR_TOOLS_FLAGS_INVERSE;
+        s_ir_parser = ir_parser_rmt_new_nec(&ir_parser_config);
+        TEST_ASSERT_NOT_NULL(s_ir_parser);
     }
 }
 
-static int get_rx_data(RingbufHandle_t rb)
+static void rmt_clean_testbench(int tx_channel, int rx_channel)
 {
-    uint16_t tmp = 0;
-    while(rb) {
-        size_t rx_size = 0;
-        rmt_item32_t* rx_item = (rmt_item32_t*) xRingbufferReceive(rb, &rx_size, 1000);
-        if(rx_item) {
-            uint16_t rmt_addr;
-            uint16_t rmt_cmd;
-            int rx_offset = 0;
-            while(1) {
-                int res = parse_items(rx_item + rx_offset, rx_size / 4 - rx_offset, &rmt_addr, &rmt_cmd);
-                if(res > 0) {
-                    rx_offset += res + 1;
-                    ESP_LOGI(TAG, "RMT RCV --- addr: 0x%04x cmd: 0x%04x", rmt_addr, rmt_cmd);
-                    TEST_ASSERT(rmt_cmd == tmp);
-                    tmp++;
-                } else {
-                    break;
-                }
-            }
-            vRingbufferReturnItem(rb, (void*) rx_item);
-        } else {
-            break;
-        }
+    if (tx_channel >= 0) {
+        TEST_ESP_OK(rmt_driver_uninstall(tx_channel));
+        TEST_ESP_OK(s_ir_builder->del(s_ir_builder));
+        s_ir_builder = NULL;
     }
-    return tmp;
-}
 
-/**
- * @brief RMT transmitter initialization
- */
-static void tx_init()
-{
-    // the sender once it send something, its frq is 38kHz, and the duty cycle is 50%
-    rmt_tx_config_t tx_cfg = {
-        .loop_en = false,
-        .carrier_duty_percent = 50,
-        .carrier_freq_hz = 38000,
-        .carrier_level = 1,
-        .carrier_en = RMT_TX_CARRIER_EN,
-        .idle_level = 0,
-        .idle_output_en = true,
-    };
-    rmt_config_t rmt_tx = {
-        .channel = RMT_TX_CHANNEL,
-        .gpio_num = RMT_TX_GPIO_NUM,
-        .mem_block_num = 1,
-        .clk_div = RMT_CLK_DIV,
-        .tx_config = tx_cfg,
-        .rmt_mode = 0,
-    };
-    rmt_config(&rmt_tx);
-    rmt_driver_install(rmt_tx.channel, 0, 0);
-}
-
-/**
- * @brief RMT receiver initialization
- */
-static void rx_init()
-{
-    rmt_rx_config_t rx_cfg = {
-        .filter_en = true,
-        .filter_ticks_thresh = 100,
-        .idle_threshold = RMT_ITEM32_TIMEOUT_US / 10 * (RMT_TICK_10_US),
-    };
-    rmt_config_t rmt_rx = {
-        .channel = RMT_RX_CHANNEL,
-        .gpio_num = RMT_RX_GPIO_NUM,
-        .clk_div = RMT_CLK_DIV,
-        .mem_block_num = 1,
-        .rmt_mode = RMT_MODE_RX,
-        .rx_config = rx_cfg,
-    };
-    rmt_config(&rmt_rx);
-    rmt_driver_install(rmt_rx.channel, (sizeof(rmt_item32_t) * DATA_ITEM_NUM * (RMT_TX_DATA_NUM+6)), 0);
-}
-
-TEST_CASE("RMT init config", "[rmt][test_env=UT_T1_RMT]")
-{
-    // tx settings
-    rmt_tx_config_t tx_cfg = {
-        .loop_en = false,
-        .carrier_duty_percent = 50,
-        .carrier_freq_hz = 38000,
-        .carrier_level = 1,
-        .carrier_en = RMT_TX_CARRIER_EN,
-        .idle_level = 0,
-        .idle_output_en = true,
-    };
-    rmt_config_t rmt_tx = {
-        .channel = RMT_TX_CHANNEL,
-        .gpio_num = RMT_TX_GPIO_NUM,
-        .mem_block_num = 1,
-        .clk_div = RMT_CLK_DIV,
-        .tx_config = tx_cfg,
-    };
-    TEST_ESP_OK(rmt_config(&rmt_tx));
-    TEST_ESP_OK(rmt_driver_install(rmt_tx.channel, 0, 0));
-    TEST_ESP_OK(rmt_driver_uninstall(rmt_tx.channel));
-
-    //rx settings
-    rmt_rx_config_t rx_cfg = {
-        .filter_en = true,
-        .filter_ticks_thresh = 100,
-        .idle_threshold = RMT_ITEM32_TIMEOUT_US / 10 * (RMT_TICK_10_US),
-    };
-    rmt_config_t rmt_rx = {
-        .channel = RMT_RX_CHANNEL,
-        .gpio_num = RMT_RX_GPIO_NUM,
-        .clk_div = RMT_CLK_DIV,
-        .mem_block_num = 1,
-        .rmt_mode = RMT_MODE_RX,
-        .rx_config = rx_cfg,
-    };
-    TEST_ESP_OK(rmt_config(&rmt_rx));
-    TEST_ESP_OK(rmt_driver_install(rmt_rx.channel, 1000, 0));
-    TEST_ESP_OK(rmt_driver_uninstall(rmt_rx.channel));
-
-    //error param setting
-    rmt_config_t temp_rmt_rx1 = {
-        .channel = 2,
-        .gpio_num = 15,
-        .clk_div = RMT_CLK_DIV,
-        .mem_block_num = 1,
-        .rmt_mode = RMT_MODE_RX,
-        .rx_config = rx_cfg,
-    };
-    rmt_config_t temp_rmt_rx2 = temp_rmt_rx1;
-
-    temp_rmt_rx2.clk_div = 0; // only invalid parameter to test
-    TEST_ASSERT(rmt_config(&temp_rmt_rx2) == ESP_ERR_INVALID_ARG);
-
-    temp_rmt_rx2 = temp_rmt_rx1;
-    temp_rmt_rx2.channel = RMT_CHANNEL_MAX;
-    TEST_ASSERT(rmt_config(&temp_rmt_rx2) == ESP_ERR_INVALID_ARG);
-
-    temp_rmt_rx2 = temp_rmt_rx1;
-    temp_rmt_rx2.channel = 2;
-    temp_rmt_rx2.mem_block_num = 8;
-    TEST_ASSERT(rmt_config(&temp_rmt_rx2) == ESP_ERR_INVALID_ARG);
-}
-
-TEST_CASE("RMT init set function", "[rmt][test_env=UT_T1_RMT]")
-{
-    rmt_channel_t channel = 7;
-    TEST_ESP_OK(rmt_set_pin(channel, RMT_MODE_RX, RMT_RX_GPIO_NUM));
-    TEST_ESP_OK(rmt_set_clk_div(channel, RMT_CLK_DIV*2));
-    TEST_ESP_OK(rmt_set_mem_block_num(channel, 1));
-    TEST_ESP_OK(rmt_set_rx_filter(channel, 1, 100));
-    TEST_ESP_OK(rmt_set_rx_idle_thresh(channel, RMT_ITEM32_TIMEOUT_US / 10 * (RMT_TICK_10_US)*2));
-    TEST_ESP_OK(rmt_driver_install(channel, 0, 0));
-    TEST_ESP_OK(rmt_driver_uninstall(channel));
-}
-
-// need to make sure its phenomenon by logic analyzer, can't run in CI
-TEST_CASE("RMT clock devider, clock source set(logic analyzer)", "[rmt][ignore]")
-{
-    uint8_t div_cnt;
-    rmt_source_clk_t src_clk;
-    rmt_config_t rmt_tx;
-    rmt_tx.channel = RMT_TX_CHANNEL;
-    rmt_tx.mem_block_num = 1;
-    rmt_tx.gpio_num = RMT_TX_GPIO_NUM;
-    rmt_tx.clk_div = RMT_CLK_DIV;
-    rmt_tx.tx_config.loop_en = true;
-    rmt_tx.tx_config.carrier_duty_percent = 50;
-    rmt_tx.tx_config.carrier_freq_hz = 38000;
-    rmt_tx.tx_config.carrier_level = 1;
-    rmt_tx.tx_config.carrier_en = RMT_TX_CARRIER_EN;
-    rmt_tx.tx_config.idle_level = 0;
-    rmt_tx.tx_config.idle_output_en = true;
-    rmt_tx.rmt_mode = RMT_MODE_TX;
-
-    TEST_ESP_OK(rmt_config(&rmt_tx));
-    TEST_ESP_OK(rmt_get_clk_div(RMT_TX_CHANNEL, &div_cnt));
-    TEST_ESP_OK(rmt_driver_install(rmt_tx.channel, 0, 0));
-    TEST_ASSERT_EQUAL_UINT8(div_cnt, RMT_CLK_DIV);
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-    // reset it and check it
-    TEST_ESP_OK(rmt_set_clk_div(RMT_TX_CHANNEL, 160));
-    TEST_ESP_OK(rmt_get_clk_div(RMT_TX_CHANNEL, &div_cnt));
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-    TEST_ESP_OK(rmt_set_source_clk(RMT_TX_CHANNEL, RMT_BASECLK_APB));
-    TEST_ESP_OK(rmt_get_source_clk(RMT_TX_CHANNEL, &src_clk));
-    TEST_ASSERT_EQUAL_UINT8(div_cnt, 160);
-    TEST_ASSERT_EQUAL_INT(src_clk, RMT_BASECLK_APB);
-    TEST_ESP_OK(rmt_driver_uninstall(rmt_tx.channel));
-}
-
-TEST_CASE("RMT rx set and get properties", "[rmt][test_env=UT_T1_RMT]")
-{
-    rmt_channel_t channel = RMT_RX_CHANNEL;
-    uint8_t memNum;
-    uint8_t div_cnt;
-    uint16_t idleThreshold;
-    rmt_mem_owner_t owner;
-
-    rx_init();
-
-    TEST_ESP_OK(rmt_get_clk_div(channel, &div_cnt));
-    TEST_ESP_OK(rmt_get_mem_block_num(channel, &memNum));
-    TEST_ESP_OK(rmt_get_rx_idle_thresh(channel, &idleThreshold));
-    TEST_ESP_OK(rmt_get_memory_owner(channel, &owner));
-
-    TEST_ASSERT_EQUAL_UINT8(div_cnt, RMT_CLK_DIV);
-    TEST_ASSERT_EQUAL_UINT8(memNum, 1);
-    TEST_ASSERT_EQUAL_UINT16(idleThreshold, RMT_ITEM32_TIMEOUT_US / 10 * (RMT_TICK_10_US));
-    TEST_ASSERT_EQUAL_INT(owner, RMT_MEM_OWNER_RX);
-
-    //eRR
-    TEST_ESP_OK(rmt_set_pin(channel, RMT_MODE_RX, 22));
-    TEST_ESP_OK(rmt_set_clk_div(channel, RMT_CLK_DIV*2));
-    TEST_ESP_OK(rmt_set_mem_block_num(channel, 2));
-    TEST_ESP_OK(rmt_set_rx_filter(channel, 1, 100));
-    TEST_ESP_OK(rmt_set_rx_idle_thresh(channel, RMT_ITEM32_TIMEOUT_US / 10 * (RMT_TICK_10_US)*2));
-    TEST_ESP_OK(rmt_set_memory_owner(channel, RMT_MEM_OWNER_RX));
-
-    TEST_ESP_OK(rmt_get_clk_div(channel, &div_cnt));
-    TEST_ESP_OK(rmt_get_mem_block_num(channel, &memNum));
-    TEST_ESP_OK(rmt_get_rx_idle_thresh(channel, &idleThreshold));
-    TEST_ESP_OK(rmt_get_memory_owner(channel, &owner));
-
-    TEST_ASSERT_EQUAL_UINT8(div_cnt, RMT_CLK_DIV*2);
-    TEST_ASSERT_EQUAL_UINT8(memNum, 2);
-    TEST_ASSERT_EQUAL_UINT16(idleThreshold, RMT_ITEM32_TIMEOUT_US / 10 * (RMT_TICK_10_US)*2);
-    TEST_ASSERT_EQUAL_INT(owner, RMT_MEM_OWNER_RX);
-
-    TEST_ESP_OK(rmt_driver_uninstall(channel));
-}
-
-TEST_CASE("RMT tx set and get properties", "[rmt][test_env=UT_T1_RMT]")
-{
-    rmt_channel_t channel = RMT_TX_CHANNEL;
-    uint8_t memNum;
-    uint8_t div_cnt;
-    bool loop_en;
-    rmt_mem_owner_t owner;
-
-    tx_init();
-    TEST_ESP_OK(rmt_get_clk_div(channel, &div_cnt));
-    TEST_ESP_OK(rmt_get_mem_block_num(channel, &memNum));
-    TEST_ESP_OK(rmt_get_tx_loop_mode(channel, &loop_en));
-    TEST_ESP_OK(rmt_get_memory_owner(channel, &owner));
-
-    TEST_ASSERT_EQUAL_INT8(loop_en, 0);
-    TEST_ASSERT_EQUAL_UINT8(div_cnt, RMT_CLK_DIV);
-    TEST_ASSERT_EQUAL_UINT8(memNum, 1);
-    TEST_ASSERT_EQUAL_INT(owner, RMT_MEM_OWNER_TX);
-
-    //reset by "set"
-    TEST_ESP_OK(rmt_set_pin(channel, RMT_MODE_TX, RMT_TX_GPIO_NUM));
-    TEST_ESP_OK(rmt_set_clk_div(channel, RMT_CLK_DIV*2));
-    TEST_ESP_OK(rmt_set_mem_block_num(channel, 2));
-    TEST_ESP_OK(rmt_set_tx_loop_mode(channel, 1));
-    TEST_ESP_OK(rmt_set_tx_carrier(channel, 0, 1, 0, 1));
-    TEST_ESP_OK(rmt_set_idle_level(channel, 1, 0));
-    TEST_ESP_OK(rmt_set_memory_owner(channel, RMT_MEM_OWNER_TX));
-
-    TEST_ESP_OK(rmt_get_clk_div(channel, &div_cnt));
-    TEST_ESP_OK(rmt_get_mem_block_num(channel, &memNum));
-    TEST_ESP_OK(rmt_get_tx_loop_mode(channel, &loop_en));
-    TEST_ESP_OK(rmt_get_memory_owner(channel, &owner));
-
-    TEST_ASSERT_EQUAL_INT8(loop_en, 1);
-    TEST_ASSERT_EQUAL_UINT8(div_cnt, RMT_CLK_DIV*2);
-    TEST_ASSERT_EQUAL_UINT8(memNum, 2);
-    TEST_ASSERT_EQUAL_INT(owner, RMT_MEM_OWNER_TX);
-
-    rmt_item32_t items[1];
-    items[0].duration0 = 300 / 10 * RMT_TICK_10_US;  //300us
-    items[0].level0 = 1;
-    items[0].duration1 = 0;
-    items[0].level1 = 0;
-    for(int i=0; i<100; i++) {
-        TEST_ESP_OK(rmt_write_items(RMT_TX_CHANNEL, items,
-                1, /* Number of items */
-                1 /* wait till done */));
-        vTaskDelay(10/portTICK_PERIOD_MS);  //every 10ms to write the item
-    }
-    TEST_ESP_OK(rmt_driver_uninstall(channel));
-}
-
-TEST_CASE("RMT memory test", "[rmt][test_env=UT_T1_RMT]")
-{
-    rmt_config_t rmt_rx;
-    rmt_rx.channel = RMT_RX_CHANNEL;
-    rmt_rx.gpio_num = RMT_RX_GPIO_NUM;
-    rmt_rx.clk_div = RMT_CLK_DIV;
-    rmt_rx.mem_block_num = 1;
-    rmt_rx.rmt_mode = RMT_MODE_RX;
-    rmt_rx.rx_config.filter_en = true;
-    rmt_rx.rx_config.filter_ticks_thresh = 100;
-    rmt_rx.rx_config.idle_threshold = RMT_ITEM32_TIMEOUT_US / 10 * (RMT_TICK_10_US);
-    TEST_ESP_OK(rmt_config(&rmt_rx));
-
-    for(int i = 0; i<100; i++) {
-        TEST_ESP_OK(rmt_driver_install(rmt_rx.channel, 1000, 0));
-        TEST_ESP_OK(rmt_driver_uninstall(rmt_rx.channel));
+    if (rx_channel >= 0) {
+        TEST_ESP_OK(rmt_driver_uninstall(rx_channel));
+        TEST_ESP_OK(s_ir_parser->del(s_ir_parser));
+        s_ir_parser = NULL;
     }
 }
 
-// RMT channel num and memory block relationship
-TEST_CASE("RMT memory block test", "[rmt][test_env=UT_T1_RMT]")
+TEST_CASE("RMT wrong configuration", "[rmt]")
+{
+    rmt_config_t correct_config = RMT_DEFAULT_CONFIG_TX(RMT_DATA_IO, 0);
+    rmt_config_t wrong_config = correct_config;
+
+    wrong_config.clk_div = 0;
+    TEST_ASSERT(rmt_config(&wrong_config) == ESP_ERR_INVALID_ARG);
+
+    wrong_config = correct_config;
+    wrong_config.channel = SOC_RMT_CHANNELS_PER_GROUP;
+    TEST_ASSERT(rmt_config(&wrong_config) == ESP_ERR_INVALID_ARG);
+
+    wrong_config = correct_config;
+    wrong_config.channel = 2;
+    wrong_config.mem_block_num = 8;
+    TEST_ASSERT(rmt_config(&wrong_config) == ESP_ERR_INVALID_ARG);
+    TEST_ASSERT(rmt_set_mem_block_num(wrong_config.channel, -1) == ESP_ERR_INVALID_ARG);
+}
+
+TEST_CASE("RMT miscellaneous functions", "[rmt]")
 {
     rmt_channel_t channel = 0;
-    rmt_config_t rmt_rx;
-    rmt_rx.channel = channel;
-    rmt_rx.gpio_num = RMT_RX_GPIO_NUM;
-    rmt_rx.clk_div = RMT_CLK_DIV;
-    rmt_rx.mem_block_num = 1;
-    rmt_rx.rmt_mode = RMT_MODE_RX;
-    rmt_rx.rx_config.filter_en = true;
-    rmt_rx.rx_config.filter_ticks_thresh = 100;
-    rmt_rx.rx_config.idle_threshold = RMT_ITEM32_TIMEOUT_US / 10 * (RMT_TICK_10_US);
-    TEST_ESP_OK(rmt_config(&rmt_rx));
-    TEST_ESP_OK(rmt_driver_install(rmt_rx.channel, 1000, 0));
+    uint8_t div_cnt;
+    rmt_source_clk_t src_clk;
+    uint8_t memNum;
+    uint16_t idle_thres;
+    rmt_mem_owner_t owner;
 
-    TEST_ESP_OK(rmt_set_mem_block_num(channel, 8));
-    TEST_ASSERT(rmt_set_mem_block_num(channel, 9)==ESP_ERR_INVALID_ARG);
-    TEST_ASSERT(rmt_set_mem_block_num(channel, -1)==ESP_ERR_INVALID_ARG);
-    TEST_ESP_OK(rmt_driver_uninstall(rmt_rx.channel));
+    // TX related functions
+    rmt_setup_testbench(channel, -1, 0);
 
-    rmt_rx.channel = 7;
-    TEST_ESP_OK(rmt_config(&rmt_rx));
-    TEST_ESP_OK(rmt_driver_install(rmt_rx.channel, 1000, 0));
-    TEST_ASSERT(rmt_set_mem_block_num(rmt_rx.channel, 2)==ESP_ERR_INVALID_ARG);
-    TEST_ASSERT(rmt_set_mem_block_num(rmt_rx.channel, -1)==ESP_ERR_INVALID_ARG);
-    TEST_ESP_OK(rmt_driver_uninstall(rmt_rx.channel));
+    TEST_ESP_OK(rmt_set_mem_block_num(channel, 2));
+    TEST_ESP_OK(rmt_get_mem_block_num(channel, &memNum));
+    TEST_ASSERT_EQUAL_UINT8(2, memNum);
+
+    TEST_ESP_OK(rmt_set_clk_div(channel, 160));
+    TEST_ESP_OK(rmt_get_clk_div(channel, &div_cnt));
+    TEST_ASSERT_EQUAL_UINT8(160, div_cnt);
+
+#if SOC_RMT_SUPPORT_REF_TICK
+    TEST_ESP_OK(rmt_set_source_clk(channel, RMT_BASECLK_REF));
+    TEST_ESP_OK(rmt_get_source_clk(channel, &src_clk));
+    TEST_ASSERT_EQUAL_INT(RMT_BASECLK_REF, src_clk);
+#endif
+
+#if SOC_RMT_SUPPORT_XTAL
+    TEST_ESP_OK(rmt_set_source_clk(channel, RMT_BASECLK_XTAL));
+    TEST_ESP_OK(rmt_get_source_clk(channel, &src_clk));
+    TEST_ASSERT_EQUAL_INT(RMT_BASECLK_XTAL, src_clk);
+#endif
+
+
+    TEST_ESP_OK(rmt_set_tx_carrier(channel, 0, 1, 0, 1));
+    TEST_ESP_OK(rmt_set_idle_level(channel, 1, 0));
+
+    rmt_clean_testbench(channel, -1);
+
+    // RX related functions
+    channel = RMT_RX_CHANNEL_ENCODING_START;
+    rmt_setup_testbench(-1, channel, 0);
+
+    TEST_ESP_OK(rmt_set_rx_idle_thresh(channel, 200));
+    TEST_ESP_OK(rmt_get_rx_idle_thresh(channel, &idle_thres));
+    TEST_ASSERT_EQUAL_UINT16(200, idle_thres);
+
+    TEST_ESP_OK(rmt_set_rx_filter(channel, 1, 100));
+
+    TEST_ESP_OK(rmt_set_memory_owner(channel, RMT_MEM_OWNER_RX));
+    TEST_ESP_OK(rmt_get_memory_owner(channel, &owner));
+    TEST_ASSERT_EQUAL_INT(RMT_MEM_OWNER_RX, owner);
+
+    rmt_clean_testbench(-1, channel);
 }
 
-TEST_CASE("RMT send waveform(logic analyzer)", "[rmt][test_env=UT_T1_RMT][ignore]")
+TEST_CASE("RMT multiple channels", "[rmt]")
 {
-    tx_init();
-    rmt_item32_t items[1];
-    items[0].duration0 = 300 / 10 * RMT_TICK_10_US;  //300us
-    items[0].level0 = 1;
-    for(int i=0; i<500; i++) {
-        TEST_ESP_OK(rmt_write_items(RMT_TX_CHANNEL, items,
-                1, /* Number of items */
-                1 /* wait till done */));
-        vTaskDelay(10/portTICK_PERIOD_MS);  //every 10ms to write the item
+    rmt_config_t tx_cfg = RMT_DEFAULT_CONFIG_TX(RMT_DATA_IO, 0);
+    for (int i = 0; i < SOC_RMT_TX_CANDIDATES_PER_GROUP; i++) {
+        tx_cfg.channel = i;
+        TEST_ESP_OK(rmt_config(&tx_cfg));
+        TEST_ESP_OK(rmt_driver_install(tx_cfg.channel, 0, 0));
     }
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_TX_CHANNEL));
+
+    for (int i = 0; i < SOC_RMT_TX_CANDIDATES_PER_GROUP; i++) {
+        TEST_ESP_OK(rmt_driver_uninstall(i));
+    }
+
+    rmt_config_t rx_cfg = RMT_DEFAULT_CONFIG_RX(RMT_DATA_IO, RMT_RX_CHANNEL_ENCODING_START);
+    for (int i = RMT_RX_CHANNEL_ENCODING_START; i < SOC_RMT_CHANNELS_PER_GROUP; i++) {
+        rx_cfg.channel = i;
+        TEST_ESP_OK(rmt_config(&rx_cfg));
+        TEST_ESP_OK(rmt_driver_install(rx_cfg.channel, 0, 0));
+    }
+
+    for (int i = RMT_RX_CHANNEL_ENCODING_START; i < SOC_RMT_CHANNELS_PER_GROUP; i++) {
+        TEST_ESP_OK(rmt_driver_uninstall(i));
+    }
 }
 
-TEST_CASE("RMT basic TX and RX", "[rmt][test_env=UT_T1_RMT]")
+TEST_CASE("RMT install/uninstall test", "[rmt]")
 {
-    tx_init();
-    int tx_channel = RMT_TX_CHANNEL;
-    uint16_t cmd = 0x0;
-    uint16_t addr = 0x11;
-    int tx_num = RMT_TX_DATA_NUM;
-    ESP_LOGI(TAG, "RMT TX DATA");
-    size_t size = (sizeof(rmt_item32_t) * DATA_ITEM_NUM * tx_num);
-    rmt_item32_t* item = (rmt_item32_t*) malloc(size);
-    int item_num = DATA_ITEM_NUM * tx_num;
-    memset((void*) item, 0, size);
-    int offset = 0;
+    rmt_config_t tx_cfg = RMT_DEFAULT_CONFIG_TX(RMT_DATA_IO, RMT_TX_CHANNEL_ENCODING_END);
+    TEST_ESP_OK(rmt_config(&tx_cfg));
+    for (int i = 0; i < 100; i++) {
+        TEST_ESP_OK(rmt_driver_install(tx_cfg.channel, 1000, 0));
+        TEST_ESP_OK(rmt_driver_uninstall(tx_cfg.channel));
+    }
+    rmt_config_t rx_cfg = RMT_DEFAULT_CONFIG_RX(RMT_DATA_IO, RMT_RX_CHANNEL_ENCODING_START);
+    TEST_ESP_OK(rmt_config(&rx_cfg));
+    for (int i = 0; i < 100; i++) {
+        TEST_ESP_OK(rmt_driver_install(rx_cfg.channel, 1000, 0));
+        TEST_ESP_OK(rmt_driver_uninstall(rx_cfg.channel));
+    }
+}
 
-    int rx_channel = RMT_RX_CHANNEL;
-    rx_init();
+static void test_rmt_translator(const void *src, rmt_item32_t *dest, size_t src_size,
+                                size_t wanted_num, size_t *translated_size, size_t *item_num)
+{
+    const rmt_item32_t bit0 = {{{ 10, 1, 20, 0 }}}; //Logical 0
+    const rmt_item32_t bit1 = {{{ 20, 1, 10, 0 }}}; //Logical 1
+    size_t size = 0;
+    size_t num = 0;
+    uint8_t *psrc = (uint8_t *)src;
+    rmt_item32_t *pdest = dest;
+    while (size < src_size && num < wanted_num) {
+        for (int i = 0; i < 8; i++) {
+            // MSB first
+            if (*psrc & (1 << (7 - i))) {
+                pdest->val =  bit1.val;
+            } else {
+                pdest->val =  bit0.val;
+            }
+            num++;
+            pdest++;
+        }
+        size++;
+        psrc++;
+    }
+    *translated_size = size;
+    *item_num = num;
+    int *user_data = NULL;
+    rmt_translator_get_context(item_num, (void **)&user_data);
+    esp_rom_printf("user data=%d\r\n", *user_data);
+    *user_data = 100;
+}
+
+TEST_CASE("RMT translator with user context", "[rmt]")
+{
+    rmt_config_t tx_cfg = RMT_DEFAULT_CONFIG_TX(RMT_DATA_IO, 0);
+    TEST_ESP_OK(rmt_config(&tx_cfg));
+    TEST_ESP_OK(rmt_driver_install(tx_cfg.channel, 0, 0));
+    rmt_translator_init(tx_cfg.channel, test_rmt_translator);
+    int user_data = 999;
+    rmt_translator_set_context(tx_cfg.channel, &user_data);
+    uint8_t test_buf[] = {1, 2, 3, 4, 5, 6};
+    rmt_write_sample(tx_cfg.channel, test_buf, sizeof(test_buf), true);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    TEST_ASSERT_EQUAL(100, user_data);
+    TEST_ESP_OK(rmt_driver_uninstall(tx_cfg.channel));
+}
+
+static void do_nec_tx_rx(uint32_t flags)
+{
     RingbufHandle_t rb = NULL;
-    rmt_get_ringbuf_handle(rx_channel, &rb);
-    rmt_rx_start(rx_channel, 1);
-    // send data
-    set_tx_data(tx_channel, cmd, addr, item_num, item, offset);
-    rmt_write_items(tx_channel, item, item_num, 1);
-    free(item);
-    // receive data
-    uint16_t tmp = get_rx_data(rb);
-    TEST_ASSERT(tmp == 100);
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_TX_CHANNEL));
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_RX_CHANNEL));
+    rmt_item32_t *items = NULL;
+    size_t length = 0;
+    uint32_t addr = 0x10;
+    uint32_t cmd = 0x20;
+    bool repeat = false;
+    int tx_channel = 0;
+    int rx_channel = RMT_RX_CHANNEL_ENCODING_START + 1;
+
+    // test on different flags combinations
+    rmt_setup_testbench(tx_channel, rx_channel, flags);
+
+    // get ready to receive
+    TEST_ESP_OK(rmt_get_ringbuf_handle(rx_channel, &rb));
+    TEST_ASSERT_NOT_NULL(rb);
+    TEST_ESP_OK(rmt_rx_start(rx_channel, true));
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    // build NEC codes
+    cmd = 0x20;
+    while (cmd <= 0x30) {
+        ESP_LOGI(TAG, "Send command 0x%x to address 0x%x", cmd, addr);
+        // Send new key code
+        TEST_ESP_OK(s_ir_builder->build_frame(s_ir_builder, addr, cmd));
+        TEST_ESP_OK(s_ir_builder->get_result(s_ir_builder, &items, &length));
+        if (cmd & 0x01) {
+            TEST_ESP_OK(rmt_write_items(tx_channel, items, length, false)); // no wait
+            TEST_ESP_OK(rmt_wait_tx_done(tx_channel, portMAX_DELAY));
+        } else {
+            TEST_ESP_OK(rmt_write_items(tx_channel, items, length, true)); // wait until done
+        }
+        cmd++;
+    }
+
+    // parse NEC codes
+    while (rb) {
+        items = (rmt_item32_t *) xRingbufferReceive(rb, &length, 1000);
+        if (items) {
+            length /= 4; // one RMT = 4 Bytes
+            if (s_ir_parser->input(s_ir_parser, items, length) == ESP_OK) {
+                if (s_ir_parser->get_scan_code(s_ir_parser, &addr, &cmd, &repeat) == ESP_OK) {
+                    ESP_LOGI(TAG, "Scan Code %s --- addr: 0x%04x cmd: 0x%04x", repeat ? "(repeat)" : "", addr, cmd);
+                }
+            }
+            vRingbufferReturnItem(rb, (void *) items);
+        } else {
+            ESP_LOGI(TAG, "done");
+            break;
+        }
+    }
+
+    TEST_ASSERT_EQUAL(0x30, cmd);
+    rmt_clean_testbench(tx_channel, rx_channel);
 }
 
-TEST_CASE("RMT TX write item not wait", "[rmt][test_env=UT_T1_RMT]")
+// basic nec tx and rx test, using APB source clock, no modulation
+TEST_CASE("RMT NEC TX and RX (APB)", "[rmt]")
 {
-    tx_init();
-    int tx_channel = RMT_TX_CHANNEL;
-    uint16_t cmd = 0x0;
-    uint16_t addr = 0x11;
-    int tx_num = RMT_TX_DATA_NUM;
-    ESP_LOGI(TAG, "RMT TX DATA");
-    size_t size = (sizeof(rmt_item32_t) * DATA_ITEM_NUM * tx_num);
-    rmt_item32_t* item = (rmt_item32_t*) malloc(size);
-    int item_num = DATA_ITEM_NUM * tx_num;
-    memset((void*) item, 0, size);
-    int offset = 0;
+    do_nec_tx_rx(0);
+}
 
-    int rx_channel = RMT_RX_CHANNEL;
-    rx_init();
+// test with RMT_TESTBENCH_FLAGS_ALWAYS_ON will take a long time (REF_TICK is much slower than APB CLOCK)
+TEST_CASE("RMT NEC TX and RX (always on)", "[rmt][timeout=240]")
+{
+    do_nec_tx_rx(RMT_TESTBENCH_FLAGS_ALWAYS_ON);
+}
+
+#if SOC_RMT_SUPPORT_RX_DEMODULATION
+// basic nec tx and rx test, using APB source clock, with modulation and demodulation on
+TEST_CASE("RMT NEC TX and RX (Modulation/Demodulation)", "[rmt]")
+{
+    do_nec_tx_rx(RMT_TESTBENCH_FLAGS_CARRIER_ON);
+}
+#endif
+
+TEST_CASE("RMT TX (SOC_RMT_MEM_WORDS_PER_CHANNEL-1) symbols", "[rmt][boundary]")
+{
+    int tx_channel = 0;
+    rmt_setup_testbench(tx_channel, -1, 0);
+    rmt_item32_t *items = malloc(sizeof(rmt_item32_t) * (SOC_RMT_MEM_WORDS_PER_CHANNEL - 1));
+    for (int i = 0; i < SOC_RMT_MEM_WORDS_PER_CHANNEL - 1; i++) {
+        items[i] = (rmt_item32_t) {
+            {{
+                    200, 1, 200, 0
+                }
+            }
+        };
+    }
+    TEST_ESP_OK(rmt_write_items(tx_channel, items, SOC_RMT_MEM_WORDS_PER_CHANNEL - 1, 1));
+    free(items);
+    rmt_clean_testbench(tx_channel, -1);
+}
+
+TEST_CASE("RMT TX stop", "[rmt]")
+{
     RingbufHandle_t rb = NULL;
-    rmt_get_ringbuf_handle(rx_channel, &rb);
-    rmt_rx_start(rx_channel, 1);
+    rmt_item32_t *frames = NULL;
+    size_t length = 0;
+    uint32_t count = 10;
+    uint32_t addr = 0x10;
+    uint32_t cmd = 0x20;
+    bool repeat = false;
+    int tx_channel = 0;
+    int rx_channel = RMT_RX_CHANNEL_ENCODING_START + 1;
 
-    // send data
-    set_tx_data(tx_channel, cmd, addr, item_num, item, offset);
-    rmt_write_items(tx_channel, item, item_num, 0);
-    free(item);
+    rmt_setup_testbench(tx_channel, rx_channel, 0);
 
-    // receive data
-    uint16_t tmp = get_rx_data(rb);
-    TEST_ASSERT(tmp < 100);
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_TX_CHANNEL));
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_RX_CHANNEL));
+    // re-install ir_builder, to enlarge internal buffer size
+    TEST_ESP_OK(s_ir_builder->del(s_ir_builder));
+    ir_builder_config_t ir_builder_config = IR_BUILDER_DEFAULT_CONFIG((ir_dev_t)tx_channel);
+    ir_builder_config.buffer_size *= count;
+    ir_builder_config.flags = IR_TOOLS_FLAGS_PROTO_EXT;
+    s_ir_builder = ir_builder_rmt_new_nec(&ir_builder_config);
+    TEST_ASSERT_NOT_NULL(s_ir_builder);
+
+    // get ready to receive
+    TEST_ESP_OK(rmt_get_ringbuf_handle(rx_channel, &rb));
+    TEST_ASSERT_NOT_NULL(rb);
+    TEST_ESP_OK(rmt_rx_start(rx_channel, true));
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    // build NEC codes
+    ESP_LOGI(TAG, "Plan to send command 0x%x~0x%x to address 0x%x", cmd, cmd + count, addr);
+    for (int i = 0; i <= count; i++) {
+        TEST_ESP_OK(s_ir_builder->build_frame(s_ir_builder, addr, cmd));
+        cmd++;
+    }
+    TEST_ESP_OK(s_ir_builder->get_result(s_ir_builder, &frames, &length));
+
+    // send for 1 second and then stop
+    TEST_ESP_OK(rmt_write_items(tx_channel, frames, length, true));
+    vTaskDelay(pdMS_TO_TICKS(100));
+    TEST_ESP_OK(rmt_tx_stop(tx_channel));
+
+    // parse NEC codes
+    uint32_t num = 0;
+    while (rb) {
+        frames = (rmt_item32_t *) xRingbufferReceive(rb, &length, 1000);
+        if (frames) {
+            length /= 4; // one RMT = 4 Bytes
+            if (s_ir_parser->input(s_ir_parser, frames, length) == ESP_OK) {
+                if (s_ir_parser->get_scan_code(s_ir_parser, &addr, &cmd, &repeat) == ESP_OK) {
+                    ESP_LOGI(TAG, "Scan Code %s --- addr: 0x%04x cmd: 0x%04x", repeat ? "(repeat)" : "", addr, cmd);
+                    num++;
+                }
+            }
+            vRingbufferReturnItem(rb, (void *) frames);
+        } else {
+            ESP_LOGI(TAG, "done");
+            break;
+        }
+    }
+
+    TEST_ASSERT(num < count);
+    rmt_clean_testbench(tx_channel, rx_channel);
 }
 
-TEST_CASE("RMT TX write item wait some ticks", "[rmt][test_env=UT_T1_RMT]")
+#if SOC_RMT_SUPPORT_RX_PINGPONG
+TEST_CASE("RMT Ping-Pong operation", "[rmt]")
 {
-    tx_init();
-    int tx_channel = RMT_TX_CHANNEL;
-    uint16_t cmd = 0x0;
-    uint16_t addr = 0x11;
-    int tx_num = RMT_TX_DATA_NUM;
-    ESP_LOGI(TAG, "RMT TX DATA");
-    size_t size = (sizeof(rmt_item32_t) * DATA_ITEM_NUM * tx_num);
-    rmt_item32_t* item = (rmt_item32_t*) malloc(size);
-    int item_num = DATA_ITEM_NUM * tx_num;
-    memset((void*) item, 0, size);
-    int offset = 0;
-
-    int rx_channel = RMT_RX_CHANNEL;
-    rx_init();
+    int tx_channel = 0;
+    int rx_channel = RMT_RX_CHANNEL_ENCODING_START + 1;
+    rmt_item32_t frames[SOC_RMT_MEM_WORDS_PER_CHANNEL * 2]; // send two block data using ping-pong
     RingbufHandle_t rb = NULL;
-    rmt_get_ringbuf_handle(rx_channel, &rb);
-    rmt_rx_start(rx_channel, 1);
+    uint32_t size = sizeof(frames) / sizeof(frames[0]);
 
-    // send data
-    set_tx_data(tx_channel, cmd, addr, item_num, item, offset);
-    rmt_write_items(tx_channel, item, item_num, 0);
-    rmt_wait_tx_done(tx_channel, portMAX_DELAY);
-    free(item);
+    // The design of the following test frame should trigger three rx threshold interrupt and one rx end interrupt
+    int i = 0;
+    for (i = 0; i < size - 1; i++) {
+        frames[i].level0 = 1;
+        frames[i].duration0 = 100;
+        frames[i].level1 = 0;
+        frames[i].duration1 = 100;
+    }
+    frames[i].level0 = 1;
+    frames[i].duration0 = 0;
+    frames[i].level1 = 0;
+    frames[i].duration1 = 0;
 
-    // receive data
-    uint16_t tmp = get_rx_data(rb);
-    TEST_ASSERT(tmp == 100);
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_TX_CHANNEL));
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_RX_CHANNEL));
+    rmt_setup_testbench(tx_channel, rx_channel, 0);
+
+    // get ready to receive
+    TEST_ESP_OK(rmt_get_ringbuf_handle(rx_channel, &rb));
+    TEST_ASSERT_NOT_NULL(rb);
+    TEST_ESP_OK(rmt_rx_start(rx_channel, true));
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    for (uint32_t test_count = 0; test_count < 5; test_count++) {
+        TEST_ESP_OK(rmt_write_items(tx_channel, frames, size, true));
+
+        // parse received data
+        size_t length = 0;
+        rmt_item32_t *items = (rmt_item32_t *) xRingbufferReceive(rb, &length, 1000);
+        if (items) {
+            vRingbufferReturnItem(rb, (void *) items);
+        }
+        TEST_ASSERT_EQUAL(4 * (size - 1), length);
+    }
+
+    rmt_clean_testbench(tx_channel, rx_channel);
 }
-
-TEST_CASE("RMT TX stop test", "[rmt][test_env=UT_T1_RMT]")
+#endif
+#if SOC_RMT_SUPPORT_TX_SYNCHRO
+static uint32_t tx_end_time0, tx_end_time1;
+static void rmt_tx_end_cb(rmt_channel_t channel, void *arg)
 {
-    int rx_channel = RMT_RX_CHANNEL;
-    rx_init();
+    if (channel == 0) {
+        tx_end_time0 = cpu_hal_get_cycle_count();
+    } else {
+        tx_end_time1 = cpu_hal_get_cycle_count();
+    }
+}
+TEST_CASE("RMT TX simultaneously", "[rmt]")
+{
+    rmt_item32_t frames[SOC_RMT_MEM_WORDS_PER_CHANNEL];
+    uint32_t size = sizeof(frames) / sizeof(frames[0]);
+    int channel0 = 0;
+    int channel1 = 1;
+
+    int i = 0;
+    for (i = 0; i < size - 1; i++) {
+        frames[i].level0 = 1;
+        frames[i].duration0 = 1000;
+        frames[i].level1 = 0;
+        frames[i].duration1 = 1000;
+    }
+    frames[i].level0 = 0;
+    frames[i].duration0 = 0;
+    frames[i].level1 = 0;
+    frames[i].duration1 = 0;
+
+    rmt_config_t tx_config0 = RMT_DEFAULT_CONFIG_TX(4, channel0);
+    rmt_config_t tx_config1 = RMT_DEFAULT_CONFIG_TX(5, channel1);
+    TEST_ESP_OK(rmt_config(&tx_config0));
+    TEST_ESP_OK(rmt_config(&tx_config1));
+
+    TEST_ESP_OK(rmt_driver_install(channel0, 0, 0));
+    TEST_ESP_OK(rmt_driver_install(channel1, 0, 0));
+
+    rmt_register_tx_end_callback(rmt_tx_end_cb, NULL);
+
+    TEST_ESP_OK(rmt_add_channel_to_group(channel0));
+    TEST_ESP_OK(rmt_add_channel_to_group(channel1));
+
+    TEST_ESP_OK(rmt_write_items(channel0, frames, size, false));
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    TEST_ESP_OK(rmt_write_items(channel1, frames, size, false));
+
+    TEST_ESP_OK(rmt_wait_tx_done(channel0, portMAX_DELAY));
+    TEST_ESP_OK(rmt_wait_tx_done(channel1, portMAX_DELAY));
+
+    ESP_LOGI(TAG, "tx_end_time0=%u, tx_end_time1=%u", tx_end_time0, tx_end_time1);
+    TEST_ASSERT_LESS_OR_EQUAL_UINT32(2000, tx_end_time1 - tx_end_time0);
+
+    TEST_ESP_OK(rmt_remove_channel_from_group(channel0));
+    TEST_ESP_OK(rmt_remove_channel_from_group(channel1));
+
+    TEST_ESP_OK(rmt_driver_uninstall(channel0));
+    TEST_ESP_OK(rmt_driver_uninstall(channel1));
+
+}
+#endif
+
+#if SOC_RMT_SUPPORT_TX_LOOP_COUNT
+static void rmt_tx_loop_end(rmt_channel_t channel, void *arg)
+{
+    rmt_tx_stop(channel);
+}
+TEST_CASE("RMT TX loop", "[rmt]")
+{
     RingbufHandle_t rb = NULL;
-    rmt_get_ringbuf_handle(rx_channel, &rb);
-    rmt_rx_start(rx_channel, 1);
+    rmt_item32_t *items = NULL;
+    size_t length = 0;
+    uint32_t addr = 0x10;
+    uint32_t cmd = 0x20;
+    bool repeat = false;
+    int tx_channel = 0;
+    int rx_channel = RMT_RX_CHANNEL_ENCODING_START + 1;
+    uint32_t count = 0;
 
-    vTaskDelay(10);
-    tx_init();
-    int tx_channel = RMT_TX_CHANNEL;
-    int tx_num = RMT_TX_DATA_NUM;
+    rmt_setup_testbench(tx_channel, rx_channel, RMT_TESTBENCH_FLAGS_LOOP_ON);
 
-    ESP_LOGI(TAG, "RMT TX DATA");
-    size_t size = (sizeof(rmt_item32_t) * DATA_ITEM_NUM * tx_num);
-    rmt_item32_t* item = (rmt_item32_t*) malloc(size);
-    int item_num = DATA_ITEM_NUM * tx_num;
-    memset((void*) item, 0, size);
-    int offset = 0;
-    uint16_t cmd = 0x0;
-    uint16_t addr = 0x11;
+    // get ready to receive
+    TEST_ESP_OK(rmt_get_ringbuf_handle(rx_channel, &rb));
+    TEST_ASSERT_NOT_NULL(rb);
+    TEST_ESP_OK(rmt_rx_start(rx_channel, true));
 
-    // send data
-    set_tx_data(tx_channel, cmd, addr, item_num, item, offset);
-    rmt_write_items(tx_channel, item, item_num, 0);
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    rmt_tx_stop(tx_channel);
-    free(item);
+    vTaskDelay(pdMS_TO_TICKS(1000));
 
-    // receive data
-    uint16_t tmp = get_rx_data(rb);
-    TEST_ASSERT(tmp < 100);
+    // register callback functions, invoked when tx loop count to ceiling
+    rmt_register_tx_end_callback(rmt_tx_loop_end, NULL);
+    // build NEC codes
+    ESP_LOGI(TAG, "Send command 0x%x to address 0x%x", cmd, addr);
+    // Send new key code
+    TEST_ESP_OK(s_ir_builder->build_frame(s_ir_builder, addr, cmd));
+    TEST_ESP_OK(s_ir_builder->get_result(s_ir_builder, &items, &length));
+    TEST_ESP_OK(rmt_write_items(tx_channel, items, length, true)); // wait until done
 
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_TX_CHANNEL));
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_RX_CHANNEL));
+    // parse NEC codes
+    while (rb) {
+        items = (rmt_item32_t *) xRingbufferReceive(rb, &length, 1000);
+        if (items) {
+            length /= 4; // one RMT = 4 Bytes
+            if (s_ir_parser->input(s_ir_parser, items, length) == ESP_OK) {
+                if (s_ir_parser->get_scan_code(s_ir_parser, &addr, &cmd, &repeat) == ESP_OK) {
+                    count++;
+                    ESP_LOGI(TAG, "Scan Code %s --- addr: 0x%04x cmd: 0x%04x", repeat ? "(repeat)" : "", addr, cmd);
+                }
+            }
+            vRingbufferReturnItem(rb, (void *) items);
+        } else {
+            ESP_LOGI(TAG, "done");
+            break;
+        }
+    }
+
+    TEST_ASSERT_EQUAL(10, count);
+    rmt_clean_testbench(tx_channel, rx_channel);
 }
-
-TEST_CASE("RMT loop_en test", "[rmt][test_env=UT_T1_RMT][ignore]")
-{
-    rmt_tx_config_t tx_cfg = {
-        .loop_en = true,  // set it as true
-        .carrier_duty_percent = 50,
-        .carrier_freq_hz = 38000,
-        .carrier_level = 1,
-        .carrier_en = RMT_TX_CARRIER_EN,
-        .idle_level = 0,
-        .idle_output_en = true,
-    };
-    rmt_config_t rmt_tx = {
-        .channel = RMT_TX_CHANNEL,
-        .gpio_num = RMT_TX_GPIO_NUM,
-        .mem_block_num = 1,
-        .clk_div = RMT_CLK_DIV,
-        .tx_config = tx_cfg,
-        .rmt_mode = 0,
-    };
-    rmt_config(&rmt_tx);
-    rmt_driver_install(rmt_tx.channel, 0, 0);
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_TX_CHANNEL));
-
-    int rx_channel = RMT_RX_CHANNEL;
-    rx_init();
-    RingbufHandle_t rb = NULL;
-    rmt_get_ringbuf_handle(rx_channel, &rb);
-    rmt_rx_start(rx_channel, 1);
-    vTaskDelay(10);
-    tx_init();
-    int tx_channel = RMT_TX_CHANNEL;
-    int tx_num = RMT_TX_DATA_NUM;
-
-    ESP_LOGI(TAG, "RMT TX DATA");
-    size_t size = (sizeof(rmt_item32_t) * DATA_ITEM_NUM * tx_num);
-    rmt_item32_t* item = (rmt_item32_t*) malloc(size);
-    int item_num = DATA_ITEM_NUM * tx_num;
-    memset((void*) item, 0, size);
-    int offset = 0;
-    uint16_t cmd = 0x0;
-    uint16_t addr = 0x11;
-
-    // send data
-    set_tx_data(tx_channel, cmd, addr, item_num, item, offset);
-    rmt_write_items(tx_channel, item, item_num, 0);
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    rmt_tx_stop(tx_channel);
-    free(item);
-
-    // receive data
-    uint16_t tmp = get_rx_data(rb);
-    TEST_ASSERT(tmp < 100);
-
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_TX_CHANNEL));
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_RX_CHANNEL));
-}
-
-TEST_CASE("RMT use multi channel", "[rmt][test_env=UT_T1_RMT]")
-{
-    rmt_tx_config_t tx_cfg = {
-        .loop_en = true,  // set it as true
-        .carrier_duty_percent = 50,
-        .carrier_freq_hz = 38000,
-        .carrier_level = 1,
-        .carrier_en = RMT_TX_CARRIER_EN,
-        .idle_level = 0,
-        .idle_output_en = true,
-    };
-    rmt_config_t rmt_tx1 = {
-        .channel = RMT_TX_CHANNEL,
-        .gpio_num = RMT_TX_GPIO_NUM,
-        .mem_block_num = 4,
-        .clk_div = RMT_CLK_DIV,
-        .tx_config = tx_cfg,
-        .rmt_mode = 0,
-    };
-    rmt_config(&rmt_tx1);
-    rmt_driver_install(rmt_tx1.channel, 0, 0);
-
-    rmt_config_t rmt_tx2 = rmt_tx1;
-    rmt_tx2.channel = 2;
-    rmt_config(&rmt_tx2);
-    rmt_driver_install(rmt_tx2.channel, 0, 0);
-
-    rmt_config_t rmt_tx3 = rmt_tx1;
-    rmt_tx3.channel = 7;
-    rmt_tx3.mem_block_num = 1;
-    rmt_config(&rmt_tx3);
-    rmt_driver_install(rmt_tx3.channel, 0, 0);
-
-    TEST_ESP_OK(rmt_driver_uninstall(RMT_TX_CHANNEL));
-    TEST_ESP_OK(rmt_driver_uninstall(2));
-    TEST_ESP_OK(rmt_driver_uninstall(7));
-}
-
+#endif

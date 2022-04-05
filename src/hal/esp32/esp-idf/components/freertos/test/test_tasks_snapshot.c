@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "soc/cpu.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include "freertos/task_snapshot.h"
 #include "unity.h"
 #include "sdkconfig.h"
 
@@ -20,9 +20,9 @@ TEST_CASE("Tasks snapshot", "[freertos]")
     int other_core_id = xPortGetCoreID() == 0 ? 1 : 0;
 #endif
 
-    // uxTaskGetSnapshotAll is supposed to be called when all tasks on both CPUs are 
+    // uxTaskGetSnapshotAll is supposed to be called when all tasks on both CPUs are
     // inactive and can not alter FreeRTOS internal tasks lists, e.g. from panic handler
-    unsigned state = portENTER_CRITICAL_NESTED();
+    unsigned state = portSET_INTERRUPT_MASK_FROM_ISR();
 #ifndef CONFIG_FREERTOS_UNICORE
     esp_cpu_stall(other_core_id);
 #endif
@@ -30,7 +30,7 @@ TEST_CASE("Tasks snapshot", "[freertos]")
 #ifndef CONFIG_FREERTOS_UNICORE
     esp_cpu_unstall(other_core_id);
 #endif
-    portEXIT_CRITICAL_NESTED(state);
+    portCLEAR_INTERRUPT_MASK_FROM_ISR(state);
 
     printf("Dumped %d tasks. TCB size %d\n", task_num, tcb_sz);
     TEST_ASSERT_NOT_EQUAL(0, task_num);

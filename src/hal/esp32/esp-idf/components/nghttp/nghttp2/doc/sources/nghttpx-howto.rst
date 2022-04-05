@@ -4,10 +4,10 @@ nghttpx - HTTP/2 proxy - HOW-TO
 ===============================
 
 :doc:`nghttpx.1` is a proxy translating protocols between HTTP/2 and
-other protocols (e.g., HTTP/1, SPDY).  It operates in several modes
-and each mode may require additional programs to work with.  This
-article describes each operation mode and explains the intended
-use-cases.  It also covers some useful options later.
+other protocols (e.g., HTTP/1).  It operates in several modes and each
+mode may require additional programs to work with.  This article
+describes each operation mode and explains the intended use-cases.  It
+also covers some useful options later.
 
 Default mode
 ------------
@@ -15,9 +15,7 @@ Default mode
 If nghttpx is invoked without :option:`--http2-proxy`, it operates in
 default mode.  In this mode, it works as reverse proxy (gateway) for
 both HTTP/2 and HTTP/1 clients to backend servers.  This is also known
-as "HTTP/2 router".  If nghttpx is linked with spdylay library and
-frontend connection is SSL/TLS, the frontend also supports SPDY
-protocol.
+as "HTTP/2 router".
 
 By default, frontend connection is encrypted using SSL/TLS.  So
 server's private key and certificate must be supplied to the command
@@ -25,11 +23,10 @@ line (or through configuration file).  In this case, the frontend
 protocol selection will be done via ALPN or NPN.
 
 To turn off encryption on frontend connection, use ``no-tls`` keyword
-in :option:`--frontend` option.  In this case, SPDY protocol is not
-available even if spdylay library is liked to nghttpx.  HTTP/2 and
-HTTP/1 are available on the frontend, and an HTTP/1 connection can be
-upgraded to HTTP/2 using HTTP Upgrade.  Starting HTTP/2 connection by
-sending HTTP/2 connection preface is also supported.
+in :option:`--frontend` option.  HTTP/2 and HTTP/1 are available on
+the frontend, and an HTTP/1 connection can be upgraded to HTTP/2 using
+HTTP Upgrade.  Starting HTTP/2 connection by sending HTTP/2 connection
+preface is also supported.
 
 nghttpx can listen on multiple frontend addresses.  This is achieved
 by using multiple :option:`--frontend` options.  For each frontend
@@ -45,17 +42,17 @@ that default backend protocol is HTTP/1.1.  To use HTTP/2 in backend,
 you have to specify ``h2`` in ``proto`` keyword in :option:`--backend`
 explicitly.
 
-The backend is supposed to be Web server.  For example, to make
+The backend is supposed to be a Web server.  For example, to make
 nghttpx listen to encrypted HTTP/2 requests at port 8443, and a
-backend Web server is configured to listen to HTTP request at port
-8080 in the same host, run nghttpx command-line like this:
+backend Web server is configured to listen to HTTP requests at port
+8080 on the same host, run nghttpx command-line like this:
 
 .. code-block:: text
 
     $ nghttpx -f0.0.0.0,8443 -b127.0.0.1,8080 /path/to/server.key /path/to/server.crt
 
-Then HTTP/2 enabled client can access to the nghttpx in HTTP/2.  For
-example, you can send GET request to the server using nghttp:
+Then an HTTP/2 enabled client can access the nghttpx server using HTTP/2.  For
+example, you can send a GET request using nghttp:
 
 .. code-block:: text
 
@@ -66,19 +63,18 @@ HTTP/2 proxy mode
 
 If nghttpx is invoked with :option:`--http2-proxy` (or its shorthand
 :option:`-s`) option, it operates in HTTP/2 proxy mode.  The supported
-protocols in frontend and backend connections are the same in `default
-mode`_.  The difference is that this mode acts like forward proxy and
-assumes the backend is HTTP proxy server (e.g., Squid, Apache Traffic
-Server).  HTTP/1 request must include absolute URI in request line.
+protocols in frontend and backend connections are the same as in `default
+mode`_.  The difference is that this mode acts like a forward proxy and
+assumes the backend is an HTTP proxy server (e.g., Squid, Apache Traffic
+Server).  HTTP/1 requests must include an absolute URI in request line.
 
-By default, frontend connection is encrypted.  So this mode is also
-called secure proxy.  If nghttpx is linked with spdylay, it supports
-SPDY protocols and it works as so called SPDY proxy.
+By default, the frontend connection is encrypted.  So this mode is
+also called secure proxy.
 
-To turn off encryption on frontend connection, use ``no-tls`` keyword
+To turn off encryption on the frontend connection, use ``no-tls`` keyword
 in :option:`--frontend` option.
 
-The backend must be HTTP proxy server.  nghttpx supports multiple
+The backend must be an HTTP proxy server.  nghttpx supports multiple
 backend server addresses.  It translates incoming requests to HTTP
 request to backend server.  The backend server performs real proxy
 work for each request, for example, dispatching requests to the origin
@@ -92,7 +88,7 @@ connection, use :option:`--backend` option, and specify ``h2`` in
 
 For example, to make nghttpx listen to encrypted HTTP/2 requests at
 port 8443, and a backend HTTP proxy server is configured to listen to
-HTTP/1 request at port 8080 in the same host, run nghttpx command-line
+HTTP/1 requests at port 8080 on the same host, run nghttpx command-line
 like this:
 
 .. code-block:: text
@@ -102,8 +98,8 @@ like this:
 At the time of this writing, Firefox 41 and Chromium v46 can use
 nghttpx as HTTP/2 proxy.
 
-To make Firefox or Chromium use nghttpx as HTTP/2 or SPDY proxy, user
-has to create proxy.pac script file like this:
+To make Firefox or Chromium use nghttpx as HTTP/2 proxy, user has to
+create proxy.pac script file like this:
 
 .. code-block:: javascript
 
@@ -389,7 +385,7 @@ parameter in :option:`--backend` option, like so:
 
 .. code-block:: text
 
-   backend=foo.example.com;;dns
+   backend=foo.example.com,80;;dns
 
 nghttpx will cache resolved addresses for certain period of time.  To
 change this cache period, use :option:`--dns-cache-timeout`.
@@ -404,6 +400,31 @@ like so:
 .. code-block:: text
 
    frontend=*,443;proxyproto
+
+nghttpx supports both PROXY protocol v1 and v2.  AF_UNIX in PROXY
+protocol version 2 is ignored.
+
+Session affinity
+----------------
+
+Two kinds of session affinity are available: client IP, and HTTP
+Cookie.
+
+To enable client IP based affinity, specify ``affinity=ip`` parameter
+in :option:`--backend` option.  If PROXY protocol is enabled, then an
+address obtained from PROXY protocol is taken into consideration.
+
+To enable HTTP Cookie based affinity, specify ``affinity=cookie``
+parameter, and specify a name of cookie in ``affinity-cookie-name``
+parameter.  Optionally, a Path attribute can be specified in
+``affinity-cookie-path`` parameter:
+
+.. code-block:: text
+
+   backend=127.0.0.1,3000;;affinity=cookie;affinity-cookie-name=nghttpxlb;affinity-cookie-path=/
+
+Secure attribute of cookie is set if client connection is protected by
+TLS.
 
 PSK cipher suites
 -----------------
@@ -452,6 +473,41 @@ be listed in `HTTP/2 cipher black list
 such PSK cipher suite with HTTP/2, disable HTTP/2 cipher black list by
 using :option:`--client-no-http2-cipher-black-list` option.  But you
 should understand its implications.
+
+TLSv1.3
+-------
+
+As of nghttpx v1.34.0, if it is built with OpenSSL 1.1.1 or later, it
+supports TLSv1.3.  0-RTT data is supported, but by default its
+processing is postponed until TLS handshake completes to mitigate
+replay attack.  This costs extra round trip and reduces effectiveness
+of 0-RTT data.  :option:`--tls-no-postpone-early-data` makes nghttpx
+not wait for handshake to complete before forwarding request included
+in 0-RTT to get full potential of 0-RTT data.  In this case, nghttpx
+adds ``Early-Data: 1`` header field when forwarding a request to a
+backend server.  All backend servers should recognize this header
+field and understand that there is a risk for replay attack.  See `RFC
+8470 <https://tools.ietf.org/html/rfc8470>`_ for ``Early-Data`` header
+field.
+
+nghttpx disables anti replay protection provided by OpenSSL.  The anti
+replay protection of OpenSSL requires that a resumed request must hit
+the same server which generates the session ticket.  Therefore it
+might not work nicely in a deployment where there are multiple nghttpx
+instances sharing ticket encryption keys via memcached.
+
+Because TLSv1.3 completely changes the semantics of cipher suite
+naming scheme and structure, nghttpx provides the new option
+:option:`--tls13-ciphers` and :option:`--tls13-client-ciphers` to
+change preferred cipher list for TLSv1.3.
+
+WebSockets over HTTP/2
+----------------------
+
+nghttpx supports `RFC 8441 <https://tools.ietf.org/html/rfc8441>`_
+Bootstrapping WebSockets with HTTP/2 for both frontend and backend
+connections.  This feature is enabled by default and no configuration
+is required.
 
 Migration from nghttpx v1.18.x or earlier
 -----------------------------------------

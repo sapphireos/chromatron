@@ -53,15 +53,10 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 # Include the progress variables for this target.
 include CMakeFiles/app.dir/progress.make
 
-CMakeFiles/app: idf_as_lib.bin
+CMakeFiles/app:
 
-
-idf_as_lib.bin: idf_as_lib.elf
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating idf_as_lib.bin"
-	python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esptool_py/esptool/esptool.py --chip esp32 elf2image --flash_mode dio --flash_freq 40m --flash_size 4MB --elf-sha256-offset 0xb0 -o /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/idf_as_lib.bin idf_as_lib.elf
 
 app: CMakeFiles/app
-app: idf_as_lib.bin
 app: CMakeFiles/app.dir/build.make
 
 .PHONY : app

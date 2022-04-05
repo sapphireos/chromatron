@@ -111,34 +111,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/rule
-.PHONY : esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/rule
+esp-idf/main/CMakeFiles/__idf_main.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/CMakeFiles/__idf_main.dir/rule
+.PHONY : esp-idf/main/CMakeFiles/__idf_main.dir/rule
 
 # Convenience name for target.
-idf_component_main_sections_info: esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/rule
+__idf_main: esp-idf/main/CMakeFiles/__idf_main.dir/rule
 
-.PHONY : idf_component_main_sections_info
+.PHONY : __idf_main
 
 # fast build rule for target.
-idf_component_main_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/build.make esp-idf/main/CMakeFiles/idf_component_main_sections_info.dir/build
-.PHONY : idf_component_main_sections_info/fast
-
-# Convenience name for target.
-esp-idf/main/CMakeFiles/idf_component_main.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/main/CMakeFiles/idf_component_main.dir/rule
-.PHONY : esp-idf/main/CMakeFiles/idf_component_main.dir/rule
-
-# Convenience name for target.
-idf_component_main: esp-idf/main/CMakeFiles/idf_component_main.dir/rule
-
-.PHONY : idf_component_main
-
-# fast build rule for target.
-idf_component_main/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/build
-.PHONY : idf_component_main/fast
+__idf_main/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/__idf_main.dir/build.make esp-idf/main/CMakeFiles/__idf_main.dir/build
+.PHONY : __idf_main/fast
 
 bootloader_start.obj: bootloader_start.c.obj
 
@@ -146,7 +131,7 @@ bootloader_start.obj: bootloader_start.c.obj
 
 # target to build an object file
 bootloader_start.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/bootloader_start.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/__idf_main.dir/build.make esp-idf/main/CMakeFiles/__idf_main.dir/bootloader_start.c.obj
 .PHONY : bootloader_start.c.obj
 
 bootloader_start.i: bootloader_start.c.i
@@ -155,7 +140,7 @@ bootloader_start.i: bootloader_start.c.i
 
 # target to preprocess a source file
 bootloader_start.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/bootloader_start.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/__idf_main.dir/build.make esp-idf/main/CMakeFiles/__idf_main.dir/bootloader_start.c.i
 .PHONY : bootloader_start.c.i
 
 bootloader_start.s: bootloader_start.c.s
@@ -164,7 +149,7 @@ bootloader_start.s: bootloader_start.c.s
 
 # target to generate assembly for a file
 bootloader_start.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/idf_component_main.dir/build.make esp-idf/main/CMakeFiles/idf_component_main.dir/bootloader_start.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/main/CMakeFiles/__idf_main.dir/build.make esp-idf/main/CMakeFiles/__idf_main.dir/bootloader_start.c.s
 .PHONY : bootloader_start.c.s
 
 # Help Target
@@ -175,8 +160,7 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_main_sections_info"
-	@echo "... idf_component_main"
+	@echo "... __idf_main"
 	@echo "... bootloader_start.obj"
 	@echo "... bootloader_start.i"
 	@echo "... bootloader_start.s"

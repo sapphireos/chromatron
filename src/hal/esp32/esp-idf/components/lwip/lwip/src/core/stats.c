@@ -105,17 +105,17 @@ void
 stats_display_mem(struct stats_mem *mem, const char *name)
 {
   LWIP_PLATFORM_DIAG(("\nMEM %s\n\t", name));
-  LWIP_PLATFORM_DIAG(("avail: %"U32_F"\n\t", (u32_t)mem->avail));
-  LWIP_PLATFORM_DIAG(("used: %"U32_F"\n\t", (u32_t)mem->used));
-  LWIP_PLATFORM_DIAG(("max: %"U32_F"\n\t", (u32_t)mem->max));
-  LWIP_PLATFORM_DIAG(("err: %"U32_F"\n", (u32_t)mem->err));
+  LWIP_PLATFORM_DIAG(("avail: %"MEM_SIZE_F"\n\t", mem->avail));
+  LWIP_PLATFORM_DIAG(("used: %"MEM_SIZE_F"\n\t", mem->used));
+  LWIP_PLATFORM_DIAG(("max: %"MEM_SIZE_F"\n\t", mem->max));
+  LWIP_PLATFORM_DIAG(("err: %"STAT_COUNTER_F"\n", mem->err));
 }
 
 #if MEMP_STATS
 void
-stats_display_memp(struct stats_mem *mem, int index)
+stats_display_memp(struct stats_mem *mem, int idx)
 {
-  if (index < MEMP_MAX) {
+  if (idx < MEMP_MAX) {
     stats_display_mem(mem, mem->name);
   }
 }
@@ -127,15 +127,15 @@ void
 stats_display_sys(struct stats_sys *sys)
 {
   LWIP_PLATFORM_DIAG(("\nSYS\n\t"));
-  LWIP_PLATFORM_DIAG(("sem.used:  %"U32_F"\n\t", (u32_t)sys->sem.used));
-  LWIP_PLATFORM_DIAG(("sem.max:   %"U32_F"\n\t", (u32_t)sys->sem.max));
-  LWIP_PLATFORM_DIAG(("sem.err:   %"U32_F"\n\t", (u32_t)sys->sem.err));
-  LWIP_PLATFORM_DIAG(("mutex.used: %"U32_F"\n\t", (u32_t)sys->mutex.used));
-  LWIP_PLATFORM_DIAG(("mutex.max:  %"U32_F"\n\t", (u32_t)sys->mutex.max));
-  LWIP_PLATFORM_DIAG(("mutex.err:  %"U32_F"\n\t", (u32_t)sys->mutex.err));
-  LWIP_PLATFORM_DIAG(("mbox.used:  %"U32_F"\n\t", (u32_t)sys->mbox.used));
-  LWIP_PLATFORM_DIAG(("mbox.max:   %"U32_F"\n\t", (u32_t)sys->mbox.max));
-  LWIP_PLATFORM_DIAG(("mbox.err:   %"U32_F"\n", (u32_t)sys->mbox.err));
+  LWIP_PLATFORM_DIAG(("sem.used:  %"STAT_COUNTER_F"\n\t", sys->sem.used));
+  LWIP_PLATFORM_DIAG(("sem.max:   %"STAT_COUNTER_F"\n\t", sys->sem.max));
+  LWIP_PLATFORM_DIAG(("sem.err:   %"STAT_COUNTER_F"\n\t", sys->sem.err));
+  LWIP_PLATFORM_DIAG(("mutex.used: %"STAT_COUNTER_F"\n\t", sys->mutex.used));
+  LWIP_PLATFORM_DIAG(("mutex.max:  %"STAT_COUNTER_F"\n\t", sys->mutex.max));
+  LWIP_PLATFORM_DIAG(("mutex.err:  %"STAT_COUNTER_F"\n\t", sys->mutex.err));
+  LWIP_PLATFORM_DIAG(("mbox.used:  %"STAT_COUNTER_F"\n\t", sys->mbox.used));
+  LWIP_PLATFORM_DIAG(("mbox.max:   %"STAT_COUNTER_F"\n\t", sys->mbox.max));
+  LWIP_PLATFORM_DIAG(("mbox.err:   %"STAT_COUNTER_F"\n", sys->mbox.err));
 }
 #endif /* SYS_STATS */
 
@@ -164,24 +164,6 @@ stats_display(void)
   SYS_STATS_DISPLAY();
 }
 #endif /* LWIP_STATS_DISPLAY */
-
-#if ESP_STATS_DROP
-void stats_display_esp(struct stats_esp *esp)
-{
-  LWIP_PLATFORM_DIAG(("\nESP\n\t"));
-  LWIP_PLATFORM_DIAG(("esp.rx_rawmbox_post_fail:  %"U32_F"\n\t", (u32_t)esp->rx_rawmbox_post_fail));
-  LWIP_PLATFORM_DIAG(("esp.rx_udpmbox_post_fail:  %"U32_F"\n\t", (u32_t)esp->rx_udpmbox_post_fail));
-  LWIP_PLATFORM_DIAG(("esp.rx_tcpmbox_post_fail:  %"U32_F"\n\t", (u32_t)esp->rx_tcpmbox_post_fail));
-  LWIP_PLATFORM_DIAG(("esp.err_tcp_rxmbox_post_fail:  %"U32_F"\n\t", (u32_t)esp->err_tcp_rxmbox_post_fail));
-  LWIP_PLATFORM_DIAG(("esp.err_tcp_acceptmbox_post_fail:  %"U32_F"\n\t", (u32_t)esp->err_tcp_acceptmbox_post_fail));
-  LWIP_PLATFORM_DIAG(("esp.acceptmbox_post_fail:  %"U32_F"\n\t", (u32_t)esp->acceptmbox_post_fail));
-  LWIP_PLATFORM_DIAG(("esp.free_mbox_post_fail:  %"U32_F"\n\t", (u32_t)esp->free_mbox_post_fail));
-  LWIP_PLATFORM_DIAG(("esp.tcpip_inpkt_post_fail:  %"U32_F"\n\t", (u32_t)esp->tcpip_inpkt_post_fail));
-  LWIP_PLATFORM_DIAG(("esp.tcpip_cb_post_fail:  %"U32_F"\n\t", (u32_t)esp->tcpip_cb_post_fail));
-  LWIP_PLATFORM_DIAG(("esp.wlanif_input_pbuf_fail:  %"U32_F"\n\t", (u32_t)esp->wlanif_input_pbuf_fail));
-  LWIP_PLATFORM_DIAG(("esp.wlanif_outut_pbuf_fail:  %"U32_F"\n\t", (u32_t)esp->wlanif_outut_pbuf_fail));
-}
-#endif
 
 #endif /* LWIP_STATS */
 

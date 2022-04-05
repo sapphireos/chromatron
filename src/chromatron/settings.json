@@ -20,7 +20,11 @@
  	"BUILD_TYPE": "app",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": ["lib_gfx", "lib_chromatron", "lib_battery"],
+    "LIBRARIES": ["lib_gfx", 
+                  "lib_chromatron", 
+                  "lib_battery", 
+                  "lib_veml7700", 
+                  "lib_rfm95w"],
 
     "_comment": "The following options are only used for libraries:",
     "_comment": "Init function for library",

@@ -1,18 +1,13 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #pragma once
+
+#include "soc/soc_caps.h"
+#if SOC_SDMMC_HOST_SUPPORTED
 
 #include <stdint.h>
 #include <stddef.h>
@@ -56,30 +51,74 @@ extern "C" {
  * Extra configuration for SDMMC peripheral slot
  */
 typedef struct {
-    gpio_num_t gpio_cd;     ///< GPIO number of card detect signal
-    gpio_num_t gpio_wp;     ///< GPIO number of write protect signal
+#ifdef SOC_SDMMC_USE_GPIO_MATRIX
+    gpio_num_t clk;         ///< GPIO number of CLK signal.
+    gpio_num_t cmd;         ///< GPIO number of CMD signal.
+    gpio_num_t d0;          ///< GPIO number of D0 signal.
+    gpio_num_t d1;          ///< GPIO number of D1 signal.
+    gpio_num_t d2;          ///< GPIO number of D2 signal.
+    gpio_num_t d3;          ///< GPIO number of D3 signal.
+    gpio_num_t d4;          ///< GPIO number of D4 signal. Ignored in 1- or 4- line mode.
+    gpio_num_t d5;          ///< GPIO number of D5 signal. Ignored in 1- or 4- line mode.
+    gpio_num_t d6;          ///< GPIO number of D6 signal. Ignored in 1- or 4- line mode.
+    gpio_num_t d7;          ///< GPIO number of D7 signal. Ignored in 1- or 4- line mode.
+#endif // SOC_SDMMC_USE_GPIO_MATRIX
+    union {
+        gpio_num_t gpio_cd;     ///< GPIO number of card detect signal
+        gpio_num_t cd;          ///< GPIO number of card detect signal; shorter name.
+    };
+    union {
+        gpio_num_t gpio_wp;     ///< GPIO number of write protect signal
+        gpio_num_t wp;          ///< GPIO number of write protect signal; shorter name.
+    };
     uint8_t width;          ///< Bus width used by the slot (might be less than the max width supported)
     uint32_t flags;         ///< Features used by this slot
-#define SDMMC_SLOT_FLAG_INTERNAL_PULLUP  BIT(0) 
+#define SDMMC_SLOT_FLAG_INTERNAL_PULLUP  BIT(0)
         /**< Enable internal pullups on enabled pins. The internal pullups
          are insufficient however, please make sure external pullups are
          connected on the bus. This is for debug / example purpose only.
          */
 } sdmmc_slot_config_t;
 
-#define SDMMC_SLOT_NO_CD      ((gpio_num_t) -1)     ///< indicates that card detect line is not used
-#define SDMMC_SLOT_NO_WP      ((gpio_num_t) -1)     ///< indicates that write protect line is not used
-#define SDMMC_SLOT_WIDTH_DEFAULT 0 ///< use the default width for the slot (8 for slot 0, 4 for slot 1)
+#define SDMMC_SLOT_NO_CD      GPIO_NUM_NC     ///< indicates that card detect line is not used
+#define SDMMC_SLOT_NO_WP      GPIO_NUM_NC     ///< indicates that write protect line is not used
+#define SDMMC_SLOT_WIDTH_DEFAULT 0 ///< use the maximum possible width for the slot
+
+#ifdef SOC_SDMMC_USE_GPIO_MATRIX
 
 /**
  * Macro defining default configuration of SDMMC host slot
  */
 #define SDMMC_SLOT_CONFIG_DEFAULT() {\
-    .gpio_cd = SDMMC_SLOT_NO_CD, \
-    .gpio_wp = SDMMC_SLOT_NO_WP, \
+    .clk = GPIO_NUM_14, \
+    .cmd = GPIO_NUM_15, \
+    .d0 = GPIO_NUM_2, \
+    .d1 = GPIO_NUM_4, \
+    .d2 = GPIO_NUM_12, \
+    .d3 = GPIO_NUM_13, \
+    .d4 = GPIO_NUM_33, \
+    .d5 = GPIO_NUM_34, \
+    .d6 = GPIO_NUM_35, \
+    .d7 = GPIO_NUM_36, \
+    .cd = SDMMC_SLOT_NO_CD, \
+    .wp = SDMMC_SLOT_NO_WP, \
     .width   = SDMMC_SLOT_WIDTH_DEFAULT, \
     .flags = 0, \
 }
+
+#else // SOC_SDMMC_USE_GPIO_MATRIX
+
+/**
+ * Macro defining default configuration of SDMMC host slot
+ */
+#define SDMMC_SLOT_CONFIG_DEFAULT() {\
+    .cd = SDMMC_SLOT_NO_CD, \
+    .wp = SDMMC_SLOT_NO_WP, \
+    .width   = SDMMC_SLOT_WIDTH_DEFAULT, \
+    .flags = 0, \
+}
+
+#endif // SOC_SDMMC_USE_GPIO_MATRIX
 
 /**
  * @brief Initialize SDMMC host peripheral
@@ -91,7 +130,7 @@ typedef struct {
  *      - ESP_ERR_INVALID_STATE if sdmmc_host_init was already called
  *      - ESP_ERR_NO_MEM if memory can not be allocated
  */
-esp_err_t sdmmc_host_init();
+esp_err_t sdmmc_host_init(void);
 
 /**
  * @brief Initialize given slot of SDMMC peripheral
@@ -218,25 +257,30 @@ esp_err_t sdmmc_host_io_int_wait(int slot, TickType_t timeout_ticks);
  *      - ESP_OK on success
  *      - ESP_ERR_INVALID_STATE if sdmmc_host_init function has not been called
  */
-esp_err_t sdmmc_host_deinit();
+esp_err_t sdmmc_host_deinit(void);
 
 /**
  * @brief Enable the pull-ups of sd pins.
- * 
+ *
+ * This function is deprecated. Please set SDMMC_SLOT_FLAG_INTERNAL_PULLUP flag in
+ * sdmmc_slot_config_t::flags instead.
+ *
  * @note You should always place actual pullups on the lines instead of using
  * this function. Internal pullup resistance are high and not sufficient, may
  * cause instability in products. This is for debug or examples only.
- * 
+ *
  * @param slot Slot to use, normally set it to 1.
  * @param width Bit width of your configuration, 1 or 4.
- * 
+ *
  * @return
  *      - ESP_OK: if success
  *      - ESP_ERR_INVALID_ARG: if configured width larger than maximum the slot can
  *              support
  */
-esp_err_t sdmmc_host_pullup_en(int slot, int width);
+esp_err_t sdmmc_host_pullup_en(int slot, int width) __attribute__((deprecated));
 
 #ifdef __cplusplus
 }
 #endif
+
+#endif //SOC_SDMMC_HOST_SUPPORTED

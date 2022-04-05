@@ -156,6 +156,36 @@ depend:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
+# Convenience name for target.
+esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/rule
+.PHONY : esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/rule
+
+# Convenience name for target.
+encrypted-bootloader-flash: esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/rule
+
+.PHONY : encrypted-bootloader-flash
+
+# fast build rule for target.
+encrypted-bootloader-flash/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/build.make esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/build
+.PHONY : encrypted-bootloader-flash/fast
+
+# Convenience name for target.
+esp-idf/bootloader/CMakeFiles/bootloader-flash.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/bootloader/CMakeFiles/bootloader-flash.dir/rule
+.PHONY : esp-idf/bootloader/CMakeFiles/bootloader-flash.dir/rule
+
+# Convenience name for target.
+bootloader-flash: esp-idf/bootloader/CMakeFiles/bootloader-flash.dir/rule
+
+.PHONY : bootloader-flash
+
+# fast build rule for target.
+bootloader-flash/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader/CMakeFiles/bootloader-flash.dir/build.make esp-idf/bootloader/CMakeFiles/bootloader-flash.dir/build
+.PHONY : bootloader-flash/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -168,6 +198,8 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
+	@echo "... encrypted-bootloader-flash"
+	@echo "... bootloader-flash"
 .PHONY : help
 
 

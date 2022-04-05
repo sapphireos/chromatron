@@ -29,7 +29,7 @@
 static bool max_power_sat;
 
 KV_SECTION_META kv_meta_t max_power_sat_kv[] = {
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &max_power_sat,        0,                   "gfx_enable_max_power_sat" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &max_power_sat,        0,                   "gfx_enable_max_power_sat" },
 };
 
 #ifndef GEN_HUE_CURVE
@@ -40,9 +40,9 @@ static uint16_t green_cal = 65535;
 static uint16_t blue_cal = 65535;
 
 KV_SECTION_META kv_meta_t bg_cal_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &green_cal,              0,                   "gfx_green_cal" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &blue_cal,               0,                   "gfx_blue_cal" },
-    { SAPPHIRE_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &max_power_white,        0,                   "gfx_enable_max_power_white" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &green_cal,              0,                   "gfx_green_cal" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &blue_cal,               0,                   "gfx_blue_cal" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &max_power_white,        0,                   "gfx_enable_max_power_white" },
 };
 #endif
 
@@ -53,10 +53,10 @@ static uint16_t hsv_debug_g;
 static uint16_t hsv_debug_b;
 
 KV_SECTION_META kv_meta_t hsv_to_rgb_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_hue,              0,                   "hsv_debug_hue" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_r,                0,                   "hsv_debug_r" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_g,                0,                   "hsv_debug_g" },
-    { SAPPHIRE_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_b,                0,                   "hsv_debug_b" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_hue,              0,                   "hsv_debug_hue" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_r,                0,                   "hsv_debug_r" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_g,                0,                   "hsv_debug_g" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &hsv_debug_b,                0,                   "hsv_debug_b" },
 };
 #endif
 

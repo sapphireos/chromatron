@@ -6,7 +6,7 @@ image: ${CI_DOCKER_REGISTRY}/esp32-ci-env
 
 variables:
 # tag in lwip-contrib repo, which supports our esp-lwip branch (and it's cherry-picked commits from release branches)
-  LWIP_CONTRIB_TAG: STABLE-2_0_1_RELEASE
+  LWIP_CONTRIB_TAG: STABLE-2_1_0_RELEASE
 # test timeout is seconds
   TEST_TIMEOUT: 200
 
@@ -27,10 +27,21 @@ run_lwip_unittests:
     - cd ports/unix/check/
     # updating environment
     - export LWIPDIR=../../../../src && export CK_DEFAULT_TIMEOUT=${TEST_TIMEOUT}
-    - export TESTFILES=`find $LWIPDIR/../test/unit -name '*.c' | tr '\n' ' '`
-    - export CFLAGS=-I$LWIPDIR/../test/unit/esp
-    # build and run tests
-    - make "TESTFILES=$TESTFILES" check
+    - export EXTRA_CFLAGS="" && export CC="cc $EXTRA_CFLAGS" && export CCDEP=cc
+    # build and run default lwip tests
+    - make -j 4 check
+    # retest with IP_FORWARD enabled
+    - make clean
+    - export EXTRA_CFLAGS="-DIP_FORWARD=1" && export CC="cc $EXTRA_CFLAGS"
+    - make -j 4 check
+    # retest with IP_FORWARD and IP_NAPT enabled
+    - make clean
+    - export EXTRA_CFLAGS="-DIP_FORWARD=1 -DIP_NAPT=1 -DLWIP_ARCH_CC_H -include cc_esp_platform.h" && export CC="cc $EXTRA_CFLAGS"
+    - make -j 4 check
+    # Please uncomment the below to test IP_FORWARD/IP_NAPT tests with debug output (only ip4_route test suite will be executed)
+    #- make clean
+    #- export EXTRA_CFLAGS="-DIP_FORWARD=1 -DESP_TEST_DEBUG=1 -DIP_NAPT=1 -DLWIP_ARCH_CC_H -include cc_esp_platform.h" && export CC="cc $EXTRA_CFLAGS"
+    #- make -j 4 check
 
 .add_gh_key_remote: &add_gh_key_remote |
   command -v ssh-agent >/dev/null || exit 1
@@ -44,8 +55,7 @@ run_lwip_unittests:
 push_master_to_github:
   stage: deploy
   only:
-    - 2.0.3-esp
-    - /^release\/v/
+    - 2.1.2-esp
   when: on_success
   variables:
     GIT_STRATEGY: clone

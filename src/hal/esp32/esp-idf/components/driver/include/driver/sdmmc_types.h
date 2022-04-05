@@ -1,6 +1,12 @@
 /*
+ * SPDX-FileCopyrightText: 2006 Uwe Stuehler <uwe@openbsd.org>
+ *
+ * SPDX-License-Identifier: ISC
+ *
+ * SPDX-FileContributor: 2016-2021 Espressif Systems (Shanghai) CO LTD
+ */
+/*
  * Copyright (c) 2006 Uwe Stuehler <uwe@openbsd.org>
- * Adaptations to ESP-IDF Copyright (c) 2016 Espressif Systems (Shanghai) PTE LTD
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -130,6 +136,7 @@ typedef struct {
 #define SDMMC_HOST_FLAG_8BIT    BIT(2)      /*!< host supports 8-line MMC protocol */
 #define SDMMC_HOST_FLAG_SPI     BIT(3)      /*!< host supports SPI protocol */
 #define SDMMC_HOST_FLAG_DDR     BIT(4)      /*!< host supports DDR mode for SD/MMC */
+#define SDMMC_HOST_FLAG_DEINIT_ARG BIT(5)      /*!< host `deinit` function called with the slot argument */
     int slot;                   /*!< slot number, to be passed to host functions */
     int max_freq_khz;           /*!< max frequency supported by the host */
 #define SDMMC_FREQ_DEFAULT      20000       /*!< SD/MMC Default speed (limited by clock divider) */
@@ -144,7 +151,10 @@ typedef struct {
     esp_err_t (*set_bus_ddr_mode)(int slot, bool ddr_enable); /*!< host function to set DDR mode */
     esp_err_t (*set_card_clk)(int slot, uint32_t freq_khz); /*!< host function to set card clock frequency */
     esp_err_t (*do_transaction)(int slot, sdmmc_command_t* cmdinfo);    /*!< host function to do a transaction */
-    esp_err_t (*deinit)(void);  /*!< host function to deinitialize the driver */
+    union {
+        esp_err_t (*deinit)(void);  /*!< host function to deinitialize the driver */
+        esp_err_t (*deinit_p)(int slot);  /*!< host function to deinitialize the driver, called with the `slot` */
+    };
     esp_err_t (*io_int_enable)(int slot); /*!< Host function to enable SDIO interrupt line */
     esp_err_t (*io_int_wait)(int slot, TickType_t timeout_ticks); /*!< Host function to wait for SDIO interrupt line to be active */
     int command_timeout_ms;     /*!< timeout, in milliseconds, of a single command. Set to 0 to use the default value. */
@@ -156,7 +166,11 @@ typedef struct {
 typedef struct {
     sdmmc_host_t host;          /*!< Host with which the card is associated */
     uint32_t ocr;               /*!< OCR (Operation Conditions Register) value */
-    sdmmc_cid_t cid;            /*!< decoded CID (Card IDentification) register value */
+    union {
+        sdmmc_cid_t cid;            /*!< decoded CID (Card IDentification) register value */
+        sdmmc_response_t raw_cid;   /*!< raw CID of MMC card to be decoded
+                                         after the CSD is fetched in the data transfer mode*/
+    };
     sdmmc_csd_t csd;            /*!< decoded CSD (Card-Specific Data) register value */
     sdmmc_scr_t scr;            /*!< decoded SCR (SD card Configuration Register) value */
     sdmmc_ext_csd_t ext_csd;    /*!< decoded EXT_CSD (Extended Card Specific Data) register value */

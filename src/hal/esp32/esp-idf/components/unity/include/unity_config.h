@@ -21,6 +21,10 @@
 #define UNITY_EXCLUDE_DOUBLE
 #endif //CONFIG_UNITY_ENABLE_DOUBLE
 
+#ifdef CONFIG_UNITY_ENABLE_64BIT
+#define UNITY_SUPPORT_64
+#endif
+
 #ifdef CONFIG_UNITY_ENABLE_COLOR
 #define UNITY_OUTPUT_COLOR
 #endif
@@ -45,6 +49,10 @@ uint32_t unity_exec_time_get_ms(void);
 #include "unity_test_runner.h"
 
 #endif //CONFIG_UNITY_ENABLE_IDF_TEST_RUNNER
+
+#ifdef CONFIG_UNITY_ENABLE_FIXTURE
+#include "unity_fixture_extras.h"
+#endif // CONFIG_UNITY_ENABLE_FIXTURE
 
 // shorthand to check esp_err_t return code
 #define TEST_ESP_OK(rc) TEST_ASSERT_EQUAL_HEX32(ESP_OK, rc)

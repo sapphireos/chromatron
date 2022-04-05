@@ -4,6 +4,8 @@ file(REMOVE_RECURSE
   "bootloader/bootloader.map"
   "config/sdkconfig.cmake"
   "config/sdkconfig.h"
+  "flash_project_args"
+  "idf_as_lib.bin"
   "CMakeFiles/flash"
 )
 

@@ -69,9 +69,9 @@ static uint8_t flash_fs_hard_io_errors;
 static uint32_t flash_fs_block_allocs;
 
 KV_SECTION_META kv_meta_t ffs_block_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_fs_soft_io_errors,        0,  "flash_fs_soft_io_errors" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_block_allocs,          0,  "flash_fs_block_allocs" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_fs_hard_io_errors,        0,  "flash_fs_hard_io_errors" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_fs_soft_io_errors,        0,  "flash_fs_soft_io_errors" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_block_allocs,          0,  "flash_fs_block_allocs" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_fs_hard_io_errors,        0,  "flash_fs_hard_io_errors" },
 };
 
 static inline block_info_t *get_block_ptr( void ) __attribute__((always_inline));

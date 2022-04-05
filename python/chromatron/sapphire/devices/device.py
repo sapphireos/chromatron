@@ -27,6 +27,7 @@
 
 from elysianfields import *
 from catbus import get_type_name, Client, CATBUS_MAIN_PORT, NoResponseFromHost, ProtocolErrorException
+from catbus.link import *
 
 from . import sapphiredata
 from . import channel
@@ -317,7 +318,7 @@ class Device(object):
     # TODO this should move to the console
     def who(self):
         try:
-            name = str(self._keys['name'].value)
+            name = self.name
 
         except KeyError:
             name = ''
@@ -436,6 +437,14 @@ class Device(object):
                 self._keys[k]._value = v
 
         return responses
+
+    def lookup_hash(self, key):
+        value = self._client.lookup_hash(key)[key]
+
+        if value == key:
+            raise KeyError(key)
+
+        return value
 
     def set_security_key(self, key_id, key):
         raise NotImplementedError
@@ -595,30 +604,6 @@ class Device(object):
 
         return {"sector_erase_counts": gc_array}
 
-    def get_kvlink_info(self):
-        data = self.get_file("kvlinks")
-
-        info = sapphiredata.KVLinkFile()
-        info.unpack(data)
-        
-        return info.links
-
-    def get_kvsend_info(self):
-        data = self.get_file("kvsend")
-
-        info = sapphiredata.KVSendArray()
-        info.unpack(data)
-
-        return info
-
-    def get_kvreceivecache_info(self):
-        data = self.get_file("kvrxcache")
-
-        info = sapphiredata.KVReceiveCacheArray()
-        info.unpack(data)
-
-        return info
-
     def get_thread_info(self):
         data = self.get_file("threadinfo")
 
@@ -665,6 +650,15 @@ class Device(object):
                 return s
 
         return None
+
+    def get_datalog_config(self):
+        data = self.get_file("datalog_config")
+
+        info = sapphiredata.DatalogEntryArray()
+        info.unpack(data)
+
+        return info
+
 
     # helper for testing mostly
     def wait_service(self, service_id, group, state=None, timeout=30.0):
@@ -879,84 +873,6 @@ class Device(object):
 
         return s
 
-    def cli_linkinfo(self, line):
-        info = self.get_kvlink_info()
-
-        s = "\nFlags Source     Dest       Query ->\n"
-
-        KV_MSG_LINK_FLAG_SOURCE             = 0x01
-        KV_MSG_LINK_FLAG_DEST               = 0x04
-        KV_MSG_LINK_FLAG_VALID              = 0x80
-
-        for n in info:
-            flags = ''
-
-            if n.flags & KV_MSG_LINK_FLAG_VALID == 0:
-                continue
-
-            if n.flags & KV_MSG_LINK_FLAG_SOURCE:
-                flags += 'S'
-
-            else:
-                flags += '-'
-
-            flags += '-'
-            flags += '-'
-            flags += '-'
-
-            s += "%5s %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d" % \
-                (flags,
-                 n.source_hash,
-                 n.dest_hash,
-                 n.query[0],
-                 n.query[1],
-                 n.query[2],
-                 n.query[3],
-                 n.query[4],
-                 n.query[5],
-                 n.query[6],
-                 n.query[7])
-
-            s += "\n"
-
-        return s
-
-    def cli_sendinfo(self, line):
-        info = self.get_kvsend_info()
-
-        s = "\nTTL IP:             Port  Source       Dest         Sequence\n"
-
-        for n in info:
-            s += "%3d %15s %5u %-12d %-12d %5u" % \
-                (n.ttl,
-                 n.ip,
-                 n.port,
-                 n.source_hash,
-                 n.dest_hash,
-                 n.sequence)
-
-            s += "\n"
-
-        return s
-
-    def cli_rxcacheinfo(self, line):
-        info = self.get_kvreceivecache_info()
-
-        s = "\nTTL IP:             Port  Dest         Sequence\n"
-
-        for n in info:
-            s += "%3d %15s %5u %-12d %5u" % \
-                (n.ttl,
-                 n.ip,
-                 n.port,
-                 n.dest_hash,
-                 n.sequence)
-
-
-            s += "\n"
-
-        return s
-
     def cli_gcinfo(self, line):
         info = self.get_gc_info()
 
@@ -1117,10 +1033,16 @@ class Device(object):
 
         # iterate over DNS cache entries, filtering out the empty ones
         for d in [d for d in dnsinfo if d.status != 0]:
-            if d.status == 1:
+            if d.status == 0:
+                status = "empty"
+            elif d.status == 1:
                 status = "valid"
-            else:
+            elif d.status == 2:
                 status = "invalid"
+            elif d.status == 3:
+                status = "resolving"
+            else:
+                status = "unknown"
 
             s += "IP:%15s Status:%8s TTL:%8d Query:%s" % \
                 (d.ip,
@@ -1143,7 +1065,7 @@ class Device(object):
                 2: 'server',
             }
         
-        s = "\nService  Group               IP           Port  Priority    Uptime    Timeout | State\n"
+        s = "\nService          Group               IP           Port  Priority    Uptime    Timeout | State\n"
 
         # iterate over service cache entries
         for e in serviceinfo:
@@ -1154,9 +1076,21 @@ class Device(object):
                 uptime = e.server_uptime
                 port = e.server_port
 
-            s += "%8x %16x %15s %5d %3d     %7d     %3d         %-10s\n" % \
-                (e.id,
-                 e.group,
+            try:
+                service_id = self.lookup_hash(e.id)
+
+            except KeyError:
+                service_id = f'{e.id:x}'
+
+            try:
+                group_id = self.lookup_hash(e.group)
+
+            except KeyError:
+                group_id = f'{e.group:x}'
+
+            s += "%16s %16s %15s %5d %3d     %7d     %3d         %-10s\n" % \
+                (service_id,
+                 group_id,
                  e.server_ip,
                  port,
                  e.local_priority,
@@ -1167,29 +1101,130 @@ class Device(object):
         return s
 
     def cli_linkinfo(self, line):
-        s = 'Links:\n'
+        s = '\n'
+
         try:
             linkinfo = self.get_link_info()
-            for info in linkinfo:
-                s += str(info) + '\n'
+
+            if len(linkinfo) == 0:
+                raise IOError
+
+            s += 'Links:\n'
+            s += 'Source           Dest             Mode Agg  Rate Hash             Query\n'
+
+            for info in sorted(linkinfo, key=lambda x: x.hash):
+                try:
+                    source = self.lookup_hash(info.source_key)
+
+                except KeyError:
+                    source = f'{info.source_key:x}'                
+
+                try:
+                    dest = self.lookup_hash(info.dest_key)
+
+                except KeyError:
+                    dest = f'{info.dest_key:x}'       
+
+                if info.mode == LINK_MODE_SEND:
+                    mode = "send"
+                
+                elif info.mode == LINK_MODE_RECV:
+                    mode = "recv"
+
+                elif info.mode == LINK_MODE_SYNC:
+                    mode = "sync"
+
+                else:
+                    mode = "????"
+
+                if info.aggregation == LINK_AGG_ANY:
+                    agg = "any"
+
+                elif info.aggregation == LINK_AGG_MIN:
+                    agg = "min"
+
+                elif info.aggregation == LINK_AGG_MAX:
+                    agg = "max"
+
+                elif info.aggregation == LINK_AGG_SUM:
+                    agg = "sum"
+
+                elif info.aggregation == LINK_AGG_AVG:
+                    agg = "avg"
+
+                else:
+                    agg = "???"
+
+
+                query_s = ''
+                for q in info.query:
+                    try:
+                        v = self.lookup_hash(q)
+
+                        if v is None:
+                            continue
+
+                    except KeyError:
+                        v = f'{q:x}'
+
+                    query_s += f'{v} '
+
+                s += "%16s %16s %4s %3s %5d %16x %s\n" % \
+                    (source,
+                     dest,
+                     mode,
+                     agg,
+                     info.rate,
+                     info.hash,
+                     query_s)
 
         except IOError:
             pass
 
-        s += 'Producers:\n'
+        
         try:
             linkinfo = self.get_link_producer_info()
-            for info in linkinfo:
-                s += str(info) + '\n'
+
+            if len(linkinfo) == 0:
+                raise IOError
+
+            s += 'Producers:\n'
+            s += 'Source                Leader: IP Port   Rate Timeout Hash\n'
+
+            for info in sorted(linkinfo, key=lambda x: x.link_hash):
+                try:
+                    source = self.lookup_hash(info.source_key)
+
+                except KeyError:
+                    source = f'{info.source_key:x}'                
+                
+                s += "%16s %15s %5d %5d %5d   %16x\n" % \
+                    (source,
+                     info.leader_ip,
+                     info.leader_port,
+                     info.rate,
+                     info.timeout,
+                     info.link_hash)
 
         except IOError:
             pass
 
-        s += 'Consumers:\n'
         try:
             linkinfo = self.get_link_consumer_info()
-            for info in linkinfo:
-                s += str(info) + '\n'
+
+            if len(linkinfo) == 0:
+                raise IOError
+
+            s += 'Consumers:\n'
+            s += 'Hash                IP           Port  Timeout\n'
+            
+            for info in sorted(linkinfo, key=lambda x: x.link_hash):
+                s += "%16x %15s %5d %5d\n" % \
+                    (info.link_hash,
+                     info.ip,
+                     info.port,
+                     info.timeout)
+                
 
         except IOError:
             pass
@@ -1540,17 +1575,85 @@ class Device(object):
         self.set_key('vm_run', True)
         self.set_key('vm_reset', True)
 
-    def cli_dumpkvmeta(self, line):
-        data = self.get_file("kvmeta")
-        kvmeta = sapphiredata.KVMetaArray().unpack(data)
-
-        for kv in kvmeta:
-            print(kv)
-
     def cli_getfileid(self, line):
         file_id = self.get_file_id(line)
 
-        print("File ID: %d" % (file_id))
+        return f"File ID: {file_id}" 
+
+    def cli_datalog_show(self, line):
+        try:
+            data = self.get_datalog_config()
+
+        except OSError:
+            return
+
+        s = '\nKey                     Rate (ms)\n'
+
+        for item in data:
+            s += f'{self._client.lookup_hash(item.hash)[item.hash]:20}   {item.rate}\n'
+
+        return s
+
+    def cli_datalog_reset(self, line):
+        # get a copy of the datalog config file.
+        # we can put that file back if we didn't want to reset!
+        try:
+            self.get_datalog_config()
+
+        except OSError:
+            return
+
+        # delete the file
+        self.delete_file('datalog_config')
+
+        return "Datalogger configuration reset"
+
+    def cli_datalog_delete(self, line):
+        try:
+            data = self.get_datalog_config()
+
+        except OSError:
+            # file not found
+            return
+
+        data_hash = catbus_string_hash(line)
+
+        array = sapphiredata.DatalogEntryArray()
+
+        for item in data:
+            if item.hash != data_hash:
+                array.append(item)
+
+        self.put_file('datalog_config', array.pack())
+
+    def cli_datalog_add(self, line):
+        try:
+            data = self.get_datalog_config()
+
+        except OSError:
+            # file not found
+            data = sapphiredata.DatalogEntryArray()
+
+        tokens = line.split()
+
+        data_hash = catbus_string_hash(tokens[0])
+        rate = int(tokens[1])
+
+        update = False
+        for item in data:
+            if item.hash == data_hash:
+                # update
+                item.rate = rate
+                update = True
+                break
+
+        if not update:
+            entry = sapphiredata.DatalogEntry(hash=data_hash, rate=rate)
+
+            data.append(entry)
+
+        self.put_file('datalog_config', data.pack())
+
 
 def createDevice(**kwargs):
     return Device(**kwargs)

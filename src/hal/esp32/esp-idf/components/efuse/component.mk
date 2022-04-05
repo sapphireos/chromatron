@@ -1,10 +1,18 @@
 #
 # Component Makefile
 # currently the only SoC supported; to be moved into Kconfig
-SOC_NAME := $(IDF_TARGET)
+TARGET := $(IDF_TARGET)
 
-COMPONENT_SRCDIRS := $(SOC_NAME) src
+COMPONENT_SRCDIRS := $(TARGET) src
+ifdef CONFIG_IDF_TARGET_ESP32
+COMPONENT_OBJEXCLUDE := src/esp_efuse_api_key_esp32xx.o
+else
+COMPONENT_OBJEXCLUDE := src/esp_efuse_api_key_esp32.o
+endif
 
-COMPONENT_ADD_INCLUDEDIRS := $(SOC_NAME)/include include
+COMPONENT_PRIV_INCLUDEDIRS := private_include $(TARGET)/private_include
+COMPONENT_ADD_INCLUDEDIRS := include $(TARGET)/include
 
--include $(COMPONENT_PATH)/$(SOC_NAME)/component.mk
+ifdef CONFIG_EFUSE_VIRTUAL
+$(info eFuse virtual mode is enabled. If Secure boot or Flash encryption is enabled then it does not provide any security. FOR TESTING ONLY!)
+endif

@@ -473,6 +473,7 @@ void test_util_localtime_date(void) {
 
   if (tz) {
     setenv("TZ", tz, 1);
+    free(tz);
   } else {
     unsetenv("TZ");
   }
@@ -625,6 +626,30 @@ void test_util_extract_host(void) {
   CU_ASSERT(util::extract_host(StringRef::from_lit("[::1")).empty());
   CU_ASSERT(util::extract_host(StringRef::from_lit("[::1]0")).empty());
   CU_ASSERT(util::extract_host(StringRef{}).empty());
+}
+
+void test_util_split_hostport(void) {
+  CU_ASSERT(std::make_pair(StringRef::from_lit("foo"), StringRef{}) ==
+            util::split_hostport(StringRef::from_lit("foo")));
+  CU_ASSERT(
+      std::make_pair(StringRef::from_lit("foo"), StringRef::from_lit("80")) ==
+      util::split_hostport(StringRef::from_lit("foo:80")));
+  CU_ASSERT(
+      std::make_pair(StringRef::from_lit("::1"), StringRef::from_lit("80")) ==
+      util::split_hostport(StringRef::from_lit("[::1]:80")));
+  CU_ASSERT(std::make_pair(StringRef::from_lit("::1"), StringRef{}) ==
+            util::split_hostport(StringRef::from_lit("[::1]")));
+
+  CU_ASSERT(std::make_pair(StringRef{}, StringRef{}) ==
+            util::split_hostport(StringRef{}));
+  CU_ASSERT(std::make_pair(StringRef{}, StringRef{}) ==
+            util::split_hostport(StringRef::from_lit("[::1]:")));
+  CU_ASSERT(std::make_pair(StringRef{}, StringRef{}) ==
+            util::split_hostport(StringRef::from_lit("foo:")));
+  CU_ASSERT(std::make_pair(StringRef{}, StringRef{}) ==
+            util::split_hostport(StringRef::from_lit("[::1:")));
+  CU_ASSERT(std::make_pair(StringRef{}, StringRef{}) ==
+            util::split_hostport(StringRef::from_lit("[::1]80")));
 }
 
 } // namespace shrpx

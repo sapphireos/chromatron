@@ -174,9 +174,7 @@ class Service(object):
 
         self._cancelled = False
 
-        self._reset()
-
-        self._init_server()
+        self._reset()        
 
     def _init_server(self):
         if self._priority > 0: # offering a service, start out as server
@@ -196,6 +194,8 @@ class Service(object):
         self._best_offer = None
         self._best_host = None
         self._timeout = SERVICE_LISTEN_TIMEOUT
+
+        self._init_server()
 
     @property
     @synchronized
@@ -412,6 +412,8 @@ class Service(object):
 
 
     def _process_timer(self, elapsed):
+        # logging.debug(f'timer: {self._state}')
+
         if self._state == STATE_SERVER:
             self._uptime += elapsed
             self._timeout = 0.0
@@ -544,6 +546,7 @@ class ServiceManager(MsgServer):
 
         service = Service(service_id, group, priority, port, origin=self.origin, _lock=self._lock)
 
+        assert service.is_server
         assert service.key not in self._services
 
         logging.info(f"Added OFFER for {hex(service_id)}/{hex(group)}")
@@ -606,12 +609,12 @@ class ServiceManager(MsgServer):
         header = ServiceMsgOfferHeader(
             count=len(offers))
 
-        if shutdown:
-            header.flags |= SERVICE_FLAGS_SHUTDOWN
-
         msg = ServiceMsgOffers(
                 offer_header=header,
                 offers=offers)
+
+        if shutdown:
+            msg.header.flags |= SERVICE_FLAGS_SHUTDOWN
 
         msg.header.origin = self.origin
         

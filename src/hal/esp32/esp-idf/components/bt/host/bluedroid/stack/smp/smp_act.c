@@ -764,8 +764,7 @@ void smp_process_pairing_public_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     /* Check if the peer device's and own public key are not same. If they are same then
      * return pairing fail. This check is needed to avoid 'Impersonation in Passkey entry
      * protocol' vulnerability (CVE-2020-26558).*/
-    if ((memcmp(p_cb->loc_publ_key.x, p_cb->peer_publ_key.x, sizeof(BT_OCTET32)) == 0) &&
-        (memcmp(p_cb->loc_publ_key.y, p_cb->peer_publ_key.y, sizeof(BT_OCTET32)) == 0)) {
+    if ((memcmp(p_cb->loc_publ_key.x, p_cb->peer_publ_key.x, sizeof(BT_OCTET32)) == 0)) {
         p_cb->status = SMP_PAIR_AUTH_FAIL;
         p_cb->failure = SMP_PAIR_AUTH_FAIL;
         reason = SMP_PAIR_AUTH_FAIL;
@@ -1540,9 +1539,11 @@ void smp_idle_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 *******************************************************************************/
 void smp_fast_conn_param(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
+#if (BT_MULTI_CONNECTION_ENBALE == FALSE)
     if(p_cb->role == BTM_ROLE_MASTER) {
         L2CA_EnableUpdateBleConnParams(p_cb->pairing_bda, FALSE);
     }
+#endif
 #if (SMP_SLAVE_CON_PARAMS_UPD_ENABLE == TRUE)
     else {
         tBTM_SEC_DEV_REC    *p_rec = btm_find_dev (p_cb->pairing_bda);
@@ -1554,7 +1555,9 @@ void smp_fast_conn_param(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         some peripherals are not able to revert to fast connection parameters
         during the start of service discovery. Connection paramter updates
         get enabled again once service discovery completes. */
+        #if (BT_MULTI_CONNECTION_ENBALE == FALSE)
         L2CA_EnableUpdateBleConnParams(p_cb->pairing_bda, FALSE);
+        #endif
     }
 #endif
 }

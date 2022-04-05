@@ -17,8 +17,6 @@
   * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   */
 
-
-
 /* ----------------------- System includes ----------------------------------*/
 #include "stdlib.h"
 #include "string.h"
@@ -42,8 +40,9 @@
 eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
 
 /* ----------------------- Start implementation -----------------------------*/
+#if MB_SLAVE_RTU_ENABLED || MB_SLAVE_ASCII_ENABLED || MB_TCP_ENABLED
 
-#if MB_FUNC_READ_COILS_ENABLED > 0
+#if MB_FUNC_READ_COILS_ENABLED
 
 eMBException
 eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
@@ -66,7 +65,7 @@ eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
         usDiscreteCnt |= ( USHORT )( pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF + 1] );
 
         /* Check if the number of registers to read is valid. If not
-         * return Modbus illegal data value exception. 
+         * return Modbus illegal data value exception.
          */
         if( ( usDiscreteCnt >= 1 ) &&
             ( usDiscreteCnt < MB_PDU_FUNC_READ_DISCCNT_MAX ) )
@@ -103,7 +102,7 @@ eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
             else
             {
                 /* The response contains the function code, the starting address
-                 * and the quantity of registers. We reuse the old values in the 
+                 * and the quantity of registers. We reuse the old values in the
                  * buffer because they are still valid. */
                 *usLen += ucNBytes;;
             }
@@ -121,5 +120,7 @@ eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
     }
     return eStatus;
 }
+
+#endif
 
 #endif

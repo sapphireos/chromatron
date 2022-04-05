@@ -98,11 +98,7 @@ netbuf_delete(struct netbuf *buf)
  * @return pointer to the allocated memory
  *         NULL if no memory could be allocated
  */
-#if ESP_LWIP
-void * ESP_IRAM_ATTR
-#else
 void *
-#endif
 netbuf_alloc(struct netbuf *buf, u16_t size)
 {
   LWIP_ERROR("netbuf_alloc: invalid buf", (buf != NULL), return NULL;);
@@ -113,10 +109,10 @@ netbuf_alloc(struct netbuf *buf, u16_t size)
   }
   buf->p = pbuf_alloc(PBUF_TRANSPORT, size, PBUF_RAM);
   if (buf->p == NULL) {
-     return NULL;
+    return NULL;
   }
   LWIP_ASSERT("check that first pbuf can hold size",
-             (buf->p->len >= size));
+              (buf->p->len >= size));
   buf->ptr = buf->p;
   return buf->p->payload;
 }
@@ -127,11 +123,7 @@ netbuf_alloc(struct netbuf *buf, u16_t size)
  *
  * @param buf pointer to the netbuf which contains the packet buffer to free
  */
-#if ESP_LWIP
-void ESP_IRAM_ATTR
-#else
 void
-#endif
 netbuf_free(struct netbuf *buf)
 {
   LWIP_ERROR("netbuf_free: invalid buf", (buf != NULL), return;);
@@ -139,6 +131,10 @@ netbuf_free(struct netbuf *buf)
     pbuf_free(buf->p);
   }
   buf->p = buf->ptr = NULL;
+#if LWIP_CHECKSUM_ON_COPY
+  buf->flags = 0;
+  buf->toport_chksum = 0;
+#endif /* LWIP_CHECKSUM_ON_COPY */
 }
 
 /**
@@ -163,7 +159,7 @@ netbuf_ref(struct netbuf *buf, const void *dataptr, u16_t size)
     buf->ptr = NULL;
     return ERR_MEM;
   }
-  ((struct pbuf_rom*)buf->p)->payload = dataptr;
+  ((struct pbuf_rom *)buf->p)->payload = dataptr;
   buf->p->len = buf->p->tot_len = size;
   buf->ptr = buf->p;
   return ERR_OK;

@@ -1,16 +1,8 @@
-// Copyright 2018 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2018-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 
 #include <errno.h>
@@ -399,6 +391,14 @@ esp_err_t httpd_resp_send_err(httpd_req_t *req, httpd_err_code_t error, const ch
             status = "400 Bad Request";
             msg    = "Server unable to understand request due to invalid syntax";
             break;
+        case HTTPD_401_UNAUTHORIZED:
+            status = "401 Unauthorized";
+            msg    = "Server known the client's identify and it must authenticate itself to get he requested response";
+            break;
+        case HTTPD_403_FORBIDDEN:
+            status = "403 Forbidden";
+            msg    = "Server is refusing to give the requested resource to the client";
+            break;
         case HTTPD_404_NOT_FOUND:
             status = "404 Not Found";
             msg    = "This URI does not exist";
@@ -451,7 +451,7 @@ esp_err_t httpd_resp_send_err(httpd_req_t *req, httpd_err_code_t error, const ch
 #endif
 
     /* Send HTTP error message */
-    ret = httpd_resp_send(req, msg, strlen(msg));
+    ret = httpd_resp_send(req, msg, HTTPD_RESP_USE_STRLEN);
 
 #ifdef CONFIG_HTTPD_ERR_RESP_NO_DELAY
     /* If TCP_NODELAY was set successfully above, time to disable it */
@@ -553,16 +553,9 @@ int httpd_req_to_sockfd(httpd_req_t *r)
 static int httpd_sock_err(const char *ctx, int sockfd)
 {
     int errval;
-    int sock_err;
-    size_t sock_err_len = sizeof(sock_err);
+    ESP_LOGW(TAG, LOG_FMT("error in %s : %d"), ctx, errno);
 
-    if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &sock_err, &sock_err_len) < 0) {
-        ESP_LOGE(TAG, LOG_FMT("error calling getsockopt : %d"), errno);
-        return HTTPD_SOCK_ERR_FAIL;
-    }
-    ESP_LOGW(TAG, LOG_FMT("error in %s : %d"), ctx, sock_err);
-
-    switch(sock_err) {
+    switch(errno) {
     case EAGAIN:
     case EINTR:
         errval = HTTPD_SOCK_ERR_TIMEOUT;
@@ -605,4 +598,28 @@ int httpd_default_recv(httpd_handle_t hd, int sockfd, char *buf, size_t buf_len,
         return httpd_sock_err("recv", sockfd);
     }
     return ret;
+}
+
+int httpd_socket_send(httpd_handle_t hd, int sockfd, const char *buf, size_t buf_len, int flags)
+{
+    struct sock_db *sess = httpd_sess_get(hd, sockfd);
+    if (!sess) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    if (!sess->send_fn) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    return sess->send_fn(hd, sockfd, buf, buf_len, flags);
+}
+
+int httpd_socket_recv(httpd_handle_t hd, int sockfd, char *buf, size_t buf_len, int flags)
+{
+    struct sock_db *sess = httpd_sess_get(hd, sockfd);
+    if (!sess) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    if (!sess->recv_fn) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    return sess->recv_fn(hd, sockfd, buf, buf_len, flags);
 }

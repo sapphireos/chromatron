@@ -64,8 +64,8 @@ int8_t vmsync_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t vm_sync_kv[] = {
-    { SAPPHIRE_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, vmsync_i8_kv_handler,   "gfx_sync_group" },
-    { SAPPHIRE_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, &sync_state, 0,            "gfx_sync_state" },
+    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, vmsync_i8_kv_handler,   "gfx_sync_group" },
+    { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, &sync_state, 0,            "gfx_sync_state" },
 };
 
 

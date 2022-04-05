@@ -32,22 +32,24 @@
 
 #ifdef BOOTLOADER
 #include "bootloader_flash.h"
+#include "bootloader_flash_priv.h"
 #else
 #include "esp_spi_flash.h"
 #endif
 
 #include "esp_system.h"
 #include "esp_pm.h"
-#include "esp_clk.h"
-#include "rom/ets_sys.h"
-#include "rom/rtc.h"
+#include "esp32/clk.h"
+#include "esp_sleep.h"
+#include "esp32/rom/ets_sys.h"
+#include "esp32/rom/rtc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 static uint8_t esp_reset;
 
 KV_SECTION_META kv_meta_t hal_cpu_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &esp_reset,                       0,  "esp_reset_reason" }
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &esp_reset,                       0,  "esp_reset_reason" }
 };
 
 uint32_t FW_START_OFFSET;
@@ -108,6 +110,9 @@ void cpu_v_init( void ){
     
     #ifndef BOOTLOADER
     DISABLE_INTERRUPTS;
+
+    // ensure RTC power domain remains enabled during sleep, so GPIOs will retain their state.
+    esp_sleep_pd_config( ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON );
 
     cpu_v_set_clock_speed_high();
 
@@ -184,14 +189,38 @@ void cpu_v_remap_isrs( void ){
 
 }
 
+#define SLEEP_THRESHOLD 4
+#define MAX_SLEEP_PERIOD 20
+
 void cpu_v_sleep( void ){
 
+    uint32_t delta = thread_u32_get_next_alarm_delta();
+
+    // if next thread alarm is more than SLEEP_THRESHOLD ms away, we can sleep for at least SLEEP_THRESHOLD ms.
+    if( delta >= SLEEP_THRESHOLD ){
+
+        uint32_t sleep_time = delta;
+
+        // MAX_SLEEP_PERIOD ms should be set to give us a reasonable polling rate for threads that don't use timers.
+        if( sleep_time > MAX_SLEEP_PERIOD ){
+
+            sleep_time = MAX_SLEEP_PERIOD;
+        }
+
+        vTaskDelay( sleep_time );    
+    }   
 }
 
 bool cpu_b_osc_fail( void ){
 
     return 0;
 }
+
+/*
+
+NOTE light sleep will break the JTAG connection when debugging!
+
+*/
 
 void cpu_v_set_clock_speed_low( void ){
 
@@ -254,7 +283,24 @@ void hal_cpu_v_delay_ms( uint16_t ms ){
 	}
 }
 
-uint16_t cpu_u16_get_power( void ){
 
-    return 5000;
+// replace with actual values!
+#define CPU_POWER_HIGH  ( 30000 * 3.3 )
+#define CPU_POWER_MED   ( 20000 * 3.3 )
+#define CPU_POWER_LOW   ( 10000 * 3.3 )
+
+uint32_t cpu_u32_get_power( void ){
+
+    uint32_t cpu_clock = cpu_u32_get_clock_speed();
+
+    if( cpu_clock <= 80000000 ){
+
+        return CPU_POWER_LOW;
+    }
+    else if( cpu_clock <= 160000000 ){
+
+        return CPU_POWER_MED;
+    }
+
+    return CPU_POWER_HIGH;
 }

@@ -57,7 +57,7 @@ static int8_t adc_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t hal_adc_kv[] = {
-    { SAPPHIRE_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, adc_kv_handler,   "vcc" },
+    { CATBUS_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, adc_kv_handler,   "vcc" },
 };
 
 

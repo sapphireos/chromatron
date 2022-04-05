@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <errno.h>
 
@@ -25,19 +17,19 @@
 
 #if CONFIG_BLE_MESH_SENSOR_SERVER
 
-static void update_sensor_periodic_pub(struct bt_mesh_model *model, u16_t prop_id);
+static void update_sensor_periodic_pub(struct bt_mesh_model *model, uint16_t prop_id);
 
 /* message handlers (Start) */
 
 /* Sensor Server & Sensor Setup Server message handlers */
 static void send_sensor_descriptor_status(struct bt_mesh_model *model,
-        struct bt_mesh_msg_ctx *ctx,
-        u16_t prop_id, bool get_all)
+                                          struct bt_mesh_msg_ctx *ctx,
+                                          uint16_t prop_id, bool get_all)
 {
     struct bt_mesh_sensor_srv *srv = model->user_data;
     struct bt_mesh_sensor_state *state = NULL;
     struct net_buf_simple *msg = NULL;
-    u16_t total_len = 5U;
+    uint16_t total_len = 5U;
     int i;
 
     msg = bt_mesh_alloc_buf(MIN(BLE_MESH_TX_SDU_MAX, BLE_MESH_SERVER_RSP_MAX_LEN));
@@ -99,12 +91,12 @@ static void send_sensor_descriptor_status(struct bt_mesh_model *model,
 
 static void send_sensor_data_status(struct bt_mesh_model *model,
                                     struct bt_mesh_msg_ctx *ctx,
-                                    u16_t prop_id, bool get_all)
+                                    uint16_t prop_id, bool get_all)
 {
     struct bt_mesh_sensor_srv *srv = model->user_data;
     struct bt_mesh_sensor_state *state = NULL;
     struct net_buf_simple *msg = NULL;
-    u16_t total_len = 5U;
+    uint16_t total_len = 5U;
     int i;
 
     msg = bt_mesh_alloc_buf(MIN(BLE_MESH_TX_SDU_MAX, BLE_MESH_SERVER_RSP_MAX_LEN));
@@ -119,8 +111,8 @@ static void send_sensor_data_status(struct bt_mesh_model *model,
         for (i = 0; i < srv->state_count; i++) {
             state = &srv->states[i];
             if (state->sensor_property_id != INVALID_SENSOR_PROPERTY_ID) {
-                u8_t mpid_len = (state->sensor_data.format == SENSOR_DATA_FORMAT_A) ?
-                                SENSOR_DATA_FORMAT_A_MPID_LEN : SENSOR_DATA_FORMAT_B_MPID_LEN;
+                uint8_t mpid_len = (state->sensor_data.format == SENSOR_DATA_FORMAT_A) ?
+                                    SENSOR_DATA_FORMAT_A_MPID_LEN : SENSOR_DATA_FORMAT_B_MPID_LEN;
                 total_len += (mpid_len + (state->sensor_data.raw_value ?
                                           state->sensor_data.raw_value->len : 0));
                 if (total_len > MIN(BLE_MESH_TX_SDU_MAX, BLE_MESH_SERVER_RSP_MAX_LEN)) {
@@ -129,11 +121,12 @@ static void send_sensor_data_status(struct bt_mesh_model *model,
                     break;
                 }
                 if (state->sensor_data.format == SENSOR_DATA_FORMAT_A) {
-                    u16_t mpid = ((state->sensor_property_id & BIT_MASK(11)) << 5) |
-                                 ((state->sensor_data.length & BIT_MASK(4)) << 1) | state->sensor_data.format;
+                    uint16_t mpid = ((state->sensor_property_id & BIT_MASK(11)) << 5) |
+                                    ((state->sensor_data.length & BIT_MASK(4)) << 1) |
+                                    state->sensor_data.format;
                     net_buf_simple_add_le16(msg, mpid);
                 } else if (state->sensor_data.format == SENSOR_DATA_FORMAT_B) {
-                    u8_t mpid = (state->sensor_data.length << 1) | state->sensor_data.format;
+                    uint8_t mpid = (state->sensor_data.length << 1) | state->sensor_data.format;
                     net_buf_simple_add_u8(msg, mpid);
                     net_buf_simple_add_le16(msg, state->sensor_property_id);
                 }
@@ -147,8 +140,8 @@ static void send_sensor_data_status(struct bt_mesh_model *model,
             state = &srv->states[i];
             if (state->sensor_property_id != INVALID_SENSOR_PROPERTY_ID &&
                     state->sensor_property_id == prop_id) {
-                u8_t mpid_len = (state->sensor_data.format == SENSOR_DATA_FORMAT_A) ?
-                                SENSOR_DATA_FORMAT_A_MPID_LEN : SENSOR_DATA_FORMAT_B_MPID_LEN;
+                uint8_t mpid_len = (state->sensor_data.format == SENSOR_DATA_FORMAT_A) ?
+                                    SENSOR_DATA_FORMAT_A_MPID_LEN : SENSOR_DATA_FORMAT_B_MPID_LEN;
                 total_len += (mpid_len + (state->sensor_data.raw_value ?
                                           state->sensor_data.raw_value->len : 0));
                 if (total_len > MIN(BLE_MESH_TX_SDU_MAX, BLE_MESH_SERVER_RSP_MAX_LEN)) {
@@ -157,12 +150,12 @@ static void send_sensor_data_status(struct bt_mesh_model *model,
                     break;
                 }
                 if (state->sensor_data.format == SENSOR_DATA_FORMAT_A) {
-                    u16_t mpid = ((state->sensor_property_id & BIT_MASK(11)) << 5) |
-                                 ((state->sensor_data.length & BIT_MASK(4)) << 1) |
-                                 state->sensor_data.format;
+                    uint16_t mpid = ((state->sensor_property_id & BIT_MASK(11)) << 5) |
+                                    ((state->sensor_data.length & BIT_MASK(4)) << 1) |
+                                    state->sensor_data.format;
                     net_buf_simple_add_le16(msg, mpid);
                 } else if (state->sensor_data.format == SENSOR_DATA_FORMAT_B) {
-                    u8_t mpid = (state->sensor_data.length << 1) | state->sensor_data.format;
+                    uint8_t mpid = (state->sensor_data.length << 1) | state->sensor_data.format;
                     net_buf_simple_add_u8(msg, mpid);
                     net_buf_simple_add_le16(msg, state->sensor_property_id);
                 }
@@ -175,7 +168,7 @@ static void send_sensor_data_status(struct bt_mesh_model *model,
         }
         if (i == srv->state_count) {
             BT_WARN("Sensor Property ID 0x%04x not exists", prop_id);
-            u8_t mpid = (SENSOR_DATA_ZERO_LEN << 1) | SENSOR_DATA_FORMAT_B;
+            uint8_t mpid = (SENSOR_DATA_ZERO_LEN << 1) | SENSOR_DATA_FORMAT_B;
             net_buf_simple_add_u8(msg, mpid);
             net_buf_simple_add_le16(msg, prop_id);
         }
@@ -188,12 +181,12 @@ static void send_sensor_data_status(struct bt_mesh_model *model,
 
 static void send_sensor_cadence_status(struct bt_mesh_model *model,
                                        struct bt_mesh_msg_ctx *ctx,
-                                       u16_t prop_id, bool publish)
+                                       uint16_t prop_id, bool publish)
 {
     struct bt_mesh_sensor_setup_srv *srv = model->user_data;
     struct bt_mesh_sensor_state *state = NULL;
     struct net_buf_simple *msg = NULL;
-    u16_t length = 0U;
+    uint16_t length = 0U;
     int i;
 
     for (i = 0; i < srv->state_count; i++) {
@@ -289,13 +282,13 @@ static void send_sensor_cadence_status(struct bt_mesh_model *model,
 
 static void send_sensor_settings_status(struct bt_mesh_model *model,
                                         struct bt_mesh_msg_ctx *ctx,
-                                        u16_t prop_id)
+                                        uint16_t prop_id)
 {
     struct bt_mesh_sensor_setup_srv *srv = model->user_data;
     struct bt_mesh_sensor_state *state = NULL;
     struct sensor_setting *item = NULL;
     struct net_buf_simple *msg = NULL;
-    u16_t total_len = 7U;
+    uint16_t total_len = 7U;
     int i, j;
 
     msg = bt_mesh_alloc_buf(MIN(BLE_MESH_TX_SDU_MAX, BLE_MESH_SERVER_RSP_MAX_LEN));
@@ -337,7 +330,7 @@ static void send_sensor_settings_status(struct bt_mesh_model *model,
 }
 
 static struct sensor_setting *find_sensor_setting(struct bt_mesh_model *model,
-                                                  u16_t prop_id, u16_t set_prop_id)
+                                                  uint16_t prop_id, uint16_t set_prop_id)
 {
     struct bt_mesh_sensor_setup_srv *srv = model->user_data;
     struct bt_mesh_sensor_state *state = NULL;
@@ -363,12 +356,12 @@ static struct sensor_setting *find_sensor_setting(struct bt_mesh_model *model,
 }
 
 static void send_sensor_setting_status(struct bt_mesh_model *model,
-                                       struct bt_mesh_msg_ctx *ctx, u16_t prop_id,
-                                       u16_t set_prop_id, bool publish)
+                                       struct bt_mesh_msg_ctx *ctx, uint16_t prop_id,
+                                       uint16_t set_prop_id, bool publish)
 {
     struct sensor_setting *item = NULL;
     struct net_buf_simple *msg = NULL;
-    u16_t length = 0U;
+    uint16_t length = 0U;
 
     item = find_sensor_setting(model, prop_id, set_prop_id);
     if (item) {
@@ -432,13 +425,13 @@ static void send_sensor_setting_status(struct bt_mesh_model *model,
 
 static void send_sensor_column_status(struct bt_mesh_model *model,
                                       struct bt_mesh_msg_ctx *ctx,
-                                      struct net_buf_simple *buf, u16_t prop_id)
+                                      struct net_buf_simple *buf, uint16_t prop_id)
 {
     struct bt_mesh_sensor_srv *srv = model->user_data;
     struct bt_mesh_sensor_state *state = NULL;
     struct net_buf_simple *msg = NULL;
     bool optional = false;
-    u16_t length = 0U;
+    uint16_t length = 0U;
     int i;
 
     for (i = 0; i < srv->state_count; i++) {
@@ -507,13 +500,13 @@ static void send_sensor_column_status(struct bt_mesh_model *model,
 
 static void send_sensor_series_status(struct bt_mesh_model *model,
                                       struct bt_mesh_msg_ctx *ctx,
-                                      struct net_buf_simple *buf, u16_t prop_id)
+                                      struct net_buf_simple *buf, uint16_t prop_id)
 {
     struct bt_mesh_sensor_srv *srv = model->user_data;
     struct bt_mesh_sensor_state *state = NULL;
     struct net_buf_simple *msg = NULL;
     bool optional = false;
-    u16_t length = 0U;
+    uint16_t length = 0U;
     int i;
 
     for (i = 0; i < srv->state_count; i++) {
@@ -584,8 +577,8 @@ static void sensor_get(struct bt_mesh_model *model,
                        struct bt_mesh_msg_ctx *ctx,
                        struct net_buf_simple *buf)
 {
-    u16_t set_prop_id = INVALID_SENSOR_PROPERTY_ID;
-    u16_t prop_id = INVALID_SENSOR_PROPERTY_ID;
+    uint16_t set_prop_id = INVALID_SENSOR_PROPERTY_ID;
+    uint16_t prop_id = INVALID_SENSOR_PROPERTY_ID;
 
     if (model->user_data == NULL) {
         BT_ERR("%s, Invalid model user data", __func__);
@@ -619,7 +612,7 @@ static void sensor_get(struct bt_mesh_model *model,
                         .sensor_descriptor_get.id = prop_id,
                     };
                     bt_mesh_sensor_server_cb_evt_to_btc(
-                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const u8_t *)&get, sizeof(get));
+                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const uint8_t *)&get, sizeof(get));
                 } else {
                     send_sensor_descriptor_status(model, ctx, prop_id, get_all);
                 }
@@ -630,7 +623,7 @@ static void sensor_get(struct bt_mesh_model *model,
                         .sensor_get.id = prop_id,
                     };
                     bt_mesh_sensor_server_cb_evt_to_btc(
-                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const u8_t *)&get, sizeof(get));
+                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const uint8_t *)&get, sizeof(get));
                 } else {
                     send_sensor_data_status(model, ctx, prop_id, get_all);
                 }
@@ -648,7 +641,7 @@ static void sensor_get(struct bt_mesh_model *model,
                         .sensor_column_get.raw_x = buf,
                     };
                     bt_mesh_sensor_server_cb_evt_to_btc(
-                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const u8_t *)&get, sizeof(get));
+                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const uint8_t *)&get, sizeof(get));
                 } else {
                     send_sensor_column_status(model, ctx, buf, prop_id);
                 }
@@ -659,7 +652,7 @@ static void sensor_get(struct bt_mesh_model *model,
                         .sensor_series_get.raw = buf,
                     };
                     bt_mesh_sensor_server_cb_evt_to_btc(
-                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const u8_t *)&get, sizeof(get));
+                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const uint8_t *)&get, sizeof(get));
                 } else {
                     send_sensor_series_status(model, ctx, buf, prop_id);
                 }
@@ -688,7 +681,7 @@ static void sensor_get(struct bt_mesh_model *model,
                         .sensor_cadence_get.id = prop_id,
                     };
                     bt_mesh_sensor_server_cb_evt_to_btc(
-                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const u8_t *)&get, sizeof(get));
+                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const uint8_t *)&get, sizeof(get));
                 } else {
                     send_sensor_cadence_status(model, ctx, prop_id, false);
                 }
@@ -698,7 +691,7 @@ static void sensor_get(struct bt_mesh_model *model,
                         .sensor_settings_get.id = prop_id,
                     };
                     bt_mesh_sensor_server_cb_evt_to_btc(
-                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const u8_t *)&get, sizeof(get));
+                        BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const uint8_t *)&get, sizeof(get));
                 } else {
                     send_sensor_settings_status(model, ctx, prop_id);
                 }
@@ -721,7 +714,7 @@ static void sensor_get(struct bt_mesh_model *model,
                     .sensor_setting_get.setting_id = set_prop_id,
                 };
                 bt_mesh_sensor_server_cb_evt_to_btc(
-                    BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const u8_t *)&get, sizeof(get));
+                    BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_GET_MSG, model, ctx, (const uint8_t *)&get, sizeof(get));
             } else {
                 send_sensor_setting_status(model, ctx, prop_id, set_prop_id, false);
             }
@@ -743,8 +736,8 @@ static void sensor_cadence_set(struct bt_mesh_model *model,
     struct bt_mesh_sensor_state *state = NULL;
     struct bt_mesh_model *sensor_model = NULL;
     struct bt_mesh_elem *element = NULL;
-    u16_t prop_id = 0U, trigger_len = 0U;
-    u8_t val = 0U, divisor = 0U;
+    uint16_t prop_id = 0U, trigger_len = 0U;
+    uint8_t val = 0U, divisor = 0U;
     int i;
 
     if (srv == NULL || srv->state_count == 0U || srv->states == NULL) {
@@ -764,7 +757,7 @@ static void sensor_cadence_set(struct bt_mesh_model *model,
             .sensor_cadence_set.cadence = buf,
         };
         bt_mesh_sensor_server_cb_evt_to_btc(
-            BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_SET_MSG, model, ctx, (const u8_t *)&set, sizeof(set));
+            BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_SET_MSG, model, ctx, (const uint8_t *)&set, sizeof(set));
         return;
     }
 
@@ -836,7 +829,7 @@ static void sensor_cadence_set(struct bt_mesh_model *model,
         return;
     }
     if (buf->len) {
-        u8_t range_len = buf->len / 2;
+        uint8_t range_len = buf->len / 2;
         if (state->cadence->fast_cadence_low) {
             net_buf_simple_reset(state->cadence->fast_cadence_low);
             net_buf_simple_add_mem(state->cadence->fast_cadence_low, buf->data, range_len);
@@ -858,7 +851,7 @@ static void sensor_cadence_set(struct bt_mesh_model *model,
     change.sensor_cadence_set.fast_cadence_low = state->cadence->fast_cadence_low;
     change.sensor_cadence_set.fast_cadence_high = state->cadence->fast_cadence_high;
     bt_mesh_sensor_server_cb_evt_to_btc(
-        BTC_BLE_MESH_EVT_SENSOR_SERVER_STATE_CHANGE, model, ctx, (const u8_t *)&change, sizeof(change));
+        BTC_BLE_MESH_EVT_SENSOR_SERVER_STATE_CHANGE, model, ctx, (const uint8_t *)&change, sizeof(change));
 
     if (ctx->recv_op == BLE_MESH_MODEL_OP_SENSOR_CADENCE_SET) {
         send_sensor_cadence_status(model, ctx, prop_id, false);
@@ -881,7 +874,7 @@ static void sensor_cadence_set(struct bt_mesh_model *model,
     return;
 }
 
-static void update_sensor_periodic_pub(struct bt_mesh_model *model, u16_t prop_id)
+static void update_sensor_periodic_pub(struct bt_mesh_model *model, uint16_t prop_id)
 {
     struct bt_mesh_sensor_state *state = NULL;
     struct bt_mesh_sensor_srv *srv = NULL;
@@ -930,7 +923,7 @@ static void sensor_setting_set(struct bt_mesh_model *model,
     struct bt_mesh_sensor_setup_srv *srv = model->user_data;
     bt_mesh_sensor_server_state_change_t change = {0};
     struct sensor_setting *item = NULL;
-    u16_t prop_id = 0U, set_prop_id = 0U;
+    uint16_t prop_id = 0U, set_prop_id = 0U;
 
     if (srv == NULL || srv->state_count == 0U || srv->states == NULL) {
         BT_ERR("%s, Invalid model user data", __func__);
@@ -956,7 +949,7 @@ static void sensor_setting_set(struct bt_mesh_model *model,
             .sensor_setting_set.raw = buf,
         };
         bt_mesh_sensor_server_cb_evt_to_btc(
-            BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_SET_MSG, model, ctx, (const u8_t *)&set, sizeof(set));
+            BTC_BLE_MESH_EVT_SENSOR_SERVER_RECV_SET_MSG, model, ctx, (const uint8_t *)&set, sizeof(set));
         return;
     }
 
@@ -971,7 +964,7 @@ static void sensor_setting_set(struct bt_mesh_model *model,
             change.sensor_setting_set.setting_id = set_prop_id;
             change.sensor_setting_set.value = item->raw;
             bt_mesh_sensor_server_cb_evt_to_btc(
-                BTC_BLE_MESH_EVT_SENSOR_SERVER_STATE_CHANGE, model, ctx, (const u8_t *)&change, sizeof(change));
+                BTC_BLE_MESH_EVT_SENSOR_SERVER_STATE_CHANGE, model, ctx, (const uint8_t *)&change, sizeof(change));
         }
     }
 
@@ -1009,7 +1002,7 @@ const struct bt_mesh_model_op bt_mesh_sensor_setup_srv_op[] = {
 };
 
 static int check_sensor_server_init(struct bt_mesh_sensor_state *state_start,
-                                    const u8_t state_count)
+                                    const uint8_t state_count)
 {
     struct bt_mesh_sensor_state *state = NULL;
     struct sensor_setting *setting = NULL;

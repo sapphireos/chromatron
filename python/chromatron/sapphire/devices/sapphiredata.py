@@ -25,7 +25,7 @@
 """
 
 from elysianfields import *
-from catbus import get_field_for_type
+from catbus import get_field_for_type, CatbusHash, CatbusData
 
 
 class FileInfoField(StructField):
@@ -109,16 +109,6 @@ class ThreadInfoArray(ArrayField):
         field = ThreadInfoField
 
         super(ThreadInfoArray, self).__init__(_field=field, **kwargs)
-
-class NTPTimestampField(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="seconds"),
-                  Uint32Field(_name="fraction")]
-
-        super(NTPTimestampField, self).__init__(_fields=fields, **kwargs)
-
-    def copy(self):
-        return NTPTimestampField()
 
 class KVMetaField(StructField):
     def __init__(self, **kwargs):
@@ -340,7 +330,7 @@ class LinkProducerInfoArray(ArrayField):
 
 class LinkConsumerInfo(StructField):
     def __init__(self, **kwargs):
-        fields = [Int16Field(_name="link"),
+        fields = [Uint64Field(_name="link_hash"),
                   Ipv4Field(_name="ip"),
                   Uint16Field(_name="port"),
                   Int32Field(_name="timeout")]
@@ -367,6 +357,21 @@ class LinkConsumerInfoArray(ArrayField):
 #         field = LinkRemoteInfo
 
 #         super().__init__(_field=field, **kwargs)
+
+class DatalogEntry(StructField):
+    def __init__(self, **kwargs):
+        fields = [CatbusHash(_name="hash"),
+                  Uint16Field(_name="rate"),
+                  Uint16Field(_name="padding")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class DatalogEntryArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = DatalogEntry
+
+        super().__init__(_field=field, **kwargs)
+
 
 
 raw_events = """

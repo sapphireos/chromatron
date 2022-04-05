@@ -82,7 +82,7 @@ int MRubyContext::run_app(Downstream *downstream, int phase) {
 
   if (mrb_->exc) {
     // If response has been committed, ignore error
-    if (downstream->get_response_state() != Downstream::MSG_COMPLETE) {
+    if (downstream->get_response_state() != DownstreamState::MSG_COMPLETE) {
       rv = -1;
     }
 
@@ -136,7 +136,7 @@ mrb_value instantiate_app(mrb_state *mrb, RProc *proc) {
 // Based on
 // https://github.com/h2o/h2o/blob/master/lib/handler/mruby.c.  It is
 // very hard to write these kind of code because mruby has almost no
-// documentation aobut compiling or generating code, at least at the
+// documentation about compiling or generating code, at least at the
 // time of this writing.
 RProc *compile(mrb_state *mrb, const StringRef &filename) {
   if (filename.empty()) {
@@ -145,6 +145,7 @@ RProc *compile(mrb_state *mrb, const StringRef &filename) {
 
   auto infile = fopen(filename.c_str(), "rb");
   if (infile == nullptr) {
+    LOG(ERROR) << "Could not open mruby file " << filename;
     return nullptr;
   }
   auto infile_d = defer(fclose, infile);
@@ -179,7 +180,8 @@ RProc *compile(mrb_state *mrb, const StringRef &filename) {
 
 std::unique_ptr<MRubyContext> create_mruby_context(const StringRef &filename) {
   if (filename.empty()) {
-    return make_unique<MRubyContext>(nullptr, mrb_nil_value(), mrb_nil_value());
+    return std::make_unique<MRubyContext>(nullptr, mrb_nil_value(),
+                                          mrb_nil_value());
   }
 
   auto mrb = mrb_open();
@@ -215,7 +217,7 @@ std::unique_ptr<MRubyContext> create_mruby_context(const StringRef &filename) {
   mrb_gc_protect(mrb, env);
   mrb_gc_protect(mrb, app);
 
-  return make_unique<MRubyContext>(mrb, std::move(app), std::move(env));
+  return std::make_unique<MRubyContext>(mrb, std::move(app), std::move(env));
 }
 
 mrb_sym intern_ptr(mrb_state *mrb, void *ptr) {

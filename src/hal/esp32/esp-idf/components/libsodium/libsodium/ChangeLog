@@ -1,4 +1,173 @@
 
+* Version 1.0.18
+ - The Enterprise versions of Visual Studio are now supported.
+ - Visual Studio 2019 is now supported.
+ - 32-bit binaries for Visual Studio 2010 are now provided.
+ - A test that didn't work properly on Linux systems with overcommit
+memory turned on has been removed. This fixes Ansible builds.
+ - Emscripten: `print` and `printErr` functions are overridden to send
+errors to the console, if there is one.
+ - Emscripten: `UTF8ToString()` is now exported since `Pointer_stringify()`
+has been deprecated.
+ - Libsodium version detection has been fixed in the CMake recipe.
+ - Generic hashing got a 10% speedup on AVX2.
+ - New target: WebAssembly/WASI (compile with `dist-builds/wasm32-wasi.sh`).
+ - New functions to map a hash to an edwards25519 point or get a random point:
+`core_ed25519_from_hash()` and `core_ed25519_random()`.
+ - `crypto_core_ed25519_scalar_mul()` has been implemented for `scalar*scalar`
+`(mod L)` multiplication.
+ - Support for the Ristretto group has been implemented, for compatibility
+with wasm-crypto.
+ - Improvements have been made to the test suite.
+ - Portability improvements has been made.
+ - `getentropy()` is now used on systems providing this system call.
+ - `randombytes_salsa20 has been renamed to `randombytes_internal`.
+ - Support for (p)nacl has been removed.
+ - Most `((nonnull))` attributes have been relaxed to allow 0-length inputs
+to be `NULL`.
+ - The `-ftree-vectorize` and `-ftree-slp-vectorize` compiler switches are
+now used, if available, for optimized builds.
+
+* Version 1.0.17
+ - Bug fix: `sodium_pad()` didn't properly support block sizes >= 256 bytes.
+ - JS/WebAssembly: some old iOS versions can't instantiate the WebAssembly
+module; fall back to Javascript on these.
+ - JS/WebAssembly: compatibility with newer Emscripten versions.
+ - Bug fix: `crypto_pwhash_scryptsalsa208sha256_str_verify()` and
+`crypto_pwhash_scryptsalsa208sha256_str_needs_rehash()` didn't return
+`EINVAL` on input strings with a short length, unlike their high-level
+counterpart.
+ - Added a workaround for Visual Studio 2010 bug causing CPU features
+not to be detected.
+ - Portability improvements.
+ - Test vectors from Project Wycheproof have been added.
+ - New low-level APIs for arithmetic mod the order of the prime order group:
+`crypto_core_ed25519_scalar_random()`, `crypto_core_ed25519_scalar_reduce()`,
+`crypto_core_ed25519_scalar_invert()`, `crypto_core_ed25519_scalar_negate()`,
+`crypto_core_ed25519_scalar_complement()`, `crypto_core_ed25519_scalar_add()`
+and `crypto_core_ed25519_scalar_sub()`.
+ - New low-level APIs for scalar multiplication without clamping:
+`crypto_scalarmult_ed25519_base_noclamp()` and
+`crypto_scalarmult_ed25519_noclamp()`. These new APIs are especially useful
+for blinding.
+ - `sodium_sub()` has been implemented.
+ - Support for WatchOS has been added.
+ - getrandom(2) is now used on FreeBSD 12+.
+ - The `nonnull` attribute has been added to all relevant prototypes.
+ - More reliable AVX512 detection.
+ - Javascript/Webassembly builds now use dynamic memory growth.
+
+* Version 1.0.16
+ - Signatures computations and verifications are now way faster on
+64-bit platforms with compilers supporting 128-bit arithmetic (gcc,
+clang, icc). This includes the WebAssembly target.
+ - New low-level APIs for computations over edwards25519:
+`crypto_scalarmult_ed25519()`, `crypto_scalarmult_ed25519_base()`,
+`crypto_core_ed25519_is_valid_point()`, `crypto_core_ed25519_add()`,
+`crypto_core_ed25519_sub()` and `crypto_core_ed25519_from_uniform()`
+(elligator representative to point).
+ - `crypto_sign_open()`, `crypto_sign_verify_detached() and
+`crypto_sign_edwards25519sha512batch_open` now reject public keys in
+non-canonical form in addition to low-order points.
+ - The library can be built with `ED25519_NONDETERMINISTIC` defined in
+order to use synthetic nonces for EdDSA. This is disabled by default.
+ - Webassembly: `crypto_pwhash_*()` functions are now included in
+non-sumo builds.
+ - `sodium_stackzero()` was added to wipe content off the stack.
+ - Android: support new SDKs where unified headers have become the
+default.
+ - The Salsa20-based PRNG example is now thread-safe on platforms with
+support for thread-local storage, optionally mixes bits from RDRAND.
+ - CMAKE: static library detection on Unix systems has been improved
+(thanks to @BurningEnlightenment, @nibua-r, @mellery451)
+ - Argon2 and scrypt are slightly faster on Linux.
+
+* Version 1.0.15
+ - The default password hashing algorithm is now Argon2id. The
+`pwhash_str_verify()` function can still verify Argon2i hashes
+without any changes, and `pwhash()` can still compute Argon2i hashes
+as well.
+ - The aes128ctr primitive was removed. It was slow, non-standard, not
+authenticated, and didn't seem to be used by any opensource project.
+ - Argon2id required at least 3 passes like Argon2i, despite a minimum
+of `1` as defined by the `OPSLIMIT_MIN` constant. This has been fixed.
+ - The secretstream construction was slightly changed to be consistent
+with forthcoming variants.
+ - The Javascript and Webassembly versions have been merged, and the
+module now returns a `.ready` promise that will resolve after the
+Webassembly code is loaded and compiled.
+ - Note that due to these incompatible changes, the library version
+major was bumped up.
+
+* Version 1.0.14
+ - iOS binaries should now be compatible with WatchOS and TVOS.
+ - WebAssembly is now officially supported. Special thanks to
+@facekapow and @pepyakin who helped to make it happen.
+ - Internal consistency checks failing and primitives used with
+dangerous/out-of-bounds/invalid parameters used to call abort(3).
+Now, a custom handler *that doesn't return* can be set with the
+`set_sodium_misuse()` function. It still aborts by default or if the
+handler ever returns. This is not a replacement for non-fatal,
+expected runtime errors. This handler will be only called in
+unexpected situations due to potential bugs in the library or in
+language bindings.
+ - `*_MESSAGEBYTES_MAX` macros (and the corresponding
+`_messagebytes_max()` symbols) have been added to represent the
+maximum message size that can be safely handled by a primitive.
+Language bindings are encouraged to check user inputs against these
+maximum lengths.
+ - The test suite has been extended to cover more edge cases.
+ - crypto_sign_ed25519_pk_to_curve25519() now rejects points that are
+not on the curve, or not in the main subgroup.
+ - Further changes have been made to ensure that smart compilers will
+not optimize out code that we don't want to be optimized.
+ - Visual Studio solutions are now included in distribution tarballs.
+ - The `sodium_runtime_has_*` symbols for CPU features detection are
+now defined as weak symbols, i.e. they can be replaced with an
+application-defined implementation. This can be useful to disable
+AVX* when temperature/power consumption is a concern.
+ - `crypto_kx_*()` now aborts if called with no non-NULL pointers to
+store keys to.
+ - SSE2 implementations of `crypto_verify_*()` have been added.
+ - Passwords can be hashed using a specific algorithm with the new
+`crypto_pwhash_str_alg()` function.
+ - Due to popular demand, base64 encoding (`sodium_bin2base64()`) and
+decoding (`sodium_base642bin()`) have been implemented.
+ - A new `crypto_secretstream_*()` API was added to safely encrypt files
+and multi-part messages.
+ - The `sodium_pad()` and `sodium_unpad()` helper functions have been
+added in order to add & remove padding.
+ - An AVX512 optimized implementation of Argon2 has been added (written
+by Ondrej Mosnáček, thanks!)
+ - The `crypto_pwhash_str_needs_rehash()` function was added to check if
+a password hash string matches the given parameters, or if it needs an
+update.
+ - The library can now be compiled with recent versions of
+emscripten/binaryen that don't allow multiple variables declarations
+using a single `var` statement.
+
+* Version 1.0.13
+ - Javascript: the sumo builds now include all symbols. They were
+previously limited to symbols defined in minimal builds.
+ - The public `crypto_pwhash_argon2i_MEMLIMIT_MAX` constant was
+incorrectly defined on 32-bit platforms. This has been fixed.
+ - Version 1.0.12 didn't compile on OpenBSD/i386 using the base gcc
+compiler. This has been fixed.
+ - The Android compilation scripts have been updated for NDK r14b.
+ - armv7s-optimized code was re-added to iOS builds.
+ - An AVX2 optimized implementation of the Argon2 round function was
+added.
+ - The Argon2id variant of Argon2 has been implemented. The
+high-level `crypto_pwhash_str_verify()` function automatically detects
+the algorithm and can verify both Argon2i and Argon2id hashed passwords.
+The default algorithm for newly hashed passwords remains Argon2i in
+this version to avoid breaking compatibility with verifiers running
+libsodium <= 1.0.12.
+ - A `crypto_box_curve25519xchacha20poly1305_seal*()` function set was
+implemented.
+ - scrypt was removed from minimal builds.
+ - libsodium is now available on NuGet.
+
 * Version 1.0.12
  - Ed25519ph was implemented, adding a multi-part signature API
 (`crypto_sign_init()`, `crypto_sign_update()`, `crypto_sign_final_*()`).

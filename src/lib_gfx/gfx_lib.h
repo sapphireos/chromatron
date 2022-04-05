@@ -115,6 +115,9 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src );
 
 uint16_t gfx_u16_get_dimmed_val( uint16_t _val );
 
+void gfx_v_set_system_enable( bool enable );
+bool gfx_b_is_system_enabled( void );
+
 void gfx_v_process_faders( void );
 
 uint16_t *gfx_u16p_get_hue( void );
@@ -156,12 +159,7 @@ uint16_t gfx_u16_get_pix0_blue( void );
 
 void gfx_v_clear( void );
 void gfx_v_shutdown_graphic( void );
-
-void gfx_b_enable( void );
-void gfx_b_disable( void );
-
-bool gfx_b_enabled( void );
-void gfx_v_set_pixel_power( bool enabled );
+void gfx_v_power_limiter_graphic( void );
 
 void gfxlib_v_init( void );
 

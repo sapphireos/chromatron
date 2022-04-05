@@ -30,12 +30,16 @@
 #include "util.h"
 #include "energy.h"
 
+#include "flash_fs.h"
+#include "hal_boards.h"
+
 static uint8_t batt_soc; // state of charge in percent
 static uint8_t batt_soc_startup; // state of charge at power on
 static uint16_t batt_volts;
 static uint16_t vbus_volts;
 static uint16_t sys_volts;
 static uint16_t batt_charge_current;
+static uint16_t batt_charge_power;
 static uint16_t batt_max_charge_current;
 static bool batt_charging;
 static bool vbus_connected;
@@ -49,28 +53,57 @@ static int8_t therm;
 static uint8_t batt_cells; // number of cells in system
 static uint16_t boost_voltage;
 static uint16_t vindpm;
+static uint16_t solar_vindpm = 5800;
+static uint16_t iindpm;
+
+// true if MCU system power is sourced from the boost converter
+static bool mcu_source_pmid;
+
+// DEBUG
+static uint16_t adc_time_min = 65535;
+static uint16_t adc_time_max;
+static uint32_t adc_good;
+static uint32_t adc_fail;
+
+#ifdef ESP32
+static int8_t case_temp;
+static int8_t ambient_temp;
+#endif
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                 0,  "batt_soc" },
-    { SAPPHIRE_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                    0,  "batt_temp" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,            0,  "batt_charging" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,           0,  "batt_external_power" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,               0,  "batt_volts" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,               0,  "batt_vbus_volts" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                0,  "batt_sys_volts" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,            0,  "batt_charge_status" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,      0,  "batt_charge_current" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,               0,  "batt_fault" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,              0,  "batt_vbus_status" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                 0,  "batt_capacity" },
-    { SAPPHIRE_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                0,  "batt_remaining" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
-    { SAPPHIRE_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &vindpm,                   0,  "batt_vindpm" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                 0,  "batt_soc" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                    0,  "batt_temp" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,            0,  "batt_charging" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,           0,  "batt_external_power" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,               0,  "batt_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,               0,  "batt_vbus_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                0,  "batt_sys_volts" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,            0,  "batt_charge_status" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,      0,  "batt_charge_current" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_power,        0,  "batt_charge_power" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,               0,  "batt_fault" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,              0,  "batt_vbus_status" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                 0,  "batt_capacity" },
+    { CATBUS_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                0,  "batt_remaining" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                   0,  "batt_vindpm" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,             0,  "batt_solar_vindpm" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                   0,  "batt_iindpm" },
 
+    { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                0,  "batt_dump_regs" },
 
-    { SAPPHIRE_TYPE_BOOL,    0, 0,                   &dump_regs,            0,  "batt_dump_regs" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_min,             0,  "batt_adc_time_min" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_max,             0,  "batt_adc_time_max" },
+
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_good,                 0,  "batt_adc_reads" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_fail,                 0,  "batt_adc_fails" },
+
+    #ifdef ESP32
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                0,  "batt_case_temp" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,             0,  "batt_ambient_temp" },
+    #endif
 };
 
 static uint16_t soc_state;
@@ -79,6 +112,13 @@ static uint16_t soc_state;
 #define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
 #define SOC_FILTER      16
 
+#define VINDPM_WALL     0
+#define VINDPM_SOLAR    solar_vindpm
+
+
+
+PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
+PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
 
@@ -177,6 +217,19 @@ void bq25895_v_set_inlim_pin( bool enable ){
     }
 }
 
+
+void bq25895_v_set_hiz( bool enable ){
+
+    if( enable ){
+
+        bq25895_v_set_reg_bits( BQ25895_REG_INPUT_CURRENT, BQ25895_BIT_ENABLE_HIZ );
+    }
+    else{
+
+        bq25895_v_clr_reg_bits( BQ25895_REG_INPUT_CURRENT, BQ25895_BIT_ENABLE_HIZ );
+    }
+}
+
 // current in is mA!
 void bq25895_v_set_inlim( uint16_t current ){
 
@@ -211,11 +264,39 @@ void bq25895_v_enable_adc_continuous( void ){
     bq25895_v_set_reg_bits( BQ25895_REG_ADC, BQ25895_BIT_ADC_CONV_RATE );
 }
 
+void bq25895_v_start_adc_oneshot( void ){
+
+    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_ADC );
+
+    // check if ADC is already running:
+    if( ( reg & BQ25895_BIT_ADC_CONV_START ) != 0 ){
+
+        return;
+    }
+
+    reg &= ~BQ25895_BIT_ADC_CONV_RATE;
+    reg |= BQ25895_BIT_ADC_CONV_START;
+
+    bq25895_v_write_reg( BQ25895_REG_ADC, reg );
+}
+
+bool bq25895_b_adc_ready( void ){
+
+    return ( bq25895_u8_read_reg( BQ25895_REG_ADC ) & BQ25895_BIT_ADC_CONV_START ) == 0;
+}
+
 void bq25895_v_set_boost_1500khz( void ){
 
     // default is 500k
 
     bq25895_v_clr_reg_bits( BQ25895_REG_BOOST_FREQ, BQ25895_BIT_BOOST_FREQ );
+}
+
+bool bq25895_b_is_boost_1500khz( void ){
+
+    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_BOOST_FREQ );
+
+    return ( reg & BQ25895_BIT_BOOST_FREQ ) != 0;
 }
 
 void bq25895_v_set_boost_mode( bool enable ){
@@ -420,6 +501,11 @@ uint8_t bq25895_u8_get_faults( void ){
 
 uint16_t bq25895_u16_get_batt_voltage( void ){
 
+    return batt_volts;
+}
+
+static uint16_t _bq25895_u16_get_batt_voltage( void ){
+
     uint8_t data = bq25895_u8_read_reg( BQ25895_REG_BATT_VOLTAGE ) & BQ25895_MASK_BATT_VOLTAGE;
 
     // check if battery is not connected (the min voltage is way below min. safe on a Li-ion,
@@ -599,16 +685,180 @@ static const int8_t temp_table[128] = {
     85  , // 0
 };
 
-int8_t bq25895_i8_get_therm( void ){
+int8_t bq25895_i8_calc_temp( uint8_t ratio ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
+    if( ratio > 127 ){
+
+        ratio = 127;
+    }
 
     // percent conversion from datasheet.
     // we don't need this, our table includes it.
     // float temp = 0.465 * data;
     // temp += 21.0;
 
-    return temp_table[127 - data];
+    return temp_table[127 - ratio];
+}
+
+
+// percent * 10
+// IE, the first value is 41.8%
+static const uint16_t temp_table2[] = {
+418 , // -20C
+415 ,
+411 ,
+407 ,
+403 ,
+399 ,
+395 ,
+390 ,
+386 ,
+381 ,
+377 ,
+372 ,
+367 ,
+363 ,
+358 ,
+353 ,
+348 ,
+343 ,
+338 ,
+333 ,
+328 , // 0C
+322 ,
+317 ,
+312 ,
+307 ,
+301 ,
+296 ,
+291 ,
+285 ,
+280 ,
+275 ,
+269 ,
+264 ,
+259 ,
+254 ,
+248 ,
+243 ,
+238 ,
+233 ,
+228 ,
+223 ,
+218 ,
+213 ,
+209 ,
+204 ,
+199 , // 25C
+195 ,
+190 ,
+186 ,
+181 ,
+177 ,
+173 ,
+168 ,
+164 ,
+160 ,
+156 ,
+153 ,
+149 ,
+145 ,
+141 ,
+138 ,
+134 ,
+131 ,
+128 ,
+124 ,
+121 ,
+118 ,
+115 ,
+112 ,
+109 ,
+107 ,
+104 ,
+101 ,
+99  ,
+96  ,
+94  ,
+91  ,
+89  ,
+87  ,
+84  ,
+82  ,
+80  ,
+78  ,
+76  ,
+74  ,
+72  ,
+70  ,
+69  ,
+67  ,
+65  ,
+63  ,
+62  ,
+60  ,
+59  ,
+57  ,
+56  ,
+54  ,
+53  ,
+52  ,
+50  ,
+49  ,
+48  ,
+47  ,
+46  ,
+45  ,
+43  , // 85C
+};
+
+// percent * 10, using table 2
+int8_t bq25895_i8_calc_temp2( uint16_t percent ){
+
+    for( uint8_t i = 0; i < cnt_of_array(temp_table2) - 1; i++ ){
+
+        if( ( percent <= temp_table2[i] ) && ( percent >= temp_table2[i + 1] ) ){
+
+            return (int16_t)i - 20;
+        }
+    }
+
+    return -20;
+}
+
+int8_t bq25895_i8_get_therm( void ){
+
+    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
+
+    return bq25895_i8_calc_temp( data );
+}
+
+int8_t bq25895_i8_get_temp( void ){
+
+    return therm;
+}
+
+int8_t bq25895_i8_get_case_temp( void ){
+
+    #ifdef ESP32
+    return case_temp;
+    #else
+    return 0;
+    #endif
+}
+
+int8_t bq25895_i8_get_ambient_temp( void ){
+
+    #ifdef ESP32
+    return ambient_temp;
+    #else
+    return 0;
+    #endif
+}
+
+uint16_t bq25895_u16_read_vbus( void ){
+
+    return vbus_volts;
 }
 
 void bq25895_v_set_watchdog( uint8_t setting ){
@@ -661,18 +911,143 @@ uint8_t bq25895_u8_get_device_id( void ){
 }
 
 void bq25895_v_print_regs( void ){
+    
+    uint8_t data;
 
     log_v_debug_P( PSTR("BQ25895:") );
+    
+    data = bq25895_u8_read_reg( 0x00 );
+    bool hiz            = ( data & BQ25895_BIT_ENABLE_HIZ ) != 0;
+    bool en_ilim        = ( data & BQ25895_BIT_ENABLE_ILIM_PIN ) != 0;
+    uint8_t iinlim      = data & BQ25895_MASK_INPUT_CURRENT_LIM;
+    log_v_debug_P( PSTR("0x00 = 0x%02x | HIZ: %d EN_ILIM: %d IINLIM: %d"), data, hiz, en_ilim, iinlim );
 
-    for( uint8_t addr = 0; addr < 0x15; addr++ ){
+    data = bq25895_u8_read_reg( 0x01 );
+    log_v_debug_P( PSTR("0x01 = 0x%02x"), data );    
 
-        uint8_t data = bq25895_u8_read_reg( addr );
+    data = bq25895_u8_read_reg( 0x02 );
+    bool conv_start     = ( data & BQ25895_BIT_ADC_CONV_START ) != 0;
+    bool conv_rate      = ( data & BQ25895_BIT_ADC_CONV_RATE ) != 0;
+    bool boost_freq     = ( data & BQ25895_BIT_BOOST_FREQ ) != 0;
+    bool ico_en         = ( data & BQ25895_BIT_ICO_EN ) != 0;
+    bool hvdcp_en       = ( data & BQ25895_BIT_HVDCP_EN ) != 0;
+    bool maxc_en        = ( data & BQ25895_BIT_MAXC_EN ) != 0;
+    bool force_dpdm     = ( data & BQ25895_BIT_FORCE_DPDM ) != 0;
+    bool auto_dpdm_en   = ( data & BQ25895_BIT_AUTO_DPDM ) != 0;
+    log_v_debug_P( PSTR("0x02 = 0x%02x | CONV_START: %d CONV_RATE: %d BOOST_FREQ: %d ICO_EN: %d HVDCP_EN: %d MAXC_EN: %d FORCE_DPDM: %d AUTO_DPDM_EN: %d"), 
+        data,
+        conv_start,
+        conv_rate,
+        boost_freq,
+        ico_en,
+        hvdcp_en,
+        maxc_en,
+        force_dpdm,
+        auto_dpdm_en );
 
-        log_v_debug_P( PSTR("0x%02x = 0x%02x"), addr, data );
-    }
+    data = bq25895_u8_read_reg( 0x03 );
+    bool otg_config     = ( data & BQ25895_BIT_BOOST_EN ) != 0;
+    bool chg_config     = ( data & BQ25895_BIT_CHARGE_EN ) != 0;
+    uint8_t sys_min     = ( data & BQ25895_MASK_MINSYS ) >> BQ25895_SHIFT_MINSYS;
+    log_v_debug_P( PSTR("0x03 = 0x%02x | OTG_CONFIG: %d CHG_CONFIG: %d SYS_MIN: %d"), data, otg_config, chg_config, sys_min );
+
+    data = bq25895_u8_read_reg( 0x04 );
+    uint8_t ichg        = data & BQ25895_MASK_FAST_CHARGE;
+    log_v_debug_P( PSTR("0x04 = 0x%02x | ICHG: %d"), data, ichg );
+
+    data = bq25895_u8_read_reg( 0x05 );
+    uint8_t iprechg     = ( data & BQ25895_MASK_PRE_CHARGE ) >> BQ25895_SHIFT_PRE_CHARGE;
+    uint8_t iterm       = ( data & BQ25895_MASK_TERM );
+    log_v_debug_P( PSTR("0x05 = 0x%02x | IPRECHG: %d ITERM: %d"), data, iprechg, iterm );
+
+    data = bq25895_u8_read_reg( 0x06 );
+    uint8_t vreg        = ( data & BQ25895_MASK_CHARGE_VOLTS ) >> BQ25895_SHIFT_CHARGE_VOLTS;
+    bool batlowv        = ( data & BQ25895_BIT_BATLOWV ) != 0;
+    bool vrechg         = ( data & BQ25895_BIT_VRECHG ) != 0;
+    log_v_debug_P( PSTR("0x06 = 0x%02x | VREG: %d BATLOWV: %d VRECHG: %d"), data, vreg, batlowv, vrechg );
+
+    data = bq25895_u8_read_reg( 0x07 );
+    log_v_debug_P( PSTR("0x07 = 0x%02x"), data );    
+
+    data = bq25895_u8_read_reg( 0x08 );
+    log_v_debug_P( PSTR("0x08 = 0x%02x"), data );    
+
+    data = bq25895_u8_read_reg( 0x09 );
+    uint8_t batfet_dis  = ( data & BQ25895_BIT_BATFET_DIS ) != 0;
+    uint8_t batfet_dly  = ( data & BQ25895_BIT_BATFET_DLY ) != 0;
+    uint8_t batfet_rst_en  = ( data & BQ25895_BIT_BATFET_RST_EN ) != 0;
+    log_v_debug_P( PSTR("0x09 = 0x%02x | BATFET_DIS: %d BATFET_DLY: %d BATFET_RST_EN: %d"), data, batfet_dis, batfet_dly, batfet_rst_en );
+
+    data = bq25895_u8_read_reg( 0x0A );
+    uint8_t boostv       = ( data & BQ25895_MASK_BOOST_VOLTS ) >> BQ25895_SHIFT_BOOST_VOLTS;
+    log_v_debug_P( PSTR("0x0A = 0x%02x | BOOSTV: %d"), data, boostv );
+
+    data = bq25895_u8_read_reg( 0x0B );
+    uint8_t vbus_stat   = ( data & BQ25895_MASK_VBUS_STATUS ) >> BQ25895_SHIFT_VBUS_STATUS;
+    uint8_t charge_stat = ( data & BQ25895_MASK_CHARGE_STATUS ) >> BQ25895_SHIFT_CHARGE_STATUS;
+    bool pg_stat        = ( data & BQ25895_BIT_POWER_GOOD ) != 0;
+    bool sdp_stat       = ( data & BQ25895_BIT_SDP_STAT ) != 0;
+    bool vsys_stat      = ( data & BQ25895_BIT_VSYS_STAT ) != 0;
+    log_v_debug_P( PSTR("0x0B = 0x%02x | VBUS_STAT: %d CHARGE_STAT: %d PG_STAT: %d SDP_STAT: %d VSYS_STAT: %d"), data, vbus_stat, charge_stat, pg_stat, sdp_stat, vsys_stat );    
+
+    data = bq25895_u8_read_reg( 0x0C );
+    bool watchdog_fault = ( data & BQ25895_BIT_WATCHDOG_FAULT ) != 0;
+    bool boost_fault    = ( data & BQ25895_BIT_BOOST_FAULT ) != 0;
+    uint8_t chrg_fault  = ( data & BQ25895_MASK_CHRG_FAULT ) >> BQ25895_SHIFT_CHRG_FAULT;
+    bool bat_fault      = ( data & BQ25895_BIT_BAT_FAULT ) != 0;
+    uint8_t ntc_fault   = ( data & BQ25895_MASK_NTC_FAULT ) >> BQ25895_SHIFT_NTC_FAULT;
+    log_v_debug_P( PSTR("0x0C = 0x%02x | WATCHDOG_FAULT: %d BOOST_FAULT: %d CHRG_FAULT: %d BAT_FAULT: %d NTC_FAULT: %d"), data, watchdog_fault, boost_fault, chrg_fault, bat_fault, ntc_fault );
+
+    data = bq25895_u8_read_reg( 0x0D );
+    bool force_vindpm   = ( data & BQ25895_BIT_FORCE_VINDPM ) != 0;
+    uint8_t vindpm_reg  = ( data & BQ25895_MASK_VINDPM );
+    log_v_debug_P( PSTR("0x0D = 0x%02x | FORCE_VINDPM: %d VINDPM: %d"), data, force_vindpm, vindpm_reg );
+
+    data = bq25895_u8_read_reg( 0x0E );
+    bool therm_stat    = ( data & BQ25895_BIT_THERM_STAT ) != 0;
+    uint8_t batv       = ( data & BQ25895_MASK_BATT_VOLTAGE );
+    log_v_debug_P( PSTR("0x0E = 0x%02x | THERM_STAT: %d BATV: %d"), data, therm_stat, batv );
+
+    data = bq25895_u8_read_reg( 0x0F );
+    uint8_t sysv       = ( data & BQ25895_MASK_SYS_VOLTAGE );
+    log_v_debug_P( PSTR("0x0F = 0x%02x | SYSV: %d"), data, sysv );
+
+    data = bq25895_u8_read_reg( 0x10 );
+    uint8_t tspct      = data;
+    log_v_debug_P( PSTR("0x10 = 0x%02x | TSPCT: %d"), data, tspct );
+
+    data = bq25895_u8_read_reg( 0x11 );
+    bool vbus_gd       = ( data & BQ25895_BIT_VBUS_GOOD ) != 0;
+    uint8_t vbusv      = ( data & BQ25895_MASK_VBUS_VOLTAGE );
+    log_v_debug_P( PSTR("0x11 = 0x%02x | VBUS_GD: %d VBUSV: %d"), data, vbus_gd, vbusv );    
+
+    data = bq25895_u8_read_reg( 0x12 );
+    uint8_t ichgr      = data;
+    log_v_debug_P( PSTR("0x12 = 0x%02x | ICHGR: %d"), data, ichgr );
+
+    data = bq25895_u8_read_reg( 0x13 );
+    bool vdpm_stat     = ( data & BQ25895_BIT_VINDPM ) != 0;
+    bool idpm_stat     = ( data & BQ25895_BIT_IINDPM ) != 0;
+    uint8_t idpm_lim   = ( data & BQ25895_MASK_IINDPM );
+    log_v_debug_P( PSTR("0x13 = 0x%02x | VDPM_STAT: %d IDPM_STAT: %d IDPM_LIM: %d"), data, vdpm_stat, idpm_stat, idpm_lim );    
+
+    data = bq25895_u8_read_reg( 0x14 );
+    log_v_debug_P( PSTR("0x14 = 0x%02x"), data );    
+
+
+
+
+    // for( uint8_t addr = 0; addr < 0x15; addr++ ){
+
+    //     uint8_t data = bq25895_u8_read_reg( addr );
+
+    //     log_v_debug_P( PSTR("0x%02x = 0x%02x"), addr, data );
+    // }
 }
 
 void bq25895_v_set_vindpm( int16_t mv ){
+
+    uint16_t original_mv = mv;
 
     if( mv < 3900 ){
 
@@ -688,54 +1063,226 @@ void bq25895_v_set_vindpm( int16_t mv ){
 
     uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_VINDPM );
 
-    // set the force bit
-    reg |= BQ25895_BIT_FORCE_VINDPM;
-
     reg &= ~BQ25895_MASK_VINDPM;
 
-    // make sure force bit is set before we update the setting
-    bq25895_v_write_reg( BQ25895_REG_VINDPM, reg );
-
     reg |= mv;
+
+    // if setting to 0, use relative mode
+    if( original_mv == 0 ){
+
+        // clear the force bit
+        reg &= ~BQ25895_BIT_FORCE_VINDPM;            
+    }
+    else{
+
+        // set the force bit
+        reg |= BQ25895_BIT_FORCE_VINDPM;
+    }
 
     bq25895_v_write_reg( BQ25895_REG_VINDPM, reg );
 }
 
-PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
+uint16_t bq25895_u16_get_iindpm( void ){
+
+    uint16_t data = bq25895_u8_read_reg( BQ25895_REG_IINDPM ) & BQ25895_MASK_IINDPM;
+
+    return 50 * data + 100;
+}
+
+bool bq25895_b_get_vindpm( void ){
+    
+    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+
+    return ( reg & BQ25895_BIT_VINDPM ) != 0;
+}
+
+bool bq25895_b_get_iindpm( void ){
+    
+    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+
+    return ( reg & BQ25895_BIT_IINDPM ) != 0;
+}
+
+static void init_boost_converter( void ){
+
+    log_v_debug_P( PSTR("Init boost converter") );
+
+    // boost frequency can only be changed when OTG boost is turned off.
+    bq25895_v_set_boost_mode( FALSE );
+    bq25895_v_set_boost_1500khz();
+    bq25895_v_set_boost_mode( TRUE );
+
+    // set boost voltage
+    if( boost_voltage == 0 ){
+
+        boost_voltage = 5100;
+    }
+    else if( boost_voltage > BQ25895_MAX_BOOST_VOLTAGE ){
+
+        boost_voltage = BQ25895_MAX_BOOST_VOLTAGE;
+    }
+    else if( boost_voltage < BQ25895_MIN_BOOST_VOLTAGE ){
+
+        boost_voltage = BQ25895_MIN_BOOST_VOLTAGE;
+    }
+
+    bq25895_v_set_boost_voltage( boost_voltage );
+}
+
+static void init_charger( void ){
+
+    // enable charger and set HIZ
+    bq25895_v_set_hiz( TRUE );
+    bq25895_v_set_charger( TRUE );
+
+    bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+    bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
+
+    // charge config for NCR18650B
+
+    // bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
+
+    // turn off ICO
+    bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+
+    bq25895_v_set_inlim( 3250 );
+    bq25895_v_set_pre_charge_current( 160 );
+    
+    uint8_t n_cells = batt_cells;
+
+    if( n_cells < 1 ){
+
+        n_cells = 1;
+    }
+
+    uint32_t fast_charge_current = 1625 * n_cells;
+
+    if( fast_charge_current > 5000 ){
+
+        fast_charge_current = 5000;
+    }
+
+    // set default max current to the cell count setting
+    if( batt_max_charge_current == 0 ){
+
+        batt_max_charge_current = fast_charge_current;
+    }
+    // apply maximum charge current, if the allowable cell current would exceed it
+    else if( fast_charge_current > batt_max_charge_current ){
+
+        fast_charge_current = batt_max_charge_current;
+    }
+
+    bq25895_v_set_fast_charge_current( fast_charge_current );
+
+    bq25895_v_set_termination_current( 65 );
+    bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
+
+    // disable ILIM pin
+    bq25895_v_set_inlim_pin( FALSE );
+
+    // bq25895_v_set_iindpm( 3000 );
+
+    // turn off high voltage DCP, and maxcharge
+    bq25895_v_clr_reg_bits( BQ25895_REG_MAXC_EN,   BQ25895_BIT_MAXC_EN );
+    bq25895_v_clr_reg_bits( BQ25895_REG_HVDCP_EN,  BQ25895_BIT_HVDCP_EN );
+
+    // turn on auto dpdm
+    // bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+
+    // turn OFF auto dpdm
+    bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
+
+    // turn off ICO
+    // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+
+    // bq25895_v_set_vindpm( 0 );
+    bq25895_v_set_vindpm( VINDPM_SOLAR );
+}
+
+
+static bool read_adc( void ){
+
+    batt_fault = bq25895_u8_get_faults();
+    vbus_status = bq25895_u8_get_vbus_status();
+    charge_status = bq25895_u8_get_charge_status();
+    vbus_volts = bq25895_u16_get_vbus_voltage();
+
+    uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
+
+    if( temp_batt_volts == 0 ){
+
+        return FALSE;
+    }
+
+    batt_volts = temp_batt_volts;
+
+    sys_volts = bq25895_u16_get_sys_voltage();
+    batt_charge_current = bq25895_u16_get_charge_current();
+    therm = bq25895_i8_get_therm();
+    iindpm = bq25895_u16_get_iindpm();
+
+    batt_charge_power = ( (uint32_t)batt_charge_current * (uint32_t)batt_volts ) / 1000;
+
+    return TRUE;
+}
+
+
+static bool is_recharge_threshold( void ){
+
+    return batt_volts <= ( BQ25895_FLOAT_VOLTAGE - 25 );
+}
+
+static bool is_vbus_volts_ok( void ){
+
+    if( vbus_volts < 4800 ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static bool is_vbus_good( void ){
+
+    if( !bq25895_b_get_vbus_good() ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static bool is_charging( void ){
+
+    return ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE ) ||
+           ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE );
+
+}
+
+
+PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-    bq25895_v_enable_adc_continuous();
-    bq25895_v_set_charger( FALSE );
-    
-    // set min sys
-    // on battery only mode, the battery voltage must be above MINSYS for the ADC
-    // to read correctly.
-    // since MINSYS can only regulate the SYS voltage when plugged in to a power source,
-    // it otherwise isn't very important for our designs other than this ADC consideration.
-    bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+    init_charger();
 
+    vbus_connected = FALSE;
+    vindpm = VINDPM_WALL; // wall power
 
-    // init battery SOC state
-    batt_volts = bq25895_u16_get_batt_voltage();
-    soc_state = _calc_batt_soc( batt_volts );
-    batt_soc = calc_batt_soc( batt_volts );
-    batt_soc_startup = batt_soc;
-
+    // wait until we see the battery
+    THREAD_WAIT_WHILE( pt, adc_good == 0 );
 
     while(1){
 
-        charge_status = bq25895_u8_get_charge_status();
-        batt_volts = bq25895_u16_get_batt_voltage();
-        vbus_volts = bq25895_u16_get_vbus_voltage();
-        sys_volts = bq25895_u16_get_sys_voltage();
-        batt_charge_current = bq25895_u16_get_charge_current();
-        batt_fault = bq25895_u8_get_faults();
-        vbus_status = bq25895_u8_get_vbus_status();
-        therm = bq25895_i8_get_therm();
+        vbus_connected = FALSE;
 
-        /*
+        // init charger
+        init_charger();
+
+        TMR_WAIT( pt, 20 );
+
+      /*
 
         Charger notes:
 
@@ -744,6 +1291,13 @@ PT_BEGIN( pt );
 
         OR turn AUTO_DPDM off.  Remember force DPDM will run even if auto is off, so bypass
         that as well if you don't want DPDM at all.
+
+
+        MORE NOTES!!!!!!!!!!!!!!!!!!!
+
+        REGN is turned off in HIZ, if there is no input on VBUS, and boost mode is disabled.
+        This means the batt temp sensor will read incorrectly in those conditions!
+        Also note there is a 200ms power on delay for REGN.
 
         */
 
@@ -758,200 +1312,255 @@ PT_BEGIN( pt );
         // don't forget max otherwise is 0.5C.  Need a config option for this.
 
         // NOTE reduce battery charge.  Charge to 4.0 or 4.1V and discharge to 
-        // 3.0 to 3.2V to increase cycle life.
+        // 3.0 to 3.2V to increase cycle life.        
+
+
+        // NOTE:
+        // VINDPM needs to be set to 0 for wall power!
+
+        // NOTE:
+        // if the charger is disabled and there is a source on VBUS, the Q4 BATFET will
+        // be *disabled*.  If VBUS cannot support the load on SYS, the system will brownout.
+        // if the charger is enabled, Q4 is still turned on, so the battery can supplement SYS
+        // even if VBUS is weak.
+
+        // NOTE:
+        // HIZ will be reset to disabled each time VBUS comes up.
+        
+        
+        THREAD_WAIT_WHILE( pt, !is_vbus_volts_ok() );
+
+        if( !is_vbus_volts_ok() ){
+
+            continue;
+        }
+
+        // disable HIZ and check VBUS good
+        bq25895_v_set_hiz( FALSE );
+
+        TMR_WAIT( pt, 100 );
+
+        if( !is_vbus_good() ){
+
+            continue;
+        }
         
 
-        if( bq25895_b_get_vbus_good() && !vbus_connected ){
+        log_v_debug_P( PSTR("VBUS OK") );
 
-            log_v_debug_P( PSTR("VBUS OK - resetting config") );
+        vbus_connected = TRUE;
 
-            // reset settings
-            bq25895_v_reset();
-
-            // turn off charger
-            bq25895_v_set_charger( FALSE );
-
-            // turn off high voltage DCP, and maxcharge
-            bq25895_v_clr_reg_bits( BQ25895_REG_MAXC_EN,   BQ25895_BIT_MAXC_EN );
-            bq25895_v_clr_reg_bits( BQ25895_REG_HVDCP_EN,  BQ25895_BIT_HVDCP_EN );
-
-            // bq25895_v_write_reg( BQ25895_REG_VINDPM, 0 );
-            // bq25895_v_set_reg_bits( BQ25895_REG_VINDPM, BQ25895_BIT_FORCE_VINDPM );
-
-            // turn on auto dpdm
-            // bq25895_v_set_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
-
-            // turn OFF auto dpdm
-            bq25895_v_clr_reg_bits( BQ25895_REG_AUTO_DPDM, BQ25895_BIT_AUTO_DPDM );
-
-
-            // for solar MPPT: DEBUG ONLY!!!
-            if( vindpm > 0 ){
-
-                bq25895_v_set_vindpm( vindpm );    
-            }
+        if( mcu_source_pmid ){
             
-
-            bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
-            // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );
-
-            // boost frequency can only be changed when OTG boost is turned off.
-            bq25895_v_set_boost_mode( FALSE );
-            bq25895_v_set_boost_1500khz();
-            bq25895_v_set_boost_mode( TRUE );
-
-            bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-            bq25895_v_enable_adc_continuous();
-
-            // set boost voltage
-            if( boost_voltage == 0 ){
-
-                boost_voltage = 4700;
-            }
-            else if( boost_voltage > BQ25895_MAX_BOOST_VOLTAGE ){
-
-                boost_voltage = BQ25895_MAX_BOOST_VOLTAGE;
-            }
-            else if( boost_voltage < BQ25895_MIN_BOOST_VOLTAGE ){
-
-                boost_voltage = BQ25895_MIN_BOOST_VOLTAGE;
-            }
-
-            bq25895_v_set_boost_voltage( boost_voltage );
-
-            // charge config for NCR18650B
-
-
-            bq25895_v_set_inlim( 3250 );
-            bq25895_v_set_pre_charge_current( 160 );
-            
-            uint8_t n_cells = batt_cells;
-
-            if( n_cells < 1 ){
-
-                n_cells = 1;
-            }
-
-            uint32_t fast_charge_current = 1625 * n_cells;
-
-            if( fast_charge_current > 5000 ){
-
-                fast_charge_current = 5000;
-            }
-
-            // set default max current to the cell count setting
-            if( batt_max_charge_current == 0 ){
-
-                batt_max_charge_current = fast_charge_current;
-            }
-            // apply maximum charge current, if the allowable cell current would exceed it
-            else if( fast_charge_current > batt_max_charge_current ){
-
-                fast_charge_current = batt_max_charge_current;
-            }
-
-            bq25895_v_set_fast_charge_current( fast_charge_current );
-
-            bq25895_v_set_termination_current( 65 );
-            bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
-
-
-            // disable ILIM pin
-            bq25895_v_set_inlim_pin( FALSE );
-
-            // run auto DPDM (which can override the current limits)
-            // bq25895_v_force_dpdm();
-
-            // re-enable charging
-            bq25895_v_set_charger( TRUE );
-
-            vbus_connected = TRUE;
+            // re-init boost
+            init_boost_converter();
         }
-        else if( vbus_connected ){ 
 
-            // vbus disconnected, but we were previously connected
+        // check if we need to charge
+        THREAD_WAIT_WHILE( pt, !is_recharge_threshold() &&
+                                is_vbus_good() );
 
-            if( !bq25895_b_get_vbus_good() ){
-                
-                // on really crappy USB sources, we might get spurious disconnects.
-                // delay, and then check again before resetting.
-                TMR_WAIT( pt, 3000 );
+        if( !is_vbus_good() ){
+
+            continue;
+        }
+        
+
+        // // check vbus
+        if( vbus_volts < 5500 ){
+
+            // set for wall power:
+            vindpm = VINDPM_WALL;
+            bq25895_v_set_vindpm( vindpm );
+
+            TMR_WAIT( pt, 1000 );
+
+            // check faults
+            if( batt_fault != 0 ){
+
+                log_v_debug_P( PSTR("faults detected") );
+
+                continue;
             }
 
-            if( !bq25895_b_get_vbus_good() ){
+            // are we charging at least a bit?
+            if( batt_charge_current >= 100 ){
 
-                vbus_connected = FALSE;
+                log_v_debug_P( PSTR("Charging on wall power") );
+
+                THREAD_WAIT_WHILE( pt, is_vbus_good() );
+
+                // unplugged, reset loop
                 log_v_debug_P( PSTR("VBUS disconnected") );
 
-                // set min sys to 3.0V for ADC accuracy
-                bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+                continue;
             }
         }
 
+        // not enough current, or VBUS is too high to be a wall charger.  try solar mode.
 
-        // if( status != 0 ){
+        vindpm = VINDPM_SOLAR;
+        bq25895_v_set_vindpm( vindpm );
 
-            // log_v_debug_P( PSTR("batt: %d curr: %d vbus: %x %umV good?:%d chrg: %x inlim: %u fault:%x"),
-            //     bq25895_u16_get_batt_voltage(),
-            //     bq25895_u16_get_charge_current(),
-            //     bq25895_u8_get_vbus_status(),
-            //     bq25895_u16_get_vbus_voltage(),
-            //     bq25895_b_get_vbus_good(),
-            //     status,
-            //     bq25895_u16_get_inlim(),
-            //     bq25895_u8_get_faults() );
+        TMR_WAIT( pt, 1000 );
 
-        static uint8_t counter;
+        // check faults
+        if( batt_fault != 0 ){
 
-        if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
+            log_v_debug_P( PSTR("faults detected: 0x%2x"), batt_fault );
 
-            batt_charging = TRUE;
+            continue;
+        }
 
-            // for solar MPPT: DEBUG ONLY!!!
-            if( vindpm > 0 ){
+        // check if charging
+        // we don't check for current, it may be very low with solar
+        if( is_charging() ){
 
-                bq25895_v_set_vindpm( vindpm );    
+            log_v_debug_P( PSTR("Charging on solar power") );
+
+            THREAD_WAIT_WHILE( pt, is_vbus_good() );
+
+            log_v_debug_P( PSTR("VBUS disconnected") );
+
+            continue;
+        }
+
+
+        // charger isn't working?
+
+        // disconnect vbus
+        bq25895_v_set_hiz( TRUE );
+
+        log_v_debug_P( PSTR("Not charging - reset control loop") );
+
+        TMR_WAIT( pt, 10000 );
+    }
+
+PT_END( pt );
+}
+
+
+
+#if defined(ESP32)
+
+PT_THREAD( bat_aux_temp_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
+
+        THREAD_EXIT( pt );
+    }
+
+    io_v_set_mode( ELITE_CASE_ADC_IO, IO_MODE_INPUT );      
+    io_v_set_mode( ELITE_AMBIENT_ADC_IO, IO_MODE_INPUT );      
+
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, sys_volts == 0 ); // avoid divide by zero error
+
+        uint32_t case_adc = adc_u16_read_mv( ELITE_CASE_ADC_IO );
+        uint32_t ambient_adc = adc_u16_read_mv( ELITE_AMBIENT_ADC_IO );
+
+        case_temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
+        ambient_temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
+
+        TMR_WAIT( pt, 1000 );
+    }
+
+PT_END( pt );
+}
+
+#endif
+
+
+PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    static bool adc_fault;
+    adc_fault = FALSE;
+
+    if( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ){
+
+        log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
+
+        mcu_source_pmid = TRUE;
+
+        // we will not init the boost converter in this instance, because that will cut MCU power.
+        // we have to wait until we have VBUS available.
+    }
+    else{
+
+        init_boost_converter();
+    }
+
+    if( capacity != 0 ){
+
+        // set baseline energy remaining based on SOC
+        remaining = ( capacity * batt_soc ) / 100;
+    }
+        
+
+    thread_t_create( bat_control_thread,
+                     PSTR("bat_control"),
+                     0,
+                     0 );
+
+    #if defined(ESP32)
+
+    thread_t_create( bat_aux_temp_thread,
+                     PSTR("bat_aux_temp"),
+                     0,
+                     0 );
+
+    #endif
+
+
+    while(1){
+
+        static uint32_t start_time;
+
+        bq25895_v_start_adc_oneshot();
+        start_time = tmr_u32_get_system_time_ms();
+
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
+
+        if( bq25895_b_adc_ready() && read_adc() ){
+
+            // ADC success
+
+            uint16_t elapsed = tmr_u32_elapsed_time_ms( start_time );
+
+            if( elapsed < adc_time_min ){
+
+                adc_time_min = elapsed;
             }
             
-            if( ( counter % 60 ) == 0 ){
+            if( elapsed > adc_time_max ){
 
-                log_v_debug_P( PSTR("batt: %d curr: %d"),
-                    batt_volts,
-                    bq25895_u16_get_charge_current() );
-
-                if( batt_fault != 0 ){
-
-                    log_v_debug_P( PSTR("flt:%x"), batt_fault );
-                }
+                adc_time_max = elapsed;
             }
+
+            soc_state = _calc_batt_soc( batt_volts );
+            batt_soc = calc_batt_soc( batt_volts );
+            batt_soc_startup = batt_soc;
+
+            adc_good++;   
         }
         else{
-            batt_charging = FALSE;
 
-            if( ( counter % 60 ) == 0 ){
+            adc_fail++;
 
-                log_v_debug_P( PSTR("batt: %d soc: %d"),
-                    batt_volts, batt_soc );
+            log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
 
-                if( batt_fault != 0 ){
-
-                    log_v_debug_P( PSTR("flt:%x"), batt_fault );
-                }
-            }
+            // try hiz mode
+            bq25895_v_set_hiz( TRUE );
+            continue;
         }
 
-        counter++;
 
-
-        if( dump_regs ){
-
-            dump_regs = FALSE;
-
-            bq25895_v_print_regs();
-        }
-
-    
         // update state of charge
         // this is a simple linear fit
         uint8_t new_batt_soc = calc_batt_soc( batt_volts );
@@ -979,9 +1588,35 @@ PT_BEGIN( pt );
 
             remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
         }
-        
-        TMR_WAIT( pt, 1000 );
-        // TMR_WAIT( pt, 10000 );
+
+
+        if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
+            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
+
+            batt_charging = TRUE;
+        }
+        else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
+
+            if( batt_charging ){
+
+                log_v_info_P( PSTR("Charging done") );
+            }
+
+            batt_charging = FALSE;
+        }
+        else{ // DISCHARGE
+
+            batt_charging = FALSE;
+        }
+
+        if( dump_regs ){
+
+            dump_regs = FALSE;
+
+            bq25895_v_print_regs();
+        }
+
+        TMR_WAIT( pt, 500 );
     }
 
 PT_END( pt );

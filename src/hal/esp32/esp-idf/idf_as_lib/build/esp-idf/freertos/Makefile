@@ -68,18 +68,6 @@ install/strip/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
 .PHONY : install/strip/fast
 
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
-
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -124,6 +112,18 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
 # The main all target
 all: cmake_check_build_system
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/freertos/CMakeFiles/progress.marks
@@ -157,34 +157,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/freertos/CMakeFiles/idf_component_freertos_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/freertos/CMakeFiles/idf_component_freertos_sections_info.dir/rule
-.PHONY : esp-idf/freertos/CMakeFiles/idf_component_freertos_sections_info.dir/rule
+esp-idf/freertos/CMakeFiles/__idf_freertos.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/freertos/CMakeFiles/__idf_freertos.dir/rule
+.PHONY : esp-idf/freertos/CMakeFiles/__idf_freertos.dir/rule
 
 # Convenience name for target.
-idf_component_freertos_sections_info: esp-idf/freertos/CMakeFiles/idf_component_freertos_sections_info.dir/rule
+__idf_freertos: esp-idf/freertos/CMakeFiles/__idf_freertos.dir/rule
 
-.PHONY : idf_component_freertos_sections_info
+.PHONY : __idf_freertos
 
 # fast build rule for target.
-idf_component_freertos_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos_sections_info.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos_sections_info.dir/build
-.PHONY : idf_component_freertos_sections_info/fast
-
-# Convenience name for target.
-esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/rule
-.PHONY : esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/rule
-
-# Convenience name for target.
-idf_component_freertos: esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/rule
-
-.PHONY : idf_component_freertos
-
-# fast build rule for target.
-idf_component_freertos/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build
-.PHONY : idf_component_freertos/fast
+__idf_freertos/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build
+.PHONY : __idf_freertos/fast
 
 FreeRTOS-openocd.obj: FreeRTOS-openocd.c.obj
 
@@ -192,7 +177,7 @@ FreeRTOS-openocd.obj: FreeRTOS-openocd.c.obj
 
 # target to build an object file
 FreeRTOS-openocd.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/FreeRTOS-openocd.c.obj
 .PHONY : FreeRTOS-openocd.c.obj
 
 FreeRTOS-openocd.i: FreeRTOS-openocd.c.i
@@ -201,7 +186,7 @@ FreeRTOS-openocd.i: FreeRTOS-openocd.c.i
 
 # target to preprocess a source file
 FreeRTOS-openocd.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/FreeRTOS-openocd.c.i
 .PHONY : FreeRTOS-openocd.c.i
 
 FreeRTOS-openocd.s: FreeRTOS-openocd.c.s
@@ -210,7 +195,7 @@ FreeRTOS-openocd.s: FreeRTOS-openocd.c.s
 
 # target to generate assembly for a file
 FreeRTOS-openocd.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/FreeRTOS-openocd.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/FreeRTOS-openocd.c.s
 .PHONY : FreeRTOS-openocd.c.s
 
 croutine.obj: croutine.c.obj
@@ -219,7 +204,7 @@ croutine.obj: croutine.c.obj
 
 # target to build an object file
 croutine.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/croutine.c.obj
 .PHONY : croutine.c.obj
 
 croutine.i: croutine.c.i
@@ -228,7 +213,7 @@ croutine.i: croutine.c.i
 
 # target to preprocess a source file
 croutine.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/croutine.c.i
 .PHONY : croutine.c.i
 
 croutine.s: croutine.c.s
@@ -237,8 +222,35 @@ croutine.s: croutine.c.s
 
 # target to generate assembly for a file
 croutine.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/croutine.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/croutine.c.s
 .PHONY : croutine.c.s
+
+esp_additions/task_snapshot.obj: esp_additions/task_snapshot.c.obj
+
+.PHONY : esp_additions/task_snapshot.obj
+
+# target to build an object file
+esp_additions/task_snapshot.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/esp_additions/task_snapshot.c.obj
+.PHONY : esp_additions/task_snapshot.c.obj
+
+esp_additions/task_snapshot.i: esp_additions/task_snapshot.c.i
+
+.PHONY : esp_additions/task_snapshot.i
+
+# target to preprocess a source file
+esp_additions/task_snapshot.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/esp_additions/task_snapshot.c.i
+.PHONY : esp_additions/task_snapshot.c.i
+
+esp_additions/task_snapshot.s: esp_additions/task_snapshot.c.s
+
+.PHONY : esp_additions/task_snapshot.s
+
+# target to generate assembly for a file
+esp_additions/task_snapshot.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/esp_additions/task_snapshot.c.s
+.PHONY : esp_additions/task_snapshot.c.s
 
 event_groups.obj: event_groups.c.obj
 
@@ -246,7 +258,7 @@ event_groups.obj: event_groups.c.obj
 
 # target to build an object file
 event_groups.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/event_groups.c.obj
 .PHONY : event_groups.c.obj
 
 event_groups.i: event_groups.c.i
@@ -255,7 +267,7 @@ event_groups.i: event_groups.c.i
 
 # target to preprocess a source file
 event_groups.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/event_groups.c.i
 .PHONY : event_groups.c.i
 
 event_groups.s: event_groups.c.s
@@ -264,8 +276,35 @@ event_groups.s: event_groups.c.s
 
 # target to generate assembly for a file
 event_groups.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/event_groups.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/event_groups.c.s
 .PHONY : event_groups.c.s
+
+freertos_v8_compat.obj: freertos_v8_compat.c.obj
+
+.PHONY : freertos_v8_compat.obj
+
+# target to build an object file
+freertos_v8_compat.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/freertos_v8_compat.c.obj
+.PHONY : freertos_v8_compat.c.obj
+
+freertos_v8_compat.i: freertos_v8_compat.c.i
+
+.PHONY : freertos_v8_compat.i
+
+# target to preprocess a source file
+freertos_v8_compat.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/freertos_v8_compat.c.i
+.PHONY : freertos_v8_compat.c.i
+
+freertos_v8_compat.s: freertos_v8_compat.c.s
+
+.PHONY : freertos_v8_compat.s
+
+# target to generate assembly for a file
+freertos_v8_compat.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/freertos_v8_compat.c.s
+.PHONY : freertos_v8_compat.c.s
 
 list.obj: list.c.obj
 
@@ -273,7 +312,7 @@ list.obj: list.c.obj
 
 # target to build an object file
 list.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/list.c.obj
 .PHONY : list.c.obj
 
 list.i: list.c.i
@@ -282,7 +321,7 @@ list.i: list.c.i
 
 # target to preprocess a source file
 list.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/list.c.i
 .PHONY : list.c.i
 
 list.s: list.c.s
@@ -291,44 +330,179 @@ list.s: list.c.s
 
 # target to generate assembly for a file
 list.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/list.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/list.c.s
 .PHONY : list.c.s
 
-port.obj: port.c.obj
+port/port_common.obj: port/port_common.c.obj
 
-.PHONY : port.obj
+.PHONY : port/port_common.obj
 
 # target to build an object file
-port.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.obj
-.PHONY : port.c.obj
+port/port_common.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.obj
+.PHONY : port/port_common.c.obj
 
-port.i: port.c.i
+port/port_common.i: port/port_common.c.i
 
-.PHONY : port.i
+.PHONY : port/port_common.i
 
 # target to preprocess a source file
-port.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.i
-.PHONY : port.c.i
+port/port_common.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.i
+.PHONY : port/port_common.c.i
 
-port.s: port.c.s
+port/port_common.s: port/port_common.c.s
 
-.PHONY : port.s
+.PHONY : port/port_common.s
 
 # target to generate assembly for a file
-port.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/port.c.s
-.PHONY : port.c.s
+port/port_common.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.s
+.PHONY : port/port_common.c.s
 
-portasm.obj: portasm.S.obj
+port/port_systick.obj: port/port_systick.c.obj
 
-.PHONY : portasm.obj
+.PHONY : port/port_systick.obj
 
 # target to build an object file
-portasm.S.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/portasm.S.obj
-.PHONY : portasm.S.obj
+port/port_systick.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_systick.c.obj
+.PHONY : port/port_systick.c.obj
+
+port/port_systick.i: port/port_systick.c.i
+
+.PHONY : port/port_systick.i
+
+# target to preprocess a source file
+port/port_systick.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_systick.c.i
+.PHONY : port/port_systick.c.i
+
+port/port_systick.s: port/port_systick.c.s
+
+.PHONY : port/port_systick.s
+
+# target to generate assembly for a file
+port/port_systick.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_systick.c.s
+.PHONY : port/port_systick.c.s
+
+port/xtensa/port.obj: port/xtensa/port.c.obj
+
+.PHONY : port/xtensa/port.obj
+
+# target to build an object file
+port/xtensa/port.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/port.c.obj
+.PHONY : port/xtensa/port.c.obj
+
+port/xtensa/port.i: port/xtensa/port.c.i
+
+.PHONY : port/xtensa/port.i
+
+# target to preprocess a source file
+port/xtensa/port.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/port.c.i
+.PHONY : port/xtensa/port.c.i
+
+port/xtensa/port.s: port/xtensa/port.c.s
+
+.PHONY : port/xtensa/port.s
+
+# target to generate assembly for a file
+port/xtensa/port.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/port.c.s
+.PHONY : port/xtensa/port.c.s
+
+port/xtensa/portasm.obj: port/xtensa/portasm.S.obj
+
+.PHONY : port/xtensa/portasm.obj
+
+# target to build an object file
+port/xtensa/portasm.S.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/portasm.S.obj
+.PHONY : port/xtensa/portasm.S.obj
+
+port/xtensa/xtensa_context.obj: port/xtensa/xtensa_context.S.obj
+
+.PHONY : port/xtensa/xtensa_context.obj
+
+# target to build an object file
+port/xtensa/xtensa_context.S.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/xtensa_context.S.obj
+.PHONY : port/xtensa/xtensa_context.S.obj
+
+port/xtensa/xtensa_init.obj: port/xtensa/xtensa_init.c.obj
+
+.PHONY : port/xtensa/xtensa_init.obj
+
+# target to build an object file
+port/xtensa/xtensa_init.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/xtensa_init.c.obj
+.PHONY : port/xtensa/xtensa_init.c.obj
+
+port/xtensa/xtensa_init.i: port/xtensa/xtensa_init.c.i
+
+.PHONY : port/xtensa/xtensa_init.i
+
+# target to preprocess a source file
+port/xtensa/xtensa_init.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/xtensa_init.c.i
+.PHONY : port/xtensa/xtensa_init.c.i
+
+port/xtensa/xtensa_init.s: port/xtensa/xtensa_init.c.s
+
+.PHONY : port/xtensa/xtensa_init.s
+
+# target to generate assembly for a file
+port/xtensa/xtensa_init.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/xtensa_init.c.s
+.PHONY : port/xtensa/xtensa_init.c.s
+
+port/xtensa/xtensa_overlay_os_hook.obj: port/xtensa/xtensa_overlay_os_hook.c.obj
+
+.PHONY : port/xtensa/xtensa_overlay_os_hook.obj
+
+# target to build an object file
+port/xtensa/xtensa_overlay_os_hook.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/xtensa_overlay_os_hook.c.obj
+.PHONY : port/xtensa/xtensa_overlay_os_hook.c.obj
+
+port/xtensa/xtensa_overlay_os_hook.i: port/xtensa/xtensa_overlay_os_hook.c.i
+
+.PHONY : port/xtensa/xtensa_overlay_os_hook.i
+
+# target to preprocess a source file
+port/xtensa/xtensa_overlay_os_hook.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/xtensa_overlay_os_hook.c.i
+.PHONY : port/xtensa/xtensa_overlay_os_hook.c.i
+
+port/xtensa/xtensa_overlay_os_hook.s: port/xtensa/xtensa_overlay_os_hook.c.s
+
+.PHONY : port/xtensa/xtensa_overlay_os_hook.s
+
+# target to generate assembly for a file
+port/xtensa/xtensa_overlay_os_hook.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/xtensa_overlay_os_hook.c.s
+.PHONY : port/xtensa/xtensa_overlay_os_hook.c.s
+
+port/xtensa/xtensa_vector_defaults.obj: port/xtensa/xtensa_vector_defaults.S.obj
+
+.PHONY : port/xtensa/xtensa_vector_defaults.obj
+
+# target to build an object file
+port/xtensa/xtensa_vector_defaults.S.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/xtensa_vector_defaults.S.obj
+.PHONY : port/xtensa/xtensa_vector_defaults.S.obj
+
+port/xtensa/xtensa_vectors.obj: port/xtensa/xtensa_vectors.S.obj
+
+.PHONY : port/xtensa/xtensa_vectors.obj
+
+# target to build an object file
+port/xtensa/xtensa_vectors.S.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/xtensa/xtensa_vectors.S.obj
+.PHONY : port/xtensa/xtensa_vectors.S.obj
 
 queue.obj: queue.c.obj
 
@@ -336,7 +510,7 @@ queue.obj: queue.c.obj
 
 # target to build an object file
 queue.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/queue.c.obj
 .PHONY : queue.c.obj
 
 queue.i: queue.c.i
@@ -345,7 +519,7 @@ queue.i: queue.c.i
 
 # target to preprocess a source file
 queue.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/queue.c.i
 .PHONY : queue.c.i
 
 queue.s: queue.c.s
@@ -354,8 +528,35 @@ queue.s: queue.c.s
 
 # target to generate assembly for a file
 queue.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/queue.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/queue.c.s
 .PHONY : queue.c.s
+
+stream_buffer.obj: stream_buffer.c.obj
+
+.PHONY : stream_buffer.obj
+
+# target to build an object file
+stream_buffer.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/stream_buffer.c.obj
+.PHONY : stream_buffer.c.obj
+
+stream_buffer.i: stream_buffer.c.i
+
+.PHONY : stream_buffer.i
+
+# target to preprocess a source file
+stream_buffer.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/stream_buffer.c.i
+.PHONY : stream_buffer.c.i
+
+stream_buffer.s: stream_buffer.c.s
+
+.PHONY : stream_buffer.s
+
+# target to generate assembly for a file
+stream_buffer.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/stream_buffer.c.s
+.PHONY : stream_buffer.c.s
 
 tasks.obj: tasks.c.obj
 
@@ -363,7 +564,7 @@ tasks.obj: tasks.c.obj
 
 # target to build an object file
 tasks.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/tasks.c.obj
 .PHONY : tasks.c.obj
 
 tasks.i: tasks.c.i
@@ -372,7 +573,7 @@ tasks.i: tasks.c.i
 
 # target to preprocess a source file
 tasks.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/tasks.c.i
 .PHONY : tasks.c.i
 
 tasks.s: tasks.c.s
@@ -381,7 +582,7 @@ tasks.s: tasks.c.s
 
 # target to generate assembly for a file
 tasks.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/tasks.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/tasks.c.s
 .PHONY : tasks.c.s
 
 timers.obj: timers.c.obj
@@ -390,7 +591,7 @@ timers.obj: timers.c.obj
 
 # target to build an object file
 timers.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/timers.c.obj
 .PHONY : timers.c.obj
 
 timers.i: timers.c.i
@@ -399,7 +600,7 @@ timers.i: timers.c.i
 
 # target to preprocess a source file
 timers.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/timers.c.i
 .PHONY : timers.c.i
 
 timers.s: timers.c.s
@@ -408,125 +609,8 @@ timers.s: timers.c.s
 
 # target to generate assembly for a file
 timers.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/timers.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/__idf_freertos.dir/build.make esp-idf/freertos/CMakeFiles/__idf_freertos.dir/timers.c.s
 .PHONY : timers.c.s
-
-xtensa_context.obj: xtensa_context.S.obj
-
-.PHONY : xtensa_context.obj
-
-# target to build an object file
-xtensa_context.S.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_context.S.obj
-.PHONY : xtensa_context.S.obj
-
-xtensa_init.obj: xtensa_init.c.obj
-
-.PHONY : xtensa_init.obj
-
-# target to build an object file
-xtensa_init.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_init.c.obj
-.PHONY : xtensa_init.c.obj
-
-xtensa_init.i: xtensa_init.c.i
-
-.PHONY : xtensa_init.i
-
-# target to preprocess a source file
-xtensa_init.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_init.c.i
-.PHONY : xtensa_init.c.i
-
-xtensa_init.s: xtensa_init.c.s
-
-.PHONY : xtensa_init.s
-
-# target to generate assembly for a file
-xtensa_init.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_init.c.s
-.PHONY : xtensa_init.c.s
-
-xtensa_intr.obj: xtensa_intr.c.obj
-
-.PHONY : xtensa_intr.obj
-
-# target to build an object file
-xtensa_intr.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.obj
-.PHONY : xtensa_intr.c.obj
-
-xtensa_intr.i: xtensa_intr.c.i
-
-.PHONY : xtensa_intr.i
-
-# target to preprocess a source file
-xtensa_intr.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.i
-.PHONY : xtensa_intr.c.i
-
-xtensa_intr.s: xtensa_intr.c.s
-
-.PHONY : xtensa_intr.s
-
-# target to generate assembly for a file
-xtensa_intr.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr.c.s
-.PHONY : xtensa_intr.c.s
-
-xtensa_intr_asm.obj: xtensa_intr_asm.S.obj
-
-.PHONY : xtensa_intr_asm.obj
-
-# target to build an object file
-xtensa_intr_asm.S.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_intr_asm.S.obj
-.PHONY : xtensa_intr_asm.S.obj
-
-xtensa_overlay_os_hook.obj: xtensa_overlay_os_hook.c.obj
-
-.PHONY : xtensa_overlay_os_hook.obj
-
-# target to build an object file
-xtensa_overlay_os_hook.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.obj
-.PHONY : xtensa_overlay_os_hook.c.obj
-
-xtensa_overlay_os_hook.i: xtensa_overlay_os_hook.c.i
-
-.PHONY : xtensa_overlay_os_hook.i
-
-# target to preprocess a source file
-xtensa_overlay_os_hook.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.i
-.PHONY : xtensa_overlay_os_hook.c.i
-
-xtensa_overlay_os_hook.s: xtensa_overlay_os_hook.c.s
-
-.PHONY : xtensa_overlay_os_hook.s
-
-# target to generate assembly for a file
-xtensa_overlay_os_hook.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_overlay_os_hook.c.s
-.PHONY : xtensa_overlay_os_hook.c.s
-
-xtensa_vector_defaults.obj: xtensa_vector_defaults.S.obj
-
-.PHONY : xtensa_vector_defaults.obj
-
-# target to build an object file
-xtensa_vector_defaults.S.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_vector_defaults.S.obj
-.PHONY : xtensa_vector_defaults.S.obj
-
-xtensa_vectors.obj: xtensa_vectors.S.obj
-
-.PHONY : xtensa_vectors.obj
-
-# target to build an object file
-xtensa_vectors.S.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/build.make esp-idf/freertos/CMakeFiles/idf_component_freertos.dir/xtensa_vectors.S.obj
-.PHONY : xtensa_vectors.S.obj
 
 # Help Target
 help:
@@ -535,51 +619,61 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... install/strip"
-	@echo "... install/local"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_freertos_sections_info"
-	@echo "... idf_component_freertos"
+	@echo "... install/local"
+	@echo "... __idf_freertos"
 	@echo "... FreeRTOS-openocd.obj"
 	@echo "... FreeRTOS-openocd.i"
 	@echo "... FreeRTOS-openocd.s"
 	@echo "... croutine.obj"
 	@echo "... croutine.i"
 	@echo "... croutine.s"
+	@echo "... esp_additions/task_snapshot.obj"
+	@echo "... esp_additions/task_snapshot.i"
+	@echo "... esp_additions/task_snapshot.s"
 	@echo "... event_groups.obj"
 	@echo "... event_groups.i"
 	@echo "... event_groups.s"
+	@echo "... freertos_v8_compat.obj"
+	@echo "... freertos_v8_compat.i"
+	@echo "... freertos_v8_compat.s"
 	@echo "... list.obj"
 	@echo "... list.i"
 	@echo "... list.s"
-	@echo "... port.obj"
-	@echo "... port.i"
-	@echo "... port.s"
-	@echo "... portasm.obj"
+	@echo "... port/port_common.obj"
+	@echo "... port/port_common.i"
+	@echo "... port/port_common.s"
+	@echo "... port/port_systick.obj"
+	@echo "... port/port_systick.i"
+	@echo "... port/port_systick.s"
+	@echo "... port/xtensa/port.obj"
+	@echo "... port/xtensa/port.i"
+	@echo "... port/xtensa/port.s"
+	@echo "... port/xtensa/portasm.obj"
+	@echo "... port/xtensa/xtensa_context.obj"
+	@echo "... port/xtensa/xtensa_init.obj"
+	@echo "... port/xtensa/xtensa_init.i"
+	@echo "... port/xtensa/xtensa_init.s"
+	@echo "... port/xtensa/xtensa_overlay_os_hook.obj"
+	@echo "... port/xtensa/xtensa_overlay_os_hook.i"
+	@echo "... port/xtensa/xtensa_overlay_os_hook.s"
+	@echo "... port/xtensa/xtensa_vector_defaults.obj"
+	@echo "... port/xtensa/xtensa_vectors.obj"
 	@echo "... queue.obj"
 	@echo "... queue.i"
 	@echo "... queue.s"
+	@echo "... stream_buffer.obj"
+	@echo "... stream_buffer.i"
+	@echo "... stream_buffer.s"
 	@echo "... tasks.obj"
 	@echo "... tasks.i"
 	@echo "... tasks.s"
 	@echo "... timers.obj"
 	@echo "... timers.i"
 	@echo "... timers.s"
-	@echo "... xtensa_context.obj"
-	@echo "... xtensa_init.obj"
-	@echo "... xtensa_init.i"
-	@echo "... xtensa_init.s"
-	@echo "... xtensa_intr.obj"
-	@echo "... xtensa_intr.i"
-	@echo "... xtensa_intr.s"
-	@echo "... xtensa_intr_asm.obj"
-	@echo "... xtensa_overlay_os_hook.obj"
-	@echo "... xtensa_overlay_os_hook.i"
-	@echo "... xtensa_overlay_os_hook.s"
-	@echo "... xtensa_vector_defaults.obj"
-	@echo "... xtensa_vectors.obj"
 .PHONY : help
 
 

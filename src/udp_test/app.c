@@ -29,9 +29,9 @@ static uint32_t packets_received;
 static uint32_t max_loss_streak;
 
 KV_SECTION_META kv_meta_t app_kv[] = {
-    { SAPPHIRE_TYPE_UINT32,     0, 0, &packets_sent,  		0, "packets_sent" },
-    { SAPPHIRE_TYPE_UINT32,     0, 0, &packets_received,  	0, "packets_received" },
-    { SAPPHIRE_TYPE_UINT32,     0, 0, &max_loss_streak,  	0, "packets_lost_streak" },
+    { CATBUS_TYPE_UINT32,     0, 0, &packets_sent,  		0, "packets_sent" },
+    { CATBUS_TYPE_UINT32,     0, 0, &packets_received,  	0, "packets_received" },
+    { CATBUS_TYPE_UINT32,     0, 0, &max_loss_streak,  	0, "packets_lost_streak" },
 };
 
 PT_THREAD( client_thread( pt_t *pt, void *state ) )

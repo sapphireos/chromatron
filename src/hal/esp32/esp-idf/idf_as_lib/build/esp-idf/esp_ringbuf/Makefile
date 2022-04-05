@@ -68,18 +68,6 @@ install/strip/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
 .PHONY : install/strip/fast
 
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
-
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -124,6 +112,18 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
 # The main all target
 all: cmake_check_build_system
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_ringbuf/CMakeFiles/progress.marks
@@ -157,34 +157,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/rule
-.PHONY : esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/rule
+esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/rule
+.PHONY : esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/rule
 
 # Convenience name for target.
-idf_component_esp_ringbuf_sections_info: esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/rule
+__idf_esp_ringbuf: esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/rule
 
-.PHONY : idf_component_esp_ringbuf_sections_info
+.PHONY : __idf_esp_ringbuf
 
 # fast build rule for target.
-idf_component_esp_ringbuf_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf_sections_info.dir/build
-.PHONY : idf_component_esp_ringbuf_sections_info/fast
-
-# Convenience name for target.
-esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/rule
-.PHONY : esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/rule
-
-# Convenience name for target.
-idf_component_esp_ringbuf: esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/rule
-
-.PHONY : idf_component_esp_ringbuf
-
-# fast build rule for target.
-idf_component_esp_ringbuf/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build
-.PHONY : idf_component_esp_ringbuf/fast
+__idf_esp_ringbuf/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/build
+.PHONY : __idf_esp_ringbuf/fast
 
 ringbuf.obj: ringbuf.c.obj
 
@@ -192,7 +177,7 @@ ringbuf.obj: ringbuf.c.obj
 
 # target to build an object file
 ringbuf.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/ringbuf.c.obj
 .PHONY : ringbuf.c.obj
 
 ringbuf.i: ringbuf.c.i
@@ -201,7 +186,7 @@ ringbuf.i: ringbuf.c.i
 
 # target to preprocess a source file
 ringbuf.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/ringbuf.c.i
 .PHONY : ringbuf.c.i
 
 ringbuf.s: ringbuf.c.s
@@ -210,7 +195,7 @@ ringbuf.s: ringbuf.c.s
 
 # target to generate assembly for a file
 ringbuf.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/idf_component_esp_ringbuf.dir/ringbuf.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/build.make esp-idf/esp_ringbuf/CMakeFiles/__idf_esp_ringbuf.dir/ringbuf.c.s
 .PHONY : ringbuf.c.s
 
 # Help Target
@@ -220,13 +205,12 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... install/strip"
-	@echo "... install/local"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_esp_ringbuf_sections_info"
-	@echo "... idf_component_esp_ringbuf"
+	@echo "... install/local"
+	@echo "... __idf_esp_ringbuf"
 	@echo "... ringbuf.obj"
 	@echo "... ringbuf.i"
 	@echo "... ringbuf.s"

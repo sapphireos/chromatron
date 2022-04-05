@@ -59,10 +59,10 @@ int8_t _sc_kv_handler(
 
 
 KV_SECTION_META kv_meta_t superconductor_info_kv[] = {
-    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[0],    _sc_kv_handler,  "sc_bank0" },
-    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[1],    _sc_kv_handler,  "sc_bank1" },
-    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[2],    _sc_kv_handler,  "sc_bank2" },
-    { SAPPHIRE_TYPE_STRING32, 	0, 0,  				  &banks[3],    _sc_kv_handler,  "sc_bank3" },
+    { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[0],    _sc_kv_handler,  "sc_bank0" },
+    { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[1],    _sc_kv_handler,  "sc_bank1" },
+    { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[2],    _sc_kv_handler,  "sc_bank2" },
+    { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[3],    _sc_kv_handler,  "sc_bank3" },
 };
 
 

@@ -157,34 +157,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/esp_event/CMakeFiles/idf_component_esp_event_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_event/CMakeFiles/idf_component_esp_event_sections_info.dir/rule
-.PHONY : esp-idf/esp_event/CMakeFiles/idf_component_esp_event_sections_info.dir/rule
+esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/rule
+.PHONY : esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/rule
 
 # Convenience name for target.
-idf_component_esp_event_sections_info: esp-idf/esp_event/CMakeFiles/idf_component_esp_event_sections_info.dir/rule
+__idf_esp_event: esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/rule
 
-.PHONY : idf_component_esp_event_sections_info
+.PHONY : __idf_esp_event
 
 # fast build rule for target.
-idf_component_esp_event_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event_sections_info.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event_sections_info.dir/build
-.PHONY : idf_component_esp_event_sections_info/fast
-
-# Convenience name for target.
-esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/rule
-.PHONY : esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/rule
-
-# Convenience name for target.
-idf_component_esp_event: esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/rule
-
-.PHONY : idf_component_esp_event
-
-# fast build rule for target.
-idf_component_esp_event/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build
-.PHONY : idf_component_esp_event/fast
+__idf_esp_event/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build
+.PHONY : __idf_esp_event/fast
 
 default_event_loop.obj: default_event_loop.c.obj
 
@@ -192,7 +177,7 @@ default_event_loop.obj: default_event_loop.c.obj
 
 # target to build an object file
 default_event_loop.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/default_event_loop.c.obj
 .PHONY : default_event_loop.c.obj
 
 default_event_loop.i: default_event_loop.c.i
@@ -201,7 +186,7 @@ default_event_loop.i: default_event_loop.c.i
 
 # target to preprocess a source file
 default_event_loop.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/default_event_loop.c.i
 .PHONY : default_event_loop.c.i
 
 default_event_loop.s: default_event_loop.c.s
@@ -210,7 +195,7 @@ default_event_loop.s: default_event_loop.c.s
 
 # target to generate assembly for a file
 default_event_loop.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/default_event_loop.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/default_event_loop.c.s
 .PHONY : default_event_loop.c.s
 
 esp_event.obj: esp_event.c.obj
@@ -219,7 +204,7 @@ esp_event.obj: esp_event.c.obj
 
 # target to build an object file
 esp_event.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event.c.obj
 .PHONY : esp_event.c.obj
 
 esp_event.i: esp_event.c.i
@@ -228,7 +213,7 @@ esp_event.i: esp_event.c.i
 
 # target to preprocess a source file
 esp_event.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event.c.i
 .PHONY : esp_event.c.i
 
 esp_event.s: esp_event.c.s
@@ -237,7 +222,7 @@ esp_event.s: esp_event.c.s
 
 # target to generate assembly for a file
 esp_event.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event.c.s
 .PHONY : esp_event.c.s
 
 esp_event_private.obj: esp_event_private.c.obj
@@ -246,7 +231,7 @@ esp_event_private.obj: esp_event_private.c.obj
 
 # target to build an object file
 esp_event_private.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event_private.c.obj
 .PHONY : esp_event_private.c.obj
 
 esp_event_private.i: esp_event_private.c.i
@@ -255,7 +240,7 @@ esp_event_private.i: esp_event_private.c.i
 
 # target to preprocess a source file
 esp_event_private.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event_private.c.i
 .PHONY : esp_event_private.c.i
 
 esp_event_private.s: esp_event_private.c.s
@@ -264,8 +249,62 @@ esp_event_private.s: esp_event_private.c.s
 
 # target to generate assembly for a file
 esp_event_private.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/idf_component_esp_event.dir/esp_event_private.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event_private.c.s
 .PHONY : esp_event_private.c.s
+
+event_loop_legacy.obj: event_loop_legacy.c.obj
+
+.PHONY : event_loop_legacy.obj
+
+# target to build an object file
+event_loop_legacy.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/event_loop_legacy.c.obj
+.PHONY : event_loop_legacy.c.obj
+
+event_loop_legacy.i: event_loop_legacy.c.i
+
+.PHONY : event_loop_legacy.i
+
+# target to preprocess a source file
+event_loop_legacy.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/event_loop_legacy.c.i
+.PHONY : event_loop_legacy.c.i
+
+event_loop_legacy.s: event_loop_legacy.c.s
+
+.PHONY : event_loop_legacy.s
+
+# target to generate assembly for a file
+event_loop_legacy.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/event_loop_legacy.c.s
+.PHONY : event_loop_legacy.c.s
+
+event_send.obj: event_send.c.obj
+
+.PHONY : event_send.obj
+
+# target to build an object file
+event_send.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/event_send.c.obj
+.PHONY : event_send.c.obj
+
+event_send.i: event_send.c.i
+
+.PHONY : event_send.i
+
+# target to preprocess a source file
+event_send.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/event_send.c.i
+.PHONY : event_send.c.i
+
+event_send.s: event_send.c.s
+
+.PHONY : event_send.s
+
+# target to generate assembly for a file
+event_send.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/build.make esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/event_send.c.s
+.PHONY : event_send.c.s
 
 # Help Target
 help:
@@ -279,8 +318,7 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_esp_event_sections_info"
-	@echo "... idf_component_esp_event"
+	@echo "... __idf_esp_event"
 	@echo "... default_event_loop.obj"
 	@echo "... default_event_loop.i"
 	@echo "... default_event_loop.s"
@@ -290,6 +328,12 @@ help:
 	@echo "... esp_event_private.obj"
 	@echo "... esp_event_private.i"
 	@echo "... esp_event_private.s"
+	@echo "... event_loop_legacy.obj"
+	@echo "... event_loop_legacy.i"
+	@echo "... event_loop_legacy.s"
+	@echo "... event_send.obj"
+	@echo "... event_send.i"
+	@echo "... event_send.s"
 .PHONY : help
 
 

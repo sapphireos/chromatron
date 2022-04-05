@@ -67,7 +67,7 @@ public:
     size_t num_active;
   };
 
-  using HostEntryMap = std::map<StringRef, HostEntry, std::less<StringRef>>;
+  using HostEntryMap = std::map<StringRef, HostEntry>;
 
   // conn_max_per_host == 0 means no limit for downstream connection.
   DownstreamQueue(size_t conn_max_per_host = 0, bool unified_host = true);
@@ -88,10 +88,10 @@ public:
   // |host|.
   bool can_activate(const StringRef &host) const;
   // Removes and frees |downstream| object.  If |downstream| is in
-  // Downstream::DISPATCH_ACTIVE, and |next_blocked| is true, this
-  // function may return Downstream object with the same target host
-  // in Downstream::DISPATCH_BLOCKED if its connection is now not
-  // blocked by conn_max_per_host_ limit.
+  // DispatchState::ACTIVE, and |next_blocked| is true, this function
+  // may return Downstream object with the same target host in
+  // DispatchState::BLOCKED if its connection is now not blocked by
+  // conn_max_per_host_ limit.
   Downstream *remove_and_get_blocked(Downstream *downstream,
                                      bool next_blocked = true);
   Downstream *get_downstreams() const;

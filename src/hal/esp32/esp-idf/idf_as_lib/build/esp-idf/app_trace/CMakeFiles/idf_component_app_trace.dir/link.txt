@@ -1,2 +1,0 @@
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc libapp_trace.a  CMakeFiles/idf_component_app_trace.dir/app_trace.c.obj CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.obj CMakeFiles/idf_component_app_trace.dir/host_file_io.c.obj CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.obj
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib libapp_trace.a

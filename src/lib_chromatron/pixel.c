@@ -69,11 +69,11 @@ int8_t pix_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t pixel_info_kv[] = {
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_rgb_order,       pix_i8_kv_handler,    "pix_rgb_order" },
-    { SAPPHIRE_TYPE_UINT32,  0, KV_FLAGS_PERSIST, &pix_clock,           pix_i8_kv_handler,    "pix_clock" },
-    { SAPPHIRE_TYPE_BOOL,    0, KV_FLAGS_PERSIST, &pix_dither,          pix_i8_kv_handler,    "pix_dither" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_mode,            pix_i8_kv_handler,    "pix_mode" },
-    { SAPPHIRE_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_apa102_dimmer,   pix_i8_kv_handler,    "pix_apa102_dimmer" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_rgb_order,       pix_i8_kv_handler,    "pix_rgb_order" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST, &pix_clock,           pix_i8_kv_handler,    "pix_clock" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST, &pix_dither,          pix_i8_kv_handler,    "pix_dither" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_mode,            pix_i8_kv_handler,    "pix_mode" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST, &pix_apa102_dimmer,   pix_i8_kv_handler,    "pix_apa102_dimmer" },
 };
 
 void pixel_v_init( void ){

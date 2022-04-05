@@ -54,21 +54,53 @@ menu "Serial flasher config"
             decompress it on the fly before flashing it. For most payloads, this should result in a
             speed increase.
 
-    choice FLASHMODE
+    config ESPTOOLPY_NO_STUB
+        bool "Disable download stub"
+        default "n"
+        help
+            The flasher tool sends a precompiled download stub first by default. That stub allows things
+            like compressed downloads and more. Usually you should not need to disable that feature
+
+    config ESPTOOLPY_OCT_FLASH
+        depends on IDF_TARGET_ESP32S3
+        bool "Enable Octal Flash"
+        default n
+
+    choice ESPTOOLPY_FLASHMODE
         prompt "Flash SPI mode"
-        default FLASHMODE_DIO
+        default ESPTOOLPY_FLASHMODE_DIO
+        default ESPTOOLPY_FLASHMODE_OPI if ESPTOOLPY_OCT_FLASH
         help
             Mode the flash chip is flashed in, as well as the default mode for the
             binary to run in.
 
-        config FLASHMODE_QIO
+        config ESPTOOLPY_FLASHMODE_QIO
+            depends on !ESPTOOLPY_OCT_FLASH
             bool "QIO"
-        config FLASHMODE_QOUT
+        config ESPTOOLPY_FLASHMODE_QOUT
+            depends on !ESPTOOLPY_OCT_FLASH
             bool "QOUT"
-        config FLASHMODE_DIO
+        config ESPTOOLPY_FLASHMODE_DIO
+            depends on !ESPTOOLPY_OCT_FLASH
             bool "DIO"
-        config FLASHMODE_DOUT
+        config ESPTOOLPY_FLASHMODE_DOUT
+            depends on !ESPTOOLPY_OCT_FLASH
             bool "DOUT"
+        config ESPTOOLPY_FLASHMODE_OPI
+            depends on ESPTOOLPY_OCT_FLASH
+            bool "OPI"
+    endchoice
+
+    choice ESPTOOLPY_FLASH_SAMPLE_MODE
+        prompt "Flash Sampling Mode"
+        default ESPTOOLPY_FLASH_SAMPLE_MODE_DTR if ESPTOOLPY_OCT_FLASH
+        default ESPTOOLPY_FLASH_SAMPLE_MODE_STR if !ESPTOOLPY_OCT_FLASH
+
+        config ESPTOOLPY_FLASH_SAMPLE_MODE_STR
+            bool "STR Mode"
+        config ESPTOOLPY_FLASH_SAMPLE_MODE_DTR
+            depends on ESPTOOLPY_OCT_FLASH
+            bool "DTR Mode"
     endchoice
 
     # Note: we use esptool.py to flash bootloader in
@@ -76,29 +108,42 @@ menu "Serial flasher config"
     # itself to quad mode during initialisation
     config ESPTOOLPY_FLASHMODE
         string
-        default "dio" if FLASHMODE_QIO
-        default "dio" if FLASHMODE_QOUT
-        default "dio" if FLASHMODE_DIO
-        default "dout" if FLASHMODE_DOUT
+        default "dio" if ESPTOOLPY_FLASHMODE_QIO
+        default "dio" if ESPTOOLPY_FLASHMODE_QOUT
+        default "dio" if ESPTOOLPY_FLASHMODE_DIO
+        default "dout" if ESPTOOLPY_FLASHMODE_DOUT
+        # The 1st and 2nd bootloader doesn't support opi mode,
+        # using fastrd instead. For now the ESPTOOL doesn't support
+        # fasted (see ESPTOOL-274), using dout instead. In ROM the flash mode
+        # information get from efuse, so don't care this dout choice.
+        default "dout" if ESPTOOLPY_FLASHMODE_OPI
 
     choice ESPTOOLPY_FLASHFREQ
         prompt "Flash SPI speed"
-        default ESPTOOLPY_FLASHFREQ_40M
+        default ESPTOOLPY_FLASHFREQ_40M if IDF_TARGET_ESP32 || IDF_TARGET_ESP32H2
+        default ESPTOOLPY_FLASHFREQ_80M
         help
             The SPI flash frequency to be used.
 
+        config ESPTOOLPY_FLASHFREQ_120M
+            depends on IDF_TARGET_ESP32S3 && ESPTOOLPY_FLASH_SAMPLE_MODE_STR
+            bool "120 MHz"
         config ESPTOOLPY_FLASHFREQ_80M
             bool "80 MHz"
         config ESPTOOLPY_FLASHFREQ_40M
             bool "40 MHz"
         config ESPTOOLPY_FLASHFREQ_26M
             bool "26 MHz"
+            depends on IDF_TARGET_ESP32 || IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32C3
         config ESPTOOLPY_FLASHFREQ_20M
             bool "20 MHz"
     endchoice
 
     config ESPTOOLPY_FLASHFREQ
         string
+        # On some of the ESP chips, max boot frequency would be equal to (or even lower than) 80m.
+        # We currently define this to `80m`.
+        default "80m" if ESPTOOLPY_FLASHFREQ_120M
         default "80m" if ESPTOOLPY_FLASHFREQ_80M
         default "40m" if ESPTOOLPY_FLASHFREQ_40M
         default "26m" if ESPTOOLPY_FLASHFREQ_26M
@@ -135,8 +180,9 @@ menu "Serial flasher config"
         bool "Detect flash size when flashing bootloader"
         default y
         help
-            If this option is set, 'make flash' targets will automatically detect
-            the flash size and update the bootloader image when flashing.
+            If this option is set, flashing the project will automatically detect
+            the flash size of the target chip and update the bootloader image
+            before it is flashed.
 
     choice ESPTOOLPY_BEFORE
         prompt "Before flashing"
@@ -180,44 +226,50 @@ menu "Serial flasher config"
         default "hard_reset" if ESPTOOLPY_AFTER_RESET
         default "no_reset" if ESPTOOLPY_AFTER_NORESET
 
-    choice MONITOR_BAUD
-        prompt "'make monitor' baud rate"
-        default MONITOR_BAUD_115200B
+    choice ESPTOOLPY_MONITOR_BAUD
+        prompt "'idf.py monitor' baud rate"
+        default ESPTOOLPY_MONITOR_BAUD_115200B
         help
-            Baud rate to use when running 'make monitor' to view serial output
-            from a running chip.
+            Baud rate to use when running 'idf.py monitor' or 'make monitor'
+            to view serial output from a running chip.
+
+            If "Same as UART Console baud rate" is chosen then the value will
+            follow the "UART Console baud rate" config item.
 
             Can override by setting the MONITORBAUD environment variable.
 
-        config MONITOR_BAUD_9600B
+        config ESPTOOLPY_MONITOR_BAUD_CONSOLE
+            bool "Same as UART console baud rate"
+        config ESPTOOLPY_MONITOR_BAUD_9600B
             bool "9600 bps"
-        config MONITOR_BAUD_57600B
+        config ESPTOOLPY_MONITOR_BAUD_57600B
             bool "57600 bps"
-        config MONITOR_BAUD_115200B
+        config ESPTOOLPY_MONITOR_BAUD_115200B
             bool "115200 bps"
-        config MONITOR_BAUD_230400B
+        config ESPTOOLPY_MONITOR_BAUD_230400B
             bool "230400 bps"
-        config MONITOR_BAUD_921600B
+        config ESPTOOLPY_MONITOR_BAUD_921600B
             bool "921600 bps"
-        config MONITOR_BAUD_2MB
+        config ESPTOOLPY_MONITOR_BAUD_2MB
             bool "2 Mbps"
-        config MONITOR_BAUD_OTHER
+        config ESPTOOLPY_MONITOR_BAUD_OTHER
             bool "Custom baud rate"
 
     endchoice
 
-    config MONITOR_BAUD_OTHER_VAL
-        int "Custom baud rate value" if MONITOR_BAUD_OTHER
+    config ESPTOOLPY_MONITOR_BAUD_OTHER_VAL
+        int "Custom baud rate value" if ESPTOOLPY_MONITOR_BAUD_OTHER
         default 115200
 
-    config MONITOR_BAUD
+    config ESPTOOLPY_MONITOR_BAUD
         int
-        default 9600 if MONITOR_BAUD_9600B
-        default 57600 if MONITOR_BAUD_57600B
-        default 115200 if MONITOR_BAUD_115200B
-        default 230400 if MONITOR_BAUD_230400B
-        default 921600 if MONITOR_BAUD_921600B
-        default 2000000 if MONITOR_BAUD_2MB
-        default MONITOR_BAUD_OTHER_VAL if MONITOR_BAUD_OTHER
+        default ESP_CONSOLE_UART_BAUDRATE if ESPTOOLPY_MONITOR_BAUD_CONSOLE
+        default 9600 if ESPTOOLPY_MONITOR_BAUD_9600B
+        default 57600 if ESPTOOLPY_MONITOR_BAUD_57600B
+        default 115200 if ESPTOOLPY_MONITOR_BAUD_115200B
+        default 230400 if ESPTOOLPY_MONITOR_BAUD_230400B
+        default 921600 if ESPTOOLPY_MONITOR_BAUD_921600B
+        default 2000000 if ESPTOOLPY_MONITOR_BAUD_2MB
+        default ESPTOOLPY_MONITOR_BAUD_OTHER_VAL if ESPTOOLPY_MONITOR_BAUD_OTHER
 
 endmenu
