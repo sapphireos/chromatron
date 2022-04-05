@@ -1299,8 +1299,6 @@ class irBlock(IR):
                     registers[str(value)] = target
 
             elif isinstance(ir, irBranch):
-                pass
-
                 value = ir.value
 
                 if value in values:
@@ -1374,8 +1372,6 @@ class irBlock(IR):
             new_code.append(ir)
 
         self.code = new_code
-
-        # self.relink_blocks()
 
         print(f"\nGVN Summary: {self.name}")
 
