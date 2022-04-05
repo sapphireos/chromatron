@@ -619,6 +619,21 @@ def rainbow_loop():
 #     return s
 
 
+# optimizer tests
+def opt_constant_fold():
+
+    a = Number()
+    b = Number()
+
+    b = 3
+
+    a = b + 1 + 2 + 7 + b
+
+    assert a == 16
+
+    a = a + 2 + 3
+    
+    assert a == 21
 
 
 def init():
@@ -670,3 +685,9 @@ def init():
     pix_add_hue()
     ref_array_func_call()
     rainbow_loop()
+
+    opt_constant_fold()
+
+
+
+    

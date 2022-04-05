@@ -1,23 +1,23 @@
 
-def init():
-    # a = Number()
-    # b = Fixed16()
-    c = Fixed16()
-    d = Number()
+# def init():
+#     a = Number()
+#     b = Fixed16()
+#     c = Fixed16()
+#     d = Number()
 
-    # a = 123.456
-    # b = 32
+#     a = 123.456
+#     b = 32
 
-    c = 123
-    c += 123
+#     c = 123
+#     c += 123
 
-    d = 123.123
-    d += 123.123
+#     d = 123.123
+#     d += 123.123
 
-    # assert a == 123
-    # assert b == 32
-    assert c == 246.0
-    assert d == 246
+#     assert a == 123
+#     assert b == 32
+#     assert c == 246.0
+#     assert d == 246
 
 
 
@@ -89,16 +89,16 @@ def init():
 
 #     return a
 
-# def init():
-#     a = Number()    
-#     b = Number()
+def init():
+    a = Number()    
+    b = Number()
 
-#     a = 4
-#     b = a
-#     a = b
+    a = 4
+    b = a
+    a = b
 
-#     return a
-        
+    return a
+
 
 
 # def array_vector():
