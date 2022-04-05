@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2016, Wind River Systems, Inc.
- * Additional Copyright (c) 2020 Espressif Systems (Shanghai) PTE LTD
+ * SPDX-FileCopyrightText: 2016 Wind River Systems, Inc.
+ * SPDX-FileContributor: 2020-2021 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -20,17 +20,17 @@
 extern "C" {
 #endif
 
-#ifdef CONFIG_BLUEDROID_ENABLED
-#ifdef CONFIG_BLUEDROID_PINNED_TO_CORE
-#define BLE_MESH_ADV_TASK_CORE  (CONFIG_BLUEDROID_PINNED_TO_CORE < portNUM_PROCESSORS ? CONFIG_BLUEDROID_PINNED_TO_CORE : tskNO_AFFINITY)
+#ifdef CONFIG_BT_BLUEDROID_ENABLED
+#ifdef CONFIG_BT_BLUEDROID_PINNED_TO_CORE
+#define BLE_MESH_ADV_TASK_CORE  (CONFIG_BT_BLUEDROID_PINNED_TO_CORE < portNUM_PROCESSORS ? CONFIG_BT_BLUEDROID_PINNED_TO_CORE : tskNO_AFFINITY)
 #else
 #define BLE_MESH_ADV_TASK_CORE  (0)
 #endif
 #endif
 
-#ifdef CONFIG_NIMBLE_ENABLED
-#ifdef CONFIG_NIMBLE_PINNED_TO_CORE
-#define BLE_MESH_ADV_TASK_CORE  (CONFIG_NIMBLE_PINNED_TO_CORE < portNUM_PROCESSORS ? CONFIG_NIMBLE_PINNED_TO_CORE : tskNO_AFFINITY)
+#ifdef CONFIG_BT_NIMBLE_ENABLED
+#ifdef CONFIG_BT_NIMBLE_PINNED_TO_CORE
+#define BLE_MESH_ADV_TASK_CORE  (CONFIG_BT_NIMBLE_PINNED_TO_CORE < portNUM_PROCESSORS ? CONFIG_BT_NIMBLE_PINNED_TO_CORE : tskNO_AFFINITY)
 #else
 #define BLE_MESH_ADV_TASK_CORE  (0)
 #endif
@@ -50,11 +50,10 @@ extern "C" {
  *
  * @return N/A
  */
-void k_sleep(s32_t duration);
+void k_sleep(int32_t duration);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* _BLE_MESH_KERNEL_H_ */
-

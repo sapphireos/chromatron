@@ -30,7 +30,7 @@
 
 #include <CUnit/CUnit.h>
 
-#include "http-parser/http_parser.h"
+#include "url-parser/url_parser.h"
 
 #include "http2.h"
 #include "util.h"
@@ -995,12 +995,8 @@ void test_http2_construct_push_component(void) {
 
   uri = StringRef{};
 
-  CU_ASSERT(0 == http2::construct_push_component(balloc, scheme, authority,
-                                                 path, base, uri));
-  CU_ASSERT("" == scheme);
-  CU_ASSERT("" == authority);
-  CU_ASSERT("/" == path);
-
+  CU_ASSERT(-1 == http2::construct_push_component(balloc, scheme, authority,
+                                                  path, base, uri));
   scheme = StringRef{};
   authority = StringRef{};
   path = StringRef{};

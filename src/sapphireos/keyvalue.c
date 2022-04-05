@@ -280,7 +280,12 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
 {
     if( index < _kv_u16_fixed_count() ){
 
-        kv_meta_t *ptr = (kv_meta_t *)( kv_start + 1 ) + index;
+        // GCC is getting a bit *too* smart about looking for array bounds issues.
+        // so we will workaround that here, since this is not actually out of bounds, GCC
+        // just doesn't understand this is a prefilled array in .text from the linker.
+        volatile uint32_t start_addr = (uint32_t)&kv_start;
+        kv_meta_t *start = (kv_meta_t *)start_addr;
+        kv_meta_t *ptr = (kv_meta_t *)( start + 1 ) + index;
 
         // load meta data
         memcpy_P( meta, ptr, sizeof(kv_meta_t) );

@@ -80,17 +80,6 @@ install/local/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
 .PHONY : install/local/fast
 
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -123,6 +112,17 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
+
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -157,34 +157,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/rule
-.PHONY : esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/rule
+esp-idf/cxx/CMakeFiles/__idf_cxx.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/CMakeFiles/__idf_cxx.dir/rule
+.PHONY : esp-idf/cxx/CMakeFiles/__idf_cxx.dir/rule
 
 # Convenience name for target.
-idf_component_cxx_sections_info: esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/rule
+__idf_cxx: esp-idf/cxx/CMakeFiles/__idf_cxx.dir/rule
 
-.PHONY : idf_component_cxx_sections_info
+.PHONY : __idf_cxx
 
 # fast build rule for target.
-idf_component_cxx_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx_sections_info.dir/build
-.PHONY : idf_component_cxx_sections_info/fast
-
-# Convenience name for target.
-esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/rule
-.PHONY : esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/rule
-
-# Convenience name for target.
-idf_component_cxx: esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/rule
-
-.PHONY : idf_component_cxx
-
-# fast build rule for target.
-idf_component_cxx/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build
-.PHONY : idf_component_cxx/fast
+__idf_cxx/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/__idf_cxx.dir/build.make esp-idf/cxx/CMakeFiles/__idf_cxx.dir/build
+.PHONY : __idf_cxx/fast
 
 cxx_exception_stubs.obj: cxx_exception_stubs.cpp.obj
 
@@ -192,7 +177,7 @@ cxx_exception_stubs.obj: cxx_exception_stubs.cpp.obj
 
 # target to build an object file
 cxx_exception_stubs.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/__idf_cxx.dir/build.make esp-idf/cxx/CMakeFiles/__idf_cxx.dir/cxx_exception_stubs.cpp.obj
 .PHONY : cxx_exception_stubs.cpp.obj
 
 cxx_exception_stubs.i: cxx_exception_stubs.cpp.i
@@ -201,7 +186,7 @@ cxx_exception_stubs.i: cxx_exception_stubs.cpp.i
 
 # target to preprocess a source file
 cxx_exception_stubs.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/__idf_cxx.dir/build.make esp-idf/cxx/CMakeFiles/__idf_cxx.dir/cxx_exception_stubs.cpp.i
 .PHONY : cxx_exception_stubs.cpp.i
 
 cxx_exception_stubs.s: cxx_exception_stubs.cpp.s
@@ -210,7 +195,7 @@ cxx_exception_stubs.s: cxx_exception_stubs.cpp.s
 
 # target to generate assembly for a file
 cxx_exception_stubs.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/__idf_cxx.dir/build.make esp-idf/cxx/CMakeFiles/__idf_cxx.dir/cxx_exception_stubs.cpp.s
 .PHONY : cxx_exception_stubs.cpp.s
 
 cxx_guards.obj: cxx_guards.cpp.obj
@@ -219,7 +204,7 @@ cxx_guards.obj: cxx_guards.cpp.obj
 
 # target to build an object file
 cxx_guards.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/__idf_cxx.dir/build.make esp-idf/cxx/CMakeFiles/__idf_cxx.dir/cxx_guards.cpp.obj
 .PHONY : cxx_guards.cpp.obj
 
 cxx_guards.i: cxx_guards.cpp.i
@@ -228,7 +213,7 @@ cxx_guards.i: cxx_guards.cpp.i
 
 # target to preprocess a source file
 cxx_guards.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/__idf_cxx.dir/build.make esp-idf/cxx/CMakeFiles/__idf_cxx.dir/cxx_guards.cpp.i
 .PHONY : cxx_guards.cpp.i
 
 cxx_guards.s: cxx_guards.cpp.s
@@ -237,7 +222,7 @@ cxx_guards.s: cxx_guards.cpp.s
 
 # target to generate assembly for a file
 cxx_guards.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/build.make esp-idf/cxx/CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/cxx/CMakeFiles/__idf_cxx.dir/build.make esp-idf/cxx/CMakeFiles/__idf_cxx.dir/cxx_guards.cpp.s
 .PHONY : cxx_guards.cpp.s
 
 # Help Target
@@ -248,12 +233,11 @@ help:
 	@echo "... depend"
 	@echo "... install/strip"
 	@echo "... install/local"
-	@echo "... edit_cache"
-	@echo "... idf_component_cxx_sections_info"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... idf_component_cxx"
+	@echo "... edit_cache"
+	@echo "... __idf_cxx"
 	@echo "... cxx_exception_stubs.obj"
 	@echo "... cxx_exception_stubs.i"
 	@echo "... cxx_exception_stubs.s"

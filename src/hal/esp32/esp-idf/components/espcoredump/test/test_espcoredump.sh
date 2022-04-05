@@ -1,16 +1,36 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
-if [ "$(xtensa-esp32-elf-gcc -dumpversion)" = "5.2.0" ]; then
-    EXPECTED_OUTPUT="expected_output"
+function help() {
+  echo "Usage: bash test_espcoredump.sh [ELF_DIR]"
+}
+
+if [ -z "$1" ]; then
+  help
+  exit 1
 else
-    # GCC_NOT_5_2_0 just a hint to remove later
-    EXPECTED_OUTPUT="expected_output_new_CT"
+  elf_dir=$1
 fi
 
-{ coverage debug sys \
-    && coverage erase \
-    && coverage run -a --source=espcoredump ../espcoredump.py info_corefile -m -t b64 -c coredump.b64 test.elf &> output \
-    && diff ${EXPECTED_OUTPUT} output \
-    && coverage run -a --source=espcoredump ./test_espcoredump.py \
-    && coverage report \
-; } || { echo 'The test for espcoredump has failed!'; exit 1; }
+if ! command -v coverage &> /dev/null; then
+  echo "coverage could not be found, please install it ('pip install coverage')"
+  exit 1
+fi
+
+SUPPORTED_TARGETS=("esp32" "esp32s2" "esp32c3" "esp32s3" )
+res=0
+coverage erase
+for chip in "${SUPPORTED_TARGETS[@]}"; do
+  {
+    echo "run b64 decoding tests on $chip"
+    coverage run -a --source=corefile ../espcoredump.py --chip="$chip" --gdb-timeout-sec 5 info_corefile -m -t b64 -c "${chip}/coredump.b64" -s "${chip}/core.elf" "${elf_dir}/${chip}.elf" &>"${chip}/output" &&
+      diff "${chip}/expected_output" "${chip}/output" &&
+      coverage run -a --source=corefile ../espcoredump.py --chip="$chip" --gdb-timeout-sec 5 info_corefile -m -t elf -c "${chip}/core.elf" "${elf_dir}/${chip}.elf" &>"${chip}/output2" &&
+      diff "${chip}/expected_output" "${chip}/output2"
+  } || {
+    echo 'The test for espcoredump has failed!'
+    res=1
+  }
+done
+coverage run -a --source=corefile ./test_espcoredump.py
+coverage report ../corefile/*.py ../espcoredump.py
+exit $res

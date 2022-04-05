@@ -80,17 +80,6 @@ install/local/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
 .PHONY : install/local/fast
 
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -123,6 +112,17 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
+
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -157,34 +157,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/log/CMakeFiles/idf_component_log_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/log/CMakeFiles/idf_component_log_sections_info.dir/rule
-.PHONY : esp-idf/log/CMakeFiles/idf_component_log_sections_info.dir/rule
+esp-idf/log/CMakeFiles/__idf_log.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/log/CMakeFiles/__idf_log.dir/rule
+.PHONY : esp-idf/log/CMakeFiles/__idf_log.dir/rule
 
 # Convenience name for target.
-idf_component_log_sections_info: esp-idf/log/CMakeFiles/idf_component_log_sections_info.dir/rule
+__idf_log: esp-idf/log/CMakeFiles/__idf_log.dir/rule
 
-.PHONY : idf_component_log_sections_info
+.PHONY : __idf_log
 
 # fast build rule for target.
-idf_component_log_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/idf_component_log_sections_info.dir/build.make esp-idf/log/CMakeFiles/idf_component_log_sections_info.dir/build
-.PHONY : idf_component_log_sections_info/fast
-
-# Convenience name for target.
-esp-idf/log/CMakeFiles/idf_component_log.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/log/CMakeFiles/idf_component_log.dir/rule
-.PHONY : esp-idf/log/CMakeFiles/idf_component_log.dir/rule
-
-# Convenience name for target.
-idf_component_log: esp-idf/log/CMakeFiles/idf_component_log.dir/rule
-
-.PHONY : idf_component_log
-
-# fast build rule for target.
-idf_component_log/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/idf_component_log.dir/build.make esp-idf/log/CMakeFiles/idf_component_log.dir/build
-.PHONY : idf_component_log/fast
+__idf_log/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/__idf_log.dir/build.make esp-idf/log/CMakeFiles/__idf_log.dir/build
+.PHONY : __idf_log/fast
 
 log.obj: log.c.obj
 
@@ -192,7 +177,7 @@ log.obj: log.c.obj
 
 # target to build an object file
 log.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/idf_component_log.dir/build.make esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/__idf_log.dir/build.make esp-idf/log/CMakeFiles/__idf_log.dir/log.c.obj
 .PHONY : log.c.obj
 
 log.i: log.c.i
@@ -201,7 +186,7 @@ log.i: log.c.i
 
 # target to preprocess a source file
 log.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/idf_component_log.dir/build.make esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/__idf_log.dir/build.make esp-idf/log/CMakeFiles/__idf_log.dir/log.c.i
 .PHONY : log.c.i
 
 log.s: log.c.s
@@ -210,8 +195,62 @@ log.s: log.c.s
 
 # target to generate assembly for a file
 log.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/idf_component_log.dir/build.make esp-idf/log/CMakeFiles/idf_component_log.dir/log.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/__idf_log.dir/build.make esp-idf/log/CMakeFiles/__idf_log.dir/log.c.s
 .PHONY : log.c.s
+
+log_buffers.obj: log_buffers.c.obj
+
+.PHONY : log_buffers.obj
+
+# target to build an object file
+log_buffers.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/__idf_log.dir/build.make esp-idf/log/CMakeFiles/__idf_log.dir/log_buffers.c.obj
+.PHONY : log_buffers.c.obj
+
+log_buffers.i: log_buffers.c.i
+
+.PHONY : log_buffers.i
+
+# target to preprocess a source file
+log_buffers.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/__idf_log.dir/build.make esp-idf/log/CMakeFiles/__idf_log.dir/log_buffers.c.i
+.PHONY : log_buffers.c.i
+
+log_buffers.s: log_buffers.c.s
+
+.PHONY : log_buffers.s
+
+# target to generate assembly for a file
+log_buffers.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/__idf_log.dir/build.make esp-idf/log/CMakeFiles/__idf_log.dir/log_buffers.c.s
+.PHONY : log_buffers.c.s
+
+log_freertos.obj: log_freertos.c.obj
+
+.PHONY : log_freertos.obj
+
+# target to build an object file
+log_freertos.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/__idf_log.dir/build.make esp-idf/log/CMakeFiles/__idf_log.dir/log_freertos.c.obj
+.PHONY : log_freertos.c.obj
+
+log_freertos.i: log_freertos.c.i
+
+.PHONY : log_freertos.i
+
+# target to preprocess a source file
+log_freertos.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/__idf_log.dir/build.make esp-idf/log/CMakeFiles/__idf_log.dir/log_freertos.c.i
+.PHONY : log_freertos.c.i
+
+log_freertos.s: log_freertos.c.s
+
+.PHONY : log_freertos.s
+
+# target to generate assembly for a file
+log_freertos.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/log/CMakeFiles/__idf_log.dir/build.make esp-idf/log/CMakeFiles/__idf_log.dir/log_freertos.c.s
+.PHONY : log_freertos.c.s
 
 # Help Target
 help:
@@ -221,15 +260,20 @@ help:
 	@echo "... depend"
 	@echo "... install/strip"
 	@echo "... install/local"
-	@echo "... edit_cache"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... idf_component_log_sections_info"
-	@echo "... idf_component_log"
+	@echo "... edit_cache"
+	@echo "... __idf_log"
 	@echo "... log.obj"
 	@echo "... log.i"
 	@echo "... log.s"
+	@echo "... log_buffers.obj"
+	@echo "... log_buffers.i"
+	@echo "... log_buffers.s"
+	@echo "... log_freertos.obj"
+	@echo "... log_freertos.i"
+	@echo "... log_freertos.s"
 .PHONY : help
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright (c) 2014-2016, ARM Limited, All Rights Reserved
+# Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # This file is provided under the Apache License 2.0, or the
@@ -42,8 +42,6 @@
 #
 # **********
 #
-# This file is part of Mbed TLS (https://tls.mbed.org)
-#
 # Purpose
 #
 # Comments and uncomments #define lines in the given header file and optionally
@@ -68,8 +66,9 @@
 #
 # The baremetal configuration excludes options that require a library or
 # operating system feature that is typically not present on bare metal
-# systems. Features that are excluded from "full" won't be in "baremetal"
-# either.
+# systems. It also excludes debugging features that increase the code size
+# of other modules.
+# Features that are excluded from "full" won't be in "baremetal" either.
 
 use warnings;
 use strict;
@@ -128,6 +127,8 @@ MBEDTLS_REMOVE_3DES_CIPHERSUITES
 MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 MBEDTLS_RSA_NO_CRT
 MBEDTLS_SSL_HW_RECORD_ACCEL
+MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
+MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
 MBEDTLS_TEST_NULL_ENTROPY
 MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
 MBEDTLS_ZLIB_SUPPORT
@@ -136,6 +137,7 @@ _ALT\s*$
 
 # Things that should be disabled in "baremetal"
 my @excluded_baremetal = qw(
+MBEDTLS_DEBUG_C
 MBEDTLS_ENTROPY_NV_SEED
 MBEDTLS_FS_IO
 MBEDTLS_HAVEGE_C
@@ -147,6 +149,7 @@ MBEDTLS_NET_C
 MBEDTLS_PLATFORM_FPRINTF_ALT
 MBEDTLS_PLATFORM_NV_SEED_ALT
 MBEDTLS_PLATFORM_TIME_ALT
+MBEDTLS_TEST_HOOKS
 MBEDTLS_THREADING_C
 MBEDTLS_THREADING_PTHREAD
 MBEDTLS_TIMING_C

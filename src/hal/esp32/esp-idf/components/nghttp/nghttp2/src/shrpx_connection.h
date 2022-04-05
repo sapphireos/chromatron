@@ -45,17 +45,19 @@ namespace tls {
 struct TLSSessionCache;
 } // namespace tls
 
-enum {
-  TLS_CONN_NORMAL,
-  TLS_CONN_WAIT_FOR_SESSION_CACHE,
-  TLS_CONN_GOT_SESSION_CACHE,
-  TLS_CONN_CANCEL_SESSION_CACHE,
-  TLS_CONN_WRITE_STARTED,
+enum class TLSHandshakeState {
+  NORMAL,
+  WAIT_FOR_SESSION_CACHE,
+  GOT_SESSION_CACHE,
+  CANCEL_SESSION_CACHE,
+  WRITE_STARTED,
 };
 
 struct TLSConnection {
   DefaultMemchunks wbuf;
   DefaultPeekMemchunks rbuf;
+  // Stores TLSv1.3 early data.
+  DefaultMemchunks earlybuf;
   SSL *ssl;
   SSL_SESSION *cached_session;
   MemcachedRequest *cached_session_lookup_req;
@@ -66,7 +68,7 @@ struct TLSConnection {
   // required since these functions require the exact same parameters
   // on non-blocking I/O.
   size_t last_writelen, last_readlen;
-  int handshake_state;
+  TLSHandshakeState handshake_state;
   bool initial_handshake_done;
   bool reneg_started;
   // true if ssl is prepared to do handshake as server.
@@ -74,6 +76,12 @@ struct TLSConnection {
   // true if ssl is initialized as server, and client requested
   // signed_certificate_timestamp extension.
   bool sct_requested;
+  // true if TLSv1.3 early data has been completely received.  Since
+  // SSL_read_early_data acts like SSL_do_handshake, this field may be
+  // true even if the negotiated TLS version is TLSv1.2 or earlier.
+  // This value is also true if this is client side connection for
+  // convenience.
+  bool early_data_finish;
 };
 
 struct TCPHint {
@@ -92,7 +100,7 @@ struct Connection {
              const RateLimitConfig &write_limit,
              const RateLimitConfig &read_limit, IOCb writecb, IOCb readcb,
              TimerCb timeoutcb, void *data, size_t tls_dyn_rec_warmup_threshold,
-             ev_tstamp tls_dyn_rec_idle_timeout, shrpx_proto proto);
+             ev_tstamp tls_dyn_rec_idle_timeout, Proto proto);
   ~Connection();
 
   void disconnect();
@@ -161,7 +169,7 @@ struct Connection {
   // Application protocol used over the connection.  This field is not
   // used in this object at the moment.  The rest of the program may
   // use this value when it is useful.
-  shrpx_proto proto;
+  Proto proto;
   // The point of time when last read is observed.  Note: since we use
   // |rt| as idle timer, the activity is not limited to read.
   ev_tstamp last_read;

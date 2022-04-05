@@ -38,8 +38,8 @@ uint32_t hal_cpu_u32_get_internal_start( void );
 #define ENABLE_INTERRUPTS 
 #define DISABLE_INTERRUPTS
 
-#define ATOMIC unsigned __atomic_state = portENTER_CRITICAL_NESTED()
-#define END_ATOMIC portEXIT_CRITICAL_NESTED(__atomic_state)
+#define ATOMIC unsigned __atomic_state = portSET_INTERRUPT_MASK_FROM_ISR()
+#define END_ATOMIC portCLEAR_INTERRUPT_MASK_FROM_ISR(__atomic_state)
 
 #define FLASH_STRING(x) x
 #define FLASH_STRING_T const char*

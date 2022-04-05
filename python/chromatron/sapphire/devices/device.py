@@ -1581,7 +1581,11 @@ class Device(object):
         return f"File ID: {file_id}" 
 
     def cli_datalog_show(self, line):
-        data = self.get_datalog_config()
+        try:
+            data = self.get_datalog_config()
+
+        except OSError:
+            return
 
         s = '\nKey                     Rate (ms)\n'
 
@@ -1593,7 +1597,11 @@ class Device(object):
     def cli_datalog_reset(self, line):
         # get a copy of the datalog config file.
         # we can put that file back if we didn't want to reset!
-        self.get_datalog_config()
+        try:
+            self.get_datalog_config()
+
+        except OSError:
+            return
 
         # delete the file
         self.delete_file('datalog_config')

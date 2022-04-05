@@ -32,15 +32,17 @@
 
 #ifdef BOOTLOADER
 #include "bootloader_flash.h"
+#include "bootloader_flash_priv.h"
 #else
 #include "esp_spi_flash.h"
 #endif
 
 #include "esp_system.h"
 #include "esp_pm.h"
-#include "esp_clk.h"
-#include "rom/ets_sys.h"
-#include "rom/rtc.h"
+#include "esp32/clk.h"
+#include "esp_sleep.h"
+#include "esp32/rom/ets_sys.h"
+#include "esp32/rom/rtc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -231,7 +233,7 @@ void cpu_v_set_clock_speed_low( void ){
     pm_config.min_freq_mhz = 80;
     #endif
 
-    pm_config.light_sleep_enable = TRUE;
+    pm_config.light_sleep_enable = FALSE;
 
     esp_pm_configure( &pm_config );    
 
@@ -249,7 +251,7 @@ void cpu_v_set_clock_speed_high( void ){
     pm_config.min_freq_mhz = 240;
     #endif
 
-    pm_config.light_sleep_enable = TRUE;
+    pm_config.light_sleep_enable = FALSE;
 
     esp_pm_configure( &pm_config );    
 

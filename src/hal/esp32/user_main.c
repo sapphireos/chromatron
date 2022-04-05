@@ -54,6 +54,8 @@ void sapphire_main()
     esp_log_level_set("*", ESP_LOG_INFO);
     // esp_log_level_set("*", ESP_LOG_VERBOSE);
     // esp_log_level_set("*", ESP_LOG_DEBUG);
+
+    esp_log_level_set("gpio", ESP_LOG_NONE);
     #endif
 
     // sapphireos init

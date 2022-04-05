@@ -1,7 +1,7 @@
 /*
  *  DTLS cookie callbacks implementation
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -42,8 +42,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
  * These session callbacks use a simple chained list
@@ -252,15 +250,18 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR +
+        ret = ( MBEDTLS_ERR_SSL_INTERNAL_ERROR +
                 MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
     if( ret != 0 )
-        return( ret );
+        goto exit;
 
     if( mbedtls_ssl_safer_memcmp( cookie + 4, ref_hmac, sizeof( ref_hmac ) ) != 0 )
-        return( -1 );
+    {
+        ret = -1;
+        goto exit;
+    }
 
 #if defined(MBEDTLS_HAVE_TIME)
     cur_time = (unsigned long) mbedtls_time( NULL );
@@ -274,8 +275,13 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
                   ( (unsigned long) cookie[3]       );
 
     if( ctx->timeout != 0 && cur_time - cookie_time > ctx->timeout )
-        return( -1 );
+    {
+        ret = -1;
+        goto exit;
+    }
 
-    return( 0 );
+exit:
+    mbedtls_platform_zeroize( ref_hmac, sizeof( ref_hmac ) );
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_COOKIE_C */

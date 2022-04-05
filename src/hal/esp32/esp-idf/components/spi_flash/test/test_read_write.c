@@ -1,16 +1,8 @@
-// Copyright 2010-2016 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2010-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 // Test for spi_flash_{read,write}.
 
@@ -23,17 +15,28 @@
 #include <unity.h>
 #include <test_utils.h>
 #include <esp_spi_flash.h>
-#include <rom/spi_flash.h>
 #include "../cache_utils.h"
-#include "soc/timer_group_struct.h"
-#include "soc/timer_group_reg.h"
+#include "soc/timer_periph.h"
 #include "esp_heap_caps.h"
+
+#if CONFIG_IDF_TARGET_ESP32
+#include "esp32/rom/spi_flash.h"
+#elif CONFIG_IDF_TARGET_ESP32S2
+#include "esp32s2/rom/spi_flash.h"
+#elif CONFIG_IDF_TARGET_ESP32S3
+#include "esp32s3/rom/spi_flash.h"
+#elif CONFIG_IDF_TARGET_ESP32C3
+#include "esp32c3/rom/spi_flash.h"
+#elif CONFIG_IDF_TARGET_ESP32H2
+#include "esp32h2/rom/spi_flash.h"
+#endif
 
 #define MIN_BLOCK_SIZE  12
 /* Base offset in flash for tests. */
+
 static size_t start;
 
-static void setup_tests()
+static void setup_tests(void)
 {
     if (start == 0) {
         const esp_partition_t *part = get_test_data_partition();
@@ -69,6 +72,7 @@ static int cmp_or_dump(const void *a, const void *b, size_t len)
     return r;
 }
 
+
 static void IRAM_ATTR test_read(int src_off, int dst_off, int len)
 {
     uint32_t src_buf[16];
@@ -81,7 +85,7 @@ static void IRAM_ATTR test_read(int src_off, int dst_off, int len)
     spi_flash_disable_interrupts_caches_and_other_cpu();
     esp_rom_spiflash_result_t rc = esp_rom_spiflash_write(start, src_buf, sizeof(src_buf));
     spi_flash_enable_interrupts_caches_and_other_cpu();
-    TEST_ASSERT_EQUAL_INT(rc, ESP_ROM_SPIFLASH_RESULT_OK);
+    TEST_ASSERT_EQUAL_HEX(rc, ESP_ROM_SPIFLASH_RESULT_OK);
     memset(dst_buf, 0x55, sizeof(dst_buf));
     memset(dst_gold, 0x55, sizeof(dst_gold));
     fill(dst_gold + dst_off, src_off, len);
@@ -89,7 +93,7 @@ static void IRAM_ATTR test_read(int src_off, int dst_off, int len)
     TEST_ASSERT_EQUAL_INT(cmp_or_dump(dst_buf, dst_gold, sizeof(dst_buf)), 0);
 }
 
-TEST_CASE("Test spi_flash_read", "[spi_flash]")
+TEST_CASE("Test spi_flash_read", "[spi_flash][esp_flash]")
 {
     setup_tests();
 #if CONFIG_SPI_FLASH_MINIMAL_TEST
@@ -140,6 +144,66 @@ TEST_CASE("Test spi_flash_read", "[spi_flash]")
 #endif
 }
 
+extern void spi_common_set_dummy_output(esp_rom_spiflash_read_mode_t mode);
+extern void spi_dummy_len_fix(uint8_t spi, uint8_t freqdiv);
+static void IRAM_ATTR fix_rom_func(void)
+{
+    uint32_t freqdiv = 0;
+
+#if CONFIG_ESPTOOLPY_FLASHFREQ_80M && !CONFIG_ESPTOOLPY_OCT_FLASH
+    freqdiv = 1;
+#elif CONFIG_ESPTOOLPY_FLASHFREQ_80M && CONFIG_ESPTOOLPY_OCT_FLASH
+    freqdiv = 2;
+#elif CONFIG_ESPTOOLPY_FLASHFREQ_40M
+    freqdiv = 2;
+#elif CONFIG_ESPTOOLPY_FLASHFREQ_26M
+    freqdiv = 3;
+#elif CONFIG_ESPTOOLPY_FLASHFREQ_20M
+    freqdiv = 4;
+#elif CONFIG_ESPTOOLPY_FLASHFREQ_120M
+    freqdiv = 2;
+#endif
+
+#if CONFIG_IDF_TARGET_ESP32
+    uint32_t dummy_bit = 0;
+#if CONFIG_ESPTOOLPY_FLASHFREQ_80M
+    dummy_bit = ESP_ROM_SPIFLASH_DUMMY_LEN_PLUS_80M;
+#elif CONFIG_ESPTOOLPY_FLASHFREQ_40M
+    dummy_bit = ESP_ROM_SPIFLASH_DUMMY_LEN_PLUS_40M;
+#elif CONFIG_ESPTOOLPY_FLASHFREQ_26M
+    dummy_bit = ESP_ROM_SPIFLASH_DUMMY_LEN_PLUS_26M;
+#elif CONFIG_ESPTOOLPY_FLASHFREQ_20M
+    dummy_bit = ESP_ROM_SPIFLASH_DUMMY_LEN_PLUS_20M;
+#endif
+    g_rom_spiflash_dummy_len_plus[1] = dummy_bit;
+#else
+    spi_dummy_len_fix(1, freqdiv);
+#endif//CONFIG_IDF_TARGET_ESP32
+
+    esp_rom_spiflash_read_mode_t read_mode;
+#if CONFIG_ESPTOOLPY_FLASHMODE_QIO
+    read_mode = ESP_ROM_SPIFLASH_QIO_MODE;
+#elif CONFIG_ESPTOOLPY_FLASHMODE_QOUT
+    read_mode = ESP_ROM_SPIFLASH_QOUT_MODE;
+#elif CONFIG_ESPTOOLPY_FLASHMODE_DIO
+    read_mode = ESP_ROM_SPIFLASH_DIO_MODE;
+#elif CONFIG_ESPTOOLPY_FLASHMODE_DOUT
+    read_mode = ESP_ROM_SPIFLASH_DOUT_MODE;
+#elif CONFIG_ESPTOOLPY_FLASH_SAMPLE_MODE_STR
+    read_mode = ESP_ROM_SPIFLASH_OPI_STR_MODE;
+#elif CONFIG_ESPTOOLPY_FLASH_SAMPLE_MODE_DTR
+    read_mode = ESP_ROM_SPIFLASH_OPI_DTR_MODE;
+#endif
+
+#if !CONFIG_IDF_TARGET_ESP32S2 && !CONFIG_IDF_TARGET_ESP32
+    spi_common_set_dummy_output(read_mode);
+#endif //!CONFIG_IDF_TARGET_ESP32S2
+    esp_rom_spiflash_config_clk(freqdiv, 1);
+#if !CONFIG_ESPTOOLPY_OCT_FLASH
+    esp_rom_spiflash_config_readmode(read_mode);
+#endif
+}
+
 static void IRAM_ATTR test_write(int dst_off, int src_off, int len)
 {
     char src_buf[64], dst_gold[64];
@@ -160,14 +224,18 @@ static void IRAM_ATTR test_write(int dst_off, int src_off, int len)
         fill(dst_gold + dst_off, src_off, len);
     }
     ESP_ERROR_CHECK(spi_flash_write(start + dst_off, src_buf + src_off, len));
+
+    fix_rom_func();
+
     spi_flash_disable_interrupts_caches_and_other_cpu();
     esp_rom_spiflash_result_t rc = esp_rom_spiflash_read(start, dst_buf, sizeof(dst_buf));
     spi_flash_enable_interrupts_caches_and_other_cpu();
-    TEST_ASSERT_EQUAL_INT(rc, ESP_ROM_SPIFLASH_RESULT_OK);
+    TEST_ASSERT_EQUAL_HEX(rc, ESP_ROM_SPIFLASH_RESULT_OK);
+
     TEST_ASSERT_EQUAL_INT(cmp_or_dump(dst_buf, dst_gold, sizeof(dst_buf)), 0);
 }
 
-TEST_CASE("Test spi_flash_write", "[spi_flash]")
+TEST_CASE("Test spi_flash_write", "[spi_flash][esp_flash]")
 {
     setup_tests();
 #if CONFIG_SPI_FLASH_MINIMAL_TEST
@@ -214,13 +282,32 @@ TEST_CASE("Test spi_flash_write", "[spi_flash]")
      * NB: At the moment these only support aligned addresses, because memcpy
      * is not aware of the 32-but load requirements for these regions.
      */
+#if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32C3
+#define TEST_SOC_IROM_ADDR              (SOC_IROM_LOW)
+#define TEST_SOC_CACHE_RAM_BANK0_ADDR   (SOC_IRAM_LOW)
+#define TEST_SOC_CACHE_RAM_BANK1_ADDR   (SOC_IRAM_LOW + 0x2000)
+#define TEST_SOC_CACHE_RAM_BANK2_ADDR   (SOC_IRAM_LOW + 0x4000)
+#define TEST_SOC_CACHE_RAM_BANK3_ADDR   (SOC_IRAM_LOW + 0x6000)
+#define TEST_SOC_IRAM_ADDR              (SOC_IRAM_LOW + 0x8000)
+#define TEST_SOC_RTC_IRAM_ADDR          (SOC_RTC_IRAM_LOW)
+#define TEST_SOC_RTC_DRAM_ADDR          (SOC_RTC_DRAM_LOW)
+    ESP_ERROR_CHECK(spi_flash_write(start, (char *) TEST_SOC_IROM_ADDR, 16));
+    ESP_ERROR_CHECK(spi_flash_write(start, (char *) TEST_SOC_IRAM_ADDR, 16));
+    ESP_ERROR_CHECK(spi_flash_write(start, (char *) TEST_SOC_CACHE_RAM_BANK0_ADDR, 16));
+    ESP_ERROR_CHECK(spi_flash_write(start, (char *) TEST_SOC_CACHE_RAM_BANK1_ADDR, 16));
+    ESP_ERROR_CHECK(spi_flash_write(start, (char *) TEST_SOC_CACHE_RAM_BANK2_ADDR, 16));
+    ESP_ERROR_CHECK(spi_flash_write(start, (char *) TEST_SOC_CACHE_RAM_BANK3_ADDR, 16));
+    ESP_ERROR_CHECK(spi_flash_write(start, (char *) TEST_SOC_RTC_IRAM_ADDR, 16));
+    ESP_ERROR_CHECK(spi_flash_write(start, (char *) TEST_SOC_RTC_DRAM_ADDR, 16));
+#else
     ESP_ERROR_CHECK(spi_flash_write(start, (char *) 0x40000000, 16));
     ESP_ERROR_CHECK(spi_flash_write(start, (char *) 0x40070000, 16));
     ESP_ERROR_CHECK(spi_flash_write(start, (char *) 0x40078000, 16));
     ESP_ERROR_CHECK(spi_flash_write(start, (char *) 0x40080000, 16));
+#endif
 }
 
-#ifdef CONFIG_SPIRAM_SUPPORT
+#ifdef CONFIG_SPIRAM
 
 TEST_CASE("spi_flash_read can read into buffer in external RAM", "[spi_flash]")
 {
@@ -298,4 +385,4 @@ TEST_CASE("spi_flash_read less than 16 bytes into buffer in external RAM", "[spi
     }
 }
 
-#endif // CONFIG_ESP32_SPIRAM_SUPPORT
+#endif // CONFIG_SPIRAM

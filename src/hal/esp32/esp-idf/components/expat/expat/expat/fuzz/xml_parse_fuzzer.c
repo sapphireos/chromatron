@@ -32,14 +32,19 @@
 #  error "ENCODING_FOR_FUZZING was not provided to this fuzz target."
 #endif
 
-// 16-byte determinstic hash key.
+// 16-byte deterministic hash key.
 static unsigned char hash_key[16] = "FUZZING IS FUN!";
 
 static void XMLCALL
 start(void *userData, const XML_Char *name, const XML_Char **atts) {
+  (void)userData;
+  (void)name;
+  (void)atts;
 }
 static void XMLCALL
 end(void *userData, const XML_Char *name) {
+  (void)userData;
+  (void)name;
 }
 
 int

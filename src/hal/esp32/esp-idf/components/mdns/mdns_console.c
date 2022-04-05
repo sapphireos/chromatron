@@ -24,7 +24,7 @@ static void mdns_print_results(mdns_result_t * results)
 {
     mdns_result_t * r = results;
     mdns_ip_addr_t * a = NULL;
-    int i = 1, t;
+    int i = 1;
     while (r) {
         printf("%d: Interface: %s, Type: %s\n", i++, if_str[r->tcpip_if], ip_protocol_str[r->ip_protocol]);
         if (r->instance_name) {
@@ -35,14 +35,14 @@ static void mdns_print_results(mdns_result_t * results)
         }
         if (r->txt_count) {
             printf("  TXT : [%u] ", r->txt_count);
-            for (t=0; t<r->txt_count; t++) {
+            for (size_t t=0; t<r->txt_count; t++) {
                 printf("%s=%s; ", r->txt[t].key, r->txt[t].value);
             }
             printf("\n");
         }
         a = r->addr;
         while (a) {
-            if (a->addr.type == IPADDR_TYPE_V6) {
+            if (a->addr.type == ESP_IPADDR_TYPE_V6) {
                 printf("  AAAA: " IPV6STR "\n", IPV62STR(a->addr.u_addr.ip6));
             } else {
                 printf("  A   : " IPSTR "\n", IP2STR(&(a->addr.u_addr.ip4)));
@@ -81,7 +81,7 @@ static int cmd_mdns_query_a(int argc, char** argv)
 
     printf("Query A: %s.local, Timeout: %d\n", hostname, timeout);
 
-    struct ip4_addr addr;
+    struct esp_ip4_addr addr;
     addr.addr = 0;
 
     esp_err_t err = mdns_query_a(hostname, timeout,  &addr);
@@ -99,7 +99,7 @@ static int cmd_mdns_query_a(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_query_a()
+static void register_mdns_query_a(void)
 {
     mdns_query_a_args.hostname = arg_str1(NULL, NULL, "<hostname>", "Hostname that is searched for");
     mdns_query_a_args.timeout = arg_int0("t", "timeout", "<timeout>", "Timeout for this query");
@@ -116,6 +116,7 @@ static void register_mdns_query_a()
     ESP_ERROR_CHECK( esp_console_cmd_register(&cmd_init) );
 }
 
+#if CONFIG_LWIP_IPV6
 static int cmd_mdns_query_aaaa(int argc, char** argv)
 {
     int nerrors = arg_parse(argc, argv, (void**) &mdns_query_a_args);
@@ -138,7 +139,7 @@ static int cmd_mdns_query_aaaa(int argc, char** argv)
 
     printf("Query AAAA: %s.local, Timeout: %d\n", hostname, timeout);
 
-    struct ip6_addr addr;
+    struct esp_ip6_addr addr;
     memset(addr.addr, 0, 16);
 
     esp_err_t err = mdns_query_aaaa(hostname, timeout,  &addr);
@@ -156,7 +157,7 @@ static int cmd_mdns_query_aaaa(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_query_aaaa()
+static void register_mdns_query_aaaa(void)
 {
     mdns_query_a_args.hostname = arg_str1(NULL, NULL, "<hostname>", "Hostname that is searched for");
     mdns_query_a_args.timeout = arg_int0("t", "timeout", "<timeout>", "Timeout for this query");
@@ -172,6 +173,7 @@ static void register_mdns_query_aaaa()
 
     ESP_ERROR_CHECK( esp_console_cmd_register(&cmd_init) );
 }
+#endif
 
 static struct {
     struct arg_str *instance;
@@ -215,7 +217,7 @@ static int cmd_mdns_query_srv(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_query_srv()
+static void register_mdns_query_srv(void)
 {
     mdns_query_srv_args.instance = arg_str1(NULL, NULL, "<instance>", "Instance to search for");
     mdns_query_srv_args.service = arg_str1(NULL, NULL, "<service>", "Service to search for (ex. _http, _smb, etc.)");
@@ -277,7 +279,7 @@ static int cmd_mdns_query_txt(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_query_txt()
+static void register_mdns_query_txt(void)
 {
     mdns_query_txt_args.instance = arg_str1(NULL, NULL, "<instance>", "Instance to search for");
     mdns_query_txt_args.service = arg_str1(NULL, NULL, "<service>", "Service to search for (ex. _http, _smb, etc.)");
@@ -343,7 +345,7 @@ static int cmd_mdns_query_ptr(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_query_ptr()
+static void register_mdns_query_ptr(void)
 {
     mdns_query_ptr_args.service = arg_str1(NULL, NULL, "<service>", "Service to search for (ex. _http, _smb, etc.)");
     mdns_query_ptr_args.proto = arg_str1(NULL, NULL, "<proto>", "Protocol to search for (_tcp, _udp, etc.)");
@@ -412,7 +414,7 @@ static int cmd_mdns_query_ip(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_query_ip()
+static void register_mdns_query_ip(void)
 {
     mdns_query_ip_args.hostname = arg_str1(NULL, NULL, "<hostname>", "Hostname that is searched for");
     mdns_query_ip_args.timeout = arg_int0("t", "timeout", "<timeout>", "Timeout for this query");
@@ -479,7 +481,7 @@ static int cmd_mdns_query_svc(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_query_svc()
+static void register_mdns_query_svc(void)
 {
     mdns_query_svc_args.instance = arg_str1(NULL, NULL, "<instance>", "Instance to search for");
     mdns_query_svc_args.service = arg_str1(NULL, NULL, "<service>", "Service to search for (ex. _http, _smb, etc.)");
@@ -528,7 +530,7 @@ static int cmd_mdns_init(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_init()
+static void register_mdns_init(void)
 {
     mdns_init_args.hostname = arg_str0("h", "hostname", "<hostname>", "Hostname that the server will advertise");
     mdns_init_args.instance = arg_str0("i", "instance", "<instance>", "Default instance name for services");
@@ -551,7 +553,7 @@ static int cmd_mdns_free(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_free()
+static void register_mdns_free(void)
 {
     const esp_console_cmd_t cmd_free = {
         .command = "mdns_free",
@@ -586,7 +588,7 @@ static int cmd_mdns_set_hostname(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_set_hostname()
+static void register_mdns_set_hostname(void)
 {
     mdns_set_hostname_args.hostname = arg_str1(NULL, NULL, "<hostname>", "Hostname that the server will advertise");
     mdns_set_hostname_args.end = arg_end(2);
@@ -624,7 +626,7 @@ static int cmd_mdns_set_instance(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_set_instance()
+static void register_mdns_set_instance(void)
 {
     mdns_set_instance_args.instance = arg_str1(NULL, NULL, "<instance>", "Default instance name for services");
     mdns_set_instance_args.end = arg_end(2);
@@ -733,7 +735,7 @@ static int cmd_mdns_service_add(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_service_add()
+static void register_mdns_service_add(void)
 {
     mdns_add_args.service = arg_str1(NULL, NULL, "<service>", "MDNS Service");
     mdns_add_args.proto = arg_str1(NULL, NULL, "<proto>", "IP Protocol");
@@ -776,7 +778,7 @@ static int cmd_mdns_service_remove(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_service_remove()
+static void register_mdns_service_remove(void)
 {
     mdns_remove_args.service = arg_str1(NULL, NULL, "<service>", "MDNS Service");
     mdns_remove_args.proto = arg_str1(NULL, NULL, "<proto>", "IP Protocol");
@@ -817,7 +819,7 @@ static int cmd_mdns_service_instance_set(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_service_instance_set()
+static void register_mdns_service_instance_set(void)
 {
     mdns_service_instance_set_args.service = arg_str1(NULL, NULL, "<service>", "MDNS Service");
     mdns_service_instance_set_args.proto = arg_str1(NULL, NULL, "<proto>", "IP Protocol");
@@ -858,7 +860,7 @@ static int cmd_mdns_service_port_set(int argc, char** argv) {
     return 0;
 }
 
-static void register_mdns_service_port_set()
+static void register_mdns_service_port_set(void)
 {
     mdns_service_port_set_args.service = arg_str1(NULL, NULL, "<service>", "MDNS Service");
     mdns_service_port_set_args.proto = arg_str1(NULL, NULL, "<proto>", "IP Protocol");
@@ -910,7 +912,7 @@ static int cmd_mdns_service_txt_replace(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_service_txt_replace()
+static void register_mdns_service_txt_replace(void)
 {
     mdns_txt_replace_args.service = arg_str1(NULL, NULL, "<service>", "MDNS Service");
     mdns_txt_replace_args.proto = arg_str1(NULL, NULL, "<proto>", "IP Protocol");
@@ -953,7 +955,7 @@ static int cmd_mdns_service_txt_set(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_service_txt_set()
+static void register_mdns_service_txt_set(void)
 {
     mdns_txt_set_args.service = arg_str1(NULL, NULL, "<service>", "MDNS Service");
     mdns_txt_set_args.proto = arg_str1(NULL, NULL, "<proto>", "IP Protocol");
@@ -996,7 +998,7 @@ static int cmd_mdns_service_txt_remove(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_service_txt_remove()
+static void register_mdns_service_txt_remove(void)
 {
     mdns_txt_remove_args.service = arg_str1(NULL, NULL, "<service>", "MDNS Service");
     mdns_txt_remove_args.proto = arg_str1(NULL, NULL, "<proto>", "IP Protocol");
@@ -1020,7 +1022,7 @@ static int cmd_mdns_service_remove_all(int argc, char** argv)
     return 0;
 }
 
-static void register_mdns_service_remove_all()
+static void register_mdns_service_remove_all(void)
 {
     const esp_console_cmd_t cmd_free = {
         .command = "mdns_service_remove_all",
@@ -1033,7 +1035,7 @@ static void register_mdns_service_remove_all()
     ESP_ERROR_CHECK( esp_console_cmd_register(&cmd_free) );
 }
 
-void mdns_console_register()
+void mdns_console_register(void)
 {
     register_mdns_init();
     register_mdns_free();
@@ -1049,7 +1051,9 @@ void mdns_console_register()
     register_mdns_service_remove_all();
 
     register_mdns_query_a();
+#if CONFIG_LWIP_IPV6
     register_mdns_query_aaaa();
+#endif
     register_mdns_query_txt();
     register_mdns_query_srv();
     register_mdns_query_ptr();
@@ -1057,4 +1061,3 @@ void mdns_console_register()
     register_mdns_query_ip();
     register_mdns_query_svc();
 }
-

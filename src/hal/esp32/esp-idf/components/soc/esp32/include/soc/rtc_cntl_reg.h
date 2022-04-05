@@ -17,6 +17,15 @@
 /* The value that needs to be written to RTC_CNTL_WDT_WKEY to write-enable the wdt registers */
 #define RTC_CNTL_WDT_WKEY_VALUE 0x50D83AA1
 
+/* Possible values for RTC_CNTL_WDT_CPU_RESET_LENGTH and RTC_CNTL_WDT_SYS_RESET_LENGTH */
+#define RTC_WDT_RESET_LENGTH_100_NS    0
+#define RTC_WDT_RESET_LENGTH_200_NS    1
+#define RTC_WDT_RESET_LENGTH_300_NS    2
+#define RTC_WDT_RESET_LENGTH_400_NS    3
+#define RTC_WDT_RESET_LENGTH_500_NS    4
+#define RTC_WDT_RESET_LENGTH_800_NS    5
+#define RTC_WDT_RESET_LENGTH_1600_NS   6
+#define RTC_WDT_RESET_LENGTH_3200_NS   7
 
 #include "soc.h"
 #define RTC_CNTL_OPTIONS0_REG          (DR_REG_RTCCNTL_BASE + 0x0)
@@ -2035,23 +2044,23 @@
 #define RTC_MEM_CRC_FINISH      (BIT(31))
 #define RTC_MEM_CRC_FINISH_M    (BIT(31))
 #define RTC_MEM_CRC_FINISH_V    0x1
-#define RTC_MEM_CRC_FINISH_S    (31)
+#define RTC_MEM_CRC_FINISH_S    31
 #define RTC_MEM_CRC_LEN         (0x7ff)
 #define RTC_MEM_CRC_LEN_M       ((RTC_MEM_CRC_LEN_V)<<(RTC_MEM_CRC_LEN_S))
-#define RTC_MEM_CRC_LEN_V       (0x7ff)
-#define RTC_MEM_CRC_LEN_S       (20)
-#define RTC_MEM_CRC_ADDR        (0x7ff)
+#define RTC_MEM_CRC_LEN_V       0x7ff
+#define RTC_MEM_CRC_LEN_S       20
+#define RTC_MEM_CRC_ADDR        0x7ff
 #define RTC_MEM_CRC_ADDR_M      ((RTC_MEM_CRC_ADDR_V)<<(RTC_MEM_CRC_ADDR_S))
-#define RTC_MEM_CRC_ADDR_V      (0x7ff)
-#define RTC_MEM_CRC_ADDR_S      (9)
+#define RTC_MEM_CRC_ADDR_V      0x7ff
+#define RTC_MEM_CRC_ADDR_S      9
 #define RTC_MEM_CRC_START       (BIT(8))
 #define RTC_MEM_CRC_START_M     (BIT(8))
 #define RTC_MEM_CRC_START_V     0x1
-#define RTC_MEM_CRC_START_S     (8)
-#define RTC_MEM_PID_CONF        (0xff)
-#define RTC_MEM_PID_CONF_M      (0xff)
-#define RTC_MEM_PID_CONF_V      (0xff)
-#define RTC_MEM_PID_CONF_S      (0)
+#define RTC_MEM_CRC_START_S     8
+#define RTC_MEM_PID_CONF        0xff
+#define RTC_MEM_PID_CONF_M      0xff
+#define RTC_MEM_PID_CONF_V      0xff
+#define RTC_MEM_PID_CONF_S      0
 
 #define RTC_MEM_CRC_RES         (DR_REG_RTCCNTL_BASE + 0x41 * 4)
 
@@ -2068,5 +2077,3 @@
 
 
 #endif /*_SOC_RTC_CNTL_REG_H_ */
-
-

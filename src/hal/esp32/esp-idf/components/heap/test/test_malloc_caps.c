@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <sys/param.h>
 
+#ifndef CONFIG_ESP_SYSTEM_MEMPROT_FEATURE
 TEST_CASE("Capabilities allocator test", "[heap]")
 {
     char *m1, *m2[10];
@@ -24,7 +25,7 @@ TEST_CASE("Capabilities allocator test", "[heap]")
     free8start = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     free32start = heap_caps_get_free_size(MALLOC_CAP_32BIT);
     printf("Free 8bit-capable memory (start): %dK, 32-bit capable memory %dK\n", free8start, free32start);
-    TEST_ASSERT(free32start>free8start);
+    TEST_ASSERT(free32start >= free8start);
 
     printf("Allocating 10K of 8-bit capable RAM\n");
     m1= heap_caps_malloc(10*1024, MALLOC_CAP_8BIT);
@@ -33,8 +34,8 @@ TEST_CASE("Capabilities allocator test", "[heap]")
     free32 = heap_caps_get_free_size(MALLOC_CAP_32BIT);
     printf("Free 8bit-capable memory (both reduced): %dK, 32-bit capable memory %dK\n", free8, free32);
     //Both should have gone down by 10K; 8bit capable ram is also 32-bit capable
-    TEST_ASSERT(free8<(free8start-10*1024));
-    TEST_ASSERT(free32<(free32start-10*1024));
+    TEST_ASSERT(free8<=(free8start-10*1024));
+    TEST_ASSERT(free32<=(free32start-10*1024));
     //Assume we got DRAM back
     TEST_ASSERT((((int)m1)&0xFF000000)==0x3F000000);
     free(m1);
@@ -44,48 +45,94 @@ TEST_CASE("Capabilities allocator test", "[heap]")
     size_t free_iram = heap_caps_get_free_size(MALLOC_CAP_INTERNAL) -
                            heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
     size_t alloc32 = MIN(free_iram / 2, 10*1024) & (~3);
-    printf("Freeing; allocating %u bytes of 32K-capable RAM\n", alloc32);
-    m1 = heap_caps_malloc(alloc32, MALLOC_CAP_32BIT);
-    printf("--> %p\n", m1);
-    //Check that we got IRAM back
-    TEST_ASSERT((((int)m1)&0xFF000000)==0x40000000);
-    free8 = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-    free32 = heap_caps_get_free_size(MALLOC_CAP_32BIT);
-    printf("Free 8bit-capable memory (after 32-bit): %dK, 32-bit capable memory %dK\n", free8, free32);
-    //Only 32-bit should have gone down by alloc32: 32-bit isn't necessarily 8bit capable
-    TEST_ASSERT(free32<(free32start-alloc32));
-    TEST_ASSERT(free8==free8start);
-    free(m1);
+    if(free_iram) {
+        printf("Freeing; allocating %u bytes of 32K-capable RAM\n", alloc32);
+        m1 = heap_caps_malloc(alloc32, MALLOC_CAP_32BIT);
+        printf("--> %p\n", m1);
+        //Check that we got IRAM back
+        TEST_ASSERT((((int)m1)&0xFF000000)==0x40000000);
+        free8 = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+        free32 = heap_caps_get_free_size(MALLOC_CAP_32BIT);
+        printf("Free 8bit-capable memory (after 32-bit): %dK, 32-bit capable memory %dK\n", free8, free32);
+        //Only 32-bit should have gone down by alloc32: 32-bit isn't necessarily 8bit capable
+        TEST_ASSERT(free32<=(free32start-alloc32));
+        TEST_ASSERT(free8==free8start);
+        free(m1);
+    } else {
+        printf("This platform has no 32-bit only capable RAM, jumping to next test \n");
+    }
 
     printf("Allocating impossible caps\n");
     m1= heap_caps_malloc(10*1024, MALLOC_CAP_8BIT|MALLOC_CAP_EXEC);
     printf("--> %p\n", m1);
     TEST_ASSERT(m1==NULL);
-    printf("Testing changeover iram -> dram");
-    // priorities will exhaust IRAM first, then start allocating from DRAM
-    for (x=0; x<10; x++) {
-        m2[x]= heap_caps_malloc(alloc32, MALLOC_CAP_32BIT);
-        printf("--> %p\n", m2[x]);
+
+    if(free_iram) {
+        printf("Testing changeover iram -> dram");
+        // priorities will exhaust IRAM first, then start allocating from DRAM
+        for (x=0; x<10; x++) {
+            m2[x]= heap_caps_malloc(alloc32, MALLOC_CAP_32BIT);
+            printf("--> %p\n", m2[x]);
+        }
+        TEST_ASSERT((((int)m2[0])&0xFF000000)==0x40000000);
+        TEST_ASSERT((((int)m2[9])&0xFF000000)==0x3F000000);
+
+    } else {
+        printf("This platform has no IRAM-only so changeover will never occur, jumping to next test\n");
     }
-    TEST_ASSERT((((int)m2[0])&0xFF000000)==0x40000000);
-    TEST_ASSERT((((int)m2[9])&0xFF000000)==0x3F000000);
+
     printf("Test if allocating executable code still gives IRAM, even with dedicated IRAM region depleted\n");
-    // (the allocation should come from D/IRAM)
-    free_iram = heap_caps_get_free_size(MALLOC_CAP_EXEC);
-    m1= heap_caps_malloc(MIN(free_iram / 2, 10*1024), MALLOC_CAP_EXEC);
-    printf("--> %p\n", m1);
-    TEST_ASSERT((((int)m1)&0xFF000000)==0x40000000);
+    if(free_iram) {
+        // (the allocation should come from D/IRAM)
+        free_iram = heap_caps_get_free_size(MALLOC_CAP_EXEC);
+        m1= heap_caps_malloc(MIN(free_iram / 2, 10*1024), MALLOC_CAP_EXEC);
+        printf("--> %p\n", m1);
+        TEST_ASSERT((((int)m1)&0xFF000000)==0x40000000);
+        for (x=0; x<10; x++) free(m2[x]);
+
+    } else {
+        // (the allocation should come from D/IRAM)
+        free_iram = heap_caps_get_free_size(MALLOC_CAP_EXEC);
+        m1= heap_caps_malloc(MIN(free_iram / 2, 10*1024), MALLOC_CAP_EXEC);
+        printf("--> %p\n", m1);
+        TEST_ASSERT((((int)m1)&0xFF000000)==0x40000000);
+    }
+
     free(m1);
-    for (x=0; x<10; x++) free(m2[x]);
     printf("Done.\n");
 }
+#endif
+
+#ifdef CONFIG_ESP32_IRAM_AS_8BIT_ACCESSIBLE_MEMORY
+TEST_CASE("IRAM_8BIT capability test", "[heap]")
+{
+    uint8_t *ptr;
+    size_t free_size, free_size32, largest_free_size;
+
+    /* need to print something as first printf allocates some heap */
+    printf("IRAM_8BIT capability test\n");
+
+    free_size = heap_caps_get_free_size(MALLOC_CAP_IRAM_8BIT);
+    free_size32 = heap_caps_get_free_size(MALLOC_CAP_32BIT);
+
+    largest_free_size = heap_caps_get_largest_free_block(MALLOC_CAP_IRAM_8BIT);
+
+    ptr = heap_caps_malloc(largest_free_size, MALLOC_CAP_IRAM_8BIT);
+
+    TEST_ASSERT((((int)ptr)&0xFF000000)==0x40000000);
+
+    TEST_ASSERT(heap_caps_get_free_size(MALLOC_CAP_IRAM_8BIT) == (free_size - heap_caps_get_allocated_size(ptr)));
+    TEST_ASSERT(heap_caps_get_free_size(MALLOC_CAP_32BIT) == (free_size32 - heap_caps_get_allocated_size(ptr)));
+
+    free(ptr);
+}
+#endif
 
 TEST_CASE("heap_caps metadata test", "[heap]")
 {
     /* need to print something as first printf allocates some heap */
     printf("heap_caps metadata test\n");
     heap_caps_print_heap_info(MALLOC_CAP_8BIT);
-    heap_caps_print_heap_info(MALLOC_CAP_32BIT);
 
     multi_heap_info_t original;
     heap_caps_get_info(&original, MALLOC_CAP_8BIT);
@@ -98,11 +145,15 @@ TEST_CASE("heap_caps metadata test", "[heap]")
 
     multi_heap_info_t after;
     heap_caps_get_info(&after, MALLOC_CAP_8BIT);
-    TEST_ASSERT(after.largest_free_block < original.largest_free_block);
-    TEST_ASSERT(after.total_free_bytes < original.total_free_bytes);
+    TEST_ASSERT(after.largest_free_block <= original.largest_free_block);
+    TEST_ASSERT(after.total_free_bytes <= original.total_free_bytes);
 
     free(b);
     heap_caps_get_info(&after, MALLOC_CAP_8BIT);
+
+    printf("\n\n After test, heap status:\n");
+    heap_caps_print_heap_info(MALLOC_CAP_8BIT);
+
     /* Allow some leeway here, because LWIP sometimes allocates up to 144 bytes in the background
        as part of timer management.
     */
@@ -114,14 +165,14 @@ TEST_CASE("heap_caps metadata test", "[heap]")
 /* Small function runs from IRAM to check that malloc/free/realloc
    all work OK when cache is disabled...
 */
-static IRAM_ATTR __attribute__((noinline)) bool iram_malloc_test()
+static IRAM_ATTR __attribute__((noinline)) bool iram_malloc_test(void)
 {
     spi_flash_guard_get()->start(); // Disables flash cache
 
     bool result = true;
-    void *x = heap_caps_malloc(64, MALLOC_CAP_32BIT);
+    void *x = heap_caps_malloc(64, MALLOC_CAP_EXEC);
     result = result && (x != NULL);
-    void *y = heap_caps_realloc(x, 32, MALLOC_CAP_32BIT);
+    void *y = heap_caps_realloc(x, 32, MALLOC_CAP_EXEC);
     result = result && (y != NULL);
     heap_caps_free(y);
 
@@ -130,7 +181,67 @@ static IRAM_ATTR __attribute__((noinline)) bool iram_malloc_test()
     return result;
 }
 
+
 TEST_CASE("heap_caps_xxx functions work with flash cache disabled", "[heap]")
 {
     TEST_ASSERT( iram_malloc_test() );
+}
+
+#ifdef CONFIG_HEAP_ABORT_WHEN_ALLOCATION_FAILS
+TEST_CASE("When enabled, allocation operation failure generates an abort", "[heap][reset=abort,SW_CPU_RESET]")
+{
+    const size_t stupid_allocation_size = (128 * 1024 * 1024);
+    void *ptr = heap_caps_malloc(stupid_allocation_size, MALLOC_CAP_DEFAULT);
+    (void)ptr;
+    TEST_FAIL_MESSAGE("should not be reached");
+}
+#endif
+
+static bool called_user_failed_hook = false;
+
+void heap_caps_alloc_failed_hook(size_t requested_size, uint32_t caps, const char *function_name)
+{
+    printf("%s was called but failed to allocate %d bytes with 0x%X capabilities. \n",function_name, requested_size, caps);
+    called_user_failed_hook = true;
+}
+
+TEST_CASE("user provided alloc failed hook must be called when allocation fails", "[heap]")
+{
+    TEST_ASSERT(heap_caps_register_failed_alloc_callback(heap_caps_alloc_failed_hook) == ESP_OK);
+
+    const size_t stupid_allocation_size = (128 * 1024 * 1024);
+    void *ptr = heap_caps_malloc(stupid_allocation_size, MALLOC_CAP_DEFAULT);
+    TEST_ASSERT(called_user_failed_hook != false);
+
+    called_user_failed_hook = false;
+    ptr = heap_caps_realloc(ptr, stupid_allocation_size, MALLOC_CAP_DEFAULT);
+    TEST_ASSERT(called_user_failed_hook != false);
+
+    called_user_failed_hook = false;
+    ptr = heap_caps_aligned_alloc(0x200, stupid_allocation_size, MALLOC_CAP_DEFAULT);
+    TEST_ASSERT(called_user_failed_hook != false);
+
+    (void)ptr;
+}
+
+TEST_CASE("allocation with invalid capability should also trigger the alloc failed hook", "[heap]")
+{
+    const size_t allocation_size = 64;
+    const uint32_t invalid_cap = MALLOC_CAP_INVALID;
+
+    TEST_ASSERT(heap_caps_register_failed_alloc_callback(heap_caps_alloc_failed_hook) == ESP_OK);
+
+    called_user_failed_hook = false;
+    void *ptr = heap_caps_malloc(allocation_size, invalid_cap);
+    TEST_ASSERT(called_user_failed_hook != false);
+
+    called_user_failed_hook = false;
+    ptr = heap_caps_realloc(ptr, allocation_size, invalid_cap);
+    TEST_ASSERT(called_user_failed_hook != false);
+
+    called_user_failed_hook = false;
+    ptr = heap_caps_aligned_alloc(0x200, allocation_size, invalid_cap);
+    TEST_ASSERT(called_user_failed_hook != false);
+
+    (void)ptr;
 }

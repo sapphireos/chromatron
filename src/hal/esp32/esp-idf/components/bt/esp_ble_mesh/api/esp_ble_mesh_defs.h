@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef _ESP_BLE_MESH_DEFS_H_
 #define _ESP_BLE_MESH_DEFS_H_
@@ -21,16 +13,6 @@
 #include "mesh_common.h"
 #include "proxy_server.h"
 #include "provisioner_main.h"
-
-#ifdef CONFIG_BLUEDROID_ENABLED
-#include "esp_bt_defs.h"
-#include "esp_bt_main.h"
-#define ESP_BLE_HOST_STATUS_ENABLED ESP_BLUEDROID_STATUS_ENABLED
-#define ESP_BLE_HOST_STATUS_CHECK(status) ESP_BLUEDROID_STATUS_CHECK(status)
-#else
-#define ESP_BLE_HOST_STATUS_ENABLED 0
-#define ESP_BLE_HOST_STATUS_CHECK(status)  do {} while (0)
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,6 +32,12 @@ extern "C" {
 
 /*!< The maximum length of a BLE Mesh unprovisioned device name */
 #define ESP_BLE_MESH_DEVICE_NAME_MAX_LEN    DEVICE_NAME_SIZE
+
+/*!< The maximum length of settings user id */
+#define ESP_BLE_MESH_SETTINGS_UID_SIZE      20
+
+/*!< Invalid settings index */
+#define ESP_BLE_MESH_INVALID_SETTINGS_IDX   0xFF
 
 /*!< Define the BLE Mesh octet 16 bytes size */
 #define ESP_BLE_MESH_OCTET16_LEN    16
@@ -481,11 +469,11 @@ typedef struct {
 struct esp_ble_mesh_model {
     /** Model ID */
     union {
-        const uint16_t model_id;
+        const uint16_t model_id; /*!< 16-bit model identifier */
         struct {
-            uint16_t company_id;
-            uint16_t model_id;
-        } vnd;
+            uint16_t company_id; /*!< 16-bit company identifier */
+            uint16_t model_id; /*!< 16-bit model identifier */
+        } vnd; /*!< Structure encapsulating a model ID with a company ID */
     };
 
     /** Internal information, mainly for persistent storage */
@@ -576,6 +564,12 @@ typedef struct {
     /** Out of Band information field. */
     esp_ble_mesh_prov_oob_info_t oob_info;
 
+    /* NOTE: In order to avoid suffering brute-forcing attack (CVE-2020-26559).
+     * The Bluetooth SIG recommends that potentially vulnerable mesh provisioners
+     * support an out-of-band mechanism to exchange the public keys.
+     * So as an unprovisioned device, it should enable this flag to support
+     * using an out-of-band mechanism to exchange Public Key.
+     */
     /** Flag indicates whether unprovisioned devices support OOB public key */
     bool oob_pub_key;
 
@@ -629,12 +623,29 @@ typedef struct {
     /** Provisioning Algorithm for the Provisioner */
     uint8_t        prov_algorithm;
 
+    /* NOTE: In order to avoid suffering brute-forcing attack (CVE-2020-26559).
+     * The Bluetooth SIG recommends that potentially vulnerable mesh provisioners
+     * use an out-of-band mechanism to exchange the public keys.
+     */
     /** Provisioner public key oob */
     uint8_t        prov_pub_key_oob;
 
     /** Callback used to notify to set device OOB Public Key. Initialized by the stack. */
     esp_ble_mesh_cb_t provisioner_prov_read_oob_pub_key;
 
+    /* NOTE: The Bluetooth SIG recommends that mesh implementations enforce a randomly
+     * selected AuthValue using all of the available bits, where permitted by the
+     * implementation. A large entropy helps ensure that a brute-force of the AuthValue,
+     * even a static AuthValue, cannot normally be completed in a reasonable time (CVE-2020-26557).
+     *
+     * AuthValues selected using a cryptographically secure random or pseudorandom number
+     * generator and having the maximum permitted entropy (128-bits) will be most difficult
+     * to brute-force. AuthValues with reduced entropy or generated in a predictable manner
+     * will not grant the same level of protection against this vulnerability. Selecting a
+     * new AuthValue with each provisioning attempt can also make it more difficult to launch
+     * a brute-force attack by requiring the attacker to restart the search with each
+     * provisioning attempt (CVE-2020-26556).
+     */
     /** Provisioner static oob value */
     uint8_t        *prov_static_oob_val;
     /** Provisioner static oob value length */
@@ -701,7 +712,7 @@ typedef struct {
 typedef struct {
     union {
         struct {
-            esp_ble_mesh_bd_addr_t addr;             /*!< Device address */
+            esp_ble_mesh_bd_addr_t addr;         /*!< Device address */
             esp_ble_mesh_addr_type_t addr_type;  /*!< Device address type */
         };
         uint8_t uuid[16];                   /*!< Device UUID */
@@ -771,36 +782,6 @@ typedef enum {
     PROXY_FILTER_BLACKLIST,
 } esp_ble_mesh_proxy_filter_type_t;
 
-/** Count for sending BLE advertising packet infinitely */
-#define ESP_BLE_MESH_BLE_ADV_INFINITE   0xFFFF
-
-/*!< This enum value is the priority of BLE advertising packet */
-typedef enum {
-    ESP_BLE_MESH_BLE_ADV_PRIO_LOW,
-    ESP_BLE_MESH_BLE_ADV_PRIO_HIGH,
-} esp_ble_mesh_ble_adv_priority_t;
-
-/** Context of BLE advertising parameters. */
-typedef struct {
-    uint16_t interval;                  /*!< BLE advertising interval */
-    uint8_t  adv_type;                  /*!< BLE advertising type */
-    uint8_t  own_addr_type;             /*!< Own address type */
-    uint8_t  peer_addr_type;            /*!< Peer address type */
-    uint8_t  peer_addr[BD_ADDR_LEN];    /*!< Peer address */
-    uint16_t duration;                  /*!< Duration is milliseconds */
-    uint16_t period;                    /*!< Period in milliseconds */
-    uint16_t count;                     /*!< Number of advertising duration */
-    uint8_t  priority:2;                /*!< Priority of BLE advertising packet */
-} esp_ble_mesh_ble_adv_param_t;
-
-/** Context of BLE advertising data. */
-typedef struct {
-    uint8_t adv_data_len;       /*!< Advertising data length */
-    uint8_t adv_data[31];       /*!< Advertising data */
-    uint8_t scan_rsp_data_len;  /*!< Scan response data length */
-    uint8_t scan_rsp_data[31];  /*!< Scan response data */
-} esp_ble_mesh_ble_adv_data_t;
-
 /*!< Provisioner heartbeat filter type */
 #define ESP_BLE_MESH_HEARTBEAT_FILTER_ACCEPTLIST    0x00
 #define ESP_BLE_MESH_HEARTBEAT_FILTER_REJECTLIST    0x01
@@ -869,7 +850,14 @@ typedef enum {
     ESP_BLE_MESH_PROVISIONER_ENABLE_HEARTBEAT_RECV_COMP_EVT,     /*!< Provisioner start to receive heartbeat message completion event */
     ESP_BLE_MESH_PROVISIONER_SET_HEARTBEAT_FILTER_TYPE_COMP_EVT, /*!< Provisioner set the heartbeat filter type completion event */
     ESP_BLE_MESH_PROVISIONER_SET_HEARTBEAT_FILTER_INFO_COMP_EVT, /*!< Provisioner set the heartbeat filter information completion event */
-    ESP_BLE_MESH_PROVISIONER_RECV_HEARTBEAT_MESSAGE_EVT,        /*!< Provisioner receive heartbeat message event */
+    ESP_BLE_MESH_PROVISIONER_RECV_HEARTBEAT_MESSAGE_EVT,         /*!< Provisioner receive heartbeat message event */
+    ESP_BLE_MESH_PROVISIONER_DRIECT_ERASE_SETTINGS_COMP_EVT,        /*!< Provisioner directly erase settings completion event */
+    ESP_BLE_MESH_PROVISIONER_OPEN_SETTINGS_WITH_INDEX_COMP_EVT,     /*!< Provisioner open settings with index completion event */
+    ESP_BLE_MESH_PROVISIONER_OPEN_SETTINGS_WITH_UID_COMP_EVT,       /*!< Provisioner open settings with user id completion event */
+    ESP_BLE_MESH_PROVISIONER_CLOSE_SETTINGS_WITH_INDEX_COMP_EVT,    /*!< Provisioner close settings with index completion event */
+    ESP_BLE_MESH_PROVISIONER_CLOSE_SETTINGS_WITH_UID_COMP_EVT,      /*!< Provisioner close settings with user id completion event */
+    ESP_BLE_MESH_PROVISIONER_DELETE_SETTINGS_WITH_INDEX_COMP_EVT,   /*!< Provisioner delete settings with index completion event */
+    ESP_BLE_MESH_PROVISIONER_DELETE_SETTINGS_WITH_UID_COMP_EVT,     /*!< Provisioner delete settings with user id completion event */
     ESP_BLE_MESH_SET_FAST_PROV_INFO_COMP_EVT,                   /*!< Set fast provisioning information (e.g. unicast address range, net_idx, etc.) completion event */
     ESP_BLE_MESH_SET_FAST_PROV_ACTION_COMP_EVT,                 /*!< Set fast provisioning action completion event */
     ESP_BLE_MESH_HEARTBEAT_MESSAGE_RECV_EVT,                    /*!< Receive Heartbeat message event */
@@ -889,8 +877,6 @@ typedef enum {
     ESP_BLE_MESH_PROXY_CLIENT_SET_FILTER_TYPE_COMP_EVT,         /*!< Proxy Client set filter type completion event */
     ESP_BLE_MESH_PROXY_CLIENT_ADD_FILTER_ADDR_COMP_EVT,         /*!< Proxy Client add filter address completion event */
     ESP_BLE_MESH_PROXY_CLIENT_REMOVE_FILTER_ADDR_COMP_EVT,      /*!< Proxy Client remove filter address completion event */
-    ESP_BLE_MESH_START_BLE_ADVERTISING_COMP_EVT,                /*!< Start BLE advertising completion event */
-    ESP_BLE_MESH_STOP_BLE_ADVERTISING_COMP_EVT,                 /*!< Stop BLE advertising completion event */
     ESP_BLE_MESH_MODEL_SUBSCRIBE_GROUP_ADDR_COMP_EVT,           /*!< Local model subscribes group address completion event */
     ESP_BLE_MESH_MODEL_UNSUBSCRIBE_GROUP_ADDR_COMP_EVT,         /*!< Local model unsubscribes group address completion event */
     ESP_BLE_MESH_DEINIT_MESH_COMP_EVT,                          /*!< De-initialize BLE Mesh stack completion event */
@@ -1273,6 +1259,57 @@ typedef union {
         int8_t   rssi;              /*!< RSSI of the heartbeat message */
     } provisioner_recv_heartbeat;   /*!< Event parameters of ESP_BLE_MESH_PROVISIONER_RECV_HEARTBEAT_MESSAGE_EVT */
     /**
+     * @brief ESP_BLE_MESH_PROVISIONER_DRIECT_ERASE_SETTINGS_COMP_EVT
+     */
+    struct {
+        int err_code;                           /*!< Indicate the result of directly erasing settings by the Provisioner */
+    } provisioner_direct_erase_settings_comp;   /*!< Event parameters of ESP_BLE_MESH_PROVISIONER_DRIECT_ERASE_SETTINGS_COMP_EVT */
+    /**
+     * @brief ESP_BLE_MESH_PROVISIONER_OPEN_SETTINGS_WITH_INDEX_COMP_EVT
+     */
+    struct {
+        int err_code;                               /*!< Indicate the result of opening settings with index by the Provisioner */
+        uint8_t index;                              /*!< Index of Provisioner settings */
+    } provisioner_open_settings_with_index_comp;    /*!< Event parameter of ESP_BLE_MESH_PROVISIONER_OPEN_SETTINGS_WITH_INDEX_COMP_EVT */
+    /**
+     * @brief ESP_BLE_MESH_PROVISIONER_OPEN_SETTINGS_WITH_UID_COMP_EVT
+     */
+    struct {
+        int err_code;                                   /*!< Indicate the result of opening settings with user id by the Provisioner */
+        uint8_t index;                                  /*!< Index of Provisioner settings */
+        char uid[ESP_BLE_MESH_SETTINGS_UID_SIZE + 1];   /*!< Provisioner settings user id */
+    } provisioner_open_settings_with_uid_comp;          /*!< Event parameters of ESP_BLE_MESH_PROVISIONER_OPEN_SETTINGS_WITH_UID_COMP_EVT */
+    /**
+     * @brief ESP_BLE_MESH_PROVISIONER_CLOSE_SETTINGS_WITH_INDEX_COMP_EVT
+     */
+    struct {
+        int err_code;                               /*!< Indicate the result of closing settings with index by the Provisioner */
+        uint8_t index;                              /*!< Index of Provisioner settings */
+    } provisioner_close_settings_with_index_comp;   /*!< Event parameter of ESP_BLE_MESH_PROVISIONER_CLOSE_SETTINGS_WITH_INDEX_COMP_EVT */
+    /**
+     * @brief ESP_BLE_MESH_PROVISIONER_CLOSE_SETTINGS_WITH_UID_COMP_EVT
+     */
+    struct {
+        int err_code;                                   /*!< Indicate the result of closing settings with user id by the Provisioner */
+        uint8_t index;                                  /*!< Index of Provisioner settings */
+        char uid[ESP_BLE_MESH_SETTINGS_UID_SIZE + 1];   /*!< Provisioner settings user id */
+    } provisioner_close_settings_with_uid_comp;         /*!< Event parameters of ESP_BLE_MESH_PROVISIONER_CLOSE_SETTINGS_WITH_UID_COMP_EVT */
+    /**
+     * @brief ESP_BLE_MESH_PROVISIONER_DELETE_SETTINGS_WITH_INDEX_COMP_EVT
+     */
+    struct {
+        int err_code;                               /*!< Indicate the result of deleting settings with index by the Provisioner */
+        uint8_t index;                              /*!< Index of Provisioner settings */
+    } provisioner_delete_settings_with_index_comp;  /*!< Event parameter of ESP_BLE_MESH_PROVISIONER_DELETE_SETTINGS_WITH_INDEX_COMP_EVT */
+    /**
+     * @brief ESP_BLE_MESH_PROVISIONER_DELETE_SETTINGS_WITH_UID_COMP_EVT
+     */
+    struct {
+        int err_code;                                   /*!< Indicate the result of deleting settings with user id by the Provisioner */
+        uint8_t index;                                  /*!< Index of Provisioner settings */
+        char uid[ESP_BLE_MESH_SETTINGS_UID_SIZE + 1];   /*!< Provisioner settings user id */
+    } provisioner_delete_settings_with_uid_comp;        /*!< Event parameters of ESP_BLE_MESH_PROVISIONER_DELETE_SETTINGS_WITH_UID_COMP_EVT */
+    /**
      * @brief ESP_BLE_MESH_SET_FAST_PROV_INFO_COMP_EVT
      */
     struct ble_mesh_set_fast_prov_info_comp_param {
@@ -1422,20 +1459,6 @@ typedef union {
         uint8_t conn_handle;                    /*!< Proxy connection handle */
         uint16_t net_idx;                       /*!< Corresponding NetKey Index */
     } proxy_client_remove_filter_addr_comp;     /*!< Event parameter of ESP_BLE_MESH_PROXY_CLIENT_REMOVE_FILTER_ADDR_COMP_EVT */
-    /**
-     * @brief ESP_BLE_MESH_START_BLE_ADVERTISING_COMP_EVT
-     */
-    struct ble_mesh_start_ble_advertising_comp_param {
-        int err_code;                           /*!< Indicate the result of starting BLE advertising */
-        uint8_t index;                          /*!< Index of the BLE advertising */
-    } start_ble_advertising_comp;               /*!< Event parameter of ESP_BLE_MESH_START_BLE_ADVERTISING_COMP_EVT */
-    /**
-     * @brief ESP_BLE_MESH_STOP_BLE_ADVERTISING_COMP_EVT
-     */
-    struct ble_mesh_stop_ble_advertising_comp_param {
-        int err_code;                           /*!< Indicate the result of stopping BLE advertising */
-        uint8_t index;                          /*!< Index of the BLE advertising */
-    } stop_ble_advertising_comp;                /*!< Event parameter of ESP_BLE_MESH_STOP_BLE_ADVERTISING_COMP_EVT */
     /**
      * @brief ESP_BLE_MESH_MODEL_SUBSCRIBE_GROUP_ADDR_COMP_EVT
      */
@@ -2115,6 +2138,11 @@ typedef union {
     } light_ctl_temp_delta_uv;  /*!< The Light CTL Temperature & Delta UV states */
     struct {
         uint16_t lightness;     /*!< The value of the Light HSL Lightness state */
+        uint16_t hue;           /*!< The value of the Light HSL Hue state */
+        uint16_t saturation;    /*!< The value of the Light HSL Saturation state */
+    } light_hsl;                /*!< The Light HSL composite state */
+    struct {
+        uint16_t lightness;     /*!< The value of the Light HSL Lightness state */
     } light_hsl_lightness;      /*!< The Light HSL Lightness state */
     struct {
         uint16_t hue;           /*!< The value of the Light HSL Hue state */
@@ -2140,6 +2168,7 @@ typedef enum {
     ESP_BLE_MESH_LIGHT_LIGHTNESS_LINEAR_STATE,
     ESP_BLE_MESH_LIGHT_CTL_LIGHTNESS_STATE,
     ESP_BLE_MESH_LIGHT_CTL_TEMP_DELTA_UV_STATE,
+    ESP_BLE_MESH_LIGHT_HSL_STATE,
     ESP_BLE_MESH_LIGHT_HSL_LIGHTNESS_STATE,
     ESP_BLE_MESH_LIGHT_HSL_HUE_STATE,
     ESP_BLE_MESH_LIGHT_HSL_SATURATION_STATE,

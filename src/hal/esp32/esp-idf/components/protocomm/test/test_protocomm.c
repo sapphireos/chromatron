@@ -71,6 +71,7 @@ static const char *TAG = "protocomm_test";
 
 static protocomm_t *test_pc = NULL;
 static const protocomm_security_t *test_sec = NULL;
+protocomm_security_handle_t sec_inst = NULL;
 static uint32_t test_priv_data = 1234;
 
 static void flip_endian(uint8_t *data, size_t len)
@@ -320,13 +321,35 @@ static esp_err_t test_new_session(session_t *session)
         return ESP_OK;
     }
 
-    if (!test_sec || !test_sec->new_transport_session) {
+    if (!test_sec) {
         return ESP_ERR_INVALID_STATE;
     }
 
+    if (test_sec->init && (test_sec->init(&sec_inst) != ESP_OK)) {
+        return ESP_ERR_NO_MEM;
+    }
+
     uint32_t session_id = session->id;
-    if (test_sec->new_transport_session(session_id) != ESP_OK) {
+    if (test_sec->new_transport_session &&
+        (test_sec->new_transport_session(sec_inst, session_id) != ESP_OK)) {
         ESP_LOGE(TAG, "Failed to launch new transport session");
+        return ESP_FAIL;
+    }
+
+    if (protocomm_open_session(test_pc, session_id) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to open new protocomm session");
+        return ESP_FAIL;
+    }
+    return ESP_OK;
+}
+
+static esp_err_t test_delete_session(session_t *session)
+{
+    if (!test_sec) {
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    if (test_sec->cleanup && (test_sec->cleanup(sec_inst) != ESP_OK)) {
         return ESP_FAIL;
     }
     return ESP_OK;
@@ -484,9 +507,11 @@ static esp_err_t test_sec_endpoint(session_t *session)
     mbedtls_ecdh_free(&session->ctx_client);
     mbedtls_ctr_drbg_free(&session->ctr_drbg);
     mbedtls_entropy_free(&session->entropy);
+
     return ESP_OK;
 
 abort_test_sec_endpoint:
+
     mbedtls_ecdh_free(&session->ctx_client);
     mbedtls_ctr_drbg_free(&session->ctr_drbg);
     mbedtls_entropy_free(&session->entropy);
@@ -528,8 +553,18 @@ static esp_err_t test_req_endpoint(session_t *session)
         memcpy(enc_test_data, rand_test_data, sizeof(rand_test_data));
     }
     else if (session->sec_ver == 1) {
-        mbedtls_aes_crypt_ctr(&session->ctx_aes, sizeof(rand_test_data), &session->nc_off,
-                              session->rand, session->stb, rand_test_data, enc_test_data);
+#if !CONFIG_MBEDTLS_HARDWARE_AES
+        // Check if the AES key is correctly set before calling the software encryption
+        // API. Without this check, the code will crash, resulting in a test case failure.
+        // For hardware AES, portability layer takes care of this.
+        if (session->ctx_aes.rk != NULL && session->ctx_aes.nr > 0) {
+#endif
+
+            mbedtls_aes_crypt_ctr(&session->ctx_aes, sizeof(rand_test_data), &session->nc_off,
+                    session->rand, session->stb, rand_test_data, enc_test_data);
+#if !CONFIG_MBEDTLS_HARDWARE_AES
+        }
+#endif
     }
 
     ssize_t  verify_data_len = 0;
@@ -684,6 +719,7 @@ static esp_err_t test_security1_no_encryption (void)
     // Perform 25519 security handshake to set public keys
     if (test_sec_endpoint(session) != ESP_OK) {
         ESP_LOGE(TAG, "Error testing security endpoint");
+        test_delete_session(session);
         stop_test_service();
         free(session);
         return ESP_FAIL;
@@ -697,11 +733,15 @@ static esp_err_t test_security1_no_encryption (void)
     // data to not match that which was sent, hence failing.
     if (test_req_endpoint(session) == ESP_OK) {
         ESP_LOGE(TAG, "Error testing request endpoint");
+        session->sec_ver = 1;
+        test_delete_session(session);
         stop_test_service();
         free(session);
         return ESP_FAIL;
     }
 
+    session->sec_ver = 1;
+    test_delete_session(session);
     stop_test_service();
     free(session);
     ESP_LOGI(TAG, "Protocomm test successful");
@@ -759,6 +799,7 @@ static esp_err_t test_security1_session_overflow (void)
     // Perform 25519 security handshake to set public keys
     if (test_sec_endpoint(session1) != ESP_OK) {
         ESP_LOGE(TAG, "Error testing security endpoint");
+        test_delete_session(session1);
         stop_test_service();
         free(session1);
         free(session2);
@@ -769,12 +810,14 @@ static esp_err_t test_security1_session_overflow (void)
     // session ID without registering new session, hence failing
     if (test_sec_endpoint(session2) == ESP_OK) {
         ESP_LOGE(TAG, "Error testing security endpoint");
+        test_delete_session(session1);
         stop_test_service();
         free(session1);
         free(session2);
         return ESP_FAIL;
     }
 
+    test_delete_session(session1);
     stop_test_service();
     free(session1);
     free(session2);
@@ -831,11 +874,13 @@ static esp_err_t test_security1_wrong_pop (void)
     // wrong pop, hence failing
     if (test_sec_endpoint(session) == ESP_OK) {
         ESP_LOGE(TAG, "Error testing security endpoint");
+        test_delete_session(session);
         stop_test_service();
         free(session);
         return ESP_FAIL;
     }
 
+    test_delete_session(session);
     stop_test_service();
     free(session);
 
@@ -843,7 +888,7 @@ static esp_err_t test_security1_wrong_pop (void)
     return ESP_OK;
 }
 
-static esp_err_t test_security1_insecure_client (void)
+__attribute__((unused)) static esp_err_t test_security1_insecure_client (void)
 {
     ESP_LOGI(TAG, "Starting Security 1 insecure client test");
 
@@ -895,7 +940,7 @@ static esp_err_t test_security1_insecure_client (void)
     return ESP_OK;
 }
 
-static esp_err_t test_security1_weak_session (void)
+__attribute__((unused)) static esp_err_t test_security1_weak_session (void)
 {
     ESP_LOGI(TAG, "Starting Security 1 weak session test");
 
@@ -935,6 +980,7 @@ static esp_err_t test_security1_weak_session (void)
     // client public key, hence failing
     if (test_sec_endpoint(session) == ESP_OK) {
         ESP_LOGE(TAG, "Error testing security endpoint");
+        test_delete_session(session);
         stop_test_service();
         free(session);
         return ESP_FAIL;
@@ -944,11 +990,13 @@ static esp_err_t test_security1_weak_session (void)
     // public keys on both client and server side should fail
     if (test_req_endpoint(session) == ESP_OK) {
         ESP_LOGE(TAG, "Error testing request endpoint");
+        test_delete_session(session);
         stop_test_service();
         free(session);
         return ESP_FAIL;
     }
 
+    test_delete_session(session);
     stop_test_service();
     free(session);
 
@@ -983,6 +1031,7 @@ static esp_err_t test_protocomm (session_t *session)
     // Perform 25519 security handshake to set public keys
     if (test_sec_endpoint(session) != ESP_OK) {
         ESP_LOGE(TAG, "Error testing security endpoint");
+        test_delete_session(session);
         stop_test_service();
         return ESP_FAIL;
     }
@@ -991,11 +1040,13 @@ static esp_err_t test_protocomm (session_t *session)
     // the set public keys on both client and server side
     if (test_req_endpoint(session) != ESP_OK) {
         ESP_LOGE(TAG, "Error testing request endpoint");
+        test_delete_session(session);
         stop_test_service();
         return ESP_FAIL;
     }
 
     // Stop protocomm service
+    test_delete_session(session);
     stop_test_service();
     ESP_LOGI(TAG, "Protocomm test successful");
     return ESP_OK;

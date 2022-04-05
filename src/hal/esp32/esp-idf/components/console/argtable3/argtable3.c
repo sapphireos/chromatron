@@ -30,8 +30,6 @@
 
 #include "argtable3.h"
 
-#pragma GCC diagnostic ignored "-Wclobbered"
-
 /*******************************************************************************
  * This file is part of the argtable3 library.
  *
@@ -102,7 +100,7 @@ enum
 
 #define ARG_LOG(x) \
     do { if (ARG_ENABLE_LOG) dbg_printf x; } while (0)
-#endif 
+#endif
 
 extern void dbg_printf(const char *fmt, ...);
 
@@ -242,7 +240,7 @@ extern   int optopt;
 extern   int optreset;
 extern   char *suboptarg;               /* getsubopt(3) external variable */
 #endif /* _GETOPT_DEFINED */
- 
+
 #ifdef __cplusplus
 }
 #endif
@@ -1522,7 +1520,7 @@ static int arg_dbl_scanfn(struct arg_dbl *parent, const char *argval)
 static int arg_dbl_checkfn(struct arg_dbl *parent)
 {
     int errorcode = (parent->count < parent->hdr.mincount) ? EMINCOUNT : 0;
-    
+
     ARG_TRACE(("%s:checkfn(%p) returns %d\n", __FILE__, parent, errorcode));
     return errorcode;
 }
@@ -1632,7 +1630,7 @@ struct arg_dbl * arg_dbln(
 
         result->count = 0;
     }
-    
+
     ARG_TRACE(("arg_dbln() returns %p\n", result));
     return result;
 }
@@ -1712,7 +1710,7 @@ static void arg_end_errorfn(
         fprintf(fp, "invalid option \"-%c\"", error);
         break;
     }
-    
+
     fputc('\n', fp);
 }
 
@@ -1908,7 +1906,7 @@ static int arg_file_scanfn(struct arg_file *parent, const char *argval)
 static int arg_file_checkfn(struct arg_file *parent)
 {
     int errorcode = (parent->count < parent->hdr.mincount) ? EMINCOUNT : 0;
-    
+
     ARG_TRACE(("%s:checkfn(%p) returns %d\n", __FILE__, parent, errorcode));
     return errorcode;
 }
@@ -2019,7 +2017,7 @@ struct arg_file * arg_filen(
             result->extension[i] = "";
         }
     }
-    
+
     ARG_TRACE(("arg_filen() returns %p\n", result));
     return result;
 }
@@ -2362,7 +2360,7 @@ struct arg_int * arg_intn(
         result->ival  = (int *)(result + 1);
         result->count = 0;
     }
-    
+
     ARG_TRACE(("arg_intn() returns %p\n", result));
     return result;
 }
@@ -2510,7 +2508,7 @@ struct arg_lit * arg_litn(
         /* init local variables */
         result->count = 0;
     }
-    
+
     ARG_TRACE(("arg_litn() returns %p\n", result));
     return result;
 }
@@ -3007,7 +3005,7 @@ static int trex_newnode(TRex *exp, TRexNodeType type)
 		exp->_nallocated *= 2;
 		exp->_nodes = (TRexNode *)realloc(exp->_nodes, exp->_nallocated * sizeof(TRexNode));
 	}
-	exp->_nodes[exp->_nsize++] = n;
+	exp->_nodes[exp->_nsize++] = n; // NOLINT(clang-analyzer-unix.Malloc)
 	newid = exp->_nsize - 1;
 	return (int)newid;
 }
@@ -3648,7 +3646,7 @@ static int arg_str_scanfn(struct arg_str *parent, const char *argval)
 static int arg_str_checkfn(struct arg_str *parent)
 {
     int errorcode = (parent->count < parent->hdr.mincount) ? EMINCOUNT : 0;
-    
+
     ARG_TRACE(("%s:checkfn(%p) returns %d\n", __FILE__, parent, errorcode));
     return errorcode;
 }
@@ -3750,7 +3748,7 @@ struct arg_str * arg_strn(
         for (i = 0; i < maxcount; i++)
             result->sval[i] = "";
     }
-    
+
     ARG_TRACE(("arg_strn() returns %p\n", result));
     return result;
 }
@@ -4291,7 +4289,7 @@ int arg_parse(int argc, char * *argv, void * *argtable)
             argvcopy[i] = argv[i];
 
         argvcopy[argc] = NULL;
-        
+
         /* parse the command line (local copy) for tagged options */
         arg_parse_tagged(argc, argvcopy, table, endtable);
 
@@ -4953,4 +4951,3 @@ void arg_freetable(void * *argtable, size_t n)
         table[tabindex] = NULL;
     };
 }
-

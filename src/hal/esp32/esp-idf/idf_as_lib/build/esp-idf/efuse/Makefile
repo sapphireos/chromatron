@@ -80,6 +80,16 @@ install/local/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
 .PHONY : install/local/fast
 
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+
+.PHONY : list_install_components/fast
+
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -92,15 +102,16 @@ install/fast: preinstall/fast
 	/usr/bin/cmake -P cmake_install.cmake
 .PHONY : install/fast
 
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
 
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
 
-.PHONY : list_install_components/fast
+.PHONY : edit_cache/fast
 
 # Special rule for the target rebuild_cache
 rebuild_cache:
@@ -112,17 +123,6 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
-
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -157,49 +157,34 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/efuse/CMakeFiles/efuse_test_table.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/efuse_test_table.dir/rule
-.PHONY : esp-idf/efuse/CMakeFiles/efuse_test_table.dir/rule
+esp-idf/efuse/CMakeFiles/__idf_efuse.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/rule
+.PHONY : esp-idf/efuse/CMakeFiles/__idf_efuse.dir/rule
 
 # Convenience name for target.
-efuse_test_table: esp-idf/efuse/CMakeFiles/efuse_test_table.dir/rule
+__idf_efuse: esp-idf/efuse/CMakeFiles/__idf_efuse.dir/rule
 
-.PHONY : efuse_test_table
+.PHONY : __idf_efuse
 
 # fast build rule for target.
-efuse_test_table/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/efuse_test_table.dir/build.make esp-idf/efuse/CMakeFiles/efuse_test_table.dir/build
-.PHONY : efuse_test_table/fast
+__idf_efuse/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build
+.PHONY : __idf_efuse/fast
 
 # Convenience name for target.
-esp-idf/efuse/CMakeFiles/show_efuse_table.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/show_efuse_table.dir/rule
-.PHONY : esp-idf/efuse/CMakeFiles/show_efuse_table.dir/rule
+esp-idf/efuse/CMakeFiles/efuse-common-table.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/efuse-common-table.dir/rule
+.PHONY : esp-idf/efuse/CMakeFiles/efuse-common-table.dir/rule
 
 # Convenience name for target.
-show_efuse_table: esp-idf/efuse/CMakeFiles/show_efuse_table.dir/rule
+efuse-common-table: esp-idf/efuse/CMakeFiles/efuse-common-table.dir/rule
 
-.PHONY : show_efuse_table
+.PHONY : efuse-common-table
 
 # fast build rule for target.
-show_efuse_table/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/show_efuse_table.dir/build.make esp-idf/efuse/CMakeFiles/show_efuse_table.dir/build
-.PHONY : show_efuse_table/fast
-
-# Convenience name for target.
-esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/rule
-.PHONY : esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/rule
-
-# Convenience name for target.
-efuse_custom_table: esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/rule
-
-.PHONY : efuse_custom_table
-
-# fast build rule for target.
-efuse_custom_table/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/build.make esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/build
-.PHONY : efuse_custom_table/fast
+efuse-common-table/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/efuse-common-table.dir/build.make esp-idf/efuse/CMakeFiles/efuse-common-table.dir/build
+.PHONY : efuse-common-table/fast
 
 # Convenience name for target.
 esp-idf/efuse/CMakeFiles/efuse_common_table.dir/rule:
@@ -217,34 +202,106 @@ efuse_common_table/fast:
 .PHONY : efuse_common_table/fast
 
 # Convenience name for target.
-esp-idf/efuse/CMakeFiles/idf_component_efuse_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/idf_component_efuse_sections_info.dir/rule
-.PHONY : esp-idf/efuse/CMakeFiles/idf_component_efuse_sections_info.dir/rule
+esp-idf/efuse/CMakeFiles/show-efuse-table.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/show-efuse-table.dir/rule
+.PHONY : esp-idf/efuse/CMakeFiles/show-efuse-table.dir/rule
 
 # Convenience name for target.
-idf_component_efuse_sections_info: esp-idf/efuse/CMakeFiles/idf_component_efuse_sections_info.dir/rule
+show-efuse-table: esp-idf/efuse/CMakeFiles/show-efuse-table.dir/rule
 
-.PHONY : idf_component_efuse_sections_info
+.PHONY : show-efuse-table
 
 # fast build rule for target.
-idf_component_efuse_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse_sections_info.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse_sections_info.dir/build
-.PHONY : idf_component_efuse_sections_info/fast
+show-efuse-table/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/show-efuse-table.dir/build.make esp-idf/efuse/CMakeFiles/show-efuse-table.dir/build
+.PHONY : show-efuse-table/fast
 
 # Convenience name for target.
-esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/rule
-.PHONY : esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/rule
+esp-idf/efuse/CMakeFiles/efuse-custom-table.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/efuse-custom-table.dir/rule
+.PHONY : esp-idf/efuse/CMakeFiles/efuse-custom-table.dir/rule
 
 # Convenience name for target.
-idf_component_efuse: esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/rule
+efuse-custom-table: esp-idf/efuse/CMakeFiles/efuse-custom-table.dir/rule
 
-.PHONY : idf_component_efuse
+.PHONY : efuse-custom-table
 
 # fast build rule for target.
-idf_component_efuse/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build
-.PHONY : idf_component_efuse/fast
+efuse-custom-table/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/efuse-custom-table.dir/build.make esp-idf/efuse/CMakeFiles/efuse-custom-table.dir/build
+.PHONY : efuse-custom-table/fast
+
+# Convenience name for target.
+esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/rule
+.PHONY : esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/rule
+
+# Convenience name for target.
+efuse_custom_table: esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/rule
+
+.PHONY : efuse_custom_table
+
+# fast build rule for target.
+efuse_custom_table/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/build.make esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/build
+.PHONY : efuse_custom_table/fast
+
+# Convenience name for target.
+esp-idf/efuse/CMakeFiles/show_efuse_table.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/show_efuse_table.dir/rule
+.PHONY : esp-idf/efuse/CMakeFiles/show_efuse_table.dir/rule
+
+# Convenience name for target.
+show_efuse_table: esp-idf/efuse/CMakeFiles/show_efuse_table.dir/rule
+
+.PHONY : show_efuse_table
+
+# fast build rule for target.
+show_efuse_table/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/show_efuse_table.dir/build.make esp-idf/efuse/CMakeFiles/show_efuse_table.dir/build
+.PHONY : show_efuse_table/fast
+
+# Convenience name for target.
+esp-idf/efuse/CMakeFiles/efuse_test_table.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/efuse/CMakeFiles/efuse_test_table.dir/rule
+.PHONY : esp-idf/efuse/CMakeFiles/efuse_test_table.dir/rule
+
+# Convenience name for target.
+efuse_test_table: esp-idf/efuse/CMakeFiles/efuse_test_table.dir/rule
+
+.PHONY : efuse_test_table
+
+# fast build rule for target.
+efuse_test_table/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/efuse_test_table.dir/build.make esp-idf/efuse/CMakeFiles/efuse_test_table.dir/build
+.PHONY : efuse_test_table/fast
+
+esp32/esp_efuse_fields.obj: esp32/esp_efuse_fields.c.obj
+
+.PHONY : esp32/esp_efuse_fields.obj
+
+# target to build an object file
+esp32/esp_efuse_fields.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_fields.c.obj
+.PHONY : esp32/esp_efuse_fields.c.obj
+
+esp32/esp_efuse_fields.i: esp32/esp_efuse_fields.c.i
+
+.PHONY : esp32/esp_efuse_fields.i
+
+# target to preprocess a source file
+esp32/esp_efuse_fields.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_fields.c.i
+.PHONY : esp32/esp_efuse_fields.c.i
+
+esp32/esp_efuse_fields.s: esp32/esp_efuse_fields.c.s
+
+.PHONY : esp32/esp_efuse_fields.s
+
+# target to generate assembly for a file
+esp32/esp_efuse_fields.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_fields.c.s
+.PHONY : esp32/esp_efuse_fields.c.s
 
 esp32/esp_efuse_table.obj: esp32/esp_efuse_table.c.obj
 
@@ -252,7 +309,7 @@ esp32/esp_efuse_table.obj: esp32/esp_efuse_table.c.obj
 
 # target to build an object file
 esp32/esp_efuse_table.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/esp32/esp_efuse_table.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_table.c.obj
 .PHONY : esp32/esp_efuse_table.c.obj
 
 esp32/esp_efuse_table.i: esp32/esp_efuse_table.c.i
@@ -261,7 +318,7 @@ esp32/esp_efuse_table.i: esp32/esp_efuse_table.c.i
 
 # target to preprocess a source file
 esp32/esp_efuse_table.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/esp32/esp_efuse_table.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_table.c.i
 .PHONY : esp32/esp_efuse_table.c.i
 
 esp32/esp_efuse_table.s: esp32/esp_efuse_table.c.s
@@ -270,8 +327,35 @@ esp32/esp_efuse_table.s: esp32/esp_efuse_table.c.s
 
 # target to generate assembly for a file
 esp32/esp_efuse_table.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/esp32/esp_efuse_table.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_table.c.s
 .PHONY : esp32/esp_efuse_table.c.s
+
+esp32/esp_efuse_utility.obj: esp32/esp_efuse_utility.c.obj
+
+.PHONY : esp32/esp_efuse_utility.obj
+
+# target to build an object file
+esp32/esp_efuse_utility.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_utility.c.obj
+.PHONY : esp32/esp_efuse_utility.c.obj
+
+esp32/esp_efuse_utility.i: esp32/esp_efuse_utility.c.i
+
+.PHONY : esp32/esp_efuse_utility.i
+
+# target to preprocess a source file
+esp32/esp_efuse_utility.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_utility.c.i
+.PHONY : esp32/esp_efuse_utility.c.i
+
+esp32/esp_efuse_utility.s: esp32/esp_efuse_utility.c.s
+
+.PHONY : esp32/esp_efuse_utility.s
+
+# target to generate assembly for a file
+esp32/esp_efuse_utility.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_utility.c.s
+.PHONY : esp32/esp_efuse_utility.c.s
 
 src/esp_efuse_api.obj: src/esp_efuse_api.c.obj
 
@@ -279,7 +363,7 @@ src/esp_efuse_api.obj: src/esp_efuse_api.c.obj
 
 # target to build an object file
 src/esp_efuse_api.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_api.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_api.c.obj
 .PHONY : src/esp_efuse_api.c.obj
 
 src/esp_efuse_api.i: src/esp_efuse_api.c.i
@@ -288,7 +372,7 @@ src/esp_efuse_api.i: src/esp_efuse_api.c.i
 
 # target to preprocess a source file
 src/esp_efuse_api.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_api.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_api.c.i
 .PHONY : src/esp_efuse_api.c.i
 
 src/esp_efuse_api.s: src/esp_efuse_api.c.s
@@ -297,8 +381,35 @@ src/esp_efuse_api.s: src/esp_efuse_api.c.s
 
 # target to generate assembly for a file
 src/esp_efuse_api.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_api.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_api.c.s
 .PHONY : src/esp_efuse_api.c.s
+
+src/esp_efuse_api_key_esp32.obj: src/esp_efuse_api_key_esp32.c.obj
+
+.PHONY : src/esp_efuse_api_key_esp32.obj
+
+# target to build an object file
+src/esp_efuse_api_key_esp32.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_api_key_esp32.c.obj
+.PHONY : src/esp_efuse_api_key_esp32.c.obj
+
+src/esp_efuse_api_key_esp32.i: src/esp_efuse_api_key_esp32.c.i
+
+.PHONY : src/esp_efuse_api_key_esp32.i
+
+# target to preprocess a source file
+src/esp_efuse_api_key_esp32.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_api_key_esp32.c.i
+.PHONY : src/esp_efuse_api_key_esp32.c.i
+
+src/esp_efuse_api_key_esp32.s: src/esp_efuse_api_key_esp32.c.s
+
+.PHONY : src/esp_efuse_api_key_esp32.s
+
+# target to generate assembly for a file
+src/esp_efuse_api_key_esp32.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_api_key_esp32.c.s
+.PHONY : src/esp_efuse_api_key_esp32.c.s
 
 src/esp_efuse_fields.obj: src/esp_efuse_fields.c.obj
 
@@ -306,7 +417,7 @@ src/esp_efuse_fields.obj: src/esp_efuse_fields.c.obj
 
 # target to build an object file
 src/esp_efuse_fields.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_fields.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_fields.c.obj
 .PHONY : src/esp_efuse_fields.c.obj
 
 src/esp_efuse_fields.i: src/esp_efuse_fields.c.i
@@ -315,7 +426,7 @@ src/esp_efuse_fields.i: src/esp_efuse_fields.c.i
 
 # target to preprocess a source file
 src/esp_efuse_fields.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_fields.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_fields.c.i
 .PHONY : src/esp_efuse_fields.c.i
 
 src/esp_efuse_fields.s: src/esp_efuse_fields.c.s
@@ -324,7 +435,7 @@ src/esp_efuse_fields.s: src/esp_efuse_fields.c.s
 
 # target to generate assembly for a file
 src/esp_efuse_fields.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_fields.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_fields.c.s
 .PHONY : src/esp_efuse_fields.c.s
 
 src/esp_efuse_utility.obj: src/esp_efuse_utility.c.obj
@@ -333,7 +444,7 @@ src/esp_efuse_utility.obj: src/esp_efuse_utility.c.obj
 
 # target to build an object file
 src/esp_efuse_utility.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj
 .PHONY : src/esp_efuse_utility.c.obj
 
 src/esp_efuse_utility.i: src/esp_efuse_utility.c.i
@@ -342,7 +453,7 @@ src/esp_efuse_utility.i: src/esp_efuse_utility.c.i
 
 # target to preprocess a source file
 src/esp_efuse_utility.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.i
 .PHONY : src/esp_efuse_utility.c.i
 
 src/esp_efuse_utility.s: src/esp_efuse_utility.c.s
@@ -351,7 +462,7 @@ src/esp_efuse_utility.s: src/esp_efuse_utility.c.s
 
 # target to generate assembly for a file
 src/esp_efuse_utility.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/build.make esp-idf/efuse/CMakeFiles/idf_component_efuse.dir/src/esp_efuse_utility.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/efuse/CMakeFiles/__idf_efuse.dir/build.make esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.s
 .PHONY : src/esp_efuse_utility.c.s
 
 # Help Target
@@ -361,23 +472,34 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... install/strip"
+	@echo "... __idf_efuse"
 	@echo "... install/local"
-	@echo "... efuse_test_table"
-	@echo "... install"
-	@echo "... list_install_components"
-	@echo "... rebuild_cache"
-	@echo "... show_efuse_table"
-	@echo "... edit_cache"
-	@echo "... efuse_custom_table"
+	@echo "... efuse-common-table"
 	@echo "... efuse_common_table"
-	@echo "... idf_component_efuse_sections_info"
-	@echo "... idf_component_efuse"
+	@echo "... show-efuse-table"
+	@echo "... efuse-custom-table"
+	@echo "... efuse_custom_table"
+	@echo "... show_efuse_table"
+	@echo "... list_install_components"
+	@echo "... install"
+	@echo "... edit_cache"
+	@echo "... rebuild_cache"
+	@echo "... efuse_test_table"
+	@echo "... esp32/esp_efuse_fields.obj"
+	@echo "... esp32/esp_efuse_fields.i"
+	@echo "... esp32/esp_efuse_fields.s"
 	@echo "... esp32/esp_efuse_table.obj"
 	@echo "... esp32/esp_efuse_table.i"
 	@echo "... esp32/esp_efuse_table.s"
+	@echo "... esp32/esp_efuse_utility.obj"
+	@echo "... esp32/esp_efuse_utility.i"
+	@echo "... esp32/esp_efuse_utility.s"
 	@echo "... src/esp_efuse_api.obj"
 	@echo "... src/esp_efuse_api.i"
 	@echo "... src/esp_efuse_api.s"
+	@echo "... src/esp_efuse_api_key_esp32.obj"
+	@echo "... src/esp_efuse_api_key_esp32.i"
+	@echo "... src/esp_efuse_api_key_esp32.s"
 	@echo "... src/esp_efuse_fields.obj"
 	@echo "... src/esp_efuse_fields.i"
 	@echo "... src/esp_efuse_fields.s"

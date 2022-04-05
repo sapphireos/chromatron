@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #include "unity.h"
 #include "sodium/crypto_hash_sha256.h"
 #include "sodium/crypto_hash_sha512.h"
@@ -9,7 +14,7 @@
    internal filesystem storage.
 */
 
-extern int aead_chacha20poly1305_xmain();
+extern int aead_chacha20poly1305_xmain(void);
 
 TEST_CASE("aead_chacha20poly1305 test vectors", "[libsodium]")
 {
@@ -17,7 +22,7 @@ TEST_CASE("aead_chacha20poly1305 test vectors", "[libsodium]")
     TEST_ASSERT_EQUAL(0, aead_chacha20poly1305_xmain());
 }
 
-extern int chacha20_xmain();
+extern int chacha20_xmain(void);
 
 TEST_CASE("chacha20 test vectors", "[libsodium]")
 {
@@ -25,8 +30,8 @@ TEST_CASE("chacha20 test vectors", "[libsodium]")
     TEST_ASSERT_EQUAL(0, chacha20_xmain());
 }
 
-extern int box_xmain();
-extern int box2_xmain();
+extern int box_xmain(void);
+extern int box2_xmain(void);
 
 TEST_CASE("box tests", "[libsodium]")
 {
@@ -37,7 +42,7 @@ TEST_CASE("box tests", "[libsodium]")
     TEST_ASSERT_EQUAL(0, box2_xmain());
 }
 
-extern int ed25519_convert_xmain();
+extern int ed25519_convert_xmain(void);
 
 TEST_CASE("ed25519_convert tests", "[libsodium][timeout=60]")
 {
@@ -45,7 +50,7 @@ TEST_CASE("ed25519_convert tests", "[libsodium][timeout=60]")
     TEST_ASSERT_EQUAL(0, ed25519_convert_xmain() );
 }
 
-extern int sign_xmain();
+extern int sign_xmain(void);
 
 TEST_CASE("sign tests", "[libsodium]")
 {
@@ -53,7 +58,7 @@ TEST_CASE("sign tests", "[libsodium]")
     TEST_ASSERT_EQUAL(0, sign_xmain() );
 }
 
-extern int hash_xmain();
+extern int hash_xmain(void);
 
 TEST_CASE("hash tests", "[libsodium]")
 {

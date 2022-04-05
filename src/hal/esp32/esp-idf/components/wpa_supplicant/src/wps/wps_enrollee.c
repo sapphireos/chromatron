@@ -5,19 +5,18 @@
  * This software may be distributed under the terms of the BSD license.
  * See README for more details.
  */
+#if CONFIG_IDF_TARGET_ESP32
+#include "esp32/rom/ets_sys.h" // for ets_timer_disarm
+#endif
+#include "utils/includes.h"
 
-#include "rom/ets_sys.h"
-#include "wpa/includes.h"
-
-#include "wpa/common.h"
+#include "utils/common.h"
 #include "crypto/crypto.h"
 #include "crypto/sha256.h"
 #include "crypto/random.h"
 #include "wps/wps_i.h"
 #include "wps/wps.h"
 #include "wps/wps_dev_attr.h"
-
-#include "soc/dport_reg.h"
 
 
 static int wps_build_mac_addr(struct wps_data *wps, struct wpabuf *msg) {
@@ -76,12 +75,7 @@ static int wps_build_e_hash(struct wps_data *wps, struct wpabuf *msg)
 	len[2] = wpabuf_len(wps->dh_pubkey_e);
 	addr[3] = wpabuf_head(wps->dh_pubkey_r);
 	len[3] = wpabuf_len(wps->dh_pubkey_r);
-	if (wps_crypto_funcs.hmac_sha256_vector) {
-		wps_crypto_funcs.hmac_sha256_vector(wps->authkey, WPS_AUTHKEY_LEN, 4, addr, (int *)len, hash);
-	} else {
-		wpa_printf(MSG_ERROR, "In function %s, fail to register hmac_sha256_vector function!\r\n", __FUNCTION__);
-		return -1;
-	}
+	hmac_sha256_vector(wps->authkey, WPS_AUTHKEY_LEN, 4, addr, len, hash);
 	wpa_hexdump(MSG_DEBUG, "WPS: E-Hash1", hash, SHA256_MAC_LEN);
 
 	wpa_printf(MSG_DEBUG,  "WPS:  * E-Hash2");
@@ -91,12 +85,7 @@ static int wps_build_e_hash(struct wps_data *wps, struct wpabuf *msg)
 	/* E-Hash2 = HMAC_AuthKey(E-S2 || PSK2 || PK_E || PK_R) */
 	addr[0] = wps->snonce + WPS_SECRET_NONCE_LEN;
 	addr[1] = wps->psk2;
-	if (wps_crypto_funcs.hmac_sha256_vector) {
-		wps_crypto_funcs.hmac_sha256_vector(wps->authkey, WPS_AUTHKEY_LEN, 4, addr, (int *)len, hash);
-	} else {
-		wpa_printf(MSG_ERROR, "In function %s, fail to register hmac_sha256_vector function!\r\n", __FUNCTION__);
-		return -1;
-	}
+	hmac_sha256_vector(wps->authkey, WPS_AUTHKEY_LEN, 4, addr, len, hash);
 	wpa_hexdump(MSG_DEBUG, "WPS: E-Hash2", hash, SHA256_MAC_LEN);
 
 	return 0;
@@ -605,12 +594,7 @@ static int wps_process_r_snonce1(struct wps_data *wps, const u8 *r_snonce1)
 	addr[3] = wpabuf_head(wps->dh_pubkey_r);
 	len[3] = wpabuf_len(wps->dh_pubkey_r);
 
-	if (wps_crypto_funcs.hmac_sha256_vector) {
-		wps_crypto_funcs.hmac_sha256_vector(wps->authkey, WPS_AUTHKEY_LEN, 4, addr, (int *)len, hash);
-	} else {
-		wpa_printf(MSG_ERROR, "In function %s, fail to register hmac_sha256_vector function!\r\n", __FUNCTION__);
-		return -1;
-	}
+	hmac_sha256_vector(wps->authkey, WPS_AUTHKEY_LEN, 4, addr, len, hash);
 	if (os_memcmp(wps->peer_hash1, hash, WPS_HASH_LEN) != 0) {
 		wpa_printf(MSG_DEBUG,  "WPS: R-Hash1 derived from R-S1 does "
 			   "not match with the pre-committed value");
@@ -650,12 +634,7 @@ static int wps_process_r_snonce2(struct wps_data *wps, const u8 *r_snonce2)
 	addr[3] = wpabuf_head(wps->dh_pubkey_r);
 	len[3] = wpabuf_len(wps->dh_pubkey_r);
 
-	if (wps_crypto_funcs.hmac_sha256_vector) {
-		wps_crypto_funcs.hmac_sha256_vector(wps->authkey, WPS_AUTHKEY_LEN, 4, addr, (int *)len, hash);
-	} else {
-		wpa_printf(MSG_ERROR, "In function %s, fail to regiset hmac_sha256_vector function!\r\n", __FUNCTION__);
-		return -1;
-	}
+	hmac_sha256_vector(wps->authkey, WPS_AUTHKEY_LEN, 4, addr, len, hash);
 
 	if (os_memcmp(wps->peer_hash2, hash, WPS_HASH_LEN) != 0) {
 		wpa_printf(MSG_DEBUG,  "WPS: R-Hash2 derived from R-S2 does "
@@ -673,7 +652,7 @@ static int wps_process_r_snonce2(struct wps_data *wps, const u8 *r_snonce2)
 
 
 static int wps_process_cred_e(struct wps_data *wps, const u8 *cred,
-			      size_t cred_len, int wps2)
+			      size_t cred_len, int cred_idx, int wps2)
 {
 	struct wps_parse_attr *attr;
 	struct wpabuf msg;
@@ -733,9 +712,8 @@ static int wps_process_cred_e(struct wps_data *wps, const u8 *cred,
 		goto _out;
 	}
 #endif /* CONFIG_WPS2 */
-
-	    wps_ssid_save(wps->cred.ssid, wps->cred.ssid_len);
-        wps_key_save((char *)wps->cred.key, wps->cred.key_len);
+    wps_ssid_save(wps->cred.ssid, wps->cred.ssid_len, cred_idx);
+    wps_key_save((char *)wps->cred.key, wps->cred.key_len, cred_idx);
 
 	if (wps->wps->cred_cb) {
 		wps->cred.cred_attr = cred - 4;
@@ -770,7 +748,7 @@ static int wps_process_creds(struct wps_data *wps, const u8 *cred[],
 
 	for (i = 0; i < num_cred; i++) {
 		int res;
-		res = wps_process_cred_e(wps, cred[i], cred_len[i], wps2);
+		res = wps_process_cred_e(wps, cred[i], cred_len[i], i, wps2);
 		if (res == 0)
 			ok++;
 		else if (res == -2) {
@@ -1022,7 +1000,7 @@ static enum wps_process_res wps_process_m4(struct wps_data *wps,
 		res = WPS_CONTINUE;
 		goto _out;
 	}
-		
+
 	if (wps->state != RECV_M4) {
 		wpa_printf(MSG_DEBUG,  "WPS: Unexpected state (%d) for "
 			   "receiving M4", wps->state);
@@ -1250,7 +1228,7 @@ static enum wps_process_res wps_process_wsc_start(struct wps_data *wps,
 
 	wpa_printf(MSG_DEBUG,  "WPS: Received WSC_START");
 	ets_timer_disarm(&sm->wps_eapol_start_timer);
-        wps->state = SEND_M1; 
+        wps->state = SEND_M1;
 	return ret;
 }
 

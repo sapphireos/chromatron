@@ -1,5 +1,7 @@
-#
-# Component Makefile
-#
-# (Uses default behaviour of compiling all source files in directory, adding 'include' to include path.)
-
+COMPONENT_PRIV_INCLUDEDIRS := private_include
+ifndef CONFIG_ESP_CONSOLE_USB_CDC
+    COMPONENT_OBJEXCLUDE := vfs_cdcacm.o
+endif
+ifndef CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG
+    COMPONENT_OBJEXCLUDE := vfs_usb_serial_jtag.o
+endif

@@ -6,19 +6,12 @@
  * See README for more details.
  */
 
-//#include "wpa/includes.h"
+#include "includes.h"
 
-//#include "wpa/common.h"
-#include "crypto/common.h"
-#include "crypto/crypto.h"
-#include "crypto/aes.h"
-#if defined(CONFIG_DES) || defined(CONFIG_DES3)
-#include "crypto/des_i.h"
-#endif
-
-#ifdef MEMLEAK_DEBUG
-static const char mem_debug_file[] ICACHE_RODATA_ATTR = __FILE__;
-#endif
+#include "common.h"
+#include "crypto.h"
+#include "aes.h"
+#include "des_i.h"
 
 
 struct crypto_cipher {
@@ -34,30 +27,26 @@ struct crypto_cipher {
 			void *ctx_enc;
 			void *ctx_dec;
 		} aes;
-#ifdef CONFIG_DES3
 		struct {
 			struct des3_key_s key;
 			u8 cbc[8];
 		} des3;
-#endif
-#ifdef CONFIG_DES
 		struct {
 			u32 ek[32];
 			u32 dk[32];
 			u8 cbc[8];
 		} des;
-#endif
 	} u;
 };
 
 
-struct crypto_cipher *  crypto_cipher_init(enum crypto_cipher_alg alg,
+struct crypto_cipher * crypto_cipher_init(enum crypto_cipher_alg alg,
 					  const u8 *iv, const u8 *key,
 					  size_t key_len)
 {
 	struct crypto_cipher *ctx;
 
-	ctx = (struct crypto_cipher *)os_zalloc(sizeof(*ctx));
+	ctx = os_zalloc(sizeof(*ctx));
 	if (ctx == NULL)
 		return NULL;
 
@@ -86,7 +75,6 @@ struct crypto_cipher *  crypto_cipher_init(enum crypto_cipher_alg alg,
 		}
 		os_memcpy(ctx->u.aes.cbc, iv, AES_BLOCK_SIZE);
 		break;
-#ifdef CONFIG_DES3
 	case CRYPTO_CIPHER_ALG_3DES:
 		if (key_len != 24) {
 			os_free(ctx);
@@ -95,8 +83,6 @@ struct crypto_cipher *  crypto_cipher_init(enum crypto_cipher_alg alg,
 		des3_key_setup(key, &ctx->u.des3.key);
 		os_memcpy(ctx->u.des3.cbc, iv, 8);
 		break;
-#endif
-#ifdef CONFIG_DES
 	case CRYPTO_CIPHER_ALG_DES:
 		if (key_len != 8) {
 			os_free(ctx);
@@ -105,7 +91,6 @@ struct crypto_cipher *  crypto_cipher_init(enum crypto_cipher_alg alg,
 		des_key_setup(key, ctx->u.des.ek, ctx->u.des.dk);
 		os_memcpy(ctx->u.des.cbc, iv, 8);
 		break;
-#endif
 	default:
 		os_free(ctx);
 		return NULL;
@@ -115,7 +100,7 @@ struct crypto_cipher *  crypto_cipher_init(enum crypto_cipher_alg alg,
 }
 
 
-int  crypto_cipher_encrypt(struct crypto_cipher *ctx, const u8 *plain,
+int crypto_cipher_encrypt(struct crypto_cipher *ctx, const u8 *plain,
 			  u8 *crypt, size_t len)
 {
 	size_t i, j, blocks;
@@ -142,7 +127,6 @@ int  crypto_cipher_encrypt(struct crypto_cipher *ctx, const u8 *plain,
 			crypt += AES_BLOCK_SIZE;
 		}
 		break;
-#ifdef CONFIG_DES3
 	case CRYPTO_CIPHER_ALG_3DES:
 		if (len % 8)
 			return -1;
@@ -157,8 +141,6 @@ int  crypto_cipher_encrypt(struct crypto_cipher *ctx, const u8 *plain,
 			crypt += 8;
 		}
 		break;
-#endif
-#ifdef CONFIG_DES
 	case CRYPTO_CIPHER_ALG_DES:
 		if (len % 8)
 			return -1;
@@ -173,7 +155,6 @@ int  crypto_cipher_encrypt(struct crypto_cipher *ctx, const u8 *plain,
 			crypt += 8;
 		}
 		break;
-#endif
 	default:
 		return -1;
 	}
@@ -182,7 +163,7 @@ int  crypto_cipher_encrypt(struct crypto_cipher *ctx, const u8 *plain,
 }
 
 
-int  crypto_cipher_decrypt(struct crypto_cipher *ctx, const u8 *crypt,
+int crypto_cipher_decrypt(struct crypto_cipher *ctx, const u8 *crypt,
 			  u8 *plain, size_t len)
 {
 	size_t i, j, blocks;
@@ -210,7 +191,6 @@ int  crypto_cipher_decrypt(struct crypto_cipher *ctx, const u8 *crypt,
 			crypt += AES_BLOCK_SIZE;
 		}
 		break;
-#ifdef CONFIG_DES3
 	case CRYPTO_CIPHER_ALG_3DES:
 		if (len % 8)
 			return -1;
@@ -225,8 +205,6 @@ int  crypto_cipher_decrypt(struct crypto_cipher *ctx, const u8 *crypt,
 			crypt += 8;
 		}
 		break;
-#endif
-#ifdef CONFIG_DES
 	case CRYPTO_CIPHER_ALG_DES:
 		if (len % 8)
 			return -1;
@@ -241,7 +219,6 @@ int  crypto_cipher_decrypt(struct crypto_cipher *ctx, const u8 *crypt,
 			crypt += 8;
 		}
 		break;
-#endif
 	default:
 		return -1;
 	}
@@ -250,17 +227,15 @@ int  crypto_cipher_decrypt(struct crypto_cipher *ctx, const u8 *crypt,
 }
 
 
-void  crypto_cipher_deinit(struct crypto_cipher *ctx)
+void crypto_cipher_deinit(struct crypto_cipher *ctx)
 {
 	switch (ctx->alg) {
 	case CRYPTO_CIPHER_ALG_AES:
 		aes_encrypt_deinit(ctx->u.aes.ctx_enc);
 		aes_decrypt_deinit(ctx->u.aes.ctx_dec);
 		break;
-#ifdef CONFIG_DES3
 	case CRYPTO_CIPHER_ALG_3DES:
 		break;
-#endif
 	default:
 		break;
 	}

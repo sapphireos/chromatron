@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 /** @file
  *  @brief Bluetooth Mesh Sensor Client Model APIs.
@@ -53,20 +45,20 @@ struct bt_mesh_sensor_descriptor_status {
 };
 
 struct bt_mesh_sensor_cadence_status {
-    u16_t property_id;              /* Property for the sensor                       */
+    uint16_t property_id;              /* Property for the sensor                       */
     struct net_buf_simple *sensor_cadence_value; /* Value of sensor cadence state */
 };
 
 struct bt_mesh_sensor_settings_status {
-    u16_t sensor_property_id;              /* Property ID identifying a sensor                        */
+    uint16_t sensor_property_id;              /* Property ID identifying a sensor                        */
     struct net_buf_simple *sensor_setting_property_ids; /* A sequence of N sensor setting property IDs (optional) */
 };
 
 struct bt_mesh_sensor_setting_status {
-    bool  op_en;                      /* Indicate whether optional parameters included       */
-    u16_t sensor_property_id;         /* Property ID identifying a sensor                    */
-    u16_t sensor_setting_property_id; /* Setting ID identifying a setting within a sensor    */
-    u8_t  sensor_setting_access;      /* Read/Write access rights for the setting (optional) */
+    bool     op_en;                      /* Indicate whether optional parameters included       */
+    uint16_t sensor_property_id;         /* Property ID identifying a sensor                    */
+    uint16_t sensor_setting_property_id; /* Setting ID identifying a setting within a sensor    */
+    uint8_t  sensor_setting_access;      /* Read/Write access rights for the setting (optional) */
     struct net_buf_simple *sensor_setting_raw; /* Raw value for the setting */
 };
 
@@ -75,63 +67,63 @@ struct bt_mesh_sensor_status {
 };
 
 struct bt_mesh_sensor_column_status {
-    u16_t property_id;             /* Property identifying a sensor and the Y axis  */
+    uint16_t property_id;             /* Property identifying a sensor and the Y axis  */
     struct net_buf_simple *sensor_column_value; /* Left values of sensor column status */
 };
 
 struct bt_mesh_sensor_series_status {
-    u16_t property_id;             /* Property identifying a sensor and the Y axis  */
+    uint16_t property_id;             /* Property identifying a sensor and the Y axis  */
     struct net_buf_simple *sensor_series_value; /* Left values of sensor series status */
 };
 
 struct bt_mesh_sensor_descriptor_get {
-    bool  op_en;       /* Indicate whether optional parameters included */
-    u16_t property_id; /* Property ID for the sensor (optional)         */
+    bool     op_en;       /* Indicate whether optional parameters included */
+    uint16_t property_id; /* Property ID for the sensor (optional)         */
 };
 
 struct bt_mesh_sensor_cadence_get {
-    u16_t property_id; /* Property ID for the sensor */
+    uint16_t property_id; /* Property ID for the sensor */
 };
 
 struct bt_mesh_sensor_cadence_set {
-    u16_t property_id;                     /* Property ID for the sensor                                */
-    u8_t  fast_cadence_period_divisor : 7, /* Divisor for the publish period                            */
-          status_trigger_type : 1;         /* The unit and format of the Status Trigger Delta fields    */
+    uint16_t property_id;                     /* Property ID for the sensor                                */
+    uint8_t  fast_cadence_period_divisor : 7, /* Divisor for the publish period                            */
+             status_trigger_type : 1;         /* The unit and format of the Status Trigger Delta fields    */
     struct net_buf_simple *status_trigger_delta_down; /* Delta down value that triggers a status message */
     struct net_buf_simple *status_trigger_delta_up; /* Delta up value that triggers a status message */
-    u8_t  status_min_interval;             /* Minimum interval between two consecutive Status messages  */
-    struct net_buf_simple *fast_cadence_low; /* Low value for the fast cadence range */
+    uint8_t  status_min_interval;             /* Minimum interval between two consecutive Status messages  */
+    struct net_buf_simple *fast_cadence_low;  /* Low value for the fast cadence range */
     struct net_buf_simple *fast_cadence_high; /* Fast value for the fast cadence range */
 };
 
 struct bt_mesh_sensor_settings_get {
-    u16_t sensor_property_id; /* Property ID for the sensor */
+    uint16_t sensor_property_id; /* Property ID for the sensor */
 };
 
 struct bt_mesh_sensor_setting_get {
-    u16_t sensor_property_id;         /* Property ID identifying a sensor                 */
-    u16_t sensor_setting_property_id; /* Setting ID identifying a setting within a sensor */
+    uint16_t sensor_property_id;         /* Property ID identifying a sensor                 */
+    uint16_t sensor_setting_property_id; /* Setting ID identifying a setting within a sensor */
 };
 
 struct bt_mesh_sensor_setting_set {
-    u16_t sensor_property_id;         /* Property ID identifying a sensor                 */
-    u16_t sensor_setting_property_id; /* Setting ID identifying a setting within a sensor */
+    uint16_t sensor_property_id;         /* Property ID identifying a sensor                 */
+    uint16_t sensor_setting_property_id; /* Setting ID identifying a setting within a sensor */
     struct net_buf_simple *sensor_setting_raw; /* Raw value for the setting */
 };
 
 struct bt_mesh_sensor_get {
-    bool  op_en;       /* Indicate whether optional parameters included */
-    u16_t property_id; /* Property ID for the sensor (optional)         */
+    bool     op_en;       /* Indicate whether optional parameters included */
+    uint16_t property_id; /* Property ID for the sensor (optional)         */
 };
 
 struct bt_mesh_sensor_column_get {
-    u16_t property_id;     /* Property identifying a sensor                */
+    uint16_t property_id;     /* Property identifying a sensor                */
     struct net_buf_simple *raw_value_x; /* Raw value identifying a column */
 };
 
 struct bt_mesh_sensor_series_get {
-    bool  op_en;            /* Indicate whether optional parameters included         */
-    u16_t property_id;      /* Property identifying a sensor                         */
+    bool     op_en;            /* Indicate whether optional parameters included         */
+    uint16_t property_id;      /* Property identifying a sensor                         */
     struct net_buf_simple *raw_value_x1; /* Raw value identifying a starting column (optional) */
     struct net_buf_simple *raw_value_x2; /* Raw value identifying a ending column (C.1) */
 };

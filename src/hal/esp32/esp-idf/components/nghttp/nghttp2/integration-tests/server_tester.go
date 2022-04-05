@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/tls"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/tatsuhiro-t/go-nghttp2"
-	"github.com/tatsuhiro-t/spdy"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/hpack"
 	"golang.org/x/net/websocket"
@@ -53,14 +53,12 @@ type serverTester struct {
 	h2PrefaceSent bool             // HTTP/2 preface was sent in conn
 	nextStreamID  uint32           // next stream ID
 	fr            *http2.Framer    // HTTP/2 framer
-	spdyFr        *spdy.Framer     // SPDY/3.1 framer
 	headerBlkBuf  bytes.Buffer     // buffer to store encoded header block
 	enc           *hpack.Encoder   // HTTP/2 HPACK encoder
 	header        http.Header      // received header fields
 	dec           *hpack.Decoder   // HTTP/2 HPACK decoder
 	authority     string           // server's host:port
 	frCh          chan http2.Frame // used for incoming HTTP/2 frame
-	spdyFrCh      chan spdy.Frame  // used for incoming SPDY frame
 	errCh         chan error
 }
 
@@ -101,7 +99,7 @@ func newServerTesterInternal(src_args []string, t *testing.T, handler http.Handl
 
 	args := []string{}
 
-	var backendTLS, dns, externalDNS, acceptProxyProtocol, redirectIfNotTLS bool
+	var backendTLS, dns, externalDNS, acceptProxyProtocol, redirectIfNotTLS, affinityCookie, alpnH1 bool
 
 	for _, k := range src_args {
 		switch k {
@@ -116,6 +114,10 @@ func newServerTesterInternal(src_args []string, t *testing.T, handler http.Handl
 			acceptProxyProtocol = true
 		case "--redirect-if-not-tls":
 			redirectIfNotTLS = true
+		case "--affinity-cookie":
+			affinityCookie = true
+		case "--alpn-h1":
+			alpnH1 = true
 		default:
 			args = append(args, k)
 		}
@@ -168,6 +170,10 @@ func newServerTesterInternal(src_args []string, t *testing.T, handler http.Handl
 		b += ";redirect-if-not-tls"
 	}
 
+	if affinityCookie {
+		b += ";affinity=cookie;affinity-cookie-name=affinity;affinity-cookie-path=/foo/bar"
+	}
+
 	noTLS := ";no-tls"
 	if frontendTLS {
 		noTLS = ""
@@ -193,7 +199,6 @@ func newServerTesterInternal(src_args []string, t *testing.T, handler http.Handl
 		nextStreamID: 1,
 		authority:    authority,
 		frCh:         make(chan http2.Frame),
-		spdyFrCh:     make(chan spdy.Frame),
 		errCh:        make(chan error),
 	}
 
@@ -218,7 +223,11 @@ func newServerTesterInternal(src_args []string, t *testing.T, handler http.Handl
 				tlsConfig = clientConfig
 			}
 			tlsConfig.InsecureSkipVerify = true
-			tlsConfig.NextProtos = []string{"h2", "spdy/3.1"}
+			if alpnH1 {
+				tlsConfig.NextProtos = []string{"http/1.1"}
+			} else {
+				tlsConfig.NextProtos = []string{"h2"}
+			}
 			conn, err = tls.Dial("tcp", authority, tlsConfig)
 		} else {
 			conn, err = net.Dial("tcp", authority)
@@ -244,12 +253,6 @@ func newServerTesterInternal(src_args []string, t *testing.T, handler http.Handl
 	}
 
 	st.fr = http2.NewFramer(st.conn, st.conn)
-	spdyFr, err := spdy.NewFramer(st.conn, st.conn)
-	if err != nil {
-		st.Close()
-		st.t.Fatalf("Error spdy.NewFramer: %v", err)
-	}
-	st.spdyFr = spdyFr
 	st.enc = hpack.NewEncoder(&st.headerBlkBuf)
 	st.dec = hpack.NewDecoder(4096, func(f hpack.HeaderField) {
 		st.header.Add(f.Name, f.Value)
@@ -299,26 +302,6 @@ func (st *serverTester) readFrame() (http2.Frame, error) {
 	case err := <-st.errCh:
 		return nil, err
 	case <-time.After(5 * time.Second):
-		return nil, errors.New("timeout waiting for frame")
-	}
-}
-
-func (st *serverTester) readSpdyFrame() (spdy.Frame, error) {
-	go func() {
-		f, err := st.spdyFr.ReadFrame()
-		if err != nil {
-			st.errCh <- err
-			return
-		}
-		st.spdyFrCh <- f
-	}()
-
-	select {
-	case f := <-st.spdyFrCh:
-		return f, nil
-	case err := <-st.errCh:
-		return nil, err
-	case <-time.After(2 * time.Second):
 		return nil, errors.New("timeout waiting for frame")
 	}
 }
@@ -460,122 +443,6 @@ func (st *serverTester) http1(rp requestParam) (*serverResponse, error) {
 		connClose: resp.Close,
 	}
 
-	return res, nil
-}
-
-func (st *serverTester) spdy(rp requestParam) (*serverResponse, error) {
-	res := &serverResponse{}
-
-	var id spdy.StreamId
-	if rp.streamID != 0 {
-		id = spdy.StreamId(rp.streamID)
-		if id >= spdy.StreamId(st.nextStreamID) && id%2 == 1 {
-			st.nextStreamID = uint32(id) + 2
-		}
-	} else {
-		id = spdy.StreamId(st.nextStreamID)
-		st.nextStreamID += 2
-	}
-
-	method := "GET"
-	if rp.method != "" {
-		method = rp.method
-	}
-
-	scheme := "http"
-	if rp.scheme != "" {
-		scheme = rp.scheme
-	}
-
-	host := st.authority
-	if rp.authority != "" {
-		host = rp.authority
-	}
-
-	path := "/"
-	if rp.path != "" {
-		path = rp.path
-	}
-
-	header := make(http.Header)
-	header.Add(":method", method)
-	header.Add(":scheme", scheme)
-	header.Add(":host", host)
-	header.Add(":path", path)
-	header.Add(":version", "HTTP/1.1")
-	header.Add("test-case", rp.name)
-	for _, h := range rp.header {
-		header.Add(h.Name, h.Value)
-	}
-
-	var synStreamFlags spdy.ControlFlags
-	if len(rp.body) == 0 && !rp.noEndStream {
-		synStreamFlags = spdy.ControlFlagFin
-	}
-	if err := st.spdyFr.WriteFrame(&spdy.SynStreamFrame{
-		CFHeader: spdy.ControlFrameHeader{
-			Flags: synStreamFlags,
-		},
-		StreamId: id,
-		Headers:  header,
-	}); err != nil {
-		return nil, err
-	}
-
-	if len(rp.body) != 0 {
-		var dataFlags spdy.DataFlags
-		if !rp.noEndStream {
-			dataFlags = spdy.DataFlagFin
-		}
-		if err := st.spdyFr.WriteFrame(&spdy.DataFrame{
-			StreamId: id,
-			Flags:    dataFlags,
-			Data:     rp.body,
-		}); err != nil {
-			return nil, err
-		}
-	}
-
-loop:
-	for {
-		fr, err := st.readSpdyFrame()
-		if err != nil {
-			return res, err
-		}
-		switch f := fr.(type) {
-		case *spdy.SynReplyFrame:
-			if f.StreamId != id {
-				break
-			}
-			res.header = cloneHeader(f.Headers)
-			if _, err := fmt.Sscan(res.header.Get(":status"), &res.status); err != nil {
-				return res, fmt.Errorf("Error parsing status code: %v", err)
-			}
-			if f.CFHeader.Flags&spdy.ControlFlagFin != 0 {
-				break loop
-			}
-		case *spdy.DataFrame:
-			if f.StreamId != id {
-				break
-			}
-			res.body = append(res.body, f.Data...)
-			if f.Flags&spdy.DataFlagFin != 0 {
-				break loop
-			}
-		case *spdy.RstStreamFrame:
-			if f.StreamId != id {
-				break
-			}
-			res.spdyRstErrCode = f.Status
-			break loop
-		case *spdy.GoAwayFrame:
-			if f.Status == spdy.GoAwayOK {
-				break
-			}
-			res.spdyGoAwayErrCode = f.Status
-			break loop
-		}
-	}
 	return res, nil
 }
 
@@ -761,17 +628,15 @@ func streamEnded(mainSr *serverResponse, streams map[uint32]*serverResponse, sr 
 }
 
 type serverResponse struct {
-	status            int                  // HTTP status code
-	header            http.Header          // response header fields
-	body              []byte               // response body
-	streamID          uint32               // stream ID in HTTP/2
-	errCode           http2.ErrCode        // error code received in HTTP/2 RST_STREAM or GOAWAY
-	connErr           bool                 // true if HTTP/2 connection error
-	spdyGoAwayErrCode spdy.GoAwayStatus    // status code received in SPDY RST_STREAM
-	spdyRstErrCode    spdy.RstStreamStatus // status code received in SPDY GOAWAY
-	connClose         bool                 // Conection: close is included in response header in HTTP/1 test
-	reqHeader         http.Header          // http request header, currently only sotres pushed request header
-	pushResponse      []*serverResponse    // pushed response
+	status       int               // HTTP status code
+	header       http.Header       // response header fields
+	body         []byte            // response body
+	streamID     uint32            // stream ID in HTTP/2
+	errCode      http2.ErrCode     // error code received in HTTP/2 RST_STREAM or GOAWAY
+	connErr      bool              // true if HTTP/2 connection error
+	connClose    bool              // Connection: close is included in response header in HTTP/1 test
+	reqHeader    http.Header       // http request header, currently only sotres pushed request header
+	pushResponse []*serverResponse // pushed response
 }
 
 type ByStreamID []*serverResponse
@@ -798,10 +663,102 @@ func cloneHeader(h http.Header) http.Header {
 	return h2
 }
 
-func noopHandler(w http.ResponseWriter, r *http.Request) {}
+func noopHandler(w http.ResponseWriter, r *http.Request) {
+	ioutil.ReadAll(r.Body)
+}
 
 type APIResponse struct {
 	Status string                 `json:"status,omitempty"`
 	Code   int                    `json:"code,omitempty"`
 	Data   map[string]interface{} `json:"data,omitempty"`
+}
+
+type proxyProtocolV2 struct {
+	command            proxyProtocolV2Command
+	sourceAddress      net.Addr
+	destinationAddress net.Addr
+	additionalData     []byte
+}
+
+type proxyProtocolV2Command int
+
+const (
+	proxyProtocolV2CommandLocal proxyProtocolV2Command = 0x0
+	proxyProtocolV2CommandProxy proxyProtocolV2Command = 0x1
+)
+
+type proxyProtocolV2Family int
+
+const (
+	proxyProtocolV2FamilyUnspec proxyProtocolV2Family = 0x0
+	proxyProtocolV2FamilyInet   proxyProtocolV2Family = 0x1
+	proxyProtocolV2FamilyInet6  proxyProtocolV2Family = 0x2
+	proxyProtocolV2FamilyUnix   proxyProtocolV2Family = 0x3
+)
+
+type proxyProtocolV2Protocol int
+
+const (
+	proxyProtocolV2ProtocolUnspec proxyProtocolV2Protocol = 0x0
+	proxyProtocolV2ProtocolStream proxyProtocolV2Protocol = 0x1
+	proxyProtocolV2ProtocolDgram  proxyProtocolV2Protocol = 0x2
+)
+
+func writeProxyProtocolV2(w io.Writer, hdr proxyProtocolV2) {
+	w.Write([]byte{0x0D, 0x0A, 0x0D, 0x0A, 0x00, 0x0D, 0x0A, 0x51, 0x55, 0x49, 0x54, 0x0A})
+	w.Write([]byte{byte(0x20 | hdr.command)})
+
+	switch srcAddr := hdr.sourceAddress.(type) {
+	case *net.TCPAddr:
+		dstAddr := hdr.destinationAddress.(*net.TCPAddr)
+		if len(srcAddr.IP) != len(dstAddr.IP) {
+			panic("len(srcAddr.IP) != len(dstAddr.IP)")
+		}
+		var fam byte
+		if len(srcAddr.IP) == 4 {
+			fam = byte(proxyProtocolV2FamilyInet << 4)
+		} else {
+			fam = byte(proxyProtocolV2FamilyInet6 << 4)
+		}
+		fam |= byte(proxyProtocolV2ProtocolStream)
+		w.Write([]byte{fam})
+		length := uint16(len(srcAddr.IP)*2 + 4 + len(hdr.additionalData))
+		binary.Write(w, binary.BigEndian, length)
+		w.Write(srcAddr.IP)
+		w.Write(dstAddr.IP)
+		binary.Write(w, binary.BigEndian, uint16(srcAddr.Port))
+		binary.Write(w, binary.BigEndian, uint16(dstAddr.Port))
+	case *net.UnixAddr:
+		dstAddr := hdr.destinationAddress.(*net.UnixAddr)
+		if len(srcAddr.Name) > 108 {
+			panic("too long Unix source address")
+		}
+		if len(dstAddr.Name) > 108 {
+			panic("too long Unix destination address")
+		}
+		fam := byte(proxyProtocolV2FamilyUnix << 4)
+		switch srcAddr.Net {
+		case "unix":
+			fam |= byte(proxyProtocolV2ProtocolStream)
+		case "unixdgram":
+			fam |= byte(proxyProtocolV2ProtocolDgram)
+		default:
+			fam |= byte(proxyProtocolV2ProtocolUnspec)
+		}
+		w.Write([]byte{fam})
+		length := uint16(216 + len(hdr.additionalData))
+		binary.Write(w, binary.BigEndian, length)
+		zeros := make([]byte, 108)
+		w.Write([]byte(srcAddr.Name))
+		w.Write(zeros[:108-len(srcAddr.Name)])
+		w.Write([]byte(dstAddr.Name))
+		w.Write(zeros[:108-len(dstAddr.Name)])
+	default:
+		fam := byte(proxyProtocolV2FamilyUnspec<<4) | byte(proxyProtocolV2ProtocolUnspec)
+		w.Write([]byte{fam})
+		length := uint16(len(hdr.additionalData))
+		binary.Write(w, binary.BigEndian, length)
+	}
+
+	w.Write(hdr.additionalData)
 }

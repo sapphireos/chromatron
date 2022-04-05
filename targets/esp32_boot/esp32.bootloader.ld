@@ -11,8 +11,6 @@ Linker file used to link the bootloader.
 
 MEMORY
 {
-  /* I/O */
-  dport0_seg (RW) :                 	org = 0x3FF00000, len = 0x10
   /* IRAM POOL1, used for APP CPU cache. Bootloader runs from here during the final stage of loading the app because APP CPU is still held in reset, the main app enables APP CPU cache */
   iram_loader_seg (RWX) :           org = 0x40078000, len = 0x8000  /* 32KB, APP CPU cache */
   /* 63kB, IRAM. We skip the first 1k to prevent the entry point being
@@ -20,9 +18,10 @@ MEMORY
      This leads to idf_monitor decoding ROM bootloader "entry 0x40080xxx"
      message as one of the exception vectors, which looks scary to users.
   */
-  iram_seg (RWX) :                  org = 0x40080400, len = 0xfc000
+  iram_seg (RWX) :                  org = 0x40080400, len = 0xfc00
   /* 64k at the end of DRAM, after ROM bootloader stack */
-  dram_seg (RW) :                  	org = 0x3FFF0000, len = 0x10000
+  dram_seg (RW) :                   org = 0x3FFF0000, len = 0x10000
+
   dram0_boot_seg (RW) :              org = 0x3FFFFFFF - 16,
                                      len = 16
 }
@@ -34,6 +33,19 @@ ENTRY(call_start_cpu0);
 SECTIONS
 {
 
+  /* Boot data section */
+  .bootdata (NOLOAD):
+  {
+    . = ALIGN(8);
+    _sbootdata = .;        /* create a global symbol at bootdata start */
+    *(.bootdata)           /* .bootdata sections */
+    *(.bootdata*)          /* .bootdata* sections */
+
+    . = ALIGN(4);
+    _ebootdata = .;        /* define a global symbol at bootdata end */
+  } >dram0_boot_seg
+
+
   .iram_loader.text :
   {
     . = ALIGN (16);
@@ -42,19 +54,30 @@ SECTIONS
      *(.iram1 .iram1.*) /* catch stray IRAM_ATTR */
     *liblog.a:(.literal .text .literal.* .text.*)
     *libgcc.a:(.literal .text .literal.* .text.*)
-    *libbootloader_support.a:bootloader_common.*(.literal .text .literal.* .text.*)
+    *libbootloader_support.a:bootloader_clock_loader.*(.literal .text .literal.* .text.*)
+    *libbootloader_support.a:bootloader_common_loader.*(.literal .text .literal.* .text.*)
     *libbootloader_support.a:bootloader_flash.*(.literal .text .literal.* .text.*)
     *libbootloader_support.a:bootloader_random.*(.literal .text .literal.* .text.*)
+    *libbootloader_support.a:bootloader_random*.*(.literal.bootloader_random_disable .text.bootloader_random_disable)
+    *libesp_common.a:fpga_overrides.*(.literal.bootloader_fill_random .text.bootloader_fill_random)
+    *libbootloader_support.a:bootloader_efuse_esp32.*(.literal .text .literal.* .text.*)
     *libbootloader_support.a:bootloader_utility.*(.literal .text .literal.* .text.*)
     *libbootloader_support.a:bootloader_sha.*(.literal .text .literal.* .text.*)
+    *libbootloader_support.a:bootloader_console_loader.*(.literal .text .literal.* .text.*)
+    *libbootloader_support.a:bootloader_panic.*(.literal .text .literal.* .text.*)
+    *libbootloader_support.a:bootloader_soc.*(.literal .text .literal.* .text.*)
     *libbootloader_support.a:esp_image_format.*(.literal .text .literal.* .text.*)
     *libbootloader_support.a:flash_encrypt.*(.literal .text .literal.* .text.*)
+    *libbootloader_support.a:flash_encryption_secure_features.*(.literal .text .literal.* .text.*)
     *libbootloader_support.a:flash_partitions.*(.literal .text .literal.* .text.*)
     *libbootloader_support.a:secure_boot.*(.literal .text .literal.* .text.*)
-    *libbootloader_support.a:secure_boot_signatures.*(.literal .text .literal.* .text.*)
+    *libbootloader_support.a:secure_boot_secure_features.*(.literal .text .literal.* .text.*)
+    *libbootloader_support.a:secure_boot_signatures_bootloader.*(.literal .text .literal.* .text.*)
     *libmicro-ecc.a:*.*(.literal .text .literal.* .text.*)
     *libspi_flash.a:*.*(.literal .text .literal.* .text.*)
-    *libsoc.a:rtc_wdt.*(.literal .text .literal.* .text.*)
+    *libhal.a:wdt_hal_iram.*(.literal .text .literal.* .text.*)
+    *libesp_hw_support.a:rtc_clk.*(.literal .text .literal.* .text.*)
+    *libesp_hw_support.a:rtc_time.*(.literal .text .literal.* .text.*)
     *libefuse.a:*.*(.literal .text .literal.* .text.*)
     *(.fini.literal)
     *(.fini)
@@ -70,22 +93,12 @@ SECTIONS
     *(.init)
   } > iram_seg
 
-  /* Boot data section */
-  .bootdata (NOLOAD):
-  {
-    . = ALIGN(8);
-    _sbootdata = .;        /* create a global symbol at bootdata start */
-    *(.bootdata)           /* .bootdata sections */
-    *(.bootdata*)          /* .bootdata* sections */
-
-    . = ALIGN(4);
-    _ebootdata = .;        /* define a global symbol at bootdata end */
-  } >dram0_boot_seg
 
   /* Shared RAM */
   .dram0.bss (NOLOAD) :
   {
     . = ALIGN (8);
+    _dram_start = ABSOLUTE(.);
     _bss_start = ABSOLUTE(.);
     *(.dynsbss)
     *(.sbss)
@@ -155,14 +168,14 @@ SECTIONS
     *(.dynamic)
     *(.gnu.version_d)
     _rodata_end = ABSOLUTE(.);
-	/* Literals are also RO data. */
+  /* Literals are also RO data. */
     _lit4_start = ABSOLUTE(.);
     *(*.lit4)
     *(.lit4.*)
     *(.gnu.linkonce.lit4.*)
     _lit4_end = ABSOLUTE(.);
     . = ALIGN(4);
-    _heap_start = ABSOLUTE(.);
+    _dram_end = ABSOLUTE(.);
   } >dram_seg
 
   .iram.text :
@@ -174,6 +187,14 @@ SECTIONS
     *(.fini.literal)
     *(.fini)
     *(.gnu.version)
+
+    /** CPU will try to prefetch up to 16 bytes of
+      * of instructions. This means that any configuration (e.g. MMU, PMS) must allow
+      * safe access to up to 16 bytes after the last real instruction, add
+      * dummy bytes to ensure this
+      */
+    . += 16;
+
     _text_end = ABSOLUTE(.);
     _etext = .;
   } > iram_seg

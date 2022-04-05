@@ -3,7 +3,7 @@
 // ~~~~~~~~~~~~~~~~~~~~
 //
 // Copyright (c) 2005 Voipster / Indrek dot Juhani at voipster dot com
-// Copyright (c) 2005-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2005-2019 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -75,9 +75,16 @@ context::context(context::method m)
         asio::error::invalid_argument, "context");
     break;
 #else // (OPENSSL_VERSION_NUMBER >= 0x10100000L) || defined(OPENSSL_NO_SSL2)
+#if !(defined(ASIO_USE_WOLFSSL) && defined(ESP_PLATFORM))
   case context::sslv2:
     handle_ = ::SSL_CTX_new(::SSLv2_method());
     break;
+#else
+  case context::sslv2:
+    asio::detail::throw_error(
+      asio::error::invalid_argument, "context");
+    break;
+#endif // !(ASIO_USE_WOLFSSL && ESP_PLATFORM)
   case context::sslv2_client:
     handle_ = ::SSL_CTX_new(::SSLv2_client_method());
     break;
@@ -120,9 +127,16 @@ context::context(context::method m)
         asio::error::invalid_argument, "context");
     break;
 #else // defined(OPENSSL_NO_SSL3)
+#if !(defined(ASIO_USE_WOLFSSL) && defined(ESP_PLATFORM))
   case context::sslv3:
     handle_ = ::SSL_CTX_new(::SSLv3_method());
     break;
+#else
+  case context::sslv3:
+    asio::detail::throw_error(
+      asio::error::invalid_argument, "context");
+    break;
+#endif // !(ASIO_USE_WOLFSSL && ESP_PLATFORM)
   case context::sslv3_client:
     handle_ = ::SSL_CTX_new(::SSLv3_client_method());
     break;
@@ -132,7 +146,7 @@ context::context(context::method m)
 #endif // defined(OPENSSL_NO_SSL3)
 
     // TLS v1.0.
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER)
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER) && !defined(ASIO_USE_ESP_OPENSSL)
   case context::tlsv1:
     handle_ = ::SSL_CTX_new(::TLS_method());
     if (handle_)
@@ -157,7 +171,7 @@ context::context(context::method m)
       SSL_CTX_set_max_proto_version(handle_, TLS1_VERSION);
     }
     break;
-#else // (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+#elif defined(SSL_TXT_TLSV1)
   case context::tlsv1:
     handle_ = ::SSL_CTX_new(::TLSv1_method());
     break;
@@ -167,10 +181,17 @@ context::context(context::method m)
   case context::tlsv1_server:
     handle_ = ::SSL_CTX_new(::TLSv1_server_method());
     break;
-#endif // (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+#else // defined(SSL_TXT_TLSV1)
+  case context::tlsv1:
+  case context::tlsv1_client:
+  case context::tlsv1_server:
+    asio::detail::throw_error(
+        asio::error::invalid_argument, "context");
+    break;
+#endif // defined(SSL_TXT_TLSV1)
 
     // TLS v1.1.
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER)
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER) && !defined(ASIO_USE_ESP_OPENSSL)
   case context::tlsv11:
     handle_ = ::SSL_CTX_new(::TLS_method());
     if (handle_)
@@ -240,7 +261,7 @@ context::context(context::method m)
       SSL_CTX_set_max_proto_version(handle_, TLS1_2_VERSION);
     }
     break;
-#elif defined(SSL_TXT_TLSV1_1)
+#elif defined(SSL_TXT_TLSV1_2)
   case context::tlsv12:
     handle_ = ::SSL_CTX_new(::TLSv1_2_method());
     break;
@@ -250,14 +271,52 @@ context::context(context::method m)
   case context::tlsv12_server:
     handle_ = ::SSL_CTX_new(::TLSv1_2_server_method());
     break;
-#else // defined(SSL_TXT_TLSV1_1)
+#else // defined(SSL_TXT_TLSV1_2)
   case context::tlsv12:
   case context::tlsv12_client:
   case context::tlsv12_server:
     asio::detail::throw_error(
         asio::error::invalid_argument, "context");
     break;
-#endif // defined(SSL_TXT_TLSV1_1)
+#endif // defined(SSL_TXT_TLSV1_2)
+
+    // TLS v1.3.
+#if (OPENSSL_VERSION_NUMBER >= 0x10101000L) \
+    && !defined(LIBRESSL_VERSION_NUMBER)
+  case context::tlsv13:
+    handle_ = ::SSL_CTX_new(::TLS_method());
+    if (handle_)
+    {
+      SSL_CTX_set_min_proto_version(handle_, TLS1_3_VERSION);
+      SSL_CTX_set_max_proto_version(handle_, TLS1_3_VERSION);
+    }
+    break;
+  case context::tlsv13_client:
+    handle_ = ::SSL_CTX_new(::TLS_client_method());
+    if (handle_)
+    {
+      SSL_CTX_set_min_proto_version(handle_, TLS1_3_VERSION);
+      SSL_CTX_set_max_proto_version(handle_, TLS1_3_VERSION);
+    }
+    break;
+  case context::tlsv13_server:
+    handle_ = ::SSL_CTX_new(::TLS_server_method());
+    if (handle_)
+    {
+      SSL_CTX_set_min_proto_version(handle_, TLS1_3_VERSION);
+      SSL_CTX_set_max_proto_version(handle_, TLS1_3_VERSION);
+    }
+    break;
+#else // (OPENSSL_VERSION_NUMBER >= 0x10101000L)
+      //   && !defined(LIBRESSL_VERSION_NUMBER)
+  case context::tlsv13:
+  case context::tlsv13_client:
+  case context::tlsv13_server:
+    asio::detail::throw_error(
+        asio::error::invalid_argument, "context");
+    break;
+#endif // (OPENSSL_VERSION_NUMBER >= 0x10101000L)
+       //   && !defined(LIBRESSL_VERSION_NUMBER)
 
     // Any supported SSL/TLS version.
   case context::sslv23:
@@ -341,7 +400,10 @@ context::~context()
 {
   if (handle_)
   {
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER)
+#if ((OPENSSL_VERSION_NUMBER >= 0x10100000L) \
+      && !defined(LIBRESSL_VERSION_NUMBER) \
+      && !defined (ASIO_USE_ESP_OPENSSL)) \
+    || defined(ASIO_USE_WOLFSSL)
     void* cb_userdata = ::SSL_CTX_get_default_passwd_cb_userdata(handle_);
 #else // (OPENSSL_VERSION_NUMBER >= 0x10100000L)
     void* cb_userdata = handle_->default_passwd_callback_userdata;
@@ -352,7 +414,10 @@ context::~context()
         static_cast<detail::password_callback_base*>(
             cb_userdata);
       delete callback;
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER)
+#if ((OPENSSL_VERSION_NUMBER >= 0x10100000L) \
+      && !defined(LIBRESSL_VERSION_NUMBER) \
+      && !defined (ASIO_USE_ESP_OPENSSL)) \
+    || defined(ASIO_USE_WOLFSSL)
       ::SSL_CTX_set_default_passwd_cb_userdata(handle_, 0);
 #else // (OPENSSL_VERSION_NUMBER >= 0x10100000L)
       handle_->default_passwd_callback_userdata = 0;
@@ -689,7 +754,10 @@ ASIO_SYNC_OP_VOID context::use_certificate_chain(
   bio_cleanup bio = { make_buffer_bio(chain) };
   if (bio.p)
   {
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER)
+#if ((OPENSSL_VERSION_NUMBER >= 0x10100000L) \
+      && !defined(LIBRESSL_VERSION_NUMBER) \
+      && !defined(ASIO_USE_ESP_OPENSSL)) \
+    || defined(ASIO_USE_WOLFSSL)
     pem_password_cb* callback = ::SSL_CTX_get_default_passwd_cb(handle_);
     void* cb_userdata = ::SSL_CTX_get_default_passwd_cb_userdata(handle_);
 #else // (OPENSSL_VERSION_NUMBER >= 0x10100000L)
@@ -716,7 +784,10 @@ ASIO_SYNC_OP_VOID context::use_certificate_chain(
       ASIO_SYNC_OP_VOID_RETURN(ec);
     }
 
-#if (OPENSSL_VERSION_NUMBER >= 0x10002000L) && !defined(LIBRESSL_VERSION_NUMBER)
+#if ((OPENSSL_VERSION_NUMBER >= 0x10002000L) \
+      && !defined(LIBRESSL_VERSION_NUMBER)) \
+    || defined(ASIO_USE_WOLFSSL) \
+    || defined(ASIO_USE_ESP_OPENSSL)
     ::SSL_CTX_clear_chain_certs(handle_);
 #else
     if (handle_->extra_certs)
@@ -793,7 +864,10 @@ ASIO_SYNC_OP_VOID context::use_private_key(
 {
   ::ERR_clear_error();
 
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER)
+#if ((OPENSSL_VERSION_NUMBER >= 0x10100000L) \
+      && !defined(LIBRESSL_VERSION_NUMBER) \
+      && !defined(ASIO_USE_ESP_OPENSSL)) \
+    || defined(ASIO_USE_WOLFSSL)
     pem_password_cb* callback = ::SSL_CTX_get_default_passwd_cb(handle_);
     void* cb_userdata = ::SSL_CTX_get_default_passwd_cb_userdata(handle_);
 #else // (OPENSSL_VERSION_NUMBER >= 0x10100000L)
@@ -860,7 +934,10 @@ ASIO_SYNC_OP_VOID context::use_rsa_private_key(
 {
   ::ERR_clear_error();
 
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER)
+#if ((OPENSSL_VERSION_NUMBER >= 0x10100000L) \
+      && !defined(LIBRESSL_VERSION_NUMBER) \
+      && !defined(ASIO_USE_ESP_OPENSSL)) \
+    || defined(ASIO_USE_WOLFSSL)
     pem_password_cb* callback = ::SSL_CTX_get_default_passwd_cb(handle_);
     void* cb_userdata = ::SSL_CTX_get_default_passwd_cb_userdata(handle_);
 #else // (OPENSSL_VERSION_NUMBER >= 0x10100000L)
@@ -1099,7 +1176,10 @@ int context::verify_callback_function(int preverified, X509_STORE_CTX* ctx)
 ASIO_SYNC_OP_VOID context::do_set_password_callback(
     detail::password_callback_base* callback, asio::error_code& ec)
 {
-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L) && !defined(LIBRESSL_VERSION_NUMBER)
+#if ((OPENSSL_VERSION_NUMBER >= 0x10100000L) \
+      && !defined(LIBRESSL_VERSION_NUMBER) \
+      && !defined(ASIO_USE_ESP_OPENSSL)) \
+    || defined(ASIO_USE_WOLFSSL)
   void* old_callback = ::SSL_CTX_get_default_passwd_cb_userdata(handle_);
   ::SSL_CTX_set_default_passwd_cb_userdata(handle_, callback);
 #else // (OPENSSL_VERSION_NUMBER >= 0x10100000L)

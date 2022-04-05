@@ -29,7 +29,6 @@
 
 #include <sys/types.h>
 
-#include <sstream>
 #include <memory>
 #include <vector>
 #include <chrono>
@@ -38,6 +37,7 @@
 #include "shrpx_log_config.h"
 #include "tls.h"
 #include "template.h"
+#include "util.h"
 
 using namespace nghttp2;
 
@@ -62,9 +62,9 @@ using namespace nghttp2;
 
 // Upstream log
 #define ULOG(SEVERITY, UPSTREAM)                                               \
-  (shrpx::Log(SEVERITY, __FILE__, __LINE__)                                    \
-   << "[UPSTREAM:" << UPSTREAM << "]"                                          \
-                                  " ")
+  (shrpx::Log(SEVERITY, __FILE__, __LINE__) << "[UPSTREAM:" << UPSTREAM        \
+                                            << "]"                             \
+                                               " ")
 
 // Downstream log
 #define DLOG(SEVERITY, DOWNSTREAM)                                             \
@@ -90,56 +90,165 @@ struct DownstreamAddr;
 
 enum SeverityLevel { INFO, NOTICE, WARN, ERROR, FATAL };
 
+using LogBuffer = std::array<uint8_t, 4_k>;
+
 class Log {
 public:
   Log(int severity, const char *filename, int linenum);
   ~Log();
-  template <typename Type> Log &operator<<(Type s) {
-    stream_ << s;
+  Log &operator<<(const std::string &s);
+  Log &operator<<(const char *s);
+  Log &operator<<(const StringRef &s);
+  Log &operator<<(const ImmutableString &s);
+  Log &operator<<(short n) { return *this << static_cast<long long>(n); }
+  Log &operator<<(int n) { return *this << static_cast<long long>(n); }
+  Log &operator<<(long n) { return *this << static_cast<long long>(n); }
+  Log &operator<<(long long n);
+  Log &operator<<(unsigned short n) {
+    return *this << static_cast<unsigned long long>(n);
+  }
+  Log &operator<<(unsigned int n) {
+    return *this << static_cast<unsigned long long>(n);
+  }
+  Log &operator<<(unsigned long n) {
+    return *this << static_cast<unsigned long long>(n);
+  }
+  Log &operator<<(unsigned long long n);
+  Log &operator<<(float n) { return *this << static_cast<double>(n); }
+  Log &operator<<(double n);
+  Log &operator<<(long double n);
+  Log &operator<<(bool n);
+  Log &operator<<(const void *p);
+  template <typename T> Log &operator<<(const std::shared_ptr<T> &ptr) {
+    return *this << ptr.get();
+  }
+  Log &operator<<(void (*func)(Log &log)) {
+    func(*this);
     return *this;
   }
+  template <typename InputIt> void write_seq(InputIt first, InputIt last) {
+    if (full_) {
+      return;
+    }
+
+    auto d = std::distance(first, last);
+    auto n = std::min(wleft(), static_cast<size_t>(d));
+    last_ = std::copy(first, first + n, last_);
+    update_full();
+  }
+
+  template <typename T> void write_hex(T n) {
+    if (full_) {
+      return;
+    }
+
+    if (n == 0) {
+      if (wleft() < 4 /* for "0x00" */) {
+        full_ = true;
+        return;
+      }
+      *last_++ = '0';
+      *last_++ = 'x';
+      *last_++ = '0';
+      *last_++ = '0';
+      update_full();
+      return;
+    }
+
+    size_t nlen = 0;
+    for (auto t = n; t; t >>= 8, ++nlen)
+      ;
+
+    nlen *= 2;
+
+    if (wleft() < 2 /* for "0x" */ + nlen) {
+      full_ = true;
+      return;
+    }
+
+    *last_++ = '0';
+    *last_++ = 'x';
+
+    last_ += nlen;
+    update_full();
+
+    auto p = last_ - 1;
+    for (; n; n >>= 8) {
+      uint8_t b = n & 0xff;
+      *p-- = util::LOWER_XDIGITS[b & 0xf];
+      *p-- = util::LOWER_XDIGITS[b >> 4];
+    }
+  }
   static void set_severity_level(int severity);
-  static int set_severity_level_by_name(const StringRef &name);
+  // Returns the severity level by |name|.  Returns -1 if |name| is
+  // unknown.
+  static int get_severity_level_by_name(const StringRef &name);
   static bool log_enabled(int severity) { return severity >= severity_thres_; }
 
+  enum {
+    fmt_dec = 0x00,
+    fmt_hex = 0x01,
+  };
+
+  void set_flags(int flags) { flags_ = flags; }
+
 private:
-  std::stringstream stream_;
+  size_t rleft() { return last_ - begin_; }
+  size_t wleft() { return end_ - last_; }
+  void update_full() { full_ = last_ == end_; }
+
+  LogBuffer &buf_;
+  uint8_t *begin_;
+  uint8_t *end_;
+  uint8_t *last_;
   const char *filename_;
+  uint32_t flags_;
   int severity_;
   int linenum_;
+  bool full_;
   static int severity_thres_;
 };
+
+namespace log {
+void hex(Log &log);
+void dec(Log &log);
+} // namespace log
 
 #define TTY_HTTP_HD (log_config()->errorlog_tty ? "\033[1;34m" : "")
 #define TTY_RST (log_config()->errorlog_tty ? "\033[0m" : "")
 
-enum LogFragmentType {
-  SHRPX_LOGF_NONE,
-  SHRPX_LOGF_LITERAL,
-  SHRPX_LOGF_REMOTE_ADDR,
-  SHRPX_LOGF_TIME_LOCAL,
-  SHRPX_LOGF_TIME_ISO8601,
-  SHRPX_LOGF_REQUEST,
-  SHRPX_LOGF_STATUS,
-  SHRPX_LOGF_BODY_BYTES_SENT,
-  SHRPX_LOGF_HTTP,
-  SHRPX_LOGF_AUTHORITY,
-  SHRPX_LOGF_REMOTE_PORT,
-  SHRPX_LOGF_SERVER_PORT,
-  SHRPX_LOGF_REQUEST_TIME,
-  SHRPX_LOGF_PID,
-  SHRPX_LOGF_ALPN,
-  SHRPX_LOGF_TLS_CIPHER,
-  SHRPX_LOGF_SSL_CIPHER = SHRPX_LOGF_TLS_CIPHER,
-  SHRPX_LOGF_TLS_PROTOCOL,
-  SHRPX_LOGF_SSL_PROTOCOL = SHRPX_LOGF_TLS_PROTOCOL,
-  SHRPX_LOGF_TLS_SESSION_ID,
-  SHRPX_LOGF_SSL_SESSION_ID = SHRPX_LOGF_TLS_SESSION_ID,
-  SHRPX_LOGF_TLS_SESSION_REUSED,
-  SHRPX_LOGF_SSL_SESSION_REUSED = SHRPX_LOGF_TLS_SESSION_REUSED,
-  SHRPX_LOGF_TLS_SNI,
-  SHRPX_LOGF_BACKEND_HOST,
-  SHRPX_LOGF_BACKEND_PORT,
+enum class LogFragmentType {
+  NONE,
+  LITERAL,
+  REMOTE_ADDR,
+  TIME_LOCAL,
+  TIME_ISO8601,
+  REQUEST,
+  STATUS,
+  BODY_BYTES_SENT,
+  HTTP,
+  AUTHORITY,
+  REMOTE_PORT,
+  SERVER_PORT,
+  REQUEST_TIME,
+  PID,
+  ALPN,
+  TLS_CIPHER,
+  SSL_CIPHER = TLS_CIPHER,
+  TLS_PROTOCOL,
+  SSL_PROTOCOL = TLS_PROTOCOL,
+  TLS_SESSION_ID,
+  SSL_SESSION_ID = TLS_SESSION_ID,
+  TLS_SESSION_REUSED,
+  SSL_SESSION_REUSED = TLS_SESSION_REUSED,
+  TLS_SNI,
+  TLS_CLIENT_FINGERPRINT_SHA1,
+  TLS_CLIENT_FINGERPRINT_SHA256,
+  TLS_CLIENT_ISSUER_NAME,
+  TLS_CLIENT_SERIAL,
+  TLS_CLIENT_SUBJECT_NAME,
+  BACKEND_HOST,
+  BACKEND_PORT,
 };
 
 struct LogFragment {
@@ -154,7 +263,7 @@ struct LogSpec {
   StringRef remote_addr;
   StringRef alpn;
   StringRef sni;
-  const nghttp2::tls::TLSSessionInfo *tls_info;
+  SSL *ssl;
   std::chrono::high_resolution_clock::time_point request_end_time;
   StringRef remote_port;
   uint16_t server_port;

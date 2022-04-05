@@ -53,6 +53,10 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 # Include the progress variables for this target.
 include esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/progress.make
 
+esp-idf/efuse/CMakeFiles/efuse_custom_table:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/efuse && /usr/bin/cmake -E echo Warning:\ Command\ "efuse_custom_table"\ is\ deprecated\ and\ will\ be\ removed\ in\ the\ next\ major\ release.\ \ \ \ \ \ \ \ \ Please\ use\ "efuse-custom-table"\ instead.
+
+efuse_custom_table: esp-idf/efuse/CMakeFiles/efuse_custom_table
 efuse_custom_table: esp-idf/efuse/CMakeFiles/efuse_custom_table.dir/build.make
 
 .PHONY : efuse_custom_table

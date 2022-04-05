@@ -157,34 +157,208 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant_sections_info.dir/rule
-.PHONY : esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant_sections_info.dir/rule
+esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/rule
+.PHONY : esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/rule
 
 # Convenience name for target.
-idf_component_wpa_supplicant_sections_info: esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant_sections_info.dir/rule
+__idf_wpa_supplicant: esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/rule
 
-.PHONY : idf_component_wpa_supplicant_sections_info
+.PHONY : __idf_wpa_supplicant
 
 # fast build rule for target.
-idf_component_wpa_supplicant_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant_sections_info.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant_sections_info.dir/build
-.PHONY : idf_component_wpa_supplicant_sections_info/fast
+__idf_wpa_supplicant/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build
+.PHONY : __idf_wpa_supplicant/fast
 
-# Convenience name for target.
-esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/rule
-.PHONY : esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/rule
+esp_supplicant/src/esp_dpp.obj: esp_supplicant/src/esp_dpp.c.obj
 
-# Convenience name for target.
-idf_component_wpa_supplicant: esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/rule
+.PHONY : esp_supplicant/src/esp_dpp.obj
 
-.PHONY : idf_component_wpa_supplicant
+# target to build an object file
+esp_supplicant/src/esp_dpp.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_dpp.c.obj
+.PHONY : esp_supplicant/src/esp_dpp.c.obj
 
-# fast build rule for target.
-idf_component_wpa_supplicant/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build
-.PHONY : idf_component_wpa_supplicant/fast
+esp_supplicant/src/esp_dpp.i: esp_supplicant/src/esp_dpp.c.i
+
+.PHONY : esp_supplicant/src/esp_dpp.i
+
+# target to preprocess a source file
+esp_supplicant/src/esp_dpp.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_dpp.c.i
+.PHONY : esp_supplicant/src/esp_dpp.c.i
+
+esp_supplicant/src/esp_dpp.s: esp_supplicant/src/esp_dpp.c.s
+
+.PHONY : esp_supplicant/src/esp_dpp.s
+
+# target to generate assembly for a file
+esp_supplicant/src/esp_dpp.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_dpp.c.s
+.PHONY : esp_supplicant/src/esp_dpp.c.s
+
+esp_supplicant/src/esp_hostap.obj: esp_supplicant/src/esp_hostap.c.obj
+
+.PHONY : esp_supplicant/src/esp_hostap.obj
+
+# target to build an object file
+esp_supplicant/src/esp_hostap.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_hostap.c.obj
+.PHONY : esp_supplicant/src/esp_hostap.c.obj
+
+esp_supplicant/src/esp_hostap.i: esp_supplicant/src/esp_hostap.c.i
+
+.PHONY : esp_supplicant/src/esp_hostap.i
+
+# target to preprocess a source file
+esp_supplicant/src/esp_hostap.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_hostap.c.i
+.PHONY : esp_supplicant/src/esp_hostap.c.i
+
+esp_supplicant/src/esp_hostap.s: esp_supplicant/src/esp_hostap.c.s
+
+.PHONY : esp_supplicant/src/esp_hostap.s
+
+# target to generate assembly for a file
+esp_supplicant/src/esp_hostap.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_hostap.c.s
+.PHONY : esp_supplicant/src/esp_hostap.c.s
+
+esp_supplicant/src/esp_wpa2.obj: esp_supplicant/src/esp_wpa2.c.obj
+
+.PHONY : esp_supplicant/src/esp_wpa2.obj
+
+# target to build an object file
+esp_supplicant/src/esp_wpa2.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa2.c.obj
+.PHONY : esp_supplicant/src/esp_wpa2.c.obj
+
+esp_supplicant/src/esp_wpa2.i: esp_supplicant/src/esp_wpa2.c.i
+
+.PHONY : esp_supplicant/src/esp_wpa2.i
+
+# target to preprocess a source file
+esp_supplicant/src/esp_wpa2.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa2.c.i
+.PHONY : esp_supplicant/src/esp_wpa2.c.i
+
+esp_supplicant/src/esp_wpa2.s: esp_supplicant/src/esp_wpa2.c.s
+
+.PHONY : esp_supplicant/src/esp_wpa2.s
+
+# target to generate assembly for a file
+esp_supplicant/src/esp_wpa2.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa2.c.s
+.PHONY : esp_supplicant/src/esp_wpa2.c.s
+
+esp_supplicant/src/esp_wpa3.obj: esp_supplicant/src/esp_wpa3.c.obj
+
+.PHONY : esp_supplicant/src/esp_wpa3.obj
+
+# target to build an object file
+esp_supplicant/src/esp_wpa3.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa3.c.obj
+.PHONY : esp_supplicant/src/esp_wpa3.c.obj
+
+esp_supplicant/src/esp_wpa3.i: esp_supplicant/src/esp_wpa3.c.i
+
+.PHONY : esp_supplicant/src/esp_wpa3.i
+
+# target to preprocess a source file
+esp_supplicant/src/esp_wpa3.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa3.c.i
+.PHONY : esp_supplicant/src/esp_wpa3.c.i
+
+esp_supplicant/src/esp_wpa3.s: esp_supplicant/src/esp_wpa3.c.s
+
+.PHONY : esp_supplicant/src/esp_wpa3.s
+
+# target to generate assembly for a file
+esp_supplicant/src/esp_wpa3.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa3.c.s
+.PHONY : esp_supplicant/src/esp_wpa3.c.s
+
+esp_supplicant/src/esp_wpa_main.obj: esp_supplicant/src/esp_wpa_main.c.obj
+
+.PHONY : esp_supplicant/src/esp_wpa_main.obj
+
+# target to build an object file
+esp_supplicant/src/esp_wpa_main.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa_main.c.obj
+.PHONY : esp_supplicant/src/esp_wpa_main.c.obj
+
+esp_supplicant/src/esp_wpa_main.i: esp_supplicant/src/esp_wpa_main.c.i
+
+.PHONY : esp_supplicant/src/esp_wpa_main.i
+
+# target to preprocess a source file
+esp_supplicant/src/esp_wpa_main.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa_main.c.i
+.PHONY : esp_supplicant/src/esp_wpa_main.c.i
+
+esp_supplicant/src/esp_wpa_main.s: esp_supplicant/src/esp_wpa_main.c.s
+
+.PHONY : esp_supplicant/src/esp_wpa_main.s
+
+# target to generate assembly for a file
+esp_supplicant/src/esp_wpa_main.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa_main.c.s
+.PHONY : esp_supplicant/src/esp_wpa_main.c.s
+
+esp_supplicant/src/esp_wpas_glue.obj: esp_supplicant/src/esp_wpas_glue.c.obj
+
+.PHONY : esp_supplicant/src/esp_wpas_glue.obj
+
+# target to build an object file
+esp_supplicant/src/esp_wpas_glue.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpas_glue.c.obj
+.PHONY : esp_supplicant/src/esp_wpas_glue.c.obj
+
+esp_supplicant/src/esp_wpas_glue.i: esp_supplicant/src/esp_wpas_glue.c.i
+
+.PHONY : esp_supplicant/src/esp_wpas_glue.i
+
+# target to preprocess a source file
+esp_supplicant/src/esp_wpas_glue.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpas_glue.c.i
+.PHONY : esp_supplicant/src/esp_wpas_glue.c.i
+
+esp_supplicant/src/esp_wpas_glue.s: esp_supplicant/src/esp_wpas_glue.c.s
+
+.PHONY : esp_supplicant/src/esp_wpas_glue.s
+
+# target to generate assembly for a file
+esp_supplicant/src/esp_wpas_glue.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpas_glue.c.s
+.PHONY : esp_supplicant/src/esp_wpas_glue.c.s
+
+esp_supplicant/src/esp_wps.obj: esp_supplicant/src/esp_wps.c.obj
+
+.PHONY : esp_supplicant/src/esp_wps.obj
+
+# target to build an object file
+esp_supplicant/src/esp_wps.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wps.c.obj
+.PHONY : esp_supplicant/src/esp_wps.c.obj
+
+esp_supplicant/src/esp_wps.i: esp_supplicant/src/esp_wps.c.i
+
+.PHONY : esp_supplicant/src/esp_wps.i
+
+# target to preprocess a source file
+esp_supplicant/src/esp_wps.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wps.c.i
+.PHONY : esp_supplicant/src/esp_wps.c.i
+
+esp_supplicant/src/esp_wps.s: esp_supplicant/src/esp_wps.c.s
+
+.PHONY : esp_supplicant/src/esp_wps.s
+
+# target to generate assembly for a file
+esp_supplicant/src/esp_wps.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wps.c.s
+.PHONY : esp_supplicant/src/esp_wps.c.s
 
 port/os_xtensa.obj: port/os_xtensa.c.obj
 
@@ -192,7 +366,7 @@ port/os_xtensa.obj: port/os_xtensa.c.obj
 
 # target to build an object file
 port/os_xtensa.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtensa.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/port/os_xtensa.c.obj
 .PHONY : port/os_xtensa.c.obj
 
 port/os_xtensa.i: port/os_xtensa.c.i
@@ -201,7 +375,7 @@ port/os_xtensa.i: port/os_xtensa.c.i
 
 # target to preprocess a source file
 port/os_xtensa.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtensa.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/port/os_xtensa.c.i
 .PHONY : port/os_xtensa.c.i
 
 port/os_xtensa.s: port/os_xtensa.c.s
@@ -210,116 +384,305 @@ port/os_xtensa.s: port/os_xtensa.c.s
 
 # target to generate assembly for a file
 port/os_xtensa.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/port/os_xtensa.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/port/os_xtensa.c.s
 .PHONY : port/os_xtensa.c.s
 
-src/crypto/aes-cbc.obj: src/crypto/aes-cbc.c.obj
+src/ap/ap_config.obj: src/ap/ap_config.c.obj
 
-.PHONY : src/crypto/aes-cbc.obj
-
-# target to build an object file
-src/crypto/aes-cbc.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-cbc.c.obj
-.PHONY : src/crypto/aes-cbc.c.obj
-
-src/crypto/aes-cbc.i: src/crypto/aes-cbc.c.i
-
-.PHONY : src/crypto/aes-cbc.i
-
-# target to preprocess a source file
-src/crypto/aes-cbc.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-cbc.c.i
-.PHONY : src/crypto/aes-cbc.c.i
-
-src/crypto/aes-cbc.s: src/crypto/aes-cbc.c.s
-
-.PHONY : src/crypto/aes-cbc.s
-
-# target to generate assembly for a file
-src/crypto/aes-cbc.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-cbc.c.s
-.PHONY : src/crypto/aes-cbc.c.s
-
-src/crypto/aes-internal-dec.obj: src/crypto/aes-internal-dec.c.obj
-
-.PHONY : src/crypto/aes-internal-dec.obj
+.PHONY : src/ap/ap_config.obj
 
 # target to build an object file
-src/crypto/aes-internal-dec.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-internal-dec.c.obj
-.PHONY : src/crypto/aes-internal-dec.c.obj
+src/ap/ap_config.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ap_config.c.obj
+.PHONY : src/ap/ap_config.c.obj
 
-src/crypto/aes-internal-dec.i: src/crypto/aes-internal-dec.c.i
+src/ap/ap_config.i: src/ap/ap_config.c.i
 
-.PHONY : src/crypto/aes-internal-dec.i
+.PHONY : src/ap/ap_config.i
 
 # target to preprocess a source file
-src/crypto/aes-internal-dec.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-internal-dec.c.i
-.PHONY : src/crypto/aes-internal-dec.c.i
+src/ap/ap_config.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ap_config.c.i
+.PHONY : src/ap/ap_config.c.i
 
-src/crypto/aes-internal-dec.s: src/crypto/aes-internal-dec.c.s
+src/ap/ap_config.s: src/ap/ap_config.c.s
 
-.PHONY : src/crypto/aes-internal-dec.s
+.PHONY : src/ap/ap_config.s
 
 # target to generate assembly for a file
-src/crypto/aes-internal-dec.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-internal-dec.c.s
-.PHONY : src/crypto/aes-internal-dec.c.s
+src/ap/ap_config.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ap_config.c.s
+.PHONY : src/ap/ap_config.c.s
 
-src/crypto/aes-internal-enc.obj: src/crypto/aes-internal-enc.c.obj
+src/ap/ieee802_1x.obj: src/ap/ieee802_1x.c.obj
 
-.PHONY : src/crypto/aes-internal-enc.obj
+.PHONY : src/ap/ieee802_1x.obj
 
 # target to build an object file
-src/crypto/aes-internal-enc.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-internal-enc.c.obj
-.PHONY : src/crypto/aes-internal-enc.c.obj
+src/ap/ieee802_1x.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ieee802_1x.c.obj
+.PHONY : src/ap/ieee802_1x.c.obj
 
-src/crypto/aes-internal-enc.i: src/crypto/aes-internal-enc.c.i
+src/ap/ieee802_1x.i: src/ap/ieee802_1x.c.i
 
-.PHONY : src/crypto/aes-internal-enc.i
+.PHONY : src/ap/ieee802_1x.i
 
 # target to preprocess a source file
-src/crypto/aes-internal-enc.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-internal-enc.c.i
-.PHONY : src/crypto/aes-internal-enc.c.i
+src/ap/ieee802_1x.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ieee802_1x.c.i
+.PHONY : src/ap/ieee802_1x.c.i
 
-src/crypto/aes-internal-enc.s: src/crypto/aes-internal-enc.c.s
+src/ap/ieee802_1x.s: src/ap/ieee802_1x.c.s
 
-.PHONY : src/crypto/aes-internal-enc.s
+.PHONY : src/ap/ieee802_1x.s
 
 # target to generate assembly for a file
-src/crypto/aes-internal-enc.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-internal-enc.c.s
-.PHONY : src/crypto/aes-internal-enc.c.s
+src/ap/ieee802_1x.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ieee802_1x.c.s
+.PHONY : src/ap/ieee802_1x.c.s
 
-src/crypto/aes-internal.obj: src/crypto/aes-internal.c.obj
+src/ap/wpa_auth.obj: src/ap/wpa_auth.c.obj
 
-.PHONY : src/crypto/aes-internal.obj
+.PHONY : src/ap/wpa_auth.obj
 
 # target to build an object file
-src/crypto/aes-internal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-internal.c.obj
-.PHONY : src/crypto/aes-internal.c.obj
+src/ap/wpa_auth.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth.c.obj
+.PHONY : src/ap/wpa_auth.c.obj
 
-src/crypto/aes-internal.i: src/crypto/aes-internal.c.i
+src/ap/wpa_auth.i: src/ap/wpa_auth.c.i
 
-.PHONY : src/crypto/aes-internal.i
+.PHONY : src/ap/wpa_auth.i
 
 # target to preprocess a source file
-src/crypto/aes-internal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-internal.c.i
-.PHONY : src/crypto/aes-internal.c.i
+src/ap/wpa_auth.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth.c.i
+.PHONY : src/ap/wpa_auth.c.i
 
-src/crypto/aes-internal.s: src/crypto/aes-internal.c.s
+src/ap/wpa_auth.s: src/ap/wpa_auth.c.s
 
-.PHONY : src/crypto/aes-internal.s
+.PHONY : src/ap/wpa_auth.s
 
 # target to generate assembly for a file
-src/crypto/aes-internal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-internal.c.s
-.PHONY : src/crypto/aes-internal.c.s
+src/ap/wpa_auth.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth.c.s
+.PHONY : src/ap/wpa_auth.c.s
+
+src/ap/wpa_auth_ie.obj: src/ap/wpa_auth_ie.c.obj
+
+.PHONY : src/ap/wpa_auth_ie.obj
+
+# target to build an object file
+src/ap/wpa_auth_ie.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth_ie.c.obj
+.PHONY : src/ap/wpa_auth_ie.c.obj
+
+src/ap/wpa_auth_ie.i: src/ap/wpa_auth_ie.c.i
+
+.PHONY : src/ap/wpa_auth_ie.i
+
+# target to preprocess a source file
+src/ap/wpa_auth_ie.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth_ie.c.i
+.PHONY : src/ap/wpa_auth_ie.c.i
+
+src/ap/wpa_auth_ie.s: src/ap/wpa_auth_ie.c.s
+
+.PHONY : src/ap/wpa_auth_ie.s
+
+# target to generate assembly for a file
+src/ap/wpa_auth_ie.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth_ie.c.s
+.PHONY : src/ap/wpa_auth_ie.c.s
+
+src/common/dpp.obj: src/common/dpp.c.obj
+
+.PHONY : src/common/dpp.obj
+
+# target to build an object file
+src/common/dpp.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/dpp.c.obj
+.PHONY : src/common/dpp.c.obj
+
+src/common/dpp.i: src/common/dpp.c.i
+
+.PHONY : src/common/dpp.i
+
+# target to preprocess a source file
+src/common/dpp.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/dpp.c.i
+.PHONY : src/common/dpp.c.i
+
+src/common/dpp.s: src/common/dpp.c.s
+
+.PHONY : src/common/dpp.s
+
+# target to generate assembly for a file
+src/common/dpp.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/dpp.c.s
+.PHONY : src/common/dpp.c.s
+
+src/common/sae.obj: src/common/sae.c.obj
+
+.PHONY : src/common/sae.obj
+
+# target to build an object file
+src/common/sae.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/sae.c.obj
+.PHONY : src/common/sae.c.obj
+
+src/common/sae.i: src/common/sae.c.i
+
+.PHONY : src/common/sae.i
+
+# target to preprocess a source file
+src/common/sae.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/sae.c.i
+.PHONY : src/common/sae.c.i
+
+src/common/sae.s: src/common/sae.c.s
+
+.PHONY : src/common/sae.s
+
+# target to generate assembly for a file
+src/common/sae.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/sae.c.s
+.PHONY : src/common/sae.c.s
+
+src/common/wpa_common.obj: src/common/wpa_common.c.obj
+
+.PHONY : src/common/wpa_common.obj
+
+# target to build an object file
+src/common/wpa_common.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/wpa_common.c.obj
+.PHONY : src/common/wpa_common.c.obj
+
+src/common/wpa_common.i: src/common/wpa_common.c.i
+
+.PHONY : src/common/wpa_common.i
+
+# target to preprocess a source file
+src/common/wpa_common.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/wpa_common.c.i
+.PHONY : src/common/wpa_common.c.i
+
+src/common/wpa_common.s: src/common/wpa_common.c.s
+
+.PHONY : src/common/wpa_common.s
+
+# target to generate assembly for a file
+src/common/wpa_common.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/wpa_common.c.s
+.PHONY : src/common/wpa_common.c.s
+
+src/crypto/aes-ccm.obj: src/crypto/aes-ccm.c.obj
+
+.PHONY : src/crypto/aes-ccm.obj
+
+# target to build an object file
+src/crypto/aes-ccm.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-ccm.c.obj
+.PHONY : src/crypto/aes-ccm.c.obj
+
+src/crypto/aes-ccm.i: src/crypto/aes-ccm.c.i
+
+.PHONY : src/crypto/aes-ccm.i
+
+# target to preprocess a source file
+src/crypto/aes-ccm.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-ccm.c.i
+.PHONY : src/crypto/aes-ccm.c.i
+
+src/crypto/aes-ccm.s: src/crypto/aes-ccm.c.s
+
+.PHONY : src/crypto/aes-ccm.s
+
+# target to generate assembly for a file
+src/crypto/aes-ccm.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-ccm.c.s
+.PHONY : src/crypto/aes-ccm.c.s
+
+src/crypto/aes-gcm.obj: src/crypto/aes-gcm.c.obj
+
+.PHONY : src/crypto/aes-gcm.obj
+
+# target to build an object file
+src/crypto/aes-gcm.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-gcm.c.obj
+.PHONY : src/crypto/aes-gcm.c.obj
+
+src/crypto/aes-gcm.i: src/crypto/aes-gcm.c.i
+
+.PHONY : src/crypto/aes-gcm.i
+
+# target to preprocess a source file
+src/crypto/aes-gcm.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-gcm.c.i
+.PHONY : src/crypto/aes-gcm.c.i
+
+src/crypto/aes-gcm.s: src/crypto/aes-gcm.c.s
+
+.PHONY : src/crypto/aes-gcm.s
+
+# target to generate assembly for a file
+src/crypto/aes-gcm.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-gcm.c.s
+.PHONY : src/crypto/aes-gcm.c.s
+
+src/crypto/aes-omac1.obj: src/crypto/aes-omac1.c.obj
+
+.PHONY : src/crypto/aes-omac1.obj
+
+# target to build an object file
+src/crypto/aes-omac1.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-omac1.c.obj
+.PHONY : src/crypto/aes-omac1.c.obj
+
+src/crypto/aes-omac1.i: src/crypto/aes-omac1.c.i
+
+.PHONY : src/crypto/aes-omac1.i
+
+# target to preprocess a source file
+src/crypto/aes-omac1.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-omac1.c.i
+.PHONY : src/crypto/aes-omac1.c.i
+
+src/crypto/aes-omac1.s: src/crypto/aes-omac1.c.s
+
+.PHONY : src/crypto/aes-omac1.s
+
+# target to generate assembly for a file
+src/crypto/aes-omac1.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-omac1.c.s
+.PHONY : src/crypto/aes-omac1.c.s
+
+src/crypto/aes-siv.obj: src/crypto/aes-siv.c.obj
+
+.PHONY : src/crypto/aes-siv.obj
+
+# target to build an object file
+src/crypto/aes-siv.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-siv.c.obj
+.PHONY : src/crypto/aes-siv.c.obj
+
+src/crypto/aes-siv.i: src/crypto/aes-siv.c.i
+
+.PHONY : src/crypto/aes-siv.i
+
+# target to preprocess a source file
+src/crypto/aes-siv.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-siv.c.i
+.PHONY : src/crypto/aes-siv.c.i
+
+src/crypto/aes-siv.s: src/crypto/aes-siv.c.s
+
+.PHONY : src/crypto/aes-siv.s
+
+# target to generate assembly for a file
+src/crypto/aes-siv.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-siv.c.s
+.PHONY : src/crypto/aes-siv.c.s
 
 src/crypto/aes-unwrap.obj: src/crypto/aes-unwrap.c.obj
 
@@ -327,7 +690,7 @@ src/crypto/aes-unwrap.obj: src/crypto/aes-unwrap.c.obj
 
 # target to build an object file
 src/crypto/aes-unwrap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-unwrap.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-unwrap.c.obj
 .PHONY : src/crypto/aes-unwrap.c.obj
 
 src/crypto/aes-unwrap.i: src/crypto/aes-unwrap.c.i
@@ -336,7 +699,7 @@ src/crypto/aes-unwrap.i: src/crypto/aes-unwrap.c.i
 
 # target to preprocess a source file
 src/crypto/aes-unwrap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-unwrap.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-unwrap.c.i
 .PHONY : src/crypto/aes-unwrap.c.i
 
 src/crypto/aes-unwrap.s: src/crypto/aes-unwrap.c.s
@@ -345,7 +708,7 @@ src/crypto/aes-unwrap.s: src/crypto/aes-unwrap.c.s
 
 # target to generate assembly for a file
 src/crypto/aes-unwrap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-unwrap.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-unwrap.c.s
 .PHONY : src/crypto/aes-unwrap.c.s
 
 src/crypto/aes-wrap.obj: src/crypto/aes-wrap.c.obj
@@ -354,7 +717,7 @@ src/crypto/aes-wrap.obj: src/crypto/aes-wrap.c.obj
 
 # target to build an object file
 src/crypto/aes-wrap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-wrap.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-wrap.c.obj
 .PHONY : src/crypto/aes-wrap.c.obj
 
 src/crypto/aes-wrap.i: src/crypto/aes-wrap.c.i
@@ -363,7 +726,7 @@ src/crypto/aes-wrap.i: src/crypto/aes-wrap.c.i
 
 # target to preprocess a source file
 src/crypto/aes-wrap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-wrap.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-wrap.c.i
 .PHONY : src/crypto/aes-wrap.c.i
 
 src/crypto/aes-wrap.s: src/crypto/aes-wrap.c.s
@@ -372,143 +735,89 @@ src/crypto/aes-wrap.s: src/crypto/aes-wrap.c.s
 
 # target to generate assembly for a file
 src/crypto/aes-wrap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/aes-wrap.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-wrap.c.s
 .PHONY : src/crypto/aes-wrap.c.s
 
-src/crypto/bignum.obj: src/crypto/bignum.c.obj
+src/crypto/ccmp.obj: src/crypto/ccmp.c.obj
 
-.PHONY : src/crypto/bignum.obj
-
-# target to build an object file
-src/crypto/bignum.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/bignum.c.obj
-.PHONY : src/crypto/bignum.c.obj
-
-src/crypto/bignum.i: src/crypto/bignum.c.i
-
-.PHONY : src/crypto/bignum.i
-
-# target to preprocess a source file
-src/crypto/bignum.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/bignum.c.i
-.PHONY : src/crypto/bignum.c.i
-
-src/crypto/bignum.s: src/crypto/bignum.c.s
-
-.PHONY : src/crypto/bignum.s
-
-# target to generate assembly for a file
-src/crypto/bignum.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/bignum.c.s
-.PHONY : src/crypto/bignum.c.s
-
-src/crypto/crypto_internal-cipher.obj: src/crypto/crypto_internal-cipher.c.obj
-
-.PHONY : src/crypto/crypto_internal-cipher.obj
+.PHONY : src/crypto/ccmp.obj
 
 # target to build an object file
-src/crypto/crypto_internal-cipher.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-cipher.c.obj
-.PHONY : src/crypto/crypto_internal-cipher.c.obj
+src/crypto/ccmp.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/ccmp.c.obj
+.PHONY : src/crypto/ccmp.c.obj
 
-src/crypto/crypto_internal-cipher.i: src/crypto/crypto_internal-cipher.c.i
+src/crypto/ccmp.i: src/crypto/ccmp.c.i
 
-.PHONY : src/crypto/crypto_internal-cipher.i
+.PHONY : src/crypto/ccmp.i
 
 # target to preprocess a source file
-src/crypto/crypto_internal-cipher.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-cipher.c.i
-.PHONY : src/crypto/crypto_internal-cipher.c.i
+src/crypto/ccmp.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/ccmp.c.i
+.PHONY : src/crypto/ccmp.c.i
 
-src/crypto/crypto_internal-cipher.s: src/crypto/crypto_internal-cipher.c.s
+src/crypto/ccmp.s: src/crypto/ccmp.c.s
 
-.PHONY : src/crypto/crypto_internal-cipher.s
+.PHONY : src/crypto/ccmp.s
 
 # target to generate assembly for a file
-src/crypto/crypto_internal-cipher.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-cipher.c.s
-.PHONY : src/crypto/crypto_internal-cipher.c.s
+src/crypto/ccmp.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/ccmp.c.s
+.PHONY : src/crypto/ccmp.c.s
 
-src/crypto/crypto_internal-modexp.obj: src/crypto/crypto_internal-modexp.c.obj
+src/crypto/crypto_mbedtls-bignum.obj: src/crypto/crypto_mbedtls-bignum.c.obj
 
-.PHONY : src/crypto/crypto_internal-modexp.obj
+.PHONY : src/crypto/crypto_mbedtls-bignum.obj
 
 # target to build an object file
-src/crypto/crypto_internal-modexp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-modexp.c.obj
-.PHONY : src/crypto/crypto_internal-modexp.c.obj
+src/crypto/crypto_mbedtls-bignum.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_mbedtls-bignum.c.obj
+.PHONY : src/crypto/crypto_mbedtls-bignum.c.obj
 
-src/crypto/crypto_internal-modexp.i: src/crypto/crypto_internal-modexp.c.i
+src/crypto/crypto_mbedtls-bignum.i: src/crypto/crypto_mbedtls-bignum.c.i
 
-.PHONY : src/crypto/crypto_internal-modexp.i
+.PHONY : src/crypto/crypto_mbedtls-bignum.i
 
 # target to preprocess a source file
-src/crypto/crypto_internal-modexp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-modexp.c.i
-.PHONY : src/crypto/crypto_internal-modexp.c.i
+src/crypto/crypto_mbedtls-bignum.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_mbedtls-bignum.c.i
+.PHONY : src/crypto/crypto_mbedtls-bignum.c.i
 
-src/crypto/crypto_internal-modexp.s: src/crypto/crypto_internal-modexp.c.s
+src/crypto/crypto_mbedtls-bignum.s: src/crypto/crypto_mbedtls-bignum.c.s
 
-.PHONY : src/crypto/crypto_internal-modexp.s
+.PHONY : src/crypto/crypto_mbedtls-bignum.s
 
 # target to generate assembly for a file
-src/crypto/crypto_internal-modexp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-modexp.c.s
-.PHONY : src/crypto/crypto_internal-modexp.c.s
+src/crypto/crypto_mbedtls-bignum.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_mbedtls-bignum.c.s
+.PHONY : src/crypto/crypto_mbedtls-bignum.c.s
 
-src/crypto/crypto_internal-rsa.obj: src/crypto/crypto_internal-rsa.c.obj
+src/crypto/crypto_mbedtls-ec.obj: src/crypto/crypto_mbedtls-ec.c.obj
 
-.PHONY : src/crypto/crypto_internal-rsa.obj
+.PHONY : src/crypto/crypto_mbedtls-ec.obj
 
 # target to build an object file
-src/crypto/crypto_internal-rsa.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-rsa.c.obj
-.PHONY : src/crypto/crypto_internal-rsa.c.obj
+src/crypto/crypto_mbedtls-ec.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_mbedtls-ec.c.obj
+.PHONY : src/crypto/crypto_mbedtls-ec.c.obj
 
-src/crypto/crypto_internal-rsa.i: src/crypto/crypto_internal-rsa.c.i
+src/crypto/crypto_mbedtls-ec.i: src/crypto/crypto_mbedtls-ec.c.i
 
-.PHONY : src/crypto/crypto_internal-rsa.i
-
-# target to preprocess a source file
-src/crypto/crypto_internal-rsa.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-rsa.c.i
-.PHONY : src/crypto/crypto_internal-rsa.c.i
-
-src/crypto/crypto_internal-rsa.s: src/crypto/crypto_internal-rsa.c.s
-
-.PHONY : src/crypto/crypto_internal-rsa.s
-
-# target to generate assembly for a file
-src/crypto/crypto_internal-rsa.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal-rsa.c.s
-.PHONY : src/crypto/crypto_internal-rsa.c.s
-
-src/crypto/crypto_internal.obj: src/crypto/crypto_internal.c.obj
-
-.PHONY : src/crypto/crypto_internal.obj
-
-# target to build an object file
-src/crypto/crypto_internal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal.c.obj
-.PHONY : src/crypto/crypto_internal.c.obj
-
-src/crypto/crypto_internal.i: src/crypto/crypto_internal.c.i
-
-.PHONY : src/crypto/crypto_internal.i
+.PHONY : src/crypto/crypto_mbedtls-ec.i
 
 # target to preprocess a source file
-src/crypto/crypto_internal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal.c.i
-.PHONY : src/crypto/crypto_internal.c.i
+src/crypto/crypto_mbedtls-ec.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_mbedtls-ec.c.i
+.PHONY : src/crypto/crypto_mbedtls-ec.c.i
 
-src/crypto/crypto_internal.s: src/crypto/crypto_internal.c.s
+src/crypto/crypto_mbedtls-ec.s: src/crypto/crypto_mbedtls-ec.c.s
 
-.PHONY : src/crypto/crypto_internal.s
+.PHONY : src/crypto/crypto_mbedtls-ec.s
 
 # target to generate assembly for a file
-src/crypto/crypto_internal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_internal.c.s
-.PHONY : src/crypto/crypto_internal.c.s
+src/crypto/crypto_mbedtls-ec.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_mbedtls-ec.c.s
+.PHONY : src/crypto/crypto_mbedtls-ec.c.s
 
 src/crypto/crypto_mbedtls.obj: src/crypto/crypto_mbedtls.c.obj
 
@@ -516,7 +825,7 @@ src/crypto/crypto_mbedtls.obj: src/crypto/crypto_mbedtls.c.obj
 
 # target to build an object file
 src/crypto/crypto_mbedtls.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.obj
 .PHONY : src/crypto/crypto_mbedtls.c.obj
 
 src/crypto/crypto_mbedtls.i: src/crypto/crypto_mbedtls.c.i
@@ -525,7 +834,7 @@ src/crypto/crypto_mbedtls.i: src/crypto/crypto_mbedtls.c.i
 
 # target to preprocess a source file
 src/crypto/crypto_mbedtls.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.i
 .PHONY : src/crypto/crypto_mbedtls.c.i
 
 src/crypto/crypto_mbedtls.s: src/crypto/crypto_mbedtls.c.s
@@ -534,8 +843,35 @@ src/crypto/crypto_mbedtls.s: src/crypto/crypto_mbedtls.c.s
 
 # target to generate assembly for a file
 src/crypto/crypto_mbedtls.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_mbedtls.c.s
 .PHONY : src/crypto/crypto_mbedtls.c.s
+
+src/crypto/crypto_ops.obj: src/crypto/crypto_ops.c.obj
+
+.PHONY : src/crypto/crypto_ops.obj
+
+# target to build an object file
+src/crypto/crypto_ops.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_ops.c.obj
+.PHONY : src/crypto/crypto_ops.c.obj
+
+src/crypto/crypto_ops.i: src/crypto/crypto_ops.c.i
+
+.PHONY : src/crypto/crypto_ops.i
+
+# target to preprocess a source file
+src/crypto/crypto_ops.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_ops.c.i
+.PHONY : src/crypto/crypto_ops.c.i
+
+src/crypto/crypto_ops.s: src/crypto/crypto_ops.c.s
+
+.PHONY : src/crypto/crypto_ops.s
+
+# target to generate assembly for a file
+src/crypto/crypto_ops.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/crypto_ops.c.s
+.PHONY : src/crypto/crypto_ops.c.s
 
 src/crypto/des-internal.obj: src/crypto/des-internal.c.obj
 
@@ -543,7 +879,7 @@ src/crypto/des-internal.obj: src/crypto/des-internal.c.obj
 
 # target to build an object file
 src/crypto/des-internal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/des-internal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/des-internal.c.obj
 .PHONY : src/crypto/des-internal.c.obj
 
 src/crypto/des-internal.i: src/crypto/des-internal.c.i
@@ -552,7 +888,7 @@ src/crypto/des-internal.i: src/crypto/des-internal.c.i
 
 # target to preprocess a source file
 src/crypto/des-internal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/des-internal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/des-internal.c.i
 .PHONY : src/crypto/des-internal.c.i
 
 src/crypto/des-internal.s: src/crypto/des-internal.c.s
@@ -561,7 +897,7 @@ src/crypto/des-internal.s: src/crypto/des-internal.c.s
 
 # target to generate assembly for a file
 src/crypto/des-internal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/des-internal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/des-internal.c.s
 .PHONY : src/crypto/des-internal.c.s
 
 src/crypto/dh_group5.obj: src/crypto/dh_group5.c.obj
@@ -570,7 +906,7 @@ src/crypto/dh_group5.obj: src/crypto/dh_group5.c.obj
 
 # target to build an object file
 src/crypto/dh_group5.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/dh_group5.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/dh_group5.c.obj
 .PHONY : src/crypto/dh_group5.c.obj
 
 src/crypto/dh_group5.i: src/crypto/dh_group5.c.i
@@ -579,7 +915,7 @@ src/crypto/dh_group5.i: src/crypto/dh_group5.c.i
 
 # target to preprocess a source file
 src/crypto/dh_group5.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/dh_group5.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/dh_group5.c.i
 .PHONY : src/crypto/dh_group5.c.i
 
 src/crypto/dh_group5.s: src/crypto/dh_group5.c.s
@@ -588,7 +924,7 @@ src/crypto/dh_group5.s: src/crypto/dh_group5.c.s
 
 # target to generate assembly for a file
 src/crypto/dh_group5.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/dh_group5.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/dh_group5.c.s
 .PHONY : src/crypto/dh_group5.c.s
 
 src/crypto/dh_groups.obj: src/crypto/dh_groups.c.obj
@@ -597,7 +933,7 @@ src/crypto/dh_groups.obj: src/crypto/dh_groups.c.obj
 
 # target to build an object file
 src/crypto/dh_groups.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/dh_groups.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/dh_groups.c.obj
 .PHONY : src/crypto/dh_groups.c.obj
 
 src/crypto/dh_groups.i: src/crypto/dh_groups.c.i
@@ -606,7 +942,7 @@ src/crypto/dh_groups.i: src/crypto/dh_groups.c.i
 
 # target to preprocess a source file
 src/crypto/dh_groups.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/dh_groups.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/dh_groups.c.i
 .PHONY : src/crypto/dh_groups.c.i
 
 src/crypto/dh_groups.s: src/crypto/dh_groups.c.s
@@ -615,7 +951,7 @@ src/crypto/dh_groups.s: src/crypto/dh_groups.c.s
 
 # target to generate assembly for a file
 src/crypto/dh_groups.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/dh_groups.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/dh_groups.c.s
 .PHONY : src/crypto/dh_groups.c.s
 
 src/crypto/md4-internal.obj: src/crypto/md4-internal.c.obj
@@ -624,7 +960,7 @@ src/crypto/md4-internal.obj: src/crypto/md4-internal.c.obj
 
 # target to build an object file
 src/crypto/md4-internal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/md4-internal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/md4-internal.c.obj
 .PHONY : src/crypto/md4-internal.c.obj
 
 src/crypto/md4-internal.i: src/crypto/md4-internal.c.i
@@ -633,7 +969,7 @@ src/crypto/md4-internal.i: src/crypto/md4-internal.c.i
 
 # target to preprocess a source file
 src/crypto/md4-internal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/md4-internal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/md4-internal.c.i
 .PHONY : src/crypto/md4-internal.c.i
 
 src/crypto/md4-internal.s: src/crypto/md4-internal.c.s
@@ -642,62 +978,8 @@ src/crypto/md4-internal.s: src/crypto/md4-internal.c.s
 
 # target to generate assembly for a file
 src/crypto/md4-internal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/md4-internal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/md4-internal.c.s
 .PHONY : src/crypto/md4-internal.c.s
-
-src/crypto/md5-internal.obj: src/crypto/md5-internal.c.obj
-
-.PHONY : src/crypto/md5-internal.obj
-
-# target to build an object file
-src/crypto/md5-internal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/md5-internal.c.obj
-.PHONY : src/crypto/md5-internal.c.obj
-
-src/crypto/md5-internal.i: src/crypto/md5-internal.c.i
-
-.PHONY : src/crypto/md5-internal.i
-
-# target to preprocess a source file
-src/crypto/md5-internal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/md5-internal.c.i
-.PHONY : src/crypto/md5-internal.c.i
-
-src/crypto/md5-internal.s: src/crypto/md5-internal.c.s
-
-.PHONY : src/crypto/md5-internal.s
-
-# target to generate assembly for a file
-src/crypto/md5-internal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/md5-internal.c.s
-.PHONY : src/crypto/md5-internal.c.s
-
-src/crypto/md5.obj: src/crypto/md5.c.obj
-
-.PHONY : src/crypto/md5.obj
-
-# target to build an object file
-src/crypto/md5.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/md5.c.obj
-.PHONY : src/crypto/md5.c.obj
-
-src/crypto/md5.i: src/crypto/md5.c.i
-
-.PHONY : src/crypto/md5.i
-
-# target to preprocess a source file
-src/crypto/md5.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/md5.c.i
-.PHONY : src/crypto/md5.c.i
-
-src/crypto/md5.s: src/crypto/md5.c.s
-
-.PHONY : src/crypto/md5.s
-
-# target to generate assembly for a file
-src/crypto/md5.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/md5.c.s
-.PHONY : src/crypto/md5.c.s
 
 src/crypto/ms_funcs.obj: src/crypto/ms_funcs.c.obj
 
@@ -705,7 +987,7 @@ src/crypto/ms_funcs.obj: src/crypto/ms_funcs.c.obj
 
 # target to build an object file
 src/crypto/ms_funcs.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/ms_funcs.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/ms_funcs.c.obj
 .PHONY : src/crypto/ms_funcs.c.obj
 
 src/crypto/ms_funcs.i: src/crypto/ms_funcs.c.i
@@ -714,7 +996,7 @@ src/crypto/ms_funcs.i: src/crypto/ms_funcs.c.i
 
 # target to preprocess a source file
 src/crypto/ms_funcs.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/ms_funcs.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/ms_funcs.c.i
 .PHONY : src/crypto/ms_funcs.c.i
 
 src/crypto/ms_funcs.s: src/crypto/ms_funcs.c.s
@@ -723,7 +1005,7 @@ src/crypto/ms_funcs.s: src/crypto/ms_funcs.c.s
 
 # target to generate assembly for a file
 src/crypto/ms_funcs.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/ms_funcs.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/ms_funcs.c.s
 .PHONY : src/crypto/ms_funcs.c.s
 
 src/crypto/rc4.obj: src/crypto/rc4.c.obj
@@ -732,7 +1014,7 @@ src/crypto/rc4.obj: src/crypto/rc4.c.obj
 
 # target to build an object file
 src/crypto/rc4.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/rc4.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/rc4.c.obj
 .PHONY : src/crypto/rc4.c.obj
 
 src/crypto/rc4.i: src/crypto/rc4.c.i
@@ -741,7 +1023,7 @@ src/crypto/rc4.i: src/crypto/rc4.c.i
 
 # target to preprocess a source file
 src/crypto/rc4.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/rc4.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/rc4.c.i
 .PHONY : src/crypto/rc4.c.i
 
 src/crypto/rc4.s: src/crypto/rc4.c.s
@@ -750,1196 +1032,791 @@ src/crypto/rc4.s: src/crypto/rc4.c.s
 
 # target to generate assembly for a file
 src/crypto/rc4.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/rc4.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/rc4.c.s
 .PHONY : src/crypto/rc4.c.s
 
-src/crypto/sha1-internal.obj: src/crypto/sha1-internal.c.obj
+src/crypto/sha1-prf.obj: src/crypto/sha1-prf.c.obj
 
-.PHONY : src/crypto/sha1-internal.obj
-
-# target to build an object file
-src/crypto/sha1-internal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha1-internal.c.obj
-.PHONY : src/crypto/sha1-internal.c.obj
-
-src/crypto/sha1-internal.i: src/crypto/sha1-internal.c.i
-
-.PHONY : src/crypto/sha1-internal.i
-
-# target to preprocess a source file
-src/crypto/sha1-internal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha1-internal.c.i
-.PHONY : src/crypto/sha1-internal.c.i
-
-src/crypto/sha1-internal.s: src/crypto/sha1-internal.c.s
-
-.PHONY : src/crypto/sha1-internal.s
-
-# target to generate assembly for a file
-src/crypto/sha1-internal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha1-internal.c.s
-.PHONY : src/crypto/sha1-internal.c.s
-
-src/crypto/sha1-pbkdf2.obj: src/crypto/sha1-pbkdf2.c.obj
-
-.PHONY : src/crypto/sha1-pbkdf2.obj
+.PHONY : src/crypto/sha1-prf.obj
 
 # target to build an object file
-src/crypto/sha1-pbkdf2.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha1-pbkdf2.c.obj
-.PHONY : src/crypto/sha1-pbkdf2.c.obj
+src/crypto/sha1-prf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha1-prf.c.obj
+.PHONY : src/crypto/sha1-prf.c.obj
 
-src/crypto/sha1-pbkdf2.i: src/crypto/sha1-pbkdf2.c.i
+src/crypto/sha1-prf.i: src/crypto/sha1-prf.c.i
 
-.PHONY : src/crypto/sha1-pbkdf2.i
+.PHONY : src/crypto/sha1-prf.i
 
 # target to preprocess a source file
-src/crypto/sha1-pbkdf2.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha1-pbkdf2.c.i
-.PHONY : src/crypto/sha1-pbkdf2.c.i
+src/crypto/sha1-prf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha1-prf.c.i
+.PHONY : src/crypto/sha1-prf.c.i
 
-src/crypto/sha1-pbkdf2.s: src/crypto/sha1-pbkdf2.c.s
+src/crypto/sha1-prf.s: src/crypto/sha1-prf.c.s
 
-.PHONY : src/crypto/sha1-pbkdf2.s
+.PHONY : src/crypto/sha1-prf.s
 
 # target to generate assembly for a file
-src/crypto/sha1-pbkdf2.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha1-pbkdf2.c.s
-.PHONY : src/crypto/sha1-pbkdf2.c.s
+src/crypto/sha1-prf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha1-prf.c.s
+.PHONY : src/crypto/sha1-prf.c.s
 
-src/crypto/sha1.obj: src/crypto/sha1.c.obj
+src/crypto/sha1-tlsprf.obj: src/crypto/sha1-tlsprf.c.obj
 
-.PHONY : src/crypto/sha1.obj
+.PHONY : src/crypto/sha1-tlsprf.obj
 
 # target to build an object file
-src/crypto/sha1.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha1.c.obj
-.PHONY : src/crypto/sha1.c.obj
+src/crypto/sha1-tlsprf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha1-tlsprf.c.obj
+.PHONY : src/crypto/sha1-tlsprf.c.obj
 
-src/crypto/sha1.i: src/crypto/sha1.c.i
+src/crypto/sha1-tlsprf.i: src/crypto/sha1-tlsprf.c.i
 
-.PHONY : src/crypto/sha1.i
+.PHONY : src/crypto/sha1-tlsprf.i
 
 # target to preprocess a source file
-src/crypto/sha1.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha1.c.i
-.PHONY : src/crypto/sha1.c.i
+src/crypto/sha1-tlsprf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha1-tlsprf.c.i
+.PHONY : src/crypto/sha1-tlsprf.c.i
 
-src/crypto/sha1.s: src/crypto/sha1.c.s
+src/crypto/sha1-tlsprf.s: src/crypto/sha1-tlsprf.c.s
 
-.PHONY : src/crypto/sha1.s
+.PHONY : src/crypto/sha1-tlsprf.s
 
 # target to generate assembly for a file
-src/crypto/sha1.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha1.c.s
-.PHONY : src/crypto/sha1.c.s
+src/crypto/sha1-tlsprf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha1-tlsprf.c.s
+.PHONY : src/crypto/sha1-tlsprf.c.s
 
-src/crypto/sha256-internal.obj: src/crypto/sha256-internal.c.obj
+src/crypto/sha256-kdf.obj: src/crypto/sha256-kdf.c.obj
 
-.PHONY : src/crypto/sha256-internal.obj
+.PHONY : src/crypto/sha256-kdf.obj
 
 # target to build an object file
-src/crypto/sha256-internal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha256-internal.c.obj
-.PHONY : src/crypto/sha256-internal.c.obj
+src/crypto/sha256-kdf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha256-kdf.c.obj
+.PHONY : src/crypto/sha256-kdf.c.obj
 
-src/crypto/sha256-internal.i: src/crypto/sha256-internal.c.i
+src/crypto/sha256-kdf.i: src/crypto/sha256-kdf.c.i
 
-.PHONY : src/crypto/sha256-internal.i
+.PHONY : src/crypto/sha256-kdf.i
 
 # target to preprocess a source file
-src/crypto/sha256-internal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha256-internal.c.i
-.PHONY : src/crypto/sha256-internal.c.i
+src/crypto/sha256-kdf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha256-kdf.c.i
+.PHONY : src/crypto/sha256-kdf.c.i
 
-src/crypto/sha256-internal.s: src/crypto/sha256-internal.c.s
+src/crypto/sha256-kdf.s: src/crypto/sha256-kdf.c.s
 
-.PHONY : src/crypto/sha256-internal.s
+.PHONY : src/crypto/sha256-kdf.s
 
 # target to generate assembly for a file
-src/crypto/sha256-internal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha256-internal.c.s
-.PHONY : src/crypto/sha256-internal.c.s
+src/crypto/sha256-kdf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha256-kdf.c.s
+.PHONY : src/crypto/sha256-kdf.c.s
 
-src/crypto/sha256.obj: src/crypto/sha256.c.obj
+src/crypto/sha256-prf.obj: src/crypto/sha256-prf.c.obj
 
-.PHONY : src/crypto/sha256.obj
+.PHONY : src/crypto/sha256-prf.obj
 
 # target to build an object file
-src/crypto/sha256.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha256.c.obj
-.PHONY : src/crypto/sha256.c.obj
+src/crypto/sha256-prf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha256-prf.c.obj
+.PHONY : src/crypto/sha256-prf.c.obj
 
-src/crypto/sha256.i: src/crypto/sha256.c.i
+src/crypto/sha256-prf.i: src/crypto/sha256-prf.c.i
 
-.PHONY : src/crypto/sha256.i
+.PHONY : src/crypto/sha256-prf.i
 
 # target to preprocess a source file
-src/crypto/sha256.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha256.c.i
-.PHONY : src/crypto/sha256.c.i
+src/crypto/sha256-prf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha256-prf.c.i
+.PHONY : src/crypto/sha256-prf.c.i
 
-src/crypto/sha256.s: src/crypto/sha256.c.s
+src/crypto/sha256-prf.s: src/crypto/sha256-prf.c.s
 
-.PHONY : src/crypto/sha256.s
+.PHONY : src/crypto/sha256-prf.s
 
 # target to generate assembly for a file
-src/crypto/sha256.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/crypto/sha256.c.s
-.PHONY : src/crypto/sha256.c.s
+src/crypto/sha256-prf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha256-prf.c.s
+.PHONY : src/crypto/sha256-prf.c.s
 
-src/fast_crypto/fast_aes-cbc.obj: src/fast_crypto/fast_aes-cbc.c.obj
+src/crypto/sha256-tlsprf.obj: src/crypto/sha256-tlsprf.c.obj
 
-.PHONY : src/fast_crypto/fast_aes-cbc.obj
+.PHONY : src/crypto/sha256-tlsprf.obj
 
 # target to build an object file
-src/fast_crypto/fast_aes-cbc.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_aes-cbc.c.obj
-.PHONY : src/fast_crypto/fast_aes-cbc.c.obj
+src/crypto/sha256-tlsprf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha256-tlsprf.c.obj
+.PHONY : src/crypto/sha256-tlsprf.c.obj
 
-src/fast_crypto/fast_aes-cbc.i: src/fast_crypto/fast_aes-cbc.c.i
+src/crypto/sha256-tlsprf.i: src/crypto/sha256-tlsprf.c.i
 
-.PHONY : src/fast_crypto/fast_aes-cbc.i
+.PHONY : src/crypto/sha256-tlsprf.i
 
 # target to preprocess a source file
-src/fast_crypto/fast_aes-cbc.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_aes-cbc.c.i
-.PHONY : src/fast_crypto/fast_aes-cbc.c.i
+src/crypto/sha256-tlsprf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha256-tlsprf.c.i
+.PHONY : src/crypto/sha256-tlsprf.c.i
 
-src/fast_crypto/fast_aes-cbc.s: src/fast_crypto/fast_aes-cbc.c.s
+src/crypto/sha256-tlsprf.s: src/crypto/sha256-tlsprf.c.s
 
-.PHONY : src/fast_crypto/fast_aes-cbc.s
+.PHONY : src/crypto/sha256-tlsprf.s
 
 # target to generate assembly for a file
-src/fast_crypto/fast_aes-cbc.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_aes-cbc.c.s
-.PHONY : src/fast_crypto/fast_aes-cbc.c.s
+src/crypto/sha256-tlsprf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha256-tlsprf.c.s
+.PHONY : src/crypto/sha256-tlsprf.c.s
 
-src/fast_crypto/fast_aes-unwrap.obj: src/fast_crypto/fast_aes-unwrap.c.obj
+src/crypto/sha384-prf.obj: src/crypto/sha384-prf.c.obj
 
-.PHONY : src/fast_crypto/fast_aes-unwrap.obj
+.PHONY : src/crypto/sha384-prf.obj
 
 # target to build an object file
-src/fast_crypto/fast_aes-unwrap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_aes-unwrap.c.obj
-.PHONY : src/fast_crypto/fast_aes-unwrap.c.obj
+src/crypto/sha384-prf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha384-prf.c.obj
+.PHONY : src/crypto/sha384-prf.c.obj
 
-src/fast_crypto/fast_aes-unwrap.i: src/fast_crypto/fast_aes-unwrap.c.i
+src/crypto/sha384-prf.i: src/crypto/sha384-prf.c.i
 
-.PHONY : src/fast_crypto/fast_aes-unwrap.i
+.PHONY : src/crypto/sha384-prf.i
 
 # target to preprocess a source file
-src/fast_crypto/fast_aes-unwrap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_aes-unwrap.c.i
-.PHONY : src/fast_crypto/fast_aes-unwrap.c.i
+src/crypto/sha384-prf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha384-prf.c.i
+.PHONY : src/crypto/sha384-prf.c.i
 
-src/fast_crypto/fast_aes-unwrap.s: src/fast_crypto/fast_aes-unwrap.c.s
+src/crypto/sha384-prf.s: src/crypto/sha384-prf.c.s
 
-.PHONY : src/fast_crypto/fast_aes-unwrap.s
+.PHONY : src/crypto/sha384-prf.s
 
 # target to generate assembly for a file
-src/fast_crypto/fast_aes-unwrap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_aes-unwrap.c.s
-.PHONY : src/fast_crypto/fast_aes-unwrap.c.s
+src/crypto/sha384-prf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha384-prf.c.s
+.PHONY : src/crypto/sha384-prf.c.s
 
-src/fast_crypto/fast_aes-wrap.obj: src/fast_crypto/fast_aes-wrap.c.obj
+src/crypto/sha384-tlsprf.obj: src/crypto/sha384-tlsprf.c.obj
 
-.PHONY : src/fast_crypto/fast_aes-wrap.obj
+.PHONY : src/crypto/sha384-tlsprf.obj
 
 # target to build an object file
-src/fast_crypto/fast_aes-wrap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_aes-wrap.c.obj
-.PHONY : src/fast_crypto/fast_aes-wrap.c.obj
+src/crypto/sha384-tlsprf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha384-tlsprf.c.obj
+.PHONY : src/crypto/sha384-tlsprf.c.obj
 
-src/fast_crypto/fast_aes-wrap.i: src/fast_crypto/fast_aes-wrap.c.i
+src/crypto/sha384-tlsprf.i: src/crypto/sha384-tlsprf.c.i
 
-.PHONY : src/fast_crypto/fast_aes-wrap.i
+.PHONY : src/crypto/sha384-tlsprf.i
 
 # target to preprocess a source file
-src/fast_crypto/fast_aes-wrap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_aes-wrap.c.i
-.PHONY : src/fast_crypto/fast_aes-wrap.c.i
+src/crypto/sha384-tlsprf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha384-tlsprf.c.i
+.PHONY : src/crypto/sha384-tlsprf.c.i
 
-src/fast_crypto/fast_aes-wrap.s: src/fast_crypto/fast_aes-wrap.c.s
+src/crypto/sha384-tlsprf.s: src/crypto/sha384-tlsprf.c.s
 
-.PHONY : src/fast_crypto/fast_aes-wrap.s
+.PHONY : src/crypto/sha384-tlsprf.s
 
 # target to generate assembly for a file
-src/fast_crypto/fast_aes-wrap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_aes-wrap.c.s
-.PHONY : src/fast_crypto/fast_aes-wrap.c.s
+src/crypto/sha384-tlsprf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha384-tlsprf.c.s
+.PHONY : src/crypto/sha384-tlsprf.c.s
 
-src/fast_crypto/fast_crypto_internal-cipher.obj: src/fast_crypto/fast_crypto_internal-cipher.c.obj
+src/crypto/tls_mbedtls.obj: src/crypto/tls_mbedtls.c.obj
 
-.PHONY : src/fast_crypto/fast_crypto_internal-cipher.obj
+.PHONY : src/crypto/tls_mbedtls.obj
 
 # target to build an object file
-src/fast_crypto/fast_crypto_internal-cipher.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_crypto_internal-cipher.c.obj
-.PHONY : src/fast_crypto/fast_crypto_internal-cipher.c.obj
+src/crypto/tls_mbedtls.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/tls_mbedtls.c.obj
+.PHONY : src/crypto/tls_mbedtls.c.obj
 
-src/fast_crypto/fast_crypto_internal-cipher.i: src/fast_crypto/fast_crypto_internal-cipher.c.i
+src/crypto/tls_mbedtls.i: src/crypto/tls_mbedtls.c.i
 
-.PHONY : src/fast_crypto/fast_crypto_internal-cipher.i
+.PHONY : src/crypto/tls_mbedtls.i
 
 # target to preprocess a source file
-src/fast_crypto/fast_crypto_internal-cipher.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_crypto_internal-cipher.c.i
-.PHONY : src/fast_crypto/fast_crypto_internal-cipher.c.i
+src/crypto/tls_mbedtls.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/tls_mbedtls.c.i
+.PHONY : src/crypto/tls_mbedtls.c.i
 
-src/fast_crypto/fast_crypto_internal-cipher.s: src/fast_crypto/fast_crypto_internal-cipher.c.s
+src/crypto/tls_mbedtls.s: src/crypto/tls_mbedtls.c.s
 
-.PHONY : src/fast_crypto/fast_crypto_internal-cipher.s
+.PHONY : src/crypto/tls_mbedtls.s
 
 # target to generate assembly for a file
-src/fast_crypto/fast_crypto_internal-cipher.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_crypto_internal-cipher.c.s
-.PHONY : src/fast_crypto/fast_crypto_internal-cipher.c.s
+src/crypto/tls_mbedtls.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/tls_mbedtls.c.s
+.PHONY : src/crypto/tls_mbedtls.c.s
 
-src/fast_crypto/fast_crypto_internal-modexp.obj: src/fast_crypto/fast_crypto_internal-modexp.c.obj
+src/eap_peer/chap.obj: src/eap_peer/chap.c.obj
 
-.PHONY : src/fast_crypto/fast_crypto_internal-modexp.obj
+.PHONY : src/eap_peer/chap.obj
 
 # target to build an object file
-src/fast_crypto/fast_crypto_internal-modexp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_crypto_internal-modexp.c.obj
-.PHONY : src/fast_crypto/fast_crypto_internal-modexp.c.obj
+src/eap_peer/chap.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/chap.c.obj
+.PHONY : src/eap_peer/chap.c.obj
 
-src/fast_crypto/fast_crypto_internal-modexp.i: src/fast_crypto/fast_crypto_internal-modexp.c.i
+src/eap_peer/chap.i: src/eap_peer/chap.c.i
 
-.PHONY : src/fast_crypto/fast_crypto_internal-modexp.i
+.PHONY : src/eap_peer/chap.i
 
 # target to preprocess a source file
-src/fast_crypto/fast_crypto_internal-modexp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_crypto_internal-modexp.c.i
-.PHONY : src/fast_crypto/fast_crypto_internal-modexp.c.i
+src/eap_peer/chap.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/chap.c.i
+.PHONY : src/eap_peer/chap.c.i
 
-src/fast_crypto/fast_crypto_internal-modexp.s: src/fast_crypto/fast_crypto_internal-modexp.c.s
+src/eap_peer/chap.s: src/eap_peer/chap.c.s
 
-.PHONY : src/fast_crypto/fast_crypto_internal-modexp.s
+.PHONY : src/eap_peer/chap.s
 
 # target to generate assembly for a file
-src/fast_crypto/fast_crypto_internal-modexp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_crypto_internal-modexp.c.s
-.PHONY : src/fast_crypto/fast_crypto_internal-modexp.c.s
+src/eap_peer/chap.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/chap.c.s
+.PHONY : src/eap_peer/chap.c.s
 
-src/fast_crypto/fast_crypto_internal.obj: src/fast_crypto/fast_crypto_internal.c.obj
+src/eap_peer/eap.obj: src/eap_peer/eap.c.obj
 
-.PHONY : src/fast_crypto/fast_crypto_internal.obj
+.PHONY : src/eap_peer/eap.obj
 
 # target to build an object file
-src/fast_crypto/fast_crypto_internal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_crypto_internal.c.obj
-.PHONY : src/fast_crypto/fast_crypto_internal.c.obj
+src/eap_peer/eap.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap.c.obj
+.PHONY : src/eap_peer/eap.c.obj
 
-src/fast_crypto/fast_crypto_internal.i: src/fast_crypto/fast_crypto_internal.c.i
+src/eap_peer/eap.i: src/eap_peer/eap.c.i
 
-.PHONY : src/fast_crypto/fast_crypto_internal.i
+.PHONY : src/eap_peer/eap.i
 
 # target to preprocess a source file
-src/fast_crypto/fast_crypto_internal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_crypto_internal.c.i
-.PHONY : src/fast_crypto/fast_crypto_internal.c.i
+src/eap_peer/eap.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap.c.i
+.PHONY : src/eap_peer/eap.c.i
 
-src/fast_crypto/fast_crypto_internal.s: src/fast_crypto/fast_crypto_internal.c.s
+src/eap_peer/eap.s: src/eap_peer/eap.c.s
 
-.PHONY : src/fast_crypto/fast_crypto_internal.s
+.PHONY : src/eap_peer/eap.s
 
 # target to generate assembly for a file
-src/fast_crypto/fast_crypto_internal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_crypto_internal.c.s
-.PHONY : src/fast_crypto/fast_crypto_internal.c.s
+src/eap_peer/eap.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap.c.s
+.PHONY : src/eap_peer/eap.c.s
 
-src/fast_crypto/fast_sha256-internal.obj: src/fast_crypto/fast_sha256-internal.c.obj
+src/eap_peer/eap_common.obj: src/eap_peer/eap_common.c.obj
 
-.PHONY : src/fast_crypto/fast_sha256-internal.obj
+.PHONY : src/eap_peer/eap_common.obj
 
 # target to build an object file
-src/fast_crypto/fast_sha256-internal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_sha256-internal.c.obj
-.PHONY : src/fast_crypto/fast_sha256-internal.c.obj
+src/eap_peer/eap_common.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_common.c.obj
+.PHONY : src/eap_peer/eap_common.c.obj
 
-src/fast_crypto/fast_sha256-internal.i: src/fast_crypto/fast_sha256-internal.c.i
+src/eap_peer/eap_common.i: src/eap_peer/eap_common.c.i
 
-.PHONY : src/fast_crypto/fast_sha256-internal.i
+.PHONY : src/eap_peer/eap_common.i
 
 # target to preprocess a source file
-src/fast_crypto/fast_sha256-internal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_sha256-internal.c.i
-.PHONY : src/fast_crypto/fast_sha256-internal.c.i
+src/eap_peer/eap_common.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_common.c.i
+.PHONY : src/eap_peer/eap_common.c.i
 
-src/fast_crypto/fast_sha256-internal.s: src/fast_crypto/fast_sha256-internal.c.s
+src/eap_peer/eap_common.s: src/eap_peer/eap_common.c.s
 
-.PHONY : src/fast_crypto/fast_sha256-internal.s
+.PHONY : src/eap_peer/eap_common.s
 
 # target to generate assembly for a file
-src/fast_crypto/fast_sha256-internal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_sha256-internal.c.s
-.PHONY : src/fast_crypto/fast_sha256-internal.c.s
+src/eap_peer/eap_common.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_common.c.s
+.PHONY : src/eap_peer/eap_common.c.s
 
-src/fast_crypto/fast_sha256.obj: src/fast_crypto/fast_sha256.c.obj
+src/eap_peer/eap_mschapv2.obj: src/eap_peer/eap_mschapv2.c.obj
 
-.PHONY : src/fast_crypto/fast_sha256.obj
+.PHONY : src/eap_peer/eap_mschapv2.obj
 
 # target to build an object file
-src/fast_crypto/fast_sha256.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_sha256.c.obj
-.PHONY : src/fast_crypto/fast_sha256.c.obj
+src/eap_peer/eap_mschapv2.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_mschapv2.c.obj
+.PHONY : src/eap_peer/eap_mschapv2.c.obj
 
-src/fast_crypto/fast_sha256.i: src/fast_crypto/fast_sha256.c.i
+src/eap_peer/eap_mschapv2.i: src/eap_peer/eap_mschapv2.c.i
 
-.PHONY : src/fast_crypto/fast_sha256.i
+.PHONY : src/eap_peer/eap_mschapv2.i
 
 # target to preprocess a source file
-src/fast_crypto/fast_sha256.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_sha256.c.i
-.PHONY : src/fast_crypto/fast_sha256.c.i
+src/eap_peer/eap_mschapv2.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_mschapv2.c.i
+.PHONY : src/eap_peer/eap_mschapv2.c.i
 
-src/fast_crypto/fast_sha256.s: src/fast_crypto/fast_sha256.c.s
+src/eap_peer/eap_mschapv2.s: src/eap_peer/eap_mschapv2.c.s
 
-.PHONY : src/fast_crypto/fast_sha256.s
+.PHONY : src/eap_peer/eap_mschapv2.s
 
 # target to generate assembly for a file
-src/fast_crypto/fast_sha256.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/fast_crypto/fast_sha256.c.s
-.PHONY : src/fast_crypto/fast_sha256.c.s
+src/eap_peer/eap_mschapv2.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_mschapv2.c.s
+.PHONY : src/eap_peer/eap_mschapv2.c.s
 
-src/wpa2/eap_peer/chap.obj: src/wpa2/eap_peer/chap.c.obj
+src/eap_peer/eap_peap.obj: src/eap_peer/eap_peap.c.obj
 
-.PHONY : src/wpa2/eap_peer/chap.obj
+.PHONY : src/eap_peer/eap_peap.obj
 
 # target to build an object file
-src/wpa2/eap_peer/chap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/chap.c.obj
-.PHONY : src/wpa2/eap_peer/chap.c.obj
+src/eap_peer/eap_peap.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_peap.c.obj
+.PHONY : src/eap_peer/eap_peap.c.obj
 
-src/wpa2/eap_peer/chap.i: src/wpa2/eap_peer/chap.c.i
+src/eap_peer/eap_peap.i: src/eap_peer/eap_peap.c.i
 
-.PHONY : src/wpa2/eap_peer/chap.i
+.PHONY : src/eap_peer/eap_peap.i
 
 # target to preprocess a source file
-src/wpa2/eap_peer/chap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/chap.c.i
-.PHONY : src/wpa2/eap_peer/chap.c.i
+src/eap_peer/eap_peap.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_peap.c.i
+.PHONY : src/eap_peer/eap_peap.c.i
 
-src/wpa2/eap_peer/chap.s: src/wpa2/eap_peer/chap.c.s
+src/eap_peer/eap_peap.s: src/eap_peer/eap_peap.c.s
 
-.PHONY : src/wpa2/eap_peer/chap.s
+.PHONY : src/eap_peer/eap_peap.s
 
 # target to generate assembly for a file
-src/wpa2/eap_peer/chap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/chap.c.s
-.PHONY : src/wpa2/eap_peer/chap.c.s
+src/eap_peer/eap_peap.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_peap.c.s
+.PHONY : src/eap_peer/eap_peap.c.s
 
-src/wpa2/eap_peer/eap.obj: src/wpa2/eap_peer/eap.c.obj
+src/eap_peer/eap_peap_common.obj: src/eap_peer/eap_peap_common.c.obj
 
-.PHONY : src/wpa2/eap_peer/eap.obj
+.PHONY : src/eap_peer/eap_peap_common.obj
 
 # target to build an object file
-src/wpa2/eap_peer/eap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap.c.obj
-.PHONY : src/wpa2/eap_peer/eap.c.obj
+src/eap_peer/eap_peap_common.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_peap_common.c.obj
+.PHONY : src/eap_peer/eap_peap_common.c.obj
 
-src/wpa2/eap_peer/eap.i: src/wpa2/eap_peer/eap.c.i
+src/eap_peer/eap_peap_common.i: src/eap_peer/eap_peap_common.c.i
 
-.PHONY : src/wpa2/eap_peer/eap.i
+.PHONY : src/eap_peer/eap_peap_common.i
 
 # target to preprocess a source file
-src/wpa2/eap_peer/eap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap.c.i
-.PHONY : src/wpa2/eap_peer/eap.c.i
+src/eap_peer/eap_peap_common.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_peap_common.c.i
+.PHONY : src/eap_peer/eap_peap_common.c.i
 
-src/wpa2/eap_peer/eap.s: src/wpa2/eap_peer/eap.c.s
+src/eap_peer/eap_peap_common.s: src/eap_peer/eap_peap_common.c.s
 
-.PHONY : src/wpa2/eap_peer/eap.s
+.PHONY : src/eap_peer/eap_peap_common.s
 
 # target to generate assembly for a file
-src/wpa2/eap_peer/eap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap.c.s
-.PHONY : src/wpa2/eap_peer/eap.c.s
+src/eap_peer/eap_peap_common.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_peap_common.c.s
+.PHONY : src/eap_peer/eap_peap_common.c.s
 
-src/wpa2/eap_peer/eap_common.obj: src/wpa2/eap_peer/eap_common.c.obj
+src/eap_peer/eap_tls.obj: src/eap_peer/eap_tls.c.obj
 
-.PHONY : src/wpa2/eap_peer/eap_common.obj
+.PHONY : src/eap_peer/eap_tls.obj
 
 # target to build an object file
-src/wpa2/eap_peer/eap_common.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_common.c.obj
-.PHONY : src/wpa2/eap_peer/eap_common.c.obj
+src/eap_peer/eap_tls.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_tls.c.obj
+.PHONY : src/eap_peer/eap_tls.c.obj
 
-src/wpa2/eap_peer/eap_common.i: src/wpa2/eap_peer/eap_common.c.i
+src/eap_peer/eap_tls.i: src/eap_peer/eap_tls.c.i
 
-.PHONY : src/wpa2/eap_peer/eap_common.i
+.PHONY : src/eap_peer/eap_tls.i
 
 # target to preprocess a source file
-src/wpa2/eap_peer/eap_common.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_common.c.i
-.PHONY : src/wpa2/eap_peer/eap_common.c.i
+src/eap_peer/eap_tls.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_tls.c.i
+.PHONY : src/eap_peer/eap_tls.c.i
 
-src/wpa2/eap_peer/eap_common.s: src/wpa2/eap_peer/eap_common.c.s
+src/eap_peer/eap_tls.s: src/eap_peer/eap_tls.c.s
 
-.PHONY : src/wpa2/eap_peer/eap_common.s
+.PHONY : src/eap_peer/eap_tls.s
 
 # target to generate assembly for a file
-src/wpa2/eap_peer/eap_common.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_common.c.s
-.PHONY : src/wpa2/eap_peer/eap_common.c.s
+src/eap_peer/eap_tls.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_tls.c.s
+.PHONY : src/eap_peer/eap_tls.c.s
 
-src/wpa2/eap_peer/eap_mschapv2.obj: src/wpa2/eap_peer/eap_mschapv2.c.obj
+src/eap_peer/eap_tls_common.obj: src/eap_peer/eap_tls_common.c.obj
 
-.PHONY : src/wpa2/eap_peer/eap_mschapv2.obj
+.PHONY : src/eap_peer/eap_tls_common.obj
 
 # target to build an object file
-src/wpa2/eap_peer/eap_mschapv2.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_mschapv2.c.obj
-.PHONY : src/wpa2/eap_peer/eap_mschapv2.c.obj
+src/eap_peer/eap_tls_common.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_tls_common.c.obj
+.PHONY : src/eap_peer/eap_tls_common.c.obj
 
-src/wpa2/eap_peer/eap_mschapv2.i: src/wpa2/eap_peer/eap_mschapv2.c.i
+src/eap_peer/eap_tls_common.i: src/eap_peer/eap_tls_common.c.i
 
-.PHONY : src/wpa2/eap_peer/eap_mschapv2.i
+.PHONY : src/eap_peer/eap_tls_common.i
 
 # target to preprocess a source file
-src/wpa2/eap_peer/eap_mschapv2.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_mschapv2.c.i
-.PHONY : src/wpa2/eap_peer/eap_mschapv2.c.i
+src/eap_peer/eap_tls_common.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_tls_common.c.i
+.PHONY : src/eap_peer/eap_tls_common.c.i
 
-src/wpa2/eap_peer/eap_mschapv2.s: src/wpa2/eap_peer/eap_mschapv2.c.s
+src/eap_peer/eap_tls_common.s: src/eap_peer/eap_tls_common.c.s
 
-.PHONY : src/wpa2/eap_peer/eap_mschapv2.s
+.PHONY : src/eap_peer/eap_tls_common.s
 
 # target to generate assembly for a file
-src/wpa2/eap_peer/eap_mschapv2.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_mschapv2.c.s
-.PHONY : src/wpa2/eap_peer/eap_mschapv2.c.s
+src/eap_peer/eap_tls_common.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_tls_common.c.s
+.PHONY : src/eap_peer/eap_tls_common.c.s
 
-src/wpa2/eap_peer/eap_peap.obj: src/wpa2/eap_peer/eap_peap.c.obj
+src/eap_peer/eap_ttls.obj: src/eap_peer/eap_ttls.c.obj
 
-.PHONY : src/wpa2/eap_peer/eap_peap.obj
+.PHONY : src/eap_peer/eap_ttls.obj
 
 # target to build an object file
-src/wpa2/eap_peer/eap_peap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_peap.c.obj
-.PHONY : src/wpa2/eap_peer/eap_peap.c.obj
+src/eap_peer/eap_ttls.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_ttls.c.obj
+.PHONY : src/eap_peer/eap_ttls.c.obj
 
-src/wpa2/eap_peer/eap_peap.i: src/wpa2/eap_peer/eap_peap.c.i
+src/eap_peer/eap_ttls.i: src/eap_peer/eap_ttls.c.i
 
-.PHONY : src/wpa2/eap_peer/eap_peap.i
+.PHONY : src/eap_peer/eap_ttls.i
 
 # target to preprocess a source file
-src/wpa2/eap_peer/eap_peap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_peap.c.i
-.PHONY : src/wpa2/eap_peer/eap_peap.c.i
+src/eap_peer/eap_ttls.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_ttls.c.i
+.PHONY : src/eap_peer/eap_ttls.c.i
 
-src/wpa2/eap_peer/eap_peap.s: src/wpa2/eap_peer/eap_peap.c.s
+src/eap_peer/eap_ttls.s: src/eap_peer/eap_ttls.c.s
 
-.PHONY : src/wpa2/eap_peer/eap_peap.s
+.PHONY : src/eap_peer/eap_ttls.s
 
 # target to generate assembly for a file
-src/wpa2/eap_peer/eap_peap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_peap.c.s
-.PHONY : src/wpa2/eap_peer/eap_peap.c.s
+src/eap_peer/eap_ttls.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/eap_ttls.c.s
+.PHONY : src/eap_peer/eap_ttls.c.s
 
-src/wpa2/eap_peer/eap_peap_common.obj: src/wpa2/eap_peer/eap_peap_common.c.obj
+src/eap_peer/mschapv2.obj: src/eap_peer/mschapv2.c.obj
 
-.PHONY : src/wpa2/eap_peer/eap_peap_common.obj
+.PHONY : src/eap_peer/mschapv2.obj
 
 # target to build an object file
-src/wpa2/eap_peer/eap_peap_common.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_peap_common.c.obj
-.PHONY : src/wpa2/eap_peer/eap_peap_common.c.obj
+src/eap_peer/mschapv2.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/mschapv2.c.obj
+.PHONY : src/eap_peer/mschapv2.c.obj
 
-src/wpa2/eap_peer/eap_peap_common.i: src/wpa2/eap_peer/eap_peap_common.c.i
+src/eap_peer/mschapv2.i: src/eap_peer/mschapv2.c.i
 
-.PHONY : src/wpa2/eap_peer/eap_peap_common.i
+.PHONY : src/eap_peer/mschapv2.i
 
 # target to preprocess a source file
-src/wpa2/eap_peer/eap_peap_common.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_peap_common.c.i
-.PHONY : src/wpa2/eap_peer/eap_peap_common.c.i
+src/eap_peer/mschapv2.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/mschapv2.c.i
+.PHONY : src/eap_peer/mschapv2.c.i
 
-src/wpa2/eap_peer/eap_peap_common.s: src/wpa2/eap_peer/eap_peap_common.c.s
+src/eap_peer/mschapv2.s: src/eap_peer/mschapv2.c.s
 
-.PHONY : src/wpa2/eap_peer/eap_peap_common.s
+.PHONY : src/eap_peer/mschapv2.s
 
 # target to generate assembly for a file
-src/wpa2/eap_peer/eap_peap_common.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_peap_common.c.s
-.PHONY : src/wpa2/eap_peer/eap_peap_common.c.s
+src/eap_peer/mschapv2.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/eap_peer/mschapv2.c.s
+.PHONY : src/eap_peer/mschapv2.c.s
 
-src/wpa2/eap_peer/eap_tls.obj: src/wpa2/eap_peer/eap_tls.c.obj
+src/rsn_supp/pmksa_cache.obj: src/rsn_supp/pmksa_cache.c.obj
 
-.PHONY : src/wpa2/eap_peer/eap_tls.obj
+.PHONY : src/rsn_supp/pmksa_cache.obj
 
 # target to build an object file
-src/wpa2/eap_peer/eap_tls.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_tls.c.obj
-.PHONY : src/wpa2/eap_peer/eap_tls.c.obj
+src/rsn_supp/pmksa_cache.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/pmksa_cache.c.obj
+.PHONY : src/rsn_supp/pmksa_cache.c.obj
 
-src/wpa2/eap_peer/eap_tls.i: src/wpa2/eap_peer/eap_tls.c.i
+src/rsn_supp/pmksa_cache.i: src/rsn_supp/pmksa_cache.c.i
 
-.PHONY : src/wpa2/eap_peer/eap_tls.i
+.PHONY : src/rsn_supp/pmksa_cache.i
 
 # target to preprocess a source file
-src/wpa2/eap_peer/eap_tls.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_tls.c.i
-.PHONY : src/wpa2/eap_peer/eap_tls.c.i
+src/rsn_supp/pmksa_cache.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/pmksa_cache.c.i
+.PHONY : src/rsn_supp/pmksa_cache.c.i
 
-src/wpa2/eap_peer/eap_tls.s: src/wpa2/eap_peer/eap_tls.c.s
+src/rsn_supp/pmksa_cache.s: src/rsn_supp/pmksa_cache.c.s
 
-.PHONY : src/wpa2/eap_peer/eap_tls.s
+.PHONY : src/rsn_supp/pmksa_cache.s
 
 # target to generate assembly for a file
-src/wpa2/eap_peer/eap_tls.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_tls.c.s
-.PHONY : src/wpa2/eap_peer/eap_tls.c.s
+src/rsn_supp/pmksa_cache.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/pmksa_cache.c.s
+.PHONY : src/rsn_supp/pmksa_cache.c.s
 
-src/wpa2/eap_peer/eap_tls_common.obj: src/wpa2/eap_peer/eap_tls_common.c.obj
+src/rsn_supp/wpa.obj: src/rsn_supp/wpa.c.obj
 
-.PHONY : src/wpa2/eap_peer/eap_tls_common.obj
+.PHONY : src/rsn_supp/wpa.obj
 
 # target to build an object file
-src/wpa2/eap_peer/eap_tls_common.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_tls_common.c.obj
-.PHONY : src/wpa2/eap_peer/eap_tls_common.c.obj
+src/rsn_supp/wpa.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa.c.obj
+.PHONY : src/rsn_supp/wpa.c.obj
 
-src/wpa2/eap_peer/eap_tls_common.i: src/wpa2/eap_peer/eap_tls_common.c.i
+src/rsn_supp/wpa.i: src/rsn_supp/wpa.c.i
 
-.PHONY : src/wpa2/eap_peer/eap_tls_common.i
+.PHONY : src/rsn_supp/wpa.i
 
 # target to preprocess a source file
-src/wpa2/eap_peer/eap_tls_common.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_tls_common.c.i
-.PHONY : src/wpa2/eap_peer/eap_tls_common.c.i
+src/rsn_supp/wpa.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa.c.i
+.PHONY : src/rsn_supp/wpa.c.i
 
-src/wpa2/eap_peer/eap_tls_common.s: src/wpa2/eap_peer/eap_tls_common.c.s
+src/rsn_supp/wpa.s: src/rsn_supp/wpa.c.s
 
-.PHONY : src/wpa2/eap_peer/eap_tls_common.s
+.PHONY : src/rsn_supp/wpa.s
 
 # target to generate assembly for a file
-src/wpa2/eap_peer/eap_tls_common.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_tls_common.c.s
-.PHONY : src/wpa2/eap_peer/eap_tls_common.c.s
+src/rsn_supp/wpa.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa.c.s
+.PHONY : src/rsn_supp/wpa.c.s
 
-src/wpa2/eap_peer/eap_ttls.obj: src/wpa2/eap_peer/eap_ttls.c.obj
+src/rsn_supp/wpa_ie.obj: src/rsn_supp/wpa_ie.c.obj
 
-.PHONY : src/wpa2/eap_peer/eap_ttls.obj
+.PHONY : src/rsn_supp/wpa_ie.obj
 
 # target to build an object file
-src/wpa2/eap_peer/eap_ttls.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_ttls.c.obj
-.PHONY : src/wpa2/eap_peer/eap_ttls.c.obj
+src/rsn_supp/wpa_ie.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa_ie.c.obj
+.PHONY : src/rsn_supp/wpa_ie.c.obj
 
-src/wpa2/eap_peer/eap_ttls.i: src/wpa2/eap_peer/eap_ttls.c.i
+src/rsn_supp/wpa_ie.i: src/rsn_supp/wpa_ie.c.i
 
-.PHONY : src/wpa2/eap_peer/eap_ttls.i
+.PHONY : src/rsn_supp/wpa_ie.i
 
 # target to preprocess a source file
-src/wpa2/eap_peer/eap_ttls.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_ttls.c.i
-.PHONY : src/wpa2/eap_peer/eap_ttls.c.i
+src/rsn_supp/wpa_ie.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa_ie.c.i
+.PHONY : src/rsn_supp/wpa_ie.c.i
 
-src/wpa2/eap_peer/eap_ttls.s: src/wpa2/eap_peer/eap_ttls.c.s
+src/rsn_supp/wpa_ie.s: src/rsn_supp/wpa_ie.c.s
 
-.PHONY : src/wpa2/eap_peer/eap_ttls.s
+.PHONY : src/rsn_supp/wpa_ie.s
 
 # target to generate assembly for a file
-src/wpa2/eap_peer/eap_ttls.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/eap_ttls.c.s
-.PHONY : src/wpa2/eap_peer/eap_ttls.c.s
+src/rsn_supp/wpa_ie.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/rsn_supp/wpa_ie.c.s
+.PHONY : src/rsn_supp/wpa_ie.c.s
 
-src/wpa2/eap_peer/mschapv2.obj: src/wpa2/eap_peer/mschapv2.c.obj
+src/utils/base64.obj: src/utils/base64.c.obj
 
-.PHONY : src/wpa2/eap_peer/mschapv2.obj
+.PHONY : src/utils/base64.obj
 
 # target to build an object file
-src/wpa2/eap_peer/mschapv2.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/mschapv2.c.obj
-.PHONY : src/wpa2/eap_peer/mschapv2.c.obj
+src/utils/base64.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/base64.c.obj
+.PHONY : src/utils/base64.c.obj
 
-src/wpa2/eap_peer/mschapv2.i: src/wpa2/eap_peer/mschapv2.c.i
+src/utils/base64.i: src/utils/base64.c.i
 
-.PHONY : src/wpa2/eap_peer/mschapv2.i
+.PHONY : src/utils/base64.i
 
 # target to preprocess a source file
-src/wpa2/eap_peer/mschapv2.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/mschapv2.c.i
-.PHONY : src/wpa2/eap_peer/mschapv2.c.i
+src/utils/base64.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/base64.c.i
+.PHONY : src/utils/base64.c.i
 
-src/wpa2/eap_peer/mschapv2.s: src/wpa2/eap_peer/mschapv2.c.s
+src/utils/base64.s: src/utils/base64.c.s
 
-.PHONY : src/wpa2/eap_peer/mschapv2.s
+.PHONY : src/utils/base64.s
 
 # target to generate assembly for a file
-src/wpa2/eap_peer/mschapv2.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/eap_peer/mschapv2.c.s
-.PHONY : src/wpa2/eap_peer/mschapv2.c.s
+src/utils/base64.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/base64.c.s
+.PHONY : src/utils/base64.c.s
 
-src/wpa2/tls/asn1.obj: src/wpa2/tls/asn1.c.obj
+src/utils/bitfield.obj: src/utils/bitfield.c.obj
 
-.PHONY : src/wpa2/tls/asn1.obj
+.PHONY : src/utils/bitfield.obj
 
 # target to build an object file
-src/wpa2/tls/asn1.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/asn1.c.obj
-.PHONY : src/wpa2/tls/asn1.c.obj
+src/utils/bitfield.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/bitfield.c.obj
+.PHONY : src/utils/bitfield.c.obj
 
-src/wpa2/tls/asn1.i: src/wpa2/tls/asn1.c.i
+src/utils/bitfield.i: src/utils/bitfield.c.i
 
-.PHONY : src/wpa2/tls/asn1.i
+.PHONY : src/utils/bitfield.i
 
 # target to preprocess a source file
-src/wpa2/tls/asn1.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/asn1.c.i
-.PHONY : src/wpa2/tls/asn1.c.i
+src/utils/bitfield.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/bitfield.c.i
+.PHONY : src/utils/bitfield.c.i
 
-src/wpa2/tls/asn1.s: src/wpa2/tls/asn1.c.s
+src/utils/bitfield.s: src/utils/bitfield.c.s
 
-.PHONY : src/wpa2/tls/asn1.s
+.PHONY : src/utils/bitfield.s
 
 # target to generate assembly for a file
-src/wpa2/tls/asn1.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/asn1.c.s
-.PHONY : src/wpa2/tls/asn1.c.s
+src/utils/bitfield.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/bitfield.c.s
+.PHONY : src/utils/bitfield.c.s
 
-src/wpa2/tls/bignum.obj: src/wpa2/tls/bignum.c.obj
+src/utils/common.obj: src/utils/common.c.obj
 
-.PHONY : src/wpa2/tls/bignum.obj
+.PHONY : src/utils/common.obj
 
 # target to build an object file
-src/wpa2/tls/bignum.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/bignum.c.obj
-.PHONY : src/wpa2/tls/bignum.c.obj
+src/utils/common.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/common.c.obj
+.PHONY : src/utils/common.c.obj
 
-src/wpa2/tls/bignum.i: src/wpa2/tls/bignum.c.i
+src/utils/common.i: src/utils/common.c.i
 
-.PHONY : src/wpa2/tls/bignum.i
+.PHONY : src/utils/common.i
 
 # target to preprocess a source file
-src/wpa2/tls/bignum.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/bignum.c.i
-.PHONY : src/wpa2/tls/bignum.c.i
+src/utils/common.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/common.c.i
+.PHONY : src/utils/common.c.i
 
-src/wpa2/tls/bignum.s: src/wpa2/tls/bignum.c.s
+src/utils/common.s: src/utils/common.c.s
 
-.PHONY : src/wpa2/tls/bignum.s
+.PHONY : src/utils/common.s
 
 # target to generate assembly for a file
-src/wpa2/tls/bignum.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/bignum.c.s
-.PHONY : src/wpa2/tls/bignum.c.s
+src/utils/common.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/common.c.s
+.PHONY : src/utils/common.c.s
 
-src/wpa2/tls/pkcs1.obj: src/wpa2/tls/pkcs1.c.obj
+src/utils/ext_password.obj: src/utils/ext_password.c.obj
 
-.PHONY : src/wpa2/tls/pkcs1.obj
+.PHONY : src/utils/ext_password.obj
 
 # target to build an object file
-src/wpa2/tls/pkcs1.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/pkcs1.c.obj
-.PHONY : src/wpa2/tls/pkcs1.c.obj
+src/utils/ext_password.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/ext_password.c.obj
+.PHONY : src/utils/ext_password.c.obj
 
-src/wpa2/tls/pkcs1.i: src/wpa2/tls/pkcs1.c.i
+src/utils/ext_password.i: src/utils/ext_password.c.i
 
-.PHONY : src/wpa2/tls/pkcs1.i
+.PHONY : src/utils/ext_password.i
 
 # target to preprocess a source file
-src/wpa2/tls/pkcs1.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/pkcs1.c.i
-.PHONY : src/wpa2/tls/pkcs1.c.i
+src/utils/ext_password.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/ext_password.c.i
+.PHONY : src/utils/ext_password.c.i
 
-src/wpa2/tls/pkcs1.s: src/wpa2/tls/pkcs1.c.s
+src/utils/ext_password.s: src/utils/ext_password.c.s
 
-.PHONY : src/wpa2/tls/pkcs1.s
+.PHONY : src/utils/ext_password.s
 
 # target to generate assembly for a file
-src/wpa2/tls/pkcs1.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/pkcs1.c.s
-.PHONY : src/wpa2/tls/pkcs1.c.s
+src/utils/ext_password.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/ext_password.c.s
+.PHONY : src/utils/ext_password.c.s
 
-src/wpa2/tls/pkcs5.obj: src/wpa2/tls/pkcs5.c.obj
+src/utils/json.obj: src/utils/json.c.obj
 
-.PHONY : src/wpa2/tls/pkcs5.obj
+.PHONY : src/utils/json.obj
 
 # target to build an object file
-src/wpa2/tls/pkcs5.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/pkcs5.c.obj
-.PHONY : src/wpa2/tls/pkcs5.c.obj
+src/utils/json.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/json.c.obj
+.PHONY : src/utils/json.c.obj
 
-src/wpa2/tls/pkcs5.i: src/wpa2/tls/pkcs5.c.i
+src/utils/json.i: src/utils/json.c.i
 
-.PHONY : src/wpa2/tls/pkcs5.i
+.PHONY : src/utils/json.i
 
 # target to preprocess a source file
-src/wpa2/tls/pkcs5.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/pkcs5.c.i
-.PHONY : src/wpa2/tls/pkcs5.c.i
+src/utils/json.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/json.c.i
+.PHONY : src/utils/json.c.i
 
-src/wpa2/tls/pkcs5.s: src/wpa2/tls/pkcs5.c.s
+src/utils/json.s: src/utils/json.c.s
 
-.PHONY : src/wpa2/tls/pkcs5.s
+.PHONY : src/utils/json.s
 
 # target to generate assembly for a file
-src/wpa2/tls/pkcs5.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/pkcs5.c.s
-.PHONY : src/wpa2/tls/pkcs5.c.s
+src/utils/json.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/json.c.s
+.PHONY : src/utils/json.c.s
 
-src/wpa2/tls/pkcs8.obj: src/wpa2/tls/pkcs8.c.obj
+src/utils/uuid.obj: src/utils/uuid.c.obj
 
-.PHONY : src/wpa2/tls/pkcs8.obj
+.PHONY : src/utils/uuid.obj
 
 # target to build an object file
-src/wpa2/tls/pkcs8.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/pkcs8.c.obj
-.PHONY : src/wpa2/tls/pkcs8.c.obj
+src/utils/uuid.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/uuid.c.obj
+.PHONY : src/utils/uuid.c.obj
 
-src/wpa2/tls/pkcs8.i: src/wpa2/tls/pkcs8.c.i
+src/utils/uuid.i: src/utils/uuid.c.i
 
-.PHONY : src/wpa2/tls/pkcs8.i
+.PHONY : src/utils/uuid.i
 
 # target to preprocess a source file
-src/wpa2/tls/pkcs8.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/pkcs8.c.i
-.PHONY : src/wpa2/tls/pkcs8.c.i
+src/utils/uuid.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/uuid.c.i
+.PHONY : src/utils/uuid.c.i
 
-src/wpa2/tls/pkcs8.s: src/wpa2/tls/pkcs8.c.s
+src/utils/uuid.s: src/utils/uuid.c.s
 
-.PHONY : src/wpa2/tls/pkcs8.s
+.PHONY : src/utils/uuid.s
 
 # target to generate assembly for a file
-src/wpa2/tls/pkcs8.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/pkcs8.c.s
-.PHONY : src/wpa2/tls/pkcs8.c.s
+src/utils/uuid.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/uuid.c.s
+.PHONY : src/utils/uuid.c.s
 
-src/wpa2/tls/rsa.obj: src/wpa2/tls/rsa.c.obj
+src/utils/wpa_debug.obj: src/utils/wpa_debug.c.obj
 
-.PHONY : src/wpa2/tls/rsa.obj
+.PHONY : src/utils/wpa_debug.obj
 
 # target to build an object file
-src/wpa2/tls/rsa.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/rsa.c.obj
-.PHONY : src/wpa2/tls/rsa.c.obj
+src/utils/wpa_debug.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/wpa_debug.c.obj
+.PHONY : src/utils/wpa_debug.c.obj
 
-src/wpa2/tls/rsa.i: src/wpa2/tls/rsa.c.i
+src/utils/wpa_debug.i: src/utils/wpa_debug.c.i
 
-.PHONY : src/wpa2/tls/rsa.i
+.PHONY : src/utils/wpa_debug.i
 
 # target to preprocess a source file
-src/wpa2/tls/rsa.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/rsa.c.i
-.PHONY : src/wpa2/tls/rsa.c.i
+src/utils/wpa_debug.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/wpa_debug.c.i
+.PHONY : src/utils/wpa_debug.c.i
 
-src/wpa2/tls/rsa.s: src/wpa2/tls/rsa.c.s
+src/utils/wpa_debug.s: src/utils/wpa_debug.c.s
 
-.PHONY : src/wpa2/tls/rsa.s
+.PHONY : src/utils/wpa_debug.s
 
 # target to generate assembly for a file
-src/wpa2/tls/rsa.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/rsa.c.s
-.PHONY : src/wpa2/tls/rsa.c.s
+src/utils/wpa_debug.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/wpa_debug.c.s
+.PHONY : src/utils/wpa_debug.c.s
 
-src/wpa2/tls/tls_internal.obj: src/wpa2/tls/tls_internal.c.obj
+src/utils/wpabuf.obj: src/utils/wpabuf.c.obj
 
-.PHONY : src/wpa2/tls/tls_internal.obj
+.PHONY : src/utils/wpabuf.obj
 
 # target to build an object file
-src/wpa2/tls/tls_internal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tls_internal.c.obj
-.PHONY : src/wpa2/tls/tls_internal.c.obj
+src/utils/wpabuf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/wpabuf.c.obj
+.PHONY : src/utils/wpabuf.c.obj
 
-src/wpa2/tls/tls_internal.i: src/wpa2/tls/tls_internal.c.i
+src/utils/wpabuf.i: src/utils/wpabuf.c.i
 
-.PHONY : src/wpa2/tls/tls_internal.i
-
-# target to preprocess a source file
-src/wpa2/tls/tls_internal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tls_internal.c.i
-.PHONY : src/wpa2/tls/tls_internal.c.i
-
-src/wpa2/tls/tls_internal.s: src/wpa2/tls/tls_internal.c.s
-
-.PHONY : src/wpa2/tls/tls_internal.s
-
-# target to generate assembly for a file
-src/wpa2/tls/tls_internal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tls_internal.c.s
-.PHONY : src/wpa2/tls/tls_internal.c.s
-
-src/wpa2/tls/tlsv1_client.obj: src/wpa2/tls/tlsv1_client.c.obj
-
-.PHONY : src/wpa2/tls/tlsv1_client.obj
-
-# target to build an object file
-src/wpa2/tls/tlsv1_client.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_client.c.obj
-.PHONY : src/wpa2/tls/tlsv1_client.c.obj
-
-src/wpa2/tls/tlsv1_client.i: src/wpa2/tls/tlsv1_client.c.i
-
-.PHONY : src/wpa2/tls/tlsv1_client.i
+.PHONY : src/utils/wpabuf.i
 
 # target to preprocess a source file
-src/wpa2/tls/tlsv1_client.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_client.c.i
-.PHONY : src/wpa2/tls/tlsv1_client.c.i
+src/utils/wpabuf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/wpabuf.c.i
+.PHONY : src/utils/wpabuf.c.i
 
-src/wpa2/tls/tlsv1_client.s: src/wpa2/tls/tlsv1_client.c.s
+src/utils/wpabuf.s: src/utils/wpabuf.c.s
 
-.PHONY : src/wpa2/tls/tlsv1_client.s
-
-# target to generate assembly for a file
-src/wpa2/tls/tlsv1_client.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_client.c.s
-.PHONY : src/wpa2/tls/tlsv1_client.c.s
-
-src/wpa2/tls/tlsv1_client_read.obj: src/wpa2/tls/tlsv1_client_read.c.obj
-
-.PHONY : src/wpa2/tls/tlsv1_client_read.obj
-
-# target to build an object file
-src/wpa2/tls/tlsv1_client_read.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_client_read.c.obj
-.PHONY : src/wpa2/tls/tlsv1_client_read.c.obj
-
-src/wpa2/tls/tlsv1_client_read.i: src/wpa2/tls/tlsv1_client_read.c.i
-
-.PHONY : src/wpa2/tls/tlsv1_client_read.i
-
-# target to preprocess a source file
-src/wpa2/tls/tlsv1_client_read.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_client_read.c.i
-.PHONY : src/wpa2/tls/tlsv1_client_read.c.i
-
-src/wpa2/tls/tlsv1_client_read.s: src/wpa2/tls/tlsv1_client_read.c.s
-
-.PHONY : src/wpa2/tls/tlsv1_client_read.s
+.PHONY : src/utils/wpabuf.s
 
 # target to generate assembly for a file
-src/wpa2/tls/tlsv1_client_read.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_client_read.c.s
-.PHONY : src/wpa2/tls/tlsv1_client_read.c.s
-
-src/wpa2/tls/tlsv1_client_write.obj: src/wpa2/tls/tlsv1_client_write.c.obj
-
-.PHONY : src/wpa2/tls/tlsv1_client_write.obj
-
-# target to build an object file
-src/wpa2/tls/tlsv1_client_write.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_client_write.c.obj
-.PHONY : src/wpa2/tls/tlsv1_client_write.c.obj
-
-src/wpa2/tls/tlsv1_client_write.i: src/wpa2/tls/tlsv1_client_write.c.i
-
-.PHONY : src/wpa2/tls/tlsv1_client_write.i
-
-# target to preprocess a source file
-src/wpa2/tls/tlsv1_client_write.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_client_write.c.i
-.PHONY : src/wpa2/tls/tlsv1_client_write.c.i
-
-src/wpa2/tls/tlsv1_client_write.s: src/wpa2/tls/tlsv1_client_write.c.s
-
-.PHONY : src/wpa2/tls/tlsv1_client_write.s
-
-# target to generate assembly for a file
-src/wpa2/tls/tlsv1_client_write.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_client_write.c.s
-.PHONY : src/wpa2/tls/tlsv1_client_write.c.s
-
-src/wpa2/tls/tlsv1_common.obj: src/wpa2/tls/tlsv1_common.c.obj
-
-.PHONY : src/wpa2/tls/tlsv1_common.obj
-
-# target to build an object file
-src/wpa2/tls/tlsv1_common.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_common.c.obj
-.PHONY : src/wpa2/tls/tlsv1_common.c.obj
-
-src/wpa2/tls/tlsv1_common.i: src/wpa2/tls/tlsv1_common.c.i
-
-.PHONY : src/wpa2/tls/tlsv1_common.i
-
-# target to preprocess a source file
-src/wpa2/tls/tlsv1_common.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_common.c.i
-.PHONY : src/wpa2/tls/tlsv1_common.c.i
-
-src/wpa2/tls/tlsv1_common.s: src/wpa2/tls/tlsv1_common.c.s
-
-.PHONY : src/wpa2/tls/tlsv1_common.s
-
-# target to generate assembly for a file
-src/wpa2/tls/tlsv1_common.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_common.c.s
-.PHONY : src/wpa2/tls/tlsv1_common.c.s
-
-src/wpa2/tls/tlsv1_cred.obj: src/wpa2/tls/tlsv1_cred.c.obj
-
-.PHONY : src/wpa2/tls/tlsv1_cred.obj
-
-# target to build an object file
-src/wpa2/tls/tlsv1_cred.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_cred.c.obj
-.PHONY : src/wpa2/tls/tlsv1_cred.c.obj
-
-src/wpa2/tls/tlsv1_cred.i: src/wpa2/tls/tlsv1_cred.c.i
-
-.PHONY : src/wpa2/tls/tlsv1_cred.i
-
-# target to preprocess a source file
-src/wpa2/tls/tlsv1_cred.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_cred.c.i
-.PHONY : src/wpa2/tls/tlsv1_cred.c.i
-
-src/wpa2/tls/tlsv1_cred.s: src/wpa2/tls/tlsv1_cred.c.s
-
-.PHONY : src/wpa2/tls/tlsv1_cred.s
-
-# target to generate assembly for a file
-src/wpa2/tls/tlsv1_cred.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_cred.c.s
-.PHONY : src/wpa2/tls/tlsv1_cred.c.s
-
-src/wpa2/tls/tlsv1_record.obj: src/wpa2/tls/tlsv1_record.c.obj
-
-.PHONY : src/wpa2/tls/tlsv1_record.obj
-
-# target to build an object file
-src/wpa2/tls/tlsv1_record.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_record.c.obj
-.PHONY : src/wpa2/tls/tlsv1_record.c.obj
-
-src/wpa2/tls/tlsv1_record.i: src/wpa2/tls/tlsv1_record.c.i
-
-.PHONY : src/wpa2/tls/tlsv1_record.i
-
-# target to preprocess a source file
-src/wpa2/tls/tlsv1_record.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_record.c.i
-.PHONY : src/wpa2/tls/tlsv1_record.c.i
-
-src/wpa2/tls/tlsv1_record.s: src/wpa2/tls/tlsv1_record.c.s
-
-.PHONY : src/wpa2/tls/tlsv1_record.s
-
-# target to generate assembly for a file
-src/wpa2/tls/tlsv1_record.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_record.c.s
-.PHONY : src/wpa2/tls/tlsv1_record.c.s
-
-src/wpa2/tls/tlsv1_server.obj: src/wpa2/tls/tlsv1_server.c.obj
-
-.PHONY : src/wpa2/tls/tlsv1_server.obj
-
-# target to build an object file
-src/wpa2/tls/tlsv1_server.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_server.c.obj
-.PHONY : src/wpa2/tls/tlsv1_server.c.obj
-
-src/wpa2/tls/tlsv1_server.i: src/wpa2/tls/tlsv1_server.c.i
-
-.PHONY : src/wpa2/tls/tlsv1_server.i
-
-# target to preprocess a source file
-src/wpa2/tls/tlsv1_server.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_server.c.i
-.PHONY : src/wpa2/tls/tlsv1_server.c.i
-
-src/wpa2/tls/tlsv1_server.s: src/wpa2/tls/tlsv1_server.c.s
-
-.PHONY : src/wpa2/tls/tlsv1_server.s
-
-# target to generate assembly for a file
-src/wpa2/tls/tlsv1_server.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_server.c.s
-.PHONY : src/wpa2/tls/tlsv1_server.c.s
-
-src/wpa2/tls/tlsv1_server_read.obj: src/wpa2/tls/tlsv1_server_read.c.obj
-
-.PHONY : src/wpa2/tls/tlsv1_server_read.obj
-
-# target to build an object file
-src/wpa2/tls/tlsv1_server_read.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_server_read.c.obj
-.PHONY : src/wpa2/tls/tlsv1_server_read.c.obj
-
-src/wpa2/tls/tlsv1_server_read.i: src/wpa2/tls/tlsv1_server_read.c.i
-
-.PHONY : src/wpa2/tls/tlsv1_server_read.i
-
-# target to preprocess a source file
-src/wpa2/tls/tlsv1_server_read.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_server_read.c.i
-.PHONY : src/wpa2/tls/tlsv1_server_read.c.i
-
-src/wpa2/tls/tlsv1_server_read.s: src/wpa2/tls/tlsv1_server_read.c.s
-
-.PHONY : src/wpa2/tls/tlsv1_server_read.s
-
-# target to generate assembly for a file
-src/wpa2/tls/tlsv1_server_read.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_server_read.c.s
-.PHONY : src/wpa2/tls/tlsv1_server_read.c.s
-
-src/wpa2/tls/tlsv1_server_write.obj: src/wpa2/tls/tlsv1_server_write.c.obj
-
-.PHONY : src/wpa2/tls/tlsv1_server_write.obj
-
-# target to build an object file
-src/wpa2/tls/tlsv1_server_write.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_server_write.c.obj
-.PHONY : src/wpa2/tls/tlsv1_server_write.c.obj
-
-src/wpa2/tls/tlsv1_server_write.i: src/wpa2/tls/tlsv1_server_write.c.i
-
-.PHONY : src/wpa2/tls/tlsv1_server_write.i
-
-# target to preprocess a source file
-src/wpa2/tls/tlsv1_server_write.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_server_write.c.i
-.PHONY : src/wpa2/tls/tlsv1_server_write.c.i
-
-src/wpa2/tls/tlsv1_server_write.s: src/wpa2/tls/tlsv1_server_write.c.s
-
-.PHONY : src/wpa2/tls/tlsv1_server_write.s
-
-# target to generate assembly for a file
-src/wpa2/tls/tlsv1_server_write.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/tlsv1_server_write.c.s
-.PHONY : src/wpa2/tls/tlsv1_server_write.c.s
-
-src/wpa2/tls/x509v3.obj: src/wpa2/tls/x509v3.c.obj
-
-.PHONY : src/wpa2/tls/x509v3.obj
-
-# target to build an object file
-src/wpa2/tls/x509v3.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/x509v3.c.obj
-.PHONY : src/wpa2/tls/x509v3.c.obj
-
-src/wpa2/tls/x509v3.i: src/wpa2/tls/x509v3.c.i
-
-.PHONY : src/wpa2/tls/x509v3.i
-
-# target to preprocess a source file
-src/wpa2/tls/x509v3.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/x509v3.c.i
-.PHONY : src/wpa2/tls/x509v3.c.i
-
-src/wpa2/tls/x509v3.s: src/wpa2/tls/x509v3.c.s
-
-.PHONY : src/wpa2/tls/x509v3.s
-
-# target to generate assembly for a file
-src/wpa2/tls/x509v3.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/tls/x509v3.c.s
-.PHONY : src/wpa2/tls/x509v3.c.s
-
-src/wpa2/utils/base64.obj: src/wpa2/utils/base64.c.obj
-
-.PHONY : src/wpa2/utils/base64.obj
-
-# target to build an object file
-src/wpa2/utils/base64.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/utils/base64.c.obj
-.PHONY : src/wpa2/utils/base64.c.obj
-
-src/wpa2/utils/base64.i: src/wpa2/utils/base64.c.i
-
-.PHONY : src/wpa2/utils/base64.i
-
-# target to preprocess a source file
-src/wpa2/utils/base64.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/utils/base64.c.i
-.PHONY : src/wpa2/utils/base64.c.i
-
-src/wpa2/utils/base64.s: src/wpa2/utils/base64.c.s
-
-.PHONY : src/wpa2/utils/base64.s
-
-# target to generate assembly for a file
-src/wpa2/utils/base64.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/utils/base64.c.s
-.PHONY : src/wpa2/utils/base64.c.s
-
-src/wpa2/utils/ext_password.obj: src/wpa2/utils/ext_password.c.obj
-
-.PHONY : src/wpa2/utils/ext_password.obj
-
-# target to build an object file
-src/wpa2/utils/ext_password.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/utils/ext_password.c.obj
-.PHONY : src/wpa2/utils/ext_password.c.obj
-
-src/wpa2/utils/ext_password.i: src/wpa2/utils/ext_password.c.i
-
-.PHONY : src/wpa2/utils/ext_password.i
-
-# target to preprocess a source file
-src/wpa2/utils/ext_password.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/utils/ext_password.c.i
-.PHONY : src/wpa2/utils/ext_password.c.i
-
-src/wpa2/utils/ext_password.s: src/wpa2/utils/ext_password.c.s
-
-.PHONY : src/wpa2/utils/ext_password.s
-
-# target to generate assembly for a file
-src/wpa2/utils/ext_password.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wpa2/utils/ext_password.c.s
-.PHONY : src/wpa2/utils/ext_password.c.s
-
-src/wps/eap_common.obj: src/wps/eap_common.c.obj
-
-.PHONY : src/wps/eap_common.obj
-
-# target to build an object file
-src/wps/eap_common.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/eap_common.c.obj
-.PHONY : src/wps/eap_common.c.obj
-
-src/wps/eap_common.i: src/wps/eap_common.c.i
-
-.PHONY : src/wps/eap_common.i
-
-# target to preprocess a source file
-src/wps/eap_common.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/eap_common.c.i
-.PHONY : src/wps/eap_common.c.i
-
-src/wps/eap_common.s: src/wps/eap_common.c.s
-
-.PHONY : src/wps/eap_common.s
-
-# target to generate assembly for a file
-src/wps/eap_common.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/eap_common.c.s
-.PHONY : src/wps/eap_common.c.s
-
-src/wps/uuid.obj: src/wps/uuid.c.obj
-
-.PHONY : src/wps/uuid.obj
-
-# target to build an object file
-src/wps/uuid.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/uuid.c.obj
-.PHONY : src/wps/uuid.c.obj
-
-src/wps/uuid.i: src/wps/uuid.c.i
-
-.PHONY : src/wps/uuid.i
-
-# target to preprocess a source file
-src/wps/uuid.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/uuid.c.i
-.PHONY : src/wps/uuid.c.i
-
-src/wps/uuid.s: src/wps/uuid.c.s
-
-.PHONY : src/wps/uuid.s
-
-# target to generate assembly for a file
-src/wps/uuid.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/uuid.c.s
-.PHONY : src/wps/uuid.c.s
+src/utils/wpabuf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/utils/wpabuf.c.s
+.PHONY : src/utils/wpabuf.c.s
 
 src/wps/wps.obj: src/wps/wps.c.obj
 
@@ -1947,7 +1824,7 @@ src/wps/wps.obj: src/wps/wps.c.obj
 
 # target to build an object file
 src/wps/wps.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps.c.obj
 .PHONY : src/wps/wps.c.obj
 
 src/wps/wps.i: src/wps/wps.c.i
@@ -1956,7 +1833,7 @@ src/wps/wps.i: src/wps/wps.c.i
 
 # target to preprocess a source file
 src/wps/wps.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps.c.i
 .PHONY : src/wps/wps.c.i
 
 src/wps/wps.s: src/wps/wps.c.s
@@ -1965,7 +1842,7 @@ src/wps/wps.s: src/wps/wps.c.s
 
 # target to generate assembly for a file
 src/wps/wps.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps.c.s
 .PHONY : src/wps/wps.c.s
 
 src/wps/wps_attr_build.obj: src/wps/wps_attr_build.c.obj
@@ -1974,7 +1851,7 @@ src/wps/wps_attr_build.obj: src/wps/wps_attr_build.c.obj
 
 # target to build an object file
 src/wps/wps_attr_build.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_attr_build.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_attr_build.c.obj
 .PHONY : src/wps/wps_attr_build.c.obj
 
 src/wps/wps_attr_build.i: src/wps/wps_attr_build.c.i
@@ -1983,7 +1860,7 @@ src/wps/wps_attr_build.i: src/wps/wps_attr_build.c.i
 
 # target to preprocess a source file
 src/wps/wps_attr_build.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_attr_build.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_attr_build.c.i
 .PHONY : src/wps/wps_attr_build.c.i
 
 src/wps/wps_attr_build.s: src/wps/wps_attr_build.c.s
@@ -1992,7 +1869,7 @@ src/wps/wps_attr_build.s: src/wps/wps_attr_build.c.s
 
 # target to generate assembly for a file
 src/wps/wps_attr_build.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_attr_build.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_attr_build.c.s
 .PHONY : src/wps/wps_attr_build.c.s
 
 src/wps/wps_attr_parse.obj: src/wps/wps_attr_parse.c.obj
@@ -2001,7 +1878,7 @@ src/wps/wps_attr_parse.obj: src/wps/wps_attr_parse.c.obj
 
 # target to build an object file
 src/wps/wps_attr_parse.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_attr_parse.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_attr_parse.c.obj
 .PHONY : src/wps/wps_attr_parse.c.obj
 
 src/wps/wps_attr_parse.i: src/wps/wps_attr_parse.c.i
@@ -2010,7 +1887,7 @@ src/wps/wps_attr_parse.i: src/wps/wps_attr_parse.c.i
 
 # target to preprocess a source file
 src/wps/wps_attr_parse.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_attr_parse.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_attr_parse.c.i
 .PHONY : src/wps/wps_attr_parse.c.i
 
 src/wps/wps_attr_parse.s: src/wps/wps_attr_parse.c.s
@@ -2019,7 +1896,7 @@ src/wps/wps_attr_parse.s: src/wps/wps_attr_parse.c.s
 
 # target to generate assembly for a file
 src/wps/wps_attr_parse.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_attr_parse.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_attr_parse.c.s
 .PHONY : src/wps/wps_attr_parse.c.s
 
 src/wps/wps_attr_process.obj: src/wps/wps_attr_process.c.obj
@@ -2028,7 +1905,7 @@ src/wps/wps_attr_process.obj: src/wps/wps_attr_process.c.obj
 
 # target to build an object file
 src/wps/wps_attr_process.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_attr_process.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_attr_process.c.obj
 .PHONY : src/wps/wps_attr_process.c.obj
 
 src/wps/wps_attr_process.i: src/wps/wps_attr_process.c.i
@@ -2037,7 +1914,7 @@ src/wps/wps_attr_process.i: src/wps/wps_attr_process.c.i
 
 # target to preprocess a source file
 src/wps/wps_attr_process.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_attr_process.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_attr_process.c.i
 .PHONY : src/wps/wps_attr_process.c.i
 
 src/wps/wps_attr_process.s: src/wps/wps_attr_process.c.s
@@ -2046,7 +1923,7 @@ src/wps/wps_attr_process.s: src/wps/wps_attr_process.c.s
 
 # target to generate assembly for a file
 src/wps/wps_attr_process.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_attr_process.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_attr_process.c.s
 .PHONY : src/wps/wps_attr_process.c.s
 
 src/wps/wps_common.obj: src/wps/wps_common.c.obj
@@ -2055,7 +1932,7 @@ src/wps/wps_common.obj: src/wps/wps_common.c.obj
 
 # target to build an object file
 src/wps/wps_common.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_common.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_common.c.obj
 .PHONY : src/wps/wps_common.c.obj
 
 src/wps/wps_common.i: src/wps/wps_common.c.i
@@ -2064,7 +1941,7 @@ src/wps/wps_common.i: src/wps/wps_common.c.i
 
 # target to preprocess a source file
 src/wps/wps_common.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_common.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_common.c.i
 .PHONY : src/wps/wps_common.c.i
 
 src/wps/wps_common.s: src/wps/wps_common.c.s
@@ -2073,7 +1950,7 @@ src/wps/wps_common.s: src/wps/wps_common.c.s
 
 # target to generate assembly for a file
 src/wps/wps_common.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_common.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_common.c.s
 .PHONY : src/wps/wps_common.c.s
 
 src/wps/wps_dev_attr.obj: src/wps/wps_dev_attr.c.obj
@@ -2082,7 +1959,7 @@ src/wps/wps_dev_attr.obj: src/wps/wps_dev_attr.c.obj
 
 # target to build an object file
 src/wps/wps_dev_attr.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_dev_attr.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_dev_attr.c.obj
 .PHONY : src/wps/wps_dev_attr.c.obj
 
 src/wps/wps_dev_attr.i: src/wps/wps_dev_attr.c.i
@@ -2091,7 +1968,7 @@ src/wps/wps_dev_attr.i: src/wps/wps_dev_attr.c.i
 
 # target to preprocess a source file
 src/wps/wps_dev_attr.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_dev_attr.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_dev_attr.c.i
 .PHONY : src/wps/wps_dev_attr.c.i
 
 src/wps/wps_dev_attr.s: src/wps/wps_dev_attr.c.s
@@ -2100,7 +1977,7 @@ src/wps/wps_dev_attr.s: src/wps/wps_dev_attr.c.s
 
 # target to generate assembly for a file
 src/wps/wps_dev_attr.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_dev_attr.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_dev_attr.c.s
 .PHONY : src/wps/wps_dev_attr.c.s
 
 src/wps/wps_enrollee.obj: src/wps/wps_enrollee.c.obj
@@ -2109,7 +1986,7 @@ src/wps/wps_enrollee.obj: src/wps/wps_enrollee.c.obj
 
 # target to build an object file
 src/wps/wps_enrollee.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_enrollee.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_enrollee.c.obj
 .PHONY : src/wps/wps_enrollee.c.obj
 
 src/wps/wps_enrollee.i: src/wps/wps_enrollee.c.i
@@ -2118,7 +1995,7 @@ src/wps/wps_enrollee.i: src/wps/wps_enrollee.c.i
 
 # target to preprocess a source file
 src/wps/wps_enrollee.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_enrollee.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_enrollee.c.i
 .PHONY : src/wps/wps_enrollee.c.i
 
 src/wps/wps_enrollee.s: src/wps/wps_enrollee.c.s
@@ -2127,7 +2004,7 @@ src/wps/wps_enrollee.s: src/wps/wps_enrollee.c.s
 
 # target to generate assembly for a file
 src/wps/wps_enrollee.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_enrollee.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_enrollee.c.s
 .PHONY : src/wps/wps_enrollee.c.s
 
 src/wps/wps_registrar.obj: src/wps/wps_registrar.c.obj
@@ -2136,7 +2013,7 @@ src/wps/wps_registrar.obj: src/wps/wps_registrar.c.obj
 
 # target to build an object file
 src/wps/wps_registrar.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_registrar.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_registrar.c.obj
 .PHONY : src/wps/wps_registrar.c.obj
 
 src/wps/wps_registrar.i: src/wps/wps_registrar.c.i
@@ -2145,7 +2022,7 @@ src/wps/wps_registrar.i: src/wps/wps_registrar.c.i
 
 # target to preprocess a source file
 src/wps/wps_registrar.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_registrar.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_registrar.c.i
 .PHONY : src/wps/wps_registrar.c.i
 
 src/wps/wps_registrar.s: src/wps/wps_registrar.c.s
@@ -2154,7 +2031,7 @@ src/wps/wps_registrar.s: src/wps/wps_registrar.c.s
 
 # target to generate assembly for a file
 src/wps/wps_registrar.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_registrar.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_registrar.c.s
 .PHONY : src/wps/wps_registrar.c.s
 
 src/wps/wps_validate.obj: src/wps/wps_validate.c.obj
@@ -2163,7 +2040,7 @@ src/wps/wps_validate.obj: src/wps/wps_validate.c.obj
 
 # target to build an object file
 src/wps/wps_validate.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_validate.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_validate.c.obj
 .PHONY : src/wps/wps_validate.c.obj
 
 src/wps/wps_validate.i: src/wps/wps_validate.c.i
@@ -2172,7 +2049,7 @@ src/wps/wps_validate.i: src/wps/wps_validate.c.i
 
 # target to preprocess a source file
 src/wps/wps_validate.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_validate.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_validate.c.i
 .PHONY : src/wps/wps_validate.c.i
 
 src/wps/wps_validate.s: src/wps/wps_validate.c.s
@@ -2181,7 +2058,7 @@ src/wps/wps_validate.s: src/wps/wps_validate.c.s
 
 # target to generate assembly for a file
 src/wps/wps_validate.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/idf_component_wpa_supplicant.dir/src/wps/wps_validate.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/wps/wps_validate.c.s
 .PHONY : src/wps/wps_validate.c.s
 
 # Help Target
@@ -2196,47 +2073,85 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_wpa_supplicant_sections_info"
-	@echo "... idf_component_wpa_supplicant"
+	@echo "... __idf_wpa_supplicant"
+	@echo "... esp_supplicant/src/esp_dpp.obj"
+	@echo "... esp_supplicant/src/esp_dpp.i"
+	@echo "... esp_supplicant/src/esp_dpp.s"
+	@echo "... esp_supplicant/src/esp_hostap.obj"
+	@echo "... esp_supplicant/src/esp_hostap.i"
+	@echo "... esp_supplicant/src/esp_hostap.s"
+	@echo "... esp_supplicant/src/esp_wpa2.obj"
+	@echo "... esp_supplicant/src/esp_wpa2.i"
+	@echo "... esp_supplicant/src/esp_wpa2.s"
+	@echo "... esp_supplicant/src/esp_wpa3.obj"
+	@echo "... esp_supplicant/src/esp_wpa3.i"
+	@echo "... esp_supplicant/src/esp_wpa3.s"
+	@echo "... esp_supplicant/src/esp_wpa_main.obj"
+	@echo "... esp_supplicant/src/esp_wpa_main.i"
+	@echo "... esp_supplicant/src/esp_wpa_main.s"
+	@echo "... esp_supplicant/src/esp_wpas_glue.obj"
+	@echo "... esp_supplicant/src/esp_wpas_glue.i"
+	@echo "... esp_supplicant/src/esp_wpas_glue.s"
+	@echo "... esp_supplicant/src/esp_wps.obj"
+	@echo "... esp_supplicant/src/esp_wps.i"
+	@echo "... esp_supplicant/src/esp_wps.s"
 	@echo "... port/os_xtensa.obj"
 	@echo "... port/os_xtensa.i"
 	@echo "... port/os_xtensa.s"
-	@echo "... src/crypto/aes-cbc.obj"
-	@echo "... src/crypto/aes-cbc.i"
-	@echo "... src/crypto/aes-cbc.s"
-	@echo "... src/crypto/aes-internal-dec.obj"
-	@echo "... src/crypto/aes-internal-dec.i"
-	@echo "... src/crypto/aes-internal-dec.s"
-	@echo "... src/crypto/aes-internal-enc.obj"
-	@echo "... src/crypto/aes-internal-enc.i"
-	@echo "... src/crypto/aes-internal-enc.s"
-	@echo "... src/crypto/aes-internal.obj"
-	@echo "... src/crypto/aes-internal.i"
-	@echo "... src/crypto/aes-internal.s"
+	@echo "... src/ap/ap_config.obj"
+	@echo "... src/ap/ap_config.i"
+	@echo "... src/ap/ap_config.s"
+	@echo "... src/ap/ieee802_1x.obj"
+	@echo "... src/ap/ieee802_1x.i"
+	@echo "... src/ap/ieee802_1x.s"
+	@echo "... src/ap/wpa_auth.obj"
+	@echo "... src/ap/wpa_auth.i"
+	@echo "... src/ap/wpa_auth.s"
+	@echo "... src/ap/wpa_auth_ie.obj"
+	@echo "... src/ap/wpa_auth_ie.i"
+	@echo "... src/ap/wpa_auth_ie.s"
+	@echo "... src/common/dpp.obj"
+	@echo "... src/common/dpp.i"
+	@echo "... src/common/dpp.s"
+	@echo "... src/common/sae.obj"
+	@echo "... src/common/sae.i"
+	@echo "... src/common/sae.s"
+	@echo "... src/common/wpa_common.obj"
+	@echo "... src/common/wpa_common.i"
+	@echo "... src/common/wpa_common.s"
+	@echo "... src/crypto/aes-ccm.obj"
+	@echo "... src/crypto/aes-ccm.i"
+	@echo "... src/crypto/aes-ccm.s"
+	@echo "... src/crypto/aes-gcm.obj"
+	@echo "... src/crypto/aes-gcm.i"
+	@echo "... src/crypto/aes-gcm.s"
+	@echo "... src/crypto/aes-omac1.obj"
+	@echo "... src/crypto/aes-omac1.i"
+	@echo "... src/crypto/aes-omac1.s"
+	@echo "... src/crypto/aes-siv.obj"
+	@echo "... src/crypto/aes-siv.i"
+	@echo "... src/crypto/aes-siv.s"
 	@echo "... src/crypto/aes-unwrap.obj"
 	@echo "... src/crypto/aes-unwrap.i"
 	@echo "... src/crypto/aes-unwrap.s"
 	@echo "... src/crypto/aes-wrap.obj"
 	@echo "... src/crypto/aes-wrap.i"
 	@echo "... src/crypto/aes-wrap.s"
-	@echo "... src/crypto/bignum.obj"
-	@echo "... src/crypto/bignum.i"
-	@echo "... src/crypto/bignum.s"
-	@echo "... src/crypto/crypto_internal-cipher.obj"
-	@echo "... src/crypto/crypto_internal-cipher.i"
-	@echo "... src/crypto/crypto_internal-cipher.s"
-	@echo "... src/crypto/crypto_internal-modexp.obj"
-	@echo "... src/crypto/crypto_internal-modexp.i"
-	@echo "... src/crypto/crypto_internal-modexp.s"
-	@echo "... src/crypto/crypto_internal-rsa.obj"
-	@echo "... src/crypto/crypto_internal-rsa.i"
-	@echo "... src/crypto/crypto_internal-rsa.s"
-	@echo "... src/crypto/crypto_internal.obj"
-	@echo "... src/crypto/crypto_internal.i"
-	@echo "... src/crypto/crypto_internal.s"
+	@echo "... src/crypto/ccmp.obj"
+	@echo "... src/crypto/ccmp.i"
+	@echo "... src/crypto/ccmp.s"
+	@echo "... src/crypto/crypto_mbedtls-bignum.obj"
+	@echo "... src/crypto/crypto_mbedtls-bignum.i"
+	@echo "... src/crypto/crypto_mbedtls-bignum.s"
+	@echo "... src/crypto/crypto_mbedtls-ec.obj"
+	@echo "... src/crypto/crypto_mbedtls-ec.i"
+	@echo "... src/crypto/crypto_mbedtls-ec.s"
 	@echo "... src/crypto/crypto_mbedtls.obj"
 	@echo "... src/crypto/crypto_mbedtls.i"
 	@echo "... src/crypto/crypto_mbedtls.s"
+	@echo "... src/crypto/crypto_ops.obj"
+	@echo "... src/crypto/crypto_ops.i"
+	@echo "... src/crypto/crypto_ops.s"
 	@echo "... src/crypto/des-internal.obj"
 	@echo "... src/crypto/des-internal.i"
 	@echo "... src/crypto/des-internal.s"
@@ -2249,150 +2164,99 @@ help:
 	@echo "... src/crypto/md4-internal.obj"
 	@echo "... src/crypto/md4-internal.i"
 	@echo "... src/crypto/md4-internal.s"
-	@echo "... src/crypto/md5-internal.obj"
-	@echo "... src/crypto/md5-internal.i"
-	@echo "... src/crypto/md5-internal.s"
-	@echo "... src/crypto/md5.obj"
-	@echo "... src/crypto/md5.i"
-	@echo "... src/crypto/md5.s"
 	@echo "... src/crypto/ms_funcs.obj"
 	@echo "... src/crypto/ms_funcs.i"
 	@echo "... src/crypto/ms_funcs.s"
 	@echo "... src/crypto/rc4.obj"
 	@echo "... src/crypto/rc4.i"
 	@echo "... src/crypto/rc4.s"
-	@echo "... src/crypto/sha1-internal.obj"
-	@echo "... src/crypto/sha1-internal.i"
-	@echo "... src/crypto/sha1-internal.s"
-	@echo "... src/crypto/sha1-pbkdf2.obj"
-	@echo "... src/crypto/sha1-pbkdf2.i"
-	@echo "... src/crypto/sha1-pbkdf2.s"
-	@echo "... src/crypto/sha1.obj"
-	@echo "... src/crypto/sha1.i"
-	@echo "... src/crypto/sha1.s"
-	@echo "... src/crypto/sha256-internal.obj"
-	@echo "... src/crypto/sha256-internal.i"
-	@echo "... src/crypto/sha256-internal.s"
-	@echo "... src/crypto/sha256.obj"
-	@echo "... src/crypto/sha256.i"
-	@echo "... src/crypto/sha256.s"
-	@echo "... src/fast_crypto/fast_aes-cbc.obj"
-	@echo "... src/fast_crypto/fast_aes-cbc.i"
-	@echo "... src/fast_crypto/fast_aes-cbc.s"
-	@echo "... src/fast_crypto/fast_aes-unwrap.obj"
-	@echo "... src/fast_crypto/fast_aes-unwrap.i"
-	@echo "... src/fast_crypto/fast_aes-unwrap.s"
-	@echo "... src/fast_crypto/fast_aes-wrap.obj"
-	@echo "... src/fast_crypto/fast_aes-wrap.i"
-	@echo "... src/fast_crypto/fast_aes-wrap.s"
-	@echo "... src/fast_crypto/fast_crypto_internal-cipher.obj"
-	@echo "... src/fast_crypto/fast_crypto_internal-cipher.i"
-	@echo "... src/fast_crypto/fast_crypto_internal-cipher.s"
-	@echo "... src/fast_crypto/fast_crypto_internal-modexp.obj"
-	@echo "... src/fast_crypto/fast_crypto_internal-modexp.i"
-	@echo "... src/fast_crypto/fast_crypto_internal-modexp.s"
-	@echo "... src/fast_crypto/fast_crypto_internal.obj"
-	@echo "... src/fast_crypto/fast_crypto_internal.i"
-	@echo "... src/fast_crypto/fast_crypto_internal.s"
-	@echo "... src/fast_crypto/fast_sha256-internal.obj"
-	@echo "... src/fast_crypto/fast_sha256-internal.i"
-	@echo "... src/fast_crypto/fast_sha256-internal.s"
-	@echo "... src/fast_crypto/fast_sha256.obj"
-	@echo "... src/fast_crypto/fast_sha256.i"
-	@echo "... src/fast_crypto/fast_sha256.s"
-	@echo "... src/wpa2/eap_peer/chap.obj"
-	@echo "... src/wpa2/eap_peer/chap.i"
-	@echo "... src/wpa2/eap_peer/chap.s"
-	@echo "... src/wpa2/eap_peer/eap.obj"
-	@echo "... src/wpa2/eap_peer/eap.i"
-	@echo "... src/wpa2/eap_peer/eap.s"
-	@echo "... src/wpa2/eap_peer/eap_common.obj"
-	@echo "... src/wpa2/eap_peer/eap_common.i"
-	@echo "... src/wpa2/eap_peer/eap_common.s"
-	@echo "... src/wpa2/eap_peer/eap_mschapv2.obj"
-	@echo "... src/wpa2/eap_peer/eap_mschapv2.i"
-	@echo "... src/wpa2/eap_peer/eap_mschapv2.s"
-	@echo "... src/wpa2/eap_peer/eap_peap.obj"
-	@echo "... src/wpa2/eap_peer/eap_peap.i"
-	@echo "... src/wpa2/eap_peer/eap_peap.s"
-	@echo "... src/wpa2/eap_peer/eap_peap_common.obj"
-	@echo "... src/wpa2/eap_peer/eap_peap_common.i"
-	@echo "... src/wpa2/eap_peer/eap_peap_common.s"
-	@echo "... src/wpa2/eap_peer/eap_tls.obj"
-	@echo "... src/wpa2/eap_peer/eap_tls.i"
-	@echo "... src/wpa2/eap_peer/eap_tls.s"
-	@echo "... src/wpa2/eap_peer/eap_tls_common.obj"
-	@echo "... src/wpa2/eap_peer/eap_tls_common.i"
-	@echo "... src/wpa2/eap_peer/eap_tls_common.s"
-	@echo "... src/wpa2/eap_peer/eap_ttls.obj"
-	@echo "... src/wpa2/eap_peer/eap_ttls.i"
-	@echo "... src/wpa2/eap_peer/eap_ttls.s"
-	@echo "... src/wpa2/eap_peer/mschapv2.obj"
-	@echo "... src/wpa2/eap_peer/mschapv2.i"
-	@echo "... src/wpa2/eap_peer/mschapv2.s"
-	@echo "... src/wpa2/tls/asn1.obj"
-	@echo "... src/wpa2/tls/asn1.i"
-	@echo "... src/wpa2/tls/asn1.s"
-	@echo "... src/wpa2/tls/bignum.obj"
-	@echo "... src/wpa2/tls/bignum.i"
-	@echo "... src/wpa2/tls/bignum.s"
-	@echo "... src/wpa2/tls/pkcs1.obj"
-	@echo "... src/wpa2/tls/pkcs1.i"
-	@echo "... src/wpa2/tls/pkcs1.s"
-	@echo "... src/wpa2/tls/pkcs5.obj"
-	@echo "... src/wpa2/tls/pkcs5.i"
-	@echo "... src/wpa2/tls/pkcs5.s"
-	@echo "... src/wpa2/tls/pkcs8.obj"
-	@echo "... src/wpa2/tls/pkcs8.i"
-	@echo "... src/wpa2/tls/pkcs8.s"
-	@echo "... src/wpa2/tls/rsa.obj"
-	@echo "... src/wpa2/tls/rsa.i"
-	@echo "... src/wpa2/tls/rsa.s"
-	@echo "... src/wpa2/tls/tls_internal.obj"
-	@echo "... src/wpa2/tls/tls_internal.i"
-	@echo "... src/wpa2/tls/tls_internal.s"
-	@echo "... src/wpa2/tls/tlsv1_client.obj"
-	@echo "... src/wpa2/tls/tlsv1_client.i"
-	@echo "... src/wpa2/tls/tlsv1_client.s"
-	@echo "... src/wpa2/tls/tlsv1_client_read.obj"
-	@echo "... src/wpa2/tls/tlsv1_client_read.i"
-	@echo "... src/wpa2/tls/tlsv1_client_read.s"
-	@echo "... src/wpa2/tls/tlsv1_client_write.obj"
-	@echo "... src/wpa2/tls/tlsv1_client_write.i"
-	@echo "... src/wpa2/tls/tlsv1_client_write.s"
-	@echo "... src/wpa2/tls/tlsv1_common.obj"
-	@echo "... src/wpa2/tls/tlsv1_common.i"
-	@echo "... src/wpa2/tls/tlsv1_common.s"
-	@echo "... src/wpa2/tls/tlsv1_cred.obj"
-	@echo "... src/wpa2/tls/tlsv1_cred.i"
-	@echo "... src/wpa2/tls/tlsv1_cred.s"
-	@echo "... src/wpa2/tls/tlsv1_record.obj"
-	@echo "... src/wpa2/tls/tlsv1_record.i"
-	@echo "... src/wpa2/tls/tlsv1_record.s"
-	@echo "... src/wpa2/tls/tlsv1_server.obj"
-	@echo "... src/wpa2/tls/tlsv1_server.i"
-	@echo "... src/wpa2/tls/tlsv1_server.s"
-	@echo "... src/wpa2/tls/tlsv1_server_read.obj"
-	@echo "... src/wpa2/tls/tlsv1_server_read.i"
-	@echo "... src/wpa2/tls/tlsv1_server_read.s"
-	@echo "... src/wpa2/tls/tlsv1_server_write.obj"
-	@echo "... src/wpa2/tls/tlsv1_server_write.i"
-	@echo "... src/wpa2/tls/tlsv1_server_write.s"
-	@echo "... src/wpa2/tls/x509v3.obj"
-	@echo "... src/wpa2/tls/x509v3.i"
-	@echo "... src/wpa2/tls/x509v3.s"
-	@echo "... src/wpa2/utils/base64.obj"
-	@echo "... src/wpa2/utils/base64.i"
-	@echo "... src/wpa2/utils/base64.s"
-	@echo "... src/wpa2/utils/ext_password.obj"
-	@echo "... src/wpa2/utils/ext_password.i"
-	@echo "... src/wpa2/utils/ext_password.s"
-	@echo "... src/wps/eap_common.obj"
-	@echo "... src/wps/eap_common.i"
-	@echo "... src/wps/eap_common.s"
-	@echo "... src/wps/uuid.obj"
-	@echo "... src/wps/uuid.i"
-	@echo "... src/wps/uuid.s"
+	@echo "... src/crypto/sha1-prf.obj"
+	@echo "... src/crypto/sha1-prf.i"
+	@echo "... src/crypto/sha1-prf.s"
+	@echo "... src/crypto/sha1-tlsprf.obj"
+	@echo "... src/crypto/sha1-tlsprf.i"
+	@echo "... src/crypto/sha1-tlsprf.s"
+	@echo "... src/crypto/sha256-kdf.obj"
+	@echo "... src/crypto/sha256-kdf.i"
+	@echo "... src/crypto/sha256-kdf.s"
+	@echo "... src/crypto/sha256-prf.obj"
+	@echo "... src/crypto/sha256-prf.i"
+	@echo "... src/crypto/sha256-prf.s"
+	@echo "... src/crypto/sha256-tlsprf.obj"
+	@echo "... src/crypto/sha256-tlsprf.i"
+	@echo "... src/crypto/sha256-tlsprf.s"
+	@echo "... src/crypto/sha384-prf.obj"
+	@echo "... src/crypto/sha384-prf.i"
+	@echo "... src/crypto/sha384-prf.s"
+	@echo "... src/crypto/sha384-tlsprf.obj"
+	@echo "... src/crypto/sha384-tlsprf.i"
+	@echo "... src/crypto/sha384-tlsprf.s"
+	@echo "... src/crypto/tls_mbedtls.obj"
+	@echo "... src/crypto/tls_mbedtls.i"
+	@echo "... src/crypto/tls_mbedtls.s"
+	@echo "... src/eap_peer/chap.obj"
+	@echo "... src/eap_peer/chap.i"
+	@echo "... src/eap_peer/chap.s"
+	@echo "... src/eap_peer/eap.obj"
+	@echo "... src/eap_peer/eap.i"
+	@echo "... src/eap_peer/eap.s"
+	@echo "... src/eap_peer/eap_common.obj"
+	@echo "... src/eap_peer/eap_common.i"
+	@echo "... src/eap_peer/eap_common.s"
+	@echo "... src/eap_peer/eap_mschapv2.obj"
+	@echo "... src/eap_peer/eap_mschapv2.i"
+	@echo "... src/eap_peer/eap_mschapv2.s"
+	@echo "... src/eap_peer/eap_peap.obj"
+	@echo "... src/eap_peer/eap_peap.i"
+	@echo "... src/eap_peer/eap_peap.s"
+	@echo "... src/eap_peer/eap_peap_common.obj"
+	@echo "... src/eap_peer/eap_peap_common.i"
+	@echo "... src/eap_peer/eap_peap_common.s"
+	@echo "... src/eap_peer/eap_tls.obj"
+	@echo "... src/eap_peer/eap_tls.i"
+	@echo "... src/eap_peer/eap_tls.s"
+	@echo "... src/eap_peer/eap_tls_common.obj"
+	@echo "... src/eap_peer/eap_tls_common.i"
+	@echo "... src/eap_peer/eap_tls_common.s"
+	@echo "... src/eap_peer/eap_ttls.obj"
+	@echo "... src/eap_peer/eap_ttls.i"
+	@echo "... src/eap_peer/eap_ttls.s"
+	@echo "... src/eap_peer/mschapv2.obj"
+	@echo "... src/eap_peer/mschapv2.i"
+	@echo "... src/eap_peer/mschapv2.s"
+	@echo "... src/rsn_supp/pmksa_cache.obj"
+	@echo "... src/rsn_supp/pmksa_cache.i"
+	@echo "... src/rsn_supp/pmksa_cache.s"
+	@echo "... src/rsn_supp/wpa.obj"
+	@echo "... src/rsn_supp/wpa.i"
+	@echo "... src/rsn_supp/wpa.s"
+	@echo "... src/rsn_supp/wpa_ie.obj"
+	@echo "... src/rsn_supp/wpa_ie.i"
+	@echo "... src/rsn_supp/wpa_ie.s"
+	@echo "... src/utils/base64.obj"
+	@echo "... src/utils/base64.i"
+	@echo "... src/utils/base64.s"
+	@echo "... src/utils/bitfield.obj"
+	@echo "... src/utils/bitfield.i"
+	@echo "... src/utils/bitfield.s"
+	@echo "... src/utils/common.obj"
+	@echo "... src/utils/common.i"
+	@echo "... src/utils/common.s"
+	@echo "... src/utils/ext_password.obj"
+	@echo "... src/utils/ext_password.i"
+	@echo "... src/utils/ext_password.s"
+	@echo "... src/utils/json.obj"
+	@echo "... src/utils/json.i"
+	@echo "... src/utils/json.s"
+	@echo "... src/utils/uuid.obj"
+	@echo "... src/utils/uuid.i"
+	@echo "... src/utils/uuid.s"
+	@echo "... src/utils/wpa_debug.obj"
+	@echo "... src/utils/wpa_debug.i"
+	@echo "... src/utils/wpa_debug.s"
+	@echo "... src/utils/wpabuf.obj"
+	@echo "... src/utils/wpabuf.i"
+	@echo "... src/utils/wpabuf.s"
 	@echo "... src/wps/wps.obj"
 	@echo "... src/wps/wps.i"
 	@echo "... src/wps/wps.s"

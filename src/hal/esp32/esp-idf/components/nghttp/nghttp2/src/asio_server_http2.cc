@@ -36,7 +36,7 @@ namespace asio_http2 {
 
 namespace server {
 
-http2::http2() : impl_(make_unique<http2_impl>()) {}
+http2::http2() : impl_(std::make_unique<http2_impl>()) {}
 
 http2::~http2() {}
 
@@ -89,6 +89,8 @@ const std::vector<std::shared_ptr<boost::asio::io_service>> &
 http2::io_services() const {
   return impl_->io_services();
 }
+
+std::vector<int> http2::ports() const { return impl_->ports(); }
 
 } // namespace server
 

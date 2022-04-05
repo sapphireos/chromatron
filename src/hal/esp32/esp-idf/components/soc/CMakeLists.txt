@@ -1,18 +1,9 @@
-set(SOC_NAME ${IDF_TARGET})
+idf_component_register(SRCS "lldesc.c"
+                            "soc_include_legacy_warn.c"
+                       INCLUDE_DIRS include
+                       LDFRAGMENTS "linker.lf")
 
-if(EXISTS "${COMPONENT_PATH}/${SOC_NAME}")
-    include(${COMPONENT_PATH}/${SOC_NAME}/sources.cmake)
+idf_build_get_property(target IDF_TARGET)
+add_subdirectory(${target})
 
-    spaces2list(SOC_SRCS)
-    add_prefix(COMPONENT_SRCS "${SOC_NAME}/" ${SOC_SRCS})
-    set(COMPONENT_ADD_INCLUDEDIRS ${SOC_NAME}/include)
-endif()
-
-list(APPEND COMPONENT_ADD_INCLUDEDIRS include)
-list(APPEND COMPONENT_SRCS "src/memory_layout_utils.c")
-
-set(COMPONENT_ADD_LDFRAGMENTS linker.lf)
-
-set(COMPONENT_REQUIRES)
-
-register_component()
+target_linker_script(${COMPONENT_LIB} INTERFACE "${target}/ld/${target}.peripherals.ld")

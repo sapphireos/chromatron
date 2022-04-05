@@ -2,7 +2,7 @@
 
 # all.sh
 #
-# Copyright (c) 2014-2017, ARM Limited, All Rights Reserved
+# Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # This file is provided under the Apache License 2.0, or the
@@ -43,8 +43,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # **********
-#
-# This file is part of Mbed TLS (https://tls.mbed.org)
 
 
 
@@ -181,11 +179,15 @@ pre_initialize_variables () {
     : ${ARMC5_BIN_DIR:=/usr/bin}
     : ${ARMC6_BIN_DIR:=/usr/bin}
     : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
+    : ${ARM_LINUX_GNUEABI_GCC_PREFIX:=arm-linux-gnueabi-}
 
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
     if [ -z "${MAKEFLAGS+set}" ]; then
-        export MAKEFLAGS="-j"
+        export MAKEFLAGS="-j$(all_sh_nproc)"
     fi
+
+    # Include more verbose output for failing tests run by CMake or make
+    export CTEST_OUTPUT_ON_FAILURE=1
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     ASAN_CFLAGS='-Werror -Wall -Wextra -fsanitize=address,undefined -fno-sanitize-recover=all'
@@ -246,6 +248,9 @@ General options:
      --arm-none-eabi-gcc-prefix=<string>
                         Prefix for a cross-compiler for arm-none-eabi
                         (default: "${ARM_NONE_EABI_GCC_PREFIX}")
+     --arm-linux-gnueabi-gcc-prefix=<string>
+                        Prefix for a cross-compiler for arm-linux-gnueabi
+                        (default: "${ARM_LINUX_GNUEABI_GCC_PREFIX}")
      --armcc            Run ARM Compiler builds (on by default).
      --except           Exclude the COMPONENTs listed on the command line,
                         instead of running only those.
@@ -313,6 +318,18 @@ trap 'fatal_signal HUP' HUP
 trap 'fatal_signal INT' INT
 trap 'fatal_signal TERM' TERM
 
+# Number of processors on this machine. Used as the default setting
+# for parallel make.
+all_sh_nproc ()
+{
+    {
+        nproc || # Linux
+        sysctl -n hw.ncpuonline || # NetBSD, OpenBSD
+        sysctl -n hw.ncpu || # FreeBSD
+        echo 1
+    } 2>/dev/null
+}
+
 msg()
 {
     if [ -n "${current_component:-}" ]; then
@@ -377,6 +394,7 @@ pre_parse_command_line () {
     while [ $# -gt 0 ]; do
         case "$1" in
             --arm-none-eabi-gcc-prefix) shift; ARM_NONE_EABI_GCC_PREFIX="$1";;
+            --arm-linux-gnueabi-gcc-prefix) shift; ARM_LINUX_GNUEABI_GCC_PREFIX="$1";;
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
@@ -664,8 +682,8 @@ component_check_doxy_blocks () {
 }
 
 component_check_files () {
-    msg "test: check-files.py" # < 1s
-    record_status tests/scripts/check-files.py
+    msg "Check: file sanity checks (permissions, encodings)" # < 1s
+    record_status tests/scripts/check_files.py
 }
 
 component_check_changelog () {
@@ -688,6 +706,18 @@ component_check_names () {
 component_check_doxygen_warnings () {
     msg "test: doxygen warnings" # ~ 3s
     record_status tests/scripts/doxygen.sh
+}
+
+component_check_python2 () {
+    # Check that what used to work with Python 2 still works with Python 2.
+    msg "check: python2 compatibility"
+    mkdir -p tests/with_python2 tests/with_python3
+    make -C tests PYTHON=python2 c_files
+    mv tests/test_suite_*.c tests/with_python2/
+    make -C tests PYTHON=python3 c_files
+    mv tests/test_suite_*.c tests/with_python3/
+    diff -r tests/with_python2 tests/with_python3
+    rm -rf tests/with_python2 tests/with_python3
 }
 
 
@@ -764,7 +794,7 @@ component_test_full_cmake_gcc_asan () {
 component_test_zlib_make() {
     msg "build: zlib enabled, make"
     scripts/config.pl set MBEDTLS_ZLIB_SUPPORT
-    make ZLIB=1 CFLAGS='-Werror -O1'
+    make ZLIB=1 CFLAGS='-Werror -O2'
 
     msg "test: main suites (zlib, make)"
     make test
@@ -787,7 +817,7 @@ EOF
 component_test_zlib_cmake() {
     msg "build: zlib enabled, cmake"
     scripts/config.pl set MBEDTLS_ZLIB_SUPPORT
-    cmake -D ENABLE_ZLIB_SUPPORT=On -D CMAKE_BUILD_TYPE:String=Check .
+    cmake -D ENABLE_ZLIB_SUPPORT=On -D CMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: main suites (zlib, cmake)"
@@ -889,11 +919,21 @@ component_test_no_hmac_drbg () {
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: no HMAC_DRBG"
+    msg "test: Full minus HMAC_DRBG - main suites"
     make test
 
-    # No ssl-opt.sh/compat.sh as they never use HMAC_DRBG so far,
-    # so there's little value in running those lengthy tests here.
+    # Normally our ECDSA implementation uses deterministic ECDSA. But since
+    # HMAC_DRBG is disabled in this configuration, randomized ECDSA is used
+    # instead.
+    # Test SSL with non-deterministic ECDSA. Only test features that
+    # might be affected by how ECDSA signature is performed.
+    msg "test: Full minus HMAC_DRBG - ssl-opt.sh (subset)"
+    if_build_succeeded tests/ssl-opt.sh -f 'Default\|SSL async private: sign'
+
+    # To save time, only test one protocol version, since this part of
+    # the protocol is identical in (D)TLS up to 1.2.
+    msg "test: Full minus HMAC_DRBG - compat.sh (ECDSA)"
+    if_build_succeeded tests/compat.sh -m tls1_2 -t 'ECDSA'
 }
 
 component_test_no_drbg_all_hashes () {
@@ -1015,7 +1055,7 @@ component_test_small_mbedtls_ssl_dtls_max_buffering () {
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.pl full
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release -D ENABLE_TESTING=On .
     make
 
     msg "test: main suites (full config)" # ~ 5s
@@ -1029,6 +1069,46 @@ component_test_full_cmake_clang () {
 
     msg "test: compat.sh ARIA + ChachaPoly"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
+}
+
+component_test_memsan_constant_flow () {
+    # This tests both (1) accesses to undefined memory, and (2) branches or
+    # memory access depending on secret values. To distinguish between those:
+    # - unset MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN - does the failure persist?
+    # - or alternatively, change the build type to MemSanDbg, which enables
+    # origin tracking and nicer stack traces (which are useful for debugging
+    # anyway), and check if the origin was TEST_CF_SECRET() or something else.
+    msg "build: cmake MSan (clang), full config with constant flow testing"
+    scripts/config.pl full
+    scripts/config.pl set MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN
+    scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
+    make
+
+    msg "test: main suites (Msan + constant flow)"
+    make test
+}
+
+component_test_valgrind_constant_flow () {
+    # This tests both (1) everything that valgrind's memcheck usually checks
+    # (heap buffer overflows, use of uninitialized memory, use-after-free,
+    # etc.) and (2) branches or memory access depending on secret values,
+    # which will be reported as uninitialized memory. To distinguish between
+    # secret and actually uninitialized:
+    # - unset MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND - does the failure persist?
+    # - or alternatively, build with debug info and manually run the offending
+    # test suite with valgrind --track-origins=yes, then check if the origin
+    # was TEST_CF_SECRET() or something else.
+    msg "build: cmake release GCC, full config with constant flow testing"
+    scripts/config.pl full
+    scripts/config.pl set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
+    cmake -D CMAKE_BUILD_TYPE:String=Release .
+    make
+
+    # this only shows a summary of the results (how many of each type)
+    # details are left in Testing/<date>/DynamicAnalysis.xml
+    msg "test: main suites (valgrind + constant flow)"
+    make memcheck
 }
 
 component_test_default_no_deprecated () {
@@ -1186,7 +1266,7 @@ component_test_memory_buffer_allocator_backtrace () {
     scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
     scripts/config.pl set MBEDTLS_MEMORY_BACKTRACE
     scripts/config.pl set MBEDTLS_MEMORY_DEBUG
-    CC=gcc cmake .
+    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE"
@@ -1197,7 +1277,7 @@ component_test_memory_buffer_allocator () {
     msg "build: default config with memory buffer allocator"
     scripts/config.pl set MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
-    CC=gcc cmake .
+    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
@@ -1247,6 +1327,16 @@ component_test_null_entropy () {
     make test
 }
 
+component_test_no_date_time () {
+    msg "build: default config without MBEDTLS_HAVE_TIME_DATE"
+    scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
+    make
+
+    msg "test: !MBEDTLS_HAVE_TIME_DATE - main suites"
+    make test
+}
+
 component_test_platform_calloc_macro () {
     msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
     scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
@@ -1263,7 +1353,7 @@ component_test_malloc_0_null () {
     msg "build: malloc(0) returns NULL (ASan+UBSan build)"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    make CC=gcc CFLAGS="'-DMBEDTLS_CONFIG_FILE=\"$PWD/tests/configs/config-wrapper-malloc-0-null.h\"' -O -Werror -Wall -Wextra -fsanitize=address,undefined" LDFLAGS='-fsanitize=address,undefined'
+    make CC=gcc CFLAGS="'-DMBEDTLS_CONFIG_FILE=\"$PWD/tests/configs/config-wrapper-malloc-0-null.h\"' -O $ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: malloc(0) returns NULL (ASan+UBSan build)"
     make test
@@ -1352,7 +1442,8 @@ component_build_mbedtls_config_file () {
 }
 
 component_test_m32_o0 () {
-    # Build once with -O0, to compile out the i386 specific inline assembly
+    # Build without optimization, so as to use portable C code (in a 32-bit
+    # build) and not the i386-specific inline assembly.
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.pl full
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
@@ -1367,19 +1458,20 @@ support_test_m32_o0 () {
     esac
 }
 
-component_test_m32_o1 () {
-    # Build again with -O1, to compile in the i386 specific inline assembly
-    msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
+component_test_m32_o2 () {
+    # Build with optimization, to use the i386 specific inline assembly
+    # and go faster for tests.
+    msg "build: i386, make, gcc -O2 (ASan build)" # ~ 30s
     scripts/config.pl full
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O1" LDFLAGS="-m32 $ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 
-    msg "test: i386, make, gcc -O1 (ASan build)"
+    msg "test: i386, make, gcc -O2 (ASan build)"
     make test
 
-    msg "test ssl-opt.sh, i386, make, gcc-O1"
+    msg "test ssl-opt.sh, i386, make, gcc-O2"
     if_build_succeeded tests/ssl-opt.sh
 }
-support_test_m32_o1 () {
+support_test_m32_o2 () {
     support_test_m32_o0 "$@"
 }
 
@@ -1450,6 +1542,20 @@ component_test_no_64bit_multiplication () {
     make test
 }
 
+component_test_no_strings () {
+    msg "build: no strings" # ~10s
+    scripts/config.pl full
+    # Disable options that activate a large amount of string constants.
+    scripts/config.pl unset MBEDTLS_DEBUG_C
+    scripts/config.pl unset MBEDTLS_ERROR_C
+    scripts/config.pl set MBEDTLS_ERROR_STRERROR_DUMMY
+    scripts/config.pl unset MBEDTLS_VERSION_FEATURES
+    make CFLAGS='-Werror -Os'
+
+    msg "test: no strings" # ~ 10s
+    make test
+}
+
 component_build_arm_none_eabi_gcc () {
     msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1" # ~ 10s
     scripts/config.pl baremetal
@@ -1459,15 +1565,30 @@ component_build_arm_none_eabi_gcc () {
     ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
 }
 
-component_build_arm_none_eabi_gcc_arm5vte () {
-    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=arm5vte" # ~ 10s
+component_build_arm_linux_gnueabi_gcc_arm5vte () {
+    msg "build: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -march=arm5vte" # ~ 10s
     scripts/config.pl baremetal
     # Build for a target platform that's close to what Debian uses
     # for its "armel" distribution (https://wiki.debian.org/ArmEabiPort).
     # See https://github.com/ARMmbed/mbedtls/pull/2169 and comments.
-    # It would be better to build with arm-linux-gnueabi-gcc but
-    # we don't have that on our CI at this time.
-    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
+    # Build everything including programs, see for example
+    # https://github.com/ARMmbed/mbedtls/pull/3449#issuecomment-675313720
+    make CC="${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc" AR="${ARM_LINUX_GNUEABI_GCC_PREFIX}ar" CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te'
+
+    msg "size: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -march=armv5te -O1"
+    ${ARM_LINUX_GNUEABI_GCC_PREFIX}size library/*.o
+}
+support_build_arm_linux_gnueabi_gcc_arm5vte () {
+    type ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc >/dev/null 2>&1
+}
+
+component_build_arm_none_eabi_gcc_arm5vte () {
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=arm5vte" # ~ 10s
+    scripts/config.pl baremetal
+    # This is an imperfect substitute for
+    # component_build_arm_linux_gnueabi_gcc_arm5vte
+    # in case the gcc-arm-linux-gnueabi toolchain is not available
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" CFLAGS='-std=c99 -Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=armv5te -O1"
     ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
@@ -1596,12 +1717,42 @@ component_test_valgrind () {
     fi
 }
 
+support_test_cmake_out_of_source () {
+    distrib_id=""
+    distrib_ver=""
+    distrib_ver_minor=""
+    distrib_ver_major=""
+
+    # Attempt to parse lsb-release to find out distribution and version. If not
+    # found this should fail safe (test is supported).
+    if [ -f /etc/lsb-release ]; then
+
+        while read -r lsb_line; do
+            case "$lsb_line" in
+                "DISTRIB_ID"*) distrib_id=${lsb_line#DISTRIB_ID=};;
+                "DISTRIB_RELEASE"*) distrib_ver=${lsb_line#DISTRIB_RELEASE=};;
+            esac
+        done < /etc/lsb-release
+
+        distrib_ver_major="${distrib_ver%%.*}"
+        distrib_ver="${distrib_ver#*.}"
+        distrib_ver_minor="${distrib_ver%%.*}"
+    fi
+
+    # Running the out of source CMake test on Ubuntu 16.04 using more than one
+    # processor (as the CI does) can create a race condition whereby the build
+    # fails to see a generated file, despite that file actually having been
+    # generated. This problem appears to go away with 18.04 or newer, so make
+    # the out of source tests unsupported on Ubuntu 16.04.
+    [ "$distrib_id" != "Ubuntu" ] || [ "$distrib_ver_major" -gt 16 ]
+}
+
 component_test_cmake_out_of_source () {
     msg "build: cmake 'out-of-source' build"
     MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
-    cmake "$MBEDTLS_ROOT_DIR"
+    cmake -D CMAKE_BUILD_TYPE:String=Check "$MBEDTLS_ROOT_DIR"
     make
 
     msg "test: cmake 'out-of-source' build"

@@ -157,34 +157,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash_sections_info.dir/rule
-.PHONY : esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash_sections_info.dir/rule
+esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/rule
+.PHONY : esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/rule
 
 # Convenience name for target.
-idf_component_nvs_flash_sections_info: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash_sections_info.dir/rule
+__idf_nvs_flash: esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/rule
 
-.PHONY : idf_component_nvs_flash_sections_info
+.PHONY : __idf_nvs_flash
 
 # fast build rule for target.
-idf_component_nvs_flash_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash_sections_info.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash_sections_info.dir/build
-.PHONY : idf_component_nvs_flash_sections_info/fast
-
-# Convenience name for target.
-esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/rule
-.PHONY : esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/rule
-
-# Convenience name for target.
-idf_component_nvs_flash: esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/rule
-
-.PHONY : idf_component_nvs_flash
-
-# fast build rule for target.
-idf_component_nvs_flash/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build
-.PHONY : idf_component_nvs_flash/fast
+__idf_nvs_flash/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build
+.PHONY : __idf_nvs_flash/fast
 
 src/nvs_api.obj: src/nvs_api.cpp.obj
 
@@ -192,7 +177,7 @@ src/nvs_api.obj: src/nvs_api.cpp.obj
 
 # target to build an object file
 src/nvs_api.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_api.cpp.obj
 .PHONY : src/nvs_api.cpp.obj
 
 src/nvs_api.i: src/nvs_api.cpp.i
@@ -201,7 +186,7 @@ src/nvs_api.i: src/nvs_api.cpp.i
 
 # target to preprocess a source file
 src/nvs_api.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_api.cpp.i
 .PHONY : src/nvs_api.cpp.i
 
 src/nvs_api.s: src/nvs_api.cpp.s
@@ -210,35 +195,89 @@ src/nvs_api.s: src/nvs_api.cpp.s
 
 # target to generate assembly for a file
 src/nvs_api.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_api.cpp.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_api.cpp.s
 .PHONY : src/nvs_api.cpp.s
 
-src/nvs_encr.obj: src/nvs_encr.cpp.obj
+src/nvs_cxx_api.obj: src/nvs_cxx_api.cpp.obj
 
-.PHONY : src/nvs_encr.obj
+.PHONY : src/nvs_cxx_api.obj
 
 # target to build an object file
-src/nvs_encr.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.obj
-.PHONY : src/nvs_encr.cpp.obj
+src/nvs_cxx_api.cpp.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_cxx_api.cpp.obj
+.PHONY : src/nvs_cxx_api.cpp.obj
 
-src/nvs_encr.i: src/nvs_encr.cpp.i
+src/nvs_cxx_api.i: src/nvs_cxx_api.cpp.i
 
-.PHONY : src/nvs_encr.i
+.PHONY : src/nvs_cxx_api.i
 
 # target to preprocess a source file
-src/nvs_encr.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.i
-.PHONY : src/nvs_encr.cpp.i
+src/nvs_cxx_api.cpp.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_cxx_api.cpp.i
+.PHONY : src/nvs_cxx_api.cpp.i
 
-src/nvs_encr.s: src/nvs_encr.cpp.s
+src/nvs_cxx_api.s: src/nvs_cxx_api.cpp.s
 
-.PHONY : src/nvs_encr.s
+.PHONY : src/nvs_cxx_api.s
 
 # target to generate assembly for a file
-src/nvs_encr.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_encr.cpp.s
-.PHONY : src/nvs_encr.cpp.s
+src/nvs_cxx_api.cpp.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_cxx_api.cpp.s
+.PHONY : src/nvs_cxx_api.cpp.s
+
+src/nvs_handle_locked.obj: src/nvs_handle_locked.cpp.obj
+
+.PHONY : src/nvs_handle_locked.obj
+
+# target to build an object file
+src/nvs_handle_locked.cpp.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_handle_locked.cpp.obj
+.PHONY : src/nvs_handle_locked.cpp.obj
+
+src/nvs_handle_locked.i: src/nvs_handle_locked.cpp.i
+
+.PHONY : src/nvs_handle_locked.i
+
+# target to preprocess a source file
+src/nvs_handle_locked.cpp.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_handle_locked.cpp.i
+.PHONY : src/nvs_handle_locked.cpp.i
+
+src/nvs_handle_locked.s: src/nvs_handle_locked.cpp.s
+
+.PHONY : src/nvs_handle_locked.s
+
+# target to generate assembly for a file
+src/nvs_handle_locked.cpp.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_handle_locked.cpp.s
+.PHONY : src/nvs_handle_locked.cpp.s
+
+src/nvs_handle_simple.obj: src/nvs_handle_simple.cpp.obj
+
+.PHONY : src/nvs_handle_simple.obj
+
+# target to build an object file
+src/nvs_handle_simple.cpp.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_handle_simple.cpp.obj
+.PHONY : src/nvs_handle_simple.cpp.obj
+
+src/nvs_handle_simple.i: src/nvs_handle_simple.cpp.i
+
+.PHONY : src/nvs_handle_simple.i
+
+# target to preprocess a source file
+src/nvs_handle_simple.cpp.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_handle_simple.cpp.i
+.PHONY : src/nvs_handle_simple.cpp.i
+
+src/nvs_handle_simple.s: src/nvs_handle_simple.cpp.s
+
+.PHONY : src/nvs_handle_simple.s
+
+# target to generate assembly for a file
+src/nvs_handle_simple.cpp.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_handle_simple.cpp.s
+.PHONY : src/nvs_handle_simple.cpp.s
 
 src/nvs_item_hash_list.obj: src/nvs_item_hash_list.cpp.obj
 
@@ -246,7 +285,7 @@ src/nvs_item_hash_list.obj: src/nvs_item_hash_list.cpp.obj
 
 # target to build an object file
 src/nvs_item_hash_list.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj
 .PHONY : src/nvs_item_hash_list.cpp.obj
 
 src/nvs_item_hash_list.i: src/nvs_item_hash_list.cpp.i
@@ -255,7 +294,7 @@ src/nvs_item_hash_list.i: src/nvs_item_hash_list.cpp.i
 
 # target to preprocess a source file
 src/nvs_item_hash_list.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_item_hash_list.cpp.i
 .PHONY : src/nvs_item_hash_list.cpp.i
 
 src/nvs_item_hash_list.s: src/nvs_item_hash_list.cpp.s
@@ -264,35 +303,8 @@ src/nvs_item_hash_list.s: src/nvs_item_hash_list.cpp.s
 
 # target to generate assembly for a file
 src/nvs_item_hash_list.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_item_hash_list.cpp.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_item_hash_list.cpp.s
 .PHONY : src/nvs_item_hash_list.cpp.s
-
-src/nvs_ops.obj: src/nvs_ops.cpp.obj
-
-.PHONY : src/nvs_ops.obj
-
-# target to build an object file
-src/nvs_ops.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.obj
-.PHONY : src/nvs_ops.cpp.obj
-
-src/nvs_ops.i: src/nvs_ops.cpp.i
-
-.PHONY : src/nvs_ops.i
-
-# target to preprocess a source file
-src/nvs_ops.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.i
-.PHONY : src/nvs_ops.cpp.i
-
-src/nvs_ops.s: src/nvs_ops.cpp.s
-
-.PHONY : src/nvs_ops.s
-
-# target to generate assembly for a file
-src/nvs_ops.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_ops.cpp.s
-.PHONY : src/nvs_ops.cpp.s
 
 src/nvs_page.obj: src/nvs_page.cpp.obj
 
@@ -300,7 +312,7 @@ src/nvs_page.obj: src/nvs_page.cpp.obj
 
 # target to build an object file
 src/nvs_page.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_page.cpp.obj
 .PHONY : src/nvs_page.cpp.obj
 
 src/nvs_page.i: src/nvs_page.cpp.i
@@ -309,7 +321,7 @@ src/nvs_page.i: src/nvs_page.cpp.i
 
 # target to preprocess a source file
 src/nvs_page.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_page.cpp.i
 .PHONY : src/nvs_page.cpp.i
 
 src/nvs_page.s: src/nvs_page.cpp.s
@@ -318,7 +330,7 @@ src/nvs_page.s: src/nvs_page.cpp.s
 
 # target to generate assembly for a file
 src/nvs_page.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_page.cpp.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_page.cpp.s
 .PHONY : src/nvs_page.cpp.s
 
 src/nvs_pagemanager.obj: src/nvs_pagemanager.cpp.obj
@@ -327,7 +339,7 @@ src/nvs_pagemanager.obj: src/nvs_pagemanager.cpp.obj
 
 # target to build an object file
 src/nvs_pagemanager.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_pagemanager.cpp.obj
 .PHONY : src/nvs_pagemanager.cpp.obj
 
 src/nvs_pagemanager.i: src/nvs_pagemanager.cpp.i
@@ -336,7 +348,7 @@ src/nvs_pagemanager.i: src/nvs_pagemanager.cpp.i
 
 # target to preprocess a source file
 src/nvs_pagemanager.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_pagemanager.cpp.i
 .PHONY : src/nvs_pagemanager.cpp.i
 
 src/nvs_pagemanager.s: src/nvs_pagemanager.cpp.s
@@ -345,8 +357,89 @@ src/nvs_pagemanager.s: src/nvs_pagemanager.cpp.s
 
 # target to generate assembly for a file
 src/nvs_pagemanager.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_pagemanager.cpp.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_pagemanager.cpp.s
 .PHONY : src/nvs_pagemanager.cpp.s
+
+src/nvs_partition.obj: src/nvs_partition.cpp.obj
+
+.PHONY : src/nvs_partition.obj
+
+# target to build an object file
+src/nvs_partition.cpp.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition.cpp.obj
+.PHONY : src/nvs_partition.cpp.obj
+
+src/nvs_partition.i: src/nvs_partition.cpp.i
+
+.PHONY : src/nvs_partition.i
+
+# target to preprocess a source file
+src/nvs_partition.cpp.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition.cpp.i
+.PHONY : src/nvs_partition.cpp.i
+
+src/nvs_partition.s: src/nvs_partition.cpp.s
+
+.PHONY : src/nvs_partition.s
+
+# target to generate assembly for a file
+src/nvs_partition.cpp.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition.cpp.s
+.PHONY : src/nvs_partition.cpp.s
+
+src/nvs_partition_lookup.obj: src/nvs_partition_lookup.cpp.obj
+
+.PHONY : src/nvs_partition_lookup.obj
+
+# target to build an object file
+src/nvs_partition_lookup.cpp.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition_lookup.cpp.obj
+.PHONY : src/nvs_partition_lookup.cpp.obj
+
+src/nvs_partition_lookup.i: src/nvs_partition_lookup.cpp.i
+
+.PHONY : src/nvs_partition_lookup.i
+
+# target to preprocess a source file
+src/nvs_partition_lookup.cpp.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition_lookup.cpp.i
+.PHONY : src/nvs_partition_lookup.cpp.i
+
+src/nvs_partition_lookup.s: src/nvs_partition_lookup.cpp.s
+
+.PHONY : src/nvs_partition_lookup.s
+
+# target to generate assembly for a file
+src/nvs_partition_lookup.cpp.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition_lookup.cpp.s
+.PHONY : src/nvs_partition_lookup.cpp.s
+
+src/nvs_partition_manager.obj: src/nvs_partition_manager.cpp.obj
+
+.PHONY : src/nvs_partition_manager.obj
+
+# target to build an object file
+src/nvs_partition_manager.cpp.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition_manager.cpp.obj
+.PHONY : src/nvs_partition_manager.cpp.obj
+
+src/nvs_partition_manager.i: src/nvs_partition_manager.cpp.i
+
+.PHONY : src/nvs_partition_manager.i
+
+# target to preprocess a source file
+src/nvs_partition_manager.cpp.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition_manager.cpp.i
+.PHONY : src/nvs_partition_manager.cpp.i
+
+src/nvs_partition_manager.s: src/nvs_partition_manager.cpp.s
+
+.PHONY : src/nvs_partition_manager.s
+
+# target to generate assembly for a file
+src/nvs_partition_manager.cpp.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition_manager.cpp.s
+.PHONY : src/nvs_partition_manager.cpp.s
 
 src/nvs_storage.obj: src/nvs_storage.cpp.obj
 
@@ -354,7 +447,7 @@ src/nvs_storage.obj: src/nvs_storage.cpp.obj
 
 # target to build an object file
 src/nvs_storage.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_storage.cpp.obj
 .PHONY : src/nvs_storage.cpp.obj
 
 src/nvs_storage.i: src/nvs_storage.cpp.i
@@ -363,7 +456,7 @@ src/nvs_storage.i: src/nvs_storage.cpp.i
 
 # target to preprocess a source file
 src/nvs_storage.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_storage.cpp.i
 .PHONY : src/nvs_storage.cpp.i
 
 src/nvs_storage.s: src/nvs_storage.cpp.s
@@ -372,7 +465,7 @@ src/nvs_storage.s: src/nvs_storage.cpp.s
 
 # target to generate assembly for a file
 src/nvs_storage.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_storage.cpp.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_storage.cpp.s
 .PHONY : src/nvs_storage.cpp.s
 
 src/nvs_types.obj: src/nvs_types.cpp.obj
@@ -381,7 +474,7 @@ src/nvs_types.obj: src/nvs_types.cpp.obj
 
 # target to build an object file
 src/nvs_types.cpp.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_types.cpp.obj
 .PHONY : src/nvs_types.cpp.obj
 
 src/nvs_types.i: src/nvs_types.cpp.i
@@ -390,7 +483,7 @@ src/nvs_types.i: src/nvs_types.cpp.i
 
 # target to preprocess a source file
 src/nvs_types.cpp.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_types.cpp.i
 .PHONY : src/nvs_types.cpp.i
 
 src/nvs_types.s: src/nvs_types.cpp.s
@@ -399,7 +492,7 @@ src/nvs_types.s: src/nvs_types.cpp.s
 
 # target to generate assembly for a file
 src/nvs_types.cpp.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/idf_component_nvs_flash.dir/src/nvs_types.cpp.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/build.make esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_types.cpp.s
 .PHONY : src/nvs_types.cpp.s
 
 # Help Target
@@ -414,26 +507,37 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_nvs_flash_sections_info"
-	@echo "... idf_component_nvs_flash"
+	@echo "... __idf_nvs_flash"
 	@echo "... src/nvs_api.obj"
 	@echo "... src/nvs_api.i"
 	@echo "... src/nvs_api.s"
-	@echo "... src/nvs_encr.obj"
-	@echo "... src/nvs_encr.i"
-	@echo "... src/nvs_encr.s"
+	@echo "... src/nvs_cxx_api.obj"
+	@echo "... src/nvs_cxx_api.i"
+	@echo "... src/nvs_cxx_api.s"
+	@echo "... src/nvs_handle_locked.obj"
+	@echo "... src/nvs_handle_locked.i"
+	@echo "... src/nvs_handle_locked.s"
+	@echo "... src/nvs_handle_simple.obj"
+	@echo "... src/nvs_handle_simple.i"
+	@echo "... src/nvs_handle_simple.s"
 	@echo "... src/nvs_item_hash_list.obj"
 	@echo "... src/nvs_item_hash_list.i"
 	@echo "... src/nvs_item_hash_list.s"
-	@echo "... src/nvs_ops.obj"
-	@echo "... src/nvs_ops.i"
-	@echo "... src/nvs_ops.s"
 	@echo "... src/nvs_page.obj"
 	@echo "... src/nvs_page.i"
 	@echo "... src/nvs_page.s"
 	@echo "... src/nvs_pagemanager.obj"
 	@echo "... src/nvs_pagemanager.i"
 	@echo "... src/nvs_pagemanager.s"
+	@echo "... src/nvs_partition.obj"
+	@echo "... src/nvs_partition.i"
+	@echo "... src/nvs_partition.s"
+	@echo "... src/nvs_partition_lookup.obj"
+	@echo "... src/nvs_partition_lookup.i"
+	@echo "... src/nvs_partition_lookup.s"
+	@echo "... src/nvs_partition_manager.obj"
+	@echo "... src/nvs_partition_manager.i"
+	@echo "... src/nvs_partition_manager.s"
 	@echo "... src/nvs_storage.obj"
 	@echo "... src/nvs_storage.i"
 	@echo "... src/nvs_storage.s"

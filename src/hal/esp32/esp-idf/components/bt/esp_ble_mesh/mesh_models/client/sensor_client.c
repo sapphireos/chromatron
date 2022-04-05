@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <string.h>
 #include <errno.h>
@@ -81,7 +73,7 @@ static void timeout_handler(struct k_work *work)
     struct k_delayed_work *timer = NULL;
     bt_mesh_client_node_t *node = NULL;
     struct bt_mesh_msg_ctx ctx = {0};
-    u32_t opcode = 0U;
+    uint32_t opcode = 0U;
 
     BT_WARN("Receive sensor status message timeout");
 
@@ -110,8 +102,8 @@ static void sensor_status(struct bt_mesh_model *model,
                           struct net_buf_simple *buf)
 {
     bt_mesh_client_node_t *node = NULL;
-    u8_t *val = NULL;
-    u8_t evt = 0xFF;
+    uint8_t *val = NULL;
+    uint8_t evt = 0xFF;
     size_t len = 0U;
 
     BT_DBG("len %d, bytes %s", buf->len, bt_hex(buf->data, buf->len));
@@ -131,7 +123,7 @@ static void sensor_status(struct bt_mesh_model *model,
             return;
         }
         net_buf_simple_add_mem(status->descriptor, buf->data, buf->len);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_sensor_descriptor_status);
         break;
     }
@@ -150,7 +142,7 @@ static void sensor_status(struct bt_mesh_model *model,
             return;
         }
         net_buf_simple_add_mem(status->sensor_cadence_value, buf->data, buf->len);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_sensor_cadence_status);
         break;
     }
@@ -169,7 +161,7 @@ static void sensor_status(struct bt_mesh_model *model,
             return;
         }
         net_buf_simple_add_mem(status->sensor_setting_property_ids, buf->data, buf->len);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_sensor_settings_status);
         break;
     }
@@ -193,7 +185,7 @@ static void sensor_status(struct bt_mesh_model *model,
             }
             net_buf_simple_add_mem(status->sensor_setting_raw, buf->data, buf->len);
         }
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_sensor_setting_status);
         break;
     }
@@ -211,7 +203,7 @@ static void sensor_status(struct bt_mesh_model *model,
             return;
         }
         net_buf_simple_add_mem(status->marshalled_sensor_data, buf->data, buf->len);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_sensor_status);
         break;
     }
@@ -230,7 +222,7 @@ static void sensor_status(struct bt_mesh_model *model,
             return;
         }
         net_buf_simple_add_mem(status->sensor_column_value, buf->data, buf->len);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_sensor_column_status);
         break;
     }
@@ -249,7 +241,7 @@ static void sensor_status(struct bt_mesh_model *model,
             return;
         }
         net_buf_simple_add_mem(status->sensor_series_value, buf->data, buf->len);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_sensor_series_status);
         break;
     }
@@ -286,7 +278,7 @@ static void sensor_status(struct bt_mesh_model *model,
         }
 
         if (!k_delayed_work_free(&node->timer)) {
-            u32_t opcode = node->opcode;
+            uint32_t opcode = node->opcode;
             bt_mesh_client_free_node(node);
             bt_mesh_sensor_client_cb_evt_to_btc(opcode, evt, model, ctx, val, len);
         }
@@ -358,7 +350,7 @@ const struct bt_mesh_model_op bt_mesh_sensor_cli_op[] = {
 };
 
 static int sensor_act_state(bt_mesh_client_common_param_t *common,
-                            void *value, u16_t value_len, bool need_ack)
+                            void *value, uint16_t value_len, bool need_ack)
 {
     struct net_buf_simple *msg = NULL;
     int err = 0;
@@ -462,7 +454,7 @@ end:
 int bt_mesh_sensor_client_get_state(bt_mesh_client_common_param_t *common, void *get)
 {
     bt_mesh_sensor_client_t *client = NULL;
-    u16_t length = 0U;
+    uint16_t length = 0U;
 
     if (!common || !common->model || !get) {
         BT_ERR("%s, Invalid parameter", __func__);
@@ -527,7 +519,7 @@ int bt_mesh_sensor_client_get_state(bt_mesh_client_common_param_t *common, void 
 int bt_mesh_sensor_client_set_state(bt_mesh_client_common_param_t *common, void *set)
 {
     bt_mesh_sensor_client_t *client = NULL;
-    u16_t length = 0U;
+    uint16_t length = 0U;
     bool need_ack = false;
 
     if (!common || !common->model || !set) {

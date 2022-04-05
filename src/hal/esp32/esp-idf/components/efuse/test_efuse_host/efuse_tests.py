@@ -1,12 +1,15 @@
 #!/usr/bin/env python
-from __future__ import print_function, division
-import unittest
+# SPDX-FileCopyrightText: 2021 Espressif Systems (Shanghai) CO LTD
+# SPDX-License-Identifier: Apache-2.0
+from __future__ import division, print_function
+
 import sys
+import unittest
 
 try:
     import efuse_table_gen
 except ImportError:
-    sys.path.append("..")
+    sys.path.append('..')
     import efuse_table_gen
 
 
@@ -117,7 +120,7 @@ name2,                   EFUSE_BLK2,                       ,                    
 ,                        EFUSE_BLK2,                       ,                     4,
 name1,                   EFUSE_BLK3,                       ,                     5,
 """
-        with self.assertRaisesRegex(efuse_table_gen.InputError, "Field names must be unique"):
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'Field names must be unique'):
             efuse_table_gen.FuseTable.from_csv(csv)
 
     def test_seq_bit_start5_fill(self):
@@ -154,7 +157,7 @@ name1,                   EFUSE_BLK3,                     1,                     
 name2,                   EFUSE_BLK3,                     5,                     4,              Use for test name 2
             """
         t = efuse_table_gen.FuseTable.from_csv(csv)
-        with self.assertRaisesRegex(efuse_table_gen.InputError, "overlap"):
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'intersected with'):
             t.verify()
 
     def test_empty_field_name_fail(self):
@@ -163,7 +166,7 @@ name2,                   EFUSE_BLK3,                     5,                     
 ,                        EFUSE_BLK3,                       ,                     5,
 name2,                   EFUSE_BLK2,                       ,                     4,
 """
-        with self.assertRaisesRegex(efuse_table_gen.InputError, "missing field name"):
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'missing field name'):
             efuse_table_gen.FuseTable.from_csv(csv)
 
     def test_unique_field_name_fail(self):
@@ -172,7 +175,7 @@ name2,                   EFUSE_BLK2,                       ,                    
 name1,                   EFUSE_BLK3,                     0,                     5,              Use for test name 1
 name1,                   EFUSE_BLK3,                     5,                     4,              Use for test name 2
             """
-        with self.assertRaisesRegex(efuse_table_gen.InputError, "Field names must be unique"):
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'Field names must be unique'):
             efuse_table_gen.FuseTable.from_csv(csv)
 
     def test_bit_count_empty_fail(self):
@@ -181,7 +184,7 @@ name1,                   EFUSE_BLK3,                     5,                     
 name1,                   EFUSE_BLK3,                     0,                     ,              Use for test name 1
 name2,                   EFUSE_BLK3,                     5,                     4,              Use for test name 2
             """
-        with self.assertRaisesRegex(efuse_table_gen.InputError, "empty"):
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'empty'):
             efuse_table_gen.FuseTable.from_csv(csv)
 
     def test_bit_start_num_fail(self):
@@ -190,7 +193,7 @@ name2,                   EFUSE_BLK3,                     5,                     
 name1,                   EFUSE_BLK3,                     k,                     5,              Use for test name 1
 name2,                   EFUSE_BLK3,                     5,                     4,              Use for test name 2
             """
-        with self.assertRaisesRegex(efuse_table_gen.InputError, "Invalid field value"):
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'Invalid field value'):
             efuse_table_gen.FuseTable.from_csv(csv)
 
     def test_join_entry(self):
@@ -236,7 +239,7 @@ name4,                   EFUSE_BLK2,                     30,                    
 name1,                   EFUSE_BLK5,                     0,                     5,              Use for test name 1
 name2,                   EFUSE_BLK3,                     5,                     4,              Use for test name 2
             """
-        with self.assertRaisesRegex(efuse_table_gen.InputError, "'efuse_block' should consist from EFUSE_BLK0..EFUSE_BLK3"):
+        with self.assertRaisesRegex(efuse_table_gen.InputError, "'efuse_block' should be one of EFUSE_BLK0..EFUSE_BLK3"):
             efuse_table_gen.FuseTable.from_csv(csv)
 
     def test_field_size_is_ok(self):
@@ -257,7 +260,7 @@ name2,                   EFUSE_BLK3,                     191,                   
             """
         efuse_table_gen.max_blk_len = 192
         t = efuse_table_gen.FuseTable.from_csv(csv)
-        with self.assertRaisesRegex(efuse_table_gen.InputError, "The field is outside the boundaries"):
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'The field is outside the boundaries'):
             t.verify()
 
     def test_field_blk1_size_is_more(self):
@@ -267,7 +270,7 @@ name1,                   EFUSE_BLK0,                     0,                     
 name2,                   EFUSE_BLK1,                     1,                     256,            Use for test name 2
             """
         t = efuse_table_gen.FuseTable.from_csv(csv)
-        with self.assertRaisesRegex(efuse_table_gen.InputError, "The field is outside the boundaries"):
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'The field is outside the boundaries'):
             t.verify()
 
 
@@ -304,16 +307,6 @@ name2_1,                 EFUSE_BLK2,                     5,                     
         self.assertEqual(t[3].bit_start, 5)
         self.assertEqual(t[3].bit_count, 4)
 
-    def test_custom_use_only_BLK3(self):
-        csv = """
-# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
-name1,                   EFUSE_BLK3,                     0,                     5,              Use for test name 1
-name2,                   EFUSE_BLK2,                     5,                     4,              Use for test name 2
-            """
-        t = efuse_table_gen.FuseTable.from_csv(csv)
-        with self.assertRaisesRegex(efuse_table_gen.ValidationError, "custom_table should use only EFUSE_BLK3"):
-            t.verify("custom_table")
-
     def test_common_and_custom_table_use_the_same_bits(self):
         csv_common = """
 # field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
@@ -321,7 +314,7 @@ name1,                   EFUSE_BLK3,                     0,                     
 name2,                   EFUSE_BLK2,                     5,                     4,              Use for test name 2
                      """
         common_table = efuse_table_gen.FuseTable.from_csv(csv_common)
-        common_table.verify("common_table")
+        common_table.verify('common_table')
         two_tables = common_table
 
         csv_custom = """
@@ -330,12 +323,204 @@ name3,                   EFUSE_BLK3,                     20,                    
 name4,                   EFUSE_BLK3,                      4,                    1,              Use for test name 2
             """
         custom_table = efuse_table_gen.FuseTable.from_csv(csv_custom)
-        custom_table.verify("custom_table")
+        custom_table.verify('custom_table')
 
         two_tables += custom_table
-        with self.assertRaisesRegex(efuse_table_gen.InputError, "overlaps"):
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'intersected with'):
             two_tables.verify()
 
+    def test_common_and_custom_table_use_nested_fields(self):
+        csv_common = """
+# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
+namet1,                   EFUSE_BLK3,                     0,                     5,           comment
+namet2,                   EFUSE_BLK1,                     8,                     4,           comment
+                     """
+        common_table = efuse_table_gen.FuseTable.from_csv(csv_common)
+        common_table.verify('common_table')
+        two_tables = common_table
 
-if __name__ == "__main__":
+        csv_custom = """
+# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
+namet1.D1,                EFUSE_BLK3,                     0,                    2,            comment
+namet1.D1.D11,            EFUSE_BLK3,                     0,                    1,            comment
+namet1.D1.D12,            EFUSE_BLK3,                     1,                    1,            comment
+namet1.D2,                EFUSE_BLK3,                     2,                    3,            comment
+namet2.F1,                EFUSE_BLK1,                     9,                    1,            comment
+            """
+        custom_table = efuse_table_gen.FuseTable.from_csv(csv_custom)
+        custom_table.verify('custom_table')
+
+        two_tables += custom_table
+        two_tables.verify()
+
+    def test_common_and_custom_table_use_nested_fields2(self):
+        csv_common = """
+# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
+namet3,                   EFUSE_BLK3,                     0,                     5,           comment
+namet2,                   EFUSE_BLK1,                     8,                     4,           comment
+                     """
+        common_table = efuse_table_gen.FuseTable.from_csv(csv_common)
+        common_table.verify('common_table')
+        two_tables = common_table
+
+        csv_custom = """
+# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
+namet1.D1,                EFUSE_BLK3,                     0,                    2,            comment
+namet1.D1.D11,            EFUSE_BLK3,                     0,                    1,            comment
+namet1.D1.D12,            EFUSE_BLK3,                     1,                    1,            comment
+namet1.D2,                EFUSE_BLK3,                     2,                    3,            comment
+namet2.F1,                EFUSE_BLK1,                     9,                    1,            comment
+            """
+        custom_table = efuse_table_gen.FuseTable.from_csv(csv_custom)
+        custom_table.verify('custom_table')
+
+        two_tables += custom_table
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'namet1 is not found'):
+            two_tables.verify()
+
+    def test_nested_fields1(self):
+        csv = """
+# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
+name1,                   EFUSE_BLK3,                     0,                     5,           comment
+name1.D1,                EFUSE_BLK3,                     0,                     4,           comment
+name1.D1.D2,             EFUSE_BLK3,                     0,                     3,           comment
+name1.D1.D2.D3,          EFUSE_BLK3,                     0,                     2,           comment
+name1.D1.D2.D3.D4,       EFUSE_BLK3,                     0,                     1,           comment
+                     """
+        t = efuse_table_gen.FuseTable.from_csv(csv)
+        t.verify()
+
+        for i in range(0, 5):
+            self.assertEqual(t[i].bit_start, 0)
+            self.assertEqual(t[i].bit_count, 5 - i)
+
+    def test_nested_fields2(self):
+        csv = """
+# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
+name1,                   EFUSE_BLK3,                     0,                     5,           comment
+name1.D1,                EFUSE_BLK3,                     1,                     4,           comment
+name1.D1.D2,             EFUSE_BLK3,                     2,                     3,           comment
+name1.D1.D2.D3,          EFUSE_BLK3,                     3,                     2,           comment
+name1.D1.D2.D3.D4,       EFUSE_BLK3,                     4,                     1,           comment
+                     """
+        t = efuse_table_gen.FuseTable.from_csv(csv)
+        t.verify()
+
+        for i in range(0, 5):
+            self.assertEqual(t[i].bit_start, i)
+            self.assertEqual(t[i].bit_count, 5 - i)
+
+    def test_nested_fields_fail1(self):
+        csv = """
+# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
+name1,                   EFUSE_BLK3,                     0,                     5,           comment
+name1.D1,                EFUSE_BLK3,                     1,                     4,           comment
+name1.D1.D2,             EFUSE_BLK3,                     0,                     1,           comment
+                     """
+        t = efuse_table_gen.FuseTable.from_csv(csv)
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'out of range'):
+            t.verify()
+
+    def test_nested_fields_fail2(self):
+        csv = """
+# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
+name1,                    EFUSE_BLK3,                     0,                     5,           comment
+namet2,                   EFUSE_BLK2,                     8,                     4,           comment
+namet2.F1,                EFUSE_BLK2,                     5,                     4,            comment
+                     """
+        t = efuse_table_gen.FuseTable.from_csv(csv)
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'intersected with'):
+            t.verify()
+
+    def test_nested_fields_fail3(self):
+        csv = """
+# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
+name1,                    EFUSE_BLK3,                     10,                    5,          comment
+name11,                   EFUSE_BLK3,                      5,                    1,          comment
+namet2.F1,                EFUSE_BLK2,                     22,                    1,          comment
+                     """
+        t = efuse_table_gen.FuseTable.from_csv(csv)
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'namet2 is not found'):
+            t.verify()
+
+    def test_nested_fields_fail4(self):
+        csv = """
+# field_name,  efuse_block(EFUSE_BLK0..EFUSE_BLK3),  bit_start(0..255),    bit_count,        comment
+name1,                   EFUSE_BLK3,                     10,                    5,          comment
+name2,                   EFUSE_BLK3,                      5,                    1,          comment
+name2.F1,                EFUSE_BLK2,                     22,                    1,          comment
+                     """
+        t = efuse_table_gen.FuseTable.from_csv(csv)
+        with self.assertRaisesRegex(efuse_table_gen.InputError, 'name2 is not found'):
+            t.verify()
+
+    def test_two_fields_with_lists(self):
+        csv = """
+MAC_FACTORY,                          EFUSE_BLK1,   40,    8,     Factory MAC addr [0]
+,                                     EFUSE_BLK1,   32,    8,     Factory MAC addr [1]
+,                                     EFUSE_BLK1,   24,    8,     Factory MAC addr [2]
+,                                     EFUSE_BLK1,   16,    8,     Factory MAC addr [3]
+,                                     EFUSE_BLK1,    8,    8,     Factory MAC addr [4]
+,                                     EFUSE_BLK1,    0,    8,     Factory MAC addr [5]
+MAC_EXT,                              EFUSE_BLK1,  123,    8,     Extend MAC addr [0]
+,                                     EFUSE_BLK1,  131,    8,     Extend MAC addr [1]
+                """
+        t = efuse_table_gen.FuseTable.from_csv(csv)
+        t.verify()
+
+        self.assertEqual(t[0].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[0].group, str(0))
+        self.assertEqual(t[1].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[1].group, str(1))
+        self.assertEqual(t[2].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[2].group, str(2))
+        self.assertEqual(t[3].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[3].group, str(3))
+        self.assertEqual(t[4].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[4].group, str(4))
+        self.assertEqual(t[5].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[5].group, str(5))
+
+        self.assertEqual(t[6].field_name, 'MAC_EXT')
+        self.assertEqual(t[6].group, str(0))
+        self.assertEqual(t[7].field_name, 'MAC_EXT')
+        self.assertEqual(t[7].group, str(1))
+
+    def test_two_fields_with_lists_and_field_between(self):
+        csv = """
+MAC_FACTORY,                          EFUSE_BLK1,   40,    8,     Factory MAC addr [0]
+,                                     EFUSE_BLK1,   32,    8,     Factory MAC addr [1]
+,                                     EFUSE_BLK1,   24,    8,     Factory MAC addr [2]
+,                                     EFUSE_BLK1,   16,    8,     Factory MAC addr [3]
+,                                     EFUSE_BLK1,    8,    8,     Factory MAC addr [4]
+,                                     EFUSE_BLK1,    0,    8,     Factory MAC addr [5]
+name2,                                EFUSE_BLK3,    5,    1,     comment
+MAC_EXT,                              EFUSE_BLK1,  123,    8,     Extend MAC addr [0]
+,                                     EFUSE_BLK1,  131,    8,     Extend MAC addr [1]
+                """
+        t = efuse_table_gen.FuseTable.from_csv(csv)
+        t.verify()
+
+        self.assertEqual(t[0].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[0].group, str(0))
+        self.assertEqual(t[1].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[1].group, str(1))
+        self.assertEqual(t[2].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[2].group, str(2))
+        self.assertEqual(t[3].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[3].group, str(3))
+        self.assertEqual(t[4].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[4].group, str(4))
+        self.assertEqual(t[5].field_name, 'MAC_FACTORY')
+        self.assertEqual(t[5].group, str(5))
+
+        self.assertEqual(t[6].field_name, 'name2')
+
+        self.assertEqual(t[7].field_name, 'MAC_EXT')
+        self.assertEqual(t[7].group, str(0))
+        self.assertEqual(t[8].field_name, 'MAC_EXT')
+        self.assertEqual(t[8].group, str(1))
+
+
+if __name__ == '__main__':
     unittest.main()

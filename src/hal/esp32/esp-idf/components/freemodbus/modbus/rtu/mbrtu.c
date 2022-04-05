@@ -1,4 +1,4 @@
-/* 
+/*
  * FreeModbus Libary: A portable Modbus implementation for Modbus ASCII/RTU.
  * Copyright (c) 2006 Christian Walter <wolti@sil.at>
  * All rights reserved.
@@ -43,12 +43,7 @@
 #include "mbcrc.h"
 #include "mbport.h"
 
-/* ----------------------- Defines ------------------------------------------*/
-#define MB_SER_PDU_SIZE_MIN     4       /*!< Minimum size of a Modbus RTU frame. */
-#define MB_SER_PDU_SIZE_MAX     256     /*!< Maximum size of a Modbus RTU frame. */
-#define MB_SER_PDU_SIZE_CRC     2       /*!< Size of CRC field in PDU. */
-#define MB_SER_PDU_ADDR_OFF     0       /*!< Offset of slave address in Ser-PDU. */
-#define MB_SER_PDU_PDU_OFF      1       /*!< Offset of Modbus-PDU in Ser-PDU. */
+#if MB_SLAVE_RTU_ENABLED > 0
 
 /* ----------------------- Type definitions ---------------------------------*/
 typedef enum
@@ -65,16 +60,18 @@ typedef enum
     STATE_TX_XMIT               /*!< Transmitter is in transfer state. */
 } eMBSndState;
 
+/* ----------------------- Shared variables ---------------------------------*/
+extern volatile UCHAR ucMbSlaveBuf[];
+
 /* ----------------------- Static variables ---------------------------------*/
 static volatile eMBSndState eSndState;
 static volatile eMBRcvState eRcvState;
-
-volatile UCHAR ucRTUBuf[MB_SER_PDU_SIZE_MAX];
 
 static volatile UCHAR *pucSndBufferCur;
 static volatile USHORT usSndBufferCount;
 
 static volatile USHORT usRcvBufferPos;
+static volatile UCHAR *ucRTUBuf = ucMbSlaveBuf;
 
 /* ----------------------- Start implementation -----------------------------*/
 eMBErrorCode
@@ -147,14 +144,9 @@ eMBRTUStop( void )
     EXIT_CRITICAL_SECTION(  );
 }
 
-// The lines below are required to suppress GCC warnings about unused but set variable 'xFrameReceived'
-// This warning is treated as error during compilation.
-#pragma GCC diagnostic push // required for GCC
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 eMBErrorCode
 eMBRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
 {
-    BOOL            xFrameReceived = FALSE;
     eMBErrorCode    eStatus = MB_ENOERR;
 
     ENTER_CRITICAL_SECTION(  );
@@ -176,7 +168,6 @@ eMBRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
 
         /* Return the start of the Modbus PDU to the caller. */
         *pucFrame = ( UCHAR * ) & ucRTUBuf[MB_SER_PDU_PDU_OFF];
-        xFrameReceived = TRUE;
     }
     else
     {
@@ -186,7 +177,6 @@ eMBRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
     EXIT_CRITICAL_SECTION(  );
     return eStatus;
 }
-#pragma GCC diagnostic pop   // require GCC
 
 eMBErrorCode
 eMBRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
@@ -230,13 +220,13 @@ eMBRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
 BOOL
 xMBRTUReceiveFSM( void )
 {
-    BOOL            xTaskNeedSwitch = FALSE;
+    BOOL            xStatus = FALSE;
     UCHAR           ucByte;
 
     assert( eSndState == STATE_TX_IDLE );
 
     /* Always read the character. */
-    ( void )xMBPortSerialGetByte( ( CHAR * ) & ucByte );
+    xStatus = xMBPortSerialGetByte( ( CHAR * ) & ucByte );
 
     switch ( eRcvState )
     {
@@ -256,7 +246,7 @@ xMBRTUReceiveFSM( void )
 
         /* In the idle state we wait for a new character. If a character
          * is received the t1.5 and t3.5 timers are started and the
-         * receiver is in the state STATE_RX_RECEIVCE.
+         * receiver is in the state STATE_RX_RCV.
          */
     case STATE_RX_IDLE:
         usRcvBufferPos = 0;
@@ -275,7 +265,9 @@ xMBRTUReceiveFSM( void )
     case STATE_RX_RCV:
         if( usRcvBufferPos < MB_SER_PDU_SIZE_MAX )
         {
-            ucRTUBuf[usRcvBufferPos++] = ucByte;
+            if ( xStatus ) {
+                ucRTUBuf[usRcvBufferPos++] = ucByte;
+            }
         }
         else
         {
@@ -284,13 +276,14 @@ xMBRTUReceiveFSM( void )
         vMBPortTimersEnable(  );
         break;
     }
-    return xTaskNeedSwitch;
+
+    return xStatus;
 }
 
 BOOL
 xMBRTUTransmitFSM( void )
 {
-    BOOL xNeedPoll = FALSE;
+    BOOL xNeedPoll = TRUE;
 
     assert( eRcvState == STATE_RX_IDLE );
 
@@ -299,8 +292,6 @@ xMBRTUTransmitFSM( void )
         /* We should not get a transmitter event if the transmitter is in
          * idle state.  */
     case STATE_TX_IDLE:
-        /* enable receiver/disable transmitter. */
-        vMBPortSerialEnable( TRUE, FALSE );
         break;
 
     case STATE_TX_XMIT:
@@ -313,11 +304,10 @@ xMBRTUTransmitFSM( void )
         }
         else
         {
-            xNeedPoll = xMBPortEventPost( EV_FRAME_SENT );
-            /* Disable transmitter. This prevents another transmit buffer
-             * empty interrupt. */
-            vMBPortSerialEnable( TRUE, FALSE );
+            xMBPortEventPost( EV_FRAME_TRANSMIT );
+            xNeedPoll = FALSE;
             eSndState = STATE_TX_IDLE;
+            vMBPortTimersEnable(  );
         }
         break;
     }
@@ -325,10 +315,10 @@ xMBRTUTransmitFSM( void )
     return xNeedPoll;
 }
 
-BOOL
+BOOL MB_PORT_ISR_ATTR
 xMBRTUTimerT35Expired( void )
 {
-    BOOL            xNeedPoll = FALSE;
+    BOOL xNeedPoll = FALSE;
 
     switch ( eRcvState )
     {
@@ -349,8 +339,7 @@ xMBRTUTimerT35Expired( void )
 
         /* Function called in an illegal state. */
     default:
-        assert( ( eRcvState == STATE_RX_INIT ) ||
-                ( eRcvState == STATE_RX_RCV ) || ( eRcvState == STATE_RX_ERROR ) );
+        assert( ( eRcvState == STATE_RX_IDLE ) || ( eRcvState == STATE_RX_ERROR ) );
     }
 
     vMBPortTimersDisable(  );
@@ -358,3 +347,4 @@ xMBRTUTimerT35Expired( void )
 
     return xNeedPoll;
 }
+#endif

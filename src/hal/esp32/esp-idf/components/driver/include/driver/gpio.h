@@ -1,236 +1,57 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+/*
+ * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+#pragma once
 
-#ifndef _DRIVER_GPIO_H_
-#define _DRIVER_GPIO_H_
+#include "sdkconfig.h"
 #include "esp_err.h"
-#include <esp_types.h>
-#include "soc/gpio_reg.h"
-#include "soc/gpio_struct.h"
-#include "soc/rtc_io_reg.h"
-#include "soc/io_mux_reg.h"
-#include "soc/gpio_sig_map.h"
-#include "rom/gpio.h"
-#include "esp_attr.h"
+#include <stdbool.h>
 #include "esp_intr_alloc.h"
+#if !CONFIG_IDF_TARGET_LINUX
+#include <esp_types.h>
+#include <esp_bit_defs.h>
+#include "esp_attr.h"
+#include "soc/soc_caps.h"
 #include "soc/gpio_periph.h"
+#endif // !CONFIG_IDF_TARGET_LINUX
+#include "hal/gpio_types.h"
+
+// |================================= WARNING ====================================================== |
+// | Including ROM header file in a PUBLIC API file will be REMOVED in the next major release (5.x). |
+// | User should include "esp_rom_gpio.h" in their code if they have to use those ROM API.           |
+// |================================================================================================ |
+#if CONFIG_IDF_TARGET_ESP32
+#include "esp32/rom/gpio.h"
+#elif CONFIG_IDF_TARGET_ESP32S2
+#include "esp32s2/rom/gpio.h"
+#elif CONFIG_IDF_TARGET_ESP32S3
+#include "esp32s3/rom/gpio.h"
+#elif CONFIG_IDF_TARGET_ESP32C3
+#include "esp32c3/rom/gpio.h"
+#elif CONFIG_IDF_TARGET_ESP32S3
+#include "esp32s3/rom/gpio.h"
+#elif CONFIG_IDF_TARGET_ESP32H2
+#include "esp32h2/rom/gpio.h"
+#endif
+
+#ifdef CONFIG_LEGACY_INCLUDE_COMMON_HEADERS
+#include "soc/rtc_io_reg.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define GPIO_SEL_0              (BIT(0))                         /*!< Pin 0 selected */
-#define GPIO_SEL_1              (BIT(1))                         /*!< Pin 1 selected */
-#define GPIO_SEL_2              (BIT(2))                         /*!< Pin 2 selected
-                                                                      @note There are more macros
-                                                                      like that up to pin 39,
-                                                                      excluding pins 20, 24 and 28..31.
-                                                                      They are not shown here
-                                                                      to reduce redundant information. */
-/** @cond */
-#define GPIO_SEL_3              (BIT(3))                         /*!< Pin 3 selected */
-#define GPIO_SEL_4              (BIT(4))                         /*!< Pin 4 selected */
-#define GPIO_SEL_5              (BIT(5))                         /*!< Pin 5 selected */
-#define GPIO_SEL_6              (BIT(6))                         /*!< Pin 6 selected */
-#define GPIO_SEL_7              (BIT(7))                         /*!< Pin 7 selected */
-#define GPIO_SEL_8              (BIT(8))                         /*!< Pin 8 selected */
-#define GPIO_SEL_9              (BIT(9))                         /*!< Pin 9 selected */
-#define GPIO_SEL_10             (BIT(10))                        /*!< Pin 10 selected */
-#define GPIO_SEL_11             (BIT(11))                        /*!< Pin 11 selected */
-#define GPIO_SEL_12             (BIT(12))                        /*!< Pin 12 selected */
-#define GPIO_SEL_13             (BIT(13))                        /*!< Pin 13 selected */
-#define GPIO_SEL_14             (BIT(14))                        /*!< Pin 14 selected */
-#define GPIO_SEL_15             (BIT(15))                        /*!< Pin 15 selected */
-#define GPIO_SEL_16             (BIT(16))                        /*!< Pin 16 selected */
-#define GPIO_SEL_17             (BIT(17))                        /*!< Pin 17 selected */
-#define GPIO_SEL_18             (BIT(18))                        /*!< Pin 18 selected */
-#define GPIO_SEL_19             (BIT(19))                        /*!< Pin 19 selected */
-
-#define GPIO_SEL_21             (BIT(21))                        /*!< Pin 21 selected */
-#define GPIO_SEL_22             (BIT(22))                        /*!< Pin 22 selected */
-#define GPIO_SEL_23             (BIT(23))                        /*!< Pin 23 selected */
-
-#define GPIO_SEL_25             (BIT(25))                        /*!< Pin 25 selected */
-#define GPIO_SEL_26             (BIT(26))                        /*!< Pin 26 selected */
-#define GPIO_SEL_27             (BIT(27))                        /*!< Pin 27 selected */
-
-#define GPIO_SEL_32             ((uint64_t)(((uint64_t)1)<<32))  /*!< Pin 32 selected */
-#define GPIO_SEL_33             ((uint64_t)(((uint64_t)1)<<33))  /*!< Pin 33 selected */
-#define GPIO_SEL_34             ((uint64_t)(((uint64_t)1)<<34))  /*!< Pin 34 selected */
-#define GPIO_SEL_35             ((uint64_t)(((uint64_t)1)<<35))  /*!< Pin 35 selected */
-#define GPIO_SEL_36             ((uint64_t)(((uint64_t)1)<<36))  /*!< Pin 36 selected */
-#define GPIO_SEL_37             ((uint64_t)(((uint64_t)1)<<37))  /*!< Pin 37 selected */
-#define GPIO_SEL_38             ((uint64_t)(((uint64_t)1)<<38))  /*!< Pin 38 selected */
-#define GPIO_SEL_39             ((uint64_t)(((uint64_t)1)<<39))  /*!< Pin 39 selected */
-
-#define GPIO_PIN_REG_0          IO_MUX_GPIO0_REG
-#define GPIO_PIN_REG_1          IO_MUX_GPIO1_REG
-#define GPIO_PIN_REG_2          IO_MUX_GPIO2_REG
-#define GPIO_PIN_REG_3          IO_MUX_GPIO3_REG
-#define GPIO_PIN_REG_4          IO_MUX_GPIO4_REG
-#define GPIO_PIN_REG_5          IO_MUX_GPIO5_REG
-#define GPIO_PIN_REG_6          IO_MUX_GPIO6_REG
-#define GPIO_PIN_REG_7          IO_MUX_GPIO7_REG
-#define GPIO_PIN_REG_8          IO_MUX_GPIO8_REG
-#define GPIO_PIN_REG_9          IO_MUX_GPIO9_REG
-#define GPIO_PIN_REG_10         IO_MUX_GPIO10_REG
-#define GPIO_PIN_REG_11         IO_MUX_GPIO11_REG
-#define GPIO_PIN_REG_12         IO_MUX_GPIO12_REG
-#define GPIO_PIN_REG_13         IO_MUX_GPIO13_REG
-#define GPIO_PIN_REG_14         IO_MUX_GPIO14_REG
-#define GPIO_PIN_REG_15         IO_MUX_GPIO15_REG
-#define GPIO_PIN_REG_16         IO_MUX_GPIO16_REG
-#define GPIO_PIN_REG_17         IO_MUX_GPIO17_REG
-#define GPIO_PIN_REG_18         IO_MUX_GPIO18_REG
-#define GPIO_PIN_REG_19         IO_MUX_GPIO19_REG
-#define GPIO_PIN_REG_20         IO_MUX_GPIO20_REG
-#define GPIO_PIN_REG_21         IO_MUX_GPIO21_REG
-#define GPIO_PIN_REG_22         IO_MUX_GPIO22_REG
-#define GPIO_PIN_REG_23         IO_MUX_GPIO23_REG
-#define GPIO_PIN_REG_25         IO_MUX_GPIO25_REG
-#define GPIO_PIN_REG_26         IO_MUX_GPIO26_REG
-#define GPIO_PIN_REG_27         IO_MUX_GPIO27_REG
-#define GPIO_PIN_REG_32         IO_MUX_GPIO32_REG
-#define GPIO_PIN_REG_33         IO_MUX_GPIO33_REG
-#define GPIO_PIN_REG_34         IO_MUX_GPIO34_REG
-#define GPIO_PIN_REG_35         IO_MUX_GPIO35_REG
-#define GPIO_PIN_REG_36         IO_MUX_GPIO36_REG
-#define GPIO_PIN_REG_37         IO_MUX_GPIO37_REG
-#define GPIO_PIN_REG_38         IO_MUX_GPIO38_REG
-#define GPIO_PIN_REG_39         IO_MUX_GPIO39_REG
-
-#define GPIO_APP_CPU_INTR_ENA      (BIT(0))
-#define GPIO_APP_CPU_NMI_INTR_ENA  (BIT(1))
-#define GPIO_PRO_CPU_INTR_ENA      (BIT(2))
-#define GPIO_PRO_CPU_NMI_INTR_ENA  (BIT(3))
-#define GPIO_SDIO_EXT_INTR_ENA     (BIT(4))
-
-#define GPIO_MODE_DEF_DISABLE         (0)
-#define GPIO_MODE_DEF_INPUT           (BIT0)
-#define GPIO_MODE_DEF_OUTPUT          (BIT1)
-#define GPIO_MODE_DEF_OD              (BIT2)
+#define GPIO_PIN_COUNT                      (SOC_GPIO_PIN_COUNT)
+/// Check whether it is a valid GPIO number
+#define GPIO_IS_VALID_GPIO(gpio_num)        (((1ULL << (gpio_num)) & SOC_GPIO_VALID_GPIO_MASK) != 0)
+/// Check whether it can be a valid GPIO number of output mode
+#define GPIO_IS_VALID_OUTPUT_GPIO(gpio_num) (((1ULL << (gpio_num)) & SOC_GPIO_VALID_OUTPUT_GPIO_MASK) != 0)
 
 
-/** @endcond */
-
-#define GPIO_IS_VALID_GPIO(gpio_num)      ((gpio_num < GPIO_PIN_COUNT && GPIO_PIN_MUX_REG[gpio_num] != 0))   /*!< Check whether it is a valid GPIO number */
-#define GPIO_IS_VALID_OUTPUT_GPIO(gpio_num)      ((GPIO_IS_VALID_GPIO(gpio_num)) && (gpio_num < 34))         /*!< Check whether it can be a valid GPIO number of output mode */
-
-typedef enum {
-    GPIO_NUM_0 = 0,     /*!< GPIO0, input and output */
-    GPIO_NUM_1 = 1,     /*!< GPIO1, input and output */
-    GPIO_NUM_2 = 2,     /*!< GPIO2, input and output
-                             @note There are more enumerations like that
-                             up to GPIO39, excluding GPIO20, GPIO24 and GPIO28..31.
-                             They are not shown here to reduce redundant information.
-                             @note GPIO34..39 are input mode only. */
-/** @cond */
-    GPIO_NUM_3 = 3,     /*!< GPIO3, input and output */
-    GPIO_NUM_4 = 4,     /*!< GPIO4, input and output */
-    GPIO_NUM_5 = 5,     /*!< GPIO5, input and output */
-    GPIO_NUM_6 = 6,     /*!< GPIO6, input and output */
-    GPIO_NUM_7 = 7,     /*!< GPIO7, input and output */
-    GPIO_NUM_8 = 8,     /*!< GPIO8, input and output */
-    GPIO_NUM_9 = 9,     /*!< GPIO9, input and output */
-    GPIO_NUM_10 = 10,   /*!< GPIO10, input and output */
-    GPIO_NUM_11 = 11,   /*!< GPIO11, input and output */
-    GPIO_NUM_12 = 12,   /*!< GPIO12, input and output */
-    GPIO_NUM_13 = 13,   /*!< GPIO13, input and output */
-    GPIO_NUM_14 = 14,   /*!< GPIO14, input and output */
-    GPIO_NUM_15 = 15,   /*!< GPIO15, input and output */
-    GPIO_NUM_16 = 16,   /*!< GPIO16, input and output */
-    GPIO_NUM_17 = 17,   /*!< GPIO17, input and output */
-    GPIO_NUM_18 = 18,   /*!< GPIO18, input and output */
-    GPIO_NUM_19 = 19,   /*!< GPIO19, input and output */
-
-    GPIO_NUM_21 = 21,   /*!< GPIO21, input and output */
-    GPIO_NUM_22 = 22,   /*!< GPIO22, input and output */
-    GPIO_NUM_23 = 23,   /*!< GPIO23, input and output */
-
-    GPIO_NUM_25 = 25,   /*!< GPIO25, input and output */
-    GPIO_NUM_26 = 26,   /*!< GPIO26, input and output */
-    GPIO_NUM_27 = 27,   /*!< GPIO27, input and output */
-
-    GPIO_NUM_32 = 32,   /*!< GPIO32, input and output */
-    GPIO_NUM_33 = 33,   /*!< GPIO33, input and output */
-    GPIO_NUM_34 = 34,   /*!< GPIO34, input mode only */
-    GPIO_NUM_35 = 35,   /*!< GPIO35, input mode only */
-    GPIO_NUM_36 = 36,   /*!< GPIO36, input mode only */
-    GPIO_NUM_37 = 37,   /*!< GPIO37, input mode only */
-    GPIO_NUM_38 = 38,   /*!< GPIO38, input mode only */
-    GPIO_NUM_39 = 39,   /*!< GPIO39, input mode only */
-    GPIO_NUM_MAX = 40,
-/** @endcond */
-} gpio_num_t;
-
-typedef enum {
-    GPIO_INTR_DISABLE = 0,     /*!< Disable GPIO interrupt                             */
-    GPIO_INTR_POSEDGE = 1,     /*!< GPIO interrupt type : rising edge                  */
-    GPIO_INTR_NEGEDGE = 2,     /*!< GPIO interrupt type : falling edge                 */
-    GPIO_INTR_ANYEDGE = 3,     /*!< GPIO interrupt type : both rising and falling edge */
-    GPIO_INTR_LOW_LEVEL = 4,   /*!< GPIO interrupt type : input low level trigger      */
-    GPIO_INTR_HIGH_LEVEL = 5,  /*!< GPIO interrupt type : input high level trigger     */
-    GPIO_INTR_MAX,
-} gpio_int_type_t;
-
-typedef enum {
-    GPIO_MODE_DISABLE = GPIO_MODE_DEF_DISABLE,                                        /*!< GPIO mode : disable input and output             */
-    GPIO_MODE_INPUT = GPIO_MODE_DEF_INPUT,                                                         /*!< GPIO mode : input only                           */
-    GPIO_MODE_OUTPUT = GPIO_MODE_DEF_OUTPUT,                                                       /*!< GPIO mode : output only mode                     */
-    GPIO_MODE_OUTPUT_OD = ((GPIO_MODE_DEF_OUTPUT)|(GPIO_MODE_DEF_OD)),                             /*!< GPIO mode : output only with open-drain mode     */
-    GPIO_MODE_INPUT_OUTPUT_OD = ((GPIO_MODE_DEF_INPUT)|(GPIO_MODE_DEF_OUTPUT)|(GPIO_MODE_DEF_OD)), /*!< GPIO mode : output and input with open-drain mode*/
-    GPIO_MODE_INPUT_OUTPUT = ((GPIO_MODE_DEF_INPUT)|(GPIO_MODE_DEF_OUTPUT)),                       /*!< GPIO mode : output and input mode                */
-} gpio_mode_t;
-
-typedef enum {
-    GPIO_PULLUP_DISABLE = 0x0,     /*!< Disable GPIO pull-up resistor */
-    GPIO_PULLUP_ENABLE = 0x1,      /*!< Enable GPIO pull-up resistor */
-} gpio_pullup_t;
-
-typedef enum {
-    GPIO_PULLDOWN_DISABLE = 0x0,   /*!< Disable GPIO pull-down resistor */
-    GPIO_PULLDOWN_ENABLE = 0x1,    /*!< Enable GPIO pull-down resistor  */
-} gpio_pulldown_t;
-
-/**
- * @brief Configuration parameters of GPIO pad for gpio_config function
- */
-typedef struct {
-    uint64_t pin_bit_mask;          /*!< GPIO pin: set with bit mask, each bit maps to a GPIO */
-    gpio_mode_t mode;               /*!< GPIO mode: set input/output mode                     */
-    gpio_pullup_t pull_up_en;       /*!< GPIO pull-up                                         */
-    gpio_pulldown_t pull_down_en;   /*!< GPIO pull-down                                       */
-    gpio_int_type_t intr_type;      /*!< GPIO interrupt type                                  */
-} gpio_config_t;
-
-typedef enum {
-    GPIO_PULLUP_ONLY,               /*!< Pad pull up            */
-    GPIO_PULLDOWN_ONLY,             /*!< Pad pull down          */
-    GPIO_PULLUP_PULLDOWN,           /*!< Pad pull up + pull down*/
-    GPIO_FLOATING,                  /*!< Pad floating           */
-} gpio_pull_mode_t;
-
-typedef enum {
-    GPIO_DRIVE_CAP_0       = 0,    /*!< Pad drive capability: weak          */
-    GPIO_DRIVE_CAP_1       = 1,    /*!< Pad drive capability: stronger      */
-    GPIO_DRIVE_CAP_2       = 2,    /*!< Pad drive capability: default value */
-    GPIO_DRIVE_CAP_DEFAULT = 2,    /*!< Pad drive capability: default value */
-    GPIO_DRIVE_CAP_3       = 3,    /*!< Pad drive capability: strongest     */
-    GPIO_DRIVE_CAP_MAX,
-} gpio_drive_cap_t;
-
-typedef void (*gpio_isr_t)(void*);
 typedef intr_handle_t gpio_isr_handle_t;
 
 /**
@@ -394,9 +215,9 @@ esp_err_t gpio_wakeup_disable(gpio_num_t gpio_num);
  * per-GPIO ISRs.
  *
  * @param  fn  Interrupt handler function.
+ * @param  arg  Parameter for handler function
  * @param  intr_alloc_flags Flags used to allocate the interrupt. One or multiple (ORred)
  *            ESP_INTR_FLAG_* values. See esp_intr_alloc.h for more info.
- * @param  arg  Parameter for handler function
  * @param  handle Pointer to return handle. If non-NULL, a handle for the interrupt will be returned here.
  *
  * \verbatim embed:rst:leading-asterisk
@@ -408,7 +229,7 @@ esp_err_t gpio_wakeup_disable(gpio_num_t gpio_num);
  *     - ESP_ERR_INVALID_ARG GPIO error
  *     - ESP_ERR_NOT_FOUND No free interrupt found with the specified flags
  */
-esp_err_t gpio_isr_register(void (*fn)(void*), void * arg, int intr_alloc_flags, gpio_isr_handle_t *handle);
+esp_err_t gpio_isr_register(void (*fn)(void *), void *arg, int intr_alloc_flags, gpio_isr_handle_t *handle);
 
 /**
   * @brief Enable pull-up on GPIO.
@@ -474,7 +295,7 @@ esp_err_t gpio_install_isr_service(int intr_alloc_flags);
 /**
   * @brief Uninstall the driver's GPIO ISR service, freeing related resources.
   */
-void gpio_uninstall_isr_service();
+void gpio_uninstall_isr_service(void);
 
 /**
   * @brief Add ISR handler for the corresponding GPIO pin.
@@ -500,7 +321,7 @@ void gpio_uninstall_isr_service();
   *     - ESP_ERR_INVALID_STATE Wrong state, the ISR service has not been initialized.
   *     - ESP_ERR_INVALID_ARG Parameter error
   */
-esp_err_t gpio_isr_handler_add(gpio_num_t gpio_num, gpio_isr_t isr_handler, void* args);
+esp_err_t gpio_isr_handler_add(gpio_num_t gpio_num, gpio_isr_t isr_handler, void *args);
 
 /**
   * @brief Remove ISR handler for the corresponding GPIO pin.
@@ -536,7 +357,7 @@ esp_err_t gpio_set_drive_capability(gpio_num_t gpio_num, gpio_drive_cap_t streng
   *     - ESP_OK Success
   *     - ESP_ERR_INVALID_ARG Parameter error
   */
-esp_err_t gpio_get_drive_capability(gpio_num_t gpio_num, gpio_drive_cap_t* strength);
+esp_err_t gpio_get_drive_capability(gpio_num_t gpio_num, gpio_drive_cap_t *strength);
 
 /**
   * @brief Enable gpio pad hold function.
@@ -564,10 +385,10 @@ esp_err_t gpio_hold_en(gpio_num_t gpio_num);
   * @brief Disable gpio pad hold function.
   *
   * When the chip is woken up from Deep-sleep, the gpio will be set to the default mode, so, the gpio will output
-  * the default level if this function is called. If you dont't want the level changes, the gpio should be configured to
+  * the default level if this function is called. If you don't want the level changes, the gpio should be configured to
   * a known state before this function is called.
   *  e.g.
-  *     If you hold gpio18 high during Deep-sleep, after the chip is woken up and `gpio_hold_dis` is called, 
+  *     If you hold gpio18 high during Deep-sleep, after the chip is woken up and `gpio_hold_dis` is called,
   *     gpio18 will output low level(because gpio18 is input mode by default). If you don't want this behavior,
   *     you should configure gpio18 as output mode and set it to hight level before calling `gpio_hold_dis`.
   *
@@ -608,12 +429,105 @@ void gpio_iomux_in(uint32_t gpio_num, uint32_t signal_idx);
   * @param gpio_num gpio_num GPIO number of the pad.
   * @param func The function number of the peripheral pin to output pin.
   *        One of the ``FUNC_X_*`` of specified pin (X) in ``soc/io_mux_reg.h``.
-  * @param oen_inv True if the output enable needs to be inversed, otherwise False.
+  * @param oen_inv True if the output enable needs to be inverted, otherwise False.
   */
 void gpio_iomux_out(uint8_t gpio_num, int func, bool oen_inv);
+
+#if SOC_GPIO_SUPPORT_FORCE_HOLD
+/**
+  * @brief Force hold digital and rtc gpio pad.
+  * @note GPIO force hold, whether the chip in sleep mode or wakeup mode.
+  * */
+esp_err_t gpio_force_hold_all(void);
+
+/**
+  * @brief Force unhold digital and rtc gpio pad.
+  * @note GPIO force unhold, whether the chip in sleep mode or wakeup mode.
+  * */
+esp_err_t gpio_force_unhold_all(void);
+#endif
+
+#if SOC_GPIO_SUPPORT_SLP_SWITCH
+/**
+  * @brief Enable SLP_SEL to change GPIO status automantically in lightsleep.
+  * @param gpio_num GPIO number of the pad.
+  *
+  * @return
+  *     - ESP_OK Success
+  *
+  */
+esp_err_t gpio_sleep_sel_en(gpio_num_t gpio_num);
+
+/**
+  * @brief Disable SLP_SEL to change GPIO status automantically in lightsleep.
+  * @param gpio_num GPIO number of the pad.
+  *
+  * @return
+  *     - ESP_OK Success
+  */
+esp_err_t gpio_sleep_sel_dis(gpio_num_t gpio_num);
+
+/**
+ * @brief	 GPIO set direction at sleep
+ *
+ * Configure GPIO direction,such as output_only,input_only,output_and_input
+ *
+ * @param  gpio_num  Configure GPIO pins number, it should be GPIO number. If you want to set direction of e.g. GPIO16, gpio_num should be GPIO_NUM_16 (16);
+ * @param  mode GPIO direction
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG GPIO error
+ */
+esp_err_t gpio_sleep_set_direction(gpio_num_t gpio_num, gpio_mode_t mode);
+
+/**
+ * @brief  Configure GPIO pull-up/pull-down resistors at sleep
+ *
+ * Only pins that support both input & output have integrated pull-up and pull-down resistors. Input-only GPIOs 34-39 do not.
+ *
+ * @param  gpio_num GPIO number. If you want to set pull up or down mode for e.g. GPIO16, gpio_num should be GPIO_NUM_16 (16);
+ * @param  pull GPIO pull up/down mode.
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG : Parameter error
+ */
+esp_err_t gpio_sleep_set_pull_mode(gpio_num_t gpio_num, gpio_pull_mode_t pull);
+#endif
+
+#if SOC_GPIO_SUPPORT_DEEPSLEEP_WAKEUP
+
+#define GPIO_IS_DEEP_SLEEP_WAKEUP_VALID_GPIO(gpio_num)        ((gpio_num & ~SOC_GPIO_DEEP_SLEEP_WAKEUP_VALID_GPIO_MASK) == 0)
+
+/**
+ * @brief Enable GPIO deep-sleep wake-up function.
+ *
+ * @param gpio_num GPIO number.
+ *
+ * @param intr_type GPIO wake-up type. Only GPIO_INTR_LOW_LEVEL or GPIO_INTR_HIGH_LEVEL can be used.
+ *
+ * @note Called by the SDK. User shouldn't call this directly in the APP.
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ */
+esp_err_t gpio_deep_sleep_wakeup_enable(gpio_num_t gpio_num, gpio_int_type_t intr_type);
+
+/**
+ * @brief Disable GPIO deep-sleep wake-up function.
+ *
+ * @param gpio_num GPIO number
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ */
+esp_err_t gpio_deep_sleep_wakeup_disable(gpio_num_t gpio_num);
+
+#endif
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* _DRIVER_GPIO_H_ */

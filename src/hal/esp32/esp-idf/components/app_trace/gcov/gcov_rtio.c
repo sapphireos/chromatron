@@ -1,162 +1,150 @@
-// Copyright 2017 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 // This module implements runtime file I/O API for GCOV.
 
+#include <string.h>
 #include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include "soc/cpu.h"
-#include "soc/timer_group_struct.h"
-#include "soc/timer_group_reg.h"
+#include "soc/timer_periph.h"
 #include "esp_app_trace.h"
-#include "esp_dbg_stubs.h"
+#include "esp_freertos_hooks.h"
+#include "esp_private/dbg_stubs.h"
+#include "esp_ipc.h"
+#include "hal/wdt_hal.h"
+#if CONFIG_IDF_TARGET_ESP32
+#include "esp32/rom/libc_stubs.h"
+#elif CONFIG_IDF_TARGET_ESP32S2
+#include "esp32s2/rom/libc_stubs.h"
+#endif
 
-#if CONFIG_ESP32_GCOV_ENABLE
+#if CONFIG_APPTRACE_GCOV_ENABLE
 
 #define ESP_GCOV_DOWN_BUF_SIZE  4200
 
-#define LOG_LOCAL_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include "esp_log.h"
 const static char *TAG = "esp_gcov_rtio";
+static volatile bool s_create_gcov_task = false;
+static volatile bool s_gcov_task_running = false;
 
-#if GCC_NOT_5_2_0
-void __gcov_dump(void);
-void __gcov_reset(void);
-#else
-/* The next code for old GCC */
+extern void __gcov_dump(void);
+extern void __gcov_reset(void);
 
-static void (*s_gcov_exit)(void);
-/* Root of a program/shared-object state */
-struct gcov_root
+void gcov_dump_task(void *pvParameter)
 {
-  void *list;
-  unsigned dumped : 1;  /* counts have been dumped.  */
-  unsigned run_counted : 1;  /* run has been accounted for.  */
-  struct gcov_root *next;
-  struct gcov_root *prev;
-};
+    int dump_result = 0;
+    bool *running = (bool *)pvParameter;
 
-/* Per-dynamic-object gcov state.  */
-extern struct gcov_root __gcov_root;
-
-static void esp_gcov_reset_status(void)
-{
-  __gcov_root.dumped = 0;
-  __gcov_root.run_counted = 0;
-}
-#endif
-
-
-static int esp_dbg_stub_gcov_dump_do(void)
-{
-    int ret = ESP_OK;
+    ESP_EARLY_LOGV(TAG, "%s stack use in %d", __FUNCTION__, uxTaskGetStackHighWaterMark(NULL));
 
     ESP_EARLY_LOGV(TAG, "Alloc apptrace down buf %d bytes", ESP_GCOV_DOWN_BUF_SIZE);
     void *down_buf = malloc(ESP_GCOV_DOWN_BUF_SIZE);
     if (down_buf == NULL) {
         ESP_EARLY_LOGE(TAG, "Could not allocate memory for the buffer");
-        return ESP_ERR_NO_MEM;
+        dump_result = ESP_ERR_NO_MEM;
+        goto gcov_exit;
     }
     ESP_EARLY_LOGV(TAG, "Config apptrace down buf");
     esp_apptrace_down_buffer_config(down_buf, ESP_GCOV_DOWN_BUF_SIZE);
+    /* we are directing the std outputs to the fake ones in order to reduce stack usage */
+    FILE *old_stderr = stderr;
+    FILE *old_stdout = stdout;
+    stderr = (FILE *) &__sf_fake_stderr;
+    stdout = (FILE *) &__sf_fake_stdout;
     ESP_EARLY_LOGV(TAG, "Dump data...");
-#if GCC_NOT_5_2_0
     __gcov_dump();
     // reset dump status to allow incremental data accumulation
     __gcov_reset();
-#else
-    ESP_EARLY_LOGV(TAG, "Check for dump handler %p", s_gcov_exit);
-    if (s_gcov_exit) {
-        s_gcov_exit();
-        // reset dump status to allow incremental data accumulation
-        esp_gcov_reset_status();
-    }
-#endif
-    ESP_EARLY_LOGV(TAG, "Free apptrace down buf");
     free(down_buf);
+    stderr = old_stderr;
+    stdout = old_stdout;
     ESP_EARLY_LOGV(TAG, "Finish file transfer session");
-    ret = esp_apptrace_fstop(ESP_APPTRACE_DEST_TRAX);
-    if (ret != ESP_OK) {
-        ESP_EARLY_LOGE(TAG, "Failed to send files transfer stop cmd (%d)!", ret);
+    dump_result = esp_apptrace_fstop(ESP_APPTRACE_DEST_TRAX);
+    if (dump_result != ESP_OK) {
+        ESP_EARLY_LOGE(TAG, "Failed to send files transfer stop cmd (%d)!", dump_result);
     }
-    return ret;
+
+gcov_exit:
+    ESP_EARLY_LOGV(TAG, "dump_result %d", dump_result);
+    if (running) {
+        *running = false;
+    }
+
+    ESP_EARLY_LOGV(TAG, "%s stack use out %d", __FUNCTION__, uxTaskGetStackHighWaterMark(NULL));
+
+    vTaskDelete(NULL);
+}
+
+void gcov_create_task(void *arg)
+{
+    ESP_EARLY_LOGV(TAG, "%s", __FUNCTION__);
+    xTaskCreatePinnedToCore(&gcov_dump_task, "gcov_dump_task", 2048, (void *)&s_gcov_task_running, configMAX_PRIORITIES - 1, NULL, 0);
+}
+
+void gcov_create_task_tick_hook(void)
+{
+    extern esp_err_t esp_ipc_start_gcov_from_isr(uint32_t cpu_id, esp_ipc_func_t func, void* arg);
+    if (s_create_gcov_task) {
+        if (esp_ipc_start_gcov_from_isr(xPortGetCoreID(), &gcov_create_task, NULL) == ESP_OK) {
+            s_create_gcov_task = false;
+        }
+    }
 }
 
 /**
- * @brief Triggers gcov info dump.
+ * @brief Triggers gcov info dump task
  *        This function is to be called by OpenOCD, not by normal user code.
- * TODO: what about interrupted flash access (when cache disabled)???
+ * TODO: what about interrupted flash access (when cache disabled)
  *
  * @return ESP_OK on success, otherwise see esp_err_t
  */
 static int esp_dbg_stub_gcov_entry(void)
 {
-#if GCC_NOT_5_2_0
-    return esp_dbg_stub_gcov_dump_do();
-#else
-    int ret = ESP_OK;
-    // disable IRQs on this CPU, other CPU is halted by OpenOCD
-    unsigned irq_state = portENTER_CRITICAL_NESTED();
-    ret = esp_dbg_stub_gcov_dump_do();
-    portEXIT_CRITICAL_NESTED(irq_state);
-    return ret;
-#endif
-}
-
-void esp_gcov_dump()
-{
-    // disable IRQs on this CPU, other CPU is halted by OpenOCD
-    unsigned irq_state = portENTER_CRITICAL_NESTED();
-#if !CONFIG_FREERTOS_UNICORE
-    int other_core = xPortGetCoreID() ? 0 : 1;
-    esp_cpu_stall(other_core);
-#endif
-    while (!esp_apptrace_host_is_connected(ESP_APPTRACE_DEST_TRAX)) {
-        // to avoid complains that task watchdog got triggered for other tasks
-        TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
-        TIMERG0.wdt_feed=1;
-        TIMERG0.wdt_wprotect=0;
-        // to avoid reboot on INT_WDT
-        TIMERG1.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
-        TIMERG1.wdt_feed=1;
-        TIMERG1.wdt_wprotect=0;
-    }
-
-    esp_dbg_stub_gcov_dump_do();
-#if !CONFIG_FREERTOS_UNICORE
-    esp_cpu_unstall(other_core);
-#endif
-    portEXIT_CRITICAL_NESTED(irq_state);
+    /* we are in isr context here */
+    s_create_gcov_task = true;
+    return ESP_OK;
 }
 
 int gcov_rtio_atexit(void (*function)(void) __attribute__ ((unused)))
 {
-#if GCC_NOT_5_2_0
+    uint32_t capabilities = 0;
     ESP_EARLY_LOGV(TAG, "%s", __FUNCTION__);
-#else
-    ESP_EARLY_LOGV(TAG, "%s %p", __FUNCTION__, function);
-    s_gcov_exit = function;
-#endif
     esp_dbg_stub_entry_set(ESP_DBG_STUB_ENTRY_GCOV, (uint32_t)&esp_dbg_stub_gcov_entry);
-    return 0;
+    if (esp_dbg_stub_entry_get(ESP_DBG_STUB_ENTRY_CAPABILITIES, &capabilities) == ESP_OK) {
+        esp_dbg_stub_entry_set(ESP_DBG_STUB_ENTRY_CAPABILITIES, capabilities | ESP_DBG_STUB_CAP_GCOV_TASK);
+    }
+    esp_register_freertos_tick_hook(gcov_create_task_tick_hook);
+    return ESP_OK;
+}
+
+void esp_gcov_dump(void)
+{
+    ESP_EARLY_LOGV(TAG, "%s", __FUNCTION__);
+
+    while (!esp_apptrace_host_is_connected(ESP_APPTRACE_DEST_TRAX)) {
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+
+    /* We are not in isr context here. Waiting for the completion is safe */
+    s_gcov_task_running = true;
+    s_create_gcov_task = true;
+    while (s_gcov_task_running) {
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
 }
 
 void *gcov_rtio_fopen(const char *path, const char *mode)
 {
     ESP_EARLY_LOGV(TAG, "%s '%s' '%s'", __FUNCTION__, path, mode);
-    return esp_apptrace_fopen(ESP_APPTRACE_DEST_TRAX, path, mode);
+    void *f = esp_apptrace_fopen(ESP_APPTRACE_DEST_TRAX, path, mode);
+    ESP_EARLY_LOGV(TAG, "%s ret %p", __FUNCTION__, f);
+    return f;
 }
 
 int gcov_rtio_fclose(void *stream)
@@ -167,7 +155,7 @@ int gcov_rtio_fclose(void *stream)
 
 size_t gcov_rtio_fread(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-    ESP_EARLY_LOGV(TAG, "%s read %u", __FUNCTION__, size*nmemb);
+    ESP_EARLY_LOGV(TAG, "%s read %u", __FUNCTION__, size * nmemb);
     size_t sz = esp_apptrace_fread(ESP_APPTRACE_DEST_TRAX, ptr, size, nmemb, stream);
     ESP_EARLY_LOGV(TAG, "%s actually read %u", __FUNCTION__, sz);
     return sz;

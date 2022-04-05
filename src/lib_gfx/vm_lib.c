@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <stdint.h>
+#include "sapphire.h"
 #include "bool.h"
 #include "catbus_common.h"
 #include "random.h"
@@ -282,6 +283,66 @@ int8_t vm_lib_i8_libcall_built_in(
             _delay_us( 100 );
             io_v_digital_write( IO_PIN_DEBUG, FALSE );
 
+            break;
+
+        case __KV__io_set_mode:
+            if( param_len == 2 ){
+
+                io_v_set_mode( params[0], params[1] );
+            }
+            
+            break;
+
+        case __KV__io_digital_write:
+            if( param_len == 2 ){
+
+                io_v_digital_write( params[0], params[1] );
+            }
+            
+            break;
+
+        case __KV__io_digital_read:
+            if( param_len == 1 ){
+
+                *result = io_b_digital_read( params[0] );
+            }
+            
+            break;
+
+        case __KV__adc_read_raw:
+            if( param_len == 1 ){
+
+                *result = adc_u16_read_raw( params[0] );
+            }
+            
+            break;
+
+        case __KV__adc_read_mv:
+            if( param_len == 1 ){
+
+                *result = adc_u16_read_mv( params[0] );
+            }
+            
+            break;
+
+        case __KV__pwm_init:
+            if( param_len == 1 ){
+
+                pwm_v_init_channel( params[0], 0 );    
+            }
+            else if( param_len == 2 ){
+
+                pwm_v_init_channel( params[0], params[1] );
+            }
+            
+            break;
+
+        case __KV__pwm_write:
+            if( param_len == 2 ){
+
+                pwm_v_write( params[0], params[1] );
+            }
+            
             break;
 
 		default:

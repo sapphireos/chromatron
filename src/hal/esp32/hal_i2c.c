@@ -78,6 +78,8 @@ void i2c_v_init( i2c_baud_t8 baud ){
     i2c_param_config( I2C_MASTER_PORT, &conf );
 
     i2c_driver_install( I2C_MASTER_PORT, conf.mode, 0, 0, 0 );
+
+    // i2c_set_timeout( I2C_MASTER_PORT, 50 / portTICK_RATE_MS );
 }
 
 void i2c_v_set_pins( uint8_t clock, uint8_t data ){

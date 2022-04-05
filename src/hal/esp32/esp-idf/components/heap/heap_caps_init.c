@@ -18,11 +18,9 @@
 
 #include "esp_log.h"
 #include "multi_heap.h"
+#include "multi_heap_platform.h"
 #include "esp_heap_caps_init.h"
-#include "soc/soc_memory_layout.h"
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include "heap_memory_layout.h"
 
 static const char *TAG = "heap_init";
 
@@ -39,7 +37,7 @@ static void register_heap(heap_t *region)
     }
 }
 
-void heap_caps_enable_nonos_stack_heaps()
+void heap_caps_enable_nonos_stack_heaps(void)
 {
     heap_t *heap;
     SLIST_FOREACH(heap, &registered_heaps, next) {
@@ -57,7 +55,7 @@ void heap_caps_enable_nonos_stack_heaps()
 /* Initialize the heap allocator to use all of the memory not
    used by static data or reserved for other purposes
  */
-void heap_caps_init()
+void heap_caps_init(void)
 {
     /* Get the array of regions that we can use for heaps
        (with reserved memory removed already.)
@@ -68,10 +66,10 @@ void heap_caps_init()
 
     //The heap allocator will treat every region given to it as separate. In order to get bigger ranges of contiguous memory,
     //it's useful to coalesce adjacent regions that have the same type.
-    for (int i = 1; i < num_regions; i++) {
+    for (size_t i = 1; i < num_regions; i++) {
         soc_memory_region_t *a = &regions[i - 1];
         soc_memory_region_t *b = &regions[i];
-        if (b->start == a->start + a->size && b->type == a->type ) {
+        if (b->start == (intptr_t)(a->start + a->size) && b->type == a->type ) {
             a->type = -1;
             b->start = a->start;
             b->size += a->size;
@@ -80,7 +78,7 @@ void heap_caps_init()
 
     /* Count the heaps left after merging */
     size_t num_heaps = 0;
-    for (int i = 0; i < num_regions; i++) {
+    for (size_t i = 0; i < num_regions; i++) {
         if (regions[i].type != -1) {
             num_heaps++;
         }
@@ -94,7 +92,7 @@ void heap_caps_init()
     size_t heap_idx = 0;
 
     ESP_EARLY_LOGI(TAG, "Initializing. RAM available for dynamic allocation:");
-    for (int i = 0; i < num_regions; i++) {
+    for (size_t i = 0; i < num_regions; i++) {
         soc_memory_region_t *region = &regions[i];
         const soc_memory_type_desc_t *type = &soc_memory_types[region->type];
         heap_t *heap = &temp_heaps[heap_idx];
@@ -107,7 +105,7 @@ void heap_caps_init()
         memcpy(heap->caps, type->caps, sizeof(heap->caps));
         heap->start = region->start;
         heap->end = region->start + region->size;
-        vPortCPUInitializeMutex(&heap->heap_mux);
+        MULTI_HEAP_LOCK_INIT(&heap->heap_mux);
         if (type->startup_stack) {
             /* Will be registered when OS scheduler starts */
             heap->heap = NULL;
@@ -128,7 +126,7 @@ void heap_caps_init()
     assert(SLIST_EMPTY(&registered_heaps));
 
     heap_t *heaps_array = NULL;
-    for (int i = 0; i < num_heaps; i++) {
+    for (size_t i = 0; i < num_heaps; i++) {
         if (heap_caps_match(&temp_heaps[i], MALLOC_CAP_8BIT|MALLOC_CAP_INTERNAL)) {
             /* use the first DRAM heap which can fit the data */
             heaps_array = multi_heap_malloc(temp_heaps[i].heap, sizeof(heap_t) * num_heaps);
@@ -142,7 +140,7 @@ void heap_caps_init()
     memcpy(heaps_array, temp_heaps, sizeof(heap_t)*num_heaps);
 
     /* Iterate the heaps and set their locks, also add them to the linked list. */
-    for (int i = 0; i < num_heaps; i++) {
+    for (size_t i = 0; i < num_heaps; i++) {
         if (heaps_array[i].heap != NULL) {
             multi_heap_set_lock(heaps_array[i].heap, &heaps_array[i].heap_mux);
         }
@@ -160,10 +158,10 @@ esp_err_t heap_caps_add_region(intptr_t start, intptr_t end)
         return ESP_ERR_INVALID_ARG;
     }
 
-    for (int i = 0; i < soc_memory_region_count; i++) {
+    for (size_t i = 0; i < soc_memory_region_count; i++) {
         const soc_memory_region_t *region = &soc_memory_regions[i];
         // Test requested start only as 'end' may be in a different region entry, assume 'end' has same caps
-        if (region->start <= start && (region->start + region->size) > start) {
+        if (region->start <= start && (intptr_t)(region->start + region->size) > start) {
             const uint32_t *caps = soc_memory_types[region->type].caps;
             return heap_caps_add_region_with_caps(caps, start, end);
         }
@@ -216,7 +214,7 @@ esp_err_t heap_caps_add_region_with_caps(const uint32_t caps[], intptr_t start, 
     memcpy(p_new->caps, caps, sizeof(p_new->caps));
     p_new->start = start;
     p_new->end = end;
-    vPortCPUInitializeMutex(&p_new->heap_mux);
+    MULTI_HEAP_LOCK_INIT(&p_new->heap_mux);
     p_new->heap = multi_heap_register((void *)start, end - start);
     SLIST_NEXT(p_new, next) = NULL;
     if (p_new->heap == NULL) {
@@ -228,10 +226,10 @@ esp_err_t heap_caps_add_region_with_caps(const uint32_t caps[], intptr_t start, 
     /* (This insertion is atomic to registered_heaps, so
        we don't need to worry about thread safety for readers,
        only for writers. */
-    static _lock_t registered_heaps_write_lock;
-    _lock_acquire(&registered_heaps_write_lock);
+    static multi_heap_lock_t registered_heaps_write_lock = MULTI_HEAP_LOCK_STATIC_INITIALIZER;
+    MULTI_HEAP_LOCK(&registered_heaps_write_lock);
     SLIST_INSERT_HEAD(&registered_heaps, p_new, next);
-    _lock_release(&registered_heaps_write_lock);
+    MULTI_HEAP_UNLOCK(&registered_heaps_write_lock);
 
     err = ESP_OK;
 

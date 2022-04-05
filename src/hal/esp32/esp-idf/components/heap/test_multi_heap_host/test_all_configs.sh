@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Run the test suite with all configurations enabled
 #
 
 FAIL=0
 
-for FLAGS in "CONFIG_HEAP_POISONING_NONE" "CONFIG_HEAP_POISONING_LIGHT" "CONFIG_HEAP_POISONING_COMPREHENSIVE"; do
+for FLAGS in "CONFIG_HEAP_POISONING_NONE" "CONFIG_HEAP_POISONING_LIGHT" "CONFIG_HEAP_POISONING_COMPREHENSIVE" ; do
     echo "==== Testing with config: ${FLAGS} ===="
     CPPFLAGS="-D${FLAGS}" make clean test || FAIL=1
 done

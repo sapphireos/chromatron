@@ -1,37 +1,55 @@
-set(COMPONENT_SRCS "locks.c"
-                   "pthread.c"
-                   "random.c"
-                   "reent_init.c"
-                   "select.c"
-                   "poll.c"
-                   "syscall_table.c"
-                   "syscalls.c"
-                   "termios.c"
-                   "utime.c"
-                   "time.c")
-set(COMPONENT_ADD_INCLUDEDIRS platform_include include)
-
-if(CONFIG_SPIRAM_CACHE_WORKAROUND)
-    set(LIBC c-psram-workaround)
-    set(LIBM m-psram-workaround)
-
-    set(COMPONENT_ADD_LDFRAGMENTS esp32-spiram-rom-functions.lf)
-else()
-
-    if(CONFIG_NEWLIB_NANO_FORMAT)
-        set(LIBC c_nano)
-    else()
-        set(LIBC c)
-    endif()
-
-    set(LIBM m)
+if(BOOTLOADER_BUILD)
+    # Bootloader builds need the platform_include directory (for assert.h), but nothing else
+    idf_component_register(INCLUDE_DIRS platform_include)
+    return()
 endif()
 
-set(COMPONENT_REQUIRES vfs)  # for sys/ioctl.h
+set(srcs
+    "abort.c"
+    "assert.c"
+    "heap.c"
+    "locks.c"
+    "poll.c"
+    "pthread.c"
+    "random.c"
+    "reent_init.c"
+    "newlib_init.c"
+    "syscalls.c"
+    "termios.c"
+    "stdatomic.c"
+    "time.c"
+    "sysconf.c"
+    "realpath.c")
+set(include_dirs platform_include)
 
-register_component()
+if(CONFIG_SPIRAM_CACHE_WORKAROUND)
+    set(ldfragments "esp32-spiram-rom-functions-c.lf")
+endif()
 
-target_link_libraries(${COMPONENT_TARGET} "-L ${CMAKE_CURRENT_SOURCE_DIR}/lib")
-target_link_libraries(${COMPONENT_TARGET} ${LIBC} ${LIBM})
+list(APPEND ldfragments "newlib.lf" "system_libs.lf")
 
-set_source_files_properties(syscalls.c PROPERTIES COMPILE_FLAGS -fno-builtin)
+idf_component_register(SRCS "${srcs}"
+                    INCLUDE_DIRS "${include_dirs}"
+                    PRIV_INCLUDE_DIRS priv_include
+                    PRIV_REQUIRES soc spi_flash
+                    LDFRAGMENTS "${ldfragments}")
+
+# Toolchain libraries require code defined in this component
+idf_component_get_property(newlib newlib COMPONENT_LIB)
+target_link_libraries(${COMPONENT_LIB} INTERFACE c m gcc "$<TARGET_FILE:${newlib}>")
+
+set_source_files_properties(heap.c PROPERTIES COMPILE_FLAGS -fno-builtin)
+
+# Forces the linker to include heap, syscall, pthread, assert, and retargetable locks from this component,
+# instead of the implementations provided by newlib.
+list(APPEND EXTRA_LINK_FLAGS "-u newlib_include_heap_impl")
+list(APPEND EXTRA_LINK_FLAGS "-u newlib_include_syscalls_impl")
+list(APPEND EXTRA_LINK_FLAGS "-u newlib_include_pthread_impl")
+list(APPEND EXTRA_LINK_FLAGS "-u newlib_include_assert_impl")
+target_link_libraries(${COMPONENT_LIB} INTERFACE "${EXTRA_LINK_FLAGS}")
+
+if(CONFIG_NEWLIB_NANO_FORMAT)
+    target_link_libraries(${COMPONENT_LIB} INTERFACE "--specs=nano.specs")
+endif()
+
+add_subdirectory(port)

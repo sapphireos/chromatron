@@ -94,7 +94,7 @@ struct pbuf * pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
     p = (struct pbuf *)malloc(MEMP_PBUF_POOL);
     p->tot_len = length;
     p->next = NULL;
-    p->type = PBUF_POOL;
+    p->type_internal = PBUF_POOL;
     p->len = length;
     p->payload = malloc(length);
     return p;
@@ -152,7 +152,7 @@ void dns_setserver(u8_t numdns, const ip_addr_t *dnsserver)
 
 uint32_t esp_random(void)
 {
-    // Preparation for injecting favorable random numbers 
+    // Preparation for injecting favorable random numbers
     return g_random_numbers[g_random_numbers_cnt++ % 8];
 }
 

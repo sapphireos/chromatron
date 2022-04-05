@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef _BTC_BLE_MESH_PROV_H_
 #define _BTC_BLE_MESH_PROV_H_
@@ -66,6 +58,13 @@ typedef enum {
     BTC_BLE_MESH_ACT_PROVISIONER_ENABLE_HEARTBEAT_RECV,
     BTC_BLE_MESH_ACT_PROVISIONER_SET_HEARTBEAT_FILTER_TYPE,
     BTC_BLE_MESH_ACT_PROVISIONER_SET_HEARTBEAT_FILTER_INFO,
+    BTC_BLE_MESH_ACT_PROVISIONER_DIRECT_ERASE_SETTINGS,
+    BTC_BLE_MESH_ACT_PROVISIONER_OPEN_SETTINGS_WITH_INDEX,
+    BTC_BLE_MESH_ACT_PROVISIONER_OPEN_SETTINGS_WITH_UID,
+    BTC_BLE_MESH_ACT_PROVISIONER_CLOSE_SETTINGS_WITH_INDEX,
+    BTC_BLE_MESH_ACT_PROVISIONER_CLOSE_SETTINGS_WITH_UID,
+    BTC_BLE_MESH_ACT_PROVISIONER_DELETE_SETTINGS_WITH_INDEX,
+    BTC_BLE_MESH_ACT_PROVISIONER_DELETE_SETTINGS_WITH_UID,
     BTC_BLE_MESH_ACT_SET_FAST_PROV_INFO,
     BTC_BLE_MESH_ACT_SET_FAST_PROV_ACTION,
     BTC_BLE_MESH_ACT_LPN_ENABLE,
@@ -76,8 +75,6 @@ typedef enum {
     BTC_BLE_MESH_ACT_PROXY_CLIENT_SET_FILTER_TYPE,
     BTC_BLE_MESH_ACT_PROXY_CLIENT_ADD_FILTER_ADDR,
     BTC_BLE_MESH_ACT_PROXY_CLIENT_REMOVE_FILTER_ADDR,
-    BTC_BLE_MESH_ACT_START_BLE_ADVERTISING,
-    BTC_BLE_MESH_ACT_STOP_BLE_ADVERTISING,
     BTC_BLE_MESH_ACT_MODEL_SUBSCRIBE_GROUP_ADDR,
     BTC_BLE_MESH_ACT_MODEL_UNSUBSCRIBE_GROUP_ADDR,
     BTC_BLE_MESH_ACT_DEINIT_MESH,
@@ -231,6 +228,26 @@ typedef union {
         uint16_t hb_src;
         uint16_t hb_dst;
     } set_heartbeat_filter_info;
+    struct {
+        uint8_t index;
+    } open_settings_with_index;
+    struct {
+        char uid[ESP_BLE_MESH_SETTINGS_UID_SIZE + 1];
+    } open_settings_with_uid;
+    struct {
+        uint8_t index;
+        bool erase;
+    } close_settings_with_index;
+    struct {
+        char uid[ESP_BLE_MESH_SETTINGS_UID_SIZE + 1];
+        bool erase;
+    } close_settings_with_uid;
+    struct {
+        uint8_t index;
+    } delete_settings_with_index;
+    struct {
+        char uid[ESP_BLE_MESH_SETTINGS_UID_SIZE + 1];
+    } delete_settings_with_uid;
     struct ble_mesh_set_fast_prov_info_args {
         uint16_t unicast_min;
         uint16_t unicast_max;
@@ -278,13 +295,6 @@ typedef union {
         uint16_t  addr_num;
         uint16_t *addr;
     } proxy_client_remove_filter_addr;
-    struct ble_mesh_start_ble_advertising_args {
-        esp_ble_mesh_ble_adv_param_t param;
-        esp_ble_mesh_ble_adv_data_t  data;
-    } start_ble_advertising;
-    struct ble_mesh_stop_ble_advertising_args {
-        uint8_t index;
-    } stop_ble_advertising;
     struct ble_mesh_model_sub_group_addr_args {
         uint16_t element_addr;
         uint16_t company_id;
@@ -338,7 +348,7 @@ esp_ble_mesh_node_t *btc_ble_mesh_provisioner_get_node_with_addr(uint16_t unicas
 
 esp_ble_mesh_node_t *btc_ble_mesh_provisioner_get_node_with_name(const char *name);
 
-u16_t btc_ble_mesh_provisioner_get_prov_node_count(void);
+uint16_t btc_ble_mesh_provisioner_get_prov_node_count(void);
 
 const esp_ble_mesh_node_t **btc_ble_mesh_provisioner_get_node_table_entry(void);
 
@@ -352,7 +362,7 @@ uint16_t btc_ble_mesh_get_primary_addr(void);
 
 uint16_t *btc_ble_mesh_model_find_group(esp_ble_mesh_model_t *mod, uint16_t addr);
 
-esp_ble_mesh_elem_t *btc_ble_mesh_elem_find(u16_t addr);
+esp_ble_mesh_elem_t *btc_ble_mesh_elem_find(uint16_t addr);
 
 uint8_t btc_ble_mesh_elem_count(void);
 
@@ -362,6 +372,12 @@ esp_ble_mesh_model_t *btc_ble_mesh_model_find_vnd(const esp_ble_mesh_elem_t *ele
 esp_ble_mesh_model_t *btc_ble_mesh_model_find(const esp_ble_mesh_elem_t *elem, uint16_t id);
 
 const esp_ble_mesh_comp_t *btc_ble_mesh_comp_get(void);
+
+const char *btc_ble_mesh_provisioner_get_settings_uid(uint8_t index);
+
+uint8_t btc_ble_mesh_provisioner_get_settings_index(const char *uid);
+
+uint8_t btc_ble_mesh_provisioner_get_free_settings_count(void);
 
 void btc_ble_mesh_model_call_handler(btc_msg_t *msg);
 void btc_ble_mesh_model_cb_handler(btc_msg_t *msg);

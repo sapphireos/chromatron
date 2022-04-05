@@ -18,7 +18,7 @@
 #include <stdbool.h>
 
 #include "esp_err.h"
-#include "rom/spi_flash.h"
+#include "esp32/rom/spi_flash.h"
 
 /**
 * @brief This class is used to emulate flash devices.
@@ -47,7 +47,7 @@ public:
 
     uint32_t get_erase_cycles(uint32_t sector);
     uint32_t get_total_erase_cycles();
-    
+
     void set_erase_cycles_limit(uint32_t limit);
     void set_total_erase_cycles_limit(uint32_t limit);
 

@@ -1,2 +1,0 @@
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc libmbedtls.a  CMakeFiles/idf_component_mbedtls.dir/mbedtls.c.obj
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib libmbedtls.a

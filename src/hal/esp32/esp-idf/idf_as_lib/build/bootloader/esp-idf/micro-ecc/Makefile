@@ -111,61 +111,46 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc_sections_info.dir/rule
-.PHONY : esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc_sections_info.dir/rule
+esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/rule
+.PHONY : esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/rule
 
 # Convenience name for target.
-idf_component_micro-ecc_sections_info: esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc_sections_info.dir/rule
+__idf_micro-ecc: esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/rule
 
-.PHONY : idf_component_micro-ecc_sections_info
+.PHONY : __idf_micro-ecc
 
 # fast build rule for target.
-idf_component_micro-ecc_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc_sections_info.dir/build.make esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc_sections_info.dir/build
-.PHONY : idf_component_micro-ecc_sections_info/fast
+__idf_micro-ecc/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/build.make esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/build
+.PHONY : __idf_micro-ecc/fast
 
-# Convenience name for target.
-esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/rule
-.PHONY : esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/rule
+uECC_verify_antifault.obj: uECC_verify_antifault.c.obj
 
-# Convenience name for target.
-idf_component_micro-ecc: esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/rule
-
-.PHONY : idf_component_micro-ecc
-
-# fast build rule for target.
-idf_component_micro-ecc/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/build.make esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/build
-.PHONY : idf_component_micro-ecc/fast
-
-micro-ecc/uECC.obj: micro-ecc/uECC.c.obj
-
-.PHONY : micro-ecc/uECC.obj
+.PHONY : uECC_verify_antifault.obj
 
 # target to build an object file
-micro-ecc/uECC.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/build.make esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/micro-ecc/uECC.c.obj
-.PHONY : micro-ecc/uECC.c.obj
+uECC_verify_antifault.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/build.make esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/uECC_verify_antifault.c.obj
+.PHONY : uECC_verify_antifault.c.obj
 
-micro-ecc/uECC.i: micro-ecc/uECC.c.i
+uECC_verify_antifault.i: uECC_verify_antifault.c.i
 
-.PHONY : micro-ecc/uECC.i
+.PHONY : uECC_verify_antifault.i
 
 # target to preprocess a source file
-micro-ecc/uECC.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/build.make esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/micro-ecc/uECC.c.i
-.PHONY : micro-ecc/uECC.c.i
+uECC_verify_antifault.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/build.make esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/uECC_verify_antifault.c.i
+.PHONY : uECC_verify_antifault.c.i
 
-micro-ecc/uECC.s: micro-ecc/uECC.c.s
+uECC_verify_antifault.s: uECC_verify_antifault.c.s
 
-.PHONY : micro-ecc/uECC.s
+.PHONY : uECC_verify_antifault.s
 
 # target to generate assembly for a file
-micro-ecc/uECC.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/build.make esp-idf/micro-ecc/CMakeFiles/idf_component_micro-ecc.dir/micro-ecc/uECC.c.s
-.PHONY : micro-ecc/uECC.c.s
+uECC_verify_antifault.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/build.make esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/uECC_verify_antifault.c.s
+.PHONY : uECC_verify_antifault.c.s
 
 # Help Target
 help:
@@ -175,11 +160,10 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_micro-ecc_sections_info"
-	@echo "... idf_component_micro-ecc"
-	@echo "... micro-ecc/uECC.obj"
-	@echo "... micro-ecc/uECC.i"
-	@echo "... micro-ecc/uECC.s"
+	@echo "... __idf_micro-ecc"
+	@echo "... uECC_verify_antifault.obj"
+	@echo "... uECC_verify_antifault.i"
+	@echo "... uECC_verify_antifault.s"
 .PHONY : help
 
 

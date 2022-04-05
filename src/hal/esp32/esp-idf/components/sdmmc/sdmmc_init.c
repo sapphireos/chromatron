@@ -69,11 +69,17 @@ esp_err_t sdmmc_card_init(const sdmmc_host_t* config, sdmmc_card_t* card)
     ESP_LOGD(TAG, "%s: card type is %s", __func__,
             is_sdio ? "SDIO" : is_mmc ? "MMC" : "SD");
 
-    /* Read and decode the contents of CID register and assign RCA */
-    SDMMC_INIT_STEP(always, sdmmc_init_cid);
+    /* Read the contents of CID register*/
+    SDMMC_INIT_STEP(is_mem, sdmmc_init_cid);
+
+    /* Assign RCA */
+    SDMMC_INIT_STEP(!is_spi, sdmmc_init_rca);
 
     /* Read and decode the contents of CSD register */
     SDMMC_INIT_STEP(is_mem, sdmmc_init_csd);
+
+    /* Decode the contents of mmc CID register */
+    SDMMC_INIT_STEP(is_mmc && !is_spi, sdmmc_init_mmc_decode_cid);
 
     /* Switch the card from stand-by mode to data transfer mode (not needed if
      * SPI interface is used). This is needed to issue SET_BLOCKLEN and
@@ -111,7 +117,9 @@ esp_err_t sdmmc_card_init(const sdmmc_host_t* config, sdmmc_card_t* card)
 
     /* Sanity check after switching the bus mode and frequency */
     SDMMC_INIT_STEP(is_sdmem, sdmmc_check_scr);
-    /* TODO: add similar checks for eMMC and SDIO */
+    /* TODO: this is CMD line only, add data checks for eMMC */
+    SDMMC_INIT_STEP(is_mmc, sdmmc_init_mmc_check_csd);
+    /* TODO: add similar checks for SDIO */
 
     return ESP_OK;
 }

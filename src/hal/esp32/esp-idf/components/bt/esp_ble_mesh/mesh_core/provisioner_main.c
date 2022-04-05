@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <string.h>
 #include <errno.h>
@@ -32,9 +24,9 @@
 
 static struct bt_mesh_node *mesh_nodes[CONFIG_BLE_MESH_MAX_PROV_NODES];
 static bt_mesh_mutex_t provisioner_lock;
-static u16_t node_count;
+static uint16_t node_count;
 
-static int provisioner_remove_node(u16_t index, bool erase);
+static int provisioner_remove_node(uint16_t index, bool erase);
 
 static inline void bt_mesh_provisioner_mutex_new(void)
 {
@@ -76,7 +68,7 @@ int bt_mesh_provisioner_net_create(void)
 {
     const struct bt_mesh_prov *prov = NULL;
     struct bt_mesh_subnet *sub = NULL;
-    u8_t p_key[16] = {0};
+    uint8_t p_key[16] = {0};
 
     BT_DBG("%s", __func__);
 
@@ -161,8 +153,7 @@ done:
     return 0;
 }
 
-#if CONFIG_BLE_MESH_DEINIT
-int bt_mesh_provisioner_deinit(bool erase)
+void bt_mesh_provisioner_main_reset(bool erase)
 {
     int i;
 
@@ -192,19 +183,23 @@ int bt_mesh_provisioner_deinit(bool erase)
     }
 
     node_count = 0U;
+}
 
+#if CONFIG_BLE_MESH_DEINIT
+int bt_mesh_provisioner_deinit(bool erase)
+{
+    bt_mesh_provisioner_main_reset(erase);
     bt_mesh_provisioner_mutex_free();
-
     return 0;
 }
 #endif /* CONFIG_BLE_MESH_DEINIT */
 
-bool bt_mesh_provisioner_check_is_addr_dup(u16_t addr, u8_t elem_num, bool comp_with_own)
+bool bt_mesh_provisioner_check_is_addr_dup(uint16_t addr, uint8_t elem_num, bool comp_with_own)
 {
     const struct bt_mesh_comp *comp = NULL;
     struct bt_mesh_node *node = NULL;
-    u16_t primary_addr = BLE_MESH_ADDR_UNASSIGNED;
-    u16_t comp_addr = BLE_MESH_ADDR_UNASSIGNED;
+    uint16_t primary_addr = BLE_MESH_ADDR_UNASSIGNED;
+    uint16_t comp_addr = BLE_MESH_ADDR_UNASSIGNED;
     int i;
 
     if (comp_with_own) {
@@ -253,12 +248,12 @@ static void provisioner_node_count_dec(void)
     }
 }
 
-u16_t bt_mesh_provisioner_get_node_count(void)
+uint16_t bt_mesh_provisioner_get_node_count(void)
 {
     return node_count;
 }
 
-static int provisioner_store_node(struct bt_mesh_node *node, bool store, u16_t *index)
+static int provisioner_store_node(struct bt_mesh_node *node, bool store, uint16_t *index)
 {
     int i;
 
@@ -312,11 +307,11 @@ int bt_mesh_provisioner_restore_node_info(struct bt_mesh_node *node)
     return provisioner_store_node(node, false, NULL);
 }
 
-int bt_mesh_provisioner_provision(const bt_mesh_addr_t *addr, const u8_t uuid[16],
-                                  u16_t oob_info, u16_t unicast_addr,
-                                  u8_t element_num, u16_t net_idx,
-                                  u8_t flags, u32_t iv_index,
-                                  const u8_t dev_key[16], u16_t *index)
+int bt_mesh_provisioner_provision(const bt_mesh_addr_t *addr, const uint8_t uuid[16],
+                                  uint16_t oob_info, uint16_t unicast_addr,
+                                  uint8_t element_num, uint16_t net_idx,
+                                  uint8_t flags, uint32_t iv_index,
+                                  const uint8_t dev_key[16], uint16_t *index)
 {
     struct bt_mesh_node node = {0};
 
@@ -346,7 +341,7 @@ int bt_mesh_provisioner_provision(const bt_mesh_addr_t *addr, const u8_t uuid[16
     return provisioner_store_node(&node, true, index);
 }
 
-static int provisioner_remove_node(u16_t index, bool erase)
+static int provisioner_remove_node(uint16_t index, bool erase)
 {
     struct bt_mesh_node *node = NULL;
     int i;
@@ -393,7 +388,7 @@ static int provisioner_remove_node(u16_t index, bool erase)
     return 0;
 }
 
-static struct bt_mesh_node *provisioner_find_node_with_uuid(const u8_t uuid[16], u16_t *index)
+static struct bt_mesh_node *provisioner_find_node_with_uuid(const uint8_t uuid[16], uint16_t *index)
 {
     int i;
 
@@ -420,10 +415,10 @@ static struct bt_mesh_node *provisioner_find_node_with_uuid(const u8_t uuid[16],
     return NULL;
 }
 
-int bt_mesh_provisioner_remove_node(const u8_t uuid[16])
+int bt_mesh_provisioner_remove_node(const uint8_t uuid[16])
 {
     struct bt_mesh_node *node = NULL;
-    u16_t index = 0U;
+    uint16_t index = 0U;
     int i;
 
     if (uuid == NULL) {
@@ -445,7 +440,7 @@ int bt_mesh_provisioner_remove_node(const u8_t uuid[16])
     return 0;
 }
 
-static struct bt_mesh_node *provisioner_find_node_with_addr(u16_t addr, u16_t *index)
+static struct bt_mesh_node *provisioner_find_node_with_addr(uint16_t addr, uint16_t *index)
 {
     struct bt_mesh_node *node = NULL;
     int i;
@@ -475,7 +470,7 @@ static struct bt_mesh_node *provisioner_find_node_with_addr(u16_t addr, u16_t *i
     return NULL;
 }
 
-int bt_mesh_provisioner_restore_node_name(u16_t addr, const char *name)
+int bt_mesh_provisioner_restore_node_name(uint16_t addr, const char *name)
 {
     struct bt_mesh_node *node = NULL;
 
@@ -491,20 +486,20 @@ int bt_mesh_provisioner_restore_node_name(u16_t addr, const char *name)
     return 0;
 }
 
-struct bt_mesh_node *bt_mesh_provisioner_get_node_with_uuid(const u8_t uuid[16])
+struct bt_mesh_node *bt_mesh_provisioner_get_node_with_uuid(const uint8_t uuid[16])
 {
     return provisioner_find_node_with_uuid(uuid, NULL);
 }
 
-struct bt_mesh_node *bt_mesh_provisioner_get_node_with_addr(u16_t unicast_addr)
+struct bt_mesh_node *bt_mesh_provisioner_get_node_with_addr(uint16_t unicast_addr)
 {
     return provisioner_find_node_with_addr(unicast_addr, NULL);
 }
 
-int bt_mesh_provisioner_delete_node_with_uuid(const u8_t uuid[16])
+int bt_mesh_provisioner_delete_node_with_uuid(const uint8_t uuid[16])
 {
     struct bt_mesh_node *node = NULL;
-    u16_t index = 0U;
+    uint16_t index = 0U;
 
     node = provisioner_find_node_with_uuid(uuid, &index);
     if (!node) {
@@ -516,10 +511,10 @@ int bt_mesh_provisioner_delete_node_with_uuid(const u8_t uuid[16])
     return 0;
 }
 
-int bt_mesh_provisioner_delete_node_with_node_addr(u16_t unicast_addr)
+int bt_mesh_provisioner_delete_node_with_node_addr(uint16_t unicast_addr)
 {
     struct bt_mesh_node *node = NULL;
-    u16_t index = 0U;
+    uint16_t index = 0U;
 
     node = provisioner_find_node_with_addr(unicast_addr, &index);
     if (!node) {
@@ -573,7 +568,7 @@ static struct bt_mesh_node **provisioner_find_node_with_name(const char *name)
     return NULL;
 }
 
-int bt_mesh_provisioner_set_node_name(u16_t index, const char *name)
+int bt_mesh_provisioner_set_node_name(uint16_t index, const char *name)
 {
     if (index >= ARRAY_SIZE(mesh_nodes)) {
         BT_ERR("Invalid node index %d", index);
@@ -605,7 +600,7 @@ int bt_mesh_provisioner_set_node_name(u16_t index, const char *name)
     return 0;
 }
 
-const char *bt_mesh_provisioner_get_node_name(u16_t index)
+const char *bt_mesh_provisioner_get_node_name(uint16_t index)
 {
     if (index >= ARRAY_SIZE(mesh_nodes)) {
         BT_ERR("Invalid node index %d", index);
@@ -620,7 +615,7 @@ const char *bt_mesh_provisioner_get_node_name(u16_t index)
     return mesh_nodes[index]->name;
 }
 
-u16_t bt_mesh_provisioner_get_node_index(const char *name)
+uint16_t bt_mesh_provisioner_get_node_index(const char *name)
 {
     struct bt_mesh_node **node = NULL;
 
@@ -663,7 +658,7 @@ const struct bt_mesh_node **bt_mesh_provisioner_get_node_table_entry(void)
 
 #define COMP_DATA_PAGE_0_MIN_LEN    16
 
-static int store_node_comp_data(u16_t addr, const u8_t *data, u16_t length, bool store)
+static int store_node_comp_data(uint16_t addr, const uint8_t *data, uint16_t length, bool store)
 {
     struct bt_mesh_node *node = NULL;
 
@@ -699,19 +694,19 @@ static int store_node_comp_data(u16_t addr, const u8_t *data, u16_t length, bool
     return 0;
 }
 
-int bt_mesh_provisioner_store_node_comp_data(u16_t addr, const u8_t *data, u16_t length)
+int bt_mesh_provisioner_store_node_comp_data(uint16_t addr, const uint8_t *data, uint16_t length)
 {
     return store_node_comp_data(addr, data, length, true);
 }
 
-int bt_mesh_provisioner_restore_node_comp_data(u16_t addr, const u8_t *data, u16_t length)
+int bt_mesh_provisioner_restore_node_comp_data(uint16_t addr, const uint8_t *data, uint16_t length)
 {
     return store_node_comp_data(addr, data, length, false);
 }
 
 /* Provisioner DevKey, NetKey and AppKey related functions */
 
-const u8_t *bt_mesh_provisioner_net_key_get(u16_t net_idx)
+const uint8_t *bt_mesh_provisioner_net_key_get(uint16_t net_idx)
 {
     struct bt_mesh_subnet *sub = NULL;
     int i;
@@ -732,7 +727,7 @@ const u8_t *bt_mesh_provisioner_net_key_get(u16_t net_idx)
     return NULL;
 }
 
-struct bt_mesh_subnet *bt_mesh_provisioner_subnet_get(u16_t net_idx)
+struct bt_mesh_subnet *bt_mesh_provisioner_subnet_get(uint16_t net_idx)
 {
     struct bt_mesh_subnet *sub = NULL;
     int i;
@@ -753,7 +748,7 @@ struct bt_mesh_subnet *bt_mesh_provisioner_subnet_get(u16_t net_idx)
     return NULL;
 }
 
-bool bt_mesh_provisioner_check_msg_dst(u16_t dst)
+bool bt_mesh_provisioner_check_msg_dst(uint16_t dst)
 {
     struct bt_mesh_node *node = NULL;
     int i;
@@ -775,7 +770,7 @@ bool bt_mesh_provisioner_check_msg_dst(u16_t dst)
     return false;
 }
 
-const u8_t *bt_mesh_provisioner_dev_key_get(u16_t dst)
+const uint8_t *bt_mesh_provisioner_dev_key_get(uint16_t dst)
 {
     /* Device key is only used to encrypt configuration messages.
     *  Configuration model shall only be supported by the primary
@@ -801,7 +796,7 @@ const u8_t *bt_mesh_provisioner_dev_key_get(u16_t dst)
     return NULL;
 }
 
-struct bt_mesh_app_key *bt_mesh_provisioner_app_key_find(u16_t app_idx)
+struct bt_mesh_app_key *bt_mesh_provisioner_app_key_find(uint16_t app_idx)
 {
     struct bt_mesh_app_key *key = NULL;
     int i;
@@ -819,7 +814,7 @@ struct bt_mesh_app_key *bt_mesh_provisioner_app_key_find(u16_t app_idx)
     return NULL;
 }
 
-static int provisioner_check_app_key(const u8_t app_key[16], u16_t *app_idx)
+static int provisioner_check_app_key(const uint8_t app_key[16], uint16_t *app_idx)
 {
     struct bt_mesh_app_key *key = NULL;
     int i;
@@ -841,7 +836,7 @@ static int provisioner_check_app_key(const u8_t app_key[16], u16_t *app_idx)
     return 0;
 }
 
-static int provisioner_check_app_idx(u16_t app_idx, bool exist)
+static int provisioner_check_app_idx(uint16_t app_idx, bool exist)
 {
     struct bt_mesh_app_key *key = NULL;
     int i;
@@ -881,7 +876,7 @@ static int provisioner_check_app_key_full(void)
     return -ENOMEM;
 }
 
-static int provisioner_check_net_key(const u8_t net_key[16], u16_t *net_idx)
+static int provisioner_check_net_key(const uint8_t net_key[16], uint16_t *net_idx)
 {
     struct bt_mesh_subnet *sub = NULL;
     int i;
@@ -903,7 +898,7 @@ static int provisioner_check_net_key(const u8_t net_key[16], u16_t *net_idx)
     return 0;
 }
 
-static int provisioner_check_net_idx(u16_t net_idx, bool exist)
+static int provisioner_check_net_idx(uint16_t net_idx, bool exist)
 {
     struct bt_mesh_subnet *sub = NULL;
     int i;
@@ -943,12 +938,12 @@ static int provisioner_check_net_key_full(void)
     return -ENOMEM;
 }
 
-int bt_mesh_provisioner_local_app_key_add(const u8_t app_key[16],
-                                          u16_t net_idx, u16_t *app_idx)
+int bt_mesh_provisioner_local_app_key_add(const uint8_t app_key[16],
+                                          uint16_t net_idx, uint16_t *app_idx)
 {
     struct bt_mesh_app_keys *keys = NULL;
     struct bt_mesh_app_key *key = NULL;
-    u8_t p_key[16] = {0};
+    uint8_t p_key[16] = {0};
     int add = -1;
 
     if (bt_mesh.p_app_idx_next >= 0x1000) {
@@ -1040,8 +1035,8 @@ int bt_mesh_provisioner_local_app_key_add(const u8_t app_key[16],
     return 0;
 }
 
-int bt_mesh_provisioner_local_app_key_update(const u8_t app_key[16],
-                                             u16_t net_idx, u16_t app_idx)
+int bt_mesh_provisioner_local_app_key_update(const uint8_t app_key[16],
+                                             uint16_t net_idx, uint16_t app_idx)
 {
     struct bt_mesh_app_keys *keys = NULL;
     struct bt_mesh_app_key *key = NULL;
@@ -1084,7 +1079,7 @@ int bt_mesh_provisioner_local_app_key_update(const u8_t app_key[16],
     return 0;
 }
 
-const u8_t *bt_mesh_provisioner_local_app_key_get(u16_t net_idx, u16_t app_idx)
+const uint8_t *bt_mesh_provisioner_local_app_key_get(uint16_t net_idx, uint16_t app_idx)
 {
     struct bt_mesh_app_key *key = NULL;
     int i;
@@ -1144,7 +1139,7 @@ static void model_pub_clear(struct bt_mesh_model *model, bool store)
     return;
 }
 
-static void model_unbind(struct bt_mesh_model *model, u16_t app_idx, bool store)
+static void model_unbind(struct bt_mesh_model *model, uint16_t app_idx, bool store)
 {
     int i;
 
@@ -1166,7 +1161,7 @@ static void model_unbind(struct bt_mesh_model *model, u16_t app_idx, bool store)
 }
 
 struct unbind_data {
-    u16_t app_idx;
+    uint16_t app_idx;
     bool store;
 };
 
@@ -1178,7 +1173,7 @@ static void _model_unbind(struct bt_mesh_model *mod, struct bt_mesh_elem *elem,
     model_unbind(mod, data->app_idx, data->store);
 }
 
-int bt_mesh_provisioner_local_app_key_del(u16_t net_idx, u16_t app_idx, bool store)
+int bt_mesh_provisioner_local_app_key_del(uint16_t net_idx, uint16_t app_idx, bool store)
 {
     struct unbind_data data = { .app_idx = app_idx, .store = store };
     struct bt_mesh_app_key *key = NULL;
@@ -1217,10 +1212,10 @@ int bt_mesh_provisioner_local_app_key_del(u16_t net_idx, u16_t app_idx, bool sto
     return -ENODEV;
 }
 
-int bt_mesh_provisioner_local_net_key_add(const u8_t net_key[16], u16_t *net_idx)
+int bt_mesh_provisioner_local_net_key_add(const uint8_t net_key[16], uint16_t *net_idx)
 {
     struct bt_mesh_subnet *sub = NULL;
-    u8_t p_key[16] = {0};
+    uint8_t p_key[16] = {0};
     int add = -1;
 
     if (bt_mesh.p_net_idx_next >= 0x1000) {
@@ -1305,7 +1300,7 @@ int bt_mesh_provisioner_local_net_key_add(const u8_t net_key[16], u16_t *net_idx
     return 0;
 }
 
-int bt_mesh_provisioner_local_net_key_update(const u8_t net_key[16], u16_t net_idx)
+int bt_mesh_provisioner_local_net_key_update(const uint8_t net_key[16], uint16_t net_idx)
 {
     struct bt_mesh_subnet *sub = NULL;
     int err = 0;
@@ -1349,7 +1344,7 @@ int bt_mesh_provisioner_local_net_key_update(const u8_t net_key[16], u16_t net_i
     return 0;
 }
 
-const u8_t *bt_mesh_provisioner_local_net_key_get(u16_t net_idx)
+const uint8_t *bt_mesh_provisioner_local_net_key_get(uint16_t net_idx)
 {
     struct bt_mesh_subnet *sub = NULL;
     int i;
@@ -1374,7 +1369,7 @@ const u8_t *bt_mesh_provisioner_local_net_key_get(u16_t net_idx)
     return NULL;
 }
 
-int bt_mesh_provisioner_local_net_key_del(u16_t net_idx, bool store)
+int bt_mesh_provisioner_local_net_key_del(uint16_t net_idx, bool store)
 {
     struct bt_mesh_subnet *sub = NULL;
     int i, j;
@@ -1412,8 +1407,8 @@ int bt_mesh_provisioner_local_net_key_del(u16_t net_idx, bool store)
     return -ENODEV;
 }
 
-int bt_mesh_provisioner_bind_local_model_app_idx(u16_t elem_addr, u16_t mod_id,
-                                                 u16_t cid, u16_t app_idx)
+int bt_mesh_provisioner_bind_local_model_app_idx(uint16_t elem_addr, uint16_t mod_id,
+                                                 uint16_t cid, uint16_t app_idx)
 {
     struct bt_mesh_model *model = NULL;
     struct bt_mesh_elem *elem = NULL;
@@ -1558,11 +1553,11 @@ int bt_mesh_provisioner_store_node_info(struct bt_mesh_node *node)
 
 static struct heartbeat_recv {
     struct heartbeat_filter {
-        u8_t  type; /* Indicate if using src or dst or both to filter heartbeat messages */
-        u16_t src;  /* Heartbeat source address (unicast address) */
-        u16_t dst;  /* Heartbeat destination address (unicast address or group address) */
+        uint8_t  type; /* Indicate if using src or dst or both to filter heartbeat messages */
+        uint16_t src;  /* Heartbeat source address (unicast address) */
+        uint16_t dst;  /* Heartbeat destination address (unicast address or group address) */
     } filter[CONFIG_BLE_MESH_PROVISIONER_RECV_HB_FILTER_SIZE];
-    u8_t  type;     /* Heartbeat filter type */
+    uint8_t  type;     /* Heartbeat filter type */
     bt_mesh_heartbeat_recv_cb_t cb; /* Heartbeat receive callback */
 } hb_rx;
 
@@ -1577,7 +1572,7 @@ int bt_mesh_provisioner_recv_heartbeat(bt_mesh_heartbeat_recv_cb_t cb)
     return 0;
 }
 
-int bt_mesh_provisioner_set_heartbeat_filter_type(u8_t type)
+int bt_mesh_provisioner_set_heartbeat_filter_type(uint8_t type)
 {
     if (type > HEARTBEAT_FILTER_REJECTLIST) {
         BT_ERR("Invalid heartbeat filter type 0x%02x", type);
@@ -1595,7 +1590,7 @@ int bt_mesh_provisioner_set_heartbeat_filter_type(u8_t type)
     return 0;
 }
 
-static inline u8_t get_filter_addr_type(u16_t src, u16_t dst)
+static inline uint8_t get_filter_addr_type(uint16_t src, uint16_t dst)
 {
     if (BLE_MESH_ADDR_IS_UNICAST(src)) {
         if (BLE_MESH_ADDR_IS_UNICAST(dst) || BLE_MESH_ADDR_IS_GROUP(dst)) {
@@ -1608,7 +1603,7 @@ static inline u8_t get_filter_addr_type(u16_t src, u16_t dst)
     }
 }
 
-static int hb_filter_alloc(u16_t src, u16_t dst)
+static int hb_filter_alloc(uint16_t src, uint16_t dst)
 {
     int i;
 
@@ -1628,7 +1623,7 @@ static int hb_filter_alloc(u16_t src, u16_t dst)
     return -ENOMEM;
 }
 
-static int hb_filter_add(u16_t src, u16_t dst)
+static int hb_filter_add(uint16_t src, uint16_t dst)
 {
     int i;
 
@@ -1652,7 +1647,7 @@ static int hb_filter_add(u16_t src, u16_t dst)
     return hb_filter_alloc(src, dst);
 }
 
-static int hb_filter_remove(u16_t src, u16_t dst)
+static int hb_filter_remove(uint16_t src, uint16_t dst)
 {
     int i;
 
@@ -1675,7 +1670,7 @@ static int hb_filter_remove(u16_t src, u16_t dst)
     return 0;
 }
 
-int bt_mesh_provisioner_set_heartbeat_filter_info(u8_t op, u16_t src, u16_t dst)
+int bt_mesh_provisioner_set_heartbeat_filter_info(uint8_t op, uint16_t src, uint16_t dst)
 {
     switch (op) {
     case HEARTBEAT_FILTER_ADD:
@@ -1688,84 +1683,88 @@ int bt_mesh_provisioner_set_heartbeat_filter_info(u8_t op, u16_t src, u16_t dst)
     }
 }
 
-static bool filter_with_rejectlist(struct heartbeat_filter *filter,
-                                   u16_t hb_src, u16_t hb_dst)
+static bool filter_with_rejectlist(uint16_t hb_src, uint16_t hb_dst)
 {
-    switch (filter->type) {
-    case HEARTBEAT_FILTER_WITH_SRC:
-        if (hb_src == filter->src) {
-            return true;
+    int i;
+
+    for (i = 0; i < ARRAY_SIZE(hb_rx.filter); i++) {
+        struct heartbeat_filter *filter = &hb_rx.filter[i];
+
+        switch (filter->type) {
+        case HEARTBEAT_FILTER_WITH_SRC:
+            if (hb_src == filter->src) {
+                return true;
+            }
+            break;
+        case HEARTBEAT_FILTER_WITH_DST:
+            if (hb_dst == filter->dst) {
+                return true;
+            }
+            break;
+        case HEARTBEAT_FILTER_WITH_BOTH:
+            if (hb_src == filter->src && hb_dst == filter->dst) {
+                return true;
+            }
+            break;
+        default:
+            BT_DBG("Unknown filter addr type 0x%02x", filter->type);
+            break;
         }
-        break;
-    case HEARTBEAT_FILTER_WITH_DST:
-        if (hb_dst == filter->dst) {
-            return true;
-        }
-        break;
-    case HEARTBEAT_FILTER_WITH_BOTH:
-        if (hb_src == filter->src && hb_dst == filter->dst) {
-            return true;
-        }
-        break;
-    default:
-        BT_WARN("Unknown filter addr type 0x%02x", filter->type);
-        break;
     }
 
     return false;
 }
 
-static bool filter_with_acceptlist(struct heartbeat_filter *filter,
-                                   u16_t hb_src, u16_t hb_dst)
+static bool filter_with_acceptlist(uint16_t hb_src, uint16_t hb_dst)
 {
-    switch (filter->type) {
-    case HEARTBEAT_FILTER_WITH_SRC:
-        if (hb_src == filter->src) {
-            return false;
+    int i;
+
+    for (i = 0; i < ARRAY_SIZE(hb_rx.filter); i++) {
+        struct heartbeat_filter *filter = &hb_rx.filter[i];
+
+        switch (filter->type) {
+        case HEARTBEAT_FILTER_WITH_SRC:
+            if (hb_src == filter->src) {
+                return false;
+            }
+            break;
+        case HEARTBEAT_FILTER_WITH_DST:
+            if (hb_dst == filter->dst) {
+                return false;
+            }
+            break;
+        case HEARTBEAT_FILTER_WITH_BOTH:
+            if (hb_src == filter->src && hb_dst == filter->dst) {
+                return false;
+            }
+            break;
+        default:
+            BT_DBG("Unknown filter addr type 0x%02x", filter->type);
+            break;
         }
-        break;
-    case HEARTBEAT_FILTER_WITH_DST:
-        if (hb_dst == filter->dst) {
-            return false;
-        }
-        break;
-    case HEARTBEAT_FILTER_WITH_BOTH:
-        if (hb_src == filter->src && hb_dst == filter->dst) {
-            return false;
-        }
-        break;
-    default:
-        BT_WARN("Unknown filter addr type 0x%02x", filter->type);
-        return false;
     }
 
     return true;
 }
 
-void bt_mesh_provisioner_heartbeat(u16_t hb_src, u16_t hb_dst,
-                                   u8_t init_ttl, u8_t rx_ttl,
-                                   u8_t hops, u16_t feat, s8_t rssi)
+void bt_mesh_provisioner_heartbeat(uint16_t hb_src, uint16_t hb_dst,
+                                   uint8_t init_ttl, uint8_t rx_ttl,
+                                   uint8_t hops, uint16_t feat, int8_t rssi)
 {
-    int i;
-
     if (hb_rx.cb == NULL) {
         BT_DBG("Receiving heartbeat is not enabled");
         return;
     }
 
-    for (i = 0; i < ARRAY_SIZE(hb_rx.filter); i++) {
-        struct heartbeat_filter *filter = &hb_rx.filter[i];
-
-        if (hb_rx.type == HEARTBEAT_FILTER_REJECTLIST) {
-            if (filter_with_rejectlist(filter, hb_src, hb_dst)) {
-                BT_DBG("Filtered by rejectlist, src 0x%04x, dst 0x%04x", hb_src, hb_dst);
-                return;
-            }
-        } else {
-            if (filter_with_acceptlist(filter, hb_src, hb_dst)) {
-                BT_DBG("Filtered by acceptlist, src 0x%04x, dst 0x%04x", hb_src, hb_dst);
-                return;
-            }
+    if (hb_rx.type == HEARTBEAT_FILTER_REJECTLIST) {
+        if (filter_with_rejectlist(hb_src, hb_dst)) {
+            BT_INFO("Filtered by rejectlist, src 0x%04x, dst 0x%04x", hb_src, hb_dst);
+            return;
+        }
+    } else {
+        if (filter_with_acceptlist(hb_src, hb_dst)) {
+            BT_INFO("Filtered by acceptlist, src 0x%04x, dst 0x%04x", hb_src, hb_dst);
+            return;
         }
     }
 

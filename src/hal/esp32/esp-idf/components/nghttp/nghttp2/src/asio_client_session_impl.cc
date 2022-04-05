@@ -473,7 +473,7 @@ stream *session_impl::create_push_stream(int32_t stream_id) {
 }
 
 std::unique_ptr<stream> session_impl::create_stream() {
-  return make_unique<stream>(this);
+  return std::make_unique<stream>(this);
 }
 
 const request *session_impl::submit(boost::system::error_code &ec,
@@ -756,4 +756,4 @@ void session_impl::read_timeout(const boost::posix_time::time_duration &t) {
 
 } // namespace client
 } // namespace asio_http2
-} // nghttp2
+} // namespace nghttp2

@@ -157,34 +157,73 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump_sections_info.dir/rule
-.PHONY : esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump_sections_info.dir/rule
+esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/rule
+.PHONY : esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/rule
 
 # Convenience name for target.
-idf_component_espcoredump_sections_info: esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump_sections_info.dir/rule
+__idf_espcoredump: esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/rule
 
-.PHONY : idf_component_espcoredump_sections_info
+.PHONY : __idf_espcoredump
 
 # fast build rule for target.
-idf_component_espcoredump_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump_sections_info.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump_sections_info.dir/build
-.PHONY : idf_component_espcoredump_sections_info/fast
+__idf_espcoredump/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build
+.PHONY : __idf_espcoredump/fast
 
-# Convenience name for target.
-esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/rule
-.PHONY : esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/rule
+src/core_dump_binary.obj: src/core_dump_binary.c.obj
 
-# Convenience name for target.
-idf_component_espcoredump: esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/rule
+.PHONY : src/core_dump_binary.obj
 
-.PHONY : idf_component_espcoredump
+# target to build an object file
+src/core_dump_binary.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_binary.c.obj
+.PHONY : src/core_dump_binary.c.obj
 
-# fast build rule for target.
-idf_component_espcoredump/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build
-.PHONY : idf_component_espcoredump/fast
+src/core_dump_binary.i: src/core_dump_binary.c.i
+
+.PHONY : src/core_dump_binary.i
+
+# target to preprocess a source file
+src/core_dump_binary.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_binary.c.i
+.PHONY : src/core_dump_binary.c.i
+
+src/core_dump_binary.s: src/core_dump_binary.c.s
+
+.PHONY : src/core_dump_binary.s
+
+# target to generate assembly for a file
+src/core_dump_binary.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_binary.c.s
+.PHONY : src/core_dump_binary.c.s
+
+src/core_dump_checksum.obj: src/core_dump_checksum.c.obj
+
+.PHONY : src/core_dump_checksum.obj
+
+# target to build an object file
+src/core_dump_checksum.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_checksum.c.obj
+.PHONY : src/core_dump_checksum.c.obj
+
+src/core_dump_checksum.i: src/core_dump_checksum.c.i
+
+.PHONY : src/core_dump_checksum.i
+
+# target to preprocess a source file
+src/core_dump_checksum.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_checksum.c.i
+.PHONY : src/core_dump_checksum.c.i
+
+src/core_dump_checksum.s: src/core_dump_checksum.c.s
+
+.PHONY : src/core_dump_checksum.s
+
+# target to generate assembly for a file
+src/core_dump_checksum.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_checksum.c.s
+.PHONY : src/core_dump_checksum.c.s
 
 src/core_dump_common.obj: src/core_dump_common.c.obj
 
@@ -192,7 +231,7 @@ src/core_dump_common.obj: src/core_dump_common.c.obj
 
 # target to build an object file
 src/core_dump_common.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_common.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_common.c.obj
 .PHONY : src/core_dump_common.c.obj
 
 src/core_dump_common.i: src/core_dump_common.c.i
@@ -201,7 +240,7 @@ src/core_dump_common.i: src/core_dump_common.c.i
 
 # target to preprocess a source file
 src/core_dump_common.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_common.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_common.c.i
 .PHONY : src/core_dump_common.c.i
 
 src/core_dump_common.s: src/core_dump_common.c.s
@@ -210,8 +249,35 @@ src/core_dump_common.s: src/core_dump_common.c.s
 
 # target to generate assembly for a file
 src/core_dump_common.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_common.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_common.c.s
 .PHONY : src/core_dump_common.c.s
+
+src/core_dump_elf.obj: src/core_dump_elf.c.obj
+
+.PHONY : src/core_dump_elf.obj
+
+# target to build an object file
+src/core_dump_elf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_elf.c.obj
+.PHONY : src/core_dump_elf.c.obj
+
+src/core_dump_elf.i: src/core_dump_elf.c.i
+
+.PHONY : src/core_dump_elf.i
+
+# target to preprocess a source file
+src/core_dump_elf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_elf.c.i
+.PHONY : src/core_dump_elf.c.i
+
+src/core_dump_elf.s: src/core_dump_elf.c.s
+
+.PHONY : src/core_dump_elf.s
+
+# target to generate assembly for a file
+src/core_dump_elf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_elf.c.s
+.PHONY : src/core_dump_elf.c.s
 
 src/core_dump_flash.obj: src/core_dump_flash.c.obj
 
@@ -219,7 +285,7 @@ src/core_dump_flash.obj: src/core_dump_flash.c.obj
 
 # target to build an object file
 src/core_dump_flash.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_flash.c.obj
 .PHONY : src/core_dump_flash.c.obj
 
 src/core_dump_flash.i: src/core_dump_flash.c.i
@@ -228,7 +294,7 @@ src/core_dump_flash.i: src/core_dump_flash.c.i
 
 # target to preprocess a source file
 src/core_dump_flash.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_flash.c.i
 .PHONY : src/core_dump_flash.c.i
 
 src/core_dump_flash.s: src/core_dump_flash.c.s
@@ -237,35 +303,8 @@ src/core_dump_flash.s: src/core_dump_flash.c.s
 
 # target to generate assembly for a file
 src/core_dump_flash.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_flash.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_flash.c.s
 .PHONY : src/core_dump_flash.c.s
-
-src/core_dump_port.obj: src/core_dump_port.c.obj
-
-.PHONY : src/core_dump_port.obj
-
-# target to build an object file
-src/core_dump_port.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.obj
-.PHONY : src/core_dump_port.c.obj
-
-src/core_dump_port.i: src/core_dump_port.c.i
-
-.PHONY : src/core_dump_port.i
-
-# target to preprocess a source file
-src/core_dump_port.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.i
-.PHONY : src/core_dump_port.c.i
-
-src/core_dump_port.s: src/core_dump_port.c.s
-
-.PHONY : src/core_dump_port.s
-
-# target to generate assembly for a file
-src/core_dump_port.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_port.c.s
-.PHONY : src/core_dump_port.c.s
 
 src/core_dump_uart.obj: src/core_dump_uart.c.obj
 
@@ -273,7 +312,7 @@ src/core_dump_uart.obj: src/core_dump_uart.c.obj
 
 # target to build an object file
 src/core_dump_uart.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_uart.c.obj
 .PHONY : src/core_dump_uart.c.obj
 
 src/core_dump_uart.i: src/core_dump_uart.c.i
@@ -282,7 +321,7 @@ src/core_dump_uart.i: src/core_dump_uart.c.i
 
 # target to preprocess a source file
 src/core_dump_uart.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_uart.c.i
 .PHONY : src/core_dump_uart.c.i
 
 src/core_dump_uart.s: src/core_dump_uart.c.s
@@ -291,8 +330,35 @@ src/core_dump_uart.s: src/core_dump_uart.c.s
 
 # target to generate assembly for a file
 src/core_dump_uart.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/idf_component_espcoredump.dir/src/core_dump_uart.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/core_dump_uart.c.s
 .PHONY : src/core_dump_uart.c.s
+
+src/port/xtensa/core_dump_port.obj: src/port/xtensa/core_dump_port.c.obj
+
+.PHONY : src/port/xtensa/core_dump_port.obj
+
+# target to build an object file
+src/port/xtensa/core_dump_port.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/port/xtensa/core_dump_port.c.obj
+.PHONY : src/port/xtensa/core_dump_port.c.obj
+
+src/port/xtensa/core_dump_port.i: src/port/xtensa/core_dump_port.c.i
+
+.PHONY : src/port/xtensa/core_dump_port.i
+
+# target to preprocess a source file
+src/port/xtensa/core_dump_port.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/port/xtensa/core_dump_port.c.i
+.PHONY : src/port/xtensa/core_dump_port.c.i
+
+src/port/xtensa/core_dump_port.s: src/port/xtensa/core_dump_port.c.s
+
+.PHONY : src/port/xtensa/core_dump_port.s
+
+# target to generate assembly for a file
+src/port/xtensa/core_dump_port.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/build.make esp-idf/espcoredump/CMakeFiles/__idf_espcoredump.dir/src/port/xtensa/core_dump_port.c.s
+.PHONY : src/port/xtensa/core_dump_port.c.s
 
 # Help Target
 help:
@@ -306,20 +372,28 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_espcoredump_sections_info"
-	@echo "... idf_component_espcoredump"
+	@echo "... __idf_espcoredump"
+	@echo "... src/core_dump_binary.obj"
+	@echo "... src/core_dump_binary.i"
+	@echo "... src/core_dump_binary.s"
+	@echo "... src/core_dump_checksum.obj"
+	@echo "... src/core_dump_checksum.i"
+	@echo "... src/core_dump_checksum.s"
 	@echo "... src/core_dump_common.obj"
 	@echo "... src/core_dump_common.i"
 	@echo "... src/core_dump_common.s"
+	@echo "... src/core_dump_elf.obj"
+	@echo "... src/core_dump_elf.i"
+	@echo "... src/core_dump_elf.s"
 	@echo "... src/core_dump_flash.obj"
 	@echo "... src/core_dump_flash.i"
 	@echo "... src/core_dump_flash.s"
-	@echo "... src/core_dump_port.obj"
-	@echo "... src/core_dump_port.i"
-	@echo "... src/core_dump_port.s"
 	@echo "... src/core_dump_uart.obj"
 	@echo "... src/core_dump_uart.i"
 	@echo "... src/core_dump_uart.s"
+	@echo "... src/port/xtensa/core_dump_port.obj"
+	@echo "... src/port/xtensa/core_dump_port.i"
+	@echo "... src/port/xtensa/core_dump_port.s"
 .PHONY : help
 
 

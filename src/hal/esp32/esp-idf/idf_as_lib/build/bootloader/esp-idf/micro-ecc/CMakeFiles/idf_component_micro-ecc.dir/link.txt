@@ -1,2 +1,0 @@
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc libmicro-ecc.a  CMakeFiles/idf_component_micro-ecc.dir/micro-ecc/uECC.c.obj
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-97-gc752ad5-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib libmicro-ecc.a

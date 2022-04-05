@@ -26,7 +26,7 @@
 #define UTIL_TEST_H
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif // HAVE_CONFIG_H
 
 namespace shrpx {
@@ -67,6 +67,7 @@ void test_util_format_hex(void);
 void test_util_is_hex_string(void);
 void test_util_decode_hex(void);
 void test_util_extract_host(void);
+void test_util_split_hostport(void);
 
 } // namespace shrpx
 

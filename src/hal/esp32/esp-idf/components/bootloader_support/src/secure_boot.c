@@ -1,227 +1,189 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-#include <string.h>
-
-#include "esp_attr.h"
-#include "esp_types.h"
-#include "esp_log.h"
-
-#include "rom/cache.h"
-#include "rom/ets_sys.h"
-#include "rom/secure_boot.h"
-
-#include "soc/dport_reg.h"
-#include "soc/io_mux_reg.h"
-#include "soc/efuse_reg.h"
-#include "soc/rtc_cntl_reg.h"
-
-#include "sdkconfig.h"
-
-#include "bootloader_flash.h"
-#include "bootloader_random.h"
-#include "esp_image_format.h"
-#include "esp_secure_boot.h"
-#include "esp_flash_encrypt.h"
-#include "esp_efuse.h"
-
-/* The following API implementations are used only when called
- * from the bootloader code.
- */
-
-#ifdef BOOTLOADER_BUILD
-
-static const char* TAG = "secure_boot";
-
-/**
- *  @function :     secure_boot_generate
- *  @description:   generate boot digest (aka "abstract") & iv
+/*
+ * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
  *
- *  @inputs:        image_len - length of image to calculate digest for
+ * SPDX-License-Identifier: Apache-2.0
  */
-static bool secure_boot_generate(uint32_t image_len){
-    esp_err_t err;
-    esp_secure_boot_iv_digest_t digest;
-    const uint32_t *image;
 
-    /* hardware secure boot engine only takes full blocks, so round up the
-       image length. The additional data should all be 0xFF (or the appended SHA, if it falls in the same block).
-    */
-    if (image_len % sizeof(digest.iv) != 0) {
-        image_len = (image_len / sizeof(digest.iv) + 1) * sizeof(digest.iv);
-    }
-    ets_secure_boot_start();
-    ets_secure_boot_rd_iv((uint32_t *)digest.iv);
-    ets_secure_boot_hash(NULL);
-    /* iv stored in sec 0 */
-    err = bootloader_flash_erase_sector(0);
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(TAG, "SPI erase failed: 0x%x", err);
-        return false;
-    }
+#include <strings.h>
+#include "sdkconfig.h"
+#include "esp_log.h"
+#include "esp_efuse.h"
+#include "esp_efuse_table.h"
+#include "esp_secure_boot.h"
 
-    /* generate digest from image contents */
-    image = bootloader_mmap(ESP_BOOTLOADER_OFFSET, image_len);
-    if (!image) {
-        ESP_LOGE(TAG, "bootloader_mmap(0x1000, 0x%x) failed", image_len);
-        return false;
-    }
-    for (int i = 0; i < image_len; i+= sizeof(digest.iv)) {
-        ets_secure_boot_hash(&image[i/sizeof(uint32_t)]);
-    }
-    bootloader_munmap(image);
+#ifndef BOOTLOADER_BUILD
+static __attribute__((unused)) const char *TAG = "secure_boot";
 
-    ets_secure_boot_obtain();
-    ets_secure_boot_rd_abstract((uint32_t *)digest.digest);
-    ets_secure_boot_finish();
-
-    ESP_LOGD(TAG, "write iv+digest to flash");
-    err = bootloader_flash_write(FLASH_OFFS_SECURE_BOOT_IV_DIGEST, &digest,
-                           sizeof(digest), esp_flash_encryption_enabled());
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "SPI write failed: 0x%x", err);
-        return false;
+#ifdef CONFIG_SECURE_BOOT
+static void efuse_batch_write_begin(bool *need_fix)
+{
+    if (*need_fix == false) {
+        esp_efuse_batch_write_begin();
     }
-    Cache_Read_Enable(0);
-    return true;
+    *need_fix = true;
 }
 
-/* Burn values written to the efuse write registers */
-static inline void burn_efuses()
+static void update_efuses(bool need_fix, esp_err_t err)
 {
-    esp_efuse_burn_new_values();
+    if (need_fix) {
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Can not be fixed (err=0x%x).", err);
+            esp_efuse_batch_write_cancel();
+        } else {
+            err = esp_efuse_batch_write_commit();
+            if (err != ESP_OK) {
+                ESP_LOGE(TAG, "Error programming eFuses (err=0x%x)", err);
+                return;
+            } else {
+                ESP_LOGI(TAG, "Fixed");
+            }
+        }
+    }
 }
-
-esp_err_t esp_secure_boot_generate_digest(void)
+#ifdef CONFIG_SECURE_BOOT_V1_ENABLED
+static esp_err_t secure_boot_v1_check(bool *need_fix)
 {
-    esp_err_t err;
-    if (esp_secure_boot_enabled()) {
-        ESP_LOGI(TAG, "bootloader secure boot is already enabled."
-                      " No need to generate digest. continuing..");
-        return ESP_OK;
+    esp_err_t err = ESP_OK;
+    esp_efuse_block_t block = EFUSE_BLK_SECURE_BOOT;
+    if (!esp_efuse_get_key_dis_read(block)) {
+        efuse_batch_write_begin(need_fix);
+        ESP_LOGW(TAG, "eFuse BLOCK%d should not be readable. Fixing..", block);
+        err = esp_efuse_set_key_dis_read(block);
     }
-
-    uint32_t coding_scheme = REG_GET_FIELD(EFUSE_BLK0_RDATA6_REG, EFUSE_CODING_SCHEME);
-    if (coding_scheme != EFUSE_CODING_SCHEME_VAL_NONE && coding_scheme != EFUSE_CODING_SCHEME_VAL_34) {
-        ESP_LOGE(TAG, "Unknown/unsupported CODING_SCHEME value 0x%x", coding_scheme);
-        return ESP_ERR_NOT_SUPPORTED;
+    if (!esp_efuse_get_key_dis_write(block)) {
+        efuse_batch_write_begin(need_fix);
+        ESP_LOGW(TAG, "eFuse BLOCK%d should not be writeable. Fixing..", block);
+        if (err == ESP_OK) {
+            err = esp_efuse_set_key_dis_write(block);
+        }
     }
-
-    /* Verify the bootloader */
-    esp_image_metadata_t bootloader_data = { 0 };
-    err = esp_image_verify_bootloader_data(&bootloader_data);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "bootloader image appears invalid! error %d", err);
-        return err;
-    }
-
-    /* Generate secure boot key and keep in EFUSE */
-    uint32_t dis_reg = REG_READ(EFUSE_BLK0_RDATA0_REG);
-    bool efuse_key_read_protected = dis_reg & EFUSE_RD_DIS_BLK2;
-    bool efuse_key_write_protected = dis_reg & EFUSE_WR_DIS_BLK2;
-    if (efuse_key_read_protected == false
-        && efuse_key_write_protected == false
-        && REG_READ(EFUSE_BLK2_RDATA0_REG) == 0
-        && REG_READ(EFUSE_BLK2_RDATA1_REG) == 0
-        && REG_READ(EFUSE_BLK2_RDATA2_REG) == 0
-        && REG_READ(EFUSE_BLK2_RDATA3_REG) == 0
-        && REG_READ(EFUSE_BLK2_RDATA4_REG) == 0
-        && REG_READ(EFUSE_BLK2_RDATA5_REG) == 0
-        && REG_READ(EFUSE_BLK2_RDATA6_REG) == 0
-        && REG_READ(EFUSE_BLK2_RDATA7_REG) == 0) {
-        ESP_LOGI(TAG, "Generating new secure boot key...");
-        esp_efuse_write_random_key(EFUSE_BLK2_WDATA0_REG);
-        burn_efuses();
-    } else {
-        ESP_LOGW(TAG, "Using pre-loaded secure boot key in EFUSE block 2");
-    }
-
-    /* Generate secure boot digest using programmed key in EFUSE */
-    ESP_LOGI(TAG, "Generating secure boot digest...");
-    uint32_t image_len = bootloader_data.image_len;
-    if(bootloader_data.image.hash_appended) {
-        /* Secure boot digest doesn't cover the hash */
-        image_len -= ESP_IMAGE_HASH_LEN;
-    }
-    if (false == secure_boot_generate(image_len)){
-        ESP_LOGE(TAG, "secure boot generation failed");
-        return ESP_FAIL;
-    }
-    ESP_LOGI(TAG, "Digest generation complete.");
-
-    return ESP_OK;
+    return err;
 }
-
-esp_err_t esp_secure_boot_permanently_enable(void)
+#elif SOC_EFUSE_SECURE_BOOT_KEY_DIGESTS == 1 && CONFIG_SECURE_BOOT_V2_ENABLED
+static esp_err_t secure_boot_v2_check(bool *need_fix)
 {
-    if (esp_secure_boot_enabled()) {
-        ESP_LOGI(TAG, "bootloader secure boot is already enabled, continuing..");
-        return ESP_OK;
+    esp_err_t err = ESP_OK;
+    esp_efuse_block_t block = EFUSE_BLK_SECURE_BOOT;
+    if (esp_efuse_get_key_dis_read(block)) {
+        ESP_LOGE(TAG, "eFuse BLOCK%d should be readable", block);
+        abort();
+        // This code is not achievable because the bootloader will not boot an app in this state.
+        // But we keep it here just in case (any unexpected behavior).
     }
-
-    uint32_t dis_reg = REG_READ(EFUSE_BLK0_RDATA0_REG);
-    bool efuse_key_read_protected = dis_reg & EFUSE_RD_DIS_BLK2;
-    bool efuse_key_write_protected = dis_reg & EFUSE_WR_DIS_BLK2;
-    if (efuse_key_read_protected == false
-        && efuse_key_write_protected == false) {
-        ESP_LOGI(TAG, "Read & write protecting new key...");
-        REG_WRITE(EFUSE_BLK0_WDATA0_REG, EFUSE_WR_DIS_BLK2 | EFUSE_RD_DIS_BLK2);
-        burn_efuses();
-        efuse_key_read_protected = true;
-        efuse_key_write_protected = true;
+    if (esp_efuse_block_is_empty(block)) {
+        ESP_LOGE(TAG, "eFuse BLOCK%d should not be empty", block);
+        abort();
+        // This code is not achievable because the bootloader will not boot an app in this state.
+        // But we keep it here just in case (any unexpected behavior).
     }
-
-    if (!efuse_key_read_protected) {
-        ESP_LOGE(TAG, "Pre-loaded key is not read protected. Refusing to blow secure boot efuse.");
-        return ESP_ERR_INVALID_STATE;
+    if (!esp_efuse_get_key_dis_write(block)) {
+        efuse_batch_write_begin(need_fix);
+        ESP_LOGW(TAG, "eFuse BLOCK%d should not be writeable. Fixing..", block);
+        err = esp_efuse_set_key_dis_write(block);
     }
-    if (!efuse_key_write_protected) {
-        ESP_LOGE(TAG, "Pre-loaded key is not write protected. Refusing to blow secure boot efuse.");
-        return ESP_ERR_INVALID_STATE;
-    }
+    return err;
+}
+#elif SOC_EFUSE_SECURE_BOOT_KEY_DIGESTS > 1 && CONFIG_SECURE_BOOT_V2_ENABLED
+static esp_err_t secure_boot_v2_check(bool *need_fix)
+{
+    esp_err_t err = ESP_OK;
+    esp_efuse_purpose_t purpose[SOC_EFUSE_SECURE_BOOT_KEY_DIGESTS] = {
+        ESP_EFUSE_KEY_PURPOSE_SECURE_BOOT_DIGEST0,
+        ESP_EFUSE_KEY_PURPOSE_SECURE_BOOT_DIGEST1,
+        ESP_EFUSE_KEY_PURPOSE_SECURE_BOOT_DIGEST2,
+    };
 
-    ESP_LOGI(TAG, "blowing secure boot efuse...");
-    ESP_LOGD(TAG, "before updating, EFUSE_BLK0_RDATA6 %x", REG_READ(EFUSE_BLK0_RDATA6_REG));
-
-    uint32_t new_wdata6 = EFUSE_RD_ABS_DONE_0;
-
-#ifndef CONFIG_SECURE_BOOT_ALLOW_JTAG
-    ESP_LOGI(TAG, "Disable JTAG...");
-    new_wdata6 |= EFUSE_RD_DISABLE_JTAG;
+    for (unsigned i = 0; i < SOC_EFUSE_SECURE_BOOT_KEY_DIGESTS; ++i) {
+        esp_efuse_block_t block;
+        if (esp_efuse_find_purpose(purpose[i], &block)) {
+            if (!esp_efuse_get_digest_revoke(i)) {
+                if (esp_efuse_get_key_dis_read(block)) {
+                    ESP_LOGE(TAG, "eFuse BLOCK%d should be readable", block);
+                    abort();
+                    // This state is not expected unless the eFuses have been manually misconfigured.
+                }
+                if (esp_efuse_block_is_empty(block)) {
+                    ESP_LOGE(TAG, "eFuse BLOCK%d should not be empty", block);
+                    abort();
+                    // This state is not expected unless the eFuses have been manually misconfigured.
+                }
+                if (!esp_efuse_get_key_dis_write(block)) {
+                    efuse_batch_write_begin(need_fix);
+                    ESP_LOGW(TAG, "eFuse BLOCK%d should not be writeable. Fixing..", block);
+                    if (err == ESP_OK) {
+                        err = esp_efuse_set_key_dis_write(block);
+                    }
+                }
+            }
+            if (!esp_efuse_get_keypurpose_dis_write(block)) {
+                efuse_batch_write_begin(need_fix);
+                ESP_LOGW(TAG, "The KEY_PURPOSE_SECURE_BOOT_DIGEST%d should be write-protected. Fixing..", block);
+                if (err == ESP_OK) {
+                    err = esp_efuse_set_keypurpose_dis_write(block);
+                }
+            }
+        } else {
+            if (!esp_efuse_get_digest_revoke(i)) {
+#ifndef CONFIG_SECURE_BOOT_ALLOW_UNUSED_DIGEST_SLOTS
+                efuse_batch_write_begin(need_fix);
+                ESP_LOGW(TAG, "Unused SECURE_BOOT_DIGEST%d should be revoked. Fixing..", i);
+                if (err == ESP_OK) {
+                    err = esp_efuse_set_digest_revoke(i);
+                }
 #else
-    ESP_LOGW(TAG, "Not disabling JTAG - SECURITY COMPROMISED");
+                ESP_LOGW(TAG, "Unused SECURE_BOOT_DIGEST%d should be revoked. It will not be fixed due to the config", i);
 #endif
-
-#ifndef CONFIG_SECURE_BOOT_ALLOW_ROM_BASIC
-    ESP_LOGI(TAG, "Disable ROM BASIC interpreter fallback...");
-    new_wdata6 |= EFUSE_RD_CONSOLE_DEBUG_DISABLE;
-#else
-    ESP_LOGW(TAG, "Not disabling ROM BASIC fallback - SECURITY COMPROMISED");
-#endif
-
-    REG_WRITE(EFUSE_BLK0_WDATA6_REG, new_wdata6);
-    burn_efuses();
-    uint32_t after = REG_READ(EFUSE_BLK0_RDATA6_REG);
-    ESP_LOGD(TAG, "after updating, EFUSE_BLK0_RDATA6 %x", after);
-    if (after & EFUSE_RD_ABS_DONE_0) {
-        ESP_LOGI(TAG, "secure boot is now enabled for bootloader image");
-        return ESP_OK;
-    } else {
-        ESP_LOGE(TAG, "secure boot not enabled for bootloader image, EFUSE_RD_ABS_DONE_0 is probably write protected!");
-        return ESP_ERR_INVALID_STATE;
+            }
+        }
     }
+    return err;
 }
+#endif
+#endif // CONFIG_SECURE_BOOT
 
-#endif // #ifdef BOOTLOADER_BUILD
+#if CONFIG_SECURE_SIGNED_APPS_RSA_SCHEME && CONFIG_SECURE_SIGNED_ON_UPDATE_NO_SECURE_BOOT
+
+static void rsa_check_signature_on_update_check(void)
+{
+    // We rely on the keys used to sign this app to verify the next app on OTA, so make sure there is at
+    // least one to avoid a stuck firmware
+    esp_image_sig_public_key_digests_t digests = { 0 };
+
+    esp_err_t err = esp_secure_boot_get_signature_blocks_for_running_app(false, &digests);
+
+    if (err != ESP_OK || digests.num_digests == 0) {
+        ESP_LOGE(TAG, "This app is not signed, but check signature on update is enabled in config. It won't be possible to verify any update.");
+        abort();
+    }
+#if CONFIG_SECURE_SIGNED_ON_UPDATE_NO_SECURE_BOOT && SECURE_BOOT_NUM_BLOCKS > 1
+    if (digests.num_digests > 1) {
+        ESP_LOGW(TAG, "App has %d signatures. Only the first position of signature blocks is used to verify any update", digests.num_digests);
+    }
+#endif
+}
+#endif // CONFIG_SECURE_SIGNED_APPS_RSA_SCHEME && CONFIG_SECURE_SIGNED_ON_UPDATE_NO_SECURE_BOOT
+
+void esp_secure_boot_init_checks(void)
+{
+#ifdef CONFIG_SECURE_BOOT
+
+    if (esp_secure_boot_enabled()) {
+        bool need_fix = false;
+#ifdef CONFIG_SECURE_BOOT_V1_ENABLED
+        esp_err_t err = secure_boot_v1_check(&need_fix);
+#else
+        esp_err_t err = secure_boot_v2_check(&need_fix);
+#endif
+        update_efuses(need_fix, err);
+    } else {
+        ESP_LOGE(TAG, "Mismatch in secure boot settings: the app config is enabled but eFuse not");
+    }
+#endif // CONFIG_SECURE_BOOT
+
+
+#if CONFIG_SECURE_SIGNED_APPS_RSA_SCHEME && CONFIG_SECURE_SIGNED_ON_UPDATE_NO_SECURE_BOOT
+    rsa_check_signature_on_update_check();
+#endif // CONFIG_SECURE_SIGNED_APPS_RSA_SCHEME && CONFIG_SECURE_SIGNED_ON_UPDATE_NO_SECURE_BOOT
+
+}
+#endif // not BOOTLOADER_BUILD
