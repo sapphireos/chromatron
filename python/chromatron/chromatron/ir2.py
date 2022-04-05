@@ -1447,8 +1447,11 @@ class irBlock(IR):
 
         new_code = []
 
+        print(f"\n**************************\nGVN block: {self.name}")
+
         for ir in self.code:
             print(f'IR: {ir}')
+            original_ir = ir # record original, just for debug printing
 
             if isinstance(ir, irLoadConst):
                 # there is no replacement step for a load const
@@ -1487,6 +1490,7 @@ class irBlock(IR):
                 # replace inputs:
                 if ir.value in values:
                     replacement = values[ir.value]
+
                     if ir.value != replacement:
                         print(f"replace assign {ir.target} = {ir.value} with {values[ir.value]}")
 
@@ -1517,8 +1521,10 @@ class irBlock(IR):
                     values[ir.value] = ir.target
 
             elif isinstance(ir, irReturn):
+                # replace inputs:
                 if ir.ret_var in values:
                     replacement = values[ir.ret_var]
+
                     if ir.ret_var != replacement:
                         print(f"replace return {ir.ret_var} with {replacement}")
                         ir.ret_var = replacement
@@ -1567,8 +1573,8 @@ class irBlock(IR):
                 if expr in values:                
                     values[ir.target] = expr
 
-                    # remove this instruction
-                    print(f"remove binop {ir.target} = {ir.left} {ir.op} {ir.right}")
+                    # remove this instruction    
+                    print(f"remove binop {original_ir.target} = {original_ir.left} {original_ir.op} {original_ir.right}")
 
                     changed = True
 
@@ -1596,81 +1602,116 @@ class irBlock(IR):
 
 
             elif isinstance(ir, irBranch):
-                value = ir.value
+                # the paper doesn't cover branch instructions
+                # but it is pretty easy to extrapolate to the 2-way branch
 
-                if value in values:
-                    replacement = registers[str(values[value])]
+                # replace inputs:
+                if ir.value in values:
+                    replacement = values[ir.value]    
 
                     if ir.value != replacement:
+                        print(f"replace branch value {ir.value} to {replacement}")
+
                         ir.value = replacement
                         changed = True
 
-                if ir.value.const:
-                    changed = True
 
-                    # replace branch with jump
-                    if ir.value.value == 0:
-                        print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
-                        ir = irJump(ir.false_label, lineno=ir.lineno)
-                        ir.block = self
+                # # simplify!
+                # if ir.value.const:
+                #     changed = True
 
-                    else:
-                        print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
-                        ir = irJump(ir.true_label, lineno=ir.lineno)
-                        ir.block = self
+                #     # replace branch with jump
+                #     if ir.value.value == 0:
+                #         print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
+                #         ir = irJump(ir.false_label, lineno=ir.lineno)
+                #         ir.block = self
 
-            elif isinstance(ir, irPhi):
-                # search predecessors for incoming merges on all edges
-                found = []
-                for d in ir.merges:
-                    for p in self.predecessors:
-                        v = p.lookup_var(d)            
-                        if v.ssa_name == d.ssa_name:    
-                            found.append(v)
+                #     else:
+                #         print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
+                #         ir = irJump(ir.true_label, lineno=ir.lineno)
+                #         ir.block = self
 
-                # remove merges that were not found in the predecessor search
-                # these would be merges coming from blocks whose paths we have
-                # optimized out.
-                filtered_merges = [d for d in ir.merges if d in found]
 
-                if filtered_merges != ir.merges:
-                    changed = True
+                # we skip the expression/table update portion, because the branch
+                # doesn't modify data, only control flow.
 
-                ir.merges = filtered_merges
 
-                target = ir.target
+                # value = ir.value
 
-                if len(ir.merges) == 0:
-                    changed = True
+                # if value in values:
+                #     replacement = registers[str(values[value])]
 
-                    print('removing useless phi node')
-                    continue
+                #     if ir.value != replacement:
+                #         ir.value = replacement
+                #         changed = True
+
+                # if ir.value.const:
+                #     changed = True
+
+                #     # replace branch with jump
+                #     if ir.value.value == 0:
+                #         print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
+                #         ir = irJump(ir.false_label, lineno=ir.lineno)
+                #         ir.block = self
+
+                #     else:
+                #         print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
+                #         ir = irJump(ir.true_label, lineno=ir.lineno)
+                #         ir.block = self
+
+            # elif isinstance(ir, irPhi):
+
+                # # search predecessors for incoming merges on all edges
+                # found = []
+                # for d in ir.merges:
+                #     for p in self.predecessors:
+                #         v = p.lookup_var(d)       
+
+                #         if v is not None and v.ssa_name == d.ssa_name:    
+                #             found.append(v)
+
+                # # remove merges that were not found in the predecessor search
+                # # these would be merges coming from blocks whose paths we have
+                # # optimized out.
+                # filtered_merges = [d for d in ir.merges if d in found]
+
+                # if filtered_merges != ir.merges:
+                #     print(f"Replacing phi merges {[a.ssa_name for a in ir.merges]} with {[a.ssa_name for a in filtered_merges]}")
+
+                #     ir.merges = filtered_merges
+
+                #     changed = True
+
+                # # check if phi is meaningless or redundant:
+                # if len(ir.merges) == 0:
+                #     changed = True
+
+                #     values[ir.target] = ir.expr
+
+                #     print('removing useless phi node')
+                #     continue
                 
-                elif len(ir.merges) == 1:
-                    changed = True
+                # elif len(ir.merges) == 1:
+                #     changed = True
 
-                    value = ir.merges[0]
-                    print(f'replace phi with assign {target} = {value}')
-                    ir = irAssign(target, value, lineno=ir.lineno)
-                    ir.block = self
+                #     value = ir.merges[0]
+                #     print(f'replace phi with assign {ir.target} = {value}')
+                #     ir = irAssign(ir.target, value, lineno=ir.lineno)
+                #     ir.block = self
 
-                    # further optimizations may be made on this assign in a secondary pass
+                #     values[ir.target] = ir.value
 
-                else:
-                    # update values/registers for phi node
-                    value = ir.expr
-                    
-                    values[target] = value
+                #     # further optimizations may be made on this assign in a secondary pass
 
-                    if value not in registers:
-                        registers[str(value)] = target
+                # else:
+                #     values[ir.target] = ir.target
 
         
             new_code.append(ir)
 
         self.code = new_code
 
-        print(f"\nGVN Summary: {self.name}")
+        print(f"\n----------------------\nGVN Summary: {self.name}")
 
         print("\nVALUES:")
 
@@ -2032,6 +2073,9 @@ class irBlock(IR):
             for d in phi.merges:
                 for p in self.predecessors:
                     v = p.lookup_var(d)
+
+                    assert v is not None
+                    
                     if v.ssa_name == d.ssa_name:
                         assert d not in phi_merges
 
@@ -3438,6 +3482,7 @@ class irFunc(IR):
                     self.leader_block.prune_unreachable_blocks()
                     self.verify_block_assignments()
                     self.verify_block_links()
+                    self.recalc_defines()
                     self.recalc_dominators()
                     self.analyze_loops()
 
@@ -3934,15 +3979,15 @@ class irPhi(IR):
 
         return s
 
-    # @property
-    # def expr(self):
-    #     s = ''
-    #     for m in sorted(self.merges, key=lambda x: x.ssa_name):
-    #         s += f'{m.ssa_name} phi '
+    @property
+    def expr(self):
+        s = ''
+        for m in sorted(self.merges, key=lambda x: x.ssa_name):
+            s += f'{m.ssa_name} phi '
 
-    #     s = s[:-5]
+        s = s[:-5]
 
-    #     return s
+        return s
 
     def get_input_vars(self):
         return copy(self.merges)
@@ -4857,6 +4902,10 @@ class irBinop(IR):
 
         else:
             assert False
+
+        # if value is a boolean, convert to an integer 0 or 1
+        if isinstance(val, bool):
+            val = int(val)
 
         ir = irLoadConst(self.target, val, lineno=self.lineno)
         # self.target.name = f'{val}'
