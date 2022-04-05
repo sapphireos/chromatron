@@ -37,20 +37,44 @@
 
 
 
+# def init():
+#     a = Number()
+#     b = Number()
+
+#     if a > 0:
+#         b = 1
+
+#     else:
+#         b = 2
+
+#     assert b == 2
+#     assert a == 0
+
+
 def init():
     a = Number()
     b = Number()
 
+    b = 2
+
     if a > 0:
         b = 1
-
-    else:
-        b = 2
 
     assert b == 2
     assert a == 0
 
 
+# def init():
+#     a = Number()
+#     b = Number()
+
+#     b = 2
+
+#     if a == 0:
+#         b = 1
+
+#     assert b == 1
+#     assert a == 0
 
 
 

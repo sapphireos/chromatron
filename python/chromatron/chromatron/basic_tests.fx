@@ -49,6 +49,31 @@ def simple_ifelse2():
     assert b == 1
     assert a == 1
 
+def simple_if():
+    a = Number()
+    b = Number()
+
+    b = 2
+
+    if a > 0:
+        b = 1
+
+    assert b == 2
+    assert a == 0
+
+
+def simple_if2():
+    a = Number()
+    b = Number()
+
+    b = 2
+
+    if a == 0:
+        b = 1
+
+    assert b == 1
+    assert a == 0
+
 
 def while_loop():
     i = Number()
