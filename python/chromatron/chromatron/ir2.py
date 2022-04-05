@@ -1393,6 +1393,45 @@ class irBlock(IR):
 
 
     def gvn_analyze(self, values=None, visited=None, pass_number=1):
+        # global value numbering
+        # from Briggs, Cooper, and Simpson 1995
+
+        """
+        procedure DVNT(Block B )
+            Mark the beginning of a new scope
+            for each φ -function p of the form “ n ← φ(. . .) ” in B
+                if p is meaningless or redundant
+                    Put the value number for p into VN [n]
+                    Remove p
+                else
+                    VN [n] ← n
+                    Add p to the hash table
+
+            for each assignment a of the form “ x ← y op z ” in B
+                Overwrite y with VN [y] and z with VN [z]
+                expr ← {y op z}
+
+                if expr can be simplified to expr'
+                    Replace a with “ x ← expr 0' ”
+                    expr ← expr'
+
+                if expr is found in the hash table with value number v
+                    VN [x] ← v
+                    Remove a
+                else
+                    VN [x] ← x
+                    Add expr to the hash table with value number x
+
+            for each successor s of B
+                Adjust the φ -function inputs in s
+
+            for each child c of B in the dominator tree
+                DVNT( c )
+
+            Clean up the hash table after leaving this scope
+
+        """
+
         if values is None:
             logging.debug(f'GVN: Starting optimizer pass: {pass_number}')
 
@@ -1412,57 +1451,142 @@ class irBlock(IR):
             print(f'IR: {ir}')
 
             if isinstance(ir, irLoadConst):
-                target = ir.target
-                value = ir.value
+                # there is no replacement step for a load const
 
                 # assign value to target
-                target.value = value
+                ir.target.value = ir.value
 
                 # since this is a constant load, we can assert that the target
                 # is now marked as const
-                assert target.const
+                assert ir.target.const
 
-                assert target not in values
-                values[target] = value
+                expr = ir.value
 
-                # if value not in registers:
-                #     registers[str(value)] = target
+                # simplify?
+                # not on load const
+
+                
+                # is expr in hash table?
+                if expr in values:
+                    v = values[expr]
+
+                    values[ir.target] = v
+
+                    # remove instructino
+                    print(f"remove load const {ir.target} = {ir.value}")
+
+                    changed = True
+
+                    continue
+
+                else:
+                    values[ir.target] = ir.target
+                    values[ir.value] = ir.target
 
             elif isinstance(ir, irAssign):
-                target = ir.target
-                value = ir.value
-
-                # ir.apply_value_numbers(values)
-
-                if value in values:
-                    replacement = registers[str(values[value])]
+                # replace inputs:
+                if ir.value in values:
+                    replacement = values[ir.value]
                     if ir.value != replacement:
-                        ir.value = replacement
-                        print(f"replace assign {target} = {value} with {values[value]}")
-                        value = values[value]
+                        print(f"replace assign {ir.target} = {ir.value} with {values[ir.value]}")
+
+                        ir.value = values[ir.value]
 
                         changed = True
 
-                # if value not in registers:
-                #     registers[str(value)] = target
-                    
-                assert target not in values
-                values[target] = value
+                expr = ir.value
 
-                # check if value is const
-                if ir.value.const:
-                    # assign value to target
-                    ir.target.value = ir.value.value
+                # simplify?
+                # not on assign
 
-            elif isinstance(ir, irLoad):
-                target = ir.register
-                value = ir.ref
+                # is expr in hash table?
+                if expr in values:
+                    v = values[expr]
 
-                assert target not in values
-                values[target] = value
+                    values[ir.target] = v
 
-                if value not in registers:
-                    registers[str(value)] = target
+                    # remove assignment
+                    print(f"remove assign {ir.target} = {ir.value}")
+
+                    changed = True
+
+                    continue
+
+                else:
+                    values[ir.target] = ir.target
+                    values[ir.value] = ir.target
+
+            elif isinstance(ir, irReturn):
+                if ir.ret_var in values:
+                    replacement = values[ir.ret_var]
+                    if ir.ret_var != replacement:
+                        print(f"replace return {ir.ret_var} with {replacement}")
+                        ir.ret_var = replacement
+                        changed = True
+
+            elif isinstance(ir, irBinop):
+                # replace inputs:
+                if ir.left in values:
+                    replacement = values[ir.left]
+
+                    if ir.left != replacement:
+                        print(f"replace left {ir.left} with {replacement}")
+
+                        ir.left = replacement
+
+                        changed = True
+
+                if ir.right in values:
+                    replacement = values[ir.right]
+
+                    if ir.right != replacement:
+                        print(f"replace right {ir.right} with {replacement}")
+
+                        ir.right = replacement
+
+                        changed = True
+
+                expr = ir.expr
+
+                # simplify?
+                fold = ir.fold()
+
+                if fold is not None:
+
+                    print(f'Fold: {fold}')
+
+                    assert isinstance(fold, irLoadConst)
+
+                    # replace the binop with the folded assignment
+                    ir = fold
+                    ir.block = self
+
+                    expr = ir.value
+
+                # is expr in hash table?
+                if expr in values:                
+                    values[ir.target] = expr
+
+                    # remove this instruction
+                    print(f"remove binop {ir.target} = {ir.left} {ir.op} {ir.right}")
+
+                    changed = True
+
+                    continue
+
+                else:
+                    values[ir.target] = ir.target
+                    values[expr] = ir.target
+
+            # elif isinstance(ir, irLoad):
+            #     target = ir.register
+            #     value = ir.ref
+
+            #     assert target not in values
+            #     values[target] = value
+
+            #     if value not in registers:
+            #         registers[str(value)] = target
 
             # elif isinstance(ir, irStore):
             #     target = ir.ref
@@ -1470,83 +1594,6 @@ class irBlock(IR):
 
             #     ir.apply_value_numbers(values)
 
-            elif isinstance(ir, irReturn):
-                value = ir.ret_var
-                # ir.apply_value_numbers(values)
-
-                if value in values:
-                    replacement = registers[str(values[value])]
-
-                    if ir.ret_var != replacement:
-                        print(f"replace return {ir.ret_var} with {replacement}")
-                        ir.ret_var = replacement
-
-                        changed = True
-
-
-            elif isinstance(ir, irBinop):
-                target = ir.target
-                left = ir.left
-                right = ir.right
-
-                if left in values and left != registers[str(values[left])]:
-                    print(f"replace left {left} with {registers[str(values[left])]}")
-
-                    # if ir.expr.is_commutative and values[left].is_commutative:
-                    #     print('meow')
-                    ir.left = registers[str(values[left])]
-
-                    changed = True
-
-                if right in values and right != registers[str(values[right])]:
-                    print(f"replace right {right} with {registers[str(values[right])]}")
-
-                    # if ir.expr.is_commutative and values[right].is_commutative:
-                    #     print('meow')
-                    ir.right = registers[str(values[right])]
-
-                    changed = True
-
-
-                fold = ir.fold()
-
-                if fold is not None:
-                    changed = True
-
-                    print(f'Fold: {fold}')
-
-                    assert isinstance(fold, irLoadConst)
-
-                    ir = fold
-                    ir.block = self
-
-                    value = ir.value
-                    values[target] = value
-
-                    if value not in registers:
-                        registers[str(value)] = target
-
-                else:
-                #     if left in values:
-                #         print(f"replace left {left} with {registers[values[left]]}")
-
-                #         # if ir.expr.is_commutative and values[left].is_commutative:
-                #         #     print('meow')
-
-
-                #     if right in values:
-                #         print(f"replace right {right} with {registers[values[right]]}")
-
-                #         # if ir.expr.is_commutative and values[right].is_commutative:
-                #         #     print('meow')
-
-
-                    # print(f'expr {ir.expr} -> {target}')
-                    value = ir.expr
-                    values[target] = value
-
-                if value not in registers:
-                    registers[str(value)] = target
 
             elif isinstance(ir, irBranch):
                 value = ir.value
@@ -1630,18 +1677,13 @@ class irBlock(IR):
         for k, v in values.items():
             print(f'{str(k):32} = {v}')
 
-        print("\nREGISTERS:")
-
-        for k, v in registers.items():
-            print(f'{str(k):32} = {v}')
-
         print('\n')
 
         if self not in self.func.dominator_tree:
             return changed
 
         for c in self.func.dominator_tree[self]:
-            if c.gvn_analyze(copy(values), copy(registers), visited=visited):
+            if c.gvn_analyze(copy(values), visited=visited):
                 changed = True
 
         return changed
@@ -4693,9 +4735,9 @@ class irBinop(IR):
 
         return s
 
-    # @property
-    # def expr(self):    
-    #     return irExpr(self.left, self.op, self.right, lineno=self.lineno)
+    @property
+    def expr(self):    
+        return irExpr(self.left, self.op, self.right, lineno=self.lineno)
 
     # @property
     # def value_number(self):

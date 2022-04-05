@@ -37,18 +37,18 @@
 
 
 
-# def init():
-#     a = Number()
-#     b = Number()
+def init():
+    a = Number()
+    b = Number()
 
-#     if a > 0:
-#         b = 1
+    if a > 0:
+        b = 1
 
-#     else:
-#         b = 2
+    else:
+        b = 2
 
-#     assert b == 2
-#     assert a == 0
+    assert b == 2
+    assert a == 0
 
 
 
@@ -63,15 +63,17 @@
 #     b = 3
 
 #     a = b + 1 + 2 + 7 + b
-#     # a += 1
-#     # a = 1 + 2
-
-#     # a = 2
-#     # # a = a + 1
-#     # a = a + 1 + a + 3 + a
-
 #     a = a + 2 + 3
-#     # b = 1 + 2 + 3
+
+#     return a
+
+# def init():
+#     a = Number()    
+#     b = Number()
+
+#     a = 4
+#     b = a
+#     a = b
 
 #     return a
 
@@ -88,18 +90,6 @@
 #     b = g1
 
 #     return a
-
-def init():
-    a = Number()    
-    b = Number()
-
-    a = 4
-    b = a
-    a = b
-
-    return a
-
-
 
 # def array_vector():
 #     ary = 1
