@@ -1447,8 +1447,28 @@ class irBlock(IR):
 
         new_code = []
 
-        print(f"\n**************************\nGVN block: {self.name}")
+        print(f"\n**************************\nGVN block: {self.name}\n")
 
+        # analyze phi nodes
+        for phi in [p for p in self.code if isinstance(p, irPhi)]:
+            
+            # check if phi is meaningless or redundant
+
+            # meaningless: all inputs have the same value number
+            # redundant: computes same value as another phi in the same block
+
+
+            # first, check if there are value numbers for all of the inputs
+            input_values = [p for p in phi.merges if p in values]
+
+            if len(input_values) != len(phi.merges):
+                continue
+
+            print('meow')
+
+
+
+        # analyze all other instructions
         for ir in self.code:
             print(f'IR: {ir}')
             original_ir = ir # record original, just for debug printing
@@ -1710,6 +1730,28 @@ class irBlock(IR):
             new_code.append(ir)
 
         self.code = new_code
+
+        # check successors and adjust phi function inputs in each
+        for s in self.successors:
+            phis = [p for p in s.code if isinstance(p, irPhi)]
+
+            for phi in phis:
+                for i in range(len(phi.merges)):
+                    m = phi.merges[i]
+
+                    # check if this input is in the value number table:
+                    if m in values:
+                        replacement = values[m]
+
+                        if m != replacement:
+                            # replace phi input with the value number
+                            print(f"Replace phi input {m} with {replacement}")
+
+                            phi.merges[i] = replacement
+
+                            changed = True
+
+
 
         print(f"\n----------------------\nGVN Summary: {self.name}")
 
@@ -3467,6 +3509,8 @@ class irFunc(IR):
             # self.leader_block.gvn_optimize()
 
             if opt_level == OptLevels.GVN:
+
+                self.analyze_loops()
                 
                 MAX_GVN_ITERATIONS = 100
 
@@ -3971,7 +4015,7 @@ class irPhi(IR):
     def __str__(self):
         s = ''
         for d in sorted(self.merges, key=lambda a: a.name):
-            s += f'{d.ssa_name}, '
+            s += f'{d}, '
 
         s = s[:-2]
 
