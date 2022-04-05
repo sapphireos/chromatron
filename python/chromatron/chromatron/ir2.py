@@ -1176,7 +1176,7 @@ class irBlock(IR):
                 values[target] = value
 
                 if value not in registers:
-                    registers[value] = target
+                    registers[str(value)] = target
 
             elif isinstance(ir, irAssign):
                 target = ir.target
@@ -1185,7 +1185,7 @@ class irBlock(IR):
                 # ir.apply_value_numbers(values)
 
                 if value in values:
-                    replacement = registers[values[value]]
+                    replacement = registers[str(values[value])]
                     if ir.value != replacement:
                         ir.value = replacement
                         print(f"replace assign {target} = {value} with {values[value]}")
@@ -1194,7 +1194,7 @@ class irBlock(IR):
                         changed = True
 
                 if value not in registers:
-                    registers[value] = target
+                    registers[str(value)] = target
                     
                 assert target not in values
                 values[target] = value
@@ -1212,7 +1212,7 @@ class irBlock(IR):
                 values[target] = value
 
                 if value not in registers:
-                    registers[value] = target
+                    registers[str(value)] = target
 
             # elif isinstance(ir, irStore):
             #     target = ir.ref
@@ -1225,7 +1225,7 @@ class irBlock(IR):
                 # ir.apply_value_numbers(values)
 
                 if value in values:
-                    replacement = registers[values[value]]
+                    replacement = registers[str(values[value])]
 
                     if ir.ret_var != replacement:
                         print(f"replace return {ir.ret_var} with {replacement}")
@@ -1239,21 +1239,21 @@ class irBlock(IR):
                 left = ir.left
                 right = ir.right
 
-                if left in values and left != registers[values[left]]:
-                    print(f"replace left {left} with {registers[values[left]]}")
+                if left in values and left != registers[str(values[left])]:
+                    print(f"replace left {left} with {registers[str(values[left])]}")
 
                     # if ir.expr.is_commutative and values[left].is_commutative:
                     #     print('meow')
-                    ir.left = registers[values[left]]
+                    ir.left = registers[str(values[left])]
 
                     changed = True
 
-                if right in values and right != registers[values[right]]:
-                    print(f"replace right {right} with {registers[values[right]]}")
+                if right in values and right != registers[str(values[right])]:
+                    print(f"replace right {right} with {registers[str(values[right])]}")
 
                     # if ir.expr.is_commutative and values[right].is_commutative:
                     #     print('meow')
-                    ir.right = registers[values[right]]
+                    ir.right = registers[str(values[right])]
 
                     changed = True
 
@@ -1274,7 +1274,7 @@ class irBlock(IR):
                     values[target] = value
 
                     if value not in registers:
-                        registers[value] = target
+                        registers[str(value)] = target
 
                 else:
                 #     if left in values:
@@ -1296,7 +1296,7 @@ class irBlock(IR):
                     values[target] = value
 
                 if value not in registers:
-                    registers[value] = target
+                    registers[str(value)] = target
 
             elif isinstance(ir, irBranch):
                 pass
@@ -1304,7 +1304,7 @@ class irBlock(IR):
                 value = ir.value
 
                 if value in values:
-                    replacement = registers[values[value]]
+                    replacement = registers[str(values[value])]
 
                     if ir.value != replacement:
                         ir.value = replacement
@@ -1368,7 +1368,7 @@ class irBlock(IR):
                     values[target] = value
 
                     if value not in registers:
-                        registers[value] = target
+                        registers[str(value)] = target
 
         
             new_code.append(ir)

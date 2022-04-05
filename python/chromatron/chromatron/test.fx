@@ -1,20 +1,39 @@
 
-
-
-g1 = Number()    
-g2 = Number()    
-
-
-
 def init():
-    a = Number()
+    # a = Number()
+    # b = Fixed16()
+    c = Fixed16()
+    d = Number()
 
-    a = 0
+    # a = 123.456
+    # b = 32
 
-    while a < 4:
-        a += 1
+    c = 123
+    c += 123
 
-    return a
+    d = 123.123
+    d += 123.123
+
+    # assert a == 123
+    # assert b == 32
+    assert c == 246.0
+    assert d == 246
+
+
+
+
+# g1 = Number()    
+# g2 = Number()    
+
+# def init():
+#     a = Number()
+
+#     a = 0
+
+#     while a < 4:
+#         a += 1
+
+#     return a
 
 
 

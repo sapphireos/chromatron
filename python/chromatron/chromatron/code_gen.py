@@ -1095,6 +1095,8 @@ def compile_text(source, debug_print=False, summarize=False, script_name=''):
     from .ir2 import OptLevels
 
     for opt_level in [OptLevels.SSA, OptLevels.GVN]:
+    # for opt_level in [OptLevels.GVN]:
+    # for opt_level in [OptLevels.SSA]:
     # for opt_level in [OptLevels.NONE]:
 
         ir_program = cg1_data.build(script_name=script_name, source=source)
