@@ -109,6 +109,8 @@ class insProgram(object):
         for func in funcs.values():
             func.program = self
 
+        self.funcs = funcs
+
         self.init_func = funcs['init']
         
         try:
@@ -146,7 +148,7 @@ class insProgram(object):
 
         func_refs = sorted([f for f in objects if f.data_type == 'func'], key=lambda f: f.addr.addr)
 
-        self.funcs = StoragePool('_functions', [funcs[f.name] for f in func_refs])
+        self.func_pool = StoragePool('_functions', [funcs[f.name] for f in func_refs])
 
         self.library_funcs = {
             'test_lib_call': self.test_lib_call,
@@ -216,7 +218,7 @@ class insProgram(object):
         # this is sourced from load const instructions
         self.constants = []
 
-        for func in self.funcs:
+        for func in self.func_pool:
             for ins in func.code:
                 if not isinstance(ins, insLoadConst):
                     continue
@@ -232,7 +234,7 @@ class insProgram(object):
     def __str__(self):
         s = 'VM Instructions:\n'
 
-        for func in self.funcs:
+        for func in self.func_pool:
             s += str(func)
 
         return s
