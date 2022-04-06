@@ -387,7 +387,7 @@ class Func(Block):
 	def __init__(self):
 		super().__init__(While, IfBlock, Assign, AugAssign, Return)
 		
-		self.code = 'def func():'
+		self.code = 'def init():'
 
 		self.rendered_code = None
 
@@ -440,7 +440,7 @@ def Number():
 PY_TRAILER = """
 def main():
     try:
-        return func()
+        return init()
 
     except ZeroDivisionError:
     	return "ZeroDivisionError"
@@ -577,7 +577,7 @@ def test_program(fx_file):
 				return # Div by 0 is a syntax error in FX, this is ok
 
 			# run it!
-			fx_output = str(prog.run_func('func'))
+			fx_output = str(prog.run_func('init'))
 
 			assert fx_output == py_output
 
@@ -589,7 +589,7 @@ def test_program(fx_file):
 
 from multiprocessing import Pool
 
-def test_programs(target_dir='fuzzer', parallel=True):
+def test_programs(target_dir='fuzzer', parallel=False):
 	cwd = os.getcwd()
 	os.chdir(target_dir)
 
@@ -613,7 +613,7 @@ def main():
 	# with Pool(48) as p:
 		# p.map(generate_programs, [10000]*25)
 
-	# generate_programs(10000)
+	# generate_programs(10)
 	test_programs()
 	return
 
@@ -647,7 +647,7 @@ def main():
 			raise
 
 		try:
-			fx_output = prog.run_func('func')
+			fx_output = prog.run_func('init')
 
 			print(f'Py:{py_output}, FX:{fx_output}', end='')
 			print('')

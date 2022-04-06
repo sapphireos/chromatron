@@ -263,7 +263,11 @@ class insProgram(object):
         pass
 
     def run_func(self, func):
-        return self.funcs[func].run()
+        for f in self.funcs:
+            if f.name == func:
+                return f.run()
+
+        raise KeyError(func)
 
     def assemble(self):
         bytecode = {}
