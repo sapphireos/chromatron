@@ -539,6 +539,12 @@ def generate_programs(total=None, target_dir='fuzzer'):
 	count = 0
 
 	cwd = os.getcwd()
+	try:
+		os.mkdir(target_dir)
+
+	except OSError:
+		pass
+
 	os.chdir(target_dir)
 
 	while total is None or count < total:
@@ -589,7 +595,7 @@ def test_program(fx_file):
 
 from multiprocessing import Pool
 
-def test_programs(target_dir='fuzzer', parallel=False):
+def test_programs(target_dir='fuzzer', parallel=True):
 	cwd = os.getcwd()
 	os.chdir(target_dir)
 
@@ -610,11 +616,11 @@ def test_programs(target_dir='fuzzer', parallel=False):
 	os.chdir(cwd)
 
 def main():
-	# with Pool(48) as p:
-		# p.map(generate_programs, [10000]*25)
+	with Pool(48) as p:
+		p.map(generate_programs, [100]*25)
 
-	# generate_programs(10)
-	test_programs()
+	# generate_programs(100)
+	# test_programs()
 	return
 
 	i = 0
