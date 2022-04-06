@@ -67,5 +67,6 @@ typedef struct __attribute__((packed)){
 
 void datalog_v_init( void );
 
-
 #endif
+
+void datalogger_v_refresh_config( void );

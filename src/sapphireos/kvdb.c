@@ -39,6 +39,7 @@
 #include "hash.h"
 #endif
 
+#include "datalogger.h"
 #include "logging.h"
 
 
@@ -279,6 +280,10 @@ int8_t kvdb_i8_add(
 
         kvdb_v_notify_set( hash, &meta, data_ptr );
     }
+
+    // refresh the datalogger config so it is aware 
+    // of the new keys we've added.
+    datalogger_v_refresh_config();
 
     return KVDB_STATUS_OK;
 }
