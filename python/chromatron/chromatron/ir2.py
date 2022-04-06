@@ -2088,6 +2088,25 @@ class irBlock(IR):
 
     #     return changed
 
+    def lookup_var(self, var, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return None
+
+        visited.append(self)
+
+        if var.name in self.defines:
+            return self.defines[var.name]
+
+        # search predecessors
+        for p in self.predecessors:
+            v = p.lookup_var(var, visited=visited)
+            if v:
+                return v
+        
+        return None
 
     def resolve_phi(self, merge_number=0):
         # extract phis and remove from block code
@@ -2118,7 +2137,17 @@ class irBlock(IR):
                     assert v is not None
                     
                     if v.ssa_name == d.ssa_name:
-                        assert d not in phi_merges
+                        try:
+                            assert d not in phi_merges
+
+                        except AssertionError:
+                            print(self.name)
+                            print(v)
+                            print(d)
+                            print(p.name)
+                            print(phi_merges[d].name)
+
+                            raise
 
                         phi_merges[d] = p
 
@@ -2205,26 +2234,6 @@ class irBlock(IR):
         self.temp_phis.append(ir)
 
         return ir
-
-    def lookup_var(self, var, visited=None):
-        if visited is None:
-            visited = []
-
-        if self in visited:
-            return None
-
-        visited.append(self)
-
-        if var.name in self.defines:
-            return self.defines[var.name]
-
-        # search predecessors
-        for p in self.predecessors:
-            v = p.lookup_var(var, visited=visited)
-            if v:
-                return v
-        
-        return None
 
     def ssa_lookup_var(self, var, skip_local=False, visited=None):
         if visited is None:
@@ -3511,15 +3520,18 @@ class irFunc(IR):
 
             if opt_level == OptLevels.GVN:
 
+                with open("GVN_pre.fxir", 'w') as f:
+                    f.write(str(self))
+
                 self.analyze_loops()
                 
                 MAX_GVN_ITERATIONS = 100
 
                 changed = True
-                i = 1
+                i = 0
                 while changed and i <= MAX_GVN_ITERATIONS:
-                    changed = self.gvn_optimizer(pass_number=i)
                     i += 1
+                    changed = self.gvn_optimizer(pass_number=i)
                         
                     # we may have eliminated instructions, or entire blocks:
                     # relink blocks, prune, verify, recalc dominance, and re-analyze loops
@@ -3530,6 +3542,10 @@ class irFunc(IR):
                     self.recalc_defines()
                     self.recalc_dominators()
                     self.analyze_loops()
+
+                    with open(f"GVN_pass_{i}.fxir", 'w') as f:
+                        f.write(str(self))
+
 
                 if i >= MAX_GVN_ITERATIONS:
                     raise CompilerFatal(f'GVN failed to complete after {i} iterations')
