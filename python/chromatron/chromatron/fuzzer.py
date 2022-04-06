@@ -616,11 +616,11 @@ def test_programs(target_dir='fuzzer', parallel=True):
 	os.chdir(cwd)
 
 def main():
-	with Pool(48) as p:
-		p.map(generate_programs, [100]*25)
+	# with Pool(48) as p:
+	# 	p.map(generate_programs, [10000]*25)
 
 	# generate_programs(100)
-	# test_programs()
+	test_programs()
 	return
 
 	i = 0
