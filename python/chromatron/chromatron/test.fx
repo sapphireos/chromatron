@@ -33,7 +33,7 @@ def init():
     while a < 4:
         a += 1
 
-    return a
+    assert a == 5
 
 
 
