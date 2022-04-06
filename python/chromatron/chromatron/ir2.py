@@ -3119,6 +3119,13 @@ class irFunc(IR):
             merge_number = block.resolve_phi(merge_number)
 
     def convert_to_ssa(self):
+        """
+        This code is based on "Simple and Efficient Construction of Static Single Assignment Form"
+        from Braun, et al. 2013
+
+        """
+
+
         logging.debug(f'Converting function: {self.name} to SSA')
 
         for p in self.params:
