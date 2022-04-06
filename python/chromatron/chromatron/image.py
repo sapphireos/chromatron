@@ -128,7 +128,7 @@ class CronItem(StructField):
 class FXImage(object):
     def __init__(self, program, func_bytecode={}):
         self.program = program
-        self.funcs = program.funcs
+        self.funcs = program.func_pool
         self.func_bytecode = func_bytecode
         self.constants = program.constants
 

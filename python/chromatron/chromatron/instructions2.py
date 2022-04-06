@@ -270,7 +270,7 @@ class insProgram(object):
     def assemble(self):
         bytecode = {}
 
-        for func in self.funcs:
+        for func in self.func_pool:
             bytecode[func.name] = func.assemble()
 
         return FXImage(self, bytecode)
