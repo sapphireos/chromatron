@@ -3544,10 +3544,10 @@ class irFunc(IR):
             # self.leader_block.gvn_optimize()
             # self.leader_block.gvn_optimize()
 
-            if opt_level == OptLevels.GVN:
-
-                with open("GVN_pre.fxir", 'w') as f:
+            with open("SSA_construction.fxir", 'w') as f:
                     f.write(str(self))
+
+            if opt_level == OptLevels.GVN:
 
                 self.analyze_loops()
                 
@@ -4058,7 +4058,7 @@ class irPhi(IR):
     def __str__(self):
         s = ''
         for d in sorted(self.merges, key=lambda a: a.name):
-            s += f'{d}:{self.merges[d]}, '
+            s += f'{d}:{self.merges[d].name}, '
 
         s = s[:-2]
 
