@@ -2128,7 +2128,7 @@ class irBlock(IR):
         merges = {}
         for phi in phis:
             merges[phi] = {}
-            phi_merges = {}
+            phi_merges = merges[phi]
 
             for var, block in phi.merges.items():
                 phi_merges[var] = block

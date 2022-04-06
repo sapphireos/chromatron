@@ -25,15 +25,15 @@
 # g1 = Number()    
 # g2 = Number()    
 
-# def init():
-#     a = Number()
+def init():
+    a = Number()
 
-#     a = 0
+    a = 0
 
-#     while a < 4:
-#         a += 1
+    while a < 4:
+        a += 1
 
-#     assert a == 5
+    assert a == 5
 
 
 
@@ -51,17 +51,17 @@
 #     assert a == 0
 
 
-def init():
-    a = Number()
-    b = Number()
+# def init():
+#     a = Number()
+#     b = Number()
 
-    b = 2
+#     b = 2
 
-    if a > 0:
-        b = 1
+#     if a > 0:
+#         b = 1
 
-    assert b == 2
-    assert a == 0
+#     assert b == 2
+#     assert a == 0
 
 
 # def init():
