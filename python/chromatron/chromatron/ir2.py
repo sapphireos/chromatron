@@ -2286,14 +2286,18 @@ class irBlock(IR):
 
             # search predecessors for incoming phi values
             values = []
+            sources = {}
             for p in self.predecessors:
                 pv = p.ssa_lookup_var(var)
 
                 assert pv is not None
-                values.append(VarContainer(pv))
+                v = VarContainer(pv)
+                values.append(v)
+                sources[v] = p
 
             merges = list(sorted(set(values), key=lambda a: a.name))
             phi.merges = merges
+            phi.sources = sources
 
             return new_var.var
 
@@ -2342,10 +2346,13 @@ class irBlock(IR):
         for ir in self.code:
             if isinstance(ir, irIncompletePhi):
                 values = []
+                sources = {}
                 for p in self.predecessors:
-                    v = p.ssa_lookup_var(ir.var)
+                    pv = p.ssa_lookup_var(ir.var)
 
-                    values.append(VarContainer(v))
+                    v = VarContainer(pv)
+                    values.append(v)
+                    sources[v] = p
 
                 values = list(sorted(set(values), key=lambda a: a.name))
 
@@ -2356,6 +2363,7 @@ class irBlock(IR):
 
                 phi = irPhi(ir.var, values, lineno=ir.lineno)
                 phi.block = self
+                phi.sources = sources
 
                 new_code.append(phi)
 
@@ -4030,6 +4038,7 @@ class irPhi(IR):
 
         self.target = target
         self.merges = merges
+        self.sources = {}
 
         for d in merges:
             assert isinstance(d, VarContainer)
@@ -4039,7 +4048,12 @@ class irPhi(IR):
     def __str__(self):
         s = ''
         for d in sorted(self.merges, key=lambda a: a.name):
-            s += f'{d}, '
+            if d in self.sources:
+                source = self.sources[d].name
+                s += f'{d}:{source}, '
+
+            else:
+                s += f'{d}:?, '
 
         s = s[:-2]
 
