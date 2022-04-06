@@ -453,7 +453,6 @@ class irProgram(IR):
         ins_funcs = {}
         for name, func in self.funcs.items():
             ins_funcs[name] = func.generate()
-            ins_funcs[name].prune_jumps()
 
         return insProgram(
                 self.name, 
@@ -3462,7 +3461,9 @@ class irFunc(IR):
                 self.register_count, 
                 lineno=self.lineno)
 
-        logging.debug(f'Code generation complete with {len(instructions)} machine instructions')
+        func.prune_jumps()
+
+        logging.debug(f'Code generation complete with {len(func.code)} machine instructions')
 
         return func
 
