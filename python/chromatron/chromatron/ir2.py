@@ -2312,6 +2312,7 @@ class irBlock(IR):
             assert not self.sealed
 
             new_var = self.type_manager.create_var_from_type(var_name, var.data_type, lineno=-1)
+            new_var.value = var.value
 
             new_var.convert_to_ssa(self.ssa_next_val)
 
@@ -2360,6 +2361,7 @@ class irBlock(IR):
                     # values.append(v)
                     merges[v] = p
 
+                values = list(merges.keys()) #debug
                 # values = list(sorted(set(values), key=lambda a: a.name))
 
                 # if ir.var in values: # remove self references
