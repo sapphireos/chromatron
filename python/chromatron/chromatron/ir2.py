@@ -2132,19 +2132,12 @@ class irBlock(IR):
 
             for a in phi.merges:
                 d = a[0]
+                p = a[1]
 
-                for p in self.predecessors:
-                    v = p.lookup_var(d)
-
-                    assert v is not None
-                    
-                    if v.ssa_name == d.ssa_name:
-                        assert d not in phi_merges
-
-                        phi_merges[d] = p
-
-                        if p not in incoming_blocks:
-                            incoming_blocks.append(p)
+                assert d not in phi_merges
+                phi_merges[d] = p
+                if p not in incoming_blocks:
+                    incoming_blocks.append(p)
             
             assert len(phi_merges) == len(phi.merges)
 
