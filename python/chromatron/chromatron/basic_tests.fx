@@ -76,6 +76,14 @@ def simple_if2():
 
 
 def while_loop():
+    a = Number()
+
+    while a < 4:
+        a += 1
+
+    assert a == 5
+
+def while_loop2():
     i = Number()
     i = 4
 
