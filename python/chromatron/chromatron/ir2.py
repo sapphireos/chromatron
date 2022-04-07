@@ -3533,10 +3533,10 @@ class irFunc(IR):
             # self.leader_block.gvn_optimize()
             # self.leader_block.gvn_optimize()
 
-            if opt_level == OptLevels.GVN:
-
-                with open("GVN_pre.fxir", 'w') as f:
+            with open("SSA_construction.fxir", 'w') as f:
                     f.write(str(self))
+
+            if opt_level == OptLevels.GVN:
 
                 self.analyze_loops()
                 
@@ -3564,8 +3564,7 @@ class irFunc(IR):
 
                 if i >= MAX_GVN_ITERATIONS:
                     raise CompilerFatal(f'GVN failed to complete after {i} iterations')
-
-
+                    
             # optimizers
             optimize = False
             # optimize = True
