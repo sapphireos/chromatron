@@ -52,24 +52,24 @@
 
 
 
-def init():
-    i = Number()
-    i = 4
+# def init():
+#     i = Number()
+#     i = 4
 
-    a = Number()
+#     a = Number()
 
-    while i > 0:
-        i -= 1
-        j = Number()
+#     while i > 0:
+#         i -= 1
+#         j = Number()
 
-        j = 5
+#         j = 5
 
-        while j > 0:
-            j -= 1
+#         while j > 0:
+#             j -= 1
 
-            a += 1
+#             a += 1
 
-    assert a == 20
+#     assert a == 20
     
 # def init():
 #     a = Number()
@@ -85,17 +85,17 @@ def init():
 #     assert a == 0
 
 
-# def init():
-#     a = Number()
-#     b = Number()
+def init():
+    a = Number()
+    b = Number()
 
-#     b = 2
+    b = 2
 
-#     if a > 0:
-#         b = 1
+    if a > 0:
+        b = 1
 
-#     assert b == 2
-#     assert a == 0
+    assert b == 2
+    assert a == 0
 
 
 # def init():

@@ -2130,24 +2130,16 @@ class irBlock(IR):
             merges[phi] = {}
             phi_merges = merges[phi]
 
-            for d in phi.merges:
+            for a in phi.merges:
+                d = a[0]
+
                 for p in self.predecessors:
                     v = p.lookup_var(d)
 
                     assert v is not None
                     
                     if v.ssa_name == d.ssa_name:
-                        try:
-                            assert d not in phi_merges
-
-                        except AssertionError:
-                            print(self.name)
-                            print(v)
-                            print(d)
-                            print(p.name)
-                            print(phi_merges[d].name)
-
-                            raise
+                        assert d not in phi_merges
 
                         phi_merges[d] = p
 
@@ -2286,18 +2278,15 @@ class irBlock(IR):
 
             # search predecessors for incoming phi values
             values = []
-            sources = {}
             for p in self.predecessors:
                 pv = p.ssa_lookup_var(var)
 
                 assert pv is not None
                 v = VarContainer(pv)
-                values.append(v)
-                sources[v] = p
+                values.append((v, p))
 
-            merges = list(sorted(set(values), key=lambda a: a.name))
+            merges = list(sorted(set(values), key=lambda a: a[0].name))
             phi.merges = merges
-            phi.sources = sources
 
             return new_var.var
 
@@ -2346,24 +2335,20 @@ class irBlock(IR):
         for ir in self.code:
             if isinstance(ir, irIncompletePhi):
                 values = []
-                sources = {}
                 for p in self.predecessors:
                     pv = p.ssa_lookup_var(ir.var)
 
                     v = VarContainer(pv)
-                    values.append(v)
-                    sources[v] = p
+                    
+                    if ir.var != v: # check for self reference
+                        values.append((v, p))
 
-                values = list(sorted(set(values), key=lambda a: a.name))
-
-                if ir.var in values: # remove self references
-                    values.remove(ir.var)
+                values = list(sorted(set(values), key=lambda a: a[0].name))
 
                 assert len(values) > 0
 
                 phi = irPhi(ir.var, values, lineno=ir.lineno)
                 phi.block = self
-                phi.sources = sources
 
                 new_code.append(phi)
 
@@ -2433,8 +2418,8 @@ class irBlock(IR):
                 # check if the phi target variable is in it's defines.
                 # this could occur during a previous replace-use (above)
                 # if so, let's remove it
-                if ir.target in ir.merges:
-                    ir.merges.remove(ir.target)
+                if ir.target in [a[0] for a in ir.merges]:
+                    ir.merges = [a for a in ir.merges if a[0] != ir.target]
                 
                     changed = True
                 
@@ -2459,7 +2444,7 @@ class irBlock(IR):
                 # we can replace all users of the target with the define, eliminating
                 # this phi and also eliminating a variable.
                 elif len(ir.merges) == 1:
-                    merge = ir.merges[0]
+                    merge = ir.merges[0][0]
 
                     # get all users of this variable
                     users = [i for i in self.func.get_input_vars() if i == ir.target]
@@ -2471,11 +2456,17 @@ class irBlock(IR):
                     continue # remove phi from code
 
                 elif len(ir.merges) > 1:
-                    old_merges = copy(ir.merges)
-                    ir.merges = list(sorted(set(ir.merges), key=lambda a: a.ssa_name))
-                    
-                    if old_merges != ir.merges:
-                        changed = True # need to check for changed!
+                    # remove duplicates
+                    seen = []
+                    merges = []
+                    for var, block in ir.merges:
+                        if var not in seen:
+                            seen.append(var)
+                            merges.append((var, block))
+
+                    if merges != ir.merges:
+                        ir.merges = merges
+                        changed = True
 
             new_code.append(ir)
 
@@ -4037,22 +4028,17 @@ class irPhi(IR):
 
         self.target = target
         self.merges = merges
-        self.sources = {}
 
         for d in merges:
-            assert isinstance(d, VarContainer)
+            assert isinstance(d[0], VarContainer)
+            assert isinstance(d[1], irBlock)
 
-        assert self.target not in merges
+        assert self.target not in [a[0] for a in merges]
 
     def __str__(self):
         s = ''
-        for d in sorted(self.merges, key=lambda a: a.name):
-            if d in self.sources:
-                source = self.sources[d].name
-                s += f'{d}:{source}, '
-
-            else:
-                s += f'{d}:?, '
+        for d in sorted(self.merges, key=lambda a: a[0].name):
+            s += f'{d[0]}:{d[1].name}, '
 
         s = s[:-2]
 
@@ -4071,7 +4057,7 @@ class irPhi(IR):
         return s
 
     def get_input_vars(self):
-        return copy(self.merges)
+        return [a[0] for a in self.merges]
 
     def get_output_vars(self):
         return [self.target]
