@@ -1,4 +1,13 @@
 
+def init():
+    assert 1 + 2 == 3
+    assert 3 - 2 == 1
+    assert 3 * 2 == 6
+    assert 8 / 4 == 2
+    assert 8 % 5 == 3
+
+
+
 # def init():
 #     a = Number()
 #     b = Fixed16()
@@ -26,20 +35,21 @@
 # g2 = Number()    
 
 # def init():
-#     # i = Number()
-#     # i = 4
+#     i = Number()
+#     i = 4
 
-#     # a = Number()
-#     # a = 1
+#     a = Number()
+#     a = 1
 
-#     # while i > 0:
-#     #     i -= 1
+#     while i > 0:
+#         i -= 1
 
-#     #     a += 1
+#         a += 1
 
-#     # assert a == 5
-#     # assert i == 0
+#     assert a == 5
+#     assert i == 0
 
+# def init():
 #     a = Number()
 
 #     a = 0
@@ -85,17 +95,17 @@
 #     assert a == 0
 
 
-def init():
-    a = Number()
-    b = Number()
+# def init():
+#     a = Number()
+#     b = Number()
 
-    b = 2
+#     b = 2
 
-    if a > 0:
-        b = 1
+#     if a > 0:
+#         b = 1
 
-    assert b == 2
-    assert a == 0
+#     assert b == 2
+#     assert a == 0
 
 
 # def init():

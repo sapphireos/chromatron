@@ -1463,8 +1463,6 @@ class irBlock(IR):
             if len(input_values) != len(phi.merges):
                 continue
 
-            print('meow')
-
 
 
         # analyze all other instructions
@@ -1487,13 +1485,12 @@ class irBlock(IR):
                 # simplify?
                 # not on load const
 
-                
                 # is expr in hash table?
                 if expr in values:
                     v = values[expr]
 
                     values[ir.target] = v
-
+                    
                     # remove instructino
                     print(f"remove load const {ir.target} = {ir.value}")
 
@@ -1503,7 +1500,6 @@ class irBlock(IR):
 
                 else:
                     values[ir.target] = ir.target
-                    values[ir.value] = ir.target
 
             elif isinstance(ir, irAssign):
                 # replace inputs:
@@ -1586,22 +1582,25 @@ class irBlock(IR):
                     ir = fold
                     ir.block = self
 
-                    expr = ir.value
-
-                # is expr in hash table?
-                if expr in values:                
-                    values[ir.target] = expr
-
-                    # remove this instruction    
-                    print(f"remove binop {original_ir.target} = {original_ir.left} {original_ir.op} {original_ir.right}")
+                    values[ir.target] = ir.target
 
                     changed = True
 
-                    continue
-
                 else:
-                    values[ir.target] = ir.target
-                    values[expr] = ir.target
+                    # is expr in hash table?
+                    if expr in values:                
+                        values[ir.target] = expr
+
+                        # remove this instruction    
+                        print(f"remove binop {original_ir.target} = {original_ir.left} {original_ir.op} {original_ir.right}")
+
+                        changed = True
+
+                        continue
+
+                    else:
+                        values[ir.target] = ir.target
+                        values[expr] = ir.target
 
             # elif isinstance(ir, irLoad):
             #     target = ir.register
@@ -1725,7 +1724,11 @@ class irBlock(IR):
                 # else:
                 #     values[ir.target] = ir.target
 
-        
+            # check value table for pollution from primitive types
+            for k, v in values.items():
+                assert not isinstance(k, int)
+                assert not isinstance(k, float)
+
             new_code.append(ir)
 
         self.code = new_code
