@@ -1458,7 +1458,7 @@ class irBlock(IR):
 
 
             # first, check if there are value numbers for all of the inputs
-            input_values = [p for p in phi.merges if p in values]
+            input_values = [p[0] for p in phi.merges if p[0] in values]
 
             if len(input_values) != len(phi.merges):
                 continue
@@ -1736,7 +1736,8 @@ class irBlock(IR):
 
             for phi in phis:
                 for i in range(len(phi.merges)):
-                    m = phi.merges[i]
+                    m = phi.merges[i][0]
+                    b = phi.merges[i][1]
 
                     # check if this input is in the value number table:
                     if m in values:
@@ -1746,7 +1747,7 @@ class irBlock(IR):
                             # replace phi input with the value number
                             print(f"Replace phi input {m} with {replacement}")
 
-                            phi.merges[i] = replacement
+                            phi.merges[i] = (replacement, b)
 
                             changed = True
 
