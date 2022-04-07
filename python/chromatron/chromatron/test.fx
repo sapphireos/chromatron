@@ -25,17 +25,35 @@
 # g1 = Number()    
 # g2 = Number()    
 
+# def init():
+#     a = Number()
+
+#     a = 0
+
+#     while a < 4:
+#         a += 1
+
+#     assert a == 4
+
+
 def init():
+    i = Number()
+    i = 4
+
     a = Number()
 
-    a = 0
+    while i > 0:
+        i -= 1
+        j = Number()
 
-    while a < 4:
-        a += 1
+        j = 5
 
-    assert a == 4
+        while j > 0:
+            j -= 1
 
+            a += 1
 
+    assert a == 20
 
 # def init():
 #     a = Number()

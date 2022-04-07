@@ -2482,12 +2482,24 @@ class irBlock(IR):
                     changed = True                    
                     continue # remove phi from code
 
-                # elif len(ir.merges) > 1:
+                elif len(ir.merges) > 1:
+                    old_merges = list(ir.merges.keys())
+                    ir_merges = list(sorted(set(old_merges), key=lambda a: a.ssa_name))
+
+                    merges = ir.merges
+                    merges_keys = list(merges.keys())
+                    ir.merges = {}
+                    for k in ir_merges:
+                        
+                        ir.merges[k] = merges[k]
+
+                    # ir.merges = {k: v for k, v in ir.merges.items() if k in ir_merges}
+
                 #     old_merges = copy(ir.merges)
                 #     ir.merges = list(sorted(set(ir.merges), key=lambda a: a.ssa_name))
                     
-                #     if old_merges != ir.merges:
-                #         changed = True # need to check for changed!
+                    if old_merges != ir_merges:
+                        changed = True # need to check for changed!
 
             new_code.append(ir)
 
