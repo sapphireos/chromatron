@@ -81,7 +81,7 @@ def while_loop():
     while a < 4:
         a += 1
 
-    assert a == 5
+    assert a == 4
 
 def while_loop2():
     i = Number()
