@@ -1,21 +1,18 @@
+
+
+ary = Number()[4]
+
 def init():
-    a = Number()
     b = Number()
+    ary[b] = 1
+    b = 1
+    ary[b] = 2
 
-    a = 1
+    assert ary[0] == 1
+    # assert ary[1] == 2
+    # assert ary[2] == 0
+    # assert ary[3] == 0
 
-    if a > 0:
-        b = 1
-
-    elif b == 0:
-        a = 1
-
-    else:
-        b = 2
-
-    assert b == 1
-    assert a == 1
-    
 # def init():
 #     a = Number()
 #     b = Fixed16()

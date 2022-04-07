@@ -1467,7 +1467,7 @@ class irBlock(IR):
 
             if len(input_values) != len(phi.merges):
                 new_code.append(ir)
-                
+
                 continue
 
             # check if meaningless
@@ -1539,9 +1539,9 @@ class irBlock(IR):
                     replacement = values[ir.value]
 
                     if ir.value != replacement:
-                        print(f"replace assign {ir.target} = {ir.value} with {values[ir.value]}")
+                        print(f"replace assign {ir.target} = {ir.value} with {replacement}")
 
-                        ir.value = values[ir.value]
+                        ir.value = replacement
 
                         changed = True
 
@@ -1566,6 +1566,67 @@ class irBlock(IR):
                 else:
                     values[ir.target] = ir.target
                     values[ir.value] = ir.target
+
+            elif isinstance(ir, irLookup):
+                # replace inputs:
+                for i in range(len(ir.lookups)):
+                    if ir.lookups[i] in values:
+                        replacement = values[ir.lookups[i]]
+
+                        if ir.lookups[i] != replacement:
+
+                            print(f"replace lookup {ir.lookups[i]} with {replacement}")
+
+                            ir.lookups[i] = replacement
+
+                            changed = True
+
+                # for i in range(len(ir.counts)):
+                #     if ir.counts[i] in values:
+                #         replacement = values[ir.counts[i]]
+
+                #         if ir.counts[i] != replacement:
+
+                #             print(f"replace count {ir.counts[i]} with {replacement}")
+
+                #             ir.counts[i] = replacement
+
+                #             changed = True
+
+                # for i in range(len(ir.strides)):
+                #     if ir.strides[i] in values:
+                #         replacement = values[ir.strides[i]]
+
+                #         if ir.strides[i] != replacement:
+
+                #             print(f"replace stride {ir.strides[i]} with {replacement}")
+
+                #             ir.strides[i] = replacement
+
+                #             changed = True
+
+                # simplify?
+                # this instruction could be folded on constant inputs similiar to binop
+
+
+                expr = ir.expr
+
+                print(expr)
+
+                if expr in values:
+                    v = values[expr]
+
+                    values[ir.result] = v
+
+                    # remove
+                    print(f"remove lookup {ir}")
+
+                    changed = True
+
+                    continue
+                else:
+                    values[ir.result] = ir.result
+                    values[expr] = ir.result
 
             elif isinstance(ir, irReturn):
                 # replace inputs:
@@ -1633,6 +1694,7 @@ class irBlock(IR):
                     else:
                         values[ir.target] = ir.target
                         values[expr] = ir.target
+
 
             # elif isinstance(ir, irLoad):
             #     target = ir.register
@@ -4077,11 +4139,9 @@ class irPhi(IR):
 
     @property
     def expr(self):
-        s = ''
+        s = 'phi '
         for m in sorted(self.merges, key=lambda x: x.ssa_name):
-            s += f'{m.ssa_name} phi '
-
-        s = s[:-5]
+            s += f'{m.ssa_name} '
 
         return s
 
@@ -5156,6 +5216,14 @@ class irLookup(IR):
             lookups += f'[{a}]'
 
         return f'{self.result} = LOOKUP {self.ref} {lookups}'
+
+    @property
+    def expr(self):
+        s = f'lookup: {self.ref} '
+        for m in sorted(self.lookups, key=lambda x: x.ssa_name):
+            s += f'{m.ssa_name} '
+
+        return s
 
     def get_input_vars(self):
         inputs = [self.ref]
