@@ -7,7 +7,7 @@ def arith():
 	assert 8 / 4 == 2
 	assert 8 % 5 == 3
 
-def constant_folding():
+def arith2():
 	assert 1 + 2 - 3 * 10 / 5 == -3
 
 # NAMED_CONST = 4
@@ -74,6 +74,62 @@ def simple_if2():
     assert b == 1
     assert a == 0
 
+
+def multi_if_1():
+    a = Number()
+    b = Number()
+
+    a = 0
+
+    if a > 0:
+        b = 1
+
+    elif b == 0:
+        a = 1
+
+    else:
+        b = 2
+
+    assert b == 0
+    assert a == 1
+
+
+def multi_if_2():
+    a = Number()
+    b = Number()
+
+    a = 1
+
+    if a > 0:
+        b = 1
+
+    elif b == 0:
+        a = 1
+
+    else:
+        b = 2
+
+    assert b == 1
+    assert a == 1
+
+def multi_if_3():
+    a = Number()
+    b = Number()
+
+    a = -1
+    b = 1
+
+    if a > 0:
+        b = 1
+
+    elif b == 0:
+        a = 1
+
+    else:
+        b = 2
+
+    assert b == 2
+    assert a == -1
 
 def while_loop():
     a = Number()
@@ -286,7 +342,7 @@ def local_array_vector():
 def func_param(a: Number):
     a += 1
     
-    assert a == 1
+    assert a == 2
 
 
 def sub(a: Number, b: Number) -> Number:
@@ -683,10 +739,16 @@ def redundant_assign():
 
 def init():
     arith()
-    constant_folding()
+    arith2()
     simple_ifelse()
     simple_ifelse2()
+    simple_if()
+    simple_if2()
+    multi_if_1()
+    multi_if_2()
+    multi_if_3()
     while_loop()
+    while_loop2()
     double_while_loop()
     global_var()
     array_lookup()
@@ -699,7 +761,7 @@ def init():
     local_array_lookup()
     local_array_assign()
     local_array_vector()
-    func_param(0)
+    func_param(1)
     func_call()
     func_indirect_call()
     func_indirect_call_array()

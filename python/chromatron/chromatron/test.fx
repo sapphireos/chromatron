@@ -25,31 +25,37 @@
 # g1 = Number()    
 # g2 = Number()    
 
+# def init():
+#     # i = Number()
+#     # i = 4
+
+#     # a = Number()
+#     # a = 1
+
+#     # while i > 0:
+#     #     i -= 1
+
+#     #     a += 1
+
+#     # assert a == 5
+#     # assert i == 0
+
+#     a = Number()
+
+#     a = 0
+
+#     while a < 4:
+#         a += 1
+
+#     assert a == 4
+
+
+
+
 def init():
-    # i = Number()
-    # i = 4
-
-    # a = Number()
-    # a = 1
-
-    # while i > 0:
-    #     i -= 1
-
-    #     a += 1
-
-    # assert a == 5
-    # assert i == 0
-
-    a = Number()
-
-    a = 0
-
-    while a < 4:
-        a += 1
-
-    assert a == 4
-
-
+    multi_if_1()
+    multi_if_2()
+    multi_if_3()
 
 # def init():
 #     a = Number()
