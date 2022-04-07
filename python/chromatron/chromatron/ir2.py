@@ -2281,7 +2281,7 @@ class irBlock(IR):
 
             # create new var and add a phi node
             new_var = self.type_manager.create_var_from_type(var_name, var.data_type, lineno=-1)
-
+            new_var.value = var.value
             new_var.convert_to_ssa(self.ssa_next_val)
 
             # this will ensure the lookup will resolve on a loop
@@ -2313,7 +2313,6 @@ class irBlock(IR):
 
             new_var = self.type_manager.create_var_from_type(var_name, var.data_type, lineno=-1)
             new_var.value = var.value
-
             new_var.convert_to_ssa(self.ssa_next_val)
 
             self.defines[var_name] = new_var.var
