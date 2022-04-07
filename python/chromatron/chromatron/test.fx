@@ -53,10 +53,24 @@
 
 
 def init():
-    multi_if_1()
-    multi_if_2()
-    multi_if_3()
+    i = Number()
+    i = 4
 
+    a = Number()
+
+    while i > 0:
+        i -= 1
+        j = Number()
+
+        j = 5
+
+        while j > 0:
+            j -= 1
+
+            a += 1
+
+    assert a == 20
+    
 # def init():
 #     a = Number()
 #     b = Number()
