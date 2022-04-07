@@ -2351,17 +2351,17 @@ class irBlock(IR):
         new_code = []
         for ir in self.code:
             if isinstance(ir, irIncompletePhi):
-                # values = []
+                values = []
                 merges = {}
                 for p in self.predecessors:
                     pv = p.ssa_lookup_var(ir.var)
 
                     v = VarContainer(pv)
-                    # values.append(v)
+                    values.append(v)
                     merges[v] = p
 
-                values = list(merges.keys()) #debug
-                # values = list(sorted(set(values), key=lambda a: a.name))
+                values_new = list(merges.keys()) #debug
+                values = list(sorted(set(values), key=lambda a: a.name))
 
                 # if ir.var in values: # remove self references
                     # values.remove(ir.var)
