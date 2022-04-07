@@ -1,13 +1,21 @@
-
 def init():
-    assert 1 + 2 == 3
-    assert 3 - 2 == 1
-    assert 3 * 2 == 6
-    assert 8 / 4 == 2
-    assert 8 % 5 == 3
+    a = Number()
+    b = Number()
 
+    a = 1
 
+    if a > 0:
+        b = 1
 
+    elif b == 0:
+        a = 1
+
+    else:
+        b = 2
+
+    assert b == 1
+    assert a == 1
+    
 # def init():
 #     a = Number()
 #     b = Fixed16()

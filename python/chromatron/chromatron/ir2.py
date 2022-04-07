@@ -1449,8 +1449,13 @@ class irBlock(IR):
         print(f"\n**************************\nGVN block: {self.name}\n")
 
         # analyze phi nodes
-        for phi in [p for p in self.code if isinstance(p, irPhi)]:
+        for ir in self.code:
+            if not isinstance(ir, irPhi):
+                new_code.append(ir)
+                continue
             
+
+            phi = ir
             # check if phi is meaningless or redundant
 
             # meaningless: all inputs have the same value number
@@ -1463,7 +1468,32 @@ class irBlock(IR):
             if len(input_values) != len(phi.merges):
                 continue
 
+            # check if meaningless
+            first_value = values[input_values[0]]
 
+            meaningless = True
+            for i in input_values:
+                if values[i] != first_value:
+                    meaningless = False
+                    break
+
+            if meaningless:
+                print(f"removing meaningless phi: {phi}")
+
+                values[phi.target] = first_value
+
+                # remove the phi
+
+                changed = True
+
+            else:
+                # append the phi as-is
+                new_code.append(ir)
+
+                values[phi.target] = phi.target
+
+        self.code = new_code
+        new_code = []
 
         # analyze all other instructions
         for ir in self.code:
