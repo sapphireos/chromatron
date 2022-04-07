@@ -1466,6 +1466,8 @@ class irBlock(IR):
             input_values = [p[0] for p in phi.merges if p[0] in values]
 
             if len(input_values) != len(phi.merges):
+                new_code.append(ir)
+                
                 continue
 
             # check if meaningless
