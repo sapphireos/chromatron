@@ -1567,6 +1567,54 @@ class irBlock(IR):
                     values[ir.target] = ir.target
                     values[ir.value] = ir.target
 
+            elif isinstance(ir, irConvertType):
+                # replace inputs:
+                if ir.value in values:
+                    replacement = values[ir.value]
+
+                    if ir.value != replacement:
+                        print(f"replace conversion {ir.result} = {ir.value} with {replacement}")
+
+                        ir.value = replacement
+
+                        changed = True
+
+                expr = ir.value
+
+                # simplify?
+                fold = ir.fold()
+
+                if fold is not None:
+                    print(f'Fold conversion: {fold}')
+
+                    assert isinstance(fold, irLoadConst)
+
+                    # replace the instruction with the folded assignment
+                    ir = fold
+                    ir.block = self
+
+                    values[ir.target] = ir.target
+
+                    changed = True
+
+                else:
+                    # is expr in hash table?
+                    if expr in values:
+                        v = values[expr]
+
+                        values[ir.result] = v
+
+                        # remove assignment
+                        print(f"remove conversion {ir.result} = {ir.value}")
+
+                        changed = True
+
+                        continue
+
+                    else:
+                        values[ir.result] = ir.result
+                        values[ir.value] = ir.result
+
             elif isinstance(ir, irLookup):
                 # replace inputs:
                 for i in range(len(ir.lookups)):
@@ -1667,7 +1715,7 @@ class irBlock(IR):
 
                 if fold is not None:
 
-                    print(f'Fold: {fold}')
+                    print(f'Fold binop: {fold}')
 
                     assert isinstance(fold, irLoadConst)
 
@@ -1771,52 +1819,17 @@ class irBlock(IR):
                 #         ir = irJump(ir.true_label, lineno=ir.lineno)
                 #         ir.block = self
 
-            # elif isinstance(ir, irPhi):
+            elif isinstance(ir, irLabel):
+                pass
 
-                # # search predecessors for incoming merges on all edges
-                # found = []
-                # for d in ir.merges:
-                #     for p in self.predecessors:
-                #         v = p.lookup_var(d)       
+            elif isinstance(ir, irAssert):
+                pass
 
-                #         if v is not None and v.ssa_name == d.ssa_name:    
-                #             found.append(v)
+            elif isinstance(ir, irPhi):
+                pass
 
-                # # remove merges that were not found in the predecessor search
-                # # these would be merges coming from blocks whose paths we have
-                # # optimized out.
-                # filtered_merges = [d for d in ir.merges if d in found]
-
-                # if filtered_merges != ir.merges:
-                #     print(f"Replacing phi merges {[a.ssa_name for a in ir.merges]} with {[a.ssa_name for a in filtered_merges]}")
-
-                #     ir.merges = filtered_merges
-
-                #     changed = True
-
-                # # check if phi is meaningless or redundant:
-                # if len(ir.merges) == 0:
-                #     changed = True
-
-                #     values[ir.target] = ir.expr
-
-                #     print('removing useless phi node')
-                #     continue
-                
-                # elif len(ir.merges) == 1:
-                #     changed = True
-
-                #     value = ir.merges[0]
-                #     print(f'replace phi with assign {ir.target} = {value}')
-                #     ir = irAssign(ir.target, value, lineno=ir.lineno)
-                #     ir.block = self
-
-                #     values[ir.target] = ir.value
-
-                #     # further optimizations may be made on this assign in a secondary pass
-
-                # else:
-                #     values[ir.target] = ir.target
+            else:
+                print(f"Unanalyzed instruction: {ir}")
 
             # check value table for pollution from primitive types
             for k, v in values.items():
@@ -5129,6 +5142,26 @@ class irConvertType(IR):
         s = '%s = %s(%s)' % (self.result, self.result.data_type, self.value)
 
         return s
+
+    def fold(self):
+        if self.value.value is None:
+            return None
+
+        if self.result.data_type == 'f16':
+            # val = convert_to_f16(self.value.value)
+            val = float(self.value.value)
+
+        elif self.result.data_type == 'i32':
+            # val = convert_to_i32(self.value.value)
+            val = int(self.value.value)
+
+        else:
+            assert False
+
+        ir = irLoadConst(self.result, val, lineno=self.lineno)
+        self.result.value = val
+
+        return ir
 
     def get_input_vars(self):
         return [self.value]

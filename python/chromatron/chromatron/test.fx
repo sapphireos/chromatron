@@ -1,17 +1,13 @@
 
-
-ary = Number()[4]
-
 def init():
-    b = Number()
-    ary[b] = 1
-    b = 1
-    ary[b] = 2
+    a = Number()
+    b = Fixed16()
 
-    assert ary[0] == 1
-    # assert ary[1] == 2
-    # assert ary[2] == 0
-    # assert ary[3] == 0
+    a = 123
+    b = a * 0.333
+
+    assert a == 123
+    assert b == 40.95808410644531
 
 # def init():
 #     a = Number()
