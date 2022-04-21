@@ -333,12 +333,12 @@ PT_BEGIN( pt );
     io_v_digital_write( ELITE_BOOST_IO, 1 );
 
     // FAN
-    io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
-    io_v_digital_write( ELITE_FAN_IO, 1 );
+    io_v_set_mode( ELITE_CASE_FAN_IO, IO_MODE_OUTPUT );    
+    io_v_digital_write( ELITE_CASE_FAN_IO, 1 );
 
     TMR_WAIT( pt, 5000 );
     // io_v_digital_write( ELITE_BOOST_IO, 0 );
-    io_v_digital_write( ELITE_FAN_IO, 0 );
+    io_v_digital_write( ELITE_CASE_FAN_IO, 0 );
 
     fan_on = FALSE;
 
@@ -350,8 +350,8 @@ PT_BEGIN( pt );
             // ensure fan is off when shutting down.
             // if it is on, it can kick the battery controller back on as it winds down.
 
-            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
-            io_v_digital_write( ELITE_FAN_IO, 0 );            
+            io_v_set_mode( ELITE_CASE_FAN_IO, IO_MODE_OUTPUT );    
+            io_v_digital_write( ELITE_CASE_FAN_IO, 0 );            
 
             fan_on = FALSE;
 
@@ -362,8 +362,8 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 100 );
 
-            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
-            io_v_digital_write( ELITE_FAN_IO, 0 );
+            io_v_set_mode( ELITE_CASE_FAN_IO, IO_MODE_OUTPUT );    
+            io_v_digital_write( ELITE_CASE_FAN_IO, 0 );
 
             if( ( bq25895_i8_get_temp() >= 39 ) ||
                 ( bq25895_i8_get_case_temp() >= 49 ) ){
@@ -376,8 +376,8 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 100 );
 
-            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
-            io_v_digital_write( ELITE_FAN_IO, 1 );
+            io_v_set_mode( ELITE_CASE_FAN_IO, IO_MODE_OUTPUT );    
+            io_v_digital_write( ELITE_CASE_FAN_IO, 1 );
 
             if( ( bq25895_i8_get_temp() <= 37 ) &&
                 ( bq25895_i8_get_case_temp() <= 44 ) ){

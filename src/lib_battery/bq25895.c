@@ -1443,6 +1443,30 @@ PT_END( pt );
 
 #if defined(ESP32)
 
+static int8_t batt_board_temp_0;
+static int8_t batt_board_temp_1;
+static int8_t batt_board_temp_2;
+static int8_t batt_board_temp_3;
+
+static uint16_t pwm;
+
+KV_SECTION_META kv_meta_t bat_info_extended_kv[] = {
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_0, 0,"batt_board_temp_0" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_1, 0,"batt_board_temp_1" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_2, 0,"batt_board_temp_2" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_3, 0,"batt_board_temp_3" },
+
+    { CATBUS_TYPE_UINT16,    0, 0,  &pwm, 0,"batt_pwm" },
+    
+};
+
+#include "ads1015.h"
+
+#define ADS1015_GAIN_SETTING    ADS1015_GAIN_2048
+#define PELTIER_PWM_FREQ        10000
+
+static bool batt_board_present;
+
 PT_THREAD( bat_aux_temp_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -1450,6 +1474,37 @@ PT_BEGIN( pt );
     if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
 
         THREAD_EXIT( pt );
+    }
+
+    if( ads1015_i8_init( 0 ) == 0 ){
+
+        log_v_debug_P( PSTR("Battery cooling unit detected") );
+
+        batt_board_present = TRUE;
+
+        io_v_set_mode( ELITE_PELTIER_FAN_IO, IO_MODE_OUTPUT );      
+        io_v_set_mode( ELITE_PELTIER_IO, IO_MODE_OUTPUT );      
+
+        io_v_digital_write( ELITE_PELTIER_FAN_IO, 0 );
+        io_v_digital_write( ELITE_PELTIER_IO, 0 );
+
+
+        pwm_v_init_channel( ELITE_PELTIER_IO, PELTIER_PWM_FREQ );
+        pwm_v_write( ELITE_PELTIER_IO, 0 );
+
+
+        TMR_WAIT( pt, 1000 );
+
+        io_v_digital_write( ELITE_PELTIER_FAN_IO, 1 );
+        pwm_v_write( ELITE_PELTIER_IO, 512 );
+        // io_v_digital_write( ELITE_PELTIER_IO, 1 );
+
+
+        // TMR_WAIT( pt, 5000 );
+
+        // io_v_digital_write( ELITE_PELTIER_FAN_IO, 0 );
+        // pwm_v_write( ELITE_PELTIER_IO, 0 );
+        // io_v_digital_write( ELITE_PELTIER_IO, 0 );
     }
 
     io_v_set_mode( ELITE_CASE_ADC_IO, IO_MODE_INPUT );      
@@ -1464,6 +1519,33 @@ PT_BEGIN( pt );
 
         case_temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
         ambient_temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
+
+        if( batt_board_present ){
+
+            ads1015_v_start( 0, 0, ADS1015_GAIN_SETTING );
+            batt_board_temp_0 = ( ads1015_i32_read( 0, 0, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+
+            ads1015_v_start( 0, 1, ADS1015_GAIN_SETTING );
+            batt_board_temp_1 = ( ads1015_i32_read( 0, 1, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+
+            ads1015_v_start( 0, 2, ADS1015_GAIN_SETTING );
+            batt_board_temp_2 = ( ads1015_i32_read( 0, 2, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+
+            ads1015_v_start( 0, 3, ADS1015_GAIN_SETTING );
+            batt_board_temp_3 = ( ads1015_i32_read( 0, 3, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+
+
+            pwm_v_write( ELITE_PELTIER_IO, pwm );
+
+            if( pwm > 0 ){
+
+                io_v_digital_write( ELITE_PELTIER_FAN_IO, 1 );   
+            }
+            else{
+
+                io_v_digital_write( ELITE_PELTIER_FAN_IO, 0 );
+            }
+        }
 
         TMR_WAIT( pt, 1000 );
     }

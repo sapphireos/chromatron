@@ -32,8 +32,11 @@
 // for Elite board:
 #define ELITE_CASE_ADC_IO       IO_PIN_32_A7
 #define ELITE_AMBIENT_ADC_IO    IO_PIN_33_A9
-#define ELITE_FAN_IO            IO_PIN_19_MISO
+#define ELITE_CASE_FAN_IO       IO_PIN_19_MISO
 #define ELITE_BOOST_IO          IO_PIN_4_A5
+
+#define ELITE_PELTIER_FAN_IO    IO_PIN_16_RX
+#define ELITE_PELTIER_IO        IO_PIN_17_TX
 
 
 #endif
