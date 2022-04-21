@@ -170,6 +170,9 @@ void pwm_v_init( void ){
 
 int8_t get_channel( uint8_t gpio ){
 
+    // convert GPIO to ESP numbering
+    gpio = hal_io_i32_get_gpio_num( gpio );
+
     for( uint8_t i = 0; i < cnt_of_array(ledc_channel); i++ ){
 
         if( ledc_channel[i].gpio_num == gpio ){
