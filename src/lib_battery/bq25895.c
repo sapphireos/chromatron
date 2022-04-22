@@ -1443,10 +1443,10 @@ PT_END( pt );
 
 #if defined(ESP32)
 
-static int8_t batt_board_temp_0 = -127;
-static int8_t batt_board_temp_1 = -127;
-static int8_t batt_board_temp_2 = -127;
-static int8_t batt_board_temp_3 = -127;
+static int16_t batt_board_temp_0;
+static int16_t batt_board_temp_1;
+static int16_t batt_board_temp_2;
+static int16_t batt_board_temp_3;
 
 static int16_t batt_board_volts_0;
 static int16_t batt_board_volts_1;
@@ -1461,10 +1461,10 @@ static int16_t batt_board_raw_3;
 static uint16_t pwm;
 
 KV_SECTION_META kv_meta_t bat_info_extended_kv[] = {
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_0, 0,"batt_board_temp_0" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_1, 0,"batt_board_temp_1" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_2, 0,"batt_board_temp_2" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_3, 0,"batt_board_temp_3" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_0, 0,"batt_board_temp_0" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_1, 0,"batt_board_temp_1" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_2, 0,"batt_board_temp_2" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_3, 0,"batt_board_temp_3" },
 
 
     { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_volts_0, 0,"batt_board_volts_0" },
@@ -1591,10 +1591,15 @@ PT_BEGIN( pt );
             }
 
  
-            batt_board_temp_0 = ( batt_board_volts_0 - 500 ) / 10;
-            batt_board_temp_1 = ( batt_board_volts_1 - 500 ) / 10;
-            batt_board_temp_2 = ( batt_board_volts_2 - 500 ) / 10;
-            batt_board_temp_3 = ( batt_board_volts_3 - 500 ) / 10;
+            // batt_board_temp_0 = ( batt_board_volts_0 - 500 ) / 10;
+            // batt_board_temp_1 = ( batt_board_volts_1 - 500 ) / 10;
+            // batt_board_temp_2 = ( batt_board_volts_2 - 500 ) / 10;
+            // batt_board_temp_3 = ( batt_board_volts_3 - 500 ) / 10;
+
+            batt_board_temp_0 = ( batt_board_volts_0 - 500 );
+            batt_board_temp_1 = ( batt_board_volts_1 - 500 );
+            batt_board_temp_2 = ( batt_board_volts_2 - 500 );
+            batt_board_temp_3 = ( batt_board_volts_3 - 500 );
 
 
             // temp = ( ads1015_i32_read( 0, 0, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
