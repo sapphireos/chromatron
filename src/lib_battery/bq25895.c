@@ -1463,7 +1463,8 @@ KV_SECTION_META kv_meta_t bat_info_extended_kv[] = {
 #include "ads1015.h"
 
 #define ADS1015_GAIN_SETTING    ADS1015_GAIN_2048
-#define PELTIER_PWM_FREQ        10000
+#define TEMP_FILTER             32
+#define PELTIER_PWM_FREQ        20000
 
 static bool batt_board_present;
 
@@ -1522,17 +1523,22 @@ PT_BEGIN( pt );
 
         if( batt_board_present ){
 
+            int8_t temp;
             ads1015_v_start( 0, 0, ADS1015_GAIN_SETTING );
-            batt_board_temp_0 = ( ads1015_i32_read( 0, 0, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            temp = ( ads1015_i32_read( 0, 0, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            batt_board_temp_0 = util_i16_ewma( temp, batt_board_temp_0, TEMP_FILTER );
 
             ads1015_v_start( 0, 1, ADS1015_GAIN_SETTING );
-            batt_board_temp_1 = ( ads1015_i32_read( 0, 1, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            temp = ( ads1015_i32_read( 0, 1, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            batt_board_temp_1 = util_i16_ewma( temp, batt_board_temp_1, TEMP_FILTER );
 
             ads1015_v_start( 0, 2, ADS1015_GAIN_SETTING );
-            batt_board_temp_2 = ( ads1015_i32_read( 0, 2, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            temp = ( ads1015_i32_read( 0, 2, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            batt_board_temp_2 = util_i16_ewma( temp, batt_board_temp_2, TEMP_FILTER );
 
             ads1015_v_start( 0, 3, ADS1015_GAIN_SETTING );
-            batt_board_temp_3 = ( ads1015_i32_read( 0, 3, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            temp = ( ads1015_i32_read( 0, 3, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            batt_board_temp_3 = util_i16_ewma( temp, batt_board_temp_3, TEMP_FILTER );
 
 
             pwm_v_write( ELITE_PELTIER_IO, pwm );
