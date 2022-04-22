@@ -1448,6 +1448,16 @@ static int8_t batt_board_temp_1 = -127;
 static int8_t batt_board_temp_2 = -127;
 static int8_t batt_board_temp_3 = -127;
 
+static int16_t batt_board_volts_0;
+static int16_t batt_board_volts_1;
+static int16_t batt_board_volts_2;
+static int16_t batt_board_volts_3;
+
+static int16_t batt_board_raw_0;
+static int16_t batt_board_raw_1;
+static int16_t batt_board_raw_2;
+static int16_t batt_board_raw_3;
+
 static uint16_t pwm;
 
 KV_SECTION_META kv_meta_t bat_info_extended_kv[] = {
@@ -1455,6 +1465,18 @@ KV_SECTION_META kv_meta_t bat_info_extended_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_1, 0,"batt_board_temp_1" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_2, 0,"batt_board_temp_2" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_board_temp_3, 0,"batt_board_temp_3" },
+
+
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_volts_0, 0,"batt_board_volts_0" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_volts_1, 0,"batt_board_volts_1" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_volts_2, 0,"batt_board_volts_2" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_volts_3, 0,"batt_board_volts_3" },
+
+
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_raw_0, 0,"batt_board_raw_0" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_raw_1, 0,"batt_board_raw_1" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_raw_2, 0,"batt_board_raw_2" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &batt_board_raw_3, 0,"batt_board_raw_3" },
 
     { CATBUS_TYPE_UINT16,    0, 0,  &pwm, 0,"batt_pwm" },
     
@@ -1524,51 +1546,101 @@ PT_BEGIN( pt );
 
         if( batt_board_present ){
 
-            int8_t temp;
-            temp = ( ads1015_i32_read( 0, 0, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            int16_t temp;
 
-            if( batt_board_temp_0 == -127 ){
+            temp = ads1015_i32_read( 0, 0, ADS1015_GAIN_SETTING ) / 1000;
+            batt_board_raw_0 = temp;
+            
+            if( batt_board_volts_0 == 0 ){
 
-                batt_board_temp_0 = temp;
+                batt_board_volts_0 = temp;
             }
             else{
-
-                batt_board_temp_0 = util_i16_ewma( temp, batt_board_temp_0, TEMP_FILTER );
+                batt_board_volts_0 = util_i16_ewma( temp, batt_board_volts_0, TEMP_FILTER );    
             }
             
 
-            temp = ( ads1015_i32_read( 0, 1, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
-            
-            if( batt_board_temp_1 == -127 ){
+            temp = ads1015_i32_read( 0, 1, ADS1015_GAIN_SETTING ) / 1000;
+            batt_board_raw_1 = temp;
+            if( batt_board_volts_1 == 0 ){
 
-                batt_board_temp_1 = temp;
+                batt_board_volts_1 = temp;
             }
             else{
-
-                batt_board_temp_1 = util_i16_ewma( temp, batt_board_temp_1, TEMP_FILTER );
+                batt_board_volts_1 = util_i16_ewma( temp, batt_board_volts_1, TEMP_FILTER );    
             }
 
-            temp = ( ads1015_i32_read( 0, 2, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
-            
-            if( batt_board_temp_2 == -127 ){
+            temp = ads1015_i32_read( 0, 2, ADS1015_GAIN_SETTING ) / 1000;
+            batt_board_raw_2 = temp;
+            if( batt_board_volts_2 == 0 ){
 
-                batt_board_temp_2 = temp;
-            }
-            else{
-
-                batt_board_temp_2 = util_i16_ewma( temp, batt_board_temp_2, TEMP_FILTER );
-            }
-
-            temp = ( ads1015_i32_read( 0, 3, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
-            
-            if( batt_board_temp_3 == -127 ){
-
-                batt_board_temp_3 = temp;
+                batt_board_volts_2 = temp;
             }
             else{
-
-                batt_board_temp_3 = util_i16_ewma( temp, batt_board_temp_3, TEMP_FILTER );
+                batt_board_volts_2 = util_i16_ewma( temp, batt_board_volts_2, TEMP_FILTER );    
             }
+
+            temp = ads1015_i32_read( 0, 3, ADS1015_GAIN_SETTING ) / 1000;
+            batt_board_raw_3 = temp;
+            if( batt_board_volts_3 == 0 ){
+
+                batt_board_volts_3 = temp;
+            }
+            else{
+                batt_board_volts_3 = util_i16_ewma( temp, batt_board_volts_3, TEMP_FILTER );    
+            }
+
+ 
+            batt_board_temp_0 = ( batt_board_volts_0 - 500 ) / 10;
+            batt_board_temp_1 = ( batt_board_volts_1 - 500 ) / 10;
+            batt_board_temp_2 = ( batt_board_volts_2 - 500 ) / 10;
+            batt_board_temp_3 = ( batt_board_volts_3 - 500 ) / 10;
+
+
+            // temp = ( ads1015_i32_read( 0, 0, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+
+            // if( batt_board_temp_0 == -127 ){
+
+            //     batt_board_temp_0 = temp;
+            // }
+            // else{
+
+            //     batt_board_temp_0 = util_i16_ewma( temp, batt_board_temp_0, TEMP_FILTER );
+            // }
+            
+
+            // temp = ( ads1015_i32_read( 0, 1, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            
+            // if( batt_board_temp_1 == -127 ){
+
+            //     batt_board_temp_1 = temp;
+            // }
+            // else{
+
+            //     batt_board_temp_1 = util_i16_ewma( temp, batt_board_temp_1, TEMP_FILTER );
+            // }
+
+            // temp = ( ads1015_i32_read( 0, 2, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            
+            // if( batt_board_temp_2 == -127 ){
+
+            //     batt_board_temp_2 = temp;
+            // }
+            // else{
+
+            //     batt_board_temp_2 = util_i16_ewma( temp, batt_board_temp_2, TEMP_FILTER );
+            // }
+
+            // temp = ( ads1015_i32_read( 0, 3, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
+            
+            // if( batt_board_temp_3 == -127 ){
+
+            //     batt_board_temp_3 = temp;
+            // }
+            // else{
+
+            //     batt_board_temp_3 = util_i16_ewma( temp, batt_board_temp_3, TEMP_FILTER );
+            // }
 
 
             pwm_v_write( ELITE_PELTIER_IO, pwm );
