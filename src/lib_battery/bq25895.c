@@ -1443,10 +1443,10 @@ PT_END( pt );
 
 #if defined(ESP32)
 
-static int8_t batt_board_temp_0;
-static int8_t batt_board_temp_1;
-static int8_t batt_board_temp_2;
-static int8_t batt_board_temp_3;
+static int8_t batt_board_temp_0 = -127;
+static int8_t batt_board_temp_1 = -127;
+static int8_t batt_board_temp_2 = -127;
+static int8_t batt_board_temp_3 = -127;
 
 static uint16_t pwm;
 
@@ -1467,6 +1467,7 @@ KV_SECTION_META kv_meta_t bat_info_extended_kv[] = {
 #define PELTIER_PWM_FREQ        20000
 
 static bool batt_board_present;
+
 
 PT_THREAD( bat_aux_temp_thread( pt_t *pt, void *state ) )
 {
@@ -1526,19 +1527,52 @@ PT_BEGIN( pt );
             int8_t temp;
             ads1015_v_start( 0, 0, ADS1015_GAIN_SETTING );
             temp = ( ads1015_i32_read( 0, 0, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
-            batt_board_temp_0 = util_i16_ewma( temp, batt_board_temp_0, TEMP_FILTER );
+
+            if( batt_board_temp_0 == -127 ){
+
+                batt_board_temp_0 = temp;
+            }
+            else{
+
+                batt_board_temp_0 = util_i16_ewma( temp, batt_board_temp_0, TEMP_FILTER );
+            }
+            
 
             ads1015_v_start( 0, 1, ADS1015_GAIN_SETTING );
             temp = ( ads1015_i32_read( 0, 1, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
-            batt_board_temp_1 = util_i16_ewma( temp, batt_board_temp_1, TEMP_FILTER );
+            
+            if( batt_board_temp_1 == -127 ){
+
+                batt_board_temp_1 = temp;
+            }
+            else{
+
+                batt_board_temp_1 = util_i16_ewma( temp, batt_board_temp_1, TEMP_FILTER );
+            }
 
             ads1015_v_start( 0, 2, ADS1015_GAIN_SETTING );
             temp = ( ads1015_i32_read( 0, 2, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
-            batt_board_temp_2 = util_i16_ewma( temp, batt_board_temp_2, TEMP_FILTER );
+            
+            if( batt_board_temp_2 == -127 ){
+
+                batt_board_temp_2 = temp;
+            }
+            else{
+
+                batt_board_temp_2 = util_i16_ewma( temp, batt_board_temp_2, TEMP_FILTER );
+            }
 
             ads1015_v_start( 0, 3, ADS1015_GAIN_SETTING );
             temp = ( ads1015_i32_read( 0, 3, ADS1015_GAIN_SETTING ) - 500000 ) / 10000;
-            batt_board_temp_3 = util_i16_ewma( temp, batt_board_temp_3, TEMP_FILTER );
+            
+            if( batt_board_temp_3 == -127 ){
+
+                batt_board_temp_3 = temp;
+            }
+            else{
+
+                batt_board_temp_3 = util_i16_ewma( temp, batt_board_temp_3, TEMP_FILTER );
+            }
 
 
             pwm_v_write( ELITE_PELTIER_IO, pwm );
