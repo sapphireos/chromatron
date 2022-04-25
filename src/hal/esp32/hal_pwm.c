@@ -170,6 +170,9 @@ void pwm_v_init( void ){
 
 int8_t get_channel( uint8_t gpio ){
 
+    // convert GPIO to ESP numbering
+    gpio = hal_io_i32_get_gpio_num( gpio );
+
     for( uint8_t i = 0; i < cnt_of_array(ledc_channel); i++ ){
 
         if( ledc_channel[i].gpio_num == gpio ){
@@ -219,7 +222,7 @@ void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
 
     config->channel     = LEDC_CHANNEL_0 + led_ch;
     config->duty        = 0;
-    config->gpio_num    = channel;
+    config->gpio_num    = hal_io_i32_get_gpio_num( channel );
     config->speed_mode  = LEDC_HIGH_SPEED_MODE;
     config->hpoint      = 0;
     config->timer_sel   = LEDC_TIMER_0 + led_ch;
@@ -229,7 +232,8 @@ void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
         .duty_resolution    = LEDC_TIMER_10_BIT,    // resolution of PWM duty
         .freq_hz            = freq,                 // frequency of PWM signal
         .speed_mode         = LEDC_HIGH_SPEED_MODE, // timer mode
-        .timer_num          = config->timer_sel     // timer index
+        .timer_num          = config->timer_sel,    // timer index
+        .clk_cfg            = LEDC_AUTO_CLK
     };
 
     ledc_timer_config( &ledc_timer );
