@@ -205,7 +205,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 50 );
+        TMR_WAIT( pt, 25 );
 
         int32_t status = VL53L0X_ERROR_NONE;
         VL53L0X_RangingMeasurementData_t    RangingMeasurementData;
