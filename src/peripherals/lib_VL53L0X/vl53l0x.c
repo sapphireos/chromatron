@@ -203,6 +203,9 @@ PT_BEGIN( pt );
                 VL53L0X_VCSEL_PERIOD_FINAL_RANGE, 14);
     }
 
+    VL53L0X_SetDeviceMode(&dev, VL53L0X_DEVICEMODE_CONTINUOUS_RANGING);
+    VL53L0X_StartMeasurement(&dev);
+
     while(1){
 
         TMR_WAIT( pt, 25 );
@@ -211,7 +214,9 @@ PT_BEGIN( pt );
         VL53L0X_RangingMeasurementData_t    RangingMeasurementData;
         FixPoint1616_t LimitCheckCurrent;
         
-        status = VL53L0X_PerformSingleRangingMeasurement(&dev,
+        // status = VL53L0X_PerformSingleRangingMeasurement(&dev,
+        //         &RangingMeasurementData);
+        status = VL53L0X_GetRangingMeasurementData(&dev,
                 &RangingMeasurementData);
 
         // print_pal_error(Status);
