@@ -1,8 +1,9 @@
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -19,47 +20,13 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+ */
 
-#include "sapphire.h"
+#ifndef _RF_MAC_H_
+#define _RF_MAC_H_
 
-#include "config.h"
+int8_t rf_mac_i8_init( void );
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
-#include "hal_boards.h"
 
-#ifdef ESP32
-#include "veml7700.h"
-#include "telemetry.h"
+
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    pwm_v_init();
-
-    #ifdef ESP32
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

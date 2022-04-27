@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2019  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -110,7 +110,7 @@ void rfm95w_v_init( uint8_t cs, uint8_t reset ){
     
     CHIP_DISABLE();
 
-    spi_v_init( RFM95_SPI_CHANNEL, 1000000, 0 );
+    spi_v_init( RFM95_SPI_CHANNEL, 10000000, 0 );
 
     // log_v_debug_P( PSTR("0x%x = 0x%x"), RFM95W_RegOpMode, rfm95w_u8_read_reg( RFM95W_RegOpMode ) );
     // log_v_debug_P( PSTR("0x%x = 0x%x"), RFM95W_RegPaConfig, rfm95w_u8_read_reg( RFM95W_RegPaConfig ) );
@@ -212,10 +212,10 @@ void rfm95w_v_init( uint8_t cs, uint8_t reset ){
     // log_v_debug_P( PSTR("%d"), rfm95w_u8_get_rssi() );
 
 
-    thread_t_create( lora_tx_thread,
-                     PSTR("lora_tx"),
-                     0,
-                     0 );
+    // thread_t_create( lora_tx_thread,
+    //                  PSTR("lora_tx"),
+    //                  0,
+    //                  0 );
 
     // thread_t_create( lora_rx_thread,
     //                  PSTR("lora_rx"),
