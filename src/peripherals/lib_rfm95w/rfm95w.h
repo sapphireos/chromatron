@@ -25,6 +25,12 @@
 #ifndef _RFM95W_H_
 #define _RFM95W_H_
 
+#define RFM95W_FIFO_LEN             64
+// using the FSK/OOK value of 64 bytes.
+// the Lora modem can do 256 bytes, but
+// we will restrict to 64 so we handle
+// both modem types the same way.
+
 #define RFM95W_FOSC                 32000000
 
 #define RFM95W_FREQ_MIN             903000000

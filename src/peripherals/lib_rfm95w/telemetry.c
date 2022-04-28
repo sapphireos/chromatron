@@ -28,14 +28,42 @@
 #include "telemetry.h"
 #include "rf_mac.h"
 
+#ifdef ESP32
 
+static bool telemtry_enable;
+static bool telemtry_station_enable;
+
+KV_SECTION_META kv_meta_t telemetry_info_kv[] = {
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemtry_enable,           0,   "telemtry_enable" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemtry_station_enable,   0,   "telemtry_station_enable" },
+};
 
 void telemetry_v_init( void ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    if( !telemtry_enable ){
+
+        return;
+    }
 
     if( rf_mac_i8_init() < 0 ){
 
         return;
     }
     
+
 }
 
+#else
+
+void telemetry_v_init( void ){
+
+
+}
+
+
+#endif
