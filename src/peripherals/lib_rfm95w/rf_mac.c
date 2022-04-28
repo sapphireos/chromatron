@@ -79,10 +79,15 @@ at most 400 msec per channel in a 10 second span.
 The 50 channel/20 second program should cover everything.
 
 
+With Lora turned on, technically we qualify for hybrid mode operation.
+Technically channel hopping is required, but with no minimum number of channels.
+Per channel dwell must be < 400 msec in a 0.4 * channel_count second time period.
 
+LoRaWAN uses hybrid mode with 8 channels on the gateway.
 
-
-
+In theory, we could use 2 channels in hybrid mode as long as
+we comply with the dwell times and ensure pseudorandom channel
+selection.
 
 
 Lora bitrate is SF * ( BW / (2**SF) ) * CR
@@ -101,10 +106,27 @@ SF  BW      CR    Bitrate  Airtime (64 bytes, 512 bytes) (ms)
 6   500     4/5   37500    13    104
 
 
+For initial low rate telemetry, using a single receiver channel:
+500 KHz BW, SF12, 4/8 CR = 732 bps @ -130 dBm
+64 bytes = approx 0.7 seconds.
+
 
 
 */
 
+static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
+    905000000,
+    910000000,
+    915000000,
+    920000000,
+};
+
+static const rf_mac_coding_t codebook[] = {
+    // beacon coding
+    { RF_MAC_MOD_LORA, RFM95W_CODING_4_8, 12, RFM95W_BW_500000 }, // 732 bps
+};
+
+static uint8_t current_code;
 
 int8_t rf_mac_i8_init( void ){
 
@@ -117,7 +139,10 @@ int8_t rf_mac_i8_init( void ){
 
     if( board == BOARD_TYPE_ELITE ){
 
-        rfm95w_v_init( IO_PIN_27_A10, IO_PIN_26_A0 );
+        if( rfm95w_i8_init( IO_PIN_27_A10, IO_PIN_26_A0 ) < 0 ){
+
+            return -1;
+        }
 
         return 0;
     }
@@ -125,5 +150,97 @@ int8_t rf_mac_i8_init( void ){
     // no radio present
     return -1;
 }
+
+void rf_mac_v_set_code( uint8_t code ){
+
+    if( code >= cnt_of_array(codebook) ){
+
+        return;
+    }
+
+    current_code = code;
+}
+
+
+static void reset_fifo( void ){
+
+    rfm95w_v_write_reg( RFM95W_RegFifoTxBaseAddr, 0 );
+    rfm95w_v_write_reg( RFM95W_RegFifoRxBaseAddr, 0 );
+    rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
+}
+
+static uint16_t calc_symbol_duration( uint8_t bw, uint8_t sf ){
+
+    uint32_t bandwidth = 0;
+
+    if( bw == RFM95W_BW_62500 ){
+
+        bandwidth = 62500;
+    }
+    else if( bw == RFM95W_BW_125000 ){
+
+        bandwidth = 125000;
+    }
+    else if( bw == RFM95W_BW_250000 ){
+
+        bandwidth = 250000;
+    }
+    else if( bw == RFM95W_BW_500000 ){
+
+        bandwidth = 50000;
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    uint32_t symbol_rate = bandwidth / ( 1 << sf );
+
+    return 10000 / symbol_rate;
+}
+
+static void configure_code( void ){
+
+    // assumes radio is in standby!
+
+    if( codebook[current_code].modulation == RF_MAC_MOD_LORA ){
+
+        rfm95w_v_set_reg_bits( RFM95W_RegOpMode, RFM95W_BIT_LORA_MODE );
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    rfm95w_v_set_spreading_factor( codebook[current_code].spreading_factor );
+    rfm95w_v_set_coding_rate( codebook[current_code].code_rate );
+    rfm95w_v_set_bandwidth( codebook[current_code].bandwidth );
+
+
+    rfm95w_v_clr_reg_bits( RFM95W_RegDetectOptimize, RFM95W_MASK_DetectionOptimize );
+
+    if( codebook[current_code].spreading_factor == 6 ){
+
+        // note that header must be implicit on SF6
+
+        rfm95w_v_set_reg_bits( RFM95W_RegDetectOptimize, RFM95W_MASK_DetectionOptimize & 0x05 );
+        rfm95w_v_write_reg( RFM95W_RegDetectionThreshold, 0x0C );
+    }
+    else{
+
+        rfm95w_v_set_reg_bits( RFM95W_RegDetectOptimize, RFM95W_MASK_DetectionOptimize & 0x03 );
+        rfm95w_v_write_reg( RFM95W_RegDetectionThreshold, 0x0A );
+    }
+
+    if( calc_symbol_duration( codebook[current_code].bandwidth, codebook[current_code].spreading_factor ) >= 16 ){
+
+        rfm95w_v_set_reg_bits( RFM95W_RegModemConfig3, RFM95W_BIT_LowDataRateOptimize );    
+    }
+    else{
+
+        rfm95w_v_clr_reg_bits( RFM95W_RegModemConfig3, RFM95W_BIT_LowDataRateOptimize );
+    }
+}
+
 
 #endif

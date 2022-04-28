@@ -159,13 +159,18 @@
 #define RFM95W_RegModemConfig3      0x26
 #define RFM95W_BIT_LowDataRateOptimize ( 1 << 3 )
 
+#define RFM95W_RegDetectOptimize        0x31
+#define RFM95W_MASK_DetectionOptimize   0x07
+
+#define RFM95W_RegDetectionThreshold    0x37
+
 // Sync word
 // Default is 0x12
 // LoraWAN is 0x34
 #define RFM95W_RegSyncWord      	0x39
 
 
-void rfm95w_v_init( uint8_t cs, uint8_t reset );
+int8_t rfm95w_i8_init( uint8_t cs, uint8_t reset );
 
 // low level api
 uint8_t rfm95w_u8_read_reg( uint8_t addr );

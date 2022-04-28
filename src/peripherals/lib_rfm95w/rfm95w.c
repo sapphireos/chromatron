@@ -96,7 +96,7 @@ KV_SECTION_META kv_meta_t rfm95w_kv[] = {
 static bool rx_ready;
 static bool tx_busy;
 
-void rfm95w_v_init( uint8_t cs, uint8_t reset ){
+int8_t rfm95w_i8_init( uint8_t cs, uint8_t reset ){
 
     cs_gpio = cs;
     reset_gpio = reset;
@@ -145,7 +145,7 @@ void rfm95w_v_init( uint8_t cs, uint8_t reset ){
         ( buf[2] != 3 ) ||
         ( buf[3] != 4 ) ){
 
-        return;
+        return -1;
     }
 
     log_v_debug_P( PSTR("LORA module detected") );
@@ -222,7 +222,7 @@ void rfm95w_v_init( uint8_t cs, uint8_t reset ){
     //                  0,
     //                  0 );
 
-
+    return 0;
 }
 
 uint8_t rfm95w_u8_read_reg( uint8_t addr ){

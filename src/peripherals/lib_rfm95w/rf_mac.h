@@ -25,8 +25,24 @@
 #ifndef _RF_MAC_H_
 #define _RF_MAC_H_
 
-int8_t rf_mac_i8_init( void );
+#define RF_MAC_N_BEACON_CH  4
 
+#define RF_MAC_MOD_LORA     0
+#define RF_MAC_MOD_FSK      1
+#define RF_MAC_MOD_GFSK     2
+
+typedef struct{
+    uint8_t modulation;
+    uint8_t code_rate;
+    uint8_t spreading_factor;
+    uint8_t bandwidth;
+} rf_mac_coding_t;
+
+#define RF_MAC_BEACON_CODE  0
+
+
+int8_t rf_mac_i8_init( void );
+void rf_mac_v_set_code( uint8_t code );
 
 
 #endif
