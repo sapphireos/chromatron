@@ -114,12 +114,12 @@ For initial low rate telemetry, using a single receiver channel:
 
 */
 
-static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
-    905000000,
-    910000000,
-    915000000,
-    920000000,
-};
+// static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
+//     905000000,
+//     910000000,
+//     915000000,
+//     920000000,
+// };
 
 static const rf_mac_coding_t codebook[] = {
     // beacon coding
