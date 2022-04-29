@@ -294,7 +294,11 @@ PT_BEGIN( pt );
 
         THREAD_YIELD( pt );
 
+        rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
+        configure_code();
+
         rfm95w_v_clear_irq_flags();
+
         rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
 
         THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() );
