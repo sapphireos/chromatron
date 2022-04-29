@@ -38,6 +38,10 @@ KV_SECTION_META kv_meta_t telemetry_info_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemtry_station_enable,   0,   "telemtry_station_enable" },
 };
 
+
+PT_THREAD( telemtry_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemtry_base_station_thread( pt_t *pt, void *state ) );
+
 void telemetry_v_init( void ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -55,8 +59,57 @@ void telemetry_v_init( void ){
         return;
     }
     
+    if( telemtry_station_enable ){
 
+        thread_t_create( telemtry_base_station_thread,
+                     PSTR("telemtry_base_station"),
+                     0,
+                     0 );
+    }  
+    else{
+
+        thread_t_create( telemetry_thread,
+                     PSTR("telemetry"),
+                     0,
+                     0 );
+    }
 }
+
+
+PT_THREAD( telemtry_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while( 1 ){
+
+        TMR_WAIT( pt, 10000 );
+
+
+    }
+
+PT_END( pt );
+}
+
+
+PT_THREAD( telemtry_base_station_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while( 1 ){
+
+        TMR_WAIT( pt, 10000 );
+
+
+    }
+
+PT_END( pt );
+}
+
+
+
+
+
+
 
 #else
 
