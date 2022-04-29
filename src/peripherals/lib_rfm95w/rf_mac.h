@@ -27,6 +27,8 @@
 
 #define RF_MAC_N_BEACON_CH  4
 
+#define RF_MAC_MAX_RX_Q     8
+
 #define RF_MAC_MOD_LORA     0
 #define RF_MAC_MOD_FSK      1
 #define RF_MAC_MOD_GFSK     2
@@ -41,8 +43,14 @@ typedef struct{
 #define RF_MAC_BEACON_CODE  0
 
 
+typedef struct{
+    int16_t rssi;
+    uint8_t len;
+} rf_mac_rx_pkt_t;
+
+
 int8_t rf_mac_i8_init( void );
 void rf_mac_v_set_code( uint8_t code );
-
+int8_t rf_mac_i8_get_rx( rf_mac_rx_pkt_t *pkt, uint8_t *ptr, uint8_t max_len );
 
 #endif

@@ -128,7 +128,15 @@ static const rf_mac_coding_t codebook[] = {
 
 static uint8_t current_code;
 
+
+static list_t rx_q;
+
+PT_THREAD( rf_rx_thread( pt_t *pt, void *state ) );
+
+
 int8_t rf_mac_i8_init( void ){
+
+    list_v_init( &rx_q );
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -143,12 +151,19 @@ int8_t rf_mac_i8_init( void ){
 
             return -1;
         }
+    }
+    else{
 
-        return 0;
+        return -1;
     }
 
-    // no radio present
-    return -1;
+    thread_t_create( rf_rx_thread,
+                     PSTR("rf_rx"),
+                     0,
+                     0 );
+
+    
+    return 0;
 }
 
 void rf_mac_v_set_code( uint8_t code ){
@@ -161,12 +176,32 @@ void rf_mac_v_set_code( uint8_t code ){
     current_code = code;
 }
 
+// return -1 if q is empty
+// otherwise, return number of q elements remaining
+int8_t rf_mac_i8_get_rx( rf_mac_rx_pkt_t *pkt, uint8_t *ptr, uint8_t max_len ){
 
-static void reset_fifo( void ){
+    uint8_t count = list_u8_count( &rx_q );
 
-    rfm95w_v_write_reg( RFM95W_RegFifoTxBaseAddr, 0 );
-    rfm95w_v_write_reg( RFM95W_RegFifoRxBaseAddr, 0 );
-    rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
+    if( count == 0 ){
+
+        return -1;
+    }
+
+    list_node_t ln = list_ln_remove_tail( &rx_q );
+    rf_mac_rx_pkt_t *rx_pkt = list_vp_get_data( ln );
+    uint8_t *data = (uint8_t *)( rx_pkt + 1 );
+
+    list_v_release_node( ln );
+
+    if( rx_pkt->len > max_len ){
+
+        return -2;
+    }
+
+    *pkt = *rx_pkt;
+    memcpy( ptr, data, rx_pkt->len );
+
+    return count - 1;
 }
 
 static uint16_t calc_symbol_duration( uint8_t bw, uint8_t sf ){
@@ -241,6 +276,86 @@ static void configure_code( void ){
         rfm95w_v_clr_reg_bits( RFM95W_RegModemConfig3, RFM95W_BIT_LowDataRateOptimize );
     }
 }
+
+
+
+static void reset_fifo( void ){
+
+    rfm95w_v_write_reg( RFM95W_RegFifoTxBaseAddr, 0 );
+    rfm95w_v_write_reg( RFM95W_RegFifoRxBaseAddr, 0 );
+    rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
+}
+
+PT_THREAD( rf_rx_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while( 1 ){
+
+        THREAD_YIELD( pt );
+
+        rfm95w_v_clear_irq_flags();
+        rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
+
+        THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() );
+
+        if( !rfm95w_b_is_rx_ok() ){
+
+            // error
+            // uint8_t payload_crc_error = ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_PayloadCrcError ) != 0;
+            // uint8_t header_error = ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_ValidHeader ) == 0;
+
+            // lora_rx_errors++;
+
+            continue;
+        }
+
+        // lora_rx++;
+        // lora_rssi = rfm95w_i16_get_packet_rssi();
+
+
+        // retrieve packet from FIFO
+        uint8_t buf[sizeof(rf_mac_rx_pkt_t) + RFM95W_FIFO_LEN];
+        uint8_t rx_len = rfm95w_u8_read_reg( RFM95W_RegRxNbBytes );
+        
+        if( rx_len >= sizeof(buf) ){
+
+            // invalid length
+            continue;
+        }
+
+        rfm95w_v_read_fifo( &buf[sizeof(rf_mac_rx_pkt_t)], rx_len );
+
+        reset_fifo();
+
+
+        if( list_u8_count( &rx_q ) >= RF_MAC_MAX_RX_Q ){
+
+            // q is overloaded
+            continue;
+        }
+
+        int16_t pkt_rssi = -157 + rfm95w_u8_read_reg( RFM95W_RegPktRssiValue );
+
+        rf_mac_rx_pkt_t *rx_pkt = (rf_mac_rx_pkt_t *)buf;
+
+        rx_pkt->rssi = pkt_rssi;
+        rx_pkt->len = rx_len;
+
+        list_node_t ln = list_ln_create_node( buf, rx_len + sizeof(rf_mac_rx_pkt_t) );
+
+        if( ln < 0 ){
+
+            continue;
+        }
+
+        list_v_insert_head( &rx_q, ln );
+    }
+
+PT_END( pt );
+}
+
+
 
 
 #endif

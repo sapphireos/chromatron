@@ -30,17 +30,17 @@
 
 #ifdef ESP32
 
-static bool telemtry_enable;
-static bool telemtry_station_enable;
+static bool telemetry_enable;
+static bool telemetry_station_enable;
 
 KV_SECTION_META kv_meta_t telemetry_info_kv[] = {
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemtry_enable,           0,   "telemtry_enable" },
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemtry_station_enable,   0,   "telemtry_station_enable" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemetry_enable,           0,   "telemetry_enable" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemetry_station_enable,   0,   "telemetry_station_enable" },
 };
 
 
-PT_THREAD( telemtry_thread( pt_t *pt, void *state ) );
-PT_THREAD( telemtry_base_station_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) );
 
 void telemetry_v_init( void ){
 
@@ -49,7 +49,7 @@ void telemetry_v_init( void ){
         return;
     }
 
-    if( !telemtry_enable ){
+    if( !telemetry_enable ){
 
         return;
     }
@@ -59,10 +59,10 @@ void telemetry_v_init( void ){
         return;
     }
     
-    if( telemtry_station_enable ){
+    if( telemetry_station_enable ){
 
-        thread_t_create( telemtry_base_station_thread,
-                     PSTR("telemtry_base_station"),
+        thread_t_create( telemetry_base_station_thread,
+                     PSTR("telemetry_base_station"),
                      0,
                      0 );
     }  
@@ -76,7 +76,7 @@ void telemetry_v_init( void ){
 }
 
 
-PT_THREAD( telemtry_thread( pt_t *pt, void *state ) )
+PT_THREAD( telemetry_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
@@ -91,7 +91,7 @@ PT_END( pt );
 }
 
 
-PT_THREAD( telemtry_base_station_thread( pt_t *pt, void *state ) )
+PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
