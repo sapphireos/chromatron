@@ -25,29 +25,36 @@
 #ifndef _TELEMETRY_H_
 #define _TELEMETRY_H_
 
-#define TELEMTRY_MAGIC_0 0x12
-#define TELEMTRY_MAGIC_1 0x34
-#define TELEMTRY_MAGIC_2 0x56
+#define TELEMTRY_MAGIC 0x12345678
 
 #define TELEMETRY_BASE_STATION_RELAY_PORT   32123
 
 typedef struct __attribute__((packed)){
-    uint8_t magic[3];
+    uint32_t magic;
     uint8_t flags;
+    uint8_t msg_type;
 
     uint64_t src_addr;
-} telemtry_msg_header_0_t; // 12 bytes
+} telemtry_msg_header_0_t; // 14 bytes
 
 typedef struct __attribute__((packed)){
+    int16_t beacon_rssi;
     uint16_t batt_flags;
     uint16_t batt_volts;
     uint16_t charge_current;
     uint32_t als;
-    uint8_t batt_temp;
-    uint8_t case_temp;
-    uint8_t ambient_temp;
+    int8_t batt_temp;
+    int8_t case_temp;
+    int8_t ambient_temp;
     uint8_t batt_fault;
-} telemtry_msg_0_t; // 14 bytes
+} telemtry_msg_0_t; // 16 bytes
+// #define 
+
+
+typedef struct __attribute__((packed)){
+    uint8_t flags;
+} telemtry_msg_beacon_t;
+
 
 void telemetry_v_init( void );
 

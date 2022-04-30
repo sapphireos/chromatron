@@ -128,14 +128,17 @@ static const rf_mac_coding_t codebook[] = {
 
 static uint8_t current_code;
 
-
+static list_t tx_q;
 static list_t rx_q;
 
+
+PT_THREAD( rf_tx_thread( pt_t *pt, void *state ) );
 PT_THREAD( rf_rx_thread( pt_t *pt, void *state ) );
 
 
 int8_t rf_mac_i8_init( void ){
 
+    list_v_init( &tx_q );
     list_v_init( &rx_q );
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -157,6 +160,11 @@ int8_t rf_mac_i8_init( void ){
         return -1;
     }
 
+    thread_t_create( rf_tx_thread,
+                     PSTR("rf_tx"),
+                     0,
+                     0 );
+
     thread_t_create( rf_rx_thread,
                      PSTR("rf_rx"),
                      0,
@@ -174,6 +182,34 @@ void rf_mac_v_set_code( uint8_t code ){
     }
 
     current_code = code;
+}
+
+int8_t rf_mac_i8_send( uint64_t dest_addr, uint8_t *data, uint8_t len ){
+
+    if( list_u8_count( &tx_q ) >= RF_MAC_MAX_TX_Q ){
+
+        return -1;
+    }
+
+    uint8_t buf[sizeof(rf_mac_tx_pkt_t) + RFM95W_FIFO_LEN];
+
+    rf_mac_tx_pkt_t *pkt = (rf_mac_tx_pkt_t *)buf;
+    uint8_t *ptr = &buf[sizeof(rf_mac_tx_pkt_t)];
+
+    pkt->dest_addr = dest_addr;
+    pkt->len = len;
+    memcpy( ptr, data, len );
+
+    list_node_t ln = list_ln_create_node( buf, len + sizeof(rf_mac_tx_pkt_t) );
+
+    if( ln < 0 ){
+
+        return -2;
+    }
+
+    list_v_insert_head( &tx_q, ln );
+
+    return 0;
 }
 
 // return -1 if q is empty
@@ -285,6 +321,36 @@ static void reset_fifo( void ){
     rfm95w_v_write_reg( RFM95W_RegFifoRxBaseAddr, 0 );
     rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
 }
+
+
+PT_THREAD( rf_tx_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while( 1 ){
+
+        THREAD_WAIT_WHILE( pt, list_u8_count( &tx_q ) == 0 );
+
+        list_node_t ln = list_ln_remove_tail( &tx_q );
+
+        rf_mac_tx_pkt_t *pkt = (rf_mac_tx_pkt_t *)list_vp_get_data( ln );
+        uint8_t *data = (uint8_t *)( pkt + 1 );
+
+        if( pkt->dest_addr == 0 ){
+
+            // transmit to base station
+
+
+        }
+
+        list_v_release_node( ln );
+    }
+
+PT_END( pt );
+}
+
+
+
 
 PT_THREAD( rf_rx_thread( pt_t *pt, void *state ) )
 {
