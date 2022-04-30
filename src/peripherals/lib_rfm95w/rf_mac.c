@@ -27,6 +27,8 @@
 
 #ifdef ESP32
 
+#include "config.h"
+
 #include "rfm95w.h"
 #include "rf_mac.h"
 
@@ -114,12 +116,12 @@ For initial low rate telemetry, using a single receiver channel:
 
 */
 
-// static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
-//     905000000,
-//     910000000,
-//     915000000,
-//     920000000,
-// };
+static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
+    905000000,
+    910000000,
+    915000000,
+    920000000,
+};
 
 static const rf_mac_coding_t codebook[] = {
     // beacon coding
@@ -132,8 +134,7 @@ static list_t tx_q;
 static list_t rx_q;
 
 
-PT_THREAD( rf_tx_thread( pt_t *pt, void *state ) );
-PT_THREAD( rf_rx_thread( pt_t *pt, void *state ) );
+PT_THREAD( rf_thread( pt_t *pt, void *state ) );
 
 
 int8_t rf_mac_i8_init( void ){
@@ -160,13 +161,9 @@ int8_t rf_mac_i8_init( void ){
         return -1;
     }
 
-    thread_t_create( rf_tx_thread,
-                     PSTR("rf_tx"),
-                     0,
-                     0 );
 
-    thread_t_create( rf_rx_thread,
-                     PSTR("rf_rx"),
+    thread_t_create( rf_thread,
+                     PSTR("rf_mac"),
                      0,
                      0 );
 
@@ -323,103 +320,145 @@ static void reset_fifo( void ){
 }
 
 
-PT_THREAD( rf_tx_thread( pt_t *pt, void *state ) )
+
+PT_THREAD( rf_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    rfm95w_v_set_preamble_length( RFM95W_PREAMBLE_MIN );
     
     while( 1 ){
 
-        THREAD_WAIT_WHILE( pt, list_u8_count( &tx_q ) == 0 );
-
-        list_node_t ln = list_ln_remove_tail( &tx_q );
-
-        rf_mac_tx_pkt_t *pkt = (rf_mac_tx_pkt_t *)list_vp_get_data( ln );
-        uint8_t *data = (uint8_t *)( pkt + 1 );
-
-        if( pkt->dest_addr == 0 ){
-
-            // transmit to base station
-
-
-        }
-
-        list_v_release_node( ln );
-    }
-
-PT_END( pt );
-}
-
-
-
-
-PT_THREAD( rf_rx_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-    
-    while( 1 ){
-
-        THREAD_YIELD( pt );
+        TMR_WAIT( pt, 10 );
 
         rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
         configure_code();
+        rfm95w_v_set_frequency( beacon_channels[0] );
 
         rfm95w_v_clear_irq_flags();
 
         rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
 
-        THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() );
+        THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() && list_b_is_empty( &tx_q ) );
 
-        if( !rfm95w_b_is_rx_ok() ){
 
-            // error
-            // uint8_t payload_crc_error = ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_PayloadCrcError ) != 0;
-            // uint8_t header_error = ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_ValidHeader ) == 0;
+        // check if receive or tx path
+        if( rfm95w_b_is_rx_done() ){
+            // RECEIVE
 
-            // lora_rx_errors++;
+            if( !rfm95w_b_is_rx_ok() ){
 
-            continue;
+                // error
+                bool payload_crc_error = ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_PayloadCrcError ) != 0;
+                bool header_error = ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_ValidHeader ) == 0;
+
+                // lora_rx_errors++;
+
+                if( payload_crc_error ){
+
+                    log_v_debug_P( PSTR("payload crc error") );    
+                }
+
+                if( header_error ){
+
+                    log_v_debug_P( PSTR("header error") );    
+                }
+                
+
+                continue;
+            }
+
+
+            // retrieve packet from FIFO
+            uint8_t buf[RFM95W_FIFO_LEN];
+            uint8_t rx_len = rfm95w_u8_read_rx_len();
+            
+            if( rx_len >= sizeof(buf) ){
+
+                // invalid length
+                continue;
+            }
+
+            rfm95w_v_read_fifo( buf, rx_len );
+
+            reset_fifo();
+
+
+            if( list_u8_count( &rx_q ) >= RF_MAC_MAX_RX_Q ){
+
+                // q is overloaded
+                continue;
+            }
+
+            int16_t pkt_rssi = rfm95w_i16_get_packet_rssi();
+
+            rf_mac_rx_pkt_t rx_pkt;
+
+            rx_pkt.rssi = pkt_rssi;
+            rx_pkt.len = rx_len;
+
+            list_node_t ln = list_ln_create_node( 0, rx_len + sizeof(rf_mac_rx_pkt_t) );
+
+            if( ln < 0 ){
+
+                continue;
+            }
+
+            uint8_t *ptr = list_vp_get_data( ln );
+
+            memcpy( ptr, &rx_pkt, sizeof(rx_pkt) );
+            ptr += sizeof(rx_pkt);
+            memcpy( ptr, buf, rx_len );
+
+            list_v_insert_head( &rx_q, ln );
         }
+        else if( !list_b_is_empty( &tx_q ) ){
+            // TRANSMIT
 
-        // lora_rx++;
-        // lora_rssi = rfm95w_i16_get_packet_rssi();
+            rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
+
+            reset_fifo();
+
+            list_node_t ln = list_ln_remove_tail( &tx_q );
+            list_v_release_node( ln );
+
+            rf_mac_tx_pkt_t *pkt = (rf_mac_tx_pkt_t *)list_vp_get_data( ln );
+            uint8_t *data = (uint8_t *)( pkt + 1 );
+
+            rf_mac_header_0_t header = {
+                RF_MAC_MAGIC,
+                0,
+                cfg_u64_get_device_id(),
+            };
+
+            rfm95w_v_write_fifo( (uint8_t *)&header, sizeof(header) );
+
+            rfm95w_v_write_reg( RFM95W_RegPayloadLength, sizeof(header) + pkt->len );
+
+            if( pkt->dest_addr == 0 ){
+
+                // transmit to base station
 
 
-        // retrieve packet from FIFO
-        uint8_t buf[sizeof(rf_mac_rx_pkt_t) + RFM95W_FIFO_LEN];
-        uint8_t rx_len = rfm95w_u8_read_reg( RFM95W_RegRxNbBytes );
-        
-        if( rx_len >= sizeof(buf) ){
+                // need to select a channel
+                rfm95w_v_set_frequency( beacon_channels[0] );
 
-            // invalid length
-            continue;
+                // set up coding
+                configure_code();
+
+                rfm95w_v_write_fifo( data, pkt->len );
+            }
+            else{
+
+                continue;
+            }
+
+            rfm95w_v_set_power( RFM95W_POWER_MAX );
+
+            rfm95w_v_transmit();
+
+            THREAD_WAIT_WHILE( pt, !rfm95w_b_is_tx_done() );
         }
-
-        rfm95w_v_read_fifo( &buf[sizeof(rf_mac_rx_pkt_t)], rx_len );
-
-        reset_fifo();
-
-
-        if( list_u8_count( &rx_q ) >= RF_MAC_MAX_RX_Q ){
-
-            // q is overloaded
-            continue;
-        }
-
-        int16_t pkt_rssi = -157 + rfm95w_u8_read_reg( RFM95W_RegPktRssiValue );
-
-        rf_mac_rx_pkt_t *rx_pkt = (rf_mac_rx_pkt_t *)buf;
-
-        rx_pkt->rssi = pkt_rssi;
-        rx_pkt->len = rx_len;
-
-        list_node_t ln = list_ln_create_node( buf, rx_len + sizeof(rf_mac_rx_pkt_t) );
-
-        if( ln < 0 ){
-
-            continue;
-        }
-
-        list_v_insert_head( &rx_q, ln );
     }
 
 PT_END( pt );

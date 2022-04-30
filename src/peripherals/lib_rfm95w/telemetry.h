@@ -25,17 +25,7 @@
 #ifndef _TELEMETRY_H_
 #define _TELEMETRY_H_
 
-#define TELEMTRY_MAGIC 0x12345678
-
 #define TELEMETRY_BASE_STATION_RELAY_PORT   32123
-
-typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t flags;
-    uint8_t msg_type;
-
-    uint64_t src_addr;
-} telemtry_msg_header_0_t; // 14 bytes
 
 typedef struct __attribute__((packed)){
     int16_t beacon_rssi;

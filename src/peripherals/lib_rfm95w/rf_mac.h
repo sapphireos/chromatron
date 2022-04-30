@@ -34,6 +34,15 @@
 #define RF_MAC_MOD_FSK      1
 #define RF_MAC_MOD_GFSK     2
 
+#define RF_MAC_MAGIC 0x12345678
+
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t flags;
+    uint64_t src_addr;
+} rf_mac_header_0_t;
+
+
 typedef struct{
     uint8_t modulation;
     uint8_t code_rate;

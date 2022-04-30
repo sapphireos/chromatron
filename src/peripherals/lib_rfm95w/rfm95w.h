@@ -200,13 +200,14 @@ bool rfm95w_b_is_rx_ok( void );
 bool rfm95w_b_is_tx_done( void );
 
 // oacket API
-bool rfm95w_b_is_rx_ready( void );
+// bool rfm95w_b_is_rx_ready( void );
 uint8_t rfm95w_u8_read_rx_len( void );
 void rfm95w_v_get_rx_data( uint8_t *data, uint8_t len );
 
-bool rfm95w_b_is_tx_busy( void );
-bool rfm95w_b_is_tx_ready( void );
-bool rfm95w_b_transmit( uint8_t *data, uint8_t len );
+// bool rfm95w_b_is_tx_busy( void );
+// bool rfm95w_b_is_tx_ready( void );
+// bool rfm95w_b_transmit( uint8_t *data, uint8_t len );
+void rfm95w_v_transmit( void );
 
 #endif
 
