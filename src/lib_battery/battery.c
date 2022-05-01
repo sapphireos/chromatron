@@ -108,7 +108,7 @@ static bool pca9536_enabled;
 
 #define BUTTON_HOLD_TIME            20
 #define BUTTON_SHUTDOWN_TIME        60
-#define BUTTON_WIFI_TIME            120
+#define BUTTON_WIFI_TIME            20
 
 #define BUTTON_WAIT_FOR_RELEASE     255
 #define DIMMER_RATE                 5000
