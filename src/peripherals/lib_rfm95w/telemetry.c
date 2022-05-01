@@ -82,9 +82,14 @@ PT_BEGIN( pt );
     
     while( 1 ){
 
-        TMR_WAIT( pt, 10000 );
+        THREAD_WAIT_WHILE( pt, !rf_mac_b_rx_available() );
 
+        rf_mac_rx_pkt_t pkt;
+        uint8_t buf[RFM95W_FIFO_LEN];
 
+        rf_mac_i8_get_rx( &pkt, buf, sizeof(buf) );
+
+        log_v_debug_P( PSTR("received!") );
     }
 
 PT_END( pt );
@@ -99,7 +104,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 10000 );
 
-
+        rf_mac_i8_send( 0, 0, 0 );
     }
 
 PT_END( pt );

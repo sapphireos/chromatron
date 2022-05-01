@@ -439,7 +439,9 @@ bool rfm95w_b_is_rx_busy( void ){
 
     uint8_t modem_stat = rfm95w_u8_read_reg( RFM95W_RegModemStat );
 
-    return ( modem_stat & RFM95W_BIT_SignalDetected ) != 0;
+    return ( ( modem_stat & RFM95W_BIT_SignalDetected ) != 0 ) ||
+           ( ( modem_stat & RFM95W_BIT_SignalSync ) != 0 ) ||
+           ( ( modem_stat & RFM95W_BIT_RX_ongoing ) != 0 );
 }
 
 bool rfm95w_b_is_rx_ok( void ){

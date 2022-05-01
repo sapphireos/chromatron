@@ -237,6 +237,11 @@ int8_t rf_mac_i8_get_rx( rf_mac_rx_pkt_t *pkt, uint8_t *ptr, uint8_t max_len ){
     return count - 1;
 }
 
+bool rf_mac_b_rx_available( void ){
+
+    return !list_b_is_empty( &rx_q );
+}
+
 static uint16_t calc_symbol_duration( uint8_t bw, uint8_t sf ){
 
     uint32_t bandwidth = 0;
@@ -331,16 +336,23 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 10 );
 
+        // set up for receive
         rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
         configure_code();
         rfm95w_v_set_frequency( beacon_channels[0] );
 
         rfm95w_v_clear_irq_flags();
 
-        rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
+        rfm95w_v_set_mode( RFM95W_OP_MODE_RXSINGLE );
 
         THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() && list_b_is_empty( &tx_q ) );
 
+        // check if receiving, but not complete:
+        if( rfm95w_b_is_rx_busy() ){
+
+            // wait until done
+            THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() );
+        }
 
         // check if receive or tx path
         if( rfm95w_b_is_rx_done() ){
