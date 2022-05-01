@@ -164,6 +164,8 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
+    bq25895_v_read_all();
+
     thread_t_create( bat_mon_thread,
                      PSTR("bat_mon"),
                      0,
@@ -179,6 +181,11 @@ void bq25895_v_read_all( void ){
     i2c_v_read( BQ25895_I2C_ADDR, regs, sizeof(regs) );
 }
 
+static uint8_t read_cached_reg( uint8_t addr ){
+
+    return regs[addr];
+}
+
 uint8_t bq25895_u8_read_reg( uint8_t addr ){
 
     i2c_v_write( BQ25895_I2C_ADDR, &addr, sizeof(addr) );
@@ -186,6 +193,9 @@ uint8_t bq25895_u8_read_reg( uint8_t addr ){
     uint8_t data = 0;
     
     i2c_v_read( BQ25895_I2C_ADDR, &data, sizeof(data) );
+
+    // update cache
+    regs[addr] = data;
 
     return data;
 }
@@ -197,6 +207,9 @@ void bq25895_v_write_reg( uint8_t addr, uint8_t data ){
     cmd[1] = data;
 
     i2c_v_write( BQ25895_I2C_ADDR, cmd, sizeof(cmd) );
+
+    // update cache
+    regs[addr] = data;
 }
 
 void bq25895_v_set_reg_bits( uint8_t addr, uint8_t mask ){
@@ -267,7 +280,7 @@ void bq25895_v_set_inlim( uint16_t current ){
 
 uint16_t bq25895_u16_get_inlim( void ){
 
-    uint32_t data = bq25895_u8_read_reg( BQ25895_REG_INPUT_CURRENT ) & BQ25895_MASK_INPUT_CURRENT_LIM;
+    uint32_t data = read_cached_reg( BQ25895_REG_INPUT_CURRENT ) & BQ25895_MASK_INPUT_CURRENT_LIM;
 
     return ( ( data * 3150 ) / 63 ) + 100;
 }
@@ -477,7 +490,7 @@ void bq25895_v_set_boost_voltage( uint16_t volts ){
 
 uint8_t bq25895_u8_get_vbus_status( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_VBUS_STATUS ) & BQ25895_MASK_VBUS_STATUS;
+    uint8_t data = read_cached_reg( BQ25895_REG_VBUS_STATUS ) & BQ25895_MASK_VBUS_STATUS;
     data >>= BQ25895_SHIFT_VBUS_STATUS;
 
     return data;
@@ -492,7 +505,7 @@ bool bq25895_b_get_vbus_good( void ){
 
 uint8_t bq25895_u8_get_charge_status( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_CHARGE_STATUS ) & BQ25895_MASK_CHARGE_STATUS;
+    uint8_t data = read_cached_reg( BQ25895_REG_CHARGE_STATUS ) & BQ25895_MASK_CHARGE_STATUS;
     data >>= BQ25895_SHIFT_CHARGE_STATUS;
 
     return data;
@@ -507,7 +520,7 @@ bool bq25895_b_power_good( void ){
 
 uint8_t bq25895_u8_get_faults( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_FAULT );
+    uint8_t data = read_cached_reg( BQ25895_REG_FAULT );
 
     return data;
 }
@@ -519,7 +532,7 @@ uint16_t bq25895_u16_get_batt_voltage( void ){
 
 static uint16_t _bq25895_u16_get_batt_voltage( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_BATT_VOLTAGE ) & BQ25895_MASK_BATT_VOLTAGE;
+    uint8_t data = read_cached_reg( BQ25895_REG_BATT_VOLTAGE ) & BQ25895_MASK_BATT_VOLTAGE;
 
     // check if battery is not connected (the min voltage is way below min. safe on a Li-ion,
     // so we assume there is no battery in this case).
@@ -536,7 +549,7 @@ static uint16_t _bq25895_u16_get_batt_voltage( void ){
 
 uint16_t bq25895_u16_get_vbus_voltage( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_VBUS_VOLTAGE ) & BQ25895_MASK_VBUS_VOLTAGE;
+    uint8_t data = read_cached_reg( BQ25895_REG_VBUS_VOLTAGE ) & BQ25895_MASK_VBUS_VOLTAGE;
 
     // check if 0, if so, VBUS is most likely not connected, so we'll return a 0
     if( data == 0 ){
@@ -551,7 +564,7 @@ uint16_t bq25895_u16_get_vbus_voltage( void ){
 
 uint16_t bq25895_u16_get_sys_voltage( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_SYS_VOLTAGE ) & BQ25895_MASK_SYS_VOLTAGE;
+    uint8_t data = read_cached_reg( BQ25895_REG_SYS_VOLTAGE ) & BQ25895_MASK_SYS_VOLTAGE;
 
     uint16_t mv = ( ( (uint32_t)data * ( 4848 - 2304 ) ) / 127 ) + 2304;
 
@@ -560,7 +573,7 @@ uint16_t bq25895_u16_get_sys_voltage( void ){
 
 uint16_t bq25895_u16_get_charge_current( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_CHARGE_CURRENT ) & BQ25895_MASK_CHARGE_CURRENT;
+    uint8_t data = read_cached_reg( BQ25895_REG_CHARGE_CURRENT ) & BQ25895_MASK_CHARGE_CURRENT;
 
     uint16_t mv = ( ( (uint32_t)data * 6350 ) / 127 );
 
@@ -841,7 +854,7 @@ int8_t bq25895_i8_calc_temp2( uint16_t percent ){
 
 int8_t bq25895_i8_get_therm( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
+    uint8_t data = read_cached_reg( BQ25895_REG_THERM );
 
     return bq25895_i8_calc_temp( data );
 }
@@ -1097,21 +1110,21 @@ void bq25895_v_set_vindpm( int16_t mv ){
 
 uint16_t bq25895_u16_get_iindpm( void ){
 
-    uint16_t data = bq25895_u8_read_reg( BQ25895_REG_IINDPM ) & BQ25895_MASK_IINDPM;
+    uint16_t data = read_cached_reg( BQ25895_REG_IINDPM ) & BQ25895_MASK_IINDPM;
 
     return 50 * data + 100;
 }
 
 bool bq25895_b_get_vindpm( void ){
     
-    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+    uint8_t reg = read_cached_reg( BQ25895_REG_IINDPM );
 
     return ( reg & BQ25895_BIT_VINDPM ) != 0;
 }
 
 bool bq25895_b_get_iindpm( void ){
     
-    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+    uint8_t reg = read_cached_reg( BQ25895_REG_IINDPM );
 
     return ( reg & BQ25895_BIT_IINDPM ) != 0;
 }
