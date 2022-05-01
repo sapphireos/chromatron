@@ -259,8 +259,6 @@ PT_BEGIN( pt );
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
-        uint16_t data_length = setup_pixel_buffer();
-
         if( request_reconfigure ){
 
             _pixel_v_configure();
@@ -269,6 +267,8 @@ PT_BEGIN( pt );
         }
 
         // initiate SPI transfers
+
+        uint16_t data_length = setup_pixel_buffer();
 
         // this will transmit using interrupt/DMA mode
         memset( &spi_transaction, 0, sizeof(spi_transaction) );
@@ -296,9 +296,10 @@ PT_BEGIN( pt );
             // shut down pixel driver IO
             spi_v_release();
 
-            // set up down pixel power
+            // shut down pixel power
             batt_v_disable_pixels();
 
+            // wait while pixels are zero output
             while( zero_output ){
 
                 THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
@@ -314,6 +315,9 @@ PT_BEGIN( pt );
 
             // re-enable pixel drivers
             _pixel_v_configure();
+
+            // signal so we process pixels immediately
+            pixel_v_signal();
         }
 
     }
