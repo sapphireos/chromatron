@@ -93,7 +93,7 @@ int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
             break;
 
         case CATBUS_TYPE_FLOAT:
-            i64_data = *(float *)data;
+            memcpy( &i64_data, data, 4 );
             break;
 
         default:
@@ -204,7 +204,7 @@ void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data ){
             break;
 
         case CATBUS_TYPE_FLOAT:
-            *(float *)data = source_data;
+            memcpy( data, &source_data, 4 );
             break;
 
         default:

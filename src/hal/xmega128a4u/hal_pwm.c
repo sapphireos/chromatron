@@ -68,40 +68,6 @@ void pwm_v_init( void ){
     PWM_TMR.CTRLA = TC_CLKSEL_DIV1_gc;
 }
 
-void pwm_v_enable( uint8_t channel ){
-
-    ASSERT( channel < N_PWM_CHANNELS );
-
-    // PORTC.OUTCLR = ( 1 << channel );
-    // PORTC.DIRSET = ( 1 << channel );
-    //
-    // switch( channel ){
-    //
-    //     case 0:
-    //         PWM_TMR.CTRLB |= TC0_CCAEN_bm;
-    //         break;
-    //
-    //     case 1:
-    //         PWM_TMR.CTRLB |= TC0_CCBEN_bm;
-    //         break;
-    //
-    //     case 2:
-    //         PWM_TMR.CTRLB |= TC0_CCCEN_bm;
-    //         break;
-    //
-    //     case 3:
-    //         PWM_TMR.CTRLB |= TC0_CCDEN_bm;
-    //         break;
-    // }
-
-
-}
-
-void pwm_v_disable( uint8_t channel ){
-
-
-}
-
 void pwm_v_write( uint8_t channel, uint16_t value ){
 
     ASSERT( channel < N_PWM_CHANNELS );
@@ -127,9 +93,4 @@ void pwm_v_write( uint8_t channel, uint16_t value ){
     }
 
     END_ATOMIC;
-}
-
-void pwm_v_set_frequency( uint16_t freq ){
-
-
 }

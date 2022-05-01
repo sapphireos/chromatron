@@ -54,6 +54,8 @@ static ntp_ts_t ntp_base;
 static uint32_t systime_base;
 static uint16_t buffer_offset;
 
+static bool refresh_config;
+
 PT_THREAD( datalog_config_thread( pt_t *pt, void *state ) );
 PT_THREAD( datalog_thread( pt_t *pt, void *state ) );
 
@@ -104,28 +106,36 @@ PT_BEGIN( pt );
             goto done;
         }
 
-        // get file hash
         uint32_t hash = 0;
-        int16_t read_len = 0;
-        do{
 
-            uint8_t buf[256];
+        // if refresh_config is set, we can skip the file check and go straight to reloading
+        // the config file
+        if( !refresh_config ){
 
-            read_len = fs_i16_read( f, buf, sizeof(buf) );
+            // get file hash
+            int16_t read_len = 0;
+            do{
 
-            if( read_len > 0 ){
+                uint8_t buf[256];
 
-                hash = hash_u32_partial( hash, buf, read_len );    
+                read_len = fs_i16_read( f, buf, sizeof(buf) );
+
+                if( read_len > 0 ){
+
+                    hash = hash_u32_partial( hash, buf, read_len );    
+                }
+
+            } while( read_len > 0 );
+
+            if( hash == file_hash ){
+
+                // file has not changed
+
+                goto done;
             }
-
-        } while( read_len > 0 );
-
-        if( hash == file_hash ){
-
-            // file has not changed
-
-            goto done;
         }
+
+        refresh_config = FALSE;
 
         log_v_debug_P( PSTR("Loading new datalogger config") );
         file_hash = hash;
@@ -425,3 +435,10 @@ PT_END( pt );
 
 
 #endif
+
+void datalogger_v_refresh_config( void ){
+
+    #ifdef ENABLE_MSGFLOW
+    refresh_config = TRUE;
+    #endif
+}

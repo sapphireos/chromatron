@@ -51,6 +51,8 @@ static uint32_t capacity;
 static int32_t remaining;
 static int8_t therm;
 static uint8_t batt_cells; // number of cells in system
+static uint16_t cell_capacity; // mAh capacity of each cell
+static uint32_t total_nameplate_capacity;
 static uint16_t boost_voltage;
 static uint16_t vindpm;
 static uint16_t solar_vindpm = 5800;
@@ -86,6 +88,8 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                 0,  "batt_capacity" },
     { CATBUS_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                0,  "batt_remaining" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &cell_capacity,            0,  "batt_cell_capacity" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity, 0,  "batt_nameplate_capacity" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                   0,  "batt_vindpm" },
@@ -1154,6 +1158,13 @@ static void init_charger( void ){
 
         n_cells = 1;
     }
+
+    if( cell_capacity == 0 ){
+
+        cell_capacity = 3400; // default to NCR18650B
+    }
+
+    total_nameplate_capacity = n_cells * cell_capacity;
 
     uint32_t fast_charge_current = 1625 * n_cells;
 
