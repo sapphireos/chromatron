@@ -100,10 +100,10 @@ static uint16_t setup_pixel_buffer( void ){
     uint8_t *array_b = gfx_u8p_get_blue();
     uint8_t *array_misc = gfx_u8p_get_dither();
 
-    uint8_t r, g, b, dither;
-    uint8_t rd, gd, bd;
-
     for( uint16_t i = 0; i < transfer_pixel_count; i++ ){
+    
+        uint8_t r, g, b, dither;
+        uint8_t rd, gd, bd;
 
         r = array_r[i];
         g = array_g[i];
@@ -254,14 +254,12 @@ PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    static uint16_t data_length;
-    
     while(1){
 
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
-        data_length = setup_pixel_buffer();
+        uint16_t data_length = setup_pixel_buffer();
 
         if( request_reconfigure ){
 
@@ -305,7 +303,7 @@ PT_BEGIN( pt );
 
                 THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
-                data_length = setup_pixel_buffer();
+                setup_pixel_buffer();
             }
 
             // re-enable pixel power
