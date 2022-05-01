@@ -33,6 +33,8 @@
 #include "flash_fs.h"
 #include "hal_boards.h"
 
+static uint8_t regs[BQ25895_N_REGS];
+
 static uint8_t batt_soc; // state of charge in percent
 static uint8_t batt_soc_startup; // state of charge at power on
 static uint16_t batt_volts;
@@ -168,6 +170,13 @@ int8_t bq25895_i8_init( void ){
                      0 );
 
     return 0;
+}
+
+void bq25895_v_read_all( void ){
+
+    i2c_v_write( BQ25895_I2C_ADDR, 0, 1 );
+
+    i2c_v_read( BQ25895_I2C_ADDR, regs, sizeof(regs) );
 }
 
 uint8_t bq25895_u8_read_reg( uint8_t addr ){
@@ -1537,6 +1546,10 @@ PT_BEGIN( pt );
 
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
+
+        // read all registers
+        bq25895_v_read_all();
+
 
         if( bq25895_b_adc_ready() && read_adc() ){
 

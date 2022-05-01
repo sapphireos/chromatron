@@ -39,6 +39,7 @@
 
 #define BQ25895_DEVICE_ID 0x39
 
+#define BQ25895_N_REGS  21
 
 #define BQ25895_REG_INPUT_CURRENT           0x00
 #define BQ25895_BIT_ENABLE_ILIM_PIN         ( 1 << 6 )
@@ -195,6 +196,7 @@
 
 int8_t bq25895_i8_init( void );
 
+void bq25895_v_read_all( void );
 uint8_t bq25895_u8_read_reg( uint8_t addr );
 void bq25895_v_write_reg( uint8_t addr, uint8_t data );
 void bq25895_v_set_reg_bits( uint8_t addr, uint8_t mask );
