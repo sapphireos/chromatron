@@ -16,13 +16,16 @@ typedef struct CPUFeatures_ {
     int has_sse41;
     int has_avx;
     int has_avx2;
+    int has_avx512f;
     int has_pclmul;
     int has_aesni;
+    int has_rdrand;
 } CPUFeatures;
 
 static CPUFeatures _cpu_features;
 
 #define CPUID_EBX_AVX2    0x00000020
+#define CPUID_EBX_AVX512F 0x00010000
 
 #define CPUID_ECX_SSE3    0x00000001
 #define CPUID_ECX_PCLMUL  0x00000002
@@ -32,11 +35,15 @@ static CPUFeatures _cpu_features;
 #define CPUID_ECX_XSAVE   0x04000000
 #define CPUID_ECX_OSXSAVE 0x08000000
 #define CPUID_ECX_AVX     0x10000000
+#define CPUID_ECX_RDRAND  0x40000000
 
 #define CPUID_EDX_SSE2    0x04000000
 
-#define XCR0_SSE 0x00000002
-#define XCR0_AVX 0x00000004
+#define XCR0_SSE       0x00000002
+#define XCR0_AVX       0x00000004
+#define XCR0_OPMASK    0x00000020
+#define XCR0_ZMM_HI256 0x00000040
+#define XCR0_HI16_ZMM  0x00000080
 
 static int
 _sodium_runtime_arm_cpu_features(CPUFeatures * const cpu_features)
@@ -110,6 +117,7 @@ _sodium_runtime_intel_cpu_features(CPUFeatures * const cpu_features)
 {
     unsigned int cpu_info[4];
     unsigned int id;
+    uint32_t     xcr0 = 0U;
 
     _cpuid(cpu_info, 0x0);
     if ((id = cpu_info[0]) == 0U) {
@@ -141,18 +149,31 @@ _sodium_runtime_intel_cpu_features(CPUFeatures * const cpu_features)
 #endif
 
     cpu_features->has_avx = 0;
+
+    (void) xcr0;
 #ifdef HAVE_AVXINTRIN_H
     if ((cpu_info[2] & (CPUID_ECX_AVX | CPUID_ECX_XSAVE | CPUID_ECX_OSXSAVE)) ==
         (CPUID_ECX_AVX | CPUID_ECX_XSAVE | CPUID_ECX_OSXSAVE)) {
-        uint32_t xcr0 = 0U;
+        xcr0 = 0U;
 # if defined(HAVE__XGETBV) || \
         (defined(_MSC_VER) && defined(_XCR_XFEATURE_ENABLED_MASK) && _MSC_FULL_VER >= 160040219)
         xcr0 = (uint32_t) _xgetbv(0);
 # elif defined(_MSC_VER) && defined(_M_IX86)
+        /*
+         * Visual Studio documentation states that eax/ecx/edx don't need to
+         * be preserved in inline assembly code. But that doesn't seem to
+         * always hold true on Visual Studio 2010.
+         */
         __asm {
+            push eax
+            push ecx
+            push edx
             xor ecx, ecx
             _asm _emit 0x0f _asm _emit 0x01 _asm _emit 0xd0
             mov xcr0, eax
+            pop edx
+            pop ecx
+            pop eax
         }
 # elif defined(HAVE_AVX_ASM)
         __asm__ __volatile__(".byte 0x0f, 0x01, 0xd0" /* XGETBV */
@@ -176,12 +197,34 @@ _sodium_runtime_intel_cpu_features(CPUFeatures * const cpu_features)
     }
 #endif
 
+    cpu_features->has_avx512f = 0;
+#ifdef HAVE_AVX512FINTRIN_H
+    if (cpu_features->has_avx2) {
+        unsigned int cpu_info7[4];
+
+        _cpuid(cpu_info7, 0x00000007);
+        /* LCOV_EXCL_START */
+        if ((cpu_info7[1] & CPUID_EBX_AVX512F) == CPUID_EBX_AVX512F &&
+            (xcr0 & (XCR0_OPMASK | XCR0_ZMM_HI256 | XCR0_HI16_ZMM))
+            == (XCR0_OPMASK | XCR0_ZMM_HI256 | XCR0_HI16_ZMM)) {
+            cpu_features->has_avx512f = 1;
+        }
+        /* LCOV_EXCL_STOP */
+    }
+#endif
+
 #ifdef HAVE_WMMINTRIN_H
     cpu_features->has_pclmul = ((cpu_info[2] & CPUID_ECX_PCLMUL) != 0x0);
     cpu_features->has_aesni  = ((cpu_info[2] & CPUID_ECX_AESNI) != 0x0);
 #else
     cpu_features->has_pclmul = 0;
     cpu_features->has_aesni  = 0;
+#endif
+
+#ifdef HAVE_RDRAND
+    cpu_features->has_rdrand = ((cpu_info[2] & CPUID_ECX_RDRAND) != 0x0);
+#else
+    cpu_features->has_rdrand = 0;
 #endif
 
     return 0;
@@ -242,6 +285,12 @@ sodium_runtime_has_avx2(void)
 }
 
 int
+sodium_runtime_has_avx512f(void)
+{
+    return _cpu_features.has_avx512f;
+}
+
+int
 sodium_runtime_has_pclmul(void)
 {
     return _cpu_features.has_pclmul;
@@ -251,4 +300,10 @@ int
 sodium_runtime_has_aesni(void)
 {
     return _cpu_features.has_aesni;
+}
+
+int
+sodium_runtime_has_rdrand(void)
+{
+    return _cpu_features.has_rdrand;
 }

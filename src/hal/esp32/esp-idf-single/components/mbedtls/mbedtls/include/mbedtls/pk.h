@@ -4,8 +4,14 @@
  * \brief Public Key abstraction layer
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
- *  SPDX-License-Identifier: Apache-2.0
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ *
+ *  This file is provided under the Apache License 2.0, or the
+ *  GNU General Public License v2.0 or later.
+ *
+ *  **********
+ *  Apache License 2.0:
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
  *  not use this file except in compliance with the License.
@@ -19,7 +25,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  This file is part of mbed TLS (https://tls.mbed.org)
+ *  **********
+ *
+ *  **********
+ *  GNU General Public License v2.0 or later:
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ *  **********
  */
 
 #ifndef MBEDTLS_PK_H
@@ -50,23 +75,38 @@
 #define inline __inline
 #endif
 
-#define MBEDTLS_ERR_PK_ALLOC_FAILED        -0x3F80  /**< Memory allocation failed. */
-#define MBEDTLS_ERR_PK_TYPE_MISMATCH       -0x3F00  /**< Type mismatch, eg attempt to encrypt with an ECDSA key */
-#define MBEDTLS_ERR_PK_BAD_INPUT_DATA      -0x3E80  /**< Bad input parameters to function. */
-#define MBEDTLS_ERR_PK_FILE_IO_ERROR       -0x3E00  /**< Read/write of file failed. */
-#define MBEDTLS_ERR_PK_KEY_INVALID_VERSION -0x3D80  /**< Unsupported key version */
-#define MBEDTLS_ERR_PK_KEY_INVALID_FORMAT  -0x3D00  /**< Invalid key tag or value. */
-#define MBEDTLS_ERR_PK_UNKNOWN_PK_ALG      -0x3C80  /**< Key algorithm is unsupported (only RSA and EC are supported). */
-#define MBEDTLS_ERR_PK_PASSWORD_REQUIRED   -0x3C00  /**< Private key password can't be empty. */
-#define MBEDTLS_ERR_PK_PASSWORD_MISMATCH   -0x3B80  /**< Given private key password does not allow for correct decryption. */
-#define MBEDTLS_ERR_PK_INVALID_PUBKEY      -0x3B00  /**< The pubkey tag or value is invalid (only RSA and EC are supported). */
-#define MBEDTLS_ERR_PK_INVALID_ALG         -0x3A80  /**< The algorithm tag or value is invalid. */
-#define MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE -0x3A00  /**< Elliptic curve is unsupported (only NIST curves are supported). */
-#define MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE -0x3980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
-#define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x3900  /**< The buffer contains a valid signature followed by more data. */
+/** Memory allocation failed. */
+#define MBEDTLS_ERR_PK_ALLOC_FAILED        -0x3F80
+/** Type mismatch, eg attempt to encrypt with an ECDSA key */
+#define MBEDTLS_ERR_PK_TYPE_MISMATCH       -0x3F00
+/** Bad input parameters to function. */
+#define MBEDTLS_ERR_PK_BAD_INPUT_DATA      -0x3E80
+/** Read/write of file failed. */
+#define MBEDTLS_ERR_PK_FILE_IO_ERROR       -0x3E00
+/** Unsupported key version */
+#define MBEDTLS_ERR_PK_KEY_INVALID_VERSION -0x3D80
+/** Invalid key tag or value. */
+#define MBEDTLS_ERR_PK_KEY_INVALID_FORMAT  -0x3D00
+/** Key algorithm is unsupported (only RSA and EC are supported). */
+#define MBEDTLS_ERR_PK_UNKNOWN_PK_ALG      -0x3C80
+/** Private key password can't be empty. */
+#define MBEDTLS_ERR_PK_PASSWORD_REQUIRED   -0x3C00
+/** Given private key password does not allow for correct decryption. */
+#define MBEDTLS_ERR_PK_PASSWORD_MISMATCH   -0x3B80
+/** The pubkey tag or value is invalid (only RSA and EC are supported). */
+#define MBEDTLS_ERR_PK_INVALID_PUBKEY      -0x3B00
+/** The algorithm tag or value is invalid. */
+#define MBEDTLS_ERR_PK_INVALID_ALG         -0x3A80
+/** Elliptic curve is unsupported (only NIST curves are supported). */
+#define MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE -0x3A00
+/** Unavailable feature, e.g. RSA disabled for RSA key. */
+#define MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE -0x3980
+/** The buffer contains a valid signature followed by more data. */
+#define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x3900
 
 /* MBEDTLS_ERR_PK_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_PK_HW_ACCEL_FAILED     -0x3880  /**< PK hardware accelerator failed. */
+/** PK hardware accelerator failed. */
+#define MBEDTLS_ERR_PK_HW_ACCEL_FAILED     -0x3880
 
 #ifdef __cplusplus
 extern "C" {
@@ -416,6 +456,10 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  *
  * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
  *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
+ *
+ * \note            In order to ensure enough space for the signature, the
+ *                  \p sig buffer size must be of at least
+ *                  `max(MBEDTLS_ECDSA_MAX_LEN, MBEDTLS_MPI_MAX_SIZE)` bytes.
  */
 int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
@@ -429,6 +473,10 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *                  return early and restart according to the limit set with
  *                  \c mbedtls_ecp_set_max_ops() to reduce blocking for ECC
  *                  operations. For RSA, same as \c mbedtls_pk_sign().
+ *
+ * \note            In order to ensure enough space for the signature, the
+ *                  \p sig buffer size must be of at least
+ *                  `max(MBEDTLS_ECDSA_MAX_LEN, MBEDTLS_MPI_MAX_SIZE)` bytes.
  *
  * \param ctx       The PK context to use. It must have been set up
  *                  with a private key.

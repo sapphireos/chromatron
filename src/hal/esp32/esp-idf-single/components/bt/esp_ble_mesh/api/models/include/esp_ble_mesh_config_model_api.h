@@ -1,21 +1,17 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef _ESP_BLE_MESH_CONFIG_MODEL_API_H_
 #define _ESP_BLE_MESH_CONFIG_MODEL_API_H_
 
 #include "esp_ble_mesh_defs.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** @def    ESP_BLE_MESH_MODEL_CFG_SRV
  *
@@ -752,7 +748,7 @@ typedef enum {
  * @param   param: Pointer to callback parameter
  */
 typedef void (* esp_ble_mesh_cfg_client_cb_t)(esp_ble_mesh_cfg_client_cb_event_t event,
-        esp_ble_mesh_cfg_client_cb_param_t *param);
+                                              esp_ble_mesh_cfg_client_cb_param_t *param);
 
 /**
  * @brief   Configuration Server Model callback function type
@@ -760,7 +756,7 @@ typedef void (* esp_ble_mesh_cfg_client_cb_t)(esp_ble_mesh_cfg_client_cb_event_t
  * @param   param: Pointer to callback parameter
  */
 typedef void (* esp_ble_mesh_cfg_server_cb_t)(esp_ble_mesh_cfg_server_cb_event_t event,
-        esp_ble_mesh_cfg_server_cb_param_t *param);
+                                              esp_ble_mesh_cfg_server_cb_param_t *param);
 
 /**
  * @brief         Register BLE Mesh Config Client Model callback.
@@ -796,7 +792,7 @@ esp_err_t esp_ble_mesh_register_config_server_callback(esp_ble_mesh_cfg_server_c
  *
  */
 esp_err_t esp_ble_mesh_config_client_get_state(esp_ble_mesh_client_common_param_t *params,
-        esp_ble_mesh_cfg_client_get_state_t *get_state);
+                                               esp_ble_mesh_cfg_client_get_state_t *get_state);
 
 /**
  * @brief         Set the value of the Configuration Server Model states using the Config Client Model set messages.
@@ -812,7 +808,10 @@ esp_err_t esp_ble_mesh_config_client_get_state(esp_ble_mesh_client_common_param_
  *
  */
 esp_err_t esp_ble_mesh_config_client_set_state(esp_ble_mesh_client_common_param_t *params,
-        esp_ble_mesh_cfg_client_set_state_t *set_state);
+                                               esp_ble_mesh_cfg_client_set_state_t *set_state);
 
-#endif /** _ESP_BLE_MESH_CONFIG_MODEL_API_H_ */
+#ifdef __cplusplus
+}
+#endif
 
+#endif /* _ESP_BLE_MESH_CONFIG_MODEL_API_H_ */

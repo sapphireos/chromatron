@@ -48,7 +48,7 @@ struct config_t {
 // Empty definition; this type is aliased to list_node_t.
 struct config_section_iter_t {};
 
-static void config_parse(nvs_handle fp, config_t *config);
+static void config_parse(nvs_handle_t fp, config_t *config);
 
 static section_t *section_new(const char *name);
 static void section_free(void *ptr);
@@ -89,7 +89,7 @@ config_t *config_new(const char *filename)
     }
 
     esp_err_t err;
-    nvs_handle fp;
+    nvs_handle_t fp;
     err = nvs_open(filename, NVS_READWRITE, &fp);
     if (err != ESP_OK) {
         if (err == ESP_ERR_NVS_NOT_INITIALIZED) {
@@ -267,6 +267,7 @@ bool config_remove_key(config_t *config, const char *section, const char *key)
     assert(config != NULL);
     assert(section != NULL);
     assert(key != NULL);
+    bool ret;
 
     section_t *sec = section_find(config, section);
     entry_t *entry = entry_find(config, section, key);
@@ -274,7 +275,12 @@ bool config_remove_key(config_t *config, const char *section, const char *key)
         return false;
     }
 
-    return list_remove(sec->entries, entry);
+    ret = list_remove(sec->entries, entry);
+    if (list_length(sec->entries) == 0) {
+        OSI_TRACE_DEBUG("%s remove section name:%s",__func__, section);
+        ret &= config_remove_section(config, section);
+    }
+    return ret;
 }
 
 const config_section_node_t *config_section_begin(const config_t *config)
@@ -331,7 +337,7 @@ static int get_config_size(const config_t *config)
     return total_size;
 }
 
-static int get_config_size_from_flash(nvs_handle fp)
+static int get_config_size_from_flash(nvs_handle_t fp)
 {
     assert(fp != 0);
 
@@ -384,7 +390,7 @@ bool config_save(const config_t *config, const char *filename)
 
     esp_err_t err;
     int err_code = 0;
-    nvs_handle fp;
+    nvs_handle_t fp;
     char *line = osi_calloc(1024);
     const size_t keyname_bufsz = sizeof(CONFIG_KEY) + 5 + 1; // including log10(sizeof(i))
     char *keyname = osi_calloc(keyname_bufsz);
@@ -460,8 +466,9 @@ bool config_save(const config_t *config, const char *filename)
             goto error;
         }
     }else {
-        uint count = (w_cnt_total / CONFIG_FILE_MAX_SIZE);
-        for (int i = 0; i <= count; i++)
+        int count = (w_cnt_total / CONFIG_FILE_MAX_SIZE);
+        assert(count <= 0xFF);
+        for (uint8_t i = 0; i <= count; i++)
         {
             snprintf(keyname, keyname_bufsz, "%s%d", CONFIG_KEY, i);
             if (i == count) {
@@ -527,7 +534,7 @@ static char *trim(char *str)
     return str;
 }
 
-static void config_parse(nvs_handle fp, config_t *config)
+static void config_parse(nvs_handle_t fp, config_t *config)
 {
     assert(fp != 0);
     assert(config != NULL);

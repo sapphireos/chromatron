@@ -24,6 +24,7 @@
 #include "compressed_enum_table.hpp"
 #include "intrusive_list.h"
 #include "nvs_item_hash_list.hpp"
+#include "partition.hpp"
 
 namespace nvs
 {
@@ -77,22 +78,26 @@ public:
         INVALID       = 0
     };
 
+    Page();
+
     PageState state() const
     {
         return mState;
     }
 
-    esp_err_t load(uint32_t sectorNumber);
+    esp_err_t load(Partition *partition, uint32_t sectorNumber);
 
     esp_err_t getSeqNumber(uint32_t& seqNumber) const;
 
     esp_err_t setSeqNumber(uint32_t seqNumber);
- 
+
     esp_err_t setVersion(uint8_t version);
 
     esp_err_t writeItem(uint8_t nsIndex, ItemType datatype, const char* key, const void* data, size_t dataSize, uint8_t chunkIdx = CHUNK_ANY);
 
     esp_err_t readItem(uint8_t nsIndex, ItemType datatype, const char* key, void* data, size_t dataSize, uint8_t chunkIdx = CHUNK_ANY, VerOffset chunkStart = VerOffset::VER_ANY);
+
+    esp_err_t cmpItem(uint8_t nsIndex, ItemType datatype, const char* key, const void* data, size_t dataSize, uint8_t chunkIdx = CHUNK_ANY, VerOffset chunkStart = VerOffset::VER_ANY);
 
     esp_err_t eraseItem(uint8_t nsIndex, ItemType datatype, const char* key, uint8_t chunkIdx = CHUNK_ANY, VerOffset chunkStart = VerOffset::VER_ANY);
 
@@ -110,6 +115,12 @@ public:
     esp_err_t readItem(uint8_t nsIndex, const char* key, T& value)
     {
         return readItem(nsIndex, itemTypeOf(value), key, &value, sizeof(value));
+    }
+
+    template<typename T>
+    esp_err_t cmpItem(uint8_t nsIndex, const char* key, const T& value)
+    {
+        return cmpItem(nsIndex, itemTypeOf(value), key, &value, sizeof(value));
     }
 
     template<typename T>
@@ -164,6 +175,7 @@ protected:
         EMPTY   = 0x3, // 0b11, default state after flash erase
         WRITTEN = EMPTY & ~ESB_WRITTEN, // entry was written
         ERASED  = WRITTEN & ~ESB_ERASED, // entry was written and then erased
+        ILLEGAL = 0x1, // only possible if flash is inconsistent
         INVALID = 0x4 // entry is in inconsistent state (write started but ESB_WRITTEN has not been set yet)
     };
 
@@ -180,7 +192,7 @@ protected:
     esp_err_t readEntry(size_t index, Item& dst) const;
 
     esp_err_t writeEntry(const Item& item);
-    
+
     esp_err_t writeEntryData(const uint8_t* data, size_t size);
 
     esp_err_t eraseEntryAndSpan(size_t index);
@@ -197,7 +209,7 @@ protected:
         assert(entry < ENTRY_COUNT);
         return mBaseAddress + ENTRY_DATA_OFFSET + static_cast<uint32_t>(entry) * ENTRY_SIZE;
     }
-    
+
     static const char* pageStateToName(PageState ps);
 
 
@@ -213,7 +225,12 @@ protected:
     uint16_t mUsedEntryCount = 0;
     uint16_t mErasedEntryCount = 0;
 
+    /**
+     * This hash list stores hashes of namespace index, key, and ChunkIndex for quick lookup when searching items.
+     */
     HashList mHashList;
+
+    Partition *mPartition;
 
     static const uint32_t HEADER_OFFSET = 0;
     static const uint32_t ENTRY_TABLE_OFFSET = HEADER_OFFSET + 32;

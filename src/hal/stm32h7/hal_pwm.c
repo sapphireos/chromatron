@@ -103,19 +103,12 @@ void pwm_v_init( void ){
   	HAL_TIMEx_MasterConfigSynchronization( &pwm_timer, &master_config );
 }
 
-void pwm_v_enable( uint8_t channel ){
+// void pwm_v_disable( uint8_t channel ){
 
-	uint32_t timer_channel = get_channel( channel );
+// 	uint32_t timer_channel = get_channel( channel );
 
-	HAL_TIM_PWM_Start( &pwm_timer, timer_channel );
-}
-
-void pwm_v_disable( uint8_t channel ){
-
-	uint32_t timer_channel = get_channel( channel );
-
-	HAL_TIM_PWM_Stop( &pwm_timer, timer_channel );
-}
+// 	HAL_TIM_PWM_Stop( &pwm_timer, timer_channel );
+// }
 
 void pwm_v_write( uint8_t channel, uint16_t value ){
    
@@ -157,6 +150,8 @@ void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
 	config.OCFastMode 	= TIM_OCFAST_DISABLE;
 	
 	HAL_TIM_PWM_ConfigChannel( &pwm_timer, &config, timer_channel );
+
+	HAL_TIM_PWM_Start( &pwm_timer, timer_channel );
 }
 
 #endif

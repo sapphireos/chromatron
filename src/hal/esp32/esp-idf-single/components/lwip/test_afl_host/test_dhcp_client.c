@@ -22,7 +22,7 @@ ip4_addr_t server_ip;
 //
 // Dependency injected test functions
 void dhcp_test_dhcp_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port);
-void dhcp_test_init_di();
+void dhcp_test_init_di(void);
 
 //
 // Test starts here
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
     size_t len = 1460;
 
     dhcp_test_init_di();
-    
+
     mynetif.flags = NETIF_FLAG_UP | NETIF_FLAG_ETHARP;
     mynetif.mtu = 576;
 
@@ -79,6 +79,6 @@ int main(int argc, char** argv)
     }
 
 
-    
+
     return 0;
 }

@@ -44,8 +44,14 @@
  *
  */
 /*
- *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
- *  SPDX-License-Identifier: Apache-2.0
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ *
+ *  This file is provided under the Apache License 2.0, or the
+ *  GNU General Public License v2.0 or later.
+ *
+ *  **********
+ *  Apache License 2.0:
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
  *  not use this file except in compliance with the License.
@@ -59,7 +65,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  This file is part of Mbed TLS (https://tls.mbed.org)
+ *  **********
+ *
+ *  **********
+ *  GNU General Public License v2.0 or later:
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ *  **********
  */
 
 #ifndef MBEDTLS_DHM_H
@@ -75,20 +100,31 @@
 /*
  * DHM Error codes
  */
-#define MBEDTLS_ERR_DHM_BAD_INPUT_DATA                    -0x3080  /**< Bad input parameters. */
-#define MBEDTLS_ERR_DHM_READ_PARAMS_FAILED                -0x3100  /**< Reading of the DHM parameters failed. */
-#define MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED                -0x3180  /**< Making of the DHM parameters failed. */
-#define MBEDTLS_ERR_DHM_READ_PUBLIC_FAILED                -0x3200  /**< Reading of the public values failed. */
-#define MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED                -0x3280  /**< Making of the public value failed. */
-#define MBEDTLS_ERR_DHM_CALC_SECRET_FAILED                -0x3300  /**< Calculation of the DHM secret failed. */
-#define MBEDTLS_ERR_DHM_INVALID_FORMAT                    -0x3380  /**< The ASN.1 data is not formatted correctly. */
-#define MBEDTLS_ERR_DHM_ALLOC_FAILED                      -0x3400  /**< Allocation of memory failed. */
-#define MBEDTLS_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read or write of file failed. */
+/** Bad input parameters. */
+#define MBEDTLS_ERR_DHM_BAD_INPUT_DATA                    -0x3080
+/** Reading of the DHM parameters failed. */
+#define MBEDTLS_ERR_DHM_READ_PARAMS_FAILED                -0x3100
+/** Making of the DHM parameters failed. */
+#define MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED                -0x3180
+/** Reading of the public values failed. */
+#define MBEDTLS_ERR_DHM_READ_PUBLIC_FAILED                -0x3200
+/** Making of the public value failed. */
+#define MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED                -0x3280
+/** Calculation of the DHM secret failed. */
+#define MBEDTLS_ERR_DHM_CALC_SECRET_FAILED                -0x3300
+/** The ASN.1 data is not formatted correctly. */
+#define MBEDTLS_ERR_DHM_INVALID_FORMAT                    -0x3380
+/** Allocation of memory failed. */
+#define MBEDTLS_ERR_DHM_ALLOC_FAILED                      -0x3400
+/** Read or write of file failed. */
+#define MBEDTLS_ERR_DHM_FILE_IO_ERROR                     -0x3480
 
 /* MBEDTLS_ERR_DHM_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_DHM_HW_ACCEL_FAILED                   -0x3500  /**< DHM hardware accelerator failed. */
+/** DHM hardware accelerator failed. */
+#define MBEDTLS_ERR_DHM_HW_ACCEL_FAILED                   -0x3500
 
-#define MBEDTLS_ERR_DHM_SET_GROUP_FAILED                  -0x3580  /**< Setting the modulus and generator failed. */
+/** Setting the modulus and generator failed. */
+#define MBEDTLS_ERR_DHM_SET_GROUP_FAILED                  -0x3580
 
 #ifdef __cplusplus
 extern "C" {

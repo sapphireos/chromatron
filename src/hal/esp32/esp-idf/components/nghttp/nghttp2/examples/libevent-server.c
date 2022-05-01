@@ -23,41 +23,41 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #ifdef __sgi
-#define errx(exitcode, format, args...)                                        \
-  {                                                                            \
-    warnx(format, ##args);                                                     \
-    exit(exitcode);                                                            \
-  }
-#define warn(format, args...) warnx(format ": %s", ##args, strerror(errno))
-#define warnx(format, args...) fprintf(stderr, format "\n", ##args)
+#  define errx(exitcode, format, args...)                                      \
+    {                                                                          \
+      warnx(format, ##args);                                                   \
+      exit(exitcode);                                                          \
+    }
+#  define warn(format, args...) warnx(format ": %s", ##args, strerror(errno))
+#  define warnx(format, args...) fprintf(stderr, format "\n", ##args)
 #endif
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
+#  include <sys/socket.h>
 #endif /* HAVE_SYS_SOCKET_H */
 #ifdef HAVE_NETDB_H
-#include <netdb.h>
+#  include <netdb.h>
 #endif /* HAVE_NETDB_H */
 #include <signal.h>
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 #include <sys/stat.h>
 #ifdef HAVE_FCNTL_H
-#include <fcntl.h>
+#  include <fcntl.h>
 #endif /* HAVE_FCNTL_H */
 #include <ctype.h>
 #ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
+#  include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 #include <netinet/tcp.h>
 #ifndef __sgi
-#include <err.h>
+#  include <err.h>
 #endif
 #include <string.h>
 #include <errno.h>
@@ -109,6 +109,7 @@ struct app_context {
 static unsigned char next_proto_list[256];
 static size_t next_proto_list_len;
 
+#ifndef OPENSSL_NO_NEXTPROTONEG
 static int next_proto_cb(SSL *ssl, const unsigned char **data,
                          unsigned int *len, void *arg) {
   (void)ssl;
@@ -118,6 +119,7 @@ static int next_proto_cb(SSL *ssl, const unsigned char **data,
   *len = (unsigned int)next_proto_list_len;
   return SSL_TLSEXT_ERR_OK;
 }
+#endif /* !OPENSSL_NO_NEXTPROTONEG */
 
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
 static int alpn_select_proto_cb(SSL *ssl, const unsigned char **out,
@@ -135,7 +137,7 @@ static int alpn_select_proto_cb(SSL *ssl, const unsigned char **out,
 
   return SSL_TLSEXT_ERR_OK;
 }
-#endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 
 /* Create SSL_CTX. */
 static SSL_CTX *create_ssl_ctx(const char *key_file, const char *cert_file) {
@@ -172,11 +174,13 @@ static SSL_CTX *create_ssl_ctx(const char *key_file, const char *cert_file) {
          NGHTTP2_PROTO_VERSION_ID_LEN);
   next_proto_list_len = 1 + NGHTTP2_PROTO_VERSION_ID_LEN;
 
+#ifndef OPENSSL_NO_NEXTPROTONEG
   SSL_CTX_set_next_protos_advertised_cb(ssl_ctx, next_proto_cb, NULL);
+#endif /* !OPENSSL_NO_NEXTPROTONEG */
 
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
   SSL_CTX_set_alpn_select_cb(ssl_ctx, alpn_select_proto_cb, NULL);
-#endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 
   return ssl_ctx;
 }
@@ -250,6 +254,7 @@ static http2_session_data *create_http2_session_data(app_context *app_ctx,
   session_data->bev = bufferevent_openssl_socket_new(
       app_ctx->evbase, fd, ssl, BUFFEREVENT_SSL_ACCEPTING,
       BEV_OPT_CLOSE_ON_FREE | BEV_OPT_DEFER_CALLBACKS);
+  bufferevent_enable(session_data->bev, EV_READ | EV_WRITE);
   rv = getnameinfo(addr, (socklen_t)addrlen, host, sizeof(host), NULL, 0,
                    NI_NUMERICHOST);
   if (rv != 0) {
@@ -689,12 +694,14 @@ static void eventcb(struct bufferevent *bev, short events, void *ptr) {
 
     ssl = bufferevent_openssl_get_ssl(session_data->bev);
 
+#ifndef OPENSSL_NO_NEXTPROTONEG
     SSL_get0_next_proto_negotiated(ssl, &alpn, &alpnlen);
+#endif /* !OPENSSL_NO_NEXTPROTONEG */
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
     if (alpn == NULL) {
       SSL_get0_alpn_selected(ssl, &alpn, &alpnlen);
     }
-#endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 
     if (alpn == NULL || alpnlen != 2 || memcmp("h2", alpn, 2) != 0) {
       fprintf(stderr, "%s h2 is not negotiated\n", session_data->client_addr);

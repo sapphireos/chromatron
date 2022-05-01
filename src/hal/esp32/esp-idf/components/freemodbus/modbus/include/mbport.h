@@ -1,4 +1,4 @@
-/* 
+/*
  * FreeModbus Libary: A portable Modbus implementation for Modbus ASCII/RTU.
  * Copyright (c) 2006 Christian Walter <wolti@sil.at>
  * All rights reserved.
@@ -31,19 +31,60 @@
 #ifndef _MB_PORT_H
 #define _MB_PORT_H
 
+#include "mbconfig.h"   // for options
+
 #ifdef __cplusplus
 PR_BEGIN_EXTERN_C
+#endif
+
+#if CONFIG_UART_ISR_IN_IRAM
+#define MB_PORT_SERIAL_ISR_FLAG ESP_INTR_FLAG_IRAM
+#else
+#define MB_PORT_SERIAL_ISR_FLAG ESP_INTR_FLAG_LOWMED
+#endif
+
+#if MB_PORT_TIMER_ISR_IN_IRAM
+#define MB_PORT_ISR_ATTR IRAM_ATTR
+#define MB_PORT_TIMER_ISR_FLAG ESP_INTR_FLAG_IRAM
+#else
+#define MB_PORT_ISR_ATTR
+#define MB_PORT_TIMER_ISR_FLAG ESP_INTR_FLAG_LOWMED
 #endif
 
 /* ----------------------- Type definitions ---------------------------------*/
 
 typedef enum
 {
-    EV_READY,                   /*!< Startup finished. */
-    EV_FRAME_RECEIVED,          /*!< Frame received. */
-    EV_EXECUTE,                 /*!< Execute function. */
-    EV_FRAME_SENT               /*!< Frame sent. */
+    EV_READY = 0x01,                   /*!< Startup finished. */
+    EV_FRAME_RECEIVED = 0x02,          /*!< Frame received. */
+    EV_EXECUTE = 0x04,                 /*!< Execute function. */
+    EV_FRAME_SENT = 0x08,              /*!< Frame sent. */
+    EV_FRAME_TRANSMIT = 0x10           /*!< Frame transmit. */
 } eMBEventType;
+
+#if MB_MASTER_RTU_ENABLED || MB_MASTER_ASCII_ENABLED || MB_MASTER_TCP_ENABLED
+typedef enum {
+    EV_MASTER_NO_EVENT = 0x0000,
+    EV_MASTER_READY = 0x0001,                   /*!< Startup finished. */
+    EV_MASTER_FRAME_RECEIVED = 0x0002,          /*!< Frame received. */
+    EV_MASTER_EXECUTE = 0x0004,                 /*!< Execute function. */
+    EV_MASTER_FRAME_SENT = 0x0008,              /*!< Frame sent. */
+    EV_MASTER_FRAME_TRANSMIT = 0x0010,          /*!< Frame transmission. */
+    EV_MASTER_ERROR_PROCESS = 0x0020,           /*!< Frame error process. */
+    EV_MASTER_PROCESS_SUCCESS = 0x0040,         /*!< Request process success. */
+    EV_MASTER_ERROR_RESPOND_TIMEOUT = 0x0080,   /*!< Request respond timeout. */
+    EV_MASTER_ERROR_RECEIVE_DATA = 0x0100,      /*!< Request receive data error. */
+    EV_MASTER_ERROR_EXECUTE_FUNCTION = 0x0200   /*!< Request execute function error. */
+} eMBMasterEventType;
+
+typedef enum {
+    EV_ERROR_INIT,             /*!< No error, initial state. */
+    EV_ERROR_RESPOND_TIMEOUT,  /*!< Slave respond timeout. */
+    EV_ERROR_RECEIVE_DATA,     /*!< Receive frame data error. */
+    EV_ERROR_EXECUTE_FUNCTION, /*!< Execute function error. */
+    EV_ERROR_OK                /*!< No error, processing completed. */
+} eMBMasterErrorEventType;
+#endif
 
 /*! \ingroup modbus
  * \brief Parity used for characters in serial mode.
@@ -66,6 +107,22 @@ BOOL            xMBPortEventPost( eMBEventType eEvent );
 
 BOOL            xMBPortEventGet(  /*@out@ */ eMBEventType * eEvent );
 
+#if MB_MASTER_RTU_ENABLED || MB_MASTER_ASCII_ENABLED || MB_MASTER_TCP_ENABLED
+BOOL            xMBMasterPortEventInit( void );
+
+BOOL            xMBMasterPortEventPost( eMBMasterEventType eEvent );
+
+BOOL            xMBMasterPortEventGet(  /*@out@ */ eMBMasterEventType * eEvent );
+
+eMBMasterEventType
+                xMBMasterPortFsmWaitConfirmation( eMBMasterEventType eEventMask, ULONG ulTimeout);
+
+void            vMBMasterOsResInit( void );
+
+BOOL            xMBMasterRunResTake( LONG time );
+
+void            vMBMasterRunResRelease( void );
+#endif // MB_MASTER_RTU_ENABLED || MB_MASTER_ASCII_ENABLED || MB_MASTER_TCP_ENABLED
 /* ----------------------- Serial port functions ----------------------------*/
 
 BOOL            xMBPortSerialInit( UCHAR ucPort, ULONG ulBaudRate,
@@ -81,6 +138,21 @@ BOOL            xMBPortSerialGetByte( CHAR * pucByte );
 
 BOOL            xMBPortSerialPutByte( CHAR ucByte );
 
+#if MB_MASTER_RTU_ENABLED || MB_MASTER_ASCII_ENABLED
+BOOL            xMBMasterPortSerialInit( UCHAR ucPort, ULONG ulBaudRate,
+                                   UCHAR ucDataBits, eMBParity eParity );
+
+void            vMBMasterPortClose( void );
+
+void            xMBMasterPortSerialClose( void );
+
+void            vMBMasterPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable );
+
+BOOL            xMBMasterPortSerialGetByte( CHAR * pucByte );
+
+BOOL            xMBMasterPortSerialPutByte( CHAR ucByte );
+#endif
+
 /* ----------------------- Timers functions ---------------------------------*/
 BOOL            xMBPortTimersInit( USHORT usTimeOut50us );
 
@@ -92,6 +164,32 @@ void            vMBPortTimersDisable( void );
 
 void            vMBPortTimersDelay( USHORT usTimeOutMS );
 
+#if MB_MASTER_RTU_ENABLED || MB_MASTER_ASCII_ENABLED || MB_MASTER_TCP_ENABLED
+BOOL            xMBMasterPortTimersInit( USHORT usTimeOut50us );
+
+void            xMBMasterPortTimersClose( void );
+
+void            vMBMasterPortTimersT35Enable( void );
+
+void            vMBMasterPortTimersConvertDelayEnable( void );
+
+void            vMBMasterPortTimersRespondTimeoutEnable( void );
+
+void            vMBMasterPortTimersDisable( void );
+
+
+/* ----------------- Callback for the master error process ------------------*/
+void            vMBMasterErrorCBRespondTimeout( UCHAR ucDestAddress, const UCHAR* pucPDUData,
+                                                USHORT ucPDULength );
+
+void            vMBMasterErrorCBReceiveData( UCHAR ucDestAddress, const UCHAR* pucPDUData,
+                                             USHORT ucPDULength );
+
+void            vMBMasterErrorCBExecuteFunction( UCHAR ucDestAddress, const UCHAR* pucPDUData,
+                                                 USHORT ucPDULength );
+
+void            vMBMasterCBRequestSuccess( void );
+#endif
 /* ----------------------- Callback for the protocol stack ------------------*/
 /*!
  * \brief Callback function for the porting layer when a new byte is
@@ -111,8 +209,15 @@ extern          BOOL( *pxMBFrameCBTransmitterEmpty ) ( void );
 
 extern          BOOL( *pxMBPortCBTimerExpired ) ( void );
 
+#if MB_MASTER_RTU_ENABLED || MB_MASTER_ASCII_ENABLED || MB_MASTER_TCP_ENABLED
+extern          BOOL( *pxMBMasterFrameCBByteReceived ) ( void );
+
+extern          BOOL( *pxMBMasterFrameCBTransmitterEmpty ) ( void );
+
+extern          BOOL( *pxMBMasterPortCBTimerExpired ) ( void );
+#endif
 /* ----------------------- TCP port functions -------------------------------*/
-#if MB_TCP_ENABLED == 1
+#if MB_TCP_ENABLED
 BOOL            xMBTCPPortInit( USHORT usTCPPort );
 
 void            vMBTCPPortClose( void );
@@ -121,9 +226,21 @@ void            vMBTCPPortDisable( void );
 
 BOOL            xMBTCPPortGetRequest( UCHAR **ppucMBTCPFrame, USHORT * usTCPLength );
 
-BOOL            xMBTCPPortSendResponse( const UCHAR *pucMBTCPFrame, USHORT usTCPLength );
+BOOL            xMBTCPPortSendResponse( UCHAR *pucMBTCPFrame, USHORT usTCPLength );
+
 #endif
 
+#if MB_MASTER_TCP_ENABLED
+BOOL            xMBMasterTCPPortInit( USHORT usTCPPort );
+
+void            vMBMasterTCPPortClose( void );
+
+void            vMBMasterTCPPortDisable( void );
+
+BOOL            xMBMasterTCPPortGetRequest( UCHAR **ppucMBTCPFrame, USHORT * usTCPLength );
+
+BOOL            xMBMasterTCPPortSendResponse( UCHAR *pucMBTCPFrame, USHORT usTCPLength );
+#endif
 #ifdef __cplusplus
 PR_END_EXTERN_C
 #endif

@@ -1,3 +1,4 @@
+
 /*
 // <license>
 // 
@@ -25,6 +26,6 @@
 #ifndef _HAL_BOARDS_H
 #define _HAL_BOARDS_H
 
-#define BOARD_TYPE_UNSET                    0xff
+#include "boards.h"
 
 #endif

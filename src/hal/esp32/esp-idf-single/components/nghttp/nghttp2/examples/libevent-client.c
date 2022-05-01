@@ -23,33 +23,33 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #ifdef __sgi
-#include <string.h>
-#define errx(exitcode, format, args...)                                        \
-  {                                                                            \
-    warnx(format, ##args);                                                     \
-    exit(exitcode);                                                            \
-  }
-#define warnx(format, args...) fprintf(stderr, format "\n", ##args)
+#  include <string.h>
+#  define errx(exitcode, format, args...)                                      \
+    {                                                                          \
+      warnx(format, ##args);                                                   \
+      exit(exitcode);                                                          \
+    }
+#  define warnx(format, args...) fprintf(stderr, format "\n", ##args)
 char *strndup(const char *s, size_t size);
 #endif
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 #ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
+#  include <sys/socket.h>
 #endif /* HAVE_SYS_SOCKET_H */
 #ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
+#  include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 #include <netinet/tcp.h>
 #ifndef __sgi
-#include <err.h>
+#  include <err.h>
 #endif
 #include <signal.h>
 #include <string.h>
@@ -65,7 +65,7 @@ char *strndup(const char *s, size_t size);
 
 #include <nghttp2/nghttp2.h>
 
-#include "http-parser/http_parser.h"
+#include "url-parser/url_parser.h"
 
 #define ARRLEN(x) (sizeof(x) / sizeof(x[0]))
 
@@ -308,6 +308,7 @@ static int on_stream_close_callback(nghttp2_session *session, int32_t stream_id,
   return 0;
 }
 
+#ifndef OPENSSL_NO_NEXTPROTONEG
 /* NPN TLS extension client callback. We check that server advertised
    the HTTP/2 protocol the nghttp2 library supports. If not, exit
    the program. */
@@ -322,6 +323,7 @@ static int select_next_proto_cb(SSL *ssl, unsigned char **out,
   }
   return SSL_TLSEXT_ERR_OK;
 }
+#endif /* !OPENSSL_NO_NEXTPROTONEG */
 
 /* Create SSL_CTX. */
 static SSL_CTX *create_ssl_ctx(void) {
@@ -335,11 +337,13 @@ static SSL_CTX *create_ssl_ctx(void) {
                       SSL_OP_ALL | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 |
                           SSL_OP_NO_COMPRESSION |
                           SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
+#ifndef OPENSSL_NO_NEXTPROTONEG
   SSL_CTX_set_next_proto_select_cb(ssl_ctx, select_next_proto_cb, NULL);
+#endif /* !OPENSSL_NO_NEXTPROTONEG */
 
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
   SSL_CTX_set_alpn_protos(ssl_ctx, (const unsigned char *)"\x02h2", 3);
-#endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 
   return ssl_ctx;
 }
@@ -504,12 +508,14 @@ static void eventcb(struct bufferevent *bev, short events, void *ptr) {
 
     ssl = bufferevent_openssl_get_ssl(session_data->bev);
 
+#ifndef OPENSSL_NO_NEXTPROTONEG
     SSL_get0_next_proto_negotiated(ssl, &alpn, &alpnlen);
+#endif /* !OPENSSL_NO_NEXTPROTONEG */
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L
     if (alpn == NULL) {
       SSL_get0_alpn_selected(ssl, &alpn, &alpnlen);
     }
-#endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 
     if (alpn == NULL || alpnlen != 2 || memcmp("h2", alpn, 2) != 0) {
       fprintf(stderr, "h2 is not negotiated\n");
@@ -548,6 +554,7 @@ static void initiate_connection(struct event_base *evbase, SSL_CTX *ssl_ctx,
   bev = bufferevent_openssl_socket_new(
       evbase, -1, ssl, BUFFEREVENT_SSL_CONNECTING,
       BEV_OPT_DEFER_CALLBACKS | BEV_OPT_CLOSE_ON_FREE);
+  bufferevent_enable(bev, EV_READ | EV_WRITE);
   bufferevent_setcb(bev, readcb, writecb, eventcb, session_data);
   rv = bufferevent_socket_connect_hostname(bev, session_data->dnsbase,
                                            AF_UNSPEC, host, port);

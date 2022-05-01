@@ -64,7 +64,11 @@ static uint16_t append_message_id(mqtt_connection_t *connection, uint16_t messag
     // If message_id is zero then we should assign one, otherwise
     // we'll use the one supplied by the caller
     while (message_id == 0) {
+#if MQTT_MSG_ID_INCREMENTAL
+        message_id = ++connection->last_message_id;
+#else
         message_id = platform_random(65535);
+#endif
     }
 
     if (connection->message.length + 2 > connection->buffer_length) {
@@ -406,6 +410,17 @@ mqtt_message_t *mqtt_msg_connect(mqtt_connection_t *connection, mqtt_connect_inf
     }
 
     if (info->password != NULL && info->password[0] != '\0') {
+        if (info->username == NULL || info->username[0] == '\0') {
+            /* In case if password is set without username, we need to set a zero length username.
+             * (otherwise we violate: MQTT-3.1.2-22: If the User Name Flag is set to 0 then the Password Flag MUST be set to 0.)
+             */
+            if (append_string(connection, "", 0) < 0) {
+                return fail_message(connection);
+            }
+
+            variable_header[flags_offset] |= MQTT_CONNECT_FLAG_USERNAME;
+        }
+
         if (append_string(connection, info->password, strlen(info->password)) < 0) {
             return fail_message(connection);
         }

@@ -56,17 +56,6 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -77,6 +66,17 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
+
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -111,61 +111,46 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/rule
-.PHONY : esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/rule
+esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/rule
+.PHONY : esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/rule
 
 # Convenience name for target.
-idf_component_spi_flash_sections_info: esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/rule
+__idf_spi_flash: esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/rule
 
-.PHONY : idf_component_spi_flash_sections_info
+.PHONY : __idf_spi_flash
 
 # fast build rule for target.
-idf_component_spi_flash_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash_sections_info.dir/build
-.PHONY : idf_component_spi_flash_sections_info/fast
+__idf_spi_flash/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build
+.PHONY : __idf_spi_flash/fast
 
-# Convenience name for target.
-esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/rule
-.PHONY : esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/rule
+esp32/spi_flash_rom_patch.obj: esp32/spi_flash_rom_patch.c.obj
 
-# Convenience name for target.
-idf_component_spi_flash: esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/rule
-
-.PHONY : idf_component_spi_flash
-
-# fast build rule for target.
-idf_component_spi_flash/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build
-.PHONY : idf_component_spi_flash/fast
-
-spi_flash_rom_patch.obj: spi_flash_rom_patch.c.obj
-
-.PHONY : spi_flash_rom_patch.obj
+.PHONY : esp32/spi_flash_rom_patch.obj
 
 # target to build an object file
-spi_flash_rom_patch.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/spi_flash_rom_patch.c.obj
-.PHONY : spi_flash_rom_patch.c.obj
+esp32/spi_flash_rom_patch.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp32/spi_flash_rom_patch.c.obj
+.PHONY : esp32/spi_flash_rom_patch.c.obj
 
-spi_flash_rom_patch.i: spi_flash_rom_patch.c.i
+esp32/spi_flash_rom_patch.i: esp32/spi_flash_rom_patch.c.i
 
-.PHONY : spi_flash_rom_patch.i
+.PHONY : esp32/spi_flash_rom_patch.i
 
 # target to preprocess a source file
-spi_flash_rom_patch.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/spi_flash_rom_patch.c.i
-.PHONY : spi_flash_rom_patch.c.i
+esp32/spi_flash_rom_patch.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp32/spi_flash_rom_patch.c.i
+.PHONY : esp32/spi_flash_rom_patch.c.i
 
-spi_flash_rom_patch.s: spi_flash_rom_patch.c.s
+esp32/spi_flash_rom_patch.s: esp32/spi_flash_rom_patch.c.s
 
-.PHONY : spi_flash_rom_patch.s
+.PHONY : esp32/spi_flash_rom_patch.s
 
 # target to generate assembly for a file
-spi_flash_rom_patch.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/idf_component_spi_flash.dir/spi_flash_rom_patch.c.s
-.PHONY : spi_flash_rom_patch.c.s
+esp32/spi_flash_rom_patch.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(MAKE) -f esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/build.make esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/esp32/spi_flash_rom_patch.c.s
+.PHONY : esp32/spi_flash_rom_patch.c.s
 
 # Help Target
 help:
@@ -173,13 +158,12 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... idf_component_spi_flash_sections_info"
-	@echo "... idf_component_spi_flash"
-	@echo "... spi_flash_rom_patch.obj"
-	@echo "... spi_flash_rom_patch.i"
-	@echo "... spi_flash_rom_patch.s"
+	@echo "... edit_cache"
+	@echo "... __idf_spi_flash"
+	@echo "... esp32/spi_flash_rom_patch.obj"
+	@echo "... esp32/spi_flash_rom_patch.i"
+	@echo "... esp32/spi_flash_rom_patch.s"
 .PHONY : help
 
 

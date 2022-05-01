@@ -1,16 +1,8 @@
-// Copyright 2018 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2018-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 
 #include <errno.h>
@@ -172,6 +164,15 @@ esp_err_t httpd_register_uri_handler(httpd_handle_t handle,
             hd->hd_calls[i]->method   = uri_handler->method;
             hd->hd_calls[i]->handler  = uri_handler->handler;
             hd->hd_calls[i]->user_ctx = uri_handler->user_ctx;
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+            hd->hd_calls[i]->is_websocket = uri_handler->is_websocket;
+            hd->hd_calls[i]->handle_ws_control_frames = uri_handler->handle_ws_control_frames;
+            if (uri_handler->supported_subprotocol) {
+                hd->hd_calls[i]->supported_subprotocol = strdup(uri_handler->supported_subprotocol);
+            } else {
+                hd->hd_calls[i]->supported_subprotocol = NULL;
+            }
+#endif
             ESP_LOGD(TAG, LOG_FMT("[%d] installed %s"), i, uri_handler->uri);
             return ESP_OK;
         }
@@ -306,6 +307,23 @@ esp_err_t httpd_uri(struct httpd_data *hd)
 
     /* Attach user context data (passed during URI registration) into request */
     req->user_ctx = uri->user_ctx;
+
+    /* Final step for a WebSocket handshake verification */
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    struct httpd_req_aux   *aux = req->aux;
+    if (uri->is_websocket && aux->ws_handshake_detect && uri->method == HTTP_GET) {
+        ESP_LOGD(TAG, LOG_FMT("Responding WS handshake to sock %d"), aux->sd->fd);
+        esp_err_t ret = httpd_ws_respond_server_handshake(&hd->hd_req, uri->supported_subprotocol);
+        if (ret != ESP_OK) {
+            return ret;
+        }
+
+        aux->sd->ws_handshake_done = true;
+        aux->sd->ws_handler = uri->handler;
+        aux->sd->ws_control_frames = uri->handle_ws_control_frames;
+        aux->sd->ws_user_ctx = uri->user_ctx;
+    }
+#endif
 
     /* Invoke handler */
     if (uri->handler(req) != ESP_OK) {

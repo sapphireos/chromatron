@@ -5,12 +5,14 @@
  * This software may be distributed under the terms of the BSD license.
  * See README for more details.
  */
-#include "wpa/includes.h"
+#include "utils/includes.h"
 
-#include "wpa/common.h"
+#include "utils/common.h"
 #include "wps/wps_i.h"
 #include "wps/wps.h"
 
+
+#ifdef CONFIG_WPS_STRICT
 
 #ifndef WPS_STRICT_ALL
 #define WPS_STRICT_WPS2
@@ -1999,7 +2001,7 @@ int wps_validate_m7_encr(const struct wpabuf *tlvs, int ap, int wps2)
 		ret = -99;
 		goto _out;
 	}
-	
+
 	if (tlvs == NULL) {
 		wpa_printf(MSG_INFO, "WPS-STRICT: No TLVs in M7 encrypted "
 			   "settings");
@@ -2361,3 +2363,4 @@ _out:
 
 	return ret;
 }
+#endif

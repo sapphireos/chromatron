@@ -6,7 +6,7 @@
  * \author Mathias Olsson <mathias@kompetensum.com>
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -47,8 +47,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_PKCS5_H
 #define MBEDTLS_PKCS5_H
@@ -65,10 +63,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA                  -0x2f80  /**< Bad input parameters to function. */
-#define MBEDTLS_ERR_PKCS5_INVALID_FORMAT                  -0x2f00  /**< Unexpected ASN.1 data. */
-#define MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE             -0x2e80  /**< Requested encryption or digest alg not available. */
-#define MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH               -0x2e00  /**< Given private key password does not allow for correct decryption. */
+/** Bad input parameters to function. */
+#define MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA                  -0x2f80
+/** Unexpected ASN.1 data. */
+#define MBEDTLS_ERR_PKCS5_INVALID_FORMAT                  -0x2f00
+/** Requested encryption or digest alg not available. */
+#define MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE             -0x2e80
+/** Given private key password does not allow for correct decryption. */
+#define MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH               -0x2e00
 
 #define MBEDTLS_PKCS5_DECRYPT      0
 #define MBEDTLS_PKCS5_ENCRYPT      1

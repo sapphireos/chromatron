@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 /** @file
  *  @brief Bluetooth Mesh Generic Client Model APIs.
@@ -20,6 +12,10 @@
 #define _ESP_BLE_MESH_GENERIC_MODEL_API_H_
 
 #include "esp_ble_mesh_defs.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** @def    ESP_BLE_MESH_MODEL_GEN_ONOFF_CLI
  *
@@ -256,7 +252,7 @@ typedef struct {
 /** Parameters of Generic Admin Property Set. */
 typedef struct {
     uint16_t property_id;   /*!< Property ID identifying a Generic Admin Property */
-    uint8_t  user_access;   /*!< Enumeration indicating user accessn */
+    uint8_t  user_access;   /*!< Enumeration indicating user access */
     struct net_buf_simple *property_value;  /*!< Raw value for the Admin Property */
 } esp_ble_mesh_gen_admin_property_set_t;
 
@@ -363,10 +359,10 @@ typedef struct {
 
 /** Parameters of Generic Battery Status. */
 typedef struct {
-    u32_t battery_level     : 8;  /*!< Value of Generic Battery Level state */
-    u32_t time_to_discharge : 24; /*!< Value of Generic Battery Time to Discharge state */
-    u32_t time_to_charge    : 24; /*!< Value of Generic Battery Time to Charge state */
-    u32_t flags             : 8;  /*!< Value of Generic Battery Flags state */
+    uint32_t battery_level     : 8;  /*!< Value of Generic Battery Level state */
+    uint32_t time_to_discharge : 24; /*!< Value of Generic Battery Time to Discharge state */
+    uint32_t time_to_charge    : 24; /*!< Value of Generic Battery Time to Charge state */
+    uint32_t flags             : 8;  /*!< Value of Generic Battery Flags state */
 } esp_ble_mesh_gen_battery_status_cb_t;
 
 /** Parameters of Generic Location Global Status. */
@@ -479,7 +475,7 @@ typedef enum {
  * @param   param: Pointer to callback parameter
  */
 typedef void (* esp_ble_mesh_generic_client_cb_t)(esp_ble_mesh_generic_client_cb_event_t event,
-        esp_ble_mesh_generic_client_cb_param_t *param);
+                                                  esp_ble_mesh_generic_client_cb_param_t *param);
 
 /**
  * @brief       Register BLE Mesh Generic Client Model callback.
@@ -505,7 +501,7 @@ esp_err_t esp_ble_mesh_register_generic_client_callback(esp_ble_mesh_generic_cli
  *
  */
 esp_err_t esp_ble_mesh_generic_client_get_state(esp_ble_mesh_client_common_param_t *params,
-        esp_ble_mesh_generic_client_get_state_t *get_state);
+                                                esp_ble_mesh_generic_client_get_state_t *get_state);
 
 /**
  * @brief       Set the value of Generic Server Model states using the Generic Client Model set messages.
@@ -521,7 +517,7 @@ esp_err_t esp_ble_mesh_generic_client_get_state(esp_ble_mesh_client_common_param
  *
  */
 esp_err_t esp_ble_mesh_generic_client_set_state(esp_ble_mesh_client_common_param_t *params,
-        esp_ble_mesh_generic_client_set_state_t *set_state);
+                                                esp_ble_mesh_generic_client_set_state_t *set_state);
 
 /**
  * @brief Generic Server Models related context.
@@ -1281,7 +1277,7 @@ typedef enum {
  * @param   param: Pointer to callback parameter
  */
 typedef void (* esp_ble_mesh_generic_server_cb_t)(esp_ble_mesh_generic_server_cb_event_t event,
-        esp_ble_mesh_generic_server_cb_param_t *param);
+                                                  esp_ble_mesh_generic_server_cb_param_t *param);
 
 /**
  * @brief       Register BLE Mesh Generic Server Model callback.
@@ -1293,5 +1289,8 @@ typedef void (* esp_ble_mesh_generic_server_cb_t)(esp_ble_mesh_generic_server_cb
  */
 esp_err_t esp_ble_mesh_register_generic_server_callback(esp_ble_mesh_generic_server_cb_t callback);
 
-#endif /* _ESP_BLE_MESH_GENERIC_MODEL_API_H_ */
+#ifdef __cplusplus
+}
+#endif
 
+#endif /* _ESP_BLE_MESH_GENERIC_MODEL_API_H_ */

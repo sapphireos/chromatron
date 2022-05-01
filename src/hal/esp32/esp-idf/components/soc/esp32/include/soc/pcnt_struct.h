@@ -20,8 +20,8 @@
 extern "C" {
 #endif
 
-typedef volatile struct {
-    struct{
+typedef volatile struct pcnt_dev_s {
+    struct {
         union {
             struct {
                 uint32_t filter_thres:  10;         /*This register is used to filter pulse whose width is smaller than this value for unit0.*/

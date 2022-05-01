@@ -1,8 +1,14 @@
 /*
  *  NIST SP800-38D compliant GCM implementation
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
- *  SPDX-License-Identifier: Apache-2.0
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ *
+ *  This file is provided under the Apache License 2.0, or the
+ *  GNU General Public License v2.0 or later.
+ *
+ *  **********
+ *  Apache License 2.0:
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
  *  not use this file except in compliance with the License.
@@ -16,7 +22,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  This file is part of mbed TLS (https://tls.mbed.org)
+ *  **********
+ *
+ *  **********
+ *  GNU General Public License v2.0 or later:
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ *  **********
  */
 
 /*
@@ -83,6 +108,20 @@
     (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
     (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
     (b)[(i) + 3] = (unsigned char) ( (n)       );       \
+}
+#endif
+
+#ifndef PUT_UINT64_BE
+#define PUT_UINT64_BE( n, b, i )                                 \
+{                                                                \
+    ( b )[( i )    ] = (unsigned char) ( ( (n) >> 56 ) & 0xff ); \
+    ( b )[( i ) + 1] = (unsigned char) ( ( (n) >> 48 ) & 0xff ); \
+    ( b )[( i ) + 2] = (unsigned char) ( ( (n) >> 40 ) & 0xff ); \
+    ( b )[( i ) + 3] = (unsigned char) ( ( (n) >> 32 ) & 0xff ); \
+    ( b )[( i ) + 4] = (unsigned char) ( ( (n) >> 24 ) & 0xff ); \
+    ( b )[( i ) + 5] = (unsigned char) ( ( (n) >> 16 ) & 0xff ); \
+    ( b )[( i ) + 6] = (unsigned char) ( ( (n) >> 8  ) & 0xff ); \
+    ( b )[( i ) + 7] = (unsigned char) ( ( (n)       ) & 0xff ); \
 }
 #endif
 
@@ -284,6 +323,7 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     size_t i;
     const unsigned char *p;
     size_t use_len, olen = 0;
+    uint64_t iv_bits;
 
     GCM_VALIDATE_RET( ctx != NULL );
     GCM_VALIDATE_RET( iv != NULL );
@@ -313,7 +353,8 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     else
     {
         memset( work_buf, 0x00, 16 );
-        PUT_UINT32_BE( iv_len * 8, work_buf, 12 );
+        iv_bits = (uint64_t)iv_len * 8;
+        PUT_UINT64_BE( iv_bits, work_buf, 8 );
 
         p = iv;
         while( iv_len > 0 )

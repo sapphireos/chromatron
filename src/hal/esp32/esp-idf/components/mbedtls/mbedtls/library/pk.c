@@ -1,7 +1,7 @@
 /*
  *  Public Key abstraction layer
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -42,8 +42,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -227,11 +225,14 @@ static inline int pk_hashlen_helper( mbedtls_md_type_t md_alg, size_t *hash_len 
 {
     const mbedtls_md_info_t *md_info;
 
-    if( *hash_len != 0 )
+    if( *hash_len != 0 && md_alg == MBEDTLS_MD_NONE )
         return( 0 );
 
     if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
         return( -1 );
+
+    if ( *hash_len != 0 && *hash_len < mbedtls_md_get_size( md_info ) )
+        return ( -1 );
 
     *hash_len = mbedtls_md_get_size( md_info );
     return( 0 );

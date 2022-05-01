@@ -157,61 +157,208 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/driver/CMakeFiles/idf_component_driver_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/driver/CMakeFiles/idf_component_driver_sections_info.dir/rule
-.PHONY : esp-idf/driver/CMakeFiles/idf_component_driver_sections_info.dir/rule
+esp-idf/driver/CMakeFiles/__idf_driver.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/driver/CMakeFiles/__idf_driver.dir/rule
+.PHONY : esp-idf/driver/CMakeFiles/__idf_driver.dir/rule
 
 # Convenience name for target.
-idf_component_driver_sections_info: esp-idf/driver/CMakeFiles/idf_component_driver_sections_info.dir/rule
+__idf_driver: esp-idf/driver/CMakeFiles/__idf_driver.dir/rule
 
-.PHONY : idf_component_driver_sections_info
+.PHONY : __idf_driver
 
 # fast build rule for target.
-idf_component_driver_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver_sections_info.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver_sections_info.dir/build
-.PHONY : idf_component_driver_sections_info/fast
+__idf_driver/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/build
+.PHONY : __idf_driver/fast
 
-# Convenience name for target.
-esp-idf/driver/CMakeFiles/idf_component_driver.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/driver/CMakeFiles/idf_component_driver.dir/rule
-.PHONY : esp-idf/driver/CMakeFiles/idf_component_driver.dir/rule
+adc.obj: adc.c.obj
 
-# Convenience name for target.
-idf_component_driver: esp-idf/driver/CMakeFiles/idf_component_driver.dir/rule
-
-.PHONY : idf_component_driver
-
-# fast build rule for target.
-idf_component_driver/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/build
-.PHONY : idf_component_driver/fast
-
-can.obj: can.c.obj
-
-.PHONY : can.obj
+.PHONY : adc.obj
 
 # target to build an object file
-can.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.obj
-.PHONY : can.c.obj
+adc.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/adc.c.obj
+.PHONY : adc.c.obj
 
-can.i: can.c.i
+adc.i: adc.c.i
 
-.PHONY : can.i
+.PHONY : adc.i
 
 # target to preprocess a source file
-can.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.i
-.PHONY : can.c.i
+adc.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/adc.c.i
+.PHONY : adc.c.i
 
-can.s: can.c.s
+adc.s: adc.c.s
 
-.PHONY : can.s
+.PHONY : adc.s
 
 # target to generate assembly for a file
-can.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/can.c.s
-.PHONY : can.c.s
+adc.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/adc.c.s
+.PHONY : adc.c.s
+
+adc_common.obj: adc_common.c.obj
+
+.PHONY : adc_common.obj
+
+# target to build an object file
+adc_common.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/adc_common.c.obj
+.PHONY : adc_common.c.obj
+
+adc_common.i: adc_common.c.i
+
+.PHONY : adc_common.i
+
+# target to preprocess a source file
+adc_common.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/adc_common.c.i
+.PHONY : adc_common.c.i
+
+adc_common.s: adc_common.c.s
+
+.PHONY : adc_common.s
+
+# target to generate assembly for a file
+adc_common.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/adc_common.c.s
+.PHONY : adc_common.c.s
+
+adc_deprecated.obj: adc_deprecated.c.obj
+
+.PHONY : adc_deprecated.obj
+
+# target to build an object file
+adc_deprecated.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/adc_deprecated.c.obj
+.PHONY : adc_deprecated.c.obj
+
+adc_deprecated.i: adc_deprecated.c.i
+
+.PHONY : adc_deprecated.i
+
+# target to preprocess a source file
+adc_deprecated.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/adc_deprecated.c.i
+.PHONY : adc_deprecated.c.i
+
+adc_deprecated.s: adc_deprecated.c.s
+
+.PHONY : adc_deprecated.s
+
+# target to generate assembly for a file
+adc_deprecated.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/adc_deprecated.c.s
+.PHONY : adc_deprecated.c.s
+
+dac_common.obj: dac_common.c.obj
+
+.PHONY : dac_common.obj
+
+# target to build an object file
+dac_common.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/dac_common.c.obj
+.PHONY : dac_common.c.obj
+
+dac_common.i: dac_common.c.i
+
+.PHONY : dac_common.i
+
+# target to preprocess a source file
+dac_common.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/dac_common.c.i
+.PHONY : dac_common.c.i
+
+dac_common.s: dac_common.c.s
+
+.PHONY : dac_common.s
+
+# target to generate assembly for a file
+dac_common.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/dac_common.c.s
+.PHONY : dac_common.c.s
+
+esp32/adc.obj: esp32/adc.c.obj
+
+.PHONY : esp32/adc.obj
+
+# target to build an object file
+esp32/adc.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/esp32/adc.c.obj
+.PHONY : esp32/adc.c.obj
+
+esp32/adc.i: esp32/adc.c.i
+
+.PHONY : esp32/adc.i
+
+# target to preprocess a source file
+esp32/adc.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/esp32/adc.c.i
+.PHONY : esp32/adc.c.i
+
+esp32/adc.s: esp32/adc.c.s
+
+.PHONY : esp32/adc.s
+
+# target to generate assembly for a file
+esp32/adc.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/esp32/adc.c.s
+.PHONY : esp32/adc.c.s
+
+esp32/dac.obj: esp32/dac.c.obj
+
+.PHONY : esp32/dac.obj
+
+# target to build an object file
+esp32/dac.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/esp32/dac.c.obj
+.PHONY : esp32/dac.c.obj
+
+esp32/dac.i: esp32/dac.c.i
+
+.PHONY : esp32/dac.i
+
+# target to preprocess a source file
+esp32/dac.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/esp32/dac.c.i
+.PHONY : esp32/dac.c.i
+
+esp32/dac.s: esp32/dac.c.s
+
+.PHONY : esp32/dac.s
+
+# target to generate assembly for a file
+esp32/dac.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/esp32/dac.c.s
+.PHONY : esp32/dac.c.s
+
+esp32/touch_sensor.obj: esp32/touch_sensor.c.obj
+
+.PHONY : esp32/touch_sensor.obj
+
+# target to build an object file
+esp32/touch_sensor.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/esp32/touch_sensor.c.obj
+.PHONY : esp32/touch_sensor.c.obj
+
+esp32/touch_sensor.i: esp32/touch_sensor.c.i
+
+.PHONY : esp32/touch_sensor.i
+
+# target to preprocess a source file
+esp32/touch_sensor.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/esp32/touch_sensor.c.i
+.PHONY : esp32/touch_sensor.c.i
+
+esp32/touch_sensor.s: esp32/touch_sensor.c.s
+
+.PHONY : esp32/touch_sensor.s
+
+# target to generate assembly for a file
+esp32/touch_sensor.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/esp32/touch_sensor.c.s
+.PHONY : esp32/touch_sensor.c.s
 
 gpio.obj: gpio.c.obj
 
@@ -219,7 +366,7 @@ gpio.obj: gpio.c.obj
 
 # target to build an object file
 gpio.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/gpio.c.obj
 .PHONY : gpio.c.obj
 
 gpio.i: gpio.c.i
@@ -228,7 +375,7 @@ gpio.i: gpio.c.i
 
 # target to preprocess a source file
 gpio.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/gpio.c.i
 .PHONY : gpio.c.i
 
 gpio.s: gpio.c.s
@@ -237,7 +384,7 @@ gpio.s: gpio.c.s
 
 # target to generate assembly for a file
 gpio.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/gpio.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/gpio.c.s
 .PHONY : gpio.c.s
 
 i2c.obj: i2c.c.obj
@@ -246,7 +393,7 @@ i2c.obj: i2c.c.obj
 
 # target to build an object file
 i2c.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/i2c.c.obj
 .PHONY : i2c.c.obj
 
 i2c.i: i2c.c.i
@@ -255,7 +402,7 @@ i2c.i: i2c.c.i
 
 # target to preprocess a source file
 i2c.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/i2c.c.i
 .PHONY : i2c.c.i
 
 i2c.s: i2c.c.s
@@ -264,7 +411,7 @@ i2c.s: i2c.c.s
 
 # target to generate assembly for a file
 i2c.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2c.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/i2c.c.s
 .PHONY : i2c.c.s
 
 i2s.obj: i2s.c.obj
@@ -273,7 +420,7 @@ i2s.obj: i2s.c.obj
 
 # target to build an object file
 i2s.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/i2s.c.obj
 .PHONY : i2s.c.obj
 
 i2s.i: i2s.c.i
@@ -282,7 +429,7 @@ i2s.i: i2s.c.i
 
 # target to preprocess a source file
 i2s.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/i2s.c.i
 .PHONY : i2s.c.i
 
 i2s.s: i2s.c.s
@@ -291,7 +438,7 @@ i2s.s: i2s.c.s
 
 # target to generate assembly for a file
 i2s.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/i2s.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/i2s.c.s
 .PHONY : i2s.c.s
 
 ledc.obj: ledc.c.obj
@@ -300,7 +447,7 @@ ledc.obj: ledc.c.obj
 
 # target to build an object file
 ledc.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/ledc.c.obj
 .PHONY : ledc.c.obj
 
 ledc.i: ledc.c.i
@@ -309,7 +456,7 @@ ledc.i: ledc.c.i
 
 # target to preprocess a source file
 ledc.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/ledc.c.i
 .PHONY : ledc.c.i
 
 ledc.s: ledc.c.s
@@ -318,7 +465,7 @@ ledc.s: ledc.c.s
 
 # target to generate assembly for a file
 ledc.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/ledc.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/ledc.c.s
 .PHONY : ledc.c.s
 
 mcpwm.obj: mcpwm.c.obj
@@ -327,7 +474,7 @@ mcpwm.obj: mcpwm.c.obj
 
 # target to build an object file
 mcpwm.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/mcpwm.c.obj
 .PHONY : mcpwm.c.obj
 
 mcpwm.i: mcpwm.c.i
@@ -336,7 +483,7 @@ mcpwm.i: mcpwm.c.i
 
 # target to preprocess a source file
 mcpwm.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/mcpwm.c.i
 .PHONY : mcpwm.c.i
 
 mcpwm.s: mcpwm.c.s
@@ -345,7 +492,7 @@ mcpwm.s: mcpwm.c.s
 
 # target to generate assembly for a file
 mcpwm.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/mcpwm.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/mcpwm.c.s
 .PHONY : mcpwm.c.s
 
 pcnt.obj: pcnt.c.obj
@@ -354,7 +501,7 @@ pcnt.obj: pcnt.c.obj
 
 # target to build an object file
 pcnt.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/pcnt.c.obj
 .PHONY : pcnt.c.obj
 
 pcnt.i: pcnt.c.i
@@ -363,7 +510,7 @@ pcnt.i: pcnt.c.i
 
 # target to preprocess a source file
 pcnt.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/pcnt.c.i
 .PHONY : pcnt.c.i
 
 pcnt.s: pcnt.c.s
@@ -372,7 +519,7 @@ pcnt.s: pcnt.c.s
 
 # target to generate assembly for a file
 pcnt.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/pcnt.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/pcnt.c.s
 .PHONY : pcnt.c.s
 
 periph_ctrl.obj: periph_ctrl.c.obj
@@ -381,7 +528,7 @@ periph_ctrl.obj: periph_ctrl.c.obj
 
 # target to build an object file
 periph_ctrl.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/periph_ctrl.c.obj
 .PHONY : periph_ctrl.c.obj
 
 periph_ctrl.i: periph_ctrl.c.i
@@ -390,7 +537,7 @@ periph_ctrl.i: periph_ctrl.c.i
 
 # target to preprocess a source file
 periph_ctrl.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/periph_ctrl.c.i
 .PHONY : periph_ctrl.c.i
 
 periph_ctrl.s: periph_ctrl.c.s
@@ -399,7 +546,7 @@ periph_ctrl.s: periph_ctrl.c.s
 
 # target to generate assembly for a file
 periph_ctrl.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/periph_ctrl.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/periph_ctrl.c.s
 .PHONY : periph_ctrl.c.s
 
 rmt.obj: rmt.c.obj
@@ -408,7 +555,7 @@ rmt.obj: rmt.c.obj
 
 # target to build an object file
 rmt.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/rmt.c.obj
 .PHONY : rmt.c.obj
 
 rmt.i: rmt.c.i
@@ -417,7 +564,7 @@ rmt.i: rmt.c.i
 
 # target to preprocess a source file
 rmt.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/rmt.c.i
 .PHONY : rmt.c.i
 
 rmt.s: rmt.c.s
@@ -426,8 +573,35 @@ rmt.s: rmt.c.s
 
 # target to generate assembly for a file
 rmt.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/rmt.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/rmt.c.s
 .PHONY : rmt.c.s
+
+rtc_io.obj: rtc_io.c.obj
+
+.PHONY : rtc_io.obj
+
+# target to build an object file
+rtc_io.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/rtc_io.c.obj
+.PHONY : rtc_io.c.obj
+
+rtc_io.i: rtc_io.c.i
+
+.PHONY : rtc_io.i
+
+# target to preprocess a source file
+rtc_io.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/rtc_io.c.i
+.PHONY : rtc_io.c.i
+
+rtc_io.s: rtc_io.c.s
+
+.PHONY : rtc_io.s
+
+# target to generate assembly for a file
+rtc_io.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/rtc_io.c.s
+.PHONY : rtc_io.c.s
 
 rtc_module.obj: rtc_module.c.obj
 
@@ -435,7 +609,7 @@ rtc_module.obj: rtc_module.c.obj
 
 # target to build an object file
 rtc_module.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/rtc_module.c.obj
 .PHONY : rtc_module.c.obj
 
 rtc_module.i: rtc_module.c.i
@@ -444,7 +618,7 @@ rtc_module.i: rtc_module.c.i
 
 # target to preprocess a source file
 rtc_module.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/rtc_module.c.i
 .PHONY : rtc_module.c.i
 
 rtc_module.s: rtc_module.c.s
@@ -453,7 +627,7 @@ rtc_module.s: rtc_module.c.s
 
 # target to generate assembly for a file
 rtc_module.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/rtc_module.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/rtc_module.c.s
 .PHONY : rtc_module.c.s
 
 sdio_slave.obj: sdio_slave.c.obj
@@ -462,7 +636,7 @@ sdio_slave.obj: sdio_slave.c.obj
 
 # target to build an object file
 sdio_slave.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdio_slave.c.obj
 .PHONY : sdio_slave.c.obj
 
 sdio_slave.i: sdio_slave.c.i
@@ -471,7 +645,7 @@ sdio_slave.i: sdio_slave.c.i
 
 # target to preprocess a source file
 sdio_slave.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdio_slave.c.i
 .PHONY : sdio_slave.c.i
 
 sdio_slave.s: sdio_slave.c.s
@@ -480,7 +654,7 @@ sdio_slave.s: sdio_slave.c.s
 
 # target to generate assembly for a file
 sdio_slave.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdio_slave.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdio_slave.c.s
 .PHONY : sdio_slave.c.s
 
 sdmmc_host.obj: sdmmc_host.c.obj
@@ -489,7 +663,7 @@ sdmmc_host.obj: sdmmc_host.c.obj
 
 # target to build an object file
 sdmmc_host.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdmmc_host.c.obj
 .PHONY : sdmmc_host.c.obj
 
 sdmmc_host.i: sdmmc_host.c.i
@@ -498,7 +672,7 @@ sdmmc_host.i: sdmmc_host.c.i
 
 # target to preprocess a source file
 sdmmc_host.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdmmc_host.c.i
 .PHONY : sdmmc_host.c.i
 
 sdmmc_host.s: sdmmc_host.c.s
@@ -507,7 +681,7 @@ sdmmc_host.s: sdmmc_host.c.s
 
 # target to generate assembly for a file
 sdmmc_host.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_host.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdmmc_host.c.s
 .PHONY : sdmmc_host.c.s
 
 sdmmc_transaction.obj: sdmmc_transaction.c.obj
@@ -516,7 +690,7 @@ sdmmc_transaction.obj: sdmmc_transaction.c.obj
 
 # target to build an object file
 sdmmc_transaction.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdmmc_transaction.c.obj
 .PHONY : sdmmc_transaction.c.obj
 
 sdmmc_transaction.i: sdmmc_transaction.c.i
@@ -525,7 +699,7 @@ sdmmc_transaction.i: sdmmc_transaction.c.i
 
 # target to preprocess a source file
 sdmmc_transaction.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdmmc_transaction.c.i
 .PHONY : sdmmc_transaction.c.i
 
 sdmmc_transaction.s: sdmmc_transaction.c.s
@@ -534,7 +708,7 @@ sdmmc_transaction.s: sdmmc_transaction.c.s
 
 # target to generate assembly for a file
 sdmmc_transaction.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdmmc_transaction.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdmmc_transaction.c.s
 .PHONY : sdmmc_transaction.c.s
 
 sdspi_crc.obj: sdspi_crc.c.obj
@@ -543,7 +717,7 @@ sdspi_crc.obj: sdspi_crc.c.obj
 
 # target to build an object file
 sdspi_crc.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_crc.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdspi_crc.c.obj
 .PHONY : sdspi_crc.c.obj
 
 sdspi_crc.i: sdspi_crc.c.i
@@ -552,7 +726,7 @@ sdspi_crc.i: sdspi_crc.c.i
 
 # target to preprocess a source file
 sdspi_crc.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_crc.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdspi_crc.c.i
 .PHONY : sdspi_crc.c.i
 
 sdspi_crc.s: sdspi_crc.c.s
@@ -561,7 +735,7 @@ sdspi_crc.s: sdspi_crc.c.s
 
 # target to generate assembly for a file
 sdspi_crc.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_crc.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdspi_crc.c.s
 .PHONY : sdspi_crc.c.s
 
 sdspi_host.obj: sdspi_host.c.obj
@@ -570,7 +744,7 @@ sdspi_host.obj: sdspi_host.c.obj
 
 # target to build an object file
 sdspi_host.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdspi_host.c.obj
 .PHONY : sdspi_host.c.obj
 
 sdspi_host.i: sdspi_host.c.i
@@ -579,7 +753,7 @@ sdspi_host.i: sdspi_host.c.i
 
 # target to preprocess a source file
 sdspi_host.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdspi_host.c.i
 .PHONY : sdspi_host.c.i
 
 sdspi_host.s: sdspi_host.c.s
@@ -588,7 +762,7 @@ sdspi_host.s: sdspi_host.c.s
 
 # target to generate assembly for a file
 sdspi_host.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_host.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdspi_host.c.s
 .PHONY : sdspi_host.c.s
 
 sdspi_transaction.obj: sdspi_transaction.c.obj
@@ -597,7 +771,7 @@ sdspi_transaction.obj: sdspi_transaction.c.obj
 
 # target to build an object file
 sdspi_transaction.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdspi_transaction.c.obj
 .PHONY : sdspi_transaction.c.obj
 
 sdspi_transaction.i: sdspi_transaction.c.i
@@ -606,7 +780,7 @@ sdspi_transaction.i: sdspi_transaction.c.i
 
 # target to preprocess a source file
 sdspi_transaction.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdspi_transaction.c.i
 .PHONY : sdspi_transaction.c.i
 
 sdspi_transaction.s: sdspi_transaction.c.s
@@ -615,7 +789,7 @@ sdspi_transaction.s: sdspi_transaction.c.s
 
 # target to generate assembly for a file
 sdspi_transaction.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sdspi_transaction.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sdspi_transaction.c.s
 .PHONY : sdspi_transaction.c.s
 
 sigmadelta.obj: sigmadelta.c.obj
@@ -624,7 +798,7 @@ sigmadelta.obj: sigmadelta.c.obj
 
 # target to build an object file
 sigmadelta.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sigmadelta.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sigmadelta.c.obj
 .PHONY : sigmadelta.c.obj
 
 sigmadelta.i: sigmadelta.c.i
@@ -633,7 +807,7 @@ sigmadelta.i: sigmadelta.c.i
 
 # target to preprocess a source file
 sigmadelta.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sigmadelta.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sigmadelta.c.i
 .PHONY : sigmadelta.c.i
 
 sigmadelta.s: sigmadelta.c.s
@@ -642,8 +816,35 @@ sigmadelta.s: sigmadelta.c.s
 
 # target to generate assembly for a file
 sigmadelta.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/sigmadelta.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/sigmadelta.c.s
 .PHONY : sigmadelta.c.s
+
+spi_bus_lock.obj: spi_bus_lock.c.obj
+
+.PHONY : spi_bus_lock.obj
+
+# target to build an object file
+spi_bus_lock.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_bus_lock.c.obj
+.PHONY : spi_bus_lock.c.obj
+
+spi_bus_lock.i: spi_bus_lock.c.i
+
+.PHONY : spi_bus_lock.i
+
+# target to preprocess a source file
+spi_bus_lock.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_bus_lock.c.i
+.PHONY : spi_bus_lock.c.i
+
+spi_bus_lock.s: spi_bus_lock.c.s
+
+.PHONY : spi_bus_lock.s
+
+# target to generate assembly for a file
+spi_bus_lock.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_bus_lock.c.s
+.PHONY : spi_bus_lock.c.s
 
 spi_common.obj: spi_common.c.obj
 
@@ -651,7 +852,7 @@ spi_common.obj: spi_common.c.obj
 
 # target to build an object file
 spi_common.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_common.c.obj
 .PHONY : spi_common.c.obj
 
 spi_common.i: spi_common.c.i
@@ -660,7 +861,7 @@ spi_common.i: spi_common.c.i
 
 # target to preprocess a source file
 spi_common.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_common.c.i
 .PHONY : spi_common.c.i
 
 spi_common.s: spi_common.c.s
@@ -669,7 +870,7 @@ spi_common.s: spi_common.c.s
 
 # target to generate assembly for a file
 spi_common.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_common.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_common.c.s
 .PHONY : spi_common.c.s
 
 spi_master.obj: spi_master.c.obj
@@ -678,7 +879,7 @@ spi_master.obj: spi_master.c.obj
 
 # target to build an object file
 spi_master.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_master.c.obj
 .PHONY : spi_master.c.obj
 
 spi_master.i: spi_master.c.i
@@ -687,7 +888,7 @@ spi_master.i: spi_master.c.i
 
 # target to preprocess a source file
 spi_master.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_master.c.i
 .PHONY : spi_master.c.i
 
 spi_master.s: spi_master.c.s
@@ -696,7 +897,7 @@ spi_master.s: spi_master.c.s
 
 # target to generate assembly for a file
 spi_master.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_master.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_master.c.s
 .PHONY : spi_master.c.s
 
 spi_slave.obj: spi_slave.c.obj
@@ -705,7 +906,7 @@ spi_slave.obj: spi_slave.c.obj
 
 # target to build an object file
 spi_slave.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_slave.c.obj
 .PHONY : spi_slave.c.obj
 
 spi_slave.i: spi_slave.c.i
@@ -714,7 +915,7 @@ spi_slave.i: spi_slave.c.i
 
 # target to preprocess a source file
 spi_slave.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_slave.c.i
 .PHONY : spi_slave.c.i
 
 spi_slave.s: spi_slave.c.s
@@ -723,7 +924,7 @@ spi_slave.s: spi_slave.c.s
 
 # target to generate assembly for a file
 spi_slave.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/spi_slave.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/spi_slave.c.s
 .PHONY : spi_slave.c.s
 
 timer.obj: timer.c.obj
@@ -732,7 +933,7 @@ timer.obj: timer.c.obj
 
 # target to build an object file
 timer.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/timer.c.obj
 .PHONY : timer.c.obj
 
 timer.i: timer.c.i
@@ -741,7 +942,7 @@ timer.i: timer.c.i
 
 # target to preprocess a source file
 timer.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/timer.c.i
 .PHONY : timer.c.i
 
 timer.s: timer.c.s
@@ -750,8 +951,62 @@ timer.s: timer.c.s
 
 # target to generate assembly for a file
 timer.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/timer.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/timer.c.s
 .PHONY : timer.c.s
+
+touch_sensor_common.obj: touch_sensor_common.c.obj
+
+.PHONY : touch_sensor_common.obj
+
+# target to build an object file
+touch_sensor_common.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/touch_sensor_common.c.obj
+.PHONY : touch_sensor_common.c.obj
+
+touch_sensor_common.i: touch_sensor_common.c.i
+
+.PHONY : touch_sensor_common.i
+
+# target to preprocess a source file
+touch_sensor_common.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/touch_sensor_common.c.i
+.PHONY : touch_sensor_common.c.i
+
+touch_sensor_common.s: touch_sensor_common.c.s
+
+.PHONY : touch_sensor_common.s
+
+# target to generate assembly for a file
+touch_sensor_common.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/touch_sensor_common.c.s
+.PHONY : touch_sensor_common.c.s
+
+twai.obj: twai.c.obj
+
+.PHONY : twai.obj
+
+# target to build an object file
+twai.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/twai.c.obj
+.PHONY : twai.c.obj
+
+twai.i: twai.c.i
+
+.PHONY : twai.i
+
+# target to preprocess a source file
+twai.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/twai.c.i
+.PHONY : twai.c.i
+
+twai.s: twai.c.s
+
+.PHONY : twai.s
+
+# target to generate assembly for a file
+twai.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/twai.c.s
+.PHONY : twai.c.s
 
 uart.obj: uart.c.obj
 
@@ -759,7 +1014,7 @@ uart.obj: uart.c.obj
 
 # target to build an object file
 uart.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/uart.c.obj
 .PHONY : uart.c.obj
 
 uart.i: uart.c.i
@@ -768,7 +1023,7 @@ uart.i: uart.c.i
 
 # target to preprocess a source file
 uart.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/uart.c.i
 .PHONY : uart.c.i
 
 uart.s: uart.c.s
@@ -777,7 +1032,7 @@ uart.s: uart.c.s
 
 # target to generate assembly for a file
 uart.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/idf_component_driver.dir/build.make esp-idf/driver/CMakeFiles/idf_component_driver.dir/uart.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/driver/CMakeFiles/__idf_driver.dir/build.make esp-idf/driver/CMakeFiles/__idf_driver.dir/uart.c.s
 .PHONY : uart.c.s
 
 # Help Target
@@ -792,11 +1047,28 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_driver_sections_info"
-	@echo "... idf_component_driver"
-	@echo "... can.obj"
-	@echo "... can.i"
-	@echo "... can.s"
+	@echo "... __idf_driver"
+	@echo "... adc.obj"
+	@echo "... adc.i"
+	@echo "... adc.s"
+	@echo "... adc_common.obj"
+	@echo "... adc_common.i"
+	@echo "... adc_common.s"
+	@echo "... adc_deprecated.obj"
+	@echo "... adc_deprecated.i"
+	@echo "... adc_deprecated.s"
+	@echo "... dac_common.obj"
+	@echo "... dac_common.i"
+	@echo "... dac_common.s"
+	@echo "... esp32/adc.obj"
+	@echo "... esp32/adc.i"
+	@echo "... esp32/adc.s"
+	@echo "... esp32/dac.obj"
+	@echo "... esp32/dac.i"
+	@echo "... esp32/dac.s"
+	@echo "... esp32/touch_sensor.obj"
+	@echo "... esp32/touch_sensor.i"
+	@echo "... esp32/touch_sensor.s"
 	@echo "... gpio.obj"
 	@echo "... gpio.i"
 	@echo "... gpio.s"
@@ -821,6 +1093,9 @@ help:
 	@echo "... rmt.obj"
 	@echo "... rmt.i"
 	@echo "... rmt.s"
+	@echo "... rtc_io.obj"
+	@echo "... rtc_io.i"
+	@echo "... rtc_io.s"
 	@echo "... rtc_module.obj"
 	@echo "... rtc_module.i"
 	@echo "... rtc_module.s"
@@ -845,6 +1120,9 @@ help:
 	@echo "... sigmadelta.obj"
 	@echo "... sigmadelta.i"
 	@echo "... sigmadelta.s"
+	@echo "... spi_bus_lock.obj"
+	@echo "... spi_bus_lock.i"
+	@echo "... spi_bus_lock.s"
 	@echo "... spi_common.obj"
 	@echo "... spi_common.i"
 	@echo "... spi_common.s"
@@ -857,6 +1135,12 @@ help:
 	@echo "... timer.obj"
 	@echo "... timer.i"
 	@echo "... timer.s"
+	@echo "... touch_sensor_common.obj"
+	@echo "... touch_sensor_common.i"
+	@echo "... touch_sensor_common.s"
+	@echo "... twai.obj"
+	@echo "... twai.i"
+	@echo "... twai.s"
 	@echo "... uart.obj"
 	@echo "... uart.i"
 	@echo "... uart.s"

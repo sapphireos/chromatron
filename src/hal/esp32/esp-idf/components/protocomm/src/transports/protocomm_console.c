@@ -26,6 +26,7 @@
 
 #include "protocomm_priv.h"
 
+#define LINE_BUF_SIZE 256
 static const char *TAG = "protocomm_console";
 
 static uint32_t session_id = PROTOCOMM_NO_SESSION_ID;
@@ -70,18 +71,18 @@ static bool stopped(void)
 static void protocomm_console_task(void *arg)
 {
     int uart_num = (int) arg;
-    uint8_t linebuf[256];
+    uint8_t linebuf[LINE_BUF_SIZE];
     int i, cmd_ret;
     esp_err_t ret;
     QueueHandle_t uart_queue;
     uart_event_t event;
 
     ESP_LOGD(TAG, "Initializing UART on port %d", uart_num);
-    uart_driver_install(uart_num, 256, 0, 8, &uart_queue, 0);
+    uart_driver_install(uart_num, LINE_BUF_SIZE, 0, 8, &uart_queue, 0);
     /* Initialize the console */
     esp_console_config_t console_config = {
             .max_cmdline_args = 8,
-            .max_cmdline_length = 256,
+            .max_cmdline_length = LINE_BUF_SIZE,
     };
 
     esp_console_init(&console_config);
@@ -101,7 +102,7 @@ static void protocomm_console_task(void *arg)
                 }
             }
             if (event.type == UART_DATA) {
-                while (uart_read_bytes(uart_num, (uint8_t *) &linebuf[i], 1, 0)) {
+                while (uart_read_bytes(uart_num, (uint8_t *) &linebuf[i], 1, 0) && (i < LINE_BUF_SIZE)) {
                     if (linebuf[i] == '\r') {
                         uart_write_bytes(uart_num, "\r\n", 2);
                     } else {
@@ -110,7 +111,10 @@ static void protocomm_console_task(void *arg)
                     i++;
                 }
             }
-        } while ((i < 255) && linebuf[i-1] != '\r');
+            if ((i > 0) && (linebuf[i-1] == '\r')) {
+                break;
+            }
+        } while (i < LINE_BUF_SIZE);
         if (stopped()) {
             break;
         }
@@ -139,13 +143,17 @@ static int common_cmd_handler(int argc, char** argv)
     uint32_t cur_session_id = atoi(argv[1]);
 
     uint8_t *buf = (uint8_t *) malloc(strlen(argv[2]));
+    if (buf == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate memory");
+        return ESP_ERR_NO_MEM;
+    }
     uint8_t *outbuf;
     ssize_t outlen;
     ssize_t len = hex2bin(argv[2], buf);
 
     if (cur_session_id != session_id) {
         if (pc_console->sec && pc_console->sec->new_transport_session) {
-            ret = pc_console->sec->new_transport_session(cur_session_id);
+            ret = pc_console->sec->new_transport_session(pc_console->sec_inst, cur_session_id);
             if (ret == ESP_OK) {
                 session_id = cur_session_id;
             }

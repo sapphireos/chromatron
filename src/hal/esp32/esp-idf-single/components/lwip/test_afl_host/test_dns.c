@@ -21,7 +21,7 @@ ip4_addr_t server_ip;
 void dns_test_dns_recv(void *s, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port);
 void dns_test_inject_port_and_txid(int port, int txid);
 
-void dns_test_init_di();
+void dns_test_init_di(void);
 err_t dns_test_dns_enqueue(const char *name, size_t hostnamelen, dns_found_callback found, void *callback_arg, u8_t dns_addrtype);
 
 //
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
     size_t len = 1460;
 
     dns_test_init_di();
-    
+
 #ifdef INSTR_IS_OFF
     p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
     buf = p->payload;
@@ -66,14 +66,16 @@ int main(int argc, char** argv)
         p->next = NULL;
 
         // Pretend that the response is from our pending querries
+        IP4_ADDR(&server_ip, 8, 8, 8, 8);
+        dns_setserver(0, &server_ip);
         dns_test_inject_port_and_txid(1024, (buf[0]<<8) + buf[1]);
         dns_test_dns_enqueue("test", 4, NULL, NULL, 0);
 
         // Process the packet
-        dns_test_dns_recv(NULL, NULL, p, &ip_addr_any, 0);        
+        dns_test_dns_recv(NULL, NULL, p, &ip_addr_any, 0);
     }
 
 
-    
+
     return 0;
 }

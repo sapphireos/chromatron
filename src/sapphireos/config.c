@@ -133,7 +133,7 @@ typedef struct __attribute__((packed)){
 
 
 
-static uint16_t error_log_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t error_log_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -164,7 +164,7 @@ static uint16_t error_log_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr
 #include "esp_spi_flash.h"
 #endif
 
-static uint16_t fw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t fw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -192,7 +192,7 @@ static uint16_t fw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, 
 
 
 #ifdef ENABLE_CFG_VFILE
-static uint16_t eeprom_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t eeprom_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){

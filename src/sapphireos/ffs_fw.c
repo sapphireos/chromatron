@@ -38,7 +38,7 @@
 #include "ffs_fw.h"
 
 #ifdef ESP32
-#include "rom/spi_flash.h"
+#include "esp32/rom/spi_flash.h"
 #include "esp_spi_flash.h"
 #include "hal_flash25.h"
 #endif

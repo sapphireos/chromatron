@@ -14,7 +14,7 @@ SYNOPSIS
 DESCRIPTION
 -----------
 
-A reverse proxy for HTTP/2, HTTP/1 and SPDY.
+A reverse proxy for HTTP/2, and HTTP/1.
 
 .. describe:: <PRIVATE_KEY>
 
@@ -59,7 +59,7 @@ Connections
     "*/*", it  performs exact match against  the request path.
     If  host  is given,  it  performs  a match  against  the
     request host.   For a  request received on  the frontend
-    lister  with "sni-fwd"  parameter enabled,  SNI host  is
+    listener with  "sni-fwd" parameter enabled, SNI  host is
     used instead of a request host.  If host alone is given,
     "*/*" is  appended to it,  so that it matches  all request
     paths  under the  host  (e.g., specifying  "nghttp2.org"
@@ -121,7 +121,10 @@ Connections
     The  parameters are  delimited  by  ";".  The  available
     parameters       are:      "proto=<PROTO>",       "tls",
     "sni=<SNI_HOST>",         "fall=<N>",        "rise=<N>",
-    "affinity=<METHOD>",  "dns", and  "redirect-if-not-tls".
+    "affinity=<METHOD>",    "dns",    "redirect-if-not-tls",
+    "upgrade-scheme",                        "mruby=<PATH>",
+    "read-timeout=<DURATION>",   "write-timeout=<DURATION>",
+    "group=<GROUP>",  "group-weight=<N>", and  "weight=<N>".
     The  parameter  consists   of  keyword,  and  optionally
     followed by  "=" and value.  For  example, the parameter
     "proto=h2"  consists of  the keyword  "proto" and  value
@@ -164,16 +167,32 @@ Connections
     The     session     affinity    is     enabled     using
     "affinity=<METHOD>"  parameter.   If  "ip" is  given  in
     <METHOD>, client  IP based session affinity  is enabled.
-    If  "none" is  given  in <METHOD>,  session affinity  is
-    disabled, and this is the default.  The session affinity
-    is enabled per  <PATTERN>.  If at least  one backend has
-    "affinity" parameter,  and its  <METHOD> is  not "none",
-    session  affinity is  enabled  for  all backend  servers
-    sharing  the  same  <PATTERN>.   It is  advised  to  set
-    "affinity"  parameter  to   all  backend  explicitly  if
-    session affinity  is desired.  The session  affinity may
-    break if one of the backend gets unreachable, or backend
-    settings are reloaded or replaced by API.
+    If "cookie"  is given in <METHOD>,  cookie based session
+    affinity is  enabled.  If  "none" is given  in <METHOD>,
+    session affinity  is disabled, and this  is the default.
+    The session  affinity is  enabled per <PATTERN>.   If at
+    least  one backend  has  "affinity"  parameter, and  its
+    <METHOD> is not "none",  session affinity is enabled for
+    all backend  servers sharing the same  <PATTERN>.  It is
+    advised  to  set  "affinity" parameter  to  all  backend
+    explicitly if session affinity  is desired.  The session
+    affinity  may   break  if   one  of  the   backend  gets
+    unreachable,  or   backend  settings  are   reloaded  or
+    replaced by API.
+
+    If   "affinity=cookie"    is   used,    the   additional
+    configuration                is                required.
+    "affinity-cookie-name=<NAME>" must be  used to specify a
+    name     of     cookie      to     use.      Optionally,
+    "affinity-cookie-path=<PATH>" can  be used to  specify a
+    path   which   cookie    is   applied.    The   optional
+    "affinity-cookie-secure=<SECURE>"  controls  the  Secure
+    attribute of a cookie.  The default value is "auto", and
+    the Secure attribute is  determined by a request scheme.
+    If a request scheme is "https", then Secure attribute is
+    set.  Otherwise, it  is not set.  If  <SECURE> is "yes",
+    the  Secure attribute  is  always set.   If <SECURE>  is
+    "no", the Secure attribute is always omitted.
 
     By default, name resolution of backend host name is done
     at  start  up,  or reloading  configuration.   If  "dns"
@@ -195,6 +214,51 @@ Connections
     the   same   <PATTERN>.    It    is   advised   to   set
     "redirect-if-no-tls"    parameter   to    all   backends
     explicitly if this feature is desired.
+
+    If "upgrade-scheme"  parameter is used along  with "tls"
+    parameter, HTTP/2 :scheme pseudo header field is changed
+    to "https" from "http" when forwarding a request to this
+    particular backend.  This is  a workaround for a backend
+    server  which  requires  "https" :scheme  pseudo  header
+    field on TLS encrypted connection.
+
+    "mruby=<PATH>"  parameter  specifies  a  path  to  mruby
+    script  file  which  is  invoked when  this  pattern  is
+    matched.  All backends which share the same pattern must
+    have the same mruby path.
+
+    "read-timeout=<DURATION>" and "write-timeout=<DURATION>"
+    parameters  specify the  read and  write timeout  of the
+    backend connection  when this  pattern is  matched.  All
+    backends which share the same pattern must have the same
+    timeouts.  If these timeouts  are entirely omitted for a
+    pattern,            :option:`--backend-read-timeout`           and
+    :option:`--backend-write-timeout` are used.
+
+    "group=<GROUP>"  parameter specifies  the name  of group
+    this backend address belongs to.  By default, it belongs
+    to  the unnamed  default group.   The name  of group  is
+    unique   per   pattern.   "group-weight=<N>"   parameter
+    specifies the  weight of  the group.  The  higher weight
+    gets  more frequently  selected  by  the load  balancing
+    algorithm.  <N> must be  [1, 256] inclusive.  The weight
+    8 has 4 times more weight  than 2.  <N> must be the same
+    for  all addresses  which  share the  same <GROUP>.   If
+    "group-weight" is  omitted in an address,  but the other
+    address  which  belongs  to  the  same  group  specifies
+    "group-weight",   its    weight   is   used.     If   no
+    "group-weight"  is  specified  for  all  addresses,  the
+    weight of a group becomes 1.  "group" and "group-weight"
+    are ignored if session affinity is enabled.
+
+    "weight=<N>"  parameter  specifies  the  weight  of  the
+    backend  address  inside  a  group  which  this  address
+    belongs  to.  The  higher  weight  gets more  frequently
+    selected by  the load balancing algorithm.   <N> must be
+    [1,  256] inclusive.   The  weight 8  has  4 times  more
+    weight  than weight  2.  If  this parameter  is omitted,
+    weight  becomes  1.   "weight"  is  ignored  if  session
+    affinity is enabled.
 
     Since ";" and ":" are  used as delimiter, <PATTERN> must
     not  contain these  characters.  Since  ";" has  special
@@ -236,7 +300,7 @@ Connections
     default.  Any  requests which come through  this address
     are replied with 200 HTTP status, without no body.
 
-    To  accept   PROXY  protocol   version  1   on  frontend
+    To accept  PROXY protocol  version 1  and 2  on frontend
     connection,  specify  "proxyproto" parameter.   This  is
     disabled by default.
 
@@ -424,8 +488,7 @@ Timeout
 
 .. option:: --frontend-http2-read-timeout=<DURATION>
 
-    Specify  read  timeout  for  HTTP/2  and  SPDY  frontend
-    connection.
+    Specify read timeout for HTTP/2 frontend connection.
 
     Default: ``3m``
 
@@ -450,15 +513,15 @@ Timeout
 
 .. option:: --stream-read-timeout=<DURATION>
 
-    Specify  read timeout  for HTTP/2  and SPDY  streams.  0
-    means no timeout.
+    Specify  read timeout  for HTTP/2  streams.  0  means no
+    timeout.
 
     Default: ``0``
 
 .. option:: --stream-write-timeout=<DURATION>
 
-    Specify write  timeout for  HTTP/2 and SPDY  streams.  0
-    means no timeout.
+    Specify write  timeout for  HTTP/2 streams.  0  means no
+    timeout.
 
     Default: ``1m``
 
@@ -531,15 +594,37 @@ SSL/TLS
 
     Set allowed  cipher list  for frontend  connection.  The
     format of the string is described in OpenSSL ciphers(1).
+    This option  sets cipher suites for  TLSv1.2 or earlier.
+    Use :option:`--tls13-ciphers` for TLSv1.3.
 
     Default: ``ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256``
+
+.. option:: --tls13-ciphers=<SUITE>
+
+    Set allowed  cipher list  for frontend  connection.  The
+    format of the string is described in OpenSSL ciphers(1).
+    This  option  sets  cipher   suites  for  TLSv1.3.   Use
+    :option:`--ciphers` for TLSv1.2 or earlier.
+
+    Default: ``TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256``
 
 .. option:: --client-ciphers=<SUITE>
 
     Set  allowed cipher  list for  backend connection.   The
     format of the string is described in OpenSSL ciphers(1).
+    This option  sets cipher suites for  TLSv1.2 or earlier.
+    Use :option:`--tls13-client-ciphers` for TLSv1.3.
 
     Default: ``ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256``
+
+.. option:: --tls13-client-ciphers=<SUITE>
+
+    Set  allowed cipher  list for  backend connection.   The
+    format of the string is described in OpenSSL ciphers(1).
+    This  option  sets  cipher   suites  for  TLSv1.3.   Use
+    :option:`--tls13-client-ciphers` for TLSv1.2 or earlier.
+
+    Default: ``TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256``
 
 .. option:: --ecdh-curves=<LIST>
 
@@ -622,6 +707,13 @@ SSL/TLS
     client certificate.  The file must be in PEM format.  It
     can contain multiple certificates.
 
+.. option:: --verify-client-tolerate-expired
+
+    Accept  expired  client  certificate.   Operator  should
+    handle  the expired  client  certificate  by some  means
+    (e.g.,  mruby  script).   Otherwise, this  option  might
+    cause a security risk.
+
 .. option:: --client-private-key-file=<PATH>
 
     Path to  file that contains  client private key  used in
@@ -644,7 +736,7 @@ SSL/TLS
     ciphers are  included in :option:`--ciphers` option.   The default
     cipher  list  only   includes  ciphers  compatible  with
     TLSv1.2 or above.  The available versions are:
-    TLSv1.2, TLSv1.1, and TLSv1.0
+    TLSv1.3, TLSv1.2, TLSv1.1, and TLSv1.0
 
     Default: ``TLSv1.2``
 
@@ -656,9 +748,9 @@ SSL/TLS
     enabled.  If the protocol list advertised by client does
     not  overlap  this range,  you  will  receive the  error
     message "unknown protocol".  The available versions are:
-    TLSv1.2, TLSv1.1, and TLSv1.0
+    TLSv1.3, TLSv1.2, TLSv1.1, and TLSv1.0
 
-    Default: ``TLSv1.2``
+    Default: ``TLSv1.3``
 
 .. option:: --tls-ticket-key-file=<PATH>
 
@@ -886,16 +978,32 @@ SSL/TLS
     consider   to  use   :option:`--client-no-http2-cipher-black-list`
     option.  But be aware its implications.
 
+.. option:: --tls-no-postpone-early-data
 
-HTTP/2 and SPDY
-~~~~~~~~~~~~~~~
+    By default,  nghttpx postpones forwarding  HTTP requests
+    sent in early data, including those sent in partially in
+    it, until TLS handshake finishes.  If all backend server
+    recognizes "Early-Data" header  field, using this option
+    makes nghttpx  not postpone  forwarding request  and get
+    full potential of 0-RTT data.
+
+.. option:: --tls-max-early-data=<SIZE>
+
+    Sets  the  maximum  amount  of 0-RTT  data  that  server
+    accepts.
+
+    Default: ``16K``
+
+
+HTTP/2
+~~~~~~
 
 .. option:: -c, --frontend-http2-max-concurrent-streams=<N>
 
     Set the maximum number of  the concurrent streams in one
-    frontend HTTP/2 and SPDY session.
+    frontend HTTP/2 session.
 
-    Default: `` 100``
+    Default: ``100``
 
 .. option:: --backend-http2-max-concurrent-streams=<N>
 
@@ -908,16 +1016,15 @@ HTTP/2 and SPDY
 
 .. option:: --frontend-http2-window-size=<SIZE>
 
-    Sets the  per-stream initial  window size of  HTTP/2 and
-    SPDY frontend connection.
+    Sets  the  per-stream  initial  window  size  of  HTTP/2
+    frontend connection.
 
     Default: ``65535``
 
 .. option:: --frontend-http2-connection-window-size=<SIZE>
 
-    Sets the  per-connection window size of  HTTP/2 and SPDY
-    frontend  connection.  For  SPDY  connection, the  value
-    less than 64KiB is rounded up to 64KiB.
+    Sets the  per-connection window size of  HTTP/2 frontend
+    connection.
 
     Default: ``65535``
 
@@ -953,8 +1060,7 @@ HTTP/2 and SPDY
     It is  also supported if  both frontend and  backend are
     HTTP/2 in default mode.  In  this case, server push from
     backend session is relayed  to frontend, and server push
-    via Link header field  is also supported.  SPDY frontend
-    does not support server push.
+    via Link header field is also supported.
 
 .. option:: --frontend-http2-optimize-write-buffer-size
 
@@ -1022,7 +1128,7 @@ Mode
 .. describe:: (default mode)
 
     
-    Accept HTTP/2, SPDY and HTTP/1.1 over SSL/TLS.  "no-tls"
+    Accept  HTTP/2,  and  HTTP/1.1 over  SSL/TLS.   "no-tls"
     parameter is  used in  :option:`--frontend` option,  accept HTTP/2
     and HTTP/1.1 over cleartext  TCP.  The incoming HTTP/1.1
     connection  can  be  upgraded  to  HTTP/2  through  HTTP
@@ -1078,6 +1184,16 @@ Logging
       the response.   For HTTP/1,  ALPN is  always http/1.1,
       regardless of minor version.
     * $tls_cipher: cipher used for SSL/TLS connection.
+    * $tls_client_fingerprint_sha256: SHA-256 fingerprint of
+      client certificate.
+    * $tls_client_fingerprint_sha1:  SHA-1   fingerprint  of
+      client certificate.
+    * $tls_client_subject_name:   subject  name   in  client
+      certificate.
+    * $tls_client_issuer_name:   issuer   name   in   client
+      certificate.
+    * $tls_client_serial:    serial    number   in    client
+      certificate.
     * $tls_protocol: protocol for SSL/TLS connection.
     * $tls_session_id: session ID for SSL/TLS connection.
     * $tls_session_reused:  "r"   if  SSL/TLS   session  was
@@ -1194,6 +1310,11 @@ HTTP
     Don't append to  Via header field.  If  Via header field
     is received, it is left unaltered.
 
+.. option:: --no-strip-incoming-early-data
+
+    Don't strip Early-Data header  field from inbound client
+    requests.
+
 .. option:: --no-location-rewrite
 
     Don't  rewrite location  header field  in default  mode.
@@ -1302,7 +1423,7 @@ API
 
     Set the maximum size of request body for API request.
 
-    Default: ``16K``
+    Default: ``32M``
 
 
 DNS
@@ -1402,6 +1523,12 @@ Scripting
 
     Set mruby script file
 
+.. option:: --ignore-per-pattern-mruby-error
+
+    Ignore mruby compile error  for per-pattern mruby script
+    file.  If error  occurred, it is treated as  if no mruby
+    file were specified for the pattern.
+
 
 Misc
 ~~~~
@@ -1490,7 +1617,7 @@ Error log
   <datetime> <master-pid> <current-pid> <thread-id> <level> (<filename>:<line>) <msg>
 
   <datetime>
-    It is a conbination of date and time when the log is written.  It
+    It is a combination of date and time when the log is written.  It
     is in ISO 8601 format.
 
   <master-pid>
@@ -1641,7 +1768,7 @@ By default, session ID is shared by all worker threads.
 
 If :option:`--tls-session-cache-memcached` is given, nghttpx will
 insert serialized session data to memcached with
-``nghttpx:tls-session-cache:`` + lowercased hex string of session ID
+``nghttpx:tls-session-cache:`` + lowercase hex string of session ID
 as a memcached entry key, with expiry time 12 hours.  Session timeout
 is set to 12 hours.
 
@@ -1723,6 +1850,14 @@ MRUBY SCRIPTING
   The current mruby extension API is experimental and not frozen.  The
   API is subject to change in the future release.
 
+.. warning::
+
+  Almost all string value returned from method, or attribute is a
+  fresh new mruby string, which involves memory allocation, and
+  copies.  Therefore, it is strongly recommended to store a return
+  value in a local variable, and use it, instead of calling method or
+  accessing attribute repeatedly.
+
 nghttpx allows users to extend its capability using mruby scripts.
 nghttpx has 2 hook points to execute mruby script: request phase and
 response phase.  The request phase hook is invoked after all request
@@ -1732,9 +1867,28 @@ server.  These hooks allows users to modify header fields, or common
 HTTP variables, like authority or request path, and even return custom
 response without forwarding request to backend servers.
 
-To specify mruby script file, use :option:`--mruby-file` option.  The
-script will be evaluated once per thread on startup, and it must
-instantiate object and evaluate it as the return value (e.g.,
+There are 2 levels of mruby script invocations: global and
+per-pattern.  The global mruby script is set by :option:`--mruby-file`
+option and is called for all requests.  The per-pattern mruby script
+is set by "mruby" parameter in :option:`-b` option.  It is invoked for
+a request which matches the particular pattern.  The order of hook
+invocation is: global request phase hook, per-pattern request phase
+hook, per-pattern response phase hook, and finally global response
+phase hook.  If a hook returns a response, any later hooks are not
+invoked.  The global request hook is invoked before the pattern
+matching is made and changing request path may affect the pattern
+matching.
+
+Please note that request and response hooks of per-pattern mruby
+script for a single request might not come from the same script.  This
+might happen after a request hook is executed, backend failed for some
+reason, and at the same time, backend configuration is replaced by API
+request, and then the request uses new configuration on retry.  The
+response hook from new configuration, if it is specified, will be
+invoked.
+
+The all mruby script will be evaluated once per thread on startup, and
+it must instantiate object and evaluate it as the return value (e.g.,
 ``App.new``).  This object is called app object.  If app object
 defines ``on_req`` method, it is called with :rb:class:`Nghttpx::Env`
 object on request hook.  Similarly, if app object defines ``on_resp``
@@ -1769,7 +1923,7 @@ respectively.
     .. rb:attr_reader:: ctx
 
         Return Ruby hash object.  It persists until request finishes.
-        So values set in request phase hoo can be retrieved in
+        So values set in request phase hook can be retrieved in
         response phase hook.
 
     .. rb:attr_reader:: phase
@@ -1800,6 +1954,64 @@ respectively.
     .. rb:attr_reader:: tls_sni
 
         Return the TLS SNI value which client sent in this connection.
+
+    .. rb:attr_reader:: tls_client_fingerprint_sha256
+
+        Return the SHA-256 fingerprint of a client certificate.
+
+    .. rb:attr_reader:: tls_client_fingerprint_sha1
+
+        Return the SHA-1 fingerprint of a client certificate.
+
+    .. rb:attr_reader:: tls_client_issuer_name
+
+        Return the issuer name of a client certificate.
+
+    .. rb:attr_reader:: tls_client_subject_name
+
+        Return the subject name of a client certificate.
+
+    .. rb:attr_reader:: tls_client_serial
+
+        Return the serial number of a client certificate.
+
+    .. rb:attr_reader:: tls_client_not_before
+
+        Return the start date of a client certificate in seconds since
+        the epoch.
+
+    .. rb:attr_reader:: tls_client_not_after
+
+        Return the end date of a client certificate in seconds since
+        the epoch.
+
+    .. rb:attr_reader:: tls_cipher
+
+        Return a TLS cipher negotiated in this connection.
+
+    .. rb:attr_reader:: tls_protocol
+
+        Return a TLS protocol version negotiated in this connection.
+
+    .. rb:attr_reader:: tls_session_id
+
+        Return a session ID for this connection in hex string.
+
+    .. rb:attr_reader:: tls_session_reused
+
+        Return true if, and only if a SSL/TLS session is reused.
+
+    .. rb:attr_reader:: alpn
+
+        Return ALPN identifier negotiated in this connection.
+
+    .. rb:attr_reader:: tls_handshake_finished
+
+        Return true if SSL/TLS handshake has finished.  If it returns
+        false in the request phase hook, the request is received in
+        TLSv1.3 early data (0-RTT) and might be vulnerable to the
+        replay attack.  nghttpx will send Early-Data header field to
+        backend servers to indicate this.
 
 .. rb:class:: Request
 
@@ -1931,10 +2143,10 @@ respectively.
         not be invoked.  When this method is called in response phase
         hook, response from backend server is canceled and discarded.
         The status code and response header fields should be set
-        before using this method.  To set status code, use :rb:meth To
-        set response header fields, use
+        before using this method.  To set status code, use
         :rb:attr:`Nghttpx::Response#status`.  If status code is not
-        set, 200 is used.  :rb:meth:`Nghttpx::Response#add_header` and
+        set, 200 is used.  To set response header fields,
+        :rb:meth:`Nghttpx::Response#add_header` and
         :rb:meth:`Nghttpx::Response#set_header`.  When this method is
         invoked in response phase hook, the response headers are
         filled with the ones received from backend server.  To send
@@ -2045,7 +2257,7 @@ The replacement is done instantly without breaking existing
 connections or requests.  It also avoids any process creation as is
 the case with hot swapping with signals.
 
-The one limitation is that only numeric IP address is allowd in
+The one limitation is that only numeric IP address is allowed in
 :option:`backend <--backend>` in request body unless "dns" parameter
 is used while non numeric hostname is allowed in command-line or
 configuration file is read using :option:`--conf`.

@@ -1,8 +1,7 @@
 if(TESTS_ALL EQUAL 1)
     message("not linking coredump test from CI.")
 else()
-    set(COMPONENT_SRCDIRS ".")
-    set(COMPONENT_ADD_INCLUDEDIRS ".")
-    set(COMPONENT_REQUIRES unity nvs_flash)
-    register_component()
+    idf_component_register(SRC_DIRS "."
+                        PRIV_INCLUDE_DIRS "."
+                        PRIV_REQUIRES cmock nvs_flash)
 endif()

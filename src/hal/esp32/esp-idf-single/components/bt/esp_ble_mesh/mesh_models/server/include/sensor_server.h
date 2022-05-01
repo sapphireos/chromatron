@@ -1,21 +1,17 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef _SENSOR_SERVER_H_
 #define _SENSOR_SERVER_H_
 
 #include "server_common.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Sensor Property ID related */
 #define INVALID_SENSOR_PROPERTY_ID          0x0000
@@ -75,26 +71,26 @@ enum bt_mesh_sensor_sample_func {
 };
 
 struct sensor_descriptor {
-    u32_t positive_tolerance : 12,
-          negative_tolerance : 12,
-          sample_function : 8;
-    u8_t  measure_period;
-    u8_t  update_interval;
+    uint32_t positive_tolerance : 12,
+             negative_tolerance : 12,
+             sample_function : 8;
+    uint8_t  measure_period;
+    uint8_t  update_interval;
 };
 
 struct sensor_setting {
-    u16_t property_id;
-    u8_t  access;
+    uint16_t property_id;
+    uint8_t  access;
     /* Or use union to include all possible types */
     struct net_buf_simple *raw;
 };
 
 struct sensor_cadence {
-    u8_t period_divisor : 7,
-         trigger_type : 1;
+    uint8_t period_divisor : 7,
+            trigger_type : 1;
     struct net_buf_simple *trigger_delta_down;
     struct net_buf_simple *trigger_delta_up;
-    u8_t min_interval;
+    uint8_t min_interval;
     struct net_buf_simple *fast_cadence_low;
     struct net_buf_simple *fast_cadence_high;
 };
@@ -107,8 +103,8 @@ struct sensor_data {
      *           representing range of 1 – 127). The value 0x7F represents a
      *           length of zero.
      */
-    u8_t format : 1,
-         length : 7;
+    uint8_t format : 1,
+            length : 7;
     struct net_buf_simple *raw_value;
 };
 
@@ -119,7 +115,7 @@ struct sensor_series_column {
 };
 
 struct bt_mesh_sensor_state {
-    u16_t sensor_property_id;
+    uint16_t sensor_property_id;
 
     /* Constant throughout the lifetime of an element */
     struct sensor_descriptor descriptor;
@@ -128,7 +124,7 @@ struct bt_mesh_sensor_state {
      * The Sensor Setting Property ID values shall be unique for each
      * Sensor Property ID that identifies a sensor within an element.
      */
-    const u8_t setting_count;
+    const uint8_t setting_count;
     struct sensor_setting *settings;
 
     /* The Sensor Cadence state may be not supported by sensors based
@@ -172,81 +168,79 @@ struct bt_mesh_sensor_state {
 struct bt_mesh_sensor_srv {
     struct bt_mesh_model *model;
     struct bt_mesh_server_rsp_ctrl rsp_ctrl;
-    const u8_t state_count;
+    const uint8_t state_count;
     struct bt_mesh_sensor_state *states;
 };
 
 struct bt_mesh_sensor_setup_srv {
     struct bt_mesh_model *model;
     struct bt_mesh_server_rsp_ctrl rsp_ctrl;
-    const u8_t state_count;
+    const uint8_t state_count;
     struct bt_mesh_sensor_state *states;
 };
 
 typedef union {
     struct {
-        u16_t id;
-        u8_t  period_divisor : 7,
-              trigger_type : 1;
+        uint16_t id;
+        uint8_t  period_divisor : 7,
+                 trigger_type : 1;
         struct net_buf_simple *trigger_delta_down;
         struct net_buf_simple *trigger_delta_up;
-        u8_t min_interval;
+        uint8_t min_interval;
         struct net_buf_simple *fast_cadence_low;
         struct net_buf_simple *fast_cadence_high;
     } sensor_cadence_set;
     struct {
-        u16_t id;
-        u16_t setting_id;
+        uint16_t id;
+        uint16_t setting_id;
         struct net_buf_simple *value;
     } sensor_setting_set;
 } bt_mesh_sensor_server_state_change_t;
 
 typedef union {
     struct {
-        bool  op_en;
-        u16_t id;
+        bool     op_en;
+        uint16_t id;
     } sensor_descriptor_get;
     struct {
-        u16_t id;
+        uint16_t id;
     } sensor_cadence_get;
     struct {
-        u16_t id;
+        uint16_t id;
     } sensor_settings_get;
     struct {
-        u16_t id;
-        u16_t setting_id;
+        uint16_t id;
+        uint16_t setting_id;
     } sensor_setting_get;
     struct {
-        bool  op_en;
-        u16_t id;
+        bool     op_en;
+        uint16_t id;
     } sensor_get;
     struct {
-        u16_t id;
+        uint16_t id;
         struct net_buf_simple *raw_x;
     } sensor_column_get;
     struct {
-        bool  op_en;
-        u16_t id;
+        bool     op_en;
+        uint16_t id;
         struct net_buf_simple *raw;
     } sensor_series_get;
 } bt_mesh_sensor_server_recv_get_msg_t;
 
 typedef union {
     struct {
-        u16_t id;
+        uint16_t id;
         struct net_buf_simple *cadence;
     } sensor_cadence_set;
     struct {
-        u16_t id;
-        u16_t setting_id;
+        uint16_t id;
+        uint16_t setting_id;
         struct net_buf_simple *raw;
     } sensor_setting_set;
 } bt_mesh_sensor_server_recv_set_msg_t;
 
-int bt_mesh_sensor_srv_init(struct bt_mesh_model *model, bool primary);
-int bt_mesh_sensor_setup_srv_init(struct bt_mesh_model *model, bool primary);
-
-int bt_mesh_sensor_srv_deinit(struct bt_mesh_model *model, bool primary);
-int bt_mesh_sensor_setup_srv_deinit(struct bt_mesh_model *model, bool primary);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _SENSOR_SERVER_H_ */

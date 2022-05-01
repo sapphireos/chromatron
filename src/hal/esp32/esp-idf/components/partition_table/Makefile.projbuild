@@ -19,7 +19,7 @@ PARTITION_FLASHSIZE_OPT := --flash-size $(CONFIG_ESPTOOLPY_FLASHSIZE)
 endif
 
 PARTITION_SECURE_OPT :=
-ifdef CONFIG_SECURE_BOOT_ENABLED
+ifdef CONFIG_SECURE_BOOT
 ifndef CONFIG_SECURE_BOOT_ALLOW_SHORT_APP_PARTITION
 PARTITION_SECURE_OPT += --secure
 endif
@@ -46,11 +46,16 @@ PARTITION_TABLE_CSV_NAME := $(notdir $(PARTITION_TABLE_CSV_PATH))
 
 PARTITION_TABLE_BIN := $(BUILD_DIR_BASE)/$(PARTITION_TABLE_CSV_NAME:.csv=.bin)
 
+ifdef CONFIG_SECURE_BOOT_V1_ENABLED
 ifdef CONFIG_SECURE_BOOT_BUILD_SIGNED_BINARIES
 PARTITION_TABLE_BIN_UNSIGNED := $(PARTITION_TABLE_BIN:.bin=-unsigned.bin)
 # add an extra signing step for secure partition table
 $(PARTITION_TABLE_BIN): $(PARTITION_TABLE_BIN_UNSIGNED) $(SDKCONFIG_MAKEFILE) $(SECURE_BOOT_SIGNING_KEY)
-	$(ESPSECUREPY) sign_data --keyfile $(SECURE_BOOT_SIGNING_KEY) -o $@ $<
+	$(ESPSECUREPY) sign_data --version 1 --keyfile $(SECURE_BOOT_SIGNING_KEY) -o $@ $<
+else
+# secure bootloader disabled, both files are the same
+PARTITION_TABLE_BIN_UNSIGNED := $(PARTITION_TABLE_BIN)
+endif
 else
 # secure bootloader disabled, both files are the same
 PARTITION_TABLE_BIN_UNSIGNED := $(PARTITION_TABLE_BIN)
@@ -63,16 +68,21 @@ $(PARTITION_TABLE_BIN_UNSIGNED): $(PARTITION_TABLE_CSV_PATH) $(SDKCONFIG_MAKEFIL
 all_binaries: $(PARTITION_TABLE_BIN) partition_table_get_info check_table_contents
 
 partition_table_get_info: $(PARTITION_TABLE_BIN)
-	$(eval PHY_DATA_OFFSET:=$(shell $(GET_PART_INFO) --partition-type data --partition-subtype phy \
-							--partition-table-file $(PARTITION_TABLE_BIN) get_partition_info --info offset))
-	$(eval APP_OFFSET:=$(shell $(GET_PART_INFO) --partition-boot-default \
-							--partition-table-file $(PARTITION_TABLE_BIN) get_partition_info --info offset))
-	$(eval OTA_DATA_OFFSET:=$(shell $(GET_PART_INFO) --partition-type data --partition-subtype ota \
-							--partition-table-file $(PARTITION_TABLE_BIN) get_partition_info --info offset))
-	$(eval OTA_DATA_SIZE:=$(shell $(GET_PART_INFO) --partition-type data --partition-subtype ota \
-							--partition-table-file $(PARTITION_TABLE_BIN) get_partition_info --info size))
-	$(eval FACTORY_OFFSET:=$(shell $(GET_PART_INFO) --partition-type app --partition-subtype factory \
-							--partition-table-file $(PARTITION_TABLE_BIN) get_partition_info --info offset))
+	$(eval PHY_DATA_OFFSET:=$(shell $(GET_PART_INFO)  --partition-table-file $(PARTITION_TABLE_BIN) \
+							--partition-table-offset $(PARTITION_TABLE_OFFSET) \
+							get_partition_info --partition-type data --partition-subtype phy --info offset))
+	$(eval APP_OFFSET:=$(shell $(GET_PART_INFO) --partition-table-file $(PARTITION_TABLE_BIN) \
+							--partition-table-offset $(PARTITION_TABLE_OFFSET) \
+							get_partition_info --partition-boot-default --info offset))
+	$(eval OTA_DATA_OFFSET:=$(shell $(GET_PART_INFO) --partition-table-file $(PARTITION_TABLE_BIN) \
+							--partition-table-offset $(PARTITION_TABLE_OFFSET) \
+							get_partition_info --partition-type data --partition-subtype ota --info offset))
+	$(eval OTA_DATA_SIZE:=$(shell $(GET_PART_INFO) --partition-table-file $(PARTITION_TABLE_BIN) \
+							--partition-table-offset $(PARTITION_TABLE_OFFSET) \
+							get_partition_info --partition-type data --partition-subtype ota --info size))
+	$(eval FACTORY_OFFSET:=$(shell $(GET_PART_INFO) --partition-table-file $(PARTITION_TABLE_BIN) \
+							--partition-table-offset $(PARTITION_TABLE_OFFSET) \
+							get_partition_info --partition-type app --partition-subtype factory  --info offset))
 
 export APP_OFFSET
 export PHY_DATA_OFFSET
@@ -82,10 +92,11 @@ export OTA_DATA_SIZE
 # If anti-rollback option is set then factory partition should not be in Partition Table.
 # In this case, should be used the partition table with two ota app without the factory.
 check_table_contents: partition_table_get_info
-	@echo $(if $(CONFIG_APP_ANTI_ROLLBACK), $(if $(FACTORY_OFFSET), $(error "ERROR: Anti-rollback option is enabled. Partition table should consist of two ota app without factory partition."), ""), "")
+	@echo $(if $(CONFIG_BOOTLOADER_APP_ANTI_ROLLBACK), $(if $(FACTORY_OFFSET), $(error "ERROR: Anti-rollback option is enabled. Partition table should consist of two ota app without factory partition."), ""), "")
 
 PARTITION_TABLE_FLASH_CMD = $(ESPTOOLPY_SERIAL) write_flash $(PARTITION_TABLE_OFFSET) $(PARTITION_TABLE_BIN)
 ESPTOOL_ALL_FLASH_ARGS += $(PARTITION_TABLE_OFFSET) $(PARTITION_TABLE_BIN)
+UF2_ADD_BINARIES += $(PARTITION_TABLE_OFFSET) $(PARTITION_TABLE_BIN)
 
 partition_table: $(PARTITION_TABLE_BIN) partition_table_get_info | check_python_dependencies
 	@echo "Partition table binary generated. Contents:"

@@ -1,9 +1,9 @@
-// Copyright 2018 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2015-2019 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _GPIO_PINS_H
-#define _GPIO_PINS_H
+#pragma once
+
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-#define GPIO_PIN_COUNT                  40
+
+#define GPIO_MATRIX_CONST_ONE_INPUT   (0x38)
+#define GPIO_MATRIX_CONST_ZERO_INPUT  (0x30)
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif // _GPIO_PINS_H

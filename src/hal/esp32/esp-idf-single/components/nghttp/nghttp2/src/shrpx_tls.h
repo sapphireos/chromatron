@@ -36,7 +36,7 @@
 #include <ev.h>
 
 #ifdef HAVE_NEVERBLEED
-#include <neverbleed.h>
+#  include <neverbleed.h>
 #endif // HAVE_NEVERBLEED
 
 #include "network.h"
@@ -86,7 +86,7 @@ SSL_CTX *create_ssl_context(const char *private_key_file, const char *cert_file,
                             ,
                             neverbleed_t *nb
 #endif // HAVE_NEVERBLEED
-                            );
+);
 
 // Create client side SSL_CTX.  This does not configure ALPN settings.
 // |next_proto_select_cb| is for NPN.
@@ -215,14 +215,14 @@ setup_server_ssl_context(std::vector<SSL_CTX *> &all_ssl_ctx,
                          ,
                          neverbleed_t *nb
 #endif // HAVE_NEVERBLEED
-                         );
+);
 
 // Setups client side SSL_CTX.
 SSL_CTX *setup_downstream_client_ssl_context(
 #ifdef HAVE_NEVERBLEED
     neverbleed_t *nb
 #endif // HAVE_NEVERBLEED
-    );
+);
 
 // Sets ALPN settings in |SSL| suitable for HTTP/2 use.
 void setup_downstream_http2_alpn(SSL *ssl);
@@ -268,6 +268,33 @@ int proto_version_from_string(const StringRef &v);
 // function returns 0 if it succeeds, or -1.
 int verify_ocsp_response(SSL_CTX *ssl_ctx, const uint8_t *ocsp_resp,
                          size_t ocsp_resplen);
+
+// Stores fingerprint of |x| in |dst| of length |dstlen|.  |md|
+// specifies hash function to use, and |dstlen| must be large enough
+// to include hash value (e.g., 32 bytes for SHA-256).  This function
+// returns the number of bytes written in |dst|, or -1.
+ssize_t get_x509_fingerprint(uint8_t *dst, size_t dstlen, const X509 *x,
+                             const EVP_MD *md);
+
+// Returns subject name of |x|.  If this function fails to get subject
+// name, it returns an empty string.
+StringRef get_x509_subject_name(BlockAllocator &balloc, X509 *x);
+
+// Returns issuer name of |x|.  If this function fails to get issuer
+// name, it returns an empty string.
+StringRef get_x509_issuer_name(BlockAllocator &balloc, X509 *x);
+
+// Returns serial number of |x|.  If this function fails to get serial
+// number, it returns an empty string.  number
+StringRef get_x509_serial(BlockAllocator &balloc, X509 *x);
+
+// Fills NotBefore of |x| in |t|.  This function returns 0 if it
+// succeeds, or -1.
+int get_x509_not_before(time_t &t, X509 *x);
+
+// Fills NotAfter of |x| in |t|.  This function returns 0 if it
+// succeeds, or -1.
+int get_x509_not_after(time_t &t, X509 *x);
 
 } // namespace tls
 

@@ -24,6 +24,15 @@
 #define TIMG_WDT_STG_SEL_RESET_CPU 2
 #define TIMG_WDT_STG_SEL_RESET_SYSTEM 3
 
+/* Possible values for TIMG_WDT_CPU_RESET_LENGTH and TIMG_WDT_SYS_RESET_LENGTH */
+#define TIMG_WDT_RESET_LENGTH_100_NS    0
+#define TIMG_WDT_RESET_LENGTH_200_NS    1
+#define TIMG_WDT_RESET_LENGTH_300_NS    2
+#define TIMG_WDT_RESET_LENGTH_400_NS    3
+#define TIMG_WDT_RESET_LENGTH_500_NS    4
+#define TIMG_WDT_RESET_LENGTH_800_NS    5
+#define TIMG_WDT_RESET_LENGTH_1600_NS   6
+#define TIMG_WDT_RESET_LENGTH_3200_NS   7
 
 #define REG_TIMG_BASE(i)       (DR_REG_TIMERGROUP0_BASE + i*0x1000)
 #define TIMG_T0CONFIG_REG(i)          (REG_TIMG_BASE(i) + 0x0000)
@@ -290,7 +299,7 @@
 #define TIMG_WDT_LEVEL_INT_EN_V  0x1
 #define TIMG_WDT_LEVEL_INT_EN_S  21
 /* TIMG_WDT_CPU_RESET_LENGTH : R/W ;bitpos:[20:18] ;default: 3'h1 ; */
-/*description: length of CPU reset selection. 0: 100ns  1: 200ns  2: 300ns 
+/*description: length of CPU reset selection. 0: 100ns  1: 200ns  2: 300ns
  3: 400ns  4: 500ns  5: 800ns  6: 1.6us  7: 3.2us*/
 #define TIMG_WDT_CPU_RESET_LENGTH  0x00000007
 #define TIMG_WDT_CPU_RESET_LENGTH_M  ((TIMG_WDT_CPU_RESET_LENGTH_V)<<(TIMG_WDT_CPU_RESET_LENGTH_S))
@@ -664,5 +673,3 @@
 
 
 #endif /*__TIMG_REG_H__ */
-
-

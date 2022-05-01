@@ -15,21 +15,18 @@
 ########################
 
 //Path to a program.
-CCACHE_FOUND:FILEPATH=CCACHE_FOUND-NOTFOUND
+CMAKE_ADDR2LINE:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-addr2line
 
 //Path to a program.
-CMAKE_ADDR2LINE:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-addr2line
-
-//Path to a program.
-CMAKE_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar
+CMAKE_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar
 
 //A wrapper around 'ar' adding the appropriate '--plugin' option
 // for the GCC compiler
-CMAKE_ASM_COMPILER_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ar
+CMAKE_ASM_COMPILER_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ar
 
 //A wrapper around 'ranlib' adding the appropriate '--plugin' option
 // for the GCC compiler
-CMAKE_ASM_COMPILER_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ranlib
+CMAKE_ASM_COMPILER_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ranlib
 
 //Flags used by the ASM compiler during all build types.
 CMAKE_ASM_FLAGS:STRING=
@@ -55,14 +52,14 @@ CMAKE_COLOR_MAKEFILE:BOOL=ON
 
 //A wrapper around 'ar' adding the appropriate '--plugin' option
 // for the GCC compiler
-CMAKE_CXX_COMPILER_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ar
+CMAKE_CXX_COMPILER_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ar
 
 //A wrapper around 'ranlib' adding the appropriate '--plugin' option
 // for the GCC compiler
-CMAKE_CXX_COMPILER_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ranlib
+CMAKE_CXX_COMPILER_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ranlib
 
 //C++ Compiler Base Flags
-CMAKE_CXX_FLAGS:STRING=-mlongcalls
+CMAKE_CXX_FLAGS:STRING=-mlongcalls -Wno-frame-address
 
 //Flags used by the CXX compiler during DEBUG builds.
 CMAKE_CXX_FLAGS_DEBUG:STRING=-g
@@ -78,14 +75,14 @@ CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
 //A wrapper around 'ar' adding the appropriate '--plugin' option
 // for the GCC compiler
-CMAKE_C_COMPILER_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ar
+CMAKE_C_COMPILER_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ar
 
 //A wrapper around 'ranlib' adding the appropriate '--plugin' option
 // for the GCC compiler
-CMAKE_C_COMPILER_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ranlib
+CMAKE_C_COMPILER_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ranlib
 
 //C Compiler Base Flags
-CMAKE_C_FLAGS:STRING=-mlongcalls
+CMAKE_C_FLAGS:STRING=-mlongcalls -Wno-frame-address
 
 //Flags used by the C compiler during DEBUG builds.
 CMAKE_C_FLAGS_DEBUG:STRING=-g
@@ -102,8 +99,8 @@ CMAKE_C_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 //Path to a program.
 CMAKE_DLLTOOL:FILEPATH=CMAKE_DLLTOOL-NOTFOUND
 
-//Linker Base Flags
-CMAKE_EXE_LINKER_FLAGS:STRING=-nostdlib
+//Flags used by the linker during all build types.
+CMAKE_EXE_LINKER_FLAGS:STRING=
 
 //Flags used by the linker during DEBUG builds.
 CMAKE_EXE_LINKER_FLAGS_DEBUG:STRING=
@@ -124,7 +121,7 @@ CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF
 CMAKE_INSTALL_PREFIX:PATH=/usr/local
 
 //Path to a program.
-CMAKE_LINKER:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ld
+CMAKE_LINKER:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ld
 
 //Path to a program.
 CMAKE_MAKE_PROGRAM:FILEPATH=/usr/bin/make
@@ -150,13 +147,13 @@ CMAKE_MODULE_LINKER_FLAGS_RELEASE:STRING=
 CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 
 //Path to a program.
-CMAKE_NM:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-nm
+CMAKE_NM:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-nm
 
 //Path to a program.
-CMAKE_OBJCOPY:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objcopy
+CMAKE_OBJCOPY:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objcopy
 
 //Path to a program.
-CMAKE_OBJDUMP:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objdump
+CMAKE_OBJDUMP:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objdump
 
 //Value Computed by CMake
 CMAKE_PROJECT_DESCRIPTION:STATIC=
@@ -168,10 +165,10 @@ CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 CMAKE_PROJECT_NAME:STATIC=bootloader
 
 //Path to a program.
-CMAKE_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib
+CMAKE_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib
 
 //Path to a program.
-CMAKE_READELF:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-readelf
+CMAKE_READELF:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-readelf
 
 //Flags used by the linker during the creation of shared libraries
 // during all build types.
@@ -221,7 +218,7 @@ CMAKE_STATIC_LINKER_FLAGS_RELEASE:STRING=
 CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 
 //Path to a program.
-CMAKE_STRIP:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-strip
+CMAKE_STRIP:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-strip
 
 //The CMake toolchain file
 CMAKE_TOOLCHAIN_FILE:FILEPATH=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/cmake/toolchain-esp32.cmake
@@ -232,14 +229,8 @@ CMAKE_TOOLCHAIN_FILE:FILEPATH=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/es
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
-//INTERNAL
-ESP_PLATFORM:BOOL=1
-
 //No help, variable specified on the command line.
 EXTRA_COMPONENT_DIRS:UNINITIALIZED=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader
-
-//GCC is 5.2.0 version
-GCC_NOT_5_2_0:STRING=0
 
 //Git command line client
 GIT_EXECUTABLE:FILEPATH=/usr/bin/git
@@ -250,11 +241,62 @@ IDF_PATH:UNINITIALIZED=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf
 //IDF Build Target
 IDF_TARGET:STRING=esp32
 
+//IDF Build Toolchain Type
+IDF_TOOLCHAIN:STRING=gcc
+
+//No help, variable specified on the command line.
+LEGACY_INCLUDE_COMMON_HEADERS:UNINITIALIZED=
+
+//No help, variable specified on the command line.
+PROJECT_SOURCE_DIR:UNINITIALIZED=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib
+
+//No help, variable specified on the command line.
+PYTHON:UNINITIALIZED=python
+
+//No help, variable specified on the command line.
+PYTHON_DEPS_CHECKED:UNINITIALIZED=1
+
 //No help, variable specified on the command line.
 SDKCONFIG:UNINITIALIZED=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/sdkconfig
 
-//No help, variable specified on the command line.
-SECURE_BOOT_SIGNING_KEY:UNINITIALIZED=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib
+//Dependencies for the target
+__idf_bootloader_support_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
+
+//Dependencies for the target
+__idf_efuse_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
+
+//Dependencies for the target
+__idf_esp_common_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_efuse;general;__idf_bootloader_support;general;__idf_spi_flash;general;__idf_soc;
+
+//Dependencies for the target
+__idf_esp_hw_support_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_hal;general;__idf_esp32;
+
+//Dependencies for the target
+__idf_esp_rom_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;
+
+//Dependencies for the target
+__idf_esp_system_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
+
+//Dependencies for the target
+__idf_hal_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_esp32;
+
+//Dependencies for the target
+__idf_log_LIB_DEPENDS:STATIC=general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;
+
+//Dependencies for the target
+__idf_main_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;
+
+//Dependencies for the target
+__idf_micro-ecc_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
+
+//Dependencies for the target
+__idf_soc_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
+
+//Dependencies for the target
+__idf_spi_flash_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;
+
+//Dependencies for the target
+__idf_xtensa_LIB_DEPENDS:STATIC=general;__idf_log;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_hw_support;general;__idf_hal;general;__idf_esp32;general;/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa/esp32/libxt_hal.a;
 
 //Value Computed by CMake
 bootloader_BINARY_DIR:STATIC=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader
@@ -382,7 +424,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=13
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=23
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

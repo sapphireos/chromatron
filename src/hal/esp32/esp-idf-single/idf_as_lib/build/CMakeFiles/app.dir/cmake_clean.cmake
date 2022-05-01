@@ -4,8 +4,9 @@ file(REMOVE_RECURSE
   "bootloader/bootloader.map"
   "config/sdkconfig.cmake"
   "config/sdkconfig.h"
-  "CMakeFiles/app"
+  "flash_project_args"
   "idf_as_lib.bin"
+  "CMakeFiles/app"
 )
 
 # Per-language clean rules from dependency scanning.

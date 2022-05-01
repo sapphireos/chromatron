@@ -1,6 +1,6 @@
 /* coap-server.c -- Example CoAP server using Contiki and libcoap
  *
- * Copyright (C) 2011 Olaf Bergmann <bergmann@tzi.org>
+ * Copyright (C) 2011,2015,2018-2019 Olaf Bergmann <bergmann@tzi.org> and others
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,8 +35,7 @@
 
 #include <string.h>
 
-#include "debug.h"
-#include "coap.h"
+#include "coap3/coap.h"
 
 static coap_context_t *coap_context;
 
@@ -55,7 +54,7 @@ AUTOSTART_PROCESSES(&coap_server_process);
 void
 init_coap() {
   coap_address_t listen_addr;
-  
+
   coap_address_init(&listen_addr);
   listen_addr.port = UIP_HTONS(COAP_DEFAULT_PORT);
 
@@ -73,15 +72,15 @@ init_coap() {
 
 #ifdef WITH_CONTIKI
   printf("tentative address: [%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]:%d\r\n",
-	 listen_addr.addr.u8[0], listen_addr.addr.u8[1], 
-	 listen_addr.addr.u8[2], listen_addr.addr.u8[3], 
-	 listen_addr.addr.u8[4], listen_addr.addr.u8[5], 
-	 listen_addr.addr.u8[6], listen_addr.addr.u8[7], 
-	 listen_addr.addr.u8[8], listen_addr.addr.u8[9], 
-	 listen_addr.addr.u8[10], listen_addr.addr.u8[11], 
-	 listen_addr.addr.u8[12], listen_addr.addr.u8[13], 
-	 listen_addr.addr.u8[14], listen_addr.addr.u8[15] ,
-	 uip_ntohs(listen_addr.port));
+         listen_addr.addr.u8[0], listen_addr.addr.u8[1],
+         listen_addr.addr.u8[2], listen_addr.addr.u8[3],
+         listen_addr.addr.u8[4], listen_addr.addr.u8[5],
+         listen_addr.addr.u8[6], listen_addr.addr.u8[7],
+         listen_addr.addr.u8[8], listen_addr.addr.u8[9],
+         listen_addr.addr.u8[10], listen_addr.addr.u8[11],
+         listen_addr.addr.u8[12], listen_addr.addr.u8[13],
+         listen_addr.addr.u8[14], listen_addr.addr.u8[15] ,
+         uip_ntohs(listen_addr.port));
 #endif
 
   coap_context = coap_new_context(&listen_addr);
@@ -93,17 +92,17 @@ init_coap() {
 }
 
 void
-message_handler(struct coap_context_t  *ctx, 
-		const coap_address_t *remote, 
-		coap_pdu_t *sent,
-		coap_pdu_t *received,
-		const coap_tid_t id) {
+message_handler(coap_context_t  *ctx,
+                const coap_address_t *remote,
+                coap_pdu_t *sent,
+                coap_pdu_t *received,
+                const coap_tid_t id) {
   /* send ACK if received message is confirmable (i.e. a separate response) */
   coap_send_ack(ctx, remote, received);
 
-  debug("** process incoming %d.%02d response:\n",
-	(received->hdr->code >> 5), received->hdr->code & 0x1F);
-  coap_show_pdu(received);
+  coap_log(LOG_DEBUG, "** process incoming %d.%02d response:\n",
+        (received->hdr->code >> 5), received->hdr->code & 0x1F);
+  coap_show_pdu(LOG_WARNING, received);
 
   coap_ticks(&last_seen);
 }
@@ -131,16 +130,18 @@ PROCESS_THREAD(coap_server_process, ev, data)
   uip_ip6addr(&dst.addr, 0xaaaa, 0, 0, 0, 0x206, 0x98ff, 0xfe00, 0x232);
   /* uip_ip6addr(&dst.addr, 0xfe80, 0, 0, 0, 0x206, 0x98ff, 0xfe00, 0x232); */
 
-  request = coap_pdu_init(COAP_MESSAGE_CON, COAP_REQUEST_GET, 
-			  coap_new_message_id(coap_context), 
-			  COAP_MAX_PDU_SIZE);
-  
+  request = coap_pdu_init(COAP_MESSAGE_CON, COAP_REQUEST_GET,
+                          coap_new_message_id(coap_context),
+                          COAP_DEFAULT_MTU);
+
   coap_split_uri((unsigned char *)resource, strlen(resource), &uri);
 
   if (uri.port != COAP_DEFAULT_PORT) {
     unsigned char portbuf[2];
     coap_add_option(request, COAP_OPTION_URI_PORT,
-		    coap_encode_var_bytes(portbuf, uri.port), portbuf);
+                    coap_encode_var_safe(portbuf, sizeof(portbuf),
+                                         uri.port),
+                    portbuf);
   }
 
   if (uri.path.length) {
@@ -155,17 +156,17 @@ PROCESS_THREAD(coap_server_process, ev, data)
     res = coap_split_path(uri.path.s, uri.path.length, buf, &buflen);
 
     while (res--) {
-      coap_add_option(request, COAP_OPTION_URI_PATH, 
-		      COAP_OPT_LENGTH(buf), COAP_OPT_VALUE(buf));
+      coap_add_option(request, COAP_OPTION_URI_PATH,
+                      coap_opt_length(buf), coap_opt_value(buf));
 
-      buf += COAP_OPT_SIZE(buf);      
+      buf += coap_opt_size(buf);
     }
   }
 
-  coap_add_option(request, COAP_OPTION_SUBSCRIPTION, 0, NULL);
+  coap_add_option(request, COAP_OPTION_OBSERVE, 0, NULL);
   {
     unsigned char buf[2];
-    prng(buf, 2);
+    coap_prng(buf, 2);
     coap_add_option(request, COAP_OPTION_TOKEN, 2, buf);
   }
 
@@ -175,7 +176,7 @@ PROCESS_THREAD(coap_server_process, ev, data)
   while(1) {
     PROCESS_YIELD();
     if(ev == tcpip_event) {
-      coap_read(coap_context);	/* read received data */
+      coap_io_do_io(coap_context);        /* read received data */
       coap_dispatch(coap_context); /* and dispatch PDUs from receivequeue */
     }
   }

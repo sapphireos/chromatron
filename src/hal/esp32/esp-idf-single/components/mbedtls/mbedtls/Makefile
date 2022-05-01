@@ -106,11 +106,11 @@ covtest:
 lcov:
 	rm -rf Coverage
 	lcov --capture --initial --directory library -o files.info
-	lcov --capture --directory library -o tests.info
-	lcov --add-tracefile files.info --add-tracefile tests.info -o all.info
-	lcov --remove all.info -o final.info '*.h'
+	lcov --rc lcov_branch_coverage=1 --capture --directory library -o tests.info
+	lcov --rc lcov_branch_coverage=1 --add-tracefile files.info --add-tracefile tests.info -o all.info
+	lcov --rc lcov_branch_coverage=1 --remove all.info -o final.info '*.h'
 	gendesc tests/Descriptions.txt -o descriptions
-	genhtml --title "mbed TLS" --description-file descriptions --keep-descriptions --legend --no-branch-coverage -o Coverage final.info
+	genhtml --title "mbed TLS" --description-file descriptions --keep-descriptions --legend --branch-coverage -o Coverage final.info
 	rm -f files.info tests.info all.info final.info descriptions
 
 apidoc:
@@ -123,9 +123,16 @@ endif
 
 ## Editor navigation files
 C_SOURCE_FILES = $(wildcard include/*/*.h library/*.[hc] programs/*/*.[hc] tests/suites/*.function)
+# Exuberant-ctags invocation. Other ctags implementations may require different options.
+CTAGS = ctags --langmap=c:+.h.function --line-directives=no -o
 tags: $(C_SOURCE_FILES)
-	ctags -o $@ $(C_SOURCE_FILES)
+	$(CTAGS) $@ $(C_SOURCE_FILES)
 TAGS: $(C_SOURCE_FILES)
-	etags -o $@ $(C_SOURCE_FILES)
+	etags --no-line-directive -o $@ $(C_SOURCE_FILES)
+global: GPATH GRTAGS GSYMS GTAGS
 GPATH GRTAGS GSYMS GTAGS: $(C_SOURCE_FILES)
 	ls $(C_SOURCE_FILES) | gtags -f - --gtagsconf .globalrc
+cscope: cscope.in.out cscope.po.out cscope.out
+cscope.in.out cscope.po.out cscope.out: $(C_SOURCE_FILES)
+	cscope -bq -u -Iinclude -Ilibrary $(patsubst %,-I%,$(wildcard 3rdparty/*/include)) -Itests/include $(C_SOURCE_FILES)
+.PHONY: cscope global

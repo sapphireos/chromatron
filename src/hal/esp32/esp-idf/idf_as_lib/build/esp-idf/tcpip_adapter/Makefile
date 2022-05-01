@@ -157,61 +157,46 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter_sections_info.dir/rule
-.PHONY : esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter_sections_info.dir/rule
+esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/rule
+.PHONY : esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/rule
 
 # Convenience name for target.
-idf_component_tcpip_adapter_sections_info: esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter_sections_info.dir/rule
+__idf_tcpip_adapter: esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/rule
 
-.PHONY : idf_component_tcpip_adapter_sections_info
+.PHONY : __idf_tcpip_adapter
 
 # fast build rule for target.
-idf_component_tcpip_adapter_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter_sections_info.dir/build.make esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter_sections_info.dir/build
-.PHONY : idf_component_tcpip_adapter_sections_info/fast
+__idf_tcpip_adapter/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/build.make esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/build
+.PHONY : __idf_tcpip_adapter/fast
 
-# Convenience name for target.
-esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/rule
-.PHONY : esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/rule
+tcpip_adapter_compat.obj: tcpip_adapter_compat.c.obj
 
-# Convenience name for target.
-idf_component_tcpip_adapter: esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/rule
-
-.PHONY : idf_component_tcpip_adapter
-
-# fast build rule for target.
-idf_component_tcpip_adapter/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/build.make esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/build
-.PHONY : idf_component_tcpip_adapter/fast
-
-tcpip_adapter_lwip.obj: tcpip_adapter_lwip.c.obj
-
-.PHONY : tcpip_adapter_lwip.obj
+.PHONY : tcpip_adapter_compat.obj
 
 # target to build an object file
-tcpip_adapter_lwip.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/build.make esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.obj
-.PHONY : tcpip_adapter_lwip.c.obj
+tcpip_adapter_compat.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/build.make esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj
+.PHONY : tcpip_adapter_compat.c.obj
 
-tcpip_adapter_lwip.i: tcpip_adapter_lwip.c.i
+tcpip_adapter_compat.i: tcpip_adapter_compat.c.i
 
-.PHONY : tcpip_adapter_lwip.i
+.PHONY : tcpip_adapter_compat.i
 
 # target to preprocess a source file
-tcpip_adapter_lwip.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/build.make esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.i
-.PHONY : tcpip_adapter_lwip.c.i
+tcpip_adapter_compat.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/build.make esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.i
+.PHONY : tcpip_adapter_compat.c.i
 
-tcpip_adapter_lwip.s: tcpip_adapter_lwip.c.s
+tcpip_adapter_compat.s: tcpip_adapter_compat.c.s
 
-.PHONY : tcpip_adapter_lwip.s
+.PHONY : tcpip_adapter_compat.s
 
 # target to generate assembly for a file
-tcpip_adapter_lwip.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/build.make esp-idf/tcpip_adapter/CMakeFiles/idf_component_tcpip_adapter.dir/tcpip_adapter_lwip.c.s
-.PHONY : tcpip_adapter_lwip.c.s
+tcpip_adapter_compat.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/build.make esp-idf/tcpip_adapter/CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.s
+.PHONY : tcpip_adapter_compat.c.s
 
 # Help Target
 help:
@@ -225,11 +210,10 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_tcpip_adapter_sections_info"
-	@echo "... idf_component_tcpip_adapter"
-	@echo "... tcpip_adapter_lwip.obj"
-	@echo "... tcpip_adapter_lwip.i"
-	@echo "... tcpip_adapter_lwip.s"
+	@echo "... __idf_tcpip_adapter"
+	@echo "... tcpip_adapter_compat.obj"
+	@echo "... tcpip_adapter_compat.i"
+	@echo "... tcpip_adapter_compat.s"
 .PHONY : help
 
 

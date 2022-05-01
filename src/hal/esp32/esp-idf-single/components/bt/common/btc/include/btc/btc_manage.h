@@ -17,6 +17,11 @@
 
 #include "btc/btc_task.h"
 
+#if BTC_DYNAMIC_MEMORY == FALSE
+extern void *btc_profile_cb_tab[BTC_PID_NUM];
+#else
+extern void **btc_profile_cb_tab;
+#endif
 /* reset gatt callback table */
 void esp_profile_cb_reset(void);
 

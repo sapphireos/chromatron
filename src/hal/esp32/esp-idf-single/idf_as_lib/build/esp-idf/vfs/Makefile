@@ -80,6 +80,17 @@ install/local/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
 .PHONY : install/local/fast
 
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
+
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -112,17 +123,6 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
-
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -157,34 +157,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/vfs/CMakeFiles/idf_component_vfs_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/vfs/CMakeFiles/idf_component_vfs_sections_info.dir/rule
-.PHONY : esp-idf/vfs/CMakeFiles/idf_component_vfs_sections_info.dir/rule
+esp-idf/vfs/CMakeFiles/__idf_vfs.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/rule
+.PHONY : esp-idf/vfs/CMakeFiles/__idf_vfs.dir/rule
 
 # Convenience name for target.
-idf_component_vfs_sections_info: esp-idf/vfs/CMakeFiles/idf_component_vfs_sections_info.dir/rule
+__idf_vfs: esp-idf/vfs/CMakeFiles/__idf_vfs.dir/rule
 
-.PHONY : idf_component_vfs_sections_info
+.PHONY : __idf_vfs
 
 # fast build rule for target.
-idf_component_vfs_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/idf_component_vfs_sections_info.dir/build.make esp-idf/vfs/CMakeFiles/idf_component_vfs_sections_info.dir/build
-.PHONY : idf_component_vfs_sections_info/fast
-
-# Convenience name for target.
-esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/rule
-.PHONY : esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/rule
-
-# Convenience name for target.
-idf_component_vfs: esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/rule
-
-.PHONY : idf_component_vfs
-
-# fast build rule for target.
-idf_component_vfs/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/build.make esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/build
-.PHONY : idf_component_vfs/fast
+__idf_vfs/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build
+.PHONY : __idf_vfs/fast
 
 vfs.obj: vfs.c.obj
 
@@ -192,7 +177,7 @@ vfs.obj: vfs.c.obj
 
 # target to build an object file
 vfs.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/build.make esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs.c.obj
 .PHONY : vfs.c.obj
 
 vfs.i: vfs.c.i
@@ -201,7 +186,7 @@ vfs.i: vfs.c.i
 
 # target to preprocess a source file
 vfs.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/build.make esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs.c.i
 .PHONY : vfs.c.i
 
 vfs.s: vfs.c.s
@@ -210,8 +195,89 @@ vfs.s: vfs.c.s
 
 # target to generate assembly for a file
 vfs.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/build.make esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs.c.s
 .PHONY : vfs.c.s
+
+vfs_console.obj: vfs_console.c.obj
+
+.PHONY : vfs_console.obj
+
+# target to build an object file
+vfs_console.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_console.c.obj
+.PHONY : vfs_console.c.obj
+
+vfs_console.i: vfs_console.c.i
+
+.PHONY : vfs_console.i
+
+# target to preprocess a source file
+vfs_console.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_console.c.i
+.PHONY : vfs_console.c.i
+
+vfs_console.s: vfs_console.c.s
+
+.PHONY : vfs_console.s
+
+# target to generate assembly for a file
+vfs_console.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_console.c.s
+.PHONY : vfs_console.c.s
+
+vfs_eventfd.obj: vfs_eventfd.c.obj
+
+.PHONY : vfs_eventfd.obj
+
+# target to build an object file
+vfs_eventfd.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_eventfd.c.obj
+.PHONY : vfs_eventfd.c.obj
+
+vfs_eventfd.i: vfs_eventfd.c.i
+
+.PHONY : vfs_eventfd.i
+
+# target to preprocess a source file
+vfs_eventfd.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_eventfd.c.i
+.PHONY : vfs_eventfd.c.i
+
+vfs_eventfd.s: vfs_eventfd.c.s
+
+.PHONY : vfs_eventfd.s
+
+# target to generate assembly for a file
+vfs_eventfd.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_eventfd.c.s
+.PHONY : vfs_eventfd.c.s
+
+vfs_semihost.obj: vfs_semihost.c.obj
+
+.PHONY : vfs_semihost.obj
+
+# target to build an object file
+vfs_semihost.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj
+.PHONY : vfs_semihost.c.obj
+
+vfs_semihost.i: vfs_semihost.c.i
+
+.PHONY : vfs_semihost.i
+
+# target to preprocess a source file
+vfs_semihost.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.i
+.PHONY : vfs_semihost.c.i
+
+vfs_semihost.s: vfs_semihost.c.s
+
+.PHONY : vfs_semihost.s
+
+# target to generate assembly for a file
+vfs_semihost.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.s
+.PHONY : vfs_semihost.c.s
 
 vfs_uart.obj: vfs_uart.c.obj
 
@@ -219,7 +285,7 @@ vfs_uart.obj: vfs_uart.c.obj
 
 # target to build an object file
 vfs_uart.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/build.make esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_uart.c.obj
 .PHONY : vfs_uart.c.obj
 
 vfs_uart.i: vfs_uart.c.i
@@ -228,7 +294,7 @@ vfs_uart.i: vfs_uart.c.i
 
 # target to preprocess a source file
 vfs_uart.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/build.make esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_uart.c.i
 .PHONY : vfs_uart.c.i
 
 vfs_uart.s: vfs_uart.c.s
@@ -237,7 +303,7 @@ vfs_uart.s: vfs_uart.c.s
 
 # target to generate assembly for a file
 vfs_uart.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/build.make esp-idf/vfs/CMakeFiles/idf_component_vfs.dir/vfs_uart.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/vfs/CMakeFiles/__idf_vfs.dir/build.make esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_uart.c.s
 .PHONY : vfs_uart.c.s
 
 # Help Target
@@ -248,15 +314,23 @@ help:
 	@echo "... depend"
 	@echo "... install/strip"
 	@echo "... install/local"
+	@echo "... edit_cache"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... edit_cache"
-	@echo "... idf_component_vfs_sections_info"
-	@echo "... idf_component_vfs"
+	@echo "... __idf_vfs"
 	@echo "... vfs.obj"
 	@echo "... vfs.i"
 	@echo "... vfs.s"
+	@echo "... vfs_console.obj"
+	@echo "... vfs_console.i"
+	@echo "... vfs_console.s"
+	@echo "... vfs_eventfd.obj"
+	@echo "... vfs_eventfd.i"
+	@echo "... vfs_eventfd.s"
+	@echo "... vfs_semihost.obj"
+	@echo "... vfs_semihost.i"
+	@echo "... vfs_semihost.s"
 	@echo "... vfs_uart.obj"
 	@echo "... vfs_uart.i"
 	@echo "... vfs_uart.s"

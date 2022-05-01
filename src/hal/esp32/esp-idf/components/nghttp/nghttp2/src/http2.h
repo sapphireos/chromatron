@@ -35,12 +35,13 @@
 
 #include <nghttp2/nghttp2.h>
 
-#include "http-parser/http_parser.h"
+#include "url-parser/url_parser.h"
 
 #include "util.h"
 #include "memchunk.h"
 #include "template.h"
 #include "allocator.h"
+#include "base64.h"
 
 namespace nghttp2 {
 
@@ -203,9 +204,22 @@ enum HeaderBuildOp {
   // Via header fields must be stripped.  If this flag is not set, all
   // Via header fields other than last one are added.
   HDOP_STRIP_VIA = 1 << 3,
+  // Early-Data header fields must be stripped.  If this flag is not
+  // set, all Early-Data header fields are added.
+  HDOP_STRIP_EARLY_DATA = 1 << 4,
   // Strip above all header fields.
   HDOP_STRIP_ALL = HDOP_STRIP_FORWARDED | HDOP_STRIP_X_FORWARDED_FOR |
-                   HDOP_STRIP_X_FORWARDED_PROTO | HDOP_STRIP_VIA,
+                   HDOP_STRIP_X_FORWARDED_PROTO | HDOP_STRIP_VIA |
+                   HDOP_STRIP_EARLY_DATA,
+  // Sec-WebSocket-Accept header field must be stripped.  If this flag
+  // is not set, all Sec-WebSocket-Accept header fields are added.
+  HDOP_STRIP_SEC_WEBSOCKET_ACCEPT = 1 << 5,
+  // Sec-WebSocket-Key header field must be stripped.  If this flag is
+  // not set, all Sec-WebSocket-Key header fields are added.
+  HDOP_STRIP_SEC_WEBSOCKET_KEY = 1 << 6,
+  // Transfer-Encoding header field must be stripped.  If this flag is
+  // not set, all Transfer-Encoding header fields are added.
+  HDOP_STRIP_TRANSFER_ENCODING = 1 << 7,
 };
 
 // Appends headers in |headers| to |nv|.  |headers| must be indexed
@@ -268,7 +282,7 @@ void erase_header(HeaderRef *hd);
 //
 // This function returns the new rewritten URI on success. If the
 // location URI is not subject to the rewrite, this function returns
-// emtpy string.
+// empty string.
 StringRef rewrite_location_uri(BlockAllocator &balloc, const StringRef &uri,
                                const http_parser_url &u,
                                const StringRef &match_host,
@@ -293,6 +307,7 @@ enum {
   HD__HOST,
   HD__METHOD,
   HD__PATH,
+  HD__PROTOCOL,
   HD__SCHEME,
   HD__STATUS,
   HD_ACCEPT_ENCODING,
@@ -304,6 +319,7 @@ enum {
   HD_CONTENT_TYPE,
   HD_COOKIE,
   HD_DATE,
+  HD_EARLY_DATA,
   HD_EXPECT,
   HD_FORWARDED,
   HD_HOST,
@@ -313,6 +329,8 @@ enum {
   HD_LINK,
   HD_LOCATION,
   HD_PROXY_CONNECTION,
+  HD_SEC_WEBSOCKET_ACCEPT,
+  HD_SEC_WEBSOCKET_KEY,
   HD_SERVER,
   HD_TE,
   HD_TRAILER,
@@ -378,15 +396,15 @@ bool expect_response_body(int method_token, int status_code);
 bool expect_response_body(int status_code);
 
 // Looks up method token for method name |name| of length |namelen|.
-// Only methods defined in http-parser/http-parser.h (http_method) are
-// tokenized.  If method name cannot be tokenized, returns -1.
+// Only methods defined in llhttp.h (llhttp_method) are tokenized.  If
+// method name cannot be tokenized, returns -1.
 int lookup_method_token(const uint8_t *name, size_t namelen);
 int lookup_method_token(const StringRef &name);
 
-// Returns string  representation of |method_token|.  This  is wrapper
-// function over http_method_str  from http-parser.  If |method_token|
-// is not known to http-parser, "<unknown>" is returned.  The returned
-// StringRef is guaranteed to be NULL-terminated.
+// Returns string representation of |method_token|.  This is wrapper
+// around llhttp_method_name from llhttp.  If |method_token| is
+// unknown, program aborts.  The returned StringRef is guaranteed to
+// be NULL-terminated.
 StringRef to_method_string(int method_token);
 
 StringRef normalize_path(BlockAllocator &balloc, const StringRef &path,
@@ -415,6 +433,16 @@ StringRef copy_lower(BlockAllocator &balloc, const StringRef &src);
 
 // Returns true if te header field value |s| contains "trailers".
 bool contains_trailers(const StringRef &s);
+
+// Creates Sec-WebSocket-Accept value for |key|.  The capacity of
+// buffer pointed by |dest| must have at least 24 bytes (base64
+// encoded length of 16 bytes data).  It returns empty string in case
+// of error.
+StringRef make_websocket_accept_token(uint8_t *dest, const StringRef &key);
+
+// Returns true if HTTP version represents pre-HTTP/1.1 (e.g.,
+// HTTP/0.9 or HTTP/1.0).
+bool legacy_http1(int major, int minor);
 
 } // namespace http2
 

@@ -17,6 +17,8 @@ CONFIG_SECURE_BOOT_SIGNING_KEY ?=
 SECURE_BOOT_SIGNING_KEY=$(abspath $(call dequote,$(CONFIG_SECURE_BOOT_SIGNING_KEY)))
 export SECURE_BOOT_SIGNING_KEY  # used by bootloader_support component
 
+BOOTLOADER_SIGNED_BIN ?=
+
 # Has a matching value in bootloader_support esp_flash_partitions.h
 BOOTLOADER_OFFSET := 0x1000
 
@@ -25,6 +27,9 @@ BOOTLOADER_OFFSET := 0x1000
 # NB: Some variables are cleared in the environment, not
 # overriden, because they need to be re-defined in the child
 # project.
+#
+# Pass PROJECT_PATH variable, it will let the subproject look
+# for user defined bootloader component(s).
 BOOTLOADER_MAKE= +\
 	PROJECT_PATH= \
 	COMPONENT_DIRS= \
@@ -33,7 +38,8 @@ BOOTLOADER_MAKE= +\
 	BUILD_DIR_BASE=$(BOOTLOADER_BUILD_DIR) \
 	TEST_COMPONENTS= \
 	TESTS_ALL= \
-	EXCLUDE_COMPONENTS=
+	EXCLUDE_COMPONENTS= \
+	PROJECT_SOURCE_DIR=$(PROJECT_PATH)
 
 .PHONY: bootloader-clean bootloader-flash bootloader-list-components bootloader $(BOOTLOADER_BIN)
 
@@ -45,7 +51,7 @@ clean: bootloader-clean
 bootloader-list-components:
 	$(BOOTLOADER_MAKE) list-components
 
-ifndef CONFIG_SECURE_BOOT_ENABLED
+ifndef CONFIG_SECURE_BOOT
 # If secure boot disabled, bootloader flashing is integrated
 # with 'make flash' and no warnings are printed.
 
@@ -55,6 +61,7 @@ bootloader: $(BOOTLOADER_BIN) | check_python_dependencies
 	@echo "$(ESPTOOLPY_WRITE_FLASH) $(BOOTLOADER_OFFSET) $^"
 
 ESPTOOL_ALL_FLASH_ARGS += $(BOOTLOADER_OFFSET) $(BOOTLOADER_BIN)
+UF2_ADD_BINARIES += $(BOOTLOADER_OFFSET) $(BOOTLOADER_BIN)
 
 bootloader-flash: $(BOOTLOADER_BIN) $(call prereq_if_explicit,erase_flash) | check_python_dependencies
 	$(ESPTOOLPY_WRITE_FLASH) 0x1000 $^
@@ -102,7 +109,7 @@ endif
 bootloader: $(BOOTLOADER_DIGEST_BIN)
 	@echo $(SEPARATOR)
 	@echo "Bootloader built and secure digest generated. First time flash command is:"
-	@echo "$(ESPEFUSEPY) burn_key secure_boot $(SECURE_BOOTLOADER_KEY)"
+	@echo "$(ESPEFUSEPY) burn_key secure_boot_v1 $(SECURE_BOOTLOADER_KEY)"
 	@echo "$(ESPTOOLPY_WRITE_FLASH) $(BOOTLOADER_OFFSET) $(BOOTLOADER_BIN)"
 	@echo $(SEPARATOR)
 	@echo "To reflash the bootloader after initial flash:"
@@ -115,13 +122,35 @@ $(BOOTLOADER_DIGEST_BIN): $(BOOTLOADER_BIN) $(SECURE_BOOTLOADER_KEY) | check_pyt
 	@echo "DIGEST $(notdir $@)"
 	$(ESPSECUREPY) digest_secure_bootloader -k $(SECURE_BOOTLOADER_KEY) -o $@ $<
 
-else # CONFIG_SECURE_BOOT_ENABLED && !CONFIG_SECURE_BOOTLOADER_REFLASHABLE && !CONFIG_SECURE_BOOTLOADER_ONE_TIME_FLASH
+else ifdef CONFIG_SECURE_BOOT_V2_ENABLED
+BOOTLOADER_SIGNED_BIN := $(BOOTLOADER_BUILD_DIR)/bootloader-signed.bin
+ifdef CONFIG_SECURE_BOOT_BUILD_SIGNED_BINARIES
+bootloader: $(BOOTLOADER_BIN) $(SDKCONFIG_MAKEFILE) | check_python_dependencies
+	$(ESPSECUREPY) sign_data --keyfile $(SECURE_BOOT_SIGNING_KEY) --version 2 \
+	-o $(BOOTLOADER_SIGNED_BIN) $(BOOTLOADER_BIN)
+else
+bootloader: $(BOOTLOADER_BIN) $(SDKCONFIG_MAKEFILE) | check_python_dependencies
+	@echo "Bootloader not signed. Sign the bootloader before flashing."
+	@echo "To sign the bootloader, you can use this command:"
+	@echo "espsecure.py sign_data --keyfile SECURE_BOOT_SIGNING_KEY --version 2 $(BOOTLOADER_BIN)"
+endif
+	@echo $(SEPARATOR)
+	@echo "Use the following command to flash the bootloader:"
+ifdef CONFIG_SECURE_BOOT_BUILD_SIGNED_BINARIES
+	@echo "$(ESPTOOLPY_WRITE_FLASH) $(BOOTLOADER_OFFSET) $(BOOTLOADER_SIGNED_BIN)"
+else
+	@echo "$(ESPTOOLPY_WRITE_FLASH) $(BOOTLOADER_OFFSET) $(BOOTLOADER_BIN)"
+endif
+	@echo $(SEPARATOR)
+
+else # CONFIG_SECURE_BOOT && !CONFIG_SECURE_BOOTLOADER_REFLASHABLE \
+&& !CONFIG_SECURE_BOOTLOADER_ONE_TIME_FLASH && !CONFIG_SECURE_SIGNED_APPS_RSA_SCHEME
 bootloader:
 	@echo "Invalid bootloader target: bad sdkconfig?"
 	@exit 1
 endif
 
-ifndef CONFIG_SECURE_BOOT_ENABLED
+ifndef CONFIG_SECURE_BOOT
 # don't build bootloader by default if secure boot is enabled
 all_binaries: $(BOOTLOADER_BIN)
 endif
@@ -130,4 +159,9 @@ bootloader-clean: $(SDKCONFIG_MAKEFILE)
 	$(BOOTLOADER_MAKE) app-clean
 ifdef CONFIG_SECURE_BOOTLOADER_REFLASHABLE
 	rm -f $(SECURE_BOOTLOADER_KEY) $(BOOTLOADER_DIGEST_BIN)
+endif
+ifdef CONFIG_SECURE_SIGNED_APPS_RSA_SCHEME
+ifdef CONFIG_SECURE_BOOT_BUILD_SIGNED_BINARIES
+	rm -f $(BOOTLOADER_SIGNED_BIN)
+endif
 endif

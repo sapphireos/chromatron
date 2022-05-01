@@ -1,8 +1,14 @@
 /*
  *  Benchmark demonstration program
  *
- *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
- *  SPDX-License-Identifier: Apache-2.0
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ *
+ *  This file is provided under the Apache License 2.0, or the
+ *  GNU General Public License v2.0 or later.
+ *
+ *  **********
+ *  Apache License 2.0:
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
  *  not use this file except in compliance with the License.
@@ -16,7 +22,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  This file is part of mbed TLS (https://tls.mbed.org)
+ *  **********
+ *
+ *  **********
+ *  GNU General Public License v2.0 or later:
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ *  **********
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -25,25 +50,21 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
+#if !defined(MBEDTLS_PLATFORM_C)
 #include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_exit       exit
 #define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
 #define mbedtls_free       free
 #define mbedtls_exit            exit
-#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif
 
 #if !defined(MBEDTLS_TIMING_C)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_TIMING_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -153,7 +174,29 @@ do {                                                                    \
     }                                                                   \
 } while( 0 )
 
+#define CHECK_AND_CONTINUE( R )                                         \
+    {                                                                   \
+        int CHECK_AND_CONTINUE_ret = ( R );                             \
+        if( CHECK_AND_CONTINUE_ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) { \
+            mbedtls_printf( "Feature not supported. Skipping.\n" );     \
+            continue;                                                   \
+        }                                                               \
+        else if( CHECK_AND_CONTINUE_ret != 0 ) {                        \
+            mbedtls_exit( 1 );                                          \
+        }                                                               \
+    }
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_MEMORY_DEBUG)
+
+/* How much space to reserve for the title when printing heap usage results.
+ * Updated manually as the output of the following command:
+ *
+ *  sed -n 's/.*[T]IME_PUBLIC.*"\(.*\)",/\1/p' programs/test/benchmark.c |
+ *      awk '{print length+2}' | sort -rn | head -n1
+ *
+ * This computes the maximum length of a title +2 (because we appends "/s").
+ * (If the value is too small, the only consequence is poor alignement.) */
+#define TITLE_SPACE 11
 
 #define MEMORY_MEASURE_INIT                                             \
     size_t max_used, max_blocks, max_bytes;                             \
@@ -163,7 +206,8 @@ do {                                                                    \
 
 #define MEMORY_MEASURE_PRINT( title_len )                               \
     mbedtls_memory_buffer_alloc_max_get( &max_used, &max_blocks );      \
-    for( ii = 12 - (title_len); ii != 0; ii-- ) mbedtls_printf( " " );  \
+    ii = TITLE_SPACE > (title_len) ? TITLE_SPACE - (title_len) : 1;     \
+    while( ii-- ) mbedtls_printf( " " );                                \
     max_used -= prv_used;                                               \
     max_blocks -= prv_blocks;                                           \
     max_bytes = max_used + MEM_BLOCK_OVERHEAD * max_blocks;             \
@@ -258,17 +302,6 @@ typedef struct {
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 int main( int argc, char *argv[] )
 {
@@ -409,7 +442,8 @@ int main( int argc, char *argv[] )
     {
         mbedtls_des3_context des3;
         mbedtls_des3_init( &des3 );
-        mbedtls_des3_set3key_enc( &des3, tmp );
+        if( mbedtls_des3_set3key_enc( &des3, tmp ) != 0 )
+            mbedtls_exit( 1 );
         TIME_AND_TSC( "3DES",
                 mbedtls_des3_crypt_cbc( &des3, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
         mbedtls_des3_free( &des3 );
@@ -419,7 +453,8 @@ int main( int argc, char *argv[] )
     {
         mbedtls_des_context des;
         mbedtls_des_init( &des );
-        mbedtls_des_setkey_enc( &des, tmp );
+        if( mbedtls_des_setkey_enc( &des, tmp ) != 0 )
+            mbedtls_exit( 1 );
         TIME_AND_TSC( "DES",
                 mbedtls_des_crypt_cbc( &des, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
         mbedtls_des_free( &des );
@@ -457,7 +492,7 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_aes_setkey_enc( &aes, tmp, keysize );
+            CHECK_AND_CONTINUE( mbedtls_aes_setkey_enc( &aes, tmp, keysize ) );
 
             TIME_AND_TSC( title,
                 mbedtls_aes_crypt_cbc( &aes, MBEDTLS_AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
@@ -478,7 +513,7 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_aes_xts_setkey_enc( &ctx, tmp, keysize * 2 );
+            CHECK_AND_CONTINUE( mbedtls_aes_xts_setkey_enc( &ctx, tmp, keysize * 2 ) );
 
             TIME_AND_TSC( title,
                     mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_ENCRYPT, BUFSIZE,
@@ -685,12 +720,13 @@ int main( int argc, char *argv[] )
         mbedtls_ctr_drbg_context ctr_drbg;
 
         mbedtls_ctr_drbg_init( &ctr_drbg );
-
         if( mbedtls_ctr_drbg_seed( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         TIME_AND_TSC( "CTR_DRBG (NOPR)",
                 mbedtls_ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) );
+        mbedtls_ctr_drbg_free( &ctr_drbg );
 
+        mbedtls_ctr_drbg_init( &ctr_drbg );
         if( mbedtls_ctr_drbg_seed( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         mbedtls_ctr_drbg_set_prediction_resistance( &ctr_drbg, MBEDTLS_CTR_DRBG_PR_ON );
@@ -1010,7 +1046,7 @@ int main( int argc, char *argv[] )
     fflush( stdout ); getchar();
 #endif
 
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 
 #endif /* MBEDTLS_TIMING_C */

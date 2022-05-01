@@ -7,7 +7,7 @@
  *            security risk. We recommend considering stronger ciphers instead.
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -49,8 +49,6 @@
  *
  *  **********
  *
- *  This file is part of mbed TLS (https://tls.mbed.org)
- *
  */
 #ifndef MBEDTLS_ARC4_H
 #define MBEDTLS_ARC4_H
@@ -64,7 +62,8 @@
 #include <stddef.h>
 
 /* MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED                  -0x0019  /**< ARC4 hardware accelerator failed. */
+/** ARC4 hardware accelerator failed. */
+#define MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED                  -0x0019
 
 #ifdef __cplusplus
 extern "C" {

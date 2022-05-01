@@ -257,7 +257,7 @@ class MsgFlowReceiver(MsgServer):
                 # got a duplicate data message, resend status
                 self._send_status(host)
 
-                logging.warning(f"Dup {msg.sequence} sequence: {self._connections[host]['sequence']}")
+                logging.warning(f"Dup {msg.sequence} sequence: {self._connections[host]['sequence']} from: {host}")
 
         self._connections[host]['timeout'] = CONNECTION_TIMEOUT
 

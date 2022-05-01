@@ -17,17 +17,36 @@ menu "Heap memory debugging"
             bool "Comprehensive"
     endchoice
 
-    config HEAP_TRACING
-        bool "Enable heap tracing"
+    choice HEAP_TRACING_DEST
+        bool "Heap tracing"
+        default HEAP_TRACING_OFF
         help
             Enables the heap tracing API defined in esp_heap_trace.h.
 
             This function causes a moderate increase in IRAM code side and a minor increase in heap function
-            (malloc/free/realloc) CPU overhead, even when the tracing feature is not used. So it's best to keep it
-            disabled unless tracing is being used.
+            (malloc/free/realloc) CPU overhead, even when the tracing feature is not used.
+            So it's best to keep it disabled unless tracing is being used.
+
+        config HEAP_TRACING_OFF
+            bool "Disabled"
+        config HEAP_TRACING_STANDALONE
+            bool "Standalone"
+            select HEAP_TRACING
+        config HEAP_TRACING_TOHOST
+            bool "Host-based"
+            select HEAP_TRACING
+    endchoice
+
+    config HEAP_TRACING
+        bool
+        default F
+        help
+            Enables/disables heap tracing API.
 
     config HEAP_TRACING_STACK_DEPTH
         int "Heap tracing stack depth"
+        range 0 0 if IDF_TARGET_ARCH_RISCV # Disabled for RISC-V due to `__builtin_return_address` limitation
+        default 0 if IDF_TARGET_ARCH_RISCV
         range 0 10
         default 2
         depends on HEAP_TRACING
@@ -45,5 +64,11 @@ menu "Heap memory debugging"
 
             This function depends on heap poisoning being enabled and adds four more bytes of overhead for each block
             allocated.
+
+    config HEAP_ABORT_WHEN_ALLOCATION_FAILS
+        bool "Abort if memory allocation fails"
+        default n
+        help
+            When enabled, if a memory allocation operation fails it will cause a system abort.
 
 endmenu

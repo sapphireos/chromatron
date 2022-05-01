@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2017 Nordic Semiconductor ASA
- * Copyright (c) 2016 Vinayak Kariappa Chettimada
- * Copyright (c) 2015-2016 Intel Corporation
+ * SPDX-FileCopyrightText: 2017 Nordic Semiconductor ASA
+ * SPDX-FileCopyrightText: 2016 Vinayak Kariappa Chettimada
+ * SPDX-FileCopyrightText: 2015-2016 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -15,8 +15,8 @@ const char *bt_hex(const void *buf, size_t len)
 {
     static const char hex[] = "0123456789abcdef";
     static char hexbufs[2][129];
-    static u8_t curbuf;
-    const u8_t *b = buf;
+    static uint8_t curbuf;
+    const uint8_t *b = buf;
     char *str = NULL;
     int i;
 
@@ -35,7 +35,7 @@ const char *bt_hex(const void *buf, size_t len)
     return str;
 }
 
-void mem_rcopy(u8_t *dst, u8_t const *src, u16_t len)
+void mem_rcopy(uint8_t *dst, uint8_t const *src, uint16_t len)
 {
     src += len;
     while (len--) {

@@ -24,15 +24,15 @@
 
 cmake_minimum_required(VERSION 3.0)
 # XXX using 1.8.90 instead of 1.9.0-DEV
-project(nghttp2 VERSION 1.24.0)
+project(nghttp2 VERSION 1.41.0)
 
 # See versioning rule:
 #  http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-set(LT_CURRENT  27)
-set(LT_REVISION 3)
-set(LT_AGE      13)
+set(LT_CURRENT  34)
+set(LT_REVISION 0)
+set(LT_AGE      20)
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(Version)
 
 math(EXPR LT_SOVERSION "${LT_CURRENT} - ${LT_AGE}")
@@ -66,6 +66,7 @@ if(OPENSSL_FOUND AND LIBEV_FOUND AND ZLIB_FOUND)
 else()
   set(ENABLE_APP_DEFAULT OFF)
 endif()
+find_package(Systemd 209)
 find_package(Jansson  2.5)
 set(ENABLE_HPACK_TOOLS_DEFAULT ${JANSSON_FOUND})
 # 2.0.8 is required because we use evconnlistener_set_error_cb()
@@ -79,7 +80,7 @@ else()
   set(ENABLE_PYTHON_BINDINGS_DEFAULT OFF)
 endif()
 
-find_package(LibXml2 2.7.7)
+find_package(LibXml2 2.6.26)
 set(WITH_LIBXML2_DEFAULT    ${LIBXML2_FOUND})
 find_package(Jemalloc)
 set(WITH_JEMALLOC_DEFAULT   ${JEMALLOC_FOUND})
@@ -106,7 +107,7 @@ endif()
 foreach(_build_type "Release" "MinSizeRel" "RelWithDebInfo")
   foreach(_lang C CXX)
     string(TOUPPER "CMAKE_${_lang}_FLAGS_${_build_type}" _var)
-    string(REGEX REPLACE "(^| )[/-]D *NDEBUG($| )" "" ${_var} "${${_var}}")
+    string(REGEX REPLACE "(^| )[/-]D *NDEBUG($| )" " " ${_var} "${${_var}}")
   endforeach()
 endforeach()
 
@@ -117,7 +118,7 @@ else()
 endif()
 
 include(ExtractValidFlags)
-foreach(_cxx1x_flag -std=c++11 -std=c++0x)
+foreach(_cxx1x_flag -std=c++14)
   extract_valid_cxx_flags(_cxx1x_flag_supported ${_cxx1x_flag})
   if(_cxx1x_flag_supported)
     set(CXX1XCXXFLAGS ${_cxx1x_flag})
@@ -193,6 +194,7 @@ endif()
 # libev (for src)
 set(HAVE_LIBEV      ${LIBEV_FOUND})
 set(HAVE_ZLIB       ${ZLIB_FOUND})
+set(HAVE_SYSTEMD    ${SYSTEMD_FOUND})
 set(HAVE_LIBEVENT_OPENSSL ${LIBEVENT_FOUND})
 if(LIBEVENT_FOUND)
   # Must both link the core and openssl libraries.
@@ -302,6 +304,7 @@ check_type_size("time_t"  SIZEOF_TIME_T)
 include(CheckFunctionExists)
 check_function_exists(_Exit     HAVE__EXIT)
 check_function_exists(accept4   HAVE_ACCEPT4)
+check_function_exists(mkostemp  HAVE_MKOSTEMP)
 
 include(CheckSymbolExists)
 # XXX does this correctly detect initgroups (un)availability on cygwin?
@@ -382,6 +385,15 @@ else()
     -Wall
     -Wformat-security
   )
+endif()
+
+if(ENABLE_STATIC_CRT)
+  foreach(lang C CXX)
+    foreach(suffix "" _DEBUG _MINSIZEREL _RELEASE _RELWITHDEBINFO)
+      set(var "CMAKE_${lang}_FLAGS${suffix}")
+      string(REPLACE "/MD" "/MT" ${var} "${${var}}")
+    endforeach()
+  endforeach()
 endif()
 
 if(ENABLE_DEBUG)
@@ -496,6 +508,7 @@ message(STATUS "summary of build options:
       Jansson:        ${HAVE_JANSSON} (LIBS='${JANSSON_LIBRARIES}')
       Jemalloc:       ${HAVE_JEMALLOC} (LIBS='${JEMALLOC_LIBRARIES}')
       Zlib:           ${HAVE_ZLIB} (LIBS='${ZLIB_LIBRARIES}')
+      Systemd:        ${HAVE_SYSTEMD} (LIBS='${SYSTEMD_LIBRARIES}')
       Boost::System:  ${Boost_SYSTEM_LIBRARY}
       Boost::Thread:  ${Boost_THREAD_LIBRARY}
     Third-party:

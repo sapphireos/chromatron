@@ -1,23 +1,13 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <stdint.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
-
-#include "btc/btc_manage.h"
 
 #include "esp_err.h"
 
@@ -44,7 +34,7 @@ esp_err_t esp_ble_mesh_init(esp_ble_mesh_prov_t *prov, esp_ble_mesh_comp_t *comp
 
     // Create a semaphore
     if ((semaphore = xSemaphoreCreateCounting(1, 0)) == NULL) {
-        BT_ERR("%s, Failed to allocate memory for the semaphore", __func__);
+        BT_ERR("Failed to create semaphore");
         return ESP_ERR_NO_MEM;
     }
 
@@ -59,7 +49,7 @@ esp_err_t esp_ble_mesh_init(esp_ble_mesh_prov_t *prov, esp_ble_mesh_comp_t *comp
 
     if (btc_transfer_context(&msg, &arg, sizeof(btc_ble_mesh_prov_args_t), NULL) != BT_STATUS_SUCCESS) {
         vSemaphoreDelete(semaphore);
-        BT_ERR("%s, BLE Mesh initialise failed", __func__);
+        BT_ERR("Failed to start mesh init");
         return ESP_FAIL;
     }
 
@@ -71,6 +61,7 @@ esp_err_t esp_ble_mesh_init(esp_ble_mesh_prov_t *prov, esp_ble_mesh_comp_t *comp
     return ESP_OK;
 }
 
+#if CONFIG_BLE_MESH_DEINIT
 esp_err_t esp_ble_mesh_deinit(esp_ble_mesh_deinit_param_t *param)
 {
     btc_ble_mesh_prov_args_t arg = {0};
@@ -91,4 +82,4 @@ esp_err_t esp_ble_mesh_deinit(esp_ble_mesh_deinit_param_t *param)
     return (btc_transfer_context(&msg, &arg, sizeof(btc_ble_mesh_prov_args_t), NULL)
             == BT_STATUS_SUCCESS ? ESP_OK : ESP_FAIL);
 }
-
+#endif /* CONFIG_BLE_MESH_DEINIT */

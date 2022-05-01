@@ -24,6 +24,11 @@
  */
 #include "shrpx_api_downstream_connection.h"
 
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cstdlib>
+
 #include "shrpx_client_handler.h"
 #include "shrpx_upstream.h"
 #include "shrpx_downstream.h"
@@ -36,18 +41,20 @@ namespace shrpx {
 namespace {
 // List of API endpoints
 const std::array<APIEndpoint, 2> &apis() {
-  static const auto apis = new std::array<APIEndpoint, 2>{{
+  static const auto apis = new std::array<APIEndpoint, 2>{
       APIEndpoint{
-          StringRef::from_lit("/api/v1beta1/backendconfig"), true,
+          StringRef::from_lit("/api/v1beta1/backendconfig"),
+          true,
           (1 << API_METHOD_POST) | (1 << API_METHOD_PUT),
           &APIDownstreamConnection::handle_backendconfig,
       },
       APIEndpoint{
-          StringRef::from_lit("/api/v1beta1/configrevision"), true,
+          StringRef::from_lit("/api/v1beta1/configrevision"),
+          true,
           (1 << API_METHOD_GET),
           &APIDownstreamConnection::handle_configrevision,
       },
-  }};
+  };
 
   return *apis;
 }
@@ -56,15 +63,20 @@ const std::array<APIEndpoint, 2> &apis() {
 namespace {
 // The method string.  This must be same order of APIMethod.
 constexpr StringRef API_METHOD_STRING[] = {
-    StringRef::from_lit("GET"), StringRef::from_lit("POST"),
+    StringRef::from_lit("GET"),
+    StringRef::from_lit("POST"),
     StringRef::from_lit("PUT"),
 };
 } // namespace
 
 APIDownstreamConnection::APIDownstreamConnection(Worker *worker)
-    : worker_(worker), api_(nullptr), shutdown_read_(false) {}
+    : worker_(worker), api_(nullptr), fd_(-1), shutdown_read_(false) {}
 
-APIDownstreamConnection::~APIDownstreamConnection() {}
+APIDownstreamConnection::~APIDownstreamConnection() {
+  if (fd_ != -1) {
+    close(fd_);
+  }
+}
 
 int APIDownstreamConnection::attach_downstream(Downstream *downstream) {
   if (LOG_ENABLED(INFO)) {
@@ -83,15 +95,9 @@ void APIDownstreamConnection::detach_downstream(Downstream *downstream) {
   downstream_ = nullptr;
 }
 
-// API status, which is independent from HTTP status code.  But
-// generally, 2xx code for API_SUCCESS, and otherwise API_FAILURE.
-enum {
-  API_SUCCESS,
-  API_FAILURE,
-};
-
 int APIDownstreamConnection::send_reply(unsigned int http_status,
-                                        int api_status, const StringRef &data) {
+                                        APIStatusCode api_status,
+                                        const StringRef &data) {
   shutdown_read_ = true;
 
   auto upstream = downstream_->get_upstream();
@@ -105,10 +111,10 @@ int APIDownstreamConnection::send_reply(unsigned int http_status,
   StringRef api_status_str;
 
   switch (api_status) {
-  case API_SUCCESS:
+  case APIStatusCode::SUCCESS:
     api_status_str = StringRef::from_lit("Success");
     break;
-  case API_FAILURE:
+  case APIStatusCode::FAILURE:
     api_status_str = StringRef::from_lit("Failure");
     break;
   default:
@@ -194,7 +200,7 @@ int APIDownstreamConnection::push_request_headers() {
   api_ = lookup_api(path);
 
   if (!api_) {
-    send_reply(404, API_FAILURE);
+    send_reply(404, APIStatusCode::FAILURE);
 
     return 0;
   }
@@ -226,10 +232,37 @@ int APIDownstreamConnection::push_request_headers() {
   // This works with req.fs.content_length == -1
   if (req.fs.content_length >
       static_cast<int64_t>(get_config()->api.max_request_body)) {
-    send_reply(413, API_FAILURE);
+    send_reply(413, APIStatusCode::FAILURE);
 
     return 0;
   }
+
+  switch (req.method) {
+  case HTTP_POST:
+  case HTTP_PUT: {
+    char tempname[] = "/tmp/nghttpx-api.XXXXXX";
+#ifdef HAVE_MKOSTEMP
+    fd_ = mkostemp(tempname, O_CLOEXEC);
+#else  // !HAVE_MKOSTEMP
+    fd_ = mkstemp(tempname);
+#endif // !HAVE_MKOSTEMP
+    if (fd_ == -1) {
+      send_reply(500, APIStatusCode::FAILURE);
+
+      return 0;
+    }
+#ifndef HAVE_MKOSTEMP
+    util::make_socket_closeonexec(fd_);
+#endif // HAVE_MKOSTEMP
+    unlink(tempname);
+    break;
+  }
+  }
+
+  downstream_->set_request_header_sent(true);
+  auto src = downstream_->get_blocked_request_buf();
+  auto dest = downstream_->get_request_buf();
+  src->remove(*dest);
 
   return 0;
 }
@@ -264,7 +297,7 @@ int APIDownstreamConnection::error_method_not_allowed() {
 
   resp.fs.add_header_token(StringRef::from_lit("allow"), StringRef{iov.base, p},
                            false, -1);
-  return send_reply(405, API_FAILURE);
+  return send_reply(405, APIStatusCode::FAILURE);
 }
 
 int APIDownstreamConnection::push_upload_data_chunk(const uint8_t *data,
@@ -273,17 +306,25 @@ int APIDownstreamConnection::push_upload_data_chunk(const uint8_t *data,
     return 0;
   }
 
-  auto output = downstream_->get_request_buf();
-
+  auto &req = downstream_->request();
   auto &apiconf = get_config()->api;
 
-  if (output->rleft() + datalen > apiconf.max_request_body) {
-    send_reply(413, API_FAILURE);
+  if (static_cast<size_t>(req.recv_body_length) > apiconf.max_request_body) {
+    send_reply(413, APIStatusCode::FAILURE);
 
     return 0;
   }
 
-  output->append(data, datalen);
+  ssize_t nwrite;
+  while ((nwrite = write(fd_, data, datalen)) == -1 && errno == EINTR)
+    ;
+  if (nwrite == -1) {
+    auto error = errno;
+    LOG(ERROR) << "Could not write API request body: errno=" << error;
+    send_reply(500, APIStatusCode::FAILURE);
+
+    return 0;
+  }
 
   // We don't have to call Upstream::resume_read() here, because
   // request buffer is effectively unlimited.  Actually, we cannot
@@ -301,29 +342,21 @@ int APIDownstreamConnection::end_upload_data() {
 }
 
 int APIDownstreamConnection::handle_backendconfig() {
-  auto output = downstream_->get_request_buf();
+  auto &req = downstream_->request();
 
-  std::array<struct iovec, 2> iov;
-  auto iovcnt = output->riovec(iov.data(), 2);
-
-  if (iovcnt == 0) {
-    send_reply(200, API_SUCCESS);
+  if (req.recv_body_length == 0) {
+    send_reply(200, APIStatusCode::SUCCESS);
 
     return 0;
   }
 
-  std::unique_ptr<uint8_t[]> large_buf;
-
-  // If data spans in multiple chunks, pull them up into one
-  // contiguous buffer.
-  if (iovcnt > 1) {
-    large_buf = make_unique<uint8_t[]>(output->rleft());
-    auto len = output->rleft();
-    output->remove(large_buf.get(), len);
-
-    iov[0].iov_base = large_buf.get();
-    iov[0].iov_len = len;
+  auto rp = mmap(nullptr, req.recv_body_length, PROT_READ, MAP_SHARED, fd_, 0);
+  if (rp == reinterpret_cast<void *>(-1)) {
+    send_reply(500, APIStatusCode::FAILURE);
+    return 0;
   }
+
+  auto unmapper = defer(munmap, rp, req.recv_body_length);
 
   Config new_config{};
   new_config.conn.downstream = std::make_shared<DownstreamConfig>();
@@ -340,9 +373,10 @@ int APIDownstreamConnection::handle_backendconfig() {
   downstreamconf->family = src->family;
 
   std::set<StringRef> include_set;
+  std::map<StringRef, size_t> pattern_addr_indexer;
 
-  for (auto first = reinterpret_cast<const uint8_t *>(iov[0].iov_base),
-            last = first + iov[0].iov_len;
+  for (auto first = reinterpret_cast<const uint8_t *>(rp),
+            last = first + req.recv_body_length;
        first != last;) {
     auto eol = std::find(first, last, '\n');
     if (eol == last) {
@@ -356,7 +390,7 @@ int APIDownstreamConnection::handle_backendconfig() {
 
     auto eq = std::find(first, eol, '=');
     if (eq == eol) {
-      send_reply(400, API_FAILURE);
+      send_reply(400, APIStatusCode::FAILURE);
       return 0;
     }
 
@@ -373,8 +407,9 @@ int APIDownstreamConnection::handle_backendconfig() {
       continue;
     }
 
-    if (parse_config(&new_config, optid, opt, optval, include_set) != 0) {
-      send_reply(400, API_FAILURE);
+    if (parse_config(&new_config, optid, opt, optval, include_set,
+                     pattern_addr_indexer) != 0) {
+      send_reply(400, APIStatusCode::FAILURE);
       return 0;
     }
 
@@ -384,7 +419,7 @@ int APIDownstreamConnection::handle_backendconfig() {
   auto &tlsconf = config->tls;
   if (configure_downstream_group(&new_config, config->http2_proxy, true,
                                  tlsconf) != 0) {
-    send_reply(400, API_FAILURE);
+    send_reply(400, APIStatusCode::FAILURE);
     return 0;
   }
 
@@ -392,7 +427,7 @@ int APIDownstreamConnection::handle_backendconfig() {
 
   conn_handler->send_replace_downstream(downstreamconf);
 
-  send_reply(200, API_SUCCESS);
+  send_reply(200, APIStatusCode::SUCCESS);
 
   return 0;
 }
@@ -411,7 +446,7 @@ int APIDownstreamConnection::handle_configrevision() {
       util::make_string_ref_uint(balloc, config->config_revision),
       StringRef::from_lit("}"));
 
-  send_reply(200, API_SUCCESS, data);
+  send_reply(200, APIStatusCode::SUCCESS, data);
 
   return 0;
 }

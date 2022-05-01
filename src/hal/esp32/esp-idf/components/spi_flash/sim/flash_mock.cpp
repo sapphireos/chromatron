@@ -7,7 +7,7 @@
 #include "esp_partition.h"
 
 #include "esp_err.h"
-#include "rom/spi_flash.h"
+#include "esp32/rom/spi_flash.h"
 
 SpiFlash spiflash = SpiFlash();
 
@@ -21,7 +21,7 @@ size_t convert_chip_size_string(const char* chip_size_str)
     }
     else if (strcmp(chip_size_str, "2MB") == 0) {
         size = 0x200000;
-    } 
+    }
     else if (strcmp(chip_size_str, "4MB") == 0) {
         size = 0x400000;
     }
@@ -65,7 +65,7 @@ extern "C" void spi_flash_munmap(spi_flash_mmap_handle_t handle)
     return;
 }
 
-extern "C" int spi_flash_get_total_erase_cycles()
+extern "C" int spi_flash_get_total_erase_cycles(void)
 {
     return spiflash.get_total_erase_cycles();
 }
@@ -73,6 +73,11 @@ extern "C" int spi_flash_get_total_erase_cycles()
 extern "C" int spi_flash_get_erase_cycles(size_t sector)
 {
     return spiflash.get_erase_cycles(sector);
+}
+
+extern "C" esp_err_t bootloader_flash_unlock(void)
+{
+    return ESP_OK;
 }
 
 esp_rom_spiflash_result_t esp_rom_spiflash_read(uint32_t target, uint32_t *dest, int32_t len)
@@ -114,3 +119,5 @@ esp_rom_spiflash_result_t esp_rom_spiflash_write_disable(void)
 {
     return ESP_ROM_SPIFLASH_RESULT_OK;
 }
+
+esp_flash_t* esp_flash_default_chip = NULL;

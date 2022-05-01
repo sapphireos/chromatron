@@ -40,7 +40,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/lib \
 	-I$(top_srcdir)/src/includes \
 	-I$(top_srcdir)/third-party \
-	@LIBSPDYLAY_CFLAGS@ \
+	-I$(top_srcdir)/third-party/llhttp/include \
 	@LIBXML2_CFLAGS@ \
 	@LIBEV_CFLAGS@ \
 	@OPENSSL_CFLAGS@ \
@@ -50,9 +50,9 @@ AM_CPPFLAGS = \
 	@DEFS@
 
 LDADD = $(top_builddir)/lib/libnghttp2.la \
-	$(top_builddir)/third-party/libhttp-parser.la \
+	$(top_builddir)/third-party/liburl-parser.la \
+	$(top_builddir)/third-party/libllhttp.la \
 	@JEMALLOC_LIBS@ \
-	@LIBSPDYLAY_LIBS@ \
 	@LIBXML2_LIBS@ \
 	@LIBEV_LIBS@ \
 	@OPENSSL_LIBS@ \
@@ -96,10 +96,6 @@ h2load_SOURCES = util.cc util.h \
 	h2load_session.h \
 	h2load_http2_session.cc h2load_http2_session.h \
 	h2load_http1_session.cc h2load_http1_session.h
-
-if HAVE_SPDYLAY
-h2load_SOURCES += h2load_spdy_session.cc h2load_spdy_session.h
-endif # HAVE_SPDYLAY
 
 NGHTTPX_SRCS = \
 	util.cc util.h http2.cc http2.h timegm.c timegm.h base64.h \
@@ -147,10 +143,6 @@ NGHTTPX_SRCS = \
 	shrpx_dns_tracker.cc shrpx_dns_tracker.h \
 	buffer.h memchunk.h template.h allocator.h \
 	xsi_strerror.c xsi_strerror.h
-
-if HAVE_SPDYLAY
-NGHTTPX_SRCS += shrpx_spdy_upstream.cc shrpx_spdy_upstream.h
-endif # HAVE_SPDYLAY
 
 if HAVE_MRUBY
 NGHTTPX_SRCS += \
@@ -273,7 +265,8 @@ libnghttp2_asio_la_CPPFLAGS = ${AM_CPPFLAGS} ${BOOST_CPPFLAGS}
 libnghttp2_asio_la_LDFLAGS = -no-undefined -version-info 1:0:0
 libnghttp2_asio_la_LIBADD = \
 	$(top_builddir)/lib/libnghttp2.la \
-	$(top_builddir)/third-party/libhttp-parser.la \
+	$(top_builddir)/third-party/liburl-parser.la \
+	$(top_builddir)/third-party/libllhttp.la \
 	@OPENSSL_LIBS@ \
 	${BOOST_LDFLAGS} \
 	${BOOST_ASIO_LIB} \

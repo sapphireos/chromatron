@@ -6,9 +6,9 @@
 
 /*
  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
- * All rights reserved. 
- * 
- * Redistribution and use in source and binary forms, with or without modification, 
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -17,21 +17,21 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission. 
+ *    derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
  * This file is part of the lwIP TCP/IP stack.
- * 
+ *
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
@@ -50,8 +50,23 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "tcpip_adapter.h"
+#include "esp_netif.h"
+#include "esp_netif_net_stack.h"
+#include "esp_compiler.h"
 
+#if !ESP_L2_TO_L3_COPY
+/**
+ * @brief Free resources allocated in L2 layer
+ *
+ * @param buf memory alloc in L2 layer
+ * @note this function is also the callback when invoke pbuf_free
+ */
+static void lwip_netif_wifi_free_rx_buffer(struct netif *netif, void *buf)
+{
+    esp_netif_t *esp_netif = esp_netif_get_handle_from_netif_impl(netif);
+    esp_netif_free_rx_buffer(esp_netif, buf);
+}
+#endif
 
 /**
  * In this function, the hardware should be initialized.
@@ -81,8 +96,14 @@ low_level_init(struct netif *netif)
 #endif
 #endif
 
+#if ESP_IPV6
+#if LWIP_IPV6 && LWIP_IPV6_MLD
+  netif->flags |= NETIF_FLAG_MLD6;
+#endif
+#endif
+
 #if !ESP_L2_TO_L3_COPY
-  netif->l2_buffer_free_notify = esp_wifi_internal_free_rx_buffer;
+    netif->l2_buffer_free_notify = lwip_netif_wifi_free_rx_buffer;
 #endif
 }
 
@@ -104,16 +125,17 @@ low_level_init(struct netif *netif)
 static err_t ESP_IRAM_ATTR
 low_level_output(struct netif *netif, struct pbuf *p)
 {
-  wifi_interface_t wifi_if = tcpip_adapter_get_esp_if(netif);
-  struct pbuf *q = p;
-  err_t ret;
-
-  if (wifi_if >= ESP_IF_MAX) {
+  esp_netif_t *esp_netif = esp_netif_get_handle_from_netif_impl(netif);
+  if (esp_netif == NULL) {
     return ERR_IF;
   }
 
+  struct pbuf *q = p;
+  esp_err_t ret;
+
   if(q->next == NULL) {
-    ret = esp_wifi_internal_tx(wifi_if, q->payload, q->len);
+    ret = esp_netif_transmit_wrap(esp_netif, q->payload, q->len, q);
+
   } else {
     LWIP_DEBUGF(PBUF_DEBUG, ("low_level_output: pbuf is a list, application may has bug"));
     q = pbuf_alloc(PBUF_RAW_TX, p->tot_len, PBUF_RAM);
@@ -123,11 +145,20 @@ low_level_output(struct netif *netif, struct pbuf *p)
     } else {
       return ERR_MEM;
     }
-    ret = esp_wifi_internal_tx(wifi_if, q->payload, q->len);
+    ret = esp_netif_transmit_wrap(esp_netif, q->payload, q->len, q);
+
     pbuf_free(q);
   }
 
-  return ret;
+  if (ret == ESP_OK) {
+    return ERR_OK;
+  } else if (ret == ESP_ERR_NO_MEM) {
+    return ERR_MEM;
+  } else if (ret == ESP_ERR_INVALID_ARG) {
+    return ERR_ARG;
+  } else {
+    return ERR_IF;
+  }
 }
 
 /**
@@ -140,13 +171,15 @@ low_level_output(struct netif *netif, struct pbuf *p)
  * @param netif the lwip network interface structure for this ethernetif
  */
 void ESP_IRAM_ATTR
-wlanif_input(struct netif *netif, void *buffer, u16_t len, void* eb)
+wlanif_input(void *h, void *buffer, size_t len, void* eb)
 {
+  struct netif * netif = h;
+  esp_netif_t *esp_netif = esp_netif_get_handle_from_netif_impl(netif);
   struct pbuf *p;
 
-  if(!buffer || !netif_is_up(netif)) {
+  if(unlikely(!buffer || !netif_is_up(netif))) {
     if (eb) {
-      esp_wifi_internal_free_rx_buffer(eb);
+      esp_netif_free_rx_buffer(esp_netif, eb);
     }
     return;
   }
@@ -154,18 +187,16 @@ wlanif_input(struct netif *netif, void *buffer, u16_t len, void* eb)
 #if (ESP_L2_TO_L3_COPY == 1)
   p = pbuf_alloc(PBUF_RAW, len, PBUF_RAM);
   if (p == NULL) {
-    ESP_STATS_DROP_INC(esp.wlanif_input_pbuf_fail);
-    esp_wifi_internal_free_rx_buffer(eb);
+      esp_netif_free_rx_buffer(esp_netif, eb);
     return;
   }
   p->l2_owner = NULL;
   memcpy(p->payload, buffer, len);
-  esp_wifi_internal_free_rx_buffer(eb);
+  esp_netif_free_rx_buffer(esp_netif, eb);
 #else
   p = pbuf_alloc(PBUF_RAW, len, PBUF_REF);
   if (p == NULL){
-    ESP_STATS_DROP_INC(esp.wlanif_input_pbuf_fail);
-    esp_wifi_internal_free_rx_buffer(eb);
+    esp_netif_free_rx_buffer(esp_netif, eb);
     return;
   }
   p->payload = buffer;
@@ -174,7 +205,7 @@ wlanif_input(struct netif *netif, void *buffer, u16_t len, void* eb)
 #endif
 
   /* full packet send to tcpip_thread to process */
-  if (netif->input(p, netif) != ERR_OK) {
+  if (unlikely(netif->input(p, netif) != ERR_OK)) {
     LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
     pbuf_free(p);
   }
@@ -202,7 +233,9 @@ wlanif_init(struct netif *netif)
   /* Initialize interface hostname */
 
 #if ESP_LWIP
-  netif->hostname = "espressif";
+  if (esp_netif_get_hostname(esp_netif_get_handle_from_netif_impl(netif), &netif->hostname) != ESP_OK) {
+    netif->hostname = CONFIG_LWIP_LOCAL_HOSTNAME;
+  }
 #else
   netif->hostname = "lwip";
 #endif
@@ -243,5 +276,3 @@ err_t wlanif_init_ap(struct netif *netif) {
   netif->name[1] = 'p';
   return wlanif_init(netif);
 }
-
-

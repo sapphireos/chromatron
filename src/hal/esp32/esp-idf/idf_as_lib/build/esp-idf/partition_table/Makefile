@@ -68,6 +68,17 @@ install/local/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
 .PHONY : install/local/fast
 
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
+
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -100,17 +111,6 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
-
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
 
 # Special rule for the target install/strip
 install/strip: preinstall
@@ -157,6 +157,81 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/rule
+.PHONY : esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/rule
+
+# Convenience name for target.
+partition_table-flash: esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/rule
+
+.PHONY : partition_table-flash
+
+# fast build rule for target.
+partition_table-flash/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/build.make esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/build
+.PHONY : partition_table-flash/fast
+
+# Convenience name for target.
+esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/rule
+.PHONY : esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/rule
+
+# Convenience name for target.
+encrypted-partition-table-flash: esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/rule
+
+.PHONY : encrypted-partition-table-flash
+
+# fast build rule for target.
+encrypted-partition-table-flash/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/build.make esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/build
+.PHONY : encrypted-partition-table-flash/fast
+
+# Convenience name for target.
+esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/rule
+.PHONY : esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/rule
+
+# Convenience name for target.
+partition-table-flash: esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/rule
+
+.PHONY : partition-table-flash
+
+# fast build rule for target.
+partition-table-flash/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/build.make esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/build
+.PHONY : partition-table-flash/fast
+
+# Convenience name for target.
+esp-idf/partition_table/CMakeFiles/partition-table.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition-table.dir/rule
+.PHONY : esp-idf/partition_table/CMakeFiles/partition-table.dir/rule
+
+# Convenience name for target.
+partition-table: esp-idf/partition_table/CMakeFiles/partition-table.dir/rule
+
+.PHONY : partition-table
+
+# fast build rule for target.
+partition-table/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition-table.dir/build.make esp-idf/partition_table/CMakeFiles/partition-table.dir/build
+.PHONY : partition-table/fast
+
+# Convenience name for target.
+esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/rule
+.PHONY : esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/rule
+
+# Convenience name for target.
+partition_table_bin: esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/rule
+
+.PHONY : partition_table_bin
+
+# fast build rule for target.
+partition_table_bin/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/build.make esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/build
+.PHONY : partition_table_bin/fast
+
+# Convenience name for target.
 esp-idf/partition_table/CMakeFiles/partition_table.dir/rule:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition_table.dir/rule
 .PHONY : esp-idf/partition_table/CMakeFiles/partition_table.dir/rule
@@ -178,10 +253,15 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... install/local"
+	@echo "... edit_cache"
+	@echo "... partition_table-flash"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... edit_cache"
+	@echo "... encrypted-partition-table-flash"
+	@echo "... partition-table-flash"
+	@echo "... partition-table"
+	@echo "... partition_table_bin"
 	@echo "... install/strip"
 	@echo "... partition_table"
 .PHONY : help

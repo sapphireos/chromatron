@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <stdint.h>
 
@@ -19,18 +11,12 @@
 #include "btc_ble_mesh_config_model.h"
 #include "esp_ble_mesh_config_model_api.h"
 
+#if CONFIG_BLE_MESH_CFG_CLI
 esp_err_t esp_ble_mesh_register_config_client_callback(esp_ble_mesh_cfg_client_cb_t callback)
 {
     ESP_BLE_HOST_STATUS_CHECK(ESP_BLE_HOST_STATUS_ENABLED);
 
     return (btc_profile_cb_set(BTC_PID_CONFIG_CLIENT, callback) == 0 ? ESP_OK : ESP_FAIL);
-}
-
-esp_err_t esp_ble_mesh_register_config_server_callback(esp_ble_mesh_cfg_server_cb_t callback)
-{
-    ESP_BLE_HOST_STATUS_CHECK(ESP_BLE_HOST_STATUS_ENABLED);
-
-    return (btc_profile_cb_set(BTC_PID_CONFIG_SERVER, callback) == 0 ? ESP_OK : ESP_FAIL);
 }
 
 static bool config_client_get_need_param(esp_ble_mesh_opcode_t opcode)
@@ -53,13 +39,15 @@ static bool config_client_get_need_param(esp_ble_mesh_opcode_t opcode)
 }
 
 esp_err_t esp_ble_mesh_config_client_get_state(esp_ble_mesh_client_common_param_t *params,
-        esp_ble_mesh_cfg_client_get_state_t *get_state)
+                                               esp_ble_mesh_cfg_client_get_state_t *get_state)
 {
     btc_ble_mesh_config_client_args_t arg = {0};
     btc_msg_t msg = {0};
 
-    if (!params || !params->model || !ESP_BLE_MESH_ADDR_IS_UNICAST(params->ctx.addr) ||
-        (config_client_get_need_param(params->opcode) && !get_state)) {
+    if (params == NULL || params->model == NULL ||
+        params->ctx.net_idx == ESP_BLE_MESH_KEY_UNUSED ||
+        !ESP_BLE_MESH_ADDR_IS_UNICAST(params->ctx.addr) ||
+        (config_client_get_need_param(params->opcode) && get_state == NULL)) {
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -76,13 +64,15 @@ esp_err_t esp_ble_mesh_config_client_get_state(esp_ble_mesh_client_common_param_
 }
 
 esp_err_t esp_ble_mesh_config_client_set_state(esp_ble_mesh_client_common_param_t *params,
-        esp_ble_mesh_cfg_client_set_state_t *set_state)
+                                               esp_ble_mesh_cfg_client_set_state_t *set_state)
 {
     btc_ble_mesh_config_client_args_t arg = {0};
     btc_msg_t msg = {0};
 
-    if (!params || !params->model || !ESP_BLE_MESH_ADDR_IS_UNICAST(params->ctx.addr) ||
-        (params->opcode != ESP_BLE_MESH_MODEL_OP_NODE_RESET && !set_state)) {
+    if (params == NULL || params->model == NULL ||
+        params->ctx.net_idx == ESP_BLE_MESH_KEY_UNUSED ||
+        !ESP_BLE_MESH_ADDR_IS_UNICAST(params->ctx.addr) ||
+        (params->opcode != ESP_BLE_MESH_MODEL_OP_NODE_RESET && set_state == NULL)) {
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -96,4 +86,12 @@ esp_err_t esp_ble_mesh_config_client_set_state(esp_ble_mesh_client_common_param_
 
     return (btc_transfer_context(&msg, &arg, sizeof(btc_ble_mesh_config_client_args_t), btc_ble_mesh_config_client_arg_deep_copy)
             == BT_STATUS_SUCCESS ? ESP_OK : ESP_FAIL);
+}
+#endif /* CONFIG_BLE_MESH_CFG_CLI */
+
+esp_err_t esp_ble_mesh_register_config_server_callback(esp_ble_mesh_cfg_server_cb_t callback)
+{
+    ESP_BLE_HOST_STATUS_CHECK(ESP_BLE_HOST_STATUS_ENABLED);
+
+    return (btc_profile_cb_set(BTC_PID_CONFIG_SERVER, callback) == 0 ? ESP_OK : ESP_FAIL);
 }

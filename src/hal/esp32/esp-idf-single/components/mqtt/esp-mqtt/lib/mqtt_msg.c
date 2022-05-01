@@ -28,14 +28,14 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 */
-#include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
 #include "mqtt_msg.h"
 #include "mqtt_config.h"
 #include "platform.h"
 
 #define MQTT_MAX_FIXED_HEADER_SIZE 5
+#define MQTT_3_1_VARIABLE_HEADER_SIZE 12
+#define MQTT_3_1_1_VARIABLE_HEADER_SIZE 10
 
 enum mqtt_connect_flag {
     MQTT_CONNECT_FLAG_USERNAME = 1 << 7,
@@ -43,20 +43,6 @@ enum mqtt_connect_flag {
     MQTT_CONNECT_FLAG_WILL_RETAIN = 1 << 5,
     MQTT_CONNECT_FLAG_WILL = 1 << 2,
     MQTT_CONNECT_FLAG_CLEAN_SESSION = 1 << 1
-};
-
-struct __attribute((__packed__)) mqtt_connect_variable_header {
-    uint8_t lengthMsb;
-    uint8_t lengthLsb;
-#if defined(MQTT_PROTOCOL_311)
-    uint8_t magic[4];
-#else
-    uint8_t magic[6];
-#endif
-    uint8_t version;
-    uint8_t flags;
-    uint8_t keepaliveMsb;
-    uint8_t keepaliveLsb;
 };
 
 static int append_string(mqtt_connection_t *connection, const char *string, int len)
@@ -78,7 +64,11 @@ static uint16_t append_message_id(mqtt_connection_t *connection, uint16_t messag
     // If message_id is zero then we should assign one, otherwise
     // we'll use the one supplied by the caller
     while (message_id == 0) {
+#if MQTT_MSG_ID_INCREMENTAL
+        message_id = ++connection->last_message_id;
+#else
         message_id = platform_random(65535);
+#endif
     }
 
     if (connection->message.length + 2 > connection->buffer_length) {
@@ -147,17 +137,17 @@ static mqtt_message_t *fini_message(mqtt_connection_t *connection, int type, int
     return &connection->message;
 }
 
-void mqtt_msg_init(mqtt_connection_t *connection, uint8_t *buffer, uint16_t buffer_length)
+void mqtt_msg_init(mqtt_connection_t *connection, uint8_t *buffer, size_t buffer_length)
 {
     memset(connection, 0, sizeof(mqtt_connection_t));
     connection->buffer = buffer;
     connection->buffer_length = buffer_length;
 }
 
-uint32_t mqtt_get_total_length(uint8_t *buffer, uint16_t length, int *fixed_size_len)
+size_t mqtt_get_total_length(const uint8_t *buffer, size_t length, int *fixed_size_len)
 {
     int i;
-    uint32_t totlen = 0;
+    size_t totlen = 0;
 
     for (i = 1; i < length; ++i) {
         totlen += (buffer[i] & 0x7f) << (7 * (i - 1));
@@ -174,7 +164,7 @@ uint32_t mqtt_get_total_length(uint8_t *buffer, uint16_t length, int *fixed_size
     return totlen;
 }
 
-bool mqtt_header_complete(uint8_t *buffer, uint16_t buffer_length)
+bool mqtt_header_complete(uint8_t *buffer, size_t buffer_length)
 {
     uint16_t i;
     uint16_t topiclen;
@@ -205,7 +195,7 @@ bool mqtt_header_complete(uint8_t *buffer, uint16_t buffer_length)
     return buffer_length >= i;
 }
 
-char *mqtt_get_publish_topic(uint8_t *buffer, uint32_t *length)
+char *mqtt_get_publish_topic(uint8_t *buffer, size_t *length)
 {
     int i;
     int totlen = 0;
@@ -234,7 +224,7 @@ char *mqtt_get_publish_topic(uint8_t *buffer, uint32_t *length)
     return (char *)(buffer + i);
 }
 
-char *mqtt_get_publish_data(uint8_t *buffer, uint32_t *length)
+char *mqtt_get_publish_data(uint8_t *buffer, size_t *length)
 {
     int i;
     int totlen = 0;
@@ -282,7 +272,7 @@ char *mqtt_get_publish_data(uint8_t *buffer, uint32_t *length)
     return (char *)(buffer + i);
 }
 
-uint16_t mqtt_get_id(uint8_t *buffer, uint16_t length)
+uint16_t mqtt_get_id(uint8_t *buffer, size_t length)
 {
     if (length < 1) {
         return 0;
@@ -346,33 +336,45 @@ uint16_t mqtt_get_id(uint8_t *buffer, uint16_t length)
 
 mqtt_message_t *mqtt_msg_connect(mqtt_connection_t *connection, mqtt_connect_info_t *info)
 {
-    struct mqtt_connect_variable_header *variable_header;
 
     init_message(connection);
 
-    if (connection->message.length + sizeof(*variable_header) > connection->buffer_length) {
+    int header_len;
+    if (info->protocol_ver == MQTT_PROTOCOL_V_3_1) {
+        header_len = MQTT_3_1_VARIABLE_HEADER_SIZE;
+    } else {
+        header_len = MQTT_3_1_1_VARIABLE_HEADER_SIZE;
+    }
+
+    if (connection->message.length + header_len > connection->buffer_length) {
         return fail_message(connection);
     }
-    variable_header = (void *)(connection->buffer + connection->message.length);
-    connection->message.length += sizeof(*variable_header);
+    char* variable_header = (void *)(connection->buffer + connection->message.length);
+    connection->message.length += header_len;
 
-    variable_header->lengthMsb = 0;
-#if defined(CONFIG_MQTT_PROTOCOL_311)
-    variable_header->lengthLsb = 4;
-    memcpy(variable_header->magic, "MQTT", 4);
-    variable_header->version = 4;
-#else
-    variable_header->lengthLsb = 6;
-    memcpy(variable_header->magic, "MQIsdp", 6);
-    variable_header->version = 3;
-#endif
+    int header_idx = 0;
+    variable_header[header_idx++] = 0;                              // Variable header length MSB
 
-    variable_header->flags = 0;
-    variable_header->keepaliveMsb = info->keepalive >> 8;
-    variable_header->keepaliveLsb = info->keepalive & 0xff;
+    if (info->protocol_ver == MQTT_PROTOCOL_V_3_1) {
+        variable_header[header_idx++] = 6;                          // Variable header length LSB
+        memcpy(&variable_header[header_idx], "MQIsdp", 6);          // Protocol name
+        header_idx = header_idx + 6;
+        variable_header[header_idx++] = 3;                          // Protocol version
+    } else {
+        /* Defaults to protocol version 3.1.1 values */
+        variable_header[header_idx++] = 4;                          // Variable header length LSB
+        memcpy(&variable_header[header_idx], "MQTT", 4);            // Protocol name
+        header_idx = header_idx + 4;
+        variable_header[header_idx++] = 4;                          // Protocol version
+    }
+
+    int flags_offset = header_idx;
+    variable_header[header_idx++] = 0;                              // Flags
+    variable_header[header_idx++] = info->keepalive >> 8;           // Keep-alive MSB
+    variable_header[header_idx] = info->keepalive & 0xff;         // Keep-alive LSB
 
     if (info->clean_session) {
-        variable_header->flags |= MQTT_CONNECT_FLAG_CLEAN_SESSION;
+        variable_header[flags_offset] |= MQTT_CONNECT_FLAG_CLEAN_SESSION;
     }
 
     if (info->client_id != NULL && info->client_id[0] != '\0') {
@@ -392,11 +394,11 @@ mqtt_message_t *mqtt_msg_connect(mqtt_connection_t *connection, mqtt_connect_inf
             return fail_message(connection);
         }
 
-        variable_header->flags |= MQTT_CONNECT_FLAG_WILL;
+        variable_header[flags_offset] |= MQTT_CONNECT_FLAG_WILL;
         if (info->will_retain) {
-            variable_header->flags |= MQTT_CONNECT_FLAG_WILL_RETAIN;
+            variable_header[flags_offset] |= MQTT_CONNECT_FLAG_WILL_RETAIN;
         }
-        variable_header->flags |= (info->will_qos & 3) << 3;
+        variable_header[flags_offset] |= (info->will_qos & 3) << 3;
     }
 
     if (info->username != NULL && info->username[0] != '\0') {
@@ -404,15 +406,26 @@ mqtt_message_t *mqtt_msg_connect(mqtt_connection_t *connection, mqtt_connect_inf
             return fail_message(connection);
         }
 
-        variable_header->flags |= MQTT_CONNECT_FLAG_USERNAME;
+        variable_header[flags_offset] |= MQTT_CONNECT_FLAG_USERNAME;
     }
 
     if (info->password != NULL && info->password[0] != '\0') {
+        if (info->username == NULL || info->username[0] == '\0') {
+            /* In case if password is set without username, we need to set a zero length username.
+             * (otherwise we violate: MQTT-3.1.2-22: If the User Name Flag is set to 0 then the Password Flag MUST be set to 0.)
+             */
+            if (append_string(connection, "", 0) < 0) {
+                return fail_message(connection);
+            }
+
+            variable_header[flags_offset] |= MQTT_CONNECT_FLAG_USERNAME;
+        }
+
         if (append_string(connection, info->password, strlen(info->password)) < 0) {
             return fail_message(connection);
         }
 
-        variable_header->flags |= MQTT_CONNECT_FLAG_PASSWORD;
+        variable_header[flags_offset] |= MQTT_CONNECT_FLAG_PASSWORD;
     }
 
     return fini_message(connection, MQTT_MSG_TYPE_CONNECT, 0, 0, 0);
@@ -560,7 +573,7 @@ mqtt_message_t *mqtt_msg_disconnect(mqtt_connection_t *connection)
  * check flags: [MQTT-2.2.2-1], [MQTT-2.2.2-2]
  * returns 0 if flags are invalid, otherwise returns 1
  */
-int mqtt_has_valid_msg_hdr(uint8_t *buffer, uint16_t length)
+int mqtt_has_valid_msg_hdr(uint8_t *buffer, size_t length)
 {
     int qos, dup;
 

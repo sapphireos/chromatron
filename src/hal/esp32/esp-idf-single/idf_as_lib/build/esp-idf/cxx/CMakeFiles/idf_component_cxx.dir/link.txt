@@ -1,2 +1,0 @@
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc libcxx.a  CMakeFiles/idf_component_cxx.dir/cxx_exception_stubs.cpp.obj CMakeFiles/idf_component_cxx.dir/cxx_guards.cpp.obj
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/1.22.0-80-g6c4433a-5.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib libcxx.a

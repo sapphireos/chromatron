@@ -28,7 +28,15 @@
 #include "nghttp2_config.h"
 
 #include <limits.h>
-#include <sys/uio.h>
+#ifdef _WIN32
+/* Structure for scatter/gather I/O.  */
+struct iovec {
+  void *iov_base; /* Pointer to data.  */
+  size_t iov_len; /* Length of data.  */
+};
+#else // !_WIN32
+#  include <sys/uio.h>
+#endif // !_WIN32
 
 #include <cassert>
 #include <cstring>
@@ -36,6 +44,7 @@
 #include <array>
 #include <algorithm>
 #include <string>
+#include <utility>
 
 #include "template.h"
 
@@ -44,9 +53,9 @@ namespace nghttp2 {
 #define DEFAULT_WR_IOVCNT 16
 
 #if defined(IOV_MAX) && IOV_MAX < DEFAULT_WR_IOVCNT
-#define MAX_WR_IOVCNT IOV_MAX
+#  define MAX_WR_IOVCNT IOV_MAX
 #else // !defined(IOV_MAX) || IOV_MAX >= DEFAULT_WR_IOVCNT
-#define MAX_WR_IOVCNT DEFAULT_WR_IOVCNT
+#  define MAX_WR_IOVCNT DEFAULT_WR_IOVCNT
 #endif // !defined(IOV_MAX) || IOV_MAX >= DEFAULT_WR_IOVCNT
 
 template <size_t N> struct Memchunk {
@@ -103,11 +112,10 @@ template <typename Memchunk> struct Memchunks {
       : pool(pool), head(nullptr), tail(nullptr), len(0) {}
   Memchunks(const Memchunks &) = delete;
   Memchunks(Memchunks &&other) noexcept
-      : pool(other.pool), head(other.head), tail(other.tail), len(other.len) {
-    // keep other.pool
-    other.head = other.tail = nullptr;
-    other.len = 0;
-  }
+      : pool{other.pool}, // keep other.pool
+        head{std::exchange(other.head, nullptr)},
+        tail{std::exchange(other.tail, nullptr)},
+        len{std::exchange(other.len, 0)} {}
   Memchunks &operator=(const Memchunks &) = delete;
   Memchunks &operator=(Memchunks &&other) noexcept {
     if (this == &other) {
@@ -117,12 +125,9 @@ template <typename Memchunk> struct Memchunks {
     reset();
 
     pool = other.pool;
-    head = other.head;
-    tail = other.tail;
-    len = other.len;
-
-    other.head = other.tail = nullptr;
-    other.len = 0;
+    head = std::exchange(other.head, nullptr);
+    tail = std::exchange(other.tail, nullptr);
+    len = std::exchange(other.len, 0);
 
     return *this;
   }
@@ -181,6 +186,14 @@ template <typename Memchunk> struct Memchunks {
   size_t append(const StringRef &s) { return append(s.c_str(), s.size()); }
   size_t append(const ImmutableString &s) {
     return append(s.c_str(), s.size());
+  }
+  size_t copy(Memchunks &dest) {
+    auto m = head;
+    while (m) {
+      dest.append(m->pos, m->len());
+      m = m->next;
+    }
+    return len;
   }
   size_t remove(void *dest, size_t count) {
     if (!tail || count == 0) {
@@ -243,6 +256,29 @@ template <typename Memchunk> struct Memchunks {
 
     return count - left;
   }
+  size_t remove(Memchunks &dest) {
+    assert(pool == dest.pool);
+
+    if (head == nullptr) {
+      return 0;
+    }
+
+    auto n = len;
+
+    if (dest.tail == nullptr) {
+      dest.head = head;
+    } else {
+      dest.tail->next = head;
+    }
+
+    dest.tail = tail;
+    dest.len += len;
+
+    head = tail = nullptr;
+    len = 0;
+
+    return n;
+  }
   size_t drain(size_t count) {
     auto ndata = count;
     auto m = head;
@@ -304,14 +340,12 @@ template <typename Memchunk> struct PeekMemchunks {
         peeking(true) {}
   PeekMemchunks(const PeekMemchunks &) = delete;
   PeekMemchunks(PeekMemchunks &&other) noexcept
-      : memchunks(std::move(other.memchunks)),
-        cur(other.cur),
-        cur_pos(other.cur_pos),
-        cur_last(other.cur_last),
-        len(other.len),
-        peeking(other.peeking) {
-    other.reset();
-  }
+      : memchunks{std::move(other.memchunks)},
+        cur{std::exchange(other.cur, nullptr)},
+        cur_pos{std::exchange(other.cur_pos, nullptr)},
+        cur_last{std::exchange(other.cur_last, nullptr)},
+        len{std::exchange(other.len, 0)},
+        peeking{std::exchange(other.peeking, true)} {}
   PeekMemchunks &operator=(const PeekMemchunks &) = delete;
   PeekMemchunks &operator=(PeekMemchunks &&other) noexcept {
     if (this == &other) {
@@ -319,13 +353,11 @@ template <typename Memchunk> struct PeekMemchunks {
     }
 
     memchunks = std::move(other.memchunks);
-    cur = other.cur;
-    cur_pos = other.cur_pos;
-    cur_last = other.cur_last;
-    len = other.len;
-    peeking = other.peeking;
-
-    other.reset();
+    cur = std::exchange(other.cur, nullptr);
+    cur_pos = std::exchange(other.cur_pos, nullptr);
+    cur_last = std::exchange(other.cur_last, nullptr);
+    len = std::exchange(other.len, 0);
+    peeking = std::exchange(other.peeking, true);
 
     return *this;
   }

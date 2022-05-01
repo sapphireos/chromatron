@@ -23,7 +23,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
@@ -55,13 +55,13 @@ int main() {
 
   /* initialize the CUnit test registry */
   if (CUE_SUCCESS != CU_initialize_registry())
-    return CU_get_error();
+    return (int)CU_get_error();
 
   /* add a suite to the registry */
   pSuite = CU_add_suite("libnghttp2_TestSuite", init_suite1, clean_suite1);
   if (NULL == pSuite) {
     CU_cleanup_registry();
-    return CU_get_error();
+    return (int)CU_get_error();
   }
 
   /* add the tests to the suite */
@@ -87,8 +87,12 @@ int main() {
                    test_nghttp2_session_recv_continuation) ||
       !CU_add_test(pSuite, "session_recv_headers_with_priority",
                    test_nghttp2_session_recv_headers_with_priority) ||
+      !CU_add_test(pSuite, "session_recv_headers_with_padding",
+                   test_nghttp2_session_recv_headers_with_padding) ||
       !CU_add_test(pSuite, "session_recv_headers_early_response",
                    test_nghttp2_session_recv_headers_early_response) ||
+      !CU_add_test(pSuite, "session_recv_headers_for_closed_stream",
+                   test_nghttp2_session_recv_headers_for_closed_stream) ||
       !CU_add_test(pSuite, "session_server_recv_push_response",
                    test_nghttp2_session_server_recv_push_response) ||
       !CU_add_test(pSuite, "session_recv_premature_headers",
@@ -105,6 +109,8 @@ int main() {
                    test_nghttp2_session_recv_extension) ||
       !CU_add_test(pSuite, "session_recv_altsvc",
                    test_nghttp2_session_recv_altsvc) ||
+      !CU_add_test(pSuite, "session_recv_origin",
+                   test_nghttp2_session_recv_origin) ||
       !CU_add_test(pSuite, "session_continue", test_nghttp2_session_continue) ||
       !CU_add_test(pSuite, "session_add_frame",
                    test_nghttp2_session_add_frame) ||
@@ -204,6 +210,7 @@ int main() {
                    test_nghttp2_submit_invalid_nv) ||
       !CU_add_test(pSuite, "submit_extension", test_nghttp2_submit_extension) ||
       !CU_add_test(pSuite, "submit_altsvc", test_nghttp2_submit_altsvc) ||
+      !CU_add_test(pSuite, "submit_origin", test_nghttp2_submit_origin) ||
       !CU_add_test(pSuite, "session_open_stream",
                    test_nghttp2_session_open_stream) ||
       !CU_add_test(pSuite, "session_open_stream_with_idle_stream_dep",
@@ -300,6 +307,8 @@ int main() {
       !CU_add_test(pSuite, "session_flooding", test_nghttp2_session_flooding) ||
       !CU_add_test(pSuite, "session_change_stream_priority",
                    test_nghttp2_session_change_stream_priority) ||
+      !CU_add_test(pSuite, "session_create_idle_stream",
+                   test_nghttp2_session_create_idle_stream) ||
       !CU_add_test(pSuite, "session_repeated_priority_change",
                    test_nghttp2_session_repeated_priority_change) ||
       !CU_add_test(pSuite, "session_repeated_priority_submission",
@@ -308,12 +317,16 @@ int main() {
                    test_nghttp2_session_set_local_window_size) ||
       !CU_add_test(pSuite, "session_cancel_from_before_frame_send",
                    test_nghttp2_session_cancel_from_before_frame_send) ||
+      !CU_add_test(pSuite, "session_too_many_settings",
+                   test_nghttp2_session_too_many_settings) ||
       !CU_add_test(pSuite, "session_removed_closed_stream",
                    test_nghttp2_session_removed_closed_stream) ||
       !CU_add_test(pSuite, "session_pause_data",
                    test_nghttp2_session_pause_data) ||
       !CU_add_test(pSuite, "session_no_closed_streams",
                    test_nghttp2_session_no_closed_streams) ||
+      !CU_add_test(pSuite, "session_set_stream_user_data",
+                   test_nghttp2_session_set_stream_user_data) ||
       !CU_add_test(pSuite, "http_mandatory_headers",
                    test_nghttp2_http_mandatory_headers) ||
       !CU_add_test(pSuite, "http_content_length",
@@ -353,6 +366,8 @@ int main() {
                    test_nghttp2_frame_pack_window_update) ||
       !CU_add_test(pSuite, "frame_pack_altsvc",
                    test_nghttp2_frame_pack_altsvc) ||
+      !CU_add_test(pSuite, "frame_pack_origin",
+                   test_nghttp2_frame_pack_origin) ||
       !CU_add_test(pSuite, "nv_array_copy", test_nghttp2_nv_array_copy) ||
       !CU_add_test(pSuite, "iv_check", test_nghttp2_iv_check) ||
       !CU_add_test(pSuite, "hd_deflate", test_nghttp2_hd_deflate) ||
@@ -391,6 +406,7 @@ int main() {
                    test_nghttp2_hd_deflate_hd_vec) ||
       !CU_add_test(pSuite, "hd_decode_length", test_nghttp2_hd_decode_length) ||
       !CU_add_test(pSuite, "hd_huff_encode", test_nghttp2_hd_huff_encode) ||
+      !CU_add_test(pSuite, "hd_huff_decode", test_nghttp2_hd_huff_decode) ||
       !CU_add_test(pSuite, "adjust_local_window_size",
                    test_nghttp2_adjust_local_window_size) ||
       !CU_add_test(pSuite, "check_header_name",
@@ -409,7 +425,7 @@ int main() {
                    test_nghttp2_bufs_next_present) ||
       !CU_add_test(pSuite, "bufs_realloc", test_nghttp2_bufs_realloc)) {
     CU_cleanup_registry();
-    return CU_get_error();
+    return (int)CU_get_error();
   }
 
   /* Run all tests using the CUnit Basic interface */
@@ -421,6 +437,6 @@ int main() {
     return (int)num_tests_failed;
   } else {
     printf("CUnit Error: %s\n", CU_get_error_msg());
-    return CU_get_error();
+    return (int)CU_get_error();
   }
 }

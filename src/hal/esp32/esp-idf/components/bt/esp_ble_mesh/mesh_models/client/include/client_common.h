@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef _CLIENT_COMMON_H_
 #define _CLIENT_COMMON_H_
@@ -23,8 +15,8 @@ extern "C" {
 
 /** Client model opcode pair table */
 typedef struct {
-    u32_t cli_op;       /* Client message opcode */
-    u32_t status_op;    /* Corresponding status message opcode */
+    uint32_t cli_op;    /* Client message opcode */
+    uint32_t status_op; /* Corresponding status message opcode */
 } bt_mesh_client_op_pair_t;
 
 /** Client model user data context */
@@ -49,13 +41,13 @@ typedef struct {
      *
      * @return None
      */
-    void (*publish_status)(u32_t opcode, struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, struct net_buf_simple *buf);
+    void (*publish_status)(uint32_t opcode, struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, struct net_buf_simple *buf);
 
     /** Pointer to the internal data of client model */
     void *internal_data;
 
     /** Role of the device to which the client model belongs */
-    u8_t msg_role;
+    uint8_t msg_role;
 } bt_mesh_client_user_data_t;
 
 /** Client model internal data context */
@@ -67,19 +59,19 @@ typedef struct  {
 typedef struct {
     sys_snode_t client_node;
     struct bt_mesh_msg_ctx ctx;     /* Message context */
-    u32_t opcode;                   /* Message opcode */
-    u32_t op_pending;               /* Expected status message opcode */
-    s32_t timeout;                  /* Calculated message timeout value */
+    uint32_t opcode;                /* Message opcode */
+    uint32_t op_pending;            /* Expected status message opcode */
+    int32_t  timeout;               /* Calculated message timeout value */
     struct k_delayed_work timer;    /* Time used to get response. Only for internal use. */
 } bt_mesh_client_node_t;
 
 /** Client model sending message parameters */
 typedef struct {
-    u32_t opcode;                       /* Message opcode */
+    uint32_t opcode;                    /* Message opcode */
     struct bt_mesh_model *model;        /* Pointer to the client model */
     struct bt_mesh_msg_ctx ctx;         /* Message context */
-    s32_t msg_timeout;                  /* Time to get corresponding response */
-    u8_t  msg_role;                     /* Role (Node/Provisioner) of the device */
+    int32_t msg_timeout;                /* Time to get corresponding response */
+    uint8_t msg_role;                   /* Role (Node/Provisioner) of the device */
     const struct bt_mesh_send_cb *cb;   /* User defined callback function */
     void *cb_data;                      /* User defined callback value */
 } bt_mesh_client_common_param_t;
@@ -121,11 +113,10 @@ int bt_mesh_client_clear_list(void *data);
  *
  * @return Zero - success, otherwise - fail
  */
-int bt_mesh_set_client_model_role(struct bt_mesh_model *model, u8_t role);
+int bt_mesh_set_client_model_role(struct bt_mesh_model *model, uint8_t role);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* _CLIENT_COMMON_H_ */
-

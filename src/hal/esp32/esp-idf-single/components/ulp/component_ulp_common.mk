@@ -26,7 +26,10 @@ ULP_PREPROCESSOR_ARGS := \
 
 # Check the assembler version
 include $(IDF_PATH)/components/ulp/toolchain_ulp_version.mk
-ULP_AS_VER := $(shell $(ULP_AS) --version | sed -E -n 's|GNU assembler \(GNU Binutils\) ([a-z0-9\.-]+)|\1|gp')
+# $(ULP_AS) --version output might be localized, for example the first line could be
+# "Ensamblador (GNU Binutils) 2.28.51-esp-20191205 de GNU" instead of
+# "GNU assembler (GNU Binutils) 2.28.51-esp-20191205".
+ULP_AS_VER := $(shell $(ULP_AS) --version | sed -E -n 's/.+ \(GNU Binutils\) ([a-z0-9\.-]+)( .*)?/\1/gp')
 
 $(info Building ULP app $(ULP_APP_NAME))
 $(info ULP assembler version: $(ULP_AS_VER))
@@ -43,7 +46,7 @@ $(ULP_LD_SCRIPT): $(ULP_LD_TEMPLATE)
 	$(CC) $(CPPFLAGS) -MT $(ULP_LD_SCRIPT) -E -P -xc -o $@ $(ULP_PREPROCESSOR_ARGS) $<
 
 # Generate preprocessed assembly files.
-# To inspect these preprocessed files, add a ".PRECIOUS: %.ulp.pS" rule. 
+# To inspect these preprocessed files, add a ".PRECIOUS: %.ulp.pS" rule.
 %.ulp.pS: $(COMPONENT_PATH)/ulp/%.S
 	$(summary) CPP $(patsubst $(PWD)/%,%,$<)
 	$(CC) $(CPPFLAGS) -MT $(patsubst %.ulp.pS,%.ulp.o,$@) -E -P -xc -o $@ $(ULP_PREPROCESSOR_ARGS) $<
@@ -62,13 +65,13 @@ $(ULP_ELF): $(ULP_OBJECTS) $(ULP_LD_SCRIPT)
 $(ULP_SYM): $(ULP_ELF)
 	$(ULP_NM) -g -f posix $< > $@
 
-# Dump the binary for inclusion into the project 
+# Dump the binary for inclusion into the project
 $(COMPONENT_BUILD_DIR)/$(ULP_BIN): $(ULP_ELF)
 	$(summary) ULP_BIN $(patsubst $(PWD)/%,%,$@)
 	$(ULP_OBJCOPY) -O binary $< $@
 
 # Left and right side of the rule are the same, but the right side
-# is given as an absolute path.  
+# is given as an absolute path.
 # (Make can not resolve such things automatically)
 $(ULP_EXPORTS_HEADER): $(COMPONENT_BUILD_DIR)/$(ULP_EXPORTS_HEADER)
 
@@ -84,16 +87,16 @@ $(COMPONENT_NAME)_ulp_mapgen_intermediate: $(ULP_SYM)
 	$(ULP_MAP_GEN) -s $(ULP_SYM) -o $(ULP_EXPORTS_LD:.ld=)
 
 # Building the component separately from the project should result in
-# ULP files being built.  
+# ULP files being built.
 build: $(COMPONENT_BUILD_DIR)/$(ULP_EXPORTS_HEADER) \
 	$(COMPONENT_BUILD_DIR)/$(ULP_EXPORTS_LD) \
 	$(COMPONENT_BUILD_DIR)/$(ULP_BIN)
 
 # Objects listed as being dependent on $(ULP_EXPORTS_HEADER) must also
-# depend on $(ULP_SYM), to order build steps correctly. 
+# depend on $(ULP_SYM), to order build steps correctly.
 $(ULP_EXP_DEP_OBJECTS) : $(ULP_EXPORTS_HEADER) $(ULP_SYM)
 
-# Finally, set all the variables processed by the build system. 
+# Finally, set all the variables processed by the build system.
 COMPONENT_EXTRA_CLEAN += $(ULP_OBJECTS) \
 			$(ULP_LD_SCRIPT) \
 			$(ULP_PREPROCESSED) \

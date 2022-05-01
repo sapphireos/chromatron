@@ -8,14 +8,11 @@ set_source_files_properties(${cxx_sources} PROPERTIES
   COMPILE_FLAGS "${WARNCXXFLAGS} ${CXX1XCXXFLAGS}")
 
 include_directories(
-  "${CMAKE_SOURCE_DIR}/lib/includes"
-  "${CMAKE_BINARY_DIR}/lib/includes"
-  "${CMAKE_SOURCE_DIR}/lib"
-  "${CMAKE_SOURCE_DIR}/src/includes"
-  "${CMAKE_SOURCE_DIR}/third-party"
+  "${CMAKE_CURRENT_SOURCE_DIR}/includes"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third-party"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../third-party/llhttp/include"
 
   ${JEMALLOC_INCLUDE_DIRS}
-  ${SPDYLAY_INCLUDE_DIRS}
   ${LIBXML2_INCLUDE_DIRS}
   ${LIBEV_INCLUDE_DIRS}
   ${OPENSSL_INCLUDE_DIRS}
@@ -28,7 +25,6 @@ include_directories(
 link_libraries(
   nghttp2
   ${JEMALLOC_LIBRARIES}
-  ${SPDYLAY_LIBRARIES}
   ${LIBXML2_LIBRARIES}
   ${LIBEV_LIBRARIES}
   ${OPENSSL_LIBRARIES}
@@ -71,11 +67,6 @@ if(ENABLE_APP)
     h2load_http2_session.cc
     h2load_http1_session.cc
   )
-  if(HAVE_SPDYLAY)
-    list(APPEND H2LOAD_SOURCES
-      h2load_spdy_session.cc
-    )
-  endif()
 
 
   # Common libnhttpx sources (used for nghttpx and unit tests)
@@ -119,11 +110,6 @@ if(ENABLE_APP)
     shrpx_dns_tracker.cc
     xsi_strerror.c
   )
-  if(HAVE_SPDYLAY)
-    list(APPEND NGHTTPX_SRCS
-      shrpx_spdy_upstream.cc
-    )
-  endif()
   if(HAVE_MRUBY)
     list(APPEND NGHTTPX_SRCS
       shrpx_mruby.cc
@@ -139,6 +125,12 @@ if(ENABLE_APP)
   set(NGHTTPX-bin_SOURCES
     shrpx.cc
   )
+
+  if(HAVE_SYSTEMD)
+    target_link_libraries(nghttpx_static ${SYSTEMD_LIBRARIES})
+    target_compile_definitions(nghttpx_static PUBLIC HAVE_LIBSYSTEMD)
+    target_include_directories(nghttpx_static PUBLIC ${SYSTEMD_INCLUDE_DIRS})
+  endif()
 
   if(HAVE_MRUBY)
     target_link_libraries(nghttpx_static mruby-lib)
@@ -169,7 +161,8 @@ if(ENABLE_APP)
     )
     add_executable(nghttpx-unittest EXCLUDE_FROM_ALL
       ${NGHTTPX_UNITTEST_SOURCES}
-      $<TARGET_OBJECTS:http-parser>
+      $<TARGET_OBJECTS:llhttp>
+      $<TARGET_OBJECTS:url-parser>
     )
     target_include_directories(nghttpx-unittest PRIVATE ${CUNIT_INCLUDE_DIRS})
     target_compile_definitions(nghttpx-unittest
@@ -187,12 +180,20 @@ if(ENABLE_APP)
     add_dependencies(check nghttpx-unittest)
   endif()
 
-  add_executable(nghttp   ${NGHTTP_SOURCES}   $<TARGET_OBJECTS:http-parser>)
-  add_executable(nghttpd  ${NGHTTPD_SOURCES}  $<TARGET_OBJECTS:http-parser>)
-  add_executable(nghttpx  ${NGHTTPX-bin_SOURCES} $<TARGET_OBJECTS:http-parser>)
+  add_executable(nghttp   ${NGHTTP_SOURCES}   $<TARGET_OBJECTS:llhttp>
+    $<TARGET_OBJECTS:url-parser>
+  )
+  add_executable(nghttpd  ${NGHTTPD_SOURCES}  $<TARGET_OBJECTS:llhttp>
+    $<TARGET_OBJECTS:url-parser>
+  )
+  add_executable(nghttpx  ${NGHTTPX-bin_SOURCES} $<TARGET_OBJECTS:llhttp>
+    $<TARGET_OBJECTS:url-parser>
+  )
   target_compile_definitions(nghttpx PRIVATE "-DPKGDATADIR=\"${PKGDATADIR}\"")
   target_link_libraries(nghttpx nghttpx_static)
-  add_executable(h2load   ${H2LOAD_SOURCES}   $<TARGET_OBJECTS:http-parser>)
+  add_executable(h2load   ${H2LOAD_SOURCES}   $<TARGET_OBJECTS:llhttp>
+    $<TARGET_OBJECTS:url-parser>
+  )
 
   install(TARGETS nghttp nghttpd nghttpx h2load
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
@@ -246,11 +247,17 @@ if(ENABLE_ASIO_LIB)
 
   add_library(nghttp2_asio SHARED
      ${NGHTTP2_ASIO_SOURCES}
-     $<TARGET_OBJECTS:http-parser>
+     $<TARGET_OBJECTS:llhttp>
+     $<TARGET_OBJECTS:url-parser>
   )
   target_include_directories(nghttp2_asio PRIVATE
     ${OPENSSL_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
+  )
+  target_include_directories(nghttp2_asio INTERFACE
+    "${CMAKE_CURRENT_BINARY_DIR}/../lib/includes"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../lib/includes"
+    "${CMAKE_CURRENT_SOURCE_DIR}/includes"
   )
   target_link_libraries(nghttp2_asio
     nghttp2
@@ -261,7 +268,9 @@ if(ENABLE_ASIO_LIB)
     VERSION 1.0.0 SOVERSION 1)
 
   install(TARGETS nghttp2_asio
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libnghttp2_asio.pc"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")

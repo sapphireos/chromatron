@@ -797,11 +797,29 @@ PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    if( sys_mode == SYS_MODE_SAFE ){
+
+        // in safe mode, reboot after short delay, without signalling a shutdown
+        // to the rest of the system (in case there is a crash in shutdown handling)
+
+        TMR_WAIT( pt, 1000 );
+
+        reboot();
+    }
+
     shutting_down = TRUE;
 
     catbus_v_shutdown();
     kv_v_shutdown();
-    log_v_info_P( PSTR("Shutting down...") );
+
+    if( boot_data.loader_command == LDR_CMD_LOAD_FW ){
+
+        log_v_info_P( PSTR("Shutting down for firmware update...") );
+    }
+    else{
+
+        log_v_info_P( PSTR("Shutting down...") );
+    }
     
     while( reboot_delay > 0 ){
 

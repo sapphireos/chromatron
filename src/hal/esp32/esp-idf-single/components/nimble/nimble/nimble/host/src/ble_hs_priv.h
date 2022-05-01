@@ -114,9 +114,9 @@ int ble_hs_hci_evt_acl_process(struct os_mbuf *om);
 int ble_hs_misc_conn_chan_find(uint16_t conn_handle, uint16_t cid,
                                struct ble_hs_conn **out_conn,
                                struct ble_l2cap_chan **out_chan);
-void ble_hs_misc_conn_chan_find_reqd(uint16_t conn_handle, uint16_t cid,
-                                     struct ble_hs_conn **out_conn,
-                                     struct ble_l2cap_chan **out_chan);
+int ble_hs_misc_conn_chan_find_reqd(uint16_t conn_handle, uint16_t cid,
+                                    struct ble_hs_conn **out_conn,
+                                    struct ble_l2cap_chan **out_chan);
 uint8_t ble_hs_misc_addr_type_to_id(uint8_t addr_type);
 int ble_hs_misc_restore_irks(void);
 
@@ -131,10 +131,6 @@ void ble_hs_timer_resched(void);
 void ble_hs_notifications_sched(void);
 struct ble_npl_eventq *ble_hs_evq_get(void);
 void ble_hs_stop_init(void);
-
-int
-ble_sm_alg_encrypt(uint8_t *key, uint8_t *plaintext, uint8_t *enc_data);
-
 
 struct ble_mqueue {
     STAILQ_HEAD(, os_mbuf_pkthdr) head;

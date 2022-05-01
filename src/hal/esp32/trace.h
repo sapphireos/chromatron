@@ -28,7 +28,7 @@ int dummy_printf(const char* format, ...);
 #include "target.h"
 
 #ifdef BOOTLOADER
-    #include "rom/ets_sys.h"
+    #include "esp32/rom/ets_sys.h"
     #define trace_printf ets_printf
 #else
     #ifdef ENABLE_TRACE

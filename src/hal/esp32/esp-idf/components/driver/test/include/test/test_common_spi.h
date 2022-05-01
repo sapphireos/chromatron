@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #ifndef _TEST_COMMON_SPI_H_
 #define _TEST_COMMON_SPI_H_
 
@@ -10,19 +15,111 @@
 #include "test_utils.h"
 #include <string.h>
 #include "param_test.h"
+#include "soc/io_mux_reg.h"
+#include "sdkconfig.h"
+#include "soc/spi_periph.h"
 
 // All the tests using the header should use this definition as much as possible,
 // so that the working host can be changed easily in the future.
-#define TEST_SPI_HOST   HSPI_HOST
-#define TEST_SLAVE_HOST VSPI_HOST
+#if CONFIG_IDF_TARGET_ESP32
+#define TEST_SPI_HOST           SPI2_HOST
+#define TEST_SLAVE_HOST         SPI3_HOST
+
+#define PIN_NUM_MISO            SPI2_IOMUX_PIN_NUM_MISO
+#define PIN_NUM_MOSI            SPI2_IOMUX_PIN_NUM_MOSI
+#define PIN_NUM_CLK             SPI2_IOMUX_PIN_NUM_CLK
+#define PIN_NUM_CS              SPI2_IOMUX_PIN_NUM_CS
+#define PIN_NUM_WP              SPI2_IOMUX_PIN_NUM_WP
+#define PIN_NUM_HD              SPI2_IOMUX_PIN_NUM_HD
+
+#define MASTER_IOMUX_PIN_MISO   SPI2_IOMUX_PIN_NUM_MISO
+#define MASTER_IOMUX_PIN_MOSI   SPI2_IOMUX_PIN_NUM_MOSI
+#define MASTER_IOMUX_PIN_SCLK   SPI2_IOMUX_PIN_NUM_CLK
+#define MASTER_IOMUX_PIN_CS     SPI2_IOMUX_PIN_NUM_CS
+#define MASTER_IOMUX_PIN_WP     SPI2_IOMUX_PIN_NUM_WP
+#define MASTER_IOMUX_PIN_HD     SPI2_IOMUX_PIN_NUM_HD
+
+#define SLAVE_IOMUX_PIN_MISO    SPI3_IOMUX_PIN_NUM_MISO
+#define SLAVE_IOMUX_PIN_MOSI    SPI3_IOMUX_PIN_NUM_MOSI
+#define SLAVE_IOMUX_PIN_SCLK    SPI3_IOMUX_PIN_NUM_CLK
+#define SLAVE_IOMUX_PIN_CS      SPI3_IOMUX_PIN_NUM_CS
+#define SLAVE_IOMUX_PIN_WP      SPI3_IOMUX_PIN_NUM_WP
+#define SLAVE_IOMUX_PIN_HD      SPI3_IOMUX_PIN_NUM_HD
+
+#define UNCONNECTED_PIN         27
+#define INPUT_ONLY_PIN          34
+#define GPIO_DELAY              (12.5*2)
+#define ESP_SPI_SLAVE_TV        (12.5*3.5)
+#define WIRE_DELAY              12.5
+
+#elif CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
+#define TEST_SPI_HOST           SPI2_HOST
+#define TEST_SLAVE_HOST         SPI3_HOST
+
+#define PIN_NUM_MISO            SPI2_IOMUX_PIN_NUM_MISO
+#define PIN_NUM_MOSI            SPI2_IOMUX_PIN_NUM_MOSI
+#define PIN_NUM_CLK             SPI2_IOMUX_PIN_NUM_CLK
+#define PIN_NUM_CS              SPI2_IOMUX_PIN_NUM_CS
+#define PIN_NUM_WP              SPI2_IOMUX_PIN_NUM_WP
+#define PIN_NUM_HD              SPI2_IOMUX_PIN_NUM_HD
+
+#define MASTER_IOMUX_PIN_MISO   SPI2_IOMUX_PIN_NUM_MISO
+#define MASTER_IOMUX_PIN_MOSI   SPI2_IOMUX_PIN_NUM_MOSI
+#define MASTER_IOMUX_PIN_SCLK   SPI2_IOMUX_PIN_NUM_CLK
+#define MASTER_IOMUX_PIN_CS     SPI2_IOMUX_PIN_NUM_CS
+#define MASTER_IOMUX_PIN_WP     SPI2_IOMUX_PIN_NUM_WP
+#define MASTER_IOMUX_PIN_HD     SPI2_IOMUX_PIN_NUM_HD
+
+#define SLAVE_IOMUX_PIN_MISO    -1
+#define SLAVE_IOMUX_PIN_MOSI    -1
+#define SLAVE_IOMUX_PIN_SCLK    -1
+#define SLAVE_IOMUX_PIN_CS      -1
+#define SLAVE_IOMUX_PIN_NUM_WP  -1
+#define SLAVE_IOMUX_PIN_NUM_HD  -1
+
+#define UNCONNECTED_PIN         41
+#define INPUT_ONLY_PIN          46
+#define GPIO_DELAY              0
+#define ESP_SPI_SLAVE_TV        0
+#define WIRE_DELAY              12.5
+
+#elif CONFIG_IDF_TARGET_ESP32C3
+//NOTE: On esp32c3, there is only 1 GPSPI controller, so master-slave test on single board should be disabled
+#define TEST_SPI_HOST           SPI2_HOST
+#define TEST_SLAVE_HOST         SPI2_HOST
+
+#define PIN_NUM_MISO            SPI2_IOMUX_PIN_NUM_MISO
+#define PIN_NUM_MOSI            SPI2_IOMUX_PIN_NUM_MOSI
+#define PIN_NUM_CLK             SPI2_IOMUX_PIN_NUM_CLK
+#define PIN_NUM_CS              SPI2_IOMUX_PIN_NUM_CS
+#define PIN_NUM_WP              SPI2_IOMUX_PIN_NUM_WP
+#define PIN_NUM_HD              SPI2_IOMUX_PIN_NUM_HD
+
+#define SLAVE_IOMUX_PIN_MISO    SPI2_IOMUX_PIN_NUM_MISO
+#define SLAVE_IOMUX_PIN_MOSI    SPI2_IOMUX_PIN_NUM_MOSI
+#define SLAVE_IOMUX_PIN_SCLK    SPI2_IOMUX_PIN_NUM_CLK
+#define SLAVE_IOMUX_PIN_CS      SPI2_IOMUX_PIN_NUM_CS
+
+#define MASTER_IOMUX_PIN_MISO   SPI2_IOMUX_PIN_NUM_MISO
+#define MASTER_IOMUX_PIN_MOSI   SPI2_IOMUX_PIN_NUM_MOSI
+#define MASTER_IOMUX_PIN_SCLK   SPI2_IOMUX_PIN_NUM_CLK
+#define MASTER_IOMUX_PIN_CS     SPI2_IOMUX_PIN_NUM_CS
+
+#define GPIO_DELAY              0
+#define ESP_SPI_SLAVE_TV        0
+#define WIRE_DELAY              12.5
+#endif
+
+#define GET_DMA_CHAN(HOST)      (HOST)
+
+#define TEST_DMA_CHAN_MASTER    GET_DMA_CHAN(TEST_SPI_HOST)
+#define TEST_DMA_CHAN_SLAVE     GET_DMA_CHAN(TEST_SLAVE_HOST)
+
 
 #define FUNC_SPI    1
-#define FUNC_GPIO   2
+#define FUNC_GPIO   PIN_FUNC_GPIO
 
 //Delay information
-#define ESP_SPI_SLAVE_TV    (12.5*3.5)
-#define GPIO_DELAY          (12.5*2)
-#define WIRE_DELAY        12.5
 #define TV_INT_CONNECT_GPIO     (ESP_SPI_SLAVE_TV+GPIO_DELAY)
 #define TV_INT_CONNECT          (ESP_SPI_SLAVE_TV)
 //when connecting to another board, the delay is usually increased by 12.5ns
@@ -37,7 +134,7 @@
 #define PSET_NAME_LEN   30  ///< length of each param set name
 
 //test low frequency, high frequency until freq limit for worst case (both GPIO)
-#define TEST_FREQ_DEFAULT(){\
+#define TEST_FREQ_DEFAULT(){    \
         1*1000*1000,            \
         SPI_MASTER_FREQ_8M ,    \
         SPI_MASTER_FREQ_9M ,    \
@@ -51,11 +148,6 @@
         SPI_MASTER_FREQ_80M,    \
         0,\
     }
-
-#define PIN_NUM_MISO    HSPI_IOMUX_PIN_NUM_MISO
-#define PIN_NUM_MOSI    HSPI_IOMUX_PIN_NUM_MOSI
-#define PIN_NUM_CLK     HSPI_IOMUX_PIN_NUM_CLK
-#define PIN_NUM_CS      HSPI_IOMUX_PIN_NUM_CS
 
 //default bus config for tests
 #define SPI_BUS_TEST_DEFAULT_CONFIG() {\
@@ -170,6 +262,16 @@ void spitest_slave_print_data(slave_rxdata_t *t, bool print_rxdata);
 // Check whether master and slave data match
 esp_err_t spitest_check_data(int len, spi_transaction_t *master_t, slave_rxdata_t *slave_t, bool check_master_data, bool check_slave_len, bool check_slave_data);
 
+#define spitest_cmp_or_dump(expected, actual, len) ({\
+    int r = memcmp(expected, actual, len);\
+    if (r != 0) {\
+        ESP_LOG_BUFFER_HEXDUMP("expected", expected, len, ESP_LOG_INFO);\
+        ESP_LOG_BUFFER_HEXDUMP("actual", actual, len, ESP_LOG_WARN);\
+        TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, actual, len);\
+    }\
+    r;\
+})
+
 static inline int get_trans_len(spi_dup_t dup, spi_transaction_t *master_t)
 {
     if (dup!=HALF_DUPLEX_MISO) {
@@ -184,4 +286,15 @@ void master_free_device_bus(spi_device_handle_t spi);
 //use this function to fix the output source when assign multiple funcitons to a same pin
 void spitest_gpio_output_sel(uint32_t gpio_num, int func, uint32_t signal_idx);
 
+//use this function to fix the input source when assign multiple funcitons to a same pin
+void spitest_gpio_input_sel(uint32_t gpio_num, int func, uint32_t signal_idx);
+
+//Note this cs_num is the ID of the connected devices' ID, e.g. if 2 devices are connected to the bus,
+//then the cs_num of the 1st and 2nd devices are 0 and 1 respectively.
+void same_pin_func_sel(spi_bus_config_t bus, spi_device_interface_config_t dev, uint8_t cs_num);
+
+/**
+ * This function is used to get tx_buffer used in dual-board test
+ */
+void get_tx_buffer(uint32_t seed, uint8_t *master_send_buf, uint8_t *slave_send_buf, int send_buf_size);
 #endif  //_TEST_COMMON_SPI_H_

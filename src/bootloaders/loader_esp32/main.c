@@ -77,7 +77,7 @@ Generic mode:
 #include "bootloader_config.h"
 #include "bootloader_init.h"
 #include "bootloader_utility.h"
-#include "rom/rtc.h"
+#include "esp32/rom/rtc.h"
 #include "soc/rtc_wdt.h"
 
 // bootloader shared memory

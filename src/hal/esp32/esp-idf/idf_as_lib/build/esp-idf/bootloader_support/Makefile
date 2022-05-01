@@ -80,17 +80,6 @@ install/local/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
 .PHONY : install/local/fast
 
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -123,6 +112,17 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
+
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -157,61 +157,46 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support_sections_info.dir/rule
-.PHONY : esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support_sections_info.dir/rule
+esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/rule
+.PHONY : esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/rule
 
 # Convenience name for target.
-idf_component_bootloader_support_sections_info: esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support_sections_info.dir/rule
+__idf_bootloader_support: esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/rule
 
-.PHONY : idf_component_bootloader_support_sections_info
+.PHONY : __idf_bootloader_support
 
 # fast build rule for target.
-idf_component_bootloader_support_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support_sections_info.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support_sections_info.dir/build
-.PHONY : idf_component_bootloader_support_sections_info/fast
+__idf_bootloader_support/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build
+.PHONY : __idf_bootloader_support/fast
 
-# Convenience name for target.
-esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/rule
-.PHONY : esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/rule
+src/bootloader_clock_init.obj: src/bootloader_clock_init.c.obj
 
-# Convenience name for target.
-idf_component_bootloader_support: esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/rule
-
-.PHONY : idf_component_bootloader_support
-
-# fast build rule for target.
-idf_component_bootloader_support/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build
-.PHONY : idf_component_bootloader_support/fast
-
-src/bootloader_clock.obj: src/bootloader_clock.c.obj
-
-.PHONY : src/bootloader_clock.obj
+.PHONY : src/bootloader_clock_init.obj
 
 # target to build an object file
-src/bootloader_clock.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_clock.c.obj
-.PHONY : src/bootloader_clock.c.obj
+src/bootloader_clock_init.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_clock_init.c.obj
+.PHONY : src/bootloader_clock_init.c.obj
 
-src/bootloader_clock.i: src/bootloader_clock.c.i
+src/bootloader_clock_init.i: src/bootloader_clock_init.c.i
 
-.PHONY : src/bootloader_clock.i
+.PHONY : src/bootloader_clock_init.i
 
 # target to preprocess a source file
-src/bootloader_clock.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_clock.c.i
-.PHONY : src/bootloader_clock.c.i
+src/bootloader_clock_init.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_clock_init.c.i
+.PHONY : src/bootloader_clock_init.c.i
 
-src/bootloader_clock.s: src/bootloader_clock.c.s
+src/bootloader_clock_init.s: src/bootloader_clock_init.c.s
 
-.PHONY : src/bootloader_clock.s
+.PHONY : src/bootloader_clock_init.s
 
 # target to generate assembly for a file
-src/bootloader_clock.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_clock.c.s
-.PHONY : src/bootloader_clock.c.s
+src/bootloader_clock_init.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_clock_init.c.s
+.PHONY : src/bootloader_clock_init.c.s
 
 src/bootloader_common.obj: src/bootloader_common.c.obj
 
@@ -219,7 +204,7 @@ src/bootloader_common.obj: src/bootloader_common.c.obj
 
 # target to build an object file
 src/bootloader_common.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_common.c.obj
 .PHONY : src/bootloader_common.c.obj
 
 src/bootloader_common.i: src/bootloader_common.c.i
@@ -228,7 +213,7 @@ src/bootloader_common.i: src/bootloader_common.c.i
 
 # target to preprocess a source file
 src/bootloader_common.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_common.c.i
 .PHONY : src/bootloader_common.c.i
 
 src/bootloader_common.s: src/bootloader_common.c.s
@@ -237,8 +222,62 @@ src/bootloader_common.s: src/bootloader_common.c.s
 
 # target to generate assembly for a file
 src/bootloader_common.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_common.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_common.c.s
 .PHONY : src/bootloader_common.c.s
+
+src/bootloader_common_loader.obj: src/bootloader_common_loader.c.obj
+
+.PHONY : src/bootloader_common_loader.obj
+
+# target to build an object file
+src/bootloader_common_loader.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_common_loader.c.obj
+.PHONY : src/bootloader_common_loader.c.obj
+
+src/bootloader_common_loader.i: src/bootloader_common_loader.c.i
+
+.PHONY : src/bootloader_common_loader.i
+
+# target to preprocess a source file
+src/bootloader_common_loader.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_common_loader.c.i
+.PHONY : src/bootloader_common_loader.c.i
+
+src/bootloader_common_loader.s: src/bootloader_common_loader.c.s
+
+.PHONY : src/bootloader_common_loader.s
+
+# target to generate assembly for a file
+src/bootloader_common_loader.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_common_loader.c.s
+.PHONY : src/bootloader_common_loader.c.s
+
+src/bootloader_efuse_esp32.obj: src/bootloader_efuse_esp32.c.obj
+
+.PHONY : src/bootloader_efuse_esp32.obj
+
+# target to build an object file
+src/bootloader_efuse_esp32.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_efuse_esp32.c.obj
+.PHONY : src/bootloader_efuse_esp32.c.obj
+
+src/bootloader_efuse_esp32.i: src/bootloader_efuse_esp32.c.i
+
+.PHONY : src/bootloader_efuse_esp32.i
+
+# target to preprocess a source file
+src/bootloader_efuse_esp32.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_efuse_esp32.c.i
+.PHONY : src/bootloader_efuse_esp32.c.i
+
+src/bootloader_efuse_esp32.s: src/bootloader_efuse_esp32.c.s
+
+.PHONY : src/bootloader_efuse_esp32.s
+
+# target to generate assembly for a file
+src/bootloader_efuse_esp32.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_efuse_esp32.c.s
+.PHONY : src/bootloader_efuse_esp32.c.s
 
 src/bootloader_flash.obj: src/bootloader_flash.c.obj
 
@@ -246,7 +285,7 @@ src/bootloader_flash.obj: src/bootloader_flash.c.obj
 
 # target to build an object file
 src/bootloader_flash.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_flash.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_flash.c.obj
 .PHONY : src/bootloader_flash.c.obj
 
 src/bootloader_flash.i: src/bootloader_flash.c.i
@@ -255,7 +294,7 @@ src/bootloader_flash.i: src/bootloader_flash.c.i
 
 # target to preprocess a source file
 src/bootloader_flash.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_flash.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_flash.c.i
 .PHONY : src/bootloader_flash.c.i
 
 src/bootloader_flash.s: src/bootloader_flash.c.s
@@ -264,35 +303,62 @@ src/bootloader_flash.s: src/bootloader_flash.c.s
 
 # target to generate assembly for a file
 src/bootloader_flash.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_flash.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_flash.c.s
 .PHONY : src/bootloader_flash.c.s
 
-src/bootloader_flash_config.obj: src/bootloader_flash_config.c.obj
+src/bootloader_flash_config_esp32.obj: src/bootloader_flash_config_esp32.c.obj
 
-.PHONY : src/bootloader_flash_config.obj
+.PHONY : src/bootloader_flash_config_esp32.obj
 
 # target to build an object file
-src/bootloader_flash_config.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_flash_config.c.obj
-.PHONY : src/bootloader_flash_config.c.obj
+src/bootloader_flash_config_esp32.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_flash_config_esp32.c.obj
+.PHONY : src/bootloader_flash_config_esp32.c.obj
 
-src/bootloader_flash_config.i: src/bootloader_flash_config.c.i
+src/bootloader_flash_config_esp32.i: src/bootloader_flash_config_esp32.c.i
 
-.PHONY : src/bootloader_flash_config.i
+.PHONY : src/bootloader_flash_config_esp32.i
 
 # target to preprocess a source file
-src/bootloader_flash_config.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_flash_config.c.i
-.PHONY : src/bootloader_flash_config.c.i
+src/bootloader_flash_config_esp32.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_flash_config_esp32.c.i
+.PHONY : src/bootloader_flash_config_esp32.c.i
 
-src/bootloader_flash_config.s: src/bootloader_flash_config.c.s
+src/bootloader_flash_config_esp32.s: src/bootloader_flash_config_esp32.c.s
 
-.PHONY : src/bootloader_flash_config.s
+.PHONY : src/bootloader_flash_config_esp32.s
 
 # target to generate assembly for a file
-src/bootloader_flash_config.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_flash_config.c.s
-.PHONY : src/bootloader_flash_config.c.s
+src/bootloader_flash_config_esp32.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_flash_config_esp32.c.s
+.PHONY : src/bootloader_flash_config_esp32.c.s
+
+src/bootloader_mem.obj: src/bootloader_mem.c.obj
+
+.PHONY : src/bootloader_mem.obj
+
+# target to build an object file
+src/bootloader_mem.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_mem.c.obj
+.PHONY : src/bootloader_mem.c.obj
+
+src/bootloader_mem.i: src/bootloader_mem.c.i
+
+.PHONY : src/bootloader_mem.i
+
+# target to preprocess a source file
+src/bootloader_mem.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_mem.c.i
+.PHONY : src/bootloader_mem.c.i
+
+src/bootloader_mem.s: src/bootloader_mem.c.s
+
+.PHONY : src/bootloader_mem.s
+
+# target to generate assembly for a file
+src/bootloader_mem.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_mem.c.s
+.PHONY : src/bootloader_mem.c.s
 
 src/bootloader_random.obj: src/bootloader_random.c.obj
 
@@ -300,7 +366,7 @@ src/bootloader_random.obj: src/bootloader_random.c.obj
 
 # target to build an object file
 src/bootloader_random.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_random.c.obj
 .PHONY : src/bootloader_random.c.obj
 
 src/bootloader_random.i: src/bootloader_random.c.i
@@ -309,7 +375,7 @@ src/bootloader_random.i: src/bootloader_random.c.i
 
 # target to preprocess a source file
 src/bootloader_random.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_random.c.i
 .PHONY : src/bootloader_random.c.i
 
 src/bootloader_random.s: src/bootloader_random.c.s
@@ -318,35 +384,35 @@ src/bootloader_random.s: src/bootloader_random.c.s
 
 # target to generate assembly for a file
 src/bootloader_random.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_random.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_random.c.s
 .PHONY : src/bootloader_random.c.s
 
-src/bootloader_sha.obj: src/bootloader_sha.c.obj
+src/bootloader_random_esp32.obj: src/bootloader_random_esp32.c.obj
 
-.PHONY : src/bootloader_sha.obj
+.PHONY : src/bootloader_random_esp32.obj
 
 # target to build an object file
-src/bootloader_sha.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_sha.c.obj
-.PHONY : src/bootloader_sha.c.obj
+src/bootloader_random_esp32.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_random_esp32.c.obj
+.PHONY : src/bootloader_random_esp32.c.obj
 
-src/bootloader_sha.i: src/bootloader_sha.c.i
+src/bootloader_random_esp32.i: src/bootloader_random_esp32.c.i
 
-.PHONY : src/bootloader_sha.i
+.PHONY : src/bootloader_random_esp32.i
 
 # target to preprocess a source file
-src/bootloader_sha.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_sha.c.i
-.PHONY : src/bootloader_sha.c.i
+src/bootloader_random_esp32.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_random_esp32.c.i
+.PHONY : src/bootloader_random_esp32.c.i
 
-src/bootloader_sha.s: src/bootloader_sha.c.s
+src/bootloader_random_esp32.s: src/bootloader_random_esp32.c.s
 
-.PHONY : src/bootloader_sha.s
+.PHONY : src/bootloader_random_esp32.s
 
 # target to generate assembly for a file
-src/bootloader_sha.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_sha.c.s
-.PHONY : src/bootloader_sha.c.s
+src/bootloader_random_esp32.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_random_esp32.c.s
+.PHONY : src/bootloader_random_esp32.c.s
 
 src/bootloader_utility.obj: src/bootloader_utility.c.obj
 
@@ -354,7 +420,7 @@ src/bootloader_utility.obj: src/bootloader_utility.c.obj
 
 # target to build an object file
 src/bootloader_utility.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_utility.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_utility.c.obj
 .PHONY : src/bootloader_utility.c.obj
 
 src/bootloader_utility.i: src/bootloader_utility.c.i
@@ -363,7 +429,7 @@ src/bootloader_utility.i: src/bootloader_utility.c.i
 
 # target to preprocess a source file
 src/bootloader_utility.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_utility.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_utility.c.i
 .PHONY : src/bootloader_utility.c.i
 
 src/bootloader_utility.s: src/bootloader_utility.c.s
@@ -372,7 +438,7 @@ src/bootloader_utility.s: src/bootloader_utility.c.s
 
 # target to generate assembly for a file
 src/bootloader_utility.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/bootloader_utility.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_utility.c.s
 .PHONY : src/bootloader_utility.c.s
 
 src/esp_image_format.obj: src/esp_image_format.c.obj
@@ -381,7 +447,7 @@ src/esp_image_format.obj: src/esp_image_format.c.obj
 
 # target to build an object file
 src/esp_image_format.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/esp_image_format.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/esp_image_format.c.obj
 .PHONY : src/esp_image_format.c.obj
 
 src/esp_image_format.i: src/esp_image_format.c.i
@@ -390,7 +456,7 @@ src/esp_image_format.i: src/esp_image_format.c.i
 
 # target to preprocess a source file
 src/esp_image_format.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/esp_image_format.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/esp_image_format.c.i
 .PHONY : src/esp_image_format.c.i
 
 src/esp_image_format.s: src/esp_image_format.c.s
@@ -399,7 +465,7 @@ src/esp_image_format.s: src/esp_image_format.c.s
 
 # target to generate assembly for a file
 src/esp_image_format.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/esp_image_format.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/esp_image_format.c.s
 .PHONY : src/esp_image_format.c.s
 
 src/flash_encrypt.obj: src/flash_encrypt.c.obj
@@ -408,7 +474,7 @@ src/flash_encrypt.obj: src/flash_encrypt.c.obj
 
 # target to build an object file
 src/flash_encrypt.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_encrypt.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_encrypt.c.obj
 .PHONY : src/flash_encrypt.c.obj
 
 src/flash_encrypt.i: src/flash_encrypt.c.i
@@ -417,7 +483,7 @@ src/flash_encrypt.i: src/flash_encrypt.c.i
 
 # target to preprocess a source file
 src/flash_encrypt.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_encrypt.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_encrypt.c.i
 .PHONY : src/flash_encrypt.c.i
 
 src/flash_encrypt.s: src/flash_encrypt.c.s
@@ -426,7 +492,7 @@ src/flash_encrypt.s: src/flash_encrypt.c.s
 
 # target to generate assembly for a file
 src/flash_encrypt.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_encrypt.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_encrypt.c.s
 .PHONY : src/flash_encrypt.c.s
 
 src/flash_partitions.obj: src/flash_partitions.c.obj
@@ -435,7 +501,7 @@ src/flash_partitions.obj: src/flash_partitions.c.obj
 
 # target to build an object file
 src/flash_partitions.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_partitions.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_partitions.c.obj
 .PHONY : src/flash_partitions.c.obj
 
 src/flash_partitions.i: src/flash_partitions.c.i
@@ -444,7 +510,7 @@ src/flash_partitions.i: src/flash_partitions.c.i
 
 # target to preprocess a source file
 src/flash_partitions.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_partitions.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_partitions.c.i
 .PHONY : src/flash_partitions.c.i
 
 src/flash_partitions.s: src/flash_partitions.c.s
@@ -453,7 +519,7 @@ src/flash_partitions.s: src/flash_partitions.c.s
 
 # target to generate assembly for a file
 src/flash_partitions.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_partitions.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_partitions.c.s
 .PHONY : src/flash_partitions.c.s
 
 src/flash_qio_mode.obj: src/flash_qio_mode.c.obj
@@ -462,7 +528,7 @@ src/flash_qio_mode.obj: src/flash_qio_mode.c.obj
 
 # target to build an object file
 src/flash_qio_mode.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_qio_mode.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_qio_mode.c.obj
 .PHONY : src/flash_qio_mode.c.obj
 
 src/flash_qio_mode.i: src/flash_qio_mode.c.i
@@ -471,7 +537,7 @@ src/flash_qio_mode.i: src/flash_qio_mode.c.i
 
 # target to preprocess a source file
 src/flash_qio_mode.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_qio_mode.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_qio_mode.c.i
 .PHONY : src/flash_qio_mode.c.i
 
 src/flash_qio_mode.s: src/flash_qio_mode.c.s
@@ -480,8 +546,35 @@ src/flash_qio_mode.s: src/flash_qio_mode.c.s
 
 # target to generate assembly for a file
 src/flash_qio_mode.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/flash_qio_mode.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_qio_mode.c.s
 .PHONY : src/flash_qio_mode.c.s
+
+src/idf/bootloader_sha.obj: src/idf/bootloader_sha.c.obj
+
+.PHONY : src/idf/bootloader_sha.obj
+
+# target to build an object file
+src/idf/bootloader_sha.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/idf/bootloader_sha.c.obj
+.PHONY : src/idf/bootloader_sha.c.obj
+
+src/idf/bootloader_sha.i: src/idf/bootloader_sha.c.i
+
+.PHONY : src/idf/bootloader_sha.i
+
+# target to preprocess a source file
+src/idf/bootloader_sha.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/idf/bootloader_sha.c.i
+.PHONY : src/idf/bootloader_sha.c.i
+
+src/idf/bootloader_sha.s: src/idf/bootloader_sha.c.s
+
+.PHONY : src/idf/bootloader_sha.s
+
+# target to generate assembly for a file
+src/idf/bootloader_sha.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/idf/bootloader_sha.c.s
+.PHONY : src/idf/bootloader_sha.c.s
 
 src/secure_boot.obj: src/secure_boot.c.obj
 
@@ -489,7 +582,7 @@ src/secure_boot.obj: src/secure_boot.c.obj
 
 # target to build an object file
 src/secure_boot.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/secure_boot.c.obj
 .PHONY : src/secure_boot.c.obj
 
 src/secure_boot.i: src/secure_boot.c.i
@@ -498,7 +591,7 @@ src/secure_boot.i: src/secure_boot.c.i
 
 # target to preprocess a source file
 src/secure_boot.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/secure_boot.c.i
 .PHONY : src/secure_boot.c.i
 
 src/secure_boot.s: src/secure_boot.c.s
@@ -507,35 +600,8 @@ src/secure_boot.s: src/secure_boot.c.s
 
 # target to generate assembly for a file
 src/secure_boot.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/secure_boot.c.s
 .PHONY : src/secure_boot.c.s
-
-src/secure_boot_signatures.obj: src/secure_boot_signatures.c.obj
-
-.PHONY : src/secure_boot_signatures.obj
-
-# target to build an object file
-src/secure_boot_signatures.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot_signatures.c.obj
-.PHONY : src/secure_boot_signatures.c.obj
-
-src/secure_boot_signatures.i: src/secure_boot_signatures.c.i
-
-.PHONY : src/secure_boot_signatures.i
-
-# target to preprocess a source file
-src/secure_boot_signatures.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot_signatures.c.i
-.PHONY : src/secure_boot_signatures.c.i
-
-src/secure_boot_signatures.s: src/secure_boot_signatures.c.s
-
-.PHONY : src/secure_boot_signatures.s
-
-# target to generate assembly for a file
-src/secure_boot_signatures.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/build.make esp-idf/bootloader_support/CMakeFiles/idf_component_bootloader_support.dir/src/secure_boot_signatures.c.s
-.PHONY : src/secure_boot_signatures.c.s
 
 # Help Target
 help:
@@ -545,30 +611,38 @@ help:
 	@echo "... depend"
 	@echo "... install/strip"
 	@echo "... install/local"
-	@echo "... edit_cache"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... idf_component_bootloader_support_sections_info"
-	@echo "... idf_component_bootloader_support"
-	@echo "... src/bootloader_clock.obj"
-	@echo "... src/bootloader_clock.i"
-	@echo "... src/bootloader_clock.s"
+	@echo "... edit_cache"
+	@echo "... __idf_bootloader_support"
+	@echo "... src/bootloader_clock_init.obj"
+	@echo "... src/bootloader_clock_init.i"
+	@echo "... src/bootloader_clock_init.s"
 	@echo "... src/bootloader_common.obj"
 	@echo "... src/bootloader_common.i"
 	@echo "... src/bootloader_common.s"
+	@echo "... src/bootloader_common_loader.obj"
+	@echo "... src/bootloader_common_loader.i"
+	@echo "... src/bootloader_common_loader.s"
+	@echo "... src/bootloader_efuse_esp32.obj"
+	@echo "... src/bootloader_efuse_esp32.i"
+	@echo "... src/bootloader_efuse_esp32.s"
 	@echo "... src/bootloader_flash.obj"
 	@echo "... src/bootloader_flash.i"
 	@echo "... src/bootloader_flash.s"
-	@echo "... src/bootloader_flash_config.obj"
-	@echo "... src/bootloader_flash_config.i"
-	@echo "... src/bootloader_flash_config.s"
+	@echo "... src/bootloader_flash_config_esp32.obj"
+	@echo "... src/bootloader_flash_config_esp32.i"
+	@echo "... src/bootloader_flash_config_esp32.s"
+	@echo "... src/bootloader_mem.obj"
+	@echo "... src/bootloader_mem.i"
+	@echo "... src/bootloader_mem.s"
 	@echo "... src/bootloader_random.obj"
 	@echo "... src/bootloader_random.i"
 	@echo "... src/bootloader_random.s"
-	@echo "... src/bootloader_sha.obj"
-	@echo "... src/bootloader_sha.i"
-	@echo "... src/bootloader_sha.s"
+	@echo "... src/bootloader_random_esp32.obj"
+	@echo "... src/bootloader_random_esp32.i"
+	@echo "... src/bootloader_random_esp32.s"
 	@echo "... src/bootloader_utility.obj"
 	@echo "... src/bootloader_utility.i"
 	@echo "... src/bootloader_utility.s"
@@ -584,12 +658,12 @@ help:
 	@echo "... src/flash_qio_mode.obj"
 	@echo "... src/flash_qio_mode.i"
 	@echo "... src/flash_qio_mode.s"
+	@echo "... src/idf/bootloader_sha.obj"
+	@echo "... src/idf/bootloader_sha.i"
+	@echo "... src/idf/bootloader_sha.s"
 	@echo "... src/secure_boot.obj"
 	@echo "... src/secure_boot.i"
 	@echo "... src/secure_boot.s"
-	@echo "... src/secure_boot_signatures.obj"
-	@echo "... src/secure_boot_signatures.i"
-	@echo "... src/secure_boot_signatures.s"
 .PHONY : help
 
 

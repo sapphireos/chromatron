@@ -54,7 +54,8 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 include CMakeFiles/confserver.dir/progress.make
 
 CMakeFiles/confserver:
-	/usr/bin/cmake -E env "COMPONENT_KCONFIGS= /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/Kconfig /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp32/Kconfig /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/log/Kconfig /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/spi_flash/Kconfig" "COMPONENT_KCONFIGS_PROJBUILD= /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/Kconfig.projbuild /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esptool_py/Kconfig.projbuild /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/Kconfig.projbuild" python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig_new/confserver.py --kconfig /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/Kconfig --config /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/sdkconfig
+	python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig_new/prepare_kconfig_files.py --env-file /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/config.env
+	python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/kconfig_new/confserver.py --env-file /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/config.env --kconfig /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/Kconfig --sdkconfig-rename /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/sdkconfig.rename --config /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/sdkconfig
 
 confserver: CMakeFiles/confserver
 confserver: CMakeFiles/confserver.dir/build.make

@@ -1,7 +1,20 @@
-set(COMPONENT_SRCS "vfs.c"
-                   "vfs_uart.c")
-set(COMPONENT_ADD_INCLUDEDIRS "include")
+idf_component_register(SRCS "vfs.c"
+                            "vfs_eventfd.c"
+                            "vfs_uart.c"
+                            "vfs_semihost.c"
+                            "vfs_console.c"
+                    INCLUDE_DIRS include
+                    PRIV_INCLUDE_DIRS private_include
+                    PRIV_REQUIRES driver)
 
-set(COMPONENT_REQUIRES)
+if(CONFIG_ESP_CONSOLE_USB_CDC)
+    target_sources(${COMPONENT_LIB} PRIVATE "vfs_cdcacm.c")
+endif()
 
-register_component()
+if(CONFIG_ESP_CONSOLE_SECONDARY_USB_SERIAL_JTAG OR CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG)
+    target_sources(${COMPONENT_LIB} PRIVATE "vfs_usb_serial_jtag.c")
+endif()
+
+# Some newlib syscalls are implemented in vfs.c, make sure these are always
+# seen by the linker
+target_link_libraries(${COMPONENT_LIB} INTERFACE "-u vfs_include_syscalls_impl")

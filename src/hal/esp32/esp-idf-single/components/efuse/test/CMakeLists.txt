@@ -1,6 +1,6 @@
-set(COMPONENT_SRCDIRS ".")
-set(COMPONENT_ADD_INCLUDEDIRS "." "include")
+idf_build_get_property(target IDF_TARGET)
 
-set(COMPONENT_REQUIRES unity test_utils efuse bootloader_support)
-
-register_component()
+idf_component_register(SRC_DIRS "."
+                       PRIV_INCLUDE_DIRS "." "include" "../private_include" ../${target}/private_include
+                       PRIV_REQUIRES cmock test_utils efuse bootloader_support
+                       )

@@ -1,4 +1,4 @@
-// Copyright 2010-2018 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2010-2019 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,65 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _ESP32_SOC_H_
-#define _ESP32_SOC_H_
+#pragma once
 
 #ifndef __ASSEMBLER__
 #include <stdint.h>
 #include "esp_assert.h"
 #endif
 
-//Register Bits{{
-#define BIT31   0x80000000
-#define BIT30   0x40000000
-#define BIT29   0x20000000
-#define BIT28   0x10000000
-#define BIT27   0x08000000
-#define BIT26   0x04000000
-#define BIT25   0x02000000
-#define BIT24   0x01000000
-#define BIT23   0x00800000
-#define BIT22   0x00400000
-#define BIT21   0x00200000
-#define BIT20   0x00100000
-#define BIT19   0x00080000
-#define BIT18   0x00040000
-#define BIT17   0x00020000
-#define BIT16   0x00010000
-#define BIT15   0x00008000
-#define BIT14   0x00004000
-#define BIT13   0x00002000
-#define BIT12   0x00001000
-#define BIT11   0x00000800
-#define BIT10   0x00000400
-#define BIT9     0x00000200
-#define BIT8     0x00000100
-#define BIT7     0x00000080
-#define BIT6     0x00000040
-#define BIT5     0x00000020
-#define BIT4     0x00000010
-#define BIT3     0x00000008
-#define BIT2     0x00000004
-#define BIT1     0x00000002
-#define BIT0     0x00000001
-//}}
+#include <esp_bit_defs.h>
 
 #define PRO_CPU_NUM (0)
 #define APP_CPU_NUM (1)
 
-/* Overall memory map */
-#define SOC_IROM_LOW            0x400D0000
-#define SOC_IROM_HIGH           0x40400000
-#define SOC_DROM_LOW            0x3F400000
-#define SOC_DROM_HIGH           0x3F800000
-#define SOC_DRAM_LOW            0x3FAE0000
-#define SOC_DRAM_HIGH           0x40000000
-#define SOC_RTC_IRAM_LOW        0x400C0000
-#define SOC_RTC_IRAM_HIGH       0x400C2000
-#define SOC_RTC_DATA_LOW        0x50000000
-#define SOC_RTC_DATA_HIGH       0x50002000
-#define SOC_EXTRAM_DATA_LOW     0x3F800000
-#define SOC_EXTRAM_DATA_HIGH    0x3FC00000
 
 #define SOC_MAX_CONTIGUOUS_RAM_SIZE 0x400000 ///< Largest span of contiguous memory (DRAM or IRAM) in the address space
 
@@ -111,7 +64,7 @@
 #define DR_REG_SPI_ENCRYPT_BASE                 0x3ff5B000
 #define DR_REG_NRX_BASE                         0x3ff5CC00
 #define DR_REG_BB_BASE                          0x3ff5D000
-#define DR_REG_PWM_BASE                         0x3ff5E000
+#define DR_REG_PWM0_BASE                        0x3ff5E000
 #define DR_REG_TIMERGROUP0_BASE                 0x3ff5F000
 #define DR_REG_TIMERGROUP1_BASE                 0x3ff60000
 #define DR_REG_RTCMEM0_BASE                     0x3ff61000
@@ -128,20 +81,12 @@
 #define DR_REG_PWM1_BASE                        0x3ff6C000
 #define DR_REG_I2S1_BASE                        0x3ff6D000
 #define DR_REG_UART2_BASE                       0x3ff6E000
-#define DR_REG_PWM2_BASE                        0x3ff6F000
-#define DR_REG_PWM3_BASE                        0x3ff70000
 #define PERIPHS_SPI_ENCRYPT_BASEADDR            DR_REG_SPI_ENCRYPT_BASE
 
 //Registers Operation {{
 #define ETS_UNCACHED_ADDR(addr) (addr)
 #define ETS_CACHED_ADDR(addr) (addr)
 
-#ifndef __ASSEMBLER__
-#define BIT(nr)                 (1UL << (nr))
-#define BIT64(nr)               (1ULL << (nr))
-#else
-#define BIT(nr)                 (1 << (nr))
-#endif
 
 #ifndef __ASSEMBLER__
 
@@ -273,7 +218,7 @@
 //Periheral Clock {{
 #define  APB_CLK_FREQ_ROM                            ( 26*1000000 )
 #define  CPU_CLK_FREQ_ROM                            APB_CLK_FREQ_ROM
-#define  CPU_CLK_FREQ                                APB_CLK_FREQ
+#define  CPU_CLK_FREQ                                APB_CLK_FREQ       //this may be incorrect, please refer to ESP32_DEFAULT_CPU_FREQ_MHZ
 #define  APB_CLK_FREQ                                ( 80*1000000 )       //unit: Hz
 #define  REF_CLK_FREQ                                ( 1000000 )
 #define  UART_CLK_FREQ                               APB_CLK_FREQ
@@ -281,33 +226,42 @@
 #define  TIMER_CLK_FREQ                              (80000000>>4) //80MHz divided by 16
 #define  SPI_CLK_DIV                                 4
 #define  TICKS_PER_US_ROM                            26              // CPU is 80MHz
+#define  GPIO_MATRIX_DELAY_NS                        25
 //}}
 
 /* Overall memory map */
-#define SOC_DROM_LOW    0x3F400000
-#define SOC_DROM_HIGH   0x3F800000
-#define SOC_IROM_LOW    0x400D0000
-#define SOC_IROM_HIGH   0x40400000
-#define SOC_IROM_MASK_LOW   0x40000000
-#define SOC_IROM_MASK_HIGH  0x40070000
-#define SOC_CACHE_PRO_LOW   0x40070000
-#define SOC_CACHE_PRO_HIGH  0x40078000
-#define SOC_CACHE_APP_LOW   0x40078000
-#define SOC_CACHE_APP_HIGH  0x40080000
-#define SOC_IRAM_LOW    0x40080000
-#define SOC_IRAM_HIGH   0x400A0000
-#define SOC_RTC_IRAM_LOW  0x400C0000
-#define SOC_RTC_IRAM_HIGH 0x400C2000
-#define SOC_RTC_DRAM_LOW  0x3FF80000
-#define SOC_RTC_DRAM_HIGH 0x3FF82000
-#define SOC_RTC_DATA_LOW  0x50000000
-#define SOC_RTC_DATA_HIGH 0x50002000
+#define SOC_DROM_LOW            0x3F400000
+#define SOC_DROM_HIGH           0x3F800000
+#define SOC_DRAM_LOW            0x3FFAE000
+#define SOC_DRAM_HIGH           0x40000000
+#define SOC_IROM_LOW            0x400D0000
+#define SOC_IROM_HIGH           0x40400000
+#define SOC_IROM_MASK_LOW       0x40000000
+#define SOC_IROM_MASK_HIGH      0x40064F00
+#define SOC_CACHE_PRO_LOW       0x40070000
+#define SOC_CACHE_PRO_HIGH      0x40078000
+#define SOC_CACHE_APP_LOW       0x40078000
+#define SOC_CACHE_APP_HIGH      0x40080000
+#define SOC_IRAM_LOW            0x40080000
+#define SOC_IRAM_HIGH           0x400A0000
+#define SOC_RTC_IRAM_LOW        0x400C0000
+#define SOC_RTC_IRAM_HIGH       0x400C2000
+#define SOC_RTC_DRAM_LOW        0x3FF80000
+#define SOC_RTC_DRAM_HIGH       0x3FF82000
+#define SOC_RTC_DATA_LOW        0x50000000
+#define SOC_RTC_DATA_HIGH       0x50002000
+#define SOC_EXTRAM_DATA_LOW     0x3F800000
+#define SOC_EXTRAM_DATA_HIGH    0x3FC00000
+
+#define SOC_EXTRAM_DATA_SIZE (SOC_EXTRAM_DATA_HIGH - SOC_EXTRAM_DATA_LOW)
 
 //First and last words of the D/IRAM region, for both the DRAM address as well as the IRAM alias.
 #define SOC_DIRAM_IRAM_LOW    0x400A0000
-#define SOC_DIRAM_IRAM_HIGH   0x400BFFFC
+#define SOC_DIRAM_IRAM_HIGH   0x400C0000
 #define SOC_DIRAM_DRAM_LOW    0x3FFE0000
-#define SOC_DIRAM_DRAM_HIGH   0x3FFFFFFC
+#define SOC_DIRAM_DRAM_HIGH   0x40000000
+// Byte order of D/IRAM regions is reversed between accessing as DRAM or IRAM
+#define SOC_DIRAM_INVERTED    1
 
 // Region of memory accessible via DMA. See esp_ptr_dma_capable().
 #define SOC_DMA_LOW  0x3FFAE000
@@ -321,6 +275,9 @@
 //(excluding RTC data region, that's checked separately.) See esp_ptr_internal().
 #define SOC_MEM_INTERNAL_LOW        0x3FF90000
 #define SOC_MEM_INTERNAL_HIGH       0x400C2000
+
+// Start (highest address) of ROM boot stack, only relevant during early boot
+#define SOC_ROM_STACK_START         0x3ffe3f20
 
 //Interrupt hardware source table
 //This table is decided by hardware, don't touch this.
@@ -350,8 +307,8 @@
 #define ETS_GPIO_NMI_SOURCE                     23/**< interrupt of GPIO, NMI*/
 #define ETS_FROM_CPU_INTR0_SOURCE               24/**< interrupt0 generated from a CPU, level*/ /* Used for FreeRTOS */
 #define ETS_FROM_CPU_INTR1_SOURCE               25/**< interrupt1 generated from a CPU, level*/ /* Used for FreeRTOS */
-#define ETS_FROM_CPU_INTR2_SOURCE               26/**< interrupt2 generated from a CPU, level*/ /* Used for DPORT Access */
-#define ETS_FROM_CPU_INTR3_SOURCE               27/**< interrupt3 generated from a CPU, level*/ /* Used for DPORT Access */
+#define ETS_FROM_CPU_INTR2_SOURCE               26/**< interrupt2 generated from a CPU, level*/ /* Used for IPC_ISR */
+#define ETS_FROM_CPU_INTR3_SOURCE               27/**< interrupt3 generated from a CPU, level*/ /* Used for IPC_ISR */
 #define ETS_SPI0_INTR_SOURCE                    28/**< interrupt of SPI0, level, SPI0 is for Cache Access, do not use this*/
 #define ETS_SPI1_INTR_SOURCE                    29/**< interrupt of SPI1, level, SPI1 is for flash read/write, do not use this*/
 #define ETS_SPI2_INTR_SOURCE                    30/**< interrupt of SPI2, level*/
@@ -365,11 +322,10 @@
 #define ETS_ETH_MAC_INTR_SOURCE                 38/**< interrupt of ethernet mac, level*/
 #define ETS_PWM0_INTR_SOURCE                    39/**< interrupt of PWM0, level, Reserved*/
 #define ETS_PWM1_INTR_SOURCE                    40/**< interrupt of PWM1, level, Reserved*/
-#define ETS_PWM2_INTR_SOURCE                    41/**< interrupt of PWM2, level*/
-#define ETS_PWM3_INTR_SOURCE                    42/**< interruot of PWM3, level*/
 #define ETS_LEDC_INTR_SOURCE                    43/**< interrupt of LED PWM, level*/
 #define ETS_EFUSE_INTR_SOURCE                   44/**< interrupt of efuse, level, not likely to use*/
-#define ETS_CAN_INTR_SOURCE                     45/**< interrupt of can, level*/
+#define ETS_TWAI_INTR_SOURCE                    45/**< interrupt of twai, level*/
+#define ETS_CAN_INTR_SOURCE                     ETS_TWAI_INTR_SOURCE
 #define ETS_RTC_CORE_INTR_SOURCE                46/**< interrupt of rtc core, level, include rtc watchdog*/
 #define ETS_RMT_INTR_SOURCE                     47/**< interrupt of remote controller, level*/
 #define ETS_PCNT_INTR_SOURCE                    48/**< interrupt of pluse count, level*/
@@ -393,6 +349,61 @@
 #define ETS_MMU_IA_INTR_SOURCE                  66/**< interrupt of MMU Invalid Access, LEVEL*/
 #define ETS_MPU_IA_INTR_SOURCE                  67/**< interrupt of MPU Invalid Access, LEVEL*/
 #define ETS_CACHE_IA_INTR_SOURCE                68/**< interrupt of Cache Invalied Access, LEVEL*/
+#define ETS_MAX_INTR_SOURCE                     69/**< total number of interrupt sources*/
+
+#if CONFIG_ESP_SYSTEM_CHECK_INT_LEVEL_5
+//interrupt cpu using table, Please see the core-isa.h
+/*************************************************************************************************************
+ *      Intr num                Level           Type                    PRO CPU usage           APP CPU uasge
+ *      0                       1               extern level            WMAC                    Reserved
+ *      1                       1               extern level            BT/BLE Host HCI DMA     BT/BLE Host HCI DMA
+ *      2                       1               extern level
+ *      3                       1               extern level
+ *      4                       1               extern level            WBB
+ *      5                       1               extern level
+ *      6                       1               timer                   FreeRTOS Tick(L1)       FreeRTOS Tick(L1)
+ *      7                       1               software                BT/BLE VHCI             BT/BLE VHCI
+ *      8                       1               extern level            BT/BLE BB(RX/TX)        BT/BLE BB(RX/TX)
+ *      9                       1               extern level
+ *      10                      1               extern edge
+ *      11                      3               profiling
+ *      12                      1               extern level
+ *      13                      1               extern level
+ *      14                      7               nmi                     Reserved                Reserved
+ *      15                      3               timer                   FreeRTOS Tick(L3)       FreeRTOS Tick(L3)
+ *      16                      5               timer                   Reserved                Reserved
+ *      17                      1               extern level
+ *      18                      1               extern level
+ *      19                      2               extern level
+ *      20                      2               extern level
+ *      21                      2               extern level
+ *      22                      3               extern edge
+ *      23                      3               extern level
+ *      24                      4               extern level
+ *      25                      4               extern level            BT/BLE Controller       BT/BLE Controller
+ *      26                      5               extern level            TG1_WDT & CACHEERR
+ *      27                      3               extern level            Reserved                Reserved
+ *      28                      4               extern edge
+ *      29                      3               software                BT/BLE hli              BT/BLE hli
+ *      30                      4               extern edge             Reserved                Reserved
+ *      31                      5               extern level            IPC_ISR                 IPC_ISR
+ *************************************************************************************************************
+ */
+
+//CPU0 Interrupt number reserved, not touch this.
+#define ETS_WMAC_INUM                           0
+#define ETS_BT_HOST_INUM                        1
+#define ETS_WBB_INUM                            4
+#define ETS_TG0_T1_INUM                         10 /**< use edge interrupt*/
+#define ETS_FRC1_INUM                           22
+#define ETS_T1_WDT_CACHEERR_INUM                26
+#define ETS_T1_WDT_INUM                         ETS_T1_WDT_CACHEERR_INUM
+#define ETS_MEMACCESS_ERR_INUM                  ETS_T1_WDT_CACHEERR_INUM
+/* backwards compatibility only, use ETS_MEMACCESS_ERR_INUM instead*/
+#define ETS_CACHEERR_INUM                       ETS_MEMACCESS_ERR_INUM
+#define ETS_IPC_ISR_INUM                        31
+
+#elif CONFIG_ESP_SYSTEM_CHECK_INT_LEVEL_4
 
 //interrupt cpu using table, Please see the core-isa.h
 /*************************************************************************************************************
@@ -425,7 +436,7 @@
  *      25                      4               extern level            CACHEERR
  *      26                      5               extern level
  *      27                      3               extern level            Reserved                Reserved
- *      28                      4               extern edge             DPORT ACCESS            DPORT ACCESS
+ *      28                      4               extern edge             IPC_ISR                 IPC_ISR
  *      29                      3               software                Reserved                Reserved
  *      30                      4               extern edge             Reserved                Reserved
  *      31                      5               extern level
@@ -439,8 +450,12 @@
 #define ETS_TG0_T1_INUM                         10 /**< use edge interrupt*/
 #define ETS_FRC1_INUM                           22
 #define ETS_T1_WDT_INUM                         24
-#define ETS_CACHEERR_INUM                       25
-#define ETS_DPORT_INUM                          28
+#define ETS_MEMACCESS_ERR_INUM                  25
+/* backwards compatibility only, use ETS_MEMACCESS_ERR_INUM instead*/
+#define ETS_CACHEERR_INUM                       ETS_MEMACCESS_ERR_INUM
+#define ETS_IPC_ISR_INUM                        28
+
+#endif /* CONFIG_ESP_SYSTEM_CHECK_INT_LEVEL_5 */
 
 //CPU0 Interrupt number used in ROM, should be cancelled in SDK
 #define ETS_SLC_INUM                            1
@@ -450,5 +465,3 @@
 
 //Invalid interrupt for number interrupt matrix
 #define ETS_INVALID_INUM                        6
-
-#endif /* _ESP32_SOC_H_ */

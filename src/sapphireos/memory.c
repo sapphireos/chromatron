@@ -94,9 +94,9 @@ static uint32_t mem_alloc_fails;
 #endif
 
 
-static uint16_t mem_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t mem_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    uint16_t ret_val = 0;
+    uint32_t ret_val = 0;
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){

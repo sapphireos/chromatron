@@ -2,25 +2,55 @@
  *
  * Copyright (C) 2015 Olaf Bergmann <bergmann@tzi.org>
  *
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  * This file is part of the CoAP library libcoap. Please see
  * README for terms of use.
  */
 
-#ifdef WITH_POSIX
+#include "coap3/coap_internal.h"
+
+#ifdef HAVE_TIME_H
 #include <time.h>
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>  /* _POSIX_TIMERS */
+#endif
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#include <stdint.h>
+#endif
 
-#include "coap_config.h"
-#include "coap_time.h"
-
-static coap_time_t coap_clock_offset = 0;
+static coap_tick_t coap_clock_offset = 0;
 
 #if _POSIX_TIMERS && !defined(__APPLE__)
   /* _POSIX_TIMERS is > 0 when clock_gettime() is available */
 
-  /* Use real-time clock for correct timestamps in coap_log(). */  
+  /* Use real-time clock for correct timestamps in coap_log(). */
 #define COAP_CLOCK CLOCK_REALTIME
+#endif
+
+#ifdef HAVE_WINSOCK2_H
+static int
+gettimeofday(struct timeval *tp, TIME_ZONE_INFORMATION *tzp) {
+  (void)tzp;
+  static const uint64_t s_tUnixEpoch = 116444736000000000Ui64;
+
+  FILETIME file_time;
+  ULARGE_INTEGER time;
+  uint64_t tUsSinceUnicEpoch;
+
+  GetSystemTimeAsFileTime( &file_time );
+  time.LowPart = file_time.dwLowDateTime;
+  time.HighPart = file_time.dwHighDateTime;
+  tUsSinceUnicEpoch = ( time.QuadPart - s_tUnixEpoch ) / 10;
+
+  tp->tv_sec = (long)(tUsSinceUnicEpoch / 1000000);
+  tp->tv_usec = (long)(tUsSinceUnicEpoch % 1000000);
+  return 0;
+}
 #endif
 
 void
@@ -37,17 +67,17 @@ coap_clock_init(void) {
 }
 
 /* creates a Qx.frac from fval */
-#define Q(frac,fval) ((coap_tick_t)(((1 << (frac)) * (fval))))
+#define Q(frac,fval) ((1 << (frac)) * (fval))
 
 /* number of frac bits for sub-seconds */
 #define FRAC 10
 
 /* rounds val up and right shifts by frac positions */
-#define SHR_FP(val,frac) (((val) + (1 << ((frac) - 1))) >> (frac))
+#define SHR_FP(val,frac) (((coap_tick_t)((val) + (1 << ((frac) - 1)))) >> (frac))
 
 void
 coap_ticks(coap_tick_t *t) {
-  unsigned long tmp;
+  coap_tick_t tmp;
 
 #ifdef COAP_CLOCK
   struct timespec tv;
@@ -83,16 +113,24 @@ coap_ticks_to_rt(coap_tick_t t) {
   return coap_clock_offset + (t / COAP_TICKS_PER_SECOND);
 }
 
+uint64_t coap_ticks_to_rt_us(coap_tick_t t) {
+  return (uint64_t)coap_clock_offset * 1000000 + (uint64_t)t * 1000000 / COAP_TICKS_PER_SECOND;
+}
+
+coap_tick_t coap_ticks_from_rt_us(uint64_t t) {
+  return (coap_tick_t)((t - (uint64_t)coap_clock_offset * 1000000) * COAP_TICKS_PER_SECOND / 1000000);
+}
+
 #undef Q
 #undef FRAC
 #undef SHR_FP
 
-#else /* WITH_POSIX */
+#else /* HAVE_TIME_H */
 
 /* make compilers happy that do not like empty modules */
-static inline void dummy()
+COAP_STATIC_INLINE void dummy(void)
 {
 }
 
-#endif /* not WITH_POSIX */
+#endif /* not HAVE_TIME_H */
 

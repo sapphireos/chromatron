@@ -16,7 +16,7 @@ SPI_FLASH_SIM_LIB := libspi_flash.a
 include Makefile.files
 
 all: test
-	
+
 
 ifndef SDKCONFIG
 SDKCONFIG_DIR := $(dir $(realpath sdkconfig/sdkconfig.h))
@@ -25,7 +25,7 @@ else
 SDKCONFIG_DIR := $(dir $(realpath $(SDKCONFIG)))
 endif
 
-INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS) $(SDKCONFIG_DIR) ../../../tools/catch)
+INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS) -I../../../heap/include/soc $(SDKCONFIG_DIR) ../../../tools/catch)
 
 CPPFLAGS += $(INCLUDE_FLAGS) -g -m32
 CXXFLAGS += $(INCLUDE_FLAGS) -std=c++11 -g -m32
@@ -80,7 +80,6 @@ $(foreach cxxfile, $(CPPFILES), $(eval $(call COMPILE_CPP, $(cxxfile))))
 TEST_SOURCE_FILES = \
 	test_wl.cpp \
 	main.cpp \
-	test_utils.c
 
 TEST_OBJ_FILES = $(filter %.o, $(TEST_SOURCE_FILES:.cpp=.o) $(TEST_SOURCE_FILES:.c=.o))
 

@@ -15,10 +15,10 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <freertos/FreeRTOS.h>
 #include <soc/soc_memory_layout.h>
 #include "multi_heap.h"
-#include "rom/queue.h"
+#include "multi_heap_platform.h"
+#include "sys/queue.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +35,7 @@ typedef struct heap_t_ {
     uint32_t caps[SOC_MEMORY_TYPE_NO_PRIOS]; ///< Capabilities for the type of memory in this heap (as a prioritised set). Copied from soc_memory_types so it's in RAM not flash.
     intptr_t start;
     intptr_t end;
-    portMUX_TYPE heap_mux;
+    multi_heap_lock_t heap_mux;
     multi_heap_handle_t heap;
     SLIST_ENTRY(heap_t_) next;
 } heap_t;
@@ -65,7 +65,7 @@ inline static IRAM_ATTR uint32_t get_all_caps(const heap_t *heap)
 
 /*
  Because we don't want to add _another_ known allocation method to the stack of functions to trace wrt memory tracing,
- these are declared private. The newlib malloc()/realloc() implementation also calls these, so they are declared 
+ these are declared private. The newlib malloc()/realloc() implementation also calls these, so they are declared
  separately in newlib/syscalls.c.
 */
 void *heap_caps_realloc_default(void *p, size_t size);

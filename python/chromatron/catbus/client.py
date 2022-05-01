@@ -44,6 +44,9 @@ CACHE_LOCK = os.path.join(firmware_package.data_dir(), 'lockfile')
 
 DISCOVERY_TIMEOUT = 1.0
 
+SYSTEM_HASHES = {catbus_string_hash(k): k for k in SYSTEM_KEYS}
+
+
 import random
 
 
@@ -258,6 +261,7 @@ class Client(BaseClient):
                 cache[int(k)] = v
 
         resolved_keys = {}
+        cache.update(SYSTEM_HASHES)
 
         arg_list = []
         for arg in args:
@@ -267,9 +271,12 @@ class Client(BaseClient):
             except TypeError:
                 arg_list.append(arg)
 
+        # filter out requested hashes that are out of range (like if we got a 64 bit hash instead of 32)
+        arg_list = [a for a in arg_list if a >= 0 and a <= 4294967295]
+            
         # filter out any items in the cache
         for k, v in cache.items():
-            if k in arg_list:
+            if k in arg_list and isinstance(v, str):
                 resolved_keys[k] = v
 
         arg_list = [a for a in arg_list if a not in cache]
@@ -330,7 +337,7 @@ class Client(BaseClient):
             # check if any keys were added
             for k in resolved_keys:
                 if k not in cache:
-                    cache.update(resolved_keys)
+                    cache.update({k: v for k, v in resolved_keys.items() if isinstance(v, str) and v not in SYSTEM_KEYS})
 
                     changed = True
                     break

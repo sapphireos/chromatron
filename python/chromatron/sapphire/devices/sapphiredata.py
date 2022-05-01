@@ -344,7 +344,7 @@ class LinkProducerInfoArray(ArrayField):
 
 class LinkConsumerInfo(StructField):
     def __init__(self, **kwargs):
-        fields = [Int16Field(_name="link"),
+        fields = [Uint64Field(_name="link_hash"),
                   Ipv4Field(_name="ip"),
                   Uint16Field(_name="port"),
                   Int32Field(_name="timeout")]

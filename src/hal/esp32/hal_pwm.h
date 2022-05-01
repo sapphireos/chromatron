@@ -25,6 +25,7 @@
 #ifndef _HAL_PWM_H
 #define _HAL_PWM_H
 
+#define HAL_PWM_MAX_CHANNELS    4
 
 
 #endif

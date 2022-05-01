@@ -36,7 +36,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_wifi.h"
-#include "esp_event_loop.h"
+#include "esp_event.h"
 #include "esp_log.h"
 #include "lwip/err.h"
 #include "lwip/sockets.h"
@@ -49,7 +49,7 @@
 static uint8_t wifi_mac[6];
 static int8_t wifi_rssi;
 static uint8_t wifi_bssid[6];
-static int8_t wifi_router;
+static int8_t wifi_router = -1;
 static int8_t wifi_channel;
 static uint32_t wifi_uptime;
 static uint8_t wifi_connects;
@@ -67,6 +67,7 @@ static bool wifi_shutdown;
 static uint8_t disconnect_reason;
 
 static uint8_t scan_backoff;
+static uint8_t current_scan_backoff;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
@@ -104,14 +105,21 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
 };
 
+// this lives in the wifi driver because it is the easiest place to get to hardware specific code
+// this will init in safe mode
+KV_SECTION_META kv_meta_t safe_mode_config_kv[] = {
+    { CATBUS_TYPE_BOOL,          0, 0,                          0, cfg_i8_kv_handler,             "enable_brownout_restart" },
+};
+
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
+PT_THREAD( brownout_restart_thread( pt_t *pt, void *state ) );
 
-static esp_err_t event_handler(void *ctx, system_event_t *event);
+static void event_handler( void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data );
 static volatile bool scan_done;
 static bool connect_done;
 
@@ -125,13 +133,119 @@ static esp_conn_t esp_conn[WIFI_MAX_PORTS];
 static char hostname[32];
 
 
+#include "esp_partition.h"
+ 
+static uint32_t coredump_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    const esp_partition_t *pt = esp_partition_find_first( ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_COREDUMP, "coredump" );
+
+    if( pt == NULL ){
+
+        trace_printf( "Core dump partition not found.\r\n" );
+
+        return 0;
+    }
+
+    uint32_t temp = 0xffffffff;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            esp_partition_read( pt, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            esp_partition_read( pt, 0, &temp, sizeof(temp) );
+
+            // check if partition is erased
+            if( temp == 0xffffffff ){
+
+                len = 0;
+            }
+            else{
+
+                len = pt->size;    
+            }
+
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            esp_partition_erase_range( pt, 0, pt->size );
+
+            len = 0;
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+
+
+
+static void set_hostname( void ){
+
+    // set up hostname
+    char mac_str[16];
+    memset( mac_str, 0, sizeof(mac_str) );
+    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
+    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
+    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
+
+    memset( hostname, 0, sizeof(hostname) );
+    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
+
+    strlcat( hostname, mac_str, sizeof(hostname) );
+
+    // esp_err_t err = tcpip_adapter_set_hostname( TCPIP_ADAPTER_IF_STA, hostname );
+
+    esp_netif_t *esp_netif = NULL;
+    esp_netif = esp_netif_next( esp_netif );
+    esp_err_t err = esp_netif_set_hostname( esp_netif, "meow" );
+
+    if( err != ESP_OK ){
+
+        log_v_error_P( PSTR("fail to set hostname: %d"), err );
+    }
+}
+
+
 void hal_wifi_v_init( void ){
 
-    tcpip_adapter_init();
-    ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL) );
+    // log reset reason for ESP32
+    log_v_info_P( PSTR("ESP reset reason: %d"), esp_reset_reason() );
+
+    if( cfg_b_get_boolean( __KV__enable_brownout_restart ) ){
+
+        thread_t_create( 
+             brownout_restart_thread,
+             PSTR("brownout_restart"),
+             0,
+             0 );
+    }
+
+    fs_f_create_virtual( PSTR("coredump"), coredump_vfile_handler );
+
+
+
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    esp_netif_create_default_wifi_sta();
+    
+    // hostname must be set before esp_wifi_init in IDF 4.x
+    set_hostname();
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    esp_event_handler_instance_register( WIFI_EVENT, ESP_EVENT_ANY_ID,            event_handler, NULL, NULL );
+    esp_event_handler_instance_register( IP_EVENT,   IP_EVENT_STA_GOT_IP,         event_handler, NULL, NULL );
+    
 
     wifi_config_t wifi_config = {
         .sta = {
@@ -155,7 +269,7 @@ void hal_wifi_v_init( void ){
     }
 
 
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
+    esp_wifi_set_mode( WIFI_MODE_NULL );
 
     // set tx power
     esp_wifi_set_max_tx_power( tx_power * 4 );
@@ -205,7 +319,7 @@ static bool is_rx( void ){
 
         if( rc < 0 ){
 
-            trace_printf("err %d\n", rc);
+            trace_printf("is_rx err %d\n", rc);
         }
 
         if( s > 0 ){
@@ -521,6 +635,12 @@ uint32_t wifi_u32_get_power( void ){
     return WIFI_POWER_PS_MODEM_MIN;
 }
 
+void wifi_v_reset_scan_timeout( void ){
+
+    scan_backoff = 0;
+    current_scan_backoff = 0;
+}
+
 int8_t wifi_i8_get_status( void ){
 
     return 0;
@@ -597,7 +717,15 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
     if( status < 0 ){
 
-        log_v_debug_P( PSTR("msg failed %d"), status );
+        log_v_debug_P( PSTR("msg failed %d from %d to %d.%d.%d.%d:%d err: %d"), 
+            status,
+            netmsg_state->laddr.port,
+            netmsg_state->raddr.ipaddr.ip3,
+            netmsg_state->raddr.ipaddr.ip2,
+            netmsg_state->raddr.ipaddr.ip1,
+            netmsg_state->raddr.ipaddr.ip0,
+            netmsg_state->raddr.port,
+            errno );
 
         return NETMSG_TX_ERR_RELEASE;   
     }
@@ -756,7 +884,7 @@ static void scan_cb( void ){
 
     if( best_rssi == -127 ){
 
-        log_v_debug_P( PSTR("no routers found") );
+        // log_v_debug_P( PSTR("no routers found") );
 
         return;
     }
@@ -768,72 +896,51 @@ static void scan_cb( void ){
 }
 
 
-static esp_err_t event_handler(void *ctx, system_event_t *event)
-{
-    switch(event->event_id) {
+static void event_handler( void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data ){
 
-        case SYSTEM_EVENT_STA_START:
-            trace_printf("SYSTEM_EVENT_STA_START\r\n");
-            break;
+    if( event_base == WIFI_EVENT ){
 
-        case SYSTEM_EVENT_STA_STOP:
-            trace_printf("SYSTEM_EVENT_STA_STOP\r\n");
-            break;
+        if( event_id == WIFI_EVENT_STA_START ){
 
-        case SYSTEM_EVENT_STA_GOT_IP:
-            trace_printf("wifi connected, IP:%s\n", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
-            connect_done = TRUE;
-            connected = TRUE;
+            trace_printf("WIFI_EVENT_STA_START\r\n");
+        }
+        else if( event_id == WIFI_EVENT_STA_STOP ){
 
-            break;
+            trace_printf("WIFI_EVENT_STA_STOP\r\n");
+        }
+        else if( event_id == WIFI_EVENT_STA_CONNECTED ){
 
-        case SYSTEM_EVENT_STA_CONNECTED:
-            trace_printf("SYSTEM_EVENT_STA_CONNECTED\r\n");
-            break;
+            trace_printf("WIFI_EVENT_STA_CONNECTED\r\n");
+        }
+        else if( event_id == WIFI_EVENT_STA_DISCONNECTED ){
 
-        case SYSTEM_EVENT_STA_DISCONNECTED:
-            trace_printf("SYSTEM_EVENT_STA_DISCONNECTED\r\n");
-            disconnect_reason = event->event_info.disconnected.reason;
+            wifi_event_sta_disconnected_t* event = (wifi_event_sta_disconnected_t*)event_data;
+
+            trace_printf("WIFI_EVENT_STA_DISCONNECTED\r\n");
+            disconnect_reason = event->reason;
             connected = FALSE;
             connect_done = TRUE;
+        }
+        else if( event_id == WIFI_EVENT_SCAN_DONE ){
 
-            break;
-        
-        case SYSTEM_EVENT_SCAN_DONE:
-            trace_printf("SYSTEM_EVENT_SCAN_DONE\r\n");
+            trace_printf("WIFI_EVENT_SCAN_DONE\r\n");
             scan_done = TRUE;
-
-            break;
-
-        default:
-            trace_printf("event: %d\r\n", event->event_id);
-            break;
+        }
     }
+    else if( event_base == IP_EVENT ){
 
-    return ESP_OK;
-}
+        if( event_id == IP_EVENT_STA_GOT_IP ){
 
-static void set_hostname( void ){
+            ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+            ip_addr4_t *ip = (ip_addr4_t *)&event->ip_info.ip;
 
-    // set up hostname
-    char mac_str[16];
-    memset( mac_str, 0, sizeof(mac_str) );
-    snprintf( &mac_str[0], 3, "%02x", wifi_mac[3] );
-    snprintf( &mac_str[2], 3, "%02x", wifi_mac[4] ); 
-    snprintf( &mac_str[4], 3, "%02x", wifi_mac[5] );
-
-    memset( hostname, 0, sizeof(hostname) );
-    strlcpy( hostname, "Chromatron_", sizeof(hostname) );
-
-    strlcat( hostname, mac_str, sizeof(hostname) );
-
-    esp_err_t err = tcpip_adapter_set_hostname( TCPIP_ADAPTER_IF_STA, hostname );
-
-    if( err != ESP_OK ){
-
-        log_v_error_P( PSTR("fail to set hostname: %d"), err );
+            trace_printf("wifi connected, IP: %d.%d.%d.%d\n", ip->ip3, ip->ip2, ip->ip1, ip->ip0);
+            connect_done = TRUE;
+            connected = TRUE;
+        }
     }
 }
+
 
 static bool is_low_power_mode( void ){
 
@@ -852,7 +959,7 @@ static bool is_low_power_mode( void ){
     }
 
 
-    return TRUE;
+    return FALSE;
 }
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
@@ -862,7 +969,6 @@ PT_BEGIN( pt );
     // log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
 
     static uint16_t scan_timeout;
-    static uint8_t current_scan_backoff;
 
     connected = FALSE;
     wifi_rssi = -127;
@@ -936,7 +1042,7 @@ station_mode:
 
                 // scan first
                 wifi_router = -1;
-                log_v_debug_P( PSTR("Scanning...") );
+                // log_v_debug_P( PSTR("Scanning...") );
                 
                 scan_done = FALSE;
                     
@@ -999,7 +1105,7 @@ station_mode:
 
             connect_done = FALSE;
 
-            set_hostname();
+            // set_hostname();
             
             wifi_config_t wifi_config = {0};
             wifi_config.sta.bssid_set = 1;
@@ -1039,7 +1145,7 @@ station_mode:
                 cfg_v_set( CFG_PARAM_INTERNET_GATEWAY, &info.gw );
 
                 tcpip_adapter_dns_info_t dns_info;
-                tcpip_adapter_get_dns_info( TCPIP_ADAPTER_IF_STA, TCPIP_ADAPTER_DNS_MAIN, &dns_info );
+                tcpip_adapter_get_dns_info( TCPIP_ADAPTER_IF_STA, ESP_NETIF_DNS_MAIN, &dns_info );
 			    cfg_v_set( CFG_PARAM_DNS_SERVER, &dns_info.ip );
 
                 // get RSSI
@@ -1099,7 +1205,7 @@ station_mode:
                 snprintf_P( &mac[2], 3, PSTR("%02x"), wifi_mac[4] ); 
                 snprintf_P( &mac[4], 3, PSTR("%02x"), wifi_mac[5] );
 
-                strncat( ap_ssid, mac, sizeof(ap_ssid) );
+                strncat( ap_ssid, mac, sizeof(ap_ssid) - strnlen( ap_ssid, sizeof(ap_ssid) ) );
 
                 strlcpy_P( ap_pass, PSTR("12345678"), sizeof(ap_pass) );
 
@@ -1203,7 +1309,7 @@ end:
 
     THREAD_WAIT_WHILE( pt, wifi_b_connected() && !wifi_shutdown );
     
-    log_v_debug_P( PSTR("Wifi disconnected") );
+    log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d ch: %d"), wifi_rssi, wifi_channel );
 
     THREAD_RESTART( pt );
 
@@ -1287,6 +1393,41 @@ PT_BEGIN( pt );
             
         }
     }
+
+PT_END( pt );
+}
+
+
+#define BROWNOUT_RESTART_TIME 60000
+
+PT_THREAD( brownout_restart_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        THREAD_EXIT( pt );
+    }
+
+    if( esp_reset_reason() == ESP_RST_BROWNOUT ){
+
+        log_v_info_P( PSTR("Restart from brownout in %d seconds"), BROWNOUT_RESTART_TIME / 1000 );
+    }
+    else if( esp_reset_reason() == ESP_RST_PANIC ){
+
+        log_v_info_P( PSTR("Restart from panic in %d seconds"), BROWNOUT_RESTART_TIME / 1000 );
+    }
+    else{
+
+        THREAD_EXIT( pt );    
+    }
+
+    
+    TMR_WAIT( pt, BROWNOUT_RESTART_TIME );
+
+    log_v_info_P( PSTR("Restart from safe mode...") );
+
+    sys_v_reboot_delay( SYS_MODE_NORMAL );
 
 PT_END( pt );
 }

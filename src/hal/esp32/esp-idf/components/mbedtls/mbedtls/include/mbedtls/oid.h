@@ -4,7 +4,7 @@
  * \brief Object Identifier (OID) database
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  *
  *  This file is provided under the Apache License 2.0, or the
@@ -45,8 +45,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  *  **********
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_OID_H
 #define MBEDTLS_OID_H
@@ -74,8 +72,10 @@
 #include "x509.h"
 #endif
 
-#define MBEDTLS_ERR_OID_NOT_FOUND                         -0x002E  /**< OID is not found. */
-#define MBEDTLS_ERR_OID_BUF_TOO_SMALL                     -0x000B  /**< output buffer is too small */
+/** OID is not found. */
+#define MBEDTLS_ERR_OID_NOT_FOUND                         -0x002E
+/** output buffer is too small */
+#define MBEDTLS_ERR_OID_BUF_TOO_SMALL                     -0x000B
 
 /*
  * Top level OID tuples

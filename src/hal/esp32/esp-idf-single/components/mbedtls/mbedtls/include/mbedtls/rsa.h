@@ -10,8 +10,14 @@
  *
  */
 /*
- *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
- *  SPDX-License-Identifier: Apache-2.0
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ *
+ *  This file is provided under the Apache License 2.0, or the
+ *  GNU General Public License v2.0 or later.
+ *
+ *  **********
+ *  Apache License 2.0:
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
  *  not use this file except in compliance with the License.
@@ -25,7 +31,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  This file is part of Mbed TLS (https://tls.mbed.org)
+ *  **********
+ *
+ *  **********
+ *  GNU General Public License v2.0 or later:
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ *  **********
  */
 #ifndef MBEDTLS_RSA_H
 #define MBEDTLS_RSA_H
@@ -46,22 +71,33 @@
 /*
  * RSA Error codes
  */
-#define MBEDTLS_ERR_RSA_BAD_INPUT_DATA                    -0x4080  /**< Bad input parameters to function. */
-#define MBEDTLS_ERR_RSA_INVALID_PADDING                   -0x4100  /**< Input data contains invalid padding and is rejected. */
-#define MBEDTLS_ERR_RSA_KEY_GEN_FAILED                    -0x4180  /**< Something failed during generation of a key. */
-#define MBEDTLS_ERR_RSA_KEY_CHECK_FAILED                  -0x4200  /**< Key failed to pass the validity check of the library. */
-#define MBEDTLS_ERR_RSA_PUBLIC_FAILED                     -0x4280  /**< The public key operation failed. */
-#define MBEDTLS_ERR_RSA_PRIVATE_FAILED                    -0x4300  /**< The private key operation failed. */
-#define MBEDTLS_ERR_RSA_VERIFY_FAILED                     -0x4380  /**< The PKCS#1 verification failed. */
-#define MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE                  -0x4400  /**< The output buffer for decryption is not large enough. */
-#define MBEDTLS_ERR_RSA_RNG_FAILED                        -0x4480  /**< The random generator failed to generate non-zeros. */
+/** Bad input parameters to function. */
+#define MBEDTLS_ERR_RSA_BAD_INPUT_DATA                    -0x4080
+/** Input data contains invalid padding and is rejected. */
+#define MBEDTLS_ERR_RSA_INVALID_PADDING                   -0x4100
+/** Something failed during generation of a key. */
+#define MBEDTLS_ERR_RSA_KEY_GEN_FAILED                    -0x4180
+/** Key failed to pass the validity check of the library. */
+#define MBEDTLS_ERR_RSA_KEY_CHECK_FAILED                  -0x4200
+/** The public key operation failed. */
+#define MBEDTLS_ERR_RSA_PUBLIC_FAILED                     -0x4280
+/** The private key operation failed. */
+#define MBEDTLS_ERR_RSA_PRIVATE_FAILED                    -0x4300
+/** The PKCS#1 verification failed. */
+#define MBEDTLS_ERR_RSA_VERIFY_FAILED                     -0x4380
+/** The output buffer for decryption is not large enough. */
+#define MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE                  -0x4400
+/** The random generator failed to generate non-zeros. */
+#define MBEDTLS_ERR_RSA_RNG_FAILED                        -0x4480
 
 /* MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION is deprecated and should not be used.
  */
-#define MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION             -0x4500  /**< The implementation does not offer the requested operation, for example, because of security violations or lack of functionality. */
+/** The implementation does not offer the requested operation, for example, because of security violations or lack of functionality. */
+#define MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION             -0x4500
 
 /* MBEDTLS_ERR_RSA_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_RSA_HW_ACCEL_FAILED                   -0x4580  /**< RSA hardware accelerator failed. */
+/** RSA hardware accelerator failed. */
+#define MBEDTLS_ERR_RSA_HW_ACCEL_FAILED                   -0x4580
 
 /*
  * RSA constants
@@ -99,7 +135,10 @@ extern "C" {
  */
 typedef struct mbedtls_rsa_context
 {
-    int ver;                    /*!<  Always 0.*/
+    int ver;                    /*!<  Reserved for internal purposes.
+                                 *    Do not set this field in application
+                                 *    code. Its meaning might change without
+                                 *    notice. */
     size_t len;                 /*!<  The size of \p N in Bytes. */
 
     mbedtls_mpi N;              /*!<  The public modulus. */
@@ -129,6 +168,7 @@ typedef struct mbedtls_rsa_context
                                      mask generating function used in the
                                      EME-OAEP and EMSA-PSS encodings. */
 #if defined(MBEDTLS_THREADING_C)
+    /* Invariant: the mutex is initialized iff ver != 0. */
     mbedtls_threading_mutex_t mutex;    /*!<  Thread-safety mutex. */
 #endif
 }
@@ -150,13 +190,13 @@ mbedtls_rsa_context;
  * \note           The choice of padding mode is strictly enforced for private key
  *                 operations, since there might be security concerns in
  *                 mixing padding modes. For public key operations it is
- *                 a default value, which can be overriden by calling specific
+ *                 a default value, which can be overridden by calling specific
  *                 \c rsa_rsaes_xxx or \c rsa_rsassa_xxx functions.
  *
  * \note           The hash selected in \p hash_id is always used for OEAP
  *                 encryption. For PSS signatures, it is always used for
- *                 making signatures, but can be overriden for verifying them.
- *                 If set to #MBEDTLS_MD_NONE, it is always overriden.
+ *                 making signatures, but can be overridden for verifying them.
+ *                 If set to #MBEDTLS_MD_NONE, it is always overridden.
  *
  * \param ctx      The RSA context to initialize. This must not be \c NULL.
  * \param padding  The padding mode to use. This must be either
@@ -904,7 +944,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *                 the size of the hash corresponding to \p md_alg.
  * \param sig      The buffer to hold the signature. This must be a writable
  *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
- *                 for an 2048-bit RSA modulus.
+ *                 for an 2048-bit RSA modulus. A buffer length of
+ *                 #MBEDTLS_MPI_MAX_SIZE is always safe.
  *
  * \return         \c 0 if the signing operation was successful.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -951,7 +992,8 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  *                 the size of the hash corresponding to \p md_alg.
  * \param sig      The buffer to hold the signature. This must be a writable
  *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
- *                 for an 2048-bit RSA modulus.
+ *                 for an 2048-bit RSA modulus. A buffer length of
+ *                 #MBEDTLS_MPI_MAX_SIZE is always safe.
  *
  * \return         \c 0 if the signing operation was successful.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -1012,7 +1054,8 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *                 the size of the hash corresponding to \p md_alg.
  * \param sig      The buffer to hold the signature. This must be a writable
  *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
- *                 for an 2048-bit RSA modulus.
+ *                 for an 2048-bit RSA modulus. A buffer length of
+ *                 #MBEDTLS_MPI_MAX_SIZE is always safe.
  *
  * \return         \c 0 if the signing operation was successful.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.

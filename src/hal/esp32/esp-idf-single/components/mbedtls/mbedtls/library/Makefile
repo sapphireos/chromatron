@@ -39,7 +39,7 @@ SOEXT_TLS=so.12
 SOEXT_X509=so.0
 SOEXT_CRYPTO=so.3
 
-# Set AR_DASH= (empty string) to use an ar implentation that does not accept
+# Set AR_DASH= (empty string) to use an ar implementation that does not accept
 # the - prefix for command line options (e.g. llvm-ar)
 AR_DASH ?= -
 
@@ -109,6 +109,14 @@ endif
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a
 
 shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
+
+# Windows builds under Mingw can fail if make tries to create archives in the same
+# directory at the same time - see https://bugs.launchpad.net/gcc-arm-embedded/+bug/1848002.
+# This forces builds of the .a files to be serialised.
+ifdef WINDOWS
+libmbedtls.a: | libmbedx509.a
+libmbedx509.a: | libmbedcrypto.a
+endif
 
 # tls
 libmbedtls.a: $(OBJS_TLS)

@@ -35,20 +35,11 @@ void pwm_v_init( void ){
 
 }
 
-void pwm_v_enable( uint8_t channel ){
-
-}
-
-void pwm_v_disable( uint8_t channel ){
-
-
-}
-
 void pwm_v_write( uint8_t channel, uint16_t value ){
 
 }
 
-void pwm_v_set_frequency( uint16_t freq ){
+void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
 
-
+    
 }

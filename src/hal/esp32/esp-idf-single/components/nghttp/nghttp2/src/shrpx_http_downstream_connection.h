@@ -27,7 +27,7 @@
 
 #include "shrpx.h"
 
-#include "http-parser/http_parser.h"
+#include "llhttp.h"
 
 #include "shrpx_downstream_connection.h"
 #include "shrpx_io_control.h"
@@ -44,7 +44,7 @@ struct DNSQuery;
 class HttpDownstreamConnection : public DownstreamConnection {
 public:
   HttpDownstreamConnection(const std::shared_ptr<DownstreamAddrGroup> &group,
-                           ssize_t initial_addr_idx, struct ev_loop *loop,
+                           DownstreamAddr *addr, struct ev_loop *loop,
                            Worker *worker);
   virtual ~HttpDownstreamConnection();
   virtual int attach_downstream(Downstream *downstream);
@@ -53,6 +53,7 @@ public:
   virtual int push_request_headers();
   virtual int push_upload_data_chunk(const uint8_t *data, size_t datalen);
   virtual int end_upload_data();
+  void end_upload_data_chunk();
 
   virtual void pause_read(IOCtrlReason reason);
   virtual int resume_read(IOCtrlReason reason, size_t consumed);
@@ -71,7 +72,7 @@ public:
 
   int initiate_connection();
 
-  int write_reuse_first();
+  int write_first();
   int read_clear();
   int write_clear();
   int read_tls();
@@ -88,6 +89,8 @@ public:
   const Address *get_raddr() const;
 
   int noop();
+
+  int process_blocked_request_buf();
 
 private:
   Connection conn_;
@@ -107,13 +110,13 @@ private:
   std::unique_ptr<Address> resolved_addr_;
   std::unique_ptr<DNSQuery> dns_query_;
   IOControl ioctrl_;
-  http_parser response_htp_;
-  ssize_t initial_addr_idx_;
-  // true if first write of reused connection succeeded.  For
-  // convenience, this is initialized as true.
-  bool reuse_first_write_done_;
+  llhttp_t response_htp_;
+  // true if first write succeeded.
+  bool first_write_done_;
   // true if this object can be reused
   bool reusable_;
+  // true if request header is written to request buffer.
+  bool request_header_written_;
 };
 
 } // namespace shrpx

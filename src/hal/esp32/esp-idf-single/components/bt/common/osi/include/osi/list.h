@@ -22,6 +22,10 @@ list_t *list_new(list_free_cb callback);
 
 
 list_node_t *list_free_node(list_t *list, list_node_t *node);
+
+// similar with list_free_node, this function doesn't free the node data
+list_node_t *list_delete_node(list_t *list, list_node_t *node);
+
 // Frees the list. This function accepts NULL as an argument, in which case it
 // behaves like a no-op.
 void list_free(list_t *list);
@@ -33,6 +37,10 @@ bool list_is_empty(const list_t *list);
 // Returns true if the list contains |data|, false otherwise.
 // |list| may not be NULL.
 bool list_contains(const list_t *list, const void *data);
+
+// Returns list_node which contains |data|, NULL otherwise.
+// |list| may not be NULL.
+list_node_t *list_get_node(const list_t *list, const void *data);
 
 // Returns the length of the |list|. |list| may not be NULL.
 size_t list_length(const list_t *list);
@@ -74,6 +82,9 @@ bool list_append(list_t *list, void *data);
 //list_node_t list_insert_node(list_t *list, list_node_t *prev_node, list_node_t *node);
 
 bool list_remove(list_t *list, void *data);
+
+// similar with list_remove, but do not free the node data
+bool list_delete(list_t *list, void *data);
 
 // Removes all elements in the list. Calling this function will return the list to the
 // same state it was in after |list_new|. |list| may not be NULL.

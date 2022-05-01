@@ -216,13 +216,121 @@ mbedcrypto/fast:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build
 .PHONY : mbedcrypto/fast
 
+__/__/port/aes/block/esp_aes.obj: __/__/port/aes/block/esp_aes.c.obj
+
+.PHONY : __/__/port/aes/block/esp_aes.obj
+
+# target to build an object file
+__/__/port/aes/block/esp_aes.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/aes/block/esp_aes.c.obj
+.PHONY : __/__/port/aes/block/esp_aes.c.obj
+
+__/__/port/aes/block/esp_aes.i: __/__/port/aes/block/esp_aes.c.i
+
+.PHONY : __/__/port/aes/block/esp_aes.i
+
+# target to preprocess a source file
+__/__/port/aes/block/esp_aes.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/aes/block/esp_aes.c.i
+.PHONY : __/__/port/aes/block/esp_aes.c.i
+
+__/__/port/aes/block/esp_aes.s: __/__/port/aes/block/esp_aes.c.s
+
+.PHONY : __/__/port/aes/block/esp_aes.s
+
+# target to generate assembly for a file
+__/__/port/aes/block/esp_aes.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/aes/block/esp_aes.c.s
+.PHONY : __/__/port/aes/block/esp_aes.c.s
+
+__/__/port/aes/esp_aes_common.obj: __/__/port/aes/esp_aes_common.c.obj
+
+.PHONY : __/__/port/aes/esp_aes_common.obj
+
+# target to build an object file
+__/__/port/aes/esp_aes_common.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/aes/esp_aes_common.c.obj
+.PHONY : __/__/port/aes/esp_aes_common.c.obj
+
+__/__/port/aes/esp_aes_common.i: __/__/port/aes/esp_aes_common.c.i
+
+.PHONY : __/__/port/aes/esp_aes_common.i
+
+# target to preprocess a source file
+__/__/port/aes/esp_aes_common.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/aes/esp_aes_common.c.i
+.PHONY : __/__/port/aes/esp_aes_common.c.i
+
+__/__/port/aes/esp_aes_common.s: __/__/port/aes/esp_aes_common.c.s
+
+.PHONY : __/__/port/aes/esp_aes_common.s
+
+# target to generate assembly for a file
+__/__/port/aes/esp_aes_common.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/aes/esp_aes_common.c.s
+.PHONY : __/__/port/aes/esp_aes_common.c.s
+
+__/__/port/aes/esp_aes_xts.obj: __/__/port/aes/esp_aes_xts.c.obj
+
+.PHONY : __/__/port/aes/esp_aes_xts.obj
+
+# target to build an object file
+__/__/port/aes/esp_aes_xts.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/aes/esp_aes_xts.c.obj
+.PHONY : __/__/port/aes/esp_aes_xts.c.obj
+
+__/__/port/aes/esp_aes_xts.i: __/__/port/aes/esp_aes_xts.c.i
+
+.PHONY : __/__/port/aes/esp_aes_xts.i
+
+# target to preprocess a source file
+__/__/port/aes/esp_aes_xts.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/aes/esp_aes_xts.c.i
+.PHONY : __/__/port/aes/esp_aes_xts.c.i
+
+__/__/port/aes/esp_aes_xts.s: __/__/port/aes/esp_aes_xts.c.s
+
+.PHONY : __/__/port/aes/esp_aes_xts.s
+
+# target to generate assembly for a file
+__/__/port/aes/esp_aes_xts.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/aes/esp_aes_xts.c.s
+.PHONY : __/__/port/aes/esp_aes_xts.c.s
+
+__/__/port/esp32/bignum.obj: __/__/port/esp32/bignum.c.obj
+
+.PHONY : __/__/port/esp32/bignum.obj
+
+# target to build an object file
+__/__/port/esp32/bignum.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp32/bignum.c.obj
+.PHONY : __/__/port/esp32/bignum.c.obj
+
+__/__/port/esp32/bignum.i: __/__/port/esp32/bignum.c.i
+
+.PHONY : __/__/port/esp32/bignum.i
+
+# target to preprocess a source file
+__/__/port/esp32/bignum.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp32/bignum.c.i
+.PHONY : __/__/port/esp32/bignum.c.i
+
+__/__/port/esp32/bignum.s: __/__/port/esp32/bignum.c.s
+
+.PHONY : __/__/port/esp32/bignum.s
+
+# target to generate assembly for a file
+__/__/port/esp32/bignum.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp32/bignum.c.s
+.PHONY : __/__/port/esp32/bignum.c.s
+
 __/__/port/esp_bignum.obj: __/__/port/esp_bignum.c.obj
 
 .PHONY : __/__/port/esp_bignum.obj
 
 # target to build an object file
 __/__/port/esp_bignum.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_bignum.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_bignum.c.obj
 .PHONY : __/__/port/esp_bignum.c.obj
 
 __/__/port/esp_bignum.i: __/__/port/esp_bignum.c.i
@@ -231,7 +339,7 @@ __/__/port/esp_bignum.i: __/__/port/esp_bignum.c.i
 
 # target to preprocess a source file
 __/__/port/esp_bignum.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_bignum.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_bignum.c.i
 .PHONY : __/__/port/esp_bignum.c.i
 
 __/__/port/esp_bignum.s: __/__/port/esp_bignum.c.s
@@ -240,7 +348,7 @@ __/__/port/esp_bignum.s: __/__/port/esp_bignum.c.s
 
 # target to generate assembly for a file
 __/__/port/esp_bignum.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_bignum.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_bignum.c.s
 .PHONY : __/__/port/esp_bignum.c.s
 
 __/__/port/esp_hardware.obj: __/__/port/esp_hardware.c.obj
@@ -249,7 +357,7 @@ __/__/port/esp_hardware.obj: __/__/port/esp_hardware.c.obj
 
 # target to build an object file
 __/__/port/esp_hardware.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_hardware.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_hardware.c.obj
 .PHONY : __/__/port/esp_hardware.c.obj
 
 __/__/port/esp_hardware.i: __/__/port/esp_hardware.c.i
@@ -258,7 +366,7 @@ __/__/port/esp_hardware.i: __/__/port/esp_hardware.c.i
 
 # target to preprocess a source file
 __/__/port/esp_hardware.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_hardware.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_hardware.c.i
 .PHONY : __/__/port/esp_hardware.c.i
 
 __/__/port/esp_hardware.s: __/__/port/esp_hardware.c.s
@@ -267,7 +375,7 @@ __/__/port/esp_hardware.s: __/__/port/esp_hardware.c.s
 
 # target to generate assembly for a file
 __/__/port/esp_hardware.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_hardware.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_hardware.c.s
 .PHONY : __/__/port/esp_hardware.c.s
 
 __/__/port/esp_mem.obj: __/__/port/esp_mem.c.obj
@@ -276,7 +384,7 @@ __/__/port/esp_mem.obj: __/__/port/esp_mem.c.obj
 
 # target to build an object file
 __/__/port/esp_mem.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_mem.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_mem.c.obj
 .PHONY : __/__/port/esp_mem.c.obj
 
 __/__/port/esp_mem.i: __/__/port/esp_mem.c.i
@@ -285,7 +393,7 @@ __/__/port/esp_mem.i: __/__/port/esp_mem.c.i
 
 # target to preprocess a source file
 __/__/port/esp_mem.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_mem.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_mem.c.i
 .PHONY : __/__/port/esp_mem.c.i
 
 __/__/port/esp_mem.s: __/__/port/esp_mem.c.s
@@ -294,89 +402,35 @@ __/__/port/esp_mem.s: __/__/port/esp_mem.c.s
 
 # target to generate assembly for a file
 __/__/port/esp_mem.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_mem.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_mem.c.s
 .PHONY : __/__/port/esp_mem.c.s
 
-__/__/port/esp_sha1.obj: __/__/port/esp_sha1.c.obj
+__/__/port/esp_timing.obj: __/__/port/esp_timing.c.obj
 
-.PHONY : __/__/port/esp_sha1.obj
-
-# target to build an object file
-__/__/port/esp_sha1.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_sha1.c.obj
-.PHONY : __/__/port/esp_sha1.c.obj
-
-__/__/port/esp_sha1.i: __/__/port/esp_sha1.c.i
-
-.PHONY : __/__/port/esp_sha1.i
-
-# target to preprocess a source file
-__/__/port/esp_sha1.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_sha1.c.i
-.PHONY : __/__/port/esp_sha1.c.i
-
-__/__/port/esp_sha1.s: __/__/port/esp_sha1.c.s
-
-.PHONY : __/__/port/esp_sha1.s
-
-# target to generate assembly for a file
-__/__/port/esp_sha1.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_sha1.c.s
-.PHONY : __/__/port/esp_sha1.c.s
-
-__/__/port/esp_sha256.obj: __/__/port/esp_sha256.c.obj
-
-.PHONY : __/__/port/esp_sha256.obj
+.PHONY : __/__/port/esp_timing.obj
 
 # target to build an object file
-__/__/port/esp_sha256.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_sha256.c.obj
-.PHONY : __/__/port/esp_sha256.c.obj
+__/__/port/esp_timing.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_timing.c.obj
+.PHONY : __/__/port/esp_timing.c.obj
 
-__/__/port/esp_sha256.i: __/__/port/esp_sha256.c.i
+__/__/port/esp_timing.i: __/__/port/esp_timing.c.i
 
-.PHONY : __/__/port/esp_sha256.i
-
-# target to preprocess a source file
-__/__/port/esp_sha256.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_sha256.c.i
-.PHONY : __/__/port/esp_sha256.c.i
-
-__/__/port/esp_sha256.s: __/__/port/esp_sha256.c.s
-
-.PHONY : __/__/port/esp_sha256.s
-
-# target to generate assembly for a file
-__/__/port/esp_sha256.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_sha256.c.s
-.PHONY : __/__/port/esp_sha256.c.s
-
-__/__/port/esp_sha512.obj: __/__/port/esp_sha512.c.obj
-
-.PHONY : __/__/port/esp_sha512.obj
-
-# target to build an object file
-__/__/port/esp_sha512.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_sha512.c.obj
-.PHONY : __/__/port/esp_sha512.c.obj
-
-__/__/port/esp_sha512.i: __/__/port/esp_sha512.c.i
-
-.PHONY : __/__/port/esp_sha512.i
+.PHONY : __/__/port/esp_timing.i
 
 # target to preprocess a source file
-__/__/port/esp_sha512.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_sha512.c.i
-.PHONY : __/__/port/esp_sha512.c.i
+__/__/port/esp_timing.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_timing.c.i
+.PHONY : __/__/port/esp_timing.c.i
 
-__/__/port/esp_sha512.s: __/__/port/esp_sha512.c.s
+__/__/port/esp_timing.s: __/__/port/esp_timing.c.s
 
-.PHONY : __/__/port/esp_sha512.s
+.PHONY : __/__/port/esp_timing.s
 
 # target to generate assembly for a file
-__/__/port/esp_sha512.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/esp_sha512.c.s
-.PHONY : __/__/port/esp_sha512.c.s
+__/__/port/esp_timing.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/esp_timing.c.s
+.PHONY : __/__/port/esp_timing.c.s
 
 __/__/port/mbedtls_debug.obj: __/__/port/mbedtls_debug.c.obj
 
@@ -405,6 +459,33 @@ __/__/port/mbedtls_debug.c.s:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/mbedtls_debug.c.s
 .PHONY : __/__/port/mbedtls_debug.c.s
 
+__/__/port/md/esp_md.obj: __/__/port/md/esp_md.c.obj
+
+.PHONY : __/__/port/md/esp_md.obj
+
+# target to build an object file
+__/__/port/md/esp_md.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/md/esp_md.c.obj
+.PHONY : __/__/port/md/esp_md.c.obj
+
+__/__/port/md/esp_md.i: __/__/port/md/esp_md.c.i
+
+.PHONY : __/__/port/md/esp_md.i
+
+# target to preprocess a source file
+__/__/port/md/esp_md.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/md/esp_md.c.i
+.PHONY : __/__/port/md/esp_md.c.i
+
+__/__/port/md/esp_md.s: __/__/port/md/esp_md.c.s
+
+.PHONY : __/__/port/md/esp_md.s
+
+# target to generate assembly for a file
+__/__/port/md/esp_md.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/md/esp_md.c.s
+.PHONY : __/__/port/md/esp_md.c.s
+
 __/__/port/net_sockets.obj: __/__/port/net_sockets.c.obj
 
 .PHONY : __/__/port/net_sockets.obj
@@ -431,6 +512,141 @@ __/__/port/net_sockets.s: __/__/port/net_sockets.c.s
 __/__/port/net_sockets.c.s:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.s
 .PHONY : __/__/port/net_sockets.c.s
+
+__/__/port/sha/esp_sha.obj: __/__/port/sha/esp_sha.c.obj
+
+.PHONY : __/__/port/sha/esp_sha.obj
+
+# target to build an object file
+__/__/port/sha/esp_sha.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/esp_sha.c.obj
+.PHONY : __/__/port/sha/esp_sha.c.obj
+
+__/__/port/sha/esp_sha.i: __/__/port/sha/esp_sha.c.i
+
+.PHONY : __/__/port/sha/esp_sha.i
+
+# target to preprocess a source file
+__/__/port/sha/esp_sha.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/esp_sha.c.i
+.PHONY : __/__/port/sha/esp_sha.c.i
+
+__/__/port/sha/esp_sha.s: __/__/port/sha/esp_sha.c.s
+
+.PHONY : __/__/port/sha/esp_sha.s
+
+# target to generate assembly for a file
+__/__/port/sha/esp_sha.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/esp_sha.c.s
+.PHONY : __/__/port/sha/esp_sha.c.s
+
+__/__/port/sha/parallel_engine/esp_sha1.obj: __/__/port/sha/parallel_engine/esp_sha1.c.obj
+
+.PHONY : __/__/port/sha/parallel_engine/esp_sha1.obj
+
+# target to build an object file
+__/__/port/sha/parallel_engine/esp_sha1.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/esp_sha1.c.obj
+.PHONY : __/__/port/sha/parallel_engine/esp_sha1.c.obj
+
+__/__/port/sha/parallel_engine/esp_sha1.i: __/__/port/sha/parallel_engine/esp_sha1.c.i
+
+.PHONY : __/__/port/sha/parallel_engine/esp_sha1.i
+
+# target to preprocess a source file
+__/__/port/sha/parallel_engine/esp_sha1.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/esp_sha1.c.i
+.PHONY : __/__/port/sha/parallel_engine/esp_sha1.c.i
+
+__/__/port/sha/parallel_engine/esp_sha1.s: __/__/port/sha/parallel_engine/esp_sha1.c.s
+
+.PHONY : __/__/port/sha/parallel_engine/esp_sha1.s
+
+# target to generate assembly for a file
+__/__/port/sha/parallel_engine/esp_sha1.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/esp_sha1.c.s
+.PHONY : __/__/port/sha/parallel_engine/esp_sha1.c.s
+
+__/__/port/sha/parallel_engine/esp_sha256.obj: __/__/port/sha/parallel_engine/esp_sha256.c.obj
+
+.PHONY : __/__/port/sha/parallel_engine/esp_sha256.obj
+
+# target to build an object file
+__/__/port/sha/parallel_engine/esp_sha256.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/esp_sha256.c.obj
+.PHONY : __/__/port/sha/parallel_engine/esp_sha256.c.obj
+
+__/__/port/sha/parallel_engine/esp_sha256.i: __/__/port/sha/parallel_engine/esp_sha256.c.i
+
+.PHONY : __/__/port/sha/parallel_engine/esp_sha256.i
+
+# target to preprocess a source file
+__/__/port/sha/parallel_engine/esp_sha256.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/esp_sha256.c.i
+.PHONY : __/__/port/sha/parallel_engine/esp_sha256.c.i
+
+__/__/port/sha/parallel_engine/esp_sha256.s: __/__/port/sha/parallel_engine/esp_sha256.c.s
+
+.PHONY : __/__/port/sha/parallel_engine/esp_sha256.s
+
+# target to generate assembly for a file
+__/__/port/sha/parallel_engine/esp_sha256.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/esp_sha256.c.s
+.PHONY : __/__/port/sha/parallel_engine/esp_sha256.c.s
+
+__/__/port/sha/parallel_engine/esp_sha512.obj: __/__/port/sha/parallel_engine/esp_sha512.c.obj
+
+.PHONY : __/__/port/sha/parallel_engine/esp_sha512.obj
+
+# target to build an object file
+__/__/port/sha/parallel_engine/esp_sha512.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/esp_sha512.c.obj
+.PHONY : __/__/port/sha/parallel_engine/esp_sha512.c.obj
+
+__/__/port/sha/parallel_engine/esp_sha512.i: __/__/port/sha/parallel_engine/esp_sha512.c.i
+
+.PHONY : __/__/port/sha/parallel_engine/esp_sha512.i
+
+# target to preprocess a source file
+__/__/port/sha/parallel_engine/esp_sha512.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/esp_sha512.c.i
+.PHONY : __/__/port/sha/parallel_engine/esp_sha512.c.i
+
+__/__/port/sha/parallel_engine/esp_sha512.s: __/__/port/sha/parallel_engine/esp_sha512.c.s
+
+.PHONY : __/__/port/sha/parallel_engine/esp_sha512.s
+
+# target to generate assembly for a file
+__/__/port/sha/parallel_engine/esp_sha512.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/esp_sha512.c.s
+.PHONY : __/__/port/sha/parallel_engine/esp_sha512.c.s
+
+__/__/port/sha/parallel_engine/sha.obj: __/__/port/sha/parallel_engine/sha.c.obj
+
+.PHONY : __/__/port/sha/parallel_engine/sha.obj
+
+# target to build an object file
+__/__/port/sha/parallel_engine/sha.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/sha.c.obj
+.PHONY : __/__/port/sha/parallel_engine/sha.c.obj
+
+__/__/port/sha/parallel_engine/sha.i: __/__/port/sha/parallel_engine/sha.c.i
+
+.PHONY : __/__/port/sha/parallel_engine/sha.i
+
+# target to preprocess a source file
+__/__/port/sha/parallel_engine/sha.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/sha.c.i
+.PHONY : __/__/port/sha/parallel_engine/sha.c.i
+
+__/__/port/sha/parallel_engine/sha.s: __/__/port/sha/parallel_engine/sha.c.s
+
+.PHONY : __/__/port/sha/parallel_engine/sha.s
+
+# target to generate assembly for a file
+__/__/port/sha/parallel_engine/sha.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/build.make esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/__/__/port/sha/parallel_engine/sha.c.s
+.PHONY : __/__/port/sha/parallel_engine/sha.c.s
 
 aes.obj: aes.c.obj
 
@@ -2554,6 +2770,18 @@ help:
 	@echo "... mbedx509"
 	@echo "... install/strip"
 	@echo "... mbedcrypto"
+	@echo "... __/__/port/aes/block/esp_aes.obj"
+	@echo "... __/__/port/aes/block/esp_aes.i"
+	@echo "... __/__/port/aes/block/esp_aes.s"
+	@echo "... __/__/port/aes/esp_aes_common.obj"
+	@echo "... __/__/port/aes/esp_aes_common.i"
+	@echo "... __/__/port/aes/esp_aes_common.s"
+	@echo "... __/__/port/aes/esp_aes_xts.obj"
+	@echo "... __/__/port/aes/esp_aes_xts.i"
+	@echo "... __/__/port/aes/esp_aes_xts.s"
+	@echo "... __/__/port/esp32/bignum.obj"
+	@echo "... __/__/port/esp32/bignum.i"
+	@echo "... __/__/port/esp32/bignum.s"
 	@echo "... __/__/port/esp_bignum.obj"
 	@echo "... __/__/port/esp_bignum.i"
 	@echo "... __/__/port/esp_bignum.s"
@@ -2563,21 +2791,33 @@ help:
 	@echo "... __/__/port/esp_mem.obj"
 	@echo "... __/__/port/esp_mem.i"
 	@echo "... __/__/port/esp_mem.s"
-	@echo "... __/__/port/esp_sha1.obj"
-	@echo "... __/__/port/esp_sha1.i"
-	@echo "... __/__/port/esp_sha1.s"
-	@echo "... __/__/port/esp_sha256.obj"
-	@echo "... __/__/port/esp_sha256.i"
-	@echo "... __/__/port/esp_sha256.s"
-	@echo "... __/__/port/esp_sha512.obj"
-	@echo "... __/__/port/esp_sha512.i"
-	@echo "... __/__/port/esp_sha512.s"
+	@echo "... __/__/port/esp_timing.obj"
+	@echo "... __/__/port/esp_timing.i"
+	@echo "... __/__/port/esp_timing.s"
 	@echo "... __/__/port/mbedtls_debug.obj"
 	@echo "... __/__/port/mbedtls_debug.i"
 	@echo "... __/__/port/mbedtls_debug.s"
+	@echo "... __/__/port/md/esp_md.obj"
+	@echo "... __/__/port/md/esp_md.i"
+	@echo "... __/__/port/md/esp_md.s"
 	@echo "... __/__/port/net_sockets.obj"
 	@echo "... __/__/port/net_sockets.i"
 	@echo "... __/__/port/net_sockets.s"
+	@echo "... __/__/port/sha/esp_sha.obj"
+	@echo "... __/__/port/sha/esp_sha.i"
+	@echo "... __/__/port/sha/esp_sha.s"
+	@echo "... __/__/port/sha/parallel_engine/esp_sha1.obj"
+	@echo "... __/__/port/sha/parallel_engine/esp_sha1.i"
+	@echo "... __/__/port/sha/parallel_engine/esp_sha1.s"
+	@echo "... __/__/port/sha/parallel_engine/esp_sha256.obj"
+	@echo "... __/__/port/sha/parallel_engine/esp_sha256.i"
+	@echo "... __/__/port/sha/parallel_engine/esp_sha256.s"
+	@echo "... __/__/port/sha/parallel_engine/esp_sha512.obj"
+	@echo "... __/__/port/sha/parallel_engine/esp_sha512.i"
+	@echo "... __/__/port/sha/parallel_engine/esp_sha512.s"
+	@echo "... __/__/port/sha/parallel_engine/sha.obj"
+	@echo "... __/__/port/sha/parallel_engine/sha.i"
+	@echo "... __/__/port/sha/parallel_engine/sha.s"
 	@echo "... aes.obj"
 	@echo "... aes.i"
 	@echo "... aes.s"

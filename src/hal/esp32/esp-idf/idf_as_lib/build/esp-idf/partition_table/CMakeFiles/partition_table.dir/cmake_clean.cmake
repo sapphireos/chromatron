@@ -1,5 +1,4 @@
 file(REMOVE_RECURSE
-  "../../partition_table/partition-table.bin"
   "CMakeFiles/partition_table"
 )
 

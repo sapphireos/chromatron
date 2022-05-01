@@ -68,6 +68,18 @@ install/strip/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
 .PHONY : install/strip/fast
 
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -112,18 +124,6 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
-
 # The main all target
 all: cmake_check_build_system
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/app_trace/CMakeFiles/progress.marks
@@ -157,34 +157,19 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/app_trace/CMakeFiles/idf_component_app_trace_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/app_trace/CMakeFiles/idf_component_app_trace_sections_info.dir/rule
-.PHONY : esp-idf/app_trace/CMakeFiles/idf_component_app_trace_sections_info.dir/rule
+esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/rule
+.PHONY : esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/rule
 
 # Convenience name for target.
-idf_component_app_trace_sections_info: esp-idf/app_trace/CMakeFiles/idf_component_app_trace_sections_info.dir/rule
+__idf_app_trace: esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/rule
 
-.PHONY : idf_component_app_trace_sections_info
+.PHONY : __idf_app_trace
 
 # fast build rule for target.
-idf_component_app_trace_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace_sections_info.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace_sections_info.dir/build
-.PHONY : idf_component_app_trace_sections_info/fast
-
-# Convenience name for target.
-esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/rule
-.PHONY : esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/rule
-
-# Convenience name for target.
-idf_component_app_trace: esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/rule
-
-.PHONY : idf_component_app_trace
-
-# fast build rule for target.
-idf_component_app_trace/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build
-.PHONY : idf_component_app_trace/fast
+__idf_app_trace/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build
+.PHONY : __idf_app_trace/fast
 
 app_trace.obj: app_trace.c.obj
 
@@ -192,7 +177,7 @@ app_trace.obj: app_trace.c.obj
 
 # target to build an object file
 app_trace.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/app_trace.c.obj
 .PHONY : app_trace.c.obj
 
 app_trace.i: app_trace.c.i
@@ -201,7 +186,7 @@ app_trace.i: app_trace.c.i
 
 # target to preprocess a source file
 app_trace.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/app_trace.c.i
 .PHONY : app_trace.c.i
 
 app_trace.s: app_trace.c.s
@@ -210,7 +195,7 @@ app_trace.s: app_trace.c.s
 
 # target to generate assembly for a file
 app_trace.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/app_trace.c.s
 .PHONY : app_trace.c.s
 
 app_trace_util.obj: app_trace_util.c.obj
@@ -219,7 +204,7 @@ app_trace_util.obj: app_trace_util.c.obj
 
 # target to build an object file
 app_trace_util.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/app_trace_util.c.obj
 .PHONY : app_trace_util.c.obj
 
 app_trace_util.i: app_trace_util.c.i
@@ -228,7 +213,7 @@ app_trace_util.i: app_trace_util.c.i
 
 # target to preprocess a source file
 app_trace_util.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/app_trace_util.c.i
 .PHONY : app_trace_util.c.i
 
 app_trace_util.s: app_trace_util.c.s
@@ -237,7 +222,7 @@ app_trace_util.s: app_trace_util.c.s
 
 # target to generate assembly for a file
 app_trace_util.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/app_trace_util.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/app_trace_util.c.s
 .PHONY : app_trace_util.c.s
 
 gcov/gcov_rtio.obj: gcov/gcov_rtio.c.obj
@@ -246,7 +231,7 @@ gcov/gcov_rtio.obj: gcov/gcov_rtio.c.obj
 
 # target to build an object file
 gcov/gcov_rtio.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/gcov/gcov_rtio.c.obj
 .PHONY : gcov/gcov_rtio.c.obj
 
 gcov/gcov_rtio.i: gcov/gcov_rtio.c.i
@@ -255,7 +240,7 @@ gcov/gcov_rtio.i: gcov/gcov_rtio.c.i
 
 # target to preprocess a source file
 gcov/gcov_rtio.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/gcov/gcov_rtio.c.i
 .PHONY : gcov/gcov_rtio.c.i
 
 gcov/gcov_rtio.s: gcov/gcov_rtio.c.s
@@ -264,7 +249,7 @@ gcov/gcov_rtio.s: gcov/gcov_rtio.c.s
 
 # target to generate assembly for a file
 gcov/gcov_rtio.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/gcov/gcov_rtio.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/gcov/gcov_rtio.c.s
 .PHONY : gcov/gcov_rtio.c.s
 
 host_file_io.obj: host_file_io.c.obj
@@ -273,7 +258,7 @@ host_file_io.obj: host_file_io.c.obj
 
 # target to build an object file
 host_file_io.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/host_file_io.c.obj
 .PHONY : host_file_io.c.obj
 
 host_file_io.i: host_file_io.c.i
@@ -282,7 +267,7 @@ host_file_io.i: host_file_io.c.i
 
 # target to preprocess a source file
 host_file_io.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/host_file_io.c.i
 .PHONY : host_file_io.c.i
 
 host_file_io.s: host_file_io.c.s
@@ -291,7 +276,7 @@ host_file_io.s: host_file_io.c.s
 
 # target to generate assembly for a file
 host_file_io.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/idf_component_app_trace.dir/host_file_io.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/build.make esp-idf/app_trace/CMakeFiles/__idf_app_trace.dir/host_file_io.c.s
 .PHONY : host_file_io.c.s
 
 # Help Target
@@ -301,13 +286,12 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... install/strip"
+	@echo "... install/local"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_app_trace_sections_info"
-	@echo "... install/local"
-	@echo "... idf_component_app_trace"
+	@echo "... __idf_app_trace"
 	@echo "... app_trace.obj"
 	@echo "... app_trace.i"
 	@echo "... app_trace.s"

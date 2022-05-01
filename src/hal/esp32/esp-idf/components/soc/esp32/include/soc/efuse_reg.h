@@ -104,7 +104,7 @@
 #define EFUSE_RD_CHIP_CPU_FREQ_LOW_V  0x1
 #define EFUSE_RD_CHIP_CPU_FREQ_LOW_S  12
 /* EFUSE_RD_CHIP_VER_PKG : R/W ;bitpos:[11:9] ;default: 3'b0 ; */
-/*description: chip package */
+/*description: least significant bits of chip package */
 #define EFUSE_RD_CHIP_VER_PKG  0x00000007
 #define EFUSE_RD_CHIP_VER_PKG_M  ((EFUSE_RD_CHIP_VER_PKG_V)<<(EFUSE_RD_CHIP_VER_PKG_S))
 #define EFUSE_RD_CHIP_VER_PKG_V  0x7
@@ -112,8 +112,10 @@
 #define EFUSE_RD_CHIP_VER_PKG_ESP32D0WDQ6  0
 #define EFUSE_RD_CHIP_VER_PKG_ESP32D0WDQ5  1
 #define EFUSE_RD_CHIP_VER_PKG_ESP32D2WDQ5  2
-#define EFUSE_RD_CHIP_VER_PKG_ESP32PICOD2  4
+#define EFUSE_RD_CHIP_VER_PKG_ESP32PICOD2  4 /* Deprecated: this chip was never mass produced  */
+#define EFUSE_RD_CHIP_VER_PKG_ESP32U4WDH   4
 #define EFUSE_RD_CHIP_VER_PKG_ESP32PICOD4  5
+#define EFUSE_RD_CHIP_VER_PKG_ESP32PICOV302  6
 /* EFUSE_RD_SPI_PAD_CONFIG_HD : RO ;bitpos:[8:4] ;default: 5'b0 ; */
 /*description: read for SPI_pad_config_hd*/
 #define EFUSE_RD_SPI_PAD_CONFIG_HD  0x0000001F
@@ -126,12 +128,12 @@
 #define EFUSE_RD_CHIP_VER_DIS_CACHE_M  (BIT(3))
 #define EFUSE_RD_CHIP_VER_DIS_CACHE_V  0x1
 #define EFUSE_RD_CHIP_VER_DIS_CACHE_S  3
-/* EFUSE_RD_CHIP_VER_32PAD : RO ;bitpos:[2] ;default: 1'b0 ; */
-/*description: */
-#define EFUSE_RD_CHIP_VER_32PAD  (BIT(2))
-#define EFUSE_RD_CHIP_VER_32PAD_M  (BIT(2))
-#define EFUSE_RD_CHIP_VER_32PAD_V  0x1
-#define EFUSE_RD_CHIP_VER_32PAD_S  2
+/* EFUSE_RD_CHIP_VER_PKG_4BIT : RO ;bitpos:[2] ;default: 1'b0 ; */
+/*description: most significant bit of chip package */
+#define EFUSE_RD_CHIP_VER_PKG_4BIT  (BIT(2))
+#define EFUSE_RD_CHIP_VER_PKG_4BIT_M  (BIT(2))
+#define EFUSE_RD_CHIP_VER_PKG_4BIT_V  0x1
+#define EFUSE_RD_CHIP_VER_PKG_4BIT_S  2
 /* EFUSE_RD_CHIP_VER_DIS_BT : RO ;bitpos:[1] ;default: 1'b0 ; */
 /*description: */
 #define EFUSE_RD_CHIP_VER_DIS_BT  (BIT(1))
@@ -206,16 +208,16 @@
 #define EFUSE_RD_FLASH_CRYPT_CONFIG_V  0xF
 #define EFUSE_RD_FLASH_CRYPT_CONFIG_S  28
 /* EFUSE_RD_DIG_VOL_L6: RO; bitpos:[27:24]; */
-/*descritpion: This field stores the difference between the digital regulator voltage at level6 and 1.2 V. (RO) 
+/*descritpion: This field stores the difference between the digital regulator voltage at level6 and 1.2 V. (RO)
   BIT[27] is the sign bit, 0: + , 1: -
-  BIT[26:24] is the difference value, unit: 0.017V 
+  BIT[26:24] is the difference value, unit: 0.017V
   volt_lv6 = BIT[27] ? 1.2 - BIT[26:24] * 0.017 : 1.2 + BIT[26:24] * 0.017     */
 #define EFUSE_RD_DIG_VOL_L6          0x0F
 #define EFUSE_RD_DIG_VOL_L6_M        ((EFUSE_RD_DIG_VOL_L6_V)<<(EFUSE_RD_DIG_VOL_L6_S))
 #define EFUSE_RD_DIG_VOL_L6_V        0x0F
 #define EFUSE_RD_DIG_VOL_L6_S        24
 /* EFUSE_RD_VOL_LEVEL_HP_INV: RO; bitpos:[23:22] */
-/*description: This field stores the voltage level for CPU to run at 240 MHz, or for flash/PSRAM to run at 80 MHz. 
+/*description: This field stores the voltage level for CPU to run at 240 MHz, or for flash/PSRAM to run at 80 MHz.
 0x0: level 7; 0x1: level 6; 0x2: level 5; 0x3: level 4. (RO)*/
 #define EFUSE_RD_VOL_LEVEL_HP_INV    0x03
 #define EFUSE_RD_VOL_LEVEL_HP_INV_M  ((EFUSE_RD_VOL_LEVEL_HP_INV_V)<<(EFUSE_RD_VOL_LEVEL_HP_INV_S))
@@ -380,7 +382,7 @@
 #define EFUSE_CHIP_CPU_FREQ_LOW_V  0x1
 #define EFUSE_CHIP_CPU_FREQ_LOW_S  12
 /* EFUSE_CHIP_VER_PKG : R/W ;bitpos:[11:9] ;default: 3'b0 ; */
-/*description: */
+/*description: least significant bits of chip package */
 #define EFUSE_CHIP_VER_PKG  0x00000007
 #define EFUSE_CHIP_VER_PKG_M  ((EFUSE_CHIP_VER_PKG_V)<<(EFUSE_CHIP_VER_PKG_S))
 #define EFUSE_CHIP_VER_PKG_V  0x7
@@ -390,6 +392,7 @@
 #define EFUSE_CHIP_VER_PKG_ESP32D2WDQ5  2
 #define EFUSE_CHIP_VER_PKG_ESP32PICOD2  4
 #define EFUSE_CHIP_VER_PKG_ESP32PICOD4  5
+#define EFUSE_CHIP_VER_PKG_ESP32PICOV302  6
 /* EFUSE_SPI_PAD_CONFIG_HD : R/W ;bitpos:[8:4] ;default: 5'b0 ; */
 /*description: program for SPI_pad_config_hd*/
 #define EFUSE_SPI_PAD_CONFIG_HD  0x0000001F
@@ -402,12 +405,12 @@
 #define EFUSE_CHIP_VER_DIS_CACHE_M  (BIT(3))
 #define EFUSE_CHIP_VER_DIS_CACHE_V  0x1
 #define EFUSE_CHIP_VER_DIS_CACHE_S  3
-/* EFUSE_CHIP_VER_32PAD : R/W ;bitpos:[2] ;default: 1'b0 ; */
-/*description: */
-#define EFUSE_CHIP_VER_32PAD  (BIT(2))
-#define EFUSE_CHIP_VER_32PAD_M  (BIT(2))
-#define EFUSE_CHIP_VER_32PAD_V  0x1
-#define EFUSE_CHIP_VER_32PAD_S  2
+/* EFUSE_CHIP_VER_PKG_4BIT : RO ;bitpos:[2] ;default: 1'b0 ; */
+/*description: most significant bit of chip package */
+#define EFUSE_CHIP_VER_PKG_4BIT  (BIT(2))
+#define EFUSE_CHIP_VER_PKG_4BIT_M  (BIT(2))
+#define EFUSE_CHIP_VER_PKG_4BIT_V  0x1
+#define EFUSE_CHIP_VER_PKG_4BIT_S  2
 /* EFUSE_CHIP_VER_DIS_BT : R/W ;bitpos:[1] ;default: 1'b0 ; */
 /*description: */
 #define EFUSE_CHIP_VER_DIS_BT  (BIT(1))
@@ -482,16 +485,16 @@
 #define EFUSE_FLASH_CRYPT_CONFIG_V  0xF
 #define EFUSE_FLASH_CRYPT_CONFIG_S  28
 /* EFUSE_DIG_VOL_L6: R/W; bitpos:[27:24]; */
-/*descritpion: This field stores the difference between the digital regulator voltage at level6 and 1.2 V. (R/W) 
+/*descritpion: This field stores the difference between the digital regulator voltage at level6 and 1.2 V. (R/W)
   BIT[27] is the sign bit, 0: + , 1: -
-  BIT[26:24] is the difference value, unit: 0.017V 
+  BIT[26:24] is the difference value, unit: 0.017V
   volt_lv6 = BIT[27] ? 1.2 - BIT[26:24] * 0.017 : 1.2 + BIT[26:24] * 0.017     */
 #define EFUSE_DIG_VOL_L6            0x0F
 #define EFUSE_DIG_VOL_L6_M          ((EFUSE_RD_DIG_VOL_L6_V)<<(EFUSE_RD_DIG_VOL_L6_S))
 #define EFUSE_DIG_VOL_L6_V          0x0F
 #define EFUSE_DIG_VOL_L6_S          24
 /* EFUSE_VOL_LEVEL_HP_INV: R/W; bitpos:[23:22] */
-/*description: This field stores the voltage level for CPU to run at 240 MHz, or for flash/PSRAM to run at 80 MHz. 
+/*description: This field stores the voltage level for CPU to run at 240 MHz, or for flash/PSRAM to run at 80 MHz.
 0x0: level 7; 0x1: level 6; 0x2: level 5; 0x3: level 4. (R/W)*/
 #define EFUSE_VOL_LEVEL_HP_INV      0x03
 #define EFUSE_VOL_LEVEL_HP_INV_M    ((EFUSE_RD_VOL_LEVEL_HP_INV_V)<<(EFUSE_RD_VOL_LEVEL_HP_INV_S))
@@ -1184,5 +1187,3 @@
 
 
 #endif /*_SOC_EFUSE_REG_H_ */
-
-

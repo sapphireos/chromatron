@@ -128,9 +128,9 @@ KV_SECTION_META kv_meta_t thread_info_kv[] = {
 PT_THREAD( cpu_stats_thread( pt_t *pt, void *state ) );
 
 
-static uint16_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    uint16_t ret_val = 0;
+    uint32_t ret_val = 0;
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){

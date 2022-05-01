@@ -38,8 +38,7 @@
 
 #include <string.h>
 
-#include "debug.h"
-#include "coap.h"
+#include "coap3/coap.h"
 
 static coap_context_t *coap_context;
 
@@ -59,7 +58,7 @@ init_coap_server(coap_context_t **ctx) {
   assert(ctx);
 
   coap_set_log_level(LOG_DEBUG);
-  
+
   coap_address_init(&listen_addr);
   listen_addr.port = UIP_HTONS(COAP_DEFAULT_PORT);
 
@@ -67,7 +66,7 @@ init_coap_server(coap_context_t **ctx) {
 #ifndef CONTIKI_TARGET_MINIMAL_NET
   uip_ds6_prefix_add(&listen_addr.addr, 64, 0, 0, 0, 0);
 #endif /* not CONTIKI_TARGET_MINIMAL_NET */
-  
+
   uip_ds6_addr_add(&listen_addr.addr, 0, ADDR_MANUAL);
 
   /* set default route to gateway aaaa::1 */
@@ -91,55 +90,47 @@ init_coap_server(coap_context_t **ctx) {
 # define min(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
-void 
-hnd_get_time(coap_context_t  *ctx, struct coap_resource_t *resource,
-	     const coap_endpoint_t *local_interface,
-	     coap_address_t *peer, coap_pdu_t *request, str *token, 
-	     coap_pdu_t *response) {
-  coap_opt_iterator_t opt_iter;
-  coap_opt_t *option;
+void
+hnd_get_time(coap_resource_t *resource, coap_session_t *session,
+             const coap_pdu_t *request, const coap_string_t *query,
+             coap_pdu_t *response) {
   unsigned char buf[40];
   size_t len;
   coap_tick_t now;
   coap_tick_t t;
-
-  /* FIXME: return time, e.g. in human-readable by default and ticks
-   * when query ?ticks is given. */
-
-  /* if my_clock_base was deleted, we pretend to have no such resource */
-  response->hdr->code = 
-    my_clock_base ? COAP_RESPONSE_CODE(205) : COAP_RESPONSE_CODE(404);
-
-  if (coap_find_observer(resource, peer, token)) {
-    /* FIXME: need to check for resource->dirty? */
-    coap_add_option(response, COAP_OPTION_OBSERVE, 
-		    coap_encode_var_bytes(buf, ctx->observe), buf);
-  }
-
-  if (my_clock_base)
-    coap_add_option(response, COAP_OPTION_CONTENT_FORMAT,
-		    coap_encode_var_bytes(buf, COAP_MEDIATYPE_TEXT_PLAIN), buf);
-
-  coap_add_option(response, COAP_OPTION_MAXAGE,
-	  coap_encode_var_bytes(buf, 0x01), buf);
 
   if (my_clock_base) {
 
     /* calculate current time */
     coap_ticks(&t);
     now = my_clock_base + (t / COAP_TICKS_PER_SECOND);
-    
-    if (request != NULL
-	&& (option = coap_check_option(request, COAP_OPTION_URI_QUERY, &opt_iter))
-	&& memcmp(COAP_OPT_VALUE(option), "ticks",
-		  min(5, COAP_OPT_LENGTH(option))) == 0) {
-      /* output ticks */
-      len = snprintf((char *)buf, 
-	   min(sizeof(buf), response->max_size - response->length),
-		     "%u", (unsigned int)now);
-      coap_add_data(response, len, buf);
 
+    if (query != NULL
+        && coap_string_equal(query, coap_make_str_const("ticks"))) {
+          /* output ticks */
+          len = snprintf((char *)buf, sizeof(buf), "%u", (unsigned int)now);
+
+    } else {      /* output human-readable time */
+      struct tm *tmp;
+      time_t tnow = now;
+      tmp = gmtime(&tnow);
+      if (!tmp) {
+        /* If 'tnow' is not valid */
+        coap_pdu_set_code(response, COAP_RESPONSE_CODE_NOT_FOUND);
+        return;
+      }
+      else {
+        len = strftime((char *)buf, sizeof(buf), "%b %d %H:%M:%S", tmp);
+      }
     }
+    coap_add_data_blocked_response(request, response,
+                                   COAP_MEDIATYPE_TEXT_PLAIN, 1,
+                                   len,
+                                   buf);
+  }
+  else {
+    /* if my_clock_base was deleted, we pretend to have no such resource */
+    coap_pdu_set_code(response, COAP_RESPONSE_CODE_NOT_FOUND);
   }
 }
 
@@ -150,36 +141,36 @@ init_coap_resources(coap_context_t *ctx) {
   r = coap_resource_init(NULL, 0, 0);
   coap_register_handler(r, COAP_REQUEST_GET, hnd_get_index);
 
-  coap_add_attr(r, (unsigned char *)"ct", 2, (unsigned char *)"0", 1, 0);
-  coap_add_attr(r, (unsigned char *)"title", 5, (unsigned char *)"\"General Info\"", 14, 0);
+  coap_add_attr(r, coap_make_str_const("ct"), coap_make_str_const("0"), 0);
+  coap_add_attr(r, coap_make_str_const("title"), coap_make_str_const("\"General Info\""), 0);
   coap_add_resource(ctx, r);
 #endif
   /* store clock base to use in /time */
   my_clock_base = clock_offset;
 
-  r = coap_resource_init((unsigned char *)"time", 4, 0);
+  r = coap_resource_init(coap_make_str_const("time"), 0);
   if (!r)
     goto error;
 
-  r->observable = 1;
+  coap_resource_set_get_observable(r, 1);
   time_resource = r;
   coap_register_handler(r, COAP_REQUEST_GET, hnd_get_time);
 #if 0
   coap_register_handler(r, COAP_REQUEST_PUT, hnd_put_time);
   coap_register_handler(r, COAP_REQUEST_DELETE, hnd_delete_time);
 #endif
-  coap_add_attr(r, (unsigned char *)"ct", 2, (unsigned char *)"0", 1, 0);
-  /* coap_add_attr(r, (unsigned char *)"title", 5, (unsigned char *)"\"Internal Clock\"", 16, 0); */
-  coap_add_attr(r, (unsigned char *)"rt", 2, (unsigned char *)"\"Ticks\"", 7, 0);
-  coap_add_attr(r, (unsigned char *)"if", 2, (unsigned char *)"\"clock\"", 7, 0);
+  coap_add_attr(r, coap_make_str_const("ct"), coap_make_str_const("0"), 0);
+  /* coap_add_attr(r, coap_make_str_const("title"), coap_make_str_const("\"Internal Clock\""), 0); */
+  coap_add_attr(r, coap_make_str_const("rt"), coap_make_str_const("\"ticks\""), 0);
+  coap_add_attr(r, coap_make_str_const("if"), coap_make_str_const("\"clock\""), 0);
 
   coap_add_resource(ctx, r);
 #if 0
 #ifndef WITHOUT_ASYNC
-  r = coap_resource_init((unsigned char *)"async", 5, 0);
+  r = coap_resource_init(coap_make_str_const("async"), 0);
   coap_register_handler(r, COAP_REQUEST_GET, hnd_get_async);
 
-  coap_add_attr(r, (unsigned char *)"ct", 2, (unsigned char *)"0", 1, 0);
+  coap_add_attr(r, coap_make_str_const("ct"), coap_make_str_const("0"), 0);
   coap_add_resource(ctx, r);
 #endif /* WITHOUT_ASYNC */
 #endif
@@ -218,10 +209,10 @@ PROCESS_THREAD(coap_server_process, ev, data)
   while(1) {
     PROCESS_YIELD();
     if(ev == tcpip_event) {
-      coap_read(coap_context);	/* read received data */
-      /* coap_dispatch(coap_context); /\* and dispatch PDUs from receivequeue *\/ */
+      /* There is something to read on the endpoint */
+      coap_io_process(coap_context, COAP_IO_WAIT);
     } else if (ev == PROCESS_EVENT_TIMER && etimer_expired(&dirty_timer)) {
-      time_resource->dirty = 1;
+      coap_resource_notify_observers(time_resource, NULL);
       etimer_reset(&dirty_timer);
     }
   }

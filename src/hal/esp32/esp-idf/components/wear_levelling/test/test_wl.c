@@ -1,3 +1,4 @@
+#include "sdkconfig.h"
 #include <string.h>
 #include "unity.h"
 #include "wear_levelling.h"
@@ -6,8 +7,17 @@
 #include "freertos/portable.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
-#include "esp_clk.h"
+#if CONFIG_IDF_TARGET_ESP32
+#include "esp32/clk.h"
+#elif CONFIG_IDF_TARGET_ESP32S2
+#include "esp32s2/clk.h"
+#elif CONFIG_IDF_TARGET_ESP32S3
+#include "esp32s3/clk.h"
+#elif CONFIG_IDF_TARGET_ESP32C3
+#include "esp32c3/clk.h"
+#endif
 #include "soc/cpu.h"
+#include "esp_rom_sys.h"
 
 TEST_CASE("wl_unmount doesn't leak memory", "[wear_levelling]")
 {
@@ -23,7 +33,7 @@ TEST_CASE("wl_unmount doesn't leak memory", "[wear_levelling]")
     // Original code:
     //TEST_ASSERT_EQUAL_HEX32(size_before, size_after);
     // Workaround for problem with heap size calculation:
-    ptrdiff_t stack_diff = size_before - size_after; 
+    ptrdiff_t stack_diff = size_before - size_after;
     stack_diff = abs(stack_diff);
     if (stack_diff > 8) TEST_ASSERT_EQUAL(0, stack_diff);
 }
@@ -49,7 +59,7 @@ TEST_CASE("wl_mount check partition parameters", "[wear_levelling][ignore]")
         // Original code:
         //TEST_ASSERT_EQUAL_HEX32(size_before, size_after);
         // Workaround for problem with heap size calculation:
-        ptrdiff_t stack_diff = size_before - size_after; 
+        ptrdiff_t stack_diff = size_before - size_after;
         stack_diff = abs(stack_diff);
         if (stack_diff > 8) TEST_ASSERT_EQUAL(0, stack_diff);
     }
@@ -65,7 +75,7 @@ TEST_CASE("wl_mount check partition parameters", "[wear_levelling][ignore]")
     // Original code:
     //TEST_ASSERT_EQUAL_HEX32(size_before, size_after);
     // Workaround for problem with heap size calculation:
-    ptrdiff_t stack_diff = size_before - size_after; 
+    ptrdiff_t stack_diff = size_before - size_after;
     stack_diff = abs(stack_diff);
     if (stack_diff > 8) TEST_ASSERT_EQUAL(0, stack_diff);
 }
@@ -107,7 +117,7 @@ static void read_write_task(void* param)
             uint32_t rval;
             err = wl_read(args->handle, args->offset + i * sizeof(rval), &rval, sizeof(rval));
             if (err != ESP_OK || rval != val) {
-                ets_printf("E: i=%d, cnt=%d rval=%d val=%d\n\n", i, args->word_count, rval, val);
+                esp_rom_printf("E: i=%d, cnt=%d rval=%d val=%d\n\n", i, args->word_count, rval, val);
                 args->result = ESP_FAIL;
                 goto done;
             }
@@ -131,7 +141,7 @@ TEST_CASE("multiple tasks can access wl handle simultaneously", "[wear_levelling
     TEST_ESP_OK(wl_erase_range(handle, 0, sector_size * 8));
     read_write_test_arg_t args1 = READ_WRITE_TEST_ARG_INIT(0, 1, handle, sector_size/sizeof(uint32_t));
     read_write_test_arg_t args2 = READ_WRITE_TEST_ARG_INIT(sector_size, 2, handle, sector_size/sizeof(uint32_t));
-    const size_t stack_size = 4096;
+    const size_t stack_size = 8192;
 
     printf("writing 1 and 2\n");
     const int cpuid_0 = 0;
@@ -215,7 +225,7 @@ TEST_CASE("multiple write is correct", "[wear_levelling]")
     printf("Check 1 sector_size=0x%08x\n", sector_size);
     // Set initial random value
     uint32_t init_val = rand();
-    
+
     uint32_t* buff = (uint32_t*)malloc(sector_size);
     for (int m=0 ; m < TEST_SECTORS_COUNT ; m++) {
         for (int i=0 ; i< sector_size/sizeof(uint32_t) ; i++) {
@@ -226,9 +236,9 @@ TEST_CASE("multiple write is correct", "[wear_levelling]")
     }
 
     check_mem_data(handle, init_val, buff);
-    
+
     uint32_t start;
-    RSR(CCOUNT, start);
+    start = cpu_hal_get_cycle_count();
 
 
     for (int m=0 ; m< 100000 ; m++) {
@@ -241,7 +251,7 @@ TEST_CASE("multiple write is correct", "[wear_levelling]")
         check_mem_data(handle, init_val, buff);
 
         uint32_t end;
-        RSR(CCOUNT, end);
+        end = cpu_hal_get_cycle_count();
         uint32_t ms = (end - start) / (esp_clk_cpu_freq() / 1000);
         printf("loop %4i pass, time= %ims\n", m, ms);
         if (ms > 10000) {
@@ -259,7 +269,7 @@ extern const uint8_t test_partition_v1_bin_end[]   asm("_binary_test_partition_v
 #define COMPARE_START_CONST 0x12340000
 
 // We write to partition prepared image with V1
-// Then we convert image to new version and verifying the data 
+// Then we convert image to new version and verifying the data
 
 TEST_CASE("Version update test", "[wear_levelling]")
 {
@@ -269,7 +279,7 @@ TEST_CASE("Version update test", "[wear_levelling]")
 
     if (partition->encrypted)
     {
-        printf("Update from V1 to V2 will not work.\n");    
+        printf("Update from V1 to V2 will not work.\n");
         return;
     }
     fake_partition.size = (size_t)(test_partition_v1_bin_end - test_partition_v1_bin_start);

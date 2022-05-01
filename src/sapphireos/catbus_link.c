@@ -43,7 +43,7 @@
 #include "logging.h"
 
 
-#define TEST_MODE
+// #define TEST_MODE
 
 
 #ifdef ENABLE_CATBUS_LINK
@@ -93,8 +93,9 @@ typedef struct __attribute__((packed)){
 // remote producer:
 // producer state tracked by the leader
 typedef struct __attribute__((packed)){
-    link_handle_t link;
+    uint64_t link_hash;
     sock_addr_t addr;
+    uint16_t padding; // padding to ensure data is 32 bit aligned.  the ESP8266 will crash if it isn't.
     int32_t timeout;
     catbus_data_t data;
     // variable length data follows
@@ -103,7 +104,7 @@ typedef struct __attribute__((packed)){
 // consumer:
 // stored on leader, tracks consumers to transmit data to
 typedef struct __attribute__((packed)){
-    link_handle_t link;
+    uint64_t link_hash;
     sock_addr_t addr;
     int32_t timeout;
 } consumer_state_t;
@@ -134,7 +135,7 @@ PT_END( pt );
 }
 
 
-static uint16_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -155,7 +156,7 @@ static uint16_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t le
     return len;
 }
 
-static uint16_t consumer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t consumer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -176,7 +177,7 @@ static uint16_t consumer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_
     return len;
 }
 
-static uint16_t producer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t producer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -197,7 +198,7 @@ static uint16_t producer_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_
     return len;
 }
 
-static uint16_t remote_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t remote_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -339,6 +340,8 @@ void link_v_init( void )
 
 
     #ifdef TEST_MODE
+
+    log_v_info_P( PSTR("LINK TEST MODE ENABLED") );
 
     thread_t_create( link_test_thread,
                  PSTR("link_test"),
@@ -710,6 +713,8 @@ link_handle_t link_l_create2( link_state_t *state ){
 
     if( list_u8_count( &link_list ) >= LINK_MAX_LINKS ){
 
+        log_v_error_P( PSTR("Too many links") );
+
         return -1;
     }
 
@@ -732,7 +737,9 @@ link_handle_t link_l_create2( link_state_t *state ){
     }
     else{
 
-        ASSERT( FALSE );
+        log_v_error_P( PSTR("Invalid link mode") );
+
+        return -1;
     }
 
     // check data type
@@ -835,7 +842,7 @@ static void delete_link( link_handle_t link ){
 
         consumer_state_t *consumer = list_vp_get_data( ln );
 
-        if( consumer->link == link ){
+        if( consumer->link_hash == state->hash ){
 
             // remove consumer
             list_v_remove( &consumer_list, ln );
@@ -1015,9 +1022,8 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
     while( ln >= 0 ){
 
         consumer_state_t *consumer = list_vp_get_data( ln );
-        link_state_t *link_state = link_ls_get_data( consumer->link );
 
-        if( link_state->hash != hash ){
+        if( consumer->link_hash != hash ){
 
             goto next;
         }
@@ -1056,7 +1062,7 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
     }
 
     consumer_state_t new_consumer = {
-        link,
+        hash,
         *raddr,
         LINK_CONSUMER_TIMEOUT
     };
@@ -1085,8 +1091,17 @@ static void process_consumer_timeouts( uint32_t elapsed_ms ){
 
         consumer->timeout -= elapsed_ms;
 
+        link_handle_t link = link_l_lookup_by_hash( consumer->link_hash );
+
+        if( link < 0 ){
+
+            log_v_error_P( PSTR("error") );
+
+            goto next;
+        }
+
         // if timeout expires, or we are not link leader
-        if( ( consumer->timeout < 0 ) || ( !is_link_leader( consumer->link ) ) ){
+        if( ( consumer->timeout < 0 ) || ( !is_link_leader( link ) ) ){
 
             // remove consumer
             list_v_remove( &consumer_list, ln );
@@ -1095,6 +1110,7 @@ static void process_consumer_timeouts( uint32_t elapsed_ms ){
             trace_printf("LINK: pruned consumer for timeout\n");
         }
 
+    next:
         ln = next_ln;
     }
 }
@@ -1179,7 +1195,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, catbus_data_t
 
         remote = list_vp_get_data( ln );
         
-        if( remote->link != link ){
+        if( remote->link_hash != link_state->hash ){
 
             goto next;
         }
@@ -1226,7 +1242,7 @@ static void update_remote( sock_addr_t *raddr, link_handle_t link, catbus_data_t
     remote = list_vp_get_data( ln );
     memset( remote, 0, remote_len );
         
-    remote->link        = link;
+    remote->link_hash   = link_state->hash;
     remote->addr        = *raddr;
     remote->timeout     = LINK_REMOTE_TIMEOUT;
     
@@ -1494,7 +1510,7 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == LINK_MSG_TYPE_CONSUMER_DATA ){
 
-            trace_printf("LINK: RX consumer DATA\n");
+            // trace_printf("LINK: RX consumer DATA\n");
 
             link_msg_data_t *msg = (link_msg_data_t *)header;
 
@@ -1536,7 +1552,7 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_DATA ){
 
-            trace_printf("LINK: RX producer DATA\n");
+            // trace_printf("LINK: RX producer DATA\n");
 
             link_msg_data_t *msg = (link_msg_data_t *)header;
 
@@ -1811,6 +1827,11 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
 
     uint16_t array_len = meta.array_len + 1;
     uint16_t data_len = kv_u16_get_size_meta( &meta );
+
+    if( data_len == 0 ){
+
+        return 0;
+    }
     
     if( link_state->mode == LINK_MODE_SEND ){
         
@@ -1825,9 +1846,10 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
     }
     
     void *ptr = &msg_buf->msg.data.data;
-    list_node_t ln = remote_list.head;
-    remote_state_t *remote = 0;
     uint16_t count = 1;
+
+    remote_state_t *remote = 0;
+    list_node_t ln = remote_list.head;
 
     if( meta.type == CATBUS_TYPE_FLOAT ){
 
@@ -1850,80 +1872,77 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
         // load initial data for recv link
         else if( link_state->mode == LINK_MODE_RECV ){
 
-            if( ln < 0 ){ // there are no remotes, so we have no data
+            // warp to first remote that matches this link
+            while( ln > 0 ){
 
-                return 0;
+                remote = list_vp_get_data( ln );
+
+                ln = list_ln_next( ln );    
+
+                if( remote->link_hash == link_state->hash ){
+
+                    accumulator = specific_to_i64( meta.type, &remote->data.data );
+
+                    break;
+                }
             }
-
-            remote = list_vp_get_data( ln );
-            ln = list_ln_next( ln );
-
-            accumulator = specific_to_i64( meta.type, &remote->data.data );
         }
 
         // for ANY, we return the first value
         if( link_state->aggregation == LINK_AGG_ANY ){
 
             i64_to_specific( accumulator, meta.type, ptr );
-
-            goto done;
         }
+        else{ // run aggregation
 
-        while( ln > 0 ){
+            while( ln > 0 ){
 
-            remote = list_vp_get_data( ln );
+                remote = list_vp_get_data( ln );
 
-            if( remote->link != link ){
+                if( remote->link_hash != link_state->hash ){
 
-                goto next;
-            }
-
-            count++;
-        
-            // convert to i64
-            int64_t temp = specific_to_i64( meta.type, &remote->data.data );
-
-            if( link_state->aggregation == LINK_AGG_MIN ){
-
-                if( temp < accumulator ){
-
-                    accumulator = temp;
+                    goto next;
                 }
-            }
-            else if( link_state->aggregation == LINK_AGG_MAX ){
 
-                if( temp > accumulator ){
+                count++;
+            
+                // convert to i64
+                int64_t temp = specific_to_i64( meta.type, &remote->data.data );
 
-                    accumulator = temp;
+                if( link_state->aggregation == LINK_AGG_MIN ){
+
+                    if( temp < accumulator ){
+
+                        accumulator = temp;
+                    }
                 }
+                else if( link_state->aggregation == LINK_AGG_MAX ){
+
+                    if( temp > accumulator ){
+
+                        accumulator = temp;
+                    }
+                }
+                else if( link_state->aggregation == LINK_AGG_SUM ){
+
+                    accumulator += temp;
+                }
+                else if( link_state->aggregation == LINK_AGG_AVG ){
+
+                    accumulator += temp;
+                }
+
+    next:
+                ln = list_ln_next( ln );
+            };
+
+            if( link_state->aggregation == LINK_AGG_AVG ){
+
+                accumulator /= count;
             }
-            else if( link_state->aggregation == LINK_AGG_SUM ){
 
-                accumulator += temp;
-            }
-            else if( link_state->aggregation == LINK_AGG_AVG ){
-
-                accumulator += temp;
-            }
-
-next:
-            ln = list_ln_next( ln );
-        };
-
-        if( link_state->aggregation == LINK_AGG_AVG ){
-
-            accumulator /= count;
+            i64_to_specific( accumulator, meta.type, ptr );
         }
-
-        i64_to_specific( accumulator, meta.type, ptr );
-    }
-    
-
-done:
-
-    if( data_len == 0 ){
-
-        return 0;
     }
 
     // check if data changed
@@ -1975,7 +1994,7 @@ static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_
 
         consumer_state_t *consumer = list_vp_get_data( ln );
 
-        if( consumer->link == link ){
+        if( consumer->link_hash == link_state->hash ){
 
             sock_addr_t raddr = consumer->addr;
 
@@ -2068,7 +2087,6 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
         if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
             
             // run aggregation
-            // uint16_t data_len = aggregate( link, producer->source_key, &msg_buf );
             uint16_t data_len = aggregate( link, link_state->source_key, &msg_buf );
 
             // transmit!

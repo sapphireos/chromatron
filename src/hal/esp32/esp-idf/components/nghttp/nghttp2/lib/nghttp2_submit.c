@@ -450,6 +450,13 @@ int nghttp2_session_set_local_window_size(nghttp2_session *session,
     if (rv != 0) {
       return rv;
     }
+
+    if (window_size_increment > 0) {
+      return nghttp2_session_add_window_update(session, 0, stream_id,
+                                               window_size_increment);
+    }
+
+    return nghttp2_session_update_recv_connection_window_size(session, 0);
   } else {
     stream = nghttp2_session_get_stream(session, stream_id);
 
@@ -476,11 +483,14 @@ int nghttp2_session_set_local_window_size(nghttp2_session *session,
     if (rv != 0) {
       return rv;
     }
-  }
 
-  if (window_size_increment > 0) {
-    return nghttp2_session_add_window_update(session, 0, stream_id,
-                                             window_size_increment);
+    if (window_size_increment > 0) {
+      return nghttp2_session_add_window_update(session, 0, stream_id,
+                                               window_size_increment);
+    }
+
+    return nghttp2_session_update_recv_stream_window_size(session, stream, 0,
+                                                          1);
   }
 
   return 0;
@@ -567,6 +577,89 @@ int nghttp2_submit_altsvc(nghttp2_session *session, uint8_t flags,
 
 fail_item_malloc:
   free(buf);
+
+  return rv;
+}
+
+int nghttp2_submit_origin(nghttp2_session *session, uint8_t flags,
+                          const nghttp2_origin_entry *ov, size_t nov) {
+  nghttp2_mem *mem;
+  uint8_t *p;
+  nghttp2_outbound_item *item;
+  nghttp2_frame *frame;
+  nghttp2_ext_origin *origin;
+  nghttp2_origin_entry *ov_copy;
+  size_t len = 0;
+  size_t i;
+  int rv;
+  (void)flags;
+
+  mem = &session->mem;
+
+  if (!session->server) {
+    return NGHTTP2_ERR_INVALID_STATE;
+  }
+
+  if (nov) {
+    for (i = 0; i < nov; ++i) {
+      len += ov[i].origin_len;
+    }
+
+    if (2 * nov + len > NGHTTP2_MAX_PAYLOADLEN) {
+      return NGHTTP2_ERR_INVALID_ARGUMENT;
+    }
+
+    /* The last nov is added for terminal NULL character. */
+    ov_copy =
+        nghttp2_mem_malloc(mem, nov * sizeof(nghttp2_origin_entry) + len + nov);
+    if (ov_copy == NULL) {
+      return NGHTTP2_ERR_NOMEM;
+    }
+
+    p = (uint8_t *)ov_copy + nov * sizeof(nghttp2_origin_entry);
+
+    for (i = 0; i < nov; ++i) {
+      ov_copy[i].origin = p;
+      ov_copy[i].origin_len = ov[i].origin_len;
+      p = nghttp2_cpymem(p, ov[i].origin, ov[i].origin_len);
+      *p++ = '\0';
+    }
+
+    assert((size_t)(p - (uint8_t *)ov_copy) ==
+           nov * sizeof(nghttp2_origin_entry) + len + nov);
+  } else {
+    ov_copy = NULL;
+  }
+
+  item = nghttp2_mem_malloc(mem, sizeof(nghttp2_outbound_item));
+  if (item == NULL) {
+    rv = NGHTTP2_ERR_NOMEM;
+    goto fail_item_malloc;
+  }
+
+  nghttp2_outbound_item_init(item);
+
+  item->aux_data.ext.builtin = 1;
+
+  origin = &item->ext_frame_payload.origin;
+
+  frame = &item->frame;
+  frame->ext.payload = origin;
+
+  nghttp2_frame_origin_init(&frame->ext, ov_copy, nov);
+
+  rv = nghttp2_session_add_item(session, item);
+  if (rv != 0) {
+    nghttp2_frame_origin_free(&frame->ext, mem);
+    nghttp2_mem_free(mem, item);
+
+    return rv;
+  }
+
+  return 0;
+
+fail_item_malloc:
+  free(ov_copy);
 
   return rv;
 }

@@ -5,9 +5,9 @@
  * This software may be distributed under the terms of the BSD license.
  * See README for more details.
  */
-#include "wpa/includes.h"
+#include "utils/includes.h"
 
-#include "wpa/common.h"
+#include "utils/common.h"
 #include "wps/wps_defs.h"
 #include "wps/wps_attr_parse.h"
 
@@ -19,7 +19,7 @@
 static int wps_set_vendor_ext_wfa_subelem(struct wps_parse_attr *attr,
 					  u8 id, u8 len, const u8 *pos)
 {
-	wpa_printf(MSG_DEBUG, "WPS: WFA subelement id=%u len=%u",
+	wpa_printf(MSG_MSGDUMP, "WPS: WFA subelement id=%u len=%u",
 		   id, len);
 	switch (id) {
 	case WFA_ELEM_VERSION2:
@@ -127,7 +127,6 @@ static int wps_parse_vendor_ext(struct wps_parse_attr *attr, const u8 *pos,
 
 	return 0;
 }
-
 
 static int wps_set_attr(struct wps_parse_attr *attr, u16 type,
 			const u8 *pos, u16 len)
@@ -583,7 +582,7 @@ int wps_parse_msg(const struct wpabuf *msg, struct wps_parse_attr *attr)
 		pos += 2;
 		len = WPA_GET_BE16(pos);
 		pos += 2;
-		wpa_printf(MSG_DEBUG, "WPS: attr type=0x%x len=%u",
+		wpa_printf(MSG_MSGDUMP, "WPS: attr type=0x%x len=%u",
 			   type, len);
 		if (len > end - pos) {
 			wpa_printf(MSG_DEBUG,  "WPS: Attribute overflow");

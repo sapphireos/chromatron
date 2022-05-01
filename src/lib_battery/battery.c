@@ -119,9 +119,9 @@ static uint8_t fx_low_batt[] __attribute__((aligned(4))) = {
     #include "low_batt.fx.carray"
 };
 
-static uint16_t fx_low_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t fx_low_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    uint16_t ret_val = len;
+    uint32_t ret_val = len;
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -146,9 +146,9 @@ static uint8_t fx_crit_batt[] __attribute__((aligned(4))) = {
     #include "crit_batt.fx.carray"
 };
 
-static uint16_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ){
+static uint32_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    uint16_t ret_val = len;
+    uint32_t ret_val = len;
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
@@ -168,7 +168,75 @@ static uint16_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *
     return ret_val;
 }
 
-PT_THREAD( ui_thread( pt_t *pt, void *state ) );
+PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
+
+
+void batt_v_init( void ){
+
+    #if defined(ESP8266)
+    ui_button = IO_PIN_6_DAC0;
+    #elif defined(ESP32)
+
+    uint8_t board = ffs_u8_read_board_type();
+
+    if( board == BOARD_TYPE_ELITE ){
+
+        ui_button = IO_PIN_21;
+    }
+    else{
+
+        ui_button = IO_PIN_17_TX;
+    }
+    #endif
+
+    energy_v_init();
+
+    if( !batt_enable ){
+
+        return;
+    }
+
+    if( bq25895_i8_init() < 0 ){
+
+        return;
+    }
+
+    log_v_info_P( PSTR("BQ25895 detected") );
+
+    if( pca9536_i8_init() == 0 ){
+
+        log_v_info_P( PSTR("PCA9536 detected") );
+        pca9536_enabled = TRUE;
+
+        pca9536_v_set_input( BATT_IO_QON );
+        pca9536_v_set_input( BATT_IO_S2 );
+        pca9536_v_set_input( BATT_IO_SPARE );
+        pca9536_v_set_output( BATT_IO_BOOST );
+    }
+    else{
+
+        io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
+    }
+
+    trace_printf("Battery controller enabled\n");
+
+    // if pixels are below the low power threshold,
+    // set the CPU to low speed
+    if( gfx_u16_get_pix_count() < BATT_PIX_COUNT_LOW_POWER_THRESHOLD ){
+
+        cpu_v_set_clock_speed_low();
+    }
+
+    batt_v_enable_pixels();
+
+    thread_t_create( ui_thread,
+                     PSTR("batt_ui"),
+                     0,
+                     0 );
+
+    fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
+    fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
+}
 
 static bool _ui_b_button_down( uint8_t ch ){
 
@@ -258,53 +326,69 @@ PT_THREAD( fan_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
+
+        THREAD_EXIT( pt );
+    }
+
     // BOOST
-    io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-    io_v_digital_write( BOOST_IO, 1 );
+    io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
+    io_v_digital_write( ELITE_BOOST_IO, 1 );
 
     // FAN
-    io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
-    io_v_digital_write( FAN_IO, 1 );
+    io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+    io_v_digital_write( ELITE_FAN_IO, 1 );
 
     TMR_WAIT( pt, 5000 );
-    // io_v_digital_write( BOOST_IO, 0 );
-    io_v_digital_write( FAN_IO, 0 );
+    // io_v_digital_write( ELITE_BOOST_IO, 0 );
+    io_v_digital_write( ELITE_FAN_IO, 0 );
+
+    fan_on = FALSE;
 
 
     while(1){
+        
+        while( sys_b_is_shutting_down() ){
 
-        TMR_WAIT( pt, 10000 );
+            // ensure fan is off when shutting down.
+            // if it is on, it can kick the battery controller back on as it winds down.
 
-        if( fan_on ){
+            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+            io_v_digital_write( ELITE_FAN_IO, 0 );            
 
-            if( bq25895_i8_get_temp() <= 37 ){
+            fan_on = FALSE;
 
-                fan_on = FALSE;
-            }
+            TMR_WAIT( pt, 20 );
         }
         else{
 
-            if( bq25895_i8_get_temp() >= 38 ){
+        while( !fan_on && !sys_b_is_shutting_down() ){
+
+            TMR_WAIT( pt, 100 );
+
+            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+            io_v_digital_write( ELITE_FAN_IO, 0 );
+
+            if( ( bq25895_i8_get_temp() >= 39 ) ||
+                ( bq25895_i8_get_case_temp() >= 49 ) ){
 
                 fan_on = TRUE;
             }
         }
 
-        // fan control for elite board
-        if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+        while( fan_on && !sys_b_is_shutting_down() ){
 
-            io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
+            TMR_WAIT( pt, 100 );
 
-            if( fan_on ){
+            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+            io_v_digital_write( ELITE_FAN_IO, 1 );
 
-                io_v_digital_write( FAN_IO, 1 );
+            if( ( bq25895_i8_get_temp() <= 37 ) &&
+                ( bq25895_i8_get_case_temp() <= 44 ) ){
+
+                fan_on = FALSE;
             }
-            else{
-
-                io_v_digital_write( FAN_IO, 0 );
-            }
-        }        
-
+        }
     }
 
 PT_END( pt );
@@ -312,22 +396,14 @@ PT_END( pt );
 
 #endif
 
-PT_THREAD( ui_thread( pt_t *pt, void *state ) )
+PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
     
     #if defined(ESP32)
-    // TEST
+
     if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
-
-        // BOOST
-        io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-        io_v_digital_write( BOOST_IO, 0 );
-
-        // FAN
-        io_v_set_mode( FAN_IO, IO_MODE_OUTPUT );    
-        io_v_digital_write( FAN_IO, 0 );
 
         thread_t_create( fan_thread,
                          PSTR("fan_control"),
@@ -350,6 +426,11 @@ PT_BEGIN( pt );
 
             if( pca9536_enabled ){
 
+                bq25895_v_set_boost_mode( TRUE );
+
+                // wait for boost to start up
+                TMR_WAIT( pt, 40 );
+
                 pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
             }
             #if defined(ESP32)
@@ -360,8 +441,8 @@ PT_BEGIN( pt );
                 // wait for boost to start up
                 TMR_WAIT( pt, 40 );
 
-                io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-                io_v_digital_write( BOOST_IO, 1 );
+                io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
+                io_v_digital_write( ELITE_BOOST_IO, 1 );
 
                 TMR_WAIT( pt, 10 );
             }
@@ -377,14 +458,16 @@ PT_BEGIN( pt );
 
                 pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
 
+                bq25895_v_set_boost_mode( FALSE );
+
                 pixels_enabled = FALSE;
             }
 
             #if defined(ESP32)
             else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
-                io_v_set_mode( BOOST_IO, IO_MODE_OUTPUT );    
-                io_v_digital_write( BOOST_IO, 0 );
+                io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
+                io_v_digital_write( ELITE_BOOST_IO, 0 );
 
                 bq25895_v_set_boost_mode( FALSE );
 
@@ -400,8 +483,14 @@ PT_BEGIN( pt );
 
         if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
             ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
-            bq25895_b_solar_hold() ||
+            ( bq25895_u16_read_vbus() > 5500 ) ||
             ( bq25895_u8_get_faults() != 0 ) ){
+
+            // disable pixels if:
+            // charging
+            // battery controller reports a fault
+            // if vbus is too high, since that could fry the pixels
+            // this can occur with solar panels, hitting just over 7 volts.
 
             batt_state = BATT_STATE_OK;
 
@@ -464,6 +553,15 @@ PT_BEGIN( pt );
 
             if( ( batt_state == BATT_STATE_CUTOFF ) || ( batt_request_shutdown ) ){
 
+                if( batt_request_shutdown ){
+
+                    log_v_debug_P( PSTR("Remotely commanded shutdown") );
+                }
+                else{
+
+                    log_v_debug_P( PSTR("Low battery cutoff") );
+                }
+
                 batt_ui_state = -2;
 
                 sys_v_initiate_shutdown( 5 );
@@ -471,6 +569,12 @@ PT_BEGIN( pt );
                 THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
                 bq25895_v_enable_ship_mode( FALSE );
+                bq25895_v_enable_ship_mode( FALSE );
+                bq25895_v_enable_ship_mode( FALSE );
+
+                _delay_ms( 1000 );
+
+                log_v_debug_P( PSTR("wtf 1") );
             }
         }
 
@@ -493,11 +597,21 @@ PT_BEGIN( pt );
             }
         }
 
+        // if button 0 was pressed:
+        if( button_state & 1 ){
+
+            // quick way to force a wifi scan if the device has the wifi powered down
+            // if it couldn't find a router.
+            wifi_v_reset_scan_timeout();
+        }
+
 
         // check for shutdown
         if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){
 
             if( button_hold_duration[1] < BUTTON_WIFI_TIME ){
+
+                log_v_debug_P( PSTR("Button commanded shutdown") );
 
                 batt_ui_state = -1;
 
@@ -506,6 +620,12 @@ PT_BEGIN( pt );
                 THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
                 bq25895_v_enable_ship_mode( FALSE );
+                bq25895_v_enable_ship_mode( FALSE );
+                bq25895_v_enable_ship_mode( FALSE );
+
+                _delay_ms( 1000 );
+
+                log_v_debug_P( PSTR("wtf 2") );
             }
             else{
 
@@ -517,76 +637,3 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-#endif
-
-
-void batt_v_init( void ){
-
-    #ifdef ENABLE_BATTERY
-
-    #if defined(ESP8266)
-    ui_button = IO_PIN_6_DAC0;
-    #elif defined(ESP32)
-
-    uint8_t board = ffs_u8_read_board_type();
-
-    if( board == BOARD_TYPE_ELITE ){
-
-        ui_button = IO_PIN_21;
-    }
-    else{
-
-        ui_button = IO_PIN_17_TX;
-    }
-    #endif
-
-    energy_v_init();
-
-    if( !batt_enable ){
-
-        return;
-    }
-
-    if( bq25895_i8_init() < 0 ){
-
-        return;
-    }
-
-    log_v_info_P( PSTR("BQ25895 detected") );
-
-    if( pca9536_i8_init() == 0 ){
-
-        log_v_info_P( PSTR("PCA9536 detected") );
-        pca9536_enabled = TRUE;
-
-        pca9536_v_set_input( BATT_IO_QON );
-        pca9536_v_set_input( BATT_IO_S2 );
-        pca9536_v_set_input( BATT_IO_SPARE );
-        pca9536_v_set_output( BATT_IO_BOOST );
-    }
-    else{
-
-        io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
-    }
-
-    trace_printf("Battery controller enabled\n");
-
-    // if pixels are below the low power threshold,
-    // set the CPU to low speed
-    if( gfx_u16_get_pix_count() < BATT_PIX_COUNT_LOW_POWER_THRESHOLD ){
-
-        cpu_v_set_clock_speed_low();
-    }
-
-    batt_v_enable_pixels();
-
-    thread_t_create( ui_thread,
-                     PSTR("batt_ui"),
-                     0,
-                     0 );
-
-    fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
-    fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
-
-    #endif
-}

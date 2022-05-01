@@ -1,16 +1,8 @@
-// Copyright 2018 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2018-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #include <string.h>
 #include <stdint.h>
 #include <limits.h>
@@ -19,56 +11,91 @@
 #include "esp_attr.h"
 #include "esp_log.h"
 
-#include "rom/cache.h"
-#include "rom/efuse.h"
-#include "rom/ets_sys.h"
-#include "rom/spi_flash.h"
-#include "rom/crc.h"
-#include "rom/rtc.h"
-#include "rom/uart.h"
-#include "rom/gpio.h"
-#include "rom/secure_boot.h"
+#include "esp_rom_sys.h"
+#include "esp_rom_uart.h"
+#include "sdkconfig.h"
+#if CONFIG_IDF_TARGET_ESP32
+#include "soc/dport_reg.h"
+#include "esp32/rom/cache.h"
+#include "esp32/rom/spi_flash.h"
+#include "esp32/rom/secure_boot.h"
+#elif CONFIG_IDF_TARGET_ESP32S2
+#include "esp32s2/rom/cache.h"
+#include "esp32s2/rom/spi_flash.h"
+#include "esp32s2/rom/secure_boot.h"
+#include "soc/extmem_reg.h"
+#include "soc/cache_memory.h"
+#elif CONFIG_IDF_TARGET_ESP32S3
+#include "esp32s3/rom/cache.h"
+#include "esp32s3/rom/spi_flash.h"
+#include "esp32s3/rom/secure_boot.h"
+#include "soc/extmem_reg.h"
+#include "soc/cache_memory.h"
+#elif CONFIG_IDF_TARGET_ESP32C3
+#include "esp32c3/rom/cache.h"
+#include "esp32c3/rom/efuse.h"
+#include "esp32c3/rom/ets_sys.h"
+#include "esp32c3/rom/spi_flash.h"
+#include "esp32c3/rom/crc.h"
+#include "esp32c3/rom/uart.h"
+#include "esp32c3/rom/gpio.h"
+#include "esp32c3/rom/secure_boot.h"
+#include "soc/extmem_reg.h"
+#include "soc/cache_memory.h"
+#elif CONFIG_IDF_TARGET_ESP32H2
+#include "esp32h2/rom/cache.h"
+#include "esp32h2/rom/efuse.h"
+#include "esp32h2/rom/ets_sys.h"
+#include "esp32h2/rom/spi_flash.h"
+#include "esp32h2/rom/crc.h"
+#include "esp32h2/rom/uart.h"
+#include "esp32h2/rom/gpio.h"
+#include "esp32h2/rom/secure_boot.h"
+#include "soc/extmem_reg.h"
+#include "soc/cache_memory.h"
+#else // CONFIG_IDF_TARGET_*
+#error "Unsupported IDF_TARGET"
+#endif
 
 #include "soc/soc.h"
 #include "soc/cpu.h"
 #include "soc/rtc.h"
-#include "soc/dport_reg.h"
-#include "soc/io_mux_reg.h"
-#include "soc/efuse_reg.h"
-#include "soc/rtc_cntl_reg.h"
-#include "soc/timer_group_reg.h"
-#include "soc/gpio_reg.h"
-#include "soc/gpio_sig_map.h"
+#include "soc/gpio_periph.h"
+#include "soc/efuse_periph.h"
+#include "soc/rtc_periph.h"
+#include "soc/timer_periph.h"
 
-#include "sdkconfig.h"
 #include "esp_image_format.h"
 #include "esp_secure_boot.h"
 #include "esp_flash_encrypt.h"
 #include "esp_flash_partitions.h"
-#include "bootloader_flash.h"
+#include "bootloader_flash_priv.h"
 #include "bootloader_random.h"
 #include "bootloader_config.h"
 #include "bootloader_common.h"
 #include "bootloader_utility.h"
 #include "bootloader_sha.h"
+#include "bootloader_console.h"
+#include "bootloader_soc.h"
 #include "esp_efuse.h"
+#include "esp_fault.h"
 
-static const char* TAG = "boot";
+static const char *TAG = "boot";
 
 /* Reduce literal size for some generic string literals */
 #define MAP_ERR_MSG "Image contains multiple %s segments. Only the last one will be mapped."
 
 static bool ota_has_initial_contents;
 
-static void load_image(const esp_image_metadata_t* image_data);
+static void load_image(const esp_image_metadata_t *image_data);
 static void unpack_load_app(const esp_image_metadata_t *data);
 static void set_cache_and_start_app(uint32_t drom_addr,
-    uint32_t drom_load_addr,
-    uint32_t drom_size,
-    uint32_t irom_addr,
-    uint32_t irom_load_addr,
-    uint32_t irom_size,
-    uint32_t entry_addr);
+                                    uint32_t drom_load_addr,
+                                    uint32_t drom_size,
+                                    uint32_t irom_addr,
+                                    uint32_t irom_load_addr,
+                                    uint32_t irom_size,
+                                    uint32_t entry_addr);
 
 // Read ota_info partition and fill array from two otadata structures.
 static esp_err_t read_otadata(const esp_partition_pos_t *ota_info, esp_ota_select_entry_t *two_otadata)
@@ -80,7 +107,7 @@ static esp_err_t read_otadata(const esp_partition_pos_t *ota_info, esp_ota_selec
 
     // partition table has OTA data partition
     if (ota_info->size < 2 * SPI_SEC_SIZE) {
-        ESP_LOGE(TAG, "ota_info partition size %d is too small (minimum %d bytes)", ota_info->size, sizeof(esp_ota_select_entry_t));
+        ESP_LOGE(TAG, "ota_info partition size %d is too small (minimum %d bytes)", ota_info->size, (2 * SPI_SEC_SIZE));
         return ESP_FAIL; // can't proceed
     }
 
@@ -98,7 +125,7 @@ static esp_err_t read_otadata(const esp_partition_pos_t *ota_info, esp_ota_selec
     return ESP_OK;
 }
 
-bool bootloader_utility_load_partition_table(bootloader_state_t* bs)
+bool bootloader_utility_load_partition_table(bootloader_state_t *bs)
 {
     const esp_partition_info_t *partitions;
     const char *partition_usage;
@@ -121,16 +148,16 @@ bool bootloader_utility_load_partition_table(bootloader_state_t* bs)
     ESP_LOGI(TAG, "Partition Table:");
     ESP_LOGI(TAG, "## Label            Usage          Type ST Offset   Length");
 
-    for(int i = 0; i < num_partitions; i++) {
+    for (int i = 0; i < num_partitions; i++) {
         const esp_partition_info_t *partition = &partitions[i];
         ESP_LOGD(TAG, "load partition table entry 0x%x", (intptr_t)partition);
         ESP_LOGD(TAG, "type=%x subtype=%x", partition->type, partition->subtype);
         partition_usage = "unknown";
 
         /* valid partition table */
-        switch(partition->type) {
+        switch (partition->type) {
         case PART_TYPE_APP: /* app partition */
-            switch(partition->subtype) {
+            switch (partition->subtype) {
             case PART_SUBTYPE_FACTORY: /* factory binary */
                 bs->factory = partition->pos;
                 partition_usage = "factory app";
@@ -145,15 +172,14 @@ bool bootloader_utility_load_partition_table(bootloader_state_t* bs)
                     bs->ota[partition->subtype & PART_SUBTYPE_OTA_MASK] = partition->pos;
                     ++bs->app_count;
                     partition_usage = "OTA app";
-                }
-                else {
+                } else {
                     partition_usage = "Unknown app";
                 }
                 break;
             }
             break; /* PART_TYPE_APP */
         case PART_TYPE_DATA: /* data partition */
-            switch(partition->subtype) {
+            switch (partition->subtype) {
             case PART_SUBTYPE_DATA_OTA: /* ota data */
                 bs->ota_info = partition->pos;
                 partition_usage = "OTA data";
@@ -169,8 +195,8 @@ bool bootloader_utility_load_partition_table(bootloader_state_t* bs)
                 break;
             case PART_SUBTYPE_DATA_EFUSE_EM:
                 partition_usage = "efuse";
-#ifdef CONFIG_EFUSE_SECURE_VERSION_EMULATE
-                esp_efuse_init(partition->pos.offset, partition->pos.size);
+#ifdef CONFIG_EFUSE_VIRTUAL_KEEP_IN_FLASH
+                esp_efuse_init_virtual_mode_in_flash(partition->pos.offset, partition->pos.size);
 #endif
                 break;
             default:
@@ -190,7 +216,7 @@ bool bootloader_utility_load_partition_table(bootloader_state_t* bs)
 
     bootloader_munmap(partitions);
 
-    ESP_LOGI(TAG,"End of partition table");
+    ESP_LOGI(TAG, "End of partition table");
     return true;
 }
 
@@ -205,7 +231,7 @@ static esp_partition_pos_t index_to_partition(const bootloader_state_t *bs, int 
         return bs->test;
     }
 
-    if (index >= 0 && index < MAX_OTA_SLOTS && index < bs->app_count) {
+    if (index >= 0 && index < MAX_OTA_SLOTS && index < (int)bs->app_count) {
         return bs->ota[index];
     }
 
@@ -216,7 +242,7 @@ static esp_partition_pos_t index_to_partition(const bootloader_state_t *bs, int 
 static void log_invalid_app_partition(int index)
 {
     const char *not_bootable = " is not bootable"; /* save a few string literal bytes */
-    switch(index) {
+    switch (index) {
     case FACTORY_INDEX:
         ESP_LOGE(TAG, "Factory app partition%s", not_bootable);
         break;
@@ -243,22 +269,31 @@ static esp_err_t write_otadata(esp_ota_select_entry_t *otadata, uint32_t offset,
 
 static bool check_anti_rollback(const esp_partition_pos_t *partition)
 {
-#ifdef CONFIG_APP_ANTI_ROLLBACK
-    esp_app_desc_t app_desc;
+#ifdef CONFIG_BOOTLOADER_APP_ANTI_ROLLBACK
+    esp_app_desc_t app_desc = {};
     esp_err_t err = bootloader_common_get_partition_description(partition, &app_desc);
-    return err == ESP_OK && esp_efuse_check_secure_version(app_desc.secure_version) == true;
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get partition description %d", err);
+        return false;
+    }
+    bool sec_ver = esp_efuse_check_secure_version(app_desc.secure_version);
+    /* Anti FI check */
+    ESP_FAULT_ASSERT(sec_ver == esp_efuse_check_secure_version(app_desc.secure_version));
+    return sec_ver;
 #else
     return true;
 #endif
 }
 
-#ifdef CONFIG_APP_ANTI_ROLLBACK
+#ifdef CONFIG_BOOTLOADER_APP_ANTI_ROLLBACK
 static void update_anti_rollback(const esp_partition_pos_t *partition)
 {
     esp_app_desc_t app_desc;
     esp_err_t err = bootloader_common_get_partition_description(partition, &app_desc);
     if (err == ESP_OK) {
         esp_efuse_update_secure_version(app_desc.secure_version);
+    } else {
+        ESP_LOGE(TAG, "Failed to get partition description %d", err);
     }
 }
 
@@ -306,7 +341,7 @@ int bootloader_utility_get_selected_boot_partition(const bootloader_state_t *bs)
     ESP_LOGD(TAG, "otadata[0]: sequence values 0x%08x", otadata[0].ota_seq);
     ESP_LOGD(TAG, "otadata[1]: sequence values 0x%08x", otadata[1].ota_seq);
 
-#ifdef CONFIG_APP_ROLLBACK_ENABLE
+#ifdef CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE
     bool write_encrypted = esp_flash_encryption_enabled();
     for (int i = 0; i < 2; ++i) {
         if (otadata[i].ota_state == ESP_OTA_IMG_PENDING_VERIFY) {
@@ -317,10 +352,10 @@ int bootloader_utility_get_selected_boot_partition(const bootloader_state_t *bs)
     }
 #endif
 
-#ifndef CONFIG_APP_ANTI_ROLLBACK
+#ifndef CONFIG_BOOTLOADER_APP_ANTI_ROLLBACK
     if ((bootloader_common_ota_select_invalid(&otadata[0]) &&
-         bootloader_common_ota_select_invalid(&otadata[1])) ||
-         bs->app_count == 0) {
+            bootloader_common_ota_select_invalid(&otadata[1])) ||
+            bs->app_count == 0) {
         ESP_LOGD(TAG, "OTA sequence numbers both empty (all-0xFF) or partition table does not have bootable ota_apps (app_count=%d)", bs->app_count);
         if (bs->factory.offset != 0) {
             ESP_LOGI(TAG, "Defaulting to factory image");
@@ -330,7 +365,7 @@ int bootloader_utility_get_selected_boot_partition(const bootloader_state_t *bs)
             boot_index = 0;
             // Try to boot from ota_0.
             if ((otadata[0].ota_seq == UINT32_MAX || otadata[0].crc != bootloader_common_ota_select_crc(&otadata[0])) &&
-                (otadata[1].ota_seq == UINT32_MAX || otadata[1].crc != bootloader_common_ota_select_crc(&otadata[1]))) {
+                    (otadata[1].ota_seq == UINT32_MAX || otadata[1].crc != bootloader_common_ota_select_crc(&otadata[1]))) {
                 // Factory is not found and both otadata are initial(0xFFFFFFFF) or incorrect crc.
                 // will set correct ota_seq.
                 ota_has_initial_contents = true;
@@ -341,9 +376,9 @@ int bootloader_utility_get_selected_boot_partition(const bootloader_state_t *bs)
 #else
     ESP_LOGI(TAG, "Enabled a check secure version of app for anti rollback");
     ESP_LOGI(TAG, "Secure version (from eFuse) = %d", esp_efuse_read_secure_version());
-    // When CONFIG_APP_ANTI_ROLLBACK is enabled factory partition should not be in partition table, only two ota_app are there.
+    // When CONFIG_BOOTLOADER_APP_ANTI_ROLLBACK is enabled factory partition should not be in partition table, only two ota_app are there.
     if ((otadata[0].ota_seq == UINT32_MAX || otadata[0].crc != bootloader_common_ota_select_crc(&otadata[0])) &&
-        (otadata[1].ota_seq == UINT32_MAX || otadata[1].crc != bootloader_common_ota_select_crc(&otadata[1]))) {
+            (otadata[1].ota_seq == UINT32_MAX || otadata[1].crc != bootloader_common_ota_select_crc(&otadata[1]))) {
         ESP_LOGI(TAG, "otadata[0..1] in initial state");
         // both otadata are initial(0xFFFFFFFF) or incorrect crc.
         // will set correct ota_seq.
@@ -356,19 +391,19 @@ int bootloader_utility_get_selected_boot_partition(const bootloader_state_t *bs)
             uint32_t ota_seq = otadata[active_otadata].ota_seq - 1; // Raw OTA sequence number. May be more than # of OTA slots
             boot_index = ota_seq % bs->app_count; // Actual OTA partition selection
             ESP_LOGD(TAG, "Mapping seq %d -> OTA slot %d", ota_seq, boot_index);
-#ifdef CONFIG_APP_ROLLBACK_ENABLE
+#ifdef CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE
             if (otadata[active_otadata].ota_state == ESP_OTA_IMG_NEW) {
                 ESP_LOGD(TAG, "otadata[%d] is selected as new and marked PENDING_VERIFY state", active_otadata);
                 otadata[active_otadata].ota_state = ESP_OTA_IMG_PENDING_VERIFY;
                 write_otadata(&otadata[active_otadata], bs->ota_info.offset + FLASH_SECTOR_SIZE * active_otadata, write_encrypted);
             }
-#endif // CONFIG_APP_ROLLBACK_ENABLE
+#endif // CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE
 
-#ifdef CONFIG_APP_ANTI_ROLLBACK
-            if(otadata[active_otadata].ota_state == ESP_OTA_IMG_VALID) {
+#ifdef CONFIG_BOOTLOADER_APP_ANTI_ROLLBACK
+            if (otadata[active_otadata].ota_state == ESP_OTA_IMG_VALID) {
                 update_anti_rollback(&bs->ota[boot_index]);
             }
-#endif // CONFIG_APP_ANTI_ROLLBACK
+#endif // CONFIG_BOOTLOADER_APP_ANTI_ROLLBACK
 
         } else if (bs->factory.offset != 0) {
             ESP_LOGE(TAG, "ota data partition invalid, falling back to factory");
@@ -414,11 +449,34 @@ static void set_actual_ota_seq(const bootloader_state_t *bs, int index)
         bool write_encrypted = esp_flash_encryption_enabled();
         write_otadata(&otadata, bs->ota_info.offset + FLASH_SECTOR_SIZE * 0, write_encrypted);
         ESP_LOGI(TAG, "Set actual ota_seq=%d in otadata[0]", otadata.ota_seq);
-#ifdef CONFIG_APP_ANTI_ROLLBACK
+#ifdef CONFIG_BOOTLOADER_APP_ANTI_ROLLBACK
         update_anti_rollback(&bs->ota[index]);
 #endif
     }
+#if defined( CONFIG_BOOTLOADER_SKIP_VALIDATE_IN_DEEP_SLEEP ) || defined( CONFIG_BOOTLOADER_CUSTOM_RESERVE_RTC )
+    esp_partition_pos_t partition = index_to_partition(bs, index);
+    bootloader_common_update_rtc_retain_mem(&partition, true);
+#endif
 }
+
+#ifdef CONFIG_BOOTLOADER_SKIP_VALIDATE_IN_DEEP_SLEEP
+void bootloader_utility_load_boot_image_from_deep_sleep(void)
+{
+    if (esp_rom_get_reset_reason(0) == RESET_REASON_CORE_DEEP_SLEEP) {
+        esp_partition_pos_t *partition = bootloader_common_get_rtc_retain_mem_partition();
+        if (partition != NULL) {
+            esp_image_metadata_t image_data;
+            if (bootloader_load_image_no_verify(partition, &image_data) == ESP_OK) {
+                ESP_LOGI(TAG, "Fast booting app from partition at offset 0x%x", partition->offset);
+                bootloader_common_update_rtc_retain_mem(NULL, true);
+                load_image(&image_data);
+            }
+        }
+        ESP_LOGE(TAG, "Fast booting is not successful");
+        ESP_LOGI(TAG, "Try to load an app as usual with all validations");
+    }
+}
+#endif
 
 #define TRY_LOG_FORMAT "Trying partition index %d offs 0x%x size 0x%x"
 
@@ -428,8 +486,8 @@ void bootloader_utility_load_boot_image(const bootloader_state_t *bs, int start_
     esp_partition_pos_t part;
     esp_image_metadata_t image_data;
 
-    if(start_index == TEST_APP_INDEX) {
-        if (try_load_partition(&bs->test, &image_data)) {
+    if (start_index == TEST_APP_INDEX) {
+        if (check_anti_rollback(&bs->test) && try_load_partition(&bs->test, &image_data)) {
             load_image(&image_data);
         } else {
             ESP_LOGE(TAG, "No bootable test partition in the partition table");
@@ -438,7 +496,7 @@ void bootloader_utility_load_boot_image(const bootloader_state_t *bs, int start_
     }
 
     /* work backwards from start_index, down to the factory app */
-    for(index = start_index; index >= FACTORY_INDEX; index--) {
+    for (index = start_index; index >= FACTORY_INDEX; index--) {
         part = index_to_partition(bs, index);
         if (part.size == 0) {
             continue;
@@ -452,7 +510,7 @@ void bootloader_utility_load_boot_image(const bootloader_state_t *bs, int start_
     }
 
     /* failing that work forwards from start_index, try valid OTA slots */
-    for(index = start_index + 1; index < bs->app_count; index++) {
+    for (index = start_index + 1; index < (int)bs->app_count; index++) {
         part = index_to_partition(bs, index);
         if (part.size == 0) {
             continue;
@@ -465,7 +523,7 @@ void bootloader_utility_load_boot_image(const bootloader_state_t *bs, int start_
         log_invalid_app_partition(index);
     }
 
-    if (try_load_partition(&bs->test, &image_data)) {
+    if (check_anti_rollback(&bs->test) && try_load_partition(&bs->test, &image_data)) {
         ESP_LOGW(TAG, "Falling back to test app as only bootable partition");
         load_image(&image_data);
     }
@@ -476,7 +534,7 @@ void bootloader_utility_load_boot_image(const bootloader_state_t *bs, int start_
 }
 
 // Copy loaded segments to RAM, set up caches for mapped segments, and start application.
-static void load_image(const esp_image_metadata_t* image_data)
+static void load_image(const esp_image_metadata_t *image_data)
 {
     /**
      * Rough steps for a first boot, when encryption and secure boot are both disabled:
@@ -521,11 +579,19 @@ static void load_image(const esp_image_metadata_t* image_data)
      * then Step 6 enables secure boot.
      */
 
-#if defined(CONFIG_SECURE_BOOT_ENABLED) || defined(CONFIG_FLASH_ENCRYPTION_ENABLED)
+#if defined(CONFIG_SECURE_BOOT) || defined(CONFIG_SECURE_FLASH_ENC_ENABLED)
     esp_err_t err;
 #endif
 
-#ifdef CONFIG_SECURE_BOOT_ENABLED
+#ifdef CONFIG_SECURE_BOOT_V2_ENABLED
+    err = esp_secure_boot_v2_permanently_enable(image_data);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Secure Boot v2 failed (%d)", err);
+        return;
+    }
+#endif
+
+#ifdef CONFIG_SECURE_BOOT_V1_ENABLED
     /* Steps 1 & 2 (see above for full description):
      *   1) Generate secure boot EFUSE key
      *   2) Compute digest of plaintext bootloader
@@ -537,7 +603,7 @@ static void load_image(const esp_image_metadata_t* image_data)
     }
 #endif
 
-#ifdef CONFIG_FLASH_ENCRYPTION_ENABLED
+#ifdef CONFIG_SECURE_FLASH_ENC_ENABLED
     /* Steps 3, 4 & 5 (see above for full description):
      *   3) Generate flash encryption EFUSE key
      *   4) Encrypt flash contents
@@ -552,7 +618,7 @@ static void load_image(const esp_image_metadata_t* image_data)
     }
 #endif
 
-#ifdef CONFIG_SECURE_BOOT_ENABLED
+#ifdef CONFIG_SECURE_BOOT_V1_ENABLED
     /* Step 6 (see above for full description):
      *   6) Burn EFUSE to enable secure boot
      */
@@ -567,12 +633,13 @@ static void load_image(const esp_image_metadata_t* image_data)
     }
 #endif
 
-#ifdef CONFIG_FLASH_ENCRYPTION_ENABLED
+#ifdef CONFIG_SECURE_FLASH_ENC_ENABLED
     if (!flash_encryption_enabled && esp_flash_encryption_enabled()) {
         /* Flash encryption was just enabled for the first time,
            so issue a system reset to ensure flash encryption
            cache resets properly */
         ESP_LOGI(TAG, "Resetting with flash encryption enabled...");
+        esp_rom_uart_tx_wait_idle(0);
         bootloader_reset();
     }
 #endif
@@ -580,11 +647,17 @@ static void load_image(const esp_image_metadata_t* image_data)
     ESP_LOGI(TAG, "Disabling RNG early entropy source...");
     bootloader_random_disable();
 
+    /* Disable glitch reset after all the security checks are completed.
+     * Glitch detection can be falsely triggered by EMI interference (high RF TX power, etc)
+     * and to avoid such false alarms, disable it.
+     */
+    bootloader_ana_clock_glitch_reset_config(false);
+
     // copy loaded segments to RAM, set up caches for mapped segments, and start application
     unpack_load_app(image_data);
 }
 
-static void unpack_load_app(const esp_image_metadata_t* data)
+static void unpack_load_app(const esp_image_metadata_t *data)
 {
     uint32_t drom_addr = 0;
     uint32_t drom_load_addr = 0;
@@ -620,12 +693,12 @@ static void unpack_load_app(const esp_image_metadata_t* data)
 
     ESP_LOGD(TAG, "calling set_cache_and_start_app");
     set_cache_and_start_app(drom_addr,
-        drom_load_addr,
-        drom_size,
-        irom_addr,
-        irom_load_addr,
-        irom_size,
-        data->image.entry_addr);
+                            drom_load_addr,
+                            drom_size,
+                            irom_addr,
+                            irom_load_addr,
+                            irom_size,
+                            data->image.entry_addr);
 }
 
 static void set_cache_and_start_app(
@@ -637,51 +710,125 @@ static void set_cache_and_start_app(
     uint32_t irom_size,
     uint32_t entry_addr)
 {
-    int rc;
+    int rc __attribute__((unused));
+
     ESP_LOGD(TAG, "configure drom and irom and start");
-    Cache_Read_Disable( 0 );
-    Cache_Flush( 0 );
+#if CONFIG_IDF_TARGET_ESP32
+    Cache_Read_Disable(0);
+    Cache_Flush(0);
+#elif CONFIG_IDF_TARGET_ESP32S2
+    uint32_t autoload = Cache_Suspend_ICache();
+    Cache_Invalidate_ICache_All();
+#elif CONFIG_IDF_TARGET_ESP32S3
+    uint32_t autoload = Cache_Suspend_DCache();
+    Cache_Invalidate_DCache_All();
+#elif CONFIG_IDF_TARGET_ESP32C3
+    uint32_t autoload = Cache_Suspend_ICache();
+    Cache_Invalidate_ICache_All();
+#elif CONFIG_IDF_TARGET_ESP32H2
+    uint32_t autoload = Cache_Suspend_ICache();
+    Cache_Invalidate_ICache_All();
+#endif
 
     /* Clear the MMU entries that are already set up,
-       so the new app only has the mappings it creates.
-    */
+     * so the new app only has the mappings it creates.
+     */
+#if CONFIG_IDF_TARGET_ESP32
     for (int i = 0; i < DPORT_FLASH_MMU_TABLE_SIZE; i++) {
         DPORT_PRO_FLASH_MMU_TABLE[i] = DPORT_FLASH_MMU_TABLE_INVALID_VAL;
     }
-
+#else
+    for (size_t i = 0; i < FLASH_MMU_TABLE_SIZE; i++) {
+        FLASH_MMU_TABLE[i] = MMU_TABLE_INVALID_VAL;
+    }
+#endif
     uint32_t drom_load_addr_aligned = drom_load_addr & MMU_FLASH_MASK;
+    uint32_t drom_addr_aligned = drom_addr & MMU_FLASH_MASK;
     uint32_t drom_page_count = bootloader_cache_pages_to_map(drom_size, drom_load_addr);
     ESP_LOGV(TAG, "d mmu set paddr=%08x vaddr=%08x size=%d n=%d",
-            drom_addr & MMU_FLASH_MASK, drom_load_addr_aligned, drom_size, drom_page_count);
-    rc = cache_flash_mmu_set(0, 0, drom_load_addr_aligned, drom_addr & MMU_FLASH_MASK, 64, drom_page_count);
+             drom_addr_aligned, drom_load_addr_aligned, drom_size, drom_page_count);
+#if CONFIG_IDF_TARGET_ESP32
+    rc = cache_flash_mmu_set(0, 0, drom_load_addr_aligned, drom_addr_aligned, 64, drom_page_count);
+#elif CONFIG_IDF_TARGET_ESP32S2
+    rc = Cache_Ibus_MMU_Set(MMU_ACCESS_FLASH, drom_load_addr_aligned, drom_addr_aligned, 64, drom_page_count, 0);
+#elif CONFIG_IDF_TARGET_ESP32S3
+    rc = Cache_Dbus_MMU_Set(MMU_ACCESS_FLASH, drom_load_addr_aligned, drom_addr_aligned, 64, drom_page_count, 0);
+#elif CONFIG_IDF_TARGET_ESP32C3
+    rc = Cache_Dbus_MMU_Set(MMU_ACCESS_FLASH, drom_load_addr_aligned, drom_addr_aligned, 64, drom_page_count, 0);
+#elif CONFIG_IDF_TARGET_ESP32H2
+    rc = Cache_Dbus_MMU_Set(MMU_ACCESS_FLASH, drom_load_addr_aligned, drom_addr_aligned, 64, drom_page_count, 0);
+#endif
     ESP_LOGV(TAG, "rc=%d", rc);
-    rc = cache_flash_mmu_set(1, 0, drom_load_addr_aligned, drom_addr & MMU_FLASH_MASK, 64, drom_page_count);
+#if CONFIG_IDF_TARGET_ESP32
+    rc = cache_flash_mmu_set(1, 0, drom_load_addr_aligned, drom_addr_aligned, 64, drom_page_count);
     ESP_LOGV(TAG, "rc=%d", rc);
-
+#endif
     uint32_t irom_load_addr_aligned = irom_load_addr & MMU_FLASH_MASK;
+    uint32_t irom_addr_aligned = irom_addr & MMU_FLASH_MASK;
     uint32_t irom_page_count = bootloader_cache_pages_to_map(irom_size, irom_load_addr);
     ESP_LOGV(TAG, "i mmu set paddr=%08x vaddr=%08x size=%d n=%d",
-            irom_addr & MMU_FLASH_MASK, irom_load_addr_aligned, irom_size, irom_page_count);
-    rc = cache_flash_mmu_set(0, 0, irom_load_addr_aligned, irom_addr & MMU_FLASH_MASK, 64, irom_page_count);
+             irom_addr_aligned, irom_load_addr_aligned, irom_size, irom_page_count);
+#if CONFIG_IDF_TARGET_ESP32
+    rc = cache_flash_mmu_set(0, 0, irom_load_addr_aligned, irom_addr_aligned, 64, irom_page_count);
+#elif CONFIG_IDF_TARGET_ESP32S2
+    uint32_t iram1_used = 0;
+    if (irom_load_addr + irom_size > IRAM1_ADDRESS_LOW) {
+        iram1_used = 1;
+    }
+    if (iram1_used) {
+        rc = Cache_Ibus_MMU_Set(MMU_ACCESS_FLASH, IRAM0_ADDRESS_LOW, 0, 64, 64, 1);
+        rc = Cache_Ibus_MMU_Set(MMU_ACCESS_FLASH, IRAM1_ADDRESS_LOW, 0, 64, 64, 1);
+        REG_CLR_BIT(EXTMEM_PRO_ICACHE_CTRL1_REG, EXTMEM_PRO_ICACHE_MASK_IRAM1);
+    }
+    rc = Cache_Ibus_MMU_Set(MMU_ACCESS_FLASH, irom_load_addr_aligned, irom_addr_aligned, 64, irom_page_count, 0);
+#elif CONFIG_IDF_TARGET_ESP32S3
+    rc = Cache_Ibus_MMU_Set(MMU_ACCESS_FLASH, irom_load_addr_aligned, irom_addr_aligned, 64, irom_page_count, 0);
+#elif CONFIG_IDF_TARGET_ESP32C3
+    rc = Cache_Ibus_MMU_Set(MMU_ACCESS_FLASH, irom_load_addr_aligned, irom_addr_aligned, 64, irom_page_count, 0);
+#elif CONFIG_IDF_TARGET_ESP32H2
+    rc = Cache_Ibus_MMU_Set(MMU_ACCESS_FLASH, irom_load_addr_aligned, irom_addr_aligned, 64, irom_page_count, 0);
+#endif
     ESP_LOGV(TAG, "rc=%d", rc);
-    rc = cache_flash_mmu_set(1, 0, irom_load_addr_aligned, irom_addr & MMU_FLASH_MASK, 64, irom_page_count);
+#if CONFIG_IDF_TARGET_ESP32
+    rc = cache_flash_mmu_set(1, 0, irom_load_addr_aligned, irom_addr_aligned, 64, irom_page_count);
     ESP_LOGV(TAG, "rc=%d", rc);
-
     DPORT_REG_CLR_BIT( DPORT_PRO_CACHE_CTRL1_REG,
-            (DPORT_PRO_CACHE_MASK_IRAM0) | (DPORT_PRO_CACHE_MASK_IRAM1 & 0) |
-            (DPORT_PRO_CACHE_MASK_IROM0 & 0) | DPORT_PRO_CACHE_MASK_DROM0 |
-            DPORT_PRO_CACHE_MASK_DRAM1 );
-
+                       (DPORT_PRO_CACHE_MASK_IRAM0) | (DPORT_PRO_CACHE_MASK_IRAM1 & 0) |
+                       (DPORT_PRO_CACHE_MASK_IROM0 & 0) | DPORT_PRO_CACHE_MASK_DROM0 |
+                       DPORT_PRO_CACHE_MASK_DRAM1 );
     DPORT_REG_CLR_BIT( DPORT_APP_CACHE_CTRL1_REG,
-            (DPORT_APP_CACHE_MASK_IRAM0) | (DPORT_APP_CACHE_MASK_IRAM1 & 0) |
-            (DPORT_APP_CACHE_MASK_IROM0 & 0) | DPORT_APP_CACHE_MASK_DROM0 |
-            DPORT_APP_CACHE_MASK_DRAM1 );
-
-    Cache_Read_Enable( 0 );
-
+                       (DPORT_APP_CACHE_MASK_IRAM0) | (DPORT_APP_CACHE_MASK_IRAM1 & 0) |
+                       (DPORT_APP_CACHE_MASK_IROM0 & 0) | DPORT_APP_CACHE_MASK_DROM0 |
+                       DPORT_APP_CACHE_MASK_DRAM1 );
+#elif CONFIG_IDF_TARGET_ESP32S2
+    REG_CLR_BIT( EXTMEM_PRO_ICACHE_CTRL1_REG, (EXTMEM_PRO_ICACHE_MASK_IRAM0) | (EXTMEM_PRO_ICACHE_MASK_IRAM1 & 0) | EXTMEM_PRO_ICACHE_MASK_DROM0 );
+#elif CONFIG_IDF_TARGET_ESP32S3
+    REG_CLR_BIT(EXTMEM_DCACHE_CTRL1_REG, EXTMEM_DCACHE_SHUT_CORE0_BUS);
+#if !CONFIG_FREERTOS_UNICORE
+    REG_CLR_BIT(EXTMEM_DCACHE_CTRL1_REG, EXTMEM_DCACHE_SHUT_CORE1_BUS);
+#endif
+#elif CONFIG_IDF_TARGET_ESP32C3
+    REG_CLR_BIT(EXTMEM_ICACHE_CTRL1_REG, EXTMEM_ICACHE_SHUT_IBUS);
+    REG_CLR_BIT(EXTMEM_ICACHE_CTRL1_REG, EXTMEM_ICACHE_SHUT_DBUS);
+#elif CONFIG_IDF_TARGET_ESP32H2
+    REG_CLR_BIT(EXTMEM_ICACHE_CTRL1_REG, EXTMEM_ICACHE_SHUT_IBUS);
+    REG_CLR_BIT(EXTMEM_ICACHE_CTRL1_REG, EXTMEM_ICACHE_SHUT_DBUS);
+#endif
+#if CONFIG_IDF_TARGET_ESP32
+    Cache_Read_Enable(0);
+#elif CONFIG_IDF_TARGET_ESP32S2
+    Cache_Resume_ICache(autoload);
+#elif CONFIG_IDF_TARGET_ESP32S3
+    Cache_Resume_DCache(autoload);
+#elif CONFIG_IDF_TARGET_ESP32C3
+    Cache_Resume_ICache(autoload);
+#elif CONFIG_IDF_TARGET_ESP32H2
+    Cache_Resume_ICache(autoload);
+#endif
     // Application will need to do Cache_Flush(1) and Cache_Read_Enable(1)
 
     ESP_LOGD(TAG, "start: 0x%08x", entry_addr);
+    bootloader_atexit();
     typedef void (*entry_t)(void) __attribute__((noreturn));
     entry_t entry = ((entry_t) entry_addr);
 
@@ -690,16 +837,94 @@ static void set_cache_and_start_app(
     (*entry)();
 }
 
-
 void bootloader_reset(void)
 {
 #ifdef BOOTLOADER_BUILD
-    uart_tx_flush(0);    /* Ensure any buffered log output is displayed */
-    uart_tx_flush(1);
-    ets_delay_us(1000); /* Allow last byte to leave FIFO */
+    bootloader_atexit();
+    esp_rom_delay_us(1000); /* Allow last byte to leave FIFO */
     REG_WRITE(RTC_CNTL_OPTIONS0_REG, RTC_CNTL_SW_SYS_RST);
     while (1) { }       /* This line will never be reached, used to keep gcc happy */
 #else
     abort();            /* This function should really not be called from application code */
 #endif
+}
+
+void bootloader_atexit(void)
+{
+#ifdef BOOTLOADER_BUILD
+    bootloader_console_deinit();
+#else
+    abort();
+#endif
+}
+
+esp_err_t bootloader_sha256_hex_to_str(char *out_str, const uint8_t *in_array_hex, size_t len)
+{
+    if (out_str == NULL || in_array_hex == NULL || len == 0) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    for (size_t i = 0; i < len; i++) {
+        for (int shift = 0; shift < 2; shift++) {
+            uint8_t nibble = (in_array_hex[i] >> (shift ? 0 : 4)) & 0x0F;
+            if (nibble < 10) {
+                out_str[i * 2 + shift] = '0' + nibble;
+            } else {
+                out_str[i * 2 + shift] = 'a' + nibble - 10;
+            }
+        }
+    }
+    return ESP_OK;
+}
+
+void bootloader_debug_buffer(const void *buffer, size_t length, const char *label)
+{
+#if CONFIG_BOOTLOADER_LOG_LEVEL >= 4
+    const uint8_t *bytes = (const uint8_t *)buffer;
+    const size_t output_len = MIN(length, 128);
+    char hexbuf[128 * 2 + 1];
+
+    bootloader_sha256_hex_to_str(hexbuf, bytes, output_len);
+
+    hexbuf[output_len * 2] = '\0';
+    ESP_LOGD(TAG, "%s: %s", label, hexbuf);
+#else
+    (void) buffer;
+    (void) length;
+    (void) label;
+#endif
+}
+
+esp_err_t bootloader_sha256_flash_contents(uint32_t flash_offset, uint32_t len, uint8_t *digest)
+{
+
+    if (digest == NULL) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    /* Handling firmware images larger than MMU capacity */
+    uint32_t mmu_free_pages_count = bootloader_mmap_get_free_pages();
+    bootloader_sha256_handle_t sha_handle = NULL;
+
+    sha_handle = bootloader_sha256_start();
+    if (sha_handle == NULL) {
+        return ESP_ERR_NO_MEM;
+    }
+
+    while (len > 0) {
+        uint32_t mmu_page_offset = ((flash_offset & MMAP_ALIGNED_MASK) != 0) ? 1 : 0; /* Skip 1st MMU Page if it is already populated */
+        uint32_t partial_image_len = MIN(len, ((mmu_free_pages_count - mmu_page_offset) * SPI_FLASH_MMU_PAGE_SIZE)); /* Read the image that fits in the free MMU pages */
+
+        const void * image = bootloader_mmap(flash_offset, partial_image_len);
+        if (image == NULL) {
+            bootloader_sha256_finish(sha_handle, NULL);
+            return ESP_FAIL;
+        }
+        bootloader_sha256_data(sha_handle, image, partial_image_len);
+        bootloader_munmap(image);
+
+        flash_offset += partial_image_len;
+        len -= partial_image_len;
+    }
+    bootloader_sha256_finish(sha_handle, digest);
+    return ESP_OK;
 }

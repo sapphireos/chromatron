@@ -24,122 +24,128 @@
 
 #include "motion.h"
 
+#ifdef ESP32
+
 #define MAX_SENSORS 2
 
 static bool motion_detected;
+static bool motion_ch_0;
+static bool motion_ch_1;
 static uint8_t n_sensors;
-static uint32_t activity;
+// static uint32_t activity;
 
 KV_SECTION_META kv_meta_t motion_kv[] = {
 	{CATBUS_TYPE_UINT8,  0, KV_FLAGS_PERSIST, 		 &n_sensors,    	0, "motion_n_sensors"},   
     {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_detected,	0, "motion_detected" },
-    {CATBUS_TYPE_UINT32, 0,  KV_FLAGS_READ_ONLY,     &activity,     	0, "motion_activity" },
+    {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_ch_0,	0, "motion_channel_0" },
+    {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_ch_1,	0, "motion_channel_1" },
+    // {CATBUS_TYPE_UINT32, 0,  KV_FLAGS_READ_ONLY,     &activity,     	0, "motion_activity" },
 };
 
-static int8_t motion_io[MAX_SENSORS] = {
-	-1,
-	-1,
-};
 
-static uint16_t current_activity[MAX_SENSORS];
-static uint16_t activity_index[MAX_SENSORS];
-static uint16_t activity_history[MAX_SENSORS][MOTION_ACTIVITY_TIME];
+// static uint16_t current_activity[MAX_SENSORS];
+// static uint16_t activity_index[MAX_SENSORS];
+// static uint16_t activity_history[MAX_SENSORS][MOTION_ACTIVITY_TIME];
+
+
+#define MOTION_CH_0 IO_PIN_13_A12
+#define MOTION_CH_1 IO_PIN_4_A5
 
 
 PT_THREAD( motion_io_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
-	
+
 	while( 1 ){
 
 		TMR_WAIT( pt, MOTION_SCAN_RATE );
 
-		// bool motion_or = FALSE;
-		motion_detected = FALSE;
+		uint8_t signals = 0;
+		motion_ch_0 = FALSE;
+		motion_ch_1 = FALSE;
 
 		for( uint8_t i = 0; i < n_sensors; i++ ){
 
-			if( motion_io[i] < 0 ){
+			uint8_t ch = MOTION_CH_1;
 
-				continue;
+			if( i == 0 ){
+
+				ch = MOTION_CH_0;
 			}
 
 			// high when motion is detected
-			if( io_b_digital_read( motion_io[i] ) ){
+			if( io_b_digital_read( ch ) ){
 
-				// check if we are on an edge, if so, push to KV
-				// if( !motion_detected_array[i] ){
+				signals++;
 
-				// 	motion_detected_array[i] = TRUE;
-				// }
+				if( i == 0 ){
 
-				motion_detected = TRUE;
-				// motion_detected_array[i] = TRUE;
-				current_activity[i]++;
-			}
-			else{
+					motion_ch_0 = TRUE;
+				}
+				else{
 
-				// same, but for falling edge
-				// if( motion_detected_array[i] ){
-
-				// 	motion_detected_array[i] = FALSE;
-				// }
-
-				// motion_detected_array[i] = FALSE;
-			}
-		}
-
-		// if( motion_detected != motion_or ){
-
-		// motion_detected = motion_or;
-		// }
-	}
-
-PT_END( pt );	
-}
-
-PT_THREAD( motion_activity_thread( pt_t *pt, void *state ) )
-{       	
-PT_BEGIN( pt );  
-	
-	while( 1 ){
-
-		TMR_WAIT( pt, 1000 );
-
-		for( uint8_t i = 0; i < n_sensors; i++ ){
-
-			if( motion_io[i] < 0 ){
-
-				continue;
-			}
-
-			activity_history[i][activity_index[i]] = current_activity[i];
-			current_activity[i] = 0;
-			activity_index[i]++;
-
-			if( activity_index[i] >= cnt_of_array(activity_history[i]) ){
-
-				activity_index[i] = 0;
+					motion_ch_1 = TRUE;	
+				}
 			}	
+		}
 
-			activity = 0;
-			for( uint16_t j = 0; j < cnt_of_array(activity_history[i]); j++ ){
+		motion_detected = FALSE;		
 
-				activity += activity_history[i][j];
-			}
+		if( signals == 0 ){
+
+		}
+		else if( signals == n_sensors ){
+
+			motion_detected = TRUE;
+		}
+		else{
+
 		}
 	}
 
 PT_END( pt );	
 }
+
+
+// PT_THREAD( motion_activity_thread( pt_t *pt, void *state ) )
+// {       	
+// PT_BEGIN( pt );  
+	
+// 	while( 1 ){
+
+// 		TMR_WAIT( pt, 1000 );
+
+// 		for( uint8_t i = 0; i < n_sensors; i++ ){
+
+// 			if( motion_io[i] < 0 ){
+
+// 				continue;
+// 			}
+
+// 			activity_history[i][activity_index[i]] = current_activity[i];
+// 			current_activity[i] = 0;
+// 			activity_index[i]++;
+
+// 			if( activity_index[i] >= cnt_of_array(activity_history[i]) ){
+
+// 				activity_index[i] = 0;
+// 			}	
+
+// 			activity = 0;
+// 			for( uint16_t j = 0; j < cnt_of_array(activity_history[i]); j++ ){
+
+// 				activity += activity_history[i][j];
+// 			}
+// 		}
+// 	}
+
+// PT_END( pt );	
+// }
 
 
 void motion_v_enable_channel( uint8_t channel, uint8_t gpio ){
 
-	motion_io[channel] = gpio;
-
-	io_v_set_mode( (uint8_t)motion_io[channel], IO_MODE_INPUT_PULLUP );
-
+	io_v_set_mode( channel, IO_MODE_INPUT );
 }
 
 void motion_v_init( void ){
@@ -151,23 +157,23 @@ void motion_v_init( void ){
 	
 	if( n_sensors >= 1 ){
 
-		motion_v_enable_channel( 0, IO_PIN_13_A12 );
+		motion_v_enable_channel( 0, MOTION_CH_0 );
+
+	    thread_t_create( motion_io_thread,
+	                     PSTR("motion_io"),
+	                     0,
+	                     0 );
 	}
-	else if( n_sensors >= 2 ){
+	
+	if( n_sensors >= 2 ){
 
-		log_v_error_P( PSTR("2nd sensor channel is not enabled!") );
-
-		// motion_v_enable_channel( 0, IO_PIN_13_A12 );
+		motion_v_enable_channel( 1, MOTION_CH_1 );
 	}
 
-    thread_t_create( motion_io_thread,
-                     PSTR("motion_io"),
-                     0,
-                     0 );
-
-   	thread_t_create( motion_activity_thread,
-                     PSTR("motion_activity"),
-                     0,
-                     0 );
+   	// thread_t_create( motion_activity_thread,
+    //                  PSTR("motion_activity"),
+    //                  0,
+    //                  0 );
 }
 
+#endif

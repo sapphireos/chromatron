@@ -1,6 +1,8 @@
-set(COMPONENT_SRCDIRS ".")
-set(COMPONENT_ADD_INCLUDEDIRS ".")
+if(CONFIG_SPI_FLASH_USE_LEGACY_IMPL)
+    set(exclude_srcs "test_esp_flash.c" "test_partition_ext.c")
+endif()
 
-set(COMPONENT_REQUIRES unity test_utils spi_flash bootloader_support app_update)
-
-register_component()
+idf_component_register(SRC_DIRS "."
+                       EXCLUDE_SRCS "${exclude_srcs}"
+                       PRIV_INCLUDE_DIRS "."
+                       PRIV_REQUIRES cmock test_utils spi_flash bootloader_support app_update driver)

@@ -56,7 +56,7 @@ typedef struct __attribute__((packed)){
 } datalog_v2_meta_t;
 
 typedef struct __attribute__((packed)){
-    uint32_t ntp_offset;
+    int32_t ntp_offset;
     catbus_data_t data;
 } datalog_data_v2_t;
 
@@ -67,5 +67,6 @@ typedef struct __attribute__((packed)){
 
 void datalog_v_init( void );
 
-
 #endif
+
+void datalogger_v_refresh_config( void );

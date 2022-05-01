@@ -4,7 +4,7 @@ SOURCE_FILES := \
 	crc32.cpp \
 	WL_Flash.cpp \
 	Partition.cpp \
-	) 
+	)
 
 INCLUDE_DIRS := \
 	. \
@@ -15,7 +15,6 @@ INCLUDE_DIRS := \
 	$(addprefix ../../spi_flash/sim/stubs/, \
 	app_update/include \
 	driver/include \
-	esp32/include \
 	freertos/include \
 	log/include \
 	newlib/include \
@@ -23,9 +22,20 @@ INCLUDE_DIRS := \
 	vfs/include \
 	) \
 	$(addprefix ../../../components/, \
+	heap/include \
+	esp_rom/include \
+	esp_system/include \
+	esp_common/include \
+	esp_hw_support/include \
+	esp_hw_support/include/soc \
+	xtensa/include \
+	xtensa/esp32/include \
 	soc/esp32/include \
+      	heap/include \
+	soc/include \
 	esp32/include \
 	bootloader_support/include \
 	app_update/include \
+	hal/include \
 	spi_flash/include \
 	)

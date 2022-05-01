@@ -3,11 +3,27 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "esp32_compat.h"
+#include "esp32_mock.h"
 
 void*     g_queue;
 int       g_queue_send_shall_fail = 0;
 int       g_size = 0;
+
+const char * WIFI_EVENT = "wifi_event";
+const char * ETH_EVENT = "eth_event";
+
+esp_err_t esp_event_handler_register(const char * event_base,
+                                        int32_t event_id,
+                                        void* event_handler,
+                                        void* event_handler_arg)
+{
+    return ESP_OK;
+}
+
+esp_err_t esp_event_handler_unregister(const char * event_base, int32_t event_id, void* event_handler)
+{
+    return ESP_OK;
+}
 
 esp_err_t esp_timer_delete(esp_timer_handle_t timer)
 {
@@ -30,14 +46,10 @@ esp_err_t esp_timer_create(const esp_timer_create_args_t* create_args,
     return ESP_OK;
 }
 
-uint32_t xTaskGetTickCount()
+uint32_t xTaskGetTickCount(void)
 {
-    struct timeval tv;
-    struct timezone tz;
-    if (gettimeofday(&tv, &tz) == 0) {
-        return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
-    }
-    return 0;
+    static uint32_t tick = 0;
+    return tick++;
 }
 
 /// Queue mock
@@ -78,7 +90,22 @@ void GetLastItem(void *pvBuffer)
     memcpy(pvBuffer, g_queue, g_size);
 }
 
-void ForceTaskDelete()
+void ForceTaskDelete(void)
 {
     g_queue_send_shall_fail = 1;
+}
+
+TaskHandle_t xTaskGetCurrentTaskHandle(void)
+{
+    return NULL;
+}
+
+void xTaskNotifyGive(TaskHandle_t task)
+{
+    return;
+}
+
+BaseType_t xTaskNotifyWait(uint32_t bits_entry_clear, uint32_t bits_exit_clear, uint32_t * value, TickType_t wait_time)
+{
+    return pdTRUE;
 }

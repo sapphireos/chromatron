@@ -19,7 +19,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "esp_err.h"
+#include "esp_flash.h"
 #include "esp_spi_flash.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,16 +35,29 @@ extern "C" {
 
 /**
  * @brief Partition type
- * @note Keep this enum in sync with PartitionDefinition class gen_esp32part.py
+ *
+ * @note Partition types with integer value 0x00-0x3F are reserved for partition types defined by ESP-IDF.
+ * Any other integer value 0x40-0xFE can be used by individual applications, without restriction.
+ *
+ * @internal Keep this enum in sync with PartitionDefinition class gen_esp32part.py @endinternal
+ *
  */
 typedef enum {
     ESP_PARTITION_TYPE_APP = 0x00,       //!< Application partition type
     ESP_PARTITION_TYPE_DATA = 0x01,      //!< Data partition type
+
+    ESP_PARTITION_TYPE_ANY = 0xff,       //!< Used to search for partitions with any type
 } esp_partition_type_t;
 
 /**
  * @brief Partition subtype
- * @note Keep this enum in sync with PartitionDefinition class gen_esp32part.py
+ *
+ * @note These ESP-IDF-defined partition subtypes apply to partitions of type ESP_PARTITION_TYPE_APP
+ * and ESP_PARTITION_TYPE_DATA.
+ *
+ * Application-defined partition types (0x40-0xFE) can set any numeric subtype value.
+ *
+ * @internal Keep this enum in sync with PartitionDefinition class gen_esp32part.py @endinternal
  */
 typedef enum {
     ESP_PARTITION_SUBTYPE_APP_FACTORY = 0x00,                                 //!< Factory application partition
@@ -72,6 +87,7 @@ typedef enum {
     ESP_PARTITION_SUBTYPE_DATA_COREDUMP = 0x03,                               //!< COREDUMP partition
     ESP_PARTITION_SUBTYPE_DATA_NVS_KEYS = 0x04,                               //!< Partition for NVS keys
     ESP_PARTITION_SUBTYPE_DATA_EFUSE_EM = 0x05,                               //!< Partition for emulate eFuse bits
+    ESP_PARTITION_SUBTYPE_DATA_UNDEFINED = 0x06,                              //!< Undefined (or unspecified) data partition
 
     ESP_PARTITION_SUBTYPE_DATA_ESPHTTPD = 0x80,                               //!< ESPHTTPD partition
     ESP_PARTITION_SUBTYPE_DATA_FAT = 0x81,                                    //!< FAT partition
@@ -98,6 +114,7 @@ typedef struct esp_partition_iterator_opaque_* esp_partition_iterator_t;
  * However, this is the format used by this API.
  */
 typedef struct {
+    esp_flash_t* flash_chip;            /*!< SPI flash chip on which the partition resides */
     esp_partition_type_t type;          /*!< partition type (app/data) */
     esp_partition_subtype_t subtype;    /*!< partition subtype */
     uint32_t address;                   /*!< starting address of the partition in flash */
@@ -109,10 +126,11 @@ typedef struct {
 /**
  * @brief Find partition based on one or more parameters
  *
- * @param type Partition type, one of esp_partition_type_t values
- * @param subtype Partition subtype, one of esp_partition_subtype_t values.
- *                To find all partitions of given type, use
- *                ESP_PARTITION_SUBTYPE_ANY.
+ * @param type Partition type, one of esp_partition_type_t values or an 8-bit unsigned integer.
+ *             To find all partitions, no matter the type, use ESP_PARTITION_TYPE_ANY, and set
+ *             subtype argument to ESP_PARTITION_SUBTYPE_ANY.
+ * @param subtype Partition subtype, one of esp_partition_subtype_t values or an 8-bit unsigned integer.
+ *                To find all partitions of given type, use ESP_PARTITION_SUBTYPE_ANY.
  * @param label (optional) Partition label. Set this value if looking
  *             for partition with a specific name. Pass NULL otherwise.
  *
@@ -126,10 +144,11 @@ esp_partition_iterator_t esp_partition_find(esp_partition_type_t type, esp_parti
 /**
  * @brief Find first partition based on one or more parameters
  *
- * @param type Partition type, one of esp_partition_type_t values
- * @param subtype Partition subtype, one of esp_partition_subtype_t values.
- *                To find all partitions of given type, use
- *                ESP_PARTITION_SUBTYPE_ANY.
+ * @param type Partition type, one of esp_partition_type_t values or an 8-bit unsigned integer.
+ *             To find all partitions, no matter the type, use ESP_PARTITION_TYPE_ANY, and set
+ *             subtype argument to ESP_PARTITION_SUBTYPE_ANY.
+ * @param subtype Partition subtype, one of esp_partition_subtype_t values or an 8-bit unsigned integer
+ *                To find all partitions of given type, use ESP_PARTITION_SUBTYPE_ANY.
  * @param label (optional) Partition label. Set this value if looking
  *             for partition with a specific name. Pass NULL otherwise.
  *
@@ -162,7 +181,9 @@ esp_partition_iterator_t esp_partition_next(esp_partition_iterator_t iterator);
 /**
  * @brief Release partition iterator
  *
- * @param iterator Iterator obtained using esp_partition_find. Must be non-NULL.
+ * @param iterator Iterator obtained using esp_partition_find.
+ *                 The iterator is allowed to be NULL, so it is not necessary to check its value
+ *                 before calling this function.
  *
  */
 void esp_partition_iterator_release(esp_partition_iterator_t iterator);
@@ -189,6 +210,9 @@ const esp_partition_t *esp_partition_verify(const esp_partition_t *partition);
 
 /**
  * @brief Read data from the partition
+ *
+ * Partitions marked with an encryption flag will automatically be
+ * be read and decrypted via a cache mapping.
  *
  * @param partition Pointer to partition structure obtained using
  *                  esp_partition_find_first or esp_partition_get.
@@ -238,7 +262,59 @@ esp_err_t esp_partition_read(const esp_partition_t* partition,
  *         or one of error codes from lower-level flash driver.
  */
 esp_err_t esp_partition_write(const esp_partition_t* partition,
-                             size_t dst_offset, const void* src, size_t size);
+                              size_t dst_offset, const void* src, size_t size);
+
+/**
+ * @brief Read data from the partition without any transformation/decryption.
+ *
+ * @note This function is essentially the same as \c esp_partition_read() above.
+ *       It just never decrypts data but returns it as is.
+ *
+ * @param partition Pointer to partition structure obtained using
+ *                  esp_partition_find_first or esp_partition_get.
+ *                  Must be non-NULL.
+ * @param dst Pointer to the buffer where data should be stored.
+ *            Pointer must be non-NULL and buffer must be at least 'size' bytes long.
+ * @param src_offset Address of the data to be read, relative to the
+ *                   beginning of the partition.
+ * @param size Size of data to be read, in bytes.
+ *
+ * @return ESP_OK, if data was read successfully;
+ *         ESP_ERR_INVALID_ARG, if src_offset exceeds partition size;
+ *         ESP_ERR_INVALID_SIZE, if read would go out of bounds of the partition;
+ *         or one of error codes from lower-level flash driver.
+ */
+esp_err_t esp_partition_read_raw(const esp_partition_t* partition,
+                                 size_t src_offset, void* dst, size_t size);
+
+/**
+ * @brief Write data to the partition without any transformation/encryption.
+ *
+ * @note This function is essentially the same as \c esp_partition_write() above.
+ *       It just never encrypts data but writes it as is.
+ *
+ * Before writing data to flash, corresponding region of flash needs to be erased.
+ * This can be done using esp_partition_erase_range function.
+ *
+ * @param partition Pointer to partition structure obtained using
+ *                  esp_partition_find_first or esp_partition_get.
+ *                  Must be non-NULL.
+ * @param dst_offset Address where the data should be written, relative to the
+ *                   beginning of the partition.
+ * @param src Pointer to the source buffer.  Pointer must be non-NULL and
+ *            buffer must be at least 'size' bytes long.
+ * @param size Size of data to be written, in bytes.
+ *
+ * @note Prior to writing to flash memory, make sure it has been erased with
+ *       esp_partition_erase_range call.
+ *
+ * @return ESP_OK, if data was written successfully;
+ *         ESP_ERR_INVALID_ARG, if dst_offset exceeds partition size;
+ *         ESP_ERR_INVALID_SIZE, if write would go out of bounds of the partition;
+ *         or one of the error codes from lower-level flash driver.
+ */
+esp_err_t esp_partition_write_raw(const esp_partition_t* partition,
+                                  size_t dst_offset, const void* src, size_t size);
 
 /**
  * @brief Erase part of the partition
@@ -246,8 +322,8 @@ esp_err_t esp_partition_write(const esp_partition_t* partition,
  * @param partition Pointer to partition structure obtained using
  *                  esp_partition_find_first or esp_partition_get.
  *                  Must be non-NULL.
- * @param start_addr Address where erase operation should start. Must be aligned
- *                   to 4 kilobytes.
+ * @param offset Offset from the beginning of partition where erase operation
+ *               should start. Must be aligned to 4 kilobytes.
  * @param size Size of the range which should be erased, in bytes.
  *                   Must be divisible by 4 kilobytes.
  *
@@ -257,7 +333,7 @@ esp_err_t esp_partition_write(const esp_partition_t* partition,
  *         or one of error codes from lower-level flash driver.
  */
 esp_err_t esp_partition_erase_range(const esp_partition_t* partition,
-                                    uint32_t start_addr, uint32_t size);
+                                    size_t offset, size_t size);
 
 /**
  * @brief Configure MMU to map partition into data memory
@@ -284,7 +360,7 @@ esp_err_t esp_partition_erase_range(const esp_partition_t* partition,
  *
  * @return ESP_OK, if successful
  */
-esp_err_t esp_partition_mmap(const esp_partition_t* partition, uint32_t offset, uint32_t size,
+esp_err_t esp_partition_mmap(const esp_partition_t* partition, size_t offset, size_t size,
                              spi_flash_mmap_memory_t memory,
                              const void** out_ptr, spi_flash_mmap_handle_t* out_handle);
 
@@ -319,6 +395,43 @@ esp_err_t esp_partition_get_sha256(const esp_partition_t *partition, uint8_t *sh
  *         - False: Otherwise
  */
 bool esp_partition_check_identity(const esp_partition_t *partition_1, const esp_partition_t *partition_2);
+
+/**
+ * @brief Register a partition on an external flash chip
+ *
+ * This API allows designating certain areas of external flash chips (identified by the esp_flash_t structure)
+ * as partitions. This allows using them with components which access SPI flash through the esp_partition API.
+ *
+ * @param flash_chip  Pointer to the structure identifying the flash chip
+ * @param offset  Address in bytes, where the partition starts
+ * @param size  Size of the partition in bytes
+ * @param label  Partition name
+ * @param type  One of the partition types (ESP_PARTITION_TYPE_*), or an integer. Note that applications can not be booted from external flash
+ *              chips, so using ESP_PARTITION_TYPE_APP is not supported.
+ * @param subtype  One of the partition subtypes (ESP_PARTITION_SUBTYPE_*), or an integer.
+ * @param[out] out_partition  Output, if non-NULL, receives the pointer to the resulting esp_partition_t structure
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_SUPPORTED if CONFIG_CONFIG_SPI_FLASH_USE_LEGACY_IMPL is enabled
+ *      - ESP_ERR_NO_MEM if memory allocation has failed
+ *      - ESP_ERR_INVALID_ARG if the new partition overlaps another partition on the same flash chip
+ *      - ESP_ERR_INVALID_SIZE if the partition doesn't fit into the flash chip size
+ */
+esp_err_t esp_partition_register_external(esp_flash_t* flash_chip, size_t offset, size_t size,
+                                     const char* label, esp_partition_type_t type, esp_partition_subtype_t subtype,
+                                     const esp_partition_t** out_partition);
+
+/**
+ * @brief Deregister the partition previously registered using esp_partition_register_external
+ * @param partition  pointer to the partition structure obtained from esp_partition_register_external,
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_FOUND if the partition pointer is not found
+ *      - ESP_ERR_INVALID_ARG if the partition comes from the partition table
+ *      - ESP_ERR_INVALID_ARG if the partition was not registered using
+ *        esp_partition_register_external function.
+ */
+esp_err_t esp_partition_deregister_external(const esp_partition_t* partition);
 
 #ifdef __cplusplus
 }

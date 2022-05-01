@@ -4,19 +4,33 @@
  *
  * Copyright (C) 2010,2011,2015 Olaf Bergmann <bergmann@tzi.org>
  *
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  * This file is part of the CoAP library libcoap. Please see README for terms of
  * use.
  */
 
-/* #include "coap_config.h" */
+/*
+ * examples/coap_list.[ch] are DEPRECATED.  You should be using
+ * struct coap_optlist_t instead with the following functions which are a part
+ * of libcoap.
+ *
+ * coap_new_optlist()
+ * coap_insert_optlist()
+ * coap_delete_optlist()
+ * coap_add_optlist_pdu()
+ *
+ * See 'man coap_pdu_setup' for further information.
+ *
+ * examples/coap_list.[ch] files will be removed in a future release
+ * They are left here to support building backward compatability of old versions
+ * of coap-client
+ */
 
 #include <stdio.h>
 #include <string.h>
 
-#include "debug.h"
-#include "mem.h"
-#include "coap_list.h"
-
+#include <coap3/coap.h>
 
 int
 coap_insert(coap_list_t **head, coap_list_t *node) {

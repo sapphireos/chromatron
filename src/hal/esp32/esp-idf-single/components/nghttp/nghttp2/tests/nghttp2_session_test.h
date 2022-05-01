@@ -26,7 +26,7 @@
 #define NGHTTP2_SESSION_TEST_H
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif /* HAVE_CONFIG_H */
 
 void test_nghttp2_session_recv(void);
@@ -37,7 +37,9 @@ void test_nghttp2_session_recv_data(void);
 void test_nghttp2_session_recv_data_no_auto_flow_control(void);
 void test_nghttp2_session_recv_continuation(void);
 void test_nghttp2_session_recv_headers_with_priority(void);
+void test_nghttp2_session_recv_headers_with_padding(void);
 void test_nghttp2_session_recv_headers_early_response(void);
+void test_nghttp2_session_recv_headers_for_closed_stream(void);
 void test_nghttp2_session_server_recv_push_response(void);
 void test_nghttp2_session_recv_premature_headers(void);
 void test_nghttp2_session_recv_unknown_frame(void);
@@ -46,6 +48,7 @@ void test_nghttp2_session_recv_settings_header_table_size(void);
 void test_nghttp2_session_recv_too_large_frame_length(void);
 void test_nghttp2_session_recv_extension(void);
 void test_nghttp2_session_recv_altsvc(void);
+void test_nghttp2_session_recv_origin(void);
 void test_nghttp2_session_continue(void);
 void test_nghttp2_session_add_frame(void);
 void test_nghttp2_session_on_request_headers_received(void);
@@ -99,6 +102,7 @@ void test_nghttp2_submit_shutdown_notice(void);
 void test_nghttp2_submit_invalid_nv(void);
 void test_nghttp2_submit_extension(void);
 void test_nghttp2_submit_altsvc(void);
+void test_nghttp2_submit_origin(void);
 void test_nghttp2_session_open_stream(void);
 void test_nghttp2_session_open_stream_with_idle_stream_dep(void);
 void test_nghttp2_session_get_next_ob_item(void);
@@ -152,9 +156,11 @@ void test_nghttp2_session_repeated_priority_change(void);
 void test_nghttp2_session_repeated_priority_submission(void);
 void test_nghttp2_session_set_local_window_size(void);
 void test_nghttp2_session_cancel_from_before_frame_send(void);
+void test_nghttp2_session_too_many_settings(void);
 void test_nghttp2_session_removed_closed_stream(void);
 void test_nghttp2_session_pause_data(void);
 void test_nghttp2_session_no_closed_streams(void);
+void test_nghttp2_session_set_stream_user_data(void);
 void test_nghttp2_http_mandatory_headers(void);
 void test_nghttp2_http_content_length(void);
 void test_nghttp2_http_content_length_mismatch(void);

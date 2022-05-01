@@ -36,7 +36,7 @@ testgroups=( CORE LINK BLOCK OBS )
 testnumber=-1
 group=''
 
-source etsi_testcases.sh
+source `dirname $0`/etsi_testcases.sh
 
 function usage {
 echo "Usage:  `basename $0` [-n testnumber] [-g groupname] [-t timeout] [-P server_port] [-p client port] [-d logdir] [-v] -i interface server_address" 1>&2
@@ -86,7 +86,7 @@ testnumber=$((OPTARG-1))
 g) # name of test group
 # is there a group with that name?
 for i in "${testgroups[@]}"
-  do 
+  do
   # group doesn't have to be case sensitive
   tmpgroup=$(echo $OPTARG | tr '[:lower:]' '[:upper:]')
   if [  $i == $tmpgroup ] ; then

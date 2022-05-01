@@ -101,6 +101,8 @@ esp_err_t sdmmc_init_sd_if_cond(sdmmc_card_t* card);
 esp_err_t sdmmc_init_select_card(sdmmc_card_t* card);
 esp_err_t sdmmc_init_csd(sdmmc_card_t* card);
 esp_err_t sdmmc_init_cid(sdmmc_card_t* card);
+esp_err_t sdmmc_init_rca(sdmmc_card_t* card);
+esp_err_t sdmmc_init_mmc_decode_cid(sdmmc_card_t* card);
 esp_err_t sdmmc_init_ocr(sdmmc_card_t* card);
 esp_err_t sdmmc_init_spi_crc(sdmmc_card_t* card);
 esp_err_t sdmmc_init_io(sdmmc_card_t* card);
@@ -115,6 +117,7 @@ esp_err_t sdmmc_init_io_bus_width(sdmmc_card_t* card);
 esp_err_t sdmmc_init_mmc_bus_width(sdmmc_card_t* card);
 esp_err_t sdmmc_init_card_hs_mode(sdmmc_card_t* card);
 esp_err_t sdmmc_init_host_frequency(sdmmc_card_t* card);
+esp_err_t sdmmc_init_mmc_check_csd(sdmmc_card_t* card);
 
 /* Various helper functions */
 static inline bool host_is_spi(const sdmmc_card_t* card)

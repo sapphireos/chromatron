@@ -26,13 +26,14 @@
 #define SHRPX_HTTP_TEST_H
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif // HAVE_CONFIG_H
 
 namespace shrpx {
 
 void test_shrpx_http_create_forwarded(void);
 void test_shrpx_http_create_via_header_value(void);
+void test_shrpx_http_create_affinity_cookie(void);
 
 } // namespace shrpx
 

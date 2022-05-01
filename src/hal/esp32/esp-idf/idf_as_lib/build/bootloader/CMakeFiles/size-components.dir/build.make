@@ -53,8 +53,8 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 # Include the progress variables for this target.
 include CMakeFiles/size-components.dir/progress.make
 
-CMakeFiles/size-components:
-	python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/idf_size.py --archives bootloader.map
+CMakeFiles/size-components: bootloader.map
+	python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/idf_size.py --archives /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/bootloader.map
 
 size-components: CMakeFiles/size-components
 size-components: CMakeFiles/size-components.dir/build.make

@@ -20,8 +20,15 @@
  *          <https://ieeexplore.ieee.org/servlet/opac?punumber=4375278>.
  */
 
-/*  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved.
- *  SPDX-License-Identifier: Apache-2.0
+/*
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
+ *
+ *  This file is provided under the Apache License 2.0, or the
+ *  GNU General Public License v2.0 or later.
+ *
+ *  **********
+ *  Apache License 2.0:
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
  *  not use this file except in compliance with the License.
@@ -35,7 +42,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  This file is part of Mbed TLS (https://tls.mbed.org)
+ *  **********
+ *
+ *  **********
+ *  GNU General Public License v2.0 or later:
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ *  **********
  */
 
 #ifndef MBEDTLS_AES_H
@@ -55,17 +81,22 @@
 #define MBEDTLS_AES_DECRYPT     0 /**< AES decryption. */
 
 /* Error codes in range 0x0020-0x0022 */
-#define MBEDTLS_ERR_AES_INVALID_KEY_LENGTH                -0x0020  /**< Invalid key length. */
-#define MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH              -0x0022  /**< Invalid data input length. */
+/** Invalid key length. */
+#define MBEDTLS_ERR_AES_INVALID_KEY_LENGTH                -0x0020
+/** Invalid data input length. */
+#define MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH              -0x0022
 
 /* Error codes in range 0x0021-0x0025 */
-#define MBEDTLS_ERR_AES_BAD_INPUT_DATA                    -0x0021  /**< Invalid input data. */
+/** Invalid input data. */
+#define MBEDTLS_ERR_AES_BAD_INPUT_DATA                    -0x0021
 
 /* MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE is deprecated and should not be used. */
-#define MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE               -0x0023  /**< Feature not available. For example, an unsupported AES key size. */
+/** Feature not available. For example, an unsupported AES key size. */
+#define MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE               -0x0023
 
 /* MBEDTLS_ERR_AES_HW_ACCEL_FAILED is deprecated and should not be used. */
-#define MBEDTLS_ERR_AES_HW_ACCEL_FAILED                   -0x0025  /**< AES hardware accelerator failed. */
+/** AES hardware accelerator failed. */
+#define MBEDTLS_ERR_AES_HW_ACCEL_FAILED                   -0x0025
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
@@ -506,10 +537,6 @@ int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
 /**
  * \brief      This function performs an AES-CTR encryption or decryption
  *             operation.
- *
- *             This function performs the operation defined in the \p mode
- *             parameter (encrypt/decrypt), on the input data buffer
- *             defined in the \p input parameter.
  *
  *             Due to the nature of CTR, you must use the same key schedule
  *             for both encryption and decryption operations. Therefore, you

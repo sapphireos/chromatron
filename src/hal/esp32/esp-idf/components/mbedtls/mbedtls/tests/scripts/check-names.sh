@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2015-2019, ARM Limited, All Rights Reserved
+# Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # This file is provided under the Apache License 2.0, or the
@@ -41,8 +41,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # **********
-#
-# This file is part of Mbed TLS (https://tls.mbed.org)
 
 set -eu
 
@@ -55,11 +53,6 @@ TLS are consistent with the house style and are also self-consistent.
   -v    If the script fails unexpectedly, print a command trace.
 EOF
     exit
-fi
-
-if grep --version|head -n1|grep GNU >/dev/null; then :; else
-    echo "This script requires GNU grep.">&2
-    exit 1
 fi
 
 trace=
@@ -94,7 +87,7 @@ fi
 diff macros identifiers | sed -n -e 's/< //p' > actual-macros
 
 for THING in actual-macros enum-consts; do
-    printf "Names of $THING: "
+    printf 'Names of %s: ' "$THING"
     test -r $THING
     BAD=$( grep -v '^MBEDTLS_[0-9A-Z_]*[0-9A-Z]$' $THING || true )
     if [ "x$BAD" = "x" ]; then
@@ -107,7 +100,7 @@ for THING in actual-macros enum-consts; do
 done
 
 for THING in identifiers; do
-    printf "Names of $THING: "
+    printf 'Names of %s: ' "$THING"
     test -r $THING
     BAD=$( grep -v '^mbedtls_[0-9a-z_]*[0-9a-z]$' $THING || true )
     if [ "x$BAD" = "x" ]; then

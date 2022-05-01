@@ -39,12 +39,12 @@ randombytes_tests(void)
     unsigned int  i;
     uint32_t      n;
 
-#ifdef __EMSCRIPTEN__
+#ifndef BENCHMARKS
+# ifdef __EMSCRIPTEN__
     assert(strcmp(randombytes_implementation_name(), "js") == 0);
-#elif defined(__native_client__)
-    assert(strcmp(randombytes_implementation_name(), "nativeclient") == 0);
-#else
+# else
     assert(strcmp(randombytes_implementation_name(), "sysrandom") == 0);
+# endif
 #endif
     randombytes(x, 1U);
     do {
@@ -71,8 +71,9 @@ randombytes_tests(void)
     assert(randombytes_uniform(1U) == 0U);
     randombytes_close();
 #ifndef __EMSCRIPTEN__
-    randombytes_set_implementation(&randombytes_salsa20_implementation);
-    assert(strcmp(randombytes_implementation_name(), "salsa20") == 0);
+    assert(&randombytes_internal_implementation == &randombytes_salsa20_implementation);
+    randombytes_set_implementation(&randombytes_internal_implementation);
+    assert(strcmp(randombytes_implementation_name(), "internal") == 0);
 #endif
     randombytes_stir();
     for (i = 0; i < 256; ++i) {
@@ -127,16 +128,13 @@ randombytes_uniform_impl(const uint32_t upper_bound)
 static int
 impl_tests(void)
 {
-#ifndef __native_client__
     randombytes_implementation impl = randombytes_sysrandom_implementation;
-#else
-    randombytes_implementation impl = randombytes_nativeclient_implementation;
-#endif
     uint32_t                   v = randombytes_random();
 
     impl.uniform = randombytes_uniform_impl;
     randombytes_close();
     randombytes_set_implementation(&impl);
+    assert(randombytes_uniform(1) == 1);
     assert(randombytes_uniform(v) == v);
     assert(randombytes_uniform(v) == v);
     assert(randombytes_uniform(v) == v);
@@ -157,6 +155,10 @@ main(void)
     impl_tests();
 #endif
     printf("OK\n");
+
+#ifndef __EMSCRIPTEN__
+    randombytes_set_implementation(&randombytes_salsa20_implementation);
+#endif
 
     return 0;
 }

@@ -15,6 +15,9 @@
 #ifndef ESP_SPI_FLASH_CACHE_UTILS_H
 #define ESP_SPI_FLASH_CACHE_UTILS_H
 
+#include "sdkconfig.h"
+#include <stdbool.h>
+
 /**
  * This header file contains declarations of cache manipulation functions
  * used both in flash_ops.c and flash_mmap.c.
@@ -23,35 +26,49 @@
  */
 
 // Init mutex protecting access to spi_flash_* APIs
-void spi_flash_init_lock();
+void spi_flash_init_lock(void);
 
 // Take mutex protecting access to spi_flash_* APIs
-void spi_flash_op_lock();
+void spi_flash_op_lock(void);
 
 // Release said mutex
-void spi_flash_op_unlock();
+void spi_flash_op_unlock(void);
 
 // Suspend the scheduler on both CPUs, disable cache.
 // Contrary to its name this doesn't do anything with interrupts, yet.
 // Interrupt disabling capability will be added once we implement
 // interrupt allocation API.
-void spi_flash_disable_interrupts_caches_and_other_cpu();
+void spi_flash_disable_interrupts_caches_and_other_cpu(void);
 
 // Enable cache, enable interrupts (to be added in future), resume scheduler
-void spi_flash_enable_interrupts_caches_and_other_cpu();
+void spi_flash_enable_interrupts_caches_and_other_cpu(void);
 
 // Disables non-IRAM interrupt handlers on current CPU and caches on both CPUs.
 // This function is implied to be called when other CPU is not running or running code from IRAM.
-void spi_flash_disable_interrupts_caches_and_other_cpu_no_os();
+void spi_flash_disable_interrupts_caches_and_other_cpu_no_os(void);
 
 // Enable cache, enable interrupts on current CPU.
 // This function is implied to be called when other CPU is not running or running code from IRAM.
-void spi_flash_enable_interrupts_caches_no_os();
+void spi_flash_enable_interrupts_caches_no_os(void);
 
-// Flushes cache if address range has corresponding valid cache mappings
-// Recommended to use post flash program operation (erase or write)
+// Mark the pages containing a flash region as having been
+// erased or written to. This means the flash cache needs
+// to be evicted before these pages can be flash_mmap()ed again,
+// as they may contain stale data
+//
 // Only call this while holding spi_flash_op_lock()
 // Returns true if cache was flushed, false otherwise
-bool spi_flash_check_and_flush_cache(uint32_t start_addr, uint32_t length);
+bool spi_flash_check_and_flush_cache(size_t start_addr, size_t length);
+
+//config cache mode
+#if !CONFIG_IDF_TARGET_ESP32
+//config instrcutin cache size and cache block size by menuconfig
+void esp_config_instruction_cache_mode(void);
+//config data cache size and cache block size by menuconfig
+void esp_config_data_cache_mode(void);
+//enable cache wrap mode for instruction cache and data cache
+esp_err_t esp_enable_cache_wrap(bool icache_wrap_enable, bool dcache_wrap_enable);
+#endif
+
 
 #endif //ESP_SPI_FLASH_CACHE_UTILS_H

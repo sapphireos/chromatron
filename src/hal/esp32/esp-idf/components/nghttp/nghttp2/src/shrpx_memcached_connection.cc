@@ -102,11 +102,12 @@ MemcachedConnection::MemcachedConnection(const Address *addr,
                                          MemchunkPool *mcpool,
                                          std::mt19937 &gen)
     : conn_(loop, -1, nullptr, mcpool, write_timeout, read_timeout, {}, {},
-            connectcb, readcb, timeoutcb, this, 0, 0., PROTO_MEMCACHED),
+            connectcb, readcb, timeoutcb, this, 0, 0., Proto::MEMCACHED),
       do_read_(&MemcachedConnection::noop),
       do_write_(&MemcachedConnection::noop),
       sni_name_(sni_name),
-      connect_blocker_(gen, loop, [] {}, [] {}),
+      connect_blocker_(
+          gen, loop, [] {}, [] {}),
       parse_state_{},
       addr_(addr),
       ssl_ctx_(ssl_ctx),
@@ -120,7 +121,8 @@ namespace {
 void clear_request(std::deque<std::unique_ptr<MemcachedRequest>> &q) {
   for (auto &req : q) {
     if (req->cb) {
-      req->cb(req.get(), MemcachedResult(MEMCACHED_ERR_EXT_NETWORK_ERROR));
+      req->cb(req.get(),
+              MemcachedResult(MemcachedStatusCode::EXT_NETWORK_ERROR));
     }
   }
   q.clear();
@@ -424,7 +426,7 @@ int MemcachedConnection::parse_packet() {
     auto busy = false;
 
     switch (parse_state_.state) {
-    case MEMCACHED_PARSE_HEADER24: {
+    case MemcachedParseState::HEADER24: {
       if (recvbuf_.last - in < 24) {
         recvbuf_.drain_reset(in - recvbuf_.pos);
         return 0;
@@ -445,13 +447,14 @@ int MemcachedConnection::parse_packet() {
       }
       ++in;
 
-      parse_state_.op = *in++;
+      parse_state_.op = static_cast<MemcachedOp>(*in++);
       parse_state_.keylen = util::get_uint16(in);
       in += 2;
       parse_state_.extralen = *in++;
       // skip 1 byte reserved data type
       ++in;
-      parse_state_.status_code = util::get_uint16(in);
+      parse_state_.status_code =
+          static_cast<MemcachedStatusCode>(util::get_uint16(in));
       in += 2;
       parse_state_.totalbody = util::get_uint32(in);
       in += 4;
@@ -463,7 +466,8 @@ int MemcachedConnection::parse_packet() {
       if (req->op != parse_state_.op) {
         MCLOG(WARN, this)
             << "opcode in response does not match to the request: want "
-            << static_cast<uint32_t>(req->op) << ", got " << parse_state_.op;
+            << static_cast<uint32_t>(req->op) << ", got "
+            << static_cast<uint32_t>(parse_state_.op);
         return -1;
       }
 
@@ -479,8 +483,9 @@ int MemcachedConnection::parse_packet() {
         return -1;
       }
 
-      if (parse_state_.op == MEMCACHED_OP_GET &&
-          parse_state_.status_code == 0 && parse_state_.extralen == 0) {
+      if (parse_state_.op == MemcachedOp::GET &&
+          parse_state_.status_code == MemcachedStatusCode::NO_ERROR &&
+          parse_state_.extralen == 0) {
         MCLOG(WARN, this) << "response for GET does not have extra";
         return -1;
       }
@@ -494,17 +499,17 @@ int MemcachedConnection::parse_packet() {
       }
 
       if (parse_state_.extralen) {
-        parse_state_.state = MEMCACHED_PARSE_EXTRA;
+        parse_state_.state = MemcachedParseState::EXTRA;
         parse_state_.read_left = parse_state_.extralen;
       } else {
-        parse_state_.state = MEMCACHED_PARSE_VALUE;
+        parse_state_.state = MemcachedParseState::VALUE;
         parse_state_.read_left = parse_state_.totalbody - parse_state_.keylen -
                                  parse_state_.extralen;
       }
       busy = true;
       break;
     }
-    case MEMCACHED_PARSE_EXTRA: {
+    case MemcachedParseState::EXTRA: {
       // We don't use extra for now. Just read and forget.
       auto n = std::min(static_cast<size_t>(recvbuf_.last - in),
                         parse_state_.read_left);
@@ -515,7 +520,7 @@ int MemcachedConnection::parse_packet() {
         recvbuf_.reset();
         return 0;
       }
-      parse_state_.state = MEMCACHED_PARSE_VALUE;
+      parse_state_.state = MemcachedParseState::VALUE;
       // since we require keylen == 0, totalbody - extralen ==
       // valuelen
       parse_state_.read_left =
@@ -523,7 +528,7 @@ int MemcachedConnection::parse_packet() {
       busy = true;
       break;
     }
-    case MEMCACHED_PARSE_VALUE: {
+    case MemcachedParseState::VALUE: {
       auto n = std::min(static_cast<size_t>(recvbuf_.last - in),
                         parse_state_.read_left);
 
@@ -537,9 +542,9 @@ int MemcachedConnection::parse_packet() {
       }
 
       if (LOG_ENABLED(INFO)) {
-        if (parse_state_.status_code) {
-          MCLOG(INFO, this)
-              << "response returned error status: " << parse_state_.status_code;
+        if (parse_state_.status_code != MemcachedStatusCode::NO_ERROR) {
+          MCLOG(INFO, this) << "response returned error status: "
+                            << static_cast<uint16_t>(parse_state_.status_code);
         }
       }
 
@@ -578,9 +583,9 @@ int MemcachedConnection::parse_packet() {
 #define DEFAULT_WR_IOVCNT 128
 
 #if defined(IOV_MAX) && IOV_MAX < DEFAULT_WR_IOVCNT
-#define MAX_WR_IOVCNT IOV_MAX
+#  define MAX_WR_IOVCNT IOV_MAX
 #else // !defined(IOV_MAX) || IOV_MAX >= DEFAULT_WR_IOVCNT
-#define MAX_WR_IOVCNT DEFAULT_WR_IOVCNT
+#  define MAX_WR_IOVCNT DEFAULT_WR_IOVCNT
 #endif // !defined(IOV_MAX) || IOV_MAX >= DEFAULT_WR_IOVCNT
 
 size_t MemcachedConnection::fill_request_buffer(struct iovec *iov,
@@ -661,9 +666,9 @@ void MemcachedConnection::drain_send_queue(size_t nwrite) {
 
 size_t MemcachedConnection::serialized_size(MemcachedRequest *req) {
   switch (req->op) {
-  case MEMCACHED_OP_GET:
+  case MemcachedOp::GET:
     return 24 + req->key.size();
-  case MEMCACHED_OP_ADD:
+  case MemcachedOp::ADD:
   default:
     return 24 + 8 + req->key.size() + req->value.size();
   }
@@ -676,14 +681,14 @@ void MemcachedConnection::make_request(MemcachedSendbuf *sendbuf,
   std::fill(std::begin(headbuf.buf), std::end(headbuf.buf), 0);
 
   headbuf[0] = MEMCACHED_REQ_MAGIC;
-  headbuf[1] = req->op;
+  headbuf[1] = static_cast<uint8_t>(req->op);
   switch (req->op) {
-  case MEMCACHED_OP_GET:
+  case MemcachedOp::GET:
     util::put_uint16be(&headbuf[2], req->key.size());
     util::put_uint32be(&headbuf[8], req->key.size());
     headbuf.write(24);
     break;
-  case MEMCACHED_OP_ADD:
+  case MemcachedOp::ADD:
     util::put_uint16be(&headbuf[2], req->key.size());
     headbuf[4] = 8;
     util::put_uint32be(&headbuf[8], 8 + req->key.size() + req->value.size());

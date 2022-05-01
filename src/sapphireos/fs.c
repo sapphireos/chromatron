@@ -109,7 +109,7 @@ typedef struct{
 
 typedef struct{
     PGM_P filename;
-    uint16_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len );
+    uint32_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len );
 } vfile_t; // virtual file
 
 static vfile_t vfiles[FS_MAX_VIRTUAL_FILES];
@@ -295,7 +295,7 @@ file_t fs_f_open_id( file_id_t8 file_id, uint8_t mode ){
 }
 
 file_t fs_f_create_virtual( PGM_P filename,
-                            uint16_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint16_t len ) ){
+                            uint32_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ) ){
 
     for( uint8_t i = 0; i < FS_MAX_VIRTUAL_FILES; i++ ){
 

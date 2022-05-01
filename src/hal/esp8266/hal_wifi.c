@@ -65,6 +65,11 @@ static bool default_ap_mode;
 
 static bool connected;
 
+static bool wifi_shutdown;
+
+static uint8_t scan_backoff;
+static uint8_t current_scan_backoff;
+
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
@@ -251,7 +256,7 @@ void hal_wifi_v_init( void ){
     system_phy_set_max_tpw( tx_power * 4 );
 
     // set sleep mode
-    wifi_set_sleep_type( NONE_SLEEP_T );
+    wifi_set_sleep_type( MODEM_SLEEP_T );
 
     // disable auto reconnect (we will manage this)
     wifi_station_set_auto_connect( FALSE );
@@ -586,12 +591,12 @@ ROUTING_TABLE routing_table_entry_t route_wifi = {
 
 void wifi_v_shutdown( void ){
 
-
+    wifi_shutdown = TRUE;
 }
 
 void wifi_v_powerup( void ){
 
-    
+    wifi_shutdown = FALSE;
 }
 
 uint32_t wifi_u32_get_power( void ){
@@ -599,6 +604,12 @@ uint32_t wifi_u32_get_power( void ){
     // not a real value....
     
     return 50000 *  3.3;
+}
+
+void wifi_v_reset_scan_timeout( void ){
+
+    scan_backoff = 0;
+    current_scan_backoff = 0;
 }
 
 bool wifi_b_connected( void ){
@@ -951,11 +962,28 @@ PT_BEGIN( pt );
     static uint8_t scan_timeout;
 
     connected = FALSE;
+    wifi_rssi = -127;
+
+    wifi_set_opmode_current( NULL_MODE );
+
+    THREAD_WAIT_WHILE( pt, wifi_shutdown );
 
     // check if we are connected
-    while( !wifi_b_connected() ){
+    while( !wifi_b_connected() && !wifi_shutdown ){
 
         wifi_rssi = -127;
+
+        wifi_set_opmode_current( NULL_MODE );
+
+        current_scan_backoff = scan_backoff;
+
+        // scan backoff delay
+        while( ( current_scan_backoff > 0 ) && !_wifi_b_ap_mode_enabled() ){
+
+            current_scan_backoff--;
+            TMR_WAIT( pt, 1000 );
+        }
+
         
         bool ap_mode = _wifi_b_ap_mode_enabled();
 
@@ -1008,6 +1036,21 @@ PT_BEGIN( pt );
                 io_v_set_esp_led( 0 );
 
                 if( wifi_router < 0 ){
+
+                    // router not found
+
+                    if( scan_backoff == 0 ){
+
+                        scan_backoff = 1;
+                    }
+                    else if( scan_backoff < 64 ){
+
+                        scan_backoff *= 2;
+                    }
+                    else if( scan_backoff < 192 ){
+
+                        scan_backoff += 64;
+                    }
 
                     goto end;
                 }            
@@ -1158,7 +1201,7 @@ end:
         // start_mdns();
     }
 
-    THREAD_WAIT_WHILE( pt, wifi_b_connected() );
+    THREAD_WAIT_WHILE( pt, wifi_b_connected()  && !wifi_shutdown );
     
     log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d ch: %d"), wifi_rssi, wifi_channel );
 

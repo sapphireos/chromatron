@@ -28,8 +28,10 @@ void app_main()
 {
     #ifdef CONFIG_FREERTOS_UNICORE
         int core = 0;
+        #pragma message "ESP32 Single Core"
     #else
         int core = 1;
+        #pragma message "ESP32 Dual Core"
     #endif
 
     xTaskCreatePinnedToCore(&sapphire_main, "sapphire",
@@ -54,6 +56,8 @@ void sapphire_main()
     esp_log_level_set("*", ESP_LOG_INFO);
     // esp_log_level_set("*", ESP_LOG_VERBOSE);
     // esp_log_level_set("*", ESP_LOG_DEBUG);
+
+    esp_log_level_set("gpio", ESP_LOG_NONE);
     #endif
 
     // sapphireos init

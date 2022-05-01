@@ -1,16 +1,8 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <string.h>
 #include <errno.h>
@@ -143,7 +135,7 @@ static void timeout_handler(struct k_work *work)
     struct k_delayed_work *timer = NULL;
     bt_mesh_client_node_t *node = NULL;
     struct bt_mesh_msg_ctx ctx = {0};
-    u32_t opcode = 0U;
+    uint32_t opcode = 0U;
 
     BT_WARN("Receive generic status message timeout");
 
@@ -172,8 +164,8 @@ static void generic_status(struct bt_mesh_model *model,
                            struct net_buf_simple *buf)
 {
     bt_mesh_client_node_t *node = NULL;
-    u8_t *val = NULL;
-    u8_t evt = 0xFF;
+    uint8_t *val = NULL;
+    uint8_t evt = 0xFF;
     size_t len = 0U;
 
     BT_DBG("len %d, bytes %s", buf->len, bt_hex(buf->data, buf->len));
@@ -196,7 +188,7 @@ static void generic_status(struct bt_mesh_model *model,
             status->target_onoff = net_buf_simple_pull_u8(buf);
             status->remain_time = net_buf_simple_pull_u8(buf);
         }
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_onoff_status);
         break;
     }
@@ -217,7 +209,7 @@ static void generic_status(struct bt_mesh_model *model,
             status->target_level = net_buf_simple_pull_le16(buf);
             status->remain_time = net_buf_simple_pull_u8(buf);
         }
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_level_status);
         break;
     }
@@ -233,7 +225,7 @@ static void generic_status(struct bt_mesh_model *model,
             return;
         }
         status->trans_time = net_buf_simple_pull_u8(buf);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_def_trans_time_status);
         break;
     }
@@ -249,7 +241,7 @@ static void generic_status(struct bt_mesh_model *model,
             return;
         }
         status->onpowerup = net_buf_simple_pull_u8(buf);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_onpowerup_status);
         break;
     }
@@ -270,7 +262,7 @@ static void generic_status(struct bt_mesh_model *model,
             status->target_power = net_buf_simple_pull_le16(buf);
             status->remain_time = net_buf_simple_pull_u8(buf);
         }
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_power_level_status);
         break;
     }
@@ -286,7 +278,7 @@ static void generic_status(struct bt_mesh_model *model,
             return;
         }
         status->power = net_buf_simple_pull_le16(buf);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_power_last_status);
         break;
     }
@@ -302,7 +294,7 @@ static void generic_status(struct bt_mesh_model *model,
             return;
         }
         status->power = net_buf_simple_pull_le16(buf);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_power_default_status);
         break;
     }
@@ -320,7 +312,7 @@ static void generic_status(struct bt_mesh_model *model,
         status->status_code = net_buf_simple_pull_u8(buf);
         status->range_min = net_buf_simple_pull_le16(buf);
         status->range_max = net_buf_simple_pull_le16(buf);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_power_range_status);
         break;
     }
@@ -335,14 +327,14 @@ static void generic_status(struct bt_mesh_model *model,
             BT_ERR("%s, Out of memory", __func__);
             return;
         }
-        u32_t value = 0;
+        uint32_t value = 0;
         value = net_buf_simple_pull_le32(buf);
-        status->battery_level = (u8_t)value;
+        status->battery_level = (uint8_t)value;
         status->time_to_discharge = (value >> 8);
         value = net_buf_simple_pull_le32(buf);
         status->time_to_charge = (value & 0xffffff);
-        status->flags = (u8_t)(value >> 24);
-        val = (u8_t *)status;
+        status->flags = (uint8_t)(value >> 24);
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_battery_status);
         break;
     }
@@ -360,7 +352,7 @@ static void generic_status(struct bt_mesh_model *model,
         status->global_latitude = net_buf_simple_pull_le32(buf);
         status->global_longitude = net_buf_simple_pull_le32(buf);
         status->global_altitude = net_buf_simple_pull_le16(buf);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_loc_global_status);
         break;
     }
@@ -380,7 +372,7 @@ static void generic_status(struct bt_mesh_model *model,
         status->local_altitude = net_buf_simple_pull_le16(buf);
         status->floor_number = net_buf_simple_pull_u8(buf);
         status->uncertainty = net_buf_simple_pull_le16(buf);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_loc_local_status);
         break;
     }
@@ -398,7 +390,7 @@ static void generic_status(struct bt_mesh_model *model,
             return;
         }
         net_buf_simple_add_mem(status->user_property_ids, buf->data, buf->len);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_user_properties_status);
         break;
     }
@@ -421,7 +413,7 @@ static void generic_status(struct bt_mesh_model *model,
             }
             net_buf_simple_add_mem(status->user_property_value, buf->data, buf->len);
         }
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_user_property_status);
         break;
     }
@@ -439,7 +431,7 @@ static void generic_status(struct bt_mesh_model *model,
             return;
         }
         net_buf_simple_add_mem(status->admin_property_ids, buf->data, buf->len);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_admin_properties_status);
         break;
     }
@@ -462,7 +454,7 @@ static void generic_status(struct bt_mesh_model *model,
             }
             net_buf_simple_add_mem(status->admin_property_value, buf->data, buf->len);
         }
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_admin_property_status);
         break;
     }
@@ -480,7 +472,7 @@ static void generic_status(struct bt_mesh_model *model,
             return;
         }
         net_buf_simple_add_mem(status->manu_property_ids, buf->data, buf->len);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_manu_properties_status);
         break;
     }
@@ -503,7 +495,7 @@ static void generic_status(struct bt_mesh_model *model,
             }
             net_buf_simple_add_mem(status->manu_property_value, buf->data, buf->len);
         }
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_manu_property_status);
         break;
     }
@@ -521,7 +513,7 @@ static void generic_status(struct bt_mesh_model *model,
             return;
         }
         net_buf_simple_add_mem(status->client_property_ids, buf->data, buf->len);
-        val = (u8_t *)status;
+        val = (uint8_t *)status;
         len = sizeof(struct bt_mesh_gen_client_properties_status);
         break;
     }
@@ -581,7 +573,7 @@ static void generic_status(struct bt_mesh_model *model,
         }
 
         if (!k_delayed_work_free(&node->timer)) {
-            u32_t opcode = node->opcode;
+            uint32_t opcode = node->opcode;
             bt_mesh_client_free_node(node);
             bt_mesh_generic_client_cb_evt_to_btc(opcode, evt, model, ctx, val, len);
         }
@@ -733,7 +725,7 @@ static int gen_get_state(bt_mesh_client_common_param_t *common, void *value)
 }
 
 static int gen_set_state(bt_mesh_client_common_param_t *common,
-                         void *value, u16_t value_len, bool need_ack)
+                         void *value, uint16_t value_len, bool need_ack)
 {
     struct net_buf_simple *msg = NULL;
     int err = 0;
@@ -974,7 +966,7 @@ int bt_mesh_generic_client_get_state(bt_mesh_client_common_param_t *common, void
 int bt_mesh_generic_client_set_state(bt_mesh_client_common_param_t *common, void *set)
 {
     bt_mesh_generic_client_t *client = NULL;
-    u16_t length = 0U;
+    uint16_t length = 0U;
     bool need_ack = false;
 
     if (!common || !common->model || !set) {
@@ -1048,7 +1040,7 @@ int bt_mesh_generic_client_set_state(bt_mesh_client_common_param_t *common, void
     case BLE_MESH_MODEL_OP_GEN_DEF_TRANS_TIME_SET:
         need_ack = true;
     case BLE_MESH_MODEL_OP_GEN_DEF_TRANS_TIME_SET_UNACK: {
-        u8_t value = *(u8_t *)set;
+        uint8_t value = *(uint8_t *)set;
         if ((value & 0x3F) > 0x3E) {
             BT_ERR("Invalid Generic Default Trans Time Set transition time");
             return -EINVAL;

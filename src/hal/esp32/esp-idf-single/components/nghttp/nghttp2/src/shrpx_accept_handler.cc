@@ -25,7 +25,7 @@
 #include "shrpx_accept_handler.h"
 
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif // HAVE_UNISTD_H
 
 #include <cerrno>
@@ -98,8 +98,6 @@ void AcceptHandler::accept_connection() {
   util::make_socket_nonblocking(cfd);
   util::make_socket_closeonexec(cfd);
 #endif // !HAVE_ACCEPT4
-
-  util::make_socket_nodelay(cfd);
 
   conn_hnr_->handle_connection(cfd, &sockaddr.sa, addrlen, faddr_);
 }

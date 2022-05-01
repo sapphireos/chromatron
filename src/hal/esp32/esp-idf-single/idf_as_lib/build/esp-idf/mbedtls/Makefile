@@ -157,61 +157,70 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls_sections_info.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls_sections_info.dir/rule
-.PHONY : esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls_sections_info.dir/rule
+esp-idf/mbedtls/CMakeFiles/custom_bundle.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/mbedtls/CMakeFiles/custom_bundle.dir/rule
+.PHONY : esp-idf/mbedtls/CMakeFiles/custom_bundle.dir/rule
 
 # Convenience name for target.
-idf_component_mbedtls_sections_info: esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls_sections_info.dir/rule
+custom_bundle: esp-idf/mbedtls/CMakeFiles/custom_bundle.dir/rule
 
-.PHONY : idf_component_mbedtls_sections_info
+.PHONY : custom_bundle
 
 # fast build rule for target.
-idf_component_mbedtls_sections_info/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls_sections_info.dir/build.make esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls_sections_info.dir/build
-.PHONY : idf_component_mbedtls_sections_info/fast
+custom_bundle/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/custom_bundle.dir/build.make esp-idf/mbedtls/CMakeFiles/custom_bundle.dir/build
+.PHONY : custom_bundle/fast
 
 # Convenience name for target.
-esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/rule
-.PHONY : esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/rule
+esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/rule:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/rule
+.PHONY : esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/rule
 
 # Convenience name for target.
-idf_component_mbedtls: esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/rule
+__idf_mbedtls: esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/rule
 
-.PHONY : idf_component_mbedtls
+.PHONY : __idf_mbedtls
 
 # fast build rule for target.
-idf_component_mbedtls/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/build.make esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/build
-.PHONY : idf_component_mbedtls/fast
+__idf_mbedtls/fast:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/build.make esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/build
+.PHONY : __idf_mbedtls/fast
 
-mbedtls.obj: mbedtls.c.obj
+__/__/x509_crt_bundle.obj: __/__/x509_crt_bundle.S.obj
 
-.PHONY : mbedtls.obj
+.PHONY : __/__/x509_crt_bundle.obj
 
 # target to build an object file
-mbedtls.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/build.make esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/mbedtls.c.obj
-.PHONY : mbedtls.c.obj
+__/__/x509_crt_bundle.S.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/build.make esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/__/__/x509_crt_bundle.S.obj
+.PHONY : __/__/x509_crt_bundle.S.obj
 
-mbedtls.i: mbedtls.c.i
+esp_crt_bundle/esp_crt_bundle.obj: esp_crt_bundle/esp_crt_bundle.c.obj
 
-.PHONY : mbedtls.i
+.PHONY : esp_crt_bundle/esp_crt_bundle.obj
+
+# target to build an object file
+esp_crt_bundle/esp_crt_bundle.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/build.make esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/esp_crt_bundle/esp_crt_bundle.c.obj
+.PHONY : esp_crt_bundle/esp_crt_bundle.c.obj
+
+esp_crt_bundle/esp_crt_bundle.i: esp_crt_bundle/esp_crt_bundle.c.i
+
+.PHONY : esp_crt_bundle/esp_crt_bundle.i
 
 # target to preprocess a source file
-mbedtls.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/build.make esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/mbedtls.c.i
-.PHONY : mbedtls.c.i
+esp_crt_bundle/esp_crt_bundle.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/build.make esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/esp_crt_bundle/esp_crt_bundle.c.i
+.PHONY : esp_crt_bundle/esp_crt_bundle.c.i
 
-mbedtls.s: mbedtls.c.s
+esp_crt_bundle/esp_crt_bundle.s: esp_crt_bundle/esp_crt_bundle.c.s
 
-.PHONY : mbedtls.s
+.PHONY : esp_crt_bundle/esp_crt_bundle.s
 
 # target to generate assembly for a file
-mbedtls.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/build.make esp-idf/mbedtls/CMakeFiles/idf_component_mbedtls.dir/mbedtls.c.s
-.PHONY : mbedtls.c.s
+esp_crt_bundle/esp_crt_bundle.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/build.make esp-idf/mbedtls/CMakeFiles/__idf_mbedtls.dir/esp_crt_bundle/esp_crt_bundle.c.s
+.PHONY : esp_crt_bundle/esp_crt_bundle.c.s
 
 # Help Target
 help:
@@ -225,11 +234,12 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... idf_component_mbedtls_sections_info"
-	@echo "... idf_component_mbedtls"
-	@echo "... mbedtls.obj"
-	@echo "... mbedtls.i"
-	@echo "... mbedtls.s"
+	@echo "... custom_bundle"
+	@echo "... __idf_mbedtls"
+	@echo "... __/__/x509_crt_bundle.obj"
+	@echo "... esp_crt_bundle/esp_crt_bundle.obj"
+	@echo "... esp_crt_bundle/esp_crt_bundle.i"
+	@echo "... esp_crt_bundle/esp_crt_bundle.s"
 .PHONY : help
 
 

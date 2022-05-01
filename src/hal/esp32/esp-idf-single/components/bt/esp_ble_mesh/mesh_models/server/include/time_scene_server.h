@@ -1,21 +1,17 @@
-// Copyright 2017-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2017-2021 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef _TIME_SCENE_SERVER_H_
 #define _TIME_SCENE_SERVER_H_
 
 #include "server_common.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * 1. Mesh defines times based on International Atomic Time (TAI). The base
@@ -30,7 +26,7 @@
 #define UNKNOWN_TAI_SECONDS         0x0000000000
 #define UNKNOWN_TAI_ZONE_CHANGE     0x0000000000
 #define UNKNOWN_TAI_DELTA_CHANGE    0x0000000000
-#define TAI_UTC_DELAT_MAX_VALUE     0x7FFF
+#define TAI_UTC_DELTA_MAX_VALUE     0x7FFF
 #define TAI_SECONDS_LEN             0x05
 #define TAI_OF_ZONE_CHANGE_LEN      0x05
 #define TAI_OF_DELTA_CHANGE_LEN     0x05
@@ -81,18 +77,18 @@
  */
 struct bt_mesh_time_state {
     struct {
-        u8_t  tai_seconds[5];
-        u8_t  subsecond;
-        u8_t  uncertainty;
-        u8_t  time_zone_offset_curr;
-        u8_t  time_zone_offset_new;
-        u8_t  tai_zone_change[5];
-        u16_t time_authority : 1,
-              tai_utc_delta_curr : 15;
-        u16_t tai_utc_delta_new : 15;
-        u8_t  tai_delta_change[5];
+        uint8_t  tai_seconds[5];
+        uint8_t  subsecond;
+        uint8_t  uncertainty;
+        uint8_t  time_zone_offset_curr;
+        uint8_t  time_zone_offset_new;
+        uint8_t  tai_zone_change[5];
+        uint16_t time_authority : 1,
+                 tai_utc_delta_curr : 15;
+        uint16_t tai_utc_delta_new : 15;
+        uint8_t  tai_delta_change[5];
     } time;
-    u8_t time_role;
+    uint8_t time_role;
 };
 
 struct bt_mesh_time_srv {
@@ -108,8 +104,8 @@ struct bt_mesh_time_setup_srv {
 };
 
 struct scene_register {
-    u16_t scene_number;
-    u8_t  scene_type;   /* Indicate the type of scene value */
+    uint16_t scene_number;
+    uint8_t  scene_type;   /* Indicate the type of scene value */
     /**
      * Scene value may use a union to represent later, the union contains
      * structures of all the model states which can be stored in a scene.
@@ -136,7 +132,7 @@ struct scene_register {
  * is in progress.
  */
 struct bt_mesh_scenes_state {
-    const u16_t scene_count;
+    const uint16_t scene_count;
     struct scene_register *scenes;
 
     /**
@@ -159,7 +155,7 @@ struct bt_mesh_scenes_state {
      * When a scene transition is in progress, the value of the Current Scene
      * state shall be set to 0x0000.
      */
-    u16_t current_scene;
+    uint16_t current_scene;
 
     /**
      * The Target Scene state is a 16-bit value that contains the target Scene
@@ -176,10 +172,10 @@ struct bt_mesh_scenes_state {
      * When the scene transition is not in progress, the value of the Target Scene
      * state shall be set to 0x0000.
      */
-    u16_t target_scene;
+    uint16_t target_scene;
 
     /* Indicate the status code for the last operation */
-    u8_t status_code;
+    uint8_t status_code;
 
     /* Indicate if scene transition is in progress */
     bool in_progress;
@@ -200,21 +196,21 @@ struct bt_mesh_scene_setup_srv {
 };
 
 struct schedule_register {
-    bool in_use;
-    u64_t year : 7,
-          month : 12,
-          day : 5,
-          hour : 5,
-          minute : 6,
-          second : 6,
-          day_of_week : 7,
-          action : 4,
-          trans_time : 8;
-    u16_t scene_number;
+    bool     in_use;
+    uint64_t year : 7,
+             month : 12,
+             day : 5,
+             hour : 5,
+             minute : 6,
+             second : 6,
+             day_of_week : 7,
+             action : 4,
+             trans_time : 8;
+    uint16_t scene_number;
 };
 
 struct bt_mesh_scheduler_state {
-    const u8_t schedule_count;
+    const uint8_t schedule_count;
     struct schedule_register *schedules; /* Up to 16 scheduled entries */
 
     /**
@@ -238,7 +234,7 @@ struct bt_mesh_scheduler_state {
      * For each event_queue item, it can use the following struct:
      * struct schedule_event {
      *     sys_snode_t node;
-     *     u8_t event_index;
+     *     uint8_t event_index;
      * };
      *
      * Also we need a "struct k_delayed_work track_timer" which can be used to
@@ -260,139 +256,129 @@ struct bt_mesh_scheduler_setup_srv {
 
 typedef union {
     struct {
-        u8_t  tai_seconds[5];
-        u8_t  subsecond;
-        u8_t  uncertainty;
-        u16_t time_authority : 1;
-        u16_t tai_utc_delta_curr : 15;
-        u8_t  time_zone_offset_curr;
+        uint8_t  tai_seconds[5];
+        uint8_t  subsecond;
+        uint8_t  uncertainty;
+        uint16_t time_authority : 1;
+        uint16_t tai_utc_delta_curr : 15;
+        uint8_t  time_zone_offset_curr;
     } time_set;
     struct {
-        u8_t  tai_seconds[5];
-        u8_t  subsecond;
-        u8_t  uncertainty;
-        u16_t time_authority : 1;
-        u16_t tai_utc_delta_curr : 15;
-        u8_t  time_zone_offset_curr;
+        uint8_t  tai_seconds[5];
+        uint8_t  subsecond;
+        uint8_t  uncertainty;
+        uint16_t time_authority : 1;
+        uint16_t tai_utc_delta_curr : 15;
+        uint8_t  time_zone_offset_curr;
     } time_status;
     struct {
-        u8_t time_zone_offset_new;
-        u8_t tai_zone_change[5];
+        uint8_t time_zone_offset_new;
+        uint8_t tai_zone_change[5];
     } time_zone_set;
     struct {
-        u16_t tai_utc_delta_new : 15;
-        u8_t  tai_delta_change[5];
+        uint16_t tai_utc_delta_new : 15;
+        uint8_t  tai_delta_change[5];
     } tai_utc_delta_set;
     struct {
-        u8_t role;
+        uint8_t role;
     } time_role_set;
     struct {
-        u16_t scene_number;
+        uint16_t scene_number;
     } scene_store;
     struct {
-        u16_t scene_number;
+        uint16_t scene_number;
     } scene_recall;
     struct {
-        u16_t scene_number;
+        uint16_t scene_number;
     } scene_delete;
     struct {
-        u64_t index : 4,
-              year : 7,
-              month : 12,
-              day : 5,
-              hour : 5,
-              minute : 6,
-              second : 6,
-              day_of_week : 7,
-              action : 4,
-              trans_time : 8;
-        u16_t scene_number;
+        uint64_t index : 4,
+                 year : 7,
+                 month : 12,
+                 day : 5,
+                 hour : 5,
+                 minute : 6,
+                 second : 6,
+                 day_of_week : 7,
+                 action : 4,
+                 trans_time : 8;
+        uint16_t scene_number;
     } scheduler_act_set;
 } bt_mesh_time_scene_server_state_change_t;
 
 typedef union {
     struct {
-        u8_t index;
+        uint8_t index;
     } scheduler_act_get;
 } bt_mesh_time_scene_server_recv_get_msg_t;
 
 typedef union {
     struct {
-        u8_t  tai_seconds[5];
-        u8_t  subsecond;
-        u8_t  uncertainty;
-        u16_t time_authority : 1;
-        u16_t tai_utc_delta : 15;
-        u8_t  time_zone_offset;
+        uint8_t  tai_seconds[5];
+        uint8_t  subsecond;
+        uint8_t  uncertainty;
+        uint16_t time_authority : 1;
+        uint16_t tai_utc_delta : 15;
+        uint8_t  time_zone_offset;
     } time_set;
     struct {
-        u8_t time_zone_offset_new;
-        u8_t tai_zone_change[5];
+        uint8_t time_zone_offset_new;
+        uint8_t tai_zone_change[5];
     } time_zone_set;
     struct {
-        u16_t tai_utc_delta_new : 15;
-        u16_t padding : 1;
-        u8_t tai_delta_change[5];
+        uint16_t tai_utc_delta_new : 15;
+        uint16_t padding : 1;
+        uint8_t  tai_delta_change[5];
     } tai_utc_delta_set;
     struct {
-        u8_t time_role;
+        uint8_t time_role;
     } time_role_set;
     struct {
-        u16_t scene_number;
+        uint16_t scene_number;
     } scene_store;
     struct {
-        bool  op_en;
-        u16_t scene_number;
-        u8_t  tid;
-        u8_t  trans_time;
-        u8_t  delay;
+        bool     op_en;
+        uint16_t scene_number;
+        uint8_t  tid;
+        uint8_t  trans_time;
+        uint8_t  delay;
     } scene_recall;
     struct {
-        u16_t scene_number;
+        uint16_t scene_number;
     } scene_delete;
     struct {
-        u64_t index : 4,
-              year : 7,
-              month : 12,
-              day : 5,
-              hour : 5,
-              minute : 6,
-              second : 6,
-              day_of_week : 7,
-              action : 4,
-              trans_time : 8;
-        u16_t scene_number;
+        uint64_t index : 4,
+                 year : 7,
+                 month : 12,
+                 day : 5,
+                 hour : 5,
+                 minute : 6,
+                 second : 6,
+                 day_of_week : 7,
+                 action : 4,
+                 trans_time : 8;
+        uint16_t scene_number;
     } scheduler_act_set;
 } bt_mesh_time_scene_server_recv_set_msg_t;
 
 typedef union {
     struct {
-        u8_t  tai_seconds[5];
-        u8_t  subsecond;
-        u8_t  uncertainty;
-        u16_t time_authority : 1;
-        u16_t tai_utc_delta : 15;
-        u8_t  time_zone_offset;
+        uint8_t  tai_seconds[5];
+        uint8_t  subsecond;
+        uint8_t  uncertainty;
+        uint16_t time_authority : 1;
+        uint16_t tai_utc_delta : 15;
+        uint8_t  time_zone_offset;
     } time_status;
 } bt_mesh_time_scene_server_recv_status_msg_t;
 
 void bt_mesh_time_scene_server_lock(void);
 void bt_mesh_time_scene_server_unlock(void);
 
-void scene_publish(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, u16_t opcode);
+void scene_publish(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, uint16_t opcode);
 
-int bt_mesh_time_srv_init(struct bt_mesh_model *model, bool primary);
-int bt_mesh_time_setup_srv_init(struct bt_mesh_model *model, bool primary);
-int bt_mesh_scene_srv_init(struct bt_mesh_model *model, bool primary);
-int bt_mesh_scene_setup_srv_init(struct bt_mesh_model *model, bool primary);
-int bt_mesh_scheduler_srv_init(struct bt_mesh_model *model, bool primary);
-int bt_mesh_scheduler_setup_srv_init(struct bt_mesh_model *model, bool primary);
-
-int bt_mesh_time_srv_deinit(struct bt_mesh_model *model, bool primary);
-int bt_mesh_time_setup_srv_deinit(struct bt_mesh_model *model, bool primary);
-int bt_mesh_scene_srv_deinit(struct bt_mesh_model *model, bool primary);
-int bt_mesh_scene_setup_srv_deinit(struct bt_mesh_model *model, bool primary);
-int bt_mesh_scheduler_srv_deinit(struct bt_mesh_model *model, bool primary);
-int bt_mesh_scheduler_setup_srv_deinit(struct bt_mesh_model *model, bool primary);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _TIME_SCENE_SERVER_H_ */
