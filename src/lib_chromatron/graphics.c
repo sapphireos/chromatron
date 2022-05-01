@@ -51,9 +51,14 @@ static uint16_t vm_fader_time;
 static uint32_t pixel_power;
 static uint16_t pix_max_power; // in milliwatts
 
+static uint16_t worst_timing_lag;
+static uint32_t timing_resyncs;
+
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    &pix_max_power,        0,                  "pix_max_power" },
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &worst_timing_lag,     0,                  "gfx_timing_lag" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_resyncs,       0,                  "gfx_timing_resyncs" },
 };
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
@@ -190,6 +195,24 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         uint32_t start = tmr_u32_get_system_time_us();
+
+        // int32_t lag = (int64_t)tmr_u32_get_system_time_ms() - (int64_t)thread_u32_get_alarm();
+        uint32_t lag = tmr_u32_elapsed_time_ms( thread_u32_get_alarm() );
+
+        if( lag > worst_timing_lag ){
+
+            worst_timing_lag = lag;
+        }
+
+        if( lag > 5 ){
+
+            timing_resyncs++;
+
+            // log_v_debug_P( PSTR("Graphics timing lag: %u"), lag );
+
+            // reset alarm setting to re-align timing
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+        }
 
         if( sys_b_is_shutting_down() ){
 
