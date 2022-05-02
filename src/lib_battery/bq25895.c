@@ -186,16 +186,12 @@ void bq25895_v_read_all( void ){
 static uint8_t read_cached_reg( uint8_t addr ){
 
     return regs[addr];
-    // return bq25895_u8_read_reg( addr );
 }
 
 uint8_t bq25895_u8_read_reg( uint8_t addr ){
 
-    i2c_v_write( BQ25895_I2C_ADDR, &addr, sizeof(addr) );
-
     uint8_t data = 0;
-    
-    i2c_v_read( BQ25895_I2C_ADDR, &data, sizeof(data) );
+    i2c_v_mem_read( BQ25895_I2C_ADDR, addr, 1, &data, sizeof(data), 0 );
 
     // update cache
     regs[addr] = data;
