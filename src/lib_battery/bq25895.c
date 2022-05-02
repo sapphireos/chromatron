@@ -164,7 +164,7 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
-    bq25895_v_read_all();
+    // bq25895_v_read_all();
 
     thread_t_create( bat_mon_thread,
                      PSTR("bat_mon"),
@@ -184,6 +184,7 @@ void bq25895_v_read_all( void ){
 static uint8_t read_cached_reg( uint8_t addr ){
 
     return regs[addr];
+    // return bq25895_u8_read_reg( addr );
 }
 
 uint8_t bq25895_u8_read_reg( uint8_t addr ){
@@ -1561,7 +1562,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
 
         // read all registers
-        bq25895_v_read_all();
+        // bq25895_v_read_all();
 
 
         if( bq25895_b_adc_ready() && read_adc() ){
@@ -1590,7 +1591,12 @@ PT_BEGIN( pt );
 
             adc_fail++;
 
-            log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
+            if( thread_b_alarm_set() ){
+
+                log_v_warn_P( PSTR("ADC timed out") );
+            }
+
+            // log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
 
             // try hiz mode
             bq25895_v_set_hiz( TRUE );
