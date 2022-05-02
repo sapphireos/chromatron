@@ -15,6 +15,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_issi.c.obj"
   "CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_mxic.c.obj"
   "CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_mxic_opi.c.obj"
+  "CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_th.c.obj"
   "CMakeFiles/__idf_spi_flash.dir/spi_flash_chip_winbond.c.obj"
   "CMakeFiles/__idf_spi_flash.dir/spi_flash_os_func_app.c.obj"
   "CMakeFiles/__idf_spi_flash.dir/spi_flash_os_func_noos.c.obj"

@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_phy/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_phy/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles 0
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_phy/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_phy/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_phy/clean
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_phy/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,22 +143,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_phy/preinstall
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_phy/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_phy/preinstall
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_phy/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/rule
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/rule
 .PHONY : esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/rule
 
 # Convenience name for target.
@@ -168,8 +168,35 @@ __idf_esp_phy: esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/rule
 
 # fast build rule for target.
 __idf_esp_phy/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build
 .PHONY : __idf_esp_phy/fast
+
+src/lib_printf.obj: src/lib_printf.c.obj
+
+.PHONY : src/lib_printf.obj
+
+# target to build an object file
+src/lib_printf.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/lib_printf.c.obj
+.PHONY : src/lib_printf.c.obj
+
+src/lib_printf.i: src/lib_printf.c.i
+
+.PHONY : src/lib_printf.i
+
+# target to preprocess a source file
+src/lib_printf.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/lib_printf.c.i
+.PHONY : src/lib_printf.c.i
+
+src/lib_printf.s: src/lib_printf.c.s
+
+.PHONY : src/lib_printf.s
+
+# target to generate assembly for a file
+src/lib_printf.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/lib_printf.c.s
+.PHONY : src/lib_printf.c.s
 
 src/phy_init.obj: src/phy_init.c.obj
 
@@ -177,7 +204,7 @@ src/phy_init.obj: src/phy_init.c.obj
 
 # target to build an object file
 src/phy_init.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/phy_init.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/phy_init.c.obj
 .PHONY : src/phy_init.c.obj
 
 src/phy_init.i: src/phy_init.c.i
@@ -186,7 +213,7 @@ src/phy_init.i: src/phy_init.c.i
 
 # target to preprocess a source file
 src/phy_init.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/phy_init.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/phy_init.c.i
 .PHONY : src/phy_init.c.i
 
 src/phy_init.s: src/phy_init.c.s
@@ -195,8 +222,35 @@ src/phy_init.s: src/phy_init.c.s
 
 # target to generate assembly for a file
 src/phy_init.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/phy_init.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/phy_init.c.s
 .PHONY : src/phy_init.c.s
+
+src/phy_override.obj: src/phy_override.c.obj
+
+.PHONY : src/phy_override.obj
+
+# target to build an object file
+src/phy_override.c.obj:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/phy_override.c.obj
+.PHONY : src/phy_override.c.obj
+
+src/phy_override.i: src/phy_override.c.i
+
+.PHONY : src/phy_override.i
+
+# target to preprocess a source file
+src/phy_override.c.i:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/phy_override.c.i
+.PHONY : src/phy_override.c.i
+
+src/phy_override.s: src/phy_override.c.s
+
+.PHONY : src/phy_override.s
+
+# target to generate assembly for a file
+src/phy_override.c.s:
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/build.make esp-idf/esp_phy/CMakeFiles/__idf_esp_phy.dir/src/phy_override.c.s
+.PHONY : src/phy_override.c.s
 
 # Help Target
 help:
@@ -211,9 +265,15 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... __idf_esp_phy"
+	@echo "... src/lib_printf.obj"
+	@echo "... src/lib_printf.i"
+	@echo "... src/lib_printf.s"
 	@echo "... src/phy_init.obj"
 	@echo "... src/phy_init.i"
 	@echo "... src/phy_init.s"
+	@echo "... src/phy_override.obj"
+	@echo "... src/phy_override.i"
+	@echo "... src/phy_override.s"
 .PHONY : help
 
 
@@ -225,6 +285,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

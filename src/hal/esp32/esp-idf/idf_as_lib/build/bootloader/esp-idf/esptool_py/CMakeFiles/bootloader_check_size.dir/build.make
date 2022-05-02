@@ -46,7 +46,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader
 
 # Utility rule file for bootloader_check_size.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 include esp-idf/esptool_py/CMakeFiles/bootloader_check_size.dir/progress.make
 
 esp-idf/esptool_py/CMakeFiles/bootloader_check_size:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/esptool_py && python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/bootloader.bin
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/esp-idf/esptool_py && python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/bootloader.bin
 
 bootloader_check_size: esp-idf/esptool_py/CMakeFiles/bootloader_check_size
 bootloader_check_size: esp-idf/esptool_py/CMakeFiles/bootloader_check_size.dir/build.make
@@ -67,10 +67,10 @@ esp-idf/esptool_py/CMakeFiles/bootloader_check_size.dir/build: bootloader_check_
 .PHONY : esp-idf/esptool_py/CMakeFiles/bootloader_check_size.dir/build
 
 esp-idf/esptool_py/CMakeFiles/bootloader_check_size.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/esptool_py && $(CMAKE_COMMAND) -P CMakeFiles/bootloader_check_size.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/esp-idf/esptool_py && $(CMAKE_COMMAND) -P CMakeFiles/bootloader_check_size.dir/cmake_clean.cmake
 .PHONY : esp-idf/esptool_py/CMakeFiles/bootloader_check_size.dir/clean
 
 esp-idf/esptool_py/CMakeFiles/bootloader_check_size.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esptool_py /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/esptool_py /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/esptool_py/CMakeFiles/bootloader_check_size.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esptool_py /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/esp-idf/esptool_py /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/esp-idf/esptool_py/CMakeFiles/bootloader_check_size.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/esptool_py/CMakeFiles/bootloader_check_size.dir/depend
 

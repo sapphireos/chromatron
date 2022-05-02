@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/hal/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/hal/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles 0
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/hal/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/hal/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/hal/clean
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/hal/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,22 +143,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/hal/preinstall
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/hal/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/hal/preinstall
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/hal/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/hal/CMakeFiles/__idf_hal.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/hal/CMakeFiles/__idf_hal.dir/rule
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/hal/CMakeFiles/__idf_hal.dir/rule
 .PHONY : esp-idf/hal/CMakeFiles/__idf_hal.dir/rule
 
 # Convenience name for target.
@@ -168,7 +168,7 @@ __idf_hal: esp-idf/hal/CMakeFiles/__idf_hal.dir/rule
 
 # fast build rule for target.
 __idf_hal/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/build
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/build
 .PHONY : __idf_hal/fast
 
 adc_hal.obj: adc_hal.c.obj
@@ -177,7 +177,7 @@ adc_hal.obj: adc_hal.c.obj
 
 # target to build an object file
 adc_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/adc_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/adc_hal.c.obj
 .PHONY : adc_hal.c.obj
 
 adc_hal.i: adc_hal.c.i
@@ -186,7 +186,7 @@ adc_hal.i: adc_hal.c.i
 
 # target to preprocess a source file
 adc_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/adc_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/adc_hal.c.i
 .PHONY : adc_hal.c.i
 
 adc_hal.s: adc_hal.c.s
@@ -195,7 +195,7 @@ adc_hal.s: adc_hal.c.s
 
 # target to generate assembly for a file
 adc_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/adc_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/adc_hal.c.s
 .PHONY : adc_hal.c.s
 
 aes_hal.obj: aes_hal.c.obj
@@ -204,7 +204,7 @@ aes_hal.obj: aes_hal.c.obj
 
 # target to build an object file
 aes_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/aes_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/aes_hal.c.obj
 .PHONY : aes_hal.c.obj
 
 aes_hal.i: aes_hal.c.i
@@ -213,7 +213,7 @@ aes_hal.i: aes_hal.c.i
 
 # target to preprocess a source file
 aes_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/aes_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/aes_hal.c.i
 .PHONY : aes_hal.c.i
 
 aes_hal.s: aes_hal.c.s
@@ -222,7 +222,7 @@ aes_hal.s: aes_hal.c.s
 
 # target to generate assembly for a file
 aes_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/aes_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/aes_hal.c.s
 .PHONY : aes_hal.c.s
 
 cpu_hal.obj: cpu_hal.c.obj
@@ -231,7 +231,7 @@ cpu_hal.obj: cpu_hal.c.obj
 
 # target to build an object file
 cpu_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/cpu_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/cpu_hal.c.obj
 .PHONY : cpu_hal.c.obj
 
 cpu_hal.i: cpu_hal.c.i
@@ -240,7 +240,7 @@ cpu_hal.i: cpu_hal.c.i
 
 # target to preprocess a source file
 cpu_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/cpu_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/cpu_hal.c.i
 .PHONY : cpu_hal.c.i
 
 cpu_hal.s: cpu_hal.c.s
@@ -249,7 +249,7 @@ cpu_hal.s: cpu_hal.c.s
 
 # target to generate assembly for a file
 cpu_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/cpu_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/cpu_hal.c.s
 .PHONY : cpu_hal.c.s
 
 dac_hal.obj: dac_hal.c.obj
@@ -258,7 +258,7 @@ dac_hal.obj: dac_hal.c.obj
 
 # target to build an object file
 dac_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.obj
 .PHONY : dac_hal.c.obj
 
 dac_hal.i: dac_hal.c.i
@@ -267,7 +267,7 @@ dac_hal.i: dac_hal.c.i
 
 # target to preprocess a source file
 dac_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.i
 .PHONY : dac_hal.c.i
 
 dac_hal.s: dac_hal.c.s
@@ -276,7 +276,7 @@ dac_hal.s: dac_hal.c.s
 
 # target to generate assembly for a file
 dac_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/dac_hal.c.s
 .PHONY : dac_hal.c.s
 
 esp32/adc_hal.obj: esp32/adc_hal.c.obj
@@ -285,7 +285,7 @@ esp32/adc_hal.obj: esp32/adc_hal.c.obj
 
 # target to build an object file
 esp32/adc_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.obj
 .PHONY : esp32/adc_hal.c.obj
 
 esp32/adc_hal.i: esp32/adc_hal.c.i
@@ -294,7 +294,7 @@ esp32/adc_hal.i: esp32/adc_hal.c.i
 
 # target to preprocess a source file
 esp32/adc_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.i
 .PHONY : esp32/adc_hal.c.i
 
 esp32/adc_hal.s: esp32/adc_hal.c.s
@@ -303,7 +303,7 @@ esp32/adc_hal.s: esp32/adc_hal.c.s
 
 # target to generate assembly for a file
 esp32/adc_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/adc_hal.c.s
 .PHONY : esp32/adc_hal.c.s
 
 esp32/brownout_hal.obj: esp32/brownout_hal.c.obj
@@ -312,7 +312,7 @@ esp32/brownout_hal.obj: esp32/brownout_hal.c.obj
 
 # target to build an object file
 esp32/brownout_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/brownout_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/brownout_hal.c.obj
 .PHONY : esp32/brownout_hal.c.obj
 
 esp32/brownout_hal.i: esp32/brownout_hal.c.i
@@ -321,7 +321,7 @@ esp32/brownout_hal.i: esp32/brownout_hal.c.i
 
 # target to preprocess a source file
 esp32/brownout_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/brownout_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/brownout_hal.c.i
 .PHONY : esp32/brownout_hal.c.i
 
 esp32/brownout_hal.s: esp32/brownout_hal.c.s
@@ -330,7 +330,7 @@ esp32/brownout_hal.s: esp32/brownout_hal.c.s
 
 # target to generate assembly for a file
 esp32/brownout_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/brownout_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/brownout_hal.c.s
 .PHONY : esp32/brownout_hal.c.s
 
 esp32/gpio_hal_workaround.obj: esp32/gpio_hal_workaround.c.obj
@@ -339,7 +339,7 @@ esp32/gpio_hal_workaround.obj: esp32/gpio_hal_workaround.c.obj
 
 # target to build an object file
 esp32/gpio_hal_workaround.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.obj
 .PHONY : esp32/gpio_hal_workaround.c.obj
 
 esp32/gpio_hal_workaround.i: esp32/gpio_hal_workaround.c.i
@@ -348,7 +348,7 @@ esp32/gpio_hal_workaround.i: esp32/gpio_hal_workaround.c.i
 
 # target to preprocess a source file
 esp32/gpio_hal_workaround.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.i
 .PHONY : esp32/gpio_hal_workaround.c.i
 
 esp32/gpio_hal_workaround.s: esp32/gpio_hal_workaround.c.s
@@ -357,7 +357,7 @@ esp32/gpio_hal_workaround.s: esp32/gpio_hal_workaround.c.s
 
 # target to generate assembly for a file
 esp32/gpio_hal_workaround.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/gpio_hal_workaround.c.s
 .PHONY : esp32/gpio_hal_workaround.c.s
 
 esp32/interrupt_descriptor_table.obj: esp32/interrupt_descriptor_table.c.obj
@@ -366,7 +366,7 @@ esp32/interrupt_descriptor_table.obj: esp32/interrupt_descriptor_table.c.obj
 
 # target to build an object file
 esp32/interrupt_descriptor_table.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/interrupt_descriptor_table.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/interrupt_descriptor_table.c.obj
 .PHONY : esp32/interrupt_descriptor_table.c.obj
 
 esp32/interrupt_descriptor_table.i: esp32/interrupt_descriptor_table.c.i
@@ -375,7 +375,7 @@ esp32/interrupt_descriptor_table.i: esp32/interrupt_descriptor_table.c.i
 
 # target to preprocess a source file
 esp32/interrupt_descriptor_table.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/interrupt_descriptor_table.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/interrupt_descriptor_table.c.i
 .PHONY : esp32/interrupt_descriptor_table.c.i
 
 esp32/interrupt_descriptor_table.s: esp32/interrupt_descriptor_table.c.s
@@ -384,7 +384,7 @@ esp32/interrupt_descriptor_table.s: esp32/interrupt_descriptor_table.c.s
 
 # target to generate assembly for a file
 esp32/interrupt_descriptor_table.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/interrupt_descriptor_table.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/interrupt_descriptor_table.c.s
 .PHONY : esp32/interrupt_descriptor_table.c.s
 
 esp32/touch_sensor_hal.obj: esp32/touch_sensor_hal.c.obj
@@ -393,7 +393,7 @@ esp32/touch_sensor_hal.obj: esp32/touch_sensor_hal.c.obj
 
 # target to build an object file
 esp32/touch_sensor_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/touch_sensor_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/touch_sensor_hal.c.obj
 .PHONY : esp32/touch_sensor_hal.c.obj
 
 esp32/touch_sensor_hal.i: esp32/touch_sensor_hal.c.i
@@ -402,7 +402,7 @@ esp32/touch_sensor_hal.i: esp32/touch_sensor_hal.c.i
 
 # target to preprocess a source file
 esp32/touch_sensor_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/touch_sensor_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/touch_sensor_hal.c.i
 .PHONY : esp32/touch_sensor_hal.c.i
 
 esp32/touch_sensor_hal.s: esp32/touch_sensor_hal.c.s
@@ -411,7 +411,7 @@ esp32/touch_sensor_hal.s: esp32/touch_sensor_hal.c.s
 
 # target to generate assembly for a file
 esp32/touch_sensor_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/touch_sensor_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/touch_sensor_hal.c.s
 .PHONY : esp32/touch_sensor_hal.c.s
 
 gpio_hal.obj: gpio_hal.c.obj
@@ -420,7 +420,7 @@ gpio_hal.obj: gpio_hal.c.obj
 
 # target to build an object file
 gpio_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/gpio_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/gpio_hal.c.obj
 .PHONY : gpio_hal.c.obj
 
 gpio_hal.i: gpio_hal.c.i
@@ -429,7 +429,7 @@ gpio_hal.i: gpio_hal.c.i
 
 # target to preprocess a source file
 gpio_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/gpio_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/gpio_hal.c.i
 .PHONY : gpio_hal.c.i
 
 gpio_hal.s: gpio_hal.c.s
@@ -438,7 +438,7 @@ gpio_hal.s: gpio_hal.c.s
 
 # target to generate assembly for a file
 gpio_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/gpio_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/gpio_hal.c.s
 .PHONY : gpio_hal.c.s
 
 i2c_hal.obj: i2c_hal.c.obj
@@ -447,7 +447,7 @@ i2c_hal.obj: i2c_hal.c.obj
 
 # target to build an object file
 i2c_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal.c.obj
 .PHONY : i2c_hal.c.obj
 
 i2c_hal.i: i2c_hal.c.i
@@ -456,7 +456,7 @@ i2c_hal.i: i2c_hal.c.i
 
 # target to preprocess a source file
 i2c_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal.c.i
 .PHONY : i2c_hal.c.i
 
 i2c_hal.s: i2c_hal.c.s
@@ -465,7 +465,7 @@ i2c_hal.s: i2c_hal.c.s
 
 # target to generate assembly for a file
 i2c_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal.c.s
 .PHONY : i2c_hal.c.s
 
 i2c_hal_iram.obj: i2c_hal_iram.c.obj
@@ -474,7 +474,7 @@ i2c_hal_iram.obj: i2c_hal_iram.c.obj
 
 # target to build an object file
 i2c_hal_iram.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal_iram.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal_iram.c.obj
 .PHONY : i2c_hal_iram.c.obj
 
 i2c_hal_iram.i: i2c_hal_iram.c.i
@@ -483,7 +483,7 @@ i2c_hal_iram.i: i2c_hal_iram.c.i
 
 # target to preprocess a source file
 i2c_hal_iram.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal_iram.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal_iram.c.i
 .PHONY : i2c_hal_iram.c.i
 
 i2c_hal_iram.s: i2c_hal_iram.c.s
@@ -492,7 +492,7 @@ i2c_hal_iram.s: i2c_hal_iram.c.s
 
 # target to generate assembly for a file
 i2c_hal_iram.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal_iram.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2c_hal_iram.c.s
 .PHONY : i2c_hal_iram.c.s
 
 i2s_hal.obj: i2s_hal.c.obj
@@ -501,7 +501,7 @@ i2s_hal.obj: i2s_hal.c.obj
 
 # target to build an object file
 i2s_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2s_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2s_hal.c.obj
 .PHONY : i2s_hal.c.obj
 
 i2s_hal.i: i2s_hal.c.i
@@ -510,7 +510,7 @@ i2s_hal.i: i2s_hal.c.i
 
 # target to preprocess a source file
 i2s_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2s_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2s_hal.c.i
 .PHONY : i2s_hal.c.i
 
 i2s_hal.s: i2s_hal.c.s
@@ -519,7 +519,7 @@ i2s_hal.s: i2s_hal.c.s
 
 # target to generate assembly for a file
 i2s_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2s_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/i2s_hal.c.s
 .PHONY : i2s_hal.c.s
 
 interrupt_controller_hal.obj: interrupt_controller_hal.c.obj
@@ -528,7 +528,7 @@ interrupt_controller_hal.obj: interrupt_controller_hal.c.obj
 
 # target to build an object file
 interrupt_controller_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/interrupt_controller_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/interrupt_controller_hal.c.obj
 .PHONY : interrupt_controller_hal.c.obj
 
 interrupt_controller_hal.i: interrupt_controller_hal.c.i
@@ -537,7 +537,7 @@ interrupt_controller_hal.i: interrupt_controller_hal.c.i
 
 # target to preprocess a source file
 interrupt_controller_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/interrupt_controller_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/interrupt_controller_hal.c.i
 .PHONY : interrupt_controller_hal.c.i
 
 interrupt_controller_hal.s: interrupt_controller_hal.c.s
@@ -546,7 +546,7 @@ interrupt_controller_hal.s: interrupt_controller_hal.c.s
 
 # target to generate assembly for a file
 interrupt_controller_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/interrupt_controller_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/interrupt_controller_hal.c.s
 .PHONY : interrupt_controller_hal.c.s
 
 ledc_hal.obj: ledc_hal.c.obj
@@ -555,7 +555,7 @@ ledc_hal.obj: ledc_hal.c.obj
 
 # target to build an object file
 ledc_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal.c.obj
 .PHONY : ledc_hal.c.obj
 
 ledc_hal.i: ledc_hal.c.i
@@ -564,7 +564,7 @@ ledc_hal.i: ledc_hal.c.i
 
 # target to preprocess a source file
 ledc_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal.c.i
 .PHONY : ledc_hal.c.i
 
 ledc_hal.s: ledc_hal.c.s
@@ -573,7 +573,7 @@ ledc_hal.s: ledc_hal.c.s
 
 # target to generate assembly for a file
 ledc_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal.c.s
 .PHONY : ledc_hal.c.s
 
 ledc_hal_iram.obj: ledc_hal_iram.c.obj
@@ -582,7 +582,7 @@ ledc_hal_iram.obj: ledc_hal_iram.c.obj
 
 # target to build an object file
 ledc_hal_iram.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal_iram.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal_iram.c.obj
 .PHONY : ledc_hal_iram.c.obj
 
 ledc_hal_iram.i: ledc_hal_iram.c.i
@@ -591,7 +591,7 @@ ledc_hal_iram.i: ledc_hal_iram.c.i
 
 # target to preprocess a source file
 ledc_hal_iram.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal_iram.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal_iram.c.i
 .PHONY : ledc_hal_iram.c.i
 
 ledc_hal_iram.s: ledc_hal_iram.c.s
@@ -600,7 +600,7 @@ ledc_hal_iram.s: ledc_hal_iram.c.s
 
 # target to generate assembly for a file
 ledc_hal_iram.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal_iram.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/ledc_hal_iram.c.s
 .PHONY : ledc_hal_iram.c.s
 
 mcpwm_hal.obj: mcpwm_hal.c.obj
@@ -609,7 +609,7 @@ mcpwm_hal.obj: mcpwm_hal.c.obj
 
 # target to build an object file
 mcpwm_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mcpwm_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mcpwm_hal.c.obj
 .PHONY : mcpwm_hal.c.obj
 
 mcpwm_hal.i: mcpwm_hal.c.i
@@ -618,7 +618,7 @@ mcpwm_hal.i: mcpwm_hal.c.i
 
 # target to preprocess a source file
 mcpwm_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mcpwm_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mcpwm_hal.c.i
 .PHONY : mcpwm_hal.c.i
 
 mcpwm_hal.s: mcpwm_hal.c.s
@@ -627,7 +627,7 @@ mcpwm_hal.s: mcpwm_hal.c.s
 
 # target to generate assembly for a file
 mcpwm_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mcpwm_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mcpwm_hal.c.s
 .PHONY : mcpwm_hal.c.s
 
 mpu_hal.obj: mpu_hal.c.obj
@@ -636,7 +636,7 @@ mpu_hal.obj: mpu_hal.c.obj
 
 # target to build an object file
 mpu_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mpu_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mpu_hal.c.obj
 .PHONY : mpu_hal.c.obj
 
 mpu_hal.i: mpu_hal.c.i
@@ -645,7 +645,7 @@ mpu_hal.i: mpu_hal.c.i
 
 # target to preprocess a source file
 mpu_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mpu_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mpu_hal.c.i
 .PHONY : mpu_hal.c.i
 
 mpu_hal.s: mpu_hal.c.s
@@ -654,7 +654,7 @@ mpu_hal.s: mpu_hal.c.s
 
 # target to generate assembly for a file
 mpu_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mpu_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/mpu_hal.c.s
 .PHONY : mpu_hal.c.s
 
 pcnt_hal.obj: pcnt_hal.c.obj
@@ -663,7 +663,7 @@ pcnt_hal.obj: pcnt_hal.c.obj
 
 # target to build an object file
 pcnt_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/pcnt_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/pcnt_hal.c.obj
 .PHONY : pcnt_hal.c.obj
 
 pcnt_hal.i: pcnt_hal.c.i
@@ -672,7 +672,7 @@ pcnt_hal.i: pcnt_hal.c.i
 
 # target to preprocess a source file
 pcnt_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/pcnt_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/pcnt_hal.c.i
 .PHONY : pcnt_hal.c.i
 
 pcnt_hal.s: pcnt_hal.c.s
@@ -681,7 +681,7 @@ pcnt_hal.s: pcnt_hal.c.s
 
 # target to generate assembly for a file
 pcnt_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/pcnt_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/pcnt_hal.c.s
 .PHONY : pcnt_hal.c.s
 
 rmt_hal.obj: rmt_hal.c.obj
@@ -690,7 +690,7 @@ rmt_hal.obj: rmt_hal.c.obj
 
 # target to build an object file
 rmt_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rmt_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rmt_hal.c.obj
 .PHONY : rmt_hal.c.obj
 
 rmt_hal.i: rmt_hal.c.i
@@ -699,7 +699,7 @@ rmt_hal.i: rmt_hal.c.i
 
 # target to preprocess a source file
 rmt_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rmt_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rmt_hal.c.i
 .PHONY : rmt_hal.c.i
 
 rmt_hal.s: rmt_hal.c.s
@@ -708,7 +708,7 @@ rmt_hal.s: rmt_hal.c.s
 
 # target to generate assembly for a file
 rmt_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rmt_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rmt_hal.c.s
 .PHONY : rmt_hal.c.s
 
 rtc_io_hal.obj: rtc_io_hal.c.obj
@@ -717,7 +717,7 @@ rtc_io_hal.obj: rtc_io_hal.c.obj
 
 # target to build an object file
 rtc_io_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rtc_io_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rtc_io_hal.c.obj
 .PHONY : rtc_io_hal.c.obj
 
 rtc_io_hal.i: rtc_io_hal.c.i
@@ -726,7 +726,7 @@ rtc_io_hal.i: rtc_io_hal.c.i
 
 # target to preprocess a source file
 rtc_io_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rtc_io_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rtc_io_hal.c.i
 .PHONY : rtc_io_hal.c.i
 
 rtc_io_hal.s: rtc_io_hal.c.s
@@ -735,7 +735,7 @@ rtc_io_hal.s: rtc_io_hal.c.s
 
 # target to generate assembly for a file
 rtc_io_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rtc_io_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/rtc_io_hal.c.s
 .PHONY : rtc_io_hal.c.s
 
 sdio_slave_hal.obj: sdio_slave_hal.c.obj
@@ -744,7 +744,7 @@ sdio_slave_hal.obj: sdio_slave_hal.c.obj
 
 # target to build an object file
 sdio_slave_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sdio_slave_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sdio_slave_hal.c.obj
 .PHONY : sdio_slave_hal.c.obj
 
 sdio_slave_hal.i: sdio_slave_hal.c.i
@@ -753,7 +753,7 @@ sdio_slave_hal.i: sdio_slave_hal.c.i
 
 # target to preprocess a source file
 sdio_slave_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sdio_slave_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sdio_slave_hal.c.i
 .PHONY : sdio_slave_hal.c.i
 
 sdio_slave_hal.s: sdio_slave_hal.c.s
@@ -762,7 +762,7 @@ sdio_slave_hal.s: sdio_slave_hal.c.s
 
 # target to generate assembly for a file
 sdio_slave_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sdio_slave_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sdio_slave_hal.c.s
 .PHONY : sdio_slave_hal.c.s
 
 sha_hal.obj: sha_hal.c.obj
@@ -771,7 +771,7 @@ sha_hal.obj: sha_hal.c.obj
 
 # target to build an object file
 sha_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sha_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sha_hal.c.obj
 .PHONY : sha_hal.c.obj
 
 sha_hal.i: sha_hal.c.i
@@ -780,7 +780,7 @@ sha_hal.i: sha_hal.c.i
 
 # target to preprocess a source file
 sha_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sha_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sha_hal.c.i
 .PHONY : sha_hal.c.i
 
 sha_hal.s: sha_hal.c.s
@@ -789,7 +789,7 @@ sha_hal.s: sha_hal.c.s
 
 # target to generate assembly for a file
 sha_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sha_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sha_hal.c.s
 .PHONY : sha_hal.c.s
 
 sigmadelta_hal.obj: sigmadelta_hal.c.obj
@@ -798,7 +798,7 @@ sigmadelta_hal.obj: sigmadelta_hal.c.obj
 
 # target to build an object file
 sigmadelta_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sigmadelta_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sigmadelta_hal.c.obj
 .PHONY : sigmadelta_hal.c.obj
 
 sigmadelta_hal.i: sigmadelta_hal.c.i
@@ -807,7 +807,7 @@ sigmadelta_hal.i: sigmadelta_hal.c.i
 
 # target to preprocess a source file
 sigmadelta_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sigmadelta_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sigmadelta_hal.c.i
 .PHONY : sigmadelta_hal.c.i
 
 sigmadelta_hal.s: sigmadelta_hal.c.s
@@ -816,7 +816,7 @@ sigmadelta_hal.s: sigmadelta_hal.c.s
 
 # target to generate assembly for a file
 sigmadelta_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sigmadelta_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/sigmadelta_hal.c.s
 .PHONY : sigmadelta_hal.c.s
 
 soc_hal.obj: soc_hal.c.obj
@@ -825,7 +825,7 @@ soc_hal.obj: soc_hal.c.obj
 
 # target to build an object file
 soc_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/soc_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/soc_hal.c.obj
 .PHONY : soc_hal.c.obj
 
 soc_hal.i: soc_hal.c.i
@@ -834,7 +834,7 @@ soc_hal.i: soc_hal.c.i
 
 # target to preprocess a source file
 soc_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/soc_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/soc_hal.c.i
 .PHONY : soc_hal.c.i
 
 soc_hal.s: soc_hal.c.s
@@ -843,7 +843,7 @@ soc_hal.s: soc_hal.c.s
 
 # target to generate assembly for a file
 soc_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/soc_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/soc_hal.c.s
 .PHONY : soc_hal.c.s
 
 spi_flash_encrypt_hal_iram.obj: spi_flash_encrypt_hal_iram.c.obj
@@ -852,7 +852,7 @@ spi_flash_encrypt_hal_iram.obj: spi_flash_encrypt_hal_iram.c.obj
 
 # target to build an object file
 spi_flash_encrypt_hal_iram.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_encrypt_hal_iram.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_encrypt_hal_iram.c.obj
 .PHONY : spi_flash_encrypt_hal_iram.c.obj
 
 spi_flash_encrypt_hal_iram.i: spi_flash_encrypt_hal_iram.c.i
@@ -861,7 +861,7 @@ spi_flash_encrypt_hal_iram.i: spi_flash_encrypt_hal_iram.c.i
 
 # target to preprocess a source file
 spi_flash_encrypt_hal_iram.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_encrypt_hal_iram.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_encrypt_hal_iram.c.i
 .PHONY : spi_flash_encrypt_hal_iram.c.i
 
 spi_flash_encrypt_hal_iram.s: spi_flash_encrypt_hal_iram.c.s
@@ -870,7 +870,7 @@ spi_flash_encrypt_hal_iram.s: spi_flash_encrypt_hal_iram.c.s
 
 # target to generate assembly for a file
 spi_flash_encrypt_hal_iram.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_encrypt_hal_iram.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_encrypt_hal_iram.c.s
 .PHONY : spi_flash_encrypt_hal_iram.c.s
 
 spi_flash_hal.obj: spi_flash_hal.c.obj
@@ -879,7 +879,7 @@ spi_flash_hal.obj: spi_flash_hal.c.obj
 
 # target to build an object file
 spi_flash_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal.c.obj
 .PHONY : spi_flash_hal.c.obj
 
 spi_flash_hal.i: spi_flash_hal.c.i
@@ -888,7 +888,7 @@ spi_flash_hal.i: spi_flash_hal.c.i
 
 # target to preprocess a source file
 spi_flash_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal.c.i
 .PHONY : spi_flash_hal.c.i
 
 spi_flash_hal.s: spi_flash_hal.c.s
@@ -897,7 +897,7 @@ spi_flash_hal.s: spi_flash_hal.c.s
 
 # target to generate assembly for a file
 spi_flash_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal.c.s
 .PHONY : spi_flash_hal.c.s
 
 spi_flash_hal_iram.obj: spi_flash_hal_iram.c.obj
@@ -906,7 +906,7 @@ spi_flash_hal_iram.obj: spi_flash_hal_iram.c.obj
 
 # target to build an object file
 spi_flash_hal_iram.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal_iram.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal_iram.c.obj
 .PHONY : spi_flash_hal_iram.c.obj
 
 spi_flash_hal_iram.i: spi_flash_hal_iram.c.i
@@ -915,7 +915,7 @@ spi_flash_hal_iram.i: spi_flash_hal_iram.c.i
 
 # target to preprocess a source file
 spi_flash_hal_iram.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal_iram.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal_iram.c.i
 .PHONY : spi_flash_hal_iram.c.i
 
 spi_flash_hal_iram.s: spi_flash_hal_iram.c.s
@@ -924,7 +924,7 @@ spi_flash_hal_iram.s: spi_flash_hal_iram.c.s
 
 # target to generate assembly for a file
 spi_flash_hal_iram.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal_iram.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_flash_hal_iram.c.s
 .PHONY : spi_flash_hal_iram.c.s
 
 spi_hal.obj: spi_hal.c.obj
@@ -933,7 +933,7 @@ spi_hal.obj: spi_hal.c.obj
 
 # target to build an object file
 spi_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal.c.obj
 .PHONY : spi_hal.c.obj
 
 spi_hal.i: spi_hal.c.i
@@ -942,7 +942,7 @@ spi_hal.i: spi_hal.c.i
 
 # target to preprocess a source file
 spi_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal.c.i
 .PHONY : spi_hal.c.i
 
 spi_hal.s: spi_hal.c.s
@@ -951,7 +951,7 @@ spi_hal.s: spi_hal.c.s
 
 # target to generate assembly for a file
 spi_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal.c.s
 .PHONY : spi_hal.c.s
 
 spi_hal_iram.obj: spi_hal_iram.c.obj
@@ -960,7 +960,7 @@ spi_hal_iram.obj: spi_hal_iram.c.obj
 
 # target to build an object file
 spi_hal_iram.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal_iram.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal_iram.c.obj
 .PHONY : spi_hal_iram.c.obj
 
 spi_hal_iram.i: spi_hal_iram.c.i
@@ -969,7 +969,7 @@ spi_hal_iram.i: spi_hal_iram.c.i
 
 # target to preprocess a source file
 spi_hal_iram.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal_iram.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal_iram.c.i
 .PHONY : spi_hal_iram.c.i
 
 spi_hal_iram.s: spi_hal_iram.c.s
@@ -978,7 +978,7 @@ spi_hal_iram.s: spi_hal_iram.c.s
 
 # target to generate assembly for a file
 spi_hal_iram.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal_iram.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_hal_iram.c.s
 .PHONY : spi_hal_iram.c.s
 
 spi_slave_hal.obj: spi_slave_hal.c.obj
@@ -987,7 +987,7 @@ spi_slave_hal.obj: spi_slave_hal.c.obj
 
 # target to build an object file
 spi_slave_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal.c.obj
 .PHONY : spi_slave_hal.c.obj
 
 spi_slave_hal.i: spi_slave_hal.c.i
@@ -996,7 +996,7 @@ spi_slave_hal.i: spi_slave_hal.c.i
 
 # target to preprocess a source file
 spi_slave_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal.c.i
 .PHONY : spi_slave_hal.c.i
 
 spi_slave_hal.s: spi_slave_hal.c.s
@@ -1005,7 +1005,7 @@ spi_slave_hal.s: spi_slave_hal.c.s
 
 # target to generate assembly for a file
 spi_slave_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal.c.s
 .PHONY : spi_slave_hal.c.s
 
 spi_slave_hal_iram.obj: spi_slave_hal_iram.c.obj
@@ -1014,7 +1014,7 @@ spi_slave_hal_iram.obj: spi_slave_hal_iram.c.obj
 
 # target to build an object file
 spi_slave_hal_iram.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal_iram.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal_iram.c.obj
 .PHONY : spi_slave_hal_iram.c.obj
 
 spi_slave_hal_iram.i: spi_slave_hal_iram.c.i
@@ -1023,7 +1023,7 @@ spi_slave_hal_iram.i: spi_slave_hal_iram.c.i
 
 # target to preprocess a source file
 spi_slave_hal_iram.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal_iram.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal_iram.c.i
 .PHONY : spi_slave_hal_iram.c.i
 
 spi_slave_hal_iram.s: spi_slave_hal_iram.c.s
@@ -1032,7 +1032,7 @@ spi_slave_hal_iram.s: spi_slave_hal_iram.c.s
 
 # target to generate assembly for a file
 spi_slave_hal_iram.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal_iram.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/spi_slave_hal_iram.c.s
 .PHONY : spi_slave_hal_iram.c.s
 
 timer_hal.obj: timer_hal.c.obj
@@ -1041,7 +1041,7 @@ timer_hal.obj: timer_hal.c.obj
 
 # target to build an object file
 timer_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/timer_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/timer_hal.c.obj
 .PHONY : timer_hal.c.obj
 
 timer_hal.i: timer_hal.c.i
@@ -1050,7 +1050,7 @@ timer_hal.i: timer_hal.c.i
 
 # target to preprocess a source file
 timer_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/timer_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/timer_hal.c.i
 .PHONY : timer_hal.c.i
 
 timer_hal.s: timer_hal.c.s
@@ -1059,7 +1059,7 @@ timer_hal.s: timer_hal.c.s
 
 # target to generate assembly for a file
 timer_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/timer_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/timer_hal.c.s
 .PHONY : timer_hal.c.s
 
 touch_sensor_hal.obj: touch_sensor_hal.c.obj
@@ -1068,7 +1068,7 @@ touch_sensor_hal.obj: touch_sensor_hal.c.obj
 
 # target to build an object file
 touch_sensor_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/touch_sensor_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/touch_sensor_hal.c.obj
 .PHONY : touch_sensor_hal.c.obj
 
 touch_sensor_hal.i: touch_sensor_hal.c.i
@@ -1077,7 +1077,7 @@ touch_sensor_hal.i: touch_sensor_hal.c.i
 
 # target to preprocess a source file
 touch_sensor_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/touch_sensor_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/touch_sensor_hal.c.i
 .PHONY : touch_sensor_hal.c.i
 
 touch_sensor_hal.s: touch_sensor_hal.c.s
@@ -1086,7 +1086,7 @@ touch_sensor_hal.s: touch_sensor_hal.c.s
 
 # target to generate assembly for a file
 touch_sensor_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/touch_sensor_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/touch_sensor_hal.c.s
 .PHONY : touch_sensor_hal.c.s
 
 twai_hal.obj: twai_hal.c.obj
@@ -1095,7 +1095,7 @@ twai_hal.obj: twai_hal.c.obj
 
 # target to build an object file
 twai_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal.c.obj
 .PHONY : twai_hal.c.obj
 
 twai_hal.i: twai_hal.c.i
@@ -1104,7 +1104,7 @@ twai_hal.i: twai_hal.c.i
 
 # target to preprocess a source file
 twai_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal.c.i
 .PHONY : twai_hal.c.i
 
 twai_hal.s: twai_hal.c.s
@@ -1113,7 +1113,7 @@ twai_hal.s: twai_hal.c.s
 
 # target to generate assembly for a file
 twai_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal.c.s
 .PHONY : twai_hal.c.s
 
 twai_hal_iram.obj: twai_hal_iram.c.obj
@@ -1122,7 +1122,7 @@ twai_hal_iram.obj: twai_hal_iram.c.obj
 
 # target to build an object file
 twai_hal_iram.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal_iram.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal_iram.c.obj
 .PHONY : twai_hal_iram.c.obj
 
 twai_hal_iram.i: twai_hal_iram.c.i
@@ -1131,7 +1131,7 @@ twai_hal_iram.i: twai_hal_iram.c.i
 
 # target to preprocess a source file
 twai_hal_iram.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal_iram.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal_iram.c.i
 .PHONY : twai_hal_iram.c.i
 
 twai_hal_iram.s: twai_hal_iram.c.s
@@ -1140,7 +1140,7 @@ twai_hal_iram.s: twai_hal_iram.c.s
 
 # target to generate assembly for a file
 twai_hal_iram.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal_iram.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/twai_hal_iram.c.s
 .PHONY : twai_hal_iram.c.s
 
 uart_hal.obj: uart_hal.c.obj
@@ -1149,7 +1149,7 @@ uart_hal.obj: uart_hal.c.obj
 
 # target to build an object file
 uart_hal.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal.c.obj
 .PHONY : uart_hal.c.obj
 
 uart_hal.i: uart_hal.c.i
@@ -1158,7 +1158,7 @@ uart_hal.i: uart_hal.c.i
 
 # target to preprocess a source file
 uart_hal.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal.c.i
 .PHONY : uart_hal.c.i
 
 uart_hal.s: uart_hal.c.s
@@ -1167,7 +1167,7 @@ uart_hal.s: uart_hal.c.s
 
 # target to generate assembly for a file
 uart_hal.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal.c.s
 .PHONY : uart_hal.c.s
 
 uart_hal_iram.obj: uart_hal_iram.c.obj
@@ -1176,7 +1176,7 @@ uart_hal_iram.obj: uart_hal_iram.c.obj
 
 # target to build an object file
 uart_hal_iram.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal_iram.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal_iram.c.obj
 .PHONY : uart_hal_iram.c.obj
 
 uart_hal_iram.i: uart_hal_iram.c.i
@@ -1185,7 +1185,7 @@ uart_hal_iram.i: uart_hal_iram.c.i
 
 # target to preprocess a source file
 uart_hal_iram.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal_iram.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal_iram.c.i
 .PHONY : uart_hal_iram.c.i
 
 uart_hal_iram.s: uart_hal_iram.c.s
@@ -1194,7 +1194,7 @@ uart_hal_iram.s: uart_hal_iram.c.s
 
 # target to generate assembly for a file
 uart_hal_iram.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal_iram.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/uart_hal_iram.c.s
 .PHONY : uart_hal_iram.c.s
 
 wdt_hal_iram.obj: wdt_hal_iram.c.obj
@@ -1203,7 +1203,7 @@ wdt_hal_iram.obj: wdt_hal_iram.c.obj
 
 # target to build an object file
 wdt_hal_iram.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/wdt_hal_iram.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/wdt_hal_iram.c.obj
 .PHONY : wdt_hal_iram.c.obj
 
 wdt_hal_iram.i: wdt_hal_iram.c.i
@@ -1212,7 +1212,7 @@ wdt_hal_iram.i: wdt_hal_iram.c.i
 
 # target to preprocess a source file
 wdt_hal_iram.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/wdt_hal_iram.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/wdt_hal_iram.c.i
 .PHONY : wdt_hal_iram.c.i
 
 wdt_hal_iram.s: wdt_hal_iram.c.s
@@ -1221,7 +1221,7 @@ wdt_hal_iram.s: wdt_hal_iram.c.s
 
 # target to generate assembly for a file
 wdt_hal_iram.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/wdt_hal_iram.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/hal/CMakeFiles/__idf_hal.dir/build.make esp-idf/hal/CMakeFiles/__idf_hal.dir/wdt_hal_iram.c.s
 .PHONY : wdt_hal_iram.c.s
 
 # Help Target
@@ -1365,6 +1365,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

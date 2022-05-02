@@ -11,6 +11,8 @@
 #include "sdkconfig.h"
 #include "esp_attr.h"
 #include "soc/soc.h"
+#include "soc/dport_reg.h"
+#include "soc/tracemem_config.h"
 #include "heap_memory_layout.h"
 #include "esp_heap_caps.h"
 
@@ -40,7 +42,7 @@ const soc_memory_type_desc_t soc_memory_types[] = {
     // Type 5: DRAM which is not DMA accesible
     { "NON_DMA_DRAM", { MALLOC_CAP_8BIT | MALLOC_CAP_DEFAULT, MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT, 0 }, false, false},
     // Type 6: RTC Fast RAM
-    { "RTCRAM", { MALLOC_CAP_8BIT | MALLOC_CAP_DEFAULT, MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT, MALLOC_CAP_RTCRAM }, false, false},
+    { "RTCRAM", { MALLOC_CAP_RTCRAM, MALLOC_CAP_8BIT | MALLOC_CAP_DEFAULT, MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT }, false, false},
 };
 
 const size_t soc_memory_type_count = sizeof(soc_memory_types) / sizeof(soc_memory_type_desc_t);
@@ -107,7 +109,8 @@ SOC_RESERVE_MEMORY_REGION( SOC_EXTRAM_DATA_LOW, SOC_EXTRAM_DATA_HIGH, extram_dat
 #endif
 
 #if CONFIG_ESP32S3_TRACEMEM_RESERVE_DRAM > 0
-SOC_RESERVE_MEMORY_REGION(0x3fffc000 - CONFIG_ESP32S3_TRACEMEM_RESERVE_DRAM, 0x3fffc000, trace_mem);
+SOC_RESERVE_MEMORY_REGION(TRACEMEM_BLK0_ADDR, TRACEMEM_BLK0_ADDR + CONFIG_ESP32S3_TRACEMEM_RESERVE_DRAM / 2, trace_mem0);
+SOC_RESERVE_MEMORY_REGION(TRACEMEM_BLK1_ADDR, TRACEMEM_BLK1_ADDR + CONFIG_ESP32S3_TRACEMEM_RESERVE_DRAM / 2, trace_mem1);
 #endif
 
 // RTC Fast RAM region

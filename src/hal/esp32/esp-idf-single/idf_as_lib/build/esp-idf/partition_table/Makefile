@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ install/strip/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/partition_table/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles 0
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/partition_table/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/clean
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,22 +143,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/preinstall
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/preinstall
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/rule
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/rule
 .PHONY : esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/rule
 
 # Convenience name for target.
@@ -168,12 +168,12 @@ partition_table-flash: esp-idf/partition_table/CMakeFiles/partition_table-flash.
 
 # fast build rule for target.
 partition_table-flash/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/build.make esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/build
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/build.make esp-idf/partition_table/CMakeFiles/partition_table-flash.dir/build
 .PHONY : partition_table-flash/fast
 
 # Convenience name for target.
 esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/rule
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/rule
 .PHONY : esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/rule
 
 # Convenience name for target.
@@ -183,12 +183,12 @@ encrypted-partition-table-flash: esp-idf/partition_table/CMakeFiles/encrypted-pa
 
 # fast build rule for target.
 encrypted-partition-table-flash/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/build.make esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/build
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/build.make esp-idf/partition_table/CMakeFiles/encrypted-partition-table-flash.dir/build
 .PHONY : encrypted-partition-table-flash/fast
 
 # Convenience name for target.
 esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/rule
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/rule
 .PHONY : esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/rule
 
 # Convenience name for target.
@@ -198,12 +198,12 @@ partition-table-flash: esp-idf/partition_table/CMakeFiles/partition-table-flash.
 
 # fast build rule for target.
 partition-table-flash/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/build.make esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/build
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/build.make esp-idf/partition_table/CMakeFiles/partition-table-flash.dir/build
 .PHONY : partition-table-flash/fast
 
 # Convenience name for target.
 esp-idf/partition_table/CMakeFiles/partition-table.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition-table.dir/rule
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition-table.dir/rule
 .PHONY : esp-idf/partition_table/CMakeFiles/partition-table.dir/rule
 
 # Convenience name for target.
@@ -213,12 +213,12 @@ partition-table: esp-idf/partition_table/CMakeFiles/partition-table.dir/rule
 
 # fast build rule for target.
 partition-table/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition-table.dir/build.make esp-idf/partition_table/CMakeFiles/partition-table.dir/build
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition-table.dir/build.make esp-idf/partition_table/CMakeFiles/partition-table.dir/build
 .PHONY : partition-table/fast
 
 # Convenience name for target.
 esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/rule
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/rule
 .PHONY : esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/rule
 
 # Convenience name for target.
@@ -228,12 +228,12 @@ partition_table_bin: esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/
 
 # fast build rule for target.
 partition_table_bin/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/build.make esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/build
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/build.make esp-idf/partition_table/CMakeFiles/partition_table_bin.dir/build
 .PHONY : partition_table_bin/fast
 
 # Convenience name for target.
 esp-idf/partition_table/CMakeFiles/partition_table.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition_table.dir/rule
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/partition_table/CMakeFiles/partition_table.dir/rule
 .PHONY : esp-idf/partition_table/CMakeFiles/partition_table.dir/rule
 
 # Convenience name for target.
@@ -243,7 +243,7 @@ partition_table: esp-idf/partition_table/CMakeFiles/partition_table.dir/rule
 
 # fast build rule for target.
 partition_table/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition_table.dir/build.make esp-idf/partition_table/CMakeFiles/partition_table.dir/build
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/partition_table/CMakeFiles/partition_table.dir/build.make esp-idf/partition_table/CMakeFiles/partition_table.dir/build
 .PHONY : partition_table/fast
 
 # Help Target
@@ -275,6 +275,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-../../../../../components/xtensa/include/xtensa/corebits.h
+../../components/xtensa/include/xtensa/corebits.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_rom/patches/esp_rom_longjmp.S
 xtensa/corebits.h

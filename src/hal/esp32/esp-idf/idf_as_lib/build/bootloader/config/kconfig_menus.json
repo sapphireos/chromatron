@@ -3755,6 +3755,24 @@
                         "id": "component-config-hardware-settings-sleep-config",
                         "title": "Sleep Config",
                         "type": "menu"
+                    },
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "ESP_CONSOLE_USB_SERIAL_JTAG || ESP_CONSOLE_SECONDARY_USB_SERIAL_JTAG",
+                                "help": "When the chip goes sleep or software reset, the clock source would change to XTAL\nand switch off the BBPLL clock for saving power. However, this might make the\nUSB_SERIAL_JTAG down which depends on BBPLL as its unique clock source.\nTherefore, this is used for keeping bbpll clock always on when USB_SERIAL_JTAG PORT is using.\nIf you want to use USB_SERIAL_JTAG under sw_reset case or sleep-wakeup case, you shoule select\nthis option. But be aware that this might increase the power consumption.",
+                                "id": "RTC_CLOCK_BBPLL_POWER_ON_WITH_USB",
+                                "name": "RTC_CLOCK_BBPLL_POWER_ON_WITH_USB",
+                                "range": null,
+                                "title": "Keep BBPLL clock always work",
+                                "type": "bool"
+                            }
+                        ],
+                        "depends_on": null,
+                        "id": "component-config-hardware-settings-rtc-clock-config",
+                        "title": "RTC Clock Config",
+                        "type": "menu"
                     }
                 ],
                 "depends_on": null,
@@ -4377,12 +4395,12 @@
                     },
                     {
                         "children": [],
-                        "depends_on": "!ESP32_TRAX && !ESP32S2_TRAX",
+                        "depends_on": "!ESP32_TRAX && !ESP32S2_TRAX && !ESP32S3_TRAX",
                         "help": "Debug stubs are used by OpenOCD to execute pre-compiled onboard code\nwhich does some useful debugging stuff, e.g. GCOV data dump.",
                         "id": "ESP_DEBUG_STUBS_ENABLE",
                         "name": "ESP_DEBUG_STUBS_ENABLE",
                         "range": null,
-                        "title": null,
+                        "title": "OpenOCD debug stubs",
                         "type": "bool"
                     },
                     {
@@ -5616,12 +5634,22 @@
                             },
                             {
                                 "children": [],
-                                "depends_on": "!IDF_TARGET_ESP32",
+                                "depends_on": null,
                                 "help": "Enable this to support auto detection of BOYA chips if chip vendor not directly\ngiven by ``chip_drv`` member of the chip struct. This adds support for variant\nchips, however will extend detecting time.",
                                 "id": "SPI_FLASH_SUPPORT_BOYA_CHIP",
                                 "name": "SPI_FLASH_SUPPORT_BOYA_CHIP",
                                 "range": null,
                                 "title": "BOYA",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": null,
+                                "help": "Enable this to support auto detection of TH chips if chip vendor not directly\ngiven by ``chip_drv`` member of the chip struct. This adds support for variant\nchips, however will extend detecting time.",
+                                "id": "SPI_FLASH_SUPPORT_TH_CHIP",
+                                "name": "SPI_FLASH_SUPPORT_TH_CHIP",
+                                "range": null,
+                                "title": "TH",
                                 "type": "bool"
                             },
                             {

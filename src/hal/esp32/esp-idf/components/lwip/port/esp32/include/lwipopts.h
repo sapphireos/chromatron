@@ -21,8 +21,6 @@
 #include "netif/dhcp_state.h"
 #include "sntp/sntp_get_set_time.h"
 
-#define ARP_TABLE_SIZE 64
-
 /* Enable all Espressif-only options */
 
 /*
