@@ -127,25 +127,22 @@ PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
+static uint8_t calc_batt_soc( uint16_t volts ){
 
-static uint16_t _calc_batt_soc( uint16_t volts ){
+    uint16_t temp_soc = 0;
 
     if( volts < SOC_MIN_VOLTS ){
 
-        return 0;
+        temp_soc = 0;
     }
+    else if( volts > SOC_MAX_VOLTS ){
 
-    if( volts > SOC_MAX_VOLTS ){
-
-        return 10000;
+        temp_soc = 10000;
     }
+    else{
 
-    return util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
-}
-
-static uint8_t calc_batt_soc( uint16_t volts ){
-
-    uint16_t temp_soc = _calc_batt_soc( volts );
+        temp_soc = util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
+    }
 
     soc_state = util_u16_ewma( temp_soc, soc_state, SOC_FILTER );
 
@@ -311,6 +308,11 @@ void bq25895_v_start_adc_oneshot( void ){
 bool bq25895_b_adc_ready( void ){
 
     return ( bq25895_u8_read_reg( BQ25895_REG_ADC ) & BQ25895_BIT_ADC_CONV_START ) == 0;
+}
+
+static bool bq25895_b_adc_ready_cached( void ){
+
+    return ( read_cached_reg( BQ25895_REG_ADC ) & BQ25895_BIT_ADC_CONV_START ) == 0;
 }
 
 void bq25895_v_set_boost_1500khz( void ){
@@ -1562,7 +1564,7 @@ PT_BEGIN( pt );
         bq25895_v_read_all();
 
 
-        if( bq25895_b_adc_ready() && read_adc() ){
+        if( bq25895_b_adc_ready_cached() && read_adc() ){
 
             // ADC success
 
@@ -1578,23 +1580,27 @@ PT_BEGIN( pt );
                 adc_time_max = elapsed;
             }
 
-            soc_state = _calc_batt_soc( batt_volts );
-            batt_soc = calc_batt_soc( batt_volts );
-            batt_soc_startup = batt_soc;
-
             adc_good++;   
         }
         else{
 
             adc_fail++;
 
+            TMR_WAIT( pt, 200 );
+
             continue;
         }
 
-
         // update state of charge
-        // this is a simple linear fit
         uint8_t new_batt_soc = calc_batt_soc( batt_volts );
+
+        batt_soc = calc_batt_soc( batt_volts );
+
+        if( batt_soc_startup == 0 ){
+
+            batt_soc_startup = batt_soc;    
+        }
+
 
         // check if battery just ran down to 0,
         // AND we've started from a full charge
