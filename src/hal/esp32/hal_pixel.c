@@ -246,7 +246,15 @@ static void _pixel_v_configure( void ){
         return;
     }
 
-    spi_v_init( PIXEL_SPI_CHANNEL, pix_clock, 0 );
+    uint32_t freq = pix_clock;
+
+    if( ( pix_mode == PIX_MODE_WS2811 ) ||
+        ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
+
+        freq = 3200000;
+    }
+
+    spi_v_init( PIXEL_SPI_CHANNEL, freq, 0 );
 }
 
 

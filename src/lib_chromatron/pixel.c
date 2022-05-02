@@ -58,7 +58,7 @@ int8_t pix_i8_kv_handler(
         if( ( pix_mode == PIX_MODE_WS2811 ) ||
             ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
-            pix_clock = 2400000;
+            pix_clock = 800000; // indicate effective bit rate, not actual for 1 wire
         }
 
         gfx_v_set_pix_mode( pix_mode );
@@ -81,7 +81,7 @@ void pixel_v_init( void ){
     if( ( pix_mode == PIX_MODE_WS2811 ) ||
         ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
-        pix_clock = 2400000;
+        pix_clock = 800000; // indicate effective bit rate, not actual for 1 wire
     }
 
     gfx_v_set_pix_mode( pix_mode );
