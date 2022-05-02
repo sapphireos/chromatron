@@ -180,10 +180,7 @@ int8_t bq25895_i8_init( void ){
 
 void bq25895_v_read_all( void ){
 
-    uint8_t addr = 0;
-    i2c_v_write( BQ25895_I2C_ADDR, &addr, sizeof(addr) );
-
-    i2c_v_read( BQ25895_I2C_ADDR, regs, sizeof(regs) );
+    i2c_v_mem_read( BQ25895_I2C_ADDR, 0, 1, regs, sizeof(regs), 0 );
 }
 
 static uint8_t read_cached_reg( uint8_t addr ){
