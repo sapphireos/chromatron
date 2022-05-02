@@ -183,8 +183,8 @@ void bq25895_v_read_all( void ){
 
 static uint8_t read_cached_reg( uint8_t addr ){
 
-    return regs[addr];
-    // return bq25895_u8_read_reg( addr );
+    // return regs[addr];
+    return bq25895_u8_read_reg( addr );
 }
 
 uint8_t bq25895_u8_read_reg( uint8_t addr ){
@@ -1158,8 +1158,8 @@ static void init_boost_converter( void ){
 
 static void init_charger( void ){
 
-    // enable charger and set HIZ
-    bq25895_v_set_hiz( TRUE );
+    // enable charger and make sure HIZ is disabled
+    bq25895_v_set_hiz( FALSE );
     bq25895_v_set_charger( TRUE );
 
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
@@ -1369,8 +1369,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        // disable HIZ and check VBUS good
-        bq25895_v_set_hiz( FALSE );
+        // check VBUS good
 
         TMR_WAIT( pt, 100 );
 
@@ -1461,9 +1460,6 @@ PT_BEGIN( pt );
 
 
         // charger isn't working?
-
-        // disconnect vbus
-        bq25895_v_set_hiz( TRUE );
 
         log_v_debug_P( PSTR("Not charging - reset control loop") );
 
@@ -1598,8 +1594,6 @@ PT_BEGIN( pt );
 
             // log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
 
-            // try hiz mode
-            bq25895_v_set_hiz( TRUE );
             continue;
         }
 
