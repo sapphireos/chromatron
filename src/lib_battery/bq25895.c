@@ -164,7 +164,7 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
-    // bq25895_v_read_all();
+    bq25895_v_read_all();
 
     thread_t_create( bat_mon_thread,
                      PSTR("bat_mon"),
@@ -176,15 +176,16 @@ int8_t bq25895_i8_init( void ){
 
 void bq25895_v_read_all( void ){
 
-    i2c_v_write( BQ25895_I2C_ADDR, 0, 1 );
+    uint8_t addr = 0;
+    i2c_v_write( BQ25895_I2C_ADDR, &addr, sizeof(addr) );
 
     i2c_v_read( BQ25895_I2C_ADDR, regs, sizeof(regs) );
 }
 
 static uint8_t read_cached_reg( uint8_t addr ){
 
-    // return regs[addr];
-    return bq25895_u8_read_reg( addr );
+    return regs[addr];
+    // return bq25895_u8_read_reg( addr );
 }
 
 uint8_t bq25895_u8_read_reg( uint8_t addr ){
@@ -1558,7 +1559,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
 
         // read all registers
-        // bq25895_v_read_all();
+        bq25895_v_read_all();
 
 
         if( bq25895_b_adc_ready() && read_adc() ){
@@ -1586,13 +1587,6 @@ PT_BEGIN( pt );
         else{
 
             adc_fail++;
-
-            if( thread_b_alarm_set() ){
-
-                log_v_warn_P( PSTR("ADC timed out") );
-            }
-
-            // log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
 
             continue;
         }
