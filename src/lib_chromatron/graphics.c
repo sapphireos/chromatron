@@ -57,7 +57,7 @@ static uint32_t timing_resyncs;
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    &pix_max_power,        0,                  "pix_max_power" },
-    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &worst_timing_lag,     0,                  "gfx_timing_lag" },
+    { CATBUS_TYPE_UINT16,   0, 0,                   &worst_timing_lag,     0,                  "gfx_timing_lag" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_resyncs,       0,                  "gfx_timing_resyncs" },
 };
 

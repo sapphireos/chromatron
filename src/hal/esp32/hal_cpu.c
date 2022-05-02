@@ -194,6 +194,8 @@ void cpu_v_remap_isrs( void ){
 
 void cpu_v_sleep( void ){
 
+    return;
+
     uint32_t delta = thread_u32_get_next_alarm_delta();
 
     // if next thread alarm is more than SLEEP_THRESHOLD ms away, we can sleep for at least SLEEP_THRESHOLD ms.
