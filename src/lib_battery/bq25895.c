@@ -144,7 +144,14 @@ static uint8_t calc_batt_soc( uint16_t volts ){
         temp_soc = util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
     }
 
-    soc_state = util_u16_ewma( temp_soc, soc_state, SOC_FILTER );
+    if( soc_state == 0 ){
+
+        soc_state = temp_soc;
+    }
+    else{
+
+        soc_state = util_u16_ewma( temp_soc, soc_state, SOC_FILTER );
+    }
 
     return soc_state / 100;
 }
