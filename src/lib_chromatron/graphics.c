@@ -198,19 +198,22 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
 
-        uint32_t lag = tmr_u32_elapsed_time_us( start );
+        uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
         start = tmr_u32_get_system_time_us();
 
-        if( lag > max_timing_lag ){
+        if( lag < 1000000000 ){
 
-            // only record max after a delay to avoid recording startup lag.
-            if( tmr_u64_get_system_time_us() > 10000000 ){
+            if( lag > max_timing_lag ){
 
-                max_timing_lag = lag;    
+                // only record max after a delay to avoid recording startup lag.
+                if( tmr_u64_get_system_time_us() > 10000000 ){
+
+                    max_timing_lag = lag;    
+                }
             }
-        }
 
-        avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
+            avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
+        }
 
         if( sys_b_is_shutting_down() ){
 
