@@ -42,6 +42,9 @@
 
 #ifdef ESP32
 #include "esp_spi_flash.h"
+
+static kv_hash_index_t *ram_index;
+
 #endif
 
 static uint32_t kv_persist_writes;
@@ -229,9 +232,19 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
         #ifdef AVR
         memcpy_PF( &index_entry, addr, sizeof(index_entry) );
+
         #elif defined(ESP32)
-        spi_flash_read( addr, &index_entry, sizeof(index_entry) );
+
+        if( ram_index != 0 ){
+
+            index_entry = ram_index[middle];
+        }
+        else{
+
+            spi_flash_read( addr, &index_entry, sizeof(index_entry) ); 
+        }
         #else
+
         memcpy_PF( &index_entry, (void *)addr, sizeof(index_entry) );
         #endif
 
@@ -505,6 +518,21 @@ void kv_v_init( void ){
 
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        #ifdef ESP32
+        uint16_t len = _kv_u16_fixed_count() * sizeof(kv_hash_index_t);
+
+        ram_index = malloc( len );
+
+        if( ram_index != 0 ){
+
+            uint32_t kv_index_start = FW_SPI_START_OFFSET + sys_u32_get_fw_length() -
+                                   ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
+
+
+            spi_flash_read( kv_index_start, ram_index, len );
+        }
+        #endif
 
         // initialize all persisted KV items
         int8_t status = _kv_i8_init_persist();
