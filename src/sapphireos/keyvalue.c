@@ -58,6 +58,7 @@ static uint8_t kv_cache_index;
 static kv_hash_index_t kv_cache[KV_CACHE_SIZE];
 
 static const PROGMEM char kv_data_fname[] = "kv_data";
+static file_t kv_data_file_handle = -1;
 
 #if defined(__SIM__) || defined(BOOTLOADER)
     #define KV_SECTION_META_START
@@ -235,6 +236,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
         #elif defined(ESP32)
 
+        // use RAM index if available
         if( ram_index != 0 ){
 
             index_entry = ram_index[middle];
@@ -534,6 +536,9 @@ void kv_v_init( void ){
         }
         #endif
 
+        // open file to KV persist data
+        kv_data_file_handle = fs_f_open_P( kv_data_fname, FS_MODE_READ_ONLY );
+
         // initialize all persisted KV items
         int8_t status = _kv_i8_init_persist();
 
@@ -827,13 +832,30 @@ static int8_t _kv_i8_persist_get(
     catbus_hash_t32 hash,
     void *data,
     uint16_t len )
-{
-    file_t f = fs_f_open_P( kv_data_fname, FS_MODE_READ_ONLY );
+{    
+    uint32_t start = tmr_u32_get_system_time_us();
+    
+    file_t f = -1;
 
+    if( kv_data_file_handle > 0 ){
+
+        f = kv_data_file_handle;
+    }
+    else{
+
+        f = fs_f_open_P( kv_data_fname, FS_MODE_READ_ONLY );
+    }
+    
     if( f < 0 ){
 
         return -1;
     }
+
+    uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+
+        
+    trace_printf( "fopen %u: %u\r\n", elapsed, hash );        
+    start = tmr_u32_get_system_time_us();
 
     fs_v_seek( f, sizeof(kv_persist_file_header_t) );
 
@@ -852,6 +874,12 @@ static int8_t _kv_i8_persist_get(
         fs_v_seek( f, fs_i32_tell( f ) + KV_PERSIST_MAX_DATA_LEN );
     }
 
+    elapsed = tmr_u32_elapsed_time_us( start );
+
+    trace_printf( "seek %u: %u\r\n", elapsed, hash );        
+
+    start = tmr_u32_get_system_time_us();
+
     uint16_t data_read = 0;
 
     // check if data was found
@@ -860,7 +888,15 @@ static int8_t _kv_i8_persist_get(
         data_read = fs_i16_read( f, data, len );
     }
 
-    fs_f_close( f );
+    elapsed = tmr_u32_elapsed_time_us( start );
+
+    trace_printf( "read %u: %u\r\n", elapsed, hash );        
+
+    // only close file if we opened it ourselves
+    if( kv_data_file_handle < 0 ){
+        
+        fs_f_close( f );
+    }
 
     // check if correct amount of data was read.
     // data_read will be 0 if the item was not found in the file.
