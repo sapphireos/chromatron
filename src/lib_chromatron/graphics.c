@@ -203,7 +203,11 @@ PT_BEGIN( pt );
 
         if( lag > max_timing_lag ){
 
-            max_timing_lag = lag;
+            // only record max after a delay to avoid recording startup lag.
+            if( tmr_u64_get_system_time_us() > 10000000 ){
+
+                max_timing_lag = lag;    
+            }
         }
 
         avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
