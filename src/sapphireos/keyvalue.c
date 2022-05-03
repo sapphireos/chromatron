@@ -833,8 +833,6 @@ static int8_t _kv_i8_persist_get(
     void *data,
     uint16_t len )
 {    
-    uint32_t start = tmr_u32_get_system_time_us();
-    
     file_t f = -1;
 
     if( kv_data_file_handle > 0 ){
@@ -850,12 +848,6 @@ static int8_t _kv_i8_persist_get(
 
         return -1;
     }
-
-    uint32_t elapsed = tmr_u32_elapsed_time_us( start );
-
-        
-    trace_printf( "fopen %u: %u\r\n", elapsed, hash );        
-    start = tmr_u32_get_system_time_us();
 
     fs_v_seek( f, sizeof(kv_persist_file_header_t) );
 
@@ -874,12 +866,6 @@ static int8_t _kv_i8_persist_get(
         fs_v_seek( f, fs_i32_tell( f ) + KV_PERSIST_MAX_DATA_LEN );
     }
 
-    elapsed = tmr_u32_elapsed_time_us( start );
-
-    trace_printf( "seek %u: %u\r\n", elapsed, hash );        
-
-    start = tmr_u32_get_system_time_us();
-
     uint16_t data_read = 0;
 
     // check if data was found
@@ -887,10 +873,6 @@ static int8_t _kv_i8_persist_get(
 
         data_read = fs_i16_read( f, data, len );
     }
-
-    elapsed = tmr_u32_elapsed_time_us( start );
-
-    trace_printf( "read %u: %u\r\n", elapsed, hash );        
 
     // only close file if we opened it ourselves
     if( kv_data_file_handle < 0 ){
