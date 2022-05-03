@@ -149,7 +149,7 @@ static int8_t _kv_i8_persist_set_internal(
 
 static uint16_t _kv_u16_fixed_count( void ){
 
-    return ( kv_end - kv_start ) - 1;
+    return ( (uint32_t)kv_end - (uint32_t)kv_start ) - 1;
 }
 
 uint16_t kv_u16_count( void ){
