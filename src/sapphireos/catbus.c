@@ -716,6 +716,8 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
+        uint32_t start = tmr_u32_get_system_time_us();
+
         // log_v_debug_P( PSTR("%d"), header->msg_type );
 
         // DISCOVERY MESSAGES
@@ -895,8 +897,6 @@ PT_BEGIN( pt );
             uint16_t reply_len = 0;
             kv_meta_t meta;
 
-            uint32_t start = tmr_u32_get_system_time_us();
-
             for( uint8_t i = 0; i < msg->count; i++ ){
 
                 if( kv_i8_lookup_hash( LOAD32(hash), &meta ) == 0 ){
@@ -936,8 +936,6 @@ PT_BEGIN( pt );
                 goto end;
             }
 
-            uint32_t elapsed = tmr_u32_elapsed_time_us( start );
-
             mem_handle_t h = mem2_h_alloc( reply_len + sizeof(catbus_msg_key_data_t) - sizeof(catbus_data_t) );
 
             if( h < 0 ){
@@ -954,10 +952,6 @@ PT_BEGIN( pt );
             catbus_data_t *data = &reply->first_data;
 
             reply->count = reply_count;
-
-
-            uint32_t start2 = tmr_u32_get_system_time_us();
-
 
             for( uint8_t i = 0; i < reply_count; i++ ){
 
@@ -989,14 +983,6 @@ PT_BEGIN( pt );
 
                 hash++;
             }
-
-            uint32_t elapsed2 = tmr_u32_elapsed_time_us( start2 );
-
-            if( elapsed2 > lag ){
-
-                log_v_debug_P( PSTR("%u %u count: %d"), elapsed, elapsed2, reply_count );
-            }            
-
 
             // send reply
             sock_i16_sendto_m( sock, h, 0 );
@@ -1437,6 +1423,13 @@ PT_BEGIN( pt );
             error = CATBUS_ERROR_UNKNOWN_MSG;
         }
 
+        uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+        
+        if( elapsed > 5000 ){
+
+            log_v_debug_P( PSTR("%u:%d"), elapsed, header->msg_type );        
+        }
+        
 end:
     
         if( error != CATBUS_STATUS_OK ){

@@ -222,27 +222,36 @@ PT_BEGIN( pt );
         //     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
         // }
 
-        if( sys_b_is_shutting_down() ){
 
-            gfx_v_shutdown_graphic();
-            calc_pixel_power();
-            apply_power_limit();
+
+            io_v_set_mode( IO_PIN_18_MOSI, IO_MODE_OUTPUT );
             
-            pixel_v_signal();        
+            io_v_digital_write( IO_PIN_18_MOSI, TRUE );
+            _delay_us( 1 );
+            io_v_digital_write( IO_PIN_18_MOSI, FALSE );
 
-            THREAD_EXIT( pt );
-        }
 
-        if( vm_b_running() ){
+        // if( sys_b_is_shutting_down() ){
 
-            gfx_v_process_faders();
-            calc_pixel_power();
-            apply_power_limit();
+        //     gfx_v_shutdown_graphic();
+        //     calc_pixel_power();
+        //     apply_power_limit();
+            
+        //     pixel_v_signal();        
 
-            gfx_v_sync_array();
+        //     THREAD_EXIT( pt );
+        // }
 
-            pixel_v_signal();
-        }
+        // if( vm_b_running() ){
+
+        //     gfx_v_process_faders();
+        //     calc_pixel_power();
+        //     apply_power_limit();
+
+        //     gfx_v_sync_array();
+
+        //     pixel_v_signal();
+        // }
 
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
