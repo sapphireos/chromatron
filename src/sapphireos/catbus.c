@@ -716,7 +716,7 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
-        uint32_t start = tmr_u32_get_system_time_us();
+        // uint32_t start = tmr_u32_get_system_time_us();
 
         // log_v_debug_P( PSTR("%d"), header->msg_type );
 
@@ -1423,12 +1423,12 @@ PT_BEGIN( pt );
             error = CATBUS_ERROR_UNKNOWN_MSG;
         }
 
-        uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+        // uint32_t elapsed = tmr_u32_elapsed_time_us( start );
         
-        if( elapsed > 5000 ){
+        // if( elapsed > 5000 ){
 
-            log_v_debug_P( PSTR("%u:%d"), elapsed, header->msg_type );        
-        }
+        //     log_v_debug_P( PSTR("%u:%d"), elapsed, header->msg_type );        
+        // }
         
 end:
     

@@ -51,14 +51,14 @@ static uint16_t vm_fader_time;
 static uint32_t pixel_power;
 static uint16_t pix_max_power; // in milliwatts
 
-static uint32_t worst_timing_lag;
-static uint32_t timing_resyncs;
+static uint32_t max_timing_lag;
+static uint32_t avg_timing_lag;
 
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    &pix_max_power,        0,                  "pix_max_power" },
-    { CATBUS_TYPE_UINT32,   0, 0,                   &worst_timing_lag,     0,                  "gfx_timing_lag" },
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_resyncs,       0,                  "gfx_timing_resyncs" },
+    { CATBUS_TYPE_UINT32,   0, 0,                   &max_timing_lag,       0,                  "gfx_timing_lag_max" },
+    { CATBUS_TYPE_UINT32,   0, 0,                   &avg_timing_lag,       0,                  "gfx_timing_lag_avg" },
 };
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
@@ -196,62 +196,39 @@ PT_BEGIN( pt );
 
     while(1){        
 
-        // thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
-        // THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
         THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
 
-        // int32_t lag = (int64_t)tmr_u32_get_system_time_ms() - (int64_t)thread_u32_get_alarm();
-        // uint32_t lag = tmr_u32_elapsed_time_ms( thread_u32_get_alarm( );
         uint32_t lag = tmr_u32_elapsed_time_us( start );
-
-        if( lag > worst_timing_lag ){
-
-            worst_timing_lag = lag;
-        }
-
-
         start = tmr_u32_get_system_time_us();
 
-        // if( lag > 5 ){
+        if( lag > max_timing_lag ){
 
-        //     timing_resyncs++;
+            max_timing_lag = lag;
+        }
 
-        //     // log_v_debug_P( PSTR("Graphics timing lag: %u"), lag );
+        avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
 
-        //     // reset alarm setting to re-align timing
-        //     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
-        // }
+        if( sys_b_is_shutting_down() ){
 
-
-
-            io_v_set_mode( IO_PIN_18_MOSI, IO_MODE_OUTPUT );
+            gfx_v_shutdown_graphic();
+            calc_pixel_power();
+            apply_power_limit();
             
-            io_v_digital_write( IO_PIN_18_MOSI, TRUE );
-            _delay_us( 1 );
-            io_v_digital_write( IO_PIN_18_MOSI, FALSE );
+            pixel_v_signal();        
 
+            THREAD_EXIT( pt );
+        }
 
-        // if( sys_b_is_shutting_down() ){
+        if( vm_b_running() ){
 
-        //     gfx_v_shutdown_graphic();
-        //     calc_pixel_power();
-        //     apply_power_limit();
-            
-        //     pixel_v_signal();        
+            gfx_v_process_faders();
+            calc_pixel_power();
+            apply_power_limit();
 
-        //     THREAD_EXIT( pt );
-        // }
+            gfx_v_sync_array();
 
-        // if( vm_b_running() ){
-
-        //     gfx_v_process_faders();
-        //     calc_pixel_power();
-        //     apply_power_limit();
-
-        //     gfx_v_sync_array();
-
-        //     pixel_v_signal();
-        // }
+            pixel_v_signal();
+        }
 
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 

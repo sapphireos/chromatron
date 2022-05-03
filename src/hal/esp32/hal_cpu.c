@@ -194,7 +194,7 @@ void cpu_v_remap_isrs( void ){
 
 void cpu_v_sleep( void ){
 
-    return;
+    return; // disable sleep for now
 
     uint32_t delta = thread_u32_get_next_alarm_delta();
 
