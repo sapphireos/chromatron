@@ -35,9 +35,6 @@
 #include "logging.h"
 
 
-static uint32_t lag;
-
-
 #ifdef ENABLE_NETWORK
 static uint64_t origin_id;
 
