@@ -198,31 +198,22 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
 
-        // if pixels are disabled, wait until they are enabled
-        if( !batt_b_pixels_enabled() ){
-
-            THREAD_WAIT_WHILE( pt, !batt_b_pixels_enabled() );
-        }
-        else{
-
-            uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
-            
-            if( lag < 1000000000 ){
-
-                if( lag > max_timing_lag ){
-
-                    // only record max after a delay to avoid recording startup lag.
-                    if( tmr_u64_get_system_time_us() > 10000000 ){
-
-                        max_timing_lag = lag;    
-                    }
-                }
-
-                avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
-            }
-        }
-
+        uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
         start = tmr_u32_get_system_time_us();
+
+        if( lag < 1000000000 ){
+
+            if( lag > max_timing_lag ){
+
+                // only record max after a delay to avoid recording startup lag.
+                if( tmr_u64_get_system_time_us() > 10000000 ){
+
+                    max_timing_lag = lag;    
+                }
+            }
+
+            avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
+        }
 
         if( sys_b_is_shutting_down() ){
 

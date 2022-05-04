@@ -192,8 +192,6 @@ void batt_v_init( void ){
 
     if( !batt_enable ){
 
-        pixels_enabled = TRUE;
-
         return;
     }
 
