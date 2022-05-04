@@ -235,7 +235,7 @@ void cpu_v_set_clock_speed_low( void ){
     pm_config.min_freq_mhz = 80;
     #endif
 
-    pm_config.light_sleep_enable = FALSE;
+    pm_config.light_sleep_enable = TRUE;
 
     esp_pm_configure( &pm_config );    
 
@@ -247,13 +247,13 @@ void cpu_v_set_clock_speed_high( void ){
     esp_pm_config_esp32_t pm_config = { 0 };
     #ifdef ESP32_MAX_CPU_160M
     pm_config.max_freq_mhz = 160;
-    pm_config.min_freq_mhz = 160;
+    pm_config.min_freq_mhz = 80;
     #else
     pm_config.max_freq_mhz = 240;
-    pm_config.min_freq_mhz = 240;
+    pm_config.min_freq_mhz = 80;
     #endif
 
-    pm_config.light_sleep_enable = FALSE;
+    pm_config.light_sleep_enable = TRUE;
 
     esp_pm_configure( &pm_config );    
 
