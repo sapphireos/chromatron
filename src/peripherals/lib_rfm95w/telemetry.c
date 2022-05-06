@@ -80,6 +80,8 @@ PT_THREAD( telemetry_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+
+
     while( 1 ){
 
         THREAD_WAIT_WHILE( pt, !rf_mac_b_rx_available() );
@@ -89,7 +91,9 @@ PT_BEGIN( pt );
 
         rf_mac_i8_get_rx( &pkt, buf, sizeof(buf) );
 
-        log_v_debug_P( PSTR("received!") );
+        uint32_t *data = (uint32_t *)&buf[sizeof(rf_mac_header_0_t)];
+
+        log_v_debug_P( PSTR("received %u"), *data );
     }
 
 PT_END( pt );
@@ -99,12 +103,18 @@ PT_END( pt );
 PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    static uint32_t count;
+    count = 0;
     
     while( 1 ){
 
-        TMR_WAIT( pt, 10000 );
+        TMR_WAIT( pt, 1000 );
 
-        rf_mac_i8_send( 0, 0, 0 );
+        rf_mac_i8_send( 0, (uint8_t *)&count, sizeof(count) );
+
+        log_v_debug_P( PSTR("send %u"), count );
+        count++;
     }
 
 PT_END( pt );

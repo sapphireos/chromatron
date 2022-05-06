@@ -443,6 +443,7 @@ PT_BEGIN( pt );
             };
 
             rfm95w_v_write_fifo( (uint8_t *)&header, sizeof(header) );
+            rfm95w_v_write_fifo( data, pkt->len );
 
             rfm95w_v_write_reg( RFM95W_RegPayloadLength, sizeof(header) + pkt->len );
 
