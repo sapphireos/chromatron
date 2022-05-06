@@ -367,7 +367,8 @@ PT_BEGIN( pt );
             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 0 );
 
-            if( ( bq25895_i8_get_temp() >= 39 ) ||
+            if( ( bq25895_i8_get_temp() >= 38 ) ||
+                ( bq25895_i8_get_case_temp() > bq25895_i8_get_ambient_temp() ) ||
                 ( bq25895_i8_get_case_temp() >= 49 ) ){
 
                 fan_on = TRUE;
@@ -382,7 +383,8 @@ PT_BEGIN( pt );
             io_v_digital_write( ELITE_FAN_IO, 1 );
 
             if( ( bq25895_i8_get_temp() <= 37 ) &&
-                ( bq25895_i8_get_case_temp() <= 44 ) ){
+                ( bq25895_i8_get_case_temp() < bq25895_i8_get_ambient_temp() ) &&
+                ( bq25895_i8_get_case_temp() <= 45 ) ){
 
                 fan_on = FALSE;
             }
