@@ -343,7 +343,7 @@ PT_BEGIN( pt );
 
         rfm95w_v_clear_irq_flags();
 
-        rfm95w_v_set_mode( RFM95W_OP_MODE_RXSINGLE );
+        rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
 
         THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() && list_b_is_empty( &tx_q ) );
 
@@ -432,7 +432,6 @@ PT_BEGIN( pt );
             reset_fifo();
 
             list_node_t ln = list_ln_remove_tail( &tx_q );
-            list_v_release_node( ln );
 
             rf_mac_tx_pkt_t *pkt = (rf_mac_tx_pkt_t *)list_vp_get_data( ln );
             uint8_t *data = (uint8_t *)( pkt + 1 );
@@ -446,6 +445,8 @@ PT_BEGIN( pt );
             rfm95w_v_write_fifo( (uint8_t *)&header, sizeof(header) );
 
             rfm95w_v_write_reg( RFM95W_RegPayloadLength, sizeof(header) + pkt->len );
+
+            list_v_release_node( ln );
 
             if( pkt->dest_addr == 0 ){
 

@@ -86,6 +86,7 @@ The RFM95 uses the PA_BOOST pin.
 // static uint32_t lora_tx;
 // static uint32_t lora_rx_errors;
 
+
 // KV_SECTION_META kv_meta_t rfm95w_kv[] = {
 //     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_rx,       0, "lora_rx" },
 //     { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,     &lora_rssi,     0, "lora_rssi" },
@@ -440,8 +441,7 @@ bool rfm95w_b_is_rx_busy( void ){
     uint8_t modem_stat = rfm95w_u8_read_reg( RFM95W_RegModemStat );
 
     return ( ( modem_stat & RFM95W_BIT_SignalDetected ) != 0 ) ||
-           ( ( modem_stat & RFM95W_BIT_SignalSync ) != 0 ) ||
-           ( ( modem_stat & RFM95W_BIT_RX_ongoing ) != 0 );
+           ( ( modem_stat & RFM95W_BIT_SignalSync ) != 0 );
 }
 
 bool rfm95w_b_is_rx_ok( void ){
