@@ -93,7 +93,7 @@ PT_BEGIN( pt );
 
         uint32_t *data = (uint32_t *)&buf[sizeof(rf_mac_header_0_t)];
 
-        log_v_debug_P( PSTR("received %u"), *data );
+        log_v_debug_P( PSTR("received %u %d bytes rssi: %d snr: %d"), *data, pkt.len, pkt.rssi, pkt.snr );
     }
 
 PT_END( pt );

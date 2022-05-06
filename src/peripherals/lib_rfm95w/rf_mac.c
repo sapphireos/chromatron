@@ -125,7 +125,7 @@ static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
 
 static const rf_mac_coding_t codebook[] = {
     // beacon coding
-    { RF_MAC_MOD_LORA, RFM95W_CODING_4_8, 12, RFM95W_BW_500000 }, // 732 bps
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 12, RFM95W_BW_500000 }, // 732 bps
 };
 
 static uint8_t current_code;
@@ -402,11 +402,10 @@ PT_BEGIN( pt );
                 continue;
             }
 
-            int16_t pkt_rssi = rfm95w_i16_get_packet_rssi();
-
             rf_mac_rx_pkt_t rx_pkt;
 
-            rx_pkt.rssi = pkt_rssi;
+            rx_pkt.rssi = rfm95w_i16_get_packet_rssi();
+            rx_pkt.snr = rfm95w_i16_get_packet_snr();
             rx_pkt.len = rx_len;
 
             list_node_t ln = list_ln_create_node( 0, rx_len + sizeof(rf_mac_rx_pkt_t) );

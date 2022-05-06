@@ -32,9 +32,9 @@
 #define RF_MAC_MAX_TX_Q     8
 #define RF_MAC_MAX_RX_Q     8
 
-#define RF_MAC_MOD_LORA     0
-#define RF_MAC_MOD_FSK      1
-#define RF_MAC_MOD_GFSK     2
+#define RF_MAC_MODE_LORA    0
+#define RF_MAC_MODE_FSK     1
+#define RF_MAC_MODE_GFSK    2
 
 #define RF_MAC_MAGIC 0x12345678
 
@@ -62,6 +62,7 @@ typedef struct{
 
 typedef struct{
     int16_t rssi;
+    int16_t snr;
     uint8_t len;
 } rf_mac_rx_pkt_t;
 

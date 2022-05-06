@@ -407,6 +407,13 @@ int16_t rfm95w_i16_get_packet_rssi( void ){
     return -157 + rssi;
 }
 
+int16_t rfm95w_i16_get_packet_snr( void ){
+
+    int16_t snr = rfm95w_u8_read_reg( RFM95W_RegPktSnrValue );
+
+    return snr / 4;
+}
+
 void rfm95w_v_set_preamble_length( uint16_t data ){
 
     if( data < RFM95W_PREAMBLE_MIN ){
