@@ -59,11 +59,8 @@ static const uint8_t ws2811_lookup[256][4] __attribute__((aligned(4))) = {
 static spi_transaction_t spi_transaction;
 static spi_transaction_t* transaction_ptr = &spi_transaction;
 static bool request_reconfigure;
-static bool zero_output;
 
 static uint16_t setup_pixel_buffer( void ){
-
-    zero_output = TRUE;
 
     uint8_t *buf = outputs;
 
@@ -108,13 +105,6 @@ static uint16_t setup_pixel_buffer( void ){
         r = array_r[i];
         g = array_g[i];
         b = array_b[i];
-
-        if( ( r != 0 ) ||
-            ( g != 0 ) ||
-            ( b != 0 ) ){
-
-            zero_output = FALSE;     
-        }
 
         if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
@@ -299,7 +289,7 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 5 );
 
         
-        if( zero_output ){
+        if( gfx_b_is_output_zero() ){
 
             // shut down pixel driver IO
             spi_v_release();
@@ -308,7 +298,7 @@ PT_BEGIN( pt );
             batt_v_disable_pixels();
 
             // wait while pixels are zero output
-            while( zero_output ){
+            while( gfx_b_is_output_zero() ){
 
                 THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 

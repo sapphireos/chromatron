@@ -28,6 +28,8 @@
 #include "system.h"
 #include "keyvalue.h"
 
+#include "graphics.h"
+
 #include "esp_image_format.h"
 
 #ifdef BOOTLOADER
@@ -194,7 +196,18 @@ void cpu_v_remap_isrs( void ){
 
 void cpu_v_sleep( void ){
 
-    return; // disable sleep for now
+    // only yield the RTOS task (so auto light sleep can operate)
+    // if we are not in safe mode and pixels are not enabled.
+
+    if( gfx_b_pixels_enabled() ){
+
+        return;
+    }
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
 
     uint32_t delta = thread_u32_get_next_alarm_delta();
 

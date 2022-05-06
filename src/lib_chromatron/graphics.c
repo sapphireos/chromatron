@@ -112,6 +112,31 @@ void gfx_v_init( void ){
                 0 );
 }
 
+bool gfx_b_pixels_enabled( void ){
+
+    // pixels are enabled, UNLESS:
+
+    // all pixels read zero
+    if( gfx_b_is_output_zero() ){
+
+        return FALSE;
+    }
+
+    // battery manager indicates power is off
+    if( !batt_b_pixels_enabled() ){
+
+        return FALSE;
+    }
+
+    // there are no pixels
+    if( gfx_u16_get_pix_count() == 0 ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 uint32_t gfx_u32_get_pixel_power( void ){
 
     return pixel_power;
@@ -122,7 +147,7 @@ static void calc_pixel_power( void ){
     uint64_t power_temp;
 
     // update pixel power
-    if( batt_b_pixels_enabled() ){
+    if( gfx_b_pixels_enabled() ){
 
         power_temp = gfx_u16_get_pix_count() * MICROAMPS_IDLE_PIX;
         power_temp += ( gfx_u32_get_pixel_r() * MICROAMPS_RED_PIX ) / 256;
@@ -177,9 +202,6 @@ PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    // init alarm
-    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
-
     // gfx_v_log_value_curve();
     // THREAD_EXIT( pt );
 
@@ -226,16 +248,14 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
 
-        if( vm_b_running() ){
+        
+        gfx_v_process_faders();
+        calc_pixel_power();
+        apply_power_limit();
 
-            gfx_v_process_faders();
-            calc_pixel_power();
-            apply_power_limit();
+        gfx_v_sync_array();
 
-            gfx_v_sync_array();
-
-            pixel_v_signal();
-        }
+        pixel_v_signal();
 
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 

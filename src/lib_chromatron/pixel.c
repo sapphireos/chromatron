@@ -61,7 +61,6 @@ int8_t pix_i8_kv_handler(
             pix_clock = 800000; // indicate effective bit rate, not actual for 1 wire
         }
 
-        gfx_v_set_pix_mode( pix_mode );
         hal_pixel_v_configure();
     }
 
@@ -83,8 +82,6 @@ void pixel_v_init( void ){
 
         pix_clock = 800000; // indicate effective bit rate, not actual for 1 wire
     }
-
-    gfx_v_set_pix_mode( pix_mode );
 
     hal_pixel_v_init();
 }
