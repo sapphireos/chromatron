@@ -1000,9 +1000,9 @@ static esp_err_t i2s_calculate_adc_dac_clock(int i2s_num, i2s_hal_clock_cfg_t *c
     ESP_RETURN_ON_FALSE(p_i2s[i2s_num]->hal_cfg.mode & (I2S_MODE_DAC_BUILT_IN | I2S_MODE_ADC_BUILT_IN), ESP_ERR_INVALID_ARG, TAG, "current mode is not built-in ADC/DAC");
 
     /* Set I2S bit clock */
-    clk_cfg->bclk = p_i2s[i2s_num]->hal_cfg.sample_rate * I2S_LL_AD_BCK_FACTOR * 2;
+    clk_cfg->bclk = p_i2s[i2s_num]->hal_cfg.sample_rate * I2S_LL_AD_BCK_FACTOR;
     /* Set I2S bit clock default division */
-    clk_cfg->bclk_div = I2S_LL_AD_BCK_FACTOR;
+    clk_cfg->bclk_div = p_i2s[i2s_num]->hal_cfg.chan_bits;
     /* If fixed_mclk and use_apll are set, use fixed_mclk as mclk frequency, otherwise calculate by mclk = sample_rate * multiple */
     clk_cfg->mclk = (p_i2s[i2s_num]->use_apll && p_i2s[i2s_num]->fixed_mclk) ?
                     p_i2s[i2s_num]->fixed_mclk : clk_cfg->bclk * clk_cfg->bclk_div;
@@ -1213,7 +1213,7 @@ static esp_err_t i2s_calculate_clock(i2s_port_t i2s_num, i2s_hal_clock_cfg_t *cl
 static uint32_t i2s_get_max_channel_num(i2s_channel_t chan_mask)
 {
     uint32_t max_chan = 0;
-    uint32_t channel = chan_mask & 0xFFFF;
+    uint32_t channel = chan_mask >> 16;
     for (int i = 0; channel && i < 16; i++, channel >>= 1) {
         if (channel & 0x01) {
             max_chan = i + 1;
@@ -1246,7 +1246,7 @@ static uint32_t i2s_get_active_channel_num(const i2s_hal_config_t *hal_cfg)
 #if SOC_I2S_SUPPORTS_TDM
     case I2S_CHANNEL_FMT_MULTIPLE: {
         uint32_t num = 0;
-        uint32_t chan_mask = hal_cfg->chan_mask & 0xFFFF;
+        uint32_t chan_mask = hal_cfg->chan_mask >> 16;
         for (int i = 0; chan_mask && i < 16; i++, chan_mask >>= 1) {
             if (chan_mask & 0x01) {
                 num++;
@@ -1566,18 +1566,36 @@ esp_err_t i2s_set_clk(i2s_port_t i2s_num, uint32_t rate, uint32_t bits_cfg, i2s_
     ESP_RETURN_ON_FALSE(p_i2s[i2s_num], ESP_ERR_INVALID_ARG, TAG, "I2S%d has not installed yet", i2s_num);
 
     i2s_hal_config_t *cfg = &p_i2s[i2s_num]->hal_cfg;
+
+    /* Stop I2S */
+    i2s_stop(i2s_num);
+
     /* If not the first time, update configuration */
     if (p_i2s[i2s_num]->last_buf_size) {
         cfg->sample_rate = rate;
         cfg->sample_bits = bits_cfg & 0xFFFF;
         cfg->chan_bits = (bits_cfg >> 16) > cfg->sample_bits ? (bits_cfg >> 16) : cfg->sample_bits;
 #if SOC_I2S_SUPPORTS_TDM
-        cfg->chan_mask = ch;
-        cfg->chan_fmt = ch == I2S_CHANNEL_MONO ? I2S_CHANNEL_FMT_ONLY_RIGHT : cfg->chan_fmt;
-        cfg->active_chan   = i2s_get_active_channel_num(cfg);
-        uint32_t max_channel = i2s_get_max_channel_num(cfg->chan_mask);
-        /* If total channel is smaller than max actived channel number then set it to the max active channel number */
-        cfg->total_chan = p_i2s[i2s_num]->hal_cfg.total_chan < max_channel ? max_channel : p_i2s[i2s_num]->hal_cfg.total_chan;
+        if (ch & I2S_CHANNEL_MONO) {
+            cfg->chan_fmt = I2S_CHANNEL_FMT_ONLY_RIGHT;
+            cfg->chan_mask = I2S_TDM_ACTIVE_CH0; // Only activate one channel in mono
+            if (ch >> 16) {
+                cfg->total_chan = i2s_get_max_channel_num(ch);
+            } else {
+                cfg->total_chan = 2;
+            }
+        } else {
+            if (ch >> 16) {
+                cfg->chan_fmt = I2S_CHANNEL_FMT_MULTIPLE;
+                cfg->chan_mask = ch & 0xFFFF0000;
+                cfg->total_chan = i2s_get_max_channel_num(cfg->chan_mask);
+            } else {
+                /* If no TDM channels activated, use 2 channels as defualt */
+                cfg->chan_fmt = I2S_CHANNEL_FMT_RIGHT_LEFT;
+                cfg->chan_mask = I2S_TDM_ACTIVE_CH0 | I2S_TDM_ACTIVE_CH1;
+                cfg->total_chan = 2;
+            }
+        }
 #else
         /* Default */
         cfg->chan_fmt = ch == I2S_CHANNEL_MONO ? I2S_CHANNEL_FMT_ONLY_RIGHT : cfg->chan_fmt;
@@ -1600,9 +1618,6 @@ esp_err_t i2s_set_clk(i2s_port_t i2s_num, uint32_t rate, uint32_t bits_cfg, i2s_
     /* Check the validity of sample bits */
     ESP_RETURN_ON_FALSE((data_bits % 8 == 0), ESP_ERR_INVALID_ARG, TAG, "Invalid bits per sample");
     ESP_RETURN_ON_FALSE((data_bits <= I2S_BITS_PER_SAMPLE_32BIT), ESP_ERR_INVALID_ARG, TAG, "Invalid bits per sample");
-
-    /* Stop I2S */
-    i2s_stop(i2s_num);
 
     i2s_hal_clock_cfg_t clk_cfg;
     /* To get sclk, mclk, mclk_div bclk and bclk_div */
@@ -1779,8 +1794,8 @@ static esp_err_t i2s_driver_init(i2s_port_t i2s_num, const i2s_config_t *i2s_con
         p_i2s[i2s_num]->hal_cfg.total_chan = 2;
         break;
     case I2S_CHANNEL_FMT_MULTIPLE:
-        ESP_RETURN_ON_FALSE(i2s_config->chan_mask, ESP_ERR_INVALID_ARG, TAG, "i2s all channel are disabled");
-        p_i2s[i2s_num]->hal_cfg.chan_mask = i2s_config->chan_mask;
+        ESP_RETURN_ON_FALSE((i2s_config->chan_mask >> 16), ESP_ERR_INVALID_ARG, TAG, "i2s all channel are disabled");
+        p_i2s[i2s_num]->hal_cfg.chan_mask = i2s_config->chan_mask & 0xFFFF0000;
         /* Get the max actived channel number */
         uint32_t max_channel = i2s_get_max_channel_num(p_i2s[i2s_num]->hal_cfg.chan_mask);
         /* If total channel is smaller than max actived channel number then set it to the max active channel number */
@@ -1895,6 +1910,14 @@ esp_err_t i2s_driver_install(i2s_port_t i2s_num, const i2s_config_t *i2s_config,
 #endif
     /* Enable module clock */
     i2s_hal_enable_module_clock(&p_i2s[i2s_num]->hal);
+#if SOC_I2S_SUPPORTS_TDM
+    if (i2s_config->mode & I2S_MODE_TX) {
+        i2s_ll_tx_enable_clock(p_i2s[i2s_num]->hal.dev);
+    }
+    if (i2s_config->mode & I2S_MODE_RX) {
+        i2s_ll_rx_enable_clock(p_i2s[i2s_num]->hal.dev);
+    }
+#endif
 
     /* Step 5: Initialize I2S configuration and set the configurations to register */
     i2s_hal_config_param(&(pre_alloc_i2s_obj->hal), &pre_alloc_i2s_obj->hal_cfg);
@@ -1911,6 +1934,7 @@ esp_err_t i2s_driver_install(i2s_port_t i2s_num, const i2s_config_t *i2s_config,
 
     /* Step 7: Set I2S clocks and start. No need to give parameters since configurations has been set in 'i2s_driver_init' */
     ESP_GOTO_ON_ERROR(i2s_set_clk(i2s_num, 0, 0, 0), err, TAG, "I2S set clock failed");
+
     return ESP_OK;
 
 err:
@@ -1971,6 +1995,14 @@ esp_err_t i2s_driver_uninstall(i2s_port_t i2s_num)
     if (p_i2s[i2s_num]->pm_lock) {
         esp_pm_lock_delete(p_i2s[i2s_num]->pm_lock);
         p_i2s[i2s_num]->pm_lock = NULL;
+    }
+#endif
+#if SOC_I2S_SUPPORTS_TDM
+    if (p_i2s[i2s_num]->hal_cfg.mode & I2S_MODE_TX) {
+        i2s_ll_tx_disable_clock(p_i2s[i2s_num]->hal.dev);
+    }
+    if (p_i2s[i2s_num]->hal_cfg.mode & I2S_MODE_RX) {
+        i2s_ll_rx_disable_clock(p_i2s[i2s_num]->hal.dev);
     }
 #endif
     /* Disable module clock */

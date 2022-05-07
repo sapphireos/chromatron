@@ -27,6 +27,7 @@
 #include "threading.h"
 
 #define PIX_SIGNAL_0            SIGNAL_SYS_4
+#define GFX_SIGNAL_0            SIGNAL_SYS_5
 
 void pixel_v_init( void );
 void pixel_v_signal( void );

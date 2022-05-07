@@ -6,9 +6,9 @@
 
 #IncludeRegexTransform: 
 
-../../../../../../components/esp_common/include/esp_compiler.h
+../../../components/esp_common/include/esp_compiler.h
 
-../../../../../../components/esp_common/include/esp_err.h
+../../../components/esp_common/include/esp_err.h
 stdint.h
 -
 stdio.h
@@ -16,9 +16,9 @@ stdio.h
 assert.h
 -
 esp_compiler.h
-../../../../../../components/esp_common/include/esp_compiler.h
+../../../components/esp_common/include/esp_compiler.h
 
-../../../../../../components/newlib/platform_include/assert.h
+../../../components/newlib/platform_include/assert.h
 sdkconfig.h
 -
 stdlib.h
@@ -26,11 +26,11 @@ stdlib.h
 stdint.h
 -
 
-../../../../../../components/xtensa/include/eri.h
+../../../components/xtensa/include/eri.h
 stdint.h
 -
 
-../../../../../../components/xtensa/include/xtensa-debug-module.h
+../../../components/xtensa/include/xtensa-debug-module.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa/eri.c
 stdint.h

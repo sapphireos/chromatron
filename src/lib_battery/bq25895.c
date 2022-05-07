@@ -35,6 +35,8 @@
 
 #ifdef ENABLE_BATTERY
 
+static uint8_t regs[BQ25895_N_REGS];
+
 static uint8_t batt_soc; // state of charge in percent
 static uint8_t batt_soc_startup; // state of charge at power on
 static uint16_t batt_volts;
@@ -127,27 +129,31 @@ PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
+static uint8_t calc_batt_soc( uint16_t volts ){
 
-static uint16_t _calc_batt_soc( uint16_t volts ){
+    uint16_t temp_soc = 0;
 
     if( volts < SOC_MIN_VOLTS ){
 
-        return 0;
+        temp_soc = 0;
+    }
+    else if( volts > SOC_MAX_VOLTS ){
+
+        temp_soc = 10000;
+    }
+    else{
+
+        temp_soc = util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
     }
 
-    if( volts > SOC_MAX_VOLTS ){
+    if( soc_state == 0 ){
 
-        return 10000;
+        soc_state = temp_soc;
     }
+    else{
 
-    return util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
-}
-
-static uint8_t calc_batt_soc( uint16_t volts ){
-
-    uint16_t temp_soc = _calc_batt_soc( volts );
-
-    soc_state = util_u16_ewma( temp_soc, soc_state, SOC_FILTER );
+        soc_state = util_u16_ewma( temp_soc, soc_state, SOC_FILTER );
+    }
 
     return soc_state / 100;
 }
@@ -164,6 +170,8 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
+    bq25895_v_read_all();
+
     thread_t_create( bat_mon_thread,
                      PSTR("bat_mon"),
                      0,
@@ -172,13 +180,23 @@ int8_t bq25895_i8_init( void ){
     return 0;
 }
 
+void bq25895_v_read_all( void ){
+
+    i2c_v_mem_read( BQ25895_I2C_ADDR, 0, 1, regs, sizeof(regs), 0 );
+}
+
+static uint8_t read_cached_reg( uint8_t addr ){
+
+    return regs[addr];
+}
+
 uint8_t bq25895_u8_read_reg( uint8_t addr ){
 
-    i2c_v_write( BQ25895_I2C_ADDR, &addr, sizeof(addr) );
-
     uint8_t data = 0;
-    
-    i2c_v_read( BQ25895_I2C_ADDR, &data, sizeof(data) );
+    i2c_v_mem_read( BQ25895_I2C_ADDR, addr, 1, &data, sizeof(data), 0 );
+
+    // update cache
+    regs[addr] = data;
 
     return data;
 }
@@ -190,6 +208,9 @@ void bq25895_v_write_reg( uint8_t addr, uint8_t data ){
     cmd[1] = data;
 
     i2c_v_write( BQ25895_I2C_ADDR, cmd, sizeof(cmd) );
+
+    // update cache
+    regs[addr] = data;
 }
 
 void bq25895_v_set_reg_bits( uint8_t addr, uint8_t mask ){
@@ -260,7 +281,7 @@ void bq25895_v_set_inlim( uint16_t current ){
 
 uint16_t bq25895_u16_get_inlim( void ){
 
-    uint32_t data = bq25895_u8_read_reg( BQ25895_REG_INPUT_CURRENT ) & BQ25895_MASK_INPUT_CURRENT_LIM;
+    uint32_t data = read_cached_reg( BQ25895_REG_INPUT_CURRENT ) & BQ25895_MASK_INPUT_CURRENT_LIM;
 
     return ( ( data * 3150 ) / 63 ) + 100;
 }
@@ -289,6 +310,11 @@ void bq25895_v_start_adc_oneshot( void ){
 bool bq25895_b_adc_ready( void ){
 
     return ( bq25895_u8_read_reg( BQ25895_REG_ADC ) & BQ25895_BIT_ADC_CONV_START ) == 0;
+}
+
+static bool bq25895_b_adc_ready_cached( void ){
+
+    return ( read_cached_reg( BQ25895_REG_ADC ) & BQ25895_BIT_ADC_CONV_START ) == 0;
 }
 
 void bq25895_v_set_boost_1500khz( void ){
@@ -470,7 +496,7 @@ void bq25895_v_set_boost_voltage( uint16_t volts ){
 
 uint8_t bq25895_u8_get_vbus_status( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_VBUS_STATUS ) & BQ25895_MASK_VBUS_STATUS;
+    uint8_t data = read_cached_reg( BQ25895_REG_VBUS_STATUS ) & BQ25895_MASK_VBUS_STATUS;
     data >>= BQ25895_SHIFT_VBUS_STATUS;
 
     return data;
@@ -485,7 +511,7 @@ bool bq25895_b_get_vbus_good( void ){
 
 uint8_t bq25895_u8_get_charge_status( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_CHARGE_STATUS ) & BQ25895_MASK_CHARGE_STATUS;
+    uint8_t data = read_cached_reg( BQ25895_REG_CHARGE_STATUS ) & BQ25895_MASK_CHARGE_STATUS;
     data >>= BQ25895_SHIFT_CHARGE_STATUS;
 
     return data;
@@ -500,7 +526,7 @@ bool bq25895_b_power_good( void ){
 
 uint8_t bq25895_u8_get_faults( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_FAULT );
+    uint8_t data = read_cached_reg( BQ25895_REG_FAULT );
 
     return data;
 }
@@ -512,7 +538,7 @@ uint16_t bq25895_u16_get_batt_voltage( void ){
 
 static uint16_t _bq25895_u16_get_batt_voltage( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_BATT_VOLTAGE ) & BQ25895_MASK_BATT_VOLTAGE;
+    uint8_t data = read_cached_reg( BQ25895_REG_BATT_VOLTAGE ) & BQ25895_MASK_BATT_VOLTAGE;
 
     // check if battery is not connected (the min voltage is way below min. safe on a Li-ion,
     // so we assume there is no battery in this case).
@@ -529,7 +555,7 @@ static uint16_t _bq25895_u16_get_batt_voltage( void ){
 
 uint16_t bq25895_u16_get_vbus_voltage( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_VBUS_VOLTAGE ) & BQ25895_MASK_VBUS_VOLTAGE;
+    uint8_t data = read_cached_reg( BQ25895_REG_VBUS_VOLTAGE ) & BQ25895_MASK_VBUS_VOLTAGE;
 
     // check if 0, if so, VBUS is most likely not connected, so we'll return a 0
     if( data == 0 ){
@@ -544,7 +570,7 @@ uint16_t bq25895_u16_get_vbus_voltage( void ){
 
 uint16_t bq25895_u16_get_sys_voltage( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_SYS_VOLTAGE ) & BQ25895_MASK_SYS_VOLTAGE;
+    uint8_t data = read_cached_reg( BQ25895_REG_SYS_VOLTAGE ) & BQ25895_MASK_SYS_VOLTAGE;
 
     uint16_t mv = ( ( (uint32_t)data * ( 4848 - 2304 ) ) / 127 ) + 2304;
 
@@ -553,7 +579,7 @@ uint16_t bq25895_u16_get_sys_voltage( void ){
 
 uint16_t bq25895_u16_get_charge_current( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_CHARGE_CURRENT ) & BQ25895_MASK_CHARGE_CURRENT;
+    uint8_t data = read_cached_reg( BQ25895_REG_CHARGE_CURRENT ) & BQ25895_MASK_CHARGE_CURRENT;
 
     uint16_t mv = ( ( (uint32_t)data * 6350 ) / 127 );
 
@@ -834,7 +860,7 @@ int8_t bq25895_i8_calc_temp2( uint16_t percent ){
 
 int8_t bq25895_i8_get_therm( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
+    uint8_t data = read_cached_reg( BQ25895_REG_THERM );
 
     return bq25895_i8_calc_temp( data );
 }
@@ -1090,21 +1116,21 @@ void bq25895_v_set_vindpm( int16_t mv ){
 
 uint16_t bq25895_u16_get_iindpm( void ){
 
-    uint16_t data = bq25895_u8_read_reg( BQ25895_REG_IINDPM ) & BQ25895_MASK_IINDPM;
+    uint16_t data = read_cached_reg( BQ25895_REG_IINDPM ) & BQ25895_MASK_IINDPM;
 
     return 50 * data + 100;
 }
 
 bool bq25895_b_get_vindpm( void ){
     
-    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+    uint8_t reg = read_cached_reg( BQ25895_REG_IINDPM );
 
     return ( reg & BQ25895_BIT_VINDPM ) != 0;
 }
 
 bool bq25895_b_get_iindpm( void ){
     
-    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+    uint8_t reg = read_cached_reg( BQ25895_REG_IINDPM );
 
     return ( reg & BQ25895_BIT_IINDPM ) != 0;
 }
@@ -1137,8 +1163,8 @@ static void init_boost_converter( void ){
 
 static void init_charger( void ){
 
-    // enable charger and set HIZ
-    bq25895_v_set_hiz( TRUE );
+    // enable charger and make sure HIZ is disabled
+    bq25895_v_set_hiz( FALSE );
     bq25895_v_set_charger( TRUE );
 
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
@@ -1348,8 +1374,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        // disable HIZ and check VBUS good
-        bq25895_v_set_hiz( FALSE );
+        // check VBUS good
 
         TMR_WAIT( pt, 100 );
 
@@ -1440,9 +1465,6 @@ PT_BEGIN( pt );
 
 
         // charger isn't working?
-
-        // disconnect vbus
-        bq25895_v_set_hiz( TRUE );
 
         log_v_debug_P( PSTR("Not charging - reset control loop") );
 
@@ -1540,7 +1562,11 @@ PT_BEGIN( pt );
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
 
-        if( bq25895_b_adc_ready() && read_adc() ){
+        // read all registers
+        bq25895_v_read_all();
+
+
+        if( bq25895_b_adc_ready_cached() && read_adc() ){
 
             // ADC success
 
@@ -1556,27 +1582,28 @@ PT_BEGIN( pt );
                 adc_time_max = elapsed;
             }
 
-            soc_state = _calc_batt_soc( batt_volts );
-            batt_soc = calc_batt_soc( batt_volts );
-            batt_soc_startup = batt_soc;
-
             adc_good++;   
         }
         else{
 
             adc_fail++;
 
-            log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
+            TMR_WAIT( pt, 200 );
 
-            // try hiz mode
-            bq25895_v_set_hiz( TRUE );
             continue;
         }
 
 
         // update state of charge
-        // this is a simple linear fit
         uint8_t new_batt_soc = calc_batt_soc( batt_volts );
+
+        batt_soc = calc_batt_soc( batt_volts );
+
+        if( batt_soc_startup == 0 ){
+
+            batt_soc_startup = batt_soc;    
+        }
+
 
         // check if battery just ran down to 0,
         // AND we've started from a full charge
@@ -1634,5 +1661,3 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
-
-#endif

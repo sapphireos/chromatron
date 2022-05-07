@@ -1,7 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj"
   "CMakeFiles/__idf_esp_wifi.dir/src/coexist.c.obj"
-  "CMakeFiles/__idf_esp_wifi.dir/src/lib_printf.c.obj"
   "CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj"
   "CMakeFiles/__idf_esp_wifi.dir/src/smartconfig.c.obj"
   "CMakeFiles/__idf_esp_wifi.dir/src/smartconfig_ack.c.obj"

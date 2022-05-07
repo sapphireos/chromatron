@@ -6,9 +6,9 @@
 
 #IncludeRegexTransform: 
 
-../../../../../../components/esp_common/include/esp_compiler.h
+../../../components/esp_common/include/esp_compiler.h
 
-../../../../../../components/esp_common/include/esp_err.h
+../../../components/esp_common/include/esp_err.h
 stdint.h
 -
 stdio.h
@@ -16,17 +16,17 @@ stdio.h
 assert.h
 -
 esp_compiler.h
-../../../../../../components/esp_common/include/esp_compiler.h
+../../../components/esp_common/include/esp_compiler.h
 
-../../../../../../components/esp_rom/include/esp_rom_sys.h
+../../../components/esp_rom/include/esp_rom_sys.h
 sdkconfig.h
-../../../../../../components/esp_rom/include/sdkconfig.h
+../../../components/esp_rom/include/sdkconfig.h
 stdint.h
 -
 soc/reset_reasons.h
-../../../../../../components/esp_rom/include/soc/reset_reasons.h
+../../../components/esp_rom/include/soc/reset_reasons.h
 
-../../../../../../components/newlib/platform_include/assert.h
+../../../components/newlib/platform_include/assert.h
 sdkconfig.h
 -
 stdlib.h
@@ -34,9 +34,9 @@ stdlib.h
 stdint.h
 -
 
-../../../../../../components/soc/esp32/include/soc/reset_reasons.h
+../../../components/soc/esp32/include/soc/reset_reasons.h
 
-../../../../../../components/spi_flash/include/esp_spi_flash.h
+../../../components/spi_flash/include/esp_spi_flash.h
 stdint.h
 -
 stdbool.h
@@ -44,21 +44,21 @@ stdbool.h
 stddef.h
 -
 esp_err.h
-../../../../../../components/spi_flash/include/esp_err.h
+../../../components/spi_flash/include/esp_err.h
 sdkconfig.h
-../../../../../../components/spi_flash/include/sdkconfig.h
+../../../components/spi_flash/include/sdkconfig.h
 esp_spi_flash_counters.h
-../../../../../../components/spi_flash/include/esp_spi_flash_counters.h
+../../../components/spi_flash/include/esp_spi_flash_counters.h
 
-../../../../../../components/spi_flash/include/esp_spi_flash_counters.h
+../../../components/spi_flash/include/esp_spi_flash_counters.h
 stdint.h
 -
 stdbool.h
 -
 esp_err.h
-../../../../../../components/spi_flash/include/esp_err.h
+../../../components/spi_flash/include/esp_err.h
 sdkconfig.h
-../../../../../../components/spi_flash/include/sdkconfig.h
+../../../components/spi_flash/include/sdkconfig.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system/esp_err.c
 stdbool.h

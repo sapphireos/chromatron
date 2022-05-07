@@ -6,33 +6,33 @@
 
 #IncludeRegexTransform: 
 
-../../../../../components/esp_common/include/esp_assert.h
+../../components/esp_common/include/esp_assert.h
 assert.h
-../../../../../components/esp_common/include/assert.h
+../../components/esp_common/include/assert.h
 
-../../../../../components/esp_common/include/esp_attr.h
+../../components/esp_common/include/esp_attr.h
 sdkconfig.h
-../../../../../components/esp_common/include/sdkconfig.h
+../../components/esp_common/include/sdkconfig.h
 
-../../../../../components/esp_common/include/esp_bit_defs.h
+../../components/esp_common/include/esp_bit_defs.h
 
-../../../../../components/esp_common/include/esp_compiler.h
+../../components/esp_common/include/esp_compiler.h
 
-../../../../../components/esp_hw_support/include/soc/esp32/dport_access.h
+../../components/esp_hw_support/include/soc/esp32/dport_access.h
 stdint.h
 -
 sdkconfig.h
 -
 xtensa/xtruntime.h
-../../../../../components/esp_hw_support/include/soc/esp32/xtensa/xtruntime.h
+../../components/esp_hw_support/include/soc/esp32/xtensa/xtruntime.h
 esp_ipc_isr.h
-../../../../../components/esp_hw_support/include/soc/esp32/esp_ipc_isr.h
+../../components/esp_hw_support/include/soc/esp32/esp_ipc_isr.h
 
-../../../../../components/esp_ipc/include/esp_ipc_isr.h
+../../components/esp_ipc/include/esp_ipc_isr.h
 sdkconfig.h
-../../../../../components/esp_ipc/include/sdkconfig.h
+../../components/esp_ipc/include/sdkconfig.h
 
-../../../../../components/esp_rom/include/esp32/rom/ets_sys.h
+../../components/esp_rom/include/esp32/rom/ets_sys.h
 stdint.h
 -
 stdbool.h
@@ -40,63 +40,63 @@ stdbool.h
 stdlib.h
 -
 sdkconfig.h
-../../../../../components/esp_rom/include/esp32/rom/sdkconfig.h
+../../components/esp_rom/include/esp32/rom/sdkconfig.h
 soc/soc.h
-../../../../../components/esp_rom/include/esp32/rom/soc/soc.h
+../../components/esp_rom/include/esp32/rom/soc/soc.h
 
-../../../../../components/esp_rom/include/esp32s2/rom/ets_sys.h
+../../components/esp_rom/include/esp32s2/rom/ets_sys.h
 stdint.h
 -
 stdbool.h
 -
 soc/soc.h
-../../../../../components/esp_rom/include/esp32s2/rom/soc/soc.h
+../../components/esp_rom/include/esp32s2/rom/soc/soc.h
 
-../../../../../components/esp_rom/include/esp32s3/rom/ets_sys.h
+../../components/esp_rom/include/esp32s3/rom/ets_sys.h
 stdint.h
 -
 stdbool.h
 -
 soc/soc.h
-../../../../../components/esp_rom/include/esp32s3/rom/soc/soc.h
+../../components/esp_rom/include/esp32s3/rom/soc/soc.h
 
-../../../../../components/esp_rom/include/esp_rom_sys.h
+../../components/esp_rom/include/esp_rom_sys.h
 sdkconfig.h
-../../../../../components/esp_rom/include/sdkconfig.h
+../../components/esp_rom/include/sdkconfig.h
 stdint.h
 -
 soc/reset_reasons.h
-../../../../../components/esp_rom/include/soc/reset_reasons.h
+../../components/esp_rom/include/soc/reset_reasons.h
 
-../../../../../components/freertos/include/esp_additions/freertos/FreeRTOSConfig.h
+../../components/freertos/include/esp_additions/freertos/FreeRTOSConfig.h
 sdkconfig.h
-../../../../../components/freertos/include/esp_additions/freertos/sdkconfig.h
+../../components/freertos/include/esp_additions/freertos/sdkconfig.h
 esp_compiler.h
-../../../../../components/freertos/include/esp_additions/freertos/esp_compiler.h
+../../components/freertos/include/esp_additions/freertos/esp_compiler.h
 freertos/FreeRTOSConfig_arch.h
-../../../../../components/freertos/include/esp_additions/freertos/freertos/FreeRTOSConfig_arch.h
+../../components/freertos/include/esp_additions/freertos/freertos/FreeRTOSConfig_arch.h
 assert.h
 -
 SEGGER_SYSVIEW_FreeRTOS.h
-../../../../../components/freertos/include/esp_additions/freertos/SEGGER_SYSVIEW_FreeRTOS.h
+../../components/freertos/include/esp_additions/freertos/SEGGER_SYSVIEW_FreeRTOS.h
 
-../../../../../components/freertos/port/xtensa/include/freertos/FreeRTOSConfig_arch.h
+../../components/freertos/port/xtensa/include/freertos/FreeRTOSConfig_arch.h
 sdkconfig.h
-../../../../../components/freertos/port/xtensa/include/freertos/sdkconfig.h
+../../components/freertos/port/xtensa/include/freertos/sdkconfig.h
 freertos/xtensa_config.h
 -
 assert.h
 -
 esp_rom_sys.h
-../../../../../components/freertos/port/xtensa/include/freertos/esp_rom_sys.h
+../../components/freertos/port/xtensa/include/freertos/esp_rom_sys.h
 esp32/rom/ets_sys.h
-../../../../../components/freertos/port/xtensa/include/freertos/esp32/rom/ets_sys.h
+../../components/freertos/port/xtensa/include/freertos/esp32/rom/ets_sys.h
 esp32s2/rom/ets_sys.h
-../../../../../components/freertos/port/xtensa/include/freertos/esp32s2/rom/ets_sys.h
+../../components/freertos/port/xtensa/include/freertos/esp32s2/rom/ets_sys.h
 esp32s3/rom/ets_sys.h
-../../../../../components/freertos/port/xtensa/include/freertos/esp32s3/rom/ets_sys.h
+../../components/freertos/port/xtensa/include/freertos/esp32s3/rom/ets_sys.h
 
-../../../../../components/freertos/port/xtensa/include/freertos/xtensa_config.h
+../../components/freertos/port/xtensa/include/freertos/xtensa_config.h
 xtensa/hal.h
 -
 xtensa/config/core.h
@@ -104,13 +104,13 @@ xtensa/config/core.h
 xtensa/config/system.h
 -
 xtensa_context.h
-../../../../../components/freertos/port/xtensa/include/freertos/xtensa_context.h
+../../components/freertos/port/xtensa/include/freertos/xtensa_context.h
 
-../../../../../components/freertos/port/xtensa/include/freertos/xtensa_context.h
+../../components/freertos/port/xtensa/include/freertos/xtensa_context.h
 xtensa/xtensa_context.h
 -
 
-../../../../../components/freertos/port/xtensa/include/freertos/xtensa_rtos.h
+../../components/freertos/port/xtensa/include/freertos/xtensa_rtos.h
 xtensa/coreasm.h
 -
 xtensa/config/core.h
@@ -120,15 +120,15 @@ xtensa/corebits.h
 xtensa/config/system.h
 -
 sdkconfig.h
-../../../../../components/freertos/port/xtensa/include/freertos/sdkconfig.h
+../../components/freertos/port/xtensa/include/freertos/sdkconfig.h
 freertos/FreeRTOSConfig.h
-../../../../../components/freertos/port/xtensa/include/freertos/freertos/FreeRTOSConfig.h
+../../components/freertos/port/xtensa/include/freertos/freertos/FreeRTOSConfig.h
 xtensa_context.h
-../../../../../components/freertos/port/xtensa/include/freertos/xtensa_context.h
+../../components/freertos/port/xtensa/include/freertos/xtensa_context.h
 xtensa_timer.h
-../../../../../components/freertos/port/xtensa/include/freertos/xtensa_timer.h
+../../components/freertos/port/xtensa/include/freertos/xtensa_timer.h
 
-../../../../../components/freertos/port/xtensa/include/freertos/xtensa_timer.h
+../../components/freertos/port/xtensa/include/freertos/xtensa_timer.h
 xtensa/coreasm.h
 -
 xtensa/corebits.h
@@ -136,11 +136,11 @@ xtensa/corebits.h
 xtensa/config/system.h
 -
 xtensa_rtos.h
-../../../../../components/freertos/port/xtensa/include/freertos/xtensa_rtos.h
+../../components/freertos/port/xtensa/include/freertos/xtensa_rtos.h
 freertos/FreeRTOSConfig.h
-../../../../../components/freertos/port/xtensa/include/freertos/freertos/FreeRTOSConfig.h
+../../components/freertos/port/xtensa/include/freertos/freertos/FreeRTOSConfig.h
 
-../../../../../components/newlib/platform_include/assert.h
+../../components/newlib/platform_include/assert.h
 sdkconfig.h
 -
 stdlib.h
@@ -148,49 +148,49 @@ stdlib.h
 stdint.h
 -
 
-../../../../../components/soc/esp32/include/soc/dport_access.h
+../../components/soc/esp32/include/soc/dport_access.h
 stdint.h
 -
 esp_attr.h
-../../../../../components/soc/esp32/include/soc/esp_attr.h
+../../components/soc/esp32/include/soc/esp_attr.h
 esp32/dport_access.h
-../../../../../components/soc/esp32/include/soc/esp32/dport_access.h
+../../components/soc/esp32/include/soc/esp32/dport_access.h
 sdkconfig.h
-../../../../../components/soc/esp32/include/soc/sdkconfig.h
+../../components/soc/esp32/include/soc/sdkconfig.h
 
-../../../../../components/soc/esp32/include/soc/dport_reg.h
+../../components/soc/esp32/include/soc/dport_reg.h
 soc.h
-../../../../../components/soc/esp32/include/soc/soc.h
+../../components/soc/esp32/include/soc/soc.h
 dport_access.h
-../../../../../components/soc/esp32/include/soc/dport_access.h
+../../components/soc/esp32/include/soc/dport_access.h
 
-../../../../../components/soc/esp32/include/soc/reset_reasons.h
+../../components/soc/esp32/include/soc/reset_reasons.h
 
-../../../../../components/soc/esp32/include/soc/soc.h
+../../components/soc/esp32/include/soc/soc.h
 stdint.h
 -
 esp_assert.h
-../../../../../components/soc/esp32/include/soc/esp_assert.h
+../../components/soc/esp32/include/soc/esp_assert.h
 esp_bit_defs.h
 -
 
-../../../../../components/soc/esp32/include/soc/timer_group_reg.h
+../../components/soc/esp32/include/soc/timer_group_reg.h
 soc.h
-../../../../../components/soc/esp32/include/soc/soc.h
+../../components/soc/esp32/include/soc/soc.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/core-isa.h
+../../components/xtensa/esp32/include/xtensa/config/core-isa.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
+../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/core.h
+../../components/xtensa/esp32/include/xtensa/config/core.h
 xtensa/hal.h
 -
 xtensa/xtensa-versions.h
 -
 xtensa/hal.h
-../../../../../components/xtensa/esp32/include/xtensa/config/xtensa/hal.h
+../../components/xtensa/esp32/include/xtensa/config/xtensa/hal.h
 xtensa/xtensa-versions.h
-../../../../../components/xtensa/esp32/include/xtensa/config/xtensa/xtensa-versions.h
+../../components/xtensa/esp32/include/xtensa/config/xtensa/xtensa-versions.h
 xtensa/config/core-isa.h
 -
 xtensa/config/core-matmap.h
@@ -198,29 +198,29 @@ xtensa/config/core-matmap.h
 xtensa/config/tie.h
 -
 core-isa.h
-../../../../../components/xtensa/esp32/include/xtensa/config/core-isa.h
+../../components/xtensa/esp32/include/xtensa/config/core-isa.h
 core-matmap.h
-../../../../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
+../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
 tie.h
-../../../../../components/xtensa/esp32/include/xtensa/config/tie.h
+../../components/xtensa/esp32/include/xtensa/config/tie.h
 xtensa/config/tie-asm.h
 -
 tie-asm.h
-../../../../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
+../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/specreg.h
+../../components/xtensa/esp32/include/xtensa/config/specreg.h
 xtensa/corebits.h
 -
 
-../../../../../components/xtensa/esp32/include/xtensa/config/system.h
+../../components/xtensa/esp32/include/xtensa/config/system.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
+../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/tie.h
+../../components/xtensa/esp32/include/xtensa/config/tie.h
 
-../../../../../components/xtensa/include/esp_private/panic_reason.h
+../../components/xtensa/include/esp_private/panic_reason.h
 
-../../../../../components/xtensa/include/xtensa/coreasm.h
+../../components/xtensa/include/xtensa/coreasm.h
 xtensa/config/core.h
 -
 xtensa/config/specreg.h
@@ -228,17 +228,17 @@ xtensa/config/specreg.h
 xtensa/config/system.h
 -
 
-../../../../../components/xtensa/include/xtensa/corebits.h
+../../components/xtensa/include/xtensa/corebits.h
 
-../../../../../components/xtensa/include/xtensa/hal.h
+../../components/xtensa/include/xtensa/hal.h
 stdint.h
 -
 stddef.h
 -
 
-../../../../../components/xtensa/include/xtensa/xtensa-versions.h
+../../components/xtensa/include/xtensa/xtensa-versions.h
 
-../../../../../components/xtensa/include/xtensa/xtensa_context.h
+../../components/xtensa/include/xtensa/xtensa_context.h
 xtensa/coreasm.h
 -
 xtensa/config/tie.h
@@ -250,7 +250,7 @@ xtensa/config/system.h
 xtensa/xtruntime-frames.h
 -
 
-../../../../../components/xtensa/include/xtensa/xtruntime-core-state.h
+../../components/xtensa/include/xtensa/xtruntime-core-state.h
 xtensa/xtruntime-frames.h
 -
 xtensa/config/core.h
@@ -260,11 +260,11 @@ xtensa/config/tie.h
 xtensa/idma.h
 -
 
-../../../../../components/xtensa/include/xtensa/xtruntime-frames.h
+../../components/xtensa/include/xtensa/xtruntime-frames.h
 xtensa/config/core.h
 -
 
-../../../../../components/xtensa/include/xtensa/xtruntime.h
+../../components/xtensa/include/xtensa/xtruntime.h
 xtensa/config/core.h
 -
 xtensa/config/specreg.h

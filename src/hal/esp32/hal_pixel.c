@@ -59,11 +59,8 @@ static const uint8_t ws2811_lookup[256][4] __attribute__((aligned(4))) = {
 static spi_transaction_t spi_transaction;
 static spi_transaction_t* transaction_ptr = &spi_transaction;
 static bool request_reconfigure;
-static bool zero_output;
 
 static uint16_t setup_pixel_buffer( void ){
-
-    zero_output = TRUE;
 
     uint8_t *buf = outputs;
 
@@ -100,21 +97,14 @@ static uint16_t setup_pixel_buffer( void ){
     uint8_t *array_b = gfx_u8p_get_blue();
     uint8_t *array_misc = gfx_u8p_get_dither();
 
-    uint8_t r, g, b, dither;
-    uint8_t rd, gd, bd;
-
     for( uint16_t i = 0; i < transfer_pixel_count; i++ ){
+    
+        uint8_t r, g, b, dither;
+        uint8_t rd, gd, bd;
 
         r = array_r[i];
         g = array_g[i];
         b = array_b[i];
-
-        if( ( r != 0 ) ||
-            ( g != 0 ) ||
-            ( b != 0 ) ){
-
-            zero_output = FALSE;     
-        }
 
         if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
@@ -246,7 +236,15 @@ static void _pixel_v_configure( void ){
         return;
     }
 
-    spi_v_init( PIXEL_SPI_CHANNEL, pix_clock, 0 );
+    uint32_t freq = pix_clock;
+
+    if( ( pix_mode == PIX_MODE_WS2811 ) ||
+        ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
+
+        freq = 3200000;
+    }
+
+    spi_v_init( PIXEL_SPI_CHANNEL, freq, 0 );
 }
 
 
@@ -254,14 +252,10 @@ PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    static uint16_t data_length;
-    
     while(1){
 
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
-
-        data_length = setup_pixel_buffer();
 
         if( request_reconfigure ){
 
@@ -271,6 +265,8 @@ PT_BEGIN( pt );
         }
 
         // initiate SPI transfers
+
+        uint16_t data_length = setup_pixel_buffer();
 
         // this will transmit using interrupt/DMA mode
         memset( &spi_transaction, 0, sizeof(spi_transaction) );
@@ -293,19 +289,20 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 5 );
 
         
-        if( zero_output ){
+        if( gfx_b_is_output_zero() ){
 
             // shut down pixel driver IO
             spi_v_release();
 
-            // set up down pixel power
+            // shut down pixel power
             batt_v_disable_pixels();
 
-            while( zero_output ){
+            // wait while pixels are zero output
+            while( gfx_b_is_output_zero() ){
 
                 THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
-                data_length = setup_pixel_buffer();
+                setup_pixel_buffer();
             }
 
             // re-enable pixel power
@@ -316,6 +313,9 @@ PT_BEGIN( pt );
 
             // re-enable pixel drivers
             _pixel_v_configure();
+
+            // signal so we process pixels immediately
+            pixel_v_signal();
         }
 
     }

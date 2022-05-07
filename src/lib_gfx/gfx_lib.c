@@ -34,6 +34,7 @@
 #include "gfx_lib.h"
 #include "vm.h"
 #include "battery.h"
+#include "pixel_vars.h"
 
 #ifdef ENABLE_GFX
 
@@ -80,7 +81,6 @@ static uint16_t target_dimmer = 0;
 static uint16_t current_dimmer = 0;
 static int16_t dimmer_step = 0;
 
-static uint8_t pix_mode;
 static uint16_t pix_size_x;
 static uint16_t pix_size_y;
 static bool gfx_interleave_x;
@@ -105,7 +105,7 @@ static uint16_t gfx_frame_rate = 100;
 static uint8_t dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
 static uint8_t sat_curve = GFX_SAT_CURVE_DEFAULT;
 
-#define ENABLE_CHANNEL_MASK
+// #define ENABLE_CHANNEL_MASK
 
 #ifdef ENABLE_CHANNEL_MASK
 static uint8_t channel_mask;
@@ -130,6 +130,7 @@ static uint8_t noise_table[NOISE_TABLE_SIZE];
 static uint16_t pix_counts[N_PIXEL_OUTPUTS];
 static uint16_t pix_count;
 
+static bool zero_output;
 
 static void update_pix_count( void ){
 
@@ -404,11 +405,6 @@ static void setup_master_array( void ){
     pix_arrays[0].count = pix_count;
     pix_arrays[0].size_x = pix_size_x;
     pix_arrays[0].size_y = pix_size_y;    
-}
-
-void gfx_v_set_pix_mode( uint8_t mode ){
-
-    pix_mode = mode;
 }
 
 void gfx_v_set_vm_frame_rate( uint16_t frame_rate ){
@@ -1937,6 +1933,11 @@ void gfxlib_v_init( void ){
     update_master_fader();
 }
 
+bool gfx_b_is_output_zero( void ){
+
+    return zero_output;
+}
+
 // convert all HSV to RGB
 void gfx_v_sync_array( void ){
 
@@ -1962,6 +1963,8 @@ void gfx_v_sync_array( void ){
         &pix0_16bit_blue
     );
 
+    zero_output = TRUE;
+
     if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
         for( uint16_t i = 0; i < pix_count; i++ ){
@@ -1984,6 +1987,14 @@ void gfx_v_sync_array( void ){
             g /= 256;
             b /= 256;
             w /= 256;
+
+            if( ( r != 0 ) ||
+                ( g != 0 ) ||
+                ( b != 0 ) ||
+                ( w != 0 ) ){
+
+                zero_output = FALSE;     
+            }
 
             array_red[i] = r;
             array_green[i] = g;
@@ -2019,6 +2030,13 @@ void gfx_v_sync_array( void ){
             r /= 4;
             g /= 4;
             b /= 4;
+
+            if( ( r != 0 ) ||
+                ( g != 0 ) ||
+                ( b != 0 ) ){
+
+                zero_output = FALSE;     
+            }
         
             array_red[i] = r;
             array_green[i] = g;

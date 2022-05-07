@@ -6,9 +6,11 @@ file(REMOVE_RECURSE
   "CMakeFiles/mbedtls.dir/ssl_ciphersuites.c.obj"
   "CMakeFiles/mbedtls.dir/ssl_cli.c.obj"
   "CMakeFiles/mbedtls.dir/ssl_cookie.c.obj"
+  "CMakeFiles/mbedtls.dir/ssl_msg.c.obj"
   "CMakeFiles/mbedtls.dir/ssl_srv.c.obj"
   "CMakeFiles/mbedtls.dir/ssl_ticket.c.obj"
   "CMakeFiles/mbedtls.dir/ssl_tls.c.obj"
+  "CMakeFiles/mbedtls.dir/ssl_tls13_keys.c.obj"
   "libmbedtls.a"
   "libmbedtls.pdb"
 )

@@ -88,7 +88,8 @@ static volatile uint8_t thread_flags;
 #define FLAGS_ACTIVE        0x04
 
 static volatile uint16_t signals;
-
+static thread_timed_signal_t timed_signals[THREAD_MAX_TIMED_SIGNALS];
+static uint32_t last_timed_signal_check;
 
 #ifdef ENABLE_STACK_LOGGING
 static uint16_t last_stack;
@@ -460,6 +461,30 @@ uint16_t thread_u16_get_signals( void ){
     return sig_copy;
 }
 
+void thread_v_create_timed_signal( uint8_t signum, uint8_t rate ){
+
+    // cannot create timed signals in safe mode
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
+
+        if( timed_signals[i].rate == 0 ){
+
+            timed_signals[i].signal = signum;
+            timed_signals[i].rate = rate * 1000; // convert to microseconds
+            timed_signals[i].ticks = timed_signals[i].rate;
+
+            return;
+        }
+    }
+
+    // no signals available
+    ASSERT( FALSE );
+}
+
 uint8_t thread_u8_get_run_cause( void ){
 
     return run_cause;
@@ -666,33 +691,61 @@ void run_thread( thread_t thread, thread_state_t *state ){
     #endif
 }
 
-void process_signalled_threads( void ){
 
-    if( thread_u16_get_signals() == 0 ){
+static void process_timed_signals( void ){
 
-        return;
-    }
+    uint32_t now = tmr_u32_get_system_time_us();
+    uint32_t elapsed = tmr_u32_elapsed_times( last_timed_signal_check, now );
 
-    // iterate through thread list
-    list_node_t ln = thread_list.head;
+    for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
 
-    while( ln >= 0 ){
+        if( timed_signals[i].rate <= 0 ){
 
-        list_node_state_t *ln_state = mem2_vp_get_ptr_fast( ln );
-        thread_state_t *state = (thread_state_t *)&ln_state->data;
-
-        if( ( state->flags & THREAD_FLAGS_SIGNAL ) != 0 ){
-
-            run_cause = THREAD_FLAGS_SIGNAL;
-
-            // clear wait flags
-            state->flags &= ~THREAD_FLAGS_WAITING;
-            state->flags &= ~THREAD_FLAGS_YIELDED;
-
-            run_thread( ln, state );
+            continue;
         }
 
-        ln = ln_state->next;
+        timed_signals[i].ticks -= elapsed;
+
+        if( timed_signals[i].ticks <= 0 ){
+
+            timed_signals[i].ticks += timed_signals[i].rate;
+
+            signals |= ( 1 << timed_signals[i].signal );
+        }
+    }
+
+    last_timed_signal_check = now;
+}
+
+static void process_signalled_threads( void ){
+
+    uint8_t count = 0;
+
+    while( ( thread_u16_get_signals() != 0 ) && ( count < 16 ) ){
+
+        count++;
+
+        // iterate through thread list
+        list_node_t ln = thread_list.head;
+
+        while( ln >= 0 ){
+
+            list_node_state_t *ln_state = mem2_vp_get_ptr_fast( ln );
+            thread_state_t *state = (thread_state_t *)&ln_state->data;
+
+            if( ( state->flags & THREAD_FLAGS_SIGNAL ) != 0 ){
+
+                run_cause = THREAD_FLAGS_SIGNAL;
+
+                // clear wait flags
+                state->flags &= ~THREAD_FLAGS_WAITING;
+                state->flags &= ~THREAD_FLAGS_YIELDED;
+
+                run_thread( ln, state );
+            }
+
+            ln = ln_state->next;
+        }
     }
 }
 
@@ -766,6 +819,7 @@ void thread_core( void ){
 
         ln = ln_state->next;
 
+        process_timed_signals();
         process_signalled_threads();
 
         #ifdef ENABLE_USB

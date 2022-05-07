@@ -109,7 +109,7 @@ static bool pca9536_enabled;
 
 #define BUTTON_HOLD_TIME            20
 #define BUTTON_SHUTDOWN_TIME        60
-#define BUTTON_WIFI_TIME            120
+#define BUTTON_WIFI_TIME            20
 
 #define BUTTON_WAIT_FOR_RELEASE     255
 #define DIMMER_RATE                 5000
@@ -192,6 +192,8 @@ void batt_v_init( void ){
     energy_v_init();
 
     if( !batt_enable ){
+
+        pixels_enabled = TRUE;
 
         return;
     }
@@ -369,8 +371,9 @@ PT_BEGIN( pt );
             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 0 );
 
-            if( ( bq25895_i8_get_temp() >= 39 ) ||
-                ( bq25895_i8_get_case_temp() >= 49 ) ){
+            if( ( bq25895_i8_get_temp() >= 38 ) ||
+                // ( bq25895_i8_get_case_temp() > ( bq25895_i8_get_ambient_temp() + 2 ) ) ||
+                ( bq25895_i8_get_case_temp() >= 46 ) ){
 
                 fan_on = TRUE;
             }
@@ -384,7 +387,8 @@ PT_BEGIN( pt );
             io_v_digital_write( ELITE_FAN_IO, 1 );
 
             if( ( bq25895_i8_get_temp() <= 37 ) &&
-                ( bq25895_i8_get_case_temp() <= 44 ) ){
+                // ( bq25895_i8_get_case_temp() <= ( bq25895_i8_get_ambient_temp() + 1 ) ) &&
+                ( bq25895_i8_get_case_temp() <= 45 ) ){
 
                 fan_on = FALSE;
             }
@@ -516,7 +520,7 @@ PT_BEGIN( pt );
 
             // the low battery states are latching, so that a temporary increase in SOC due to voltage fluctuations will not
             // toggle between states.  States only flow towards lower SOC, unless the charger is activated.
-            if( ( bq25895_u8_get_soc() <= 0 ) || ( batt_volts < EMERGENCY_CUTOFF_VOLTAGE ) ){
+            if( ( bq25895_u8_get_soc() == 0 ) || ( batt_volts < EMERGENCY_CUTOFF_VOLTAGE ) ){
                 // for cutoff, we also check voltage as a backup, in case the SOC calculation has a problem.
 
                 if( ( batt_state != BATT_STATE_CUTOFF ) && ( batt_volts != 0 ) ){
