@@ -804,7 +804,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
-        reboot();
+        reboot( FALSE );
     }
 
     shutting_down = TRUE;

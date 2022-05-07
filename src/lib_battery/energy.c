@@ -26,7 +26,6 @@
 
 #include "logging.h"
 
-#include "esp8266.h"
 #include "graphics.h"
 #include "pixel.h"
 
@@ -239,3 +238,4 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+#endif

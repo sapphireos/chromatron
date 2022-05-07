@@ -231,7 +231,7 @@ void batt_v_init( void ){
 
     batt_v_enable_pixels();
 
-    thread_t_create( ui_thread,
+    thread_t_create( battery_ui_thread,
                      PSTR("batt_ui"),
                      0,
                      0 );
@@ -362,8 +362,6 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 20 );
         }
-        else{
-
         while( !fan_on && !sys_b_is_shutting_down() ){
 
             TMR_WAIT( pt, 100 );
@@ -641,3 +639,4 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#endif
