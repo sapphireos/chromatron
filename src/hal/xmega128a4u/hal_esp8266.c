@@ -29,7 +29,6 @@
 #include "hal_esp8266.h"
 #include "wifi_cmd.h"
 
-#include "esp8266.h"
 #include "logging.h"
 
 
