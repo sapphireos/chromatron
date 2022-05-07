@@ -276,7 +276,7 @@ static void configure_code( void ){
 
     // assumes radio is in standby!
 
-    if( codebook[current_code].modulation == RF_MAC_MOD_LORA ){
+    if( codebook[current_code].modulation == RF_MAC_MODE_LORA ){
 
         rfm95w_v_set_reg_bits( RFM95W_RegOpMode, RFM95W_BIT_LORA_MODE );
     }
