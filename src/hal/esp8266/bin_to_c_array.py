@@ -1,6 +1,6 @@
 
 
-with open('../../coprocessor/firmware.bin', 'r') as f:
+with open('../../legacy/coprocessor/firmware.bin', 'r') as f:
 	data = f.read()
 
 with open('coproc_firmware.txt', 'w+') as f:

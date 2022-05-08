@@ -74,13 +74,13 @@ KV_SECTION_META kv_meta_t veml7700_kv[] = {
 
 static void _write_reg16( uint8_t reg, uint16_t val ){
 
-    i2c_v_mem_write( VEML7700_I2C_ADDR, reg, 1, (uint8_t *)&val, sizeof(val), 5 );
+    i2c_v_mem_write( VEML7700_I2C_ADDR, reg, 1, (uint8_t *)&val, sizeof(val), 0 );
 }
 
 static uint16_t _read_reg16( uint8_t reg ){
 
     uint16_t val = 0;
-    i2c_v_mem_read( VEML7700_I2C_ADDR, reg, 1, (uint8_t *)&val, sizeof(val), 5 );
+    i2c_v_mem_read( VEML7700_I2C_ADDR, reg, 1, (uint8_t *)&val, sizeof(val), 0 );
 
     return val;
 }	
