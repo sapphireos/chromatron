@@ -33,8 +33,9 @@
 #include "flash_fs.h"
 #include "hal_boards.h"
 
-#ifdef ESP32
 #include "veml7700.h"
+
+#ifdef ESP32
 #include "telemetry.h"
 #endif
 
@@ -55,8 +56,9 @@ void app_v_init( void ){
 
     pwm_v_init();
 
-    #ifdef ESP32
     veml7700_v_init();
+
+    #ifdef ESP32
 
     telemetry_v_init();
 

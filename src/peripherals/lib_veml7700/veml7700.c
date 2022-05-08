@@ -24,8 +24,6 @@
 
 #include "veml7700.h"
 
-#ifndef ESP8266
-
 /*
 Luminance Example                                                                  
 10-5 lx Light from Sirius, the brightest star in the night sky
@@ -308,5 +306,3 @@ void veml7700_v_init( void ){
                      0,
                      0 );
 }
-
-#endif
