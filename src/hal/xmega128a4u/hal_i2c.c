@@ -358,7 +358,7 @@ void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uin
     
     i2c_v_start();
 
-    i2c_v_send_address( dev_addr, FALSE );
+    i2c_v_send_address( dev_addr, TRUE );
 
     if( addr_size == 1 ){
         
@@ -375,6 +375,11 @@ void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uin
     }
 
     _delay_ms( delay_ms );
+
+
+    i2c_v_start();
+
+    i2c_v_send_address( dev_addr, FALSE );
 
     while( len > 0 ){
 
