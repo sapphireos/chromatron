@@ -49,6 +49,13 @@ static uint64_t energy_total;
 #define ENERGY_MONITOR_RATE FADER_RATE
 
 
+// convert raw energy counter to milliwatt-hours
+static uint64_t convert_to_mwh( uint64_t value ){
+
+    return value / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) );
+}
+
+
 int8_t energy_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -62,19 +69,19 @@ int8_t energy_kv_handler(
 
         if( hash == __KV__energy_cpu ){
 
-            STORE64(data, energy_cpu / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, convert_to_mwh( energy_cpu ) );
         }
         else if( hash == __KV__energy_wifi ){
 
-            STORE64(data, energy_wifi / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, convert_to_mwh( energy_wifi ) );
         }
         else if( hash == __KV__energy_pix ){
 
-            STORE64(data, energy_pix / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, convert_to_mwh( energy_pix ) );
         }
         else if( hash == __KV__energy_total ){
 
-            STORE64(data, energy_total / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, convert_to_mwh( energy_total ) );
         }
 
         // power:
