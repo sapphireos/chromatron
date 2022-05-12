@@ -43,6 +43,7 @@ static uint16_t sys_volts;
 static uint16_t batt_charge_current;
 static uint16_t batt_charge_power;
 static uint16_t batt_max_charge_current;
+static uint16_t batt_max_charge_voltage = BQ25895_MAX_FLOAT_VOLTAGE;
 static bool batt_charging;
 static bool vbus_connected;
 static uint8_t batt_fault;
@@ -93,6 +94,7 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &cell_capacity,            0,  "batt_cell_capacity" },
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity, 0,  "batt_nameplate_capacity" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,  0,  "batt_max_charge_voltage" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                   0,  "batt_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,             0,  "batt_solar_vindpm" },
@@ -114,7 +116,7 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
 
 static uint16_t soc_state;
 
-#define SOC_MAX_VOLTS   ( BQ25895_FLOAT_VOLTAGE - 200 )
+#define SOC_MAX_VOLTS   ( batt_max_charge_voltage - 200 )
 #define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
 #define SOC_FILTER      16
 
@@ -1215,7 +1217,14 @@ static void init_charger( void ){
     bq25895_v_set_fast_charge_current( fast_charge_current );
 
     bq25895_v_set_termination_current( 65 );
-    bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
+
+    // clamp charge voltage
+    if( batt_max_charge_voltage > BQ25895_MAX_FLOAT_VOLTAGE ){
+
+        batt_max_charge_voltage = BQ25895_MAX_FLOAT_VOLTAGE;
+    }
+
+    bq25895_v_set_charge_voltage( batt_max_charge_voltage );
 
     // disable ILIM pin
     bq25895_v_set_inlim_pin( FALSE );
@@ -1269,7 +1278,7 @@ static bool read_adc( void ){
 
 static bool is_recharge_threshold( void ){
 
-    return batt_volts <= ( BQ25895_FLOAT_VOLTAGE - 25 );
+    return batt_volts <= ( batt_max_charge_voltage - 50 );
 }
 
 static bool is_vbus_volts_ok( void ){
