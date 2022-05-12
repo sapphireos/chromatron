@@ -61,6 +61,9 @@ static uint16_t vindpm;
 static uint16_t solar_vindpm = 5800;
 static uint16_t iindpm;
 
+static uint16_t charge_cycle_start_volts;
+static uint32_t total_charge_cycles_percent; // in 0.01% SoC increments
+
 // true if MCU system power is sourced from the boost converter
 static bool mcu_source_pmid;
 
@@ -112,11 +115,14 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                0,  "batt_case_temp" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,             0,  "batt_ambient_temp" },
     #endif
+
+
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST | KV_FLAGS_READ_ONLY,    &total_charge_cycles_percent, 0,  "batt_charge_cycles_percent" },
 };
 
 static uint16_t soc_state;
 
-#define SOC_MAX_VOLTS   ( batt_max_charge_voltage - 200 )
+#define SOC_MAX_VOLTS   ( batt_max_charge_voltage - 100 )
 #define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
 #define SOC_FILTER      64
 
@@ -132,9 +138,10 @@ static uint16_t soc_state;
 PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
-PT_THREAD( bat_runtime_tracker_thread( pt_t *pt, void *state ) );
+// PT_THREAD( bat_runtime_tracker_thread( pt_t *pt, void *state ) );
 
-static uint8_t calc_batt_soc( uint16_t volts ){
+
+static uint16_t calc_raw_soc( uint16_t volts ){
 
     uint16_t temp_soc = 0;
 
@@ -150,6 +157,13 @@ static uint8_t calc_batt_soc( uint16_t volts ){
 
         temp_soc = util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
     }
+
+    return temp_soc;    
+}
+
+static uint8_t calc_batt_soc( uint16_t volts ){
+
+    uint16_t temp_soc = calc_raw_soc( volts );
 
     if( soc_state == 0 ){
 
@@ -1256,7 +1270,19 @@ static bool read_adc( void ){
 
     batt_fault = bq25895_u8_get_faults();
     vbus_status = bq25895_u8_get_vbus_status();
-    charge_status = bq25895_u8_get_charge_status();
+
+    uint8_t temp_charge_status = bq25895_u8_get_charge_status();
+
+    // check if switching into a charge cycle:
+    if( ( charge_status != BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
+        ( temp_charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) ){
+
+        // record previous voltage, which will not be affected
+        // by charge current
+        charge_cycle_start_volts = batt_volts;
+    }   
+    
+    charge_status = temp_charge_status;
     vbus_volts = bq25895_u16_get_vbus_voltage();
 
     uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
@@ -1274,6 +1300,40 @@ static bool read_adc( void ){
 
         batt_volts = temp_batt_volts;
     }
+
+    // check if switching into a discharge cycle:
+    if( ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
+        ( temp_charge_status == BQ25895_CHARGE_STATUS_NOT_CHARGING ) ){
+
+        // cycle end voltage is current batt_volts
+
+        // verify that a start voltage was recorded.
+        // also sanity check that the end voltage is higher than the start:
+        if( ( charge_cycle_start_volts != 0 ) &&
+            ( charge_cycle_start_volts < batt_volts ) ){
+
+            // calculate start and end SoC
+            // these values are in 0.01% increments (0 to 10000)
+            uint16_t start_soc = calc_raw_soc( charge_cycle_start_volts );
+            uint16_t end_soc = calc_raw_soc( batt_volts );
+
+            uint16_t recovered_soc = end_soc - start_soc;
+
+            // if we have recovered at least 0.1% SoC, we can record the cycle:
+            if( recovered_soc >= 10 ){
+
+                log_v_debug_P( PSTR("Charge cycle complete: %d%% recovered"), recovered_soc / 100 );
+
+                // update cycle totalizer
+                total_charge_cycles_percent += recovered_soc;
+
+                kv_i8_persist( __KV__batt_charge_cycles_percent );
+            }
+
+            // reset cycle
+            charge_cycle_start_volts = 0;
+        }
+    }   
 
     sys_volts = bq25895_u16_get_sys_voltage();
     batt_charge_current = bq25895_u16_get_charge_current();
@@ -1562,9 +1622,6 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    static bool adc_fault;
-    adc_fault = FALSE;
-
     if( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ){
 
         log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
@@ -1591,10 +1648,10 @@ PT_BEGIN( pt );
                      0,
                      0 );
 
-    thread_t_create( bat_runtime_tracker_thread,
-                     PSTR("bat_runtime"),
-                     0,
-                     0 );
+    // thread_t_create( bat_runtime_tracker_thread,
+    //                  PSTR("bat_runtime"),
+    //                  0,
+    //                  0 );
 
     #if defined(ESP32)
 
@@ -1717,28 +1774,26 @@ PT_END( pt );
 
 
 
-PT_THREAD( bat_runtime_tracker_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// PT_THREAD( bat_runtime_tracker_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
+    
+//     THREAD_WAIT_WHILE( pt, batt_volts == 0 );
 
-    // static uint8_t counter;
+//     while( 1 ){
 
-    // counter = 0;
+//         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 60000 );
+//         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
 
-    while( 1 ){
+//         // if shutting down, flush and terminate thread
+//         if( sys_b_is_shutting_down() ){
 
-        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 60000 );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
-
-        // if shutting down, flush and terminate thread
-        if( sys_b_is_shutting_down() ){
-
-            THREAD_EXIT( pt );
-        }   
+//             THREAD_EXIT( pt );
+//         }   
 
 
 
-    }    
+//     }    
 
-PT_END( pt );
-}
+// PT_END( pt );
+// }
