@@ -201,8 +201,8 @@ void util_v_bubble_sort_reversed_u32( uint32_t *array, uint8_t len ){
 
 uint8_t util_u8_ewma( uint8_t new, uint8_t old, uint8_t ratio ){
 
-    uint8_t temp = ( (uint16_t)ratio * new ) +  
-                   ( (uint16_t)( 256 - ratio ) * old );
+    uint8_t temp = ( ( (uint16_t)ratio * new ) / 256 ) +  
+                   ( ( (uint16_t)( 256 - ratio ) * old ) / 256 );
 
     // check if filter is unchanging
     if( temp == old ){
@@ -223,8 +223,8 @@ uint8_t util_u8_ewma( uint8_t new, uint8_t old, uint8_t ratio ){
 
 int8_t util_i8_ewma( int8_t new, int8_t old, uint8_t ratio ){
 
-    int8_t temp = ( (int16_t)ratio * new ) +  
-                   ( (int16_t)( 256 - ratio ) * old );
+    int8_t temp = ( ( (int16_t)ratio * new ) / 256 ) +  
+                  ( ( (int16_t)( 256 - ratio ) * old ) / 256 );
 
     // check if filter is unchanging
     if( temp == old ){
