@@ -52,7 +52,7 @@ static uint8_t charge_status;
 static bool dump_regs;
 static uint32_t capacity;
 static int32_t remaining;
-static int8_t therm;
+static int8_t therm = -127;
 static uint8_t batt_cells; // number of cells in system
 static uint16_t cell_capacity; // mAh capacity of each cell
 static uint32_t total_nameplate_capacity;
@@ -71,8 +71,8 @@ static uint32_t adc_good;
 static uint32_t adc_fail;
 
 #ifdef ESP32
-static int8_t case_temp;
-static int8_t ambient_temp;
+static int8_t case_temp = -127;
+static int8_t ambient_temp = -127;
 #endif
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
@@ -118,7 +118,9 @@ static uint16_t soc_state;
 
 #define SOC_MAX_VOLTS   ( batt_max_charge_voltage - 200 )
 #define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
-#define SOC_FILTER      16
+#define SOC_FILTER      64
+
+#define VOLTS_FILTER    32
 
 #define VINDPM_WALL     0
 #define VINDPM_SOLAR    solar_vindpm
@@ -130,6 +132,7 @@ static uint16_t soc_state;
 PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
+PT_THREAD( bat_runtime_tracker_thread( pt_t *pt, void *state ) );
 
 static uint8_t calc_batt_soc( uint16_t volts ){
 
@@ -1263,12 +1266,30 @@ static bool read_adc( void ){
         return FALSE;
     }
 
-    batt_volts = temp_batt_volts;
+    if( batt_volts != 0 ){
+
+        batt_volts = util_u16_ewma( temp_batt_volts, batt_volts, VOLTS_FILTER );
+    }
+    else{
+
+        batt_volts = temp_batt_volts;
+    }
 
     sys_volts = bq25895_u16_get_sys_voltage();
     batt_charge_current = bq25895_u16_get_charge_current();
-    therm = util_i8_ewma( bq25895_i8_get_therm(), therm, BQ25895_THERM_FILTER );
     iindpm = bq25895_u16_get_iindpm();
+
+    int8_t temp = bq25895_i8_get_therm();
+
+    if( therm != -127 ){
+
+        therm = util_i8_ewma( temp, therm, BQ25895_THERM_FILTER );    
+    }
+    else{
+
+        therm = temp;
+    }
+    
 
     batt_charge_power = ( (uint32_t)batt_charge_current * (uint32_t)batt_volts ) / 1000;
 
@@ -1507,10 +1528,26 @@ PT_BEGIN( pt );
         uint32_t ambient_adc = adc_u16_read_mv( ELITE_AMBIENT_ADC_IO );
 
         int8_t temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
-        case_temp = util_i8_ewma( temp, case_temp, BQ25895_THERM_FILTER );
 
+        if( case_temp != -127 ){
+
+            case_temp = util_i8_ewma( temp, case_temp, BQ25895_THERM_FILTER );    
+        }
+        else{
+
+            case_temp =- temp;
+        }
+        
         temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
-        ambient_temp = util_i8_ewma( temp, ambient_temp, BQ25895_THERM_FILTER );
+
+        if( ambient_temp != -127 ){
+
+            ambient_temp = util_i8_ewma( temp, ambient_temp, BQ25895_THERM_FILTER );    
+        }
+        else{
+
+            ambient_temp = temp;
+        }
 
         TMR_WAIT( pt, 1000 );
     }
@@ -1551,6 +1588,11 @@ PT_BEGIN( pt );
 
     thread_t_create( bat_control_thread,
                      PSTR("bat_control"),
+                     0,
+                     0 );
+
+    thread_t_create( bat_runtime_tracker_thread,
+                     PSTR("bat_runtime"),
                      0,
                      0 );
 
@@ -1669,6 +1711,34 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 500 );
     }
+
+PT_END( pt );
+}
+
+
+
+PT_THREAD( bat_runtime_tracker_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    // static uint8_t counter;
+
+    // counter = 0;
+
+    while( 1 ){
+
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 60000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
+
+        // if shutting down, flush and terminate thread
+        if( sys_b_is_shutting_down() ){
+
+            THREAD_EXIT( pt );
+        }   
+
+
+
+    }    
 
 PT_END( pt );
 }
