@@ -122,6 +122,8 @@ static uint16_t soc_state;
 #define VINDPM_SOLAR    solar_vindpm
 
 
+#define BQ25895_THERM_FILTER 32
+
 
 PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
@@ -1256,7 +1258,7 @@ static bool read_adc( void ){
 
     sys_volts = bq25895_u16_get_sys_voltage();
     batt_charge_current = bq25895_u16_get_charge_current();
-    therm = bq25895_i8_get_therm();
+    therm = util_i8_ewma( bq25895_i8_get_therm(), therm, BQ25895_THERM_FILTER );
     iindpm = bq25895_u16_get_iindpm();
 
     batt_charge_power = ( (uint32_t)batt_charge_current * (uint32_t)batt_volts ) / 1000;
@@ -1495,8 +1497,11 @@ PT_BEGIN( pt );
         uint32_t case_adc = adc_u16_read_mv( ELITE_CASE_ADC_IO );
         uint32_t ambient_adc = adc_u16_read_mv( ELITE_AMBIENT_ADC_IO );
 
-        case_temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
-        ambient_temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
+        int8_t temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
+        case_temp = util_i8_ewma( temp, case_temp, BQ25895_THERM_FILTER );
+
+        temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
+        ambient_temp = util_i8_ewma( temp, ambient_temp, BQ25895_THERM_FILTER );
 
         TMR_WAIT( pt, 1000 );
     }
