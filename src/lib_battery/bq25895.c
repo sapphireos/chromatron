@@ -1285,6 +1285,19 @@ static bool read_adc( void ){
 
     batt_fault = bq25895_u8_get_faults();
     vbus_status = bq25895_u8_get_vbus_status();
+    vbus_volts = bq25895_u16_get_vbus_voltage();
+
+    uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
+
+    if( temp_batt_volts == 0 ){
+
+        return FALSE;
+    }
+
+    if( batt_volts == 0 ){
+
+        batt_volts = temp_batt_volts;
+    }
 
     uint8_t temp_charge_status = bq25895_u8_get_charge_status();
 
@@ -1295,27 +1308,15 @@ static bool read_adc( void ){
         // record previous voltage, which will not be affected
         // by charge current
         charge_cycle_start_volts = batt_volts;
+
+        log_v_debug_P( PSTR("Charge cycle start: %u mv"), charge_cycle_start_volts );
     }   
-    
-    charge_status = temp_charge_status;
-    vbus_volts = bq25895_u16_get_vbus_voltage();
-
-    uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
-
-    if( temp_batt_volts == 0 ){
-
-        return FALSE;
-    }
 
     if( batt_volts != 0 ){
 
         batt_volts = util_u16_ewma( temp_batt_volts, batt_volts, VOLTS_FILTER );
     }
-    else{
-
-        batt_volts = temp_batt_volts;
-    }
-
+    
     // check if switching into a discharge cycle:
     if( ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
         ( temp_charge_status == BQ25895_CHARGE_STATUS_NOT_CHARGING ) ){
@@ -1330,25 +1331,29 @@ static bool read_adc( void ){
             // calculate start and end SoC
             // these values are in 0.01% increments (0 to 10000)
             uint16_t start_soc = calc_raw_soc( charge_cycle_start_volts );
-            uint16_t end_soc = calc_raw_soc( batt_volts );
+            uint16_t end_soc = calc_raw_soc( temp_batt_volts );
 
             uint16_t recovered_soc = end_soc - start_soc;
 
-            // if we have recovered at least 0.1% SoC, we can record the cycle:
-            // if( recovered_soc >= 10 ){
+            // if we have recovered at least 2% SoC, we can record the cycle:
+            if( recovered_soc >= 200 ){
 
-                log_v_debug_P( PSTR("Charge cycle complete: %u%% recovered"), recovered_soc );
+                log_v_debug_P( PSTR("Charge cycle complete: %u mv %u%% recovered"), temp_batt_volts, recovered_soc / 100 );
 
                 // update cycle totalizer
                 total_charge_cycles_percent += recovered_soc;
 
                 // kv_i8_persist( __KV__batt_charge_cycles_percent );
-            // }
+            }
 
             // reset cycle
             charge_cycle_start_volts = 0;
         }
     }   
+
+    // apply updated charge status AFTER the check for a switch into dischage
+    charge_status = temp_charge_status;
+    
 
     sys_volts = bq25895_u16_get_sys_voltage();
     batt_charge_current = bq25895_u16_get_charge_current();
