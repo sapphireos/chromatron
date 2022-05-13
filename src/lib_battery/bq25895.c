@@ -44,6 +44,7 @@ static uint16_t batt_charge_current;
 static uint16_t batt_charge_power;
 static uint16_t batt_max_charge_current;
 static uint16_t batt_max_charge_voltage = BQ25895_MAX_FLOAT_VOLTAGE;
+static uint16_t batt_min_discharge_voltage = BQ25895_CUTOFF_VOLTAGE;
 static bool batt_charging;
 static bool vbus_connected;
 static uint8_t batt_fault;
@@ -79,41 +80,42 @@ static int8_t ambient_temp = -127;
 #endif
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                 0,  "batt_soc" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                    0,  "batt_temp" },
-    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,            0,  "batt_charging" },
-    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,           0,  "batt_external_power" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,               0,  "batt_volts" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,               0,  "batt_vbus_volts" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                0,  "batt_sys_volts" },
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,            0,  "batt_charge_status" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,      0,  "batt_charge_current" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_power,        0,  "batt_charge_power" },
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,               0,  "batt_fault" },
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,              0,  "batt_vbus_status" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                 0,  "batt_capacity" },
-    { CATBUS_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                0,  "batt_remaining" },
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &cell_capacity,            0,  "batt_cell_capacity" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity, 0,  "batt_nameplate_capacity" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,  0,  "batt_max_charge_voltage" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                   0,  "batt_vindpm" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,             0,  "batt_solar_vindpm" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                   0,  "batt_iindpm" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                   0,  "batt_soc" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                      0,  "batt_temp" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,              0,  "batt_charging" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,             0,  "batt_external_power" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,                 0,  "batt_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,                 0,  "batt_vbus_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                  0,  "batt_sys_volts" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,              0,  "batt_charge_status" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,        0,  "batt_charge_current" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_power,          0,  "batt_charge_power" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,                 0,  "batt_fault" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,                0,  "batt_vbus_status" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                   0,  "batt_capacity" },
+    { CATBUS_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                  0,  "batt_remaining" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,                 0,  "batt_cells" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &cell_capacity,              0,  "batt_cell_capacity" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity,   0,  "batt_nameplate_capacity" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,    0,  "batt_max_charge_current" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,    0,  "batt_max_charge_voltage" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_min_discharge_voltage, 0,  "batt_min_discharge_voltage" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,              0,  "batt_boost_voltage" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,               0,  "batt_solar_vindpm" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                     0,  "batt_iindpm" },
 
-    { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                0,  "batt_dump_regs" },
+    { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                  0,  "batt_dump_regs" },
 
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_min,             0,  "batt_adc_time_min" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_max,             0,  "batt_adc_time_max" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_min,               0,  "batt_adc_time_min" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_max,               0,  "batt_adc_time_max" },
 
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_good,                 0,  "batt_adc_reads" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_fail,                 0,  "batt_adc_fails" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_good,                   0,  "batt_adc_reads" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_fail,                   0,  "batt_adc_fails" },
 
     #ifdef ESP32
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                0,  "batt_case_temp" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,             0,  "batt_ambient_temp" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                  0,  "batt_case_temp" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,               0,  "batt_ambient_temp" },
     #endif
 
 
@@ -123,7 +125,7 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
 static uint16_t soc_state;
 
 #define SOC_MAX_VOLTS   ( batt_max_charge_voltage - 100 )
-#define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
+#define SOC_MIN_VOLTS   ( batt_min_discharge_voltage )
 #define SOC_FILTER      64
 
 #define VOLTS_FILTER    32
@@ -145,6 +147,26 @@ static uint16_t calc_raw_soc( uint16_t volts ){
 
     uint16_t temp_soc = 0;
 
+    if( volts < BQ25895_LION_MIN_VOLTAGE ){
+
+        temp_soc = 0;
+    }
+    else if( volts > BQ25895_LION_MAX_VOLTAGE ){
+
+        temp_soc = 10000;
+    }
+    else{
+
+        temp_soc = util_u16_linear_interp( volts, BQ25895_LION_MIN_VOLTAGE, 0, BQ25895_LION_MAX_VOLTAGE, 10000 );
+    }
+
+    return temp_soc;    
+}
+
+static uint8_t calc_batt_soc( uint16_t volts ){
+
+    uint16_t temp_soc = 0;
+
     if( volts < SOC_MIN_VOLTS ){
 
         temp_soc = 0;
@@ -157,13 +179,6 @@ static uint16_t calc_raw_soc( uint16_t volts ){
 
         temp_soc = util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
     }
-
-    return temp_soc;    
-}
-
-static uint8_t calc_batt_soc( uint16_t volts ){
-
-    uint16_t temp_soc = calc_raw_soc( volts );
 
     if( soc_state == 0 ){
 
@@ -1320,15 +1335,15 @@ static bool read_adc( void ){
             uint16_t recovered_soc = end_soc - start_soc;
 
             // if we have recovered at least 0.1% SoC, we can record the cycle:
-            if( recovered_soc >= 10 ){
+            // if( recovered_soc >= 10 ){
 
-                log_v_debug_P( PSTR("Charge cycle complete: %d%% recovered"), recovered_soc / 100 );
+                log_v_debug_P( PSTR("Charge cycle complete: %u%% recovered"), recovered_soc );
 
                 // update cycle totalizer
                 total_charge_cycles_percent += recovered_soc;
 
-                kv_i8_persist( __KV__batt_charge_cycles_percent );
-            }
+                // kv_i8_persist( __KV__batt_charge_cycles_percent );
+            // }
 
             // reset cycle
             charge_cycle_start_volts = 0;
