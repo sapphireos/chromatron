@@ -114,58 +114,58 @@ static bool pca9536_enabled;
 #define DIMMER_RATE                 5000
 #define MIN_DIMMER                  20000
 
-static uint8_t fx_low_batt[] __attribute__((aligned(4))) = {
-    #include "low_batt.fx.carray"
-};
+// static uint8_t fx_low_batt[] __attribute__((aligned(4))) = {
+//     #include "low_batt.fx.carray"
+// };
 
-static uint32_t fx_low_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+// static uint32_t fx_low_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    uint32_t ret_val = len;
+//     uint32_t ret_val = len;
 
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
-        case FS_VFILE_OP_READ:
-            memcpy( ptr, &fx_low_batt[pos], len );
-            break;
+//     // the pos and len values are already bounds checked by the FS driver
+//     switch( op ){
+//         case FS_VFILE_OP_READ:
+//             memcpy( ptr, &fx_low_batt[pos], len );
+//             break;
 
-        case FS_VFILE_OP_SIZE:
-            ret_val = sizeof(fx_low_batt);
-            break;
+//         case FS_VFILE_OP_SIZE:
+//             ret_val = sizeof(fx_low_batt);
+//             break;
 
-        default:
-            ret_val = 0;
-            break;
-    }
+//         default:
+//             ret_val = 0;
+//             break;
+//     }
 
-    return ret_val;
-}
+//     return ret_val;
+// }
 
 
-static uint8_t fx_crit_batt[] __attribute__((aligned(4))) = {
-    #include "crit_batt.fx.carray"
-};
+// static uint8_t fx_crit_batt[] __attribute__((aligned(4))) = {
+//     #include "crit_batt.fx.carray"
+// };
 
-static uint32_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+// static uint32_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    uint32_t ret_val = len;
+//     uint32_t ret_val = len;
 
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
-        case FS_VFILE_OP_READ:
-            memcpy( ptr, &fx_crit_batt[pos], len );
-            break;
+//     // the pos and len values are already bounds checked by the FS driver
+//     switch( op ){
+//         case FS_VFILE_OP_READ:
+//             memcpy( ptr, &fx_crit_batt[pos], len );
+//             break;
 
-        case FS_VFILE_OP_SIZE:
-            ret_val = sizeof(fx_crit_batt);
-            break;
+//         case FS_VFILE_OP_SIZE:
+//             ret_val = sizeof(fx_crit_batt);
+//             break;
 
-        default:
-            ret_val = 0;
-            break;
-    }
+//         default:
+//             ret_val = 0;
+//             break;
+//     }
 
-    return ret_val;
-}
+//     return ret_val;
+// }
 
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
 
@@ -236,8 +236,8 @@ void batt_v_init( void ){
                      0,
                      0 );
 
-    fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
-    fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
+    // fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
+    // fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
 }
 
 static bool _ui_b_button_down( uint8_t ch ){
