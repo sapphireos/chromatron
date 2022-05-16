@@ -1803,25 +1803,27 @@ PT_BEGIN( pt );
         //     remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
         // }
 
+        batt_charging =  bq25895_b_is_charging();
 
-        if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
 
-            batt_charging = TRUE;
-        }
-        else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
+        // if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
+        //     ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
 
-            if( batt_charging ){
+        //     batt_charging = TRUE;
+        // }
+        // else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
-                log_v_info_P( PSTR("Charging done") );
-            }
+        //     if( batt_charging ){
 
-            batt_charging = FALSE;
-        }
-        else{ // DISCHARGE
+        //         log_v_info_P( PSTR("Charging done") );
+        //     }
 
-            batt_charging = FALSE;
-        }
+        //     batt_charging = FALSE;
+        // }
+        // else{ // DISCHARGE
+
+        //     batt_charging = FALSE;
+        // }
 
         if( dump_regs ){
 
