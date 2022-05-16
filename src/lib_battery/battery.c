@@ -478,12 +478,18 @@ PT_BEGIN( pt );
         }
 
         // check charger status
-        uint8_t charge_status = bq25895_u8_get_charge_status();
+        // uint8_t charge_status = bq25895_u8_get_charge_status();
 
-        if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
+        if( bq25895_b_is_charging() ||
             ( bq25895_u16_read_vbus() > 5500 ) ||
             ( bq25895_u8_get_faults() != 0 ) ){
+
+        // if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
+        //     ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
+        //     ( bq25895_u16_read_vbus() > 5500 ) ||
+        //     ( bq25895_u8_get_faults() != 0 ) ){
+
+            
 
             // disable pixels if:
             // charging
@@ -495,18 +501,18 @@ PT_BEGIN( pt );
 
             gfx_v_set_system_enable( FALSE );
             
-            vm_v_resume( 0 );
-            vm_v_stop( VM_LAST_VM );
+            // vm_v_resume( 0 );
+            // vm_v_stop( VM_LAST_VM );
         }
-        else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
+        // else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
-            batt_state = BATT_STATE_OK;
+        //     batt_state = BATT_STATE_OK;
 
-            gfx_v_set_system_enable( TRUE );
+        //     gfx_v_set_system_enable( TRUE );
 
-            vm_v_resume( 0 );
-            vm_v_stop( VM_LAST_VM );
-        }
+        //     vm_v_resume( 0 );
+        //     vm_v_stop( VM_LAST_VM );
+        // }
         else{ // DISCHARGE
 
             gfx_v_set_system_enable( TRUE );
@@ -533,8 +539,8 @@ PT_BEGIN( pt );
                     
                     batt_state = BATT_STATE_CRITICAL;
 
-                    vm_v_pause( 0 );
-                    vm_v_run_prog( "crit_batt.fxb", VM_LAST_VM );
+                    // vm_v_pause( 0 );
+                    // vm_v_run_prog( "crit_batt.fxb", VM_LAST_VM );
                 }
             }
             else if( bq25895_u8_get_soc() <= 10 ){
@@ -545,8 +551,8 @@ PT_BEGIN( pt );
 
                     batt_state = BATT_STATE_LOW;
 
-                    vm_v_pause( 0 );
-                    vm_v_run_prog( "low_batt.fxb", VM_LAST_VM );
+                    // vm_v_pause( 0 );
+                    // vm_v_run_prog( "low_batt.fxb", VM_LAST_VM );
                 }
             }
 
