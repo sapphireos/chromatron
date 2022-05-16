@@ -572,8 +572,6 @@ PT_BEGIN( pt );
                 bq25895_v_enable_ship_mode( FALSE );
 
                 _delay_ms( 1000 );
-
-                log_v_debug_P( PSTR("wtf 1") );
             }
         }
 

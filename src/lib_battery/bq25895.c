@@ -36,7 +36,7 @@
 static uint8_t regs[BQ25895_N_REGS];
 
 static uint8_t batt_soc; // state of charge in percent
-static uint8_t batt_soc_startup; // state of charge at power on
+// static uint8_t batt_soc_startup; // state of charge at power on
 static uint16_t batt_volts;
 static uint16_t vbus_volts;
 static uint16_t sys_volts;
@@ -51,8 +51,8 @@ static uint8_t batt_fault;
 static uint8_t vbus_status;
 static uint8_t charge_status;
 static bool dump_regs;
-static uint32_t capacity;
-static int32_t remaining;
+// static uint32_t capacity;
+// static int32_t remaining;
 static int8_t therm = -127;
 static uint8_t batt_cells; // number of cells in system
 static uint16_t cell_capacity; // mAh capacity of each cell
@@ -92,8 +92,8 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_power,          0,  "batt_charge_power" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,                 0,  "batt_fault" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,                0,  "batt_vbus_status" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                   0,  "batt_capacity" },
-    { CATBUS_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                  0,  "batt_remaining" },
+    // { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                   0,  "batt_capacity" },
+    // { CATBUS_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                  0,  "batt_remaining" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,                 0,  "batt_cells" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &cell_capacity,              0,  "batt_cell_capacity" },
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity,   0,  "batt_nameplate_capacity" },
@@ -1656,11 +1656,11 @@ PT_BEGIN( pt );
         init_boost_converter();
     }
 
-    if( capacity != 0 ){
+    // if( capacity != 0 ){
 
-        // set baseline energy remaining based on SOC
-        remaining = ( capacity * batt_soc ) / 100;
-    }
+    //     // set baseline energy remaining based on SOC
+    //     remaining = ( capacity * batt_soc ) / 100;
+    // }
         
 
     thread_t_create( bat_control_thread,
@@ -1725,39 +1725,39 @@ PT_BEGIN( pt );
         }
 
         // update state of charge
-        uint8_t new_batt_soc = calc_batt_soc( batt_volts );
+        // uint8_t new_batt_soc = calc_batt_soc( batt_volts );
 
         batt_soc = calc_batt_soc( batt_volts );
 
-        if( batt_soc_startup == 0 ){
+        // if( batt_soc_startup == 0 ){
 
-            batt_soc_startup = batt_soc;    
-        }
+        //     batt_soc_startup = batt_soc;    
+        // }
 
 
         // check if battery just ran down to 0,
         // AND we've started from a full charge
         // this will auto-calibrate the battery capacity.
-        if( ( batt_soc > 0 ) && 
-            ( new_batt_soc == 0 ) &&
-            ( batt_soc_startup >= 95 ) ){ // above 95% is close enough to full charge
+        // if( ( batt_soc > 0 ) && 
+        //     ( new_batt_soc == 0 ) &&
+        //     ( batt_soc_startup >= 95 ) ){ // above 95% is close enough to full charge
 
-            // save energy usage as capacity
-            capacity = energy_u32_get_total();
+        //     // save energy usage as capacity
+        //     capacity = energy_u32_get_total();
 
-            kv_i8_persist( __KV__batt_capacity );
+        //     kv_i8_persist( __KV__batt_capacity );
 
-            log_v_info_P( PSTR("Battery capacity calibrated to %u"), capacity );
+        //     log_v_info_P( PSTR("Battery capacity calibrated to %u"), capacity );
 
-            batt_soc_startup = 0; // this prevents this from running again until the device has been restarted with a full charge
-        }
+        //     batt_soc_startup = 0; // this prevents this from running again until the device has been restarted with a full charge
+        // }
 
-        batt_soc = new_batt_soc;
+        // batt_soc = new_batt_soc;
 
-        if( capacity != 0 ){
+        // if( capacity != 0 ){
 
-            remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
-        }
+        //     remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
+        // }
 
 
         if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
