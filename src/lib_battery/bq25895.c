@@ -551,6 +551,27 @@ uint8_t bq25895_u8_get_charge_status( void ){
     return data;
 }
 
+bool bq25895_b_is_charging( void ){
+
+    uint8_t status = bq25895_u8_get_charge_status();
+
+    if( ( status == BQ25895_CHARGE_STATUS_NOT_CHARGING ) ||
+        ( status == BQ25895_CHARGE_STATUS_CHARGE_DONE ) ){
+
+        return FALSE;
+    }
+
+    // if the batt controller still thinks it is charging, but it is down to 0 current,
+    // we can just call it done.  sometimes it never quite gets to full.
+    if( ( batt_volts > ( batt_max_charge_voltage - 100 ) ) &&
+        ( batt_charge_current == 0 ) ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 bool bq25895_b_power_good( void ){
 
     uint8_t data = bq25895_u8_read_reg( BQ25895_REG_POWER_GOOD ) & BQ25895_BIT_POWER_GOOD;
@@ -1299,18 +1320,38 @@ static bool read_adc( void ){
         batt_volts = temp_batt_volts;
     }
 
+    batt_charge_current = bq25895_u16_get_charge_current();
     uint8_t temp_charge_status = bq25895_u8_get_charge_status();
 
     // check if switching into a charge cycle:
-    if( ( charge_status != BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
-        ( temp_charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) ){
+    if( bq25895_b_is_charging() && ( charge_cycle_start_volts == 0 ) ){
 
         // record previous voltage, which will not be affected
         // by charge current
         charge_cycle_start_volts = batt_volts;
 
         log_v_debug_P( PSTR("Charge cycle start: %u mv"), charge_cycle_start_volts );
-    }   
+    }
+
+    // if( ( charge_status != BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
+    //     ( temp_charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) ){
+
+    //     // also check charge current
+    //     if( batt_charge_current > 0 ){
+
+    //         // record previous voltage, which will not be affected
+    //         // by charge current
+    //         charge_cycle_start_volts = batt_volts;
+
+    //         log_v_debug_P( PSTR("Charge cycle start: %u mv"), charge_cycle_start_volts );
+    //     }
+    //     else{
+
+
+    //     }
+
+        
+    // }   
 
     if( batt_volts != 0 ){
 
@@ -1318,15 +1359,19 @@ static bool read_adc( void ){
     }
     
     // check if switching into a discharge cycle:
-    if( ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
-        ( temp_charge_status == BQ25895_CHARGE_STATUS_NOT_CHARGING ) ){
+    if( !bq25895_b_is_charging() && ( charge_cycle_start_volts != 0 ) ){
+
+    // if( ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
+    //     ( !bq25895_b_is_charging() ) ){
 
         // cycle end voltage is current batt_volts
 
         // verify that a start voltage was recorded.
         // also sanity check that the end voltage is higher than the start:
-        if( ( charge_cycle_start_volts != 0 ) &&
-            ( charge_cycle_start_volts < batt_volts ) ){
+        if( charge_cycle_start_volts < batt_volts ){
+        // if( ( charge_cycle_start_volts != 0 ) &&
+        //     ( charge_cycle_start_volts < batt_volts ) ){
+
 
             // calculate start and end SoC
             // these values are in 0.01% increments (0 to 10000)
@@ -1345,10 +1390,10 @@ static bool read_adc( void ){
 
                 // kv_i8_persist( __KV__batt_charge_cycles_percent );
             }
-
-            // reset cycle
-            charge_cycle_start_volts = 0;
         }
+
+        // reset cycle
+        charge_cycle_start_volts = 0;
     }   
 
     // apply updated charge status AFTER the check for a switch into dischage
@@ -1356,7 +1401,6 @@ static bool read_adc( void ){
     
 
     sys_volts = bq25895_u16_get_sys_voltage();
-    batt_charge_current = bq25895_u16_get_charge_current();
     iindpm = bq25895_u16_get_iindpm();
 
     int8_t temp = bq25895_i8_get_therm();
