@@ -33,12 +33,12 @@ def make_firmware_zip():
 
 if __name__ == '__main__':
     print("Make ESP upgrade package...")
-    
-    print("Build ESP8266 upgrade firmware...")
-    os.system('./build_esp8266_upgrade.sh')
 
     print("Build coprocessor firmware...")
     os.system('./build_coprocessor.sh')
+    
+    print("Build ESP8266 upgrade firmware...")
+    os.system('./build_esp8266_upgrade.sh')
 
     shutil.copy('src/legacy/esp8266_upgrade_1mb/wifi_firmware.bin', '.')
     shutil.copy('src/legacy/coprocessor/firmware.bin', '.')
