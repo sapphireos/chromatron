@@ -548,6 +548,8 @@ void flash25_v_erase_chip( void ){
 
         flash25_v_write_enable();
         flash25_v_erase_4k( i );
+
+        sys_v_wdt_reset();
     }
 }
 
