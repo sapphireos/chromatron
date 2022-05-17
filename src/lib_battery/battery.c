@@ -115,58 +115,58 @@ static bool pca9536_enabled;
 #define DIMMER_RATE                 5000
 #define MIN_DIMMER                  20000
 
-static uint8_t fx_low_batt[] __attribute__((aligned(4))) = {
-    #include "low_batt.fx.carray"
-};
+// static uint8_t fx_low_batt[] __attribute__((aligned(4))) = {
+//     #include "low_batt.fx.carray"
+// };
 
-static uint32_t fx_low_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+// static uint32_t fx_low_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    uint32_t ret_val = len;
+//     uint32_t ret_val = len;
 
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
-        case FS_VFILE_OP_READ:
-            memcpy( ptr, &fx_low_batt[pos], len );
-            break;
+//     // the pos and len values are already bounds checked by the FS driver
+//     switch( op ){
+//         case FS_VFILE_OP_READ:
+//             memcpy( ptr, &fx_low_batt[pos], len );
+//             break;
 
-        case FS_VFILE_OP_SIZE:
-            ret_val = sizeof(fx_low_batt);
-            break;
+//         case FS_VFILE_OP_SIZE:
+//             ret_val = sizeof(fx_low_batt);
+//             break;
 
-        default:
-            ret_val = 0;
-            break;
-    }
+//         default:
+//             ret_val = 0;
+//             break;
+//     }
 
-    return ret_val;
-}
+//     return ret_val;
+// }
 
 
-static uint8_t fx_crit_batt[] __attribute__((aligned(4))) = {
-    #include "crit_batt.fx.carray"
-};
+// static uint8_t fx_crit_batt[] __attribute__((aligned(4))) = {
+//     #include "crit_batt.fx.carray"
+// };
 
-static uint32_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+// static uint32_t fx_crit_batt_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    uint32_t ret_val = len;
+//     uint32_t ret_val = len;
 
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
-        case FS_VFILE_OP_READ:
-            memcpy( ptr, &fx_crit_batt[pos], len );
-            break;
+//     // the pos and len values are already bounds checked by the FS driver
+//     switch( op ){
+//         case FS_VFILE_OP_READ:
+//             memcpy( ptr, &fx_crit_batt[pos], len );
+//             break;
 
-        case FS_VFILE_OP_SIZE:
-            ret_val = sizeof(fx_crit_batt);
-            break;
+//         case FS_VFILE_OP_SIZE:
+//             ret_val = sizeof(fx_crit_batt);
+//             break;
 
-        default:
-            ret_val = 0;
-            break;
-    }
+//         default:
+//             ret_val = 0;
+//             break;
+//     }
 
-    return ret_val;
-}
+//     return ret_val;
+// }
 
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
 
@@ -236,8 +236,8 @@ void batt_v_init( void ){
                      0,
                      0 );
 
-    fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
-    fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
+    // fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
+    // fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
 }
 
 static bool _ui_b_button_down( uint8_t ch ){
@@ -481,12 +481,18 @@ PT_BEGIN( pt );
         }
 
         // check charger status
-        uint8_t charge_status = bq25895_u8_get_charge_status();
+        // uint8_t charge_status = bq25895_u8_get_charge_status();
 
-        if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
+        if( bq25895_b_is_charging() ||
             ( bq25895_u16_read_vbus() > 5500 ) ||
             ( bq25895_u8_get_faults() != 0 ) ){
+
+        // if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
+        //     ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
+        //     ( bq25895_u16_read_vbus() > 5500 ) ||
+        //     ( bq25895_u8_get_faults() != 0 ) ){
+
+            
 
             // disable pixels if:
             // charging
@@ -498,18 +504,18 @@ PT_BEGIN( pt );
 
             gfx_v_set_system_enable( FALSE );
             
-            vm_v_resume( 0 );
-            vm_v_stop( VM_LAST_VM );
+            // vm_v_resume( 0 );
+            // vm_v_stop( VM_LAST_VM );
         }
-        else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
+        // else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
-            batt_state = BATT_STATE_OK;
+        //     batt_state = BATT_STATE_OK;
 
-            gfx_v_set_system_enable( TRUE );
+        //     gfx_v_set_system_enable( TRUE );
 
-            vm_v_resume( 0 );
-            vm_v_stop( VM_LAST_VM );
-        }
+        //     vm_v_resume( 0 );
+        //     vm_v_stop( VM_LAST_VM );
+        // }
         else{ // DISCHARGE
 
             gfx_v_set_system_enable( TRUE );
@@ -536,8 +542,8 @@ PT_BEGIN( pt );
                     
                     batt_state = BATT_STATE_CRITICAL;
 
-                    vm_v_pause( 0 );
-                    vm_v_run_prog( "crit_batt.fxb", VM_LAST_VM );
+                    // vm_v_pause( 0 );
+                    // vm_v_run_prog( "crit_batt.fxb", VM_LAST_VM );
                 }
             }
             else if( bq25895_u8_get_soc() <= 10 ){
@@ -548,8 +554,8 @@ PT_BEGIN( pt );
 
                     batt_state = BATT_STATE_LOW;
 
-                    vm_v_pause( 0 );
-                    vm_v_run_prog( "low_batt.fxb", VM_LAST_VM );
+                    // vm_v_pause( 0 );
+                    // vm_v_run_prog( "low_batt.fxb", VM_LAST_VM );
                 }
             }
 
@@ -575,8 +581,6 @@ PT_BEGIN( pt );
                 bq25895_v_enable_ship_mode( FALSE );
 
                 _delay_ms( 1000 );
-
-                log_v_debug_P( PSTR("wtf 1") );
             }
         }
 

@@ -26,8 +26,11 @@
 #define _BQ25895_H_
 
 
-#define BQ25895_FLOAT_VOLTAGE		4100
+#define BQ25895_MAX_FLOAT_VOLTAGE	4100
 #define BQ25895_CUTOFF_VOLTAGE		3100
+
+#define BQ25895_LION_MAX_VOLTAGE    4200
+#define BQ25895_LION_MIN_VOLTAGE    2900
 
 #define BQ25895_MIN_BOOST_VOLTAGE   4550
 #define BQ25895_MAX_BOOST_VOLTAGE   5510
@@ -226,6 +229,7 @@ void bq25895_v_set_boost_voltage( uint16_t volts );
 uint8_t bq25895_u8_get_vbus_status( void );
 bool bq25895_b_get_vbus_good( void );
 uint8_t bq25895_u8_get_charge_status( void );
+bool bq25895_b_is_charging( void );
 bool bq25895_b_power_good( void );
 uint8_t bq25895_u8_get_faults( void );
 uint16_t bq25895_u16_get_batt_voltage( void );
