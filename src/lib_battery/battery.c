@@ -369,7 +369,7 @@ PT_BEGIN( pt );
 
             if( ( bq25895_i8_get_temp() >= 38 ) ||
                 // ( bq25895_i8_get_case_temp() > ( bq25895_i8_get_ambient_temp() + 2 ) ) ||
-                ( bq25895_i8_get_case_temp() >= 46 ) ){
+                ( bq25895_i8_get_case_temp() >= 55 ) ){
 
                 fan_on = TRUE;
             }
@@ -384,7 +384,7 @@ PT_BEGIN( pt );
 
             if( ( bq25895_i8_get_temp() <= 37 ) &&
                 // ( bq25895_i8_get_case_temp() <= ( bq25895_i8_get_ambient_temp() + 1 ) ) &&
-                ( bq25895_i8_get_case_temp() <= 45 ) ){
+                ( bq25895_i8_get_case_temp() <= 52 ) ){
 
                 fan_on = FALSE;
             }
