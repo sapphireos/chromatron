@@ -35,7 +35,7 @@
 
 static uint8_t regs[BQ25895_N_REGS];
 
-static uint8_t batt_soc; // state of charge in percent
+static uint8_t batt_soc = 50; // state of charge in percent
 // static uint8_t batt_soc_startup; // state of charge at power on
 static uint16_t batt_volts;
 static uint16_t vbus_volts;
