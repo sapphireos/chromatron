@@ -116,7 +116,7 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 void spi_v_release( void ){
 
 	// tristate all IO
-	io_v_set_mode( HAL_PIXEL_MISO, IO_MODE_INPUT );
+	// io_v_set_mode( HAL_PIXEL_MISO, IO_MODE_INPUT );
     io_v_set_mode( HAL_PIXEL_MOSI, IO_MODE_INPUT );
     io_v_set_mode( HAL_PIXEL_SCK, IO_MODE_INPUT );
 }
