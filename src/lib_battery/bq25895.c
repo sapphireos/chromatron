@@ -53,7 +53,6 @@ static uint8_t charge_status;
 static bool dump_regs;
 // static uint32_t capacity;
 // static int32_t remaining;
-static int8_t therm = -127;
 static uint8_t batt_cells; // number of cells in system
 static uint16_t cell_capacity; // mAh capacity of each cell
 static uint32_t total_nameplate_capacity;
@@ -74,16 +73,21 @@ static uint16_t adc_time_max;
 static uint32_t adc_good;
 static uint32_t adc_fail;
 
+static int8_t batt_temp = -127;
+static int16_t batt_temp_state;
+
 #ifdef ESP32
 static int8_t case_temp = -127;
 static int8_t ambient_temp = -127;
+static int16_t case_temp_state;
+static int16_t ambient_temp_state;
 #endif
 
 static int8_t batt_temp_raw;
 
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                   0,  "batt_soc" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                      0,  "batt_temp" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp,                  0,  "batt_temp" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp_raw,              0,  "batt_temp_raw" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,              0,  "batt_charging" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,             0,  "batt_external_power" },
@@ -925,7 +929,7 @@ int8_t bq25895_i8_get_therm( void ){
 
 int8_t bq25895_i8_get_temp( void ){
 
-    return therm;
+    return batt_temp;
 }
 
 int8_t bq25895_i8_get_case_temp( void ){
@@ -1410,13 +1414,15 @@ static bool read_adc( void ){
 
     batt_temp_raw = temp;
 
-    if( therm != -127 ){
+    if( batt_temp != -127 ){
 
-        therm = util_i8_ewma( temp, therm, BQ25895_THERM_FILTER );    
+        batt_temp_state = util_i16_ewma( temp * 256, batt_temp_state, BQ25895_THERM_FILTER );
+        batt_temp = batt_temp_state / 256;
     }
     else{
 
-        therm = temp;
+        batt_temp_state = temp * 256;
+        batt_temp = temp;
     }
     
 
@@ -1660,21 +1666,25 @@ PT_BEGIN( pt );
 
         if( case_temp != -127 ){
 
-            case_temp = util_i8_ewma( temp, case_temp, BQ25895_THERM_FILTER );    
+            case_temp_state = util_i16_ewma( temp * 256, case_temp_state, BQ25895_THERM_FILTER );    
+            case_temp = case_temp_state / 256;
         }
         else{
 
-            case_temp =- temp;
+            case_temp_state = temp * 256;
+            case_temp = temp;
         }
         
         temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
 
         if( ambient_temp != -127 ){
 
-            ambient_temp = util_i8_ewma( temp, ambient_temp, BQ25895_THERM_FILTER );    
+            ambient_temp_state = util_i16_ewma( temp * 256, ambient_temp_state, BQ25895_THERM_FILTER );    
+            ambient_temp = ambient_temp_state / 256;
         }
         else{
 
+            ambient_temp_state = temp * 256;
             ambient_temp = temp;
         }
 

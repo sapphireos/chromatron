@@ -199,49 +199,52 @@ void util_v_bubble_sort_reversed_u32( uint32_t *array, uint8_t len ){
     } while( swapped );
 }
 
-uint8_t util_u8_ewma( uint8_t new, uint8_t old, uint8_t ratio ){
+// do not use the 8 bit ewma filters!
+// they lack sufficient precision for stability!
 
-    uint8_t temp = ( ( (uint16_t)ratio * new ) / 256 ) +  
-                   ( ( (uint16_t)( 256 - ratio ) * old ) / 256 );
+// uint8_t util_u8_ewma( uint8_t new, uint8_t old, uint8_t ratio ){
 
-    // check if filter is unchanging
-    if( temp == old ){
+//     uint8_t temp = ( ( (uint16_t)ratio * new ) / 256 ) +  
+//                    ( ( (uint16_t)( 256 - ratio ) * old ) / 256 );
 
-        // adjust by minimum
-        if( new > old ){
+//     // check if filter is unchanging
+//     if( temp == old ){
 
-            temp++;
-        }
-        else if( new < old ){
+//         // adjust by minimum
+//         if( new > old ){
 
-            temp--;
-        }
-    }   
+//             temp++;
+//         }
+//         else if( new < old ){
 
-    return temp;
-}
+//             temp--;
+//         }
+//     }   
 
-int8_t util_i8_ewma( int8_t new, int8_t old, uint8_t ratio ){
+//     return temp;
+// }
 
-    int8_t temp = ( ( (int16_t)ratio * new ) / 256 ) +  
-                  ( ( (int16_t)( 256 - ratio ) * old ) / 256 );
+// int8_t util_i8_ewma( int8_t new, int8_t old, uint8_t ratio ){
 
-    // check if filter is unchanging
-    if( temp == old ){
+//     int8_t temp = ( ( (int16_t)ratio * new ) / 256 ) +  
+//                   ( ( (int16_t)( 256 - ratio ) * old ) / 256 );
 
-        // adjust by minimum
-        if( new > old ){
+//     // check if filter is unchanging
+//     if( temp == old ){
 
-            temp++;
-        }
-        else if( new < old ){
+//         // adjust by minimum
+//         if( new > old ){
 
-            temp--;
-        }
-    }   
+//             temp++;
+//         }
+//         else if( new < old ){
 
-    return temp;
-}
+//             temp--;
+//         }
+//     }   
+
+//     return temp;
+// }
 
 int16_t util_i16_ewma( int16_t new, int16_t old, uint8_t ratio ){
 
