@@ -79,9 +79,12 @@ static int8_t case_temp = -127;
 static int8_t ambient_temp = -127;
 #endif
 
+static int8_t batt_temp_raw;
+
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                   0,  "batt_soc" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                      0,  "batt_temp" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp_raw,              0,  "batt_temp_raw" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,              0,  "batt_charging" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,             0,  "batt_external_power" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,                 0,  "batt_volts" },
@@ -1404,6 +1407,8 @@ static bool read_adc( void ){
     iindpm = bq25895_u16_get_iindpm();
 
     int8_t temp = bq25895_i8_get_therm();
+
+    batt_temp_raw = temp;
 
     if( therm != -127 ){
 
