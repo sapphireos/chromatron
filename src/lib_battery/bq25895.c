@@ -1337,28 +1337,10 @@ static bool read_adc( void ){
         // by charge current
         charge_cycle_start_volts = batt_volts;
 
-        log_v_debug_P( PSTR("Charge cycle start: %u mv"), charge_cycle_start_volts );
+        // !!! charge cycle stuff still needs some work.
+
+        // log_v_debug_P( PSTR("Charge cycle start: %u mV %u mA"), charge_cycle_start_volts, batt_charge_current );
     }
-
-    // if( ( charge_status != BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
-    //     ( temp_charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) ){
-
-    //     // also check charge current
-    //     if( batt_charge_current > 0 ){
-
-    //         // record previous voltage, which will not be affected
-    //         // by charge current
-    //         charge_cycle_start_volts = batt_volts;
-
-    //         log_v_debug_P( PSTR("Charge cycle start: %u mv"), charge_cycle_start_volts );
-    //     }
-    //     else{
-
-
-    //     }
-
-        
-    // }   
 
     if( batt_volts != 0 ){
 
@@ -1368,17 +1350,11 @@ static bool read_adc( void ){
     // check if switching into a discharge cycle:
     if( !bq25895_b_is_charging() && ( charge_cycle_start_volts != 0 ) ){
 
-    // if( ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE ) &&
-    //     ( !bq25895_b_is_charging() ) ){
-
         // cycle end voltage is current batt_volts
 
         // verify that a start voltage was recorded.
         // also sanity check that the end voltage is higher than the start:
         if( charge_cycle_start_volts < batt_volts ){
-        // if( ( charge_cycle_start_volts != 0 ) &&
-        //     ( charge_cycle_start_volts < batt_volts ) ){
-
 
             // calculate start and end SoC
             // these values are in 0.01% increments (0 to 10000)
