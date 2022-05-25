@@ -112,20 +112,61 @@ For initial low rate telemetry, using a single receiver channel:
 500 KHz BW, SF12, 4/8 CR = 732 bps @ -130 dBm
 64 bytes = approx 0.7 seconds.
 
+ISM frequency range is 902 to 928 MHz
+
+
+LoraWAN frequencies:
+
+Uplink:
+
+    903.9 - SF7BW125 to SF10BW125
+    904.1 - SF7BW125 to SF10BW125
+    904.3 - SF7BW125 to SF10BW125
+    904.5 - SF7BW125 to SF10BW125
+    904.7 - SF7BW125 to SF10BW125
+    904.9 - SF7BW125 to SF10BW125
+    905.1 - SF7BW125 to SF10BW125
+    905.3 - SF7BW125 to SF10BW125
+    904.6 - SF8BW500
+
+Downlink:
+
+    923.3 - SF7BW500 to SF12BW500 (RX1)
+    923.9 - SF7BW500 to SF12BW500 (RX1)
+    924.5 - SF7BW500 to SF12BW500 (RX1)
+    925.1 - SF7BW500 to SF12BW500 (RX1)
+    925.7 - SF7BW500 to SF12BW500 (RX1)
+    926.3 - SF7BW500 to SF12BW500 (RX1)
+    926.9 - SF7BW500 to SF12BW500 (RX1)
+    927.5 - SF7BW500 to SF12BW500 (RX1)
+    923.3 - SF12BW500 (RX2)
 
 
 */
 
+static uint8_t telemetry_channel;
+static uint8_t telemetry_code;
+
+KV_SECTION_META kv_meta_t rf_mac_kv[] = {
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_channel,  0, "telemetry_channel" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_code,     0, "telemetry_code" },
+};
+
 static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
-    905000000,
-    910000000,
-    915000000,
+    903000000,
+    906000000,
+    909000000,
     920000000,
 };
 
 static const rf_mac_coding_t codebook[] = {
     // beacon coding
     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 12, RFM95W_BW_500000 }, // 732 bps
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 12, RFM95W_BW_500000 }, // 
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 11, RFM95W_BW_500000 }, // 
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 11, RFM95W_BW_500000 }, // 
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 10, RFM95W_BW_500000 }, // 
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_500000 }, // 
 };
 
 static uint8_t current_code;
@@ -161,6 +202,7 @@ int8_t rf_mac_i8_init( void ){
         return -1;
     }
 
+    current_code = telemetry_code;
 
     thread_t_create( rf_thread,
                      PSTR("rf_mac"),
@@ -339,7 +381,7 @@ PT_BEGIN( pt );
         // set up for receive
         rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
         configure_code();
-        rfm95w_v_set_frequency( beacon_channels[0] );
+        rfm95w_v_set_frequency( beacon_channels[telemetry_channel] );
 
         rfm95w_v_clear_irq_flags();
 
@@ -454,7 +496,7 @@ PT_BEGIN( pt );
 
 
                 // need to select a channel
-                rfm95w_v_set_frequency( beacon_channels[0] );
+                rfm95w_v_set_frequency( beacon_channels[telemetry_channel] );
 
                 // set up coding
                 configure_code();
