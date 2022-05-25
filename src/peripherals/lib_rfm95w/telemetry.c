@@ -90,15 +90,15 @@ typedef struct __attribute__((packed)){
 } telemtry_log_0_t;
 
 
+static file_t log_f;
+
 PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    static file_t f;
+    log_f = fs_f_open_P( PSTR("telemetry_log"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_APPEND );
 
-    f = fs_f_open_P( PSTR("telemetry_log"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_APPEND );
-
-    if( f < 0 ){
+    if( log_f < 0 ){
 
         THREAD_EXIT( pt );
     }
@@ -123,7 +123,7 @@ PT_BEGIN( pt );
         log_data.snr = pkt.snr;
         log_data.msg = *(telemetry_msg_0_t *)data;
 
-        fs_i16_write( f, &log_data, sizeof(log_data) );
+        fs_i16_write( log_f, &log_data, sizeof(log_data) );
 
         // log_v_debug_P( PSTR("received %u %d bytes rssi: %d snr: %d"), *data, pkt.len, pkt.rssi, pkt.snr );
     }
@@ -154,7 +154,19 @@ PT_BEGIN( pt );
         catbus_i8_get( __KV__batt_ambient_temp,     CATBUS_TYPE_INT8,   &msg.ambient_temp );
         catbus_i8_get( __KV__batt_fault,            CATBUS_TYPE_INT8,   &msg.batt_fault );
 
+        telemtry_log_0_t log_data;
+
+        log_data.sys_time = tmr_u32_get_system_time_ms();
+        log_data.src_addr = 0; // local node
+        log_data.rssi = 0;
+        log_data.snr = 0;
+        log_data.msg = msg;
+
+        fs_i16_write( log_f, &log_data, sizeof(log_data) );
+
+
         rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+
     }
 
 PT_END( pt );
