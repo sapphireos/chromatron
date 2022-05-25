@@ -52,13 +52,18 @@ void app_v_init( void ){
 
     vm_v_init();
 
+
+    #ifdef ESP8266
+    #pragma message "I2C broken on ESP8266!"
+    #endif
+
+    #ifdef ESP32
+
     batt_v_init();
 
     pwm_v_init();
 
     veml7700_v_init();
-
-    #ifdef ESP32
 
     telemetry_v_init();
 
