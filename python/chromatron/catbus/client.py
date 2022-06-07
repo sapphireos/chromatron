@@ -664,7 +664,7 @@ class Client(BaseClient):
         msg = FileCheckMsg(
                 filename=filename)
 
-        response, host = self._exchange(msg, timeout=4.0)
+        response, host = self._exchange(msg, timeout=8.0)
 
         if not isinstance(response, FileCheckResponseMsg):
             raise ProtocolErrorException
