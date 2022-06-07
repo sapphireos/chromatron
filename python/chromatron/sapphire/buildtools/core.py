@@ -1337,107 +1337,95 @@ class AppBuilder(HexBuilder):
             loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.board_type)
 
             if self.settings["TOOLCHAIN"] == "XTENSA":
-                # create loader image
-                with open(os.path.join(loader_project.target_dir, "main.bin"), 'rb') as f:
-                    loader_image = f.read()
-
-                # sanity check
-                if loader_image[0] != 0xE9:
-                    raise Exception("invalid esp bootloader image")
-
-                bootloader_size = int(loader_project.settings["FW_START_OFFSET"], 16)
-
-                # pad bootloader
-                loader_image += bytearray((bootloader_size - len(loader_image) % bootloader_size) * [0])
-
-                with open("firmware.bin", 'rb') as f:
-                    firmware_image = f.read()
-
-                if firmware_image[0] != 0xE9:
-                    raise Exception("invalid esp firmware image")
-
                 if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
-                    # loader image not included in 4MB upgrade version
-                    
-                    combined_image = firmware_image + bytearray([0,0])
-
-                    logging.warning("4MB image for ESP8266 upgrade on Chromatron Classic")
+                    pass
 
                 else:
+                    # create loader image
+                    with open(os.path.join(loader_project.target_dir, "main.bin"), 'rb') as f:
+                        loader_image = f.read()
+
+                    # sanity check
+                    if loader_image[0] != 0xE9:
+                        raise Exception("invalid esp bootloader image")
+
+                    bootloader_size = int(loader_project.settings["FW_START_OFFSET"], 16)
+
+                    # pad bootloader
+                    loader_image += bytearray((bootloader_size - len(loader_image) % bootloader_size) * [0])
+
+                    with open("firmware.bin", 'rb') as f:
+                        firmware_image = f.read()
+
+                    if firmware_image[0] != 0xE9:
+                        raise Exception("invalid esp firmware image")
+                
                     # include length for CRC in combined image:
                     combined_image = loader_image + firmware_image + bytearray([0,0])
 
-                # need to pad to sector length
-                combined_image += bytearray((4096 - (len(combined_image) % 4096)) * [0xff])
+                    # need to pad to sector length
+                    combined_image += bytearray((4096 - (len(combined_image) % 4096)) * [0xff])
 
-                size = len(combined_image)
+                    size = len(combined_image)
 
-                # # write a combined image suitable for esptool
-                # with open("esptool_image.bin", 'wb') as f:
-                #     f.write(combined_image)
+                    # # write a combined image suitable for esptool
+                    # with open("esptool_image.bin", 'wb') as f:
+                    #     f.write(combined_image)
 
-                # kv_index_addr += len(loader_image)
+                    # kv_index_addr += len(loader_image)
 
-                # the esp8266 is so very very special so we update the fwinfo section:
-                fw_info = struct.pack(fw_info_fmt,
-                                size,
-                                fwid.bytes,
-                                os_project.proj_name.encode('utf-8'),
-                                os_project.version.encode('utf-8'),
-                                self.settings['PROJ_NAME'].encode('utf-8'),
-                                self.version.encode('utf-8'),
-                                self.board_type.encode('utf-8'),
-                                kv_index_addr,
-                                len(kv_index))
+                    # the esp8266 is so very very special so we update the fwinfo section:
+                    fw_info = struct.pack(fw_info_fmt,
+                                    size,
+                                    fwid.bytes,
+                                    os_project.proj_name.encode('utf-8'),
+                                    os_project.version.encode('utf-8'),
+                                    self.settings['PROJ_NAME'].encode('utf-8'),
+                                    self.version.encode('utf-8'),
+                                    self.board_type.encode('utf-8'),
+                                    kv_index_addr,
+                                    len(kv_index))
 
-                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
-                    pass # don't update fwinfo addr with loader image length on 4 MB version
-
-                else:
+                    
                     fw_info_addr += len(loader_image)
+                    fw_info_len = len(fw_info)
+
+                    # convert back to bytearray because Python really, really wants to get you to use bytes() for some reason.
+                    combined_image = bytearray(combined_image)
+
+                    # insert fwinfo into binary
+                    combined_image[fw_info_addr: fw_info_addr + fw_info_len] = fw_info
+
+                    # attach CRC
+                    crc = crc_func(combined_image[:-2])
+                    combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
+
                 
-                fw_info_len = len(fw_info)
-
-                # convert back to bytearray because Python really, really wants to get you to use bytes() for some reason.
-                combined_image = bytearray(combined_image)
-
-                # insert fwinfo into binary
-                combined_image[fw_info_addr: fw_info_addr + fw_info_len] = fw_info
-
-                # attach CRC
-                crc = crc_func(combined_image[:-2])
-                combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
-
-                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
-                    logging.warning("Skipping MD5 on 4MB upgrade image")
-
-                else:                    
                     # append MD5
                     md5 = hashlib.md5(combined_image)
                     combined_image += md5.digest()
 
                     logging.info(f'Image MD5: {md5.hexdigest()}')
+                    logging.info("crc: 0x%x" % (crc))
 
-                logging.info("crc: 0x%x" % (crc))
-
-                with open("firmware.bin", 'wb') as f:
-                    f.write(combined_image)
-
-                # prepend length (not counting the length field itself or the MD5 - the actual FW length)
-                # combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
-
-                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_1MB_FWID:
-                    assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']
-
-                    MAX_ESP8266_LEGACY_IMAGE_SIZE = (384 * 1024)
-
-                    if len(combined_image) > MAX_ESP8266_LEGACY_IMAGE_SIZE:
-                        raise Exception(f"Image size exceeds partition length: {len(combined_image)} > {MAX_ESP8266_LEGACY_IMAGE_SIZE}")
-
-                    logging.info(f'!!! Upgrade image size: {len(combined_image)} fits within partition size: {MAX_ESP8266_LEGACY_IMAGE_SIZE}')
-
-                    with open("wifi_firmware.bin", 'wb') as f:
+                    with open("firmware.bin", 'wb') as f:
                         f.write(combined_image)
+
+                    # prepend length (not counting the length field itself or the MD5 - the actual FW length)
+                    # combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
+
+                    if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_1MB_FWID:
+                        assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']
+
+                        MAX_ESP8266_LEGACY_IMAGE_SIZE = (384 * 1024)
+
+                        if len(combined_image) > MAX_ESP8266_LEGACY_IMAGE_SIZE:
+                            raise Exception(f"Image size exceeds partition length: {len(combined_image)} > {MAX_ESP8266_LEGACY_IMAGE_SIZE}")
+
+                        logging.info(f'!!! Upgrade image size: {len(combined_image)} fits within partition size: {MAX_ESP8266_LEGACY_IMAGE_SIZE}')
+
+                        with open("wifi_firmware.bin", 'wb') as f:
+                            f.write(combined_image)
 
             else:
                 # create loader image
