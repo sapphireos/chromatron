@@ -1404,18 +1404,14 @@ class AppBuilder(HexBuilder):
                 # insert fwinfo into binary
                 combined_image[fw_info_addr: fw_info_addr + fw_info_len] = fw_info
 
+                # attach CRC
+                crc = crc_func(combined_image[:-2])
+                combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
+
                 if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
                     logging.warning("Skipping MD5 on 4MB upgrade image")
 
-                    # attach CRC
-                    crc = crc_func(combined_image[:-2])
-                    combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
-
-                else:
-                    # attach CRC
-                    crc = crc_func(combined_image[:-2])
-                    combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
-
+                else:                    
                     # append MD5
                     md5 = hashlib.md5(combined_image)
                     combined_image += md5.digest()
