@@ -65,8 +65,6 @@ void app_v_init( void ){
 
     veml7700_v_init();
 
-    #ifdef ESP32
-
     telemetry_v_init();
 
     #endif
