@@ -36,9 +36,13 @@ static bool use_coproc;
 
 #ifdef ENABLE_FFS
 
-KV_SECTION_META kv_meta_t hal_flash25_info_kv[] = {
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &use_coproc, 0,  "flash_fs_on_coproc" },
+static uint32_t flash_id;
+
+KV_SECTION_META kv_meta_t flash_id_kv[] = {
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &use_coproc, 0,  "flash_fs_on_coproc" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id,   0,  "flash_id" },
 };
+
 
 
 
@@ -194,6 +198,17 @@ void flash25_v_write_status( uint8_t status ){
 
 }
 
+static bool is_addr_firmware_bin( uint32_t address ){
+
+    if( ( address >= FLASH_FS_FIRMWARE_0_PARTITION_START ) &&
+        ( address < ( FLASH_FS_FIRMWARE_0_PARTITION_START + FLASH_FS_FIRMWARE_0_PARTITION_SIZE ) ) ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 // read len bytes into ptr
 void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
 
@@ -207,7 +222,7 @@ void flash25_v_read( uint32_t address, void *ptr, uint32_t len ){
     }
 
     #ifdef ENABLE_COPROCESSOR
-    if( use_coproc ){
+    if( use_coproc || is_addr_firmware_bin( address ) ){
 
         while( len > 0 ){
 
@@ -291,7 +306,7 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
     BUSY_WAIT( flash25_b_busy() );
 
     #ifdef ENABLE_COPROCESSOR
-    if( use_coproc ){
+    if( use_coproc || is_addr_firmware_bin( address ) ){
         
         uint8_t byte;    
         
@@ -331,7 +346,7 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
     ASSERT( address < max_address );
 
     #ifdef ENABLE_COPROCESSOR
-    if( use_coproc ){
+    if( use_coproc || is_addr_firmware_bin( address ) ){
         
         flash25_v_write( address, &byte, sizeof(byte) );
         
@@ -400,7 +415,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
     }
 
     #ifdef ENABLE_COPROCESSOR
-    if( use_coproc ){
+    if( use_coproc || is_addr_firmware_bin( address ) ){
 
         while( len > 0 ){
 
@@ -523,7 +538,7 @@ void flash25_v_erase_4k( uint32_t address ){
     BUSY_WAIT( flash25_b_busy() );
 
     #ifdef ENABLE_COPROCESSOR
-    if( use_coproc ){
+    if( use_coproc || is_addr_firmware_bin( address ) ){
         
         coproc_i32_call1( OPCODE_IO_FLASH25_ADDR, address );
         coproc_i32_call0( OPCODE_IO_FLASH25_ERASE );
@@ -557,14 +572,6 @@ void flash25_v_erase_chip( void ){
         sys_v_wdt_reset();
     }
 }
-
-#include "keyvalue.h"
-
-static uint32_t flash_id;
-
-KV_SECTION_META kv_meta_t flash_id_kv[] = {
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_id, 0,  "flash_id" },
-};
 
 void flash25_v_read_device_info( flash25_device_info_t *info ){
     #ifndef BOOTLOADER
