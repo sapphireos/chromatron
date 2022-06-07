@@ -1364,6 +1364,8 @@ class AppBuilder(HexBuilder):
                     # include length for CRC in combined image:
                     combined_image = firmware_image + bytearray([0,0])
 
+                    logging.warning("4MB image for ESP8266 upgrade on Chromatron Classic")
+
                 else:
                     # include length for CRC in combined image:
                     combined_image = loader_image + firmware_image + bytearray([0,0])
@@ -1447,7 +1449,7 @@ class AppBuilder(HexBuilder):
 
         
         if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_1MB_FWID:
-            print("Special handling for ESP8266 upgrade on Chromatron Classic")
+            logging.warning("Special handling for ESP8266 upgrade on Chromatron Classic")
             coproc_package = get_firmware_package('coprocessor')
 
             try:
