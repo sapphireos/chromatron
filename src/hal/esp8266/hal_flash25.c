@@ -26,6 +26,7 @@
 #include "flash25.h"
 #include "hal_flash25.h"
 #include "hal_io.h"
+#include "keyvalue.h"
 
 #ifdef ENABLE_COPROCESSOR
 #include "coprocessor.h"
@@ -34,6 +35,10 @@ static bool use_coproc;
 #endif
 
 #ifdef ENABLE_FFS
+
+KV_SECTION_META kv_meta_t hal_flash25_info_kv[] = {
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &use_coproc, 0,  "flash_fs_on_coproc" },
+};
 
 
 
