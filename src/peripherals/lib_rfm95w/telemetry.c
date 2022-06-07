@@ -31,16 +31,17 @@
 #ifdef ESP32
 
 static bool telemetry_enable;
-static bool telemetry_station_enable;
+// static bool telemetry_station_enable;
 
 KV_SECTION_META kv_meta_t telemetry_info_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemetry_enable,           0,   "telemetry_enable" },
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemetry_station_enable,   0,   "telemetry_station_enable" },
+    // { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemetry_station_enable,   0,   "telemetry_station_enable" },
 };
 
 
-PT_THREAD( telemetry_thread( pt_t *pt, void *state ) );
-PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) );
+// PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) );
 
 void telemetry_v_init( void ){
 
@@ -59,28 +60,48 @@ void telemetry_v_init( void ){
         return;
     }
     
-    if( telemetry_station_enable ){
+    // if( telemetry_station_enable ){
 
-        thread_t_create( telemetry_base_station_thread,
-                     PSTR("telemetry_base_station"),
+    //     thread_t_create( telemetry_base_station_thread,
+    //                  PSTR("telemetry_base_station"),
+    //                  0,
+    //                  0 );
+    // }  
+    // else{
+
+        thread_t_create( telemetry_rx_thread,
+                     PSTR("telemetry_rx"),
                      0,
                      0 );
-    }  
-    else{
 
-        thread_t_create( telemetry_thread,
-                     PSTR("telemetry"),
+        thread_t_create( telemetry_tx_thread,
+                     PSTR("telemetry_tx"),
                      0,
                      0 );
-    }
+    // }
 }
 
+typedef struct __attribute__((packed)){
+    uint32_t sys_time;
+    uint64_t src_addr;
+    int16_t rssi;
+    int16_t snr;
+    telemetry_msg_0_t msg;
+} telemtry_log_0_t;
 
-PT_THREAD( telemetry_thread( pt_t *pt, void *state ) )
+
+static file_t log_f;
+
+PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
 
+    log_f = fs_f_open_P( PSTR("telemetry_log"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_APPEND );
+
+    if( log_f < 0 ){
+
+        THREAD_EXIT( pt );
+    }
 
     while( 1 ){
 
@@ -91,34 +112,85 @@ PT_BEGIN( pt );
 
         rf_mac_i8_get_rx( &pkt, buf, sizeof(buf) );
 
+        rf_mac_header_0_t *header =(rf_mac_header_0_t *)buf;
         uint32_t *data = (uint32_t *)&buf[sizeof(rf_mac_header_0_t)];
 
-        log_v_debug_P( PSTR("received %u %d bytes rssi: %d snr: %d"), *data, pkt.len, pkt.rssi, pkt.snr );
+        telemtry_log_0_t log_data;
+
+        log_data.sys_time = tmr_u32_get_system_time_ms();
+        log_data.src_addr = header->src_addr;
+        log_data.rssi = pkt.rssi;
+        log_data.snr = pkt.snr;
+        log_data.msg = *(telemetry_msg_0_t *)data;
+
+        fs_i16_write( log_f, &log_data, sizeof(log_data) );
+
+        // log_v_debug_P( PSTR("received %u %d bytes rssi: %d snr: %d"), *data, pkt.len, pkt.rssi, pkt.snr );
     }
 
 PT_END( pt );
 }
 
-
-PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) )
+PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    static uint32_t count;
-    count = 0;
     
+    static uint16_t sample;
+    sample = 0;
+
     while( 1 ){
 
-        TMR_WAIT( pt, 1000 );
+        TMR_WAIT( pt, 60000 * 5 + rnd_u16_get_int() );       
 
-        rf_mac_i8_send( 0, (uint8_t *)&count, sizeof(count) );
+        telemetry_msg_0_t msg;
+        msg.sample = sample;
+        sample++;
 
-        log_v_debug_P( PSTR("send %u"), count );
-        count++;
+        catbus_i8_get( __KV__batt_volts,            CATBUS_TYPE_UINT16, &msg.batt_volts );
+        catbus_i8_get( __KV__batt_charge_current,   CATBUS_TYPE_UINT16, &msg.charge_current );
+        catbus_i8_get( __KV__veml7700_filtered_als, CATBUS_TYPE_UINT32, &msg.als );
+        catbus_i8_get( __KV__batt_temp,             CATBUS_TYPE_INT8,   &msg.batt_temp );
+        catbus_i8_get( __KV__batt_case_temp,        CATBUS_TYPE_INT8,   &msg.case_temp );
+        catbus_i8_get( __KV__batt_ambient_temp,     CATBUS_TYPE_INT8,   &msg.ambient_temp );
+        catbus_i8_get( __KV__batt_fault,            CATBUS_TYPE_INT8,   &msg.batt_fault );
+
+        telemtry_log_0_t log_data;
+
+        log_data.sys_time = tmr_u32_get_system_time_ms();
+        log_data.src_addr = 0; // local node
+        log_data.rssi = 0;
+        log_data.snr = 0;
+        log_data.msg = msg;
+
+        fs_i16_write( log_f, &log_data, sizeof(log_data) );
+
+
+        rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+
     }
 
 PT_END( pt );
 }
+
+// PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
+
+//     static uint32_t count;
+//     count = 0;
+    
+//     while( 1 ){
+
+//         TMR_WAIT( pt, 1000 );
+
+//         rf_mac_i8_send( 0, (uint8_t *)&count, sizeof(count) );
+
+//         log_v_debug_P( PSTR("send %u"), count );
+//         count++;
+//     }
+
+// PT_END( pt );
+// }
 
 
 
