@@ -1242,8 +1242,6 @@ class AppBuilder(HexBuilder):
             crc = crc_func(ih.tobinstr())
             ih.puts(ih.maxaddr() + 1, struct.pack('>H', crc))
 
-        
-        if self.settings["TOOLCHAIN"] not in ["ESP32", "ESP32_bootloader"]:
             logging.info("crc: 0x%x" % (crc))
 
             size = ih.maxaddr() - ih.minaddr() + 1
@@ -1361,7 +1359,6 @@ class AppBuilder(HexBuilder):
                 if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
                     # loader image not included in 4MB upgrade version
                     
-                    # include length for CRC in combined image:
                     combined_image = firmware_image + bytearray([0,0])
 
                     logging.warning("4MB image for ESP8266 upgrade on Chromatron Classic")
@@ -1393,7 +1390,12 @@ class AppBuilder(HexBuilder):
                                 kv_index_addr,
                                 len(kv_index))
 
-                fw_info_addr += len(loader_image)
+                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
+                    pass # don't update fwinfo addr with loader image length on 4 MB version
+
+                else:
+                    fw_info_addr += len(loader_image)
+                
                 fw_info_len = len(fw_info)
 
                 # convert back to bytearray because Python really, really wants to get you to use bytes() for some reason.
@@ -1402,16 +1404,25 @@ class AppBuilder(HexBuilder):
                 # insert fwinfo into binary
                 combined_image[fw_info_addr: fw_info_addr + fw_info_len] = fw_info
 
-                # attach CRC
-                crc = crc_func(combined_image[:-2])
+                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
+                    logging.warning("Skipping MD5 on 4MB upgrade image")
+
+                    # attach CRC
+                    crc = crc_func(combined_image[:-2])
+                    combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
+
+                else:
+                    # attach CRC
+                    crc = crc_func(combined_image[:-2])
+                    combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
+
+                    # append MD5
+                    md5 = hashlib.md5(combined_image)
+                    combined_image += md5.digest()
+
+                    logging.info(f'Image MD5: {md5.hexdigest()}')
+
                 logging.info("crc: 0x%x" % (crc))
-                combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
-
-                # append MD5
-                md5 = hashlib.md5(combined_image)
-                combined_image += md5.digest()
-
-                logging.info(f'Image MD5: {md5.hexdigest()}')
 
                 with open("firmware.bin", 'wb') as f:
                     f.write(combined_image)
