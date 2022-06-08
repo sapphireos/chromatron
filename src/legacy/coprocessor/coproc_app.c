@@ -341,7 +341,7 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_I2C_MEM_READ ){
 
-        // i2c_v_mem_read( i2c_setup.dev_addr, i2c_setup.mem_addr, i2c_setup.addr_size, response, i2c_setup.len, i2c_setup.delay_ms );           
+        i2c_v_mem_read( i2c_setup.dev_addr, i2c_setup.mem_addr, i2c_setup.addr_size, response, i2c_setup.len, i2c_setup.delay_ms );           
         *response_len = i2c_setup.len;
     }
     else if( hdr->opcode == OPCODE_IO_I2C_WRITE_REG8 ){

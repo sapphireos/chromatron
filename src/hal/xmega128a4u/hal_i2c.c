@@ -84,7 +84,7 @@ static void wait_while_clock_stretch( void ){
 
 
 static void send_bit( uint8_t b ){
-
+return;
     if( b ){
 
         SDA_HIGH();
@@ -364,7 +364,7 @@ void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uin
 
     i2c_v_send_address( dev_addr, TRUE );
 
-    return;
+    // return;
 
     if( addr_size == 1 ){
         
