@@ -66,6 +66,7 @@ static uint32_t flash_addr;
 static uint32_t flash_len;
 
 static i2c_setup_t i2c_setup;
+static uint8_t response[COPROC_BUF_SIZE];
 
 // process a message
 // assumes CRC is valid
@@ -633,7 +634,6 @@ PT_BEGIN( pt );
             i += COPROC_BLOCK_LEN;
         }
 
-        uint8_t response[COPROC_BUF_SIZE];
         uint8_t response_len = 0;
 
         // run command
