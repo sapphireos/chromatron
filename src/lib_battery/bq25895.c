@@ -213,10 +213,6 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
-    log_v_debug_P( PSTR("!!! batt controller found") );
-
-    return -1;
-
     bq25895_v_read_all();
 
     thread_t_create( bat_mon_thread,
@@ -240,11 +236,7 @@ static uint8_t read_cached_reg( uint8_t addr ){
 uint8_t bq25895_u8_read_reg( uint8_t addr ){
 
     uint8_t data = 0;
-
-    // i2c_v_write( BQ25895_I2C_ADDR, &addr, sizeof(addr) );
-
-    // i2c_v_read( BQ25895_I2C_ADDR, &data, sizeof(data) );
-
+    
     i2c_v_mem_read( BQ25895_I2C_ADDR, addr, 1, &data, sizeof(data), 0 );
 
     // update cache
