@@ -344,7 +344,11 @@ void coproc_v_dispatch(
 
         status_led_v_set( 1, STATUS_LED_WHITE );
         i2c_v_mem_read( i2c_setup.dev_addr, i2c_setup.mem_addr, i2c_setup.addr_size, response, i2c_setup.len, i2c_setup.delay_ms );           
+        
         status_led_v_set( 1, STATUS_LED_PURPLE );
+
+        _delay_ms(1000);
+
         *response_len = i2c_setup.len;
     }
     else if( hdr->opcode == OPCODE_IO_I2C_WRITE_REG8 ){
