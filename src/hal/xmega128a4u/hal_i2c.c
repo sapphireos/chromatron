@@ -270,14 +270,14 @@ static void i2c_v_stop( void ){
 
 static void i2c_v_send_address( uint8_t dev_addr, bool write ){
 
-    // if( write ){
+    if( write ){
         
-    //     i2c_v_send_byte( ( dev_addr << 1 ) & ~0x01 );
-    // }
-    // else{
+        i2c_v_send_byte( ( dev_addr << 1 ) & ~0x01 );
+    }
+    else{
 
-    //     i2c_v_send_byte( ( dev_addr << 1 ) | 0x01 );   
-    // }
+        i2c_v_send_byte( ( dev_addr << 1 ) | 0x01 );   
+    }
 }
 
 void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
