@@ -106,7 +106,7 @@ return;
 
 
 static bool read_bit( void ){
-
+return TRUE;
     // release bus
     SDA_HIGH();
 
