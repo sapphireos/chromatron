@@ -97,7 +97,7 @@ typedef uint32_t sys_warnings_t;
 #define SYS_WARN_MISSING_KV_INDEX       0x0080
 #define SYS_WARN_SYSTEM_ERROR           0x8000
 
-#define SYS_RECOVERY_BOOT_COUNT         5
+#define SYS_RECOVERY_BOOT_COUNT         2
 
 #ifndef ATOMIC
     #define ATOMIC
