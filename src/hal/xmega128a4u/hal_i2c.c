@@ -59,7 +59,7 @@ static uint8_t sda_pin = ( 1 << IO_PIN1_PIN );
 static void wait_while_clock_stretch( void ){
 
     volatile uint8_t c;
-    volatile uint32_t timeout = 100000;    
+    volatile uint32_t timeout = 20000;
 
     do{
         c = scl_port->IN & scl_pin;

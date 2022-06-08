@@ -347,7 +347,7 @@ void coproc_v_dispatch(
         
         status_led_v_set( 1, STATUS_LED_PURPLE );
 
-        _delay_ms(1000);
+        // _delay_ms(1000);
 
         *response_len = i2c_setup.len;
     }
