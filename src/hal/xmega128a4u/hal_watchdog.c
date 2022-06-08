@@ -44,7 +44,7 @@ void wdg_v_reset( void ){
 }
 
 void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
-
+return;
     ATOMIC;
 
     wdt_reset();
