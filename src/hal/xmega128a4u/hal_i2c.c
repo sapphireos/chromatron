@@ -360,7 +360,7 @@ void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uin
     
     i2c_v_start();
 
-    return;
+    // return;
 
     i2c_v_send_address( dev_addr, TRUE );
 
