@@ -84,7 +84,7 @@ static void wait_while_clock_stretch( void ){
 
 
 static void send_bit( uint8_t b ){
-return;
+
     if( b ){
 
         SDA_HIGH();
@@ -106,7 +106,7 @@ return;
 
 
 static bool read_bit( void ){
-return TRUE;
+
     // release bus
     SDA_HIGH();
 
@@ -355,16 +355,10 @@ void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, co
 }
 
 void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len, uint16_t delay_ms ){
-
-    // return;
     
     i2c_v_start();
 
-    // return;
-
     i2c_v_send_address( dev_addr, TRUE );
-
-    // return;
 
     if( addr_size == 1 ){
         
