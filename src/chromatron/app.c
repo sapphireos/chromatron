@@ -52,11 +52,6 @@ void app_v_init( void ){
 
     vm_v_init();
 
-
-    #ifdef ESP8266
-    #pragma message "I2C broken on ESP8266!"
-    #endif
-
     batt_v_init();
 
     #ifdef ESP32
