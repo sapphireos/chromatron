@@ -97,7 +97,7 @@ static void send_bit( uint8_t b ){
     I2C_DELAY_1();
 
     SCL_HIGH();
-    wait_while_clock_stretch();
+    // wait_while_clock_stretch();
 
     I2C_DELAY_2();
     
