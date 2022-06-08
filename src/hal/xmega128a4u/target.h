@@ -139,4 +139,7 @@
 #define SPI_IO_PORT PORTD
 #define SPI_PORT USARTD0
 
+
+#define DISABLE_SAFE_MODE
+
 #endif
