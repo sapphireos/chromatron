@@ -57,14 +57,14 @@ class MQTTClient(Ribbon):
         self.mqtt.connect(host)
 
     def on_connect(self, client, userdata, flags, rc):
-        print("Connected with result code "+str(rc))
+        logging.info("Connected with result code "+str(rc))
 
     def on_disconnect(self, client, userdata, rc):
         if rc != 0:
-            print("Unexpected disconnection.")
+            logging.info("Unexpected disconnection.")
 
     def on_message(self, client, userdata, msg):
-        print(msg.topic+" "+str(msg.payload))
+        logging.info(msg.topic + " " + str(msg.payload))
 
     def publish(self, topic, payload):
         self.mqtt.publish(topic, payload, qos=0, retain=False)
