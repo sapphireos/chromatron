@@ -53,3 +53,22 @@ services:
       dockerfile: docker/ha_bridge/Dockerfile
     restart: always
     network_mode: host
+
+  mqtt:
+    container_name: mqtt
+    image: eclipse-mosquitto:2.0.7
+    restart: always
+    # As configured, MQTT will only accept connections from localhost!
+    # ports: # not needed with host network mode
+      # - 1883:1883
+      # - 9001:9001
+    network_mode: host
+  
+  homeassistant:
+    container_name: homeassistant
+    image: homeassistant/home-assistant:2022.6.5
+    restart: always
+    network_mode: host
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./homeassistant:/config
