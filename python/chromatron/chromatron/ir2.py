@@ -1519,16 +1519,17 @@ class irBlock(IR):
 
                 # is expr in hash table?
                 if expr in values:
-                    v = values[expr]
+                    pass
+                    # v = values[expr]
 
-                    values[ir.target] = v
+                    # values[ir.target] = v
                     
-                    # remove instruction
-                    print(f"remove load const {ir.target} = {ir.value}")
+                    # # remove instruction
+                    # print(f"remove load const {ir.target} = {ir.value}")
 
-                    changed = True
+                    # changed = True
 
-                    continue
+                    # continue
 
                 else:
                     values[ir.target] = ir.target
