@@ -2,7 +2,7 @@
 ary = Number()[4]
 
 def init():
-    # ary = 0
+    ary = 0
     ary = 1
     assert ary[0] == 1
     # assert ary[1] == 1

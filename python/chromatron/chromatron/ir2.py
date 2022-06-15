@@ -1799,11 +1799,21 @@ class irBlock(IR):
 
             elif isinstance(ir, irVectorAssign):
                 # replace inputs:
+                if ir.target in values:
+                    replacement = values[ir.target]
+
+                    if ir.target != replacement:
+                        print(f"replace vector assign target {ir.target} = {ir.target} with {replacement}")
+
+                        ir.target = replacement
+
+                        changed = True
+
                 if ir.value in values:
                     replacement = values[ir.value]
 
                     if ir.value != replacement:
-                        print(f"replace vector assign {ir.target} = {ir.value} with {replacement}")
+                        print(f"replace vector assign value {ir.target} = {ir.value} with {replacement}")
 
                         ir.value = replacement
 
