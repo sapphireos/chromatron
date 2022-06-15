@@ -34,6 +34,7 @@
 // #define NO_LOGGING
 #include "logging.h"
 
+
 #ifdef ENABLE_NETWORK
 static uint64_t origin_id;
 
@@ -128,10 +129,10 @@ static void _catbus_v_add_tag( char *s ){
         if( meta_tag_hashes[i] == 0 ){
 
             // read tag name hash from flash lookup
-            catbus_hash_t32 hash;
-            memcpy_P( &hash, &meta_tag_names[i], sizeof(hash) );
+            catbus_hash_t32 tag_hash;
+            memcpy_P( &tag_hash, &meta_tag_names[i], sizeof(tag_hash) );
 
-            cfg_v_set( hash, tag );
+            cfg_v_set( tag_hash, tag );
 
             break;
         }
@@ -153,10 +154,10 @@ static void _catbus_v_rm_tag( char *s ){
         if( meta_tag_hashes[i] == hash ){
 
             // read tag name hash from flash lookup
-            catbus_hash_t32 hash;
-            memcpy_P( &hash, &meta_tag_names[i], sizeof(hash) );
+            catbus_hash_t32 tag_hash;
+            memcpy_P( &tag_hash, &meta_tag_names[i], sizeof(tag_hash) );
 
-            cfg_v_erase( hash );
+            cfg_v_erase( tag_hash );
         }
     }
 
@@ -711,6 +712,8 @@ PT_BEGIN( pt );
 
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
+
+        // uint32_t start = tmr_u32_get_system_time_us();
 
         // log_v_debug_P( PSTR("%d"), header->msg_type );
 
@@ -1417,6 +1420,13 @@ PT_BEGIN( pt );
             error = CATBUS_ERROR_UNKNOWN_MSG;
         }
 
+        // uint32_t elapsed = tmr_u32_elapsed_time_us( start );
+        
+        // if( elapsed > 5000 ){
+
+        //     log_v_debug_P( PSTR("%u:%d"), elapsed, header->msg_type );        
+        // }
+        
 end:
     
         if( error != CATBUS_STATUS_OK ){

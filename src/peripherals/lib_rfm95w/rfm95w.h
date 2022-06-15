@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2019  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,12 @@
 
 #ifndef _RFM95W_H_
 #define _RFM95W_H_
+
+#define RFM95W_FIFO_LEN             64
+// using the FSK/OOK value of 64 bytes.
+// the Lora modem can do 256 bytes, but
+// we will restrict to 64 so we handle
+// both modem types the same way.
 
 #define RFM95W_FOSC                 32000000
 
@@ -104,7 +110,7 @@
 #define RFM95W_BIT_SignalSync           ( 1 << 1 )
 #define RFM95W_BIT_SignalDetected       ( 1 << 0 )
 
-#define RFM95W_RegPktSntValue       0x19
+#define RFM95W_RegPktSnrValue       0x19
 #define RFM95W_RegPktRssiValue      0x1A
 #define RFM95W_RegRssiValue         0x1B
 
@@ -153,13 +159,18 @@
 #define RFM95W_RegModemConfig3      0x26
 #define RFM95W_BIT_LowDataRateOptimize ( 1 << 3 )
 
+#define RFM95W_RegDetectOptimize        0x31
+#define RFM95W_MASK_DetectionOptimize   0x07
+
+#define RFM95W_RegDetectionThreshold    0x37
+
 // Sync word
 // Default is 0x12
 // LoraWAN is 0x34
 #define RFM95W_RegSyncWord      	0x39
 
 
-void rfm95w_v_init( uint8_t cs, uint8_t reset );
+int8_t rfm95w_i8_init( uint8_t cs, uint8_t reset );
 
 // low level api
 uint8_t rfm95w_u8_read_reg( uint8_t addr );
@@ -178,6 +189,7 @@ void rfm95w_v_set_power( int8_t data );
 void rfm95w_v_set_frequency( uint32_t freq );
 int16_t rfm95w_i16_get_rssi( void );
 int16_t rfm95w_i16_get_packet_rssi( void );
+int16_t rfm95w_i16_get_packet_snr( void );
 void rfm95w_v_set_preamble_length( uint16_t data );
 void rfm95w_v_set_sync_word( uint8_t data );
 
@@ -189,13 +201,14 @@ bool rfm95w_b_is_rx_ok( void );
 bool rfm95w_b_is_tx_done( void );
 
 // oacket API
-bool rfm95w_b_is_rx_ready( void );
+// bool rfm95w_b_is_rx_ready( void );
 uint8_t rfm95w_u8_read_rx_len( void );
 void rfm95w_v_get_rx_data( uint8_t *data, uint8_t len );
 
-bool rfm95w_b_is_tx_busy( void );
-bool rfm95w_b_is_tx_ready( void );
-bool rfm95w_b_transmit( uint8_t *data, uint8_t len );
+// bool rfm95w_b_is_tx_busy( void );
+// bool rfm95w_b_is_tx_ready( void );
+// bool rfm95w_b_transmit( uint8_t *data, uint8_t len );
+void rfm95w_v_transmit( void );
 
 #endif
 

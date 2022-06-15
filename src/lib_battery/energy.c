@@ -34,17 +34,26 @@
 #include "energy.h"
 #include "wifi.h"
 
+// power in microwatts
 static uint32_t power_cpu;
+static uint32_t power_pix;
 static uint32_t power_wifi;
 static uint32_t power_total;
 
-// total energy recorded
+// total energy recorded in microwatts per monitor cycle
 static uint64_t energy_cpu;
 static uint64_t energy_wifi;
 static uint64_t energy_pix;
 static uint64_t energy_total;
 
 #define ENERGY_MONITOR_RATE FADER_RATE
+
+
+// convert raw energy counter to milliwatt-hours
+static uint64_t convert_to_mwh( uint64_t value ){
+
+    return value / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) );
+}
 
 
 int8_t energy_kv_handler(
@@ -60,19 +69,19 @@ int8_t energy_kv_handler(
 
         if( hash == __KV__energy_cpu ){
 
-            STORE64(data, energy_cpu / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, convert_to_mwh( energy_cpu ) );
         }
         else if( hash == __KV__energy_wifi ){
 
-            STORE64(data, energy_wifi / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, convert_to_mwh( energy_wifi ) );
         }
         else if( hash == __KV__energy_pix ){
 
-            STORE64(data, energy_pix / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, convert_to_mwh( energy_pix ) );
         }
         else if( hash == __KV__energy_total ){
 
-            STORE64(data, energy_total / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ) );
+            STORE64(data, convert_to_mwh( energy_total ) );
         }
 
         // power:
@@ -109,26 +118,43 @@ int8_t energy_kv_handler(
 }
 
 
-KV_SECTION_META kv_meta_t energy_info_kv[] = {
-    { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_cpu" },
-    { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_wifi" },
-    { CATBUS_TYPE_UINT64,   0, 0,  0,    	      energy_kv_handler,    "energy_pix" },
-    { CATBUS_TYPE_UINT64,   0, 0,  0,             energy_kv_handler,    "energy_total" },
+// runtimes in lifetime total minutes
+static uint32_t led_runtime;
+static uint32_t sys_runtime;
 
-    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "power_cpu" },
-    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "power_wifi" },
-    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "power_pix" },
-    { CATBUS_TYPE_UINT32,   0, 0,  0,             energy_kv_handler,    "power_total" },
+// totaln milliwatt hours of LED energy
+// static uint64_t led_total_energy;
+
+
+KV_SECTION_META kv_meta_t energy_info_kv[] = {
+    { CATBUS_TYPE_UINT64,   0, 0,  0,                                       energy_kv_handler, "energy_cpu" },
+    { CATBUS_TYPE_UINT64,   0, 0,  0,                                       energy_kv_handler, "energy_wifi" },
+    { CATBUS_TYPE_UINT64,   0, 0,  0,    	                                energy_kv_handler, "energy_pix" },
+    { CATBUS_TYPE_UINT64,   0, 0,  0,                                       energy_kv_handler, "energy_total" },
+
+    { CATBUS_TYPE_UINT32,   0, 0,  0,                                       energy_kv_handler, "power_cpu" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,                                       energy_kv_handler, "power_wifi" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,                                       energy_kv_handler, "power_pix" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,                                       energy_kv_handler, "power_total" },
+
+    // { CATBUS_TYPE_UINT64,   0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,  &led_total_energy,   0, "power_led_total_energy" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,  &led_runtime,        0, "power_led_runtime" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,  &sys_runtime,        0, "power_sys_runtime" },
 };
 
 
 PT_THREAD( energy_monitor_thread( pt_t *pt, void *state ) );
-
+PT_THREAD( energy_runtime_thread( pt_t *pt, void *state ) );
 
 void energy_v_init( void ){
 
     thread_t_create( energy_monitor_thread,
                      PSTR("energy_monitor"),
+                     0,
+                     0 );
+
+    thread_t_create( energy_runtime_thread,
+                     PSTR("energy_runtime"),
                      0,
                      0 );
 
@@ -157,7 +183,7 @@ PT_BEGIN( pt );
 
         power_wifi = wifi_u32_get_power();
         power_cpu = cpu_u32_get_power();
-        uint32_t power_pix = gfx_u32_get_pixel_power();
+        power_pix = gfx_u32_get_pixel_power();
 
         energy_cpu += power_cpu;
         energy_wifi += power_wifi;
@@ -165,6 +191,56 @@ PT_BEGIN( pt );
 
         power_total = power_pix + power_cpu + power_wifi;
         energy_total += power_total;
+    }    
+
+PT_END( pt );
+}
+
+
+static void flush( void ){
+
+    kv_i8_persist( __KV__power_led_runtime );
+    kv_i8_persist( __KV__power_sys_runtime );
+}
+
+PT_THREAD( energy_runtime_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    static uint8_t counter;
+
+    counter = 0;
+
+    while( 1 ){
+
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 60000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
+
+        // if shutting down, flush and terminate thread
+        if( sys_b_is_shutting_down() ){
+
+            flush();
+
+            THREAD_EXIT( pt );
+        }   
+
+        sys_runtime++;
+
+        if( power_pix > 0 ){
+
+            led_runtime++;
+        }
+
+
+        // flush every 30 minutes
+        counter++;
+
+        if( counter == 30 ){
+
+            counter = 0;
+
+            flush();
+        }
     }    
 
 PT_END( pt );

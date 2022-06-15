@@ -96,8 +96,6 @@ typedef struct  __attribute__((packed)){
     int32_t val;
 } gfx_palette_t;
 
-void gfx_v_set_pix_mode( uint8_t mode );
-
 void gfx_v_set_vm_frame_rate( uint16_t frame_rate );
 uint16_t gfx_u16_get_vm_frame_rate( void );
 
@@ -177,6 +175,8 @@ void gfx_v_shutdown_graphic( void );
 void gfx_v_power_limiter_graphic( void );
 
 void gfxlib_v_init( void );
+
+bool gfx_b_is_output_zero( void );
 
 void gfx_v_sync_array( void );
 

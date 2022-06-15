@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2019  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -81,22 +81,23 @@ The RFM95 uses the PA_BOOST pin.
 
 #define RFM95_SPI_CHANNEL USER_SPI_CHANNEL
 
-static uint32_t lora_rx;
-static int16_t lora_rssi;
-static uint32_t lora_tx;
-static uint32_t lora_rx_errors;
+// static uint32_t lora_rx;
+// static int16_t lora_rssi;
+// static uint32_t lora_tx;
+// static uint32_t lora_rx_errors;
 
-KV_SECTION_META kv_meta_t rfm95w_kv[] = {
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_rx,       0, "lora_rx" },
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,     &lora_rssi,     0, "lora_rssi" },
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_tx,       0, "lora_tx" },
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_rx_errors,0, "lora_rx_errors" },
-};
 
-static bool rx_ready;
-static bool tx_busy;
+// KV_SECTION_META kv_meta_t rfm95w_kv[] = {
+//     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_rx,       0, "lora_rx" },
+//     { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,     &lora_rssi,     0, "lora_rssi" },
+//     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_tx,       0, "lora_tx" },
+//     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,     &lora_rx_errors,0, "lora_rx_errors" },
+// };
 
-void rfm95w_v_init( uint8_t cs, uint8_t reset ){
+// static bool rx_ready;
+// static bool tx_busy;
+
+int8_t rfm95w_i8_init( uint8_t cs, uint8_t reset ){
 
     cs_gpio = cs;
     reset_gpio = reset;
@@ -110,7 +111,7 @@ void rfm95w_v_init( uint8_t cs, uint8_t reset ){
     
     CHIP_DISABLE();
 
-    spi_v_init( RFM95_SPI_CHANNEL, 1000000, 0 );
+    spi_v_init( RFM95_SPI_CHANNEL, 10000000, 0 );
 
     // log_v_debug_P( PSTR("0x%x = 0x%x"), RFM95W_RegOpMode, rfm95w_u8_read_reg( RFM95W_RegOpMode ) );
     // log_v_debug_P( PSTR("0x%x = 0x%x"), RFM95W_RegPaConfig, rfm95w_u8_read_reg( RFM95W_RegPaConfig ) );
@@ -145,7 +146,7 @@ void rfm95w_v_init( uint8_t cs, uint8_t reset ){
         ( buf[2] != 3 ) ||
         ( buf[3] != 4 ) ){
 
-        return;
+        return -1;
     }
 
     log_v_debug_P( PSTR("LORA module detected") );
@@ -212,17 +213,17 @@ void rfm95w_v_init( uint8_t cs, uint8_t reset ){
     // log_v_debug_P( PSTR("%d"), rfm95w_u8_get_rssi() );
 
 
-    thread_t_create( lora_tx_thread,
-                     PSTR("lora_tx"),
-                     0,
-                     0 );
+    // thread_t_create( lora_tx_thread,
+    //                  PSTR("lora_tx"),
+    //                  0,
+    //                  0 );
 
     // thread_t_create( lora_rx_thread,
     //                  PSTR("lora_rx"),
     //                  0,
     //                  0 );
 
-
+    return 0;
 }
 
 uint8_t rfm95w_u8_read_reg( uint8_t addr ){
@@ -279,7 +280,7 @@ void rfm95w_v_read_fifo( uint8_t *buf, uint8_t len ){
 
 void rfm95w_v_write_fifo( uint8_t *buf, uint8_t len ){
 
-    rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
+    // rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
 
     CHIP_ENABLE();
 
@@ -288,7 +289,7 @@ void rfm95w_v_write_fifo( uint8_t *buf, uint8_t len ){
 
     CHIP_DISABLE();
 
-    rfm95w_v_write_reg( RFM95W_RegPayloadLength, len );
+    // rfm95w_v_write_reg( RFM95W_RegPayloadLength, len );
 }
 
 void rfm95w_v_set_mode( uint8_t mode ){
@@ -406,6 +407,13 @@ int16_t rfm95w_i16_get_packet_rssi( void ){
     return -157 + rssi;
 }
 
+int16_t rfm95w_i16_get_packet_snr( void ){
+
+    int16_t snr = rfm95w_u8_read_reg( RFM95W_RegPktSnrValue );
+
+    return snr / 4;
+}
+
 void rfm95w_v_set_preamble_length( uint16_t data ){
 
     if( data < RFM95W_PREAMBLE_MIN ){
@@ -439,7 +447,8 @@ bool rfm95w_b_is_rx_busy( void ){
 
     uint8_t modem_stat = rfm95w_u8_read_reg( RFM95W_RegModemStat );
 
-    return ( modem_stat & RFM95W_BIT_SignalDetected ) != 0;
+    return ( ( modem_stat & RFM95W_BIT_SignalDetected ) != 0 ) ||
+           ( ( modem_stat & RFM95W_BIT_SignalSync ) != 0 );
 }
 
 bool rfm95w_b_is_rx_ok( void ){
@@ -455,20 +464,20 @@ bool rfm95w_b_is_tx_done( void ){
     return ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_TxDone ) != 0;
 }
 
-bool rfm95w_b_is_rx_ready( void ){
+// bool rfm95w_b_is_rx_ready( void ){
 
-    return rx_ready;
-}
+//     return rx_ready;
+// }
 
-bool rfm95w_b_is_tx_busy( void ){
+// bool rfm95w_b_is_tx_busy( void ){
 
-    return tx_busy;
-}
+//     return tx_busy;
+// }
 
-bool rfm95w_b_is_tx_ready( void ){
+// bool rfm95w_b_is_tx_ready( void ){
 
-    return !rfm95w_b_is_rx_busy() && !tx_busy;
-}
+//     return !rfm95w_b_is_rx_busy() && !tx_busy;
+// }
 
 uint8_t rfm95w_u8_read_rx_len( void ){
 
@@ -479,205 +488,212 @@ void rfm95w_v_get_rx_data( uint8_t *data, uint8_t len ){
 
     rfm95w_v_read_fifo( data, len );
 
-    rx_ready = FALSE;
+    // rx_ready = FALSE;
 
     rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
     rfm95w_v_set_mode( RFM95W_OP_MODE_SLEEP );
     rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
 }
 
-bool rfm95w_b_transmit( uint8_t *data, uint8_t len ){
+// bool rfm95w_b_transmit( uint8_t *data, uint8_t len ){
 
-    // check if radio is busy
-    if( rfm95w_b_is_tx_busy() ){
+//     // check if radio is busy
+//     if( rfm95w_b_is_tx_busy() ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    if( rfm95w_b_is_rx_busy() ){
+//     if( rfm95w_b_is_rx_busy() ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    // standby mode so a receive packet doesn't corrupt the fifo
-    rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
+//     // standby mode so a receive packet doesn't corrupt the fifo
+//     rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
 
-    rfm95w_v_write_fifo( data, len );
+//     rfm95w_v_write_fifo( data, len );
+//     rfm95w_v_clear_irq_flags();
+//     rfm95w_v_set_mode( RFM95W_OP_MODE_TX );
+
+//     // tx_busy = TRUE;
+
+//     return TRUE;
+// }
+
+void rfm95w_v_transmit( void ){
+
     rfm95w_v_clear_irq_flags();
     rfm95w_v_set_mode( RFM95W_OP_MODE_TX );
-
-    // tx_busy = TRUE;
-
-    return TRUE;
 }
 
-PT_THREAD( lora_tx_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-    
-    while( 1 ){
 
-        // THREAD_WAIT_WHILE( pt, !tx_busy );
+// PT_THREAD( lora_tx_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
+    
+//     while( 1 ){
+
+//         // THREAD_WAIT_WHILE( pt, !tx_busy );
 
         
-        uint8_t buf[255];
-        for( uint8_t i = 0; i < sizeof(buf); i++ ){
+//         uint8_t buf[255];
+//         for( uint8_t i = 0; i < sizeof(buf); i++ ){
 
-            buf[i] = i;
-        }
-
-
-        rfm95w_b_transmit( buf, sizeof(buf) );
-
-        THREAD_WAIT_WHILE( pt, !rfm95w_b_is_tx_done() );
+//             buf[i] = i;
+//         }
 
 
-        TMR_WAIT( pt, 10 );
+//         rfm95w_b_transmit( buf, sizeof(buf) );
+
+//         THREAD_WAIT_WHILE( pt, !rfm95w_b_is_tx_done() );
 
 
-        // // return to receiver mode
-        // rfm95w_v_clear_irq_flags();
-        // rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
-
-        // lora_tx++;
-        // tx_busy = FALSE;
+//         TMR_WAIT( pt, 10 );
 
 
-        // // THREAD_YIELD( pt );
+//         // // return to receiver mode
+//         // rfm95w_v_clear_irq_flags();
+//         // rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
 
-        // // TMR_WAIT( pt, 1000 );
-
-        // uint8_t buf[255];
-        // for( uint8_t i = 0; i < sizeof(buf); i++ ){
-
-        //     buf[i] = i;
-        // }
-
-        // rfm95w_v_write_fifo( buf, sizeof(buf) );
-        // rfm95w_v_write_reg( RFM95W_RegIrqFlags, RFM95W_BIT_TxDone );
-        // rfm95w_v_set_mode( RFM95W_OP_MODE_TX );
+//         // lora_tx++;
+//         // tx_busy = FALSE;
 
 
-        // // rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
+//         // // THREAD_YIELD( pt );
 
-        // // rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
-        // // rfm95w_v_write_fifo( 0, 255 );
-        // // rfm95w_v_write_reg( RFM95W_RegPayloadLength, 255 );
-        // // rfm95w_v_write_reg( RFM95W_RegIrqFlags, RFM95W_BIT_TxDone );
+//         // // TMR_WAIT( pt, 1000 );
 
-        // // // rfm95w_v_set_mode( RFM95W_OP_MODE_FSTX );
+//         // uint8_t buf[255];
+//         // for( uint8_t i = 0; i < sizeof(buf); i++ ){
 
-        // // // _delay_ms(1);
+//         //     buf[i] = i;
+//         // }
 
-        // // // rfm95w_v_set_reg_bits( RFM95W_RegModemConfig2, RFM95W_BIT_TxContinuousMode );
-
-        // // rfm95w_v_set_mode( RFM95W_OP_MODE_TX );
-
-        // THREAD_WAIT_WHILE( pt, ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_TxDone ) == 0 );
-    }
-
-PT_END( pt );
-}
+//         // rfm95w_v_write_fifo( buf, sizeof(buf) );
+//         // rfm95w_v_write_reg( RFM95W_RegIrqFlags, RFM95W_BIT_TxDone );
+//         // rfm95w_v_set_mode( RFM95W_OP_MODE_TX );
 
 
-PT_THREAD( lora_rx_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+//         // // rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
+
+//         // // rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
+//         // // rfm95w_v_write_fifo( 0, 255 );
+//         // // rfm95w_v_write_reg( RFM95W_RegPayloadLength, 255 );
+//         // // rfm95w_v_write_reg( RFM95W_RegIrqFlags, RFM95W_BIT_TxDone );
+
+//         // // // rfm95w_v_set_mode( RFM95W_OP_MODE_FSTX );
+
+//         // // // _delay_ms(1);
+
+//         // // // rfm95w_v_set_reg_bits( RFM95W_RegModemConfig2, RFM95W_BIT_TxContinuousMode );
+
+//         // // rfm95w_v_set_mode( RFM95W_OP_MODE_TX );
+
+//         // THREAD_WAIT_WHILE( pt, ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_TxDone ) == 0 );
+//     }
+
+// PT_END( pt );
+// }
+
+
+// PT_THREAD( lora_rx_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
     
-    while( 1 ){
+//     while( 1 ){
         
-        THREAD_YIELD( pt );
+//         THREAD_YIELD( pt );
 
 
-        rfm95w_v_clear_irq_flags();
-        rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
+//         rfm95w_v_clear_irq_flags();
+//         rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
 
-        THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() );
+//         THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() );
 
-        if( !rfm95w_b_is_rx_ok() ){
+//         if( !rfm95w_b_is_rx_ok() ){
 
-            // error
-            // uint8_t payload_crc_error = ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_PayloadCrcError ) != 0;
-            // uint8_t header_error = ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_ValidHeader ) == 0;
+//             // error
+//             // uint8_t payload_crc_error = ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_PayloadCrcError ) != 0;
+//             // uint8_t header_error = ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_ValidHeader ) == 0;
 
-            lora_rx_errors++;
+//             lora_rx_errors++;
 
-            continue;
-        }
+//             continue;
+//         }
 
-        lora_rx++;
-        rx_ready = TRUE;
-        lora_rssi = rfm95w_i16_get_packet_rssi();
-
-
-        THREAD_WAIT_WHILE( pt, rx_ready );
+//         lora_rx++;
+//         rx_ready = TRUE;
+//         lora_rssi = rfm95w_i16_get_packet_rssi();
 
 
+//         THREAD_WAIT_WHILE( pt, rx_ready );
 
 
-        // THREAD_YIELD( pt );
-
-        // rfm95w_v_write_reg( RFM95W_RegIrqFlags, 0xff  );
-        // rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
-
-        // THREAD_WAIT_WHILE( pt, ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_RxDone ) == 0 );
-
-        // uint8_t flags = rfm95w_u8_read_reg( RFM95W_RegIrqFlags );
-        // uint8_t rx_len = rfm95w_u8_read_reg( RFM95W_RegRxNbBytes );
-        // uint8_t modem_stat = rfm95w_u8_read_reg( RFM95W_RegModemStat );
-        // int16_t pkt_rssi = -157 + rfm95w_u8_read_reg( RFM95W_RegPktRssiValue );
 
 
-        // uint8_t buf[16];
-        // memset( buf, 0, sizeof(buf) );
+//         // THREAD_YIELD( pt );
 
-        // rfm95w_v_read_fifo( buf, sizeof(buf) );
+//         // rfm95w_v_write_reg( RFM95W_RegIrqFlags, 0xff  );
+//         // rfm95w_v_set_mode( RFM95W_OP_MODE_RXCONT );
 
-        // bool data_valid = TRUE;
-        // for( uint8_t i = 0; i < sizeof(buf); i++ ){
+//         // THREAD_WAIT_WHILE( pt, ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_RxDone ) == 0 );
 
-        //     if( buf[i] != i ){
+//         // uint8_t flags = rfm95w_u8_read_reg( RFM95W_RegIrqFlags );
+//         // uint8_t rx_len = rfm95w_u8_read_reg( RFM95W_RegRxNbBytes );
+//         // uint8_t modem_stat = rfm95w_u8_read_reg( RFM95W_RegModemStat );
+//         // int16_t pkt_rssi = -157 + rfm95w_u8_read_reg( RFM95W_RegPktRssiValue );
 
-        //         log_v_debug_P( PSTR("invalid data: %x != %x"), buf[i], i );
 
-        //         data_valid = FALSE;
+//         // uint8_t buf[16];
+//         // memset( buf, 0, sizeof(buf) );
 
-        //         break;
-        //     }
-        // }
+//         // rfm95w_v_read_fifo( buf, sizeof(buf) );
 
-        // log_v_debug_P( PSTR("Flags: 0x%02x len: %d Stat: 0x%02x RSSI: %d Data: %d"), flags, rx_len, modem_stat, pkt_rssi, data_valid );
+//         // bool data_valid = TRUE;
+//         // for( uint8_t i = 0; i < sizeof(buf); i++ ){
+
+//         //     if( buf[i] != i ){
+
+//         //         log_v_debug_P( PSTR("invalid data: %x != %x"), buf[i], i );
+
+//         //         data_valid = FALSE;
+
+//         //         break;
+//         //     }
+//         // }
+
+//         // log_v_debug_P( PSTR("Flags: 0x%02x len: %d Stat: 0x%02x RSSI: %d Data: %d"), flags, rx_len, modem_stat, pkt_rssi, data_valid );
     
 
-        // reset FIFO
-        // rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
-        // rfm95w_v_set_mode( RFM95W_OP_MODE_SLEEP );
-        // rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
+//         // reset FIFO
+//         // rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
+//         // rfm95w_v_set_mode( RFM95W_OP_MODE_SLEEP );
+//         // rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
 
 
-        // TMR_WAIT( pt, 100 );
+//         // TMR_WAIT( pt, 100 );
 
 
-        // rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
+//         // rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
 
-        // rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
-        // rfm95w_v_write_fifo( 0, 255 );
-        // rfm95w_v_write_reg( RFM95W_RegPayloadLength, 255 );
-        // rfm95w_v_write_reg( RFM95W_RegIrqFlags, RFM95W_BIT_TxDone );
+//         // rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
+//         // rfm95w_v_write_fifo( 0, 255 );
+//         // rfm95w_v_write_reg( RFM95W_RegPayloadLength, 255 );
+//         // rfm95w_v_write_reg( RFM95W_RegIrqFlags, RFM95W_BIT_TxDone );
 
-        // // rfm95w_v_set_mode( RFM95W_OP_MODE_FSTX );
+//         // // rfm95w_v_set_mode( RFM95W_OP_MODE_FSTX );
 
-        // // _delay_ms(1);
+//         // // _delay_ms(1);
 
-        // // rfm95w_v_set_reg_bits( RFM95W_RegModemConfig2, RFM95W_BIT_TxContinuousMode );
+//         // // rfm95w_v_set_reg_bits( RFM95W_RegModemConfig2, RFM95W_BIT_TxContinuousMode );
 
-        // rfm95w_v_set_mode( RFM95W_OP_MODE_TX );
+//         // rfm95w_v_set_mode( RFM95W_OP_MODE_TX );
 
-        // THREAD_WAIT_WHILE( pt, ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_TxDone ) == 0 );
-    }
+//         // THREAD_WAIT_WHILE( pt, ( rfm95w_u8_read_reg( RFM95W_RegIrqFlags ) & RFM95W_BIT_TxDone ) == 0 );
+//     }
 
-PT_END( pt );
-}
+// PT_END( pt );
+// }
 
 #else
 

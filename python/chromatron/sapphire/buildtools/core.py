@@ -354,10 +354,10 @@ class Builder(object):
 
         elif settings["TOOLCHAIN"] == "ESP32":
             if "CC" not in settings:
-                settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_idf_4.4', 'bin', 'xtensa-esp32-elf-gcc')
+                settings["CC"] = os.path.join(TOOLS_DIR, 'esp-2021r2-patch3-8.4.0', 'bin', 'xtensa-esp32-elf-gcc')
 
             if "BINTOOLS" not in settings:
-                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_idf_4.4', 'bin')
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'esp-2021r2-patch3-8.4.0', 'bin')
 
         elif settings["TOOLCHAIN"] == "ESP32_bootloader":
             if "CC" not in settings:

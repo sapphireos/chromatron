@@ -199,6 +199,53 @@ void util_v_bubble_sort_reversed_u32( uint32_t *array, uint8_t len ){
     } while( swapped );
 }
 
+// do not use the 8 bit ewma filters!
+// they lack sufficient precision for stability!
+
+// uint8_t util_u8_ewma( uint8_t new, uint8_t old, uint8_t ratio ){
+
+//     uint8_t temp = ( ( (uint16_t)ratio * new ) / 256 ) +  
+//                    ( ( (uint16_t)( 256 - ratio ) * old ) / 256 );
+
+//     // check if filter is unchanging
+//     if( temp == old ){
+
+//         // adjust by minimum
+//         if( new > old ){
+
+//             temp++;
+//         }
+//         else if( new < old ){
+
+//             temp--;
+//         }
+//     }   
+
+//     return temp;
+// }
+
+// int8_t util_i8_ewma( int8_t new, int8_t old, uint8_t ratio ){
+
+//     int8_t temp = ( ( (int16_t)ratio * new ) / 256 ) +  
+//                   ( ( (int16_t)( 256 - ratio ) * old ) / 256 );
+
+//     // check if filter is unchanging
+//     if( temp == old ){
+
+//         // adjust by minimum
+//         if( new > old ){
+
+//             temp++;
+//         }
+//         else if( new < old ){
+
+//             temp--;
+//         }
+//     }   
+
+//     return temp;
+// }
+
 int16_t util_i16_ewma( int16_t new, int16_t old, uint8_t ratio ){
 
     int16_t temp = ( ( (int32_t)ratio * new ) / 256 ) +  

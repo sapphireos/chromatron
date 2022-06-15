@@ -6,35 +6,35 @@
 
 #IncludeRegexTransform: 
 
-../../../../../components/esp_common/include/esp_assert.h
+../../components/esp_common/include/esp_assert.h
 assert.h
-../../../../../components/esp_common/include/assert.h
+../../components/esp_common/include/assert.h
 
-../../../../../components/esp_common/include/esp_attr.h
+../../components/esp_common/include/esp_attr.h
 sdkconfig.h
-../../../../../components/esp_common/include/sdkconfig.h
+../../components/esp_common/include/sdkconfig.h
 
-../../../../../components/esp_common/include/esp_bit_defs.h
+../../components/esp_common/include/esp_bit_defs.h
 
-../../../../../components/esp_hw_support/include/soc/esp32/dport_access.h
+../../components/esp_hw_support/include/soc/esp32/dport_access.h
 stdint.h
 -
 sdkconfig.h
 -
 xtensa/xtruntime.h
-../../../../../components/esp_hw_support/include/soc/esp32/xtensa/xtruntime.h
+../../components/esp_hw_support/include/soc/esp32/xtensa/xtruntime.h
 esp_ipc_isr.h
-../../../../../components/esp_hw_support/include/soc/esp32/esp_ipc_isr.h
+../../components/esp_hw_support/include/soc/esp32/esp_ipc_isr.h
 
-../../../../../components/esp_ipc/include/esp_ipc_isr.h
+../../components/esp_ipc/include/esp_ipc_isr.h
 sdkconfig.h
-../../../../../components/esp_ipc/include/sdkconfig.h
+../../components/esp_ipc/include/sdkconfig.h
 
-../../../../../components/freertos/port/xtensa/include/freertos/xtensa_context.h
+../../components/freertos/port/xtensa/include/freertos/xtensa_context.h
 xtensa/xtensa_context.h
 -
 
-../../../../../components/newlib/platform_include/assert.h
+../../components/newlib/platform_include/assert.h
 sdkconfig.h
 -
 stdlib.h
@@ -42,43 +42,43 @@ stdlib.h
 stdint.h
 -
 
-../../../../../components/soc/esp32/include/soc/dport_access.h
+../../components/soc/esp32/include/soc/dport_access.h
 stdint.h
 -
 esp_attr.h
-../../../../../components/soc/esp32/include/soc/esp_attr.h
+../../components/soc/esp32/include/soc/esp_attr.h
 esp32/dport_access.h
-../../../../../components/soc/esp32/include/soc/esp32/dport_access.h
+../../components/soc/esp32/include/soc/esp32/dport_access.h
 sdkconfig.h
-../../../../../components/soc/esp32/include/soc/sdkconfig.h
+../../components/soc/esp32/include/soc/sdkconfig.h
 
-../../../../../components/soc/esp32/include/soc/dport_reg.h
+../../components/soc/esp32/include/soc/dport_reg.h
 soc.h
-../../../../../components/soc/esp32/include/soc/soc.h
+../../components/soc/esp32/include/soc/soc.h
 dport_access.h
-../../../../../components/soc/esp32/include/soc/dport_access.h
+../../components/soc/esp32/include/soc/dport_access.h
 
-../../../../../components/soc/esp32/include/soc/soc.h
+../../components/soc/esp32/include/soc/soc.h
 stdint.h
 -
 esp_assert.h
-../../../../../components/soc/esp32/include/soc/esp_assert.h
+../../components/soc/esp32/include/soc/esp_assert.h
 esp_bit_defs.h
 -
 
-../../../../../components/xtensa/esp32/include/xtensa/config/core-isa.h
+../../components/xtensa/esp32/include/xtensa/config/core-isa.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
+../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/core.h
+../../components/xtensa/esp32/include/xtensa/config/core.h
 xtensa/hal.h
 -
 xtensa/xtensa-versions.h
 -
 xtensa/hal.h
-../../../../../components/xtensa/esp32/include/xtensa/config/xtensa/hal.h
+../../components/xtensa/esp32/include/xtensa/config/xtensa/hal.h
 xtensa/xtensa-versions.h
-../../../../../components/xtensa/esp32/include/xtensa/config/xtensa/xtensa-versions.h
+../../components/xtensa/esp32/include/xtensa/config/xtensa/xtensa-versions.h
 xtensa/config/core-isa.h
 -
 xtensa/config/core-matmap.h
@@ -86,29 +86,29 @@ xtensa/config/core-matmap.h
 xtensa/config/tie.h
 -
 core-isa.h
-../../../../../components/xtensa/esp32/include/xtensa/config/core-isa.h
+../../components/xtensa/esp32/include/xtensa/config/core-isa.h
 core-matmap.h
-../../../../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
+../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
 tie.h
-../../../../../components/xtensa/esp32/include/xtensa/config/tie.h
+../../components/xtensa/esp32/include/xtensa/config/tie.h
 xtensa/config/tie-asm.h
 -
 tie-asm.h
-../../../../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
+../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/specreg.h
+../../components/xtensa/esp32/include/xtensa/config/specreg.h
 xtensa/corebits.h
 -
 
-../../../../../components/xtensa/esp32/include/xtensa/config/system.h
+../../components/xtensa/esp32/include/xtensa/config/system.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
+../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
 
-../../../../../components/xtensa/esp32/include/xtensa/config/tie.h
+../../components/xtensa/esp32/include/xtensa/config/tie.h
 
-../../../../../components/xtensa/include/esp_private/panic_reason.h
+../../components/xtensa/include/esp_private/panic_reason.h
 
-../../../../../components/xtensa/include/xtensa/coreasm.h
+../../components/xtensa/include/xtensa/coreasm.h
 xtensa/config/core.h
 -
 xtensa/config/specreg.h
@@ -116,17 +116,17 @@ xtensa/config/specreg.h
 xtensa/config/system.h
 -
 
-../../../../../components/xtensa/include/xtensa/corebits.h
+../../components/xtensa/include/xtensa/corebits.h
 
-../../../../../components/xtensa/include/xtensa/hal.h
+../../components/xtensa/include/xtensa/hal.h
 stdint.h
 -
 stddef.h
 -
 
-../../../../../components/xtensa/include/xtensa/xtensa-versions.h
+../../components/xtensa/include/xtensa/xtensa-versions.h
 
-../../../../../components/xtensa/include/xtensa/xtensa_context.h
+../../components/xtensa/include/xtensa/xtensa_context.h
 xtensa/coreasm.h
 -
 xtensa/config/tie.h
@@ -138,7 +138,7 @@ xtensa/config/system.h
 xtensa/xtruntime-frames.h
 -
 
-../../../../../components/xtensa/include/xtensa/xtruntime-core-state.h
+../../components/xtensa/include/xtensa/xtruntime-core-state.h
 xtensa/xtruntime-frames.h
 -
 xtensa/config/core.h
@@ -148,11 +148,11 @@ xtensa/config/tie.h
 xtensa/idma.h
 -
 
-../../../../../components/xtensa/include/xtensa/xtruntime-frames.h
+../../components/xtensa/include/xtensa/xtruntime-frames.h
 xtensa/config/core.h
 -
 
-../../../../../components/xtensa/include/xtensa/xtruntime.h
+../../components/xtensa/include/xtensa/xtruntime.h
 xtensa/config/core.h
 -
 xtensa/config/specreg.h

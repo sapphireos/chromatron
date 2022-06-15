@@ -28,8 +28,10 @@ void app_main()
 {
     #ifdef CONFIG_FREERTOS_UNICORE
         int core = 0;
+        #pragma message "ESP32 Single Core"
     #else
         int core = 1;
+        #pragma message "ESP32 Dual Core"
     #endif
 
     xTaskCreatePinnedToCore(&sapphire_main, "sapphire",
