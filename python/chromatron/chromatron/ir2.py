@@ -1829,7 +1829,7 @@ class irBlock(IR):
 
                 else:
                     values[ir.target] = ir.target
-                    values[ir.value] = ir.target
+                    values[expr] = ir.target
 
 
             elif isinstance(ir, irLoadRef):
