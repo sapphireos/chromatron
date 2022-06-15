@@ -1610,7 +1610,17 @@ class irBlock(IR):
 
                         changed = True
 
+            elif isinstance(ir, irLoadRetVal):
+                # replace inputs:
+                if ir.target in values:
+                    replacement = values[ir.target]
 
+                    if ir.target != replacement:
+                        print(f"replace load retval {ir.target} with {replacement}")
+
+                        ir.target = replacement
+
+                        changed = True
 
             elif isinstance(ir, irConvertType):
                 # replace inputs:
@@ -1819,27 +1829,80 @@ class irBlock(IR):
 
                         changed = True
 
-                expr = ir.expr
+                # expr = ir.expr
 
                 # simplify?
                 # not on assign
 
                 # is expr in hash table?
-                if expr in values:
-                    v = values[expr]
+                # if expr in values:
+                #     v = values[expr]
 
-                    values[ir.target] = v
+                #     values[ir.target] = v
 
-                    # remove assignment
-                    print(f"remove vector assign {ir.target} = {ir.value}")
+                #     # remove assignment
+                #     print(f"remove vector assign {ir.target} = {ir.value}")
 
-                    changed = True
+                #     changed = True
 
-                    continue
+                #     continue
 
-                else:
-                    values[ir.target] = ir.target
-                    values[expr] = ir.target
+                # else:
+                #     values[ir.target] = ir.target
+                #     values[expr] = ir.target
+
+            elif isinstance(ir, irVectorOp):
+                # replace inputs:
+                if ir.target in values:
+                    replacement = values[ir.target]
+
+                    if ir.target != replacement:
+                        print(f"replace vector op target {ir.target} = {ir.target} with {replacement}")
+
+                        ir.target = replacement
+
+                        changed = True
+
+                if ir.value in values:
+                    replacement = values[ir.value]
+
+                    if ir.value != replacement:
+                        print(f"replace vector op value {ir.target} = {ir.value} with {replacement}")
+
+                        ir.value = replacement
+
+                        changed = True
+
+                # expr = ir.expr
+
+                # # simplify?
+                # # not on assign
+
+                # # is expr in hash table?
+                # if expr in values:
+                #     v = values[expr]
+
+                #     values[ir.target] = v
+
+                #     # remove assignment
+                #     print(f"remove vector op {ir.target} = {ir.value}")
+
+                #     changed = True
+
+                #     continue
+
+                # else:
+                #     values[ir.target] = ir.target
+                #     values[expr] = ir.target
+
+            elif isinstance(ir, irObjectLookup):
+                pass
+
+            elif isinstance(ir, irObjectLoad):
+                pass
+
+            elif isinstance(ir, irObjectStore):
+                pass
 
 
             elif isinstance(ir, irLoadRef):
@@ -1958,6 +2021,9 @@ class irBlock(IR):
                 pass
 
             elif isinstance(ir, irCall):
+                pass
+
+            elif isinstance(ir, irIndirectCall):
                 pass
 
             else:

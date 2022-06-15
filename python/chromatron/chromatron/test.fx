@@ -1,14 +1,17 @@
-
-ary = Number()[4]
+p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
 
 def init():
-    ary = 0
-    ary = 1
-    assert ary[0] == 1
-    # assert ary[1] == 1
-    # assert ary[2] == 1
-    # assert ary[3] == 1
+    pixels.hue = 0.0
 
+    assert p1[0].hue == 0.0
+    # assert p1[1].hue == 0.0
+    # assert p1[2].hue == 0.0
+    
+    # p1.hue = 0.5
+
+    # assert p1[0].hue == 0.5
+    # assert p1[1].hue == 0.5
+    # assert p1[2].hue == 0.5
 
 # def init():
 #     a = Number()
