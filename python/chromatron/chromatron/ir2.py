@@ -2092,7 +2092,7 @@ class irBlock(IR):
 
             elif isinstance(ir, irCall):
                 # replace inputs:
-                 for i in range(len(ir.params)):
+                for i in range(len(ir.params)):
                     if ir.params[i] in values:
                         replacement = values[ir.params[i]]
 
@@ -2106,8 +2106,8 @@ class irBlock(IR):
 
 
             elif isinstance(ir, irIndirectCall):
-                 # replace inputs:
-                 for i in range(len(ir.params)):
+                # replace inputs:
+                for i in range(len(ir.params)):
                     if ir.params[i] in values:
                         replacement = values[ir.params[i]]
 
