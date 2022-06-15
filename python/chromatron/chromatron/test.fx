@@ -1,11 +1,18 @@
+def sub(a: Number, b: Number) -> Number:
+    return a - b
+
+def add(a: Number, b: Number) -> Number:
+    return a + b
 
 def init():
-    assert 1 + 2 == 3
-    # assert 3 - 2 == 1
-    # assert 3 * 2 == 6
-    # assert 8 / 4 == 2
-    # assert 8 % 5 == 3
+    f = Function(sub)
+    f = sub
 
+    assert f(1, 2) == -1
+
+    f = add
+
+    assert f(1, 2) == 3
 
 # def init():
 #     a = Number()

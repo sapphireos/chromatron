@@ -2094,7 +2094,16 @@ class irBlock(IR):
                 pass
 
             elif isinstance(ir, irIndirectCall):
-                pass
+                 # replace inputs:
+                if ir.ref in values:
+                    replacement = values[ir.ref]
+
+                    if ir.ref != replacement:
+                        print(f"replace icall {ir} with {replacement}")
+
+                        ir.ref = replacement
+
+                        changed = True
 
             else:
                 raise Exception(ir)
