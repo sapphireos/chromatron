@@ -1829,28 +1829,6 @@ class irBlock(IR):
 
                         changed = True
 
-                # expr = ir.expr
-
-                # simplify?
-                # not on assign
-
-                # is expr in hash table?
-                # if expr in values:
-                #     v = values[expr]
-
-                #     values[ir.target] = v
-
-                #     # remove assignment
-                #     print(f"remove vector assign {ir.target} = {ir.value}")
-
-                #     changed = True
-
-                #     continue
-
-                # else:
-                #     values[ir.target] = ir.target
-                #     values[expr] = ir.target
-
             elif isinstance(ir, irVectorOp):
                 # replace inputs:
                 if ir.target in values:
@@ -1873,36 +1851,60 @@ class irBlock(IR):
 
                         changed = True
 
-                # expr = ir.expr
-
-                # # simplify?
-                # # not on assign
-
-                # # is expr in hash table?
-                # if expr in values:
-                #     v = values[expr]
-
-                #     values[ir.target] = v
-
-                #     # remove assignment
-                #     print(f"remove vector op {ir.target} = {ir.value}")
-
-                #     changed = True
-
-                #     continue
-
-                # else:
-                #     values[ir.target] = ir.target
-                #     values[expr] = ir.target
-
             elif isinstance(ir, irObjectLookup):
-                pass
+                # replace inputs:
+                if ir.target in values:
+                    replacement = values[ir.target]
+
+                    if ir.target != replacement:
+                        print(f"replace object lookup {ir} with {replacement}")
+
+                        ir.target = replacement
+
+                        changed = True
+
+                expr = ir.expr
+
+                # is expr in hash table?
+                if expr in values:
+                    v = values[expr]
+
+                    values[ir.result] = v
+
+                    # remove assignment
+                    print(f"remove object lookup {ir}")
+
+                    changed = True
+
+                    continue
+
+                else:
+                    values[ir.result] = ir.result
+                    values[ir.target] = ir.result
+            
+            elif isinstance(ir, irObjectStore):
+                # replace inputs:
+                if ir.value in values:
+                    replacement = values[ir.value]
+
+                    if ir.value != replacement:
+                        print(f"replace object store {ir} with {replacement}")
+
+                        ir.value = replacement
+
+                        changed = True
 
             elif isinstance(ir, irObjectLoad):
-                pass
+                # replace inputs:
+                if ir.value in values:
+                    replacement = values[ir.value]
 
-            elif isinstance(ir, irObjectStore):
-                pass
+                    if ir.value != replacement:
+                        print(f"replace object load {ir} with {replacement}")
+
+                        ir.value = replacement
+
+                        changed = True
 
 
             elif isinstance(ir, irLoadRef):
@@ -1916,6 +1918,9 @@ class irBlock(IR):
                         ir.ref = replacement
 
                         changed = True
+
+                # if ir.target.var.target is None:
+                #     ir.target.var.target = ir.ref
 
                 expr = ir.ref
                 
@@ -4678,6 +4683,14 @@ class irObjectLookup(IR):
             lookups += f'[{a}]'
 
         return f'{self.result} <-- LOOKUP(object) {self.target}{lookups}'
+
+    @property
+    def expr(self):
+        s = f'object lookup: {self.target} '
+        for m in sorted(self.lookups, key=lambda x: x.ssa_name):
+            s += f'{m.ssa_name} '
+
+        return s
 
     def get_input_vars(self):
         inputs = [self.target]
