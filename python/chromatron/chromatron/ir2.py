@@ -1797,6 +1797,41 @@ class irBlock(IR):
                         values[ir.target] = ir.target
                         values[expr] = ir.target
 
+            elif isinstance(ir, irVectorAssign):
+                # replace inputs:
+                if ir.value in values:
+                    replacement = values[ir.value]
+
+                    if ir.value != replacement:
+                        print(f"replace vector assign {ir.target} = {ir.value} with {replacement}")
+
+                        ir.value = replacement
+
+                        changed = True
+
+                expr = ir.expr
+
+                # simplify?
+                # not on assign
+
+                # is expr in hash table?
+                if expr in values:
+                    v = values[expr]
+
+                    values[ir.target] = v
+
+                    # remove assignment
+                    print(f"remove vector assign {ir.target} = {ir.value}")
+
+                    changed = True
+
+                    continue
+
+                else:
+                    values[ir.target] = ir.target
+                    values[ir.value] = ir.target
+
+
             elif isinstance(ir, irLoadRef):
                 # replace inputs:
                 if ir.ref in values:
@@ -1957,6 +1992,14 @@ class irBlock(IR):
 
         for k, v in values.items():
             print(f'{str(k):32} = {v}')
+
+        print('\n')
+
+        if changed:
+            print("changes marked in this pass")
+
+        else:
+            print("no changes in this pass")
 
         print('\n')
 
@@ -4478,6 +4521,10 @@ class irVectorAssign(IR):
         
     def __str__(self):
         return '*%s =(vector) %s' % (self.target, self.value)
+
+    @property
+    def expr(self):
+        return f'{self.target} vector assign {self.value}'
 
     def get_input_vars(self):
         return [self.target, self.value]

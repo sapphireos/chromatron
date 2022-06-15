@@ -481,7 +481,7 @@ class insFunc(object):
 
         # just makes debugging a bit easier:
         registers = self.registers 
-        # memory = self.memory
+        global_memory = self.program.global_memory
         local = self.locals
 
         if self in self.return_stack:
@@ -546,7 +546,8 @@ class insFunc(object):
 
                 self.return_stack.pop(0)
 
-                return 0
+                # return 0
+                raise
 
             except AssertionError:
                 msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
