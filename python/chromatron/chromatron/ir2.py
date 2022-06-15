@@ -535,7 +535,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = True
+            show_liveness = False
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -1567,8 +1567,9 @@ class irBlock(IR):
                     values[ir.target] = ir.target
                     values[ir.value] = ir.target
 
-            # elif isinstance(ir, irLoad):
+            elif isinstance(ir, irLoad):
             #     values[ir.register] = ir.register
+                pass
 
             elif isinstance(ir, irStore):
                 # replace inputs:
@@ -1632,6 +1633,17 @@ class irBlock(IR):
 
             elif isinstance(ir, irLookup):
                 # replace inputs:
+                if ir.ref in values:
+                    replacement = values[ir.ref]
+
+                    if ir.ref != replacement:
+                        print(f"replace lookup ref {ir.result} = {ir.ref} with {replacement}")
+
+                        ir.ref = replacement
+
+                        changed = True
+
+
                 for i in range(len(ir.lookups)):
                     if ir.lookups[i] in values:
                         replacement = values[ir.lookups[i]]
@@ -1673,8 +1685,6 @@ class irBlock(IR):
 
 
                 expr = ir.expr
-
-                print(expr)
 
                 if expr in values:
                     v = values[expr]
@@ -1758,22 +1768,39 @@ class irBlock(IR):
                         values[ir.target] = ir.target
                         values[expr] = ir.target
 
+            elif isinstance(ir, irLoadRef):
+                # replace inputs:
+                if ir.ref in values:
+                    replacement = values[ir.ref]
 
-            # elif isinstance(ir, irLoad):
-            #     target = ir.register
-            #     value = ir.ref
+                    if ir.ref != replacement:
+                        print(f"replace loadref {ir.target} = {ir.ref} with {replacement}")
 
-            #     assert target not in values
-            #     values[target] = value
+                        ir.ref = replacement
 
-            #     if value not in registers:
-            #         registers[str(value)] = target
+                        changed = True
 
-            # elif isinstance(ir, irStore):
-            #     target = ir.ref
-            #     value = ir.register
+                expr = ir.ref
+                
+                # simplify?
+                # not on load ref
 
-            #     ir.apply_value_numbers(values)
+                # is expr in hash table?
+                if expr in values:
+                    v = values[expr]
+
+                    values[ir.target] = v
+
+                    # remove assignment
+                    print(f"remove loadref {ir.target} = {ir.ref}")
+
+                    changed = True
+
+                    continue
+
+                else:
+                    values[ir.target] = ir.target
+                    values[ir.ref] = ir.target
 
 
             elif isinstance(ir, irBranch):
@@ -1834,7 +1861,20 @@ class irBlock(IR):
                 #         ir = irJump(ir.true_label, lineno=ir.lineno)
                 #         ir.block = self
 
+            elif isinstance(ir, irJump):
+                # unconditional jump: nothing to optimize here
+                pass
+
+            elif isinstance(ir, irLoopHeader):
+                # pseudoinstruction
+                pass
+
+            elif isinstance(ir, irLoopTop):
+                # pseudoinstruction
+                pass
+
             elif isinstance(ir, irLabel):
+                # pseudoinstruction
                 pass
 
             elif isinstance(ir, irAssert):
@@ -1843,7 +1883,11 @@ class irBlock(IR):
             elif isinstance(ir, irPhi):
                 pass
 
+            elif isinstance(ir, irCall):
+                pass
+
             else:
+                raise Exception(ir)
                 print(f"Unanalyzed instruction: {ir}")
 
             # check value table for pollution from primitive types
