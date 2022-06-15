@@ -594,6 +594,8 @@ class Builder(object):
 
         elif isinstance(value, varObject):
             var = self.add_temp(data_type='objref', lineno=lineno)
+            var.target = value
+
             ir = irLoadRef(var, value, lineno=lineno)
             self.append_node(ir)
             
