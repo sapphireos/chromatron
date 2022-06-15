@@ -1906,6 +1906,28 @@ class irBlock(IR):
 
                         changed = True
 
+            elif isinstance(ir, irObjectOp):
+                # replace inputs:
+                if ir.target in values:
+                    replacement = values[ir.target]
+
+                    if ir.target != replacement:
+                        print(f"replace object op {ir} with {replacement}")
+
+                        ir.target = replacement
+
+                        changed = True
+
+                if ir.value in values:
+                    replacement = values[ir.value]
+
+                    if ir.value != replacement:
+                        print(f"replace object op {ir} with {replacement}")
+
+                        ir.value = replacement
+
+                        changed = True
+
 
             elif isinstance(ir, irLoadRef):
                 # replace inputs:
@@ -1943,6 +1965,27 @@ class irBlock(IR):
                 else:
                     values[ir.target] = ir.target
                     values[expr] = ir.target
+
+            elif isinstance(ir, irLoop):
+                # if ir.iterator_in in values:
+                #     replacement = values[ir.iterator_in]
+
+                #     if ir.iterator_in != replacement:
+                #         print(f"replace loop iterator_in {ir} with {replacement}")
+
+                #         ir.iterator_in = replacement
+
+                #         changed = True
+                        
+                if ir.stop in values:
+                    replacement = values[ir.stop]
+
+                    if ir.stop != replacement:
+                        print(f"replace loop stop {ir} with {replacement}")
+
+                        ir.stop = replacement
+
+                        changed = True
 
 
             elif isinstance(ir, irBranch):

@@ -1,19 +1,14 @@
-p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
-
+current_hue = Fixed16()
 def init():
-    pixels.hue = 0.0
+    current_hue += 0.005
 
-    pa = PixelArray()[2]
-    pa[1] = p1
+    a = Fixed16()
+    a = current_hue
 
-    p = PixelArray()
-    p = pa[1]
-    
-    p.hue = 0.5    
-
-    assert p1[0].hue == 0.5
-    assert p1[1].hue == 0.5
-    assert p1[2].hue == 0.5
+    for i in pixels.count:
+        pixels[i].hue = a
+        
+        a += 1.0 / pixels.count
 
 # def init():
 #     a = Number()
