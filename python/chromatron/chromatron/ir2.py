@@ -2091,10 +2091,34 @@ class irBlock(IR):
                 pass
 
             elif isinstance(ir, irCall):
-                pass
+                # replace inputs:
+                 for i in range(len(ir.params)):
+                    if ir.params[i] in values:
+                        replacement = values[ir.params[i]]
+
+                        if ir.params[i] != replacement:
+
+                            print(f"replace call param {ir.params[i]} with {replacement}")
+
+                            ir.params[i] = replacement
+
+                            changed = True
+
 
             elif isinstance(ir, irIndirectCall):
                  # replace inputs:
+                 for i in range(len(ir.params)):
+                    if ir.params[i] in values:
+                        replacement = values[ir.params[i]]
+
+                        if ir.params[i] != replacement:
+
+                            print(f"replace icall param {ir.params[i]} with {replacement}")
+
+                            ir.params[i] = replacement
+
+                            changed = True
+
                 if ir.ref in values:
                     replacement = values[ir.ref]
 

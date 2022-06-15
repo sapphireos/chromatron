@@ -1,18 +1,17 @@
-def sub(a: Number, b: Number) -> Number:
-    return a - b
-
-def add(a: Number, b: Number) -> Number:
-    return a + b
+def use_ref_array(b: Number[4]):
+    return b[0] + b[1] + b[2] + b[3]
 
 def init():
-    f = Function(sub)
-    f = sub
+    l = Number()[4]
 
-    assert f(1, 2) == -1
+    l[0] = 1
+    l[1] = 2
+    l[2] = 3
+    l[3] = 4
 
-    f = add
+    assert use_ref_array(l) == 10
 
-    assert f(1, 2) == 3
+
 
 # def init():
 #     a = Number()
