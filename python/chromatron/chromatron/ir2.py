@@ -1880,7 +1880,7 @@ class irBlock(IR):
 
                 else:
                     values[ir.result] = ir.result
-                    values[ir.target] = ir.result
+                    values[expr] = ir.result
             
             elif isinstance(ir, irObjectStore):
                 # replace inputs:
@@ -1913,7 +1913,7 @@ class irBlock(IR):
                     replacement = values[ir.ref]
 
                     if ir.ref != replacement:
-                        print(f"replace loadref {ir.target} = {ir.ref} with {replacement}")
+                        print(f"replace loadref {ir} with {replacement}")
 
                         ir.ref = replacement
 
@@ -1922,7 +1922,7 @@ class irBlock(IR):
                 # if ir.target.var.target is None:
                 #     ir.target.var.target = ir.ref
 
-                expr = ir.ref
+                expr = ir.expr
                 
                 # simplify?
                 # not on load ref
@@ -1934,7 +1934,7 @@ class irBlock(IR):
                     values[ir.target] = v
 
                     # remove assignment
-                    print(f"remove loadref {ir.target} = {ir.ref}")
+                    print(f"remove loadref {ir}")
 
                     changed = True
 
@@ -1942,7 +1942,7 @@ class irBlock(IR):
 
                 else:
                     values[ir.target] = ir.target
-                    values[ir.ref] = ir.target
+                    values[expr] = ir.target
 
 
             elif isinstance(ir, irBranch):
@@ -4999,9 +4999,9 @@ class irLoadRef(IR):
         self.target = target
         self.ref = ref
 
-    # @property
-    # def value_number(self):
-    #     return self.target
+    @property
+    def expr(self):
+        return f'loadref {self.ref}'
 
     def __str__(self):
         return f'LOAD REF {self.target} <-- {self.ref}'

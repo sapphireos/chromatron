@@ -1,19 +1,20 @@
 p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
 
 def init():
-    # pixels.hue = 0.0
+    pixels.hue = 0.0
 
     pa = PixelArray()[2]
     pa[1] = p1
 
-    # p = PixelArray()
-    # p = pa[1]
+    p = PixelArray()
+    p = pa[1]
     
-    # p.hue = 0.5    
+    p.hue = 0.5    
 
     assert p1[0].hue == 0.5
-    # assert p1[1].hue == 0.5
-    # assert p1[2].hue == 0.5
+    assert p1[1].hue == 0.5
+    assert p1[2].hue == 0.5
+
 # def init():
 #     a = Number()
 #     b = Fixed16()
