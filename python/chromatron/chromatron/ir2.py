@@ -1135,260 +1135,260 @@ class irBlock(IR):
     #         c.gvn_analyze(VN, table)
 
 
-    def old_gvn_analyze(self, values=None, registers=None, visited=None, pass_number=1):
-        if values is None:
-            logging.debug(f'GVN: Starting optimizer pass: {pass_number}')
+    # def old_gvn_analyze(self, values=None, registers=None, visited=None, pass_number=1):
+    #     if values is None:
+    #         logging.debug(f'GVN: Starting optimizer pass: {pass_number}')
 
-            values = {}
-            registers = {}
-            visited = []
+    #         values = {}
+    #         registers = {}
+    #         visited = []
 
-        if self in visited:
-            return False
+    #     if self in visited:
+    #         return False
 
-        changed = False
+    #     changed = False
 
-        visited.append(self)
+    #     visited.append(self)
 
-        new_code = []
+    #     new_code = []
 
-        for ir in self.code:
-            print(f'IR: {ir}')
+    #     for ir in self.code:
+    #         print(f'IR: {ir}')
 
-            if isinstance(ir, irLoadConst):
-                target = ir.target
-                value = ir.value
+    #         if isinstance(ir, irLoadConst):
+    #             target = ir.target
+    #             value = ir.value
 
-                # assign value to target
-                target.value = value
+    #             # assign value to target
+    #             target.value = value
 
-                # since this is a constant load, we can assert that the target
-                # is now marked as const
-                assert target.const
+    #             # since this is a constant load, we can assert that the target
+    #             # is now marked as const
+    #             assert target.const
 
-                assert target not in values
-                values[target] = value
+    #             assert target not in values
+    #             values[target] = value
 
-                if value not in registers:
-                    registers[str(value)] = target
+    #             if value not in registers:
+    #                 registers[str(value)] = target
 
-            elif isinstance(ir, irAssign):
-                target = ir.target
-                value = ir.value
+    #         elif isinstance(ir, irAssign):
+    #             target = ir.target
+    #             value = ir.value
 
-                # ir.apply_value_numbers(values)
+    #             # ir.apply_value_numbers(values)
 
-                if value in values:
-                    replacement = registers[str(values[value])]
-                    if ir.value != replacement:
-                        ir.value = replacement
-                        print(f"replace assign {target} = {value} with {values[value]}")
-                        value = values[value]
+    #             if value in values:
+    #                 replacement = registers[str(values[value])]
+    #                 if ir.value != replacement:
+    #                     ir.value = replacement
+    #                     print(f"replace assign {target} = {value} with {values[value]}")
+    #                     value = values[value]
 
-                        changed = True
+    #                     changed = True
 
-                if value not in registers:
-                    registers[str(value)] = target
+    #             if value not in registers:
+    #                 registers[str(value)] = target
                     
-                assert target not in values
-                values[target] = value
+    #             assert target not in values
+    #             values[target] = value
 
-                # check if value is const
-                if ir.value.const:
-                    # assign value to target
-                    ir.target.value = ir.value.value
+    #             # check if value is const
+    #             if ir.value.const:
+    #                 # assign value to target
+    #                 ir.target.value = ir.value.value
 
-            elif isinstance(ir, irLoad):
-                target = ir.register
-                value = ir.ref
+    #         elif isinstance(ir, irLoad):
+    #             target = ir.register
+    #             value = ir.ref
 
-                assert target not in values
-                values[target] = value
+    #             assert target not in values
+    #             values[target] = value
 
-                if value not in registers:
-                    registers[str(value)] = target
+    #             if value not in registers:
+    #                 registers[str(value)] = target
 
-            # elif isinstance(ir, irStore):
-            #     target = ir.ref
-            #     value = ir.register
+    #         # elif isinstance(ir, irStore):
+    #         #     target = ir.ref
+    #         #     value = ir.register
 
-            #     ir.apply_value_numbers(values)
+    #         #     ir.apply_value_numbers(values)
 
-            elif isinstance(ir, irReturn):
-                value = ir.ret_var
-                # ir.apply_value_numbers(values)
+    #         elif isinstance(ir, irReturn):
+    #             value = ir.ret_var
+    #             # ir.apply_value_numbers(values)
 
-                if value in values:
-                    replacement = registers[str(values[value])]
+    #             if value in values:
+    #                 replacement = registers[str(values[value])]
 
-                    if ir.ret_var != replacement:
-                        print(f"replace return {ir.ret_var} with {replacement}")
-                        ir.ret_var = replacement
+    #                 if ir.ret_var != replacement:
+    #                     print(f"replace return {ir.ret_var} with {replacement}")
+    #                     ir.ret_var = replacement
 
-                        changed = True
-
-
-            elif isinstance(ir, irBinop):
-                target = ir.target
-                left = ir.left
-                right = ir.right
-
-                if left in values and left != registers[str(values[left])]:
-                    print(f"replace left {left} with {registers[str(values[left])]}")
-
-                    # if ir.expr.is_commutative and values[left].is_commutative:
-                    #     print('meow')
-                    ir.left = registers[str(values[left])]
-
-                    changed = True
-
-                if right in values and right != registers[str(values[right])]:
-                    print(f"replace right {right} with {registers[str(values[right])]}")
-
-                    # if ir.expr.is_commutative and values[right].is_commutative:
-                    #     print('meow')
-                    ir.right = registers[str(values[right])]
-
-                    changed = True
+    #                     changed = True
 
 
-                fold = ir.fold()
+    #         elif isinstance(ir, irBinop):
+    #             target = ir.target
+    #             left = ir.left
+    #             right = ir.right
 
-                if fold is not None:
-                    changed = True
+    #             if left in values and left != registers[str(values[left])]:
+    #                 print(f"replace left {left} with {registers[str(values[left])]}")
 
-                    print(f'Fold: {fold}')
+    #                 # if ir.expr.is_commutative and values[left].is_commutative:
+    #                 #     print('meow')
+    #                 ir.left = registers[str(values[left])]
 
-                    assert isinstance(fold, irLoadConst)
+    #                 changed = True
 
-                    ir = fold
-                    ir.block = self
+    #             if right in values and right != registers[str(values[right])]:
+    #                 print(f"replace right {right} with {registers[str(values[right])]}")
 
-                    value = ir.value
-                    values[target] = value
+    #                 # if ir.expr.is_commutative and values[right].is_commutative:
+    #                 #     print('meow')
+    #                 ir.right = registers[str(values[right])]
 
-                    if value not in registers:
-                        registers[str(value)] = target
-
-                else:
-                #     if left in values:
-                #         print(f"replace left {left} with {registers[values[left]]}")
-
-                #         # if ir.expr.is_commutative and values[left].is_commutative:
-                #         #     print('meow')
+    #                 changed = True
 
 
-                #     if right in values:
-                #         print(f"replace right {right} with {registers[values[right]]}")
+    #             fold = ir.fold()
 
-                #         # if ir.expr.is_commutative and values[right].is_commutative:
-                #         #     print('meow')
+    #             if fold is not None:
+    #                 changed = True
+
+    #                 print(f'Fold: {fold}')
+
+    #                 assert isinstance(fold, irLoadConst)
+
+    #                 ir = fold
+    #                 ir.block = self
+
+    #                 value = ir.value
+    #                 values[target] = value
+
+    #                 if value not in registers:
+    #                     registers[str(value)] = target
+
+    #             else:
+    #             #     if left in values:
+    #             #         print(f"replace left {left} with {registers[values[left]]}")
+
+    #             #         # if ir.expr.is_commutative and values[left].is_commutative:
+    #             #         #     print('meow')
 
 
-                    # print(f'expr {ir.expr} -> {target}')
-                    value = ir.expr
-                    values[target] = value
+    #             #     if right in values:
+    #             #         print(f"replace right {right} with {registers[values[right]]}")
 
-                if value not in registers:
-                    registers[str(value)] = target
+    #             #         # if ir.expr.is_commutative and values[right].is_commutative:
+    #             #         #     print('meow')
 
-            elif isinstance(ir, irBranch):
-                value = ir.value
 
-                if value in values:
-                    replacement = registers[str(values[value])]
+    #                 # print(f'expr {ir.expr} -> {target}')
+    #                 value = ir.expr
+    #                 values[target] = value
 
-                    if ir.value != replacement:
-                        ir.value = replacement
-                        changed = True
+    #             if value not in registers:
+    #                 registers[str(value)] = target
 
-                if ir.value.const:
-                    changed = True
+    #         elif isinstance(ir, irBranch):
+    #             value = ir.value
 
-                    # replace branch with jump
-                    if ir.value.value == 0:
-                        print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
-                        ir = irJump(ir.false_label, lineno=ir.lineno)
-                        ir.block = self
+    #             if value in values:
+    #                 replacement = registers[str(values[value])]
 
-                    else:
-                        print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
-                        ir = irJump(ir.true_label, lineno=ir.lineno)
-                        ir.block = self
+    #                 if ir.value != replacement:
+    #                     ir.value = replacement
+    #                     changed = True
 
-            elif isinstance(ir, irPhi):
-                # search predecessors for incoming merges on all edges
-                found = []
-                for d in ir.merges:
-                    for p in self.predecessors:
-                        v = p.lookup_var(d)            
-                        if v.ssa_name == d.ssa_name:    
-                            found.append(v)
+    #             if ir.value.const:
+    #                 changed = True
 
-                # remove merges that were not found in the predecessor search
-                # these would be merges coming from blocks whose paths we have
-                # optimized out.
-                filtered_merges = [d for d in ir.merges if d in found]
+    #                 # replace branch with jump
+    #                 if ir.value.value == 0:
+    #                     print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
+    #                     ir = irJump(ir.false_label, lineno=ir.lineno)
+    #                     ir.block = self
 
-                if filtered_merges != ir.merges:
-                    changed = True
+    #                 else:
+    #                     print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
+    #                     ir = irJump(ir.true_label, lineno=ir.lineno)
+    #                     ir.block = self
 
-                ir.merges = filtered_merges
+    #         elif isinstance(ir, irPhi):
+    #             # search predecessors for incoming merges on all edges
+    #             found = []
+    #             for d in ir.merges:
+    #                 for p in self.predecessors:
+    #                     v = p.lookup_var(d)            
+    #                     if v.ssa_name == d.ssa_name:    
+    #                         found.append(v)
 
-                target = ir.target
+    #             # remove merges that were not found in the predecessor search
+    #             # these would be merges coming from blocks whose paths we have
+    #             # optimized out.
+    #             filtered_merges = [d for d in ir.merges if d in found]
 
-                if len(ir.merges) == 0:
-                    changed = True
+    #             if filtered_merges != ir.merges:
+    #                 changed = True
 
-                    print('removing useless phi node')
-                    continue
+    #             ir.merges = filtered_merges
+
+    #             target = ir.target
+
+    #             if len(ir.merges) == 0:
+    #                 changed = True
+
+    #                 print('removing useless phi node')
+    #                 continue
                 
-                elif len(ir.merges) == 1:
-                    changed = True
+    #             elif len(ir.merges) == 1:
+    #                 changed = True
 
-                    value = ir.merges[0]
-                    print(f'replace phi with assign {target} = {value}')
-                    ir = irAssign(target, value, lineno=ir.lineno)
-                    ir.block = self
+    #                 value = ir.merges[0]
+    #                 print(f'replace phi with assign {target} = {value}')
+    #                 ir = irAssign(target, value, lineno=ir.lineno)
+    #                 ir.block = self
 
-                    # further optimizations may be made on this assign in a secondary pass
+    #                 # further optimizations may be made on this assign in a secondary pass
 
-                else:
-                    # update values/registers for phi node
-                    value = ir.expr
+    #             else:
+    #                 # update values/registers for phi node
+    #                 value = ir.expr
                     
-                    values[target] = value
+    #                 values[target] = value
 
-                    if value not in registers:
-                        registers[str(value)] = target
+    #                 if value not in registers:
+    #                     registers[str(value)] = target
 
         
-            new_code.append(ir)
+    #         new_code.append(ir)
 
-        self.code = new_code
+    #     self.code = new_code
 
-        print(f"\nGVN Summary: {self.name}")
+    #     print(f"\nGVN Summary: {self.name}")
 
-        print("\nVALUES:")
+    #     print("\nVALUES:")
 
-        for k, v in values.items():
-            print(f'{str(k):32} = {v}')
+    #     for k, v in values.items():
+    #         print(f'{str(k):32} = {v}')
 
-        print("\nREGISTERS:")
+    #     print("\nREGISTERS:")
 
-        for k, v in registers.items():
-            print(f'{str(k):32} = {v}')
+    #     for k, v in registers.items():
+    #         print(f'{str(k):32} = {v}')
 
-        print('\n')
+    #     print('\n')
 
-        if self not in self.func.dominator_tree:
-            return changed
+    #     if self not in self.func.dominator_tree:
+    #         return changed
 
-        for c in self.func.dominator_tree[self]:
-            if c.gvn_analyze(copy(values), copy(registers), visited=visited):
-                changed = True
+    #     for c in self.func.dominator_tree[self]:
+    #         if c.gvn_analyze(copy(values), copy(registers), visited=visited):
+    #             changed = True
 
-        return changed
+    #     return changed
 
 
     def gvn_analyze(self, values=None, visited=None, pass_number=1):
@@ -1523,7 +1523,7 @@ class irBlock(IR):
 
                     values[ir.target] = v
                     
-                    # remove instructino
+                    # remove instruction
                     print(f"remove load const {ir.target} = {ir.value}")
 
                     changed = True
@@ -5020,54 +5020,65 @@ class irBinop(IR):
         left = self.left
         right = self.right
 
-        if left.value is None or right.value is None:
+        left_value = left.value
+        right_value = right.value
+
+        if left_value is None or right_value is None:
             return None
 
+        # check f16 conversions.  if these are represented as floats, they need to be
+        # converted to the integer form first
+        if left.data_type == 'f16' and isinstance(left_value, float):
+            left_value = int(left_value * 65536)
+
+        if right.data_type == 'f16' and isinstance(right_value, float):
+            right_value = int(right_value * 65536)
+
         if op == 'eq':
-            val = left.value == right.value
+            val = left_value == right_value
 
         elif op == 'neq':
-            val = left.value != right.value
+            val = left_value != right_value
 
         elif op == 'gt':
-            val = left.value > right.value
+            val = left_value > right_value
 
         elif op == 'gte':
-            val = left.value >= right.value
+            val = left_value >= right_value
 
         elif op == 'lt':
-            val = left.value < right.value
+            val = left_value < right_value
 
         elif op == 'lte':
-            val = left.value <= right.value
+            val = left_value <= right_value
 
         elif op == 'logical_and':
-            val = left.value and right.value
+            val = left_value and right_value
 
         elif op == 'logical_or':
-            val = left.value or right.value
+            val = left_value or right_value
 
         elif op == 'add':
-            val = left.value + right.value
+            val = left_value + right_value
 
         elif op == 'sub':
-            val = left.value - right.value
+            val = left_value - right_value
 
         elif op == 'mul':
-            val = left.value * right.value
+            val = left_value * right_value
 
             if left.data_type == 'f16':
-                val /= 65536
+                val //= 65536
 
         elif op == 'div':
             if left.data_type == 'f16':
-                val = (left.value * 65536) // right.value
+                val = (left_value * 65536) // right_value
 
             else:
-                val = left.value // right.value
+                val = left_value // right_value
 
         elif op == 'mod':
-            val = left.value % right.value
+            val = left_value % right_value
 
         else:
             assert False

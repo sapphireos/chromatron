@@ -6,8 +6,9 @@ def init():
     a = 123
     b = a * 0.333
 
-    assert a == 123
+    # assert a == 123
     assert b == 40.95808410644531
+    # assert b == 40.959
 
 # def init():
 #     a = Number()
