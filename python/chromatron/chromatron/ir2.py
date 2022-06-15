@@ -4751,7 +4751,7 @@ class irObjectLookup(IR):
     @property
     def expr(self):
         s = f'object lookup: {self.target} '
-        for m in sorted(self.lookups, key=lambda x: x.ssa_name):
+        for m in self.lookups:
             s += f'{m.ssa_name} '
 
         return s
@@ -5550,7 +5550,7 @@ class irLookup(IR):
     @property
     def expr(self):
         s = f'lookup: {self.ref} '
-        for m in sorted(self.lookups, key=lambda x: x.ssa_name):
+        for m in self.lookups:
             s += f'{m.ssa_name} '
 
         return s
