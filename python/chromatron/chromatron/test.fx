@@ -1,14 +1,23 @@
 
+global_a = Number()
 def init():
-    a = Number()
-    b = Fixed16()
+  global_a += 1
 
-    a = 123
-    b = a * 0.333
+  assert global_a == 1
 
-    # assert a == 123
-    assert b == 40.95808410644531
-    # assert b == 40.959
+  
+
+
+# def init():
+#     a = Number()
+#     b = Fixed16()
+
+#     a = 123
+#     b = a * 0.333
+
+#     # assert a == 123
+#     assert b == 40.95808410644531
+#     # assert b == 40.959
 
 # def init():
 #     a = Number()

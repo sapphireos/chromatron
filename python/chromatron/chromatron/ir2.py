@@ -535,7 +535,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = False
+            show_liveness = True
             if show_liveness and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
@@ -1566,6 +1566,21 @@ class irBlock(IR):
                 else:
                     values[ir.target] = ir.target
                     values[ir.value] = ir.target
+
+            # elif isinstance(ir, irLoad):
+            #     values[ir.register] = ir.register
+
+            elif isinstance(ir, irStore):
+                # replace inputs:
+                if ir.register in values:
+                    replacement = values[ir.register]
+
+                    if ir.register != replacement:
+                        print(f"replace store {ir.ref} = {ir.register} with {replacement}")
+
+                        ir.register = replacement
+
+                        changed = True
 
             elif isinstance(ir, irConvertType):
                 # replace inputs:
