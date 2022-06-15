@@ -1568,8 +1568,35 @@ class irBlock(IR):
                     values[ir.value] = ir.target
 
             elif isinstance(ir, irLoad):
-            #     values[ir.register] = ir.register
-                pass
+                if ir.ref in values:
+                    replacement = values[ir.ref]
+                    
+                    if ir.ref != replacement:
+                        print(f"replace load {ir.register} = {ir.ref} with {replacement}")
+
+                        ir.ref = replacement
+
+                        changed = True
+
+                # expr = ir.ref
+
+                # if expr in values:
+                #     v = values[expr]
+
+                #     values[ir.register] = v
+
+                #     # remove assignment
+                #     print(f"remove load {ir.register} = {ir.ref}")
+
+                #     changed = True
+
+                #     continue
+
+                # else:
+                #     values[ir.register] = ir.register
+                #     values[ir.ref] = ir.register
+                    
+
 
             elif isinstance(ir, irStore):
                 # replace inputs:
@@ -1582,6 +1609,8 @@ class irBlock(IR):
                         ir.register = replacement
 
                         changed = True
+
+
 
             elif isinstance(ir, irConvertType):
                 # replace inputs:
