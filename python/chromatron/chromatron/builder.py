@@ -4,7 +4,7 @@ from .types import *
 from .ir2 import *
 import logging
 
-INIT_TEMP_VAR = '__init_temp__'
+INIT_TEMP_VAR = '__zero__'
 
 class Builder(object):
     def __init__(self, script_name='fx_script', source=[]):
@@ -377,6 +377,8 @@ class Builder(object):
         # this is used to load constants to variables that have init values.
         # if unused the optimizer will remove it.
         func._init_var = self.declare_var(INIT_TEMP_VAR, data_type='var', lineno=kwargs['lineno'])
+
+        # self.add_const(0, lineno=func.lineno)
 
         logging.info(f'Building function: {func.name}')
 

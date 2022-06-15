@@ -1512,7 +1512,7 @@ class irBlock(IR):
                 # is now marked as const
                 assert ir.target.const
 
-                expr = ir.value
+                expr = ir.expr
 
                 # simplify?
                 # not on load const
@@ -1532,6 +1532,7 @@ class irBlock(IR):
 
                 else:
                     values[ir.target] = ir.target
+                    values[expr] = ir.target
 
             elif isinstance(ir, irAssign):
                 # replace inputs:
@@ -1570,9 +1571,19 @@ class irBlock(IR):
             elif isinstance(ir, irLoad):
                 if ir.ref in values:
                     replacement = values[ir.ref]
+
+                    if ir.ref != replacement:
+                        print(f"replace load {ir} with {replacement}")
+
+                        ir.ref = replacement
+
+                        changed = True
+
+                if ir.ref in values:
+                    replacement = values[ir.ref]
                     
                     if ir.ref != replacement:
-                        print(f"replace load {ir.register} = {ir.ref} with {replacement}")
+                        print(f"replace load {ir} with {replacement}")
 
                         ir.ref = replacement
 
@@ -1600,11 +1611,21 @@ class irBlock(IR):
 
             elif isinstance(ir, irStore):
                 # replace inputs:
+                if ir.ref in values:
+                    replacement = values[ir.ref]
+
+                    if ir.ref != replacement:
+                        print(f"replace store {ir} with {replacement}")
+
+                        ir.ref = replacement
+
+                        changed = True
+
                 if ir.register in values:
                     replacement = values[ir.register]
 
                     if ir.register != replacement:
-                        print(f"replace store {ir.ref} = {ir.register} with {replacement}")
+                        print(f"replace store {ir} with {replacement}")
 
                         ir.register = replacement
 
@@ -1976,7 +1997,7 @@ class irBlock(IR):
                 #         ir.iterator_in = replacement
 
                 #         changed = True
-                        
+
                 if ir.stop in values:
                     replacement = values[ir.stop]
 
@@ -4992,11 +5013,9 @@ class irLoadConst(IR):
         self.target = target
         self.value = value
 
-        # self.target.value = value
-
-    # @property
-    # def value_number(self):
-    #     return self.target
+    @property
+    def expr(self):
+        return f'const {self.value}'
 
     def __str__(self):
         return f'LOAD CONST {self.target} <-- {self.value}'

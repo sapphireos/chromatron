@@ -1,14 +1,22 @@
-current_hue = Fixed16()
+ary2 = Number()[2][3]
+
 def init():
-    current_hue += 0.005
+    b = Number()
+    ary2[b][0] = 1
+    ary2[b][1] = 2
+    # ary2[b][2] = 3
+    b = 1
+    ary2[b] = 2
+    ary2[b][0] = 4
+    # ary2[b][1] = 5
+    # ary2[b][2] = 6
 
-    a = Fixed16()
-    a = current_hue
-
-    for i in pixels.count:
-        pixels[i].hue = a
-        
-        a += 1.0 / pixels.count
+    assert ary2[0][0] == 1
+    assert ary2[0][1] == 2
+    # assert ary2[0][2] == 3
+    # assert ary2[1][0] == 4
+    # assert ary2[1][1] == 5
+    # assert ary2[1][2] == 6
 
 # def init():
 #     a = Number()
