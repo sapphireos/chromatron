@@ -3462,12 +3462,12 @@ class irFunc(IR):
         for v in self.live_in[code[0]]:
             if v not in self.params:
                 logging.error(f'Liveness error: {v} func: {self.name}')
-                # raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+                raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
 
         for v in self.live_out[code[0]]:
             if v not in self.params:
                 logging.error(f'Liveness error: {v} func: {self.name}')
-                # raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+                raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
 
         # copy liveness information into instructions:
         for ir in code:

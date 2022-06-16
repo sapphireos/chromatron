@@ -131,6 +131,104 @@ def multi_if_3():
     assert b == 2
     assert a == -1
 
+
+def nested_ifelse_0():
+    a = Number()
+    b = Number()
+    c = Number()
+
+    a = 0
+    b = 0
+
+    if a <= 0:
+        if b == 0:
+            c = 1
+
+        else:
+            c = 2
+
+    else:
+        if b == 0:
+            c = 3
+
+        else:
+            c = 4
+
+    assert c == 1
+
+def nested_ifelse_1():
+    a = Number()
+    b = Number()
+    c = Number()
+
+    a = 0
+    b = 1
+
+    if a <= 0:
+        if b == 0:
+            c = 1
+
+        else:
+            c = 2
+
+    else:
+        if b == 0:
+            c = 3
+
+        else:
+            c = 4
+
+    assert c == 2
+
+def nested_ifelse_2():
+    a = Number()
+    b = Number()
+    c = Number()
+
+    a = 1
+    b = 0
+
+    if a <= 0:
+        if b == 0:
+            c = 1
+
+        else:
+            c = 2
+
+    else:
+        if b == 0:
+            c = 3
+
+        else:
+            c = 4
+
+    assert c == 3
+
+def nested_ifelse_3():
+    a = Number()
+    b = Number()
+    c = Number()
+
+    a = 1
+    b = 1
+
+    if a <= 0:
+        if b == 0:
+            c = 1
+
+        else:
+            c = 2
+
+    else:
+        if b == 0:
+            c = 3
+
+        else:
+            c = 4
+
+    assert c == 4
+
+
 def while_loop():
     a = Number()
 
@@ -747,6 +845,10 @@ def init():
     multi_if_1()
     multi_if_2()
     multi_if_3()
+    nested_ifelse_0()
+    nested_ifelse_1()
+    nested_ifelse_2()
+    nested_ifelse_3()
     while_loop()
     while_loop2()
     double_while_loop()
