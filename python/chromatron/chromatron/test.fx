@@ -1,13 +1,28 @@
 
-ary = Number()[4]
+ary = Fixed16()[4]
 
-a = Number(publish=True)
+a = Fixed16(publish=True)
+# b = Fixed16(publish=True)
+# c = Fixed16(publish=True)
+# d = Fixed16(publish=True)
+# e = Fixed16(publish=True)
 
 def init():
-    for i in len(ary):
-        ary[i] = i * 4
 
-    a = avg(ary)
+    ary[0] = 100.1
+    # ary[1] = 200.1
+    # ary[2] = 300.1
+    # ary[3] = 400.1
+    # ary[4] = 500.1
+
+    ary /= 100.1
+
+    a = ary[0]
+    # b = ary[1]
+    # c = ary[2]
+    # d = ary[3]
+    # e = ary[4]
+
 
 # def init():
 #     a = Number()

@@ -152,9 +152,10 @@ class insProgram(object):
             'test_lib_call': self.test_lib_call,
             'len': self.array_len,
             'avg': self.array_avg,
+            'sum': self.array_sum,
+            'min': self.array_min,
+            'max': self.array_max,
         }
-
-
 
         self.objects = objects
 
@@ -274,6 +275,35 @@ class insProgram(object):
 
         return s // length
 
+    def array_sum(self, vm, param0, length):
+        s = 0
+
+        for i in range(length):
+            s += param0.pool[param0.addr + i]
+
+        return s
+
+    def array_min(self, vm, param0, length):
+        s = param0.pool[param0.addr]
+
+        for i in range(length):
+            s1 = param0.pool[param0.addr + i]
+
+            if s1 < s:
+                s = s1
+
+        return s
+
+    def array_max(self, vm, param0, length):
+        s = param0.pool[param0.addr]
+
+        for i in range(length):
+            s1 = param0.pool[param0.addr + i]
+
+            if s1 > s:
+                s = s1
+
+        return s
 
     def dump_globals(self):
         d = {}
@@ -1513,6 +1543,9 @@ class insVectorMul(insVector):
         for i in range(self.length):
             array[addr] *= value
 
+            if self.target.var.scalar_type == 'f16':
+                array[addr] //= 65536
+
             # coerce to int
             array[addr] = int(array[addr])
         
@@ -1529,13 +1562,17 @@ class insVectorDiv(insVector):
 
         array = ref.pool
         addr = ref.addr
-
+        
         for i in range(self.length):
-            array[addr] /= value
+            if self.target.var.scalar_type == 'f16':
+                array[addr] = (array[addr] * 65536) // value
+
+            else:
+                array[addr] //= value
 
             # coerce to int
             array[addr] = int(array[addr])
-        
+
             addr += 1
 
 class insVectorMod(insVector):
