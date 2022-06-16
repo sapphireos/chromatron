@@ -1,28 +1,17 @@
-
-ary = Fixed16()[4]
-
-a = Fixed16(publish=True)
-# b = Fixed16(publish=True)
-# c = Fixed16(publish=True)
-# d = Fixed16(publish=True)
-# e = Fixed16(publish=True)
+global_a = Number(publish=True)
+i = Number(publish=True)
 
 def init():
 
-    ary[0] = 100.1
-    # ary[1] = 200.1
-    # ary[2] = 300.1
-    # ary[3] = 400.1
-    # ary[4] = 500.1
+    for a in 4:
+        while i < 10:
+            if i > 5:
+                break
 
-    ary /= 100.1
+            i += 1
+        # pass
 
-    a = ary[0]
-    # b = ary[1]
-    # c = ary[2]
-    # d = ary[3]
-    # e = ary[4]
-
+    global_a = a
 
 # def init():
 #     a = Number()

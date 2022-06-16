@@ -2624,9 +2624,16 @@ class irBlock(IR):
                 if incoming_jump.false_label.name == self.name:
                     incoming_jump.false_label = label
 
+            elif isinstance(incoming_jump, irLoop):
+                if incoming_jump.true_label.name == self.name:
+                    incoming_jump.true_label = label
+
+                if incoming_jump.false_label.name == self.name:
+                    incoming_jump.false_label = label
+
             else:
                 # last instruction in block is supposed to be a jump or branch
-                assert False
+                raise CompilerFatal(f'{incoming_jump}')
 
             # rearrange block structure    
             in_block.successors.remove(self)
