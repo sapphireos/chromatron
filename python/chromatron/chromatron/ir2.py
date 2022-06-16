@@ -2124,6 +2124,19 @@ class irBlock(IR):
 
                             changed = True
 
+            elif isinstance(ir, irLibCall):
+                # replace inputs:
+                for i in range(len(ir.params)):
+                    if ir.params[i] in values:
+                        replacement = values[ir.params[i]]
+
+                        if ir.params[i] != replacement:
+
+                            print(f"replace call param {ir.params[i]} with {replacement}")
+
+                            ir.params[i] = replacement
+
+                            changed = True
 
             elif isinstance(ir, irIndirectCall):
                 # replace inputs:
@@ -2150,8 +2163,8 @@ class irBlock(IR):
                         changed = True
 
             else:
-                raise Exception(ir)
                 print(f"Unanalyzed instruction: {ir}")
+                raise Exception(ir)
 
             # check value table for pollution from primitive types
             for k, v in values.items():
