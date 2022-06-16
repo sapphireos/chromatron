@@ -263,15 +263,16 @@ class insProgram(object):
         # print(vm)
         return param0 + param1
 
-    def array_len(self, vm, param0):
-        print(param0)
+    def array_len(self, vm, param0, length):
+        return length
 
-        return 0
+    def array_avg(self, vm, param0, length):
+        s = 0
 
-    def array_avg(self, vm, param0):
-        print(param0)
+        for i in range(length):
+            s += param0.pool[param0.addr + i]
 
-        return 0
+        return s // length
 
 
     def dump_globals(self):

@@ -480,6 +480,12 @@ class Builder(object):
 
             const = self.add_const(hashed_func, lineno=lineno)
 
+            if func in ARRAY_FUNCS:
+                ref = params[0].target
+                length = self.add_const(ref.length, lineno=lineno)
+                params.append(length)
+                # print(func, params, ref)
+
             ir = irLibCall(const, params, func, lineno=lineno)
             self.append_node(ir)
 
