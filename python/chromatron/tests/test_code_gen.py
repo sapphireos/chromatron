@@ -1685,8 +1685,8 @@ test_var_init = """
 a = Number(5, publish=True)
 b = Fixed16(1.23, publish=True)
 
-ary = Array(2, type=Number, init_val=[1, 2])
-ary2 = Array(2, type=Fixed16, init_val=[1.1, 2.1])
+ary = Number(1, 2)[2]
+ary2 = Fixed16(1.1, 2.1)[2]
 
 ary1_0 = Number(publish=True)
 ary1_1 = Number(publish=True)
