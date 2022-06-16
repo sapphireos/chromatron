@@ -1906,6 +1906,16 @@ class irBlock(IR):
             
             elif isinstance(ir, irObjectStore):
                 # replace inputs:
+                if ir.target in values:
+                    replacement = values[ir.target]
+
+                    if ir.target != replacement:
+                        print(f"replace object store {ir} with {replacement}")
+
+                        ir.target = replacement
+
+                        changed = True
+
                 if ir.value in values:
                     replacement = values[ir.value]
 
@@ -1918,6 +1928,16 @@ class irBlock(IR):
 
             elif isinstance(ir, irObjectLoad):
                 # replace inputs:
+                if ir.target in values:
+                    replacement = values[ir.target]
+
+                    if ir.target != replacement:
+                        print(f"replace object load {ir} with {replacement}")
+
+                        ir.target = replacement
+
+                        changed = True
+
                 if ir.value in values:
                     replacement = values[ir.value]
 
@@ -3441,13 +3461,13 @@ class irFunc(IR):
         # so that var will "leak" to the top.
         for v in self.live_in[code[0]]:
             if v not in self.params:
-                logging.error(f'Liveness error: {v}')
-                # raise CompilerFatal(f'Liveness error: {v}')
+                logging.error(f'Liveness error: {v} func: {self.name}')
+                # raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
 
         for v in self.live_out[code[0]]:
             if v not in self.params:
-                logging.error(f'Liveness error {v}')
-                # raise CompilerFatal(f'Liveness error: {v}')
+                logging.error(f'Liveness error: {v} func: {self.name}')
+                # raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
 
         # copy liveness information into instructions:
         for ir in code:

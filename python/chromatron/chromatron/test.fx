@@ -1,18 +1,18 @@
-def use_ref_array(b: Number[4]):
-    return b[0] + b[1] + b[2] + b[3]
+p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
 
 def init():
-    l = Number()[4]
+    pixels.hue = 0.0
 
-    l[0] = 1
-    l[1] = 2
-    l[2] = 3
-    l[3] = 4
+    assert p1[0].hue == 0.0
+    assert p1[1].hue == 0.0
+    assert p1[2].hue == 0.0
+    
+    p1.hue = 0.5
 
-    assert use_ref_array(l) == 10
-
-
-
+    assert p1[0].hue == 0.5
+    assert p1[1].hue == 0.5
+    assert p1[2].hue == 0.5
+    
 # def init():
 #     a = Number()
 #     b = Fixed16()
