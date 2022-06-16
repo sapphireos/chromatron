@@ -275,6 +275,9 @@ class Builder(object):
         return var
 
     def get_var(self, name, lineno=None):
+        if not isinstance(name, str):
+            name = str(name)
+
         var = self.current_symbol_table.lookup(name)
 
         if var.is_container:
@@ -379,7 +382,8 @@ class Builder(object):
         # if unused the optimizer will remove it.
         func._init_var = self.declare_var(INIT_TEMP_VAR, data_type='var', lineno=kwargs['lineno'])
 
-        # self.add_const(0, lineno=func.lineno)
+        # pre-emptively create a 0 constant, this gets used everywhere
+        self.add_const(0, lineno=func.lineno)
 
         logging.info(f'Building function: {func.name}')
 
@@ -1170,7 +1174,7 @@ class Builder(object):
 
     def test_for_preheader(self, iterator, stop, lineno=None):
         # init iterator to 0
-        zero = self.declare_var(0, lineno=-1)
+        zero = self.get_var(0, lineno=-1)
         self.assign(iterator, zero, lineno=lineno)
 
         compare = self.binop('lt', iterator, stop, lineno=lineno)
