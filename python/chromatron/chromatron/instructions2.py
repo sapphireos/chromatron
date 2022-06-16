@@ -259,6 +259,14 @@ class insProgram(object):
         # print(vm)
         return param0 + param1
 
+    def dump_globals(self):
+        d = {}
+
+        for g in self.globals:
+            d[g.name] = self.global_memory[g.addr.addr]
+
+        return d        
+
     def run(self):
         pass
 
