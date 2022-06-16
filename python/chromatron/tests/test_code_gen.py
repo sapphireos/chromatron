@@ -3684,10 +3684,9 @@ def init():
 #         self.assertEqual(regs['d'], 0.399993896484375)
 
 
-class CGTestsLocal(CGTestsBase):
-    def run_test(self, program, expected={}):
-        
-        prog = code_gen.compile_text(program, opt_level=OptLevels.SSA)
+class CGTestsLocal_Opt_None(CGTestsBase):
+    def run_test(self, program, expected={}, opt_level=OptLevels.SSA):
+        prog = code_gen.compile_text(program, opt_level=opt_level)
         func = prog.init_func
 
         ret_val = func.run()
@@ -3717,6 +3716,9 @@ class CGTestsLocal(CGTestsBase):
                 print('-------------------------------\n')
                 raise
 
+class CGTestsLocal_Opt_GVN(CGTestsLocal_Opt_None):
+    def run_test(self, program, expected={}, opt_level=OptLevels.GVN):
+        super().run_test(program, expected, opt_level=opt_level)
 
 # from fixtures import *
 
