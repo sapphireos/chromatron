@@ -1478,6 +1478,87 @@ class insVectorAdd(insVector):
         
             addr += 1
 
+class insVectorSub(insVector):
+    mnemonic = 'VSUB'
+    op = "sub"
+    symbol = "-"
+
+    def execute(self, vm):
+        value = vm.registers[self.value.reg]
+        ref = vm.registers[self.target.reg]
+
+        array = ref.pool
+        addr = ref.addr
+
+        for i in range(self.length):
+            array[addr] -= value
+
+            # coerce to int
+            array[addr] = int(array[addr])
+        
+            addr += 1
+
+class insVectorMul(insVector):
+    mnemonic = 'VMUL'
+    op = "mul"
+    symbol = "*"
+
+    def execute(self, vm):
+        value = vm.registers[self.value.reg]
+        ref = vm.registers[self.target.reg]
+
+        array = ref.pool
+        addr = ref.addr
+
+        for i in range(self.length):
+            array[addr] *= value
+
+            # coerce to int
+            array[addr] = int(array[addr])
+        
+            addr += 1
+
+class insVectorDiv(insVector):
+    mnemonic = 'VDIV'
+    op = "div"
+    symbol = "/"
+
+    def execute(self, vm):
+        value = vm.registers[self.value.reg]
+        ref = vm.registers[self.target.reg]
+
+        array = ref.pool
+        addr = ref.addr
+
+        for i in range(self.length):
+            array[addr] /= value
+
+            # coerce to int
+            array[addr] = int(array[addr])
+        
+            addr += 1
+
+class insVectorMod(insVector):
+    mnemonic = 'VMOD'
+    op = "mod"
+    symbol = "%"
+
+    def execute(self, vm):
+        value = vm.registers[self.value.reg]
+        ref = vm.registers[self.target.reg]
+
+        array = ref.pool
+        addr = ref.addr
+
+        for i in range(self.length):
+            array[addr] %= value
+
+            # coerce to int
+            array[addr] = int(array[addr])
+        
+            addr += 1
+
+
 class insHalt(BaseInstruction):
     mnemonic = 'HALT'
     

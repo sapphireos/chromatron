@@ -4768,10 +4768,10 @@ class irVectorOp(IR):
     def generate(self):
         ops = {
             'add': insVectorAdd,
-            # 'sub': insVectorSub,
-            # 'mul': insVectorMul,
-            # 'div': insVectorDiv,
-            # 'mod': insVectorMod,
+            'sub': insVectorSub,
+            'mul': insVectorMul,
+            'div': insVectorDiv,
+            'mod': insVectorMod,
         }
 
     #     pixel_ops = {
