@@ -1,23 +1,16 @@
 
 a = Number(publish=True)
-b = Fixed16(publish=True)
-c = Fixed16(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
 d = Number(publish=True)
 
-ary = Fixed16()[4]
-ary2 = Array(4)
-
 def init():
-    ary = 3.123
+    a = not 1
+    b = not 0
 
-    a = ary[1]
-    b = ary[1]
+    c = not 1 > 2
 
-    ary2 = 3.123    
-    c = ary2[1]
-
-    ary2 += 3.123
-    d = ary2[1]
+    d = not (a == 0 or not a > 2)
     
 # def init():
 #     a = Number()

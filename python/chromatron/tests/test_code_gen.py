@@ -1623,7 +1623,7 @@ def test():
     n += 1
 
 def test2():
-    ary = Array(3)
+    ary = Number()[3]
     ary = 0
 
     b = ary[0]
