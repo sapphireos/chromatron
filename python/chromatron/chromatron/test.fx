@@ -1,17 +1,11 @@
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
-
 def init():
-    a = not 1
-    b = not 0
+    assert 1 + 2 == 3
+    # assert 3 - 2 == 1
+    # assert 3 * 2 == 6
+    # assert 8 / 4 == 2
+    # assert 8 % 5 == 3
 
-    c = not 1 > 2
-
-    d = not (a == 0 or not a > 2)
-    
 # def init():
 #     a = Number()
 #     b = Fixed16()

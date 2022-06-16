@@ -1519,10 +1519,10 @@ class irBlock(IR):
 
                 # is expr in hash table?
                 if expr in values:
-                    pass
-                    # v = values[expr]
+                    # pass
+                    v = values[expr]
 
-                    # values[ir.target] = v
+                    values[ir.target] = v
                     
                     # # remove instruction
                     # print(f"remove load const {ir.target} = {ir.value}")
@@ -1643,6 +1643,54 @@ class irBlock(IR):
                         ir.target = replacement
 
                         changed = True
+
+            elif isinstance(ir, irUnaryNot):
+                # replace inputs:
+                if ir.value in values:
+                    replacement = values[ir.value]
+
+                    if ir.value != replacement:
+                        print(f"replace not {ir} with {replacement}")
+
+                        ir.value = replacement
+
+                        changed = True
+
+                expr = ir.expr
+
+                # simplify?
+                fold = ir.fold()
+
+                if fold is not None:
+                    print(f'Fold not: {fold}')
+
+                    assert isinstance(fold, irLoadConst)
+
+                    # replace the binop with the folded assignment
+                    ir = fold
+                    ir.block = self
+
+                    values[ir.target] = ir.target
+
+                    changed = True
+
+                else:
+                    # is expr in hash table?
+                    if expr in values:
+                        v = values[expr]
+
+                        values[ir.target] = v
+
+                        # remove assignment
+                        print(f"remove not {ir}")
+
+                        changed = True
+
+                        continue
+
+                    else:
+                        values[ir.target] = ir.target
+                        values[expr] = ir.target
 
             elif isinstance(ir, irConvertType):
                 # replace inputs:
@@ -2163,8 +2211,7 @@ class irBlock(IR):
                         changed = True
 
             else:
-                print(f"Unanalyzed instruction: {ir}")
-                raise Exception(ir)
+                raise CompilerFatal(f"Unanalyzed instruction: {ir}")
 
             # check value table for pollution from primitive types
             for k, v in values.items():
@@ -3482,12 +3529,12 @@ class irFunc(IR):
         for v in self.live_in[code[0]]:
             if v not in self.params:
                 logging.error(f'Liveness error: {v} func: {self.name}')
-                raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+                # raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
 
         for v in self.live_out[code[0]]:
             if v not in self.params:
                 logging.error(f'Liveness error: {v} func: {self.name}')
-                raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+                # raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
 
         # copy liveness information into instructions:
         for ir in code:
@@ -5275,6 +5322,24 @@ class irUnaryNot(IR):
 
     def __str__(self):
         return "%s = NOT %s" % (self.target, self.value)
+
+    @property
+    def expr(self):    
+        return f'not {self.value}'
+
+    def fold(self):
+        if self.value.value is None:
+            return
+
+        val = not self.value.value
+
+        val = int(val)
+
+        ir = irLoadConst(self.target, val, lineno=self.lineno)
+
+        self.target.value = val
+
+        return ir
 
     def generate(self):
         return insNot(self.target.generate(), self.value.generate(), lineno=self.lineno)
