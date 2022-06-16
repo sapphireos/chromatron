@@ -1,19 +1,13 @@
-a = Number()
-b = Number()
+
+i = Number()
 
 def init():
-    
+    while i < 0:
+        for x in pixels.size_x:
+                pass
 
-    while a < 4:
-        a += 1
-
-        if a >= 2:
-            continue
-
-        b += 1
-
-    # assert a == 4
-    # assert b == 2
+    for x in pixels.size_x:
+        pass
 
 # def init():
 #     a = Number()

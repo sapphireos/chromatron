@@ -934,7 +934,12 @@ class CodeGenPass1(ast.NodeVisitor):
 
         else:
             dimensions = []
-            data_type = node.annotation.id
+                
+            if node.annotation is not None:
+                data_type = node.annotation.id
+
+            else:
+                data_type = 'i32'
         
         return cg1Var(node.arg, data_type, dimensions, lineno=node.lineno)
 
