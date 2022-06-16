@@ -1,19 +1,19 @@
-a = Number(publish=True)
-global_i = Number(publish=True)
-global_x = Number(publish=True)
+a = Number()
+b = Number()
 
 def init():
-    # for x in 4:
-    for i in 10:
-        if i > 5:
+    
+
+    while a < 4:
+        a += 1
+
+        if a >= 2:
             continue
 
-        a += 1
-    
-    #     global_i = i
-        
-    # global_x = x
+        b += 1
 
+    # assert a == 4
+    # assert b == 2
 
 # def init():
 #     a = Number()

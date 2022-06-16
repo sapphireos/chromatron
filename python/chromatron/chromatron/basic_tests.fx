@@ -325,14 +325,18 @@ def while_loop_break():
 
 def while_loop_continue():
     a = Number()
+    b = Number()
 
     while a < 4:
+        a += 1
+
         if a >= 2:
             continue
 
-        a += 1
+        b += 1
 
-    assert a == 2
+    assert a == 4
+    assert b == 1
 
 global_a = Number()
 def global_var():
