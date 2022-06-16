@@ -5861,7 +5861,7 @@ class irLibCall(irCallType):
 
     def __str__(self):
         params = params_to_string(self.params)
-        s = f'LCALL {self.target}({params})'
+        s = f'LCALL {self.func_name}:{self.target}({params})'
 
         return s
 

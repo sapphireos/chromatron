@@ -150,7 +150,11 @@ class insProgram(object):
 
         self.library_funcs = {
             'test_lib_call': self.test_lib_call,
+            'len': self.array_len,
+            'avg': self.array_avg,
         }
+
+
 
         self.objects = objects
 
@@ -258,6 +262,17 @@ class insProgram(object):
         # print(args)
         # print(vm)
         return param0 + param1
+
+    def array_len(self, vm, param0):
+        print(param0)
+
+        return 0
+
+    def array_avg(self, vm, param0):
+        print(param0)
+
+        return 0
+
 
     def dump_globals(self):
         d = {}

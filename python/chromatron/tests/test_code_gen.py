@@ -2000,10 +2000,10 @@ class CGTestsBase(unittest.TestCase):
     def test_array_assign_direct_mixed_types(self):
         self.run_test(test_array_assign_direct_mixed_types,
             expected={
-                'a': 1.0,
-                'b': 2.0,
-                'c': 3.0,
-                'd': 4.0,
+                'a': 1,
+                'b': 2,
+                'c': 3,
+                'd': 4,
             })
 
     def test_array_assign_direct(self):
