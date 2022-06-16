@@ -21,8 +21,10 @@
 # </license>
 
 from chromatron import code_gen
+from chromatron.ir2 import OptLevels
 
+def test_basic_ssa():
+    code_gen.run_script('chromatron/basic_tests.fx', opt_level=OptLevels.SSA)
 
-def test_basic():
-    code_gen.run_script('chromatron/basic_tests.fx')
-
+def test_basic_gvn():
+    code_gen.run_script('chromatron/basic_tests.fx', opt_level=OptLevels.GVN)
