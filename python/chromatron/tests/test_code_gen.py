@@ -1338,7 +1338,7 @@ c = Fixed16(publish=True)
 d = Number(publish=True)
 
 ary = Fixed16()[4]
-ary2 = Array(4)
+ary2 = Number()[4]
 
 def init():
     ary = 3.123
@@ -2184,7 +2184,7 @@ class CGTestsBase(unittest.TestCase):
         self.run_test(test_type_conversions,
             expected={
                 'a': 123,
-                'b': 32,
+                'b': 32.0,
                 'c': 246.0,
                 'd': 246
             })

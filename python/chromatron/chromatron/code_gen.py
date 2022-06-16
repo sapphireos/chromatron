@@ -249,6 +249,9 @@ class cg1Module(cg1Node):
 
                     builder.add_named_const(node.target.name, node.value.name, data_type=datatype, lineno=node.lineno)
 
+                elif node.value.target == 'Array':
+                    raise SyntaxError("Legacy declaration of Array is no longer supported: %s" % (node.target.name), lineno=node.lineno)
+
                 else:
                     raise SyntaxError("Unknown declaration in module body: %s" % (node.target.name), lineno=node.lineno)
 
