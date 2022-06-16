@@ -33,6 +33,7 @@ class Builder(object):
         self.loop_header = []
         self.loop_top = []
         self.loop_body = []
+        self.loop_loop = []
         self.loop_end = []
 
         # self.locals = {}
@@ -1145,6 +1146,7 @@ class Builder(object):
         self.loop.append(loop_name)
 
         top_label = self.label(f'{self.loop[-1]}.top', lineno=lineno)
+        loop_label = self.label(f'{self.loop[-1]}.loop', lineno=lineno)
         end_label = self.label(f'{self.loop[-1]}.end', lineno=lineno)
         preheader_label = self.label(f'{self.loop[-1]}.preheader', lineno=lineno)
         header_label = self.label(f'{self.loop[-1]}.header', lineno=lineno)
@@ -1154,6 +1156,7 @@ class Builder(object):
         self.loop_header.append(header_label)
         self.loop_top.append(top_label)
         self.loop_body.append(body_label)
+        self.loop_loop.append(loop_label)
         self.loop_end.append(end_label)
 
         self.position_label(preheader_label)
@@ -1191,6 +1194,8 @@ class Builder(object):
     def end_for(self, iterator, stop, lineno=None):
         loop_name = self.loop[-1]
 
+        self.position_label(self.loop_loop[-1])
+
         self.jump_loop(self.loop_top[-1], self.loop_end[-1], iterator, stop, lineno=lineno)
         
         self.pop_scope()
@@ -1201,6 +1206,7 @@ class Builder(object):
         self.loop_header.pop(-1)
         self.loop_top.pop(-1)
         self.loop_body.pop(-1)
+        self.loop_loop.pop(-1)
         self.loop_end.pop(-1)
 
     def loop_break(self, lineno=None):
@@ -1209,14 +1215,13 @@ class Builder(object):
         self.jump(self.loop_end[-1], lineno=lineno)
 
     def loop_continue(self, lineno=None):
-        assert self.loop_top[-1] != None    
-        self.jump(self.loop_top[-1], lineno=lineno)
+        assert self.loop_loop[-1] != None    
+        self.jump(self.loop_loop[-1], lineno=lineno)
 
     def assertion(self, test, lineno=None):
         ir = irAssert(test, lineno=lineno)
 
         self.append_node(ir)
-
 
     def start_attr(self, lineno=None):
         self.current_attr.insert(0, [])

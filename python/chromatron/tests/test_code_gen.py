@@ -632,7 +632,7 @@ def init():
 
             b += 1
 
-    global_i = i
+        global_i = i
     global_a = a
 
 def loop():
@@ -655,7 +655,8 @@ def init():
 
             a += 1
     
-    global_i = i
+        global_i = i
+        
     global_x = x
 
 def loop():

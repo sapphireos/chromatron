@@ -228,6 +228,13 @@ def nested_ifelse_3():
 
     assert c == 4
 
+def for_loop():
+    a = Number()
+
+    for i in 4:
+        a += 1
+
+    assert a == 4
 
 def while_loop():
     a = Number()
