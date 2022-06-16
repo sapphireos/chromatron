@@ -5267,6 +5267,23 @@ class irFill(IR):
     def get_output_vars(self):
         return [self.target]
 
+class irUnaryNot(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+    def __str__(self):
+        return "%s = NOT %s" % (self.target, self.value)
+
+    def generate(self):
+        return insNot(self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.target]
 
 class irBinop(IR):
     def __init__(self, target, op, left, right, **kwargs):

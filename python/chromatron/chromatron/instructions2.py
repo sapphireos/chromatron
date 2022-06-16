@@ -1297,6 +1297,29 @@ class insReturn(BaseInstruction):
     def assemble(self):
         return OpcodeFormat1AC(self.mnemonic, self.op1.assemble(), lineno=self.lineno)
 
+class insNot(BaseInstruction):
+    mnemonic = 'NOT'
+
+    def __init__(self, result, op1, **kwargs):
+        super().__init__(**kwargs)
+        self.result = result
+        self.op1 = op1
+
+    def __str__(self):
+        return "%-s %s <- not %s" % (self.mnemonic, self.result, self.op1)
+
+    def execute(self, vm):
+        val = not vm.registers[self.op1.reg]
+
+        if val:
+            vm.registers[self.result.reg] = 1
+            
+        else:
+            vm.registers[self.result.reg] = 0
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.result.assemble(), self.op1.assemble(), lineno=self.lineno)
+
 class insBinop(BaseInstruction):
     mnemonic = 'BINOP'
     symbol = "??"

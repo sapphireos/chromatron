@@ -822,6 +822,15 @@ class Builder(object):
     
         self.append_node(ir)
 
+    def unary_not(self, value, lineno=None):
+        target = self.add_temp(data_type=value.data_type, lineno=lineno)
+        
+        ir = irUnaryNot(target, value, lineno=lineno)
+
+        self.append_node(ir)
+
+        return target
+
     def binop(self, op, left, right, lineno=None):
         left = self.load_value(left, lineno=lineno)
         right = self.load_value(right, lineno=lineno)
