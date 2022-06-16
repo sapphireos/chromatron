@@ -110,7 +110,14 @@ class cg1DeclarationBase(cg1Node):
                 self.keywords[key] = False
 
     def build(self, builder, is_global=False):    
-        return builder.declare_var(self.name, self.type, [a.name for a in reversed(self.dimensions)], keywords=self.keywords, is_global=is_global, lineno=self.lineno)
+        try:
+            return builder.declare_var(self.name, self.type, [a.name for a in reversed(self.dimensions)], keywords=self.keywords, is_global=is_global, lineno=self.lineno)
+
+        except KeyError:
+            var = builder.get_var(self.name, lineno=self.lineno)
+
+            if var.data_type != self.type:
+                raise SyntaxError(f'Type mismatch on redeclared var', lineno=self.lineno)
     
 class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
