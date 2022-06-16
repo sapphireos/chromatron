@@ -1,18 +1,40 @@
-p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
+
+# a = Number()
+# b = Fixed16()
+
+# def init():
+#     a = 1
+#     b = a
+
+#     return b
+
+
+ary = Number()[4][4]
+ary2 = Fixed16()[4][4]
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
 
 def init():
-    pixels.hue = 0.0
+    ary[0][1] = 1
+    ary[1][1] = 2
+    ary[2][3] = 3
+    ary[5][3] = 4
 
-    assert p1[0].hue == 0.0
-    assert p1[1].hue == 0.0
-    assert p1[2].hue == 0.0
-    
-    p1.hue = 0.5
+    ary2[2][5] = ary[0][1]
+    ary2[0][2] = ary[1][1]
+    ary2[5][3] = ary[2][3]
+    ary2[1][1] = ary[5][3]
 
-    assert p1[0].hue == 0.5
-    assert p1[1].hue == 0.5
-    assert p1[2].hue == 0.5
-    
+    a = ary2[2][5]
+    b = ary2[0][2]
+    c = ary2[5][3]
+    d = ary2[1][1]
+
+    # a = 5
+
 # def init():
 #     a = Number()
 #     b = Fixed16()

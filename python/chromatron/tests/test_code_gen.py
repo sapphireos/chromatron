@@ -784,7 +784,7 @@ def init():
 
 test_array_index = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -810,7 +810,7 @@ def init():
 
 test_array_assign = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -863,7 +863,7 @@ def init():
 
 test_array_sub = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -891,7 +891,7 @@ def init():
 
 test_array_mul = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -919,7 +919,7 @@ def init():
 
 test_array_div = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -948,7 +948,7 @@ def init():
 
 test_array_mod = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -977,7 +977,7 @@ def init():
 
 test_array_aug_assign = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -995,7 +995,7 @@ def init():
 
 test_array_iteration = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1016,7 +1016,7 @@ def init():
 
 test_array_len = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 
@@ -1029,7 +1029,7 @@ def init():
 
 test_array_max = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 
@@ -1044,7 +1044,7 @@ def init():
 
 test_array_min = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 
@@ -1058,7 +1058,7 @@ def init():
 
 test_array_sum = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 
@@ -1074,7 +1074,7 @@ def init():
 
 test_array_avg = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 
@@ -1089,7 +1089,7 @@ def init():
 
 test_array_index_expr = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number()
@@ -1128,7 +1128,7 @@ def init():
 
 test_array_index_3d = """
 
-ary = Array(2, 2, 2)
+ary = Number()[2][2][2]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1169,7 +1169,7 @@ def init():
 
 test_array_index_3d_aug = """
 
-ary = Array(2, 2, 2)
+ary = Number()[2][2][2]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1336,7 +1336,7 @@ b = Fixed16(publish=True)
 c = Fixed16(publish=True)
 d = Number(publish=True)
 
-ary = Array(4, type=Fixed16)
+ary = Fixed16()[4]
 ary2 = Array(4)
 
 def init():
@@ -1368,7 +1368,7 @@ def init():
 
 test_array_assign_fixed16 = """
 
-ary = Array(4, type=Fixed16)
+ary = Fixed16()[4]
 
 a = Fixed16(publish=True)
 b = Fixed16(publish=True)
@@ -1391,7 +1391,7 @@ def init():
 
 test_array_add_fixed16 = """
 
-ary = Array(4, type=Fixed16)
+ary = Fixed16()[4]
 
 a = Fixed16(publish=True)
 b = Fixed16(publish=True)
@@ -1421,7 +1421,7 @@ def init():
 
 test_array_sub_fixed16 = """
 
-ary = Array(4, type=Fixed16)
+ary = Fixed16()[4]
 
 a = Fixed16(publish=True)
 b = Fixed16(publish=True)
@@ -1449,7 +1449,7 @@ def init():
 
 test_array_mul_fixed16 = """
 
-ary = Array(4, type=Fixed16)
+ary = Fixed16()[4]
 
 a = Fixed16(publish=True)
 b = Fixed16(publish=True)
@@ -1477,7 +1477,7 @@ def init():
 
 test_array_div_fixed16 = """
 
-ary = Array(4, type=Fixed16)
+ary = Fixed16()[4]
 
 a = Fixed16(publish=True)
 b = Fixed16(publish=True)
@@ -1506,7 +1506,7 @@ def init():
 
 test_array_mod_fixed16 = """
 
-ary = Array(4, type=Fixed16)
+ary = Fixed16()[4]
 
 a = Fixed16(publish=True)
 b = Fixed16(publish=True)
@@ -1535,7 +1535,7 @@ def init():
 
 test_array_expr = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1655,7 +1655,7 @@ def init():
 test_array_index_call = """
 
 a = Number(publish=True)
-ary = Array(4)
+ary = Number()[4]
 
 def add(_a, _b):
     return _a + _b
@@ -1745,8 +1745,8 @@ def init():
 
 test_array_assign_direct = """
 
-ary = Array(4, 4)
-ary2 = Array(4, 4)
+ary = Number()[4][4]
+ary2 = Number()[4][4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1774,8 +1774,8 @@ def init():
 
 test_array_assign_direct_mixed_types = """
 
-ary = Array(4, 4)
-ary2 = Array(4, 4, type=Fixed16)
+ary = Number()[4][4]
+ary2 = Fixed16()[4][4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1842,7 +1842,7 @@ def init():
 
 test_indirect_load_func_arg = """
 
-ary = Array(4)
+ary = Number()[4]
 
 a = Number(publish=True)
 b = Number(publish=True)
@@ -1886,8 +1886,8 @@ g = Fixed16(publish=True)
 h = Fixed16(publish=True)
 i = Fixed16(publish=True)
 
-ary = Array(4)
-ary1 = Array(4, type=Fixed16)
+ary = Number()[4]
+ary1 = Fixed16()[4]
 
 def init():
     pixels.hue = 123
@@ -3153,7 +3153,7 @@ def loop():
 
 test_pix_mov_from_array = """
 
-ary = Array(4)
+ary = Number()[4]
 
 def init():
     ary[2] = 1
@@ -3165,7 +3165,7 @@ def init():
 
 test_pix_load_from_array = """
 
-ary = Array(4)
+ary = Number()[4]
 
 def init():
     ary[2] = 1
@@ -3694,13 +3694,20 @@ class CGTestsLocal(CGTestsBase):
         regs = func.program.dump_globals()
 
         for reg, value in expected.items():
+
+            reg_value = regs[reg]
+
+            if isinstance(value, float):
+                reg_value /= 65536.0
+
             try:
                 try:
-                    self.assertEqual(regs[reg], value)
+                    self.assertEqual(reg_value, value)
 
                 except KeyError:
+                    raise Exception
                     # try database
-                    self.assertEqual(vm.db[reg], value)
+                    # self.assertEqual(vm.db[reg], value)
 
             except AssertionError:
                 print('\n*******************************')

@@ -1204,6 +1204,7 @@ def run_script(path, debug_print=False, opt_level=OptLevels.SSA):
     # print(f'VM returned: {ret_val}')
 
     pprint.pprint(ins_program.gfx_data)
+    pprint.pprint(ins_program.dump_globals())
 
     image = ins_program.assemble()
     stream = image.render()
