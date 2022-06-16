@@ -652,6 +652,16 @@ class Builder(object):
         # elif target.get_base_type() == 'db':
             # pass
 
+        # check if target is a reference and value is scalar:
+        elif (isinstance(value, VarContainer) and isinstance(target, VarContainer) and \
+              isinstance(value.var, varScalar) and isinstance(target.var, varOffset)):
+
+            temp = self.add_temp(lineno=lineno, data_type=target.target.scalar_type)
+            ir = irConvertType(temp, value, lineno=lineno)
+            self.append_node(ir)
+            value = temp
+
+
         # check if target or value is a reference
         # we don't convert these
         elif (isinstance(target, VarContainer) and isinstance(target.var, varRef)) or \
@@ -673,7 +683,6 @@ class Builder(object):
             #    pass
                
             # else:
-
 
             temp = self.add_temp(lineno=lineno, data_type=target.scalar_type)
             ir = irConvertType(temp, value, lineno=lineno)
