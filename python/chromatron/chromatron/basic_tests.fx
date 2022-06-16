@@ -1,4 +1,7 @@
 
+def var_init():
+    a = Number()
+    assert a == 0
 
 def arith():
 	assert 1 + 2 == 3
@@ -236,6 +239,37 @@ def for_loop():
 
     assert a == 4
 
+def double_for_loop():
+    a = Number()
+
+    for i in 4:
+        for j in 3:
+            a += 1
+
+    assert a == 12
+
+def for_loop_break():
+    a = Number()
+
+    for i in 4:
+        if i == 2:
+            break
+
+        a += 1
+
+    assert a == 2
+
+def for_loop_continue():
+    a = Number()
+
+    for i in 4:
+        if i >= 2:
+            continue
+
+        a += 1
+
+    assert a == 2
+
 def while_loop():
     a = Number()
 
@@ -278,6 +312,27 @@ def double_while_loop():
 
     assert a == 20
 
+def while_loop_break():
+    a = Number()
+
+    while a < 4:
+        if a == 2:
+            break
+
+        a += 1
+
+    assert a == 2
+
+def while_loop_continue():
+    a = Number()
+
+    while a < 4:
+        if a >= 2:
+            continue
+
+        a += 1
+
+    assert a == 2
 
 global_a = Number()
 def global_var():
@@ -843,6 +898,7 @@ def redundant_assign():
 
 
 def init():
+    var_init()
     arith()
     arith2()
     simple_ifelse()
@@ -856,9 +912,15 @@ def init():
     nested_ifelse_1()
     nested_ifelse_2()
     nested_ifelse_3()
+    for_loop()
+    double_for_loop()
+    for_loop_break()
+    for_loop_continue()
     while_loop()
     while_loop2()
     double_while_loop()
+    while_loop_break()
+    while_loop_continue()
     global_var()
     array_lookup()
     array_store()
