@@ -12,6 +12,7 @@ def init():
 
     db.kv_test_key = 123
     
+    return db.kv_test_key
     # a = db.kv_test_key + 1
     # b = db.kv_test_key + db.kv_test_key
 

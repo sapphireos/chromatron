@@ -40,6 +40,9 @@ opcodes = {
     'LDSTR':                0x0B,
     'NOP':                  0x0C,
     
+    'LDDB':                 0x0D,
+    'STDB':                 0x0E,
+    
     'HALT':                 0x10,
     'ASSERT':               0x11,
     'PRINT':                0x12,

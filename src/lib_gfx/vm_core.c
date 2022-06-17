@@ -326,8 +326,9 @@ static int8_t _vm_i8_run_stream(
         &&opcode_ldstr,             // 11
         &&opcode_nop,               // 12
 
-        &&opcode_trap,              // 13
-        &&opcode_trap,              // 14
+        &&opcode_lddb,              // 13
+        &&opcode_stdb,              // 14
+
         &&opcode_trap,              // 15
 
         &&opcode_halt,              // 16
@@ -1212,6 +1213,21 @@ opcode_nop:
     DECODE_NOP;    
     
     
+    DISPATCH;
+
+
+opcode_lddb:
+    DECODE_2AC;    
+    
+    // not implemented!
+
+    DISPATCH;
+
+opcode_stdb:
+    DECODE_2AC;    
+    
+    // not implemented!
+
     DISPATCH;
 
 opcode_halt:

@@ -1015,6 +1015,51 @@ class insLoadString(BaseInstruction):
 
         return OpcodeFormat3AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), flags, lineno=self.lineno)
 
+class insLoadDB(BaseInstruction):
+    mnemonic = 'LDDB'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+        assert self.src is not None
+
+    def __str__(self):
+        return "%s %s <-DB %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        key = vm.registers[self.src.reg]
+
+        vm.registers[self.dest.reg] = key
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+
+class insStoreDB(BaseInstruction):
+    mnemonic = 'STDB'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+        assert self.src is not None
+    
+    def __str__(self):
+        return "%s %s <-DB %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        # ref = vm.registers[self.dest.reg]
+
+        # ref.pool[ref.addr] = vm.registers[self.src.reg]
+        pass
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+
+
+
 class insLookup(BaseInstruction):
     mnemonic = 'LKP'
     

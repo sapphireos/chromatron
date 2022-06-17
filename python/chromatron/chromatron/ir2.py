@@ -4962,7 +4962,7 @@ class irObjectStore(IR):
 
         # DB reference
         elif target.var.data_type == 'objref' and target.var.target.name == 'db':
-            return insNop(lineno=self.lineno)
+            return insStoreDB(target, value, lineno=self.lineno)
 
         raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
 
@@ -5012,6 +5012,10 @@ class irObjectLoad(IR):
 
             except KeyError:
                 raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
+        
+        # DB reference
+        elif value.var.data_type == 'objref' and value.var.target.name == 'db':
+            return insLoadDB(target, value, lineno=self.lineno)
 
         raise SyntaxError(f'Unknown type for object load: {self.target}', lineno=self.lineno)
 
