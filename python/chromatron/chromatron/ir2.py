@@ -2271,6 +2271,18 @@ class irBlock(IR):
 
         return changed
 
+    def schedule_load_stores(self):
+        # basic load points:
+        # function entry
+        # return from call
+
+        # basic store points:
+        # call function
+        # return from function
+
+
+        return
+
 
     # def fold_constants(self):
     #     changes = 0
@@ -3986,6 +3998,9 @@ class irFunc(IR):
     def gvn_optimizer(self, *args, **kwargs):
         return self.leader_block.gvn_analyze(*args, **kwargs)
     
+    def schedule_load_stores(self, *args, **kwargs):
+        return self.leader_block.schedule_load_stores(*args, **kwargs)
+    
     def recalc_dominators(self):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
@@ -4011,6 +4026,9 @@ class irFunc(IR):
 
         if opt_level is not OptLevels.NONE:
 
+            self.schedule_load_stores()
+
+
             self.convert_to_ssa()            
             
             
@@ -4021,10 +4039,6 @@ class irFunc(IR):
             self.verify_variables()
 
             
-            # value numbering
-            # self.leader_block.gvn_optimize()
-            # self.leader_block.gvn_optimize()
-
             with open("SSA_construction.fxir", 'w') as f:
                     f.write(str(self))
 

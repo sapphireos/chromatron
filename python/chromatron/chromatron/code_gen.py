@@ -1231,6 +1231,7 @@ def run_script(path, debug_print=False, opt_level=OptLevels.SSA):
 
 
 OPT_LEVELS = {
+    'none': OptLevels.NONE,
     'default': OptLevels.SSA,
     'ssa': OptLevels.SSA,
     'gvn': OptLevels.GVN,
