@@ -922,6 +922,15 @@ class Builder(object):
                 ir = irObjectOp(op, result, value, target.attr, lineno=lineno)
                 self.append_node(ir)
 
+            elif target.target is not None and target.target.data_type == 'obj' and target.target.name == 'db':
+                # var = self.add_temp(data_type='gfx16', lineno=lineno)
+                var = self.load_value(target, lineno=lineno)
+
+                result = self.binop(op, var, value, lineno=lineno)
+
+                # must copy target, so SSA conversion will work
+                self.assign(copy(target), result, lineno=lineno)
+
             else:
 
                 ir = irObjectOp(op, target, value, target.attr, lineno=lineno)
