@@ -281,7 +281,18 @@ class Builder(object):
         var = self.current_symbol_table.lookup(name)
 
         if var.is_container:
-            return var.copy()
+            var = var.copy()
+
+            if var.is_global:
+                # for globals, force a load.
+                # we are assuming globals are volatile -
+                # they could change at any time during execution.
+                # this isn't actually the case, but we will
+                # defer load/store scheduling to the IR module.
+                ir = irLoad(var.copy(), var.var, lineno=lineno)
+                self.append_node(ir)
+
+            return var
 
         # if composite or object, return, we will assume there
         # is a lookup
