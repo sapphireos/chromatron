@@ -580,6 +580,9 @@ class Builder(object):
 
                 var = self.add_temp(data_type=data_type, lineno=lineno)
 
+            elif value.target is not None and value.target.data_type == 'obj' and value.target.name == 'db':
+                var = self.add_temp(data_type='gfx16', lineno=lineno)
+
             else:
                 var = self.add_temp(data_type='var', lineno=lineno)
 

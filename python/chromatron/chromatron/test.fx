@@ -1,20 +1,12 @@
 
-# a = Number(publish=True)
-# b = Number(publish=True)
-
-# ary = Number()[4]
+a = Number(publish=True)
+b = Number(publish=True)
 
 def init():
-    # b = Number()
-    # ary[b] = 1
-
-    # pixels.hue = 0
-
     db.kv_test_key = 123
     
-    return db.kv_test_key
-    # a = db.kv_test_key + 1
-    # b = db.kv_test_key + db.kv_test_key
+    a = db.kv_test_key + 1
+    b = db.kv_test_key + db.kv_test_key
 
 
 # def init():
