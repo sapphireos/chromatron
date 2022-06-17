@@ -159,6 +159,8 @@ class insProgram(object):
 
         self.objects = objects
 
+        self.db = {}
+
         self.strings = strings
 
         self.pix_size_x = 4
@@ -1029,9 +1031,16 @@ class insLoadDB(BaseInstruction):
         return "%s %s <-DB %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
+        db = vm.program.db
+
         key = vm.registers[self.src.reg]
 
-        vm.registers[self.dest.reg] = key
+        try:
+            vm.registers[self.dest.reg] = db[key]
+
+        except KeyError: 
+            # failed DB lookups return 0
+            vm.registers[self.dest.reg] = 0
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
@@ -1050,10 +1059,11 @@ class insStoreDB(BaseInstruction):
         return "%s %s <-DB %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        # ref = vm.registers[self.dest.reg]
+        db = vm.program.db
 
-        # ref.pool[ref.addr] = vm.registers[self.src.reg]
-        pass
+        key = vm.registers[self.dest.reg]
+
+        db[key] = vm.registers[self.src.reg]
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
