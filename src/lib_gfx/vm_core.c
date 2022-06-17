@@ -120,6 +120,11 @@ typedef union{
 #define POOL_FUNCTIONS          3
 #define POOL_LOCAL              4
 
+
+// opcode decoders:
+
+#define DECODE_NOP pc += 4;
+
 typedef struct __attribute__((packed)){
     uint8_t opcode;
     uint8_t op1;
@@ -319,8 +324,8 @@ static int8_t _vm_i8_run_stream(
         // &&opcode_stl,               // 9
         &&opcode_stgi,              // 10
         &&opcode_ldstr,             // 11
+        &&opcode_nop,               // 12
 
-        &&opcode_trap,              // 12
         &&opcode_trap,              // 13
         &&opcode_trap,              // 14
         &&opcode_trap,              // 15
@@ -1201,6 +1206,12 @@ opcode_ldstr:
     
     // not implemented!
 
+    DISPATCH;
+
+opcode_nop:
+    DECODE_NOP;    
+    
+    
     DISPATCH;
 
 opcode_halt:

@@ -1,10 +1,20 @@
 
+# a = Number(publish=True)
+# b = Number(publish=True)
+
+# ary = Number()[4]
+
 def init():
-    assert 1 + 2 == 3
-    # assert 3 - 2 == 1
-    # assert 3 * 2 == 6
-    # assert 8 / 4 == 2
-    # assert 8 % 5 == 3
+    # b = Number()
+    # ary[b] = 1
+
+    # pixels.hue = 0
+
+    db.kv_test_key = 123
+    
+    # a = db.kv_test_key + 1
+    # b = db.kv_test_key + db.kv_test_key
+
 
 # def init():
 #     a = Number()

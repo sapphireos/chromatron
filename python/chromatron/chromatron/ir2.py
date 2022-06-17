@@ -4925,6 +4925,7 @@ class irObjectStore(IR):
         target = self.target.generate()
         value = self.value.generate()
 
+        # pixel array reference
         if target.var.data_type == 'pixref' or \
            target.var.target.data_type == 'pixref' or \
            target.var.target.data_type == 'PixelArray':
@@ -4958,6 +4959,10 @@ class irObjectStore(IR):
 
             except KeyError:
                 raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
+
+        # DB reference
+        elif target.var.data_type == 'objref' and target.var.target.name == 'db':
+            return insNop(lineno=self.lineno)
 
         raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
 

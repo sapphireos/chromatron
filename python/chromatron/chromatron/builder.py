@@ -1276,7 +1276,16 @@ class Builder(object):
             var.target = target
             var.attr = self.current_attr.pop(0)[-1]
 
-            ir = irLoadRef(var, target, lineno=lineno)
+            # check if this is a database access
+            if target.name == 'db':
+                # database access uses a hashed key loaded as a const
+                key_hash = string_hash_func(var.attr.name)
+                
+                ir = irLoadConst(var, key_hash, lineno=lineno)
+
+            else:
+                ir = irLoadRef(var, target, lineno=lineno)
+            
             self.append_node(ir)
 
             return var

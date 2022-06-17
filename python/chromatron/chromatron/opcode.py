@@ -38,6 +38,7 @@ opcodes = {
     # 'STL':                  0x09,
     'STGI':                 0x0A,
     'LDSTR':                0x0B,
+    'NOP':                  0x0C,
     
     'HALT':                 0x10,
     'ASSERT':               0x11,

@@ -708,6 +708,8 @@ class insNop(BaseInstruction):
     def execute(self, vm):
         pass
 
+    def assemble(self):
+        return OpcodeFormatNop(self.mnemonic, lineno=self.lineno)
 
 # register to register move
 class insMov(BaseInstruction):
