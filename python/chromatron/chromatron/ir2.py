@@ -2280,8 +2280,100 @@ class irBlock(IR):
         # call function
         # return from function
 
+        """
+        This should run *before* SSA translation!
 
-        return
+        1. Iterate IR code and collect loads in basic block. 
+            Rewrite code without the loads.
+            Prune duplicate loads.
+        2. Remove stores.
+        3. If a call or return, flush the loads with stores.
+        
+        """
+
+        logging.debug(f'Load/store scheduling')
+
+        new_code = []
+        loads = {}
+        stores = {}
+        section_top = 1 # start of block instructions
+        # the 1 accounts for the label on entry
+
+        ins_count = -1
+
+        for ir in self.code:
+            ins_count += 1
+
+            if isinstance(ir, irLoad):
+                loads[ir.ref] = ir
+                continue
+            
+            elif isinstance(ir, irStore):                
+                # there should be a corresponding load for the store
+                if ir.ref not in loads:
+                    raise CompilerFatal
+
+                stores[ir.ref] = ir
+
+                continue
+
+            elif isinstance(ir, irReturn) or isinstance(ir, irCallType):
+                # flush loads
+
+                # print('LOADS')
+                for k, v in loads.items():
+                    # print(f'{k} -> {v}')
+
+                    # we should have collected a store
+                    # for each load, if not, there is a problem
+                    if k not in stores:
+                        raise CompilerFatal
+
+                # print('STORES')
+                for k, v in stores.items():
+                    # print(f'{k} -> {v}')
+
+                    # we should have collected a load
+                    # for each store, if not, there is a problem
+                    if k not in loads:
+                        raise CompilerFatal
+
+
+                # loads flush to top of *this section* block
+                for v in loads.values():
+                    new_code.insert(section_top, v)
+
+
+                loads = {}
+
+                # stores flush to bottom of this *section* of the block
+                for v in stores.values():
+                    new_code.append(v)
+
+                # finally append return or call
+                new_code.append(ir)
+
+                stores = {}
+
+                # record new instruction start
+                section_top = len(new_code)
+
+                continue
+
+
+            new_code.append(ir)
+
+
+
+        self.code = new_code
+
+
+        if self not in self.func.dominator_tree:
+            return
+
+        for c in self.func.dominator_tree[self]:
+            c.schedule_load_stores()
+
 
 
     # def fold_constants(self):
@@ -4024,9 +4116,12 @@ class irFunc(IR):
         #     if self.name == 'init':
         #         self.render_graph()
 
+        self.schedule_load_stores()
+
+
         if opt_level is not OptLevels.NONE:
 
-            self.schedule_load_stores()
+            # self.schedule_load_stores()
 
 
             self.convert_to_ssa()            

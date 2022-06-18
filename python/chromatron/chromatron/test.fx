@@ -8,7 +8,8 @@ def init():
     # a = db.kv_test_key
 
     a += 1
-    yield()
+    # yield()
+    # return
     a += 1
 
 
