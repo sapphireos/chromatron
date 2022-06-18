@@ -2271,7 +2271,7 @@ class irBlock(IR):
 
         return changed
 
-    def schedule_load_stores(self):
+    def schedule_load_stores(self, loads=None, stores=None):
         # basic load points:
         # function entry
         # return from call
@@ -2291,22 +2291,37 @@ class irBlock(IR):
         
         """
 
-        logging.debug(f'Load/store scheduling')
+        # return
+
+
+        if loads is None:
+            logging.debug(f'Load/store scheduling')
+
+            loads = {}
+            stores = {}
+
+
+        print(self.name)
+
 
         new_code = []
-        loads = {}
-        stores = {}
-        section_top = 1 # start of block instructions
+        
+        # section_top = 1 # start of block instructions
         # the 1 accounts for the label on entry
 
-        ins_count = -1
+        # ins_count = -1
 
         for ir in self.code:
-            ins_count += 1
+            # ins_count += 1
 
             if isinstance(ir, irLoad):
+                # check if we already have this load:
+                if ir.ref in loads:
+                    continue
+
+                # record load, but leave it here as this is
+                # where it is needed.
                 loads[ir.ref] = ir
-                continue
             
             elif isinstance(ir, irStore):                
                 # there should be a corresponding load for the store
@@ -2340,14 +2355,16 @@ class irBlock(IR):
 
 
                 # loads flush to top of *this section* block
-                for v in loads.values():
-                    new_code.insert(section_top, v)
+                # for v in loads.values():
+                #     v.block = self
+                #     new_code.insert(section_top, v)
 
 
                 loads = {}
 
                 # stores flush to bottom of this *section* of the block
                 for v in stores.values():
+                    v.block = self
                     new_code.append(v)
 
                 # finally append return or call
@@ -2356,7 +2373,7 @@ class irBlock(IR):
                 stores = {}
 
                 # record new instruction start
-                section_top = len(new_code)
+                # section_top = len(new_code)
 
                 continue
 
@@ -2367,12 +2384,15 @@ class irBlock(IR):
 
         self.code = new_code
 
-
+        # walking the dominator tree isn't right....
+        
+        
+        
         if self not in self.func.dominator_tree:
             return
 
         for c in self.func.dominator_tree[self]:
-            c.schedule_load_stores()
+            c.schedule_load_stores(copy(loads), copy(stores))
 
 
 

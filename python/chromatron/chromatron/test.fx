@@ -2,15 +2,16 @@
 a = Number(publish=True)
 
 def init():
-    # db.kv_test_key = 123
-    # db.kv_test_key += 1
-    
-    # a = db.kv_test_key
+    if 1:
+        a += 1
 
-    a += 1
+    else:
+        a += 2
+
+
     # yield()
     # return
-    a += 1
+
 
 
 # def init():
