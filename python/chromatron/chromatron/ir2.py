@@ -2291,7 +2291,7 @@ class irBlock(IR):
         
         """
 
-        # return
+        return
 
 
         if loads is None:

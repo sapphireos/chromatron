@@ -1,13 +1,21 @@
 
-a = Number(publish=True)
+a = Number()
+b = Number()
 
 def init():
     if 1:
-        a += 1
+        b += 1
 
     else:
         a += 2
 
+        fence()
+
+        a += 4
+
+        # return
+
+    b += 3
 
     # yield()
     # return
