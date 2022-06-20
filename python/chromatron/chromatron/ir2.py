@@ -2413,7 +2413,10 @@ class irBlock(IR):
 
         stores.update(self.get_stores())
 
-        # check if this block is a departure.
+        # strip stores from this block
+        self.strip_stores()
+
+        # check if this block is a departure:
         if self.is_departure:
             for ref in list(loads.keys()):
                 if ref not in stores:
@@ -2428,9 +2431,6 @@ class irBlock(IR):
                 del stores[ref]
                 del loads[ref]
 
-        # if not, strip stores
-        else:
-            self.strip_stores()
 
 
         # for k in loads:
