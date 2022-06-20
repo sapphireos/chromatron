@@ -2281,6 +2281,18 @@ class irBlock(IR):
 
         return changed
 
+    def strip_load(self, ref):
+        new_code = []
+
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                if ir.ref == ref:
+                    continue
+
+            new_code.append(ir)
+
+        self.code = new_code
+
     # def schedule_load_stores(self, loads=None, stores=None):
     def schedule_load_stores(self, visited=None, loads=None, stores=None):
 
@@ -2350,6 +2362,42 @@ class irBlock(IR):
 
         logging.debug(f'Load/store scheduling for: {self.name}')
 
+        
+        s_loads = set()
+
+        for s in self.successors:
+            sl = set(s.get_loads().keys())
+
+            if len(s_loads) == 0:
+                s_loads = sl
+
+            else:
+                s_loads = s_loads.intersection(sl)
+
+        # print('LOADS')
+        # print(s_loads)
+
+        loads = self.get_loads()
+
+        # move successor loads to this block
+        for ref in s_loads:
+            load_ir = copy(self.successors[0].get_loads()[ref])
+            load_ir.block = self
+            load_ir.lineno = -1
+            self.code.insert(-1, load_ir)
+
+            loads[ref] = load_ir
+
+            for s in self.successors:
+                s.strip_load(ref)
+
+        
+        pprint(loads)
+
+        # for k in loads:
+        #     print(k)
+
+        # stores = self.get_stores()
 
 
         # new_code = []

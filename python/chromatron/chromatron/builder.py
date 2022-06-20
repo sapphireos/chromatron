@@ -967,7 +967,7 @@ class Builder(object):
         # check if there is no init function
         if 'init' not in self.funcs:
             func = self.func('init', lineno=-1)
-            zero = self.declare_var(0, lineno=-1)
+            zero = self.get_var(0, lineno=-1)
             self.ret(zero, lineno=-1)
             self.finish_func(func)
 

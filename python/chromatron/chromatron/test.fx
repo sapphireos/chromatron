@@ -5,24 +5,36 @@ b = Number()
 # def meow(param):
     # pass
 
+
+def load_store_1():
+    if 1:
+        a += 1
+
+    else:
+        a += 2
+        # pass
+
 def init():
-    # if 1:
-    #     b += 1
+    load_store_1()
 
-    # else:
-    a += 2
+# def init():
+#     if 1:
+#         b += 1
 
-    fence()
-    # meow(a)
+#     else:
+#         a += 2
 
-    a += 4
+#         # fence()
+#         # meow(a)
 
-        # return
+#         a += 4
 
-    # b += 3
+#         # return
 
-    # yield()
-    # return
+#     b += 3
+
+#     # yield()
+#     # return
 
 
 
