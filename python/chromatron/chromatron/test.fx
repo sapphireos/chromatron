@@ -7,12 +7,14 @@ b = Number()
 
 
 def load_store_1():
+    a += 1
+    
     if 1:
         a += 1
 
     else:
         a += 2
-        # pass
+        # return
 
 def init():
     load_store_1()

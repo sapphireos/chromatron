@@ -626,7 +626,7 @@ class irBlock(IR):
 
     @property
     def is_departure(self):
-        return len([ir for ir in self.code if isinstance(ir, irCallType)]) > 0
+        return len([ir for ir in self.code if isinstance(ir, irCallType)]) > 0 or self.is_terminator
 
     def get_loads(self):
         return {ir.ref: ir for ir in self.code if isinstance(ir, irLoad)}
@@ -2360,7 +2360,7 @@ class irBlock(IR):
 
         visited.append(self)
 
-        logging.debug(f'Load/store scheduling for: {self.name}')
+        logging.debug(f'Load/store scheduling for: {self.name} departure? {self.is_departure}')
 
         
         s_loads = set()
@@ -2381,12 +2381,14 @@ class irBlock(IR):
 
         # move successor loads to this block
         for ref in s_loads:
-            load_ir = copy(self.successors[0].get_loads()[ref])
-            load_ir.block = self
-            load_ir.lineno = -1
-            self.code.insert(-1, load_ir)
+            # check if this block already has a load for this ref:
+            if ref not in loads:
+                load_ir = copy(self.successors[0].get_loads()[ref])
+                load_ir.block = self
+                load_ir.lineno = -1
+                self.code.insert(-1, load_ir)
 
-            loads[ref] = load_ir
+                loads[ref] = load_ir
 
             for s in self.successors:
                 s.strip_load(ref)
