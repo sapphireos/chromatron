@@ -624,6 +624,16 @@ class irBlock(IR):
     def is_terminator(self):
         return len(self.successors) == 0    
 
+    @property
+    def is_departure(self):
+        return len([ir for ir in self.code if isinstance(ir, irCallType)]) > 0
+
+    def get_loads(self):
+        return {ir.ref: ir for ir in self.code if isinstance(ir, irLoad)}
+
+    def get_stores(self):
+        return {ir.ref: ir for ir in self.code if isinstance(ir, irStore)}
+
     def get_input_vars(self):
         v = []
         for node in self.code:
@@ -2272,7 +2282,7 @@ class irBlock(IR):
         return changed
 
     # def schedule_load_stores(self, loads=None, stores=None):
-    def schedule_load_stores(self, loads=None):
+    def schedule_load_stores(self, visited=None, loads=None, stores=None):
 
         """
         Split basic blocks on call sites.  This can be done
@@ -2322,17 +2332,43 @@ class irBlock(IR):
         
         """
 
-
-
-        if loads is None:
+        if visited is None:
             logging.debug(f'Load/store scheduling')
 
+            visited = []
             loads = {}
+            stores = {}
+
+        if self in visited:
+            return
+
+        for p in self.predecessors:
+            if p not in visited:
+                return
+
+        visited.append(self)
+
+        logging.debug(f'Load/store scheduling for: {self.name}')
 
 
 
+        # new_code = []
 
+        # for ir in self.code:
+        #     if isinstance(ir, irLoad):
+        #         loads[ir.ref] = ir
+        #         continue
 
+        #     elif isinstance(ir, irStore):
+        #         stores[ir.ref] = ir
+        #         continue
+
+        #     new_code.append(ir)
+
+        # self.code = new_code
+
+        for s in self.successors:
+            s.schedule_load_stores(visited, copy(loads), copy(stores))
 
         return
 

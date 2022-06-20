@@ -6,20 +6,20 @@ b = Number()
     # pass
 
 def init():
-    if 1:
-        b += 1
+    # if 1:
+    #     b += 1
 
-    else:
-        a += 2
+    # else:
+    a += 2
 
-        fence()
-        # meow(a)
+    fence()
+    # meow(a)
 
-        a += 4
+    a += 4
 
         # return
 
-    b += 3
+    # b += 3
 
     # yield()
     # return
