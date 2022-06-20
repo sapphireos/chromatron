@@ -2271,7 +2271,73 @@ class irBlock(IR):
 
         return changed
 
-    def schedule_load_stores(self, loads=None, stores=None):
+    # def schedule_load_stores(self, loads=None, stores=None):
+    def schedule_load_stores(self, loads=None):
+
+        """
+        Split basic blocks on call sites.  This can be done
+        in the block construction and they can be merged back
+        together before SSA construction.  This makes the
+        pre-ssa optimizations a bit easier to analyze.
+        
+
+        Collect usages of a global by tracking loads by block after
+        block call slicing.
+        Strip stores during this first pass.
+        
+        
+        Load scheduling:
+        Scan through blocks, breadth-first.  If current block
+        requires a load, insert it at top of block.  This covers
+        leader blocks
+
+        Then scan the successor blocks.  If all of them use the same load,
+        place that load in the current block and strip from the successors.  
+        If only some of them do, do nothing for that load in this block.
+
+        Iterate into successors breadth-first.  Ensure that all predecessors
+        are analyzed before processing a block.
+
+        Record liveness of loaded items in all successors.
+        Terminate liveness of loaded items on terminator blocks
+        and blocks that end with calls.
+
+        Let's refer to these blocks (terminators and callers) as
+        "departure" blocks.
+
+
+    
+        Store scheduling:
+        Scan through blocks, breadth-first.
+        If any items are marked live in that block, check if it
+        needs to be flushed.  If block is a departure, flush the 
+        live items with stores.
+
+        Loads should already be accounted for in this step.
+
+        The load/store scheduling passes can probably be done
+        in a single pass, but the first analysis pass probably
+        needs to be separate.
+            
+        
+        """
+
+
+
+        if loads is None:
+            logging.debug(f'Load/store scheduling')
+
+            loads = {}
+
+
+
+
+
+
+        return
+
+
+
         # basic load points:
         # function entry
         # return from call
@@ -2292,6 +2358,9 @@ class irBlock(IR):
         """
 
         return
+
+
+
 
 
         if loads is None:
@@ -3308,7 +3377,6 @@ class irFunc(IR):
     def create_block_from_code_at_index(self, index, prev_block=None, blocks=None):
         if blocks is None:
             blocks = {}
-            # blocks = self.blocks
 
         # check if we already have a block starting at this index
         if index in blocks:
@@ -4217,7 +4285,7 @@ class irFunc(IR):
 
 
         # basic block merging (helps with jump elimination)
-        self.merge_basic_blocks()
+        # self.merge_basic_blocks()
 
         self.remove_dead_code()
 

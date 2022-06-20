@@ -477,6 +477,11 @@ class Builder(object):
         else:
             ret_type = func.ret_type
 
+        # place call label:
+        # this helps split the block for some optimizer passes
+        call_label = self.label(f'call_{func_name}', lineno=lineno)
+        self.position_label(call_label)
+
         result = self.add_temp(data_type=ret_type, lineno=lineno)
 
         # if func_name in ARRAY_FUNCS:
@@ -535,6 +540,11 @@ class Builder(object):
 
         ir = irLoadRetVal(result, lineno=lineno)
         self.append_node(ir)
+
+        # place return label:
+        # this helps split the block for some optimizer passes
+        return_label = self.label(f'return_{func_name}', lineno=lineno)
+        self.position_label(return_label)
 
         return result
 

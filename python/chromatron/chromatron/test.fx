@@ -2,6 +2,9 @@
 a = Number()
 b = Number()
 
+# def meow(param):
+    # pass
+
 def init():
     if 1:
         b += 1
@@ -10,6 +13,7 @@ def init():
         a += 2
 
         fence()
+        # meow(a)
 
         a += 4
 
