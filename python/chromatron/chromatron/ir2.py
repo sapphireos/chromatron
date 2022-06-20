@@ -626,7 +626,7 @@ class irBlock(IR):
 
     @property
     def is_departure(self):
-        return len([ir for ir in self.code if isinstance(ir, irCallType)]) > 0 or self.is_terminator
+        return len([ir for ir in self.code if isinstance(ir, irCallType)]) > 0
 
     def get_loads(self):
         return {ir.ref: ir for ir in self.code if isinstance(ir, irLoad)}
@@ -2416,8 +2416,8 @@ class irBlock(IR):
         # strip stores from this block
         self.strip_stores()
 
-        # check if this block is a departure:
-        if self.is_departure:
+        # check if this block is a departure or terminator
+        if self.is_departure or self.is_terminator:
             for ref in list(loads.keys()):
                 if ref not in stores:
                     raise CompilerFatal
@@ -2426,10 +2426,25 @@ class irBlock(IR):
                 store_ir.block = self
                 store_ir.lineno = -1
 
-                self.code.insert(-1, store_ir)
+                if self.is_terminator:
+                    self.code.insert(-1, store_ir)
+
+                    del loads[ref]
+
+                elif self.is_departure:
+                    self.code.insert(1, store_ir)
+
+                    load_ir = copy(loads[ref])
+                    load_ir.block = self
+                    load_ir.lineno = -1
+                    self.code.insert(-1, load_ir)
+
+                    loads[ref] = load_ir
+
+                else:
+                    raise CompilerFatal
 
                 del stores[ref]
-                del loads[ref]
 
 
 

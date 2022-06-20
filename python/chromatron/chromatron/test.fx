@@ -2,37 +2,34 @@
 a = Number()
 b = Number()
 
-# def meow(param):
-    # pass
+# def load_store_1():
+#     if 1:
+#         a += 1
 
-def load_store_1():
-    if 1:
-        a += 1
+#     else:
+#         a += 2
 
-    else:
-        a += 2
-
-def load_store_2():
-    a += 1
+# def load_store_2():
+#     a += 1
     
-    if 1:
-        a += 1
+#     if 1:
+#         a += 1
 
-    else:
-        a += 2
+#     else:
+#         a += 2
 
-    a += 1
+#     a += 1
 
-def load_store_3():
-    if 1:
-        a += 1
+# def load_store_3():
+#     if 1:
+#         a += 1
 
-    else:
-        a += 2
+#     else:
+#         a += 2
 
-        return
+#         return
 
-    a += 1
+#     a += 1
 
 def load_store_4():
     a += 1
@@ -41,9 +38,9 @@ def load_store_4():
 
 
 def init():
-    load_store_1()
-    load_store_2()
-    load_store_3()
+    # load_store_1()
+    # load_store_2()
+    # load_store_3()
     load_store_4()
 
 
