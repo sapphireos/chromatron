@@ -1,9 +1,23 @@
 
-global_a = Number()
-def init():
-  global_a += 1
 
-  assert global_a == 1
+ary = Number()[4]
+
+def init():
+    # b = Number()
+    # ary[b] = 1
+    # b = 1
+    # ary[b] = 2
+
+    assert ary[0] == 1
+    # assert ary[1] == 2
+    # assert ary[2] == 0
+    # assert ary[3] == 0
+
+# global_a = Number()
+# def init():
+#   global_a += 1
+
+#   assert global_a == 1
 
 # a = Number()
 # b = Number()

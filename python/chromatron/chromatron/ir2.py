@@ -2393,22 +2393,26 @@ class irBlock(IR):
 
         loads.update(self.get_loads())
 
+        for ref in loads:
+            self.strip_load(ref)
+
         # move successor loads to this block
         for ref in s_loads:
             # check if this block already has a load for this ref:
             if ref not in loads:
                 load_ir = copy(self.successors[0].get_loads()[ref])
-                load_ir.block = self
-                load_ir.lineno = -1
-                self.code.insert(-1, load_ir)
-
                 loads[ref] = load_ir
 
             for s in self.successors:
                 s.strip_load(ref)
 
-        # pprint(loads)
-
+        # re-insert this block's loads, now that they have been
+        # updated with moved loads from successors
+        for ref in loads:
+            load_ir = copy(loads[ref])
+            load_ir.block = self
+            load_ir.lineno = -1
+            self.code.insert(1, load_ir)
 
         # STORES:
 
