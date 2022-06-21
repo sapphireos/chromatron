@@ -1232,6 +1232,7 @@ def run_script(path, debug_print=False, opt_level=OptLevels.SSA):
 
 OPT_LEVELS = {
     'none': OptLevels.NONE,
+    'ls_sched': OptLevels.LS_SCHED,
     'default': OptLevels.SSA,
     'ssa': OptLevels.SSA,
     'gvn': OptLevels.GVN,
