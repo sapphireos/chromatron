@@ -2421,7 +2421,8 @@ class irBlock(IR):
         if self.is_departure or self.is_terminator:
             for ref in list(loads.keys()):
                 if ref not in stores:
-                    raise CompilerFatal
+                    # raise CompilerFatal
+                    continue
 
                 store_ir = copy(stores[ref])
                 store_ir.block = self

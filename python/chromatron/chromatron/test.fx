@@ -1,20 +1,9 @@
-# ary = Number()[4]
 
-a = Number()
-
+global_a = Number()
 def init():
-    return a
+  global_a += 1
 
-    # b = Number()
-    # ary[b] = 1
-    # b = 1
-    # ary[b] = 2
-
-    # assert ary[0] == 1
-    # assert ary[1] == 2
-    # assert ary[2] == 0
-    # assert ary[3] == 0
-
+  assert global_a == 1
 
 # a = Number()
 # b = Number()

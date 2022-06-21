@@ -343,6 +343,10 @@ def global_var():
   global_a += 1
 
   assert global_a == 1
+
+global_b = Number()
+def global_readonly():
+  assert global_b == 0
   
 
 ary = Number()[4]
@@ -926,6 +930,7 @@ def init():
     while_loop_break()
     while_loop_continue()
     global_var()
+    global_readonly()
     array_lookup()
     array_store()
     array_store2()
