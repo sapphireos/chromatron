@@ -2448,159 +2448,8 @@ class irBlock(IR):
                 del stores[ref]
 
 
-
-        # for k in loads:
-        #     print(k)
-
-        # stores = self.get_stores()
-
-
-        # new_code = []
-
-        # for ir in self.code:
-        #     if isinstance(ir, irLoad):
-        #         loads[ir.ref] = ir
-        #         continue
-
-        #     elif isinstance(ir, irStore):
-        #         stores[ir.ref] = ir
-        #         continue
-
-        #     new_code.append(ir)
-
-        # self.code = new_code
-
         for s in self.successors:
             s.schedule_load_stores(visited, copy(loads), copy(stores))
-
-        return
-
-
-
-        # basic load points:
-        # function entry
-        # return from call
-
-        # basic store points:
-        # call function
-        # return from function
-
-        """
-        This should run *before* SSA translation!
-
-        1. Iterate IR code and collect loads in basic block. 
-            Rewrite code without the loads.
-            Prune duplicate loads.
-        2. Remove stores.
-        3. If a call or return, flush the loads with stores.
-        
-        """
-
-        return
-
-
-
-
-
-        if loads is None:
-            logging.debug(f'Load/store scheduling')
-
-            loads = {}
-            stores = {}
-
-
-        print(self.name)
-
-
-        new_code = []
-        
-        # section_top = 1 # start of block instructions
-        # the 1 accounts for the label on entry
-
-        # ins_count = -1
-
-        for ir in self.code:
-            # ins_count += 1
-
-            if isinstance(ir, irLoad):
-                # check if we already have this load:
-                if ir.ref in loads:
-                    continue
-
-                # record load, but leave it here as this is
-                # where it is needed.
-                loads[ir.ref] = ir
-            
-            elif isinstance(ir, irStore):                
-                # there should be a corresponding load for the store
-                if ir.ref not in loads:
-                    raise CompilerFatal
-
-                stores[ir.ref] = ir
-
-                continue
-
-            elif isinstance(ir, irReturn) or isinstance(ir, irCallType):
-                # flush loads
-
-                # print('LOADS')
-                for k, v in loads.items():
-                    # print(f'{k} -> {v}')
-
-                    # we should have collected a store
-                    # for each load, if not, there is a problem
-                    if k not in stores:
-                        raise CompilerFatal
-
-                # print('STORES')
-                for k, v in stores.items():
-                    # print(f'{k} -> {v}')
-
-                    # we should have collected a load
-                    # for each store, if not, there is a problem
-                    if k not in loads:
-                        raise CompilerFatal
-
-
-                # loads flush to top of *this section* block
-                # for v in loads.values():
-                #     v.block = self
-                #     new_code.insert(section_top, v)
-
-
-                loads = {}
-
-                # stores flush to bottom of this *section* of the block
-                for v in stores.values():
-                    v.block = self
-                    new_code.append(v)
-
-                # finally append return or call
-                new_code.append(ir)
-
-                stores = {}
-
-                # record new instruction start
-                # section_top = len(new_code)
-
-                continue
-
-
-            new_code.append(ir)
-
-
-
-        self.code = new_code
-
-        # walking the dominator tree isn't right....
-        
-        
-        
-        if self not in self.func.dominator_tree:
-            return
-
-        for c in self.func.dominator_tree[self]:
-            c.schedule_load_stores(copy(loads), copy(stores))
 
 
 
@@ -4422,7 +4271,7 @@ class irFunc(IR):
 
 
         # basic block merging (helps with jump elimination)
-        # self.merge_basic_blocks()
+        self.merge_basic_blocks()
 
         self.remove_dead_code()
 

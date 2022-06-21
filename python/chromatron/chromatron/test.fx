@@ -1,48 +1,65 @@
+# ary = Number()[4]
 
 a = Number()
-b = Number()
-
-# def load_store_1():
-#     if 1:
-#         a += 1
-
-#     else:
-#         a += 2
-
-# def load_store_2():
-#     a += 1
-    
-#     if 1:
-#         a += 1
-
-#     else:
-#         a += 2
-
-#     a += 1
-
-def load_store_3():
-    if 1:
-        a += 1
-
-    else:
-        a += 2
-        b += 3
-
-        return
-
-    a += 1
-
-# def load_store_4():
-#     a += 1
-#     fence()
-#     a += 1
-
 
 def init():
-    # load_store_1()
-    # load_store_2()
-    load_store_3()
-    # load_store_4()
+    return a
+
+    # b = Number()
+    # ary[b] = 1
+    # b = 1
+    # ary[b] = 2
+
+    # assert ary[0] == 1
+    # assert ary[1] == 2
+    # assert ary[2] == 0
+    # assert ary[3] == 0
+
+
+# a = Number()
+# b = Number()
+
+# # def load_store_1():
+# #     if 1:
+# #         a += 1
+
+# #     else:
+# #         a += 2
+
+# # def load_store_2():
+# #     a += 1
+    
+# #     if 1:
+# #         a += 1
+
+# #     else:
+# #         a += 2
+
+# #     a += 1
+
+# def load_store_3():
+#     if 1:
+#         a += 1
+
+#     else:
+#         a += 2
+#         b += 3
+
+#         return
+
+#     a += 1
+
+# # def load_store_4():
+# #     a += 1
+# #     fence()
+# #     a += 1
+
+
+# def init():
+#     # load_store_1()
+#     # load_store_2()
+#     load_store_3()
+#     # load_store_4()
 
 
 # def init():
