@@ -39,8 +39,9 @@ PIXEL_ARRAY_FIELDS = {
 
 class OptLevels(Enum):
     NONE          = 0
-    SSA           = 1
-    GVN           = 2
+    LS_SCHED      = 1
+    SSA           = 2
+    GVN           = 4
 
 
 """
@@ -4342,13 +4343,11 @@ class irFunc(IR):
         #     if self.name == 'init':
         #         self.render_graph()
 
-        self.schedule_load_stores()
+        if opt_level.value >= OptLevels.LS_SCHED.value:
+            self.schedule_load_stores()
 
 
-        if opt_level is not OptLevels.NONE:
-
-            # self.schedule_load_stores()
-
+        if opt_level.value >= OptLevels.SSA.value:
 
             self.convert_to_ssa()            
             
