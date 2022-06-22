@@ -2401,7 +2401,7 @@ class irBlock(IR):
 
         visited.append(self)
 
-        logging.debug(f'Load/store scheduling for: {self.name} departure? {self.is_departure}')
+        logging.debug(f'Load/store scheduling for: {self.name} departure? {self.is_departure} term? {self.is_terminator}')
 
         
         # LOADS:
@@ -4246,8 +4246,8 @@ class irFunc(IR):
         #     if self.name == 'init':
         #         self.render_graph()
 
-        if opt_level.value == OptLevels.LS_SCHED.value:
-            self.schedule_load_stores()
+        # if opt_level.value >= OptLevels.LS_SCHED.value:
+            # self.schedule_load_stores()
 
 
         if opt_level.value >= OptLevels.SSA.value:

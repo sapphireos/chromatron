@@ -1,22 +1,16 @@
-a = Number()
-# b = Number()
-
-# def init():
-#     if 0:
-#         a += 3
-
-#     else:
-#         a += 2
-#         b += 3
-
-#         return
-
-#     a += 1
+a = Number(publish=True)
+b = Number(publish=True)
 
 def init():
-    a += 1
-    fence()
-    a += 1
+    if 0:
+        a = 2
+    else:
+        a = 1
+
+    if 1:
+        b = 2
+    else:
+        b = 1
 
 # global_a = Number()
 # def init():
