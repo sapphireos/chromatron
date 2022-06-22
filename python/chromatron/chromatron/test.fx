@@ -1,17 +1,47 @@
+a = Number()
+# b = Number()
 
+# def init():
+#     if 0:
+#         a += 3
 
-ary = Number()[4]
+#     else:
+#         a += 2
+#         b += 3
+
+#         return
+
+#     a += 1
 
 def init():
-    # b = Number()
-    # ary[b] = 1
-    # b = 1
-    # ary[b] = 2
+    a += 1
+    fence()
+    a += 1
 
-    assert ary[0] == 1
-    # assert ary[1] == 2
-    # assert ary[2] == 0
-    # assert ary[3] == 0
+# global_a = Number()
+# def init():
+#   global_a += 1
+
+#   assert global_a == 1
+
+# global_b = Number()
+# def init():
+#   assert global_b == 0
+  
+
+
+# ary = Number()[4]
+
+# def init():
+#     b = Number()
+#     ary[b] = 1
+#     # b = 1
+#     # ary[b] = 2
+
+#     assert ary[0] == 1
+#     # assert ary[1] == 2
+#     # assert ary[2] == 0
+#     # assert ary[3] == 0
 
 # global_a = Number()
 # def init():
