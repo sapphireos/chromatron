@@ -1,16 +1,37 @@
-a = Number(publish=True)
-b = Number(publish=True)
+# a = Number(publish=True)
+# b = Number(publish=True)
+
+# def init():
+#     if 0:
+#         a = 2
+#     else:
+#         a = 1
+
+#     if 1:
+#         b = 2
+#     else:
+#         b = 1
+
+# a = Fixed16(publish=True)
+b = Fixed16(publish=True)
 
 def init():
-    if 0:
-        a = 2
-    else:
-        a = 1
+    db.kv_test_key = 123
+    
+    # a = db.kv_test_key + 1.0 # note that since we don't really do DB type conversion, db.kv_test_key gets treated as an f16 here.  this is ok for now.
 
-    if 1:
-        b = 2
-    else:
-        b = 1
+    # b = Fixed16()
+    b = db.kv_test_key + db.kv_test_key
+
+    # return b
+
+# def init():
+#     # a = Number()
+#     b = Fixed16()
+
+#     b = 1 + 2
+
+#     return b
 
 # global_a = Number()
 # def init():

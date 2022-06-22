@@ -1733,7 +1733,7 @@ class irBlock(IR):
 
                         changed = True
 
-                expr = ir.value
+                expr = ir.expr
 
                 # simplify?
                 fold = ir.fold()
@@ -1767,7 +1767,7 @@ class irBlock(IR):
 
                     else:
                         values[ir.result] = ir.result
-                        values[ir.value] = ir.result
+                        values[expr] = ir.result
 
             elif isinstance(ir, irLookup):
                 # replace inputs:
@@ -5850,6 +5850,10 @@ class irConvertType(IR):
 
         return s
 
+    @property
+    def expr(self):
+        return f'conv {self.result.data_type} {self.value}'
+
     def fold(self):
         if self.value.value is None:
             return None
@@ -5884,33 +5888,33 @@ class irConvertType(IR):
             ins = insConvMov(self.result.generate(), self.value.generate(), lineno=self.lineno)
             return ins
 
-class irConvertTypeInPlace(IR):
-    def __init__(self, target, dest_type, **kwargs):
-        super().__init__(**kwargs)
-        self.target = target
-        self.dest_type = dest_type
+# class irConvertTypeInPlace(IR):
+#     def __init__(self, target, dest_type, **kwargs):
+#         super().__init__(**kwargs)
+#         self.target = target
+#         self.dest_type = dest_type
 
-        # check if either type is gfx16
-        if self.target.data_type == 'gfx16' or self.dest_type == 'gfx16':
-            raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.target, self.dest_type, self.lineno))
+#         # check if either type is gfx16
+#         if self.target.data_type == 'gfx16' or self.dest_type == 'gfx16':
+#             raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.target, self.dest_type, self.lineno))
     
-    def __str__(self):
-        s = '%s = %s(%s)' % (self.target, self.target.data_type, self.target)
+#     def __str__(self):
+#         s = '%s = %s(%s)' % (self.target, self.target.data_type, self.target)
 
-        return s
+#         return s
 
-    def get_input_vars(self):
-        return [self.target]
+#     def get_input_vars(self):
+#         return [self.target]
 
-    def get_output_vars(self):
-        return [self.target]
+#     def get_output_vars(self):
+#         return [self.target]
 
-    def generate(self):
-        try:
-            return type_conversions[(self.dest_type, self.target.data_type)](self.target.generate(), self.target.generate(), lineno=self.lineno)
+#     def generate(self):
+#         try:
+#             return type_conversions[(self.dest_type, self.target.data_type)](self.target.generate(), self.target.generate(), lineno=self.lineno)
 
-        except KeyError:
-            raise CompilerFatal("Invalid conversion: '%s' to '%s' on line: %d" % (self.target.data_type, self.dest_type, self.lineno))
+#         except KeyError:
+#             raise CompilerFatal("Invalid conversion: '%s' to '%s' on line: %d" % (self.target.data_type, self.dest_type, self.lineno))
 
 # this is mostly used for optimizations:
 class irExpr(IR):
