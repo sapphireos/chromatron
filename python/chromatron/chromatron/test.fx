@@ -1,16 +1,29 @@
+
 a = Number(publish=True)
-b = Number(publish=True)
+# b = Number(publish=True)
+# c = Number(publish=True)
+
+# def test(_a, _b):
+    # return _a + _b
 
 def init():
-    if 0:
-        a = 2
-    else:
+    if 1 + 2 == 3:
         a = 1
 
-    if 1:
-        b = 2
-    else:
-        b = 1
+    # if 1 + 2 != 3:
+    #     a = 2
+
+    # if test(1, 2) == 3:
+    #     b = 1
+
+    # if test(1, 2) != 3:
+    #     b = 2
+
+    # if test(1, 2) + 3 == 3:
+    #     c = 1
+
+    # if test(1, 2) + 3 != 3:
+    #     c = 2
 
 # def init():
 #     # a = Number()

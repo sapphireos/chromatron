@@ -77,6 +77,11 @@ def simple_if2():
     assert b == 1
     assert a == 0
 
+def if_expr():
+    if 1 + 2 == 3:
+        assert True
+
+    assert False
 
 def multi_if_1():
     a = Number()
@@ -913,6 +918,7 @@ def init():
     simple_ifelse2()
     simple_if()
     simple_if2()
+    if_expr()
     multi_if_1()
     multi_if_2()
     multi_if_3()

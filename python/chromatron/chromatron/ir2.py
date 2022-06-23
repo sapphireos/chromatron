@@ -4336,7 +4336,7 @@ class irFunc(IR):
 
 
         # basic block merging (helps with jump elimination)
-        self.merge_basic_blocks()
+        # self.merge_basic_blocks()
 
         self.remove_dead_code()
 
