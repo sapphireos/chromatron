@@ -359,6 +359,7 @@ ary = Number()[4]
 
 def array_lookup():
     b = Number()
+    ary = 0
     ary[b] = 1
     b = 1
     ary[b] = 2
@@ -380,7 +381,20 @@ def array_lookup_op():
     assert ary[2] == 3
     assert ary[3] == 3
 
+def array_lookup_op2():
+    b = Number()
+    ary = 3
+    ary[b] = 1
+    b = 1
+    ary[b] = ary[b] + 2
+
+    assert ary[0] == 1
+    assert ary[1] == 5
+    assert ary[2] == 3
+    assert ary[3] == 3
+
 def array_store():
+    ary = 0
     ary[0] = 1
     ary[1] = ary[0]
 
@@ -390,6 +404,7 @@ def array_store():
     assert ary[3] == 0
 
 def array_store2():
+    ary = 0
     b = Number()
 
     ary[b] = 1
@@ -952,6 +967,7 @@ def init():
     global_readonly()
     array_lookup()
     array_lookup_op()
+    array_lookup_op2()
     array_store()
     array_store2()
     array_assign()

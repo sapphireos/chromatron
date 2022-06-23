@@ -1742,7 +1742,7 @@ class irBlock(IR):
                 if fold is not None:
                     print(f'Fold conversion: {fold}')
 
-                    assert isinstance(fold, irLoadConst)
+                    assert isinstance(fold, irLoadConst) or isinstance(fold, irAssign)
 
                     # replace the instruction with the folded assignment
                     ir = fold
@@ -5866,6 +5866,13 @@ class irConvertType(IR):
         return f'conv {self.result.data_type} {self.value}'
 
     def fold(self):
+        if self.result.data_type == self.value.data_type:
+            # data type is converting to same type.
+            # we can replace with an assign.
+            ir = irAssign(self.result, self.value, lineno=self.lineno)
+
+            return ir
+
         if self.value.value is None:
             return None
 
