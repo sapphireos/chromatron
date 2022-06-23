@@ -50,13 +50,43 @@
 #   assert global_b == 0
   
 
-
 ary = Number()[4]
 
+a = Number(publish=True)
+b = Number(publish=True)
+# c = Number(publish=True)
+# d = Number(publish=True)
+# e = Number(publish=True)
+
 def init():
-    # b = Number()
+
     ary[0] += 1
     ary[0] += 1
+
+    # ary[0] = 1
+    # ary[0] = 2
+
+    # ary[0] = 2
+    # ary[2] = 3
+    # ary[3] = 4
+    # ary[4] = 5
+
+    # ary += 123
+
+    # a = ary[0]
+    # b = ary[0]
+    # c = ary[2]
+    # d = ary[3]
+    # e = ary[4]
+
+
+# ary = Number()[4]
+
+# def init():
+#     ary += 1
+#     # b = Number()
+#     # ary[0] += 1
+    # ary[0] += 1
 
     # ary[0] = ary[0] + 1
     # b = 1

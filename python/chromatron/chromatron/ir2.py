@@ -2388,9 +2388,6 @@ class irBlock(IR):
         
         """
 
-
-        return
-
         if visited is None:
             logging.debug(f'Load/store scheduling')
 
@@ -2407,40 +2404,90 @@ class irBlock(IR):
 
         logging.debug(f'Load/store scheduling for: {self.name}')
 
-        loads = {}
+
+        values = {}
         stores = {}
+        remove = []
 
         new_code = []
-
         for ir in self.code:
             if isinstance(ir, irLoad):
-                # if this load is already in this block, we can skip it.
-                if ir.ref in loads:
-                    continue
+                if ir.ref not in values:
+                    values[ir.ref] = ir.register
 
-                loads[ir.ref] = ir
+                else:
+                    if ir.ref in stores:
+                        if stores[ir.ref] not in remove:
+                            remove.append(stores[ir.ref])
 
-            new_code.append(ir)
+                            logging.debug(f'Remove redundant store: {stores[ir.ref]}')
 
-        self.code = new_code
+                    if values[ir.ref] is not None:
 
-        # STORES:
-        new_code = []
-        for ir in reversed(self.code):
-            if isinstance(ir, irStore):
-                # if this load is already in this block, we can skip it.
-                if ir.ref in stores:
-                    continue
+                        logging.debug(f'Remove redundant load: {ir}')
 
+                        ir = irAssign(ir.register, values[ir.ref], lineno=ir.lineno)
+                        ir.block = self
+
+                    
+            elif isinstance(ir, irStore):
+                if ir.ref in values and ir.ref in stores:
+                    if stores[ir.ref] not in remove:
+                        remove.append(stores[ir.ref])
+
+                        logging.debug(f'Remove redundant store: {stores[ir.ref]}')
+
+                values[ir.ref] = ir.register
                 stores[ir.ref] = ir
 
+
             new_code.append(ir)
 
-        self.code = list(reversed(new_code))
+        self.code = [ir for ir in new_code if ir not in remove]
 
 
         for s in self.successors:
             s.schedule_load_stores(visited)
+
+
+        return
+
+
+
+        # loads = {}
+        # stores = {}
+
+        # new_code = []
+
+        # for ir in self.code:
+        #     if isinstance(ir, irLoad):
+        #         # if this load is already in this block, we can skip it.
+        #         if ir.ref in loads:
+        #             continue
+
+        #         loads[ir.ref] = ir
+
+        #     new_code.append(ir)
+
+        # self.code = new_code
+
+        # # STORES:
+        # new_code = []
+        # for ir in reversed(self.code):
+        #     if isinstance(ir, irStore):
+        #         # if this load is already in this block, we can skip it.
+        #         if ir.ref in stores:
+        #             continue
+
+        #         stores[ir.ref] = ir
+
+        #     new_code.append(ir)
+
+        # self.code = list(reversed(new_code))
+
+
+        # for s in self.successors:
+        #     s.schedule_load_stores(visited)
 
 
 
@@ -4171,7 +4218,7 @@ class irFunc(IR):
             opt_passes = [opt_passes]
 
         if OptPasses.SSA not in opt_passes:
-            if OptPasses.GVN in opt_passes:
+            if OptPasses.GVN in opt_passes or OptPasses.LS_SCHED in opt_passes:
                 opt_passes.append(OptPasses.SSA)
 
 
@@ -4192,14 +4239,12 @@ class irFunc(IR):
         #     if self.name == 'init':
         #         self.render_graph()
 
-        if OptPasses.LS_SCHED in opt_passes:
-            self.schedule_load_stores()
-
-
         if OptPasses.SSA in opt_passes:
 
             self.convert_to_ssa()            
-            
+
+            # if OptPasses.LS_SCHED in opt_passes:
+                # self.schedule_load_stores()        
             
             # checks
             self.verify_block_links()
@@ -4253,6 +4298,8 @@ class irFunc(IR):
             # # if opt_level == OptPasses.GVN:
             # #     if self.name == 'init':
             # #         self.render_graph()
+
+            self.schedule_load_stores()
 
             # convert out of SSA form
             self.resolve_phi()
@@ -5448,9 +5495,9 @@ class irLoad(IR):
     def __str__(self):
         return f'LOAD {self.register} <-- {self.ref}'
 
-    @property
-    def expr(self):
-        return f'load {self.ref}'
+    # @property
+    # def expr(self):
+    #     return f'load {self.ref}'
 
     def get_input_vars(self):
         if self.ref.data_type == 'offset':
@@ -5487,9 +5534,9 @@ class irStore(IR):
     def __str__(self):
         return f'STORE {self.register} --> {self.ref}'
 
-    @property
-    def expr(self):
-        return f'store {self.ref}'
+    # @property
+    # def expr(self):
+    #     return f'store {self.ref}'
 
     def get_input_vars(self):
         i = [self.register]
