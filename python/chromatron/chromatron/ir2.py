@@ -4257,8 +4257,8 @@ class irFunc(IR):
         #     if self.name == 'init':
         #         self.render_graph()
 
-        # if opt_level.value >= OptPasses.LS_SCHED.value:
-            # self.schedule_load_stores()
+        if OptPasses.LS_SCHED in opt_passes:
+            self.schedule_load_stores()
 
 
         if OptPasses.SSA in opt_passes:
