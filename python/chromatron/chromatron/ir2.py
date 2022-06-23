@@ -2388,6 +2388,10 @@ class irBlock(IR):
         
         """
 
+        return
+
+        
+
         if visited is None:
             logging.debug(f'Load/store scheduling')
 
@@ -2412,33 +2416,58 @@ class irBlock(IR):
         new_code = []
         for ir in self.code:
             if isinstance(ir, irLoad):
-                if ir.ref not in values:
-                    values[ir.ref] = ir.register
+                if isinstance(ir, varOffset):
+                    target = ir.ref.target.name
 
                 else:
-                    if ir.ref in stores:
-                        if stores[ir.ref] not in remove:
-                            remove.append(stores[ir.ref])
+                    target = ir.ref.name
 
-                            logging.debug(f'Remove redundant store: {stores[ir.ref]}')
+                if target not in values:
+                    values[target] = ir.register
 
-                    if values[ir.ref] is not None:
+                else:
+                    # if target in stores:
+                    #     if stores[target] not in remove:
+                    #         remove.append(stores[target])
+
+                    #         logging.debug(f'Remove redundant store: {stores[target]}')
+
+                    if values[target] is not None:
 
                         logging.debug(f'Remove redundant load: {ir}')
 
-                        ir = irAssign(ir.register, values[ir.ref], lineno=ir.lineno)
+                        ir = irAssign(ir.register, values[target], lineno=ir.lineno)
                         ir.block = self
 
                     
             elif isinstance(ir, irStore):
-                if ir.ref in values and ir.ref in stores:
-                    if stores[ir.ref] not in remove:
-                        remove.append(stores[ir.ref])
+                if isinstance(ir, varOffset):
+                    target = ir.ref.target.name
 
-                        logging.debug(f'Remove redundant store: {stores[ir.ref]}')
+                else:
+                    target = ir.ref.name
 
-                values[ir.ref] = ir.register
-                stores[ir.ref] = ir
+                if target in values and target in stores:
+                    if stores[target] not in remove:
+                        remove.append(stores[target])
+
+                        logging.debug(f'Remove redundant store: {stores[target]}')
+
+                values[target] = ir.register
+                stores[target] = ir
+
+            elif isinstance(ir, irVectorOp) or isinstance(ir, irVectorAssign):
+                if isinstance(ir, varOffset):
+                    target = ir.target.target.name
+
+                else:
+                    target = ir.target.name
+
+                if target in values:
+                    del values[target]
+
+                if target in stores:
+                    del stores[target]
 
 
             new_code.append(ir)
