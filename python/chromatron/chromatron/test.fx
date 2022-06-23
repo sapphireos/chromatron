@@ -1,20 +1,26 @@
 
-c = Number()
+a = Number(publish=True)
 
 def init():
-    i = Number()
-    i = 4
+    for i in 10:
+        a += 1 + 2
 
-    a = Number()
-    b = Number()
-    b = c
+# c = Number()
 
-    while i > 0:
-        i -= 1
+# def init():
+#     i = Number()
+#     i = 4
 
-        a = 2 + b
+#     a = Number()
+#     b = Number()
+#     b = c
 
-    return a
+#     while i > 0:
+#         i -= 1
+
+#         a = 2 + b
+
+#     return a
 
 
 # ary = Number()[4]

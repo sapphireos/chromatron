@@ -4648,7 +4648,12 @@ class irFunc(IR):
                         if ir.block not in entry_dominators:
                             continue
 
-                        if isinstance(ir, irLabel) or ir.is_nop or isinstance(ir, irControlFlow):
+                        if isinstance(ir, irLabel) or \
+                           ir.is_nop or \
+                           isinstance(ir, irControlFlow) or \
+                           isinstance(ir, irLoad) or \
+                           isinstance(ir, irStore):
+
                             continue
 
                         if isinstance(ir, irLoadConst):
