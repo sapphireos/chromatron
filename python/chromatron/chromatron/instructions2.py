@@ -311,7 +311,7 @@ class insProgram(object):
         d = {}
 
         for g in self.globals:
-            if g.length == 1:
+            if g.is_scalar or g.length == 1:
                 d[g.name] = self.global_memory[g.addr.addr]
 
             else:
