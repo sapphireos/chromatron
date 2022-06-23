@@ -1595,15 +1595,15 @@ class irBlock(IR):
 
                         changed = True
 
-                if ir.ref in values:
-                    replacement = values[ir.ref]
+                # if ir.register in values:
+                #     replacement = values[ir.register]
                     
-                    if ir.ref != replacement:
-                        print(f"replace load {ir} with {replacement}")
+                #     if ir.register != replacement:
+                #         print(f"replace load {ir} (reg) with {replacement}")
 
-                        ir.ref = replacement
+                #         ir.register = replacement
 
-                        changed = True
+                #         changed = True
 
                 # expr = ir.expr
 
@@ -2338,8 +2338,7 @@ class irBlock(IR):
 
     #     self.code = new_code
 
-    # def schedule_load_stores(self, loads=None, stores=None):
-    def schedule_load_stores(self, visited=None, loads=None, stores=None):
+    def schedule_load_stores(self, visited=None):
 
         """
         Split basic blocks on call sites.  This can be done
@@ -2389,13 +2388,14 @@ class irBlock(IR):
         
         """
 
+
+        return
+
         if visited is None:
             logging.debug(f'Load/store scheduling')
 
             visited = []
-            loads = {}
-            stores = {}
-
+            
         if self in visited:
             return
 
@@ -2405,54 +2405,10 @@ class irBlock(IR):
 
         visited.append(self)
 
-        logging.debug(f'Load/store scheduling for: {self.name} departure? {self.is_departure} term? {self.is_terminator}')
+        logging.debug(f'Load/store scheduling for: {self.name}')
 
-        
-        # LOADS:
-
-        # s_loads = set()
-
-        # for s in self.successors:
-        #     sl = set(s.get_loads().keys())
-
-        #     if len(s_loads) == 0:
-        #         s_loads = sl
-
-        #     else:
-        #         s_loads = s_loads.intersection(sl)
-
-        # print('LOADS')
-        # print(s_loads)
-
-        # loads.update(self.get_loads())
-
-        # for ref in loads:
-        #     self.strip_load(ref)
-
-        # move successor loads to this block
-        # for ref in s_loads:
-        #     # check if this block already has a load for this ref:
-        #     if ref not in loads:
-        #         load_ir = copy(self.successors[0].get_loads()[ref])
-        #         loads[ref] = load_ir
-                
-        #         load_ir = copy(loads[ref])
-        #         load_ir.block = self
-        #         load_ir.lineno = -1
-        #         self.code.insert(1, load_ir)
-
-        #     for s in self.successors:
-        #         s.strip_load(ref)
-
-        # re-insert this block's loads, now that they have been
-        # updated with moved loads from successors
-        # for ref in loads:
-            # load_ir = copy(loads[ref])
-            # load_ir.block = self
-            # load_ir.lineno = -1
-            # self.code.insert(1, load_ir)
-
-        # loads.update(self.get_loads())
+        loads = {}
+        stores = {}
 
         new_code = []
 
@@ -2469,46 +2425,22 @@ class irBlock(IR):
         self.code = new_code
 
         # STORES:
-
-        stores.update(self.get_stores())
-
-        # strip stores from this block
-        self.strip_stores()
-
-        # check if this block is a departure or terminator
-        if self.is_departure or self.is_terminator:
-            for ref in list(loads.keys()):
-                if ref not in stores:
-                    # raise CompilerFatal
+        new_code = []
+        for ir in reversed(self.code):
+            if isinstance(ir, irStore):
+                # if this load is already in this block, we can skip it.
+                if ir.ref in stores:
                     continue
 
-                store_ir = copy(stores[ref])
-                store_ir.block = self
-                store_ir.lineno = -1
+                stores[ir.ref] = ir
 
-                if self.is_terminator:
-                    self.code.insert(-1, store_ir)
+            new_code.append(ir)
 
-                    del loads[ref]
-
-                elif self.is_departure:
-                    self.code.insert(1, store_ir)
-
-                    load_ir = copy(loads[ref])
-                    load_ir.block = self
-                    load_ir.lineno = -1
-                    self.code.insert(-1, load_ir)
-
-                    loads[ref] = load_ir
-
-                else:
-                    raise CompilerFatal
-
-                del stores[ref]
+        self.code = list(reversed(new_code))
 
 
         for s in self.successors:
-            s.schedule_load_stores(visited, copy(loads), copy(stores))
+            s.schedule_load_stores(visited)
 
 
 
@@ -5516,9 +5448,9 @@ class irLoad(IR):
     def __str__(self):
         return f'LOAD {self.register} <-- {self.ref}'
 
-    # @property
-    # def expr(self):
-    #     return f'load {self.ref}'
+    @property
+    def expr(self):
+        return f'load {self.ref}'
 
     def get_input_vars(self):
         if self.ref.data_type == 'offset':
@@ -5555,21 +5487,9 @@ class irStore(IR):
     def __str__(self):
         return f'STORE {self.register} --> {self.ref}'
 
-    # @property
-    # def expr(self):
-    #     return f'store {self.ref}'
-
-    # @property
-    # def value_number(self):
-    #     return self.ref
-
-    # @property
-    # def value_expr(self):
-    #     return f'STORE{self.register.ssa_name}'
-
-    # def apply_value_numbers(self, VN):
-    #     if self.register in VN:
-    #         self.register = VN[self.register]
+    @property
+    def expr(self):
+        return f'store {self.ref}'
 
     def get_input_vars(self):
         i = [self.register]

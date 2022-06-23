@@ -1,34 +1,35 @@
 
-a = Number(publish=True)
-# b = Number(publish=True)
-# c = Number(publish=True)
+# a = Number(publish=True)
+# # b = Number(publish=True)
+# # c = Number(publish=True)
 
-# def test(_a, _b):
-    # return _a + _b
+# # def test(_a, _b):
+#     # return _a + _b
 
-def init():
-    b = Number()
-    if 1 + 2 == 3:
-        a += 5
+# def init():
+#     # b = Number()
+#     if 1 + 2 == 3:
+#         a += 5
+#         a += 4
 
-    if 1 + 2 != 3:
-        a += 2
+#     if 1 + 2 != 3:
+#         a += 2
 
-    a += 1
+#     a += 1
 
-    return b + 1
+#     # return b + 1
 
-    # if test(1, 2) == 3:
-    #     b = 1
+#     # if test(1, 2) == 3:
+#     #     b = 1
 
-    # if test(1, 2) != 3:
-    #     b = 2
+#     # if test(1, 2) != 3:
+#     #     b = 2
 
-    # if test(1, 2) + 3 == 3:
-    #     c = 1
+#     # if test(1, 2) + 3 == 3:
+#     #     c = 1
 
-    # if test(1, 2) + 3 != 3:
-    #     c = 2
+#     # if test(1, 2) + 3 != 3:
+#     #     c = 2
 
 # def init():
 #     # a = Number()
@@ -50,12 +51,12 @@ def init():
   
 
 
-# ary = Number()[4]
+ary = Number()[4]
 
-# def init():
-#     # b = Number()
-#     ary[0] += 1
-#     ary[0] += 1
+def init():
+    # b = Number()
+    ary[0] += 1
+    ary[0] += 1
 
     # ary[0] = ary[0] + 1
     # b = 1
