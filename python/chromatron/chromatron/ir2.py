@@ -2388,9 +2388,9 @@ class irBlock(IR):
         
         """
 
-        return
+        # return
 
-        
+
 
         if visited is None:
             logging.debug(f'Load/store scheduling')
@@ -2425,19 +2425,11 @@ class irBlock(IR):
                 if target not in values:
                     values[target] = ir.register
 
-                else:
-                    # if target in stores:
-                    #     if stores[target] not in remove:
-                    #         remove.append(stores[target])
+                elif values[target] is not None:
+                    logging.debug(f'Remove redundant load: {ir}')
 
-                    #         logging.debug(f'Remove redundant store: {stores[target]}')
-
-                    if values[target] is not None:
-
-                        logging.debug(f'Remove redundant load: {ir}')
-
-                        ir = irAssign(ir.register, values[target], lineno=ir.lineno)
-                        ir.block = self
+                    ir = irAssign(ir.register, values[target], lineno=ir.lineno)
+                    ir.block = self
 
                     
             elif isinstance(ir, irStore):
@@ -2457,11 +2449,12 @@ class irBlock(IR):
                 stores[target] = ir
 
             elif isinstance(ir, irVectorOp) or isinstance(ir, irVectorAssign):
-                if isinstance(ir, varOffset):
-                    target = ir.target.target.name
+                target = ir.target.target.name
+                # if isinstance(ir, varOffset):
+                #     target = ir.target.target.name
 
-                else:
-                    target = ir.target.name
+                # else:
+                #     target = ir.target.name
 
                 if target in values:
                     del values[target]
