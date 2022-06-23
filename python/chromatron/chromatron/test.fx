@@ -1,17 +1,19 @@
 
-# a = Number(publish=True)
+a = Number(publish=True)
 # b = Number(publish=True)
 # c = Number(publish=True)
 
 # def test(_a, _b):
     # return _a + _b
 
-# def init():
-#     if 1 + 2 == 3:
-#         a = 1
+def init():
+    if 1 + 2 == 3:
+        a = 5
 
-#     if 1 + 2 != 3:
-#         a = 2
+    if 1 + 2 != 3:
+        a = 2
+
+    a += 1
 
     # if test(1, 2) == 3:
     #     b = 1
@@ -45,12 +47,12 @@
   
 
 
-ary = Number()[4]
+# ary = Number()[4]
 
-def init():
-    # b = Number()
-    ary[0] += 1
-    ary[0] += 1
+# def init():
+#     # b = Number()
+#     ary[0] += 1
+#     ary[0] += 1
 
     # ary[0] = ary[0] + 1
     # b = 1

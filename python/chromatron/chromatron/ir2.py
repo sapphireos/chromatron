@@ -304,6 +304,9 @@ class IR(object):
     def get_jump_target(self):
         return None
 
+    def replace_labels(self, label, replace):
+        return
+
     @property
     def value_number(self):
         return None
@@ -4336,7 +4339,7 @@ class irFunc(IR):
 
 
         # basic block merging (helps with jump elimination)
-        # self.merge_basic_blocks()
+        self.merge_basic_blocks()
 
         self.remove_dead_code()
 
@@ -4446,6 +4449,31 @@ class irFunc(IR):
 
                     raise
 
+    def combine_labels(self):
+        label_sets = {}
+        prev_lable = None
+
+        for i in range(len(self.code)):
+            ir = self.code[i]
+
+            if isinstance(ir, irLabel):
+                assert ir not in label_sets
+
+                if prev_lable is None:
+                    label_sets[ir] = []
+                    prev_lable = ir
+
+                else:
+                    label_sets[prev_lable].append(ir)
+
+            else:
+                prev_lable = None
+
+        for top_label in label_sets:
+            for label in label_sets[top_label]:
+                # replace all references to this label with the top label
+                for ir in self.code:
+                    ir.replace_labels(label, top_label)
 
     def prune_jumps(self):
         iterations = 0
@@ -4459,6 +4487,8 @@ class irFunc(IR):
             if iterations > iteration_limit:
                 raise CompilerFatal(f'Prune jumps failed after {iterations} iterations')
                 break
+
+            self.combine_labels()
 
             new_code = []
             prev_code = self.code
@@ -4489,6 +4519,8 @@ class irFunc(IR):
             self.code = new_code
 
             iterations += 1
+
+        self.combine_labels()
         
         logging.debug(f'Prune IR jumps in {iterations} iterations. Eliminated {old_length - len(self.code)} instructions')
 
@@ -4911,6 +4943,13 @@ class irBranch(irControlFlow):
     def get_jump_target(self):
         return [self.true_label, self.false_label]
 
+    def replace_labels(self, label, replace):
+        if self.true_label == label:
+            self.true_label = replace
+
+        if self.false_label == label:
+            self.false_label = replace
+
     def generate(self):
         ins = [
             insJmpIfZero(self.value.generate(), self.false_label.generate(), lineno=self.lineno),
@@ -4934,6 +4973,10 @@ class irJump(irControlFlow):
 
     def get_jump_target(self):
         return [self.target]
+
+    def replace_labels(self, label, replace):
+        if self.target == label:
+            self.target = replace
 
 class irLoop(irControlFlow):
     def __init__(self, true_label, false_label, iterator_in, iterator_out, stop, **kwargs):
@@ -4964,6 +5007,12 @@ class irLoop(irControlFlow):
     def get_jump_target(self):
         return [self.true_label, self.false_label]
 
+    def replace_labels(self, label, replace):
+        if self.true_label == label:
+            self.true_label = replace
+
+        if self.false_label == label:
+            self.false_label = replace
 
 class irReturn(irControlFlow):
     def __init__(self, ret_var, **kwargs):
