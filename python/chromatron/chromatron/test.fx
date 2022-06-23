@@ -1,27 +1,45 @@
 
-ary = Number()[4]
-
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
-e = Number(publish=True)
+c = Number()
 
 def init():
+    i = Number()
+    i = 4
 
-    ary[0] = 1
-    ary[1] = 2
-    ary[2] = 3
-    ary[3] = 4
-    ary[4] = 5
+    a = Number()
+    b = Number()
+    b = c
 
-    ary += 123
+    while i > 0:
+        i -= 1
 
-    a = ary[0]
-    b = ary[1]
-    c = ary[2]
-    d = ary[3]
-    e = ary[4]
+        a = 2 + b
+
+    return a
+
+
+# ary = Number()[4]
+
+# a = Number(publish=True)
+# b = Number(publish=True)
+# c = Number(publish=True)
+# d = Number(publish=True)
+# e = Number(publish=True)
+
+# def init():
+
+#     ary[0] = 1
+#     ary[1] = 2
+#     ary[2] = 3
+#     ary[3] = 4
+#     ary[4] = 5
+
+#     ary += 123
+
+#     a = ary[0]
+#     b = ary[1]
+#     c = ary[2]
+#     d = ary[3]
+#     e = ary[4]
 
 # a = Number(publish=True)
 # # b = Number(publish=True)

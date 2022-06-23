@@ -2388,7 +2388,7 @@ class irBlock(IR):
         
         """
 
-        # return
+        return
 
 
 
@@ -3995,6 +3995,7 @@ class irFunc(IR):
             # add loop to blocks in body
             for block in info['body']:
                 block.loops.append(loop)
+                info['body_vars'].extend(block.get_output_vars())
 
         # attach loop information to IR code
         # for block in self.blocks.values():
@@ -4321,6 +4322,13 @@ class irFunc(IR):
             # #     if self.name == 'init':
             # #         self.render_graph()
 
+
+            self.loop_invariant_code_motion()
+
+            with open("LICM_construction.fxir", 'w') as f:
+                f.write(str(self))
+
+
             self.schedule_load_stores()
 
             # convert out of SSA form
@@ -4608,65 +4616,123 @@ class irFunc(IR):
 
         self.code = new_code
 
-    def loop_invariant_code_motion(self, loops):
-        for loop, info in loops.items():
-            header_code = []
+    def loop_invariant_code_motion(self):
 
-            entry_dominators = self.dominators[info['top']]
-            
-            for block in info['body']:
-                block_code = []
+        logging.debug(f'Loop invariant code motion')
 
-                for index in range(len(block.code)):
-                    ir = block.code[index]
-                    block_code.append(ir)
+        # return
 
-                    # check if the instruction's block dominates the loop entry node
-                    if ir.block not in entry_dominators:
-                        continue
+        changed = True
+        iterations = 0
+        MAX_LICM_ITERATIONS = 128
 
-                    if isinstance(ir, irBinop):
-                        # check if inputs are loop invariant
+        while changed and iterations < MAX_LICM_ITERATIONS:
+            changed = False
+            iterations += 1
 
-                        # for now, just check for consts, until we have a reaching def
-                        if ir.left.is_const and ir.right.is_const:
-                            # move instruction to header
-                            header_code.append(ir)
+            self.analyze_loops()
 
-                            # remove from block code
-                            block_code.remove(ir)
+            for loop, info in self.loops.items():
+                header_code = []
 
-                            logging.debug(f'LICM: loop {loop} moving [{ir}] to loop header')
-
-                    elif isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
-                        if ir.value.is_const:
-                            # move instruction to header
-                            header_code.append(ir)
-
-                            # remove from block code
-                            block_code.remove(ir)
-
-                            logging.debug(f'LICM: loop {loop} moving [{ir}] to loop header')
-
-                block.code = block_code
-
-            if len(header_code) > 0:
-                header = info['header']
-                insert_index = None
+                entry_dominators = self.dominators[info['top']]
                 
-                # search for header:
-                for index in range(len(header.code)):
-                    ir = header.code[index]
+                for block in info['body']:
+                    block_code = []
 
-                    if isinstance(ir, irLoopHeader):
-                        insert_index = index + 1
-                        break
+                    for index in range(len(block.code)):
+                        ir = block.code[index]
+                        block_code.append(ir)
 
-                # add code to loop header
-                for ir in header_code:
-                    ir.block = header
-                    header.code.insert(insert_index, ir)
-                    insert_index += 1
+                        # check if the instruction's block dominates the loop entry node
+                        if ir.block not in entry_dominators:
+                            continue
+
+                        if isinstance(ir, irLabel) or ir.is_nop or isinstance(ir, irControlFlow):
+                            continue
+
+                        if isinstance(ir, irLoadConst):
+                            # this is always const, so it must be invariant
+
+                            header_code.append(ir)
+                            block_code.remove(ir)
+
+                            logging.debug(f'LICM: Moving load const: {ir.target}')
+
+                            # remove load const target from body vars, 
+                            # as they are invariant by definition
+                            if ir.target in info['body_vars']:
+                                info['body_vars'].remove(ir.target)
+
+                            changed = True
+
+                        else:
+                            variant_inputs = [i for i in ir.get_input_vars() if i in info['body_vars']]
+
+                            if len(variant_inputs) == 0:
+                                logging.debug(f'LICM: Moving: {ir}')
+
+                                header_code.append(ir)
+                                block_code.remove(ir)
+
+                                # remove output vars from body vars, as they are definitely now
+                                # invariant.
+                                for o in ir.get_output_vars():
+                                    if o in info['body_vars']:
+                                        info['body_vars'].remove(o)
+
+                                changed = True
+
+
+                            # print(ir)
+                            # for v in info['body_vars']:
+                            #     print(v)
+
+                        # for i in ir.get_input_vars():
+                            # print(i)
+
+                        # if isinstance(ir, irBinop):
+                        #     # check if inputs are loop invariant
+
+                        #     # for now, just check for consts, until we have a reaching def
+                        #     if ir.left.is_const and ir.right.is_const:
+                        #         # move instruction to header
+                        #         header_code.append(ir)
+
+                        #         # remove from block code
+                        #         block_code.remove(ir)
+
+                        #         logging.debug(f'LICM: loop {loop} moving [{ir}] to loop header')
+
+                        # elif isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
+                        #     if ir.value.is_const:
+                        #         # move instruction to header
+                        #         header_code.append(ir)
+
+                        #         # remove from block code
+                        #         block_code.remove(ir)
+
+                        #         logging.debug(f'LICM: loop {loop} moving [{ir}] to loop header')
+
+                    block.code = block_code
+
+                if len(header_code) > 0:
+                    header = info['header']
+                    insert_index = None
+                    
+                    # search for header:
+                    for index in range(len(header.code)):
+                        ir = header.code[index]
+
+                        if isinstance(ir, irLoopHeader):
+                            insert_index = index + 1
+                            break
+
+                    # add code to loop header
+                    for ir in header_code:
+                        ir.block = header
+                        header.code.insert(insert_index, ir)
+                        insert_index += 1
 
     # def propagate_copies(self):
     #     iterations = 0
