@@ -7,13 +7,16 @@ a = Number(publish=True)
     # return _a + _b
 
 def init():
+    b = Number()
     if 1 + 2 == 3:
-        a = 5
+        a += 5
 
     if 1 + 2 != 3:
-        a = 2
+        a += 2
 
     a += 1
+
+    return b + 1
 
     # if test(1, 2) == 3:
     #     b = 1

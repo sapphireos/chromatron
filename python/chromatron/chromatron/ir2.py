@@ -4343,6 +4343,8 @@ class irFunc(IR):
 
         self.remove_dead_code()
 
+        self.recalc_defines()
+
         # self.render_dominator_tree()
         # if opt_level == OptPasses.GVN:
         #     if self.name == 'init':
