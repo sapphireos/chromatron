@@ -49,8 +49,10 @@ ary = Number()[4]
 
 def init():
     # b = Number()
-    # ary[0] += 1
-    ary[0] = ary[0] + 1
+    ary[0] += 1
+    ary[0] += 1
+
+    # ary[0] = ary[0] + 1
     # b = 1
     # ary[b] = 2
 

@@ -920,7 +920,19 @@ class Builder(object):
             ir = irVectorOp(op, ref, value, lineno=lineno)
             self.append_node(ir)
 
-        elif target.data_type == 'offset':
+        elif target.data_type == 'offset' and not isinstance(target.target, varScalar):
+            # if scalar, we skip this and do a scalar augassign at the bottom.
+            # note that technically, the vector ops can work directly on memory
+            # regardless of length: thus, a vector op on part of an array, even a single
+            # element, is possible.
+            # in theory, the vector op can be faster.  however, doing so would not be orthogonal
+            # to an assign + binop and it also does not load the item into a register, meaning
+            # the item cannot be reused by other computations.
+
+            # thus, we won't attempt this optimization here - opting for correctness, 
+            # clarity, and predictability instead.
+            # if the optimizer itself wants to do this, it can do so.
+
             ir = irVectorOp(op, target, value, lineno=lineno)
             self.append_node(ir)
 
