@@ -81,7 +81,8 @@ def if_expr():
     if 1 + 2 == 3:
         assert True
 
-    assert False
+    else:
+        assert False
 
 def multi_if_1():
     a = Number()
