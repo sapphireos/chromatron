@@ -1,20 +1,17 @@
 
-a = Number(publish=True)
+# a = Number(publish=True)
 # b = Number(publish=True)
 # c = Number(publish=True)
 
 # def test(_a, _b):
     # return _a + _b
 
-def init():
-    if 1 + 2 == 3:
-        # a = 1
-        assert True
+# def init():
+#     if 1 + 2 == 3:
+#         a = 1
 
-    assert False
-
-    # if 1 + 2 != 3:
-    #     a = 2
+#     if 1 + 2 != 3:
+#         a = 2
 
     # if test(1, 2) == 3:
     #     b = 1
@@ -48,18 +45,18 @@ def init():
   
 
 
-# ary = Number()[4]
+ary = Number()[4]
 
-# def init():
-#     b = Number()
-#     ary[b] = 1
-#     # b = 1
-#     # ary[b] = 2
+def init():
+    # b = Number()
+    ary[0] += 1
+    # b = 1
+    # ary[b] = 2
 
-#     assert ary[0] == 1
-#     # assert ary[1] == 2
-#     # assert ary[2] == 0
-#     # assert ary[3] == 0
+    # assert ary[0] == 1
+    # assert ary[1] == 2
+    # assert ary[2] == 0
+    # assert ary[3] == 0
 
 # global_a = Number()
 # def init():

@@ -311,7 +311,13 @@ class insProgram(object):
         d = {}
 
         for g in self.globals:
-            d[g.name] = self.global_memory[g.addr.addr]
+            if g.length == 1:
+                d[g.name] = self.global_memory[g.addr.addr]
+
+            else:
+                d[g.name] = []
+                for i in range(g.length):
+                    d[g.name].append(self.global_memory[g.addr.addr + i])
 
         return d        
 
