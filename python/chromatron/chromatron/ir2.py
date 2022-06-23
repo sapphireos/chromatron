@@ -3,6 +3,7 @@ import logging
 from copy import copy, deepcopy
 import struct
 from enum import Enum
+from collections.abc import Iterable
 
 import graphviz
 
@@ -37,7 +38,7 @@ PIXEL_ARRAY_FIELDS = {
 
 
 
-class OptLevels(Enum):
+class OptPasses(Enum):
     NONE          = 0
     LS_SCHED      = 1
     SSA           = 2
@@ -366,9 +367,9 @@ class irProgram(IR):
     def objects(self):
         return [o for o in self.global_symbols.symbols.values() if isinstance(o, varObject)]
     
-    def analyze(self, opt_level:OptLevels=OptLevels.SSA):
+    def analyze(self, opt_passes:OptPasses=OptPasses.SSA):
         for func in self.funcs.values():
-            func.analyze_blocks(opt_level=opt_level)
+            func.analyze_blocks(opt_passes=opt_passes)
 
     def analyze_call_graph(self):
         for func in self.funcs.values():
@@ -2454,6 +2455,7 @@ class irBlock(IR):
 
         for ir in self.code:
             if isinstance(ir, irLoad):
+                # if this load is already in this block, we can skip it.
                 if ir.ref in loads:
                     continue
 
@@ -4227,8 +4229,17 @@ class irFunc(IR):
         self.dominators = self.calc_dominance()
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
-    def analyze_blocks(self, opt_level:OptLevels=OptLevels.SSA):
-        logging.debug(f'Starting block analysis with optimization level: {opt_level}')
+    def analyze_blocks(self, opt_passes:OptPasses=[OptPasses.SSA]):
+        logging.debug(f'Starting block analysis with optimization level: {opt_passes}')
+
+        if not isinstance(opt_passes, Iterable):
+            opt_passes = [opt_passes]
+
+        if OptPasses.SSA not in opt_passes:
+            if OptPasses.GVN in opt_passes:
+                opt_passes.append(OptPasses.SSA)
+
+
 
         self.ssa_next_val = {}
         
@@ -4242,15 +4253,15 @@ class irFunc(IR):
 
         # self.render_dominator_tree()
         # self.render_graph()
-        # if opt_level == OptLevels.NONE:
+        # if opt_level == OptPasses.NONE:
         #     if self.name == 'init':
         #         self.render_graph()
 
-        # if opt_level.value >= OptLevels.LS_SCHED.value:
+        # if opt_level.value >= OptPasses.LS_SCHED.value:
             # self.schedule_load_stores()
 
 
-        if opt_level.value >= OptLevels.SSA.value:
+        if OptPasses.SSA in opt_passes:
 
             self.convert_to_ssa()            
             
@@ -4265,7 +4276,7 @@ class irFunc(IR):
             with open("SSA_construction.fxir", 'w') as f:
                     f.write(str(self))
 
-            if opt_level == OptLevels.GVN:
+            if OptPasses.GVN in opt_passes:
 
                 self.analyze_loops()
                 
@@ -4294,19 +4305,19 @@ class irFunc(IR):
                 if i >= MAX_GVN_ITERATIONS:
                     raise CompilerFatal(f'GVN failed to complete after {i} iterations')
                     
-            # optimizers
-            optimize = False
-            # optimize = True
-            if optimize:
-                # loop analysis
-                self.analyze_loops()
+            # # optimizers
+            # optimize = False
+            # # optimize = True
+            # if optimize:
+            #     # loop analysis
+            #     self.analyze_loops()
             
-                # basic loop invariant code motion:
-                self.loop_invariant_code_motion(self.loops)
+            #     # basic loop invariant code motion:
+            #     self.loop_invariant_code_motion(self.loops)
 
-            # if opt_level == OptLevels.GVN:
-            #     if self.name == 'init':
-            #         self.render_graph()
+            # # if opt_level == OptPasses.GVN:
+            # #     if self.name == 'init':
+            # #         self.render_graph()
 
             # convert out of SSA form
             self.resolve_phi()
@@ -4330,7 +4341,7 @@ class irFunc(IR):
         self.remove_dead_code()
 
         # self.render_dominator_tree()
-        # if opt_level == OptLevels.GVN:
+        # if opt_level == OptPasses.GVN:
         #     if self.name == 'init':
         #         self.render_graph()
         

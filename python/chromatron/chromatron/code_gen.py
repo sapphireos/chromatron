@@ -31,7 +31,7 @@ import colored_traceback
 colored_traceback.add_hook()
 
 # from .ir import *
-from .ir2 import CompilerFatal, SyntaxError, OptLevels
+from .ir2 import CompilerFatal, SyntaxError, OptPasses
 from .builder import Builder
 from sapphire.common.util import setup_basic_logging
 
@@ -1089,7 +1089,7 @@ class CodeGenPass1(ast.NodeVisitor):
 def parse(source):
     return ast.parse(source)
 
-def compile_text(source, debug_print=False, summarize=False, script_name='', opt_level=OptLevels.SSA):
+def compile_text(source, debug_print=False, summarize=False, script_name='', opt_passes=OptPasses.SSA):
     import colored_traceback
     colored_traceback.add_hook()
     
@@ -1106,10 +1106,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name='', opt
         print(pformat_ast(cg1_data))
 
 
-
-    from .ir2 import OptLevels
-
-    for opt_level in [opt_level]:
+    for opt_level in [opt_passes]:
     # for opt_level in [OptLevels.SSA, OptLevels.GVN]:
     # for opt_level in [OptLevels.GVN]:
     # for opt_level in [OptLevels.SSA]:
@@ -1119,7 +1116,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name='', opt
 
         e = None
         try:
-            ir_program.analyze(opt_level=opt_level)
+            ir_program.analyze(opt_passes=opt_level)
 
         except Exception as exc:
             e = exc
@@ -1199,16 +1196,16 @@ def compile_text(source, debug_print=False, summarize=False, script_name='', opt
     # return builder
 
 
-def compile_script(path, debug_print=False, opt_level=OptLevels.SSA):
+def compile_script(path, debug_print=False, opt_passes=OptPasses.SSA):
     script_name = os.path.split(path)[1]
 
     logging.info(f'Compiling {script_name}')
 
     with open(path) as f:
-        return compile_text(f.read(), script_name=script_name, debug_print=debug_print, opt_level=opt_level)
+        return compile_text(f.read(), script_name=script_name, debug_print=debug_print, opt_passes=opt_passes)
 
-def run_script(path, debug_print=False, opt_level=OptLevels.SSA):
-    ins_program = compile_script(path, debug_print=debug_print, opt_level=opt_level)
+def run_script(path, debug_print=False, opt_passes=OptPasses.SSA):
+    ins_program = compile_script(path, debug_print=debug_print, opt_passes=opt_passes)
 
     # for func in ins_program.funcs:
     func = ins_program.init_func
@@ -1231,11 +1228,11 @@ def run_script(path, debug_print=False, opt_level=OptLevels.SSA):
 
 
 OPT_LEVELS = {
-    'none': OptLevels.NONE,
-    'ls_sched': OptLevels.LS_SCHED,
-    'default': OptLevels.SSA,
-    'ssa': OptLevels.SSA,
-    'gvn': OptLevels.GVN,
+    'none': OptPasses.NONE,
+    'ls_sched': OptPasses.LS_SCHED,
+    'default': OptPasses.SSA,
+    'ssa': OptPasses.SSA,
+    'gvn': OptPasses.GVN,
 }
 
 
@@ -1264,7 +1261,7 @@ def main():
 
 
     try:
-        program = run_script(path, debug_print=True, opt_level=opt_level)
+        program = run_script(path, debug_print=True, opt_passes=opt_level)
        
         return
 

@@ -1,10 +1,10 @@
 
 from chromatron import code_gen
-from chromatron.ir2 import OptLevels
+from chromatron.ir2 import OptPasses
 
 
-def run_code(source, *args, opt_level=OptLevels.LS_SCHED):
-    prog = code_gen.compile_text(source, opt_level=opt_level)
+def run_code(source, *args, opt_passes=OptPasses.LS_SCHED):
+    prog = code_gen.compile_text(source, opt_passes=opt_passes)
     func = prog.init_func
     func.run(*args)
 
@@ -68,28 +68,28 @@ def init():
 """
 
 
-def test_load_store_scheduler(opt_level=OptLevels.LS_SCHED):
-    regs = run_code(load_store_1, 0, opt_level=opt_level)
+def test_load_store_scheduler(opt_passes=OptPasses.LS_SCHED):
+    regs = run_code(load_store_1, 0, opt_passes=opt_passes)
     assert regs['a'] == 2
 
-    regs = run_code(load_store_1, 1, opt_level=opt_level)
+    regs = run_code(load_store_1, 1, opt_passes=opt_passes)
     assert regs['a'] == 1
 
-    regs = run_code(load_store_2, 0, opt_level=opt_level)
+    regs = run_code(load_store_2, 0, opt_passes=opt_passes)
     assert regs['a'] == 4
 
-    regs = run_code(load_store_2, 1, opt_level=opt_level)
+    regs = run_code(load_store_2, 1, opt_passes=opt_passes)
     assert regs['a'] == 3
 
-    regs = run_code(load_store_3, 0, opt_level=opt_level)
+    regs = run_code(load_store_3, 0, opt_passes=opt_passes)
     assert regs['a'] == 2
     assert regs['b'] == 3
 
-    regs = run_code(load_store_3, 1, opt_level=opt_level)
+    regs = run_code(load_store_3, 1, opt_passes=opt_passes)
     assert regs['a'] == 4
     assert regs['b'] == 0
 
-    regs = run_code(load_store_4, opt_level=opt_level)
+    regs = run_code(load_store_4, opt_passes=opt_passes)
     assert regs['a'] == 2
 
 

@@ -21,10 +21,13 @@
 # </license>
 
 from chromatron import code_gen
-from chromatron.ir2 import OptLevels
+from chromatron.ir2 import OptPasses
 
 def test_basic_ssa():
-    code_gen.run_script('chromatron/basic_tests.fx', opt_level=OptLevels.SSA)
+    code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.SSA)
+
+def test_basic_ls_sched():
+    code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.LS_SCHED)
 
 def test_basic_gvn():
-    code_gen.run_script('chromatron/basic_tests.fx', opt_level=OptLevels.GVN)
+    code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.GVN)

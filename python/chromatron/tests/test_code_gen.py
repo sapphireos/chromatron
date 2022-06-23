@@ -24,7 +24,7 @@ import pytest
 import unittest
 from chromatron import code_gen
 # from chromatron.vm import VM
-from chromatron.ir2 import OptLevels
+from chromatron.ir2 import OptPasses
 
 # nose2 --with-coverage --coverage-report=html
 
@@ -3695,8 +3695,8 @@ def init():
 
 
 class CGTestsLocal_Opt_None(CGTestsBase):
-    def run_test(self, program, expected={}, opt_level=OptLevels.SSA):
-        prog = code_gen.compile_text(program, opt_level=opt_level)
+    def run_test(self, program, expected={}, opt_passes=OptPasses.SSA):
+        prog = code_gen.compile_text(program, opt_passes=opt_passes)
         func = prog.init_func
 
         ret_val = func.run()
@@ -3727,8 +3727,8 @@ class CGTestsLocal_Opt_None(CGTestsBase):
                 raise
 
 class CGTestsLocal_Opt_GVN(CGTestsLocal_Opt_None):
-    def run_test(self, program, expected={}, opt_level=OptLevels.GVN):
-        super().run_test(program, expected, opt_level=opt_level)
+    def run_test(self, program, expected={}, opt_passes=OptPasses.GVN):
+        super().run_test(program, expected, opt_passes=opt_passes)
 
 # from fixtures import *
 
