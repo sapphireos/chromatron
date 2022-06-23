@@ -1,4 +1,6 @@
 
+import pytest
+
 from chromatron import code_gen
 from chromatron.ir2 import OptPasses
 
@@ -67,7 +69,7 @@ def init():
 
 """
 
-
+@pytest.mark.skip
 def test_load_store_scheduler(opt_passes=OptPasses.LS_SCHED):
     regs = run_code(load_store_1, 0, opt_passes=opt_passes)
     assert regs['a'] == 2

@@ -8,7 +8,10 @@ a = Number(publish=True)
 
 def init():
     if 1 + 2 == 3:
-        a = 1
+        # a = 1
+        assert True
+
+    assert False
 
     # if 1 + 2 != 3:
     #     a = 2

@@ -3726,6 +3726,7 @@ class CGTestsLocal_Opt_None(CGTestsBase):
                 print('-------------------------------\n')
                 raise
 
+@pytest.mark.skip
 class CGTestsLocal_Opt_LS_SCHED(CGTestsLocal_Opt_None):
     def run_test(self, program, expected={}, opt_passes=OptPasses.LS_SCHED):
         super().run_test(program, expected, opt_passes=opt_passes)
