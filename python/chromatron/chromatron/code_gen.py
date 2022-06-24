@@ -1262,8 +1262,13 @@ def main():
 
 
     try:
-        program = run_script(path, debug_print=True, opt_passes=opt_level)
-       
+        # program = run_script(path, debug_print=True, opt_passes=opt_level)
+        program = compile_script(path, debug_print=True, opt_passes=opt_level)
+        program.simulate()
+        
+        pprint.pprint(program.gfx_data)
+        pprint.pprint(program.dump_globals())
+
         return
 
         try:

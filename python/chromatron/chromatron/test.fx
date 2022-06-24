@@ -1,34 +1,55 @@
 
+current_hue = Fixed16()
+delay = Number()
+cursor = Number()
+# cursor2 = Number()
+target = Number()
+direction = Number()
+
 def init():
-    i = Number()
-    i = 4
+    pixels.val = 1.0
+    pixels.sat = 1.0
 
-    a = Number()
+    pixels.hue = rand()
 
-    while i > 0:
-        i -= 1
+    pixels.hs_fade = 600
 
-        if i == 10:
-            break
+    db.gfx_frame_rate = 70
 
-        a = 2 + 3
+    current_hue = rand()
 
-    # a should be 5 here unless i inits to 11
+    cursor = rand()
+    target = rand()
 
-    assert a == 5
 
-    # a = 0
-    # i = 11
+def loop():
+    if delay > 0:
+        delay -= 1
+        return
 
-    # while i > 0:
-    #     i -= 1
+    pixels[cursor].val = 1.0
+    pixels[cursor].hue = current_hue
 
-    #     if i == 10:
-    #         break
+    if direction == 0:
+        cursor += 1
+    else:
+        cursor -= 1
 
-    #     a = 2 + 3
+    if cursor < 0:
+        cursor = pixels.count - 1
 
-    # assert a == 0
+    if (cursor % pixels.count) == (target % pixels.count):
+        cursor = rand(0, pixels.count)
+        direction = rand(0, 2)
+        # target = cursor
+        target = rand()
+        current_hue = rand()
+
+        delay = rand(0, 10)
+
+
+
+
 
 
 # c = Number()

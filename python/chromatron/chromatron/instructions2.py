@@ -23,6 +23,7 @@
 import logging
 
 from enum import Enum
+import random
 
 from catbus import *
 from sapphire.common import catbus_string_hash
@@ -146,10 +147,14 @@ class insProgram(object):
 
         func_refs = sorted([f for f in objects if f.data_type == 'func'], key=lambda f: f.addr.addr)
 
-        self.funcs = StoragePool('_functions', [funcs[f.name] for f in func_refs])
+        self.func_pool = StoragePool('_functions', [funcs[f.name] for f in func_refs])
+        self.funcs = funcs
+
+        random.seed(12345)
 
         self.library_funcs = {
             'test_lib_call': self.test_lib_call,
+            'rand': self.rand,
             'len': self.array_len,
             'avg': self.array_avg,
             'sum': self.array_sum,
@@ -223,7 +228,7 @@ class insProgram(object):
         # this is sourced from load const instructions
         self.constants = []
 
-        for func in self.funcs:
+        for func in self.func_pool:
             for ins in func.code:
                 if not isinstance(ins, insLoadConst):
                     continue
@@ -239,17 +244,21 @@ class insProgram(object):
     def __str__(self):
         s = 'VM Instructions:\n'
 
-        for func in self.funcs:
+        for func in self.func_pool:
             s += str(func)
 
         return s
+
+    @property
+    def instruction_count(self):
+        return sum([f.instruction_count for f in self.funcs.values()])
 
     def get_pool(self, pool_type: StorageType) -> StoragePool:
         if pool_type == StorageType.GLOBAL:
             pool = self.global_memory
 
         elif pool_type == StorageType.FUNCTIONS:
-            pool = self.funcs
+            pool = self.func_pool
 
         elif pool_type == StorageType.PIXEL_ARRAY:
             pool = self.pixel_array_pool
@@ -265,6 +274,9 @@ class insProgram(object):
         # print(args)
         # print(vm)
         return param0 + param1
+
+    def rand(self, vm, param0=0, param1=65535):
+        return random.randint(param0, param1)
 
     def array_len(self, vm, param0, length):
         return length
@@ -321,20 +333,35 @@ class insProgram(object):
 
         return d        
 
-    def run(self):
-        pass
+    def simulate(self, loop_cycles=128):
+        logging.debug(f'Simulating for {loop_cycles} loops')
+
+        init = self.funcs['init']
+        loop = self.funcs['loop']
+
+        init.run()
+
+        total_loop_ins_cycles = 0
+        iterations = 0
+
+        while loop_cycles > 0:
+            loop_cycles -= 1
+            iterations += 1
+
+            loop.run()
+
+            total_loop_ins_cycles += loop.cycles
+
+        logging.info(f'Init in {init.instruction_count} instructions and {init.cycles} cycles')
+        logging.info(f'Loop in {loop.instruction_count} instructions and {total_loop_ins_cycles} cycles over {iterations} iterations')
 
     def run_func(self, func):
-        for f in self.funcs:
-            if f.name == func:
-                return f.run()
-
-        raise KeyError(func)
-
+        return self.funcs[func].run()
+        
     def assemble(self):
         bytecode = {}
 
-        for func in self.funcs:
+        for func in self.func_pool:
             bytecode[func.name] = func.assemble()
 
         return FXImage(self, bytecode)
@@ -358,6 +385,7 @@ class insFunc(object):
         self.return_stack = return_stack
 
         self.cycle_limit = 16384
+        self.cycles = 0
         self.ret_val = None
 
     def __str__(self):
@@ -379,6 +407,10 @@ class insFunc(object):
         s += f'VM Instructions: {len([i for i in self.code if not isinstance(i, insLabel)])}\n'
 
         return s
+
+    @property
+    def instruction_count(self):
+        return len([ins for ins in self.code if not isinstance(ins, insLabel)])
 
     @property
     def local_memory_size(self):
@@ -519,7 +551,7 @@ class insFunc(object):
     def run(self, *args, **kwargs):
         assert self.program is not None
 
-        logging.info(f'VM run func {self.name}')
+        logging.debug(f'VM run func {self.name}')
 
         if not self.register_count:
             raise VMException("Registers are not initialized!")
@@ -569,62 +601,66 @@ class insFunc(object):
         pc = 0
         cycles = 0
 
-        while True:
-            cycles += 1
+        try:
+            while True:
+                cycles += 1
 
-            if cycles > self.cycle_limit:
-                raise CycleLimitExceeded
+                if cycles > self.cycle_limit:
+                    raise CycleLimitExceeded
 
 
-            ins = self.code[pc]
+                ins = self.code[pc]
 
-            # print(cycles, pc, ins)
+                # print(cycles, pc, ins)
 
-            pc += 1
+                pc += 1
 
-            if isinstance(ins, insLabel):
-                continue
+                if isinstance(ins, insLabel):
+                    continue
 
-            try:    
-                ret_val = ins.execute(self)
+                try:    
+                    ret_val = ins.execute(self)
 
-                # if returning label to jump to
-                if isinstance(ret_val, insLabel):
-                    # jump to target
-                    pc = labels[ret_val.name]
+                    # if returning label to jump to
+                    if isinstance(ret_val, insLabel):
+                        # jump to target
+                        pc = labels[ret_val.name]
 
-            except HaltException:
-                logging.warning(f'VM halted in func {self.name} in {cycles} cycles.')
+                except HaltException:
+                    logging.warning(f'VM halted in func {self.name} in {cycles} cycles.')
 
-                self.return_stack.pop(0)
+                    self.return_stack.pop(0)
 
-                return 0
-                
-            except ReturnException:
-                logging.info(f'VM ran func {self.name} in {cycles} cycles. Returned: {self.return_val}')
+                    return 0
+                    
+                except ReturnException:
+                    logging.debug(f'VM ran func {self.name} in {cycles} cycles. Returned: {self.return_val}')
 
-                self.return_stack.pop(0)
+                    self.return_stack.pop(0)
 
-                return self.return_val
+                    return self.return_val
 
-            except InvalidReference:
-                logging.error(f'Invalid reference in func {self.name} at instruction: {ins} from line number: {ins.lineno}')
+                except InvalidReference:
+                    logging.error(f'Invalid reference in func {self.name} at instruction: {ins} from line number: {ins.lineno}')
 
-                self.return_stack.pop(0)
+                    self.return_stack.pop(0)
 
-                # return 0
-                raise
+                    # return 0
+                    raise
 
-            except AssertionError:
-                msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
-                logging.error(msg)
+                except AssertionError:
+                    msg = f'Assertion [{self.source_code[ins.lineno - 1].strip()}] failed at line {ins.lineno}'
+                    logging.error(msg)
 
-                raise AssertionError(msg)
+                    raise AssertionError(msg)
 
-            except Exception:
-                logging.error(f'Exception raised in func {self.name} at instruction: {ins} from line number: {ins.lineno}')
+                except Exception:
+                    logging.error(f'Exception raised in func {self.name} at instruction: {ins} from line number: {ins.lineno}')
 
-                raise
+                    raise
+
+        finally:
+            self.cycles = cycles
 
 
     def assemble(self):

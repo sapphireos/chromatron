@@ -4236,7 +4236,7 @@ class irFunc(IR):
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
     def analyze_blocks(self, opt_passes:OptPasses=[OptPasses.SSA]):
-        logging.debug(f'Starting block analysis with optimization level: {opt_passes}')
+        logging.debug(f'Starting block analysis with optimization passes: {opt_passes}')
 
         if not isinstance(opt_passes, Iterable):
             opt_passes = [opt_passes]
