@@ -4668,8 +4668,6 @@ class irFunc(IR):
 
                             count += 1
 
-                            logging.debug(f'LICM: Moving load const: {ir.target}')
-
                             # remove load const target from body vars, 
                             # as they are invariant by definition
                             if ir.target in info['body_vars']:
@@ -4681,8 +4679,6 @@ class irFunc(IR):
                             variant_inputs = [i for i in ir.get_input_vars() if i in info['body_vars']]
 
                             if len(variant_inputs) == 0:
-                                logging.debug(f'LICM: Moving: {ir}')
-
                                 header_code.append(ir)
                                 block_code.remove(ir)
 
@@ -4743,6 +4739,8 @@ class irFunc(IR):
 
                     # add code to loop header
                     for ir in header_code:
+                        logging.debug(f'LICM: Moving: {ir} from {ir.block.name}')
+
                         ir.block = header
                         header.code.insert(insert_index, ir)
                         insert_index += 1

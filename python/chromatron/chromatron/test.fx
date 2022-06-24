@@ -17,18 +17,18 @@ def init():
 
     assert a == 5
 
-    a = 0
-    i = 11
+    # a = 0
+    # i = 11
 
-    while i > 0:
-        i -= 1
+    # while i > 0:
+    #     i -= 1
 
-        if i == 10:
-            break
+    #     if i == 10:
+    #         break
 
-        a = 2 + 3
+    #     a = 2 + 3
 
-    assert a == 0
+    # assert a == 0
 
 
 # c = Number()
