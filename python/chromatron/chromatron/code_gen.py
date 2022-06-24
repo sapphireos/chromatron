@@ -1233,6 +1233,7 @@ OPT_LEVELS = {
     'default': OptPasses.SSA,
     'ssa': OptPasses.SSA,
     'gvn': OptPasses.GVN,
+    'loop': OptPasses.LOOP,
 }
 
 

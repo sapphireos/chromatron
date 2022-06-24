@@ -4623,7 +4623,7 @@ class irFunc(IR):
 
         logging.debug(f'Loop invariant code motion')
 
-        # return
+        count = 0
 
         changed = True
         iterations = 0
@@ -4653,6 +4653,7 @@ class irFunc(IR):
 
                         if isinstance(ir, irLabel) or \
                            ir.is_nop or \
+                           isinstance(ir, irPhi) or \
                            isinstance(ir, irControlFlow) or \
                            isinstance(ir, irLoad) or \
                            isinstance(ir, irStore):
@@ -4664,6 +4665,8 @@ class irFunc(IR):
 
                             header_code.append(ir)
                             block_code.remove(ir)
+
+                            count += 1
 
                             logging.debug(f'LICM: Moving load const: {ir.target}')
 
@@ -4682,6 +4685,8 @@ class irFunc(IR):
 
                                 header_code.append(ir)
                                 block_code.remove(ir)
+
+                                count += 1
 
                                 # remove output vars from body vars, as they are definitely now
                                 # invariant.
@@ -4741,6 +4746,8 @@ class irFunc(IR):
                         ir.block = header
                         header.code.insert(insert_index, ir)
                         insert_index += 1
+
+        logging.debug(f'LICM: Moved {count} instructions in {iterations} passes')
 
     # def propagate_copies(self):
     #     iterations = 0

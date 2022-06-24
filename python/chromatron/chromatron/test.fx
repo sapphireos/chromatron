@@ -1,9 +1,35 @@
 
-a = Number(publish=True)
-
 def init():
-    for i in 10:
-        a += 1 + 2
+    i = Number()
+    i = 4
+
+    a = Number()
+
+    while i > 0:
+        i -= 1
+
+        if i == 10:
+            break
+
+        a = 2 + 3
+
+    # a should be 5 here unless i inits to 11
+
+    assert a == 5
+
+    a = 0
+    i = 11
+
+    while i > 0:
+        i -= 1
+
+        if i == 10:
+            break
+
+        a = 2 + 3
+
+    assert a == 0
+
 
 # c = Number()
 
