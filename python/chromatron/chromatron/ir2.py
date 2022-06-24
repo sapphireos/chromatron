@@ -42,6 +42,7 @@ class OptPasses(Enum):
     NONE          = 0
     LS_SCHED      = 1
     SSA           = 2
+    LOOP          = 3
     GVN           = 4
 
 
@@ -4240,10 +4241,10 @@ class irFunc(IR):
         if not isinstance(opt_passes, Iterable):
             opt_passes = [opt_passes]
 
-        if OptPasses.SSA not in opt_passes:
-            if OptPasses.GVN in opt_passes or OptPasses.LS_SCHED in opt_passes:
+        for opt in opt_passes:
+             if opt.value > OptPasses.SSA.value and OptPasses.SSA not in opt_passes:
                 opt_passes.append(OptPasses.SSA)
-
+                break
 
 
         self.ssa_next_val = {}
@@ -4323,10 +4324,12 @@ class irFunc(IR):
             # #         self.render_graph()
 
 
-            self.loop_invariant_code_motion()
+            if OptPasses.LOOP in opt_passes:
+                self.loop_invariant_code_motion()
 
-            with open("LICM_construction.fxir", 'w') as f:
-                f.write(str(self))
+                with open("LICM_construction.fxir", 'w') as f:
+                    f.write(str(self))
+
 
 
             self.schedule_load_stores()

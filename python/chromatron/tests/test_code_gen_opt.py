@@ -95,3 +95,90 @@ def test_load_store_scheduler(opt_passes=OptPasses.LS_SCHED):
     assert regs['a'] == 2
 
 
+loop_invariant_code_motion_basic = """
+
+def init():
+    i = Number()
+    i = 4
+
+    a = Number()
+
+    while i > 0:
+        i -= 1
+
+        a = 2 + 3
+
+    assert a == 5
+
+"""
+
+loop_invariant_code_motion_ifelse = """
+
+def init():
+    i = Number()
+    i = 4
+
+    a = Number()
+
+    while i > 0:
+        i -= 1
+
+        if i == 10:
+            a = 2 + 3
+
+    assert a == 0
+
+    i = 11
+
+    while i > 0:
+        i -= 1
+
+        if i == 10:
+            a = 2 + 3
+
+
+    assert a == 5
+
+"""
+
+
+loop_invariant_code_motion_ifbreak = """
+
+def init():
+    i = Number()
+    i = 4
+
+    a = Number()
+
+    while i > 0:
+        i -= 1
+
+        if i == 10:
+            break
+
+        a = 2 + 3
+
+    # a should be 5 here unless i inits to 11
+
+    assert a == 5
+
+    a = 0
+    i = 11
+
+    while i > 0:
+        i -= 1
+
+        if i == 10:
+            break
+
+        a = 2 + 3
+
+    assert a == 0
+
+"""
+
+
+def test_loop_invariant_code_motion(opt_passes=OptPasses.LOOP):
+    run_code(loop_invariant_code_motion_basic, opt_passes=opt_passes)
+    run_code(loop_invariant_code_motion_ifelse, opt_passes=opt_passes)
+    run_code(loop_invariant_code_motion_ifbreak, opt_passes=opt_passes)

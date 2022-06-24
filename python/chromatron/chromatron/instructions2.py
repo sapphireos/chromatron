@@ -553,7 +553,11 @@ class insFunc(object):
 
         # apply args to registers
         for i in range(len(args)):
-            param = self.params[i]
+            try:
+                param = self.params[i]
+
+            except IndexError:
+                raise IndexError(f'Incorrect number of args for func: {self.name}')
 
             if param.reg is None:
                 continue
