@@ -3735,6 +3735,11 @@ class CGTestsLocal_Opt_GVN(CGTestsLocal_Opt_None):
     def run_test(self, program, expected={}, opt_passes=OptPasses.GVN):
         super().run_test(program, expected, opt_passes=opt_passes)
 
+class CGTestsLocal_Opt_LOOP(CGTestsLocal_Opt_None):
+    def run_test(self, program, expected={}, opt_passes=OptPasses.LOOP):
+        super().run_test(program, expected, opt_passes=opt_passes)
+
+
 # from fixtures import *
 
 # import chromatron

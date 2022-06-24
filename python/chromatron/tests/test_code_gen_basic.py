@@ -34,3 +34,6 @@ def test_basic_ls_sched():
 
 def test_basic_gvn():
     code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.GVN)
+
+def test_basic_loop():
+    code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.LOOP)
