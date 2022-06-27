@@ -1218,8 +1218,8 @@ def run_script(path, debug_print=False, opt_passes=OptPasses.SSA):
     pprint.pprint(ins_program.gfx_data)
     pprint.pprint(ins_program.dump_globals())
 
-    image = ins_program.assemble()
-    stream = image.render()
+    # image = ins_program.assemble()
+    # stream = image.render()
     # print(image.header)
     # print('prog len:', image.prog_len)
 
@@ -1262,12 +1262,12 @@ def main():
 
 
     try:
-        # program = run_script(path, debug_print=True, opt_passes=opt_level)
-        program = compile_script(path, debug_print=True, opt_passes=opt_level)
-        program.simulate()
+        program = run_script(path, debug_print=True, opt_passes=opt_level)
+        # program = compile_script(path, debug_print=True, opt_passes=opt_level)
+        # program.simulate()
         
-        pprint.pprint(program.gfx_data)
-        pprint.pprint(program.dump_globals())
+        # pprint.pprint(program.gfx_data)
+        # pprint.pprint(program.dump_globals())
 
         return
 

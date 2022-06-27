@@ -2389,7 +2389,7 @@ class irBlock(IR):
         
         """
 
-        return
+        # return
 
 
 
@@ -4236,7 +4236,7 @@ class irFunc(IR):
         self.dominator_tree = self.calc_dominator_tree(self.dominators)
 
     def analyze_blocks(self, opt_passes:OptPasses=[OptPasses.SSA]):
-        logging.debug(f'Starting block analysis with optimization passes: {opt_passes}')
+        logging.debug(f'Starting block analysis for func {self.name} with optimization passes: {opt_passes}')
 
         if not isinstance(opt_passes, Iterable):
             opt_passes = [opt_passes]
@@ -4257,6 +4257,12 @@ class irFunc(IR):
         
         self.init_vars()
 
+        with open("initial_construction.fxir", 'w') as f:
+                    f.write(str(self))
+
+        if OptPasses.LS_SCHED in opt_passes:
+            self.schedule_load_stores()        
+
         # self.render_dominator_tree()
         # self.render_graph()
         # if opt_level == OptPasses.NONE:
@@ -4266,9 +4272,6 @@ class irFunc(IR):
         if OptPasses.SSA in opt_passes:
 
             self.convert_to_ssa()            
-
-            # if OptPasses.LS_SCHED in opt_passes:
-                # self.schedule_load_stores()        
             
             # checks
             self.verify_block_links()
