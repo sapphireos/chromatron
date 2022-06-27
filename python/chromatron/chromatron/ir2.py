@@ -2389,6 +2389,32 @@ class irBlock(IR):
         
         """
 
+        
+        """
+    
+        More thoughts:
+
+        We can do this on SSA form, which is better overall:
+
+        Analysis: record loaded globals and their register available in each block.
+
+        Loads can be fused by replacing with an assign.  GVN will handle the rest.
+
+        Then scan for stores.  Replace inputs with the singlular loaded register for that region.
+        Redundant stores can then be removed.
+
+        Fences: a global should be fenced (flushed and then reloaded) on function calls 
+        (and analyze the call chains for usage, only flush used globals).  Also fence on direct
+        memory ops such as vector ops.
+
+
+        Let's get that right before we try any hoisting, which is less useful anyway.
+    
+
+        """
+
+
+
         # return
 
 
