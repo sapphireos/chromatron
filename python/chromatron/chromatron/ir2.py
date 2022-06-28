@@ -2339,7 +2339,7 @@ class irBlock(IR):
 
     #     self.code = new_code
 
-    def schedule_load_stores(self, visited=None, loads=None):
+    def schedule_load_stores(self, visited=None, loads=None, stores=None):
 
         """
         Split basic blocks on call sites.  This can be done
@@ -2400,7 +2400,7 @@ class irBlock(IR):
 
         Loads can be fused by replacing with an assign.  GVN will handle the rest.
 
-        Then scan for stores.  Replace inputs with the singlular loaded register for that region.
+        Then scan for stores.  Replace inputs with the singular loaded register for that region.
         Redundant stores can then be removed.  Could accomplish scanning backwards?  Look for 
         successive stores that don't have loads in between?
 
@@ -2425,6 +2425,7 @@ class irBlock(IR):
 
             visited = []
             loads = {}
+            stores = {}
             
         if self in visited:
             return False
@@ -2441,13 +2442,15 @@ class irBlock(IR):
         new_code = []
 
         for ir in self.code:
-            if isinstance(ir, irLoad):
+            if isinstance(ir, irLoad) or isinstance(ir, irStore):
                 if isinstance(ir, varOffset):
                     target = ir.ref.target.name
 
                 else:
                     target = ir.ref.name
 
+
+            if isinstance(ir, irLoad):
                 if target not in loads:
                     loads[target] = ir.register
 
@@ -2458,9 +2461,32 @@ class irBlock(IR):
                     ir = irAssign(ir.register, loads[target], lineno=ir.lineno)
                     ir.block = self
 
+            elif isinstance(ir, irStore):
+                # replace with stored register
+                if target in loads:
+                    loads[target] = ir.register
+
+                # if target not in stores:
+                stores[target] = ir
+
+                continue
+
+                # else:
+
+            elif isinstance(ir, irReturn):
+                for store in stores.values():
+                    new_code.append(store)
+                    store.block = self
+
+                    logging.debug(f'Moving store: {store}')
+
+            #     if target in loads:
+            #         if ir.register != loads[target]:
+            #             logging.debug(f'Replace store: {ir}')
+            #             ir.register = loads[target]
+
 
             new_code.append(ir)
-
 
         self.code = new_code
 
@@ -2470,7 +2496,7 @@ class irBlock(IR):
 
 
         for s in self.successors:
-            s.schedule_load_stores(visited, copy(loads))
+            s.schedule_load_stores(visited, copy(loads), copy(stores))
 
 
 
