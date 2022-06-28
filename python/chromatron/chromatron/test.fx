@@ -24,9 +24,18 @@ direction = Number()
 
 # def loop():
 def init():
+    # while delay > 0:
+        # delay -= 1
+    
+    delay += 2
+
     if delay > 0:
         delay -= 1
         return
+
+    delay += 10
+
+
 
     # pixels[cursor].val = 1.0
     # pixels[cursor].hue = current_hue

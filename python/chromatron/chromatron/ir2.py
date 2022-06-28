@@ -40,8 +40,8 @@ PIXEL_ARRAY_FIELDS = {
 
 class OptPasses(Enum):
     NONE          = 0
-    LS_SCHED      = 1
-    SSA           = 2
+    SSA           = 1
+    LS_SCHED      = 2
     LOOP          = 3
     GVN           = 4
 
@@ -2339,7 +2339,7 @@ class irBlock(IR):
 
     #     self.code = new_code
 
-    def schedule_load_stores(self, visited=None):
+    def schedule_load_stores(self, visited=None, loads=None):
 
         """
         Split basic blocks on call sites.  This can be done
@@ -2401,7 +2401,8 @@ class irBlock(IR):
         Loads can be fused by replacing with an assign.  GVN will handle the rest.
 
         Then scan for stores.  Replace inputs with the singlular loaded register for that region.
-        Redundant stores can then be removed.
+        Redundant stores can then be removed.  Could accomplish scanning backwards?  Look for 
+        successive stores that don't have loads in between?
 
         Fences: a global should be fenced (flushed and then reloaded) on function calls 
         (and analyze the call chains for usage, only flush used globals).  Also fence on direct
@@ -2423,17 +2424,59 @@ class irBlock(IR):
             logging.debug(f'Load/store scheduling')
 
             visited = []
+            loads = {}
             
         if self in visited:
-            return
+            return False
 
         for p in self.predecessors:
             if p not in visited:
-                return
+                return False
 
         visited.append(self)
 
         logging.debug(f'Load/store scheduling for: {self.name}')
+
+
+        new_code = []
+
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                if isinstance(ir, varOffset):
+                    target = ir.ref.target.name
+
+                else:
+                    target = ir.ref.name
+
+                if target not in loads:
+                    loads[target] = ir.register
+
+                else:
+
+                    logging.debug(f'Removing load: {ir}')
+
+                    ir = irAssign(ir.register, loads[target], lineno=ir.lineno)
+                    ir.block = self
+
+
+            new_code.append(ir)
+
+
+        self.code = new_code
+
+
+
+        # print(self.name, loads)
+
+
+        for s in self.successors:
+            s.schedule_load_stores(visited, copy(loads))
+
+
+
+        return True
+
+
 
 
         values = {}
@@ -4286,9 +4329,6 @@ class irFunc(IR):
         with open("initial_construction.fxir", 'w') as f:
                     f.write(str(self))
 
-        if OptPasses.LS_SCHED in opt_passes:
-            self.schedule_load_stores()        
-
         # self.render_dominator_tree()
         # self.render_graph()
         # if opt_level == OptPasses.NONE:
@@ -4308,6 +4348,11 @@ class irFunc(IR):
             
             with open("SSA_construction.fxir", 'w') as f:
                     f.write(str(self))
+
+
+            if OptPasses.LS_SCHED in opt_passes:
+                self.schedule_load_stores()        
+                
 
             if OptPasses.GVN in opt_passes:
 
