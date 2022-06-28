@@ -2430,9 +2430,9 @@ class irBlock(IR):
         if self in visited:
             return False
 
-        for p in self.predecessors:
-            if p not in visited:
-                return False
+        # for p in self.predecessors:
+        #     if p not in visited:
+        #         return False
 
         visited.append(self)
 
@@ -4365,8 +4365,8 @@ class irFunc(IR):
         # self.render_dominator_tree()
         # self.render_graph()
         # if opt_level == OptPasses.NONE:
-        #     if self.name == 'init':
-        #         self.render_graph()
+        # if self.name == 'init':
+            # self.render_graph()
 
         if OptPasses.SSA in opt_passes:
 
