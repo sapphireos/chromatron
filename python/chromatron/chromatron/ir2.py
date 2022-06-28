@@ -4438,8 +4438,8 @@ class irFunc(IR):
                     f.write(str(self))
 
 
-
-            self.schedule_load_stores()
+            if OptPasses.LS_SCHED in opt_passes:
+                self.schedule_load_stores()
 
             # convert out of SSA form
             self.resolve_phi()

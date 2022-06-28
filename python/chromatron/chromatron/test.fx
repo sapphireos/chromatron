@@ -24,18 +24,24 @@ direction = Number()
 
 # def loop():
 def init():
-    # while delay > 0:
-        # delay -= 1
+    while delay > 0:
+        delay -= 1
     
-    delay += 2
+    # delay += 2
 
-    fence()
+    # # a = Number()
+    # # a = cursor
+    # # cursor += 1
+
+    # # fence(cursor)
 
     # if delay > 0:
     #     delay -= 1
     #     return
 
-    delay += 10
+    # cursor += 1
+
+    # delay += 10
 
 
 
