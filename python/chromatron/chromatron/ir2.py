@@ -2466,12 +2466,9 @@ class irBlock(IR):
                 if target in loads:
                     loads[target] = ir.register
 
-                # if target not in stores:
                 stores[target] = ir
 
                 continue
-
-                # else:
 
             elif isinstance(ir, irReturn):
                 for store in stores.values():
@@ -2480,10 +2477,20 @@ class irBlock(IR):
 
                     logging.debug(f'Moving store: {store}')
 
-            #     if target in loads:
-            #         if ir.register != loads[target]:
-            #             logging.debug(f'Replace store: {ir}')
-            #             ir.register = loads[target]
+
+            elif isinstance(ir, irCallType):
+                for store in stores.values():
+                    new_code.append(store)
+                    store.block = self
+
+                    logging.debug(f'Flush store: {store}')
+
+                stores = {}
+                loads = {}
+
+            # elif isinstance(ir, irLoadRetVal):
+                # for load in loads.values():
+                    # print(load)
 
 
             new_code.append(ir)
@@ -4378,7 +4385,7 @@ class irFunc(IR):
 
             if OptPasses.LS_SCHED in opt_passes:
                 self.schedule_load_stores()        
-                
+
 
             if OptPasses.GVN in opt_passes:
 
@@ -4451,7 +4458,7 @@ class irFunc(IR):
 
 
         # basic block merging (helps with jump elimination)
-        self.merge_basic_blocks()
+        # self.merge_basic_blocks()
 
         self.remove_dead_code()
 

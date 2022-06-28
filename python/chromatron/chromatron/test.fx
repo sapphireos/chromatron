@@ -29,9 +29,11 @@ def init():
     
     delay += 2
 
-    if delay > 0:
-        delay -= 1
-        return
+    fence()
+
+    # if delay > 0:
+    #     delay -= 1
+    #     return
 
     delay += 10
 
