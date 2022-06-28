@@ -2458,13 +2458,13 @@ class irBlock(IR):
 
                     logging.debug(f'Removing load: {ir}')
 
-                    ir = irAssign(ir.register, loads[target], lineno=ir.lineno)
+                    ir = irAssign(ir.register.copy(), loads[target].copy(), lineno=ir.lineno)
                     ir.block = self
 
             elif isinstance(ir, irStore):
                 # replace with stored register
                 if target in loads:
-                    loads[target] = ir.register
+                    loads[target] = ir.register.copy()
 
                 stores[target] = ir
 
@@ -4360,13 +4360,19 @@ class irFunc(IR):
         self.init_vars()
 
         with open("initial_construction.fxir", 'w') as f:
-                    f.write(str(self))
+            f.write(str(self))
 
         # self.render_dominator_tree()
         # self.render_graph()
         # if opt_level == OptPasses.NONE:
         # if self.name == 'init':
             # self.render_graph()
+
+        # if OptPasses.LS_SCHED in opt_passes:
+        #     self.schedule_load_stores()        
+            
+        #     with open("ls_sched_construction.fxir", 'w') as f:
+        #         f.write(str(self))
 
         if OptPasses.SSA in opt_passes:
 
@@ -4380,11 +4386,15 @@ class irFunc(IR):
 
             
             with open("SSA_construction.fxir", 'w') as f:
-                    f.write(str(self))
+                f.write(str(self))
 
 
             if OptPasses.LS_SCHED in opt_passes:
                 self.schedule_load_stores()        
+            
+                with open("ls_sched_construction.fxir", 'w') as f:
+                    f.write(str(self))
+
 
 
             if OptPasses.GVN in opt_passes:
@@ -4438,11 +4448,11 @@ class irFunc(IR):
                     f.write(str(self))
 
 
-            if OptPasses.LS_SCHED in opt_passes:
-                self.schedule_load_stores()
+            # if OptPasses.LS_SCHED in opt_passes:
+            #     self.schedule_load_stores()
 
             # convert out of SSA form
-            self.resolve_phi()
+            # self.resolve_phi()
             
 
         # blocks may have been rearranged or added at this point
