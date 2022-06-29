@@ -21,56 +21,85 @@ direction = Number()
     # cursor = rand()
     # target = rand()
 
-
-# def loop():
 def init():
-    a = Number()
-    delay += 2
-
-    while delay > 0:
+    if delay > 0:
         delay -= 1
+        return
 
-        a += 1
+    pixels[cursor].val = 1.0
+    pixels[cursor].hue = current_hue
 
-    return a
+    if direction == 0:
+        cursor += 1
+    else:
+        cursor -= 1
+
+    if cursor < 0:
+        cursor = pixels.count - 1
+
+    if (cursor % pixels.count) == (target % pixels.count):
+        cursor = rand(0, pixels.count)
+        direction = rand(0, 2)
+        # target = cursor
+        target = rand()
+        current_hue = rand()
+
+        delay = rand(0, 10)
+
+
+
+
+
+
+# # def loop():
+# def init():
+#     a = Number()
+#     delay += 2
+
+#     while delay > 0:
+#         delay -= 1
+
+#         a += 1
+
+#     return a
     
-    # delay += 2
+#     # delay += 2
 
-    # # a = Number()
-    # # a = cursor
-    # # cursor += 1
+#     # # a = Number()
+#     # # a = cursor
+#     # # cursor += 1
 
-    # # fence(cursor)
+#     # # fence(cursor)
 
-    # if delay > 0:
-    #     delay -= 1
-    #     return
+#     # if delay > 0:
+#     #     delay -= 1
+#     #     return
 
-    # cursor += 1
+#     # cursor += 1
 
-    # delay += 10
+#     # delay += 10
 
 
 
-    # pixels[cursor].val = 1.0
-    # pixels[cursor].hue = current_hue
+#     # pixels[cursor].val = 1.0
+#     # pixels[cursor].hue = current_hue
 
-    # if direction == 0:
-    #     cursor += 1
-    # else:
-    #     cursor -= 1
+#     # if direction == 0:
+#     #     cursor += 1
+#     # else:
+#     #     cursor -= 1
 
-    # if cursor < 0:
-    #     cursor = pixels.count - 1
+#     # if cursor < 0:
+#     #     cursor = pixels.count - 1
 
-    # if (cursor % pixels.count) == (target % pixels.count):
-    #     cursor = rand(0, pixels.count)
-    #     direction = rand(0, 2)
-    #     # target = cursor
-    #     target = rand()
-    #     current_hue = rand()
+#     # if (cursor % pixels.count) == (target % pixels.count):
+#     #     cursor = rand(0, pixels.count)
+#     #     direction = rand(0, 2)
+#     #     # target = cursor
+#     #     target = rand()
+#     #     current_hue = rand()
 
-    #     delay = rand(0, 10)
+#     #     delay = rand(0, 10)
 
 
 

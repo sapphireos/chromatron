@@ -2438,6 +2438,8 @@ class irBlock(IR):
 
         logging.debug(f'Load/store scheduling for: {self.name}')
 
+        #self.recalc_defines()
+
         new_code = []
 
         for ir in self.code:
@@ -2458,15 +2460,26 @@ class irBlock(IR):
                     logging.debug(f'Removing load: {ir}')
 
                     values = []
+                    
                     for p in self.predecessors:
-                        pv = p.ssa_lookup_var(ir.register)
-                        print(p.name, pv)
+                        try:
+                            pv = p.ssa_lookup_var(ir.register)
+                            print(p.name, pv)
 
-                        v = VarContainer(pv)
+                            v = VarContainer(pv)
 
-                        values.append((v, p))
+                            values.append((v, p))
+
+                        except KeyError:
+                            pass
 
                     print(ir.register)
+
+                    if len(values) == 0:
+                        pv = self.ssa_lookup_var(ir.register)
+                        v = VarContainer(pv)
+                        values.append((v, self))
+
 
 
                     # v = self.ssa_lookup_var(ir.register, skip_local=False)
@@ -4448,10 +4461,11 @@ class irFunc(IR):
             self.verify_ssa()
             self.verify_variables()
 
+            self.recalc_defines()
+
             
             with open("SSA_construction.fxir", 'w') as f:
                 f.write(str(self))
-
 
             if OptPasses.LS_SCHED in opt_passes:
                 self.schedule_load_stores()        
