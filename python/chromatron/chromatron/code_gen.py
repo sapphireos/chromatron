@@ -1246,23 +1246,19 @@ def main():
     logging.info(f'Compiling: {script_name}')
 
     try:
-        opt_level = sys.argv[2]
+        opt_levels = sys.argv[2:]
 
     except IndexError:
-        opt_level = 'ssa'
+        opt_levels = ['default']
 
-    try:
-        opt_level = OPT_LEVELS[opt_level]
-
-    except KeyError:
-        opt_level = OPT_LEVELS['default']
+    opt_passes = [OPT_LEVELS[o] for o in opt_levels]
 
 
-    logging.info(f'Optimization level: {opt_level}')
+    logging.info(f'Optimization passes: {opt_passes}')
 
 
     try:
-        program = run_script(path, debug_print=True, opt_passes=opt_level)
+        program = run_script(path, debug_print=True, opt_passes=opt_passes)
         # program = compile_script(path, debug_print=True, opt_passes=opt_level)
         # program.simulate()
         
