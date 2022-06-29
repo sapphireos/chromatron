@@ -24,6 +24,8 @@ direction = Number()
 
 # def loop():
 def init():
+    delay = 2
+
     while delay > 0:
         delay -= 1
     

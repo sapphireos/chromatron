@@ -2458,6 +2458,11 @@ class irBlock(IR):
 
                     logging.debug(f'Removing load: {ir}')
 
+                    # v = self.ssa_lookup_var(ir.register, skip_local=False)
+                    # register = VarContainer(v)
+                    # print(register)
+                    # ir = irAssign(register, loads[target].copy(), lineno=ir.lineno)
+                    
                     ir = irAssign(ir.register.copy(), loads[target].copy(), lineno=ir.lineno)
                     ir.block = self
 
@@ -2472,10 +2477,17 @@ class irBlock(IR):
 
             elif isinstance(ir, irReturn):
                 for store in stores.values():
+
+                    # perform SSA merge for this store
+                    v = self.ssa_lookup_var(store.register, skip_local=False)
+                    store.register = VarContainer(v)
+
                     new_code.append(store)
                     store.block = self
 
                     logging.debug(f'Moving store: {store}')
+
+
 
 
             elif isinstance(ir, irCallType):
@@ -2497,6 +2509,8 @@ class irBlock(IR):
 
         self.code = new_code
 
+        self.apply_temp_phis()
+        self.clean_up_phis()
 
 
         # print(self.name, loads)
@@ -2512,70 +2526,70 @@ class irBlock(IR):
 
 
 
-        values = {}
-        stores = {}
-        remove = []
+        # values = {}
+        # stores = {}
+        # remove = []
 
-        new_code = []
-        for ir in self.code:
-            if isinstance(ir, irLoad):
-                if isinstance(ir, varOffset):
-                    target = ir.ref.target.name
+        # new_code = []
+        # for ir in self.code:
+        #     if isinstance(ir, irLoad):
+        #         if isinstance(ir, varOffset):
+        #             target = ir.ref.target.name
 
-                else:
-                    target = ir.ref.name
+        #         else:
+        #             target = ir.ref.name
 
-                if target not in values:
-                    values[target] = ir.register
+        #         if target not in values:
+        #             values[target] = ir.register
 
-                elif values[target] is not None:
-                    logging.debug(f'Remove redundant load: {ir}')
+        #         elif values[target] is not None:
+        #             logging.debug(f'Remove redundant load: {ir}')
 
-                    ir = irAssign(ir.register, values[target], lineno=ir.lineno)
-                    ir.block = self
+        #             ir = irAssign(ir.register, values[target], lineno=ir.lineno)
+        #             ir.block = self
 
                     
-            elif isinstance(ir, irStore):
-                if isinstance(ir, varOffset):
-                    target = ir.ref.target.name
+        #     elif isinstance(ir, irStore):
+        #         if isinstance(ir, varOffset):
+        #             target = ir.ref.target.name
 
-                else:
-                    target = ir.ref.name
+        #         else:
+        #             target = ir.ref.name
 
-                if target in values and target in stores:
-                    if stores[target] not in remove:
-                        remove.append(stores[target])
+        #         if target in values and target in stores:
+        #             if stores[target] not in remove:
+        #                 remove.append(stores[target])
 
-                        logging.debug(f'Remove redundant store: {stores[target]}')
+        #                 logging.debug(f'Remove redundant store: {stores[target]}')
 
-                values[target] = ir.register
-                stores[target] = ir
+        #         values[target] = ir.register
+        #         stores[target] = ir
 
-            elif isinstance(ir, irVectorOp) or isinstance(ir, irVectorAssign):
-                target = ir.target.target.name
-                # if isinstance(ir, varOffset):
-                #     target = ir.target.target.name
+        #     elif isinstance(ir, irVectorOp) or isinstance(ir, irVectorAssign):
+        #         target = ir.target.target.name
+        #         # if isinstance(ir, varOffset):
+        #         #     target = ir.target.target.name
 
-                # else:
-                #     target = ir.target.name
+        #         # else:
+        #         #     target = ir.target.name
 
-                if target in values:
-                    del values[target]
+        #         if target in values:
+        #             del values[target]
 
-                if target in stores:
-                    del stores[target]
-
-
-            new_code.append(ir)
-
-        self.code = [ir for ir in new_code if ir not in remove]
+        #         if target in stores:
+        #             del stores[target]
 
 
-        for s in self.successors:
-            s.schedule_load_stores(visited)
+        #     new_code.append(ir)
+
+        # self.code = [ir for ir in new_code if ir not in remove]
 
 
-        return
+        # for s in self.successors:
+        #     s.schedule_load_stores(visited)
+
+
+        # return
 
 
 
@@ -4452,7 +4466,7 @@ class irFunc(IR):
             #     self.schedule_load_stores()
 
             # convert out of SSA form
-            # self.resolve_phi()
+            self.resolve_phi()
             
 
         # blocks may have been rearranged or added at this point
@@ -4468,7 +4482,7 @@ class irFunc(IR):
 
 
         # basic block merging (helps with jump elimination)
-        # self.merge_basic_blocks()
+        self.merge_basic_blocks()
 
         self.remove_dead_code()
 
