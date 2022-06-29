@@ -1806,11 +1806,7 @@ class insCall(BaseInstruction):
         return "%s %s (%s)" % (self.mnemonic, self.target.func, params)
 
     def execute(self, vm):
-        target = None
-        for f in vm.funcs:
-            if f.name == self.target.func:
-                target = f
-                break
+        target = vm.funcs[self.target.func]
 
         params = [vm.registers[p.reg] for p in self.params]
 
