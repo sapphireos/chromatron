@@ -2458,13 +2458,49 @@ class irBlock(IR):
 
                     logging.debug(f'Removing load: {ir}')
 
+                    values = []
+                    for p in self.predecessors:
+                        pv = p.ssa_lookup_var(ir.register)
+                        print(p.name, pv)
+
+                        v = VarContainer(pv)
+
+                        values.append((v, p))
+
+                    print(ir.register)
+
+
                     # v = self.ssa_lookup_var(ir.register, skip_local=False)
                     # register = VarContainer(v)
                     # print(register)
-                    # ir = irAssign(register, loads[target].copy(), lineno=ir.lineno)
-                    
+
+                    # if register == ir.register:
                     ir = irAssign(ir.register.copy(), loads[target].copy(), lineno=ir.lineno)
-                    ir.block = self
+                    ir.block = self    
+
+                    print(ir)                   
+
+                    # else:
+                        # pass
+
+                        # reg1 = loads[target].copy()
+                        # values = [
+                        #     (reg1, reg1.block),
+                        #     (register, register.block)
+                        # ]
+
+                        # phi = irPhi(ir.register.copy(), values, lineno=ir.lineno)
+                        # phi.block = self
+
+                        # print(phi)
+
+
+                    # ir = irAssign(register, loads[target].copy(), lineno=ir.lineno)
+
+                    # ir = irAssign(ir.register.copy(), loads[target].copy(), lineno=ir.lineno)
+                    # ir.block = self
+
+                    # continue
 
             elif isinstance(ir, irStore):
                 # replace with stored register
@@ -2477,6 +2513,7 @@ class irBlock(IR):
 
             elif isinstance(ir, irReturn):
                 for store in stores.values():
+                    store = copy(store)
 
                     # perform SSA merge for this store
                     v = self.ssa_lookup_var(store.register, skip_local=False)
@@ -2492,6 +2529,8 @@ class irBlock(IR):
 
             elif isinstance(ir, irCallType):
                 for store in stores.values():
+                    store = copy(store)
+
                     new_code.append(store)
                     store.block = self
 
