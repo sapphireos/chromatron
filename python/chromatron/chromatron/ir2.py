@@ -2474,9 +2474,21 @@ class irBlock(IR):
                     # register = VarContainer(v)
                     # print(register)
 
+                    assert len(values) > 0
+
                     # if register == ir.register:
-                    ir = irAssign(ir.register.copy(), loads[target].copy(), lineno=ir.lineno)
-                    ir.block = self    
+                    if len(values) == 1:
+                        ir = irAssign(ir.register.copy(), loads[target].copy(), lineno=ir.lineno)
+                        ir.block = self    
+
+                    else:
+                        phi = irPhi(ir.register.copy(), values, lineno=ir.lineno)
+                        phi.block = self
+
+                        # print(phi)
+
+                        ir = phi
+
 
                     print(ir)                   
 
