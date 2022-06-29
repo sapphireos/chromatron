@@ -24,10 +24,15 @@ direction = Number()
 
 # def loop():
 def init():
+    a = Number()
     delay = 2
 
     while delay > 0:
         delay -= 1
+
+        a += 1
+
+    return a
     
     # delay += 2
 

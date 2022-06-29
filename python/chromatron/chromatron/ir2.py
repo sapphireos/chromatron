@@ -2438,7 +2438,6 @@ class irBlock(IR):
 
         logging.debug(f'Load/store scheduling for: {self.name}')
 
-
         new_code = []
 
         for ir in self.code:
