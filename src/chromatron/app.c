@@ -51,7 +51,9 @@ void app_v_init( void ){
 
     vm_v_init();
 
+    #ifdef ENABLE_BATTERY
     batt_v_init();
+    #endif
 
     #ifdef ESP32
 

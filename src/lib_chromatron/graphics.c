@@ -103,11 +103,13 @@ bool gfx_b_pixels_enabled( void ){
         return FALSE;
     }
 
+    #ifdef ENABLE_BATTERY
     // battery manager indicates power is off
     if( !batt_b_pixels_enabled() ){
 
         return FALSE;
     }
+    #endif
 
     // there are no pixels
     if( gfx_u16_get_pix_count() == 0 ){

@@ -94,3 +94,7 @@ void pwm_v_write( uint8_t channel, uint16_t value ){
 
     END_ATOMIC;
 }
+
+void pwm_v_init_channel( uint8_t channel, uint16_t freq ){
+
+}
