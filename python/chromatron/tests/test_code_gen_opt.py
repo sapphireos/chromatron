@@ -69,7 +69,17 @@ def init():
 
 """
 
-@pytest.mark.skip
+load_store_5 = """
+a = Number()
+
+def init():
+    if 1:
+        a = 2
+
+"""
+
+
+# @pytest.mark.skip
 def test_load_store_scheduler(opt_passes=OptPasses.LS_SCHED):
     regs = run_code(load_store_1, 0, opt_passes=opt_passes)
     assert regs['a'] == 2
@@ -92,6 +102,9 @@ def test_load_store_scheduler(opt_passes=OptPasses.LS_SCHED):
     assert regs['b'] == 0
 
     regs = run_code(load_store_4, opt_passes=opt_passes)
+    assert regs['a'] == 2
+
+    regs = run_code(load_store_5, opt_passes=opt_passes)
     assert regs['a'] == 2
 
 

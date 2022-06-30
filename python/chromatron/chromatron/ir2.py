@@ -2339,7 +2339,17 @@ class irBlock(IR):
 
     #     self.code = new_code
 
-    def schedule_load_stores(self, visited=None, loads=None, stores=None):
+    # def schedule_load_stores(self, visited=None, loads=None, stores=None):
+    def schedule_load_stores(self):
+
+        
+
+
+        return
+
+
+
+
 
         """
         Split basic blocks on call sites.  This can be done
@@ -2437,6 +2447,46 @@ class irBlock(IR):
         visited.append(self)
 
         logging.debug(f'Load/store scheduling for: {self.name}')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        return
+
+
+
+
+
+
+
+
+
+
 
         #self.recalc_defines()
 
@@ -3436,6 +3486,29 @@ class irFunc(IR):
     def blocks(self):
         return {b.name: b for b in self.leader_block.get_blocks()}
 
+    @property    
+    def postorder(self):
+        visited = []
+        order = []
+
+        def walk(block):
+            if block not in visited:
+                visited.append(block)
+
+            for s in block.successors:
+                if s not in visited:
+                    walk(s)
+
+            order.append(block)
+
+        walk(self.leader_block)
+
+        return order
+
+    @property    
+    def reverse_postorder(self):
+        return list(reversed(self.postorder))
+
     @property
     def locals(self):
         return [l for l in self.symbol_table.symbols.values() if not isinstance(l, VarContainer)]
@@ -4408,7 +4481,13 @@ class irFunc(IR):
         return self.leader_block.gvn_analyze(*args, **kwargs)
     
     def schedule_load_stores(self, *args, **kwargs):
-        return self.leader_block.schedule_load_stores(*args, **kwargs)
+        logging.debug(f'Load/store scheduling')
+
+        for block in self.reverse_postorder:
+            logging.debug(f'Load/store scheduling for: {block.name}')
+        
+
+        # return self.leader_block.schedule_load_stores(*args, **kwargs)
     
     def recalc_dominators(self):
         self.dominators = self.calc_dominance()

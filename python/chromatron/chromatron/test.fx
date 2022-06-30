@@ -1,52 +1,44 @@
 
-current_hue = Fixed16()
-delay = Number()
-cursor = Number()
-# cursor2 = Number()
-target = Number()
-direction = Number()
+# current_hue = Fixed16()
+# delay = Number()
+# cursor = Number()
+# target = Number()
+# direction = Number()
 
 # def init():
-    # pixels.val = 1.0
-    # pixels.sat = 1.0
+#     if delay > 0:
+#         delay -= 1
+#         return
 
-    # pixels.hue = rand()
+#     pixels[cursor].val = 1.0
+#     pixels[cursor].hue = current_hue
 
-    # pixels.hs_fade = 600
+#     if direction == 0:
+#         cursor += 1
+#     else:
+#         cursor -= 1
 
-    # db.gfx_frame_rate = 70
+#     if cursor < 0:
+#         cursor = pixels.count - 1
 
-    # current_hue = rand()
+#     if (cursor % pixels.count) == (target % pixels.count):
+#         cursor = rand(0, pixels.count)
+#         direction = rand(0, 2)
+#         # target = cursor
+#         target = rand()
+#         current_hue = rand()
 
-    # cursor = rand()
-    # target = rand()
+#         delay = rand(0, 10)
+
+
+a = Number()
 
 def init():
-    if delay > 0:
-        delay -= 1
-        return
+    # if 1:
+        # a = 2
 
-    pixels[cursor].val = 1.0
-    pixels[cursor].hue = current_hue
-
-    if direction == 0:
-        cursor += 1
-    else:
-        cursor -= 1
-
-    if cursor < 0:
-        cursor = pixels.count - 1
-
-    if (cursor % pixels.count) == (target % pixels.count):
-        cursor = rand(0, pixels.count)
-        direction = rand(0, 2)
-        # target = cursor
-        target = rand()
-        current_hue = rand()
-
-        delay = rand(0, 10)
-
-
+    while a > 0:
+        a -= 1
 
 
 
