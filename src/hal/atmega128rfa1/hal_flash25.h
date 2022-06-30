@@ -20,47 +20,28 @@
 // 
 // </license>
 
-#include "sapphire.h"
+#ifndef _HAL_FLASH25_H
+#define _HAL_FLASH25_H
 
-#include "config.h"
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+// #define FLASH_CS_DDR PORTD.DIR
+// #define FLASH_CS_PORT PORTD.OUT
+// #define FLASH_CS_PIN 0
 
-#include "veml7700.h"
+// #define CHIP_ENABLE() FLASH_CS_PORT &= ~( 1 << FLASH_CS_PIN )
+// #define CHIP_DISABLE() FLASH_CS_PORT |= ( 1 << FLASH_CS_PIN )
 
-#ifdef ESP32
-#include "telemetry.h"
+#define CHIP_ENABLE()
+#define CHIP_DISABLE()
+
+#define WRITE_PROTECT()
+#define WRITE_UNPROTECT()
+
+
+// #define AAI_STATUS() ( SPI_MISO_PORT.IN & ( 1 << SPI_MISO_PIN ) )
+
+
+void hal_flash25_v_init( void );
+
+
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

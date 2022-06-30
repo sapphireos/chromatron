@@ -20,47 +20,15 @@
 // 
 // </license>
 
-#include "sapphire.h"
+#ifndef _HAL_EEPROM_H
+#define _HAL_EEPROM_H
 
-#include "config.h"
+#include "system.h"
+#include "target.h"
+#include "eeprom.h"
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+// ???? FIX ME!
+#define EE_ARRAY_SIZE 1024 // size of eeprom storage area in bytes
 
-#include "veml7700.h"
 
-#ifdef ESP32
-#include "telemetry.h"
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

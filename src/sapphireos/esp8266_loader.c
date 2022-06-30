@@ -22,7 +22,7 @@
 
 #include "system.h"
 
-#if !defined(ESP8266) && !defined(ESP32)
+#ifdef ENABLE_ESP8266_LOADER
 
 #include "fs.h"
 #include "timers.h"

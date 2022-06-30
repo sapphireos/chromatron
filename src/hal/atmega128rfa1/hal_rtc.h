@@ -20,47 +20,18 @@
 // 
 // </license>
 
-#include "sapphire.h"
+#if 0
 
-#include "config.h"
+#ifndef _HAL_RTC_H
+#define _HAL_RTC_H
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+void hal_rtc_v_init( void );
+uint16_t hal_rtc_u16_get_period( void );
+void hal_rtc_v_set_period( uint16_t period );
+uint16_t hal_rtc_u16_get_time( void );
 
-#include "veml7700.h"
+void hal_rtc_v_irq( void ) __attribute__((weak));
 
-#ifdef ESP32
-#include "telemetry.h"
 #endif
 
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
 #endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

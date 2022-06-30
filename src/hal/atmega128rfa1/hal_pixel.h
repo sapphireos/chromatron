@@ -20,47 +20,21 @@
 // 
 // </license>
 
-#include "sapphire.h"
+#ifndef _HAL_PIXEL_H
+#define _HAL_PIXEL_H
 
-#include "config.h"
+#define MAX_BYTES_PER_PIXEL 16
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+#define HEADER_LENGTH       2
+#define TRAILER_LENGTH      32
+#define ZERO_PADDING (N_PIXEL_OUTPUTS * (TRAILER_LENGTH + HEADER_LENGTH))
 
-#include "veml7700.h"
+#define PIXEL_BUF_SIZE (MAX_PIXELS * MAX_BYTES_PER_PIXEL + ZERO_PADDING)
 
-#ifdef ESP32
-#include "telemetry.h"
+void hal_pixel_v_init( void );
+void hal_pixel_v_configure( void );
+
+void hal_pixel_v_transfer_complete_callback( uint8_t driver ) __attribute__((weak));
+void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len );
+
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

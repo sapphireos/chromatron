@@ -20,47 +20,10 @@
 // 
 // </license>
 
-#include "sapphire.h"
+#ifndef _BOOT_SERIAL_H
+#define _BOOT_SERIAL_H
 
-#include "config.h"
+#define SERIAL_TIMEOUT_COUNT        7150000 // about an 8 second delay at 16 MHz
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
-
-#include "veml7700.h"
-
-#ifdef ESP32
-#include "telemetry.h"
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
 

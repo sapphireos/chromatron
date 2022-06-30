@@ -1,3 +1,4 @@
+/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -19,48 +20,42 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+ */
+ 
+#include "cpu.h"
+#include "system.h"
 
-#include "sapphire.h"
-
-#include "config.h"
-
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
-
-#include "veml7700.h"
-
-#ifdef ESP32
-#include "telemetry.h"
-#endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
+#include "boot_serial.h"
 
 
-void app_v_init( void ){
+static bool timeout_enable;
+static bool timeout;
 
-    gfx_v_init();
 
-    vm_v_init();
+void boot_serial_v_init_serial( bool _timeout_enable ){
 
-    batt_v_init();
+    timeout_enable = _timeout_enable;
+    timeout = FALSE;
+    
+}
 
-    #ifdef ESP32
+bool boot_serial_b_timed_out( void ){
 
-    pwm_v_init();
+    return timeout;
+}
 
-    veml7700_v_init();
+uint8_t boot_serial_u8_receive_char( void ){
+    
+    if( timeout ){
+        
+        return 0;
+    }
 
-    telemetry_v_init();
+    return 0;
+}
 
-    #endif
+void boot_serial_v_send_char( uint8_t c ){
+    
+
 }
 

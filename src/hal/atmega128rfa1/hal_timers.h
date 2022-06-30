@@ -20,47 +20,29 @@
 // 
 // </license>
 
-#include "sapphire.h"
+#ifndef _HAL_TIMERS_H
+#define _HAL_TIMERS_H
 
-#include "config.h"
+/*
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+Available timers on the Xmega128A4U:
 
-#include "veml7700.h"
+16 bit type 0/1
 
-#ifdef ESP32
-#include "telemetry.h"
+TCC0 - PWM system
+TCC1 - System timer
+TCD0 - Graphics timer
+TCD1 - Wifi timer
+TCE0 - Reserved for application use
+
+
+
+*/
+
+
+#define TIMER_TICKS_TO_MICROSECONDS(a) ( (uint64_t)a * 2 )
+#define MICROSECONDS_TO_TIMER_TICKS(a) ( a / 2 )
+
+void hal_timer_v_init( void );
+
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

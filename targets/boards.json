@@ -88,5 +88,9 @@
 	"stm32h7":
 	{
 		"target": "stm32h7"
+	},
+	"sapphire":
+	{
+		"target": "atmega128rfa1"
 	}
 }

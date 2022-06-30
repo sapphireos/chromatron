@@ -20,47 +20,16 @@
 // 
 // </license>
 
-#include "sapphire.h"
 
-#include "config.h"
+#ifndef _NVM_XMEGA128A4U_H
+#define _NVM_XMEGA128A4U_H
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+#include "system.h"
 
-#include "veml7700.h"
+void nvm_v_init( void );
+bool nvm_b_busy( void );
+void nvm_v_load_flash_buffer( uint32_t addr, uint16_t data );
+void nvm_v_write_flash_page( uint32_t addr );
+void nvm_v_erase_flash_page( uint32_t addr );
 
-#ifdef ESP32
-#include "telemetry.h"
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

@@ -20,47 +20,27 @@
 // 
 // </license>
 
-#include "sapphire.h"
 
-#include "config.h"
+#ifndef _USART_ATMEGA128RFA1_H
+#define _USART_ATMEGA128RFA1_H
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+#include "usart_bauds.h"
 
-#include "veml7700.h"
+#define USER_USART          0
+#define WIFI_USART          1
+#define PIXEL_USART         2
 
-#ifdef ESP32
-#include "telemetry.h"
+// #define USER_USART_CH       USARTC1
+// #define USER_USART_RX_VECT  USARTC1_RXC_vect
+
+// #define PIXEL_DATA_PORT     USARTC0
+
+void usart_v_init( uint8_t channel );
+void usart_v_set_baud( uint8_t channel, baud_t baud );
+void usart_v_set_double_speed( uint8_t channel, bool clk2x );
+void usart_v_send_byte( uint8_t channel, uint8_t data );
+void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len );
+int16_t usart_i16_get_byte( uint8_t channel );
+uint8_t usart_u8_bytes_available( uint8_t channel );
+
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

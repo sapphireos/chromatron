@@ -1,3 +1,4 @@
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -19,48 +20,21 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+ */
 
-#include "sapphire.h"
+#ifndef _HAL_STATUS_LED_H
+#define _HAL_STATUS_LED_H
 
-#include "config.h"
+#include "status_led.h"
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+// rev 0.2
+#define LED_RED_PORT    PORTC
+#define LED_RED_PIN     4
+#define LED_GREEN_PORT  PORTD
+#define LED_GREEN_PIN   5
+#define LED_BLUE_PORT   PORTD
+#define LED_BLUE_PIN    4
 
-#include "veml7700.h"
+#define LED_TIME_SYNC_INTERVAL 512
 
-#ifdef ESP32
-#include "telemetry.h"
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

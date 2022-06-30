@@ -20,47 +20,31 @@
 // 
 // </license>
 
-#include "sapphire.h"
 
-#include "config.h"
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+#ifndef _USART_BAUDS_H
+#define _USART_BAUDS_H
 
-#include "veml7700.h"
+typedef uint8_t baud_t;
 
-#ifdef ESP32
-#include "telemetry.h"
+#define BAUD_2400       0
+#define BAUD_4800       1
+#define BAUD_9600       2
+#define BAUD_14400      3
+#define BAUD_19200      4
+#define BAUD_28800      5
+#define BAUD_38400      6
+#define BAUD_57600      7
+#define BAUD_76800      8
+#define BAUD_115200     9
+#define BAUD_230400     10
+#define BAUD_250000     11
+#define BAUD_460800     12
+#define BAUD_500000     13
+#define BAUD_1000000    14
+#define BAUD_2000000    15
+#define BAUD_74880      16
+
+extern const PROGMEM uint16_t bauds[];
+
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

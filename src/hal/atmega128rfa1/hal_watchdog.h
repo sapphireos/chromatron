@@ -1,3 +1,4 @@
+/* 
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -19,48 +20,26 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+ */
 
-#include "sapphire.h"
+#ifndef _HAL_WATCHDOG_H
+#define _HAL_WATCHDOG_H
 
-#include "config.h"
+#include "system.h"
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+// #define WATCHDOG_TIMEOUT_16MS       WDT_PER_16CLK_gc
+// #define WATCHDOG_TIMEOUT_32MS       WDT_PER_32CLK_gc
+// #define WATCHDOG_TIMEOUT_64MS       WDT_PER_64CLK_gc
+// #define WATCHDOG_TIMEOUT_128MS      WDT_PER_128CLK_gc
+// #define WATCHDOG_TIMEOUT_256MS      WDT_PER_256CLK_gc
+// #define WATCHDOG_TIMEOUT_512MS      WDT_PER_512CLK_gc
+// #define WATCHDOG_TIMEOUT_1024MS     WDT_PER_1KCLK_gc
+#define WATCHDOG_TIMEOUT_2048MS     0
+// #define WATCHDOG_TIMEOUT_4096MS     WDT_PER_4KCLK_gc
+// #define WATCHDOG_TIMEOUT_8192MS     WDT_PER_8KCLK_gc
 
-#include "veml7700.h"
+#define WATCHDOG_FLAGS_INTERRUPT    0
+#define WATCHDOG_FLAGS_RESET        0   
 
-#ifdef ESP32
-#include "telemetry.h"
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
 

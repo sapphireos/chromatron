@@ -1,3 +1,4 @@
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -19,48 +20,48 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+ */
 
-#include "sapphire.h"
+#include "system.h"
 
-#include "config.h"
+#include "hash.h"
+#include "crc.h"
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
-
-#include "veml7700.h"
-
-#ifdef ESP32
-#include "telemetry.h"
-#endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
+#include <string.h>
 
 
-void app_v_init( void ){
+// int32_t hash_i32_string( char *src ){
 
-    gfx_v_init();
+//     uint8_t len = strnlen( src, 255 );
 
-    vm_v_init();
+//     uint16_t crc0;
+//     uint16_t crc1;
 
-    batt_v_init();
+//     crc0 = crc_u16_block( (uint8_t *)src, len );
 
-    #ifdef ESP32
+//     crc1 = crc_u16_start();
 
-    pwm_v_init();
+//     uint8_t *ptr = (uint8_t *)src + ( len - 1 );
 
-    veml7700_v_init();
+//     while( len > 0 ){
 
-    telemetry_v_init();
+//         crc1 = crc_u16_byte( crc1, (*ptr) ^ 0x15 );
 
-    #endif
-}
+//         ptr--;
+//         len--;
+//     }
+
+//     crc1 = crc_u16_finish( crc1 );
+
+//     return ( (uint32_t)crc0 << 16 ) | crc1;
+// }
+
+// int32_t hash_i32_string_P( PGM_P src ){
+
+//     char buf[64];
+//     strlcpy_P( buf, src, sizeof(buf) );
+
+//     return hash_i32_string( buf );
+// }
+
 

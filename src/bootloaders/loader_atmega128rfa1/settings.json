@@ -1,0 +1,45 @@
+{
+	"_comment": "This is the project name.",
+    "_comment": "The project name is used by the build system",
+    "_comment": "to identify and search for projects",
+    "PROJ_NAME": "loader_atmega128rfa1",
+
+    "_comment": "Project version",
+    "PROJ_VERSION": "0.1",
+
+    "_comment": "Firmware ID",
+    "_comment": "This is automatically generated",
+    "_comment": "and should not be modified",
+    "FWID": "19222944-2ce3-46fd-bde2-9f7744ed9dda",
+
+    "_comment": "Select build type:",
+    "_comment": "app - builds as a standalone application",
+    "_comment": "os - build as operating system library",
+    "_comment": "loader - build as boot loader application",
+    "_comment": "lib - build as a library",
+ 	"BUILD_TYPE": "loader",
+
+    "_comment": "Additional libraries to include with the build",
+    "LIBRARIES": [],
+
+    "_comment": "The following options are only used for libraries:",
+    "_comment": "Init function for library",
+    "LIB_INIT": "",
+
+    "_comment": "Includes for library",
+    "LIB_INCLUDES": [],
+
+    "DEFINES": ["BOOTLOADER"],
+
+    "LINK_FLAGS": [
+        "--output %(TARGET_DIR)/main.elf",
+        "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
+        "-lm",
+        "-Wl,--section-start=.noinit=0x802000",
+        "-Wl,--section-start=.data=0x802008",
+        "-Wl,--section-start=.fwinfo=0x1FC",
+        "-T %(LINKER_SCRIPT)",
+        "-Wl,--gc-sections",
+        "-Wl,--relax"
+    ]
+}

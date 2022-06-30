@@ -20,47 +20,19 @@
 // 
 // </license>
 
-#include "sapphire.h"
+#ifndef _USB_XMEGA128A4U_H
+#define _USB_XMEGA128A4U_H
 
-#include "config.h"
+#include "usb_intf.h"
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
+#define VUSB_PORT       PORTA
+#define VUSB_PIN        2
+#define VUSB_PINCTRL    PIN2CTRL
 
-#include "veml7700.h"
-
-#ifdef ESP32
-#include "telemetry.h"
+#ifdef ENABLE_WIFI_USB_LOADER
+#define WIFI_USB_RX_BUF_SIZE   64
+int16_t usb_i16_get_char2( void );
+void usb_v_send_char2( uint8_t data );
 #endif
 
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
 #endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-

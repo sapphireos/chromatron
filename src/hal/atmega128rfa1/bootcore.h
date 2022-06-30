@@ -1,3 +1,4 @@
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -19,48 +20,16 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+ */
 
-#include "sapphire.h"
+#ifndef BOOTCORE_H
+#define BOOTCORE_H
 
-#include "config.h"
+void boot_v_init( void );
+void boot_v_erase_page( uint16_t pagenumber );
+void boot_v_write_page( uint16_t pagenumber, uint8_t *data );
+void boot_v_read_page( uint16_t pagenumber, uint8_t *dest );
+void boot_v_read_data( uint32_t offset, uint8_t *dest, uint16_t length );
+uint16_t boot_u16_get_page_size( void );
 
-#include "app.h"
-#include "pixel.h"
-#include "graphics.h"
-#include "vm.h"
-#include "energy.h"
-#include "battery.h"
-#include "flash_fs.h"
-
-#include "veml7700.h"
-
-#ifdef ESP32
-#include "telemetry.h"
 #endif
-
-#ifdef ESP8266_UPGRADE
-#error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
-#endif
-
-SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"};
-
-
-void app_v_init( void ){
-
-    gfx_v_init();
-
-    vm_v_init();
-
-    batt_v_init();
-
-    #ifdef ESP32
-
-    pwm_v_init();
-
-    veml7700_v_init();
-
-    telemetry_v_init();
-
-    #endif
-}
-
