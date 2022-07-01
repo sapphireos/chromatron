@@ -2305,28 +2305,28 @@ class irBlock(IR):
 
         return changed
 
-    def strip_load(self, ref):
-        new_code = []
+    # def strip_load(self, ref):
+    #     new_code = []
 
-        for ir in self.code:
-            if isinstance(ir, irLoad):
-                if ir.ref == ref:
-                    continue
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoad):
+    #             if ir.ref == ref:
+    #                 continue
 
-            new_code.append(ir)
+    #         new_code.append(ir)
 
-        self.code = new_code
+    #     self.code = new_code
 
-    def strip_stores(self):
-        new_code = []
+    # def strip_stores(self):
+    #     new_code = []
 
-        for ir in self.code:
-            if isinstance(ir, irStore):
-                continue
+    #     for ir in self.code:
+    #         if isinstance(ir, irStore):
+    #             continue
 
-            new_code.append(ir)
+    #         new_code.append(ir)
 
-        self.code = new_code
+    #     self.code = new_code
 
     # def strip_loads(self):
     #     new_code = []
@@ -2339,10 +2339,31 @@ class irBlock(IR):
 
     #     self.code = new_code
 
-    # def schedule_load_stores(self, visited=None, loads=None, stores=None):
-    def schedule_load_stores(self):
 
+
+    # def schedule_load_stores(self, visited=None, loads=None, stores=None):
+    def schedule_load_stores(self, visited=None, values=None):
+        # if values is None:
+        #     visited = []
+
+        #     values = {}
+
+        assert visited[0] == self
+        visited.pop(0)
         
+        logging.debug(f'Load/store scheduling for: {self.name}')
+
+
+        try:
+            while visited[0] in self.successors:
+                s = visited[0]
+                s.schedule_load_stores(visited=visited)
+
+        except IndexError:
+            pass
+
+        # for s in self.successors:
+            # visited[0].schedule_load_stores(visited, copy(values))
 
 
         return
@@ -4483,9 +4504,14 @@ class irFunc(IR):
     def schedule_load_stores(self, *args, **kwargs):
         logging.debug(f'Load/store scheduling')
 
-        for block in self.reverse_postorder:
-            logging.debug(f'Load/store scheduling for: {block.name}')
+        print(self.reverse_postorder)
+        self.leader_block.schedule_load_stores(visited=self.reverse_postorder, values={})
         
+        # for block in self.reverse_postorder:
+        #     logging.debug(f'Load/store scheduling for: {block.name}')
+            
+        #     block.schedule_load_stores()
+
 
         # return self.leader_block.schedule_load_stores(*args, **kwargs)
     
@@ -4518,8 +4544,8 @@ class irFunc(IR):
         with open("initial_construction.fxir", 'w') as f:
             f.write(str(self))
 
-        # self.render_dominator_tree()
-        # self.render_graph()
+        self.render_dominator_tree()
+        self.render_graph()
         # if opt_level == OptPasses.NONE:
         # if self.name == 'init':
             # self.render_graph()

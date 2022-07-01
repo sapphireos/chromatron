@@ -37,8 +37,8 @@ def init():
     # if 1:
         # a = 2
 
-    # while a > 0:
-    for i in 2:
+    while a > 0:
+    # for i in 2:
         
 
         if a:
