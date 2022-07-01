@@ -32,29 +32,39 @@
 
 
 a = Number()
+# b = Number()
+
+global_i = Number(publish=True)
 
 def init():
+    for i in 10:
+        if i > 5:
+            break
+
+    global_i = i
+# def init():
     # if 1:
+
         # a = 2
 
-    if 1:
+    # if 1:
 
-        while a > 0:
-        # for i in 2:
+    #     while a > 0:
+    #     # for i in 2:
             
 
-            if a:
-                continue
+    #         if a:
+    #             continue
 
-            elif a == 3:
-                # print(a)
-                break
+    #         elif a == 3:
+    #             # print(a)
+    #             break
 
-            a -= 1
+    #         a -= 1
 
-    else:
+    # else:
 
-        print(1)
+    #     print(1)
 
 
 # # def loop():

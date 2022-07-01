@@ -941,6 +941,10 @@ class irBlock(IR):
     #     for s in remove:
     #         s.relink_blocks()
 
+    def replace_labels(self, label, replace):
+        for ir in self.code:
+            ir.replace_labels(label, replace)
+
     def relink_blocks(self, visited=None):
         # run after optimizers that change or eliminate branchs
 
@@ -2442,7 +2446,7 @@ class irBlock(IR):
                 if p not in sources:
                     values[k].append((None, p))
 
-            assert len(values[k]) == len(self.predecessors)
+            # assert len(values[k]) == len(self.predecessors)
 
         return values
 
@@ -4712,6 +4716,17 @@ class irFunc(IR):
         #     with open("ls_sched_construction.fxir", 'w') as f:
         #         f.write(str(self))
 
+        # prune emply blocks, this is mostly a convenience to make
+        # analysis simpler
+        self.prune_empty_blocks()
+
+        self.verify_block_links()
+        self.verify_block_assignments()
+        self.verify_variables()
+
+        # self.render_graph()
+
+
         if OptPasses.SSA in opt_passes:
 
             self.convert_to_ssa()            
@@ -4724,7 +4739,9 @@ class irFunc(IR):
 
             self.recalc_defines()
 
-            
+            # self.render_graph()
+
+
             with open("SSA_construction.fxir", 'w') as f:
                 f.write(str(self))
 
@@ -4734,7 +4751,7 @@ class irFunc(IR):
                 with open("ls_sched_construction.fxir", 'w') as f:
                     f.write(str(self))
 
-            self.render_graph()
+            # self.render_graph()
 
             if OptPasses.GVN in opt_passes:
 
@@ -4919,6 +4936,13 @@ class irFunc(IR):
 
                     raise
 
+    def replace_labels(self, label, replace):
+        for block in self.blocks.values():
+            if block.code[0] == label:
+                continue
+                
+            block.replace_labels(label, replace)
+
     def combine_labels(self):
         label_sets = {}
         prev_lable = None
@@ -4995,6 +5019,43 @@ class irFunc(IR):
         logging.debug(f'Prune IR jumps in {iterations} iterations. Eliminated {old_length - len(self.code)} instructions')
 
 
+    def prune_empty_blocks(self, include_merge_blocks=False):
+        # remove blocks that contain only an entry label and an unconditional jump
+
+        remove = []
+
+        for b in self.blocks.values():
+            # empty blocks contain only 2 instructions
+            if len(b.code) != 2:
+                continue
+
+            # final instruction must be unconditional jump
+            if not isinstance(b.code[-1], irJump):
+                continue
+
+            # if merge blocks are not included, then only prune blocks
+            # that have a single entry point
+            if not include_merge_blocks:
+                if len(b.predecessors) > 1:
+                    continue
+
+            assert len(b.successors) == 1
+
+            logging.debug(f'Pruning empty block: {b.name}')
+            self.replace_labels(b.code[0], b.code[-1].target)
+
+            jump_target_block = b.successors[0]
+
+            # remove this block
+            jump_target_block.predecessors.remove(b)
+
+            for p in b.predecessors:
+                p.successors.remove(b)
+                p.successors.append(jump_target_block)
+
+                jump_target_block.predecessors.append(p)
+
+            
     def merge_basic_blocks(self):
         # a block B can be merged with it's successor S if:
         # 1. B has only the one successor AND
