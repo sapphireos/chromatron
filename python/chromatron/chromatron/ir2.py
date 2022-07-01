@@ -2433,7 +2433,16 @@ class irBlock(IR):
                     values[k] = []
 
                 for val in v:
-                    values[k].append(val)
+                    values[k].append((val[0], p))
+
+        for k, v in values.items():
+            sources = [val[1] for val in v]
+
+            for p in self.predecessors:
+                if p not in sources:
+                    values[k].append((None, p))
+
+            assert len(values[k]) == len(self.predecessors)
 
         return values
 

@@ -37,19 +37,24 @@ def init():
     # if 1:
         # a = 2
 
-    while a > 0:
-    # for i in 2:
-        
+    if 1:
 
-        if a:
-            continue
+        while a > 0:
+        # for i in 2:
+            
 
-        elif a == 3:
-            # print(a)
-            break
+            if a:
+                continue
 
-        a -= 1
+            elif a == 3:
+                # print(a)
+                break
 
+            a -= 1
+
+    else:
+
+        print(1)
 
 
 # # def loop():
