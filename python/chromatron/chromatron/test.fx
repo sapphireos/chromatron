@@ -41,8 +41,8 @@ def init():
     # for i in 2:
         
 
-        if a:
-            continue
+        # if a:
+        #     continue
 
         a -= 1
 

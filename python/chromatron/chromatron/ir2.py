@@ -2339,6 +2339,103 @@ class irBlock(IR):
 
     #     self.code = new_code
 
+    # def analyze_load_stores(self, visited=None):
+    #     # if visited is None:
+    #     #     visited = []
+
+    #     # if self in visited:
+    #     #     return {}
+
+    #     # visited.append(self)
+
+    #     # values = self.analyze_predecessor_globals(visited=visited)
+    #     values = {}
+
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoad):
+    #             values[ir.ref] = (ir.register, self)
+
+    #         elif isinstance(ir, irStore):
+    #             values[ir.ref] = (ir.register, self)
+
+    #     return values
+
+    # def analyze_predecessor_globals(self, visited=None):
+    #     if visited is None:
+    #         visited = []
+
+    #     if self in visited:
+    #         return {}
+
+    #     visited.append(self)
+
+
+    #     values = {}
+
+    #     for p in self.predecessors:
+    #         pv = p.analyze_load_stores(visited=visited)
+
+    #         for k, v in pv.items():
+    #             if k not in values:
+    #                 values[k] = []
+
+    #             values[k].append(v)
+
+    #     return values
+
+    @property
+    def global_values(self):
+        values = {}
+
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                values[ir.ref] = (ir.register, self)
+
+            elif isinstance(ir, irStore):
+                values[ir.ref] = (ir.register, self)
+
+        return values
+
+    def get_emitted_globals(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return {}
+
+        visited.append(self)
+
+        values = {}
+
+        for p in self.predecessors:
+            e = p.get_emitted_globals(visited=visited)
+
+            for k, v in e.items():
+                if k not in values:
+                    values[k] = []
+
+                for val in v:
+                    values[k].append(val)
+
+        for k, v in self.global_values.items():
+            values[k] = [v]
+
+        return values
+
+    def get_incoming_globals(self):
+        values = {}
+
+        for p in self.predecessors:
+            e = p.get_emitted_globals(visited=[])
+
+            for k, v in e.items():
+                if k not in values:
+                    values[k] = []
+
+                for val in v:
+                    values[k].append(val)
+
+        return values
 
 
     # def schedule_load_stores(self, visited=None, loads=None, stores=None):
@@ -2353,18 +2450,62 @@ class irBlock(IR):
         
         logging.debug(f'Load/store scheduling for: {self.name}')
 
+        incoming = self.get_incoming_globals()
+        # incoming = self.get_emitted_globals()
+
+        for k, v in incoming.items():
+            print(k)
+            
+            for val in v:
+                print(f'\t {val[0]} -> {val[1].name}')
+
+
+        # local_values = {}
+        # values[self] = local_values
+
+        # for ir in self.code:
+        #     if isinstance(ir, irLoad):
+        #         local_values[ir.ref] = (ir.register, self)
+
+        #     elif isinstance(ir, irStore):
+        #         local_values[ir.ref] = (ir.register, self)
+
+
+
+
+        # for k, v in self.analyze_predecessor_globals().items():
+        #     print(k)
+        #     for val in v:
+        #         print(f'\t {val[0]} -> {val[1].name}')
+
+
+        # new_code = []
+        # for ir in self.code:
+        #     if isinstance(ir, irLoad):
+        #         if ir.ref not in values:
+        #             values[ir.ref] = []
+
+        #         if ir.register not in values[ir.ref]:
+        #             values[ir.ref] = ir.register
+
+        #     elif isinstance(ir, irStore):
+        #         values[ir.ref] = ir.register
+
+
+        #     new_code.append(ir)
+
+        # self.code = new_code
+
+        # for k, v in values[self].items():
+        #     print(k, v[0], v[1].name)
 
         try:
             while visited[0] in self.successors:
                 s = visited[0]
-                s.schedule_load_stores(visited=visited)
+                s.schedule_load_stores(visited=visited, values=copy(values))
 
         except IndexError:
             pass
-
-        # for s in self.successors:
-            # visited[0].schedule_load_stores(visited, copy(values))
-
 
         return
 
