@@ -36,12 +36,12 @@ b = Number()
 
 def init():
 
-    a += 1
-    fence()
-    a += 2
+    # a += 1
+    # fence()
+    # a += 2
 
-    # while a > 0:
-    #     a -= 1
+    while a > 0:
+        a -= 1
 
 
     # if 1:

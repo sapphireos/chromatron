@@ -2484,12 +2484,21 @@ class irBlock(IR):
                 if ir.ref in incoming:
                     values = incoming[ir.ref]
 
+                    assert len(values) > 0
+
                     # if a single value, can be replaced with trivial assign
                     if len(values) == 1:
                         logging.debug(f'Replace load {ir} with assign')
 
                         ir = irAssign(ir.register, values[0][0], lineno=ir.lineno)
                         ir.block = self
+
+                    # if multiple incoming values, use a phi
+                    else:
+                        phi = irPhi(ir.register, values, lineno=ir.lineno)
+                        phi.block = self
+
+                        ir = phi
 
 
             new_code.append(ir)
