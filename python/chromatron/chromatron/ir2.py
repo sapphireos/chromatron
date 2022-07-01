@@ -909,6 +909,29 @@ class irBlock(IR):
 
         return blocks
 
+    # optimized ordering prioritizes fall throughs by loop depth.
+    # the assumption is that loops always run in most cases.
+    def get_blocks_optimized(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        visited.append(self)
+
+        blocks = [self]
+
+        prioritized_successors = list(reversed(sorted(self.successors, key=lambda x: x.loop_depth)))
+
+        # blocks.extend(self.successors)
+
+        for s in prioritized_successors:
+            succ_blocks = s.get_blocks_optimized(visited=visited)
+            blocks.extend([s for s in succ_blocks if s not in blocks])
+
+        return blocks
+
         
     ##############################################
     # Optimizer Passes
@@ -3814,8 +3837,7 @@ class irFunc(IR):
             s += "Blocks:\n"
             s += "********************************\n"
 
-            # blocks = [self.blocks[k] for k in sorted(self.blocks.keys())]
-            blocks = self.blocks.values()
+            blocks = self.sorted_blocks
             for block in blocks:
                 s += f'{block}\n'
 
@@ -4434,6 +4456,8 @@ class irFunc(IR):
             info['header'] = self.leader_block._loops_find_header(loop)
             assert info['header'] is not None
 
+            info['header'].loops.append(info)
+
             # add loop to blocks in body
             for block in info['body']:
                 block.loops.append(loop)
@@ -4448,7 +4472,8 @@ class irFunc(IR):
 
     @property
     def sorted_blocks(self):
-        return self.leader_block.get_blocks_breadth_first()
+        return self.leader_block.get_blocks_optimized()
+        # return self.leader_block.get_blocks_breadth_first()
 
 
     def compute_live_ranges(self):
@@ -4759,7 +4784,7 @@ class irFunc(IR):
                 with open("ls_sched_construction.fxir", 'w') as f:
                     f.write(str(self))
 
-            self.render_graph()
+            # self.render_graph()
 
             if OptPasses.GVN in opt_passes:
 
