@@ -2416,10 +2416,10 @@ class irBlock(IR):
 
         for ir in self.code:
             if isinstance(ir, irLoad):
-                values[ir.ref] = ir.register
+                values[ir.ref] = (ir.register, 'load')
 
             elif isinstance(ir, irStore):
-                values[ir.ref] = ir.register
+                values[ir.ref] = (ir.register, 'store')
 
         return values
 
@@ -2445,7 +2445,7 @@ class irBlock(IR):
                     values[k].append(val)
 
         for k, v in self.global_values.items():
-            values[k] = [(v, self)]
+            values[k] = [(v[0], v[1], self)]
 
         return values
 
@@ -2460,14 +2460,14 @@ class irBlock(IR):
                     values[k] = []
 
                 for val in v:
-                    values[k].append((val[0], p))
+                    values[k].append((val[0], val[1], p))
 
-        for k, v in values.items():
-            sources = [val[1] for val in v]
+        # for k, v in values.items():
+        #     sources = [val[1] for val in v]
 
-            for p in self.predecessors:
-                if p not in sources:
-                    values[k].append((None, p))
+        #     for p in self.predecessors:
+        #         if p not in sources:
+        #             values[k].append((None, p))
 
             # assert len(values[k]) == len(self.predecessors)
 
@@ -2494,11 +2494,11 @@ class irBlock(IR):
             print(f'\t{k}')
             
             for val in v:
-                print(f'\t\t{val[0]} -> {val[1].name}')
+                print(f'\t\t{val[0]}:{val[1]} -> {val[2].name}')
 
         print('Emitting:')
         for k, v in self.global_values.items():
-            print(f'\t{k} -> {v}')
+            print(f'\t{k} -> {v[0]}: {v[1]}')
             
 
         new_code = []
@@ -2518,7 +2518,8 @@ class irBlock(IR):
 
                     # if multiple incoming values, use a phi
                     else:
-                        phi = irPhi(ir.register, values, lineno=ir.lineno)
+                        merges = [(v[0], v[2]) for v in values]
+                        phi = irPhi(ir.register, merges, lineno=ir.lineno)
                         phi.block = self
 
                         ir = phi
