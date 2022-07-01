@@ -32,20 +32,21 @@
 
 
 a = Number()
-# b = Number()
-
-global_i = Number(publish=True)
+b = Number()
 
 def init():
-    for i in 10:
-        if i > 5:
-            break
 
-    global_i = i
-# def init():
+    a += 1
+    fence()
+    a += 2
+
+    # while a > 0:
+    #     a -= 1
+
+
     # if 1:
 
-        # a = 2
+    #     a = 2
 
     # if 1:
 
@@ -53,7 +54,7 @@ def init():
     #     # for i in 2:
             
 
-    #         if a:
+    #         if b:
     #             continue
 
     #         elif a == 3:

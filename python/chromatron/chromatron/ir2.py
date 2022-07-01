@@ -2468,34 +2468,33 @@ class irBlock(IR):
 
         print('Incoming:')
         for k, v in incoming.items():
-            print(k)
+            print(f'\t{k}')
             
             for val in v:
-                print(f'\t {val[0]} -> {val[1].name}')
+                print(f'\t\t{val[0]} -> {val[1].name}')
 
         print('Emitting:')
         for k, v in self.global_values.items():
-            print(k, v)
+            print(f'\t{k} -> {v}')
             
 
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                if ir.ref in incoming:
+                    values = incoming[ir.ref]
 
-        # local_values = {}
-        # values[self] = local_values
+                    # if a single value, can be replaced with trivial assign
+                    if len(values) == 1:
+                        logging.debug(f'Replace load {ir} with assign')
 
-        # for ir in self.code:
-        #     if isinstance(ir, irLoad):
-        #         local_values[ir.ref] = (ir.register, self)
-
-        #     elif isinstance(ir, irStore):
-        #         local_values[ir.ref] = (ir.register, self)
+                        ir = irAssign(ir.register, values[0][0], lineno=ir.lineno)
+                        ir.block = self
 
 
+            new_code.append(ir)
 
-
-        # for k, v in self.analyze_predecessor_globals().items():
-        #     print(k)
-        #     for val in v:
-        #         print(f'\t {val[0]} -> {val[1].name}')
+        self.code = new_code
 
 
         # new_code = []
@@ -4751,7 +4750,7 @@ class irFunc(IR):
                 with open("ls_sched_construction.fxir", 'w') as f:
                     f.write(str(self))
 
-            # self.render_graph()
+            self.render_graph()
 
             if OptPasses.GVN in opt_passes:
 
