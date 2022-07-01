@@ -2499,7 +2499,8 @@ class irBlock(IR):
         print('Emitting:')
         for k, v in self.global_values.items():
             print(f'\t{k} -> {v[0]}: {v[1]}')
-            
+        
+        stores = []            
 
         new_code = []
         for ir in self.code:
@@ -2523,6 +2524,9 @@ class irBlock(IR):
                         phi.block = self
 
                         ir = phi
+
+            elif isinstance(ir, irStore):
+                stores.append(ir)
 
 
             new_code.append(ir)
@@ -4773,7 +4777,7 @@ class irFunc(IR):
 
             self.recalc_defines()
 
-            # self.render_graph()
+            self.render_graph()
 
 
             with open("SSA_construction.fxir", 'w') as f:

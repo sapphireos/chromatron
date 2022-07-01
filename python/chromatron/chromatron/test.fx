@@ -38,7 +38,7 @@ def init():
 
     # a += 1
     # fence()
-    # a += 2
+    a += 2
 
     while a > 0:
         a -= 1
