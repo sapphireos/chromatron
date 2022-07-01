@@ -41,8 +41,12 @@ def init():
     # for i in 2:
         
 
-        # if a:
-        #     continue
+        if a:
+            continue
+
+        elif a == 3:
+            # print(a)
+            break
 
         a -= 1
 

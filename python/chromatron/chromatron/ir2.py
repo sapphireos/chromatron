@@ -2389,10 +2389,10 @@ class irBlock(IR):
 
         for ir in self.code:
             if isinstance(ir, irLoad):
-                values[ir.ref] = (ir.register, self)
+                values[ir.ref] = ir.register
 
             elif isinstance(ir, irStore):
-                values[ir.ref] = (ir.register, self)
+                values[ir.ref] = ir.register
 
         return values
 
@@ -2418,7 +2418,7 @@ class irBlock(IR):
                     values[k].append(val)
 
         for k, v in self.global_values.items():
-            values[k] = [v]
+            values[k] = [(v, self)]
 
         return values
 
@@ -2453,11 +2453,17 @@ class irBlock(IR):
         incoming = self.get_incoming_globals()
         # incoming = self.get_emitted_globals()
 
+        print('Incoming:')
         for k, v in incoming.items():
             print(k)
             
             for val in v:
                 print(f'\t {val[0]} -> {val[1].name}')
+
+        print('Emitting:')
+        for k, v in self.global_values.items():
+            print(k, v)
+            
 
 
         # local_values = {}
@@ -4685,8 +4691,8 @@ class irFunc(IR):
         with open("initial_construction.fxir", 'w') as f:
             f.write(str(self))
 
-        self.render_dominator_tree()
-        self.render_graph()
+        # self.render_dominator_tree()
+        # self.render_graph()
         # if opt_level == OptPasses.NONE:
         # if self.name == 'init':
             # self.render_graph()
@@ -4719,7 +4725,7 @@ class irFunc(IR):
                 with open("ls_sched_construction.fxir", 'w') as f:
                     f.write(str(self))
 
-
+            self.render_graph()
 
             if OptPasses.GVN in opt_passes:
 
