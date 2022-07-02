@@ -44,7 +44,10 @@ def init():
 
 
     if 1:
-        print(a)
+        b = a
+
+    # else:
+    #     print(a)
 
 
     # a += 1

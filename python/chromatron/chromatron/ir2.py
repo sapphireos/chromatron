@@ -4862,7 +4862,7 @@ class irFunc(IR):
                 with open("ls_sched_construction.fxir", 'w') as f:
                     f.write(str(self))
 
-            self.render_graph()
+            # self.render_graph()
 
             if OptPasses.GVN in opt_passes:
 
