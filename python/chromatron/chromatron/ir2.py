@@ -2460,7 +2460,8 @@ class irBlock(IR):
                     values[k] = []
 
                 for val in v:
-                    values[k].append((val[0], val[1], p))
+                    # values[k].append((val[0], val[1], p))
+                    values[k].append(val)
 
         # for k, v in values.items():
         #     sources = [val[1] for val in v]
@@ -4862,7 +4863,7 @@ class irFunc(IR):
                 with open("ls_sched_construction.fxir", 'w') as f:
                     f.write(str(self))
 
-            # self.render_graph()
+            self.render_graph()
 
             if OptPasses.GVN in opt_passes:
 
