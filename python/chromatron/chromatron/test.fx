@@ -36,15 +36,26 @@ b = Number()
 
 def init():
 
-    a += 1
-    # fence()
-    a += 2
+    if 1:
+        a += 1
 
-    while a > 0:
-        if a:
-            return
+    else:
+        a += 2
 
-        a -= 1
+
+    if 1:
+        print(a)
+
+
+    # a += 1
+    # # fence()
+    # a += 2
+
+    # while a > 0:
+    #     if a:
+    #         return
+
+    #     a -= 1
 
 
     # if 1:

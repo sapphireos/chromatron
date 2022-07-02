@@ -2526,6 +2526,9 @@ class irBlock(IR):
 
         incoming = analysis[self]
 
+
+        
+
         new_code = []
 
         for ir in self.code:
@@ -2550,7 +2553,11 @@ class irBlock(IR):
 
                         ir = phi
 
+                # else:
+                    # incoming[ir.ref] = [(ir.register, 'load', self)]
 
+            # elif isinstance(ir, irStore):    
+            #     incoming[ir.ref] = [(ir.register, 'store', self)]
 
             new_code.append(ir)
 
