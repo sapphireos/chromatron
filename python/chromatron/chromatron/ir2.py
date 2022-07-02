@@ -2473,6 +2473,44 @@ class irBlock(IR):
 
         return values
 
+    def analyze_load_stores(self, visited=None, values=None):
+        assert visited[0] == self
+        visited.pop(0)
+        
+        logging.debug(f'Load/store analysis for: {self.name}')
+
+        incoming = self.get_incoming_globals()
+
+        print('Incoming:')
+        for k, v in incoming.items():
+            print(f'\t{k}')
+            
+            for val in v:
+                print(f'\t\t{val[0]}:{val[1]} -> {val[2].name}')
+
+        print('Emitting:')
+        for k, v in self.global_values.items():
+            print(f'\t{k} -> {v[0]}: {v[1]}')
+
+
+        values = incoming
+
+        analysis = {}
+        analysis[self] = copy(values)
+        
+        try:
+            while visited[0] in self.successors:
+                s = visited[0]
+                s_analysis = s.analyze_load_stores(visited=visited, values=copy(values))
+
+                analysis.update(s_analysis)
+
+        except IndexError:
+            pass
+
+        return analysis
+
+
 
     # def schedule_load_stores(self, visited=None, loads=None, stores=None):
     def schedule_load_stores(self, visited=None, values=None):
@@ -2519,6 +2557,8 @@ class irBlock(IR):
 
                     # if multiple incoming values, use a phi
                     else:
+                        logging.debug(f'Replace load {ir} with phi')
+
                         merges = [(v[0], v[2]) for v in values]
                         phi = irPhi(ir.register, merges, lineno=ir.lineno)
                         phi.block = self
@@ -4703,7 +4743,22 @@ class irFunc(IR):
         logging.debug(f'Load/store scheduling')
 
         print(self.reverse_postorder)
-        self.leader_block.schedule_load_stores(visited=self.reverse_postorder, values={})
+        analysis = self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values={})
+
+        print('\nAnalysis:')
+
+        for block, incoming in analysis.items():
+            print(f'  {block.name}:')
+
+            for ref, values in incoming.items():
+                print(f'    {ref}:')
+
+                for val in values:
+                    print(f'      {val[1]} {val[0]} from {val[2].name}')
+
+
+
+        # self.leader_block.schedule_load_stores(visited=self.reverse_postorder, values={})
         
         # for block in self.reverse_postorder:
         #     logging.debug(f'Load/store scheduling for: {block.name}')
