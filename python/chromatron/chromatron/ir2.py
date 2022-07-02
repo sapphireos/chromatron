@@ -2481,16 +2481,16 @@ class irBlock(IR):
 
         incoming = self.get_incoming_globals()
 
-        print('Incoming:')
-        for k, v in incoming.items():
-            print(f'\t{k}')
+        # print('Incoming:')
+        # for k, v in incoming.items():
+        #     print(f'\t{k}')
             
-            for val in v:
-                print(f'\t\t{val[0]}:{val[1]} -> {val[2].name}')
+        #     for val in v:
+        #         print(f'\t\t{val[0]}:{val[1]} -> {val[2].name}')
 
-        print('Emitting:')
-        for k, v in self.global_values.items():
-            print(f'\t{k} -> {v[0]}: {v[1]}')
+        # print('Emitting:')
+        # for k, v in self.global_values.items():
+        #     print(f'\t{k} -> {v[0]}: {v[1]}')
 
 
         values = incoming
@@ -2513,7 +2513,7 @@ class irBlock(IR):
 
 
     # def schedule_load_stores(self, visited=None, loads=None, stores=None):
-    def schedule_load_stores(self, visited=None, values=None):
+    def schedule_load_stores(self, visited=None, analysis=None):
         # if values is None:
         #     visited = []
 
@@ -2524,23 +2524,10 @@ class irBlock(IR):
         
         logging.debug(f'Load/store scheduling for: {self.name}')
 
-        incoming = self.get_incoming_globals()
-        # incoming = self.get_emitted_globals()
-
-        print('Incoming:')
-        for k, v in incoming.items():
-            print(f'\t{k}')
-            
-            for val in v:
-                print(f'\t\t{val[0]}:{val[1]} -> {val[2].name}')
-
-        print('Emitting:')
-        for k, v in self.global_values.items():
-            print(f'\t{k} -> {v[0]}: {v[1]}')
-        
-        stores = []            
+        incoming = analysis[self]
 
         new_code = []
+
         for ir in self.code:
             if isinstance(ir, irLoad):
                 if ir.ref in incoming:
@@ -2548,14 +2535,12 @@ class irBlock(IR):
 
                     assert len(values) > 0
 
-                    # if a single value, can be replaced with trivial assign
                     if len(values) == 1:
                         logging.debug(f'Replace load {ir} with assign')
 
                         ir = irAssign(ir.register, values[0][0], lineno=ir.lineno)
                         ir.block = self
 
-                    # if multiple incoming values, use a phi
                     else:
                         logging.debug(f'Replace load {ir} with phi')
 
@@ -2565,8 +2550,6 @@ class irBlock(IR):
 
                         ir = phi
 
-            elif isinstance(ir, irStore):
-                stores.append(ir)
 
 
             new_code.append(ir)
@@ -2574,34 +2557,61 @@ class irBlock(IR):
         self.code = new_code
 
 
+        
+        # stores = []            
+
         # new_code = []
         # for ir in self.code:
         #     if isinstance(ir, irLoad):
-        #         if ir.ref not in values:
-        #             values[ir.ref] = []
+        #         if ir.ref in incoming:
+        #             values = incoming[ir.ref]
 
-        #         if ir.register not in values[ir.ref]:
-        #             values[ir.ref] = ir.register
+        #             assert len(values) > 0
+
+        #             # if a single value, can be replaced with trivial assign
+        #             if len(values) == 1:
+        #                 logging.debug(f'Replace load {ir} with assign')
+
+        #                 ir = irAssign(ir.register, values[0][0], lineno=ir.lineno)
+        #                 ir.block = self
+
+        #             # if multiple incoming values, use a phi
+        #             else:
+        #                 logging.debug(f'Replace load {ir} with phi')
+
+        #                 merges = [(v[0], v[2]) for v in values]
+        #                 phi = irPhi(ir.register, merges, lineno=ir.lineno)
+        #                 phi.block = self
+
+        #                 ir = phi
 
         #     elif isinstance(ir, irStore):
-        #         values[ir.ref] = ir.register
+        #         stores.append(ir)
 
 
         #     new_code.append(ir)
 
         # self.code = new_code
 
-        # for k, v in values[self].items():
-        #     print(k, v[0], v[1].name)
 
-        try:
-            while visited[0] in self.successors:
+
+        while True:
+            try:
                 s = visited[0]
-                s.schedule_load_stores(visited=visited, values=copy(values))
 
-        except IndexError:
-            pass
+            except IndexError:
+                break
 
+            if s not in self.successors:
+                break
+
+            s.schedule_load_stores(visited=visited, analysis=analysis)
+
+        # while visited[0] in self.successors:
+        #     s = visited[0]
+        #     s.schedule_load_stores(visited=visited, analysis=analysis)
+
+        
         return
 
 
@@ -4757,6 +4767,7 @@ class irFunc(IR):
                     print(f'      {val[1]} {val[0]} from {val[2].name}')
 
 
+        self.leader_block.schedule_load_stores(visited=self.reverse_postorder, analysis=analysis)
 
         # self.leader_block.schedule_load_stores(visited=self.reverse_postorder, values={})
         
@@ -4832,7 +4843,7 @@ class irFunc(IR):
 
             self.recalc_defines()
 
-            self.render_graph()
+            # self.render_graph()
 
 
             with open("SSA_construction.fxir", 'w') as f:
@@ -4844,7 +4855,7 @@ class irFunc(IR):
                 with open("ls_sched_construction.fxir", 'w') as f:
                     f.write(str(self))
 
-            # self.render_graph()
+            self.render_graph()
 
             if OptPasses.GVN in opt_passes:
 
