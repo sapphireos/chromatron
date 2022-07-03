@@ -30,21 +30,42 @@
 
 #         delay = rand(0, 10)
 
-
-a = Number()
-b = Number()
-
 def init():
+    a = Number()
 
-    if 1:
+    for i in 4:
+        # for j in 3:
         a += 1
 
-    else:
-        a += 2
+    assert a == 4
+    # a = Number()
+    # b = Number()
+
+    # if a > 0:
+    #     b = 1
+
+    # else:
+    #     b = 2
 
 
-    if 1:
-        print(a)
+    # if 1:
+    #     assert b == 2
+    #     assert a == 0
+
+# a = Number()
+# b = Number()
+
+# def init():
+
+#     if 1:
+#         a += 1
+
+#     else:
+#         a += 2
+
+
+#     if 1:
+#         print(a)
 
 
     # a += 1

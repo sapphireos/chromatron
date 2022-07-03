@@ -3369,6 +3369,43 @@ class irBlock(IR):
         self.code = new_code
         self.recalc_defines()
 
+        # print('MEOW')
+        
+        NEW_ALGORITHM = False
+
+        if NEW_ALGORITHM:
+
+            merges = {}
+
+            for phi in phis:
+                # print(phi)
+
+                for a in phi.merges:
+                    d = a[0]
+                    p = a[1]
+
+                    if p not in merges:
+                        merges[p] = []
+
+                    if d not in merges[p]:
+                        merges[p].append((phi.target, d))
+                    
+            for block, values in merges.items():
+                # print(block.name)
+                for val in values:
+                    target = val[0]
+                    source = val[1]
+                    # print(val[0], val[1])
+
+                    ir = irAssign(target, source, lineno=-1)
+                    ir.block = block
+
+                    # print(ir)
+
+                    block.code.insert(-1, ir)
+
+            return
+
         # collect incoming blocks from all phis
         incoming_blocks = []
         merges = {}
@@ -4862,7 +4899,7 @@ class irFunc(IR):
                 with open("ls_sched_construction.fxir", 'w') as f:
                     f.write(str(self))
 
-            self.render_graph()
+            # self.render_graph()
 
             if OptPasses.GVN in opt_passes:
 
@@ -4935,11 +4972,13 @@ class irFunc(IR):
 
 
         # basic block merging (helps with jump elimination)
-        self.merge_basic_blocks()
+        # self.merge_basic_blocks()
 
         self.remove_dead_code()
 
         self.recalc_defines()
+
+        self.render_graph()
 
         # self.render_dominator_tree()
         # if opt_level == OptPasses.GVN:
