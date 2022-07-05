@@ -1,4 +1,32 @@
 
+a = Number(publish=True)
+i = Number(publish=True)
+
+def init():
+    
+    while i < 10:
+        i += 1
+
+        if i > 5:
+            continue
+
+        a += 1
+
+# i = Number()
+
+# def init():
+#     while i < 0:
+#         # if 1:
+#             # pass
+#         # i += 1
+#         pass
+#         # i += 1
+
+
+
+    # for x in pixels.size_x:
+        # pass
+
 # current_hue = Fixed16()
 # delay = Number()
 # cursor = Number()
@@ -30,14 +58,21 @@
 
 #         delay = rand(0, 10)
 
-def init():
-    a = Number()
+# a = Number()
 
-    for i in 4:
-        # for j in 3:
-        a += 1
+# def init():
+    
+#     # b = Number()
 
-    assert a == 4
+#     while a < 4:
+#         # for j in 3:
+#         # b = a
+
+#         a += 1
+
+#     assert a == 4
+    # assert b == 3
+
     # a = Number()
     # b = Number()
 

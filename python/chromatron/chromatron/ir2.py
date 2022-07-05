@@ -46,6 +46,12 @@ class OptPasses(Enum):
     GVN           = 4
 
 
+
+
+DEBUG = True
+
+
+
 """
 
 QUESTIONS
@@ -2534,7 +2540,8 @@ class irBlock(IR):
         for ir in self.code:
             if isinstance(ir, irLoad):
                 if ir.ref in incoming:
-                    values = incoming[ir.ref]
+                    # filter out self references
+                    values = [v for v in incoming[ir.ref] if v[0] != ir.register]
 
                     assert len(values) > 0
 
@@ -2547,7 +2554,8 @@ class irBlock(IR):
                     else:
                         logging.debug(f'Replace load {ir} with phi')
 
-                        merges = [(v[0], v[2]) for v in values]
+                        merges = sorted([(v[0], v[2]) for v in values], key=lambda a: a[0].name)
+
                         phi = irPhi(ir.register, merges, lineno=ir.lineno)
                         phi.block = self
 
@@ -4077,8 +4085,14 @@ class irFunc(IR):
 
         dot.render('___fx_dom_tree___.gv', view=True, cleanup=True)
 
-    def render_graph(self):
-        dot = graphviz.Digraph(comment=self.name)
+    def render_graph(self, graph_name=None):
+        if not DEBUG:
+            return
+            
+        if graph_name is None:
+            graph_name = self.name
+
+        dot = graphviz.Digraph(comment=graph_name)
 
         for block in self.blocks.values():
             name = block.name
@@ -4094,7 +4108,7 @@ class irFunc(IR):
             for suc in block.successors:
                 dot.edge(name, suc.name)
 
-        dot.render('___fx_graph___.gv', view=True, cleanup=True)
+        dot.render(f'___fx_graph___{graph_name}.gv', view=True, cleanup=True)
 
     def calc_dominance(self):
         dominators = {self.leader_block: set([self.leader_block])}
@@ -4887,7 +4901,7 @@ class irFunc(IR):
 
             self.recalc_defines()
 
-            # self.render_graph()
+            self.render_graph('ssa')
 
 
             with open("SSA_construction.fxir", 'w') as f:
@@ -4952,6 +4966,9 @@ class irFunc(IR):
                     f.write(str(self))
 
 
+            self.render_graph('ssa_after_opt')
+            # self.render_graph()
+            
             # if OptPasses.LS_SCHED in opt_passes:
             #     self.schedule_load_stores()
 
@@ -4972,13 +4989,13 @@ class irFunc(IR):
 
 
         # basic block merging (helps with jump elimination)
-        # self.merge_basic_blocks()
+        self.merge_basic_blocks()
 
         self.remove_dead_code()
 
         self.recalc_defines()
 
-        self.render_graph()
+        self.render_graph('final')
 
         # self.render_dominator_tree()
         # if opt_level == OptPasses.GVN:
