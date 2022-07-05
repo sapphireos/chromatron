@@ -3,12 +3,14 @@ a = Number(publish=True)
 i = Number(publish=True)
 
 def init():
+
+    # print(a)
     
     while i < 10:
-        i += 1
+        # i += 1
 
-        if i > 5:
-            continue
+        # if i > 5:
+        #     continue
 
         a += 1
 

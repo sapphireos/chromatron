@@ -79,6 +79,19 @@ def init():
 """
 
 
+load_store_6 = """
+a = Number()
+i = Number()
+
+def init():
+    while i < 10:
+        i += 1
+        a += 1
+
+"""
+
+
+
 # @pytest.mark.skip
 def test_load_store_scheduler(opt_passes=OptPasses.LS_SCHED):
     regs = run_code(load_store_1, 0, opt_passes=opt_passes)
@@ -106,6 +119,10 @@ def test_load_store_scheduler(opt_passes=OptPasses.LS_SCHED):
 
     regs = run_code(load_store_5, opt_passes=opt_passes)
     assert regs['a'] == 2
+
+    regs = run_code(load_store_6, opt_passes=opt_passes)
+    assert regs['a'] == 10
+    assert regs['i'] == 10
 
 
 loop_invariant_code_motion_basic = """
