@@ -4,7 +4,13 @@ i = Number(publish=True)
 
 def init():
 
-    # print(a)
+    if a:
+        i += 1
+
+    else:
+        i += 2
+
+    print(a)
     
     while i < 10:
         # i += 1

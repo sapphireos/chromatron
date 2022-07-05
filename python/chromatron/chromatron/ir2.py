@@ -2479,7 +2479,87 @@ class irBlock(IR):
 
         return values
 
-    def analyze_load_stores(self, visited=None, values=None):
+    def assign_load_store_versions(self, visited=None, versions=None):
+        assert visited[0] == self
+        visited.pop(0)
+
+        if versions is None:
+            versions = {}
+        
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                if ir.ref not in versions:
+                    versions[ir.ref] = 0
+
+                ir.ref_version = versions[ir.ref]
+
+            elif isinstance(ir, irStore):
+                if ir.ref not in versions:
+                    versions[ir.ref] = 0
+
+                versions[ir.ref] += 1
+
+                ir.ref_version = versions[ir.ref]
+
+        try:
+            while visited[0] in self.successors:
+                s = visited[0]
+                s.assign_load_store_versions(visited=visited, versions=versions)
+
+        except IndexError:
+            pass
+
+    def get_global_versions(self):
+        values = {}
+
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                values[ir.ref] = ir.ref_version
+
+            elif isinstance(ir, irStore):
+                values[ir.ref] = ir.ref_version
+
+        return values
+
+    def analyze_load_stores(self, visited=None, versions_in=None, versions_out=None):
+        assert visited[0] == self
+        visited.pop(0)
+
+        if versions_out is None:
+            versions_out = {}
+            versions_in = {}
+
+        versions_in[self] = {}
+        versions_out[self] = {}
+        
+        for p in self.predecessors:
+            for ref, version in p.get_global_versions().items():
+            # for ref, version in versions_out[p].items():
+                if ref not in versions_in[self]:
+                    versions_in[self][ref] = []
+
+                versions_in[self][ref].append(version)
+        
+        versions_out[self] = copy(versions_in[self])
+        # versions_out[self].update(self.get_global_versions())
+        for ref, version in self.get_global_versions().items():
+            if ref not in versions_out[self]:
+                versions_out[self][ref] = []
+
+            versions_out[self][ref].append(version)
+
+
+        try:
+            while visited[0] in self.successors:
+                s = visited[0]
+                s.analyze_load_stores(visited=visited, versions_in=versions_in, versions_out=versions_out)
+
+        except IndexError:
+            pass
+
+        return versions_in, versions_out
+
+    def analyze_load_stores2(self, visited=None, values=None):
         assert visited[0] == self
         visited.pop(0)
         
@@ -2533,7 +2613,7 @@ class irBlock(IR):
         incoming = analysis[self]
 
 
-        
+        return
 
         new_code = []
 
@@ -4088,7 +4168,7 @@ class irFunc(IR):
     def render_graph(self, graph_name=None):
         if not DEBUG:
             return
-            
+
         if graph_name is None:
             graph_name = self.name
 
@@ -4811,21 +4891,48 @@ class irFunc(IR):
         logging.debug(f'Load/store scheduling')
 
         print(self.reverse_postorder)
-        analysis = self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values={})
+
+        self.leader_block.assign_load_store_versions(visited=self.reverse_postorder)
+
+
+        # analysis = self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values={})
+        versions_in, versions_out = self.leader_block.analyze_load_stores(visited=self.reverse_postorder)
+
+        # pprint(analysis)
 
         print('\nAnalysis:')
 
-        for block, incoming in analysis.items():
+        for block, incoming in versions_in.items():
             print(f'  {block.name}:')
 
+            print(f'    IN:')
             for ref, values in incoming.items():
-                print(f'    {ref}:')
-
-                for val in values:
-                    print(f'      {val[1]} {val[0]} from {val[2].name}')
+                print(f'      {ref}: {values}')
 
 
-        self.leader_block.schedule_load_stores(visited=self.reverse_postorder, analysis=analysis)
+            outgoing = versions_out[block]
+
+            print(f'    OUT:')
+            for ref, values in outgoing.items():
+                print(f'      {ref}: {values}')
+
+        #         for val in values:
+        #             print(f'      {val[1]} {val[0]} from {val[2].name}')
+
+        # print('\nAnalysis OUT:')
+
+        # for block, incoming in versions_out.items():
+        #     print(f'  {block.name}:')
+
+        #     for ref, values in incoming.items():
+        #         print(f'    {ref}: {values}')
+
+        #         for val in values:
+        #             print(f'      {val[1]} {val[0]} from {val[2].name}')
+
+
+
+        # self.leader_block.schedule_load_stores(visited=self.reverse_postorder, analysis=analysis)
 
         # self.leader_block.schedule_load_stores(visited=self.reverse_postorder, values={})
         
@@ -6276,8 +6383,13 @@ class irLoad(IR):
         super().__init__(**kwargs)
         self.register = register
         self.ref = ref
+
+        self.ref_version = None
         
     def __str__(self):
+        if self.ref_version is not None:
+            return f'LOAD {self.register} <-- {self.ref}.{self.ref_version}'
+
         return f'LOAD {self.register} <-- {self.ref}'
 
     # @property
@@ -6316,7 +6428,12 @@ class irStore(IR):
         self.register = register
         self.ref = ref
 
+        self.ref_version = None
+
     def __str__(self):
+        if self.ref_version is not None:
+            return f'STORE {self.register} --> {self.ref}.{self.ref_version}'        
+
         return f'STORE {self.register} --> {self.ref}'
 
     # @property
