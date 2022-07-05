@@ -2533,20 +2533,25 @@ class irBlock(IR):
         versions_out[self] = {}
         
         for p in self.predecessors:
-            for ref, version in p.get_global_versions().items():
-            # for ref, version in versions_out[p].items():
-                if ref not in versions_in[self]:
-                    versions_in[self][ref] = []
+            if p not in versions_out:
+                continue
 
-                versions_in[self][ref].append(version)
+            for ref, versions in versions_out[p].items():
+                for version in versions:
+                    if ref not in versions_in[self]:
+                        versions_in[self][ref] = []
+
+                    if version not in versions_in[self][ref]:
+                        versions_in[self][ref].append(version)
         
         versions_out[self] = copy(versions_in[self])
-        # versions_out[self].update(self.get_global_versions())
+        
         for ref, version in self.get_global_versions().items():
             if ref not in versions_out[self]:
                 versions_out[self][ref] = []
 
-            versions_out[self][ref].append(version)
+            if version not in versions_out[self][ref]:
+                versions_out[self][ref].append(version)
 
 
         try:
@@ -4896,7 +4901,23 @@ class irFunc(IR):
 
 
         # analysis = self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values={})
-        versions_in, versions_out = self.leader_block.analyze_load_stores(visited=self.reverse_postorder)
+
+        versions_in = None
+        versions_out = None
+        v_in = {}
+        v_out = {}
+
+        iterations = 0
+
+        while v_in != versions_in or v_out != versions_out:
+            versions_in = v_in
+            versions_out = v_out
+
+            v_in, v_out = self.leader_block.analyze_load_stores(visited=self.reverse_postorder)
+
+            iterations += 1
+
+        print(f'iterations {iterations}')
 
         # pprint(analysis)
 
