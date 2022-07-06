@@ -4,11 +4,15 @@ i = Number(publish=True)
 
 def init():
 
+    ary = Number()[4]
+
     if 1:
         i += 1
 
     else:
         i += 2
+        # print(i)
+        # pass
 
         # fence()
 
@@ -94,37 +98,6 @@ def init():
 
     # if a > 0:
     #     b = 1
-
-<<<<<<< HEAD
-    # else:
-    #     b = 2
-
-
-    # if 1:
-    #     assert b == 2
-    #     assert a == 0
-
-# a = Number()
-# b = Number()
-
-# def init():
-
-#     if 1:
-#         a += 1
-
-#     else:
-#         a += 2
-
-
-#     if 1:
-#         print(a)
-=======
-    if 1:
-        b = a
-
-    # else:
-    #     print(a)
->>>>>>> 6f2235219f9114673087f4e4983c495f3c9dd361
 
 
     # a += 1

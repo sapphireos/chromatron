@@ -2552,7 +2552,73 @@ class irBlock(IR):
 
     #     return values
 
-    def analyze_load_stores(self, visited=None, versions_in=None, versions_out=None):
+    @property
+    def global_values(self):
+        values = {}
+
+        for ir in self.code:
+            if isinstance(ir, irLoad) or isinstance(ir, irStore):
+                values[ir.ref] = ir.ref_version
+
+        return values
+
+    def analyze_load_stores(self, visited=None, versions=None, values=None):
+        assert visited[0] == self
+        visited.pop(0)
+
+        if versions is None:
+            versions = {}
+
+            for ref, value in values.items():
+                versions[ref] = value[1]
+
+
+        incoming_values = {}
+        for p in self.predecessors:
+            for ref, version in p.global_values.items():
+                if ref not in incoming_values:
+                    incoming_values[ref] = []
+
+                incoming_values[ref].append(version)
+
+
+        for ref, ref_versions in incoming_values.items():
+            if len(ref_versions) > 1:
+                versions[ref] += 1
+                values[ref][1] = versions[ref]
+
+                ir = irGlobalPhi(ref, ('unknown', versions[ref]), ref_versions, lineno=-1)
+                ir.block = self
+
+                self.code.insert(1, ir)
+
+        
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                ir.ref_version = tuple(values[ir.ref])
+
+            elif isinstance(ir, irStore):
+                versions[ir.ref] += 1
+                values[ir.ref][1] = versions[ir.ref]
+
+                ir.ref_version = tuple(values[ir.ref])
+
+
+        print(self.name, values)
+
+
+        try:
+            while visited[0] in self.successors:
+                s = visited[0]
+                s.analyze_load_stores(visited=visited, versions=versions, values=deepcopy(values))
+
+        except IndexError:
+            pass
+
+        
+
+
+    def analyze_load_stores3(self, visited=None, versions_in=None, versions_out=None):
         assert visited[0] == self
         visited.pop(0)
 
@@ -2651,6 +2717,157 @@ class irBlock(IR):
 
         return analysis
 
+
+    @property
+    def emitted_globals(self):
+        values = {}
+
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                values[ir.ref] = ir.register
+
+            elif isinstance(ir, irStore):
+                values[ir.ref] = ir.register
+
+            elif isinstance(ir, irMemoryPhi):
+                values[ir.ref] = ir.register
+
+        return values
+
+
+    def lookup_mem(self, ref, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        visited.append(self)
+
+        if ref in self.emitted_globals:
+            return [(self.emitted_globals[ref], self)]
+
+        values = []
+        for p in self.predecessors:
+            pv = p.lookup_mem(ref)
+
+            for v in pv:
+                values.append(v)
+
+        if len(values) == 0:
+            raise KeyError(ref.name)
+
+        return values
+
+
+    def eliminate_loads(self, visited=None, values=None, emitted=None):
+        assert visited[0] == self
+        visited.pop(0)
+
+
+        print(self.name)
+           
+
+        new_code = []
+
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                incoming_values = []
+
+                for p in self.predecessors:
+                    try:
+                        pv = p.lookup_mem(ir.ref)
+
+                    except KeyError:
+                        continue
+
+                    if len(pv) == 1:
+                        # possible merge on this block
+                        incoming_values.extend(pv)
+
+                    else:
+
+                        # multiple values coming in from single predecessor
+                        # best to do the merge there?
+                        phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
+                        # phi = irPhi(ir.register, pv, lineno=-1)
+                        phi.block = p
+
+                        p.code.insert(-1, phi)
+
+                        incoming_values.append((ir.register, p))
+
+                        
+                if len(incoming_values) == 1:
+                    target = ir.register
+                    value = incoming_values[0][0]
+
+                    if target == value:
+                        continue
+
+                    else:
+                        assign = irAssign(target, value, lineno=-1)
+                        assign.block = self
+
+                        ir = assign
+
+                elif len(incoming_values) > 1:
+                    phi = irMemoryPhi(ir.ref, ir.register, incoming_values, lineno=-1)
+                    phi.block = self
+
+                    # self.code.insert(1, phi)
+
+                    ir = phi
+
+            new_code.append(ir)
+
+        self.code = new_code
+
+        # merges = {}
+
+        # for p in self.predecessors:
+        #     for ref, value in p.emitted_globals.items():
+        #         if isinstance(value, irMemoryPhi):
+        #             continue
+
+        #         if ref not in merges:
+        #             merges[ref] = []
+
+        #         merges[ref].append((value, p))
+
+
+        # for ref, merge in merges.items():
+        #     phi = irMemoryPhi(ref, merge, lineno=-1)
+        #     phi.block = self
+
+        #     self.code.insert(1, phi)
+
+
+        # for ir in self.code:
+        #     if isinstance(ir, irLoad):
+        #         if ir.ref in values:
+        #             new_ir = irAssign(ir.register, values[ir.ref], lineno=ir.lineno)
+        #             new_ir.block = self
+        #             print(f'    assign: {new_ir}')
+
+        #         values[ir.ref] = ir.register
+
+
+        #     elif isinstance(ir, irStore):
+        #         values[ir.ref] = ir.register
+
+        # emitted[self] = copy(values)
+        
+        # for k, v in values.items():
+        #     print(f'  {k}: {v}')
+
+        try:
+            while visited[0] in self.successors:
+                s = visited[0]
+                s.eliminate_loads(visited=visited, values=copy(values), emitted=emitted)
+
+        except IndexError:
+            pass
 
 
     # def schedule_load_stores(self, visited=None, loads=None, stores=None):
@@ -4979,6 +5196,21 @@ class irFunc(IR):
 
         print(self.reverse_postorder)
 
+        self.leader_block.eliminate_loads(visited=self.reverse_postorder, values={}, emitted={})
+
+
+        return
+
+
+        values = {}
+        for ir in self.get_code_from_blocks():
+            if isinstance(ir, irLoad) or isinstance(ir, irStore):
+                values[ir.ref] = ['unknown', 0]
+
+        self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values=values)
+
+
+
         # self.leader_block.assign_load_store_versions(visited=self.reverse_postorder)
 
         return
@@ -5766,6 +5998,80 @@ class irFunc(IR):
     @property
     def prev_node(self):
         return self.body[-1]
+
+
+class irMemoryPhi(IR):
+    def __init__(self, ref, register, merges=[], **kwargs):
+        super().__init__(**kwargs)
+
+        self.ref = ref
+        self.register = register
+        self.merges = merges
+        
+        for d in merges:
+            assert isinstance(d[0], VarContainer)
+            assert isinstance(d[1], irBlock)
+
+        assert self.register not in [a[0] for a in merges]
+
+    def __str__(self):
+        s = ''
+        for d in sorted(self.merges, key=lambda a: a[0].name):
+            s += f'{d[0]}:{d[1].name}, '
+
+        s = s[:-2]
+
+        s = f'{self.register} = MemPHI({s})'
+
+        return s
+
+    def get_input_vars(self):
+        return [a[0] for a in self.merges]
+
+    def get_output_vars(self):
+        return [self.register]
+
+    def generate(self):
+        return None
+
+class irGlobalPhi(IR):
+    def __init__(self, ref, ref_version, merges=[], **kwargs):
+        super().__init__(**kwargs)
+
+        self.ref = ref
+        self.ref_version = ref_version
+        self.merges = merges
+
+        # for d in merges:
+        #     assert isinstance(d[0], VarContainer)
+        #     assert isinstance(d[1], irBlock)
+
+        # assert self.ref not in [a[0] for a in merges]
+
+    def __str__(self):
+        s = ''
+        for d in sorted(self.merges):
+            s += f'{d}, '
+
+        s = s[:-2]
+
+        s = f'{self.ref}.{self.ref_version} = GPHI({s})'
+
+        return s
+
+    # @property
+    # def expr(self):
+    #     s = 'phi '
+    #     for m in sorted(self.merges, key=lambda x: x.ssa_name):
+    #         s += f'{m.ssa_name} '
+
+    #     return s
+
+    # def get_input_vars(self):
+    #     return [a[0] for a in self.merges]
+
+    # def get_output_vars(self):
+    #     return [self.target]
 
 class irPhi(IR):
     def __init__(self, target, merges=[], **kwargs):
