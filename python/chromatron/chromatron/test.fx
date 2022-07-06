@@ -3,6 +3,8 @@
 i = Number(publish=True)
 
 def init():
+    print(i)
+    
     if 1:
         i += 1
 

@@ -5375,7 +5375,7 @@ class irFunc(IR):
 
             self.recalc_defines()
 
-            # self.render_graph('ssa')
+            self.render_graph('ssa')
 
 
             with open("SSA_construction.fxir", 'w') as f:
