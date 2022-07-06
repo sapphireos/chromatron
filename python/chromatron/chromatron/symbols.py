@@ -45,17 +45,17 @@ class SymbolTable(object):
 
         return g
 
-    @property
-    def loaded_globals(self):
-        if self.parent:
-            g = self.parent.globals
+    # @property
+    # def loaded_globals(self):
+    #     if self.parent:
+    #         g = self.parent.globals
 
-        else:
-            g = {}
+    #     else:
+    #         g = {}
 
-        g.update({k: v for k, v in self.symbols.items() if v.is_global and v.is_container})
+    #     g.update({k: v for k, v in self.symbols.items() if v.is_global and v.is_container})
 
-        return g
+    #     return g
 
     def add(self, var):
         if var.name in self.symbols:

@@ -1,16 +1,20 @@
 
-a = Number(publish=True)
+# a = Number(publish=True)
 i = Number(publish=True)
 
 def init():
 
-    if a:
+    if 1:
         i += 1
 
     else:
         i += 2
 
-    print(a)
+        # fence()
+
+        # i = 3
+
+    # print(a)
     
     while i < 10:
         # i += 1
@@ -18,7 +22,11 @@ def init():
         # if i > 5:
         #     continue
 
-        a += 1
+        # a += 1
+        i += 1
+
+
+    # return i
 
 # i = Number()
 

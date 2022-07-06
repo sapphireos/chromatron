@@ -2479,12 +2479,46 @@ class irBlock(IR):
 
         return values
 
-    def assign_load_store_versions(self, visited=None, versions=None):
-        assert visited[0] == self
-        visited.pop(0)
+    # def assign_load_store_versions(self, visited=None, versions=None):
+    #     assert visited[0] == self
+    #     visited.pop(0)
 
+    #     if versions is None:
+    #         versions = {}
+        
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoad):
+    #             if ir.ref not in versions:
+    #                 versions[ir.ref] = 0
+
+    #             ir.ref_version = versions[ir.ref]
+
+    #         elif isinstance(ir, irStore):
+    #             if ir.ref not in versions:
+    #                 versions[ir.ref] = 0
+
+    #             versions[ir.ref] += 1
+
+    #             ir.ref_version = versions[ir.ref]
+
+    #     try:
+    #         while visited[0] in self.successors:
+    #             s = visited[0]
+    #             s.assign_load_store_versions(visited=visited, versions=versions)
+
+    #     except IndexError:
+    #         pass
+
+    def assign_load_store_versions(self, visited=None, versions=None, values=None):
         if versions is None:
             versions = {}
+            visited = []
+            values = {}
+
+        if self in visited:
+            return
+
+        visited.append(self)
         
         for ir in self.code:
             if isinstance(ir, irLoad):
@@ -2501,25 +2535,21 @@ class irBlock(IR):
 
                 ir.ref_version = versions[ir.ref]
 
-        try:
-            while visited[0] in self.successors:
-                s = visited[0]
-                s.assign_load_store_versions(visited=visited, versions=versions)
+        for s in self.successors:
+            s.assign_load_store_versions(visited, versions)
 
-        except IndexError:
-            pass
 
-    def get_global_versions(self):
-        values = {}
+    # def get_global_versions(self):
+    #     values = {}
 
-        for ir in self.code:
-            if isinstance(ir, irLoad):
-                values[ir.ref] = ir.ref_version
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoad):
+    #             values[ir.ref] = ir.ref_version
 
-            elif isinstance(ir, irStore):
-                values[ir.ref] = ir.ref_version
+    #         elif isinstance(ir, irStore):
+    #             values[ir.ref] = ir.ref_version
 
-        return values
+    #     return values
 
     def analyze_load_stores(self, visited=None, versions_in=None, versions_out=None):
         assert visited[0] == self
@@ -2528,7 +2558,7 @@ class irBlock(IR):
         if versions_out is None:
             versions_out = {}
             versions_in = {}
-
+        
         versions_in[self] = {}
         versions_out[self] = {}
         
@@ -2545,8 +2575,27 @@ class irBlock(IR):
                         versions_in[self][ref].append(version)
         
         versions_out[self] = copy(versions_in[self])
-        
-        for ref, version in self.get_global_versions().items():
+
+        self_versions = {}
+
+        for ir in self.code:
+            if isinstance(ir, irLoad) or isinstance(ir, irStore):
+                self_versions[ir.ref] = (ir.ref_version, ir.register)
+                # self_versions[ir.ref] = ir.ref_version
+
+
+            # if isinstance(ir, irLoad):
+            #     self_versions[ir.ref] = (ir.ref_version, ir.register)
+
+            #     # registers[ir.register] = ir.ref_version
+
+            # elif isinstance(ir, irStore):
+            #     self_versions[ir.ref] = (ir.ref_version, ir.register)
+
+            #     # registers[ir.register] = ir.ref_version
+
+            
+        for ref, version in self_versions.items():
             if ref not in versions_out[self]:
                 versions_out[self][ref] = []
 
@@ -4897,8 +4946,9 @@ class irFunc(IR):
 
         print(self.reverse_postorder)
 
-        self.leader_block.assign_load_store_versions(visited=self.reverse_postorder)
+        # self.leader_block.assign_load_store_versions(visited=self.reverse_postorder)
 
+        return
 
         # analysis = self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values={})
 
@@ -4928,14 +4978,26 @@ class irFunc(IR):
 
             print(f'    IN:')
             for ref, values in incoming.items():
-                print(f'      {ref}: {values}')
+                # print(f'      {ref}: {values}')
+
+                print(f'      {ref}:')
+                for val in values:
+                    print(f'        {val[0]}: {val[1]}')                    
 
 
             outgoing = versions_out[block]
 
             print(f'    OUT:')
             for ref, values in outgoing.items():
-                print(f'      {ref}: {values}')
+                # print(f'      {ref}: {values}')
+
+                print(f'      {ref}:')
+                for val in values:
+                    print(f'        {val[0]}: {val[1]}')                    
+
+
+
+
 
         #         for val in values:
         #             print(f'      {val[1]} {val[0]} from {val[2].name}')
@@ -5029,7 +5091,7 @@ class irFunc(IR):
 
             self.recalc_defines()
 
-            self.render_graph('ssa')
+            # self.render_graph('ssa')
 
 
             with open("SSA_construction.fxir", 'w') as f:
@@ -5123,7 +5185,7 @@ class irFunc(IR):
 
         self.recalc_defines()
 
-        self.render_graph('final')
+        # self.render_graph('final')
 
         # self.render_dominator_tree()
         # if opt_level == OptPasses.GVN:
