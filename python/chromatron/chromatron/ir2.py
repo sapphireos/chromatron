@@ -49,7 +49,7 @@ class OptPasses(Enum):
 
 
 DEBUG = True
-
+SHOW_LIVENESS = True
 
 
 """
@@ -547,8 +547,7 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            show_liveness = False
-            if show_liveness and self.func.live_in and ir in self.func.live_in:
+            if SHOW_LIVENESS and self.func.live_in and ir in self.func.live_in:
                 s += f'{ir_s}\n'
                 ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
                 outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
@@ -2759,6 +2758,19 @@ class irBlock(IR):
 
         return values
 
+    def resolve_memory_phis(self):
+        new_code = []
+
+        for ir in self.code:
+            if isinstance(ir, irMemoryPhi):
+                ir = irPhi(ir.register, ir.merges, lineno=ir.lineno)
+                ir.block = self
+
+            new_code.append(ir)
+
+        self.code = new_code
+
+
 
     def eliminate_loads(self, visited=None, values=None, emitted=None):
         assert visited[0] == self
@@ -2790,7 +2802,6 @@ class irBlock(IR):
                         # multiple values coming in from single predecessor
                         # best to do the merge there?
                         phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
-                        # phi = irPhi(ir.register, pv, lineno=-1)
                         phi.block = p
 
                         p.code.insert(-1, phi)
@@ -5198,6 +5209,8 @@ class irFunc(IR):
 
         self.leader_block.eliminate_loads(visited=self.reverse_postorder, values={}, emitted={})
 
+        for block in self.reverse_postorder:
+            block.resolve_memory_phis()
 
         return
 
