@@ -49,7 +49,7 @@ class OptPasses(Enum):
 
 
 DEBUG = True
-SHOW_LIVENESS = True
+SHOW_LIVENESS = False
 
 
 """
@@ -2785,6 +2785,7 @@ class irBlock(IR):
         for ir in self.code:
             if isinstance(ir, irLoad):
                 incoming_values = []
+                predecessors = {}
 
                 for p in self.predecessors:
                     try:
@@ -2792,6 +2793,9 @@ class irBlock(IR):
 
                     except KeyError:
                         continue
+
+                    for v in pv:
+                        predecessors[v[0]] = p
 
                     if len(pv) == 1:
                         # possible merge on this block
@@ -2823,6 +2827,8 @@ class irBlock(IR):
                         ir = assign
 
                 elif len(incoming_values) > 1:
+                    incoming_values = [(v[0], predecessors[v[0]]) for v in incoming_values]
+
                     phi = irMemoryPhi(ir.ref, ir.register, incoming_values, lineno=-1)
                     phi.block = self
 
@@ -5417,6 +5423,8 @@ class irFunc(IR):
 
             # convert out of SSA form
             self.resolve_phi()
+
+            self.render_graph('resolved_after_opt')
             
 
         # blocks may have been rearranged or added at this point

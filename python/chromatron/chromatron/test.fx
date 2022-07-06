@@ -3,9 +3,6 @@
 i = Number(publish=True)
 
 def init():
-
-    ary = Number()[4]
-
     if 1:
         i += 1
 
