@@ -2772,7 +2772,7 @@ class irBlock(IR):
 
 
 
-    def eliminate_loads(self, visited=None, values=None, emitted=None):
+    def eliminate_loads(self, visited=None):
         assert visited[0] == self
         visited.pop(0)
 
@@ -2782,59 +2782,81 @@ class irBlock(IR):
 
         new_code = []
 
+        local_values = {}
+
         for ir in self.code:
             if isinstance(ir, irLoad):
-                incoming_values = []
-                predecessors = {}
+                if ir.ref in local_values:
+                    assign = irAssign(ir.register, local_values[ir.ref], lineno=-1)
+                    assign.block = self
 
-                for p in self.predecessors:
-                    try:
-                        pv = p.lookup_mem(ir.ref)
+                    ir = assign
 
-                    except KeyError:
-                        continue
+                else:
+                    incoming_values = []
+                    predecessors = {}
 
-                    for v in pv:
-                        predecessors[v[0]] = p
+                    for p in self.predecessors:
+                        try:
+                            pv = p.lookup_mem(ir.ref)
 
-                    if len(pv) == 1:
-                        # possible merge on this block
-                        incoming_values.extend(pv)
+                        except KeyError:
+                            continue
 
-                    else:
+                        for v in pv:
+                            predecessors[v[0]] = p
 
-                        # multiple values coming in from single predecessor
-                        # best to do the merge there?
-                        phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
-                        phi.block = p
+                        if len(pv) == 1:
+                            # possible merge on this block
+                            incoming_values.extend(pv)
 
-                        p.code.insert(-1, phi)
+                        else:
 
-                        incoming_values.append((ir.register, p))
+                            # multiple values coming in from single predecessor
+                            # best to do the merge there?
+                            phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
+                            phi.block = p
 
-                        
-                if len(incoming_values) == 1:
-                    target = ir.register
-                    value = incoming_values[0][0]
+                            local_values[ir.ref] = ir.register
 
-                    if target == value:
-                        continue
+                            p.code.insert(-1, phi)
 
-                    else:
-                        assign = irAssign(target, value, lineno=-1)
-                        assign.block = self
+                            incoming_values.append((ir.register, p))
 
-                        ir = assign
+                    temp_merges = []
+                    for v in incoming_values:
+                        if v not in temp_merges:
+                            temp_merges.append(v)
 
-                elif len(incoming_values) > 1:
-                    incoming_values = [(v[0], predecessors[v[0]]) for v in incoming_values]
+                    incoming_values = temp_merges
 
-                    phi = irMemoryPhi(ir.ref, ir.register, incoming_values, lineno=-1)
-                    phi.block = self
+                    if len(incoming_values) == 1:
+                        target = ir.register
+                        value = incoming_values[0][0]
 
-                    # self.code.insert(1, phi)
+                        if target == value:
+                            continue
 
-                    ir = phi
+                        else:
+                            assign = irAssign(target, value, lineno=-1)
+                            assign.block = self
+
+                            local_values[ir.ref] = ir.register
+
+                            ir = assign
+
+                    elif len(incoming_values) > 1:
+                        incoming_values = [(v[0], predecessors[v[0]]) for v in incoming_values]
+
+                        phi = irMemoryPhi(ir.ref, ir.register, incoming_values, lineno=-1)
+                        phi.block = self
+
+                        local_values[ir.ref] = ir.register
+
+                        # self.code.insert(1, phi)
+
+                        ir = phi
+
 
             new_code.append(ir)
 
@@ -2881,7 +2903,7 @@ class irBlock(IR):
         try:
             while visited[0] in self.successors:
                 s = visited[0]
-                s.eliminate_loads(visited=visited, values=copy(values), emitted=emitted)
+                s.eliminate_loads(visited=visited)
 
         except IndexError:
             pass
@@ -5213,7 +5235,9 @@ class irFunc(IR):
 
         print(self.reverse_postorder)
 
-        self.leader_block.eliminate_loads(visited=self.reverse_postorder, values={}, emitted={})
+        self.leader_block.eliminate_loads(visited=self.reverse_postorder)
+
+        self.render_graph('mem_phi')
 
         for block in self.reverse_postorder:
             block.resolve_memory_phis()

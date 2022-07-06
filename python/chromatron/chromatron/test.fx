@@ -1,32 +1,45 @@
 
-# a = Number(publish=True)
+a = Number(publish=True)
 i = Number(publish=True)
 
 def init():
-    print(i)
-    
-    if 1:
-        i += 1
-
-    else:
-        i += 2
-        # print(i)
-        # pass
-
-        # fence()
-
-        # i = 3
-
-    # print(a)
     
     while i < 10:
-        # i += 1
-
-        # if i > 5:
-        #     continue
-
-        # a += 1
         i += 1
+
+        if i > 5:
+            continue
+
+        a += 1
+        
+# # a = Number(publish=True)
+# i = Number(publish=True)
+
+# def init():
+#     print(i)
+
+#     if 1:
+#         i += 1
+
+#     else:
+#         i += 2
+#         # print(i)
+#         # pass
+
+#         # fence()
+
+#         # i = 3
+
+#     # print(a)
+    
+#     while i < 10:
+#         # i += 1
+
+#         # if i > 5:
+#         #     continue
+
+#         # a += 1
+#         i += 1
 
 
     # return i
