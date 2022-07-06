@@ -4939,7 +4939,39 @@ class irFunc(IR):
         return func
 
     def gvn_optimizer(self, *args, **kwargs):
-        return self.leader_block.gvn_analyze(*args, **kwargs)
+        original_count = len(self.get_code_from_blocks())
+
+        self.analyze_loops()
+        
+        MAX_GVN_ITERATIONS = 100
+
+        changed = True
+        i = 0
+        while changed and i <= MAX_GVN_ITERATIONS:
+            i += 1
+            changed = self.leader_block.gvn_analyze(pass_number=i)
+                
+            # we may have eliminated instructions, or entire blocks:
+            # relink blocks, prune, verify, recalc dominance, and re-analyze loops
+            self.leader_block.relink_blocks()
+            self.leader_block.prune_unreachable_blocks()
+            self.verify_block_assignments()
+            self.verify_block_links()
+            self.recalc_defines()
+            self.recalc_dominators()
+            self.analyze_loops()
+
+            with open(f"GVN_pass_{i}.fxir", 'w') as f:
+                f.write(str(self))
+
+
+        if i >= MAX_GVN_ITERATIONS:
+            raise CompilerFatal(f'GVN failed to complete after {i} iterations')
+
+        new_count = len(self.get_code_from_blocks())
+        delta = original_count - new_count
+
+        logging.debug(f'GVN in {i} iterations. Eliminated {delta} instructions.')
     
     def schedule_load_stores(self, *args, **kwargs):
         logging.debug(f'Load/store scheduling')
@@ -5106,33 +5138,8 @@ class irFunc(IR):
             # self.render_graph()
 
             if OptPasses.GVN in opt_passes:
-
-                self.analyze_loops()
+                self.gvn_optimizer()
                 
-                MAX_GVN_ITERATIONS = 100
-
-                changed = True
-                i = 0
-                while changed and i <= MAX_GVN_ITERATIONS:
-                    i += 1
-                    changed = self.gvn_optimizer(pass_number=i)
-                        
-                    # we may have eliminated instructions, or entire blocks:
-                    # relink blocks, prune, verify, recalc dominance, and re-analyze loops
-                    self.leader_block.relink_blocks()
-                    self.leader_block.prune_unreachable_blocks()
-                    self.verify_block_assignments()
-                    self.verify_block_links()
-                    self.recalc_defines()
-                    self.recalc_dominators()
-                    self.analyze_loops()
-
-                    with open(f"GVN_pass_{i}.fxir", 'w') as f:
-                        f.write(str(self))
-
-
-                if i >= MAX_GVN_ITERATIONS:
-                    raise CompilerFatal(f'GVN failed to complete after {i} iterations')
                     
             # # optimizers
             # optimize = False
