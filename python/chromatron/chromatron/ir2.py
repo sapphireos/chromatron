@@ -48,7 +48,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = True
+DEBUG = False
 SHOW_LIVENESS = False
 
 
@@ -2748,7 +2748,7 @@ class irBlock(IR):
 
         values = []
         for p in self.predecessors:
-            pv = p.lookup_mem(ref)
+            pv = p.lookup_mem(ref, visited=visited)
 
             for v in pv:
                 values.append(v)
@@ -2809,6 +2809,11 @@ class irBlock(IR):
                         for v in pv:
                             predecessors[v[0]] = p
 
+                        # filter out self-references
+                        pv = [v for v in pv if v[0] != ir.register]
+
+                        assert len(pv) > 0
+
                         if len(pv) == 1:
                             # possible merge on this block
                             incoming_values.extend(pv)
@@ -2816,7 +2821,8 @@ class irBlock(IR):
                         else:
 
                             # multiple values coming in from single predecessor
-                            # best to do the merge there?
+                            # best to do the merge there.
+
                             phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
                             phi.block = p
 
@@ -2828,7 +2834,7 @@ class irBlock(IR):
 
                     temp_merges = []
                     for v in incoming_values:
-                        if v not in temp_merges:
+                        if v not in temp_merges and v[0] != ir.register:
                             temp_merges.append(v)
 
                     incoming_values = temp_merges
