@@ -2785,7 +2785,10 @@ class irBlock(IR):
         local_values = {}
 
         for ir in self.code:
-            if isinstance(ir, irLoad):
+            if isinstance(ir, irStore):
+                local_values[ir.ref] = ir.register
+
+            elif isinstance(ir, irLoad):
                 if ir.ref in local_values:
                     assign = irAssign(ir.register, local_values[ir.ref], lineno=-1)
                     assign.block = self
@@ -2852,8 +2855,6 @@ class irBlock(IR):
                         phi.block = self
 
                         local_values[ir.ref] = ir.register
-
-                        # self.code.insert(1, phi)
 
                         ir = phi
 
