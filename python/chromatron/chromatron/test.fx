@@ -95,6 +95,7 @@ def init():
     # if a > 0:
     #     b = 1
 
+<<<<<<< HEAD
     # else:
     #     b = 2
 
@@ -117,6 +118,13 @@ def init():
 
 #     if 1:
 #         print(a)
+=======
+    if 1:
+        b = a
+
+    # else:
+    #     print(a)
+>>>>>>> 6f2235219f9114673087f4e4983c495f3c9dd361
 
 
     # a += 1

@@ -2466,7 +2466,8 @@ class irBlock(IR):
                     values[k] = []
 
                 for val in v:
-                    values[k].append((val[0], val[1], p))
+                    # values[k].append((val[0], val[1], p))
+                    values[k].append(val)
 
         # for k, v in values.items():
         #     sources = [val[1] for val in v]
