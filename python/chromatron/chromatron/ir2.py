@@ -2846,7 +2846,7 @@ class irBlock(IR):
 
                     for p in self.predecessors:
                         try:
-                            pv = p.lookup_mem(ir.ref)
+                            pv = p.lookup_mem(ir.ref, visited=[self])
 
                         except KeyError:
                             continue
@@ -2926,7 +2926,7 @@ class irBlock(IR):
 
                     elif len(incoming_values) > 1:
                         logging.debug(f'LoadElim: Replace load with MemPHI: {ir}')
-                        
+
                         incoming_values = [(v[0], predecessors[v[0]]) for v in incoming_values]
 
                         phi = irMemoryPhi(ir.ref, ir.register, incoming_values, lineno=-1)
