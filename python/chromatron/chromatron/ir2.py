@@ -48,7 +48,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = False
+DEBUG = True
 SHOW_LIVENESS = False
 
 
@@ -3871,7 +3871,14 @@ class irBlock(IR):
                 raise CompilerFatal(f'{incoming_jump}')
 
             # rearrange block structure    
-            in_block.successors.remove(self)
+            try:
+                in_block.successors.remove(self)
+
+            except ValueError:
+                logging.error(f'PHI resolver failed on block: {self.name} merging: {merge_block.name} from {in_block.name}')
+
+                raise
+
             in_block.successors.append(merge_block)
             merge_block.predecessors.append(in_block)
             merge_block.successors.append(self)
