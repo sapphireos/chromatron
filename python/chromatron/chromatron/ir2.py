@@ -2253,7 +2253,7 @@ class irBlock(IR):
                 # pseudoinstruction
                 pass
 
-            elif isinstance(ir, irLoopTop):
+            elif isinstance(ir, irLoopFooter):
                 # pseudoinstruction
                 pass
 
@@ -2817,7 +2817,8 @@ class irBlock(IR):
 
         self.code = new_code
 
-
+    def hoist_loads(self):
+        pass
 
     def eliminate_loads(self, visited=None):
         assert visited[0] == self
@@ -5024,22 +5025,22 @@ class irFunc(IR):
             loop_name = None
             info = {
                 'header': None,
-                'top': None,
                 'body': [],
                 'body_vars': [],
+                'footer': None
                 }
 
 
             for block in body:
-                # look for loop top
+                # look for loop footer
                 try:
-                    loop_top = [a for a in block.code if isinstance(a, irLoopTop)][0]
+                    loop_footer = [a for a in block.code if isinstance(a, irLoopFooter)][0]
 
                 except IndexError:
                     continue
 
-                loop_name = loop_top.name
-                info['top'] = block
+                loop_name = loop_footer.name
+                info['footer'] = block
                 info['body'] = body
 
                 loops[loop_name] = info
@@ -6285,14 +6286,14 @@ class irLoopHeader(IR):
     def generate(self):
         return None
 
-class irLoopTop(IR):
+class irLoopFooter(IR):
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.is_nop = True
 
     def __str__(self):
-        return f'LoopTop: {self.name}'
+        return f'LoopFooter: {self.name}'
 
     def generate(self):
         return None
