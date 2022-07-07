@@ -3,8 +3,8 @@ a = Number(publish=True)
 i = Number(publish=True)
 
 def init():
-    for i in 4:
-        pass
+    for x in 4:
+        i += 1
 
 
 # a = Number(publish=True)

@@ -1494,7 +1494,8 @@ class irBlock(IR):
 
         new_code = []
 
-        print(f"\n**************************\nGVN block: {self.name}\n")
+        if DEBUG:
+            print(f"\n**************************\nGVN block: {self.name}\n")
 
         # analyze phi nodes
         for ir in self.code:
@@ -1528,7 +1529,8 @@ class irBlock(IR):
                     break
 
             if meaningless:
-                print(f"removing meaningless phi: {phi}")
+                if DEBUG:
+                    print(f"removing meaningless phi: {phi}")
 
                 values[phi.target] = first_value
 
@@ -1547,7 +1549,9 @@ class irBlock(IR):
 
         # analyze all other instructions
         for ir in self.code:
-            print(f'IR: {ir}')
+            if DEBUG:
+                print(f'IR: {ir}')
+
             original_ir = ir # record original, just for debug printing
 
             if isinstance(ir, irLoadConst):
@@ -1589,7 +1593,8 @@ class irBlock(IR):
                     replacement = values[ir.value]
 
                     if ir.value != replacement:
-                        print(f"replace assign {ir.target} = {ir.value} with {replacement}")
+                        if DEBUG:
+                            print(f"replace assign {ir.target} = {ir.value} with {replacement}")
 
                         ir.value = replacement
 
@@ -1606,10 +1611,12 @@ class irBlock(IR):
 
                     values[ir.target] = v
 
-                    # remove assignment
-                    print(f"remove assign {ir.target} = {ir.value}")
+                    if DEBUG:
+                        print(f"remove assign {ir.target} = {ir.value}")
 
                     changed = True
+
+                    # remove assignment
 
                     continue
 
@@ -1622,7 +1629,8 @@ class irBlock(IR):
                     replacement = values[ir.ref]
 
                     if ir.ref != replacement:
-                        print(f"replace load {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace load {ir} with {replacement}")
 
                         ir.ref = replacement
 
@@ -1663,7 +1671,8 @@ class irBlock(IR):
                     replacement = values[ir.ref]
 
                     if ir.ref != replacement:
-                        print(f"replace store {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace store {ir} with {replacement}")
 
                         ir.ref = replacement
 
@@ -1673,7 +1682,8 @@ class irBlock(IR):
                     replacement = values[ir.register]
 
                     if ir.register != replacement:
-                        print(f"replace store {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace store {ir} with {replacement}")
 
                         ir.register = replacement
 
@@ -1704,7 +1714,8 @@ class irBlock(IR):
                     replacement = values[ir.target]
 
                     if ir.target != replacement:
-                        print(f"replace load retval {ir.target} with {replacement}")
+                        if DEBUG:
+                            print(f"replace load retval {ir.target} with {replacement}")
 
                         ir.target = replacement
 
@@ -1716,7 +1727,8 @@ class irBlock(IR):
                     replacement = values[ir.value]
 
                     if ir.value != replacement:
-                        print(f"replace not {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace not {ir} with {replacement}")
 
                         ir.value = replacement
 
@@ -1728,7 +1740,8 @@ class irBlock(IR):
                 fold = ir.fold()
 
                 if fold is not None:
-                    print(f'Fold not: {fold}')
+                    if DEBUG:
+                        print(f'Fold not: {fold}')
 
                     assert isinstance(fold, irLoadConst)
 
@@ -1748,7 +1761,9 @@ class irBlock(IR):
                         values[ir.target] = v
 
                         # remove assignment
-                        print(f"remove not {ir}")
+
+                        if DEBUG:
+                            print(f"remove not {ir}")
 
                         changed = True
 
@@ -1764,7 +1779,8 @@ class irBlock(IR):
                     replacement = values[ir.value]
 
                     if ir.value != replacement:
-                        print(f"replace conversion {ir.result} = {ir.value} with {replacement}")
+                        if DEBUG:
+                            print(f"replace conversion {ir.result} = {ir.value} with {replacement}")
 
                         ir.value = replacement
 
@@ -1776,7 +1792,8 @@ class irBlock(IR):
                 fold = ir.fold()
 
                 if fold is not None:
-                    print(f'Fold conversion: {fold}')
+                    if DEBUG:
+                        print(f'Fold conversion: {fold}')
 
                     assert isinstance(fold, irLoadConst) or isinstance(fold, irAssign)
 
@@ -1796,7 +1813,8 @@ class irBlock(IR):
                         values[ir.result] = v
 
                         # remove assignment
-                        print(f"remove conversion {ir.result} = {ir.value}")
+                        if DEBUG:
+                            print(f"remove conversion {ir.result} = {ir.value}")
 
                         changed = True
 
@@ -1812,7 +1830,8 @@ class irBlock(IR):
                     replacement = values[ir.ref]
 
                     if ir.ref != replacement:
-                        print(f"replace lookup ref {ir.result} = {ir.ref} with {replacement}")
+                        if DEBUG:
+                            print(f"replace lookup ref {ir.result} = {ir.ref} with {replacement}")
 
                         ir.ref = replacement
 
@@ -1825,7 +1844,8 @@ class irBlock(IR):
 
                         if ir.lookups[i] != replacement:
 
-                            print(f"replace lookup {ir.lookups[i]} with {replacement}")
+                            if DEBUG:
+                                print(f"replace lookup {ir.lookups[i]} with {replacement}")
 
                             ir.lookups[i] = replacement
 
@@ -1867,7 +1887,8 @@ class irBlock(IR):
                     values[ir.result] = v
 
                     # remove
-                    print(f"remove lookup {ir}")
+                    if DEBUG:
+                        print(f"remove lookup {ir}")
 
                     changed = True
 
@@ -1882,7 +1903,8 @@ class irBlock(IR):
                     replacement = values[ir.ret_var]
 
                     if ir.ret_var != replacement:
-                        print(f"replace return {ir.ret_var} with {replacement}")
+                        if DEBUG:
+                            print(f"replace return {ir.ret_var} with {replacement}")
                         ir.ret_var = replacement
                         changed = True
 
@@ -1892,7 +1914,8 @@ class irBlock(IR):
                     replacement = values[ir.left]
 
                     if ir.left != replacement:
-                        print(f"replace left {ir.left} with {replacement}")
+                        if DEBUG:
+                            print(f"replace left {ir.left} with {replacement}")
 
                         ir.left = replacement
 
@@ -1902,7 +1925,8 @@ class irBlock(IR):
                     replacement = values[ir.right]
 
                     if ir.right != replacement:
-                        print(f"replace right {ir.right} with {replacement}")
+                        if DEBUG:
+                            print(f"replace right {ir.right} with {replacement}")
 
                         ir.right = replacement
 
@@ -1914,8 +1938,8 @@ class irBlock(IR):
                 fold = ir.fold()
 
                 if fold is not None:
-
-                    print(f'Fold binop: {fold}')
+                    if DEBUG:
+                        print(f'Fold binop: {fold}')
 
                     assert isinstance(fold, irLoadConst)
 
@@ -1932,8 +1956,10 @@ class irBlock(IR):
                     if expr in values:                
                         values[ir.target] = expr
 
-                        # remove this instruction    
-                        print(f"remove binop {original_ir.target} = {original_ir.left} {original_ir.op} {original_ir.right}")
+                        # remove this instruction   
+
+                        if DEBUG: 
+                            print(f"remove binop {original_ir.target} = {original_ir.left} {original_ir.op} {original_ir.right}")
 
                         changed = True
 
@@ -1949,7 +1975,8 @@ class irBlock(IR):
                     replacement = values[ir.target]
 
                     if ir.target != replacement:
-                        print(f"replace vector assign target {ir.target} = {ir.target} with {replacement}")
+                        if DEBUG:
+                            print(f"replace vector assign target {ir.target} = {ir.target} with {replacement}")
 
                         ir.target = replacement
 
@@ -1959,7 +1986,8 @@ class irBlock(IR):
                     replacement = values[ir.value]
 
                     if ir.value != replacement:
-                        print(f"replace vector assign value {ir.target} = {ir.value} with {replacement}")
+                        if DEBUG:
+                            print(f"replace vector assign value {ir.target} = {ir.value} with {replacement}")
 
                         ir.value = replacement
 
@@ -1971,7 +1999,8 @@ class irBlock(IR):
                     replacement = values[ir.target]
 
                     if ir.target != replacement:
-                        print(f"replace vector op target {ir.target} = {ir.target} with {replacement}")
+                        if DEBUG:
+                            print(f"replace vector op target {ir.target} = {ir.target} with {replacement}")
 
                         ir.target = replacement
 
@@ -1981,7 +2010,8 @@ class irBlock(IR):
                     replacement = values[ir.value]
 
                     if ir.value != replacement:
-                        print(f"replace vector op value {ir.target} = {ir.value} with {replacement}")
+                        if DEBUG:
+                            print(f"replace vector op value {ir.target} = {ir.value} with {replacement}")
 
                         ir.value = replacement
 
@@ -1993,7 +2023,8 @@ class irBlock(IR):
                     replacement = values[ir.target]
 
                     if ir.target != replacement:
-                        print(f"replace object lookup {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace object lookup {ir} with {replacement}")
 
                         ir.target = replacement
 
@@ -2008,7 +2039,9 @@ class irBlock(IR):
                     values[ir.result] = v
 
                     # remove assignment
-                    print(f"remove object lookup {ir}")
+
+                    if DEBUG:
+                        print(f"remove object lookup {ir}")
 
                     changed = True
 
@@ -2024,7 +2057,8 @@ class irBlock(IR):
                     replacement = values[ir.target]
 
                     if ir.target != replacement:
-                        print(f"replace object store {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace object store {ir} with {replacement}")
 
                         ir.target = replacement
 
@@ -2034,7 +2068,8 @@ class irBlock(IR):
                     replacement = values[ir.value]
 
                     if ir.value != replacement:
-                        print(f"replace object store {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace object store {ir} with {replacement}")
 
                         ir.value = replacement
 
@@ -2046,7 +2081,8 @@ class irBlock(IR):
                     replacement = values[ir.target]
 
                     if ir.target != replacement:
-                        print(f"replace object load {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace object load {ir} with {replacement}")
 
                         ir.target = replacement
 
@@ -2056,7 +2092,8 @@ class irBlock(IR):
                     replacement = values[ir.value]
 
                     if ir.value != replacement:
-                        print(f"replace object load {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace object load {ir} with {replacement}")
 
                         ir.value = replacement
 
@@ -2068,7 +2105,8 @@ class irBlock(IR):
                     replacement = values[ir.target]
 
                     if ir.target != replacement:
-                        print(f"replace object op {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace object op {ir} with {replacement}")
 
                         ir.target = replacement
 
@@ -2078,7 +2116,8 @@ class irBlock(IR):
                     replacement = values[ir.value]
 
                     if ir.value != replacement:
-                        print(f"replace object op {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace object op {ir} with {replacement}")
 
                         ir.value = replacement
 
@@ -2091,7 +2130,8 @@ class irBlock(IR):
                     replacement = values[ir.ref]
 
                     if ir.ref != replacement:
-                        print(f"replace loadref {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace loadref {ir} with {replacement}")
 
                         ir.ref = replacement
 
@@ -2112,7 +2152,8 @@ class irBlock(IR):
                     values[ir.target] = v
 
                     # remove assignment
-                    print(f"remove loadref {ir}")
+                    if DEBUG:
+                        print(f"remove loadref {ir}")
 
                     changed = True
 
@@ -2137,7 +2178,8 @@ class irBlock(IR):
                     replacement = values[ir.stop]
 
                     if ir.stop != replacement:
-                        print(f"replace loop stop {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace loop stop {ir} with {replacement}")
 
                         ir.stop = replacement
 
@@ -2153,7 +2195,8 @@ class irBlock(IR):
                     replacement = values[ir.value]    
 
                     if ir.value != replacement:
-                        print(f"replace branch value {ir.value} to {replacement}")
+                        if DEBUG:
+                            print(f"replace branch value {ir.value} to {replacement}")
 
                         ir.value = replacement
                         changed = True
@@ -2232,7 +2275,8 @@ class irBlock(IR):
 
                         if ir.params[i] != replacement:
 
-                            print(f"replace call param {ir.params[i]} with {replacement}")
+                            if DEBUG:
+                                print(f"replace call param {ir.params[i]} with {replacement}")
 
                             ir.params[i] = replacement
 
@@ -2245,8 +2289,8 @@ class irBlock(IR):
                         replacement = values[ir.params[i]]
 
                         if ir.params[i] != replacement:
-
-                            print(f"replace call param {ir.params[i]} with {replacement}")
+                            if DEBUG:
+                                print(f"replace call param {ir.params[i]} with {replacement}")
 
                             ir.params[i] = replacement
 
@@ -2259,8 +2303,8 @@ class irBlock(IR):
                         replacement = values[ir.params[i]]
 
                         if ir.params[i] != replacement:
-
-                            print(f"replace icall param {ir.params[i]} with {replacement}")
+                            if DEBUG:
+                                print(f"replace icall param {ir.params[i]} with {replacement}")
 
                             ir.params[i] = replacement
 
@@ -2270,7 +2314,8 @@ class irBlock(IR):
                     replacement = values[ir.ref]
 
                     if ir.ref != replacement:
-                        print(f"replace icall {ir} with {replacement}")
+                        if DEBUG:
+                            print(f"replace icall {ir} with {replacement}")
 
                         ir.ref = replacement
 
@@ -2303,30 +2348,32 @@ class irBlock(IR):
 
                         if m != replacement:
                             # replace phi input with the value number
-                            print(f"Replace phi input {m} with {replacement}")
+
+                            if DEBUG:
+                                print(f"Replace phi input {m} with {replacement}")
 
                             phi.merges[i] = (replacement, b)
 
                             changed = True
 
 
+        if DEBUG:
+            print(f"\n----------------------\nGVN Summary: {self.name}")
 
-        print(f"\n----------------------\nGVN Summary: {self.name}")
+            print("\nVALUES:")
 
-        print("\nVALUES:")
+            for k, v in values.items():
+                print(f'{str(k):32} = {v}')
 
-        for k, v in values.items():
-            print(f'{str(k):32} = {v}')
+            print('\n')
 
-        print('\n')
+            if changed:
+                print("changes marked in this pass")
 
-        if changed:
-            print("changes marked in this pass")
+            else:
+                print("no changes in this pass")
 
-        else:
-            print("no changes in this pass")
-
-        print('\n')
+            print('\n')
 
         if self not in self.func.dominator_tree:
             return changed
@@ -2775,10 +2822,6 @@ class irBlock(IR):
     def eliminate_loads(self, visited=None):
         assert visited[0] == self
         visited.pop(0)
-
-
-        print(self.name)
-           
 
         new_code = []
 
@@ -4772,12 +4815,16 @@ class irFunc(IR):
         for v in self.live_in[code[0]]:
             if v not in self.params:
                 logging.error(f'Liveness error: {v} func: {self.name}')
-                # raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+                
+                if not DEBUG:
+                    raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
 
         for v in self.live_out[code[0]]:
             if v not in self.params:
                 logging.error(f'Liveness error: {v} func: {self.name}')
-                # raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+
+                if not DEBUG:
+                    raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
 
         # copy liveness information into instructions:
         for ir in code:
