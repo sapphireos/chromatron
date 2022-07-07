@@ -48,7 +48,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = True
+DEBUG = False
 SHOW_LIVENESS = False
 
 
@@ -2846,7 +2846,7 @@ class irBlock(IR):
 
                     for p in self.predecessors:
                         try:
-                            pv = p.lookup_mem(ir.ref, visited=[self])
+                            pv = p.lookup_mem(ir.ref, visited=[self]) # make sure we don't scan this block
 
                         except KeyError:
                             continue
