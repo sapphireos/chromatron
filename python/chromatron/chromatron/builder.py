@@ -1206,6 +1206,15 @@ class Builder(object):
     """
 
     def begin_for(self, iterator, stop, lineno=None):
+        # check if iterator is declared as a global
+        try:
+            self.global_symbols.lookup(iterator.name)
+
+            raise SyntaxError(f'For loop iterator {iterator.name} shadows global variable', lineno=lineno)
+
+        except KeyError:
+            pass
+
         loop_name = f'for.{self.next_loop}'
         self.loop.append(loop_name)
 
