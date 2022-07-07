@@ -4,11 +4,13 @@
 i = Number()
 
 def init():
-    # for x in 4:
-        # i = 0
+    # print(i)
+    
+    for x in 4:
+        i += 1
 
-    while i < 10:
-        i += 1 + 2
+    # while i < 10:
+    #     i += 1 + 2
 
 
 

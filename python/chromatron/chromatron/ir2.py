@@ -779,8 +779,8 @@ class irBlock(IR):
     def _loop_test_vars(self, loop):
         test_vars = [loop['test_var']]
 
-        # test vars will be in the top block
-        for ir in reversed(loop['top'].code):
+        # test vars will be in the loop block
+        for ir in reversed(loop['loop'].code):
             # skip phi nodes
             if isinstance(ir, irPhi):
                 continue
@@ -2843,9 +2843,6 @@ class irBlock(IR):
 
         self.code = new_code
 
-    def hoist_loads(self):
-        pass
-
     def eliminate_loads(self, visited=None):
         assert visited[0] == self
         visited.pop(0)
@@ -4437,7 +4434,6 @@ class irFunc(IR):
             for loop, info in self.loops.items():
                 s += f'{loop}\n'
                 s += f'\tHeader: {info["header"].name}\n'
-                s += f'\tTop:    {info["top"].name}\n'
                 s += '\tBody:\n'
                 for block in info['body']:
                     s += f'\t\t\t{block.name}\n'
@@ -5354,10 +5350,43 @@ class irFunc(IR):
         delta = original_count - new_count
 
         logging.debug(f'GVN in {i} iterations. Eliminated {delta} instructions.')
+
+    def hoist_loads(self):
+        self.analyze_loops()
+        
+        for loop, info in self.loops.items():
+            for block in info['body']:
+                new_code = []
+                for ir in block.code:
+                    if isinstance(ir, irLoad):
+                        header = info['header']
+
+                        logging.debug(f'LoadHoist: Hoist load {ir} from {block.name} to header {header.name}')
+
+
+                        # create a *copy* of the load and create a new register for it.
+                        # then insert in the loop header.
+                        new_ir = copy(ir)
+                        header.code.insert(-1, new_ir)
+                        new_ir.block = header                        
+
+                        new_var = self.type_manager.create_var_from_type(new_ir.register.name, new_ir.register.data_type, lineno=-1)
+                        new_var.convert_to_ssa(self.ssa_next_val)
+                        new_ir.register = new_var
+
+                        # note that we *don't* remove the load instruction.
+                        # we will rely on the elimination pass to do that, because it will
+                        # see this load as redundant and replace it with a copy from the load
+                        # we just placed in the header.
+
+                    new_code.append(ir)
+
+                block.code = new_code
     
     def schedule_load_stores(self, *args, **kwargs):
         logging.debug(f'Load/store scheduling')
 
+        self.hoist_loads()
         self.leader_block.eliminate_loads(visited=self.reverse_postorder)
 
         self.render_graph('mem_phi')
