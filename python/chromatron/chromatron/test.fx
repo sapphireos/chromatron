@@ -1,11 +1,9 @@
 
-a = Number(publish=True)
 i = Number(publish=True)
 
 def init():
     for x in 4:
         i += 1
-
 
 # a = Number(publish=True)
 # i = Number(publish=True)

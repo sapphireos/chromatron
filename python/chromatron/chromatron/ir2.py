@@ -48,7 +48,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = False
+DEBUG = True
 SHOW_LIVENESS = False
 
 
@@ -2833,6 +2833,8 @@ class irBlock(IR):
 
             elif isinstance(ir, irLoad):
                 if ir.ref in local_values:
+                    logging.debug(f'LoadElim: Replace load with assign: {ir}')
+
                     assign = irAssign(ir.register, local_values[ir.ref], lineno=-1)
                     assign.block = self
 
@@ -2887,6 +2889,8 @@ class irBlock(IR):
                             assert len(common_successors) == 1
                             merge_block = common_successors[0]
 
+                            logging.debug(f'LoadElim: Replace load with MemPHI: {ir}')
+
                             phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
                             phi.block = merge_block
 
@@ -2908,9 +2912,11 @@ class irBlock(IR):
                         value = incoming_values[0][0]
 
                         if target == value:
+                            logging.debug(f'LoadElim: Remove load: {ir}')
                             continue
 
                         else:
+                            logging.debug(f'LoadElim: Replace load with assign: {ir}')
                             assign = irAssign(target, value, lineno=-1)
                             assign.block = self
 
@@ -2919,6 +2925,8 @@ class irBlock(IR):
                             ir = assign
 
                     elif len(incoming_values) > 1:
+                        logging.debug(f'LoadElim: Replace load with MemPHI: {ir}')
+                        
                         incoming_values = [(v[0], predecessors[v[0]]) for v in incoming_values]
 
                         phi = irMemoryPhi(ir.ref, ir.register, incoming_values, lineno=-1)
@@ -5315,8 +5323,6 @@ class irFunc(IR):
     def schedule_load_stores(self, *args, **kwargs):
         logging.debug(f'Load/store scheduling')
 
-        print(self.reverse_postorder)
-
         self.leader_block.eliminate_loads(visited=self.reverse_postorder)
 
         self.render_graph('mem_phi')
@@ -5327,63 +5333,63 @@ class irFunc(IR):
         return
 
 
-        values = {}
-        for ir in self.get_code_from_blocks():
-            if isinstance(ir, irLoad) or isinstance(ir, irStore):
-                values[ir.ref] = ['unknown', 0]
+        # values = {}
+        # for ir in self.get_code_from_blocks():
+        #     if isinstance(ir, irLoad) or isinstance(ir, irStore):
+        #         values[ir.ref] = ['unknown', 0]
 
-        self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values=values)
+        # self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values=values)
 
 
 
-        # self.leader_block.assign_load_store_versions(visited=self.reverse_postorder)
+        # # self.leader_block.assign_load_store_versions(visited=self.reverse_postorder)
 
-        return
+        # return
 
         # analysis = self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values={})
 
-        versions_in = None
-        versions_out = None
-        v_in = {}
-        v_out = {}
+        # versions_in = None
+        # versions_out = None
+        # v_in = {}
+        # v_out = {}
 
-        iterations = 0
+        # iterations = 0
 
-        while v_in != versions_in or v_out != versions_out:
-            versions_in = v_in
-            versions_out = v_out
+        # while v_in != versions_in or v_out != versions_out:
+        #     versions_in = v_in
+        #     versions_out = v_out
 
-            v_in, v_out = self.leader_block.analyze_load_stores(visited=self.reverse_postorder)
+        #     v_in, v_out = self.leader_block.analyze_load_stores(visited=self.reverse_postorder)
 
-            iterations += 1
+        #     iterations += 1
 
-        print(f'iterations {iterations}')
+        # print(f'iterations {iterations}')
 
-        # pprint(analysis)
+        # # pprint(analysis)
 
-        print('\nAnalysis:')
+        # print('\nAnalysis:')
 
-        for block, incoming in versions_in.items():
-            print(f'  {block.name}:')
+        # for block, incoming in versions_in.items():
+        #     print(f'  {block.name}:')
 
-            print(f'    IN:')
-            for ref, values in incoming.items():
-                # print(f'      {ref}: {values}')
+        #     print(f'    IN:')
+        #     for ref, values in incoming.items():
+        #         # print(f'      {ref}: {values}')
 
-                print(f'      {ref}:')
-                for val in values:
-                    print(f'        {val[0]}: {val[1]}')                    
+        #         print(f'      {ref}:')
+        #         for val in values:
+        #             print(f'        {val[0]}: {val[1]}')                    
 
 
-            outgoing = versions_out[block]
+        #     outgoing = versions_out[block]
 
-            print(f'    OUT:')
-            for ref, values in outgoing.items():
-                # print(f'      {ref}: {values}')
+        #     print(f'    OUT:')
+        #     for ref, values in outgoing.items():
+        #         # print(f'      {ref}: {values}')
 
-                print(f'      {ref}:')
-                for val in values:
-                    print(f'        {val[0]}: {val[1]}')                    
+        #         print(f'      {ref}:')
+        #         for val in values:
+        #             print(f'        {val[0]}: {val[1]}')                    
 
 
 
