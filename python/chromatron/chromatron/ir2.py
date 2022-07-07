@@ -2852,11 +2852,12 @@ class irBlock(IR):
                         except KeyError:
                             continue
 
-                        for v in pv:
-                            predecessors[v[0]] = p
-
                         # filter out self-references
                         pv = [v for v in pv if v[0] != ir.register]
+
+                        # record direct predecessors
+                        for v in pv:
+                            predecessors[v[0]] = p
 
                         assert len(pv) > 0
 
@@ -2887,19 +2888,20 @@ class irBlock(IR):
 
                                 common_successors = [s for s in common_successors if s not in remove]
 
-                            assert len(common_successors) == 1
-                            merge_block = common_successors[0]
+                            if len(common_successors) > 0:
+                                assert len(common_successors) == 1
+                                merge_block = common_successors[0]
 
-                            logging.debug(f'LoadElim: Replace load with MemPHI: {ir}')
+                                logging.debug(f'LoadElim: Replace load with MemPHI: {ir}')
 
-                            phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
-                            phi.block = merge_block
+                                phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
+                                phi.block = merge_block
 
-                            local_values[ir.ref] = ir.register
+                                local_values[ir.ref] = ir.register
 
-                            merge_block.code.insert(-1, phi)
+                                merge_block.code.insert(-1, phi)
 
-                            incoming_values.append((ir.register, merge_block))
+                                incoming_values.append((ir.register, merge_block))
 
                     temp_merges = []
                     for v in incoming_values:

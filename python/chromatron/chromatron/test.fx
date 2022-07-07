@@ -1,23 +1,17 @@
 
-a = Number(publish=True)
-global_x = Number(publish=True)
-i = Number(publish=True)
+# a = Number(publish=True)
+# global_x = Number(publish=True)
+i = Number()
 
 def init():
-
     for x in 4:
         i = 0
 
         while i < 10:
             i += 1
 
-            if i > 5:
-                continue
 
-            a += 1
-    
-    global_x = x
-    
+
 # i = Number(publish=True)
 
 # def init():
