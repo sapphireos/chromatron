@@ -5053,6 +5053,7 @@ class irFunc(IR):
             loop_name = None
             info = {
                 'header': None,
+                'marker': None,
                 'body': body,
                 'body_vars': [],
                 'footer': None
@@ -5065,6 +5066,8 @@ class irFunc(IR):
 
                 except IndexError:
                     continue
+
+                info['marker'] = block
 
                 loop_name = loop_marker.name
                 info['body'] = body
@@ -5917,7 +5920,7 @@ class irFunc(IR):
             for loop, info in self.loops.items():
                 header_code = []
 
-                entry_dominators = self.dominators[info['top']]
+                entry_dominators = self.dominators[info['marker']]
                 
                 for block in info['body']:
                     block_code = []

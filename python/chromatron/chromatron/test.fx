@@ -8,7 +8,7 @@ def init():
         # i = 0
 
     while i < 10:
-        i += 1
+        i += 1 + 2
 
 
 
