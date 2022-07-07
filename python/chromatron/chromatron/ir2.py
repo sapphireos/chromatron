@@ -48,7 +48,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = False
+DEBUG = True
 SHOW_LIVENESS = False
 
 
@@ -837,6 +837,28 @@ class irBlock(IR):
                 return header
 
         return None
+
+    def _loops_find_footer(self, loop, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+        for ir in self.code:
+            if isinstance(ir, irLoopFooter) and ir.name == loop:
+                return self
+                # we are a loop header
+
+        for suc in self.successors:
+            header = suc._loops_find_footer(loop, visited)
+
+            if header is not None:
+                return header
+
+        return None
+
 
     # def analyze_copies_local(self):
     #     # local block only
@@ -2247,6 +2269,10 @@ class irBlock(IR):
 
             elif isinstance(ir, irJump):
                 # unconditional jump: nothing to optimize here
+                pass
+
+            elif isinstance(ir, irLoopMarker):
+                # pseudoinstruction
                 pass
 
             elif isinstance(ir, irLoopHeader):
@@ -5027,22 +5053,20 @@ class irFunc(IR):
             loop_name = None
             info = {
                 'header': None,
-                'body': [],
+                'body': body,
                 'body_vars': [],
                 'footer': None
                 }
 
-
             for block in body:
-                # look for loop footer
+                # look for loop marker
                 try:
-                    loop_footer = [a for a in block.code if isinstance(a, irLoopFooter)][0]
+                    loop_marker = [a for a in block.code if isinstance(a, irLoopMarker)][0]
 
                 except IndexError:
                     continue
 
-                loop_name = loop_footer.name
-                info['footer'] = block
+                loop_name = loop_marker.name
                 info['body'] = body
 
                 loops[loop_name] = info
@@ -5054,6 +5078,11 @@ class irFunc(IR):
             assert info['header'] is not None
 
             info['header'].loops.append(info)
+
+            info['footer'] = self.leader_block._loops_find_footer(loop)
+            assert info['footer'] is not None
+
+            info['footer'].loops.append(info)
 
             # add loop to blocks in body
             for block in info['body']:
@@ -6272,6 +6301,18 @@ class irDefine(IR):
     
     def __str__(self):
         return f'DEF: {self.var} depth: {self.scope_depth}'
+
+    def generate(self):
+        return None
+
+class irLoopMarker(IR):
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.is_nop = True
+
+    def __str__(self):
+        return f'LoopMarker: {self.name}'
 
     def generate(self):
         return None

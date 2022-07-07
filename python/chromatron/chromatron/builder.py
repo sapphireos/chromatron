@@ -1153,6 +1153,10 @@ class Builder(object):
         
         self.position_label(self.loop_body[-1])
 
+        loop_name = self.loop[-1]
+        ir = irLoopMarker(loop_name, lineno=-1)
+        self.append_node(ir)
+
     def end_while(self, lineno=None):
         loop_name = self.loop[-1]
 
@@ -1260,6 +1264,9 @@ class Builder(object):
         self.push_scope()
         
         self.position_label(self.loop_body[-1])
+
+        ir = irLoopMarker(loop_name, lineno=-1)
+        self.append_node(ir)
 
     def end_for(self, iterator, stop, lineno=None):
         loop_name = self.loop[-1]
