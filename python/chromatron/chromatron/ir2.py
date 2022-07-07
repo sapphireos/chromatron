@@ -48,7 +48,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = True
+DEBUG = False
 SHOW_LIVENESS = False
 
 
@@ -2823,14 +2823,35 @@ class irBlock(IR):
                             # multiple values coming in from single predecessor
                             # best to do the merge there.
 
+                            # the scanned predecessor might not be the actual merge block,
+                            # there could be a sequence of intervening blocks.
+                            # phi resolution requires the merges to be placed on the actual edges
+                            # coming in to the merge block, or else it will fail.
+
+                            # to handle this, we will search blocks to find the actual merge location.
+
+                            merge_edges = [m[1] for m in pv]
+                            common_successors = merge_edges[0].successors
+                            merge_edges.pop(0)
+                            for m in merge_edges:
+                                remove = []
+                                for s in common_successors:
+                                    if s not in m.successors:
+                                        remove.append(s)
+
+                                common_successors = [s for s in common_successors if s not in remove]
+
+                            assert len(common_successors) == 1
+                            merge_block = common_successors[0]
+
                             phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
-                            phi.block = p
+                            phi.block = merge_block
 
                             local_values[ir.ref] = ir.register
 
-                            p.code.insert(-1, phi)
+                            merge_block.code.insert(-1, phi)
 
-                            incoming_values.append((ir.register, p))
+                            incoming_values.append((ir.register, merge_block))
 
                     temp_merges = []
                     for v in incoming_values:
