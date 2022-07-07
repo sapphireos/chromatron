@@ -40,6 +40,9 @@ MAX_UINT32 = 4294967295
 MAX_UINT16 = 65535
 
 
+CYCLE_LIMIT = 100000
+
+
 PIXEL_ATTR_INDEXES = { # this should match gfx_pixel_array_t in gfx_lib.h
     'count':    0,
     'index':    1,
@@ -384,7 +387,7 @@ class insFunc(object):
         self.program = None
         self.return_stack = return_stack
 
-        self.cycle_limit = 16384
+        self.cycle_limit = CYCLE_LIMIT
         self.cycles = 0
         self.ret_val = None
 

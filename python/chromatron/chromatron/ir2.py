@@ -2927,6 +2927,11 @@ class irBlock(IR):
 
                                 incoming_values.append((ir.register, merge_block))
 
+                            
+                            # else:
+                                # possible merge on this block
+                                # incoming_values.extend(pv)
+
                     temp_merges = []
                     for v in incoming_values:
                         if v not in temp_merges and v[0] != ir.register:
@@ -5354,16 +5359,25 @@ class irFunc(IR):
 
     def hoist_loads(self):
         self.analyze_loops()
+
+        hoisted = []
         
         for loop, info in self.loops.items():
+            logging.debug(f'LoadHoist: loop: {loop}')
             for block in info['body']:
-                new_code = []
+                # new_code = []
                 for ir in block.code:
                     if isinstance(ir, irLoad):
+
+                        # check if already hoisted
+                        if ir.ref in hoisted:
+                            continue
+
                         header = info['header']
 
-                        logging.debug(f'LoadHoist: Hoist load {ir} from {block.name} to header {header.name}')
+                        logging.debug(f'LoadHoist: Hoist {ir.register} from {block.name} to header {header.name}')
 
+                        hoisted.append(ir.ref)
 
                         # create a *copy* of the load and create a new register for it.
                         # then insert in the loop header.
@@ -5380,9 +5394,9 @@ class irFunc(IR):
                         # see this load as redundant and replace it with a copy from the load
                         # we just placed in the header.
 
-                    new_code.append(ir)
+                    # new_code.append(ir)
 
-                block.code = new_code
+                # block.code = new_code
     
     def schedule_load_stores(self, *args, **kwargs):
         logging.debug(f'Load/store scheduling')
