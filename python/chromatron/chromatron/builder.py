@@ -31,6 +31,7 @@ class Builder(object):
         self.loop = []
         self.loop_preheader = []
         self.loop_header = []
+        self.loop_footer = []
         self.loop_body = []
         self.loop_loop = []
         self.loop_end = []
@@ -1114,10 +1115,12 @@ class Builder(object):
         end_label = self.label(f'{self.loop[-1]}.end', lineno=lineno)
         preheader_label = self.label(f'{self.loop[-1]}.preheader', lineno=lineno)
         header_label = self.label(f'{self.loop[-1]}.header', lineno=lineno)
+        footer_label = self.label(f'{self.loop[-1]}.footer', lineno=lineno)
         body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
 
         self.loop_preheader.append(preheader_label)
         self.loop_header.append(header_label)
+        self.loop_footer.append(footer_label)
         self.loop_body.append(body_label)
         self.loop_loop.append(loop_label)
         self.loop_end.append(end_label)
@@ -1145,7 +1148,7 @@ class Builder(object):
         self.position_label(self.loop_loop[-1])
         
     def test_while(self, test, lineno=None):
-        ir = irBranch(test, self.loop_body[-1], self.loop_end[-1], lineno=lineno)
+        ir = irBranch(test, self.loop_body[-1], self.loop_footer[-1], lineno=lineno)
         self.append_node(ir)
         
         self.position_label(self.loop_body[-1])
@@ -1154,6 +1157,12 @@ class Builder(object):
         loop_name = self.loop[-1]
 
         self.jump(self.loop_loop[-1], lineno=lineno)
+
+        self.position_label(self.loop_footer[-1])
+        ir = irLoopFooter(loop_name, lineno=lineno)
+        self.append_node(ir)
+
+        self.jump(self.loop_end[-1], lineno=lineno)
         
         self.pop_scope()
         self.position_label(self.loop_end[-1])
@@ -1161,6 +1170,7 @@ class Builder(object):
         self.loop.pop(-1)
         self.loop_preheader.pop(-1)
         self.loop_header.pop(-1)
+        self.loop_footer.pop(-1)
         self.loop_body.pop(-1)
         self.loop_loop.pop(-1)
         self.loop_end.pop(-1)
@@ -1213,10 +1223,12 @@ class Builder(object):
         end_label = self.label(f'{self.loop[-1]}.end', lineno=lineno)
         preheader_label = self.label(f'{self.loop[-1]}.preheader', lineno=lineno)
         header_label = self.label(f'{self.loop[-1]}.header', lineno=lineno)
+        footer_label = self.label(f'{self.loop[-1]}.footer', lineno=lineno)
         body_label = self.label(f'{self.loop[-1]}.body', lineno=lineno)
 
         self.loop_preheader.append(preheader_label)
         self.loop_header.append(header_label)
+        self.loop_footer.append(footer_label)
         self.loop_body.append(body_label)
         self.loop_loop.append(loop_label)
         self.loop_end.append(end_label)
@@ -1254,22 +1266,28 @@ class Builder(object):
 
         self.position_label(self.loop_loop[-1])
 
-        self.jump_loop(self.loop_body[-1], self.loop_end[-1], iterator, stop, lineno=lineno)
-        
+        self.jump_loop(self.loop_body[-1], self.loop_footer[-1], iterator, stop, lineno=lineno)
+
+        self.position_label(self.loop_footer[-1])
+        ir = irLoopFooter(loop_name, lineno=lineno)
+        self.append_node(ir)
+        self.jump(self.loop_end[-1], lineno=lineno)
+
         self.pop_scope()
         self.position_label(self.loop_end[-1])
-
+        
         self.loop.pop(-1)
         self.loop_preheader.pop(-1)
         self.loop_header.pop(-1)
+        self.loop_footer.pop(-1)
         self.loop_body.pop(-1)
         self.loop_loop.pop(-1)
         self.loop_end.pop(-1)
 
     def loop_break(self, lineno=None):
-        assert self.loop_end[-1] != None
+        assert self.loop_footer[-1] != None
 
-        self.jump(self.loop_end[-1], lineno=lineno)
+        self.jump(self.loop_footer[-1], lineno=lineno)
 
     def loop_continue(self, lineno=None):
         assert self.loop_loop[-1] != None    
