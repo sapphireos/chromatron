@@ -295,6 +295,8 @@ class IR(object):
         self.scope_depth = None
         self.live_in = []
         self.live_out = []
+        self.mem_live_in = []
+        self.mem_live_out = []
         self.is_nop = False
 
         # self.loops = []
@@ -4945,49 +4947,47 @@ class irFunc(IR):
         self.mem_live_in = live_in
         self.mem_live_out = live_out
 
-        for ir, values in live_in.items():
-            if len(values) == 0 and len(live_out[ir]) == 0:
-                continue
+        # for ir, values in live_in.items():
+        #     if len(values) == 0 and len(live_out[ir]) == 0:
+        #         continue
 
-            print(ir)
+        #     print(ir)
             
-            print('IN')
-            for v in values:
-                print(f'   {v}')
+        #     print('IN')
+        #     for v in values:
+        #         print(f'   {v}')
 
-            print('OUT')
-            for v in live_out[ir]:
-                print(f'   {v}')
+        #     print('OUT')
+        #     for v in live_out[ir]:
+        #         print(f'   {v}')
 
-            print('')
+        #     print('')
 
-        # self.live_in = live_in
-        # self.live_out = live_out
 
-        # logging.debug(f'Liveness analysis in {iterations} iterations')
+        logging.debug(f'Memory liveness analysis in {iterations} iterations')
 
-        # # top of function should not have anything live other than it's parameters:
-        # # if these trigger, it is possible that the SSA construction was missing a Phi node,
-        # # so there exists a code path where a variable is not defined (and thus, has its liveness killed),
-        # # so that var will "leak" to the top.
-        # for v in self.live_in[code[0]]:
-        #     if v not in self.params:
-        #         logging.error(f'Liveness error: {v} func: {self.name}')
+        # top of function should not have anything live other than it's parameters:
+        # if these trigger, it is possible that the SSA construction was missing a Phi node,
+        # so there exists a code path where a variable is not defined (and thus, has its liveness killed),
+        # so that var will "leak" to the top.
+        for v in self.mem_live_in[code[0]]:
+            if v not in self.params:
+                logging.error(f'Memory liveness error: {v} func: {self.name}')
                 
-        #         if not DEBUG:
-        #             raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+                if not DEBUG:
+                    raise CompilerFatal(f'Memory liveness error: {v} func: {self.name}')
 
-        # for v in self.live_out[code[0]]:
-        #     if v not in self.params:
-        #         logging.error(f'Liveness error: {v} func: {self.name}')
+        for v in self.mem_live_out[code[0]]:
+            if v not in self.params:
+                logging.error(f'Memory liveness error: {v} func: {self.name}')
 
-        #         if not DEBUG:
-        #             raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+                if not DEBUG:
+                    raise CompilerFatal(f'Memory liveness error: {v} func: {self.name}')
 
-        # # copy liveness information into instructions:
-        # for ir in code:
-        #     ir.live_in = set(self.live_in[ir])
-        #     ir.live_out = set(self.live_out[ir])
+        # copy liveness information into instructions:
+        for ir in code:
+            ir.mem_live_in = set(self.mem_live_in[ir])
+            ir.mem_live_out = set(self.mem_live_out[ir])
 
 
     def analyze_calls(self):
