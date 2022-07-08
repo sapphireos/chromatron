@@ -26,19 +26,20 @@
 
 #ifdef ESP32
 
-#define MAX_SENSORS 2
+#define MAX_SENSORS 4
 
 static bool motion_detected;
-static bool motion_ch_0;
-static bool motion_ch_1;
+static bool motion_ch[MAX_SENSORS];
 static uint8_t n_sensors;
 // static uint32_t activity;
 
 KV_SECTION_META kv_meta_t motion_kv[] = {
 	{CATBUS_TYPE_UINT8,  0, KV_FLAGS_PERSIST, 		 &n_sensors,    	0, "motion_n_sensors"},   
     {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_detected,	0, "motion_detected" },
-    {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_ch_0,	0, "motion_channel_0" },
-    {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_ch_1,	0, "motion_channel_1" },
+    {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_ch[0],	    0, "motion_channel_0" },
+    {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_ch[1],		0, "motion_channel_1" },
+    {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_ch[2],		0, "motion_channel_2" },
+    {CATBUS_TYPE_BOOL,   0,  KV_FLAGS_READ_ONLY,     &motion_ch[3],		0, "motion_channel_3" },
     // {CATBUS_TYPE_UINT32, 0,  KV_FLAGS_READ_ONLY,     &activity,     	0, "motion_activity" },
 };
 
@@ -50,7 +51,15 @@ KV_SECTION_META kv_meta_t motion_kv[] = {
 
 #define MOTION_CH_0 IO_PIN_13_A12
 #define MOTION_CH_1 IO_PIN_4_A5
+#define MOTION_CH_2 IO_PIN_18_MOSI
+#define MOTION_CH_3 IO_PIN_19_MISO
 
+static const uint8_t motion_io[MAX_SENSORS] = {
+	MOTION_CH_0,
+	MOTION_CH_1,
+	MOTION_CH_2,
+	MOTION_CH_3,
+};
 
 PT_THREAD( motion_io_thread( pt_t *pt, void *state ) )
 {       	
@@ -61,31 +70,19 @@ PT_BEGIN( pt );
 		TMR_WAIT( pt, MOTION_SCAN_RATE );
 
 		uint8_t signals = 0;
-		motion_ch_0 = FALSE;
-		motion_ch_1 = FALSE;
 
+		memset( motion_ch, 0, sizeof(motion_ch) );
+		
 		for( uint8_t i = 0; i < n_sensors; i++ ){
 
-			uint8_t ch = MOTION_CH_1;
-
-			if( i == 0 ){
-
-				ch = MOTION_CH_0;
-			}
+			uint8_t ch = motion_io[i];
 
 			// high when motion is detected
 			if( io_b_digital_read( ch ) ){
 
 				signals++;
 
-				if( i == 0 ){
-
-					motion_ch_0 = TRUE;
-				}
-				else{
-
-					motion_ch_1 = TRUE;	
-				}
+				motion_ch[i] = TRUE;
 			}	
 		}
 
@@ -157,19 +154,17 @@ void motion_v_init( void ){
 	
 	if( n_sensors >= 1 ){
 
-		motion_v_enable_channel( 0, MOTION_CH_0 );
-
 	    thread_t_create( motion_io_thread,
 	                     PSTR("motion_io"),
 	                     0,
 	                     0 );
 	}
-	
-	if( n_sensors >= 2 ){
 
-		motion_v_enable_channel( 1, MOTION_CH_1 );
+	for( uint8_t i = 0; i < n_sensors; i++ ){
+
+		motion_v_enable_channel( i, motion_io[i] );
 	}
-
+	
    	// thread_t_create( motion_activity_thread,
     //                  PSTR("motion_activity"),
     //                  0,
