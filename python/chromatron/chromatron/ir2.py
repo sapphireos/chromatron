@@ -49,7 +49,9 @@ class OptPasses(Enum):
 
 
 DEBUG = False
-SHOW_LIVENESS = False
+SHOW_LIVENESS = True
+# LIVENESS_MODE = 'register'
+LIVENESS_MODE = 'mem'
 
 
 """
@@ -547,12 +549,20 @@ class irBlock(IR):
 
             ir_s = f'{depth}|{index:3}\t{str(ir):48}'
 
-            if SHOW_LIVENESS and self.func.live_in and ir in self.func.live_in:
-                s += f'{ir_s}\n'
-                ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
-                outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
-                s += f'{depth}|\t  in:  {ins}\n'
-                s += f'{depth}|\t  out: {outs}\n'
+            if SHOW_LIVENESS:
+                if LIVENESS_MODE == 'register' and self.func.live_in and ir in self.func.live_in:
+                    ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
+                    outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
+                    s += f'{depth}|\t  in:  {ins}\n'
+                    s += f'{depth}|\t  out: {outs}\n'
+
+
+                elif LIVENESS_MODE == 'mem' and self.func.mem_live_in and ir in self.func.mem_live_in:
+                    s += f'{ir_s}\n'
+                    ins = sorted(list(set([f'{a}' for a in self.func.mem_live_in[ir]])))
+                    outs = sorted(list(set([f'{a}' for a in self.func.mem_live_out[ir]])))
+                    s += f'{depth}|\t  in:  {ins}\n'
+                    s += f'{depth}|\t  out: {outs}\n'
 
             else:
                 s += f'{ir_s}\n'
@@ -4301,6 +4311,9 @@ class irFunc(IR):
         self.live_out = None
         self.live_ranges = {}
 
+        self.mem_live_in = None
+        self.mem_live_out = None
+
         self.direct_calls = None
         self.indirect_calls = None
 
@@ -4883,6 +4896,12 @@ class irFunc(IR):
 
         succ = self.get_successors(code=code)
 
+        mem_vars = {}
+        for ir in code:
+            if isinstance(ir, irLoad) or isinstance(ir, irStore):
+                if ir.ref not in mem_vars:
+                    mem_vars[ir.ref.name] = ir.ref
+
         iterations = 0
         iteration_limit = 512
         changed = True
@@ -4896,8 +4915,17 @@ class irFunc(IR):
                 prev_live_in[ir] = copy(live_in[ir])
                 prev_live_out[ir] = copy(live_out[ir])
 
-                in_vars = [i for i in ir.get_input_vars() if i.is_global]
-                out_vars = [i for i in ir.get_output_vars() if i.is_global]
+                if isinstance(ir, irStore):
+                    in_vars = [ir.ref]
+                    out_vars = []
+
+                elif isinstance(ir, irLoad):
+                    in_vars = []                    
+                    out_vars = [ir.ref]
+
+                else:
+                    in_vars = [mem_vars[i.name] for i in ir.get_input_vars() if i.name in mem_vars]
+                    out_vars = [mem_vars[i.name] for i in ir.get_output_vars() if i.name in mem_vars]
 
                 use = set(in_vars)
                 define = set(out_vars)
@@ -4914,17 +4942,15 @@ class irFunc(IR):
             elif prev_live_out != live_out:
                 changed = True
 
-        # force liveness on any outputs marked to be forced:
-        for ir in self.code:
-            for o in ir.get_output_vars():
-                if o.force_used:
-                    live_out[ir] |= set([o])
+        self.mem_live_in = live_in
+        self.mem_live_out = live_out
 
         for ir, values in live_in.items():
-            if len(values) == 0:
+            if len(values) == 0 and len(live_out[ir]) == 0:
                 continue
 
             print(ir)
+            
             print('IN')
             for v in values:
                 print(f'   {v}')
