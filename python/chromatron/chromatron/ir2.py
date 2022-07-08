@@ -2927,7 +2927,7 @@ class irBlock(IR):
 
                                 incoming_values.append((ir.register, merge_block))
 
-                            
+
                             # else:
                                 # possible merge on this block
                                 # incoming_values.extend(pv)
@@ -4870,6 +4870,100 @@ class irFunc(IR):
             ir.live_in = set(self.live_in[ir])
             ir.live_out = set(self.live_out[ir])
 
+    def liveness_analysis_memory(self):
+        live_in = {}
+        live_out = {}
+
+        code = self.get_code_from_blocks()
+
+        # init to empty sets
+        for ir in code:
+            live_in[ir] = set()
+            live_out[ir] = set()
+
+        succ = self.get_successors(code=code)
+
+        iterations = 0
+        iteration_limit = 512
+        changed = True
+        while changed and iterations < iteration_limit:
+            iterations += 1
+            changed = False
+            prev_live_in = {}
+            prev_live_out = {}
+
+            for ir in reversed(code):
+                prev_live_in[ir] = copy(live_in[ir])
+                prev_live_out[ir] = copy(live_out[ir])
+
+                in_vars = [i for i in ir.get_input_vars() if i.is_global]
+                out_vars = [i for i in ir.get_output_vars() if i.is_global]
+
+                use = set(in_vars)
+                define = set(out_vars)
+
+                live_in[ir] = use | (live_out[ir] - define)
+                live_out[ir] = set()
+
+                for s in succ[ir]:
+                    live_out[ir] |= live_in[s]
+
+            if prev_live_in != live_in:
+                changed = True
+
+            elif prev_live_out != live_out:
+                changed = True
+
+        # force liveness on any outputs marked to be forced:
+        for ir in self.code:
+            for o in ir.get_output_vars():
+                if o.force_used:
+                    live_out[ir] |= set([o])
+
+        for ir, values in live_in.items():
+            if len(values) == 0:
+                continue
+
+            print(ir)
+            print('IN')
+            for v in values:
+                print(f'   {v}')
+
+            print('OUT')
+            for v in live_out[ir]:
+                print(f'   {v}')
+
+            print('')
+
+        # self.live_in = live_in
+        # self.live_out = live_out
+
+        # logging.debug(f'Liveness analysis in {iterations} iterations')
+
+        # # top of function should not have anything live other than it's parameters:
+        # # if these trigger, it is possible that the SSA construction was missing a Phi node,
+        # # so there exists a code path where a variable is not defined (and thus, has its liveness killed),
+        # # so that var will "leak" to the top.
+        # for v in self.live_in[code[0]]:
+        #     if v not in self.params:
+        #         logging.error(f'Liveness error: {v} func: {self.name}')
+                
+        #         if not DEBUG:
+        #             raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+
+        # for v in self.live_out[code[0]]:
+        #     if v not in self.params:
+        #         logging.error(f'Liveness error: {v} func: {self.name}')
+
+        #         if not DEBUG:
+        #             raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+
+        # # copy liveness information into instructions:
+        # for ir in code:
+        #     ir.live_in = set(self.live_in[ir])
+        #     ir.live_out = set(self.live_out[ir])
+
+
     def analyze_calls(self):
         direct_calls = []
         indirect_calls = []
@@ -5401,13 +5495,15 @@ class irFunc(IR):
     def schedule_load_stores(self, *args, **kwargs):
         logging.debug(f'Load/store scheduling')
 
-        self.hoist_loads()
-        self.leader_block.eliminate_loads(visited=self.reverse_postorder)
+        self.liveness_analysis_memory()
 
-        self.render_graph('mem_phi')
+        # self.hoist_loads()
+        # self.leader_block.eliminate_loads(visited=self.reverse_postorder)
 
-        for block in self.reverse_postorder:
-            block.resolve_memory_phis()
+        # self.render_graph('mem_phi')
+
+        # for block in self.reverse_postorder:
+        #     block.resolve_memory_phis()
 
         return
 
