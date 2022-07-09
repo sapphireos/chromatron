@@ -964,9 +964,15 @@ class irBlock(IR):
 
         blocks = [self]
 
-        prioritized_successors = list(reversed(sorted(self.successors, key=lambda x: x.loop_depth)))
+        # assume branches take true.
+        # this optimizes for fall throughs.
+        if isinstance(self.code[-1], irBranch):
+            branch = self.code[-1]
+            successors = {s.name: s for s in self.successors}
+            prioritized_successors = [successors[branch.true_label.name], successors[branch.false_label.name]]
 
-        # blocks.extend(self.successors)
+        else:
+            prioritized_successors = list(reversed(sorted(self.successors, key=lambda x: x.loop_depth)))
 
         for s in prioritized_successors:
             succ_blocks = s.get_blocks_optimized(visited=visited)

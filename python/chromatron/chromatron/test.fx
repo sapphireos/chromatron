@@ -10,9 +10,9 @@ def init():
     x = Number()
     x = 5
 
-    i += 1
-    # fence()
-    # a += 1
+    # # i += 1
+    # # fence()
+    # # a += 1
     if i:
         print(x)
 
