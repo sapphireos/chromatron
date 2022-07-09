@@ -1701,16 +1701,16 @@ class irBlock(IR):
 
             elif isinstance(ir, irStore):
                 # replace inputs:
-                # if ir.ref in values:
-                #     replacement = values[ir.ref]
+                if ir.ref in values:
+                    replacement = values[ir.ref]
 
-                #     if ir.ref != replacement:
-                #         if DEBUG:
-                #             print(f"replace store {ir} with {replacement}")
+                    if ir.ref != replacement:
+                        if DEBUG:
+                            print(f"replace store {ir} with {replacement}")
 
-                #         ir.ref = replacement
+                        ir.ref = replacement
 
-                #         changed = True
+                        changed = True
 
                 if ir.register in values:
                     replacement = values[ir.register]
