@@ -3,16 +3,28 @@
 # global_x = Number(publish=True)
 i = Number()
 a = Number()
+b = Fixed16()
 
 def init():
+
     # i += 1
     # fence()
     # a += 1
     # if i:
         # print(i)
 
-    for x in 4:
-        i = x
+    # x = Number()
+    # x = a + 1
+    # x = 1
+    # i = x
+
+    # i = not 0
+    # a = not 0
+
+    # for x in 4:
+        # i = x
+
+    b = a
 
     # for x in 4:
     #     i = 0

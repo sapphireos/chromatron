@@ -49,7 +49,7 @@ class OptPasses(Enum):
 
 
 DEBUG = False
-DEBUG_PRINT = False
+DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
 SHOW_LIVENESS = False
 # LIVENESS_MODE = 'register'
@@ -1656,8 +1656,10 @@ class irBlock(IR):
                     continue
 
                 else:
-                    values[ir.target] = ir.target
-                    values[ir.value] = ir.target
+                    values[ir.target] = ir.value
+
+                    # values[ir.target] = ir.target
+                    # values[ir.value] = ir.target
 
             elif isinstance(ir, irLoad):
                 if ir.ref in values:
