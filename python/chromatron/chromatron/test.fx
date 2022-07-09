@@ -5,11 +5,14 @@ i = Number()
 a = Number()
 
 def init():
-    i += 1
+    # i += 1
     # fence()
     # a += 1
-    if i:
-        print(i)
+    # if i:
+        # print(i)
+
+    for x in 4:
+        i = x
 
     # for x in 4:
     #     i = 0
