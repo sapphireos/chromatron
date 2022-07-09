@@ -5,13 +5,19 @@ i = Number()
 a = Number()
 
 def init():
-    for x in 4:
-        i = 0
+    i += 1
+    fence()
+    
+    if i:
+        print(i)
 
-        while i < 10:
-            i += 1
+    # for x in 4:
+    #     i = 0
 
-            a += 1
+    #     while i < 10:
+    #         i += 1
+
+    #         a += 1
 
 # i = Number(publish=True)
 

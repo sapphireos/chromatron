@@ -50,8 +50,8 @@ class OptPasses(Enum):
 
 DEBUG = False
 SHOW_LIVENESS = True
-# LIVENESS_MODE = 'register'
-LIVENESS_MODE = 'mem'
+LIVENESS_MODE = 'register'
+# LIVENESS_MODE = 'mem'
 
 
 """
@@ -553,6 +553,7 @@ class irBlock(IR):
 
             if SHOW_LIVENESS:
                 if LIVENESS_MODE == 'register' and self.func.live_in and ir in self.func.live_in:
+                    s += f'{ir_s}\n'
                     ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
                     outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
                     s += f'{depth}|\t  in:  {ins}\n'
@@ -5675,6 +5676,12 @@ class irFunc(IR):
 
         # self.render_graph()
 
+        if OptPasses.LS_SCHED in opt_passes:
+            self.schedule_load_stores()        
+        
+            with open("ls_sched_construction.fxir", 'w') as f:
+                f.write(str(self))
+
 
         if OptPasses.SSA in opt_passes:
 
@@ -5694,11 +5701,11 @@ class irFunc(IR):
             with open("SSA_construction.fxir", 'w') as f:
                 f.write(str(self))
 
-            if OptPasses.LS_SCHED in opt_passes:
-                self.schedule_load_stores()        
+            # if OptPasses.LS_SCHED in opt_passes:
+            #     self.schedule_load_stores()        
             
-                with open("ls_sched_construction.fxir", 'w') as f:
-                    f.write(str(self))
+            #     with open("ls_sched_construction.fxir", 'w') as f:
+            #         f.write(str(self))
 
             # self.render_graph()
 
