@@ -1,20 +1,30 @@
-
-# a = Number(publish=True)
-# global_x = Number(publish=True)
-i = Number()
-a = Number()
-b = Fixed16()
-
+global_a = Number()
 def init():
+    global_a += 1
 
-    x = Number()
-    x = 5
+    # global_a = 1 
+    print(global_a)
 
-    # # i += 1
-    # # fence()
-    # # a += 1
-    if i:
-        print(x)
+    assert global_a == 1
+
+    global_a = 2
+
+# # a = Number(publish=True)
+# # global_x = Number(publish=True)
+# i = Number()
+# a = Number()
+# b = Fixed16()
+
+# def init():
+
+#     # x = Number()
+#     a = 5
+
+#     # # i += 1
+#     # # fence()
+#     # # a += 1
+#     if i:
+#         print(a)
 
     # x = Number()
     # x = a + 1

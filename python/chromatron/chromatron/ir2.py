@@ -1678,15 +1678,15 @@ class irBlock(IR):
 
                         changed = True
 
-                # if ir.register in values:
-                #     replacement = values[ir.register]
+                if ir.register in values:
+                    replacement = values[ir.register]
                     
-                #     if ir.register != replacement:
-                #         print(f"replace load {ir} (reg) with {replacement}")
+                    if ir.register != replacement:
+                        self.debug_print(f"replace load {ir} (reg) with {replacement}")
 
-                #         ir.register = replacement
+                        ir.register = replacement
 
-                #         changed = True
+                        changed = True
 
                 # expr = ir.expr
 
@@ -1696,7 +1696,7 @@ class irBlock(IR):
                 #     values[ir.register] = v
 
                 #     # remove assignment
-                #     print(f"remove load {ir.register} = {ir.ref}")
+                #     self.debug_print(f"remove load {ir.register} = {ir.ref}")
 
                 #     changed = True
 
@@ -1710,11 +1710,11 @@ class irBlock(IR):
             elif isinstance(ir, irStore):
                 # replace inputs:
                 if ir.ref in values:
+                    # this is mainly used for offsets
                     replacement = values[ir.ref]
 
                     if ir.ref != replacement:
-                        if DEBUG:
-                            print(f"replace store {ir} with {replacement}")
+                        self.debug_print(f"replace store {ir} with {replacement}")
 
                         ir.ref = replacement
 
@@ -1733,20 +1733,23 @@ class irBlock(IR):
                 # expr = ir.expr
 
                 # if expr in values:
-                #     v = values[expr]
+                #     pass
+                #     # v = values[expr]
 
-                #     values[ir.register] = v
+                #     # values[ir.register] = v
 
-                #     # remove assignment
-                #     print(f"remove store {ir.register} = {ir.ref}")
+                #     # # remove assignment
+                #     # print(f"remove store {ir.register} = {ir.ref}")
 
-                #     changed = True
+                #     # changed = True
 
-                #     continue
+                #     # continue
 
                 # else:
-                #     values[ir.register] = ir.register
-                #     values[expr] = ir.register
+                # values[ir.register] = ir.register
+                # values[expr] = ir.register
+
+                    # values[ir.register] = expr
                     
 
             elif isinstance(ir, irLoadRetVal):
@@ -5556,16 +5559,18 @@ class irFunc(IR):
     def schedule_load_stores(self, *args, **kwargs):
         logging.debug(f'Load/store scheduling')
 
-        self.liveness_analysis_memory()
-        self.compute_live_ranges_memory()
+        return
 
-        # self.hoist_loads()
-        # self.leader_block.eliminate_loads(visited=self.reverse_postorder)
+        # self.liveness_analysis_memory()
+        # self.compute_live_ranges_memory()
 
-        # self.render_graph('mem_phi')
+        self.hoist_loads()
+        self.leader_block.eliminate_loads(visited=self.reverse_postorder)
 
-        # for block in self.reverse_postorder:
-        #     block.resolve_memory_phis()
+        self.render_graph('mem_phi')
+
+        for block in self.reverse_postorder:
+            block.resolve_memory_phis()
 
         return
 
@@ -7170,17 +7175,13 @@ class irLoad(IR):
         self.register = register
         self.ref = ref
 
-        self.ref_version = None
         
     def __str__(self):
-        if self.ref_version is not None:
-            return f'LOAD {self.register} <-- {self.ref}.{self.ref_version}'
-
         return f'LOAD {self.register} <-- {self.ref}'
 
-    # @property
-    # def expr(self):
-    #     return f'load {self.ref}'
+    @property
+    def expr(self):
+        return f'mem {self.ref}'
 
     def get_input_vars(self):
         if self.ref.data_type == 'offset':
@@ -7214,17 +7215,12 @@ class irStore(IR):
         self.register = register
         self.ref = ref
 
-        self.ref_version = None
-
     def __str__(self):
-        if self.ref_version is not None:
-            return f'STORE {self.register} --> {self.ref}.{self.ref_version}'        
-
         return f'STORE {self.register} --> {self.ref}'
 
-    # @property
-    # def expr(self):
-    #     return f'store {self.ref}'
+    @property
+    def expr(self):
+        return f'mem {self.ref}'
 
     def get_input_vars(self):
         i = [self.register]
