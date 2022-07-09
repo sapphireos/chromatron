@@ -1746,8 +1746,8 @@ class irBlock(IR):
                 #     # continue
 
                 # else:
-                # values[ir.register] = ir.register
-                # values[expr] = ir.register
+                #     values[ir.register] = ir.register
+                #     values[expr] = ir.register
 
                     # values[ir.register] = expr
                     
