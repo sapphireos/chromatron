@@ -7,7 +7,7 @@ a = Number()
 def init():
     i += 1
     fence()
-    
+    # a += 1
     if i:
         print(i)
 

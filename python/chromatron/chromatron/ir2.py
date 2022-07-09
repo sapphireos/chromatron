@@ -49,9 +49,10 @@ class OptPasses(Enum):
 
 
 DEBUG = False
+EXCEPTION_ON_LIVENESS_ERROR = False
 SHOW_LIVENESS = True
-LIVENESS_MODE = 'register'
-# LIVENESS_MODE = 'mem'
+# LIVENESS_MODE = 'register'
+LIVENESS_MODE = 'mem'
 
 
 """
@@ -4871,14 +4872,14 @@ class irFunc(IR):
             if v not in self.params:
                 logging.error(f'Liveness error: {v} func: {self.name}')
                 
-                if not DEBUG:
+                if not DEBUG and EXCEPTION_ON_LIVENESS_ERROR:
                     raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
 
         for v in self.live_out[code[0]]:
             if v not in self.params:
                 logging.error(f'Liveness error: {v} func: {self.name}')
 
-                if not DEBUG:
+                if not DEBUG and EXCEPTION_ON_LIVENESS_ERROR:
                     raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
 
         # copy liveness information into instructions:
@@ -4975,14 +4976,14 @@ class irFunc(IR):
             if v not in self.params:
                 logging.error(f'Memory liveness error: {v} func: {self.name}')
                 
-                if not DEBUG:
+                if not DEBUG and EXCEPTION_ON_LIVENESS_ERROR:
                     raise CompilerFatal(f'Memory liveness error: {v} func: {self.name}')
 
         for v in self.mem_live_out[code[0]]:
             if v not in self.params:
                 logging.error(f'Memory liveness error: {v} func: {self.name}')
 
-                if not DEBUG:
+                if not DEBUG and EXCEPTION_ON_LIVENESS_ERROR:
                     raise CompilerFatal(f'Memory liveness error: {v} func: {self.name}')
 
         # copy liveness information into instructions:
