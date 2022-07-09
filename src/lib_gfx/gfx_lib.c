@@ -73,6 +73,7 @@ static int16_t val_step[MAX_PIXELS];
 
 static bool gfx_enable = TRUE;
 static bool sys_enable = TRUE; // internal system control
+static uint16_t pix_max_dimmer = 65535;
 static uint16_t pix_master_dimmer = 0;
 static uint16_t pix_sub_dimmer = 0;
 static uint16_t target_dimmer = 0;
@@ -234,7 +235,9 @@ static void param_error_check( void ){
 
 static uint16_t calc_dimmer( void ){
 
-    return ( (uint32_t)pix_master_dimmer * (uint32_t)pix_sub_dimmer ) / 65536;    
+    uint32_t dimmer = ( (uint32_t)pix_master_dimmer * (uint32_t)pix_sub_dimmer ) / 65536;
+
+    return ( dimmer * pix_max_dimmer ) / 65536;
 }
 
 static void update_master_fader( void ){
@@ -366,6 +369,7 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_max_dimmer,              0,                   "gfx_max_dimmer" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,                   "pix_size_x" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  0,                   "pix_size_y" },
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,                   "gfx_interleave_x" },
