@@ -5603,12 +5603,15 @@ class irFunc(IR):
                 new_code.append(ir)
 
             block.code = new_code
-
-        self.prune_empty_blocks()
-
-        self.verify_block_links()
+        
+        self.leader_block.relink_blocks()
+        self.leader_block.prune_unreachable_blocks()
         self.verify_block_assignments()
-        self.verify_variables()
+        self.verify_block_links()
+        self.recalc_defines()
+        self.recalc_dominators()
+        self.analyze_loops()
+
 
         logging.debug(f'Optimized branches: replaced {count} branches with jump.')
 
@@ -5887,7 +5890,7 @@ class irFunc(IR):
 
             self.render_graph('resolved_after_opt')
             
-            
+
         if len(opt_passes) > 1:
             self.optimize_branches()
 
