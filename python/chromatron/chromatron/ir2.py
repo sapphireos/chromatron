@@ -2271,7 +2271,26 @@ class irBlock(IR):
                 pass
 
             elif isinstance(ir, irAssert):
-                pass
+                # replace inputs:
+                if ir.value in values:
+                    replacement = values[ir.value]    
+
+                    if ir.value != replacement:
+                        self.debug_print(f"replace assert {ir.value} to {replacement}")
+
+                        ir.value = replacement
+                        changed = True
+
+            elif isinstance(ir, irPrint):
+                # replace inputs:
+                if ir.value in values:
+                    replacement = values[ir.value]    
+
+                    if ir.value != replacement:
+                        self.debug_print(f"replace print {ir.value} to {replacement}")
+
+                        ir.value = replacement
+                        changed = True
 
             elif isinstance(ir, irPhi):
                 pass

@@ -7,11 +7,14 @@ b = Fixed16()
 
 def init():
 
-    # i += 1
+    x = Number()
+    x = 5
+
+    i += 1
     # fence()
     # a += 1
-    # if i:
-        # print(i)
+    if i:
+        print(x)
 
     # x = Number()
     # x = a + 1
@@ -24,7 +27,7 @@ def init():
     # for x in 4:
         # i = x
 
-    b = a
+    # b = a
 
     # for x in 4:
     #     i = 0
