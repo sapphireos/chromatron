@@ -2055,6 +2055,18 @@ class irBlock(IR):
 
                         changed = True
 
+                for i in range(len(ir.lookups)):
+                    if ir.lookups[i] in values:
+                        replacement = values[ir.lookups[i]]
+
+                        if ir.lookups[i] != replacement:
+
+                            self.debug_print(f"replace object lookup {ir.lookups[i]} with {replacement}")
+
+                            ir.lookups[i] = replacement
+
+                            changed = True
+
                 expr = ir.expr
 
                 # is expr in hash table?

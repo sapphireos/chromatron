@@ -1,3 +1,60 @@
+
+current_hue = Fixed16()
+delay = Number()
+cursor = Number()
+# cursor2 = Number()
+target = Number()
+direction = Number()
+
+# def init():
+#     pixels.val = 1.0
+#     pixels.sat = 1.0
+
+#     pixels.hue = rand()
+
+#     pixels.hs_fade = 600
+
+#     db.gfx_frame_rate = 70
+
+#     current_hue = rand()
+
+#     cursor = rand()
+#     target = rand()
+
+
+def init():
+    # if delay > 0:
+    #     delay -= 1
+    #     return
+
+    pixels[cursor].val = 0.5
+    pixels[cursor].hue = 0.5
+    # pixels[cursor].hue = current_hue
+
+    # if direction == 0:
+    #     cursor += 1
+    # else:
+    #     cursor -= 1
+
+    # if cursor < 0:
+    #     cursor = pixels.count - 1
+
+    # if (cursor % pixels.count) == (target % pixels.count):
+    #     cursor = rand(0, pixels.count)
+    #     direction = rand(0, 2)
+    #     # target = cursor
+    #     target = rand()
+    #     current_hue = rand()
+
+    #     delay = rand(0, 10)
+
+
+
+
+
+
+
+
 # global_a = Number()
 # def init():
 #     global_a += 1
@@ -10,20 +67,20 @@
 #     global_a = 2
 
 # a = Number(publish=True)
-# global_x = Number(publish=True)
-i = Number()
-a = Number()
-b = Fixed16()
+# # global_x = Number(publish=True)
+# i = Number()
+# a = Number()
+# b = Fixed16()
 
-def init():
-    i += 1
-    assert i == 1
+# def init():
+#     i += 1
+#     assert i == 1
 
-    i += 2
-    assert i == 3
+#     i += 2
+#     assert i == 3
 
-    i += 3
-    assert i == 6
+#     i += 3
+#     assert i == 6
 
     # for x in 4:
     #     i = 0
