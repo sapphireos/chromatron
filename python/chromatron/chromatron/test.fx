@@ -22,33 +22,23 @@ direction = Number()
 #     target = rand()
 
 
+global_i = Number(publish=True)
+
 def init():
-    # if delay > 0:
-    #     delay -= 1
-    #     return
+    for i in 10:
+        if i > 5:
+            break
 
-    pixels[cursor].val = 0.5
-    pixels[cursor].hue = 0.5
-    # pixels[cursor].hue = current_hue
+    global_i = i
 
-    # if direction == 0:
-    #     cursor += 1
-    # else:
-    #     cursor -= 1
+# def init():
+#     a = Number()
+#     a = 1
 
-    # if cursor < 0:
-    #     cursor = pixels.count - 1
+#     if a:
+#         print(123)
 
-    # if (cursor % pixels.count) == (target % pixels.count):
-    #     cursor = rand(0, pixels.count)
-    #     direction = rand(0, 2)
-    #     # target = cursor
-    #     target = rand()
-    #     current_hue = rand()
-
-    #     delay = rand(0, 10)
-
-
+#     print(2)
 
 
 

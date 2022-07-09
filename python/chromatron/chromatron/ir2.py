@@ -2228,7 +2228,7 @@ class irBlock(IR):
                         changed = True
 
 
-                # # simplify!
+                # simplify!
                 # if ir.value.const:
                 #     changed = True
 
@@ -2246,6 +2246,9 @@ class irBlock(IR):
 
                 # we skip the expression/table update portion, because the branch
                 # doesn't modify data, only control flow.
+
+
+
 
 
                 # value = ir.value
@@ -5576,6 +5579,39 @@ class irFunc(IR):
 
         logging.debug(f'GVN in {i} iterations. Eliminated {delta} instructions.')
 
+    def optimize_branches(self):
+        count = 0
+
+        for block in self.blocks.values():
+            new_code = []
+            for ir in block.code:
+                if isinstance(ir, irBranch):
+                    if ir.value.const:
+                        count += 1
+
+                        # replace branch with jump
+                        if ir.value.value == 0:
+                            logging.debug(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
+                            ir = irJump(ir.false_label, lineno=ir.lineno)
+                            ir.block = block
+
+                        else:
+                            logging.debug(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
+                            ir = irJump(ir.true_label, lineno=ir.lineno)
+                            ir.block = block
+
+                new_code.append(ir)
+
+            block.code = new_code
+
+        self.prune_empty_blocks()
+
+        self.verify_block_links()
+        self.verify_block_assignments()
+        self.verify_variables()
+
+        logging.debug(f'Optimized branches: replaced {count} branches with jump.')
+
     def hoist_loads(self):
         self.analyze_loops()
 
@@ -5851,6 +5887,9 @@ class irFunc(IR):
 
             self.render_graph('resolved_after_opt')
             
+            
+        if len(opt_passes) > 1:
+            self.optimize_branches()
 
         # blocks may have been rearranged or added at this point
         self.recalc_dominators()
