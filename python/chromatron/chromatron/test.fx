@@ -1,43 +1,29 @@
-global_a = Number()
-def init():
-    global_a += 1
-
-    # global_a = 1 
-    print(global_a)
-
-    assert global_a == 1
-
-    global_a = 2
-
-# # a = Number(publish=True)
-# # global_x = Number(publish=True)
-# i = Number()
-# a = Number()
-# b = Fixed16()
-
+# global_a = Number()
 # def init():
+#     global_a += 1
 
-#     # x = Number()
-#     a = 5
+#     # global_a = 1 
+#     print(global_a)
 
-#     # # i += 1
-#     # # fence()
-#     # # a += 1
-#     if i:
-#         print(a)
+#     assert global_a == 1
 
-    # x = Number()
-    # x = a + 1
-    # x = 1
-    # i = x
+#     global_a = 2
 
-    # i = not 0
-    # a = not 0
+# a = Number(publish=True)
+# global_x = Number(publish=True)
+i = Number()
+a = Number()
+b = Fixed16()
 
-    # for x in 4:
-        # i = x
+def init():
+    i += 1
+    assert i == 1
 
-    # b = a
+    i += 2
+    assert i == 3
+
+    i += 3
+    assert i == 6
 
     # for x in 4:
     #     i = 0
@@ -45,7 +31,11 @@ def init():
     #     while i < 10:
     #         i += 1
 
-    #         a += 1
+    #         i += 2
+
+    #         i += 3
+
+            # a += 1
 
 # i = Number(publish=True)
 

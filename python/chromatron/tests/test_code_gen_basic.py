@@ -28,7 +28,7 @@ from chromatron.ir2 import OptPasses
 def test_basic_ssa():
     code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.SSA)
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_basic_ls_sched():
     code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.LS_SCHED)
 

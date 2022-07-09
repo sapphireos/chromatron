@@ -3606,6 +3606,55 @@ class irBlock(IR):
     #     # remove the nops we added:
     #     self.code = [n for n in new_code if n not in nops]
 
+    def local_load_store_elim(self):
+        loads = {}
+
+        load_replace_count = 0
+
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                if ir.ref not in loads:
+                    loads[ir.ref] = ir.register
+
+                else:
+                    assign = irAssign(ir.register, loads[ir.ref], lineno=ir.lineno)
+                    assign.block = self
+
+                    # logging.debug(f'Replace load {ir} with assign {assign}')
+
+                    load_replace_count += 1
+
+                    ir = assign
+
+            elif isinstance(ir, irStore):
+                loads[ir.ref] = ir.register
+
+            new_code.append(ir)
+
+        self.code = new_code
+
+        store_replace_count = 0
+
+        stores = {}
+
+        new_code = []
+
+        for ir in reversed(self.code):
+            if isinstance(ir, irStore):
+                if ir.ref not in stores:
+                    stores[ir.ref] = ir
+
+                else:
+                    store_replace_count += 1
+                    continue
+
+            new_code.append(ir)
+
+        self.code = list(reversed(new_code))
+
+        logging.debug(f'LoadStoreElim: Remove {load_replace_count} loads and {store_replace_count} stores')
+
     def remove_dead_code(self, reads=None):
         new_code = []
 
@@ -5559,6 +5608,9 @@ class irFunc(IR):
     def schedule_load_stores(self, *args, **kwargs):
         logging.debug(f'Load/store scheduling')
 
+        for block in self.reverse_postorder:
+            block.local_load_store_elim()
+
         return
 
         # self.liveness_analysis_memory()
@@ -5716,11 +5768,11 @@ class irFunc(IR):
 
         # self.render_graph()
 
-        if OptPasses.LS_SCHED in opt_passes:
-            self.schedule_load_stores()        
+        # if OptPasses.LS_SCHED in opt_passes:
+        #     self.schedule_load_stores()        
         
-            with open("ls_sched_construction.fxir", 'w') as f:
-                f.write(str(self))
+        #     with open("ls_sched_construction.fxir", 'w') as f:
+        #         f.write(str(self))
 
         # opt_passes.remove(OptPasses.SSA)
         
@@ -5742,11 +5794,11 @@ class irFunc(IR):
             with open("SSA_construction.fxir", 'w') as f:
                 f.write(str(self))
 
-            # if OptPasses.LS_SCHED in opt_passes:
-            #     self.schedule_load_stores()        
+            if OptPasses.LS_SCHED in opt_passes:
+                self.schedule_load_stores()        
             
-            #     with open("ls_sched_construction.fxir", 'w') as f:
-            #         f.write(str(self))
+                with open("ls_sched_construction.fxir", 'w') as f:
+                    f.write(str(self))
 
             # self.render_graph()
 
