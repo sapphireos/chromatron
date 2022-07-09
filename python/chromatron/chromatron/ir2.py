@@ -4317,6 +4317,7 @@ class irFunc(IR):
 
         self.mem_live_in = None
         self.mem_live_out = None
+        self.mem_live_ranges = {}
 
         self.direct_calls = None
         self.indirect_calls = None
@@ -4906,6 +4907,10 @@ class irFunc(IR):
                 if ir.ref not in mem_vars:
                     mem_vars[ir.ref.name] = ir.ref
 
+
+        # code = [ir for ir in code if not isinstance(ir, irLoad)]
+        # code = [ir for ir in code if not isinstance(ir, irStore)]
+
         iterations = 0
         iteration_limit = 512
         changed = True
@@ -4919,17 +4924,30 @@ class irFunc(IR):
                 prev_live_in[ir] = copy(live_in[ir])
                 prev_live_out[ir] = copy(live_out[ir])
 
-                if isinstance(ir, irStore):
-                    in_vars = [ir.ref]
-                    out_vars = []
+                # if isinstance(ir, irStore):
+                #     in_vars = [ir.ref]
+                #     out_vars = []
 
-                elif isinstance(ir, irLoad):
-                    in_vars = []                    
-                    out_vars = [ir.ref]
+                # elif isinstance(ir, irLoad):
+                #     in_vars = []                    
+                #     out_vars = [ir.ref]
 
-                else:
-                    in_vars = [mem_vars[i.name] for i in ir.get_input_vars() if i.name in mem_vars]
-                    out_vars = [mem_vars[i.name] for i in ir.get_output_vars() if i.name in mem_vars]
+                # else:
+                #     in_vars = [mem_vars[i.name] for i in ir.get_input_vars() if i.name in mem_vars]
+                #     out_vars = [mem_vars[i.name] for i in ir.get_output_vars() if i.name in mem_vars]
+
+                # in_vars = ir.get_input_vars()
+                # out_vars = ir.get_output_vars()
+                in_vars = [mem_vars[i.name] for i in ir.get_input_vars() if i.name in mem_vars]
+                out_vars = [mem_vars[i.name] for i in ir.get_output_vars() if i.name in mem_vars]
+
+                # if isinstance(ir, irStore):
+                #     in_vars = []
+                #     out_vars = []
+
+                # if isinstance(ir, irLoad):
+                #     in_vars = []
+                #     out_vars = []
 
                 use = set(in_vars)
                 define = set(out_vars)
@@ -5245,6 +5263,31 @@ class irFunc(IR):
 
         self.live_ranges = ranges
 
+    def compute_live_ranges_memory(self):
+        ranges = {}
+
+        code = self.get_code_from_blocks()
+
+        assert len(code) > 0
+
+        for index in range(len(code)):
+            ir = code[index]
+
+            for o in self.mem_live_out[ir]:
+                if o not in ranges:
+                    ranges[o] = []
+
+                ranges[o].append(ir)
+
+            for i in self.mem_live_in[ir]:
+                if i not in ranges:
+                    ranges[i] = []
+
+                if ir not in ranges[i]:
+                    ranges[i].append(ir)
+
+        self.mem_live_ranges = ranges
+
     @property
     def local_size(self):
         s = 0
@@ -5524,6 +5567,7 @@ class irFunc(IR):
         logging.debug(f'Load/store scheduling')
 
         self.liveness_analysis_memory()
+        self.compute_live_ranges_memory()
 
         # self.hoist_loads()
         # self.leader_block.eliminate_loads(visited=self.reverse_postorder)
@@ -5683,7 +5727,8 @@ class irFunc(IR):
             with open("ls_sched_construction.fxir", 'w') as f:
                 f.write(str(self))
 
-
+        opt_passes.remove(OptPasses.SSA)
+        
         if OptPasses.SSA in opt_passes:
 
             self.convert_to_ssa()            
@@ -6431,7 +6476,7 @@ class irPhi(IR):
     def __str__(self):
         s = ''
         for d in sorted(self.merges, key=lambda a: a[0].name):
-            s += f'{d[0]}:{d[1].name}, '
+            s += f'{d[0]}:{d[1].name},'
 
         s = s[:-2]
 

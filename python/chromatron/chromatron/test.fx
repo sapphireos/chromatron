@@ -6,7 +6,7 @@ a = Number()
 
 def init():
     i += 1
-    fence()
+    # fence()
     # a += 1
     if i:
         print(i)
