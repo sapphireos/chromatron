@@ -34,6 +34,7 @@
 #include "gfx_lib.h"
 #include "vm.h"
 #include "battery.h"
+#include "pixel_mapper.h"
 #include "pixel_vars.h"
 
 #ifdef PIXEL_USE_MALLOC
@@ -1933,6 +1934,8 @@ void gfxlib_v_init( void ){
     gfx_v_reset();
 
     update_master_fader();
+
+    mapper_v_init();
 }
 
 bool gfx_b_is_output_zero( void ){
