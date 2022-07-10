@@ -53,6 +53,8 @@
 #define PIXEL_SPI_CHANNEL		0
 #define USER_SPI_CHANNEL        1
 
+#define ENABLE_PIXEL_MAPPER
+
 // if defined, places pixel buffers in malloc region
 #define PIXEL_USE_MALLOC
 

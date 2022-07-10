@@ -36,6 +36,7 @@ typedef struct{
 
 void mapper_v_init( void );
 
+#ifdef ENABLE_PIXEL_MAPPER
 void mapper_v_reset( void );
 void mapper_v_enable( void );
 void mapper_v_disable( void );
@@ -52,5 +53,8 @@ void mapper_v_draw_3d(
     pixel_coord_t x, 
     pixel_coord_t y, 
     pixel_coord_t z );
+
+
+#endif
 
 #endif

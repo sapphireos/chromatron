@@ -28,6 +28,17 @@
 
 #include <math.h>
 
+
+void mapper_v_init( void ){
+
+    #ifdef ENABLE_PIXEL_MAPPER
+
+    #endif
+}
+
+
+#ifdef ENABLE_PIXEL_MAPPER
+
 KV_SECTION_META kv_meta_t pixel_mapper_kv[] = {
     // { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &max_power_sat,        0,                   "gfx_enable_max_power_sat" },
 };
@@ -43,12 +54,6 @@ static uint16_t get_map_size( void ){
     ASSERT( size < 65535 );
 
     return size;
-}
-
-
-void mapper_v_init( void ){
-
-
 }
 
 void mapper_v_reset( void ){
@@ -192,4 +197,4 @@ void mapper_v_draw_3d(
     gfx_v_set_hsv( hue, sat, val, closest_idx );    
 }
 
-
+#endif
