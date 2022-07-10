@@ -25,7 +25,32 @@
 #ifndef _PIXEL_MAPPER_H
 #define _PIXEL_MAPPER_H
 
+typedef int16_t pixel_coord_t;
+
+typedef struct{
+    pixel_coord_t x;
+    pixel_coord_t y;
+    pixel_coord_t z;
+} pixel_mapping_t;
+
+
 void mapper_v_init( void );
 
+void mapper_v_reset( void );
+void mapper_v_enable( void );
+void mapper_v_disable( void );
+void mapper_v_map_3d( uint16_t index, pixel_coord_t x, pixel_coord_t y, pixel_coord_t z );
+void mapper_v_map_polar( uint16_t index, pixel_coord_t rho, pixel_coord_t theta, pixel_coord_t z );
+
+void mapper_v_clear( void );
+
+void mapper_v_draw_3d( 
+    uint16_t size, 
+    uint16_t hue,
+    uint16_t sat,
+    uint16_t val,
+    pixel_coord_t x, 
+    pixel_coord_t y, 
+    pixel_coord_t z );
 
 #endif
