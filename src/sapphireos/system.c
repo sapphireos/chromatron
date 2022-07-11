@@ -559,7 +559,7 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
                          0 ) < 0 ){
 
         // if the thread failed to create, just reboot right away so we don't get stuck.
-        reboot();
+        reboot( TRUE );
     }
 }
 
