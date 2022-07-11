@@ -125,6 +125,10 @@ uint8_t cpu_u8_get_reset_source( void ){
 
         return RESET_SOURCE_BROWNOUT;
     }
+    else if( temp & RST_WDRF_bm ){
+
+        return RESET_SOURCE_WATCHDOG;
+    }
 
     return 0;
 }

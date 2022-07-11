@@ -488,6 +488,37 @@ PT_END( pt );
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
+
+    status_led_v_set( 0, STATUS_LED_RED );
+    status_led_v_set( 0, STATUS_LED_GREEN );
+    status_led_v_set( 0, STATUS_LED_BLUE );
+
+    uint8_t reset_source = sys_u8_get_reset_source();
+
+    if( reset_source == RESET_SOURCE_WATCHDOG ){
+
+        status_led_v_set( 1, STATUS_LED_RED );
+
+        TMR_WAIT( pt, 1000 );
+
+        status_led_v_set( 0, STATUS_LED_RED );
+
+        status_led_v_set( 1, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+        status_led_v_set( 0, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+
+        status_led_v_set( 1, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+        status_led_v_set( 0, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+
+        status_led_v_set( 1, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+        status_led_v_set( 0, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+    }
+
     
     flash_start     = FLASH_FS_FILE_SYSTEM_START + ( (uint32_t)ffs_block_u16_total_blocks() * FLASH_FS_ERASE_BLOCK_SIZE );
     flash_size      = ( flash25_u32_capacity() - flash_start ) + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
