@@ -1418,7 +1418,7 @@ static bool is_recharge_threshold( void ){
 
 static bool is_vbus_volts_ok( void ){
 
-    if( vbus_volts < 4800 ){
+    if( vbus_volts < 4600 ){
 
         return FALSE;
     }
