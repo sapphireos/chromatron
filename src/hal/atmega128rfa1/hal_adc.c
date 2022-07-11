@@ -65,116 +65,101 @@ KV_SECTION_META kv_meta_t hal_adc_kv[] = {
 
 static int16_t _adc_i16_internal_read( uint8_t channel ){
 
-    // uint8_t samples = 4;
-
-    // if( channel <= ADC_CHANNEL_EXT ){
-
-    //     if( channel == ADC_CHANNEL_VSUPPLY ){
-
-    //         samples = 16;
-    //         adc_v_set_ref( ADC_VREF_INT1V );
-    //     }
-    //     else{
-
-    //         adc_v_set_ref( ADC_VREF_INTVCC_DIV1V6 );
-    //     }
-
-    //     ADCA.CH0.CTRL = ADC_CH_INPUTMODE_DIFF_gc;
-
-    //     switch( channel ){
-    //         case IO_PIN_5_ADC1:
-    //             ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc;
-    //             break;
-
-    //         case IO_PIN_4_ADC0:
-    //             ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN1_gc;
-    //             break;
-
-    //         case ADC_CHANNEL_VSUPPLY:
-    //             ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc;
-    //             break;
-
-    //         case IO_PIN_6_DAC0:
-    //             ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN10_gc;
-    //             break;
-
-    //         case IO_PIN_7_DAC1:
-    //             ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN11_gc;
-    //             break;
-
-    //         default:
-    //             break;
-    //     }
-
-    //     // set negative input
-    //     ADCA.CH0.MUXCTRL |= ADC_CH_MUXNEG_GND_MODE3_gc;
-    // }
-    // // internal channels
-    // else{
-
-    //     adc_v_set_ref( ADC_VREF_INT1V );
-
-    //     ADCA.CH0.CTRL = ADC_CH_INPUTMODE_INTERNAL_gc;
-
-    //     switch( channel ){
-    //         case ADC_CHANNEL_BG:
-    //             ADCA.CH0.MUXCTRL = ADC_CH_MUXINT_BANDGAP_gc;
-    //             break;
-
-    //         case ADC_CHANNEL_VCC:
-    //             samples = 16;
-    //             ADCA.CH0.MUXCTRL = ADC_CH_MUXINT_SCALEDVCC_gc;
-    //             break;
-
-    //         case ADC_CHANNEL_TEMP:
-    //             ADCA.CH0.MUXCTRL = ADC_CH_MUXINT_TEMP_gc;
-    //             break;
-
-    //         default:
-    //             break;
-    //     }
-    // }
-
-    // int16_t accumulator = 0;
-
-    // for( uint8_t i = 0; i < samples; i++ ){
-
-    //     // clear interrupt flag
-    //     ADCA.CH0.INTFLAGS = ADC_CH_CHIF_bm;
-
-    //     // start conversion
-    //     ADCA.CH0.CTRL |= ADC_CH_START_bm;
-
-    //     BUSY_WAIT( ADCA.CH0.INTFLAGS == 0 );
-
-    //     accumulator += ADCA.CH0.RES;
-    // }
-
-    // accumulator /= samples;
-
-    // return (int16_t)accumulator;
+    // get ADMUX value and mask off channel bits
+    uint8_t temp = ADMUX & 0b11000000;
+    
+    if( channel < 8 ){
+        
+        temp |= channel;
+        
+        // enable ADC, disable interrupt, auto trigger disabled
+        // set prescaler to / 8
+        ADCSRA = ( 1 << ADEN ) | ( 0 << ADATE ) | ( 0 << ADIE ) | 
+                 ( 0 << ADPS2 ) | ( 1 << ADPS1 ) | ( 1 << ADPS0 );
+    }
+    else if( channel == ADC_CHANNEL_1V2_BG ){
+        
+        temp |= 0b00011110;
+        
+        // enable ADC, disable interrupt, auto trigger disabled
+        // set prescaler to / 8
+        ADCSRA = ( 1 << ADEN ) | ( 0 << ADATE ) | ( 0 << ADIE ) | 
+                 ( 0 << ADPS2 ) | ( 1 << ADPS1 ) | ( 1 << ADPS0 );
+    }
+    else if( channel == ADC_CHANNEL_0V0_AVSS ){
+        
+        temp |= 0b00011111;
+        
+        // enable ADC, disable interrupt, auto trigger disabled
+        // set prescaler to / 8
+        ADCSRA = ( 1 << ADEN ) | ( 0 << ADATE ) | ( 0 << ADIE ) | 
+                 ( 0 << ADPS2 ) | ( 1 << ADPS1 ) | ( 1 << ADPS0 );
+    }
+    else if( channel == ADC_CHANNEL_TEMP ){
+        
+        temp |= 0b00001001;
+        
+        // enable ADC, disable interrupt, auto trigger disabled
+        // set prescaler to / 32
+        ADCSRA = ( 1 << ADEN ) | ( 0 << ADATE ) | ( 0 << ADIE ) | 
+                 ( 1 << ADPS2 ) | ( 0 << ADPS1 ) | ( 1 << ADPS0 );
+    }
+    else{
+    
+        ASSERT( FALSE );
+    }
+    
+    // check if we need to set ADMUX5
+    if( channel == ADC_CHANNEL_TEMP ){
+        
+        ADCSRB |= ( 1 << MUX5 );
+    }
+    else{
+        
+        ADCSRB &= ~( 1 << MUX5 );
+    }
+    
+    // apply channel selection
+    ADMUX = temp;
+    
+    // start conversion
+    ADCSRA |= ( 1 << ADSC );
+    
+    // wait until conversion is complete
+    while( !( ADCSRA & ( 1 << ADIF ) ) );
+    
+    // clear ADIF bit
+    ADCSRA |= ( 1 << ADIF );
+    
+    // return result
+    return ADC;
 }
 
 void adc_v_init( void ){
 
-    // ADCA.CTRLB = ADC_RESOLUTION_12BIT_gc | ADC_CONMODE_bm; // set 12 bit, right adjusted, signed mode
-    // adc_v_set_ref( ADC_VREF_INT1V ); // select 1.0V reference and turn on band gap
-
-    // // ADC clock needs to be between 100khz and 125 khz
-    // // for internal signals
-    // ADCA.PRESCALER = ADC_PRESCALER_DIV256_gc;
-    // // 32MHz / 256 = 125 kHz
-
-    // // read linearity calibration from signature row
-    // NVM.CMD   = NVM_CMD_READ_CALIB_ROW_gc;
-    // ADCA.CALL = pgm_read_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
-    // ADCA.CALH = pgm_read_byte(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
-    // NVM.CMD   = 0;
-
-    // ADCA.CTRLA = ADC_ENABLE_bm; // enable ADC
-
-    // // set vsupply pin to input
-    // ADC_VSUPPLY_PORT.DIRCLR = ( 1 << ADC_VSUPPLY_PIN );
+    // set reference to 1.6v internal
+    // channel 0, right adjusted
+    ADMUX = ( 1 << REFS1 ) | ( 1 << REFS0 );
+    
+    // set tracking time to 4 cycles and maximum start up time
+    ADCSRC = ( 1 << ADTHT1 ) | ( 1 << ADTHT0 ) | ( 1 << ADSUT4 ) |
+             ( 1 << ADSUT3 ) | ( 1 << ADSUT2 ) | ( 1 << ADSUT1 ) | ( 1 << ADSUT0 );
+    
+    /*
+    Timing notes:
+    
+    Fcpu = 16,000,000
+    ADC prescaler = /8
+    Fadc = 2,000,000
+    
+    Tracking time set to 4 cycles (2 microseconds)
+    
+    Total conversion time is 15 ADC cycles, 120 CPU cycles
+    
+    
+    Clock for temperature sensor measurement: Fadc < 500,000
+    Prescaler / 32
+    */
 }
 
 void adc_v_shutdown( void ){
@@ -202,11 +187,18 @@ uint16_t adc_u16_read_raw( uint8_t channel ){
 
 uint16_t adc_u16_read_supply_voltage( void ){
 
-    uint32_t mv = adc_u16_convert_to_millivolts( adc_u16_read_raw( ADC_CHANNEL_VSUPPLY ) );
-
-    // divider ratio is 49.9 + 2.2) / 2.2 = 23.682
-
-    return ( mv * 23682 ) / 1000;
+    uint32_t v = adc_u16_read_raw( ADC_CHANNEL_VSUPPLY );
+    
+    /*
+    Conversion:
+    
+    pin voltage = ( ADC * Vref ) / 1024
+    
+    supply voltage = pin voltage * 11
+    
+    */
+    
+    return ( ( (float)v * 1.6 ) / 1024 ) * 11;
 }
 
 uint16_t adc_u16_read_vcc( void ){
@@ -218,20 +210,12 @@ uint16_t adc_u16_read_vcc( void ){
 
 uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
 
-	uint32_t millivolts = 0;
+	// this calculation is for the 1.6v reference
 
-    // if( ( ADCA.REFCTRL & ADC_REFSEL_gm ) == ADC_VREF_INT1V ){
+    uint32_t millivolts;
+    
+    millivolts = (uint32_t)raw_value * 1600; 
+    millivolts /= 1023;
 
-    // 	millivolts = (uint32_t)raw_value * 1000;
-    //     millivolts /= 2048;
-    // }
-    // else if( ( ADCA.REFCTRL & ADC_REFSEL_gm ) == ADC_VREF_INTVCC_DIV1V6 ){
-
-    //     // uint16_t mv = adc_u16_read_vcc();
-
-    //     millivolts = (uint32_t)raw_value * (3300 / 1.6);
-    //     millivolts /= 2048;
-    // }
-
-	return (uint16_t)millivolts;
+    return (uint16_t)millivolts;
 }

@@ -49,13 +49,8 @@ void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
 
     wdt_reset();
 
-    // ENABLE_CONFIG_CHANGE;
-
-    // WDT.CTRL = timeout | WDT_ENABLE_bm | WDT_CEN_bm;
-
-    // // set timer compare match B
-    // TCC1.CCB = TCC1.CNT + WDG_TIMER_STEP;
-    // TCC1.INTCTRLB |= TC_CCBINTLVL_HI_gc;
+    WDTCSR |= ( 1 << WDCE ) | ( 1 << WDE );
+    WDTCSR = ( 1 << WDE) | WATCHDOG_TIMEOUT_2048MS; // watchdog timeout at 2048 ms, reset only
 
     END_ATOMIC;
 }
@@ -66,31 +61,15 @@ void wdg_v_disable( void ){
 
     wdt_reset();
 
-    // ENABLE_CONFIG_CHANGE;
+    // clear watchdog reset flag
+    MCUSR &= ~( 1 << WDRF );
 
-    // WDT.CTRL = WDT_CEN_bm;
+    // enable change
+    WDTCSR |= ( 1 << WDCE );
 
-    // TCC1.INTCTRLB &= ~TC_CCBINTLVL_HI_gc;
+    // disable watchdog
+    WDTCSR &= ~( 1 << WDE );
+
 
     END_ATOMIC;
 }
-
-// #ifndef BOOTLOADER
-// ISR(TCC1_CCB_vect){
-// OS_IRQ_BEGIN(TCC1_CCB_vect);
-
-//     wdt_reset();
-
-//     // increment step
-//     TCC1.CCB = TCC1.CNT + WDG_TIMER_STEP;
-
-//     wdg_timer--;
-
-//     if( wdg_timer == 0 ){
-
-//         ASSERT( 0 );
-//     }
-
-// OS_IRQ_END();
-// }
-// #endif

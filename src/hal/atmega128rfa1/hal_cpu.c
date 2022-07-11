@@ -29,30 +29,29 @@
 void cpu_v_init( void ){
 
     cli();
-
-
 }
 
 uint8_t cpu_u8_get_reset_source( void ){
 
-    // uint8_t temp = RST.STATUS;
+    // check reset source
+    uint8_t reset_source = MCUSR;
 
-    // if( temp & RST_PORF_bm ){
+    if( reset_source & ( 1 << PORF ) ){
 
-    //     return RESET_SOURCE_POWER_ON;
-    // }
-    // else if( temp & RST_PDIRF_bm ){
+        return RESET_SOURCE_POWER_ON;
+    }
+    else if( reset_source & ( 1 << JTRF ) ){
 
-    //     return RESET_SOURCE_JTAG;
-    // }
-    // else if( temp & RST_EXTRF_bm ){
+        return RESET_SOURCE_JTAG;
+    }
+    else if( reset_source & ( 1 << BORF ) ){
 
-    //     return RESET_SOURCE_EXTERNAL;
-    // }
-    // else if( temp & RST_BORF_bm ){
+        return RESET_SOURCE_BROWNOUT;
+    }
+    else if( reset_source & ( 1 << EXTRF ) ){
 
-    //     return RESET_SOURCE_BROWNOUT;
-    // }
+        return RESET_SOURCE_EXTERNAL;
+    }
 
     return 0;
 }
@@ -60,21 +59,24 @@ uint8_t cpu_u8_get_reset_source( void ){
 void cpu_v_clear_reset_source( void ){
 
     // clear status
-    // RST.STATUS = 0xff;
+    MCUSR = 0;
 }
 
 void cpu_v_remap_isrs( void ){
 
+    // move ISRs to app
+    MCUCR |= _BV( IVCE );
+    
+    uint8_t mcucr = MCUCR;          
+    
+    mcucr &= ~_BV( IVCE );
+    mcucr &= ~_BV( IVSEL );
+        
+    MCUCR = mcucr;
 }
 
 void cpu_v_sleep( void ){
 
-    // SLEEP.CTRL = SLEEP_MODE_IDLE;
-    // DISABLE_INTERRUPTS;
-    // sleep_enable();
-    // ENABLE_INTERRUPTS;
-    // sleep_cpu();
-    // sleep_disable();
 }
 
 bool cpu_b_osc_fail( void ){
@@ -98,7 +100,9 @@ uint32_t cpu_u32_get_clock_speed( void ){
 void cpu_reboot( void ){
 
     // enable watchdog timer:
-    // wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    
+    wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    
+
+    while(1);
 }
 
 #ifndef BOOTLOADER

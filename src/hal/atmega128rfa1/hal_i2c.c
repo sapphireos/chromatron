@@ -37,8 +37,8 @@ This is a bit bang driver, so it can work on any set of pins.
 
 */
 
-static uint8_t delay_1;
-static uint8_t delay_2;
+// static uint8_t delay_1;
+// static uint8_t delay_2;
 
 
 // map delays to KV system for easy hand tuning
@@ -282,121 +282,121 @@ void i2c_v_set_pins( uint8_t clock, uint8_t data ){
 
 void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
 
-    i2c_v_start();
+    // i2c_v_start();
 
-    i2c_v_send_address( dev_addr, TRUE );
+    // i2c_v_send_address( dev_addr, TRUE );
 
-    while( len > 0 ){
+    // while( len > 0 ){
 
-        i2c_v_send_byte( *src );
+    //     i2c_v_send_byte( *src );
 
-        src++;
-        len--;
-    }
+    //     src++;
+    //     len--;
+    // }
 
-    i2c_v_stop();
+    // i2c_v_stop();
 }
 
 void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
 
-    i2c_v_start();
+    // i2c_v_start();
 
-    i2c_v_send_address( dev_addr, FALSE );
+    // i2c_v_send_address( dev_addr, FALSE );
 
-    while( len > 0 ){
+    // while( len > 0 ){
 
-        if( len > 1 ){
+    //     if( len > 1 ){
 
-            *dst = i2c_u8_read_byte( TRUE );
-        }
-        else{
+    //         *dst = i2c_u8_read_byte( TRUE );
+    //     }
+    //     else{
 
-            *dst = i2c_u8_read_byte( FALSE );
-        }
+    //         *dst = i2c_u8_read_byte( FALSE );
+    //     }
 
-        dst++;
-        len--;
-    }
+    //     dst++;
+    //     len--;
+    // }
 
-    i2c_v_stop();
+    // i2c_v_stop();
 }
 
 void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len, uint16_t delay_ms ){
 
-    i2c_v_start();
+    // i2c_v_start();
 
-    i2c_v_send_address( dev_addr, TRUE );
+    // i2c_v_send_address( dev_addr, TRUE );
 
-    if( addr_size == 1 ){
+    // if( addr_size == 1 ){
         
-        i2c_v_send_byte( mem_addr );
-    }
-    else if( addr_size == 2 ){
+    //     i2c_v_send_byte( mem_addr );
+    // }
+    // else if( addr_size == 2 ){
         
-        i2c_v_send_byte( mem_addr >> 8 );        
-        i2c_v_send_byte( mem_addr & 0xff );        
-    }
-    else{
+    //     i2c_v_send_byte( mem_addr >> 8 );        
+    //     i2c_v_send_byte( mem_addr & 0xff );        
+    // }
+    // else{
 
-        ASSERT( FALSE );
-    }
+    //     ASSERT( FALSE );
+    // }
 
-    _delay_ms( delay_ms );
+    // _delay_ms( delay_ms );
 
-    while( len > 0 ){
+    // while( len > 0 ){
 
-        i2c_v_send_byte( *src );
+    //     i2c_v_send_byte( *src );
 
-        src++;
-        len--;
-    }
+    //     src++;
+    //     len--;
+    // }
 
-    i2c_v_stop();
+    // i2c_v_stop();
 }
 
 void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len, uint16_t delay_ms ){
     
-    i2c_v_start();
+    // i2c_v_start();
 
-    i2c_v_send_address( dev_addr, TRUE );
+    // i2c_v_send_address( dev_addr, TRUE );
 
-    if( addr_size == 1 ){
+    // if( addr_size == 1 ){
         
-        i2c_v_send_byte( mem_addr );
-    }
-    else if( addr_size == 2 ){
+    //     i2c_v_send_byte( mem_addr );
+    // }
+    // else if( addr_size == 2 ){
         
-        i2c_v_send_byte( mem_addr >> 8 );        
-        i2c_v_send_byte( mem_addr & 0xff );        
-    }
-    else{
+    //     i2c_v_send_byte( mem_addr >> 8 );        
+    //     i2c_v_send_byte( mem_addr & 0xff );        
+    // }
+    // else{
 
-        ASSERT( FALSE );
-    }
+    //     ASSERT( FALSE );
+    // }
 
-    _delay_ms( delay_ms );
+    // _delay_ms( delay_ms );
 
 
-    i2c_v_start();
+    // i2c_v_start();
 
-    i2c_v_send_address( dev_addr, FALSE );
+    // i2c_v_send_address( dev_addr, FALSE );
 
-    while( len > 0 ){
+    // while( len > 0 ){
 
-        if( len > 1 ){
+    //     if( len > 1 ){
 
-            *dst = i2c_u8_read_byte( TRUE );
-        }
-        else{
+    //         *dst = i2c_u8_read_byte( TRUE );
+    //     }
+    //     else{
 
-            *dst = i2c_u8_read_byte( FALSE );
-        }
+    //         *dst = i2c_u8_read_byte( FALSE );
+    //     }
 
-        dst++;
-        len--;
-    }
+    //     dst++;
+    //     len--;
+    // }
 
-    i2c_v_stop();
+    // i2c_v_stop();
 }
 
 
