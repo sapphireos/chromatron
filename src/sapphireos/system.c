@@ -536,6 +536,7 @@ void set_reboot_mode( sys_mode_t8 mode ){
     }
 }
 
+
 // start reboot delay thread
 void sys_v_reboot_delay( sys_mode_t8 mode ){
 
@@ -547,13 +548,9 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
 
     set_reboot_mode( mode );
 
+    log_v_debug_P( PSTR("Reboot to mode: %d"), mode );
+
     reboot_delay = 2;
-
-    if( sys_mode == SYS_MODE_SAFE ){
-
-        // in safe mode, reboot instantly
-        reboot( TRUE );
-    }
 
     // the thread will perform a graceful reboot
     if( thread_t_create( THREAD_CAST(sys_reboot_thread),
@@ -562,7 +559,7 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
                          0 ) < 0 ){
 
         // if the thread failed to create, just reboot right away so we don't get stuck.
-        reboot( TRUE );
+        reboot();
     }
 }
 
