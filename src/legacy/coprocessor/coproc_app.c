@@ -579,10 +579,10 @@ PT_BEGIN( pt );
     }
 
 
-// DEBUG:
-status_led_v_set( 1, STATUS_LED_WHITE );
-cmd_usart_v_init();
-THREAD_WAIT_WHILE( pt, !boot_esp );
+// // DEBUG:
+// status_led_v_set( 1, STATUS_LED_WHITE );
+// cmd_usart_v_init();
+// THREAD_WAIT_WHILE( pt, !boot_esp );
 
 
     status_led_v_set( 1, STATUS_LED_YELLOW );
@@ -650,7 +650,7 @@ THREAD_WAIT_WHILE( pt, !boot_esp );
         current_opcode = 0;
 
         coproc_hdr_t hdr;
-        coproc_v_receive_block( (uint8_t *)&hdr );
+        coproc_v_receive_block( (uint8_t *)&hdr, TRUE );
 
         ASSERT( hdr.sof == COPROC_SOF );
 
@@ -667,7 +667,7 @@ THREAD_WAIT_WHILE( pt, !boot_esp );
         uint8_t i = 0;
         while( n_blocks > 0 ){
             
-            coproc_v_receive_block( &buf[i] );
+            coproc_v_receive_block( &buf[i], FALSE );
                 
             n_blocks--;
 

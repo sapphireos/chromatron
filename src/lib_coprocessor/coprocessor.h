@@ -127,7 +127,7 @@ typedef struct __attribute__((packed, aligned(4))){
 #define COPROC_FW_INFO_ADDRESS 0x1FC // this must match the offset in the xmega makefile!
 
 void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] );
-void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] );
+void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header );
 
 void coproc_v_init( void );
 void coproc_v_sync( void );

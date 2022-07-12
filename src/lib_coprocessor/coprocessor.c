@@ -62,7 +62,7 @@ void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
 extern uint8_t current_opcode;
 
-void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
+void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
 	coproc_block_t block;
 	uint8_t *rx_data = (uint8_t *)&block;
@@ -75,8 +75,18 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 		// wait for data
 		while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
 
-		*rx_data++ = usart_i16_get_byte( UART_CHANNEL );
-		len--;
+		int16_t byte = usart_i16_get_byte( UART_CHANNEL );
+
+		// waiting for SOF and received printable character instead of start of frame
+		if( header && ( len == sizeof(block) ) && ( byte < 128 ) ){
+
+			// skip byte			
+		}
+		else{
+
+			*rx_data++ = byte;
+			len--;	
+		}
 	}
 	#else 
 	if( hal_wifi_i8_usart_receive( rx_data, len, 10000000 ) != 0 ){
@@ -271,7 +281,7 @@ uint8_t coproc_u8_issue(
 	// if the coprocessor does not respond, the system is broken.
 
 	// wait for header
-	coproc_v_receive_block( (uint8_t *)&hdr );
+	coproc_v_receive_block( (uint8_t *)&hdr, TRUE );
 	
 	ASSERT( hdr.sof == COPROC_SOF );
 	ASSERT( hdr.length < sizeof(buffer) );
@@ -280,7 +290,7 @@ uint8_t coproc_u8_issue(
 	int16_t rx_len = hdr.length;
 	while( rx_len > 0 ){
 
-		coproc_v_receive_block( data );
+		coproc_v_receive_block( data, FALSE );
 
 		data += COPROC_BLOCK_LEN;
 		rx_len -= COPROC_BLOCK_LEN;
