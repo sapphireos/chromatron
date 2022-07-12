@@ -4491,9 +4491,18 @@ int8_t vm_i8_load_program(
     memset( global_data_ptr, 0, header.global_data_len );
 
 
+    // init RNG seed to device ID
+    uint64_t rng_seed;
+    cfg_i8_get( CFG_PARAM_DEVICE_ID, &rng_seed );
 
-    // init RNG seed
-    state->rng_seed = 1;
+    // make sure seed is never 0 (otherwise RNG will not work)
+    if( rng_seed == 0 ){
+
+        rng_seed = 1;
+    }
+
+    state->vm_state.rng_seed = rng_seed;
+
 
     state->tick = 0;
     state->loop_tick = 10; // start loop tick with a slight delay

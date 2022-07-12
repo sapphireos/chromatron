@@ -636,18 +636,6 @@ PT_BEGIN( pt );
         goto exit;
     }
 
-    // init RNG seed to device ID
-    uint64_t rng_seed;
-    cfg_i8_get( CFG_PARAM_DEVICE_ID, &rng_seed );
-
-    // make sure seed is never 0 (otherwise RNG will not work)
-    if( rng_seed == 0 ){
-
-        rng_seed = 1;
-    }
-
-    state->vm_state.rng_seed = rng_seed;
-
     // init database
     // vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
 
