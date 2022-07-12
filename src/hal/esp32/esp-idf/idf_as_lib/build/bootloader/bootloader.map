@@ -541,9 +541,9 @@ Discarded input sections
  .literal.esp_rom_spiflash_config_readmode
                 0x0000000000000000       0x60 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
  .literal.esp_rom_spiflash_erase_chip
-                0x0000000000000000        0xc esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
+                0x0000000000000000       0x18 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
  .literal.esp_rom_spiflash_erase_block
-                0x0000000000000000       0x20 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
+                0x0000000000000000       0x34 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
  .literal.esp_rom_spiflash_erase_area
                 0x0000000000000000       0x18 esp-idf/spi_flash/libspi_flash.a(spi_flash_rom_patch.c.obj)
  .literal.esp_rom_spiflash_write_disable
@@ -2709,24 +2709,9 @@ LOAD /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xten
  .literal.set_actual_ota_seq$isra$3$part$4
                 0x0000000040078208       0x10 esp-idf/bootloader_support/libbootloader_support.a(bootloader_utility.c.obj)
                                          0x30 (size before relaxing)
- .literal.write_otadata
-                0x00000000400781e0        0x4 esp-idf/bootloader_support/libbootloader_support.a(bootloader_utility.c.obj)
-                                         0x18 (size before relaxing)
- .literal.set_actual_ota_seq
-                0x00000000400781e4       0x10 esp-idf/bootloader_support/libbootloader_support.a(bootloader_utility.c.obj)
-                                         0x24 (size before relaxing)
  .literal.try_load_partition
                 0x0000000040078218        0x4 esp-idf/bootloader_support/libbootloader_support.a(bootloader_utility.c.obj)
                                          0x14 (size before relaxing)
- .literal.set_cache_and_start_app
-                0x00000000400781f8        0xc esp-idf/bootloader_support/libbootloader_support.a(bootloader_utility.c.obj)
-                                         0x30 (size before relaxing)
- .literal.unpack_load_app
-                0x0000000040078204       0x1c esp-idf/bootloader_support/libbootloader_support.a(bootloader_utility.c.obj)
-                                         0x34 (size before relaxing)
- .literal.load_image
-                0x0000000040078220        0x4 esp-idf/bootloader_support/libbootloader_support.a(bootloader_utility.c.obj)
-                                         0x18 (size before relaxing)
  .literal.bootloader_utility_load_partition_table
                 0x000000004007821c       0x48 esp-idf/bootloader_support/libbootloader_support.a(bootloader_utility.c.obj)
                                          0x8c (size before relaxing)

@@ -128,6 +128,7 @@
 #define INCLUDE_ASSERTS
 
 
+#define DISABLE_SLEEP
 
 // recovery mode
 #define DISABLE_SAFE_MODE

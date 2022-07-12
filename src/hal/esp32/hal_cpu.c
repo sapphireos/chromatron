@@ -237,6 +237,10 @@ NOTE light sleep will break the JTAG connection when debugging!
 
 */
 
+#ifdef DISABLE_SLEEP
+#pragma message "Sleep mode disabled!"
+#endif
+
 void cpu_v_set_clock_speed_low( void ){
 
     esp_pm_config_esp32_t pm_config = { 0 };
@@ -248,7 +252,11 @@ void cpu_v_set_clock_speed_low( void ){
     pm_config.min_freq_mhz = 80;
     #endif
 
+    #ifdef DISABLE_SLEEP
+    pm_config.light_sleep_enable = FALSE;
+    #else
     pm_config.light_sleep_enable = TRUE;
+    #endif
 
     esp_pm_configure( &pm_config );    
 
@@ -266,7 +274,11 @@ void cpu_v_set_clock_speed_high( void ){
     pm_config.min_freq_mhz = 80;
     #endif
 
+    #ifdef DISABLE_SLEEP
+    pm_config.light_sleep_enable = FALSE;
+    #else
     pm_config.light_sleep_enable = TRUE;
+    #endif
 
     esp_pm_configure( &pm_config );    
 
