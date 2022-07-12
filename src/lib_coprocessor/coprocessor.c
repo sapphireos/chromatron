@@ -541,3 +541,25 @@ int32_t coproc_i32_callp( uint8_t opcode, uint8_t *data, uint16_t len ){
 	return response_len;
 }
 
+int32_t coproc_i32_callp2( uint8_t opcode, int32_t param0, int32_t param1, uint8_t *data, uint16_t len ){
+
+	int32_t param_buf[2];
+	param_buf[0] = param0;
+	param_buf[1] = param1;
+
+	if( len >= COPROC_BUF_SIZE ){
+
+		return -1;
+	}
+
+	uint8_t response_len = coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
+
+	if( response_len > len ){
+
+		response_len = len;
+	}
+
+	memcpy( data, buffer, response_len );
+
+	return response_len;	
+}

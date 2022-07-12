@@ -68,6 +68,34 @@ static uint32_t flash_len;
 static i2c_setup_t i2c_setup;
 static uint8_t response[COPROC_BUF_SIZE];
 
+
+static uint32_t map_flash_addr( uint32_t flash_addr ){
+
+    uint32_t addr;
+
+    // check if address is block 0
+    if( flash_addr < FLASH_FS_ERASE_BLOCK_SIZE ){
+
+        addr = flash_start + flash_addr;
+    }
+    // check if address is within firmware partition 0
+    else if( ( flash_addr >= fw0_start ) && ( flash_addr < fw0_end ) ){
+
+        uint32_t pos = flash_addr - fw0_start;
+
+        addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
+    }
+    // main FS partition
+    else{
+
+        uint32_t pos = flash_addr - fw0_end;
+
+        addr = flash_start + pos + FLASH_FS_ERASE_BLOCK_SIZE;
+    }    
+
+    return addr;
+}
+
 // process a message
 // assumes CRC is valid
 void coproc_v_dispatch( 
@@ -381,27 +409,7 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_ERASE ){
 
-        uint32_t addr;
-
-        // check if address is block 0
-        if( flash_addr < FLASH_FS_ERASE_BLOCK_SIZE ){
-
-            addr = flash_start + flash_addr;
-        }
-        // check if address is within firmware partition 0
-        else if( ( flash_addr >= fw0_start ) && ( flash_addr < fw0_end ) ){
-
-            uint32_t pos = flash_addr - fw0_start;
-
-            addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
-        }
-        // main FS partition
-        else{
-
-            uint32_t pos = flash_addr - fw0_end;
-
-            addr = flash_start + pos + FLASH_FS_ERASE_BLOCK_SIZE;
-        }
+        uint32_t addr = map_flash_addr( flash_addr );
 
         flash25_v_write_enable();
         flash25_v_erase_4k( addr );
@@ -411,28 +419,28 @@ void coproc_v_dispatch(
         uint8_t buf[COPROC_BUF_SIZE];
         memset( buf, 0, sizeof(buf) );
     
-        uint32_t addr;
+        uint32_t addr = map_flash_addr( flash_addr );
 
-        // check if address is block 0
-        if( flash_addr < FLASH_FS_ERASE_BLOCK_SIZE ){
+        flash25_v_read( addr, buf, flash_len );
 
-            addr = flash_start + flash_addr;
+        memcpy( response, buf, flash_len );
+
+        *response_len = flash_len;
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_READ2 ){
+
+        flash_addr = params[0];
+        flash_len = params[1];
+
+        if( flash_len > COPROC_FLASH_XFER_LEN ){
+
+            flash_len = COPROC_FLASH_XFER_LEN;
         }
-        // check if address is within firmware partition 0
-        else if( ( flash_addr >= fw0_start ) && ( flash_addr < fw0_end ) ){
 
-            uint32_t pos = flash_addr - fw0_start;
-
-            addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
-        }
-        // main FS partition
-        else{
-
-            uint32_t pos = flash_addr - fw0_end;
-
-            addr = flash_start + pos + FLASH_FS_ERASE_BLOCK_SIZE;
-        }    
-
+        uint8_t buf[COPROC_BUF_SIZE];
+        memset( buf, 0, sizeof(buf) );
+    
+        uint32_t addr = map_flash_addr( flash_addr );
 
         flash25_v_read( addr, buf, flash_len );
 
@@ -442,27 +450,7 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_FLASH25_WRITE ){
 
-        uint32_t addr;
-
-        // check if address is block 0
-        if( flash_addr < FLASH_FS_ERASE_BLOCK_SIZE ){
-
-            addr = flash_start + flash_addr;
-        }
-        // check if address is within firmware partition 0
-        else if( ( flash_addr >= fw0_start ) && ( flash_addr < fw0_end ) ){
-
-            uint32_t pos = flash_addr - fw0_start;
-
-            addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
-        }
-        // main FS partition
-        else{
-
-            uint32_t pos = flash_addr - fw0_end;
-
-            addr = flash_start + pos + FLASH_FS_ERASE_BLOCK_SIZE;
-        }
+        uint32_t addr = map_flash_addr( flash_addr );
 
         flash25_v_write( addr, data, flash_len );
     }
