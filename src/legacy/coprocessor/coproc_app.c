@@ -30,30 +30,71 @@
 #include "status_led.h"
 #include "hal_cmd_usart.h"
 
+#include "flash25.h"
+#include "flash_fs.h"
 #include "ffs_fw.h"
+#include "ffs_block.h"
 #include "pixel.h"
 
 #include "coproc_app.h"
 
-#ifdef ENABLE_ESP_UPGRADE_LOADER
-
-#define CFG_PARAM_COPROC_LOAD_DISABLE          __KV__coproc_load_disable
+static bool boot_esp;
 
 KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
-    { CATBUS_TYPE_BOOL,      0, 0,  0, cfg_i8_kv_handler,  "coproc_load_disable" },
+    { CATBUS_TYPE_BOOL,      0, 0,  &boot_esp, 0,  "boot_esp" },
+
     // backup wifi keys.
     // if these aren't present in the KV index, the config module won't find them.
+
+    
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
 };
-#endif
 
-
+static bool loadfw_enable_1;
+static bool loadfw_enable_2;
+static bool loadfw_request;
 
 static uint32_t fw_addr;
 static uint32_t pix_transfer_count;
 
+static uint32_t flash_start;
+static uint32_t fw0_start;
+static uint32_t fw0_end;
+static uint32_t flash_size;
+static uint32_t flash_addr;
+static uint32_t flash_len;
+
 static i2c_setup_t i2c_setup;
+static uint8_t response[COPROC_BUF_SIZE];
+
+
+static uint32_t map_flash_addr( uint32_t flash_addr ){
+
+    uint32_t addr;
+
+    // check if address is block 0
+    if( flash_addr < FLASH_FS_ERASE_BLOCK_SIZE ){
+
+        addr = flash_start + flash_addr;
+    }
+    // check if address is within firmware partition 0
+    else if( ( flash_addr >= fw0_start ) && ( flash_addr < fw0_end ) ){
+
+        uint32_t pos = flash_addr - fw0_start;
+
+        addr = FLASH_FS_FIRMWARE_2_PARTITION_START + pos;
+    }
+    // main FS partition
+    else{
+
+        uint32_t pos = flash_addr - fw0_end;
+
+        addr = flash_start + pos + FLASH_FS_ERASE_BLOCK_SIZE;
+    }    
+
+    return addr;
+}
 
 // process a message
 // assumes CRC is valid
@@ -72,27 +113,87 @@ void coproc_v_dispatch(
 
     *response_len = sizeof(int32_t);
 
+    if( hdr->opcode == OPCODE_LOADFW_1 ){
+
+        // check for valid sequence
+        if( !loadfw_enable_1 && !loadfw_enable_2 ){
+
+            log_v_debug_P( PSTR("load 1"));
+
+            loadfw_enable_1 = TRUE;
+        }
+        else{
+        
+            // reset load fw sequence
+            loadfw_enable_1 = FALSE;
+            loadfw_enable_2 = FALSE;
+            loadfw_request = FALSE;
+        }
+    }
+    else if( hdr->opcode == OPCODE_LOADFW_2 ){
+
+        // check for valid sequence
+        if( loadfw_enable_1 && !loadfw_enable_2 ){
+
+            log_v_debug_P( PSTR("load 2"));
+
+            loadfw_enable_2 = TRUE;    
+        }
+        else{
+        
+            // reset load fw sequence
+            loadfw_enable_1 = FALSE;
+            loadfw_enable_2 = FALSE;
+            loadfw_request = FALSE;
+        }
+    }
+    else if( hdr->opcode == OPCODE_SAFE_MODE ){
+
+        // let watchdog reset
+        // this should report safe mode.
+        while(1);
+    }
+    else if( hdr->opcode == OPCODE_REBOOT ){
+
+        // check for valid sequence
+        if( loadfw_enable_1 && loadfw_enable_2 ){
+
+            log_v_debug_P( PSTR("load 3"));
+
+            // load fw
+            loadfw_request = TRUE;
+
+            return;
+        }   
+        else{
+
+            log_v_debug_P( PSTR("reboot"));
+
+            sys_reboot();
+
+            while(1);
+        }
+    }    
+    else{
+
+        // reset load fw sequence
+        loadfw_enable_1 = FALSE;
+        loadfw_enable_2 = FALSE;
+        loadfw_request = FALSE;
+    }
+
     if( hdr->opcode == OPCODE_TEST ){
 
         memcpy( response, data, len );
         *response_len = len;
     }
-    else if( hdr->opcode == OPCODE_REBOOT ){
-
-        sys_reboot();
-
-        while(1);
-    }
-    else if( hdr->opcode == OPCODE_LOAD_DISABLE ){
-        
-        #ifdef ENABLE_ESP_UPGRADE_LOADER
-        bool value = TRUE;
-        cfg_v_set( CFG_PARAM_COPROC_LOAD_DISABLE, &value );
-        #endif
-    }
     else if( hdr->opcode == OPCODE_GET_RESET_SOURCE ){
 
         *retval = sys_u8_get_reset_source();
+    }
+    else if( hdr->opcode == OPCODE_GET_BOOT_MODE ){
+
+        *retval = sys_m_get_startup_boot_mode();
     }
     else if( hdr->opcode == OPCODE_GET_WIFI ){
 
@@ -104,6 +205,14 @@ void coproc_v_dispatch(
 
         *response_len = sizeof(buf);
         memcpy( response, buf, sizeof(buf) );
+    }
+    else if( hdr->opcode == OPCODE_DEBUG_PRINT ){
+
+        #ifdef ENABLE_FFS
+        char *s = (char *)data;
+
+        log_v_debug_P( PSTR("ESP8266: %s"), s );
+        #endif
     }
     else if( hdr->opcode == OPCODE_IO_SET_MODE ){
 
@@ -188,7 +297,6 @@ void coproc_v_dispatch(
 
         pixel_v_set_pix_count( pix_transfer_count );
     }   
-    #ifndef ENABLE_USB_UDP_TRANSPORT
     else if( hdr->opcode == OPCODE_IO_CMD_IS_RX_CHAR ){
 
         *retval = cmd_usart_b_received_char();
@@ -271,6 +379,7 @@ void coproc_v_dispatch(
     else if( hdr->opcode == OPCODE_IO_I2C_MEM_READ ){
 
         i2c_v_mem_read( i2c_setup.dev_addr, i2c_setup.mem_addr, i2c_setup.addr_size, response, i2c_setup.len, i2c_setup.delay_ms );           
+
         *response_len = i2c_setup.len;
     }
     else if( hdr->opcode == OPCODE_IO_I2C_WRITE_REG8 ){
@@ -281,55 +390,223 @@ void coproc_v_dispatch(
 
         *retval = i2c_u8_read_reg8( params[0], params[1] );   
     }
-    #endif
-    else{
+    else if( hdr->opcode == OPCODE_IO_FLASH25_SIZE ){
 
-        log_v_debug_P( PSTR("bad opcode: 0x%02x"), hdr->opcode );
+        *retval = flash_size;
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_ADDR ){
+        
+        flash_addr = params[0];
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_LEN ){
+        
+        flash_len = params[0];
+
+        if( flash_len > COPROC_FLASH_XFER_LEN ){
+
+            flash_len = COPROC_FLASH_XFER_LEN;
+        }
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_ERASE ){
+
+        uint32_t addr = map_flash_addr( flash_addr );
+
+        flash25_v_write_enable();
+        flash25_v_erase_4k( addr );
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_READ ){
+
+        uint8_t buf[COPROC_BUF_SIZE];
+        memset( buf, 0, sizeof(buf) );
+    
+        uint32_t addr = map_flash_addr( flash_addr );
+
+        flash25_v_read( addr, buf, flash_len );
+
+        memcpy( response, buf, flash_len );
+
+        *response_len = flash_len;
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_READ2 ){
+
+        flash_addr = params[0];
+        flash_len = params[1];
+
+        if( flash_len > COPROC_FLASH_XFER_LEN ){
+
+            flash_len = COPROC_FLASH_XFER_LEN;
+        }
+
+        uint8_t buf[COPROC_BUF_SIZE];
+        memset( buf, 0, sizeof(buf) );
+    
+        uint32_t addr = map_flash_addr( flash_addr );
+
+        flash25_v_read( addr, buf, flash_len );
+
+        memcpy( response, buf, flash_len );
+
+        *response_len = flash_len;
+    }
+    else if( hdr->opcode == OPCODE_IO_FLASH25_WRITE ){
+
+        uint32_t addr = map_flash_addr( flash_addr );
+
+        flash25_v_write( addr, data, flash_len );
     }
 }
 
+
+PT_THREAD( usart_recovery_thread( pt_t *pt, void *state ) )
+{           
+PT_BEGIN( pt );  
+
+    cmd_usart_v_init();
+
+    while(1){
+
+        status_led_v_set( 0, STATUS_LED_RED );
+        status_led_v_set( 1, STATUS_LED_BLUE );
+
+        TMR_WAIT( pt, 250 );
+
+        status_led_v_set( 0, STATUS_LED_BLUE );
+        status_led_v_set( 1, STATUS_LED_RED );
+
+        TMR_WAIT( pt, 250 );
+    }
+ 
+PT_END( pt );   
+}
+
+
+uint8_t current_opcode;
 
 
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
 
-    hal_wifi_v_init();
-    
-    #ifdef ENABLE_ESP_UPGRADE_LOADER
+    status_led_v_set( 0, STATUS_LED_RED );
+    status_led_v_set( 0, STATUS_LED_GREEN );
+    status_led_v_set( 0, STATUS_LED_BLUE );
 
-    if( !cfg_b_get_boolean( CFG_PARAM_COPROC_LOAD_DISABLE ) ){ 
+    uint8_t reset_source = sys_u8_get_reset_source();
 
-        // run firmware loader    
-        wifi_v_start_loader();
+    if( reset_source == RESET_SOURCE_WATCHDOG ){
 
-        THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
+        status_led_v_set( 1, STATUS_LED_RED );
 
-        if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
+        TMR_WAIT( pt, 1000 );
 
-            log_v_debug_P( PSTR("ESP load failed") );
+        status_led_v_set( 0, STATUS_LED_RED );
 
-            THREAD_EXIT( pt );
-        }
+        status_led_v_set( 1, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+        status_led_v_set( 0, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+
+        status_led_v_set( 1, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+        status_led_v_set( 0, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+
+        status_led_v_set( 1, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
+        status_led_v_set( 0, STATUS_LED_GREEN );
+        TMR_WAIT( pt, 250 );        
     }
 
-    #endif
+    
+    flash_start     = FLASH_FS_FILE_SYSTEM_START + ( (uint32_t)ffs_block_u16_total_blocks() * FLASH_FS_ERASE_BLOCK_SIZE );
+    flash_size      = ( flash25_u32_capacity() - flash_start ) + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
+    fw0_start       = FLASH_FS_FIRMWARE_0_PARTITION_START;
+    fw0_end         = fw0_start + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
+    
+    hal_wifi_v_init();
+     
+    // run firmware loader    
+    wifi_v_start_loader( loadfw_request );
+
+    THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
+
+    if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
+
+        log_v_debug_P( PSTR("ESP load failed") );
+
+        // flash LEDs, but then try to start ESP chip anyway.
+        // if the coprocessor sync fails, we'll go into recovery mode
+        status_led_v_set( 0, STATUS_LED_RED );
+        status_led_v_set( 1, STATUS_LED_BLUE );
+
+        TMR_WAIT( pt, 250 );
+
+        status_led_v_set( 0, STATUS_LED_BLUE );
+        status_led_v_set( 1, STATUS_LED_RED );
+
+        TMR_WAIT( pt, 250 );
+        
+        status_led_v_set( 0, STATUS_LED_RED );
+        status_led_v_set( 1, STATUS_LED_BLUE );
+
+        TMR_WAIT( pt, 250 );
+
+        status_led_v_set( 0, STATUS_LED_BLUE );
+        status_led_v_set( 1, STATUS_LED_RED );
+
+        TMR_WAIT( pt, 250 );
+        
+        status_led_v_set( 0, STATUS_LED_RED );
+        status_led_v_set( 1, STATUS_LED_BLUE );
+
+        TMR_WAIT( pt, 250 );
+
+        status_led_v_set( 0, STATUS_LED_BLUE );
+        status_led_v_set( 1, STATUS_LED_RED );
+
+        TMR_WAIT( pt, 250 );
+    }
+
+    if( loadfw_request ){
+
+        sys_reboot();
+    }
+
+
+// // DEBUG:
+// status_led_v_set( 1, STATUS_LED_WHITE );
+// cmd_usart_v_init();
+// THREAD_WAIT_WHILE( pt, !boot_esp );
+
 
     status_led_v_set( 1, STATUS_LED_YELLOW );
 
-// THREAD_EXIT( pt );
     hal_wifi_v_enter_normal_mode();
 
     TMR_WAIT( pt, 300 );
 
     hal_wifi_v_usart_flush();
 
+    uint32_t start_time = tmr_u32_get_system_time_ms();
+
     // wait for sync
     while( hal_wifi_i16_usart_get_char() != COPROC_SYNC ){
 
         sys_v_wdt_reset();
+
+        if( tmr_u32_elapsed_time_ms( start_time ) > 4000 ){
+
+            log_v_debug_P( PSTR("sync timeout") );
+
+            // start USB recovery mode
+            thread_t_create( usart_recovery_thread,
+                     PSTR("usart_recovery"),
+                     0,
+                     0 );
+
+            THREAD_EXIT( pt );
+        }
     }
-    // if we don't get a sync, the watchdog timer will restart the entire system.
 
     // send confirmation
     hal_wifi_v_usart_send_char( COPROC_SYNC );
@@ -340,6 +617,10 @@ PT_BEGIN( pt );
     uint8_t version = hal_wifi_i16_usart_get_char();
 
     if( version != 0 ){
+
+        status_led_v_set( 1, STATUS_LED_RED );
+
+        TMR_WAIT( pt, 1000 );
 
         // watchdog timeout here
         while(1);
@@ -352,6 +633,7 @@ PT_BEGIN( pt );
 
     log_v_debug_P( PSTR("sync") );
 
+
     // main message loop
     while(1){
 
@@ -359,10 +641,14 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_usart_rx_available() );
 
+        current_opcode = 0;
+
         coproc_hdr_t hdr;
-        coproc_v_receive_block( (uint8_t *)&hdr );
+        coproc_v_receive_block( (uint8_t *)&hdr, TRUE );
 
         ASSERT( hdr.sof == COPROC_SOF );
+
+        current_opcode = hdr.opcode;
 
         uint8_t buf[COPROC_BUF_SIZE];
 
@@ -375,18 +661,24 @@ PT_BEGIN( pt );
         uint8_t i = 0;
         while( n_blocks > 0 ){
             
-            coproc_v_receive_block( &buf[i] );
+            coproc_v_receive_block( &buf[i], FALSE );
                 
             n_blocks--;
 
             i += COPROC_BLOCK_LEN;
         }
 
-        uint8_t response[COPROC_BUF_SIZE];
         uint8_t response_len = 0;
 
         // run command
         coproc_v_dispatch( &hdr, buf, &response_len, response );
+
+        if( loadfw_request && loadfw_enable_1 && loadfw_enable_2 ){
+
+            log_v_debug_P( PSTR("valid load sequence") );
+
+            THREAD_RESTART( pt );
+        }
 
         hdr.length = response_len;
 
@@ -445,6 +737,11 @@ PT_END( pt );
 
 
 void app_v_init( void ){
+
+    // reset load fw sequence
+    loadfw_enable_1 = FALSE;
+    loadfw_enable_2 = FALSE;
+    loadfw_request = FALSE;
 
     #ifndef ENABLE_WIFI
     thread_t_create( app_thread,

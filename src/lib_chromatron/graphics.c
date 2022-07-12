@@ -34,6 +34,8 @@
 #include "vm_sync.h"
 #include "superconductor.h"
 
+#ifdef ENABLE_GFX
+
 
 // pixel calibrations for a single pixel at full power
 #define MICROAMPS_RED_PIX       10000
@@ -91,27 +93,6 @@ static uint32_t fx_rainbow_vfile_handler( vfile_op_t8 op, uint32_t pos, void *pt
     return ret_val;
 }
 
-
-void gfx_v_init( void ){
-
-    gfxlib_v_init();
-
-    pixel_v_init();
-
-    #ifdef ENABLE_TIME_SYNC
-    vm_sync_v_init();
-    #endif
-
-    sc_v_init();
-
-    fs_f_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );
-
-    thread_t_create( gfx_control_thread,
-                PSTR("gfx_control"),
-                0,
-                0 );
-}
-
 bool gfx_b_pixels_enabled( void ){
 
     // pixels are enabled, UNLESS:
@@ -122,11 +103,13 @@ bool gfx_b_pixels_enabled( void ){
         return FALSE;
     }
 
+    #ifdef ENABLE_BATTERY
     // battery manager indicates power is off
     if( !batt_b_pixels_enabled() ){
 
         return FALSE;
     }
+    #endif
 
     // there are no pixels
     if( gfx_u16_get_pix_count() == 0 ){
@@ -263,4 +246,30 @@ PT_BEGIN( pt );
     }
 
 PT_END( pt );
+}
+
+#endif
+
+
+void gfx_v_init( void ){
+	
+    #ifdef ENABLE_GFX
+
+    gfxlib_v_init();
+
+    pixel_v_init();
+
+    #ifdef ENABLE_TIME_SYNC
+    vm_sync_v_init();
+    #endif
+
+    sc_v_init();
+
+    fs_f_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );
+
+    thread_t_create( gfx_control_thread,
+                PSTR("gfx_control"),
+                0,
+                0 );
+    #endif
 }

@@ -1,4 +1,5 @@
-	
+
+
 with open('../../legacy/coprocessor/firmware.bin', 'rb') as f:
 	data = f.read()
 

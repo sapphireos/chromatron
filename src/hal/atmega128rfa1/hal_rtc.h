@@ -20,21 +20,17 @@
 // 
 // </license>
 
-#ifndef _ESP8266_H
-#define _ESP8266_H
+#if 0
 
-#include "netmsg.h"
+#ifndef _HAL_RTC_H
+#define _HAL_RTC_H
 
-#ifndef ESP8266
-#include "wifi_cmd.h"
+void hal_rtc_v_init( void );
+uint16_t hal_rtc_u16_get_period( void );
+void hal_rtc_v_set_period( uint16_t period );
+uint16_t hal_rtc_u16_get_time( void );
 
-
-#define WIFI_WATCHDOG_TIMEOUT   8
-
-int8_t wifi_i8_send_msg( uint8_t data_id, uint8_t *data, uint16_t len );
-int8_t wifi_i8_receive_msg( uint8_t data_id, uint8_t *data, uint16_t max_len, uint16_t *bytes_read );
-
-extern int8_t wifi_i8_msg_handler( uint8_t data_id, uint8_t *data, uint16_t len ) __attribute__((weak));
+void hal_rtc_v_irq( void ) __attribute__((weak));
 
 #endif
 

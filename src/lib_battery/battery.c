@@ -39,6 +39,7 @@
 
 #include "hal_pixel.h"
 
+#ifdef ENABLE_BATTERY
 
 static bool batt_enable;
 static int8_t batt_ui_state;
@@ -212,7 +213,6 @@ void batt_v_init( void ){
         pca9536_v_set_input( BATT_IO_QON );
         pca9536_v_set_input( BATT_IO_S2 );
         pca9536_v_set_input( BATT_IO_SPARE );
-        pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
         pca9536_v_set_output( BATT_IO_BOOST );
     }
     else{
@@ -229,7 +229,7 @@ void batt_v_init( void ){
         cpu_v_set_clock_speed_low();
     }
 
-    batt_v_disable_pixels();
+    batt_v_enable_pixels();
 
     thread_t_create( battery_ui_thread,
                      PSTR("batt_ui"),
@@ -321,6 +321,9 @@ bool batt_b_pixels_enabled( void ){
 
 #if defined(ESP32)
 
+#define FAN_IO IO_PIN_19_MISO
+#define BOOST_IO IO_PIN_4_A5
+
 PT_THREAD( fan_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -359,7 +362,6 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 20 );
         }
-
         while( !fan_on && !sys_b_is_shutting_down() ){
 
             TMR_WAIT( pt, 100 );
@@ -399,6 +401,7 @@ PT_END( pt );
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
     
     #if defined(ESP32)
 
@@ -640,3 +643,4 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#endif

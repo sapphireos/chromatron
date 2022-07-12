@@ -24,6 +24,8 @@
 #include "hsv_to_rgb.h"
 #include "keyvalue.h"
 
+#ifdef ENABLE_GFX
+
 // #define HSV_DEBUG
 
 static bool max_power_sat;
@@ -276,6 +278,7 @@ void gfx_v_hsv_to_rgbw(
 //     *w = ( (uint32_t)temp_s * v ) / 65536;
 // }
 
+#endif
 
 #ifdef GEN_HUE_CURVE
 

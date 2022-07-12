@@ -156,6 +156,15 @@ static uint16_t _kv_u16_fixed_count( void ){
     return ( kv_end - kv_start ) - 1;
 }
 
+static uint32_t _kv_u32_get_index_addr( void ){
+
+    #ifdef ESP32
+    return sys_u32_get_kv_index_addr() + FW_SPI_START_OFFSET;
+    #else
+    return sys_u32_get_kv_index_addr() + FLASH_START;
+    #endif
+}
+
 uint16_t kv_u16_count( void ){
 
     uint16_t count = _kv_u16_fixed_count();
@@ -213,14 +222,8 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     }
 
     // get address of hash index
-    #ifdef ESP32
-    uint32_t kv_index_start = FW_SPI_START_OFFSET + sys_u32_get_fw_length() -
-                               ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
-    #else
-    uint32_t kv_index_start = FLASH_START +
-                              ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -
-                              ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
-    #endif
+    uint32_t kv_index_start = _kv_u32_get_index_addr();
+
     int16_t first = 0;
     int16_t last = _kv_u16_fixed_count() - 1;
     int16_t middle = ( first + last ) / 2;

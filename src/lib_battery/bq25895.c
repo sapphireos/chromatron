@@ -33,6 +33,8 @@
 #include "flash_fs.h"
 #include "hal_boards.h"
 
+#ifdef ENABLE_BATTERY
+
 static uint8_t regs[BQ25895_N_REGS];
 
 static uint8_t batt_soc = 50; // state of charge in percent
@@ -234,6 +236,7 @@ static uint8_t read_cached_reg( uint8_t addr ){
 uint8_t bq25895_u8_read_reg( uint8_t addr ){
 
     uint8_t data = 0;
+    
     i2c_v_mem_read( BQ25895_I2C_ADDR, addr, 1, &data, sizeof(data), 0 );
 
     // update cache
@@ -1415,7 +1418,7 @@ static bool is_recharge_threshold( void ){
 
 static bool is_vbus_volts_ok( void ){
 
-    if( vbus_volts < 4800 ){
+    if( vbus_volts < 4200 ){
 
         return FALSE;
     }
@@ -1796,7 +1799,6 @@ PT_BEGIN( pt );
 
         batt_charging =  bq25895_b_is_charging();
 
-
         // if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
         //     ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
 
@@ -1854,3 +1856,5 @@ PT_END( pt );
 
 // PT_END( pt );
 // }
+
+#endif

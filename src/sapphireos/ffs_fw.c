@@ -51,10 +51,6 @@ static uint32_t fw_size1;
 static uint32_t fw_size2;
 #endif
 
-#if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
-PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) );
-#endif
-
 typedef struct{
     uint32_t partition_start;
     uint32_t n_blocks;
@@ -146,7 +142,7 @@ static void erase_start_blocks( uint8_t partition ){
 
 int8_t ffs_fw_i8_init( void ){
 
-    trace_printf("FFS FW init...\r\n");\
+    trace_printf("FFS FW init...\r\n");
 
     #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
     // init sizes for firmware 1
@@ -162,8 +158,11 @@ int8_t ffs_fw_i8_init( void ){
     fw_size2 = FLASH_FS_FIRMWARE_2_PARTITION_SIZE;
     #endif
 
-
-    uint32_t sys_fw_length = sys_u32_get_fw_length() + sizeof(uint16_t); // adjust for CRC
+    #ifdef ESP8266
+    uint32_t sys_fw_length = sys_u32_get_fw_length(); // includes CRC
+    #else
+    uint32_t sys_fw_length = sys_u32_get_fw_length() + sizeof(uint16_t); // adjust for CR
+    #endif
     uint32_t ext_fw_length = 0;
 
     // read firmware info from external flash partition
@@ -180,7 +179,11 @@ int8_t ffs_fw_i8_init( void ){
                     sizeof(ext_fw_length) );
     #endif
 
+    #ifdef ESP8266
+    ext_fw_length += sizeof(uint16_t) + 16; // adjust for CRC and MD5
+    #else
     ext_fw_length += sizeof(uint16_t); // adjust for CRC
+    #endif
     
     // check for invalid ext firmware length
     if( ext_fw_length > FLASH_FS_FIRMWARE_0_PARTITION_SIZE ){
@@ -201,6 +204,25 @@ int8_t ffs_fw_i8_init( void ){
         // invalid size, so we'll default to 0 
         fw_size = 0;
     }
+
+    // do we have enough capacity for firmware partitions?
+    uint32_t capacity = flash25_u32_capacity();
+    uint32_t total_fw_partitions_len = 
+        FLASH_FS_FIRMWARE_0_PARTITION_SIZE + 
+        FLASH_FS_FIRMWARE_1_PARTITION_SIZE +
+        FLASH_FS_FIRMWARE_2_PARTITION_SIZE;
+
+    if( capacity < total_fw_partitions_len ){
+
+        trace_printf("FFS FW not enough capacity for firmware partitions!\r\n");
+
+        return -1;
+    }
+
+    #ifdef ESP8266 
+    // esp8266 (with coprocessor) cannot copy fw to coproc
+    return FFS_STATUS_OK;
+    #endif
 
     // check CRC or if partition length is bad
     if( ffs_fw_u16_crc() != 0 ){
@@ -265,13 +287,6 @@ int8_t ffs_fw_i8_init( void ){
         }
     }
 
-    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
-    thread_t_create( fw2_init_thread,
-                     PSTR("fw2_init_thread"),
-                     0,
-                     0 );
-    #endif
-
     return FFS_STATUS_OK;
 }
 
@@ -325,7 +340,9 @@ uint32_t ffs_fw_u32_read_internal_length( void ){
 
     uint32_t internal_length = sys_u32_get_fw_length();
 
+    #ifndef ESP8266
     internal_length += sizeof(uint16_t);
+    #endif
 
     #ifdef N_APP_PAGES
     if( internal_length > ( (uint32_t)N_APP_PAGES * (uint32_t)PAGE_SIZE ) ){
@@ -394,6 +411,35 @@ uint32_t ffs_fw_u32_size( uint8_t partition ){
     return 0;
 }
 
+PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+
+    // assumes FAST_ERASE_N_BLOCKS have already been erased before the thread started
+
+    state->i = FAST_ERASE_N_BLOCKS;
+
+    while( state->i < state->n_blocks ){
+
+        // enable writes
+        flash25_v_write_enable();
+
+        // erase current block
+        flash25_v_erase_4k( ( (uint32_t)state->i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + state->partition_start );
+
+        // wait for erase to complete
+        BUSY_WAIT( flash25_b_busy() );
+
+        wdg_v_reset();
+
+        state->i++;
+
+        TMR_WAIT( pt, 4 );
+    }
+
+PT_END( pt );
+}
+
 void ffs_fw_v_erase( uint8_t partition, bool immediate ){
 
     fw_erase_thread_state_t thread_state;
@@ -435,6 +481,8 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
 
         return;
     }
+
+    immediate = TRUE;
 
     if( !immediate ){
 
@@ -575,46 +623,5 @@ int32_t ffs_fw_i32_write( uint8_t partition, uint32_t position, const void *data
     #endif
 
     return write_len;
-}
-
-#if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
-PT_THREAD( fw2_init_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-    
-    cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &fw_size2 );
-    fw_size2 += 16; // add padding for MD5
-
-PT_END( pt );
-}
-#endif
-
-PT_THREAD( fw_erase_thread( pt_t *pt, fw_erase_thread_state_t *state ) )
-{
-PT_BEGIN( pt );
-
-    // assumes FAST_ERASE_N_BLOCKS have already been erased before the thread started
-
-    state->i = FAST_ERASE_N_BLOCKS;
-
-    while( state->i < state->n_blocks ){
-
-        // enable writes
-        flash25_v_write_enable();
-
-        // erase current block
-        flash25_v_erase_4k( ( (uint32_t)state->i * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE ) + state->partition_start );
-
-        // wait for erase to complete
-        BUSY_WAIT( flash25_b_busy() );
-
-        wdg_v_reset();
-
-        state->i++;
-
-        TMR_WAIT( pt, 4 );
-    }
-
-PT_END( pt );
 }
 

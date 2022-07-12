@@ -31,7 +31,6 @@
 #include "energy.h"
 #include "battery.h"
 #include "flash_fs.h"
-#include "hal_boards.h"
 
 #include "veml7700.h"
 
@@ -52,14 +51,11 @@ void app_v_init( void ){
 
     vm_v_init();
 
-
-    #ifdef ESP8266
-    #pragma message "I2C broken on ESP8266!"
+    #ifdef ENABLE_BATTERY
+    batt_v_init();
     #endif
 
     #ifdef ESP32
-
-    batt_v_init();
 
     pwm_v_init();
 

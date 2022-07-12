@@ -56,7 +56,13 @@ from sapphire.common import util, catbus_string_hash
 from fnvhash import fnv1a_32
 
 
+# old upgrade FW:
 CHROMATRON_ESP_UPGRADE_FWID = '4b2e4ce5-1f41-494e-8edd-d748c7c81dcb'.replace('-', '')
+
+CHROMATRON_ESP_UPGRADE_1MB_FWID = '943dc7f1-e040-4fee-8b63-7c902e0082f8'.replace('-', '')
+CHROMATRON_ESP_UPGRADE_4MB_FWID = '07d3a99e-8546-4447-8463-c9d90077cc40'.replace('-', '')
+
+ESP_UPGRADE_FW = [CHROMATRON_ESP_UPGRADE_1MB_FWID, CHROMATRON_ESP_UPGRADE_4MB_FWID]
 
 
 class SettingsParseException(Exception):
@@ -77,7 +83,6 @@ KV_CHARS = lowercase
 KV_CHARS.extend(uppercase)
 KV_CHARS.extend(['_'])
 KV_CHARS.extend(digits)
-# KV_HEADER = '_kv_hashes.h'
     
 SETTINGS_DIR                = os.path.dirname(os.path.abspath(settings.__file__))
 SETTINGS_FILE               = 'settings.json'
@@ -1084,7 +1089,7 @@ class AppBuilder(HexBuilder):
     def post_process(self):
         logging.info("Processing binaries")
 
-        fw_info_fmt = '<I16s128s16s128s16s32s'
+        fw_info_fmt = '<I16s128s16s128s16s32sII'
 
         # save original dir
         cwd = os.getcwd()
@@ -1223,7 +1228,9 @@ class AppBuilder(HexBuilder):
                                 os_project.version.encode('utf-8'),
                                 self.settings['PROJ_NAME'].encode('utf-8'),
                                 self.version.encode('utf-8'),
-                                self.board_type.encode('utf-8'))
+                                self.board_type.encode('utf-8'),
+                                kv_index_addr,
+                                len(kv_index))
 
         # insert fw info into hex
         ih.puts(fw_info_addr, fw_info)
@@ -1235,18 +1242,6 @@ class AppBuilder(HexBuilder):
             crc = crc_func(ih.tobinstr())
             ih.puts(ih.maxaddr() + 1, struct.pack('>H', crc))
 
-        logging.info("size: %d" % (size))
-        logging.info("fwid: %s" % (fwid))
-        logging.info("fwinfo: %x" % (fw_info_addr))
-        logging.info("kv index count: %d" % (len(sorted_hashes)))
-        logging.info("kv index len: %d" % (len(kv_index)))
-        logging.info("kv index addr: 0x%0x" % (kv_index_addr))
-        logging.info("os name: %s" % (os_project.proj_name))
-        logging.info("os version: %s" % (os_project.version))
-        logging.info("app name: %s" % (self.settings['PROJ_NAME']))
-        logging.info("app version: %s" % (self.version))
-
-        if self.settings["TOOLCHAIN"] not in ["ESP32", "ESP32_bootloader"]:
             logging.info("crc: 0x%x" % (crc))
 
             size = ih.maxaddr() - ih.minaddr() + 1
@@ -1321,6 +1316,7 @@ class AppBuilder(HexBuilder):
 
             logging.info("ESP32 checksum: 0x%02x" % (checksum))
 
+            # append CRC
             crc = crc_func(firmware_image)
             logging.info("crc: 0x%x" % (crc))
             firmware_image += bytes(struct.pack('>H', crc))
@@ -1328,49 +1324,108 @@ class AppBuilder(HexBuilder):
             with open("firmware.bin", 'wb') as f:
                 f.write(firmware_image)
 
+        # create firmware package
+        try:
+            package = get_firmware_package(self.settings['PROJ_NAME'])
+        except FirmwarePackageNotFound:
+            package = FirmwarePackage(self.settings['PROJ_NAME'])
+
+        package.FWID = self.settings['FWID']
+
         # get loader info
         try:
             loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.board_type)
 
             if self.settings["TOOLCHAIN"] == "XTENSA":
-                # create loader image
-                with open(os.path.join(loader_project.target_dir, "main.bin"), 'rb') as f:
-                    loader_image = f.read()
+                if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
+                    pass
 
-                # sanity check
-                if loader_image[0] != 0xE9:
-                    raise Exception("invalid esp bootloader image")
+                else:
+                    # create loader image
+                    with open(os.path.join(loader_project.target_dir, "main.bin"), 'rb') as f:
+                        loader_image = f.read()
 
-                bootloader_size = int(loader_project.settings["FW_START_OFFSET"], 16)
+                    # sanity check
+                    if loader_image[0] != 0xE9:
+                        raise Exception("invalid esp bootloader image")
 
-                # pad bootloader
-                loader_image += bytes((bootloader_size - len(loader_image) % bootloader_size) * [0])
+                    bootloader_size = int(loader_project.settings["FW_START_OFFSET"], 16)
 
-                with open("firmware.bin", 'rb') as f:
-                    firmware_image = f.read()
+                    # pad bootloader
+                    loader_image += bytearray((bootloader_size - len(loader_image) % bootloader_size) * [0])
 
-                if firmware_image[0] != 0xE9:
-                    raise Exception("invalid esp firmware image")
+                    with open("firmware.bin", 'rb') as f:
+                        firmware_image = f.read()
 
-                combined_image = loader_image + firmware_image
+                    if firmware_image[0] != 0xE9:
+                        raise Exception("invalid esp firmware image")
+                
+                    # include length for CRC in combined image:
+                    combined_image = loader_image + firmware_image + bytearray([0,0])
 
-                # need to pad to sector length
-                combined_image += bytes((4096 - (len(combined_image) % 4096)) * [0xff])
+                    # need to pad to sector length
+                    combined_image += bytearray((4096 - (len(combined_image) % 4096)) * [0xff])
 
-                # write a combined image suitable for esptool
-                with open("esptool_image.bin", 'wb') as f:
-                    f.write(combined_image)
+                    size = len(combined_image)
 
-                if 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']:
+                    # # write a combined image suitable for esptool
+                    # with open("esptool_image.bin", 'wb') as f:
+                    #     f.write(combined_image)
+
+                    # kv_index_addr += len(loader_image)
+
+                    # the esp8266 is so very very special so we update the fwinfo section:
+                    fw_info = struct.pack(fw_info_fmt,
+                                    size,
+                                    fwid.bytes,
+                                    os_project.proj_name.encode('utf-8'),
+                                    os_project.version.encode('utf-8'),
+                                    self.settings['PROJ_NAME'].encode('utf-8'),
+                                    self.version.encode('utf-8'),
+                                    self.board_type.encode('utf-8'),
+                                    kv_index_addr,
+                                    len(kv_index))
+
+                    
+                    fw_info_addr += len(loader_image)
+                    fw_info_len = len(fw_info)
+
+                    # convert back to bytearray because Python really, really wants to get you to use bytes() for some reason.
+                    combined_image = bytearray(combined_image)
+
+                    # insert fwinfo into binary
+                    combined_image[fw_info_addr: fw_info_addr + fw_info_len] = fw_info
+
+                    # attach CRC
+                    crc = crc_func(combined_image[:-2])
+                    combined_image[size - 2:] = bytearray(struct.pack('>H', crc))
+
+                
                     # append MD5
                     md5 = hashlib.md5(combined_image)
                     combined_image += md5.digest()
 
-                    # prepend length (not counting the length field itself or the MD5 - the actual FW length)
-                    combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
+                    logging.info(f'Image MD5: {md5.hexdigest()}')
+                    logging.info("crc: 0x%x" % (crc))
 
-                    with open("wifi_firmware.bin", 'wb') as f:
+                    with open("firmware.bin", 'wb') as f:
                         f.write(combined_image)
+
+                    # prepend length (not counting the length field itself or the MD5 - the actual FW length)
+                    # combined_image = struct.pack('<L', len(combined_image) - 16) + combined_image
+
+                    if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_1MB_FWID:
+                        assert 'extra_files' in self.board and 'wifi_firmware.bin' in self.board['extra_files']
+
+                        MAX_ESP8266_LEGACY_IMAGE_SIZE = (384 * 1024)
+
+                        if len(combined_image) > MAX_ESP8266_LEGACY_IMAGE_SIZE:
+                            raise Exception(f"Image size exceeds partition length: {len(combined_image)} > {MAX_ESP8266_LEGACY_IMAGE_SIZE}")
+
+                        logging.info(f'!!! Upgrade image size: {len(combined_image)} fits within partition size: {MAX_ESP8266_LEGACY_IMAGE_SIZE}')
+
+                        with open("wifi_firmware.bin", 'wb') as f:
+                            f.write(combined_image)
 
             else:
                 # create loader image
@@ -1387,17 +1442,9 @@ class AppBuilder(HexBuilder):
         except KeyError:
             logging.info("Loader project not found, cannot create loader_image.hex")
 
-
-        # create firmware package
-        try:
-            package = get_firmware_package(self.settings['PROJ_NAME'])
-        except FirmwarePackageNotFound:
-            package = FirmwarePackage(self.settings['PROJ_NAME'])
-
-        package.FWID = self.settings['FWID']
-
-        if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_FWID:
-            print("Special handling for ESP8266 upgrade on Chromatron Classic")
+        
+        if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_1MB_FWID:
+            logging.warning("Special handling for ESP8266 upgrade on Chromatron Classic")
             coproc_package = get_firmware_package('coprocessor')
 
             try:
@@ -1423,6 +1470,19 @@ class AppBuilder(HexBuilder):
                 package.add_image(file, None, self.board_type, self.version)
 
         package.save()
+
+
+        logging.info("size: %d" % (size))
+        logging.info("fwid: %s" % (fwid))
+        logging.info("fwinfo: %x" % (fw_info_addr))
+        logging.info("kv index count: %d" % (len(sorted_hashes)))
+        logging.info("kv index len: %d" % (len(kv_index)))
+        logging.info("kv index addr: 0x%0x" % (kv_index_addr))
+        logging.info("os name: %s" % (os_project.proj_name))
+        logging.info("os version: %s" % (os_project.version))
+        logging.info("app name: %s" % (self.settings['PROJ_NAME']))
+        logging.info("app version: %s" % (self.version))
+
 
         logging.info("Package dir: %s" % (get_build_package_dir()))
 

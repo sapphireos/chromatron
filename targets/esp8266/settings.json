@@ -92,6 +92,7 @@
     ],
 
     "LINKER_SCRIPT": "eagle.app.v6.ld",
+    "LOADER_PROJECT": "loader_esp8266",
 
     "OBJ_DIR": "obj",
     "DEP_DIR": "dep",

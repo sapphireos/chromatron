@@ -36,7 +36,7 @@
 #define CMD_USART_UDP_NAK           0x14
 
 // must be 8 bytes to fit in endpoint size!
-typedef struct{
+typedef struct __attribute__((packed)){
     uint16_t lport;
     uint16_t rport;
     uint16_t data_len;

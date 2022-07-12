@@ -22,11 +22,12 @@
 
 #include "system.h"
 
-#if !defined(ESP8266) && !defined(ESP32)
+#ifdef ENABLE_ESP8266_LOADER
 
 #include "fs.h"
 #include "timers.h"
 #include "config.h"
+#include "crc.h"
 #include "watchdog.h"
 
 #include "hal_esp8266.h"
@@ -72,6 +73,13 @@
 #define ESP_CESANTA_CMD_FLASH_WRITE     1
 #define ESP_CESANTA_CMD_FLASH_READ      2
 #define ESP_CESANTA_CMD_FLASH_DIGEST    3
+
+KV_SECTION_META kv_meta_t esp8266_loader_cfg_kv[] = {
+    { CATBUS_TYPE_UINT32,      0, 0, 0, cfg_i8_kv_handler,   "wifi_fw_len" },
+    { CATBUS_TYPE_KEY128,      0, 0, 0, cfg_i8_kv_handler,   "wifi_fw_md5" },
+};
+
+
 
 
 typedef struct{
@@ -457,35 +465,22 @@ int8_t esp_i8_load_flash( file_t file ){
 
     int32_t file_len;
 
-    // make sure file is at position 0!
+    fs_v_seek( file, ESP_FW_INFO_ADDRESS );
+
+    fs_i16_read( file, &file_len, sizeof(file_len) );
+
     fs_v_seek( file, 0 );
 
-    #ifdef ENABLE_ESP_UPGRADE_LOADER
-    fs_i16_read( file, &file_len, sizeof(file_len) );
-    #else
-    file_len = fs_i32_get_size( file );
-    #endif
-
-    #ifndef ENABLE_ESP_UPGRADE_LOADER
-    // file image will have md5 checksum appended, so throw away last 16 bytes
-    file_len -= MD5_LEN;
-    #endif
-
-    if( file_len < 0 ){
+    if( file_len <= 0 ){
 
         return -1;
     }
 
-    #ifndef ENABLE_ESP_UPGRADE_LOADER
-    uint32_t cfg_file_len;
-    cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &cfg_file_len );
-
-    // check for config and file length mismatch
-    if( cfg_file_len != (uint32_t)file_len ){
+    // file length must be a multiple of flash sector size!
+    if( ( file_len % ESP_FLASH_SECTOR ) != 0 ){
 
         return -2;
     }
-    #endif
 
     uint8_t buf[6];
     memset( buf, 0, sizeof(buf) );
@@ -514,7 +509,7 @@ int8_t esp_i8_load_flash( file_t file ){
            ( buf[3] == 0 ) &&
            ( buf[4] == 0 ) &&
            ( buf[5] == SLIP_END ) ) ){
-
+        
         return -3;
     }
 
@@ -568,6 +563,13 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] ){
     cmd.addr = 0;
     cmd.len = len;
     cmd.block_size = 0;
+
+    memset( digest, 0, MD5_LEN );
+
+    if( len == 0 ){
+
+        return 0;
+    }
 
     hal_wifi_v_usart_flush();
 
@@ -638,9 +640,12 @@ void esp_v_flash_end( void ){
 }
 
 static int8_t loader_status;
+static bool load_fw;
 
 
-void wifi_v_start_loader( void ){
+void wifi_v_start_loader( bool request_load ){
+
+    load_fw = request_load;
 
     thread_t_create_critical( THREAD_CAST(wifi_loader_thread),
                               PSTR("wifi_loader"),
@@ -666,6 +671,11 @@ PT_BEGIN( pt );
     state->tries = WIFI_LOADER_MAX_TRIES;
 
     log_v_debug_P( PSTR("wifi loader starting") );
+
+    if( load_fw ){
+
+        log_v_debug_P( PSTR("load fw command set") );
+    }
     
 restart:
 
@@ -770,156 +780,191 @@ restart:
     trace_printf( "Cesanta flasher ready!\r\n" );
     // log_v_debug_P( PSTR("Cesanta flasher ready!") );
 
-    uint32_t file_len;
-    #ifdef ENABLE_ESP_UPGRADE_LOADER
-    fs_v_seek( state->fw_file, 0 );
+    uint32_t file_len = 0;
+    fs_v_seek( state->fw_file, ESP_FW_INFO_ADDRESS );
     fs_i16_read( state->fw_file, &file_len, sizeof(file_len) );
-    log_v_debug_P( PSTR("wifi fw len: %lu"), file_len );
-    #else
-    cfg_i8_get( CFG_PARAM_WIFI_FW_LEN, &file_len );
-    #endif
+    log_v_debug_P( PSTR("wifi ext fw len: %lu"), file_len );
 
-    uint8_t wifi_digest[MD5_LEN];
+    bool is_ext_fw_valid = FALSE;
+    if( ( file_len > MD5_LEN ) && ( file_len <= FLASH_FS_FIRMWARE_2_PARTITION_SIZE ) ){
 
-    int8_t md5_status = esp_i8_md5( file_len, wifi_digest );
-    if( md5_status < 0 ){
+        // crc check
+        fs_v_seek( state->fw_file, 0 );
+        uint16_t crc = crc_u16_start();
 
-        log_v_debug_P( PSTR("error %d"), md5_status );
+        uint8_t buf[128];
+        uint32_t check_len = file_len;
 
-        TMR_WAIT( pt, 1000 );
-        THREAD_RESTART( pt );
+        while( check_len > 0 ){
+
+            wdg_v_reset();
+
+            uint16_t request_len = sizeof(buf);
+            if( request_len > check_len ){
+
+                request_len = check_len;
+            }
+
+            int16_t read_len = fs_i16_read( state->fw_file, buf, request_len );
+
+            if( read_len < 0 ){
+
+                goto skip_ext_fw;
+            }
+
+            check_len -= read_len;
+
+            crc = crc_u16_partial_block( crc, buf, request_len );
+        }
+
+        crc = crc_u16_finish( crc );
+
+        if( crc == 0 ){
+
+            log_v_debug_P( PSTR("wifi ext fw ok") );
+            is_ext_fw_valid = TRUE;
+        }
+
+        log_v_debug_P( PSTR("wifi ext fw crc: 0x%04x"), crc );
     }
 
-    #ifdef ENABLE_ESP_UPGRADE_LOADER
-    fs_v_seek( state->fw_file, file_len + sizeof(file_len) );
-    #else
-    fs_v_seek( state->fw_file, file_len );
-    #endif
+skip_ext_fw:
 
+    if( !is_ext_fw_valid ){
+
+        log_v_debug_P( PSTR("wifi ext fw bad") );
+    }
+
+    uint8_t prev_wifi_digest[MD5_LEN];
+    memset( prev_wifi_digest, 0, sizeof(prev_wifi_digest) );
+    uint32_t prev_wifi_len = 0;
+
+    cfg_i8_get( __KV__wifi_fw_md5, prev_wifi_digest );
+    cfg_i8_get( __KV__wifi_fw_len, &prev_wifi_len );
+
+    uint8_t wifi_digest[MD5_LEN];
+    bool wifi_fw_ok = FALSE;
+
+    if( prev_wifi_len != 0 ){
+
+        wdg_v_reset();
+
+        // check wifi firmware against previous settings
+        int8_t md5_status = esp_i8_md5( prev_wifi_len, wifi_digest );
+        if( md5_status < 0 ){
+
+            log_v_debug_P( PSTR("error %d"), md5_status );
+
+            goto restart;
+        }
+        
+        if( memcmp( prev_wifi_digest, wifi_digest, MD5_LEN ) == 0 ){
+
+            log_v_debug_P( PSTR("wifi on-chip fw ok") );
+
+            wifi_fw_ok = TRUE;
+        }
+    }
+
+    if( !wifi_fw_ok ){
+
+        log_v_debug_P( PSTR("wifi on-chip fw bad") );
+    }
+
+    wdg_v_reset();
+
+    // read file digest
+    fs_v_seek( state->fw_file, file_len );
+    
     uint8_t file_digest[MD5_LEN];
     memset( file_digest, 0, MD5_LEN );
     fs_i16_read( state->fw_file, file_digest, MD5_LEN );
 
-    #ifndef ENABLE_ESP_UPGRADE_LOADER
-    uint8_t cfg_digest[MD5_LEN];
-    cfg_i8_get( CFG_PARAM_WIFI_MD5, cfg_digest );
-    #endif
+    // DEBUG: destroy wifi fw:
+    // esp_write_flash_t cmd;
+    // cmd.addr = 0;
+    // cmd.len = file_len;
+    // cmd.erase = 1; // erase before write
 
-    // check if we've never loaded the wifi before
-    if( ( file_len == 0 ) && 
-        ( fs_i32_get_size( state->fw_file ) < 128 ) ){
+    // hal_wifi_v_usart_send_char( SLIP_END );
+    // slip_v_send_byte( ESP_CESANTA_CMD_FLASH_WRITE );
+    // hal_wifi_v_usart_send_char( SLIP_END );
 
-        goto error;
+    // hal_wifi_v_usart_send_char( SLIP_END );
+    // slip_v_send_data( (uint8_t *)&cmd, sizeof(cmd) );
+    // hal_wifi_v_usart_send_char( SLIP_END );
+
+    // THREAD_EXIT( pt );
+
+    log_v_debug_P( PSTR("file md5: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),
+            file_digest[0],
+            file_digest[1],
+            file_digest[2],
+            file_digest[3],
+            file_digest[4],
+            file_digest[5],
+            file_digest[6],
+            file_digest[7],
+            file_digest[8],
+            file_digest[9],
+            file_digest[10],
+            file_digest[11],
+            file_digest[12],
+            file_digest[13],
+            file_digest[14],
+            file_digest[15] );
+
+    log_v_debug_P( PSTR("esp md5:  %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),
+            wifi_digest[0],
+            wifi_digest[1],
+            wifi_digest[2],
+            wifi_digest[3],
+            wifi_digest[4],
+            wifi_digest[5],
+            wifi_digest[6],
+            wifi_digest[7],
+            wifi_digest[8],
+            wifi_digest[9],
+            wifi_digest[10],
+            wifi_digest[11],
+            wifi_digest[12],
+            wifi_digest[13],
+            wifi_digest[14],
+            wifi_digest[15] );
+
+    // if on-chip firmware is ok and we are not loading new FW:
+    if( !load_fw && wifi_fw_ok ){
+
+        goto run_wifi;
     }
 
-    #ifndef ENABLE_ESP_UPGRADE_LOADER
-    if( memcmp( file_digest, cfg_digest, MD5_LEN ) == 0 ){
-        // file and cfg match, so our file is valid
-    #endif
+    // if ext fw is ok:
+    if( is_ext_fw_valid ){
 
-        #ifdef ENABLE_ESP_UPGRADE_LOADER
-        log_v_debug_P( PSTR("file md5: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),
-                file_digest[0],
-                file_digest[1],
-                file_digest[2],
-                file_digest[3],
-                file_digest[4],
-                file_digest[5],
-                file_digest[6],
-                file_digest[7],
-                file_digest[8],
-                file_digest[9],
-                file_digest[10],
-                file_digest[11],
-                file_digest[12],
-                file_digest[13],
-                file_digest[14],
-                file_digest[15] );
-
-        log_v_debug_P( PSTR("esp md5:  %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),
-                wifi_digest[0],
-                wifi_digest[1],
-                wifi_digest[2],
-                wifi_digest[3],
-                wifi_digest[4],
-                wifi_digest[5],
-                wifi_digest[6],
-                wifi_digest[7],
-                wifi_digest[8],
-                wifi_digest[9],
-                wifi_digest[10],
-                wifi_digest[11],
-                wifi_digest[12],
-                wifi_digest[13],
-                wifi_digest[14],
-                wifi_digest[15] );
-        #endif
-
-        if( memcmp( file_digest, wifi_digest, MD5_LEN ) == 0 ){
-
-            // all 3 match, run wifi
-            // log_v_debug_P( PSTR("Wifi firmware image valid") );
-
-            goto run_wifi;
-        }
-        else{
-            // wifi does not match file - need to load
-
-            log_v_debug_P( PSTR("Wifi firmware image fail") );
+        // if wifi fw is bad:
+        if( !wifi_fw_ok ){
 
             goto load_image;
         }
-    #ifndef ENABLE_ESP_UPGRADE_LOADER
-    }
-    else{
 
-        log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad file load") );        
-    }
-    #endif
+        // check if loading fw:
+        if( load_fw ){
 
-    #ifndef ENABLE_ESP_UPGRADE_LOADER
-    if( memcmp( wifi_digest, cfg_digest, MD5_LEN ) == 0 ){
+            // check if file MD5 and wifi MD5 match, if so, we already have this image loaded
+            if( memcmp( wifi_digest, file_digest, MD5_LEN ) == 0 ){
 
-        // wifi matches cfg, this is ok, run.
-        // maybe the file is bad.
-        
-        goto run_wifi;
-    }
-    else{
+                goto run_wifi;
+            }
 
-        log_v_debug_P( PSTR("Wifi MD5 mismatch, possible bad config") );                
-    }
-    #endif
-
-    if( memcmp( wifi_digest, file_digest, MD5_LEN ) == 0 ){
-
-        // in this case, file matches wifi, so our wifi image is valid
-        // and so is our file.
-        // but our cfg is mismatched.
-        // so we'll restore it and then run the wifi
-
-        #ifndef ENABLE_ESP_UPGRADE_LOADER
-        cfg_v_set( CFG_PARAM_WIFI_MD5, file_digest );
-        #endif
-
-        log_v_debug_P( PSTR("Wifi MD5 mismatch, restored from file") );
-
-        goto run_wifi;
+            goto load_image;            
+        }
     }
 
-    // probably don't want to actually assert here...
-
-    // try to run anyway
-    goto run_wifi;
-
+    goto error;
 
 
 load_image:
     
-    // #ifdef ENABLE_USB
-    // usb_v_detach();
-    // #endif
-
     log_v_debug_P( PSTR("Loading wifi image...") );
 
     status = esp_i8_load_flash( state->fw_file );
@@ -962,6 +1007,9 @@ load_image:
         goto error;
     }
 
+    cfg_v_set( __KV__wifi_fw_md5, wifi_digest );
+    cfg_v_set( __KV__wifi_fw_len, &file_len );
+
     log_v_debug_P( PSTR("Wifi flash load done") );
 
     if( state->fw_file > 0 ){
@@ -969,16 +1017,7 @@ load_image:
         fs_f_close( state->fw_file );
     }
 
-    #ifndef ENABLE_ESP_UPGRADE_LOADER
-    // restart
-    sys_reboot();
-
-    THREAD_EXIT( pt );
-
-    #else
     goto run_wifi;
-    #endif
-
     
 
 error:
@@ -1000,6 +1039,8 @@ error:
     THREAD_EXIT( pt );
 
 run_wifi:
+
+    log_v_debug_P( PSTR("wifi fw ready") );
     
     loader_status = ESP_LOADER_STATUS_OK;
 

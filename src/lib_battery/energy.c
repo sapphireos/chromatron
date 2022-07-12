@@ -26,7 +26,6 @@
 
 #include "logging.h"
 
-#include "esp8266.h"
 #include "graphics.h"
 #include "pixel.h"
 
@@ -34,6 +33,7 @@
 #include "energy.h"
 #include "wifi.h"
 
+#ifdef ENABLE_GFX
 // power in microwatts
 static uint32_t power_cpu;
 static uint32_t power_pix;
@@ -245,3 +245,4 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+#endif

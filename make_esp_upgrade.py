@@ -33,15 +33,15 @@ def make_firmware_zip():
 
 if __name__ == '__main__':
     print("Make ESP upgrade package...")
+
+    print("Build coprocessor firmware...")
+    os.system('./build_coprocessor.sh')
     
     print("Build ESP8266 upgrade firmware...")
     os.system('./build_esp8266_upgrade.sh')
 
-    print("Build coprocessor firmware...")
-    os.system('./build_coprocessor.sh')
-
-    shutil.copy('src/esp8266_upgrade/wifi_firmware.bin', '.')
-    shutil.copy('src/coprocessor/firmware.bin', '.')
+    shutil.copy('src/legacy/esp8266_upgrade_1mb/wifi_firmware.bin', '.')
+    shutil.copy('src/legacy/coprocessor/firmware.bin', '.')
 
     make_manifest()
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     shutil.copy('chromatron_esp_upgrade_fw.zip', package_dir)
 
     # remove component firmware packages, they will just make things confusing
-    os.remove(os.path.join(package_dir, 'esp8266_upgrade.zip'))
+    os.remove(os.path.join(package_dir, 'esp8266_upgrade_1mb.zip'))
     os.remove(os.path.join(package_dir, 'coprocessor.zip'))
 
     print("Output dir: %s" % (package_dir))

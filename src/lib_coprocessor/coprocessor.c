@@ -32,6 +32,7 @@
 
 #ifdef AVR
 #include "hal_esp8266.h"
+#include "hal_status_led.h"
 #endif
 
 // bootloader shared memory
@@ -59,11 +60,14 @@ void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	#endif
 }
 
-void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
+extern uint8_t current_opcode;
+
+void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
 	coproc_block_t block;
 	uint8_t *rx_data = (uint8_t *)&block;
 	uint8_t len = sizeof(block);
+	memset( rx_data, 0, len );
 
 	#ifdef ESP8266
 	while( len > 0 ){
@@ -71,11 +75,55 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 		// wait for data
 		while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
 
-		*rx_data++ = usart_i16_get_byte( UART_CHANNEL );
-		len--;
+		int16_t byte = usart_i16_get_byte( UART_CHANNEL );
+
+		// waiting for SOF and received printable character instead of start of frame
+		if( header && ( len == sizeof(block) ) && ( byte < 128 ) ){
+
+			// skip byte			
+		}
+		else{
+
+			*rx_data++ = byte;
+			len--;	
+		}
 	}
-	#else
-	hal_wifi_i8_usart_receive( rx_data, len, 10000000 );
+	#else 
+	if( hal_wifi_i8_usart_receive( rx_data, len, 10000000 ) != 0 ){
+
+		sys_v_wdt_reset();		
+		status_led_v_set( 0, STATUS_LED_GREEN );
+		status_led_v_set( 0, STATUS_LED_BLUE );
+		status_led_v_set( 1, STATUS_LED_RED );
+
+		_delay_ms( 1000 );
+		sys_v_wdt_reset();
+
+		trace_printf( "rx fail: %d", current_opcode );
+
+		status_led_v_set( 0, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		sys_v_wdt_reset();
+
+
+		status_led_v_set( 0, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		sys_v_wdt_reset();
+
+		status_led_v_set( 0, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		sys_v_wdt_reset();
+
+
+		// BOOM!
+		while(1);
+	}
 	#endif
 
 	data[0] = block.data[0];
@@ -85,6 +133,40 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
 	// error check.  fatal if this fails.
 	if( ( crc_u16_block( data, COPROC_BLOCK_LEN ) & 0xff ) != block.crc ){
+
+		#ifdef AVR
+		sys_v_wdt_reset();
+		
+		status_led_v_set( 0, STATUS_LED_GREEN );
+		status_led_v_set( 0, STATUS_LED_BLUE );
+		status_led_v_set( 1, STATUS_LED_RED );
+
+		trace_printf( "crc fail: %d", current_opcode );
+
+		_delay_ms( 1000 );
+		sys_v_wdt_reset();
+
+		status_led_v_set( 0, STATUS_LED_WHITE );  
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_WHITE );
+		_delay_ms( 500 );
+		sys_v_wdt_reset();
+
+
+		status_led_v_set( 0, STATUS_LED_WHITE );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_WHITE );
+		_delay_ms( 500 );
+		sys_v_wdt_reset();
+
+		status_led_v_set( 0, STATUS_LED_WHITE );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_WHITE );
+		_delay_ms( 500 );
+		sys_v_wdt_reset();
+
+
+		#endif
 
 		// BOOM!
 		while(1);
@@ -125,7 +207,7 @@ void coproc_v_sync( void ){
 	if( usart_i16_get_byte( UART_CHANNEL ) != COPROC_VERSION ){
 
 		// lets hope this was a bus error and rebooting will recover
-		while(1);
+		sys_reboot();
 	}
 
 	sync = TRUE;
@@ -142,7 +224,24 @@ void coproc_v_init( void ){
 	char coproc_firmware_version[FW_VER_LEN];
     memset( coproc_firmware_version, 0, FW_VER_LEN );
     coproc_v_fw_version( coproc_firmware_version );
-    log_v_debug_P( PSTR("coproc ver: %s reset: %u"), coproc_firmware_version, coproc_i32_call0( OPCODE_GET_RESET_SOURCE ) );
+    log_v_debug_P( 
+    	PSTR("coproc ver: %s reset: %u boot: %u"), 
+    	coproc_firmware_version, 
+    	coproc_i32_call0( OPCODE_GET_RESET_SOURCE ),
+    	coproc_i32_call0( OPCODE_GET_BOOT_MODE ) );
+}
+
+
+int32_t coproc_i32_debug_print( char *s ){
+
+	uint16_t len = strnlen( s, COPROC_BUF_SIZE ) + 1;
+
+	if( len > COPROC_BUF_SIZE ){
+
+		len = COPROC_BUF_SIZE;
+	}
+
+	return coproc_i32_callv( OPCODE_DEBUG_PRINT, (uint8_t *)s, len );
 }
 
 
@@ -182,7 +281,7 @@ uint8_t coproc_u8_issue(
 	// if the coprocessor does not respond, the system is broken.
 
 	// wait for header
-	coproc_v_receive_block( (uint8_t *)&hdr );
+	coproc_v_receive_block( (uint8_t *)&hdr, TRUE );
 	
 	ASSERT( hdr.sof == COPROC_SOF );
 	ASSERT( hdr.length < sizeof(buffer) );
@@ -191,7 +290,7 @@ uint8_t coproc_u8_issue(
 	int16_t rx_len = hdr.length;
 	while( rx_len > 0 ){
 
-		coproc_v_receive_block( data );
+		coproc_v_receive_block( data, FALSE );
 
 		data += COPROC_BLOCK_LEN;
 		rx_len -= COPROC_BLOCK_LEN;
@@ -333,7 +432,10 @@ void coproc_v_get_wifi( void ){
 	uint8_t buf[WIFI_SSID_LEN + WIFI_PASS_LEN];
 	memset( buf, 0, sizeof(buf) );
 
-	cfg_i8_get( CFG_PARAM_WIFI_SSID, buf );
+	if( cfg_i8_get( CFG_PARAM_WIFI_SSID, buf ) < 0 ){
+
+		trace_printf("ssid not found: %d\r\n", cfg_i8_get( CFG_PARAM_WIFI_SSID, buf ));
+	}
 
 	if( buf[0] != 0 ){
 
@@ -439,3 +541,25 @@ int32_t coproc_i32_callp( uint8_t opcode, uint8_t *data, uint16_t len ){
 	return response_len;
 }
 
+int32_t coproc_i32_callp2( uint8_t opcode, int32_t param0, int32_t param1, uint8_t *data, uint16_t len ){
+
+	int32_t param_buf[2];
+	param_buf[0] = param0;
+	param_buf[1] = param1;
+
+	if( len >= COPROC_BUF_SIZE ){
+
+		return -1;
+	}
+
+	uint8_t response_len = coproc_u8_issue( opcode, (uint8_t *)param_buf, sizeof(param_buf) );
+
+	if( response_len > len ){
+
+		response_len = len;
+	}
+
+	memcpy( data, buffer, response_len );
+
+	return response_len;	
+}

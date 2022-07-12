@@ -94,8 +94,6 @@
 
 #define CFG_PARAM_WIFI_SSID                     __KV__wifi_ssid
 #define CFG_PARAM_WIFI_PASSWORD                 __KV__wifi_password
-#define CFG_PARAM_WIFI_MD5                      __KV__wifi_md5
-#define CFG_PARAM_WIFI_FW_LEN                   __KV__wifi_fw_len
 #define CFG_PARAM_WIFI_AP_SSID                  __KV__wifi_ap_ssid
 #define CFG_PARAM_WIFI_AP_PASSWORD              __KV__wifi_ap_password
 #define CFG_PARAM_WIFI_ENABLE_AP                __KV__wifi_enable_ap

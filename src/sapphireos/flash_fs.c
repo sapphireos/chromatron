@@ -76,8 +76,16 @@ void ffs_v_init( void ){
         // restart in normal mode
         sys_reboot();
     }
-    
-    ffs_fw_i8_init();
+
+    if( ffs_fw_i8_init() < 0 ){
+
+        trace_printf("Firmware partitions failed to mount\r\n");
+
+        sys_v_set_warnings( SYS_WARN_FLASHFS_FAIL );
+        ffs_fail = TRUE;
+
+        return;
+    }
 
     ffs_v_mount();
 
@@ -97,9 +105,11 @@ void ffs_v_init( void ){
 
 void ffs_v_mount( void ){
 
+    #ifdef ENABLE_FFS
+
     trace_printf("Mounting FlashFS\r\n");
 
-    #ifdef ENABLE_FFS
+    
     ffs_block_v_init();
     ffs_page_v_init();
     #endif
@@ -108,9 +118,10 @@ void ffs_v_mount( void ){
 
 void ffs_v_format( void ){
 
+    #ifdef ENABLE_FFS
+
     trace_printf("Formatting FlashFS...\r\n");
 
-    #ifdef ENABLE_FFS
 	// enable writes
 	flash25_v_write_enable();
 

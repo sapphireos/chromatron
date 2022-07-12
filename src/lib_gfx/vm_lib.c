@@ -29,6 +29,8 @@
 #include "cnt_of_array.h"
 #include "vm_lib.h"
 #include "io.h"
+#include "gfx_lib.h"
+#include "pixel_mapper.h"
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
@@ -42,6 +44,10 @@ int8_t vm_lib_i8_libcall_built_in(
     // by the caller.
 
 	int32_t temp0, temp1, array_len;
+
+    #ifdef ENABLE_PIXEL_MAPPER
+    int32_t x, y, z, index, h, s, v, size;
+    #endif
 
 	switch( func_hash ){
         case __KV__rand:
@@ -277,11 +283,13 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
+            #ifdef IO_PIN_DEBUG
             io_v_set_mode( IO_PIN_DEBUG, IO_MODE_OUTPUT );
             
             io_v_digital_write( IO_PIN_DEBUG, TRUE );
             _delay_us( 100 );
             io_v_digital_write( IO_PIN_DEBUG, FALSE );
+            #endif
 
             break;
 
@@ -344,6 +352,59 @@ int8_t vm_lib_i8_libcall_built_in(
             }
             
             break;
+
+        #ifdef ENABLE_PIXEL_MAPPER
+        case __KV__map_3d:
+            if( param_len != 4 ){
+
+                break;  
+            }
+
+            index = params[0];
+            x = params[1];
+            y = params[2];
+            z = params[3];
+            
+            mapper_v_map_3d( index, x, y, z );
+
+            break;
+
+        case __KV__draw_3d:
+            if( param_len != 7 ){
+
+                break;  
+            }
+
+            size = params[0];
+            h = params[1];
+            s = params[2];
+            v = params[3];
+            x = params[4];
+            y = params[5];
+            z = params[6];
+            
+            mapper_v_draw_3d( size, h, s, v, x, y, z );
+
+            break;
+        
+        case __KV__enable_mapper:
+            mapper_v_enable();
+            break;
+
+        case __KV__disable_mapper:
+            mapper_v_disable();
+            break;
+
+        case __KV__reset_mapper:
+            mapper_v_reset();
+            break;
+
+        #endif
+
+        case __KV__clear:
+            gfx_v_clear();
+            break;
+
 
 		default:
             // function not found

@@ -20,36 +20,16 @@
 // 
 // </license>
 
-#include "sapphire.h"
 
-#include "app.h"
+#ifndef _NVM_XMEGA128A4U_H
+#define _NVM_XMEGA128A4U_H
 
-#include "coprocessor.h"
+#include "system.h"
 
-#ifndef ESP8266_UPGRADE
-#error "esp8266_upgrade requires ESP8266_UPGRADE defined in target.h!"
+void nvm_v_init( void );
+bool nvm_b_busy( void );
+void nvm_v_load_flash_buffer( uint32_t addr, uint16_t data );
+void nvm_v_write_flash_page( uint32_t addr );
+void nvm_v_erase_flash_page( uint32_t addr );
+
 #endif
-
-
-PT_THREAD( app_thread( pt_t *pt, void *state ) )
-{       	
-PT_BEGIN( pt );  
-    
-    // log_v_debug_P( PSTR("coproc crc: 0x%04x"), coproc_u16_fw_crc() );
-
-    // char firmware_version[FW_VER_LEN];
-    // coproc_v_fw_version( firmware_version );
-    // log_v_debug_P( PSTR("coproc ver: %s"), firmware_version );
-
-PT_END( pt );	
-}
-
-
-void app_v_init( void ){
-
-    thread_t_create( app_thread,
-                     PSTR("app"),
-                     0,
-                     0 );
-}
-
