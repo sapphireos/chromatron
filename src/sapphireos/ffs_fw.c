@@ -224,6 +224,8 @@ int8_t ffs_fw_i8_init( void ){
     return FFS_STATUS_OK;
     #endif
 
+    #ifndef DISABLE_FFS_FW_COPY
+
     // check CRC or if partition length is bad
     if( ffs_fw_u16_crc() != 0 ){
     // if( ( sys_fw_length != ext_fw_length ) ||
@@ -286,6 +288,8 @@ int8_t ffs_fw_i8_init( void ){
             return FFS_STATUS_ERROR;
         }
     }
+
+    #endif
 
     return FFS_STATUS_OK;
 }

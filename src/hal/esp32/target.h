@@ -127,7 +127,7 @@
 // comment this out to turn off run-time asserts
 #define INCLUDE_ASSERTS
 
-
+#define DISABLE_FFS_FW_COPY
 #define DISABLE_SLEEP
 
 // recovery mode

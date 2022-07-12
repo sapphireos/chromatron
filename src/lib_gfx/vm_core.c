@@ -34,6 +34,7 @@
 #include "logging.h"
 #include "timers.h"
 #include "fs.h"
+#include "config.h"
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
@@ -4501,7 +4502,7 @@ int8_t vm_i8_load_program(
         rng_seed = 1;
     }
 
-    state->vm_state.rng_seed = rng_seed;
+    state->rng_seed = rng_seed;
 
 
     state->tick = 0;
