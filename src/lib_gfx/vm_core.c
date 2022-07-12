@@ -4409,6 +4409,27 @@ int8_t vm_i8_load_program(
         obj_ptr += header.pix_obj_len;
     }
 
+    // ******************
+    // load published vars:
+    // ******************
+    if( header.publish_len > 0 ){
+
+        for( uint16_t i = 0; i < state->publish_count; i++ ){
+
+            vm_publish_t publish;
+
+            if( fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) ) != sizeof(publish) ){
+
+                status = VM_STATUS_ERR_BAD_FILE_READ;
+                goto error;
+            }   
+
+            kvdb_i8_add( publish.hash, publish.type, 1, 0, 0 );
+            kvdb_v_set_tag( publish.hash, ( 1 << vm_id ) );
+        }
+
+        obj_ptr += header.publish_len;
+    }
 
     
     // ******************
