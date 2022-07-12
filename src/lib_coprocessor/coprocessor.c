@@ -89,7 +89,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 		_delay_ms( 1000 );
 		sys_v_wdt_reset();
 
-		trace_printf( "fail: %d", current_opcode );
+		trace_printf( "rx fail: %d", current_opcode );
 
 		status_led_v_set( 0, STATUS_LED_TEAL );
 		_delay_ms( 500 );
@@ -126,9 +126,12 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
 		#ifdef AVR
 		sys_v_wdt_reset();
-		status_led_v_set( 1, STATUS_LED_RED );
+		
 		status_led_v_set( 0, STATUS_LED_GREEN );
 		status_led_v_set( 0, STATUS_LED_BLUE );
+		status_led_v_set( 1, STATUS_LED_RED );
+
+		trace_printf( "crc fail: %d", current_opcode );
 
 		_delay_ms( 1000 );
 		sys_v_wdt_reset();
