@@ -29,17 +29,20 @@
 
 // system timer at 500 khz (see hal_timers.c).
 
-#define WDG_TIMER_STEP 50000 // interrupt at 10 Hz
+// #define WDG_TIMER_STEP 50000 // interrupt at 10 Hz
 
-#define WDG_TIMEOUT 40 // 4 second timeout
+// #define WDG_TIMEOUT 40 // 4 second timeout
 
-static volatile uint8_t wdg_timer;
+// static volatile uint8_t wdg_timer;
 
 
 void wdg_v_reset( void ){
 
     ATOMIC;
-    wdg_timer = WDG_TIMEOUT;
+    // wdg_timer = WDG_TIMEOUT;
+    
+    wdt_reset();
+
     END_ATOMIC;
 }
 
@@ -54,8 +57,8 @@ void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
     WDT.CTRL = timeout | WDT_ENABLE_bm | WDT_CEN_bm;
 
     // set timer compare match B
-    TCC1.CCB = TCC1.CNT + WDG_TIMER_STEP;
-    TCC1.INTCTRLB |= TC_CCBINTLVL_HI_gc;
+    // TCC1.CCB = TCC1.CNT + WDG_TIMER_STEP;
+    // TCC1.INTCTRLB |= TC_CCBINTLVL_HI_gc;
 
     END_ATOMIC;
 }
@@ -70,53 +73,53 @@ void wdg_v_disable( void ){
 
     WDT.CTRL = WDT_CEN_bm;
 
-    TCC1.INTCTRLB &= ~TC_CCBINTLVL_HI_gc;
+    // TCC1.INTCTRLB &= ~TC_CCBINTLVL_HI_gc;
 
     END_ATOMIC;
 }
 
 // #include "hal_status_led.h"
 
-#ifndef BOOTLOADER
-ISR(TCC1_CCB_vect){
-OS_IRQ_BEGIN(TCC1_CCB_vect);
+// #ifndef BOOTLOADER
+// ISR(TCC1_CCB_vect){
+// OS_IRQ_BEGIN(TCC1_CCB_vect);
 
-    wdt_reset();
+//     wdt_reset();
 
-    // increment step
-    TCC1.CCB = TCC1.CNT + WDG_TIMER_STEP;
+//     // increment step
+//     TCC1.CCB = TCC1.CNT + WDG_TIMER_STEP;
 
-    wdg_timer--;
+//     wdg_timer--;
 
-    if( wdg_timer == 0 ){
+//     if( wdg_timer == 0 ){
 
-        // status_led_v_set( 1, STATUS_LED_RED );
-        // _delay_ms( 1000 );
-        // wdt_reset();
+//         // status_led_v_set( 1, STATUS_LED_RED );
+//         // _delay_ms( 1000 );
+//         // wdt_reset();
 
-        // status_led_v_set( 0, STATUS_LED_RED );
+//         // status_led_v_set( 0, STATUS_LED_RED );
 
-        // status_led_v_set( 1, STATUS_LED_GREEN );
-        // _delay_ms( 250 );
-        // status_led_v_set( 0, STATUS_LED_GREEN );
-        // _delay_ms( 250 );
-        // wdt_reset();
+//         // status_led_v_set( 1, STATUS_LED_GREEN );
+//         // _delay_ms( 250 );
+//         // status_led_v_set( 0, STATUS_LED_GREEN );
+//         // _delay_ms( 250 );
+//         // wdt_reset();
 
-        // status_led_v_set( 1, STATUS_LED_GREEN );
-        // _delay_ms( 250 );
-        // status_led_v_set( 0, STATUS_LED_GREEN );
-        // _delay_ms( 250 );
-        // wdt_reset();
+//         // status_led_v_set( 1, STATUS_LED_GREEN );
+//         // _delay_ms( 250 );
+//         // status_led_v_set( 0, STATUS_LED_GREEN );
+//         // _delay_ms( 250 );
+//         // wdt_reset();
 
-        // status_led_v_set( 1, STATUS_LED_GREEN );
-        // _delay_ms( 250 );
-        // status_led_v_set( 0, STATUS_LED_GREEN );
-        // _delay_ms( 250 );
-        // wdt_reset();
+//         // status_led_v_set( 1, STATUS_LED_GREEN );
+//         // _delay_ms( 250 );
+//         // status_led_v_set( 0, STATUS_LED_GREEN );
+//         // _delay_ms( 250 );
+//         // wdt_reset();
 
-        ASSERT( 0 );
-    }
+//         ASSERT( 0 );
+//     }
 
-OS_IRQ_END();
-}
-#endif
+// OS_IRQ_END();
+// }
+// #endif
