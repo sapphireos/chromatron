@@ -187,8 +187,11 @@ void cpu_reboot( void ){
     // RST.CTRL |= RST_SWRST_bm;
     // END_ATOMIC;
 
+    
+    // backup wdt in case the reset doesn't work:
+
     // enable watchdog timer:
-    // wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    
+    wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    
 }
 
 ISR(OSC_OSCF_vect){

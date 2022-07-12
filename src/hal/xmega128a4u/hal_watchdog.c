@@ -75,7 +75,7 @@ void wdg_v_disable( void ){
     END_ATOMIC;
 }
 
-#include "hal_status_led.h"
+// #include "hal_status_led.h"
 
 #ifndef BOOTLOADER
 ISR(TCC1_CCB_vect){
@@ -90,29 +90,29 @@ OS_IRQ_BEGIN(TCC1_CCB_vect);
 
     if( wdg_timer == 0 ){
 
-        status_led_v_set( 1, STATUS_LED_RED );
-        _delay_ms( 500 );
-        wdt_reset();
+        // status_led_v_set( 1, STATUS_LED_RED );
+        // _delay_ms( 1000 );
+        // wdt_reset();
 
-        status_led_v_set( 0, STATUS_LED_RED );
+        // status_led_v_set( 0, STATUS_LED_RED );
 
-        status_led_v_set( 1, STATUS_LED_GREEN );
-        _delay_ms( 250 );
-        status_led_v_set( 0, STATUS_LED_GREEN );
-        _delay_ms( 250 );
-        wdt_reset();
+        // status_led_v_set( 1, STATUS_LED_GREEN );
+        // _delay_ms( 250 );
+        // status_led_v_set( 0, STATUS_LED_GREEN );
+        // _delay_ms( 250 );
+        // wdt_reset();
 
-        status_led_v_set( 1, STATUS_LED_GREEN );
-        _delay_ms( 250 );
-        status_led_v_set( 0, STATUS_LED_GREEN );
-        _delay_ms( 250 );
-        wdt_reset();
+        // status_led_v_set( 1, STATUS_LED_GREEN );
+        // _delay_ms( 250 );
+        // status_led_v_set( 0, STATUS_LED_GREEN );
+        // _delay_ms( 250 );
+        // wdt_reset();
 
-        status_led_v_set( 1, STATUS_LED_GREEN );
-        _delay_ms( 250 );
-        status_led_v_set( 0, STATUS_LED_GREEN );
-        _delay_ms( 250 );
-        wdt_reset();
+        // status_led_v_set( 1, STATUS_LED_GREEN );
+        // _delay_ms( 250 );
+        // status_led_v_set( 0, STATUS_LED_GREEN );
+        // _delay_ms( 250 );
+        // wdt_reset();
 
         ASSERT( 0 );
     }
