@@ -84,6 +84,8 @@
 #define VM_MAX_CALL_DEPTH           8
 #define VM_MAX_THREADS              8
 
+#define ENABLE_PIXEL_MAPPER
+
 // KV
 #define KV_CACHE_SIZE 16
 
