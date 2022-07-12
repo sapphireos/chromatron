@@ -984,11 +984,11 @@ class Builder(object):
             self.finish_func(func)
 
         # check if there is no loop function
-        # if 'loop' not in self.funcs:
-        #     func = self.func('loop', lineno=-1)
-        #     zero = self.declare_var(0, lineno=-1)
-        #     self.ret(zero, lineno=-1)
-        #     self.finish_func(func)
+        if 'loop' not in self.funcs:
+            func = self.func('loop', lineno=-1)
+            zero = self.get_var(0, lineno=-1)
+            self.ret(zero, lineno=-1)
+            self.finish_func(func)
 
         # set up init code for global vars that have init values
         init_func = self.funcs['init']
