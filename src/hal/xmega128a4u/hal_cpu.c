@@ -172,12 +172,20 @@ uint32_t cpu_u32_get_clock_speed( void ){
 }
 
 void cpu_reboot( void ){
+    asm volatile("cli\n\t"          // disable interrupts
+              "ldi r24, 0xD8\n\t" // value to write to CCP
+              "ldi r25, 0x01\n\t" // value to write to SWRST
+              "ldi r30, 0x78\n\t"  // base address of RST peripheral
+              "ldi r31, 0\n\t"
+              "out __CCP__, r24\n\t"
+              "std Z+1, r25\n\t"  // +1 is the offset of RST.CTRL
+              ::); // no clobber list because we don't return
 
-    ATOMIC;
-    ENABLE_CONFIG_CHANGE;
+    // ATOMIC;
+    // ENABLE_CONFIG_CHANGE;
 
-    RST.CTRL |= RST_SWRST_bm;
-    END_ATOMIC;
+    // RST.CTRL |= RST_SWRST_bm;
+    // END_ATOMIC;
 
     // enable watchdog timer:
     // wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    
