@@ -484,6 +484,8 @@ PT_END( pt );
 }
 
 
+uint8_t current_opcode;
+
 
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
@@ -643,10 +645,14 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_usart_rx_available() );
 
+        current_opcode = 0;
+
         coproc_hdr_t hdr;
         coproc_v_receive_block( (uint8_t *)&hdr );
 
         ASSERT( hdr.sof == COPROC_SOF );
+
+        current_opcode = hdr.opcode;
 
         uint8_t buf[COPROC_BUF_SIZE];
 

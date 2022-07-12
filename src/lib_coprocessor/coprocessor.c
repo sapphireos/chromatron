@@ -60,6 +60,8 @@ void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	#endif
 }
 
+extern uint8_t current_opcode;
+
 void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 
 	coproc_block_t block;
@@ -79,20 +81,15 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	#else
 	if( hal_wifi_i8_usart_receive( rx_data, len, 100000 ) != 0 ){
 
-		sys_v_wdt_reset();
-		status_led_v_set( 1, STATUS_LED_RED );
+		sys_v_wdt_reset();		
 		status_led_v_set( 0, STATUS_LED_GREEN );
 		status_led_v_set( 0, STATUS_LED_BLUE );
+		status_led_v_set( 1, STATUS_LED_RED );
 
 		_delay_ms( 1000 );
 		sys_v_wdt_reset();
 
-		status_led_v_set( 0, STATUS_LED_TEAL );
-		_delay_ms( 500 );
-		status_led_v_set( 1, STATUS_LED_TEAL );
-		_delay_ms( 500 );
-		sys_v_wdt_reset();
-
+		trace_printf( "fail: %d", current_opcode );
 
 		status_led_v_set( 0, STATUS_LED_TEAL );
 		_delay_ms( 500 );
@@ -100,11 +97,19 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
+
 		status_led_v_set( 0, STATUS_LED_TEAL );
 		_delay_ms( 500 );
 		status_led_v_set( 1, STATUS_LED_TEAL );
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
+
+		status_led_v_set( 0, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		sys_v_wdt_reset();
+
 
 		// BOOM!
 		while(1);
