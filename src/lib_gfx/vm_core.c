@@ -4500,7 +4500,8 @@ int8_t vm_i8_load_program(
 
     if( meta_magic != META_MAGIC ){
 
-        return VM_STATUS_ERR_BAD_META_MAGIC;
+        status = VM_STATUS_ERR_BAD_META_MAGIC;
+        goto error;
     }
 
     char meta_string[KV_NAME_LEN];

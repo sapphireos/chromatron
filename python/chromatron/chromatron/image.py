@@ -468,12 +468,9 @@ class FXImage(object):
 
         # but wait, that's not all!
         # now we're going attach meta data.
-        # first, prepend 32 bit (signed) program length to stream. # NOT DOING THIS
-        # this makes it trivial to read the VM image length from the file.
-        # this also gives us the offset into the file where the meta data begins.
         # note all strings will be padded to the VM_STRING_LEN.
         prog_len = len(stream)
-        # stream = struct.pack('<l', prog_len) + stream
+        
         self.prog_len = prog_len
 
         meta_data = bytes()
