@@ -105,9 +105,11 @@ void ffs_v_init( void ){
 
 void ffs_v_mount( void ){
 
+    #ifdef ENABLE_FFS
+
     trace_printf("Mounting FlashFS\r\n");
 
-    #ifdef ENABLE_FFS
+    
     ffs_block_v_init();
     ffs_page_v_init();
     #endif
@@ -116,9 +118,10 @@ void ffs_v_mount( void ){
 
 void ffs_v_format( void ){
 
+    #ifdef ENABLE_FFS
+
     trace_printf("Formatting FlashFS...\r\n");
 
-    #ifdef ENABLE_FFS
 	// enable writes
 	flash25_v_write_enable();
 

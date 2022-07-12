@@ -174,9 +174,11 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_DEBUG_PRINT ){
 
+        #ifdef ENABLE_FFS
         char *s = (char *)data;
 
         log_v_debug_P( PSTR("ESP8266: %s"), s );
+        #endif
     }
     else if( hdr->opcode == OPCODE_IO_SET_MODE ){
 
@@ -221,7 +223,7 @@ void coproc_v_dispatch(
     }   
     else if( hdr->opcode == OPCODE_FW_BOOTLOAD ){
         
-        sys_v_load_fw();
+        // sys_v_load_fw();
         cpu_reboot();
 
         while(1);

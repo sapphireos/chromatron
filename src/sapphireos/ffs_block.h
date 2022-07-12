@@ -141,7 +141,11 @@ static inline uint16_t ffs_block_u16_dirty_blocks( void ){
 
 static inline uint16_t ffs_block_u16_total_blocks( void ){
 
+    #ifdef ENABLE_FFS
     return _total_blocks;
+    #else
+    return 0;
+    #endif
 }
 
 

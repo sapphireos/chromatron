@@ -78,8 +78,8 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 		*rx_data++ = usart_i16_get_byte( UART_CHANNEL );
 		len--;
 	}
-	#else
-	if( hal_wifi_i8_usart_receive( rx_data, len, 100000 ) != 0 ){
+	#else 
+	if( hal_wifi_i8_usart_receive( rx_data, len, 10000000 ) != 0 ){
 
 		sys_v_wdt_reset();		
 		status_led_v_set( 0, STATUS_LED_GREEN );
@@ -136,7 +136,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 		_delay_ms( 1000 );
 		sys_v_wdt_reset();
 
-		status_led_v_set( 0, STATUS_LED_WHITE );
+		status_led_v_set( 0, STATUS_LED_WHITE );  
 		_delay_ms( 500 );
 		status_led_v_set( 1, STATUS_LED_WHITE );
 		_delay_ms( 500 );

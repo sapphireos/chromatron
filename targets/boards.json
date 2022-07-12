@@ -34,7 +34,6 @@
 		"target": "xmega128a4u",
 		"defines":
 		[
-			"ENABLE_FFS",
 			"ENABLE_NETWORK",
 			"ENABLE_USB_UDP_TRANSPORT",
 			"SKIP_CMD_USART_INIT",
