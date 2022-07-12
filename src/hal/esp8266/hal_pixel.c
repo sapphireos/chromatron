@@ -147,6 +147,12 @@ PT_BEGIN( pt );
             
             THREAD_EXIT( pt );
         }
+
+        // wait while pixels are zero output
+        while( gfx_b_is_output_zero() ){
+
+            THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+        }
     }
 
 PT_END( pt );
