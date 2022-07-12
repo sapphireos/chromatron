@@ -366,10 +366,15 @@ class Builder(object):
 
         elif settings["TOOLCHAIN"] == "ESP32_bootloader":
             if "CC" not in settings:
-                settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin', 'xtensa-esp32-elf-gcc')
+                settings["CC"] = os.path.join(TOOLS_DIR, 'esp-2021r2-patch3-8.4.0', 'bin', 'xtensa-esp32-elf-gcc')
 
             if "BINTOOLS" not in settings:
-                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin')
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'esp-2021r2-patch3-8.4.0', 'bin')
+            # if "CC" not in settings:
+            #     settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin', 'xtensa-esp32-elf-gcc')
+
+            # if "BINTOOLS" not in settings:
+            #     settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin')
 
         else:
             raise SettingsParseException("Unknown toolchain")
