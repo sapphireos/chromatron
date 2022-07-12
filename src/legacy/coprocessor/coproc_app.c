@@ -119,6 +119,12 @@ void coproc_v_dispatch(
             loadfw_request = FALSE;
         }
     }
+    else if( hdr->opcode == OPCODE_SAFE_MODE ){
+
+        // let watchdog reset
+        // this should report safe mode.
+        while(1);
+    }
     else if( hdr->opcode == OPCODE_REBOOT ){
 
         // check for valid sequence

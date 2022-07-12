@@ -154,6 +154,13 @@ void cpu_reboot( void ){
         coproc_i32_call0( OPCODE_LOADFW_1 );
         coproc_i32_call0( OPCODE_LOADFW_2 );
     }
+    else if( boot_data.boot_mode == BOOT_MODE_NORMAL ){
+
+        // see set_reboot_mode() in system.c for more details.
+        // this is actually a request to boot into safe mode.
+
+        coproc_i32_call0( OPCODE_SAFE_MODE );        
+    }
 
     coproc_v_reboot();
 
