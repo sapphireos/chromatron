@@ -186,7 +186,7 @@ class FXImage(object):
             function_addrs['loop'] = 65535
 
         # set up function table
-        for func in self.funcs:
+        for func in self.funcs.values():
             info = FunctionInfo(addr=function_addrs[func.name], frame_size=func.local_memory_size * DATA_LEN)
 
             function_table.append(info)
