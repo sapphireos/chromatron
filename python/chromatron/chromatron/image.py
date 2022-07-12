@@ -270,16 +270,16 @@ class FXImage(object):
         # set up published registers
         published_var_count = 0
         packed_publish = bytes()
-        # for var in self.data_table:
-        #     if var.publish:
-        #         published_var = VMPublishVar(
-        #                             hash=catbus_string_hash(var.name), 
-        #                             addr=var.addr,
-        #                             type=get_type_id(var.type))
-        #         packed_publish += published_var.pack()
+        for var in self.program.globals:
+            if 'publish' in var.keywords and var.keywords['publish'] == True:
+                published_var = VMPublishVar(
+                                    hash=catbus_string_hash(var.name), 
+                                    addr=var.addr.addr,
+                                    type=get_type_id(var.data_type))
+                packed_publish += published_var.pack()
                 
-        #         meta_names.append(var.name)
-        #         published_var_count += 1
+                meta_names.append(var.name)
+                published_var_count += 1
 
         # set up links
         packed_links = bytes()

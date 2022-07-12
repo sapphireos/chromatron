@@ -1,37 +1,47 @@
 
-current_hue = Fixed16()
-delay = Number()
-cursor = Number()
-# cursor2 = Number()
-target = Number()
-direction = Number()
-
-# def init():
-#     pixels.val = 1.0
-#     pixels.sat = 1.0
-
-#     pixels.hue = rand()
-
-#     pixels.hs_fade = 600
-
-#     db.gfx_frame_rate = 70
-
-#     current_hue = rand()
-
-#     cursor = rand()
-#     target = rand()
-
-
-global_i = Number(publish=True)
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
 
 def init():
-    for i in 10:
-        if i > 5:
-            break
+    pass
 
-    global_i = i
+def loop():
+    pass
+
+# current_hue = Fixed16()
+# delay = Number()
+# cursor = Number()
+# # cursor2 = Number()
+# target = Number()
+# direction = Number()
+
+# # def init():
+# #     pixels.val = 1.0
+# #     pixels.sat = 1.0
+
+# #     pixels.hue = rand()
+
+# #     pixels.hs_fade = 600
+
+# #     db.gfx_frame_rate = 70
+
+# #     current_hue = rand()
+
+# #     cursor = rand()
+# #     target = rand()
+
+
+# global_i = Number(publish=True)
 
 # def init():
+#     for i in 10:
+#         if i > 5:
+#             break
+
+#     global_i = i
+
+# # def init():
 #     a = Number()
 #     a = 1
 

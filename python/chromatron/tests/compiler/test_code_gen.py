@@ -3816,22 +3816,6 @@ def init():
 
 
 
-
-# # @pytest.mark.skip
-# class CGTestsLocal_Opt_LS_SCHED(CGTestsLocal_Opt_None):
-#     def run_test(self, program, expected={}, opt_passes=OptPasses.LS_SCHED):
-#         super().run_test(program, expected, opt_passes=opt_passes)
-
-# class CGTestsLocal_Opt_GVN(CGTestsLocal_Opt_None):
-#     def run_test(self, program, expected={}, opt_passes=OptPasses.GVN):
-#         super().run_test(program, expected, opt_passes=opt_passes)
-
-# class CGTestsLocal_Opt_LOOP(CGTestsLocal_Opt_None):
-#     def run_test(self, program, expected={}, opt_passes=OptPasses.LOOP):
-#         super().run_test(program, expected, opt_passes=opt_passes)
-
-
-# from ..fixtures import *
 from conftest import *
 
 import chromatron
