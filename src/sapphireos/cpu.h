@@ -39,6 +39,7 @@
 #define RESET_SOURCE_EXTERNAL   0x04
 #define RESET_SOURCE_BROWNOUT   0x08
 #define RESET_SOURCE_WATCHDOG   0x10
+#define RESET_SOURCE_INTERNAL   0x20
 
 
 #define _TOKENPASTE(x, y) x ## y

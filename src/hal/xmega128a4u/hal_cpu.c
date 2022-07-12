@@ -129,6 +129,10 @@ uint8_t cpu_u8_get_reset_source( void ){
 
         return RESET_SOURCE_WATCHDOG;
     }
+    else if( temp & RST_SWRST_bm ){
+
+        return RESET_SOURCE_INTERNAL;
+    }
 
     return 0;
 }
@@ -172,6 +176,7 @@ uint32_t cpu_u32_get_clock_speed( void ){
 }
 
 void cpu_reboot( void ){
+    
     asm volatile("cli\n\t"          // disable interrupts
               "ldi r24, 0xD8\n\t" // value to write to CCP
               "ldi r25, 0x01\n\t" // value to write to SWRST
@@ -187,7 +192,7 @@ void cpu_reboot( void ){
     // RST.CTRL |= RST_SWRST_bm;
     // END_ATOMIC;
 
-    
+
     // backup wdt in case the reset doesn't work:
 
     // enable watchdog timer:
