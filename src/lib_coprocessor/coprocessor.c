@@ -65,7 +65,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	coproc_block_t block;
 	uint8_t *rx_data = (uint8_t *)&block;
 	uint8_t len = sizeof(block);
-	memset( block, 0, sizeof(block) );
+	memset( rx_data, 0, len );
 
 	#ifdef ESP8266
 	while( len > 0 ){
@@ -77,7 +77,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 		len--;
 	}
 	#else
-	if( hal_wifi_i8_usart_receive( rx_data, len, 10000000 ) != len ){
+	if( hal_wifi_i8_usart_receive( rx_data, len, 100000 ) != 0 ){
 
 		sys_v_wdt_reset();
 		status_led_v_set( 1, STATUS_LED_RED );
@@ -106,6 +106,8 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
+		// BOOM!
+		while(1);
 	}
 	#endif
 
