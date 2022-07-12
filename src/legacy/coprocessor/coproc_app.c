@@ -223,7 +223,7 @@ void coproc_v_dispatch(
     }   
     else if( hdr->opcode == OPCODE_FW_BOOTLOAD ){
         
-        // sys_v_load_fw();
+        sys_v_load_fw();
         cpu_reboot();
 
         while(1);
@@ -579,10 +579,10 @@ PT_BEGIN( pt );
     }
 
 
-// // DEBUG:
-// status_led_v_set( 1, STATUS_LED_WHITE );
-// cmd_usart_v_init();
-// THREAD_WAIT_WHILE( pt, !boot_esp );
+// DEBUG:
+status_led_v_set( 1, STATUS_LED_WHITE );
+cmd_usart_v_init();
+THREAD_WAIT_WHILE( pt, !boot_esp );
 
 
     status_led_v_set( 1, STATUS_LED_YELLOW );
