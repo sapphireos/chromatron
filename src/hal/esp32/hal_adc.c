@@ -32,9 +32,9 @@
 #include "timers.h"
 #include "config.h"
 
-#include <driver/adc.h>
 
 #ifndef BOOTLOADER
+#include <driver/adc.h>
 #include <esp_adc_cal.h>
 
 
@@ -62,6 +62,7 @@ void adc_v_init( void ){
     #endif
 }
 
+#ifndef BOOTLOADER
 PT_THREAD( hal_adc_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -113,6 +114,13 @@ static int16_t _adc_i16_internal_read( uint8_t channel ){
 
 	return adc1_get_raw( adc_channel );
 }
+#else
+// BOOTLOADER
+static int16_t _adc_i16_internal_read( uint8_t channel ){
+    
+    return 0;
+}
+#endif
 
 void adc_v_shutdown( void ){
 
