@@ -32,6 +32,7 @@
 
 #ifdef AVR
 #include "hal_esp8266.h"
+#include "hal_status_led.h"
 #endif
 
 // bootloader shared memory
@@ -64,6 +65,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	coproc_block_t block;
 	uint8_t *rx_data = (uint8_t *)&block;
 	uint8_t len = sizeof(block);
+	memset( block, 0, sizeof(block) );
 
 	#ifdef ESP8266
 	while( len > 0 ){
@@ -75,7 +77,36 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 		len--;
 	}
 	#else
-	hal_wifi_i8_usart_receive( rx_data, len, 10000000 );
+	if( hal_wifi_i8_usart_receive( rx_data, len, 10000000 ) != len ){
+
+		sys_v_wdt_reset();
+		status_led_v_set( 1, STATUS_LED_RED );
+		status_led_v_set( 0, STATUS_LED_GREEN );
+		status_led_v_set( 0, STATUS_LED_BLUE );
+
+		_delay_ms( 1000 );
+		sys_v_wdt_reset();
+
+		status_led_v_set( 0, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		sys_v_wdt_reset();
+
+
+		status_led_v_set( 0, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		sys_v_wdt_reset();
+
+		status_led_v_set( 0, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_TEAL );
+		_delay_ms( 500 );
+		sys_v_wdt_reset();
+
+	}
 	#endif
 
 	data[0] = block.data[0];
@@ -87,6 +118,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	if( ( crc_u16_block( data, COPROC_BLOCK_LEN ) & 0xff ) != block.crc ){
 
 		#ifdef AVR
+		sys_v_wdt_reset();
 		status_led_v_set( 1, STATUS_LED_RED );
 		status_led_v_set( 0, STATUS_LED_GREEN );
 		status_led_v_set( 0, STATUS_LED_BLUE );
@@ -94,23 +126,23 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 		_delay_ms( 1000 );
 		sys_v_wdt_reset();
 
-		status_led_v_set( 0, STATUS_LED_RED );
-		_delay_ms( 250 );
-		status_led_v_set( 1, STATUS_LED_RED );
-		_delay_ms( 250 );
+		status_led_v_set( 0, STATUS_LED_WHITE );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_WHITE );
+		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
 
-		status_led_v_set( 0, STATUS_LED_RED );
-		_delay_ms( 250 );
-		status_led_v_set( 1, STATUS_LED_RED );
-		_delay_ms( 250 );
+		status_led_v_set( 0, STATUS_LED_WHITE );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_WHITE );
+		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
-		status_led_v_set( 0, STATUS_LED_RED );
-		_delay_ms( 250 );
-		status_led_v_set( 1, STATUS_LED_RED );
-		_delay_ms( 250 );
+		status_led_v_set( 0, STATUS_LED_WHITE );
+		_delay_ms( 500 );
+		status_led_v_set( 1, STATUS_LED_WHITE );
+		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
 
