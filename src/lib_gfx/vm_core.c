@@ -4489,8 +4489,37 @@ int8_t vm_i8_load_program(
         goto error;
     }
 
+
     // **********************
-    // zero out data segments:
+    // Metadata:
+    // set KV names
+    // **********************
+    // check magic number
+    uint32_t meta_magic = 0;
+    fs_i16_read( f, &meta_magic, sizeof(meta_magic) );
+
+    if( meta_magic != META_MAGIC ){
+
+        return VM_STATUS_ERR_BAD_META_MAGIC;
+    }
+
+    char meta_string[KV_NAME_LEN];
+    memset( meta_string, 0, sizeof(meta_string) );
+
+    // skip first string, it's the script name
+    fs_v_seek( f, fs_i32_tell( f ) + sizeof(meta_string) );
+
+    // load meta names to database lookup
+    while( fs_i16_read( f, meta_string, sizeof(meta_string) ) == sizeof(meta_string) ){
+    
+        kvdb_v_set_name( meta_string );
+        
+        memset( meta_string, 0, sizeof(meta_string) );
+    }    
+
+
+    // **********************
+    // Zero out data segments:
     // **********************
     int32_t *local_data_ptr = (int32_t *)( stream + state->local_data_start );
 

@@ -57,6 +57,7 @@
 #define VM_STATUS_ERR_BAD_FILE_READ         -10
 #define VM_STATUS_ERR_FUNC_NOT_FOUND        -11
 #define VM_STATUS_ERR_LOCAL_OUT_OF_BOUNDS   -12
+#define VM_STATUS_ERR_BAD_META_MAGIC        -13
 
 #define VM_STATUS_ERR_MAX_CYCLES            -30
 
