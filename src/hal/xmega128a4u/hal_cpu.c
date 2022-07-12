@@ -175,17 +175,24 @@ uint32_t cpu_u32_get_clock_speed( void ){
     return 32000000;
 }
 
-void cpu_reboot( void ){
-    
-    asm volatile("cli\n\t"          // disable interrupts
-              "ldi r24, 0xD8\n\t" // value to write to CCP
-              "ldi r25, 0x01\n\t" // value to write to SWRST
-              "ldi r30, 0x78\n\t"  // base address of RST peripheral
-              "ldi r31, 0\n\t"
-              "out __CCP__, r24\n\t"
-              "std Z+1, r25\n\t"  // +1 is the offset of RST.CTRL
-              ::); // no clobber list because we don't return
+static __inline__ __attribute__((always_inline,noreturn))
+void force_reset (void)
+{
+    __asm volatile ("cli"                 "\n\t" 
+                    "out __CCP__, %[ccp]" "\n\t" 
+                    "st  %a[rst], %[swrst]"
+        :
+        : [ccp]   "r" ((uint8_t) CCP_IOREG_gc),
+          [swrst] "r" ((uint8_t) RST_SWRST_bm),
+          [rst]   "e" (&RST.CTRL)
+        : "memory");
+    __builtin_unreachable();
+}
 
+void cpu_reboot( void ){
+
+    force_reset();
+    
     // ATOMIC;
     // ENABLE_CONFIG_CHANGE;
 
