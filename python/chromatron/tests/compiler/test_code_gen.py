@@ -23,10 +23,7 @@
 import pytest
 import unittest
 from chromatron import code_gen
-# from chromatron.vm import VM
-from chromatron.ir2 import OptPasses
-
-# nose2 --with-coverage --coverage-report=html
+from chromatron.ir2 import OptPasses, TEST_OPT_PASSES
 
 empty_program = """
 def init():
@@ -1939,13 +1936,45 @@ def init():
     e = d
 """
 
-class CGTestsBase(unittest.TestCase):
-    def run_test(self, program, expected={}):
-        pass
+@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
+class TestCompiler(object):
+    def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
+        prog = code_gen.compile_text(program, opt_passes=opt_passes)
+        func = prog.init_func
+
+        ret_val = func.run()
+
+        regs = func.program.dump_globals()
+
+        for reg, value in expected.items():
+
+            reg_value = regs[reg]
+
+            if isinstance(value, float):
+                reg_value /= 65536.0
+
+            try:
+                try:
+                    assert reg_value == value
+
+                except KeyError:
+                    raise Exception
+                    # try database
+                    # self.assertEqual(vm.db[reg], value)
+
+            except AssertionError:
+                print('\n*******************************')
+                print(program)
+                print('Var: %s Expected: %s Actual: %s' % (reg, value, regs[reg]))
+                print('-------------------------------\n')
+                raise
+
+
 
     @pytest.mark.skip
-    def test_basic_string(self):
+    def test_basic_string(self, opt_passes):
         self.run_test(test_basic_string,
+            opt_passes=opt_passes,
             expected={
                 'a': 'test',
                 'b': 'test2',
@@ -1955,8 +1984,9 @@ class CGTestsBase(unittest.TestCase):
             })
 
     # skip - DB needs to be able to understand gfx16 types to properly handle conversions
-    # def test_complex_assignments(self):
+    # def test_complex_assignments(self, opt_passes):
     #     self.run_test(test_complex_assignments,
+    #         opt_passes=opt_passes,
     #         expected={
     #             'a': 123,
     #             'b': 0.0018768310546875,
@@ -1969,20 +1999,23 @@ class CGTestsBase(unittest.TestCase):
     #             'i': 0.0069580078125,
     #         })
 
-    def test_bad_data_count(self):
+    def test_bad_data_count(self, opt_passes):
         self.run_test(test_bad_data_count,
+            opt_passes=opt_passes,
             expected={
             })
 
-    def test_indirect_load_func_arg(self):
+    def test_indirect_load_func_arg(self, opt_passes):
         self.run_test(test_indirect_load_func_arg,
+            opt_passes=opt_passes,
             expected={
                 'a': 124,
                 'b': 123,
             })
 
-    def test_global_avoids_optimize_assign_targets(self):
+    def test_global_avoids_optimize_assign_targets(self, opt_passes):
         self.run_test(test_global_avoids_optimize_assign_targets,
+            opt_passes=opt_passes,
             expected={
                 'a': 0.0999908447265625,
                 'b': 0.0999908447265625,
@@ -1990,18 +2023,21 @@ class CGTestsBase(unittest.TestCase):
             })
 
     @pytest.mark.skip
-    def test_pixel_mirror_compile(self):
+    def test_pixel_mirror_compile(self, opt_passes):
         self.run_test(test_pixel_mirror_compile,
+            opt_passes=opt_passes,
             expected={
             })
 
-    def test_temp_variable_redeclare_outside_scope(self):
+    def test_temp_variable_redeclare_outside_scope(self, opt_passes):
         self.run_test(test_temp_variable_redeclare_outside_scope,
+            opt_passes=opt_passes,
             expected={
             })
 
-    def test_array_assign_direct_mixed_types(self):
+    def test_array_assign_direct_mixed_types(self, opt_passes):
         self.run_test(test_array_assign_direct_mixed_types,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
@@ -2009,8 +2045,9 @@ class CGTestsBase(unittest.TestCase):
                 'd': 4,
             })
 
-    def test_array_assign_direct(self):
+    def test_array_assign_direct(self, opt_passes):
         self.run_test(test_array_assign_direct,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
@@ -2018,21 +2055,24 @@ class CGTestsBase(unittest.TestCase):
                 'd': 4,
             })
 
-    def test_improper_const_data_type_reuse(self):
+    def test_improper_const_data_type_reuse(self, opt_passes):
         self.run_test(test_improper_const_data_type_reuse,
+            opt_passes=opt_passes,
             expected={
                 'a': 6,
             })
 
-    def test_var_overwrite(self):
+    def test_var_overwrite(self, opt_passes):
         self.run_test(test_var_overwrite,
+            opt_passes=opt_passes,
             expected={
                 'a': 91,
             })
 
     @pytest.mark.skip
-    def test_var_init(self):
+    def test_var_init(self, opt_passes):
         self.run_test(test_var_init,
+            opt_passes=opt_passes,
             expected={
                 'a': 5,
                 'b': 1.2299957275390625,
@@ -2042,28 +2082,32 @@ class CGTestsBase(unittest.TestCase):
                 'ary2_1': 2.0999908447265625,
             })
 
-    def test_loop_var_redeclare(self):
+    def test_loop_var_redeclare(self, opt_passes):
         # no value check.
         # this test passes if the compilation
         # succeeds without error.
         self.run_test(test_loop_var_redeclare,
+            opt_passes=opt_passes,
             expected={
             })
 
-    def test_array_index_call(self):
+    def test_array_index_call(self, opt_passes):
         self.run_test(test_array_index_call,
+            opt_passes=opt_passes,
             expected={
                 'a': 4,
             })
 
-    def test_lib_call(self):
+    def test_lib_call(self, opt_passes):
         self.run_test(test_lib_call,
+            opt_passes=opt_passes,
             expected={
                 'a': 3,
             })
 
-    def test_local_declare(self):
+    def test_local_declare(self, opt_passes):
         self.run_test(test_local_declare,
+            opt_passes=opt_passes,
             expected={
                 'a': 0,
                 'b': 0,
@@ -2071,44 +2115,50 @@ class CGTestsBase(unittest.TestCase):
                 'd': 0,
             })
 
-    def test_expr_db(self):
+    def test_expr_db(self, opt_passes):
         self.run_test(test_expr_db,
+            opt_passes=opt_passes,
             expected={
                 'a': 124,
                 'b': 246,
             })
 
-    def test_expr_db_f16(self):
+    def test_expr_db_f16(self, opt_passes):
         self.run_test(test_expr_db_f16,
+            opt_passes=opt_passes,
             expected={
                 'a': 1.0018768310546875,
                 'b': 246.0,
             })
 
-    def test_db_augassign(self):
+    def test_db_augassign(self, opt_passes):
         self.run_test(test_db_augassign,
+            opt_passes=opt_passes,
             expected={
                 'a': 124,
             })
 
     @pytest.mark.skip
-    def test_array_expr_db(self):
+    def test_array_expr_db(self, opt_passes):
         self.run_test(test_array_expr_db,
+            opt_passes=opt_passes,
             expected={
                 'a': 2,
                 'b': 5,
             })
 
-    def test_array_expr(self):
+    def test_array_expr(self, opt_passes):
         self.run_test(test_array_expr,
+            opt_passes=opt_passes,
             expected={
                 'a': 3,
                 'b': 4,
             })
 
 
-    def test_array_mod_fixed16(self):
+    def test_array_mod_fixed16(self, opt_passes):
         self.run_test(test_array_mod_fixed16,
+            opt_passes=opt_passes,
             expected={
                 'a': 4.899993896484375,
                 'b': 1.899993896484375,
@@ -2118,8 +2168,9 @@ class CGTestsBase(unittest.TestCase):
             })
 
 
-    def test_array_div_fixed16(self):
+    def test_array_div_fixed16(self, opt_passes):
         self.run_test(test_array_div_fixed16,
+            opt_passes=opt_passes,
             expected={
                 'a': 4.996002197265625,
                 'b': 1.998992919921875,
@@ -2128,8 +2179,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 4.996002197265625,
             })
 
-    def test_array_mul_fixed16(self):
+    def test_array_mul_fixed16(self, opt_passes):
         self.run_test(test_array_mul_fixed16,
+            opt_passes=opt_passes,
             expected={
                 'a': 627.8088226318359,
                 'b': 258.50885009765625,
@@ -2138,8 +2190,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 627.8088226318359,
             })
 
-    def test_array_sub_fixed16(self):
+    def test_array_sub_fixed16(self, opt_passes):
         self.run_test(test_array_sub_fixed16,
+            opt_passes=opt_passes,
             expected={
                 'a': -118.0,
                 'b': -121.0,
@@ -2148,8 +2201,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': -118.0,
             })
 
-    def test_array_add_fixed16(self):
+    def test_array_add_fixed16(self, opt_passes):
         self.run_test(test_array_add_fixed16,
+            opt_passes=opt_passes,
             expected={
                 'a': 128.19998168945312,
                 'b': 125.19998168945312,
@@ -2158,8 +2212,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 128.19998168945312,
             })
 
-    def test_array_assign_fixed16(self):
+    def test_array_assign_fixed16(self, opt_passes):
         self.run_test(test_array_assign_fixed16,
+            opt_passes=opt_passes,
             expected={
                 'a': 123.12298583984375,
                 'b': 123.12298583984375,
@@ -2168,15 +2223,17 @@ class CGTestsBase(unittest.TestCase):
                 'e': 123.12298583984375,
             })
 
-    def test_type_conversions3(self):
+    def test_type_conversions3(self, opt_passes):
         self.run_test(test_type_conversions3,
+            opt_passes=opt_passes,
             expected={
                 'a': 123,
                 'b': 40.95808410644531,
             })
 
-    def test_type_conversions2(self):
+    def test_type_conversions2(self, opt_passes):
         self.run_test(test_type_conversions2,
+            opt_passes=opt_passes,
             expected={
                 'a': 3,
                 'b': 3.12298583984375,
@@ -2184,8 +2241,9 @@ class CGTestsBase(unittest.TestCase):
                 'd': 6
             })
 
-    def test_type_conversions(self):
+    def test_type_conversions(self, opt_passes):
         self.run_test(test_type_conversions,
+            opt_passes=opt_passes,
             expected={
                 'a': 123,
                 'b': 32.0,
@@ -2193,8 +2251,9 @@ class CGTestsBase(unittest.TestCase):
                 'd': 246
             })
 
-    def test_fix16(self):
+    def test_fix16(self, opt_passes):
         self.run_test(test_fix16,
+            opt_passes=opt_passes,
             expected={
                 'a': 123.35600280761719,
                 'b': 155.45599365234375,
@@ -2204,8 +2263,9 @@ class CGTestsBase(unittest.TestCase):
             })
 
     @pytest.mark.skip
-    def test_complex_record_assign3(self):
+    def test_complex_record_assign3(self, opt_passes):
         self.run_test(test_complex_record_assign3,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
@@ -2214,8 +2274,9 @@ class CGTestsBase(unittest.TestCase):
             })
 
     @pytest.mark.skip
-    def test_complex_record_assign2(self):
+    def test_complex_record_assign2(self, opt_passes):
         self.run_test(test_complex_record_assign2,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
@@ -2226,8 +2287,9 @@ class CGTestsBase(unittest.TestCase):
             })
 
     @pytest.mark.skip
-    def test_complex_record_assign(self):
+    def test_complex_record_assign(self, opt_passes):
         self.run_test(test_complex_record_assign,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
@@ -2237,8 +2299,9 @@ class CGTestsBase(unittest.TestCase):
                 'f': 0,
             })
 
-    def test_array_index_3d_aug(self):
+    def test_array_index_3d_aug(self, opt_passes):
         self.run_test(test_array_index_3d_aug,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
@@ -2251,8 +2314,9 @@ class CGTestsBase(unittest.TestCase):
                 'i': 6,
             })
 
-    def test_array_index_3d(self):
+    def test_array_index_3d(self, opt_passes):
         self.run_test(test_array_index_3d,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
@@ -2266,54 +2330,62 @@ class CGTestsBase(unittest.TestCase):
             })
 
     @pytest.mark.skip
-    def test_base_record_assign(self):
+    def test_base_record_assign(self, opt_passes):
         self.run_test(test_base_record_assign,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
                 'c': 3,
             })
 
-    def test_array_index_expr(self):
+    def test_array_index_expr(self, opt_passes):
         self.run_test(test_array_index_expr,
+            opt_passes=opt_passes,
             expected={
                 'a': 3,
             })
 
-    def test_array_avg(self):
+    def test_array_avg(self, opt_passes):
         self.run_test(test_array_avg,
+            opt_passes=opt_passes,
             expected={
                 'a': 6,
             })
 
-    def test_array_sum(self):
+    def test_array_sum(self, opt_passes):
         self.run_test(test_array_sum,
+            opt_passes=opt_passes,
             expected={
                 'a': 24,
             })
 
-    def test_array_min(self):
+    def test_array_min(self, opt_passes):
         self.run_test(test_array_min,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
             })
 
-    def test_array_max(self):
+    def test_array_max(self, opt_passes):
         self.run_test(test_array_max,
+            opt_passes=opt_passes,
             expected={
                 'a': 4,
             })
 
     
-    def test_array_aug_assign(self):
+    def test_array_aug_assign(self, opt_passes):
         self.run_test(test_array_aug_assign,
+            opt_passes=opt_passes,
             expected={
                 'a': 579,
                 'b': 0,
             })
 
-    def test_array_iteration(self):
+    def test_array_iteration(self, opt_passes):
         self.run_test(test_array_iteration,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
@@ -2321,14 +2393,16 @@ class CGTestsBase(unittest.TestCase):
                 'd': 4,
             })
 
-    def test_array_len(self):
+    def test_array_len(self, opt_passes):
         self.run_test(test_array_len,
+            opt_passes=opt_passes,
             expected={
                 'a': 4,
             })
 
-    def test_array_mod(self):
+    def test_array_mod(self, opt_passes):
         self.run_test(test_array_mod,
+            opt_passes=opt_passes,
             expected={
                 'a': 5,
                 'b': 2,
@@ -2337,8 +2411,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 5,
             })
 
-    def test_array_div(self):
+    def test_array_div(self, opt_passes):
         self.run_test(test_array_div,
+            opt_passes=opt_passes,
             expected={
                 'a': 5,
                 'b': 2,
@@ -2347,8 +2422,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 5,
             })
 
-    def test_array_mul(self):
+    def test_array_mul(self, opt_passes):
         self.run_test(test_array_mul,
+            opt_passes=opt_passes,
             expected={
                 'a': 615,
                 'b': 246,
@@ -2357,8 +2433,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 615,
             })
 
-    def test_array_sub(self):
+    def test_array_sub(self, opt_passes):
         self.run_test(test_array_sub,
+            opt_passes=opt_passes,
             expected={
                 'a': -118,
                 'b': -121,
@@ -2367,8 +2444,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': -118,
             })
 
-    def test_array_add(self):
+    def test_array_add(self, opt_passes):
         self.run_test(test_array_add,
+            opt_passes=opt_passes,
             expected={
                 'a': 128,
                 'b': 125,
@@ -2377,8 +2455,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 128,
             })
 
-    def test_array_assign(self):
+    def test_array_assign(self, opt_passes):
         self.run_test(test_array_assign,
+            opt_passes=opt_passes,
             expected={
                 'a': 123,
                 'b': 123,
@@ -2387,8 +2466,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 123,
             })
 
-    def test_array_index(self):
+    def test_array_index(self, opt_passes):
         self.run_test(test_array_index,
+            opt_passes=opt_passes,
             expected={
                 'a': 5,
                 'b': 2,
@@ -2397,8 +2477,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 5,
             })
 
-    def test_db_access(self):
+    def test_db_access(self, opt_passes):
         self.run_test(test_db_access,
+            opt_passes=opt_passes,
             expected={
                 'a': 126,
                 'b': 123,
@@ -2406,8 +2487,9 @@ class CGTestsBase(unittest.TestCase):
             })
 
     @pytest.mark.skip
-    def test_db_array_access(self):
+    def test_db_array_access(self, opt_passes):
         self.run_test(test_db_array_access,
+            opt_passes=opt_passes,
             expected={
                 'db_len': 4,
                 'db_len2': 1,
@@ -2417,21 +2499,24 @@ class CGTestsBase(unittest.TestCase):
                 'd': 4,
             })
 
-    def test_empty(self):
+    def test_empty(self, opt_passes):
         self.run_test(empty_program,
+            opt_passes=opt_passes,
             expected={
             })
 
-    def test_basic_vars(self):
+    def test_basic_vars(self, opt_passes):
         self.run_test(basic_vars,
+            opt_passes=opt_passes,
             expected={
                 'a': 0,
                 'b': 0,
                 'c': 0,
             })
 
-    def test_basic_assign(self):
+    def test_basic_assign(self, opt_passes):
         self.run_test(basic_assign,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
@@ -2439,8 +2524,9 @@ class CGTestsBase(unittest.TestCase):
                 'd': 4,
             })
 
-    def test_basic_math(self):
+    def test_basic_math(self, opt_passes):
         self.run_test(basic_math,
+            opt_passes=opt_passes,
             expected={
                 'a': 3,
                 'b': 6,
@@ -2451,92 +2537,105 @@ class CGTestsBase(unittest.TestCase):
                 'g': 1,
             })
 
-    def test_constant_folding(self):
+    def test_constant_folding(self, opt_passes):
         self.run_test(constant_folding,
+            opt_passes=opt_passes,
             expected={
                 'a': 10,
                 'b': 20,
             })
 
-    def test_compare_gt(self):
+    def test_compare_gt(self, opt_passes):
         self.run_test(basic_compare_gt,
+            opt_passes=opt_passes,
             expected={
                 'a': 0,
                 'b': 0,
                 'c': 1,
             })
 
-    def test_compare_gte(self):
+    def test_compare_gte(self, opt_passes):
         self.run_test(basic_compare_gte,
+            opt_passes=opt_passes,
             expected={
                 'a': 0,
                 'b': 1,
                 'c': 1,
             })
 
-    def test_compare_lt(self):
+    def test_compare_lt(self, opt_passes):
         self.run_test(basic_compare_lt,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 0,
                 'c': 0,
             })
 
-    def test_compare_lte(self):
+    def test_compare_lte(self, opt_passes):
         self.run_test(basic_compare_lte,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 1,
                 'c': 0,
             })
 
-    def test_compare_eq(self):
+    def test_compare_eq(self, opt_passes):
         self.run_test(basic_compare_eq,
+            opt_passes=opt_passes,
             expected={
                 'a': 0,
                 'b': 1,
             })
 
-    def test_compare_neq(self):
+    def test_compare_neq(self, opt_passes):
         self.run_test(basic_compare_neq,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 0,
             })
 
-    def test_basic_if(self):
+    def test_basic_if(self, opt_passes):
         self.run_test(basic_if,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
             })
 
-    def test_basic_for(self):
+    def test_basic_for(self, opt_passes):
         self.run_test(basic_for,
+            opt_passes=opt_passes,
             expected={
                 'a': 10,
             })
 
-    def test_basic_while(self):
+    def test_basic_while(self, opt_passes):
         self.run_test(basic_while,
+            opt_passes=opt_passes,
             expected={
                 'a': 10,
             })
 
-    def test_basic_call(self):
+    def test_basic_call(self, opt_passes):
         self.run_test(basic_call,
+            opt_passes=opt_passes,
             expected={
                 'a': 5,
             })
 
-    def test_basic_return(self):
+    def test_basic_return(self, opt_passes):
         self.run_test(basic_return,
+            opt_passes=opt_passes,
             expected={
                 'a': 8,
             })
 
-    def test_basic_logic(self):
+    def test_basic_logic(self, opt_passes):
         self.run_test(basic_logic,
+            opt_passes=opt_passes,
             expected={
                 'a': 0,
                 'b': 0,
@@ -2546,48 +2645,55 @@ class CGTestsBase(unittest.TestCase):
                 'f': 1,
             })
 
-    def test_call_with_params(self):
+    def test_call_with_params(self, opt_passes):
         self.run_test(call_with_params,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 2,
             })
 
-    def test_if_expr(self):
+    def test_if_expr(self, opt_passes):
         self.run_test(if_expr,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': 1,
                 'c': 2,
             })
 
-    def test_call_expr(self):
+    def test_call_expr(self, opt_passes):
         self.run_test(call_expr,
+            opt_passes=opt_passes,
             expected={
                 'a': 8,
                 'b': 18,
             })
 
-    def test_call_register_reuse(self):
+    def test_call_register_reuse(self, opt_passes):
         self.run_test(call_register_reuse,
+            opt_passes=opt_passes,
             expected={
                 'a': 2,
             })
 
-    def test_for_expr(self):
+    def test_for_expr(self, opt_passes):
         self.run_test(for_expr,
+            opt_passes=opt_passes,
             expected={
                 'a': 9,
             })
 
-    def test_while_expr(self):
+    def test_while_expr(self, opt_passes):
         self.run_test(while_expr,
+            opt_passes=opt_passes,
             expected={
                 'a': 4,
             })
 
-    def test_aug_assign_test(self):
+    def test_aug_assign_test(self, opt_passes):
         self.run_test(aug_assign_test,
+            opt_passes=opt_passes,
             expected={
                 'a': 1,
                 'b': -1,
@@ -2596,8 +2702,9 @@ class CGTestsBase(unittest.TestCase):
                 'e': 2,
             })
 
-    def test_aug_assign_expr_test(self):
+    def test_aug_assign_expr_test(self, opt_passes):
         self.run_test(aug_assign_expr_test,
+            opt_passes=opt_passes,
             expected={
                 'a': 2,
                 'b': 2,
@@ -2606,80 +2713,91 @@ class CGTestsBase(unittest.TestCase):
                 'e': 10,
             })
 
-    def test_break_node_while(self):
+    def test_break_node_while(self, opt_passes):
         self.run_test(break_node_while,
+            opt_passes=opt_passes,
             expected={
                 'i': 6,
             })
 
-    def test_continue_node_while(self):
+    def test_continue_node_while(self, opt_passes):
         self.run_test(continue_node_while,
+            opt_passes=opt_passes,
             expected={
                 'i': 10,
                 'a': 5,
             })
 
-    def test_break_node_for(self):
+    def test_break_node_for(self, opt_passes):
         self.run_test(break_node_for,
+            opt_passes=opt_passes,
             expected={
                 'global_i': 6,
             })
 
-    def test_continue_node_for(self):
+    def test_continue_node_for(self, opt_passes):
         self.run_test(continue_node_for,
+            opt_passes=opt_passes,
             expected={
                 'global_i': 10,
                 'a': 6
             })
 
-    def test_double_break_node_while(self):
+    def test_double_break_node_while(self, opt_passes):
         self.run_test(double_break_node_while,
+            opt_passes=opt_passes,
             expected={
                 'i': 6,
                 'global_a': 4,
             })
 
-    def test_double_break_node_while2(self):
+    def test_double_break_node_while2(self, opt_passes):
         self.run_test(double_break_node_while2,
+            opt_passes=opt_passes,
             expected={
                 'i': 6,
                 'global_a': 2,
             })
 
-    def test_double_continue_node_while(self):
+    def test_double_continue_node_while(self, opt_passes):
         self.run_test(double_continue_node_while,
+            opt_passes=opt_passes,
             expected={
                 'i': 10,
                 'a': 20,
                 'global_x': 4,
             })
 
-    def test_double_break_node_for(self):
+    def test_double_break_node_for(self, opt_passes):
         self.run_test(double_break_node_for,
+            opt_passes=opt_passes,
             expected={
                 'global_i': 6,
                 'global_a': 4,
                 'b': 24,
             })
 
-    def test_double_continue_node_for(self):
+    def test_double_continue_node_for(self, opt_passes):
         self.run_test(double_continue_node_for,
+            opt_passes=opt_passes,
             expected={
                 'global_i': 10,
                 'a': 24,
                 'global_x': 4,
             })
 
-    def test_no_loop_function(self):
+    def test_no_loop_function(self, opt_passes):
         # we don't check anything, we just make sure
         # we can compile without a loop function.
         self.run_test(no_loop_function,
+            opt_passes=opt_passes,
             expected={
             })
 
     @pytest.mark.skip
-    def test_pixel_array(self):
+    def test_pixel_array(self, opt_passes):
         self.run_test(pixel_array,
+            opt_passes=opt_passes,
             expected={
                 'a': 2,
                 'b': 12,
@@ -2687,16 +2805,18 @@ class CGTestsBase(unittest.TestCase):
                 'd': 4,
             })
 
-    def test_multiple_comparison(self):
+    def test_multiple_comparison(self, opt_passes):
         self.run_test(multiple_comparison,
+            opt_passes=opt_passes,
             expected={
                 'e': 1,
                 'f': 0,
                 'g': 1,
             })
 
-    def test_not(self):
+    def test_not(self, opt_passes):
         self.run_test(test_not,
+            opt_passes=opt_passes,
             expected={
                 'a': 0,
                 'b': 1,
@@ -3694,50 +3814,21 @@ def init():
 #         self.assertEqual(regs['d'], 0.399993896484375)
 
 
-class CGTestsLocal_Opt_None(CGTestsBase):
-    def run_test(self, program, expected={}, opt_passes=OptPasses.SSA):
-        prog = code_gen.compile_text(program, opt_passes=opt_passes)
-        func = prog.init_func
 
-        ret_val = func.run()
 
-        regs = func.program.dump_globals()
 
-        for reg, value in expected.items():
+# # @pytest.mark.skip
+# class CGTestsLocal_Opt_LS_SCHED(CGTestsLocal_Opt_None):
+#     def run_test(self, program, expected={}, opt_passes=OptPasses.LS_SCHED):
+#         super().run_test(program, expected, opt_passes=opt_passes)
 
-            reg_value = regs[reg]
+# class CGTestsLocal_Opt_GVN(CGTestsLocal_Opt_None):
+#     def run_test(self, program, expected={}, opt_passes=OptPasses.GVN):
+#         super().run_test(program, expected, opt_passes=opt_passes)
 
-            if isinstance(value, float):
-                reg_value /= 65536.0
-
-            try:
-                try:
-                    self.assertEqual(reg_value, value)
-
-                except KeyError:
-                    raise Exception
-                    # try database
-                    # self.assertEqual(vm.db[reg], value)
-
-            except AssertionError:
-                print('\n*******************************')
-                print(program)
-                print('Var: %s Expected: %s Actual: %s' % (reg, value, regs[reg]))
-                print('-------------------------------\n')
-                raise
-
-# @pytest.mark.skip
-class CGTestsLocal_Opt_LS_SCHED(CGTestsLocal_Opt_None):
-    def run_test(self, program, expected={}, opt_passes=OptPasses.LS_SCHED):
-        super().run_test(program, expected, opt_passes=opt_passes)
-
-class CGTestsLocal_Opt_GVN(CGTestsLocal_Opt_None):
-    def run_test(self, program, expected={}, opt_passes=OptPasses.GVN):
-        super().run_test(program, expected, opt_passes=opt_passes)
-
-class CGTestsLocal_Opt_LOOP(CGTestsLocal_Opt_None):
-    def run_test(self, program, expected={}, opt_passes=OptPasses.LOOP):
-        super().run_test(program, expected, opt_passes=opt_passes)
+# class CGTestsLocal_Opt_LOOP(CGTestsLocal_Opt_None):
+#     def run_test(self, program, expected={}, opt_passes=OptPasses.LOOP):
+#         super().run_test(program, expected, opt_passes=opt_passes)
 
 
 # from fixtures import *

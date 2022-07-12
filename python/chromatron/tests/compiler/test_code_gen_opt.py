@@ -2,8 +2,7 @@
 import pytest
 
 from chromatron import code_gen
-from chromatron.ir2 import OptPasses
-
+from chromatron.ir2 import OptPasses, TEST_OPT_PASSES
 
 def run_code(source, *args, opt_passes=OptPasses.SSA):
     prog = code_gen.compile_text(source, opt_passes=opt_passes)
@@ -267,7 +266,7 @@ def init():
 
 """
 
-@pytest.mark.parametrize("opt_passes", [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP, OptPasses.LS_SCHED])
+@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 def test_loop_invariant_code_motion(opt_passes):
     run_code(loop_invariant_code_motion_basic, opt_passes=opt_passes)
     run_code(loop_invariant_code_motion_ifelse, opt_passes=opt_passes)

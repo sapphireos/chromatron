@@ -23,17 +23,8 @@
 import pytest
 
 from chromatron import code_gen
-from chromatron.ir2 import OptPasses
+from chromatron.ir2 import OptPasses, TEST_OPT_PASSES
 
-def test_basic_ssa():
-    code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.SSA)
-
-# @pytest.mark.skip
-def test_basic_ls_sched():
-    code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.LS_SCHED)
-
-def test_basic_gvn():
-    code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.GVN)
-
-def test_basic_loop():
-    code_gen.run_script('chromatron/basic_tests.fx', opt_passes=OptPasses.LOOP)
+@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
+def test_basic(opt_passes):
+    code_gen.run_script('chromatron/basic_tests.fx', opt_passes=opt_passes)
