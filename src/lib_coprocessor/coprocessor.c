@@ -86,6 +86,36 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	// error check.  fatal if this fails.
 	if( ( crc_u16_block( data, COPROC_BLOCK_LEN ) & 0xff ) != block.crc ){
 
+		#ifdef AVR
+		status_led_v_set( 1, STATUS_LED_RED );
+		status_led_v_set( 0, STATUS_LED_GREEN );
+		status_led_v_set( 0, STATUS_LED_BLUE );
+
+		_delay_ms( 1000 );
+		sys_v_wdt_reset();
+
+		status_led_v_set( 0, STATUS_LED_RED );
+		_delay_ms( 250 );
+		status_led_v_set( 1, STATUS_LED_RED );
+		_delay_ms( 250 );
+		sys_v_wdt_reset();
+
+
+		status_led_v_set( 0, STATUS_LED_RED );
+		_delay_ms( 250 );
+		status_led_v_set( 1, STATUS_LED_RED );
+		_delay_ms( 250 );
+		sys_v_wdt_reset();
+
+		status_led_v_set( 0, STATUS_LED_RED );
+		_delay_ms( 250 );
+		status_led_v_set( 1, STATUS_LED_RED );
+		_delay_ms( 250 );
+		sys_v_wdt_reset();
+
+
+		#endif
+
 		// BOOM!
 		while(1);
 	}
