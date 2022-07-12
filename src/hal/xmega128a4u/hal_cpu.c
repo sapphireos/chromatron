@@ -173,8 +173,14 @@ uint32_t cpu_u32_get_clock_speed( void ){
 
 void cpu_reboot( void ){
 
+    ATOMIC;
+    ENABLE_CONFIG_CHANGE;
+
+    RST.CTRL |= RST_SWRST_bm;
+    END_ATOMIC;
+
     // enable watchdog timer:
-    wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    
+    // wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    
 }
 
 ISR(OSC_OSCF_vect){
