@@ -82,7 +82,11 @@
 	},
 	"esp32_loader":
 	{
-		"target": "esp32_boot"
+		"target": "esp32_boot",
+		"defines":
+		[
+			"BOOTLOADER_BUILD"
+		]
 	},
 	"stm32h7":
 	{
