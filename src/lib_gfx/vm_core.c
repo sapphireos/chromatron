@@ -290,7 +290,31 @@ typedef struct __attribute__((packed)){
     pc = code + func_table[index].addr;
 
 
+#ifdef VM_ENABLE_GFX
+#define GFX_LIB_CALL(DECODE, PARAMS_LEN) state->return_val = gfx_i32_lib_call( registers[DECODE->op1], params, PARAMS_LEN );
+#else
+#define GFX_LIB_CALL(DECODE, PARAMS_LEN)
+#endif
 
+#define LIBCALL(DECODE, PARAMS_LEN) \
+    if( vm_lib_i8_libcall_built_in( registers[DECODE->op1], state, &state->return_val, params, PARAMS_LEN ) != 0 ){ \
+        /* try gfx lib         */ \
+        GFX_LIB_CALL(DECODE, PARAMS_LEN) \
+    } \
+    else{ \
+        /* internal lib call completed successfully */ \
+        /* check yield flag */ \
+        if( state->yield > 0 ){ \
+            /* check call depth, can only yield from top level functions running as a thread */ \
+            if( ( call_depth != 0 ) || ( state->current_thread < 0 ) ){ \
+                return VM_STATUS_IMPROPER_YIELD; \
+            } \
+            /* store PC offset */ \
+            state->threads[state->current_thread].pc_offset = pc - ( code + func_addr ); \
+            /* yield! */ \
+            return VM_STATUS_YIELDED; \
+        } \
+    }
 
 
 reference_t ref;
@@ -420,10 +444,10 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 87
 
         &&opcode_lcall0,            // 88
-        &&opcode_trap,              // 89
-        &&opcode_trap,              // 90
-        &&opcode_trap,              // 91
-        &&opcode_trap,              // 92
+        &&opcode_lcall1,            // 89
+        &&opcode_lcall2,            // 90
+        &&opcode_lcall3,            // 91
+        &&opcode_lcall4,            // 92
         &&opcode_trap,              // 93
         &&opcode_trap,              // 94
         &&opcode_trap,              // 95
@@ -1561,17 +1585,16 @@ opcode_icall4:
 
 
 opcode_lcall0:
-    
     DECODE_1AC;
 
-    
-    // if( vm_lib_i8_libcall_built_in( registers[opcode_1ac->dest], state, params, &state->ret_val, 0 ) != 0 ){
+    LIBCALL(opcode_1ac, 0)
+
+    // if( vm_lib_i8_libcall_built_in( registers[opcode_1ac->op1], state, &state->return_val, params, 0 ) != 0 ){
 
     //     #ifdef VM_ENABLE_GFX
     //     // try gfx lib
         
-
-    //     // data[result] = gfx_i32_lib_call( hash, params, len );
+    //     data[result] = gfx_i32_lib_call( hash, params, len );
     //     #endif
     // }
     // else{
@@ -1594,6 +1617,34 @@ opcode_lcall0:
     //         return VM_STATUS_YIELDED;
     //     }
     // }
+
+    DISPATCH;
+
+opcode_lcall1:
+    DECODE_2AC;
+
+    LIBCALL(opcode_2ac, 1)
+
+    DISPATCH;
+
+opcode_lcall2:
+    DECODE_3AC;
+
+    LIBCALL(opcode_3ac, 2)
+
+    DISPATCH;
+
+opcode_lcall3:
+    DECODE_4AC;
+
+    LIBCALL(opcode_4ac, 3)
+
+    DISPATCH;
+
+opcode_lcall4:
+    DECODE_5AC;
+
+    LIBCALL(opcode_5ac, 4)
 
     DISPATCH;
 

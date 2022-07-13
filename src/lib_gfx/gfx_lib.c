@@ -586,6 +586,11 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
 
             break;
 
+        case __KV__test_gfx_lib_call:
+            return 1;
+    
+            break;
+
         default:
             break;
     }    

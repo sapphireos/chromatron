@@ -35,7 +35,6 @@
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
     vm_state_t *state, 
-	int32_t *data,
 	int32_t *result, 
 	int32_t *params, 
 	uint16_t param_len ){
@@ -49,6 +48,8 @@ int8_t vm_lib_i8_libcall_built_in(
     int32_t x, y, z, index, h, s, v, size;
     #endif
 
+    *result = 0;
+
 	switch( func_hash ){
         case __KV__rand:
 
@@ -60,13 +61,13 @@ int8_t vm_lib_i8_libcall_built_in(
             }
             else if( param_len == 1 ){
 
-                temp0 = data[params[0]];
+                temp0 = params[0];
                 temp1 = 0;
             }
             else{
 
-                temp0 = data[params[1]] - data[params[0]];
-                temp1 = data[params[0]];
+                temp0 = params[1] - params[0];
+                temp1 = params[0];
             }
 
             // check for divide by 0, or negative spread
@@ -84,101 +85,116 @@ int8_t vm_lib_i8_libcall_built_in(
             break;
 
 		case __KV__test_lib_call:
-            if( param_len != 2 ){
+            if( param_len == 0 ){
 
-                break;
+                *result = 1;
             }
+            else if( param_len == 1 ){
 
-            *result = data[params[0]] + data[params[1]];
+                *result = params[0] + 1;
+            }
+            else if( param_len == 2 ){
+
+                *result = params[0] + params[1];
+            }
+            else if( param_len == 3 ){
+
+                *result = params[0] + params[1] + params[2];
+            }
+            else if( param_len == 4 ){
+
+                *result = params[0] + params[1] + params[2] + params[3];
+            }
+            
             break;
 
-      	case __KV__min:
-            if( param_len != 2 ){
+      	// case __KV__min:
+       //      if( param_len != 2 ){
 
-                break;
-            }
+       //          break;
+       //      }
 
-            array_len = data[params[1]];
+       //      array_len = params[1];
 
-            temp0 = data[params[0]];
+       //      temp0 = params[0];
 
-            // second param is array len
-            for( int32_t i = 1; i < array_len; i++ ){
+       //      // second param is array len
+       //      for( int32_t i = 1; i < array_len; i++ ){
 
-            	temp1 = data[params[0] + i];
+       //      	temp1 = params[0] + i;
 
-            	if( temp1 < temp0 ){
+       //      	if( temp1 < temp0 ){
 
-            		temp0 = temp1;
-            	}
-            }
+       //      		temp0 = temp1;
+       //      	}
+       //      }
 
-            *result = temp0;
-            break;
+       //      *result = temp0;
+       //      break;
 
-        case __KV__max:
-            if( param_len != 2 ){
+       //  case __KV__max:
+       //      if( param_len != 2 ){
 
-                break;
-            }
+       //          break;
+       //      }
 
-            array_len = data[params[1]];
+       //      array_len = params[1];
 
-            temp0 = data[params[0]];
+       //      temp0 = params[0];
 
-            // second param is array len
-            for( int32_t i = 1; i < array_len; i++ ){
+       //      // second param is array len
+       //      for( int32_t i = 1; i < array_len; i++ ){
 
-                temp1 = data[params[0] + i];
+       //          temp1 = params[0] + i;
 
-                if( temp1 > temp0 ){
+       //          if( temp1 > temp0 ){
 
-                    temp0 = temp1;
-                }
-            }
+       //              temp0 = temp1;
+       //          }
+       //      }
 
-            *result = temp0;
-            break;
+       //      *result = temp0;
+       //      break;
 
-        case __KV__sum:
-            if( param_len != 2 ){
+       //  case __KV__sum:
+       //      if( param_len != 2 ){
 
-                break;
-            }
+       //          break;
+       //      }
 
-            array_len = data[params[1]];
+       //      array_len = params[1];
 
-            // second param is array len
-            for( int32_t i = 0; i < array_len; i++ ){
+       //      // second param is array len
+       //      for( int32_t i = 0; i < array_len; i++ ){
 
-                *result += data[params[0] + i];
-            }
+       //          *result += params[0] + i;
+       //      }
 
-            break;
+       //      break;
 
-        case __KV__avg:
-            if( param_len != 2 ){
+       //  case __KV__avg:
+       //      if( param_len != 2 ){
 
-                break;
-            }
+       //          break;
+       //      }
 
-            // check for divide by zero
-            if( params[0] == 0 ){
+       //      // check for divide by zero
+       //      if( params[0] == 0 ){
 
-                break;
-            }
+       //          break;
+       //      }
 
-            array_len = data[params[1]];
+       //      array_len = params[1];
 
-            // second param is array len
-            for( int32_t i = 0; i < array_len; i++ ){
+       //      // second param is array len
+       //      for( int32_t i = 0; i < array_len; i++ ){
 
-                *result += data[params[0] + i];
-            }
+       //          *result += params[0] + i;
+       //      }
 
-            *result /= array_len;
+       //      *result /= array_len;
 
-            break;
+       //      break;
 
         case __KV__yield:
 
@@ -193,7 +209,7 @@ int8_t vm_lib_i8_libcall_built_in(
             }
             else{
                 // first parameter is delay time, all other params ignored
-                temp0 = data[params[0]];
+                temp0 = params[0];
             }
 
             // bounds check
