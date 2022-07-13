@@ -4,10 +4,10 @@ b = Number(publish=True)
 c = Number(publish=True)
 
 def init():
-    pass
+    a = 1
+    b = 2
+    c = 3
 
-def loop():
-    pass
 
 # current_hue = Fixed16()
 # delay = Number()

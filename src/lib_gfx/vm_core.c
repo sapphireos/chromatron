@@ -3870,11 +3870,6 @@ int8_t vm_i8_run(
 
     int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state );
 
-    if( status == VM_STATUS_ERR_FUNC_NOT_FOUND ){
-
-        trace_printf('meow\r\n');
-    }
-
     cycles = VM_MAX_CYCLES - cycles;
 
     if( cycles > state->max_cycles ){
@@ -4210,6 +4205,8 @@ int8_t vm_i8_load_program(
     int8_t status = VM_STATUS_ERROR;
     *handle = -1;
 
+    // return -1;
+
     // open file
     file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
 
@@ -4421,16 +4418,22 @@ int8_t vm_i8_load_program(
 
         for( uint16_t i = 0; i < state->publish_count; i++ ){
 
-            vm_publish_t publish;
+            vm_publish_t *publish = (vm_publish_t *)obj_ptr;
 
-            if( fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) ) != sizeof(publish) ){
+            if( fs_i16_read( f, (uint8_t *)obj_ptr, sizeof(vm_publish_t) ) != sizeof(vm_publish_t) ){
 
                 status = VM_STATUS_ERR_BAD_FILE_READ;
                 goto error;
             }   
 
-            kvdb_i8_add( publish.hash, publish.type, 1, 0, 0 );
-            kvdb_v_set_tag( publish.hash, ( 1 << vm_id ) );
+            if( publish->addr >= state->global_data_count ){
+
+                status = VM_STATUS_BAD_PUBLISH_ADDR;
+                goto error;
+            }
+
+            kvdb_i8_add( publish->hash, publish->type, 1, 0, 0 );
+            kvdb_v_set_tag( publish->hash, ( 1 << vm_id ) );
         }
 
         obj_ptr += header.publish_len;
