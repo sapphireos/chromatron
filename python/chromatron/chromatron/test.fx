@@ -1,15 +1,12 @@
 
 a = Number(publish=True)
 
-def get_db():
-    return db.kv_test_key + 1
-
 def init():
-    # pass
     db.kv_test_key = 123
-
-    a = get_db()
-
+    db.kv_test_key += 1
+    
+    a = db.kv_test_key
+    
 # a = Number(publish=True)
 # b = Number(publish=True)
 

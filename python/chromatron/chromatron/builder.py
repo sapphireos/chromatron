@@ -965,7 +965,7 @@ class Builder(object):
 
             elif target.target is not None and target.target.data_type == 'obj' and target.target.name == 'db':
                 # var = self.add_temp(data_type='gfx16', lineno=lineno)
-                var = self.load_value(target, lineno=lineno)
+                var = self.load_value(target, target_type=value.data_type, lineno=lineno)
 
                 result = self.binop(op, var, value, lineno=lineno)
 

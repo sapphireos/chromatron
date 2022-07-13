@@ -3857,7 +3857,7 @@ def init():
 
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerLocal(CompilerTests):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
@@ -3896,7 +3896,7 @@ import time
 
 ct = chromatron.Chromatron(host=NETWORK_ADDR)
 
-@pytest.mark.skip
+# @pytest.mark.skip
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerOnDevice(CompilerTests):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
