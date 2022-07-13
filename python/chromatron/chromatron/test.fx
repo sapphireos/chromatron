@@ -1,28 +1,39 @@
 
-ary = Fixed16()[4]
+ary = Number()[2][2][2]
 
-a = Fixed16(publish=True)
-b = Fixed16(publish=True)
-c = Fixed16(publish=True)
-d = Fixed16(publish=True)
-e = Fixed16(publish=True)
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+f = Number(publish=True)
+g = Number(publish=True)
+h = Number(publish=True)
+i = Number(publish=True)
+
 
 def init():
 
-    ary[0] = 1.1
-    ary[1] = 2.1
-    ary[2] = 3.1
-    ary[3] = 4.1
-    ary[4] = 5.1
+    ary[0][0][0] = 1
+    ary[0][0][1] = 2
+    ary[0][1][0] = 3
+    ary[0][1][1] = 4
+    ary[1][0][0] = 5
+    ary[1][0][1] = 6
+    ary[1][1][0] = 7
+    ary[1][1][1] = 8
 
-    ary *= 123.1
+    a = ary[0][0][0]
+    b = ary[0][0][1]
+    c = ary[0][1][0]
+    d = ary[0][1][1]
+    e = ary[1][0][0]
+    f = ary[1][0][1]
+    g = ary[1][1][0]
+    h = ary[1][1][1]
 
-    a = ary[0]
-    b = ary[1]
-    c = ary[2]
-    d = ary[3]
-    e = ary[4]
-
+    i = ary[3][0][1]
+    
 # current_hue = Fixed16()
 # delay = Number()
 # cursor = Number()

@@ -256,6 +256,22 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
+    uint8_t dest;
+    uint8_t ref;
+    uint8_t index1;
+    uint8_t count1;
+    uint8_t stride1;
+    uint8_t index2;
+    uint8_t count2;
+    uint8_t stride2;
+    uint8_t index3;
+    uint8_t count3;
+    uint8_t stride3;
+} opcode_lkp3_t;
+#define DECODE_LKP3 opcode_lkp3 = (opcode_lkp3_t *)pc; pc += 12;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
     uint8_t target;
     uint8_t value;
     uint8_t type;
@@ -418,7 +434,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 64 // lookup0 - not implemented
         &&opcode_lookup1,           // 65
         &&opcode_lookup2,           // 66
-        &&opcode_trap,              // 67
+        &&opcode_lookup3,           // 67
 
         &&opcode_trap,              // 68
         &&opcode_trap,              // 69
@@ -1000,6 +1016,7 @@ static int8_t _vm_i8_run_stream(
     // opcode_lkp0_t *opcode_lkp0;
     opcode_lkp1_t *opcode_lkp1;
     opcode_lkp2_t *opcode_lkp2;
+    opcode_lkp3_t *opcode_lkp3;
     opcode_vector_t *opcode_vector;
 
 
@@ -1225,6 +1242,51 @@ opcode_lookup2:
     ref.ref.addr += index;
 
     registers[opcode_lkp2->dest] = ref.n;
+
+    DISPATCH;
+
+opcode_lookup3:
+    DECODE_LKP3;
+
+    ref.n = registers[opcode_lkp3->ref];
+
+    index = registers[opcode_lkp3->index1];
+    count = registers[opcode_lkp3->count1];
+    stride = registers[opcode_lkp3->stride1];
+
+    if( count > 0 ){
+
+        index %= count;
+        index *= stride;
+    }
+
+    ref.ref.addr += index;
+
+    index = registers[opcode_lkp3->index2];
+    count = registers[opcode_lkp3->count2];
+    stride = registers[opcode_lkp3->stride2];
+
+    if( count > 0 ){
+
+        index %= count;
+        index *= stride;
+    }
+
+    ref.ref.addr += index;
+
+    index = registers[opcode_lkp3->index3];
+    count = registers[opcode_lkp3->count3];
+    stride = registers[opcode_lkp3->stride3];
+
+    if( count > 0 ){
+
+        index %= count;
+        index *= stride;
+    }
+
+    ref.ref.addr += index;
+
+    registers[opcode_lkp3->dest] = ref.n;
 
     DISPATCH;
 
