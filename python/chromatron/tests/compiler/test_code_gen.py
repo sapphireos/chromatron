@@ -1576,6 +1576,19 @@ def init():
     a = get_db()
 """
 
+test_expr_db_ret_binop = """
+
+a = Number(publish=True)
+
+def get_db():
+    return db.kv_test_key + 1
+
+def init():
+    db.kv_test_key = 123
+
+    a = get_db()
+"""
+
 test_expr_db_f16 = """
 
 a = Fixed16(publish=True)
@@ -2126,6 +2139,13 @@ class CompilerTests(object):
             opt_passes=opt_passes,
             expected={
                 'a': 123,
+            })
+
+    def test_expr_db_ret_binop(self, opt_passes):
+        self.run_test(test_expr_db_ret_binop,
+            opt_passes=opt_passes,
+            expected={
+                'a': 124,
             })
 
     def test_expr_db_f16(self, opt_passes):

@@ -335,7 +335,7 @@ class cg1Return(cg1CodeNode):
         self.value = value
 
     def build(self, builder, target_type=None):
-        value = self.value.build(builder)
+        value = self.value.build(builder, target_type=builder.current_func.ret_type)
 
         return builder.ret(value, lineno=self.lineno)
 
