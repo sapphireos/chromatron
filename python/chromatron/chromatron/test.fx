@@ -1,9 +1,20 @@
 
 a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+f = Number(publish=True)
 
 def init():
-    a = test_lib_call(1, 2)
+    a = test_lib_call()
+    b = test_lib_call(1)
+    c = test_lib_call(1, 2)
+    d = test_lib_call(1, 2, 3)
+    e = test_lib_call(1, 2, 3, 4)
+    f = test_gfx_lib_call()
 
+    
 # current_hue = Fixed16()
 # delay = Number()
 # cursor = Number()

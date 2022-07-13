@@ -273,10 +273,24 @@ class insProgram(object):
 
         return pool
 
-    def test_lib_call(self, vm, param0, param1):
-        # print(args)
-        # print(vm)
-        return param0 + param1
+    def test_lib_call(self, vm, *args):
+        if len(args) == 0:
+            return 1
+
+        elif len(args) == 1:
+            return args[0] + 1
+
+        elif len(args) == 2:
+            return args[0] + args[1]
+
+        elif len(args) == 3:
+            return args[0] + args[1] + args[2]
+
+        elif len(args) == 4:
+            return args[0] + args[1] + args[2] + args[3]
+
+        return 0;
+        
 
     def rand(self, vm, param0=0, param1=65535):
         return random.randint(param0, param1)
