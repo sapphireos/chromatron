@@ -1961,1864 +1961,1864 @@ opcode_trap:
 
 
 
-#ifdef OLD_VM    
+// #ifdef OLD_VM    
 
-opcode_mov:
-#ifdef VM_OPTIMIZED_DECODE
-    decode2 = (decode2_t *)pc;
-    pc += sizeof(decode2_t);
+// opcode_mov:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode2 = (decode2_t *)pc;
+//     pc += sizeof(decode2_t);
 
-    data[decode2->dest] = data[decode2->src];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     data[decode2->dest] = data[decode2->src];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    data[dest] = data[src];
-#endif
-    DISPATCH;
-
-
-opcode_clr:
-#ifdef VM_OPTIMIZED_DECODE
-    dest = *(uint16_t *)pc;
-    pc += sizeof(uint16_t);
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-#endif    
-    data[dest] = 0;
-
-    DISPATCH;
+//     data[dest] = data[src];
+// #endif
+//     DISPATCH;
 
 
-opcode_not:    
-#ifdef VM_OPTIMIZED_DECODE
-    decode2 = (decode2_t *)pc;
-    pc += sizeof(decode2_t);
+// opcode_clr:
+// #ifdef VM_OPTIMIZED_DECODE
+//     dest = *(uint16_t *)pc;
+//     pc += sizeof(uint16_t);
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+// #endif    
+//     data[dest] = 0;
 
-    if( data[decode2->src] == 0 ){
+//     DISPATCH;
 
-        data[decode2->dest] = 1;
-    }
-    else{
+
+// opcode_not:    
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode2 = (decode2_t *)pc;
+//     pc += sizeof(decode2_t);
+
+//     if( data[decode2->src] == 0 ){
+
+//         data[decode2->dest] = 1;
+//     }
+//     else{
         
-        data[decode2->dest] = 0;
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//         data[decode2->dest] = 0;
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    if( data[src] == 0 ){
+//     if( data[src] == 0 ){
 
-        data[dest] = 1;
-    }
-    else{
+//         data[dest] = 1;
+//     }
+//     else{
         
-        data[dest] = 0;
-    }
-#endif
-    DISPATCH;
+//         data[dest] = 0;
+//     }
+// #endif
+//     DISPATCH;
 
 
-opcode_compeq:
-opcode_f16_compeq:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
+// opcode_compeq:
+// opcode_f16_compeq:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
 
-    data[decode3->dest] = data[decode3->op1] == data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
+//     data[decode3->dest] = data[decode3->op1] == data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
 
-    data[dest] = data[op1] == data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_compneq:
-opcode_f16_compneq:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] != data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] != data[op2];
-#endif
-    DISPATCH;
+//     data[dest] = data[op1] == data[op2];
+// #endif
+//     DISPATCH;
 
 
-opcode_compgt:
-opcode_f16_compgt:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
+// opcode_compneq:
+// opcode_f16_compneq:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
 
-    data[decode3->dest] = data[decode3->op1] > data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
+//     data[decode3->dest] = data[decode3->op1] != data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
 
-    data[dest] = data[op1] > data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_compgte:
-opcode_f16_compgte:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] >= data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] >= data[op2];
-#endif
-    DISPATCH;
+//     data[dest] = data[op1] != data[op2];
+// #endif
+//     DISPATCH;
 
 
-opcode_complt:
-opcode_f16_complt:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
+// opcode_compgt:
+// opcode_f16_compgt:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
 
-    data[decode3->dest] = data[decode3->op1] < data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
+//     data[decode3->dest] = data[decode3->op1] > data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
 
-    data[dest] = data[op1] < data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_complte:
-opcode_f16_complte:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] <= data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] <= data[op2];
-#endif
-    DISPATCH;
+//     data[dest] = data[op1] > data[op2];
+// #endif
+//     DISPATCH;
 
 
+// opcode_compgte:
+// opcode_f16_compgte:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
 
-opcode_and:
-opcode_f16_and:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
+//     data[decode3->dest] = data[decode3->op1] >= data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
 
-    data[decode3->dest] = data[decode3->op1] && data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] && data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_or:
-opcode_f16_or:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] || data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] || data[op2];
-#endif
-    DISPATCH;
+//     data[dest] = data[op1] >= data[op2];
+// #endif
+//     DISPATCH;
 
 
-opcode_add:
-opcode_f16_add:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
+// opcode_complt:
+// opcode_f16_complt:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
 
-    data[decode3->dest] = data[decode3->op1] + data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
+//     data[decode3->dest] = data[decode3->op1] < data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
 
-    data[dest] = data[op1] + data[op2];
-#endif
-    DISPATCH;
+//     data[dest] = data[op1] < data[op2];
+// #endif
+//     DISPATCH;
+
+
+// opcode_complte:
+// opcode_f16_complte:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
+
+//     data[decode3->dest] = data[decode3->op1] <= data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
+
+//     data[dest] = data[op1] <= data[op2];
+// #endif
+//     DISPATCH;
+
+
+
+// opcode_and:
+// opcode_f16_and:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
+
+//     data[decode3->dest] = data[decode3->op1] && data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
+
+//     data[dest] = data[op1] && data[op2];
+// #endif
+//     DISPATCH;
+
+
+// opcode_or:
+// opcode_f16_or:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
+
+//     data[decode3->dest] = data[decode3->op1] || data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
+
+//     data[dest] = data[op1] || data[op2];
+// #endif
+//     DISPATCH;
+
+
+// opcode_add:
+// opcode_f16_add:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
+
+//     data[decode3->dest] = data[decode3->op1] + data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
+
+//     data[dest] = data[op1] + data[op2];
+// #endif
+//     DISPATCH;
 
     
-opcode_sub:
-opcode_f16_sub:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] - data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    data[dest] = data[op1] - data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_mul:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = data[decode3->op1] * data[decode3->op2];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-    data[dest] = data[op1] * data[op2];
-#endif
-    DISPATCH;
-
-
-opcode_div:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    if( data[decode3->op2] != 0 ){
-
-        data[decode3->dest] = data[decode3->op1] / data[decode3->op2];
-    }
-    else{
-
-        data[decode3->dest] = 0;   
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    if( data[op2] != 0 ){
-
-        data[dest] = data[op1] / data[op2];
-    }
-    else{
-
-        data[dest] = 0;
-    }
-#endif
-    DISPATCH;
-
-
-opcode_mod:
-opcode_f16_mod:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    if( data[decode3->op2] != 0 ){
-
-        data[decode3->dest] = data[decode3->op1] % data[decode3->op2];
-    }
-    else{
-
-        data[decode3->dest] = 0;   
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
-
-    if( data[op2] != 0 ){
-
-        data[dest] = data[op1] % data[op2];
-    }
-    else{
-
-        data[dest] = 0;
-    }
-#endif
-    DISPATCH;
+// opcode_sub:
+// opcode_f16_sub:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
+
+//     data[decode3->dest] = data[decode3->op1] - data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
+
+//     data[dest] = data[op1] - data[op2];
+// #endif
+//     DISPATCH;
+
+
+// opcode_mul:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
+
+//     data[decode3->dest] = data[decode3->op1] * data[decode3->op2];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
+//     data[dest] = data[op1] * data[op2];
+// #endif
+//     DISPATCH;
+
+
+// opcode_div:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
+
+//     if( data[decode3->op2] != 0 ){
+
+//         data[decode3->dest] = data[decode3->op1] / data[decode3->op2];
+//     }
+//     else{
+
+//         data[decode3->dest] = 0;   
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
+
+//     if( data[op2] != 0 ){
+
+//         data[dest] = data[op1] / data[op2];
+//     }
+//     else{
+
+//         data[dest] = 0;
+//     }
+// #endif
+//     DISPATCH;
+
+
+// opcode_mod:
+// opcode_f16_mod:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
+
+//     if( data[decode3->op2] != 0 ){
+
+//         data[decode3->dest] = data[decode3->op1] % data[decode3->op2];
+//     }
+//     else{
+
+//         data[decode3->dest] = 0;   
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
+
+//     if( data[op2] != 0 ){
+
+//         data[dest] = data[op1] % data[op2];
+//     }
+//     else{
+
+//         data[dest] = 0;
+//     }
+// #endif
+//     DISPATCH;
 
 
-opcode_f16_mul:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
-
-    data[decode3->dest] = ( (int64_t)data[decode3->op1] * (int64_t)data[decode3->op2] ) / 65536;
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
+// opcode_f16_mul:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
+
+//     data[decode3->dest] = ( (int64_t)data[decode3->op1] * (int64_t)data[decode3->op2] ) / 65536;
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
 
-    data[dest] = ( (int64_t)data[op1] * (int64_t)data[op2] ) / 65536;
-#endif
-    DISPATCH;
+//     data[dest] = ( (int64_t)data[op1] * (int64_t)data[op2] ) / 65536;
+// #endif
+//     DISPATCH;
 
 
-opcode_f16_div:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
+// opcode_f16_div:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
 
-    if( data[decode3->op2] != 0 ){
+//     if( data[decode3->op2] != 0 ){
 
-        data[decode3->dest] = ( (int64_t)data[decode3->op1] * 65536 ) / data[decode3->op2];
-    }
-    else{
+//         data[decode3->dest] = ( (int64_t)data[decode3->op1] * 65536 ) / data[decode3->op2];
+//     }
+//     else{
 
-        data[decode3->dest] = 0;
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
+//         data[decode3->dest] = 0;
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
 
-    if( data[op2] != 0 ){
+//     if( data[op2] != 0 ){
 
-        data[dest] = ( (int64_t)data[op1] * 65536 ) / data[op2];
-    }
-    else{
+//         data[dest] = ( (int64_t)data[op1] * 65536 ) / data[op2];
+//     }
+//     else{
 
-        data[dest] = 0;
-    }
-#endif
-    DISPATCH;
+//         data[dest] = 0;
+//     }
+// #endif
+//     DISPATCH;
 
 
-opcode_jmp:
-#ifdef VM_OPTIMIZED_DECODE
-    dest = *(uint16_t *)pc;
-    pc += sizeof(uint16_t);
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-#endif    
-    pc = code + dest;
+// opcode_jmp:
+// #ifdef VM_OPTIMIZED_DECODE
+//     dest = *(uint16_t *)pc;
+//     pc += sizeof(uint16_t);
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+// #endif    
+//     pc = code + dest;
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_jmp_if_z:
-#ifdef VM_OPTIMIZED_DECODE
-    decode2 = (decode2_t *)pc;
-    pc += sizeof(decode2_t);
+// opcode_jmp_if_z:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode2 = (decode2_t *)pc;
+//     pc += sizeof(decode2_t);
 
-    if( data[decode2->src] == 0 ){
+//     if( data[decode2->src] == 0 ){
 
-        pc = code + decode2->dest;
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//         pc = code + decode2->dest;
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    if( data[src] == 0 ){
+//     if( data[src] == 0 ){
 
-        pc = code + dest;
-    }
-#endif
+//         pc = code + dest;
+//     }
+// #endif
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_jmp_if_not_z:
-#ifdef VM_OPTIMIZED_DECODE
-    decode2 = (decode2_t *)pc;
-    pc += sizeof(decode2_t);
+// opcode_jmp_if_not_z:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode2 = (decode2_t *)pc;
+//     pc += sizeof(decode2_t);
 
-    if( data[decode2->src] != 0 ){
+//     if( data[decode2->src] != 0 ){
 
-        pc = code + decode2->dest;
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//         pc = code + decode2->dest;
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    if( data[src] != 0 ){
+//     if( data[src] != 0 ){
 
-        pc = code + dest;
-    }
-#endif    
+//         pc = code + dest;
+//     }
+// #endif    
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_jmp_if_l_pre_inc:
-#ifdef VM_OPTIMIZED_DECODE
-    decode3 = (decode3_t *)pc;
-    pc += sizeof(decode3_t);
+// opcode_jmp_if_l_pre_inc:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode3 = (decode3_t *)pc;
+//     pc += sizeof(decode3_t);
 
-    data[decode3->op1]++;
+//     data[decode3->op1]++;
 
-    if( data[decode3->op1] < data[decode3->op2] ){
+//     if( data[decode3->op1] < data[decode3->op2] ){
 
-        pc = code + decode3->dest;
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    op1 = *pc++;
-    op1 += ( *pc++ ) << 8;
-    op2 = *pc++;
-    op2 += ( *pc++ ) << 8;
+//         pc = code + decode3->dest;
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     op1 = *pc++;
+//     op1 += ( *pc++ ) << 8;
+//     op2 = *pc++;
+//     op2 += ( *pc++ ) << 8;
 
-    data[op1]++;
+//     data[op1]++;
 
-    if( data[op1] < data[op2] ){
+//     if( data[op1] < data[op2] ){
 
-        pc = code + dest;
-    }
-#endif    
-    DISPATCH;
+//         pc = code + dest;
+//     }
+// #endif    
+//     DISPATCH;
 
 
-opcode_ret:
-#ifdef VM_OPTIMIZED_DECODE
-    dest = *(uint16_t *)pc;
-    pc += sizeof(uint16_t);
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-#endif
+// opcode_ret:
+// #ifdef VM_OPTIMIZED_DECODE
+//     dest = *(uint16_t *)pc;
+//     pc += sizeof(uint16_t);
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+// #endif
 
-    // move return val to return register
-    data[RETURN_VAL_ADDR] = data[dest];
+//     // move return val to return register
+//     data[RETURN_VAL_ADDR] = data[dest];
 
-    // check if call depth is 0
-    // if so, we are exiting the VM
-    if( call_depth == 0 ){
+//     // check if call depth is 0
+//     // if so, we are exiting the VM
+//     if( call_depth == 0 ){
 
-        return VM_STATUS_OK;
-    }
+//         return VM_STATUS_OK;
+//     }
 
-    // pop PC from call stack
-    call_depth--;
+//     // pop PC from call stack
+//     call_depth--;
 
-    if( call_depth > VM_MAX_CALL_DEPTH ){
+//     if( call_depth > VM_MAX_CALL_DEPTH ){
 
-        return VM_STATUS_CALL_DEPTH_EXCEEDED;
-    }
+//         return VM_STATUS_CALL_DEPTH_EXCEEDED;
+//     }
 
-    pc = call_stack[call_depth];
+//     pc = call_stack[call_depth];
         
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_call:
+// opcode_call:
     
-    call_target = *pc++;
-    call_target += ( *pc++ ) << 8;
+//     call_target = *pc++;
+//     call_target += ( *pc++ ) << 8;
 
-    call_param_len = *pc++;
+//     call_param_len = *pc++;
 
-    while( call_param_len > 0 ){
-        call_param_len--;
+//     while( call_param_len > 0 ){
+//         call_param_len--;
 
-        // decode
-        call_param = *pc++;
-        call_param += ( *pc++ ) << 8;
-        call_arg = *pc++;
-        call_arg += ( *pc++ ) << 8;
+//         // decode
+//         call_param = *pc++;
+//         call_param += ( *pc++ ) << 8;
+//         call_arg = *pc++;
+//         call_arg += ( *pc++ ) << 8;
 
-        // move param to arg
-        data[call_arg] = data[call_param];
-    }
+//         // move param to arg
+//         data[call_arg] = data[call_param];
+//     }
 
-    // set up return stack
-    call_stack[call_depth] = pc;
-    call_depth++;
+//     // set up return stack
+//     call_stack[call_depth] = pc;
+//     call_depth++;
 
-    if( call_depth > VM_MAX_CALL_DEPTH ){
+//     if( call_depth > VM_MAX_CALL_DEPTH ){
 
-        return VM_STATUS_CALL_DEPTH_EXCEEDED;
-    }
+//         return VM_STATUS_CALL_DEPTH_EXCEEDED;
+//     }
 
-    // call by jumping to target
-    pc = code + call_target;
+//     // call by jumping to target
+//     pc = code + call_target;
 
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_lcall:
-    hash =  (catbus_hash_t32)(*pc++) << 24;
-    hash |= (catbus_hash_t32)(*pc++) << 16;
-    hash |= (catbus_hash_t32)(*pc++) << 8;
-    hash |= (catbus_hash_t32)(*pc++) << 0;
+// opcode_lcall:
+//     hash =  (catbus_hash_t32)(*pc++) << 24;
+//     hash |= (catbus_hash_t32)(*pc++) << 16;
+//     hash |= (catbus_hash_t32)(*pc++) << 8;
+//     hash |= (catbus_hash_t32)(*pc++) << 0;
 
-    len = *pc++;
+//     len = *pc++;
     
-    for( uint32_t i = 0; i < len; i++ ){
-        temp = *pc++;
-        temp += ( *pc++ ) << 8;
+//     for( uint32_t i = 0; i < len; i++ ){
+//         temp = *pc++;
+//         temp += ( *pc++ ) << 8;
 
-        // params[i] = data[temp]; // by value
-        params[i] = temp; // by reference
-    }
+//         // params[i] = data[temp]; // by value
+//         params[i] = temp; // by reference
+//     }
 
-    result = *pc++;
-    result += ( *pc++ ) << 8;
+//     result = *pc++;
+//     result += ( *pc++ ) << 8;
 
-    // initialize result to 0
-    data[result] = 0;
+//     // initialize result to 0
+//     data[result] = 0;
 
-    if( vm_lib_i8_libcall_built_in( hash, state, data, &data[result], params, len ) != 0 ){
+//     if( vm_lib_i8_libcall_built_in( hash, state, data, &data[result], params, len ) != 0 ){
 
-        #ifdef VM_ENABLE_GFX
-        // try gfx lib
-        // load params by value
-        for( uint32_t i = 0; i < len; i++ ){
+//         #ifdef VM_ENABLE_GFX
+//         // try gfx lib
+//         // load params by value
+//         for( uint32_t i = 0; i < len; i++ ){
 
-            params[i] = data[params[i]];
-        }
+//             params[i] = data[params[i]];
+//         }
 
-        data[result] = gfx_i32_lib_call( hash, params, len );
-        #endif
-    }
-    else{
+//         data[result] = gfx_i32_lib_call( hash, params, len );
+//         #endif
+//     }
+//     else{
 
-        // internal lib call completed successfully
+//         // internal lib call completed successfully
 
-        // check yield flag
-        if( state->yield > 0 ){
+//         // check yield flag
+//         if( state->yield > 0 ){
 
-            // check call depth, can only yield from top level functions running as a thread
-            if( ( call_depth != 0 ) || ( state->current_thread < 0 ) ){
+//             // check call depth, can only yield from top level functions running as a thread
+//             if( ( call_depth != 0 ) || ( state->current_thread < 0 ) ){
 
-                return VM_STATUS_IMPROPER_YIELD;
-            }
+//                 return VM_STATUS_IMPROPER_YIELD;
+//             }
 
-            // store PC offset
-            state->threads[state->current_thread].pc_offset = pc - ( code + func_addr );
+//             // store PC offset
+//             state->threads[state->current_thread].pc_offset = pc - ( code + func_addr );
 
-            // yield!
-            return VM_STATUS_YIELDED;
-        }
-    }
+//             // yield!
+//             return VM_STATUS_YIELDED;
+//         }
+//     }
     
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_dbcall:
-    hash =  (catbus_hash_t32)(*pc++) << 24;
-    hash |= (catbus_hash_t32)(*pc++) << 16;
-    hash |= (catbus_hash_t32)(*pc++) << 8;
-    hash |= (catbus_hash_t32)(*pc++) << 0;
+// opcode_dbcall:
+//     hash =  (catbus_hash_t32)(*pc++) << 24;
+//     hash |= (catbus_hash_t32)(*pc++) << 16;
+//     hash |= (catbus_hash_t32)(*pc++) << 8;
+//     hash |= (catbus_hash_t32)(*pc++) << 0;
 
-    db_hash =  (catbus_hash_t32)(*pc++) << 24;
-    db_hash |= (catbus_hash_t32)(*pc++) << 16;
-    db_hash |= (catbus_hash_t32)(*pc++) << 8;
-    db_hash |= (catbus_hash_t32)(*pc++) << 0;
+//     db_hash =  (catbus_hash_t32)(*pc++) << 24;
+//     db_hash |= (catbus_hash_t32)(*pc++) << 16;
+//     db_hash |= (catbus_hash_t32)(*pc++) << 8;
+//     db_hash |= (catbus_hash_t32)(*pc++) << 0;
 
-    len = *pc++;
+//     len = *pc++;
 
-    for( uint32_t i = 0; i < len; i++ ){
-        temp = *pc++;
-        temp += ( *pc++ ) << 8;
+//     for( uint32_t i = 0; i < len; i++ ){
+//         temp = *pc++;
+//         temp += ( *pc++ ) << 8;
 
-        params[i] = temp; // by reference
-    }
+//         params[i] = temp; // by reference
+//     }
 
-    result = *pc++;
-    result += ( *pc++ ) << 8;
+//     result = *pc++;
+//     result += ( *pc++ ) << 8;
 
-    // initialize result to 0
-    data[result] = 0;
+//     // initialize result to 0
+//     data[result] = 0;
 
-    // call db func
-    if( hash == __KV__len ){
+//     // call db func
+//     if( hash == __KV__len ){
 
-        #ifdef VM_ENABLE_KV
-        catbus_meta_t meta;
+//         #ifdef VM_ENABLE_KV
+//         catbus_meta_t meta;
         
-        if( kv_i8_get_catbus_meta( db_hash, &meta ) < 0 ){
+//         if( kv_i8_get_catbus_meta( db_hash, &meta ) < 0 ){
 
-            data[result] = 0;
-        }
-        else{
+//             data[result] = 0;
+//         }
+//         else{
 
-            data[result] = meta.count + 1;
-        }
-        #endif
-    }    
+//             data[result] = meta.count + 1;
+//         }
+//         #endif
+//     }    
     
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_index:
-    result = *pc++;
-    result += ( *pc++ ) << 8;
+// opcode_index:
+//     result = *pc++;
+//     result += ( *pc++ ) << 8;
 
-    base_addr = *pc++;
-    base_addr += ( *pc++ ) << 8;
+//     base_addr = *pc++;
+//     base_addr += ( *pc++ ) << 8;
     
-    data[result] = base_addr;
+//     data[result] = base_addr;
 
-    len = *pc++;
+//     len = *pc++;
 
-    while( len > 0 ){
-        len--;
+//     while( len > 0 ){
+//         len--;
 
-        // decode
-        index = *pc++;
-        index += ( *pc++ ) << 8;
+//         // decode
+//         index = *pc++;
+//         index += ( *pc++ ) << 8;
 
-        count = *pc++;
-        count += ( *pc++ ) << 8;
+//         count = *pc++;
+//         count += ( *pc++ ) << 8;
 
-        stride = *pc++;
-        stride += ( *pc++ ) << 8;
+//         stride = *pc++;
+//         stride += ( *pc++ ) << 8;
 
-        temp = data[index];
+//         temp = data[index];
 
-        if( count > 0 ){
+//         if( count > 0 ){
 
-            temp %= count;
-            temp *= stride;
-        }
+//             temp %= count;
+//             temp *= stride;
+//         }
 
-        data[result] += temp;
-    }
+//         data[result] += temp;
+//     }
 
-    DISPATCH;
-
-
-opcode_load_indirect:
-#ifdef VM_OPTIMIZED_DECODE
-    decode2 = (decode2_t *)pc;
-    pc += sizeof(decode2_t);
-
-    temp = data[decode2->src];
-
-    // bounds check
-    if( temp >= state->data_count ){
-
-        return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
-    }
-
-    data[decode2->dest] = data[temp];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
-
-    temp = data[src];
-
-    // bounds check
-    if( temp >= state->data_count ){
-
-        return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
-    }
-
-    data[dest] = data[temp];
-#endif    
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_store_indirect:
-#ifdef VM_OPTIMIZED_DECODE
-    decode2 = (decode2_t *)pc;
-    pc += sizeof(decode2_t);
+// opcode_load_indirect:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode2 = (decode2_t *)pc;
+//     pc += sizeof(decode2_t);
 
-    temp = data[decode2->dest];
+//     temp = data[decode2->src];
 
-    // bounds check
-    if( temp >= state->data_count ){
+//     // bounds check
+//     if( temp >= state->data_count ){
 
-        return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
-    }
+//         return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
+//     }
 
-    data[temp] = data[decode2->src];
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     data[decode2->dest] = data[temp];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
+
+//     temp = data[src];
+
+//     // bounds check
+//     if( temp >= state->data_count ){
+
+//         return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
+//     }
+
+//     data[dest] = data[temp];
+// #endif    
+//     DISPATCH;
+
+
+// opcode_store_indirect:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode2 = (decode2_t *)pc;
+//     pc += sizeof(decode2_t);
+
+//     temp = data[decode2->dest];
+
+//     // bounds check
+//     if( temp >= state->data_count ){
+
+//         return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
+//     }
+
+//     data[temp] = data[decode2->src];
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
     
-    temp = data[dest];
+//     temp = data[dest];
 
-    // bounds check
-    if( temp >= state->data_count ){
+//     // bounds check
+//     if( temp >= state->data_count ){
 
-        return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
-    }
+//         return VM_STATUS_INDEX_OUT_OF_BOUNDS;        
+//     }
 
-    data[temp] = data[src];
-#endif
-    DISPATCH;
+//     data[temp] = data[src];
+// #endif
+//     DISPATCH;
 
 
-opcode_assert:
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
+// opcode_assert:
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
     
-    if( data[dest] == FALSE ){
+//     if( data[dest] == FALSE ){
 
-        #ifndef VM_TARGET_ESP
-        // log_v_debug_P( PSTR("VM assertion failed") );
-        #endif
-        return VM_STATUS_ASSERT;
-    }
+//         #ifndef VM_TARGET_ESP
+//         // log_v_debug_P( PSTR("VM assertion failed") );
+//         #endif
+//         return VM_STATUS_ASSERT;
+//     }
 
-    DISPATCH;
-
-
-opcode_halt:
-    return VM_STATUS_HALT;
-
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_vmov:
-#ifdef VM_OPTIMIZED_DECODE
-    decodev = (decodev_t *)pc;
-    pc += sizeof(decodev_t);
+// opcode_halt:
+//     return VM_STATUS_HALT;
 
-    // deference pointer
-    dest = data[decodev->dest];
-
-    for( uint16_t i = 0; i < decodev->len; i++ ){
-
-        data[dest + i] = data[decodev->src];
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
-    len = *pc++;
-    len += ( *pc++ ) << 8;
-    type = *pc++;
-
-    // deference pointer
-    dest = data[dest];
-
-    for( uint16_t i = 0; i < len; i++ ){
-
-        data[dest + i] = data[src];
-    }
-#endif
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_vadd:
-#ifdef VM_OPTIMIZED_DECODE
-    decodev = (decodev_t *)pc;
-    pc += sizeof(decodev_t);
+// opcode_vmov:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodev = (decodev_t *)pc;
+//     pc += sizeof(decodev_t);
 
-    // deference pointer
-    dest = data[decodev->dest];
+//     // deference pointer
+//     dest = data[decodev->dest];
 
-    for( uint16_t i = 0; i < decodev->len; i++ ){
+//     for( uint16_t i = 0; i < decodev->len; i++ ){
 
-        data[dest + i] += data[decodev->src];
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
-    len = *pc++;
-    len += ( *pc++ ) << 8;
-    type = *pc++;
+//         data[dest + i] = data[decodev->src];
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
+//     len = *pc++;
+//     len += ( *pc++ ) << 8;
+//     type = *pc++;
 
-    // deference pointer
-    dest = data[dest];
+//     // deference pointer
+//     dest = data[dest];
+
+//     for( uint16_t i = 0; i < len; i++ ){
+
+//         data[dest + i] = data[src];
+//     }
+// #endif
+//     DISPATCH;
+
+
+// opcode_vadd:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodev = (decodev_t *)pc;
+//     pc += sizeof(decodev_t);
+
+//     // deference pointer
+//     dest = data[decodev->dest];
+
+//     for( uint16_t i = 0; i < decodev->len; i++ ){
+
+//         data[dest + i] += data[decodev->src];
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
+//     len = *pc++;
+//     len += ( *pc++ ) << 8;
+//     type = *pc++;
+
+//     // deference pointer
+//     dest = data[dest];
     
-    for( uint16_t i = 0; i < len; i++ ){
+//     for( uint16_t i = 0; i < len; i++ ){
 
-        data[dest + i] += data[src];
-    }
-#endif
-    DISPATCH;
+//         data[dest + i] += data[src];
+//     }
+// #endif
+//     DISPATCH;
 
 
-opcode_vsub:
-#ifdef VM_OPTIMIZED_DECODE
-    decodev = (decodev_t *)pc;
-    pc += sizeof(decodev_t);
+// opcode_vsub:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodev = (decodev_t *)pc;
+//     pc += sizeof(decodev_t);
 
-    // deference pointer
-    dest = data[decodev->dest];
+//     // deference pointer
+//     dest = data[decodev->dest];
 
-    for( uint16_t i = 0; i < decodev->len; i++ ){
+//     for( uint16_t i = 0; i < decodev->len; i++ ){
 
-        data[dest + i] -= data[decodev->src];
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
-    len = *pc++;
-    len += ( *pc++ ) << 8;
-    type = *pc++;
+//         data[dest + i] -= data[decodev->src];
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
+//     len = *pc++;
+//     len += ( *pc++ ) << 8;
+//     type = *pc++;
 
-    // deference pointer
-    dest = data[dest];
+//     // deference pointer
+//     dest = data[dest];
     
-    for( uint16_t i = 0; i < len; i++ ){
+//     for( uint16_t i = 0; i < len; i++ ){
 
-        data[dest + i] -= data[src];
-    }
-#endif
-    DISPATCH;
+//         data[dest + i] -= data[src];
+//     }
+// #endif
+//     DISPATCH;
 
 
-opcode_vmul:
-#ifdef VM_OPTIMIZED_DECODE
-    decodev = (decodev_t *)pc;
-    pc += sizeof(decodev_t);
+// opcode_vmul:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodev = (decodev_t *)pc;
+//     pc += sizeof(decodev_t);
 
-    // deference pointer
-    dest = data[decodev->dest];
+//     // deference pointer
+//     dest = data[decodev->dest];
 
-    if( decodev->type == CATBUS_TYPE_FIXED16 ){
+//     if( decodev->type == CATBUS_TYPE_FIXED16 ){
 
-        for( uint16_t i = 0; i < decodev->len; i++ ){
+//         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[dest + i] = ( (int64_t)data[dest + i] * data[decodev->src] ) / 65536;
-        }
-    }
-    else{
+//             data[dest + i] = ( (int64_t)data[dest + i] * data[decodev->src] ) / 65536;
+//         }
+//     }
+//     else{
 
-        for( uint16_t i = 0; i < decodev->len; i++ ){
+//         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[dest + i] *= data[decodev->src];
-        }
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
-    len = *pc++;
-    len += ( *pc++ ) << 8;
-    type = *pc++;
+//             data[dest + i] *= data[decodev->src];
+//         }
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
+//     len = *pc++;
+//     len += ( *pc++ ) << 8;
+//     type = *pc++;
 
-    // deference pointer
-    dest = data[dest];
+//     // deference pointer
+//     dest = data[dest];
         
-    if( type == CATBUS_TYPE_FIXED16 ){
+//     if( type == CATBUS_TYPE_FIXED16 ){
 
-        for( uint16_t i = 0; i < len; i++ ){
+//         for( uint16_t i = 0; i < len; i++ ){
 
-            data[dest + i] = ( (int64_t)data[dest + i] * data[src] ) / 65536;
-        }
-    }
-    else{
+//             data[dest + i] = ( (int64_t)data[dest + i] * data[src] ) / 65536;
+//         }
+//     }
+//     else{
 
-        for( uint16_t i = 0; i < len; i++ ){
+//         for( uint16_t i = 0; i < len; i++ ){
 
-            data[dest + i] *= data[src];
-        }
-    }
-#endif
-    DISPATCH;
-
-
-opcode_vdiv:
-#ifdef VM_OPTIMIZED_DECODE
-    decodev = (decodev_t *)pc;
-    pc += sizeof(decodev_t);
-
-    // deference pointer
-    dest = data[decodev->dest];
-
-    // check for divide by zero
-    if( data[decodev->src] == 0 ){
-
-        for( uint16_t i = 0; i < decodev->len; i++ ){
-
-            data[dest + i] = 0;
-        }
-    }
-    else if( decodev->type == CATBUS_TYPE_FIXED16 ){
-
-        for( uint16_t i = 0; i < decodev->len; i++ ){
-
-            data[dest + i] = ( (int64_t)data[dest + i] * 65536 ) / data[decodev->src];
-        }
-    }
-    else{
-
-        for( uint16_t i = 0; i < decodev->len; i++ ){
-
-            data[dest + i] /= data[decodev->src];
-        }
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
-    len = *pc++;
-    len += ( *pc++ ) << 8;
-    type = *pc++;
-
-    // deference pointer
-    dest = data[dest];
-
-    // check for divide by zero
-    if( data[src] == 0 ){
-
-        for( uint16_t i = 0; i < len; i++ ){
-
-            data[dest + i] = 0;
-        }
-    }
-    else if( type == CATBUS_TYPE_FIXED16 ){
-
-        for( uint16_t i = 0; i < len; i++ ){
-
-            data[dest + i] = ( (int64_t)data[dest + i] * 65536 ) / data[src];
-        }
-    }
-    else{
-
-        for( uint16_t i = 0; i < len; i++ ){
-
-            data[dest + i] /= data[src];
-        }
-    }
-#endif
-    DISPATCH;
+//             data[dest + i] *= data[src];
+//         }
+//     }
+// #endif
+//     DISPATCH;
 
 
-opcode_vmod:
-#ifdef VM_OPTIMIZED_DECODE
-    decodev = (decodev_t *)pc;
-    pc += sizeof(decodev_t);
+// opcode_vdiv:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodev = (decodev_t *)pc;
+//     pc += sizeof(decodev_t);
 
-    // deference pointer
-    dest = data[decodev->dest];
+//     // deference pointer
+//     dest = data[decodev->dest];
 
-    // check for divide by zero
-    if( data[decodev->src] == 0 ){
+//     // check for divide by zero
+//     if( data[decodev->src] == 0 ){
 
-        for( uint16_t i = 0; i < decodev->len; i++ ){
+//         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[dest + i] = 0;
-        }
-    }
-    else{
+//             data[dest + i] = 0;
+//         }
+//     }
+//     else if( decodev->type == CATBUS_TYPE_FIXED16 ){
 
-        for( uint16_t i = 0; i < decodev->len; i++ ){
+//         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-            data[dest + i] %= data[decodev->src];
-        }
-    }
-#else
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
-    len = *pc++;
-    len += ( *pc++ ) << 8;
-    type = *pc++;
+//             data[dest + i] = ( (int64_t)data[dest + i] * 65536 ) / data[decodev->src];
+//         }
+//     }
+//     else{
 
-    // deference pointer
-    dest = data[dest];
+//         for( uint16_t i = 0; i < decodev->len; i++ ){
 
-    // check for divide by zero
-    if( data[src] == 0 ){
+//             data[dest + i] /= data[decodev->src];
+//         }
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
+//     len = *pc++;
+//     len += ( *pc++ ) << 8;
+//     type = *pc++;
 
-        for( uint16_t i = 0; i < len; i++ ){
+//     // deference pointer
+//     dest = data[dest];
 
-            data[dest + i] = 0;
-        }
-    }
-    else{
+//     // check for divide by zero
+//     if( data[src] == 0 ){
 
-        for( uint16_t i = 0; i < len; i++ ){
+//         for( uint16_t i = 0; i < len; i++ ){
 
-            data[dest + i] %= data[src];
-        }
-    }
-#endif
-    DISPATCH;
+//             data[dest + i] = 0;
+//         }
+//     }
+//     else if( type == CATBUS_TYPE_FIXED16 ){
+
+//         for( uint16_t i = 0; i < len; i++ ){
+
+//             data[dest + i] = ( (int64_t)data[dest + i] * 65536 ) / data[src];
+//         }
+//     }
+//     else{
+
+//         for( uint16_t i = 0; i < len; i++ ){
+
+//             data[dest + i] /= data[src];
+//         }
+//     }
+// #endif
+//     DISPATCH;
 
 
-opcode_pmov:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep = (decodep_t *)pc;
-    pc += sizeof(decodep_t);
+// opcode_vmod:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodev = (decodev_t *)pc;
+//     pc += sizeof(decodev_t);
 
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_move( decodep->array, decodep->attr, data[decodep->src] );
-    #endif
-#else
-    array = *pc++;
-    attr = *pc++;
+//     // deference pointer
+//     dest = data[decodev->dest];
+
+//     // check for divide by zero
+//     if( data[decodev->src] == 0 ){
+
+//         for( uint16_t i = 0; i < decodev->len; i++ ){
+
+//             data[dest + i] = 0;
+//         }
+//     }
+//     else{
+
+//         for( uint16_t i = 0; i < decodev->len; i++ ){
+
+//             data[dest + i] %= data[decodev->src];
+//         }
+//     }
+// #else
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
+//     len = *pc++;
+//     len += ( *pc++ ) << 8;
+//     type = *pc++;
+
+//     // deference pointer
+//     dest = data[dest];
+
+//     // check for divide by zero
+//     if( data[src] == 0 ){
+
+//         for( uint16_t i = 0; i < len; i++ ){
+
+//             data[dest + i] = 0;
+//         }
+//     }
+//     else{
+
+//         for( uint16_t i = 0; i < len; i++ ){
+
+//             data[dest + i] %= data[src];
+//         }
+//     }
+// #endif
+//     DISPATCH;
+
+
+// opcode_pmov:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep = (decodep_t *)pc;
+//     pc += sizeof(decodep_t);
+
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_move( decodep->array, decodep->attr, data[decodep->src] );
+//     #endif
+// #else
+//     array = *pc++;
+//     attr = *pc++;
     
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
     
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_move( array, attr, data[src] );
-    #endif
-#endif
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_move( array, attr, data[src] );
+//     #endif
+// #endif
+//     DISPATCH;
 
 
-opcode_padd:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep = (decodep_t *)pc;
-    pc += sizeof(decodep_t);
+// opcode_padd:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep = (decodep_t *)pc;
+//     pc += sizeof(decodep_t);
 
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_add( decodep->array, decodep->attr, data[decodep->src] );
-    #endif
-#else
-    array = *pc++;
-    attr = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_add( decodep->array, decodep->attr, data[decodep->src] );
+//     #endif
+// #else
+//     array = *pc++;
+//     attr = *pc++;
     
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
     
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_add( array, attr, data[src] );
-    #endif
-#endif    
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_add( array, attr, data[src] );
+//     #endif
+// #endif    
+//     DISPATCH;
 
 
-opcode_psub:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep = (decodep_t *)pc;
-    pc += sizeof(decodep_t);
+// opcode_psub:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep = (decodep_t *)pc;
+//     pc += sizeof(decodep_t);
 
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_sub( decodep->array, decodep->attr, data[decodep->src] );
-    #endif
-#else
-    array = *pc++;
-    attr = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_sub( decodep->array, decodep->attr, data[decodep->src] );
+//     #endif
+// #else
+//     array = *pc++;
+//     attr = *pc++;
     
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
     
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_sub( array, attr, data[src] );
-    #endif
-#endif   
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_sub( array, attr, data[src] );
+//     #endif
+// #endif   
+//     DISPATCH;
 
 
-opcode_pmul:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep = (decodep_t *)pc;
-    pc += sizeof(decodep_t);
+// opcode_pmul:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep = (decodep_t *)pc;
+//     pc += sizeof(decodep_t);
 
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_mul( decodep->array, decodep->attr, data[decodep->src] );
-    #endif
-#else
-    array = *pc++;
-    attr = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_mul( decodep->array, decodep->attr, data[decodep->src] );
+//     #endif
+// #else
+//     array = *pc++;
+//     attr = *pc++;
     
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
     
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_mul( array, attr, data[src] );
-    #endif
-#endif
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_mul( array, attr, data[src] );
+//     #endif
+// #endif
+//     DISPATCH;
 
 
-opcode_pdiv:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep = (decodep_t *)pc;
-    pc += sizeof(decodep_t);
+// opcode_pdiv:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep = (decodep_t *)pc;
+//     pc += sizeof(decodep_t);
 
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_div( decodep->array, decodep->attr, data[decodep->src] );
-    #endif
-#else
-    array = *pc++;
-    attr = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_div( decodep->array, decodep->attr, data[decodep->src] );
+//     #endif
+// #else
+//     array = *pc++;
+//     attr = *pc++;
     
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
     
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_div( array, attr, data[src] );
-    #endif
-#endif
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_div( array, attr, data[src] );
+//     #endif
+// #endif
+//     DISPATCH;
 
 
-opcode_pmod:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep = (decodep_t *)pc;
-    pc += sizeof(decodep_t);
+// opcode_pmod:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep = (decodep_t *)pc;
+//     pc += sizeof(decodep_t);
 
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_mod( decodep->array, decodep->attr, data[decodep->src] );
-    #endif
-#else
-    array = *pc++;
-    attr = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_mod( decodep->array, decodep->attr, data[decodep->src] );
+//     #endif
+// #else
+//     array = *pc++;
+//     attr = *pc++;
     
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
     
-    #ifdef VM_ENABLE_GFX
-    gfx_v_array_mod( array, attr, data[src] );
-    #endif
-#endif
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     gfx_v_array_mod( array, attr, data[src] );
+//     #endif
+// #endif
+//     DISPATCH;
 
 
-opcode_pstore_hue:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep2 = (decodep2_t *)pc;
-    pc += sizeof(decodep2_t);
+// opcode_pstore_hue:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep2 = (decodep2_t *)pc;
+//     pc += sizeof(decodep2_t);
 
-    // wraparound to 16 bit range.
-//     // this makes it easy to run a circular rainbow
-//     op1 %= 65536;
-    // ^^^^^^ I don't think we actually need to do this.
-    // gfx will crunch from i32 to u16, which does the mod for free.
+//     // wraparound to 16 bit range.
+// //     // this makes it easy to run a circular rainbow
+// //     op1 %= 65536;
+//     // ^^^^^^ I don't think we actually need to do this.
+//     // gfx will crunch from i32 to u16, which does the mod for free.
 
-    gfx_v_set_hue( data[decodep2->src], data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+//     gfx_v_set_hue( data[decodep2->src], data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
 
-#else
-    array = *pc++;
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
+//     #ifdef VM_ENABLE_GFX
 
-    // wraparound to 16 bit range.
-//     // this makes it easy to run a circular rainbow
-//     op1 %= 65536;
-    // ^^^^^^ I don't think we actually need to do this.
-    // gfx will crunch from i32 to u16, which does the mod for free.
+//     // wraparound to 16 bit range.
+// //     // this makes it easy to run a circular rainbow
+// //     op1 %= 65536;
+//     // ^^^^^^ I don't think we actually need to do this.
+//     // gfx will crunch from i32 to u16, which does the mod for free.
 
-    gfx_v_set_hue( data[src], data[index_x], data[index_y], array );
-    #endif
-#endif    
-    DISPATCH;
+//     gfx_v_set_hue( data[src], data[index_x], data[index_y], array );
+//     #endif
+// #endif    
+//     DISPATCH;
 
 
-opcode_pstore_sat:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep2 = (decodep2_t *)pc;
-    pc += sizeof(decodep2_t);
+// opcode_pstore_sat:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep2 = (decodep2_t *)pc;
+//     pc += sizeof(decodep2_t);
 
-    // load source
-    value_i32 = data[decodep2->src];    
+//     // load source
+//     value_i32 = data[decodep2->src];    
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( value_i32 > 65535 ){
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( value_i32 > 65535 ){
 
-        value_i32 = 65535;
-    }
-    else if( value_i32 < 0 ){
+//         value_i32 = 65535;
+//     }
+//     else if( value_i32 < 0 ){
 
-        value_i32 = 0;
-    }
+//         value_i32 = 0;
+//     }
 
-    gfx_v_set_sat( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
-#else
-    array = *pc++;
+//     gfx_v_set_sat( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    // load source
-    value_i32 = data[src];    
+//     #ifdef VM_ENABLE_GFX
+//     // load source
+//     value_i32 = data[src];    
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( value_i32 > 65535 ){
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( value_i32 > 65535 ){
 
-        value_i32 = 65535;
-    }
-    else if( value_i32 < 0 ){
+//         value_i32 = 65535;
+//     }
+//     else if( value_i32 < 0 ){
 
-        value_i32 = 0;
-    }
+//         value_i32 = 0;
+//     }
 
-    gfx_v_set_sat( value_i32, data[index_x], data[index_y], array );
-    #endif
-#endif    
-    DISPATCH;
+//     gfx_v_set_sat( value_i32, data[index_x], data[index_y], array );
+//     #endif
+// #endif    
+//     DISPATCH;
 
 
-opcode_pstore_val:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep2 = (decodep2_t *)pc;
-    pc += sizeof(decodep2_t);
+// opcode_pstore_val:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep2 = (decodep2_t *)pc;
+//     pc += sizeof(decodep2_t);
 
-    // load source
-    value_i32 = data[decodep2->src];    
+//     // load source
+//     value_i32 = data[decodep2->src];    
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( value_i32 > 65535 ){
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( value_i32 > 65535 ){
 
-        value_i32 = 65535;
-    }
-    else if( value_i32 < 0 ){
+//         value_i32 = 65535;
+//     }
+//     else if( value_i32 < 0 ){
 
-        value_i32 = 0;
-    }
+//         value_i32 = 0;
+//     }
 
-    gfx_v_set_val( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
-#else
-    array = *pc++;
+//     gfx_v_set_val( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    // load source
-    value_i32 = data[src];    
+//     #ifdef VM_ENABLE_GFX
+//     // load source
+//     value_i32 = data[src];    
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( value_i32 > 65535 ){
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( value_i32 > 65535 ){
 
-        value_i32 = 65535;
-    }
-    else if( value_i32 < 0 ){
+//         value_i32 = 65535;
+//     }
+//     else if( value_i32 < 0 ){
 
-        value_i32 = 0;
-    }
+//         value_i32 = 0;
+//     }
 
-    gfx_v_set_val( value_i32, data[index_x], data[index_y], array );
-    #endif
-#endif    
-    DISPATCH;
+//     gfx_v_set_val( value_i32, data[index_x], data[index_y], array );
+//     #endif
+// #endif    
+//     DISPATCH;
 
-opcode_pstore_pval:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep2 = (decodep2_t *)pc;
-    pc += sizeof(decodep2_t);
+// opcode_pstore_pval:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep2 = (decodep2_t *)pc;
+//     pc += sizeof(decodep2_t);
 
-    // load source
-    value_i32 = data[decodep2->src];    
+//     // load source
+//     value_i32 = data[decodep2->src];    
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( value_i32 > 65535 ){
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( value_i32 > 65535 ){
 
-        value_i32 = 65535;
-    }
-    else if( value_i32 < 0 ){
+//         value_i32 = 65535;
+//     }
+//     else if( value_i32 < 0 ){
 
-        value_i32 = 0;
-    }
+//         value_i32 = 0;
+//     }
 
-    // get reference to target pixel array
-    pix_array = (gfx_pixel_array_t *)&data[decodep2->array * sizeof(gfx_pixel_array_t) + PIX_ARRAY_ADDR];
+//     // get reference to target pixel array
+//     pix_array = (gfx_pixel_array_t *)&data[decodep2->array * sizeof(gfx_pixel_array_t) + PIX_ARRAY_ADDR];
 
-    // get reference to palette
-    palette = (gfx_palette_t *)&data[pix_array->palette];
+//     // get reference to palette
+//     palette = (gfx_palette_t *)&data[pix_array->palette];
 
-    gfx_v_set_pval( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array, palette );
-#else
-    array = *pc++;
+//     gfx_v_set_pval( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array, palette );
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    // load source
-    value_i32 = data[src];    
+//     #ifdef VM_ENABLE_GFX
+//     // load source
+//     value_i32 = data[src];    
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( value_i32 > 65535 ){
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( value_i32 > 65535 ){
 
-        value_i32 = 65535;
-    }
-    else if( value_i32 < 0 ){
+//         value_i32 = 65535;
+//     }
+//     else if( value_i32 < 0 ){
 
-        value_i32 = 0;
-    }
+//         value_i32 = 0;
+//     }
 
-    // get reference to target pixel array
-    pix_array = (gfx_pixel_array_t *)&data[array * sizeof(gfx_pixel_array_t) + PIX_ARRAY_ADDR];
+//     // get reference to target pixel array
+//     pix_array = (gfx_pixel_array_t *)&data[array * sizeof(gfx_pixel_array_t) + PIX_ARRAY_ADDR];
 
-    // get reference to palette
-    palette = (gfx_palette_t *)&data[pix_array->palette];
+//     // get reference to palette
+//     palette = (gfx_palette_t *)&data[pix_array->palette];
 
-    gfx_v_set_pval( value_i32, data[index_x], data[index_y], array, palette );
-    #endif
-#endif    
-    DISPATCH;
+//     gfx_v_set_pval( value_i32, data[index_x], data[index_y], array, palette );
+//     #endif
+// #endif    
+//     DISPATCH;
 
 
-opcode_pstore_vfade:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep2 = (decodep2_t *)pc;
-    pc += sizeof(decodep2_t);
+// opcode_pstore_vfade:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep2 = (decodep2_t *)pc;
+//     pc += sizeof(decodep2_t);
 
-    // load source
-    value_i32 = data[decodep2->src];    
+//     // load source
+//     value_i32 = data[decodep2->src];    
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( value_i32 > 65535 ){
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( value_i32 > 65535 ){
 
-        value_i32 = 65535;
-    }
-    else if( value_i32 < 0 ){
+//         value_i32 = 65535;
+//     }
+//     else if( value_i32 < 0 ){
 
-        value_i32 = 0;
-    }
+//         value_i32 = 0;
+//     }
 
-    gfx_v_set_v_fade( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
-#else
-    array = *pc++;
+//     gfx_v_set_v_fade( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    // load source
-    value_i32 = data[src];    
+//     #ifdef VM_ENABLE_GFX
+//     // load source
+//     value_i32 = data[src];    
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( value_i32 > 65535 ){
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( value_i32 > 65535 ){
 
-        value_i32 = 65535;
-    }
-    else if( value_i32 < 0 ){
+//         value_i32 = 65535;
+//     }
+//     else if( value_i32 < 0 ){
 
-        value_i32 = 0;
-    }
+//         value_i32 = 0;
+//     }
 
-    gfx_v_set_v_fade( value_i32, data[index_x], data[index_y], array );
-    #endif
-#endif
-    DISPATCH;
+//     gfx_v_set_v_fade( value_i32, data[index_x], data[index_y], array );
+//     #endif
+// #endif
+//     DISPATCH;
 
 
-opcode_pstore_hsfade:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep2 = (decodep2_t *)pc;
-    pc += sizeof(decodep2_t);
+// opcode_pstore_hsfade:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep2 = (decodep2_t *)pc;
+//     pc += sizeof(decodep2_t);
 
-    // load source
-    value_i32 = data[decodep2->src];    
+//     // load source
+//     value_i32 = data[decodep2->src];    
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( value_i32 > 65535 ){
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( value_i32 > 65535 ){
 
-        value_i32 = 65535;
-    }
-    else if( value_i32 < 0 ){
+//         value_i32 = 65535;
+//     }
+//     else if( value_i32 < 0 ){
 
-        value_i32 = 0;
-    }
+//         value_i32 = 0;
+//     }
 
-    gfx_v_set_hs_fade( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
-#else
-    array = *pc++;
+//     gfx_v_set_hs_fade( value_i32, data[decodep2->index_x], data[decodep2->index_y], decodep2->array );
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    // load source
-    value_i32 = data[src];    
+//     #ifdef VM_ENABLE_GFX
+//     // load source
+//     value_i32 = data[src];    
 
-    // clamp to our 16 bit range.
-    // we will essentially saturate at 0 or 65535,
-    // but will not wraparound
-    if( value_i32 > 65535 ){
+//     // clamp to our 16 bit range.
+//     // we will essentially saturate at 0 or 65535,
+//     // but will not wraparound
+//     if( value_i32 > 65535 ){
 
-        value_i32 = 65535;
-    }
-    else if( value_i32 < 0 ){
+//         value_i32 = 65535;
+//     }
+//     else if( value_i32 < 0 ){
 
-        value_i32 = 0;
-    }
+//         value_i32 = 0;
+//     }
 
-    gfx_v_set_hs_fade( value_i32, data[index_x], data[index_y], array );
-    #endif
-#endif    
-    DISPATCH;
+//     gfx_v_set_hs_fade( value_i32, data[index_x], data[index_y], array );
+//     #endif
+// #endif    
+//     DISPATCH;
 
 
-opcode_pload_hue:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep3 = (decodep3_t *)pc;
-    pc += sizeof(decodep3_t);
+// opcode_pload_hue:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep3 = (decodep3_t *)pc;
+//     pc += sizeof(decodep3_t);
 
-    #ifdef VM_ENABLE_GFX
-    data[decodep3->dest] = gfx_u16_get_hue( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
-    #endif
-#else
-    array = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     data[decodep3->dest] = gfx_u16_get_hue( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+//     #endif
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_hue( data[index_x], data[index_y], array );
-    #endif
-#endif    
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_hue( data[index_x], data[index_y], array );
+//     #endif
+// #endif    
+//     DISPATCH;
 
 
-opcode_pload_sat:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep3 = (decodep3_t *)pc;
-    pc += sizeof(decodep3_t);
+// opcode_pload_sat:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep3 = (decodep3_t *)pc;
+//     pc += sizeof(decodep3_t);
 
-    #ifdef VM_ENABLE_GFX
-    data[decodep3->dest] = gfx_u16_get_sat( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
-    #endif
-#else
-    array = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     data[decodep3->dest] = gfx_u16_get_sat( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+//     #endif
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_sat( data[index_x], data[index_y], array );
-    #endif
-#endif
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_sat( data[index_x], data[index_y], array );
+//     #endif
+// #endif
+//     DISPATCH;
 
 
-opcode_pload_val:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep3 = (decodep3_t *)pc;
-    pc += sizeof(decodep3_t);
+// opcode_pload_val:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep3 = (decodep3_t *)pc;
+//     pc += sizeof(decodep3_t);
 
-    #ifdef VM_ENABLE_GFX
-    data[decodep3->dest] = gfx_u16_get_val( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
-    #endif
-#else
-    array = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     data[decodep3->dest] = gfx_u16_get_val( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+//     #endif
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_val( data[index_x], data[index_y], array );
-    #endif
-#endif    
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_val( data[index_x], data[index_y], array );
+//     #endif
+// #endif    
+//     DISPATCH;
 
-opcode_pload_pval:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep3 = (decodep3_t *)pc;
-    pc += sizeof(decodep3_t);
+// opcode_pload_pval:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep3 = (decodep3_t *)pc;
+//     pc += sizeof(decodep3_t);
 
-    #ifdef VM_ENABLE_GFX
-    data[decodep3->dest] = gfx_u16_get_pval( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
-    #endif
-#else
-    array = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     data[decodep3->dest] = gfx_u16_get_pval( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+//     #endif
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_pval( data[index_x], data[index_y], array );
-    #endif
-#endif    
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_pval( data[index_x], data[index_y], array );
+//     #endif
+// #endif    
+//     DISPATCH;
 
-opcode_pload_vfade:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep3 = (decodep3_t *)pc;
-    pc += sizeof(decodep3_t);
+// opcode_pload_vfade:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep3 = (decodep3_t *)pc;
+//     pc += sizeof(decodep3_t);
 
-    #ifdef VM_ENABLE_GFX
-    data[decodep3->dest] = gfx_u16_get_v_fade( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
-    #endif
-#else
-    array = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     data[decodep3->dest] = gfx_u16_get_v_fade( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+//     #endif
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_v_fade( data[index_x], data[index_y], array );
-    #endif
-#endif    
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_v_fade( data[index_x], data[index_y], array );
+//     #endif
+// #endif    
+//     DISPATCH;
 
 
-opcode_pload_hsfade:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep3 = (decodep3_t *)pc;
-    pc += sizeof(decodep3_t);
+// opcode_pload_hsfade:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep3 = (decodep3_t *)pc;
+//     pc += sizeof(decodep3_t);
 
-    #ifdef VM_ENABLE_GFX
-    data[decodep3->dest] = gfx_u16_get_hs_fade( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
-    #endif
-#else
-    array = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     data[decodep3->dest] = gfx_u16_get_hs_fade( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+//     #endif
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_hs_fade( data[index_x], data[index_y], array );
-    #endif
-#endif
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_hs_fade( data[index_x], data[index_y], array );
+//     #endif
+// #endif
+//     DISPATCH;
 
 
-opcode_db_store:
+// opcode_db_store:
 
-    hash =  (catbus_hash_t32)(*pc++) << 24;
-    hash |= (catbus_hash_t32)(*pc++) << 16;
-    hash |= (catbus_hash_t32)(*pc++) << 8;
-    hash |= (catbus_hash_t32)(*pc++) << 0;
+//     hash =  (catbus_hash_t32)(*pc++) << 24;
+//     hash |= (catbus_hash_t32)(*pc++) << 16;
+//     hash |= (catbus_hash_t32)(*pc++) << 8;
+//     hash |= (catbus_hash_t32)(*pc++) << 0;
 
-    len = *pc++;
+//     len = *pc++;
 
-    indexes[0] = 0;
+//     indexes[0] = 0;
 
-    for( uint32_t i = 0; i < len; i++ ){
+//     for( uint32_t i = 0; i < len; i++ ){
 
-        index = *pc++;
-        index += ( *pc++ ) << 8;
+//         index = *pc++;
+//         index += ( *pc++ ) << 8;
 
-        indexes[i] = data[index];
-    }
+//         indexes[i] = data[index];
+//     }
     
-    type = *pc++;
+//     type = *pc++;
 
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    if( type_b_is_string( type ) ){
+//     if( type_b_is_string( type ) ){
 
-        // special handling for string types
+//         // special handling for string types
 
-        // load string address
-        string_addr = data[src];
+//         // load string address
+//         string_addr = data[src];
 
-        // load string header
-        string = (vm_string_t *)&data[string_addr];
+//         // load string header
+//         string = (vm_string_t *)&data[string_addr];
 
-        db_ptr = &data[string->addr + 1]; // actual string starts 1 word after header
-        db_ptr_len = string->length;
-    }
-    else{
+//         db_ptr = &data[string->addr + 1]; // actual string starts 1 word after header
+//         db_ptr_len = string->length;
+//     }
+//     else{
 
-        db_ptr = &data[src];
-        db_ptr_len = sizeof(data[src]);
-    }
+//         db_ptr = &data[src];
+//         db_ptr_len = sizeof(data[src]);
+//     }
 
-    #ifdef VM_ENABLE_KV
-    #ifdef VM_ENABLE_CATBUS
-    catbus_i8_array_set( hash, type, indexes[0], 1, db_ptr, db_ptr_len );
-    #else
-    kvdb_i8_array_set( hash, type, indexes[0], db_ptr, db_ptr_len );
-    #endif
-    #endif
+//     #ifdef VM_ENABLE_KV
+//     #ifdef VM_ENABLE_CATBUS
+//     catbus_i8_array_set( hash, type, indexes[0], 1, db_ptr, db_ptr_len );
+//     #else
+//     kvdb_i8_array_set( hash, type, indexes[0], db_ptr, db_ptr_len );
+//     #endif
+//     #endif
     
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_db_load:
-    hash =  (catbus_hash_t32)(*pc++) << 24;
-    hash |= (catbus_hash_t32)(*pc++) << 16;
-    hash |= (catbus_hash_t32)(*pc++) << 8;
-    hash |= (catbus_hash_t32)(*pc++) << 0;
+// opcode_db_load:
+//     hash =  (catbus_hash_t32)(*pc++) << 24;
+//     hash |= (catbus_hash_t32)(*pc++) << 16;
+//     hash |= (catbus_hash_t32)(*pc++) << 8;
+//     hash |= (catbus_hash_t32)(*pc++) << 0;
 
-    len = *pc++;
+//     len = *pc++;
 
-    indexes[0] = 0;
+//     indexes[0] = 0;
 
-    for( uint32_t i = 0; i < len; i++ ){
+//     for( uint32_t i = 0; i < len; i++ ){
 
-        index = *pc++;
-        index += ( *pc++ ) << 8;
+//         index = *pc++;
+//         index += ( *pc++ ) << 8;
 
-        indexes[i] = data[index];
-    }
+//         indexes[i] = data[index];
+//     }
     
-    type = *pc++;
+//     type = *pc++;
 
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_KV
-    #ifdef VM_ENABLE_CATBUS
-    if( catbus_i8_array_get( hash, type, indexes[0], 1, &data[dest] ) < 0 ){
+//     #ifdef VM_ENABLE_KV
+//     #ifdef VM_ENABLE_CATBUS
+//     if( catbus_i8_array_get( hash, type, indexes[0], 1, &data[dest] ) < 0 ){
 
-        data[dest] = 0;        
-    }
-    #else
-    if( kvdb_i8_array_get( hash, type, indexes[0], &data[dest], sizeof(data[dest]) ) < 0 ){
+//         data[dest] = 0;        
+//     }
+//     #else
+//     if( kvdb_i8_array_get( hash, type, indexes[0], &data[dest], sizeof(data[dest]) ) < 0 ){
 
-        data[dest] = 0;        
-    }
-    #endif
-    #endif
+//         data[dest] = 0;        
+//     }
+//     #endif
+//     #endif
     
-    DISPATCH;
+//     DISPATCH;
 
 
-opcode_conv_i32_to_f16: 
-#ifdef VM_OPTIMIZED_DECODE
-    decode2 = (decode2_t *)pc;
-    pc += sizeof(decode2_t);
+// opcode_conv_i32_to_f16: 
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode2 = (decode2_t *)pc;
+//     pc += sizeof(decode2_t);
 
-    data[decode2->dest] = data[decode2->src] * 65536;
-#else       
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
+//     data[decode2->dest] = data[decode2->src] * 65536;
+// #else       
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    data[dest] = data[src] * 65536;
-#endif
-    DISPATCH;
-
-
-opcode_conv_f16_to_i32:
-#ifdef VM_OPTIMIZED_DECODE
-    decode2 = (decode2_t *)pc;
-    pc += sizeof(decode2_t);
-
-    data[decode2->dest] = data[decode2->src] / 65536;
-#else       
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
-    src = *pc++;
-    src += ( *pc++ ) << 8;
-
-    data[dest] = data[src] / 65536;
-#endif    
-    DISPATCH;
+//     data[dest] = data[src] * 65536;
+// #endif
+//     DISPATCH;
 
 
-opcode_is_v_fading:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep3 = (decodep3_t *)pc;
-    pc += sizeof(decodep3_t);
+// opcode_conv_f16_to_i32:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decode2 = (decode2_t *)pc;
+//     pc += sizeof(decode2_t);
 
-    #ifdef VM_ENABLE_GFX
-    data[decodep3->dest] = gfx_u16_get_is_v_fading( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
-    #endif
-#else
-    array = *pc++;
+//     data[decode2->dest] = data[decode2->src] / 65536;
+// #else       
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
+//     src = *pc++;
+//     src += ( *pc++ ) << 8;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     data[dest] = data[src] / 65536;
+// #endif    
+//     DISPATCH;
+
+
+// opcode_is_v_fading:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep3 = (decodep3_t *)pc;
+//     pc += sizeof(decodep3_t);
+
+//     #ifdef VM_ENABLE_GFX
+//     data[decodep3->dest] = gfx_u16_get_is_v_fading( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+//     #endif
+// #else
+//     array = *pc++;
+
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_is_v_fading( data[index_x], data[index_y], array );
-    #endif
-#endif
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_is_v_fading( data[index_x], data[index_y], array );
+//     #endif
+// #endif
+//     DISPATCH;
 
 
-opcode_is_hs_fading:
-#ifdef VM_OPTIMIZED_DECODE
-    decodep3 = (decodep3_t *)pc;
-    pc += sizeof(decodep3_t);
+// opcode_is_hs_fading:
+// #ifdef VM_OPTIMIZED_DECODE
+//     decodep3 = (decodep3_t *)pc;
+//     pc += sizeof(decodep3_t);
 
-    #ifdef VM_ENABLE_GFX
-    data[decodep3->dest] = gfx_u16_get_is_hs_fading( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
-    #endif
-#else
-    array = *pc++;
+//     #ifdef VM_ENABLE_GFX
+//     data[decodep3->dest] = gfx_u16_get_is_hs_fading( data[decodep3->index_x], data[decodep3->index_y], decodep3->array );
+//     #endif
+// #else
+//     array = *pc++;
 
-    index_x = *pc++;
-    index_x += ( *pc++ ) << 8;
+//     index_x = *pc++;
+//     index_x += ( *pc++ ) << 8;
     
-    index_y = *pc++;
-    index_y += ( *pc++ ) << 8;
+//     index_y = *pc++;
+//     index_y += ( *pc++ ) << 8;
 
-    dest = *pc++;
-    dest += ( *pc++ ) << 8;
+//     dest = *pc++;
+//     dest += ( *pc++ ) << 8;
 
-    #ifdef VM_ENABLE_GFX
-    data[dest] = gfx_u16_get_is_hs_fading( data[index_x], data[index_y], array );
-    #endif
-#endif    
-    DISPATCH;
+//     #ifdef VM_ENABLE_GFX
+//     data[dest] = gfx_u16_get_is_hs_fading( data[index_x], data[index_y], array );
+//     #endif
+// #endif    
+//     DISPATCH;
 
 
-#endif
+// #endif
 
 // opcode_trap:
 //     return VM_STATUS_TRAP;

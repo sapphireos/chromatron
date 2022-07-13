@@ -1936,40 +1936,10 @@ def init():
     e = d
 """
 
-@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
-class TestCompiler(object):
+
+class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
-        prog = code_gen.compile_text(program, opt_passes=opt_passes)
-        func = prog.init_func
-
-        ret_val = func.run()
-
-        regs = func.program.dump_globals()
-
-        for reg, value in expected.items():
-
-            reg_value = regs[reg]
-
-            if isinstance(value, float):
-                reg_value /= 65536.0
-
-            try:
-                try:
-                    assert reg_value == value
-
-                except KeyError:
-                    raise Exception
-                    # try database
-                    # self.assertEqual(vm.db[reg], value)
-
-            except AssertionError:
-                print('\n*******************************')
-                print(program)
-                print('Var: %s Expected: %s Actual: %s' % (reg, value, regs[reg]))
-                print('-------------------------------\n')
-                raise
-
-
+        pass
 
     @pytest.mark.skip
     def test_basic_string(self, opt_passes):
@@ -3831,6 +3801,43 @@ def init():
 #         super().run_test(program, expected, opt_passes=opt_passes)
 
 
+
+@pytest.mark.skip
+@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
+class TestCompilerLocal(CompilerTests):
+    def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
+        prog = code_gen.compile_text(program, opt_passes=opt_passes)
+        func = prog.init_func
+
+        ret_val = func.run()
+
+        regs = func.program.dump_globals()
+
+        for reg, value in expected.items():
+
+            reg_value = regs[reg]
+
+            if isinstance(value, float):
+                reg_value /= 65536.0
+
+            try:
+                try:
+                    assert reg_value == value
+
+                except KeyError:
+                    raise Exception
+                    # try database
+                    # self.assertEqual(vm.db[reg], value)
+
+            except AssertionError:
+                print('\n*******************************')
+                print(program)
+                print('Var: %s Expected: %s Actual: %s' % (reg, value, regs[reg]))
+                print('-------------------------------\n')
+                raise
+
+
+
 # from ..fixtures import *
 from conftest import *
 
@@ -3840,8 +3847,9 @@ import time
 
 ct = chromatron.Chromatron(host=NETWORK_ADDR)
 
-
-class TestCompilerOnDevice(TestCompiler):
+# @pytest.mark.skip
+@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
+class TestCompilerOnDevice(CompilerTests):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         global ct
         # ct = chromatron.Chromatron(host='usb', force_network=True)

@@ -1,13 +1,8 @@
 
 a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
 
 def init():
-    a = 1
-    b = 2
-    c = 3
-
+    a = test_lib_call(1, 2)
 
 # current_hue = Fixed16()
 # delay = Number()
