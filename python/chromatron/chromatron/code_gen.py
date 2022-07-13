@@ -1212,16 +1212,13 @@ def run_script(path, debug_print=False, opt_passes=OptPasses.SSA):
     ret_val = func.run()
     print(f'VM returned: {ret_val}')
 
-    # ret_val = ins_program.funcs['stuff'].run()
-    # print(f'VM returned: {ret_val}')
-
     pprint.pprint(ins_program.gfx_data)
     pprint.pprint(ins_program.dump_globals())
 
     image = ins_program.assemble()
     stream = image.render()
     print(image.header)
-    print('prog len:', image.prog_len)
+    print(f'prog len: {image.prog_len} image len: {image.image_len}')
 
 
     return ins_program

@@ -135,6 +135,9 @@ class FXImage(object):
         self.stream = None
         self.header = None
 
+        self.prog_len = None
+        self.image_len = None
+
     def __str__(self):
         s = f'FX Image: {self.program.name}\n'
 
@@ -470,7 +473,7 @@ class FXImage(object):
         # now we're going attach meta data.
         # note all strings will be padded to the VM_STRING_LEN.
         prog_len = len(stream)
-        
+
         self.prog_len = prog_len
 
         meta_data = bytes()
@@ -512,6 +515,9 @@ class FXImage(object):
                 f.write(stream)
 
         self.stream = stream
+
+        self.image_len = len(stream)
+
         self.header = header
 
         if filename:
