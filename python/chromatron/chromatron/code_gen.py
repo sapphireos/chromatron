@@ -1218,6 +1218,10 @@ def run_script(path, debug_print=False, opt_passes=OptPasses.SSA):
     image = ins_program.assemble()
     stream = image.render()
     print(image.header)
+    
+    for func in image.function_table:
+        print(func)
+
     print(f'prog len: {image.prog_len} image len: {image.image_len}')
 
 

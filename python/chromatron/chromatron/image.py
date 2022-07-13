@@ -196,6 +196,7 @@ class FXImage(object):
 
             function_indexes[func.name] = len(function_table) - 1
 
+        self.function_table = function_table
 
         objects = {}
 
