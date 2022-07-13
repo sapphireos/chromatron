@@ -9,6 +9,8 @@ def init():
 
     a = min(ary)
 
+    return min(ary)
+
 # current_hue = Fixed16()
 # delay = Number()
 # cursor = Number()

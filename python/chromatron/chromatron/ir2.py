@@ -2054,6 +2054,18 @@ class irBlock(IR):
 
                         changed = True
 
+            elif isinstance(ir, irVectorCalc):
+                # replace inputs:
+                if ir.ref in values:
+                    replacement = values[ir.ref]
+
+                    if ir.ref != replacement:
+                        self.debug_print(f"replace vector op ref {ir.ref} = {ir.ref} with {replacement}")
+
+                        ir.ref = replacement
+
+                        changed = True
+
             elif isinstance(ir, irObjectLookup):
                 # replace inputs:
                 if ir.target in values:
