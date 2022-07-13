@@ -291,15 +291,15 @@ typedef struct __attribute__((packed)){
 
 
 #ifdef VM_ENABLE_GFX
-#define GFX_LIB_CALL(DECODE, PARAMS_LEN) state->return_val = gfx_i32_lib_call( registers[DECODE->op1], params, PARAMS_LEN );
+#define GFX_LIB_CALL(FUNC_HASH, PARAMS_LEN) state->return_val = gfx_i32_lib_call( FUNC_HASH, params, PARAMS_LEN );
 #else
-#define GFX_LIB_CALL(DECODE, PARAMS_LEN)
+#define GFX_LIB_CALL(FUNC_HASH, PARAMS_LEN)
 #endif
 
-#define LIBCALL(DECODE, PARAMS_LEN) \
-    if( vm_lib_i8_libcall_built_in( registers[DECODE->op1], state, &state->return_val, params, PARAMS_LEN ) != 0 ){ \
-        /* try gfx lib         */ \
-        GFX_LIB_CALL(DECODE, PARAMS_LEN) \
+#define LIBCALL(FUNC_HASH, PARAMS_LEN) \
+    if( vm_lib_i8_libcall_built_in( FUNC_HASH, state, &state->return_val, params, PARAMS_LEN ) != 0 ){ \
+        /* try gfx lib */ \
+        GFX_LIB_CALL(FUNC_HASH, PARAMS_LEN) \
     } \
     else{ \
         /* internal lib call completed successfully */ \
@@ -1587,7 +1587,7 @@ opcode_icall4:
 opcode_lcall0:
     DECODE_1AC;
 
-    LIBCALL(opcode_1ac, 0)
+    LIBCALL( registers[opcode_1ac->op1], 0 );
 
     // if( vm_lib_i8_libcall_built_in( registers[opcode_1ac->op1], state, &state->return_val, params, 0 ) != 0 ){
 
@@ -1623,28 +1623,38 @@ opcode_lcall0:
 opcode_lcall1:
     DECODE_2AC;
 
-    LIBCALL(opcode_2ac, 1)
+    params[0] = registers[opcode_2ac->op1];
+    LIBCALL( registers[opcode_2ac->dest], 1 );
 
     DISPATCH;
 
 opcode_lcall2:
     DECODE_3AC;
 
-    LIBCALL(opcode_3ac, 2)
+    params[0] = registers[opcode_3ac->op1];
+    params[1] = registers[opcode_3ac->op2];
+    LIBCALL( registers[opcode_3ac->dest], 2 );
 
     DISPATCH;
 
 opcode_lcall3:
     DECODE_4AC;
 
-    LIBCALL(opcode_4ac, 3)
+    params[0] = registers[opcode_4ac->op1];
+    params[1] = registers[opcode_4ac->op2];
+    params[2] = registers[opcode_4ac->op3];
+    LIBCALL( registers[opcode_4ac->dest], 3 );
 
     DISPATCH;
 
 opcode_lcall4:
     DECODE_5AC;
 
-    LIBCALL(opcode_5ac, 4)
+    params[0] = registers[opcode_5ac->op1];
+    params[1] = registers[opcode_5ac->op2];
+    params[2] = registers[opcode_5ac->op3];
+    params[3] = registers[opcode_5ac->op4];
+    LIBCALL( registers[opcode_5ac->dest], 4 );
 
     DISPATCH;
 
