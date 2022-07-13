@@ -353,6 +353,9 @@ class insProgram(object):
 
         return d        
 
+    def dump_hsv(self):
+        return self.gfx_data
+
     def simulate(self, loop_cycles=128):
         logging.debug(f'Simulating for {loop_cycles} loops')
 

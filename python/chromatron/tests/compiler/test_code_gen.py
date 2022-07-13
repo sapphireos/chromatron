@@ -3349,515 +3349,502 @@ def init():
 """
 
 
-# class CGHSVArrayTests(unittest.TestCase):
-#     def test_pix_load_from_pix_2(self):
-#         builder = code_gen.compile_text(test_pix_load_from_pix_2, debug_print=False)
-#         vm = VM(builder)
+@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
+class TestHSVArray(object):
+    def assertEqual(self, actual, expected):
+        assert actual == expected
 
-#         vm.run_once()
+    def run_test(self, program, opt_passes=[OptPasses.SSA]):
+        prog = code_gen.compile_text(program, opt_passes=opt_passes)
+        func = prog.init_func
 
-#         hsv = vm.dump_hsv()
+        ret_val = func.run()
 
-#         self.assertEqual(hsv['hue'][0], 0)
-#         self.assertEqual(hsv['hue'][1], 0)
-#         self.assertEqual(hsv['hue'][2], 1)
+        return func.program.dump_hsv()
 
-#     def test_pix_load_from_pix(self):
-#         builder = code_gen.compile_text(test_pix_load_from_pix, debug_print=False)
-#         vm = VM(builder)
 
-#         vm.run_once()
+    def test_pix_load_from_pix_2(self, opt_passes):
+        hsv = self.run_test(test_pix_load_from_pix_2, opt_passes=opt_passes)
 
-#         hsv = vm.dump_hsv()
+        self.assertEqual(hsv['hue'][0], 0)
+        self.assertEqual(hsv['hue'][1], 0)
+        self.assertEqual(hsv['hue'][2], 1)
 
-#         self.assertEqual(hsv['hue'][1], 1)
+    def test_pix_load_from_pix(self, opt_passes):
+        hsv = self.run_test(test_pix_load_from_pix, opt_passes=opt_passes)
         
-#     def test_pix_load_from_array(self):
-#         builder = code_gen.compile_text(test_pix_load_from_array, debug_print=False)
-#         vm = VM(builder)
+        self.assertEqual(hsv['hue'][1], 1)
+        
+    # def test_pix_load_from_array(self):
+    #     builder = code_gen.compile_text(test_pix_load_from_array, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['hue'][1], 1)
+    #     self.assertEqual(hsv['hue'][1], 1)
 
-#     def test_pix_mov_from_array(self):
-#         builder = code_gen.compile_text(test_pix_mov_from_array, debug_print=False)
-#         vm = VM(builder)
+    # def test_pix_mov_from_array(self):
+    #     builder = code_gen.compile_text(test_pix_mov_from_array, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['hue'][0], 1)
+    #     self.assertEqual(hsv['hue'][0], 1)
 
-#     def test_hue_array_1(self):
-#         builder = code_gen.compile_text(hue_array_1, debug_print=False)
-#         vm = VM(builder)
+    # def test_hue_array_1(self):
+    #     builder = code_gen.compile_text(hue_array_1, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['hue'][1], 65535)
-#         self.assertEqual(hsv['hue'][9], 39321)
+    #     self.assertEqual(hsv['hue'][1], 65535)
+    #     self.assertEqual(hsv['hue'][9], 39321)
 
-#     def test_hue_array_2(self):
-#         builder = code_gen.compile_text(hue_array_2, debug_print=False)
-#         vm = VM(builder)
+    # def test_hue_array_2(self):
+    #     builder = code_gen.compile_text(hue_array_2, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 32768)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 32768)
 
-#     def test_hue_array_add(self):
-#         builder = code_gen.compile_text(hue_array_add, debug_print=False)
-#         vm = VM(builder)
+    # def test_hue_array_add(self):
+    #     builder = code_gen.compile_text(hue_array_add, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 6553)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 6553)
 
-#     def test_hue_array_add_2(self):
-#         builder = code_gen.compile_text(hue_array_add_2, debug_print=False)
-#         vm = VM(builder)
+    # def test_hue_array_add_2(self):
+    #     builder = code_gen.compile_text(hue_array_add_2, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 6552)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 6552)
 
-#     def test_hue_array_sub(self):
-#         builder = code_gen.compile_text(hue_array_sub, debug_print=False)
-#         vm = VM(builder)
+    # def test_hue_array_sub(self):
+    #     builder = code_gen.compile_text(hue_array_sub, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 58983)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 58983)
 
-#     def test_hue_array_mul(self):
-#         builder = code_gen.compile_text(hue_array_mul, debug_print=False)
-#         vm = VM(builder)
+    # def test_hue_array_mul(self):
+    #     builder = code_gen.compile_text(hue_array_mul, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 16384)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 16384)
 
-#     def test_hue_array_mul_f16(self):
-#         builder = code_gen.compile_text(hue_array_mul_f16, debug_print=False)
-#         vm = VM(builder)
+    # def test_hue_array_mul_f16(self):
+    #     builder = code_gen.compile_text(hue_array_mul_f16, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 32767)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 32767)
 
-#     def test_hue_array_div(self):
-#         builder = code_gen.compile_text(hue_array_div, debug_print=False)
-#         vm = VM(builder)
+    # def test_hue_array_div(self):
+    #     builder = code_gen.compile_text(hue_array_div, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 16384)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 16384)
 
-#     def test_hue_array_div_f16(self):
-#         builder = code_gen.compile_text(hue_array_div_f16, debug_print=False)
-#         vm = VM(builder)
+    # def test_hue_array_div_f16(self):
+    #     builder = code_gen.compile_text(hue_array_div_f16, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 26214)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 26214)
 
-#     def test_hue_array_mod(self):
-#         builder = code_gen.compile_text(hue_array_mod, debug_print=False)
-#         vm = VM(builder)
+    # def test_hue_array_mod(self):
+    #     builder = code_gen.compile_text(hue_array_mod, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hue']:
-#             self.assertEqual(a, 13108)
+    #     for a in hsv['hue']:
+    #         self.assertEqual(a, 13108)
 
-#     def test_sat_array_1(self):
-#         builder = code_gen.compile_text(sat_array_1, debug_print=False)
-#         vm = VM(builder)
+    # def test_sat_array_1(self):
+    #     builder = code_gen.compile_text(sat_array_1, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['sat'][1], 65535)
-#         self.assertEqual(hsv['sat'][9], 32768)
+    #     self.assertEqual(hsv['sat'][1], 65535)
+    #     self.assertEqual(hsv['sat'][9], 32768)
 
-#     def test_sat_array_2(self):
-#         builder = code_gen.compile_text(sat_array_2, debug_print=False)
-#         vm = VM(builder)
+    # def test_sat_array_2(self):
+    #     builder = code_gen.compile_text(sat_array_2, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['sat']:
-#             self.assertEqual(a, 32768)
+    #     for a in hsv['sat']:
+    #         self.assertEqual(a, 32768)
 
-#     def test_sat_array_add(self):
-#         builder = code_gen.compile_text(sat_array_add, debug_print=False)
-#         vm = VM(builder)
+    # def test_sat_array_add(self):
+    #     builder = code_gen.compile_text(sat_array_add, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['sat']:
-#             self.assertEqual(a, 6553)
+    #     for a in hsv['sat']:
+    #         self.assertEqual(a, 6553)
 
-#     def test_sat_array_sub(self):
-#         builder = code_gen.compile_text(sat_array_sub, debug_print=False)
-#         vm = VM(builder)
+    # def test_sat_array_sub(self):
+    #     builder = code_gen.compile_text(sat_array_sub, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['sat']:
-#             self.assertEqual(a, 0)
+    #     for a in hsv['sat']:
+    #         self.assertEqual(a, 0)
 
-#     def test_sat_array_mul(self):
-#         builder = code_gen.compile_text(sat_array_mul, debug_print=False)
-#         vm = VM(builder)
+    # def test_sat_array_mul(self):
+    #     builder = code_gen.compile_text(sat_array_mul, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['sat']:
-#             self.assertEqual(a, 8192)
+    #     for a in hsv['sat']:
+    #         self.assertEqual(a, 8192)
 
-#     def test_sat_array_div(self):
-#         builder = code_gen.compile_text(sat_array_div, debug_print=False)
-#         vm = VM(builder)
+    # def test_sat_array_div(self):
+    #     builder = code_gen.compile_text(sat_array_div, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['sat']:
-#             self.assertEqual(a, 16384)
+    #     for a in hsv['sat']:
+    #         self.assertEqual(a, 16384)
 
-#     def test_sat_array_mod(self):
-#         builder = code_gen.compile_text(sat_array_mod, debug_print=False)
-#         vm = VM(builder)
+    # def test_sat_array_mod(self):
+    #     builder = code_gen.compile_text(sat_array_mod, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['sat']:
-#             self.assertEqual(a, 13108)
+    #     for a in hsv['sat']:
+    #         self.assertEqual(a, 13108)
 
-#     def test_val_array_1(self):
-#         builder = code_gen.compile_text(val_array_1, debug_print=False)
-#         vm = VM(builder)
+    # def test_val_array_1(self):
+    #     builder = code_gen.compile_text(val_array_1, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['val'][1], 65535)
-#         self.assertEqual(hsv['val'][9], 32768)
+    #     self.assertEqual(hsv['val'][1], 65535)
+    #     self.assertEqual(hsv['val'][9], 32768)
 
-#     def test_val_array_2(self):
-#         builder = code_gen.compile_text(val_array_2, debug_print=False)
-#         vm = VM(builder)
+    # def test_val_array_2(self):
+    #     builder = code_gen.compile_text(val_array_2, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['val']:
-#             self.assertEqual(a, 32768)
+    #     for a in hsv['val']:
+    #         self.assertEqual(a, 32768)
 
-#     def test_val_array_add(self):
-#         builder = code_gen.compile_text(val_array_add, debug_print=False)
-#         vm = VM(builder)
+    # def test_val_array_add(self):
+    #     builder = code_gen.compile_text(val_array_add, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['val']:
-#             self.assertEqual(a, 6553)
+    #     for a in hsv['val']:
+    #         self.assertEqual(a, 6553)
 
-#     def test_val_array_sub(self):
-#         builder = code_gen.compile_text(val_array_sub, debug_print=False)
-#         vm = VM(builder)
+    # def test_val_array_sub(self):
+    #     builder = code_gen.compile_text(val_array_sub, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['val']:
-#             self.assertEqual(a, 0)
+    #     for a in hsv['val']:
+    #         self.assertEqual(a, 0)
 
-#     def test_val_array_mul(self):
-#         builder = code_gen.compile_text(val_array_mul, debug_print=False)
-#         vm = VM(builder)
+    # def test_val_array_mul(self):
+    #     builder = code_gen.compile_text(val_array_mul, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['val']:
-#             self.assertEqual(a, 16384)
+    #     for a in hsv['val']:
+    #         self.assertEqual(a, 16384)
 
-#     def test_val_array_div(self):
-#         builder = code_gen.compile_text(val_array_div, debug_print=False)
-#         vm = VM(builder)
+    # def test_val_array_div(self):
+    #     builder = code_gen.compile_text(val_array_div, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['val']:
-#             self.assertEqual(a, 16384)
+    #     for a in hsv['val']:
+    #         self.assertEqual(a, 16384)
 
-#     def test_val_array_mod(self):
-#         builder = code_gen.compile_text(val_array_mod, debug_print=False)
-#         vm = VM(builder)
+    # def test_val_array_mod(self):
+    #     builder = code_gen.compile_text(val_array_mod, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['val']:
-#             self.assertEqual(a, 13108)
+    #     for a in hsv['val']:
+    #         self.assertEqual(a, 13108)
 
 
-#     def test_hs_fade_array_1(self):
-#         builder = code_gen.compile_text(hs_fade_array_1, debug_print=False)
-#         vm = VM(builder)
+    # def test_hs_fade_array_1(self):
+    #     builder = code_gen.compile_text(hs_fade_array_1, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['hs_fade'][1], 0)
-#         self.assertEqual(hsv['hs_fade'][9], 500)
+    #     self.assertEqual(hsv['hs_fade'][1], 0)
+    #     self.assertEqual(hsv['hs_fade'][9], 500)
 
-#     def test_hs_fade_array_2(self):
-#         builder = code_gen.compile_text(hs_fade_array_2, debug_print=False)
-#         vm = VM(builder)
+    # def test_hs_fade_array_2(self):
+    #     builder = code_gen.compile_text(hs_fade_array_2, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hs_fade']:
-#             self.assertEqual(a, 200)
+    #     for a in hsv['hs_fade']:
+    #         self.assertEqual(a, 200)
 
-#     def test_hs_fade_array_add(self):
-#         builder = code_gen.compile_text(hs_fade_array_add, debug_print=False)
-#         vm = VM(builder)
+    # def test_hs_fade_array_add(self):
+    #     builder = code_gen.compile_text(hs_fade_array_add, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hs_fade']:
-#             self.assertEqual(a, 100)
+    #     for a in hsv['hs_fade']:
+    #         self.assertEqual(a, 100)
 
-#     def test_hs_fade_array_sub(self):
-#         builder = code_gen.compile_text(hs_fade_array_sub, debug_print=False)
-#         vm = VM(builder)
+    # def test_hs_fade_array_sub(self):
+    #     builder = code_gen.compile_text(hs_fade_array_sub, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hs_fade']:
-#             self.assertEqual(a, 100)
+    #     for a in hsv['hs_fade']:
+    #         self.assertEqual(a, 100)
 
-#     def test_hs_fade_array_mul(self):
-#         builder = code_gen.compile_text(hs_fade_array_mul, debug_print=False)
-#         vm = VM(builder)
+    # def test_hs_fade_array_mul(self):
+    #     builder = code_gen.compile_text(hs_fade_array_mul, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hs_fade']:
-#             self.assertEqual(a, 1000)
+    #     for a in hsv['hs_fade']:
+    #         self.assertEqual(a, 1000)
 
-#     def test_hs_fade_array_div(self):
-#         builder = code_gen.compile_text(hs_fade_array_div, debug_print=False)
-#         vm = VM(builder)
+    # def test_hs_fade_array_div(self):
+    #     builder = code_gen.compile_text(hs_fade_array_div, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hs_fade']:
-#             self.assertEqual(a, 50)
+    #     for a in hsv['hs_fade']:
+    #         self.assertEqual(a, 50)
 
-#     def test_hs_fade_array_mod(self):
-#         builder = code_gen.compile_text(hs_fade_array_mod, debug_print=False)
-#         vm = VM(builder)
+    # def test_hs_fade_array_mod(self):
+    #     builder = code_gen.compile_text(hs_fade_array_mod, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['hs_fade']:
-#             self.assertEqual(a, 2)
+    #     for a in hsv['hs_fade']:
+    #         self.assertEqual(a, 2)
 
-#     def test_v_fade_array_1(self):
-#         builder = code_gen.compile_text(v_fade_array_1, debug_print=False)
-#         vm = VM(builder)
+    # def test_v_fade_array_1(self):
+    #     builder = code_gen.compile_text(v_fade_array_1, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['v_fade'][1], 19)
-#         self.assertEqual(hsv['v_fade'][9], 250)
+    #     self.assertEqual(hsv['v_fade'][1], 19)
+    #     self.assertEqual(hsv['v_fade'][9], 250)
 
-#     def test_v_fade_array_2(self):
-#         builder = code_gen.compile_text(v_fade_array_2, debug_print=False)
-#         vm = VM(builder)
+    # def test_v_fade_array_2(self):
+    #     builder = code_gen.compile_text(v_fade_array_2, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['v_fade']:
-#             self.assertEqual(a, 500)
+    #     for a in hsv['v_fade']:
+    #         self.assertEqual(a, 500)
 
-#     def test_v_fade_array_add(self):
-#         builder = code_gen.compile_text(v_fade_array_add, debug_print=False)
-#         vm = VM(builder)
+    # def test_v_fade_array_add(self):
+    #     builder = code_gen.compile_text(v_fade_array_add, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['v_fade']:
-#             self.assertEqual(a, 100)
+    #     for a in hsv['v_fade']:
+    #         self.assertEqual(a, 100)
 
-#     def test_v_fade_array_sub(self):
-#         builder = code_gen.compile_text(v_fade_array_sub, debug_print=False)
-#         vm = VM(builder)
+    # def test_v_fade_array_sub(self):
+    #     builder = code_gen.compile_text(v_fade_array_sub, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['v_fade']:
-#             self.assertEqual(a, 100)
+    #     for a in hsv['v_fade']:
+    #         self.assertEqual(a, 100)
 
-#     def test_v_fade_array_mul(self):
-#         builder = code_gen.compile_text(v_fade_array_mul, debug_print=False)
-#         vm = VM(builder)
+    # def test_v_fade_array_mul(self):
+    #     builder = code_gen.compile_text(v_fade_array_mul, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['v_fade']:
-#             self.assertEqual(a, 1000)
+    #     for a in hsv['v_fade']:
+    #         self.assertEqual(a, 1000)
 
-#     def test_v_fade_array_div(self):
-#         builder = code_gen.compile_text(v_fade_array_div, debug_print=False)
-#         vm = VM(builder)
+    # def test_v_fade_array_div(self):
+    #     builder = code_gen.compile_text(v_fade_array_div, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['v_fade']:
-#             self.assertEqual(a, 250)
+    #     for a in hsv['v_fade']:
+    #         self.assertEqual(a, 250)
 
-#     def test_v_fade_array_mod(self):
-#         builder = code_gen.compile_text(v_fade_array_mod, debug_print=False)
-#         vm = VM(builder)
+    # def test_v_fade_array_mod(self):
+    #     builder = code_gen.compile_text(v_fade_array_mod, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         for a in hsv['v_fade']:
-#             self.assertEqual(a, 2)
+    #     for a in hsv['v_fade']:
+    #         self.assertEqual(a, 2)
 
 
-#     def test_gfx_array_indexing(self):
-#         builder = code_gen.compile_text(gfx_array_indexing, debug_print=False)
-#         vm = VM(builder)
+    # def test_gfx_array_indexing(self):
+    #     builder = code_gen.compile_text(gfx_array_indexing, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         hsv = vm.dump_hsv()
+    #     hsv = vm.dump_hsv()
 
-#         self.assertEqual(hsv['val'][0], 6553)
-#         self.assertEqual(hsv['val'][1], 19660)
-#         self.assertEqual(hsv['val'][2], 0)
-#         self.assertEqual(hsv['val'][3], 26214)
+    #     self.assertEqual(hsv['val'][0], 6553)
+    #     self.assertEqual(hsv['val'][1], 19660)
+    #     self.assertEqual(hsv['val'][2], 0)
+    #     self.assertEqual(hsv['val'][3], 26214)
 
-#     def test_gfx_array_load(self):
-#         builder = code_gen.compile_text(gfx_array_load, debug_print=False)
-#         vm = VM(builder)
+    # def test_gfx_array_load(self):
+    #     builder = code_gen.compile_text(gfx_array_load, debug_print=False)
+    #     vm = VM(builder)
 
-#         vm.run_once()
+    #     vm.run_once()
 
-#         regs = vm.dump_registers()
+    #     regs = vm.dump_registers()
 
-#         self.assertEqual(regs['a'], 0.0999908447265625)
-#         self.assertEqual(regs['b'], 0.1999969482421875)
-#         self.assertEqual(regs['c'], 0.29998779296875)
-#         self.assertEqual(regs['d'], 0.399993896484375)
+    #     self.assertEqual(regs['a'], 0.0999908447265625)
+    #     self.assertEqual(regs['b'], 0.1999969482421875)
+    #     self.assertEqual(regs['c'], 0.29998779296875)
+    #     self.assertEqual(regs['d'], 0.399993896484375)
 
 
 
 
-
-# # @pytest.mark.skip
-# class CGTestsLocal_Opt_LS_SCHED(CGTestsLocal_Opt_None):
-#     def run_test(self, program, expected={}, opt_passes=OptPasses.LS_SCHED):
-#         super().run_test(program, expected, opt_passes=opt_passes)
-
-# class CGTestsLocal_Opt_GVN(CGTestsLocal_Opt_None):
-#     def run_test(self, program, expected={}, opt_passes=OptPasses.GVN):
-#         super().run_test(program, expected, opt_passes=opt_passes)
-
-# class CGTestsLocal_Opt_LOOP(CGTestsLocal_Opt_None):
-#     def run_test(self, program, expected={}, opt_passes=OptPasses.LOOP):
-#         super().run_test(program, expected, opt_passes=opt_passes)
-
-
-
-@pytest.mark.skip
+# @pytest.mark.skip
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerLocal(CompilerTests):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
@@ -3896,7 +3883,7 @@ import time
 
 ct = chromatron.Chromatron(host=NETWORK_ADDR)
 
-# @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerOnDevice(CompilerTests):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
