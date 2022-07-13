@@ -618,7 +618,7 @@ PT_BEGIN( pt );
 
     get_program_fname( state->vm_id, state->program_fname );
 
-    log_v_debug_P( PSTR("Starting VM thread: %s"), state->program_fname );
+    trace_printf( PSTR("Starting VM thread: %s"), state->program_fname );
 
     // reset VM data
     reset_published_data( state->vm_id );
@@ -986,7 +986,7 @@ PT_BEGIN( pt );
             // Are we resetting a VM?
             if( vm_reset[i] ){
 
-                log_v_debug_P( PSTR("Resetting VM: %d"), i );
+                trace_printf( PSTR("Resetting VM: %d"), i );
 
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
 
@@ -1024,7 +1024,7 @@ PT_BEGIN( pt );
             // Did VM that was running just get told to stop?
             else if( !vm_run[i] && is_vm_running( i ) ){
 
-                log_v_debug_P( PSTR("Stopping VM: %d"), i );
+                trace_printf( PSTR("Stopping VM: %d"), i );
                 vm_status[i] = VM_STATUS_NOT_RUNNING;
 
                 vm_run_time[i]      = 0;
