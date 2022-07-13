@@ -190,6 +190,9 @@ opcodes = {
     'VMOD':                 0xE5,
 
     'VMIN':                 0xE6,
+    'VMAX':                 0xE7,
+    'VAVG':                 0xE8,
+    'VSUM':                 0xE9,
 }
 
 class Opcode(object):

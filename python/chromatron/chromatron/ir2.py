@@ -6929,6 +6929,9 @@ class irVectorCalc(IR):
     def generate(self):
         ops = {
             'min': insVectorMin,
+            'max': insVectorMax,
+            'avg': insVectorAvg,
+            'sum': insVectorSum,
         }
 
         return ops[self.op](self.result.generate(), self.ref.generate(), lineno=self.lineno)

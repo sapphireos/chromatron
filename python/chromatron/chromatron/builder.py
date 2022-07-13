@@ -516,7 +516,7 @@ class Builder(object):
                     # we already know the array length, so this is just an assign
                     ir = irAssign(result, length, lineno=lineno)
 
-                elif func == 'min':
+                elif func in ['min', 'max', 'avg', 'sum']:
                     ir = irVectorCalc(func, result, loaded_ref, lineno=lineno)
 
             else:

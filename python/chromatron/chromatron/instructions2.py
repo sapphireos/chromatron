@@ -1816,6 +1816,60 @@ class insVectorMin(insVectorCalc):
 
         vm.registers[self.result.reg] = result
 
+class insVectorMax(insVectorCalc):
+    mnemonic = 'VMAX'
+    op = "max"
+
+    def execute(self, vm):
+        ref = vm.registers[self.ref.reg]
+
+        array = ref.pool
+        addr = ref.addr
+
+        result = array[addr]
+        for i in range(self.length):
+            if array[addr] > result:
+                result = array[addr]
+
+            addr += 1
+
+        vm.registers[self.result.reg] = result
+
+class insVectorAvg(insVectorCalc):
+    mnemonic = 'VAVG'
+    op = "avg"
+
+    def execute(self, vm):
+        ref = vm.registers[self.ref.reg]
+
+        array = ref.pool
+        addr = ref.addr
+
+        result = 0
+        for i in range(self.length):
+            result += array[addr]
+
+            addr += 1
+
+        vm.registers[self.result.reg] = result
+
+class insVectorAvg(insVectorCalc):
+    mnemonic = 'VSUM'
+    op = "sum"
+
+    def execute(self, vm):
+        ref = vm.registers[self.ref.reg]
+
+        array = ref.pool
+        addr = ref.addr
+
+        result = 0
+        for i in range(self.length):
+            result += array[addr]
+
+            addr += 1
+
+        vm.registers[self.result.reg] = result / self.length
 
 class insHalt(BaseInstruction):
     mnemonic = 'HALT'

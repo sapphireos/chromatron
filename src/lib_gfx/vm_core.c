@@ -609,9 +609,10 @@ static int8_t _vm_i8_run_stream(
         &&opcode_vdiv,              // 228
         &&opcode_vmod,              // 229
         &&opcode_vmin,              // 230
-        &&opcode_trap,              // 231
-        &&opcode_trap,              // 232
-        &&opcode_trap,              // 233
+        &&opcode_vmax,              // 231
+        &&opcode_vavg,              // 232
+        &&opcode_vsum,              // 233
+        
         &&opcode_trap,              // 234
         &&opcode_trap,              // 235
         &&opcode_trap,              // 236
@@ -2196,6 +2197,59 @@ opcode_vmin:
     registers[opcode_vector->target] = value;
 
     DISPATCH;
+
+opcode_vmax:
+    DECODE_VECTOR;
+
+    ref.n = registers[opcode_vector->value];
+    ptr_i32 = pools[ref.ref.pool];
+
+    value = INT32_MIN;
+    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+        if( ptr_i32[ref.ref.addr + i] > value ){
+
+            value = ptr_i32[ref.ref.addr + i];
+        }
+    }
+
+    registers[opcode_vector->target] = value;
+
+    DISPATCH;
+
+opcode_vavg:
+    DECODE_VECTOR;
+
+    ref.n = registers[opcode_vector->value];
+    ptr_i32 = pools[ref.ref.pool];
+
+    value = 0;
+    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+        value += ptr_i32[ref.ref.addr + i];
+    }
+
+    registers[opcode_vector->target] = value / opcode_vector->length;
+
+    DISPATCH;
+
+opcode_vsum:
+    DECODE_VECTOR;
+
+    ref.n = registers[opcode_vector->value];
+    ptr_i32 = pools[ref.ref.pool];
+
+    value = 0;
+    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+        value += ptr_i32[ref.ref.addr + i];
+    }
+
+    registers[opcode_vector->target] = value;
+
+    DISPATCH;
+
+
 
 opcode_trap:
     
