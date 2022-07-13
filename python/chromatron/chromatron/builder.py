@@ -549,7 +549,7 @@ class Builder(object):
         return result
 
     def ret(self, value, lineno=None):
-        value = self.load_value(value, lineno=lineno)
+        value = self.load_value(value, target_type=self.current_func.ret_type, lineno=lineno)
 
         if isinstance(value.var, varFunctionRef):
             # ok to return a scalar function ref
@@ -859,9 +859,9 @@ class Builder(object):
 
         return target
 
-    def binop(self, op, left, right, lineno=None):
-        left = self.load_value(left, lineno=lineno)
-        right = self.load_value(right, lineno=lineno)
+    def binop(self, op, left, right, target_type=None, lineno=None):
+        left = self.load_value(left, target_type=target_type, lineno=lineno)
+        right = self.load_value(right, target_type=target_type, lineno=lineno)
 
         # if both types are gfx16, use i32
         if left.data_type == 'gfx16' and right.data_type == 'gfx16':

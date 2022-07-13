@@ -69,7 +69,7 @@ class cg1Node(ast.AST):
         assert lineno != None
         self.lineno = lineno
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         raise NotImplementedError(self)
 
 class cg1CodeNode(cg1Node):
@@ -157,7 +157,7 @@ class cg1Struct(cg1Node):
         self.name = name
         self.fields = fields
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         fields = {k: {'type':v.type, 'dimensions':v.dimensions} for (k, v) in list(self.fields.items())}
         return builder.create_struct(self.name, fields, lineno=self.lineno)
 
@@ -171,7 +171,7 @@ class cg1GenericObject(cg1Node):
         self.name = name
         self.kw = kw
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         # should not get here
         assert False
         # builder.generic_object(self.name, args, self.kw, lineno=self.lineno)
@@ -289,7 +289,7 @@ class cg1Module(cg1Node):
         return builder.finish_module()
 
 class cg1NoOp(cg1CodeNode):
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         return builder.nop(lineno=self.lineno)
 
 class cg1Func(cg1CodeNode):
@@ -303,7 +303,7 @@ class cg1Func(cg1CodeNode):
         self.returns = returns
         self.decorators = decorators
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         func = builder.func(self.name, returns=self.returns, lineno=self.lineno)
 
         for p in self.params:
@@ -334,7 +334,7 @@ class cg1Return(cg1CodeNode):
         super(cg1Return, self).__init__(**kwargs)
         self.value = value
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         value = self.value.build(builder)
 
         return builder.ret(value, lineno=self.lineno)
@@ -349,7 +349,7 @@ class cg1Call(cg1CodeNode):
         self.params = params
         self.keywords = keywords
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         # try:
         params = [p.build(builder) for p in self.params]
 
@@ -377,7 +377,7 @@ class cg1If(cg1CodeNode):
         self.body = body
         self.orelse = orelse
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         test = self.test.build(builder)
 
         body_label, else_label, end_label = builder.ifelse(test, lineno=self.lineno)
@@ -406,11 +406,11 @@ class cg1BinOpNode(cg1CodeNode):
         self.left = left
         self.right = right
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         left = self.left.build(builder)
         right = self.right.build(builder)
 
-        return builder.binop(self.op, left, right, lineno=self.lineno)
+        return builder.binop(self.op, left, right, target_type=target_type, lineno=self.lineno)
 
 class cg1CompareNode(cg1BinOpNode):
     pass
@@ -423,7 +423,7 @@ class cg1UnaryNot(cg1CodeNode):
         super(cg1UnaryNot, self).__init__(**kwargs)
         self.value = value
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         value = self.value.build(builder)
 
         return builder.unary_not(value, lineno=self.lineno)
@@ -435,7 +435,7 @@ class cg1Tuple(cg1CodeNode):
         super(cg1Tuple, self).__init__(**kwargs)
         self.items = items
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         return [item.name for item in self.items]
 
 class cg1List(cg1CodeNode):
@@ -445,7 +445,7 @@ class cg1List(cg1CodeNode):
         super(cg1List, self).__init__(**kwargs)
         self.items = items
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         return [item.name for item in self.items]
         
 
@@ -458,7 +458,7 @@ class cg1For(cg1CodeNode):
         self.stop = stop
         self.body = body
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         i_declare = cg1DeclareVar(name=self.iterator.name, lineno=self.lineno)    
         i_declare.build(builder)
 
@@ -484,7 +484,7 @@ class cg1While(cg1CodeNode):
         self.test = test
         self.body = body
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         builder.begin_while(lineno=self.lineno)
 
         test = self.test.build(builder)
@@ -502,11 +502,11 @@ class cg1While(cg1CodeNode):
 
 
 class cg1Break(cg1CodeNode):
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         builder.loop_break(lineno=self.lineno)
 
 class cg1Continue(cg1CodeNode):
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         builder.loop_continue(lineno=self.lineno)
 
 
@@ -517,7 +517,7 @@ class cg1Assert(cg1CodeNode):
         super(cg1Assert, self).__init__(**kwargs)
         self.test = test
         
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         test = self.test.build(builder)
         builder.assertion(test, lineno=self.lineno)
 
@@ -530,9 +530,9 @@ class cg1Assign(cg1CodeNode):
         self.target = target
         self.value = value
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         target = self.target.build(builder)
-        value = self.value.build(builder)
+        value = self.value.build(builder, target_type=target.data_type)
 
         return builder.assign(target, value, lineno=self.lineno)
 
@@ -546,7 +546,7 @@ class cg1AugAssign(cg1CodeNode):
         self.target = target
         self.value = value
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         target = self.target.build(builder)
 
         value = self.value.build(builder)
@@ -619,7 +619,7 @@ class cg1StrLiteral(cg1CodeNode):
         super(cg1StrLiteral, self).__init__(**kwargs)
         self.s = s
 
-    def build(self, builder):
+    def build(self, builder, target_type=None):
         return builder.add_string(self.s, lineno=self.lineno)
         # return self.s
 

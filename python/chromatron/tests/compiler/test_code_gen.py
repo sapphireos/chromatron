@@ -1563,6 +1563,19 @@ def init():
 
 """
 
+test_expr_db_ret = """
+
+a = Number(publish=True)
+
+def db():
+    return db.kv_test_key
+
+def init():
+    db.kv_test_key = 123
+
+    a = db()
+"""
+
 test_expr_db_f16 = """
 
 a = Fixed16(publish=True)
@@ -2106,6 +2119,13 @@ class CompilerTests(object):
             expected={
                 'a': 124,
                 'b': 246,
+            })
+
+    def test_expr_db_ret(self, opt_passes):
+        self.run_test(test_expr_db_ret,
+            opt_passes=opt_passes,
+            expected={
+                'a': 123,
             })
 
     def test_expr_db_f16(self, opt_passes):
@@ -3817,7 +3837,7 @@ def init():
 
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerLocal(CompilerTests):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
@@ -3862,7 +3882,7 @@ import time
 
 ct = chromatron.Chromatron(host=NETWORK_ADDR)
 
-# @pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerOnDevice(CompilerTests):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
@@ -3883,6 +3903,9 @@ class TestCompilerOnDevice(CompilerTests):
                 stream = image.render('test.fxb')
 
                 ct.stop_vm()
+
+                # reset test key
+                ct.set_key('kv_test_key', 0)
                 
                 # change vm program
                 ct.set_key('vm_prog', 'test.fxb')
