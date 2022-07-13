@@ -102,6 +102,9 @@ type_id_registry = {
     'mac64': CATBUS_TYPE_MAC64,
     'key128': CATBUS_TYPE_KEY128,
     'ipv4': CATBUS_TYPE_IPv4,
+
+    'funcref': CATBUS_TYPE_NONE,
+    'pixref': CATBUS_TYPE_NONE,
 }
 
 def get_type_id(type_name):

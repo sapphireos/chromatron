@@ -1655,7 +1655,13 @@ class insVector(BaseInstruction):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
 
     def assemble(self):
-        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.value.assemble(), get_type_id(self.target.var.scalar_type), self.length, lineno=self.lineno)
+        if self.target.var.scalar_type == 'offset':
+            data_type = self.target.var.target.scalar_type
+
+        else:
+            data_type = self.target.var.scalar_type
+
+        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.value.assemble(), get_type_id(data_type), self.length, lineno=self.lineno)
 
 class insVectorMov(insVector):
     mnemonic = 'VMOV'
@@ -1851,7 +1857,7 @@ class insVectorAvg(insVectorCalc):
 
             addr += 1
 
-        vm.registers[self.result.reg] = result
+        vm.registers[self.result.reg] = result / self.length
 
 class insVectorSum(insVectorCalc):
     mnemonic = 'VSUM'
@@ -1869,7 +1875,7 @@ class insVectorSum(insVectorCalc):
 
             addr += 1
 
-        vm.registers[self.result.reg] = result / self.length
+        vm.registers[self.result.reg] = result
 
 class insHalt(BaseInstruction):
     mnemonic = 'HALT'
