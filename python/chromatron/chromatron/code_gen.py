@@ -549,7 +549,7 @@ class cg1AugAssign(cg1CodeNode):
     def build(self, builder, target_type=None):
         target = self.target.build(builder)
 
-        value = self.value.build(builder)
+        value = self.value.build(builder, target_type=target.data_type)
     
         builder.augassign(self.op, target, value, lineno=self.lineno)
 
