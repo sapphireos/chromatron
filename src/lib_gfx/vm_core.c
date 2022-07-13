@@ -587,10 +587,10 @@ static int8_t _vm_i8_run_stream(
 
         &&opcode_vmov,              // 224
         &&opcode_vadd,              // 225
-        &&opcode_trap,              // 226
-        &&opcode_trap,              // 227
-        &&opcode_trap,              // 228
-        &&opcode_trap,              // 229
+        &&opcode_vsub,              // 226
+        &&opcode_vmul,              // 227
+        &&opcode_vdiv,              // 228
+        &&opcode_vmod,              // 229
         &&opcode_trap,              // 230
         &&opcode_trap,              // 231
         &&opcode_trap,              // 232
@@ -2035,6 +2035,61 @@ opcode_vadd:
 
     DISPATCH;
 
+opcode_vsub:
+    DECODE_VECTOR;
+
+    ref.n = registers[opcode_vector->target];
+    value = registers[opcode_vector->value];
+    ptr_i32 = pools[ref.ref.pool];
+
+    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+        ptr_i32[ref.ref.addr + i] -= value;
+    }
+
+    DISPATCH;
+
+opcode_vmul:
+    DECODE_VECTOR;
+
+    ref.n = registers[opcode_vector->target];
+    value = registers[opcode_vector->value];
+    ptr_i32 = pools[ref.ref.pool];
+
+    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+        ptr_i32[ref.ref.addr + i] *= value;
+    }
+
+    DISPATCH;
+
+opcode_vdiv:
+    DECODE_VECTOR;
+
+    ref.n = registers[opcode_vector->target];
+    value = registers[opcode_vector->value];
+    ptr_i32 = pools[ref.ref.pool];
+
+    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+        ptr_i32[ref.ref.addr + i] /= value;
+    }
+
+    DISPATCH;
+
+opcode_vmod:
+    DECODE_VECTOR;
+
+    ref.n = registers[opcode_vector->target];
+    value = registers[opcode_vector->value];
+    ptr_i32 = pools[ref.ref.pool];
+
+    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+        ptr_i32[ref.ref.addr + i] %= value;
+    }
+
+    DISPATCH;
 
 opcode_trap:
     
