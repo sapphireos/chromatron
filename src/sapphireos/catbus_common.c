@@ -243,8 +243,46 @@ int8_t type_i8_convert(
         src_size = src_data_len;
     }
 
+    // int32 to fixed16
+    if( ( src_type == CATBUS_TYPE_INT32 ) && ( dest_type == CATBUS_TYPE_FIXED16 ) ){
+
+        int32_t src = *(int32_t *)src_data;
+        src <<= 16;
+
+        int32_t dst = *(int32_t *)dest_data;
+        i64_to_specific( src, dest_type, dest_data );
+
+        // check if changing
+        if( src > dst ){
+
+            return 1;
+        }
+        else if( src < dst ){
+
+            return -1;
+        }
+    }
+    // fixed16 to int32
+    else if( ( src_type == CATBUS_TYPE_FIXED16 ) && ( dest_type == CATBUS_TYPE_INT32 ) ){
+
+        int32_t src = *(int32_t *)src_data;
+        src >>= 16;
+
+        int32_t dst = *(int32_t *)dest_data;
+        i64_to_specific( src, dest_type, dest_data );
+
+        // check if changing
+        if( src > dst ){
+
+            return 1;
+        }
+        else if( src < dst ){
+
+            return -1;
+        }
+    }
     // numeric to numeric
-    if( !dst_string && !src_string ){
+    else if( !dst_string && !src_string ){
     
         int64_t src_i64 = specific_to_i64( src_type, src_data );
         int64_t dst_i64 = specific_to_i64( dest_type, dest_data );

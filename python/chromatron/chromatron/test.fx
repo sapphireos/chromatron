@@ -1,12 +1,13 @@
 
-a = Number(publish=True)
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
 
 def init():
     db.kv_test_key = 123
-    db.kv_test_key += 1
     
-    a = db.kv_test_key
-    
+    a = db.kv_test_key + 1.0 # note that since we don't really do DB type conversion, db.kv_test_key gets treated as an f16 here.  this is ok for now.
+    b = db.kv_test_key + db.kv_test_key
+
 # a = Number(publish=True)
 # b = Number(publish=True)
 
