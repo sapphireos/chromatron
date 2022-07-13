@@ -4434,9 +4434,9 @@ int8_t vm_i8_load_program(
 
             kvdb_i8_add( publish->hash, publish->type, 1, 0, 0 );
             kvdb_v_set_tag( publish->hash, ( 1 << vm_id ) );
-        }
 
-        obj_ptr += header.publish_len;
+            obj_ptr += sizeof(vm_publish_t);
+        }
     }
 
     
