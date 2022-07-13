@@ -1853,7 +1853,7 @@ class insVectorAvg(insVectorCalc):
 
         vm.registers[self.result.reg] = result
 
-class insVectorAvg(insVectorCalc):
+class insVectorSum(insVectorCalc):
     mnemonic = 'VSUM'
     op = "sum"
 
