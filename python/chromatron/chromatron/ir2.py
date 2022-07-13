@@ -49,7 +49,7 @@ class OptPasses(Enum):
 
 
 DEBUG = False
-DEBUG_PRINT = True
+DEBUG_PRINT = False
 EXCEPTION_ON_LIVENESS_ERROR = False
 SHOW_LIVENESS = False
 # LIVENESS_MODE = 'register'
