@@ -1781,6 +1781,41 @@ class insVectorMod(insVector):
         
             addr += 1
 
+class insVectorCalc(BaseInstruction):
+    mnemonic = 'VECTORCALC'
+
+    def __init__(self, result, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.result = result
+        self.ref = ref
+
+        self.length = self.ref.var.target.length
+
+    def __str__(self):
+        return "%s %s = %s(%s)" % (self.mnemonic, self.result, self.op, self.ref)
+
+    def assemble(self):
+        return OpcodeFormatVector(self.mnemonic, self.result.assemble(), self.ref.assemble(), get_type_id(self.ref.var.scalar_type), self.length, lineno=self.lineno)
+
+class insVectorMin(insVectorCalc):
+    mnemonic = 'VMIN'
+    op = "min"
+
+    def execute(self, vm):
+        ref = vm.registers[self.ref.reg]
+
+        array = ref.pool
+        addr = ref.addr
+
+        result = array[addr]
+        for i in range(self.length):
+            if array[addr] < result:
+                result = array[addr]
+
+            addr += 1
+
+        vm.registers[self.result.reg] = result
+
 
 class insHalt(BaseInstruction):
     mnemonic = 'HALT'

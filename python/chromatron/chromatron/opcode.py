@@ -188,6 +188,8 @@ opcodes = {
     'VMUL':                 0xE3,
     'VDIV':                 0xE4,
     'VMOD':                 0xE5,
+
+    'VMIN':                 0xE6,
 }
 
 class Opcode(object):

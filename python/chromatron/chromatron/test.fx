@@ -1,39 +1,14 @@
 
-ary = Number()[2][2][2]
+ary = Number()[4]
 
 a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
-e = Number(publish=True)
-f = Number(publish=True)
-g = Number(publish=True)
-h = Number(publish=True)
-i = Number(publish=True)
-
 
 def init():
+    for i in len(ary):
+        ary[len(ary) - 1 - i] = i + 1
 
-    ary[0][0][0] = 1
-    ary[0][0][1] = 2
-    ary[0][1][0] = 3
-    ary[0][1][1] = 4
-    ary[1][0][0] = 5
-    ary[1][0][1] = 6
-    ary[1][1][0] = 7
-    ary[1][1][1] = 8
+    a = min(ary)
 
-    a = ary[0][0][0]
-    b = ary[0][0][1]
-    c = ary[0][1][0]
-    d = ary[0][1][1]
-    e = ary[1][0][0]
-    f = ary[1][0][1]
-    g = ary[1][1][0]
-    h = ary[1][1][1]
-
-    i = ary[3][0][1]
-    
 # current_hue = Fixed16()
 # delay = Number()
 # cursor = Number()

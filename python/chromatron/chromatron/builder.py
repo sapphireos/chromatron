@@ -507,11 +507,21 @@ class Builder(object):
 
             if func in ARRAY_FUNCS:
                 ref = params[0].target
+                loaded_ref = self.load_value(ref, lineno=lineno)
                 length = self.add_const(ref.length, lineno=lineno)
-                params.append(length)
+                #params.append(length)
                 # print(func, params, ref)
 
-            ir = irLibCall(const, params, func, lineno=lineno)
+                if func == 'len':
+                    # we already know the array length, so this is just an assign
+                    ir = irAssign(result, length, lineno=lineno)
+
+                elif func == 'min':
+                    ir = irVectorCalc(func, result, loaded_ref, lineno=lineno)
+
+            else:
+                ir = irLibCall(const, params, func, lineno=lineno)
+            
             self.append_node(ir)
 
         else:
@@ -542,8 +552,9 @@ class Builder(object):
                 ir = irCall(func, params, lineno=lineno)
                 self.append_node(ir)
 
-        ir = irLoadRetVal(result, lineno=lineno)
-        self.append_node(ir)
+        if isinstance(ir, irCallType):
+            ir = irLoadRetVal(result, lineno=lineno)
+            self.append_node(ir)
 
         # place return label:
         # this helps split the block for some optimizer passes

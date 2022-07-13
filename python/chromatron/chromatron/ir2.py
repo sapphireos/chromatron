@@ -6906,28 +6906,32 @@ class irVectorOp(IR):
             'mod': insVectorMod,
         }
 
-    #     pixel_ops = {
-    #         'add': insPixelVectorAdd,
-    #         'sub': insPixelVectorSub,
-    #         'mul': insPixelVectorMul,
-    #         'div': insPixelVectorDiv,
-    #         'mod': insPixelVectorMod,
-    #     }
-
-    #     if isinstance(self.target, irPixelAttr):
-    #         target = self.target.generate()
-    #         return pixel_ops[self.op](target.name, target.attr, self.value.generate(), lineno=self.lineno)
-
-    #     else:
         return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
 
-        # target = self.target.generate()
-        # value = self.value.generate()
+class irVectorCalc(IR):
+    def __init__(self, op, result, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.op = op
+        self.result = result
+        self.ref = ref
         
-        # print(target)
-        # print(value)
+    def __str__(self):
+        s = f'{self.result} = {self.op}({self.ref})'
 
-        # return insNop(lineno=self.lineno)
+        return s
+
+    def get_input_vars(self):
+        return [self.ref]
+
+    def get_output_vars(self):
+        return [self.result]
+
+    def generate(self):
+        ops = {
+            'min': insVectorMin,
+        }
+
+        return ops[self.op](self.result.generate(), self.ref.generate(), lineno=self.lineno)
 
 
 class irObjectLookup(IR):

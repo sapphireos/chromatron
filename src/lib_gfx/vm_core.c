@@ -608,7 +608,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_vmul,              // 227
         &&opcode_vdiv,              // 228
         &&opcode_vmod,              // 229
-        &&opcode_trap,              // 230
+        &&opcode_vmin,              // 230
         &&opcode_trap,              // 231
         &&opcode_trap,              // 232
         &&opcode_trap,              // 233
@@ -620,6 +620,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 239
         &&opcode_trap,              // 240
         &&opcode_trap,              // 241
+
+
         &&opcode_trap,              // 242
         &&opcode_trap,              // 243
         &&opcode_trap,              // 244
@@ -708,6 +710,8 @@ static int8_t _vm_i8_run_stream(
 //         &&opcode_pstore_sat,        // 56
 //         &&opcode_pstore_val,        // 57
 //         &&opcode_pstore_hsfade,     // 58
+
+
 //         &&opcode_pstore_vfade,      // 59
 
 //         &&opcode_pload_hue,         // 60
@@ -2171,6 +2175,25 @@ opcode_vmod:
 
         ptr_i32[ref.ref.addr + i] %= value;
     }
+
+    DISPATCH;
+
+opcode_vmin:
+    DECODE_VECTOR;
+
+    ref.n = registers[opcode_vector->value];
+    ptr_i32 = pools[ref.ref.pool];
+
+    value = INT32_MAX;
+    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+        if( ptr_i32[ref.ref.addr + i] < value ){
+
+            value = ptr_i32[ref.ref.addr + i];
+        }
+    }
+
+    registers[opcode_vector->target] = value;
 
     DISPATCH;
 
