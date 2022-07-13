@@ -442,11 +442,11 @@ class OpcodeFormat1Imm5Reg(Opcode64):
         self.format = 'HBBBBB'
 
 class OpcodeFormatVector(Opcode64):
-    def __init__(self, opcode, target, value, length, **kwargs):
+    def __init__(self, opcode, target, value, data_type, length, **kwargs):
         super().__init__(opcode, **kwargs)
 
-        self.items = [target, value, length]
-        self.format = 'BBH'
+        self.items = [target, value, data_type, length]
+        self.format = 'BBBH'
 
 class OpcodeFormatLookup0(Opcode):
     def __init__(self, opcode, dest, ref, **kwargs):

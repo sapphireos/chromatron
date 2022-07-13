@@ -1655,7 +1655,7 @@ class insVector(BaseInstruction):
         return "%s *%s %s= %s" % (self.mnemonic, self.target, self.symbol, self.value)
 
     def assemble(self):
-        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.value.assemble(), self.length, lineno=self.lineno)
+        return OpcodeFormatVector(self.mnemonic, self.target.assemble(), self.value.assemble(), get_type_id(self.target.var.scalar_type), self.length, lineno=self.lineno)
 
 class insVectorMov(insVector):
     mnemonic = 'VMOV'

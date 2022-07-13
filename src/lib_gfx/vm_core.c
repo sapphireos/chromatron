@@ -258,6 +258,7 @@ typedef struct __attribute__((packed)){
     uint8_t opcode;
     uint8_t target;
     uint8_t value;
+    uint8_t type;
     uint16_t length;
 } opcode_vector_t;
 #define DECODE_VECTOR opcode_vector = (opcode_vector_t *)pc; pc += 8;
@@ -2056,9 +2057,19 @@ opcode_vmul:
     value = registers[opcode_vector->value];
     ptr_i32 = pools[ref.ref.pool];
 
-    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+    if( opcode_vector->type == CATBUS_TYPE_FIXED16 ){
 
-        ptr_i32[ref.ref.addr + i] *= value;
+        for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+            ptr_i32[ref.ref.addr + i] = ( (int64_t)ptr_i32[ref.ref.addr + i] * value ) / 65536;
+        }    
+    }
+    else{
+
+        for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+            ptr_i32[ref.ref.addr + i] *= value;
+        }    
     }
 
     DISPATCH;
@@ -2070,9 +2081,19 @@ opcode_vdiv:
     value = registers[opcode_vector->value];
     ptr_i32 = pools[ref.ref.pool];
 
-    for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+    if( opcode_vector->type == CATBUS_TYPE_FIXED16 ){
 
-        ptr_i32[ref.ref.addr + i] /= value;
+        for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+            ptr_i32[ref.ref.addr + i] = ( (int64_t)ptr_i32[ref.ref.addr + i] * 65536 ) / value;
+        }
+    }
+    else{
+
+        for( uint16_t i = 0; i < opcode_vector->length; i++ ){
+
+            ptr_i32[ref.ref.addr + i] /= value;
+        }
     }
 
     DISPATCH;

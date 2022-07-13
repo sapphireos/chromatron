@@ -1,16 +1,27 @@
 
-a = Number(publish=True)
-b = Number(publish=True)
+ary = Fixed16()[4]
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+e = Fixed16(publish=True)
 
 def init():
-    # db.kv_test_key = 123
-    # a = 2
-    a += db.kv_test_key + 1
 
-    # b = db.kv_test_key
-    
-    # db.kv_test_key = a
+    ary[0] = 1.1
+    ary[1] = 2.1
+    ary[2] = 3.1
+    ary[3] = 4.1
+    ary[4] = 5.1
 
+    ary *= 123.1
+
+    a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
+    e = ary[4]
 
 # current_hue = Fixed16()
 # delay = Number()
