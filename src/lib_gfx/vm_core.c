@@ -156,7 +156,7 @@ typedef struct __attribute__((packed)){
     uint8_t op2;
     uint8_t op3;
 } opcode_4ac_t;
-#define DECODE_4AC opcode_4ac = (opcode_4ac_t *)pc; pc += 4;
+#define DECODE_4AC opcode_4ac = (opcode_4ac_t *)pc; pc += 8;
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
@@ -166,7 +166,7 @@ typedef struct __attribute__((packed)){
     uint8_t op3;
     uint8_t op4;
 } opcode_5ac_t;
-#define DECODE_5AC opcode_5ac = (opcode_5ac_t *)pc; pc += 4;
+#define DECODE_5AC opcode_5ac = (opcode_5ac_t *)pc; pc += 8;
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
