@@ -4439,7 +4439,8 @@ int8_t vm_i8_load_program(
     // check alignment
     if( ( (uint32_t)obj_ptr % 4 ) != 0 ){
 
-        return VM_STATUS_POOL_MISALIGN;
+        status = VM_STATUS_POOL_MISALIGN;
+        goto error;
     }
 
     // check magic number
@@ -4448,7 +4449,8 @@ int8_t vm_i8_load_program(
 
     if( pool_magic != POOL_MAGIC ){
 
-        return VM_STATUS_ERR_BAD_POOL_MAGIC;
+        status = VM_STATUS_ERR_BAD_POOL_MAGIC;
+        goto error;
     }
 
     // load data from file
@@ -4468,7 +4470,8 @@ int8_t vm_i8_load_program(
     // check alignment
     if( ( (uint32_t)code_ptr % 4 ) != 0 ){
 
-        return VM_STATUS_CODE_MISALIGN;
+        status = VM_STATUS_CODE_MISALIGN;
+        goto error;
     }
 
     // check magic number
@@ -4477,7 +4480,8 @@ int8_t vm_i8_load_program(
 
     if( code_magic != CODE_MAGIC ){
 
-        return VM_STATUS_ERR_BAD_CODE_MAGIC;
+        status = VM_STATUS_ERR_BAD_CODE_MAGIC;
+        goto error;
     }
 
     // load data from file
@@ -4489,6 +4493,13 @@ int8_t vm_i8_load_program(
         goto error;
     }
 
+    // ******************
+    // Stream hash:
+    // This is not currently checked, so we skip over it.
+    // ******************
+    uint32_t stream_hash = 0;
+    fs_i16_read( f, &stream_hash, sizeof(stream_hash) );    
+    
 
     // **********************
     // Metadata:
@@ -4527,7 +4538,8 @@ int8_t vm_i8_load_program(
     // check alignment
     if( ( (uint32_t)local_data_ptr % 4 ) != 0 ){
 
-        return VM_STATUS_DATA_MISALIGN;
+        status = VM_STATUS_DATA_MISALIGN;
+        goto error;
     }
 
     memset( local_data_ptr, 0, header.local_data_len );
@@ -4537,7 +4549,8 @@ int8_t vm_i8_load_program(
     // check alignment
     if( ( (uint32_t)global_data_ptr % 4 ) != 0 ){
 
-        return VM_STATUS_DATA_MISALIGN;
+        status = VM_STATUS_DATA_MISALIGN;
+        goto error;
     }
 
     memset( global_data_ptr, 0, header.global_data_len );
@@ -4575,6 +4588,8 @@ int8_t vm_i8_load_program(
         publish++;
         count--;
     }
+
+    fs_f_close( f );
 
     return VM_STATUS_OK;
 

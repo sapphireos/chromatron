@@ -508,6 +508,7 @@ class FXImage(object):
         file_hash = catbus_string_hash(stream)
         stream += struct.pack('<L', file_hash)
 
+        self.image_hash = file_hash
 
         if filename:
             # write to file
