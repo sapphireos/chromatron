@@ -578,7 +578,7 @@ class Builder(object):
         ir = irLoop(true, false, iter_in, iter_out, stop, lineno=lineno)
         self.append_node(ir)
 
-    def load_value(self, value, lineno=None):
+    def load_value(self, value, target_type=None, lineno=None):
         if value.data_type == 'offset':
             var = self.add_temp(data_type=value.target.scalar_type, lineno=lineno)
 
@@ -602,7 +602,11 @@ class Builder(object):
                 var = self.add_temp(data_type=data_type, lineno=lineno)
 
             elif value.target is not None and value.target.data_type == 'obj' and value.target.name == 'db':
-                var = self.add_temp(data_type='gfx16', lineno=lineno)
+                if target_type is not None:
+                    var = self.add_temp(data_type=target_type, lineno=lineno)
+
+                else:
+                    var = self.add_temp(data_type='gfx16', lineno=lineno)
 
             else:
                 var = self.add_temp(data_type='var', lineno=lineno)
@@ -756,7 +760,7 @@ class Builder(object):
         return value
 
     def assign(self, target, value, lineno=None):
-        value = self.load_value(value, lineno=lineno)
+        value = self.load_value(value, target_type=target.data_type, lineno=lineno)
         value = self.convert_type(target, value, lineno=lineno)
 
         if target.data_type == 'offset':

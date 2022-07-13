@@ -14,7 +14,17 @@ def init():
     e = test_lib_call(1, 2, 3, 4)
     f = test_gfx_lib_call()
 
+# a = Number(publish=True)
+# b = Number(publish=True)
+
+# def init():
+#     db.kv_test_key = 256
+
+#     # db.kv_test_key = 123
     
+#     # a = db.kv_test_key + 1
+#     # b = db.kv_test_key + db.kv_test_key
+
 # current_hue = Fixed16()
 # delay = Number()
 # cursor = Number()

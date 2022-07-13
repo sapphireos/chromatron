@@ -1242,16 +1242,40 @@ opcode_nop:
 
 
 opcode_lddb:
-    DECODE_2AC;    
+    DECODE_1I2RS;    
     
-    // not implemented!
+#ifdef VM_ENABLE_KV
+    #ifdef VM_ENABLE_CATBUS
+    if( catbus_i8_array_get( registers[opcode_1i2rs->reg2], opcode_1i2rs->imm1, 0, 1, &registers[opcode_1i2rs->reg1] ) < 0 ){
+
+        registers[opcode_1i2rs->reg1] = 0;        
+    }
+    #else
+    // if( kvdb_i8_array_get( registers[opcode_1i2rs->op2], opcode_1i2rs->op1, 0, &registers[opcode_1i2rs->dest], sizeof(registers[opcode_1is2r->dest]registers[opcode_1is2r->dest]) ) < 0 ){
+
+    //     registers[opcode_1i2rs->reg1] = 0;        
+    // }
+    #endif
+#endif
 
     DISPATCH;
 
 opcode_stdb:
-    DECODE_2AC;    
+    DECODE_1I2RS;    
     
-    // not implemented!
+    #ifdef VM_ENABLE_KV
+    #ifdef VM_ENABLE_CATBUS
+    if( catbus_i8_array_set( registers[opcode_1i2rs->reg1], opcode_1i2rs->imm1, 0, 1, &registers[opcode_1i2rs->reg2], sizeof(registers[opcode_1i2rs->reg2]) ) < 0 ){
+
+        registers[opcode_1i2rs->reg2] = 0;        
+    }
+    #else
+    // if( kvdb_i8_array_get( registers[opcode_1i2rs->op2], opcode_1i2rs->op1, 0, &registers[opcode_1i2rs->dest], sizeof(registers[opcode_1is2r->dest]registers[opcode_1is2r->dest]) ) < 0 ){
+
+    //     registers[opcode_1i2rs->reg1] = 0;        
+    // }
+    #endif
+#endif
 
     DISPATCH;
 

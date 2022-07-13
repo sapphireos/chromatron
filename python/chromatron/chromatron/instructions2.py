@@ -157,6 +157,7 @@ class insProgram(object):
 
         self.library_funcs = {
             'test_lib_call': self.test_lib_call,
+            'test_gfx_lib_call': self.test_gfx_lib_call,
             'rand': self.rand,
             'len': self.array_len,
             'avg': self.array_avg,
@@ -290,7 +291,9 @@ class insProgram(object):
             return args[0] + args[1] + args[2] + args[3]
 
         return 0;
-        
+    
+    def test_gfx_lib_call(self, vm, *args):
+        return 1
 
     def rand(self, vm, param0=0, param1=65535):
         return random.randint(param0, param1)
@@ -1106,7 +1109,7 @@ class insLoadDB(BaseInstruction):
             vm.registers[self.dest.reg] = 0
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.dest.var.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insStoreDB(BaseInstruction):
     mnemonic = 'STDB'
@@ -1129,8 +1132,7 @@ class insStoreDB(BaseInstruction):
         db[key] = vm.registers[self.src.reg]
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
-
+        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.src.var.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 
 class insLookup(BaseInstruction):
