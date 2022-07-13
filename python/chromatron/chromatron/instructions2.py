@@ -1102,7 +1102,26 @@ class insLoadDB(BaseInstruction):
         key = vm.registers[self.src.reg]
 
         try:
-            vm.registers[self.dest.reg] = db[key]
+            value = db[key]
+
+            if isinstance(db[key], int):
+                src_type = 'i32'
+
+            elif isinstance(db[key], float):
+                src_type = 'f16'
+
+            else:
+                raise CompilerFatal(f'Other DB types not supported')
+
+            dest_type = self.dest.var.data_type
+
+            if src_type == 'i32' and dest_type == 'f16':
+                value = convert_to_f16(value)
+
+            elif src_type == 'f16' and dest_type == 'i32':
+                value = convert_to_i32(value)
+
+            vm.registers[self.dest.reg] = value
 
         except KeyError: 
             # failed DB lookups return 0
@@ -1128,8 +1147,30 @@ class insStoreDB(BaseInstruction):
         db = vm.program.db
 
         key = vm.registers[self.dest.reg]
+        value = vm.registers[self.src.reg]
 
-        db[key] = vm.registers[self.src.reg]
+        if key not in db:
+            db[key] = value
+
+        else:
+            if isinstance(db[key], int):
+                dest_type = 'i32'
+
+            elif isinstance(db[key], float):
+                dest_type = 'f16'
+
+            else:
+                raise CompilerFatal(f'Other DB types not supported')
+
+            src_type = self.src.var.data_type
+
+            if src_type == 'i32' and dest_type == 'f16':
+                value = convert_to_f16(value)
+
+            elif src_type == 'f16' and dest_type == 'i32':
+                value = convert_to_i32(value)
+
+            db[key] = value
 
     def assemble(self):
         return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.src.var.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)

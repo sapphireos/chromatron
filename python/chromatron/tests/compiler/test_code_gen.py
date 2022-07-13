@@ -1567,13 +1567,13 @@ test_expr_db_ret = """
 
 a = Number(publish=True)
 
-def db():
+def get_db():
     return db.kv_test_key
 
 def init():
     db.kv_test_key = 123
 
-    a = db()
+    a = get_db()
 """
 
 test_expr_db_f16 = """
@@ -2132,7 +2132,7 @@ class CompilerTests(object):
         self.run_test(test_expr_db_f16,
             opt_passes=opt_passes,
             expected={
-                'a': 1.0018768310546875,
+                'a': 124.0,
                 'b': 246.0,
             })
 
@@ -3848,26 +3848,20 @@ class TestCompilerLocal(CompilerTests):
 
         regs = func.program.dump_globals()
 
-        for reg, value in expected.items():
+        for reg, expected_value in expected.items():
 
             reg_value = regs[reg]
 
-            if isinstance(value, float):
+            if isinstance(expected_value, float):
                 reg_value /= 65536.0
 
-            try:
-                try:
-                    assert reg_value == value
-
-                except KeyError:
-                    raise Exception
-                    # try database
-                    # self.assertEqual(vm.db[reg], value)
-
+            try:                
+                assert reg_value == expected_value
+    
             except AssertionError:
                 print('\n*******************************')
                 print(program)
-                print('Var: %s Expected: %s Actual: %s' % (reg, value, regs[reg]))
+                print('Var: %s Expected: %s Actual: %s' % (reg, expected_value, regs[reg]))
                 print('-------------------------------\n')
                 raise
 

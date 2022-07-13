@@ -237,7 +237,11 @@ class Builder(object):
         if is_global:
             if name in self.global_symbols:
                 # return self.globals[name]
-                raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
+                if data_type == 'func':
+                    raise SyntaxError("Global variable '%s' already declared, cannot use as function name" % (name), lineno=lineno)
+
+                else:
+                    raise SyntaxError("Global variable '%s' already declared" % (name), lineno=lineno)
 
             var.is_global = True
 
