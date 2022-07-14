@@ -2579,6 +2579,7 @@ class insPixelMul(BaseInstruction):
         self.pixel_index = pixel_index
         self.attr = attr
         self.value = value
+        self.data_type = value.var.data_type
 
     def __str__(self):
         return "%s %s.%s *= %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
@@ -2588,7 +2589,13 @@ class insPixelMul(BaseInstruction):
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
-        array[index] *= value
+        if self.data_type == 'f16':
+            array[index] = (array[index] * value) / 65536
+
+        else:
+            array[index] = (array[index] * value)
+
+        array[index] = int(array[index])
 
         if array[index] < 0:
             array[index] = 0
@@ -2597,7 +2604,7 @@ class insPixelMul(BaseInstruction):
             array[index] = 65535
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat1ImmShort2Reg(self.mnemonic, get_type_id(self.data_type), self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
 
 class insPixelMulHue(insPixelMul):
     mnemonic = 'PMUL_HUE'
@@ -2607,7 +2614,14 @@ class insPixelMulHue(insPixelMul):
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
-        array[index] *= value
+
+        if self.data_type == 'f16':
+            array[index] = (array[index] * value) / 65536
+
+        else:
+            array[index] = (array[index] * value)
+
+        array[index] = int(array[index])
 
         array[index] %= 65536
 
@@ -2633,6 +2647,7 @@ class insPixelDiv(BaseInstruction):
         self.pixel_index = pixel_index
         self.attr = attr
         self.value = value
+        self.data_type = value.var.data_type
 
     def __str__(self):
         return "%s %s.%s /= %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
@@ -2642,7 +2657,12 @@ class insPixelDiv(BaseInstruction):
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
-        array[index] //= value
+
+        if self.data_type == 'f16':
+            array[index] = (array[index] * 65536) // value
+
+        else:
+            array[index] = (array[index] // value)
 
         if array[index] < 0:
             array[index] = 0
@@ -2651,7 +2671,7 @@ class insPixelDiv(BaseInstruction):
             array[index] = 65535
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat1ImmShort2Reg(self.mnemonic, get_type_id(self.data_type), self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
 
 class insPixelDivHue(insPixelDiv):
     mnemonic = 'PDIV_HUE'
@@ -2661,7 +2681,11 @@ class insPixelDivHue(insPixelDiv):
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
-        array[index] //= value
+        if self.data_type == 'f16':
+            array[index] = (array[index] * 65536) // value
+
+        else:
+            array[index] = (array[index] // value)
 
         array[index] %= 65536
 
