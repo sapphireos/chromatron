@@ -3375,245 +3375,245 @@ class TestHSVArray(object):
         
         self.assertEqual(hsv['hue'][1], 1)
         
-    def test_pix_load_from_array(self):
+    def test_pix_load_from_array(self, opt_passes):
         hsv = self.run_test(test_pix_load_from_array, opt_passes=opt_passes)
         
         self.assertEqual(hsv['hue'][1], 1)
 
-    def test_pix_mov_from_array(self):
+    def test_pix_mov_from_array(self, opt_passes):
         hsv = self.run_test(test_pix_mov_from_array, opt_passes=opt_passes)
         
         self.assertEqual(hsv['hue'][0], 1)
 
-    def test_hue_array_1(self):
+    def test_hue_array_1(self, opt_passes):
         hsv = self.run_test(hue_array_1, opt_passes=opt_passes)
         
         self.assertEqual(hsv['hue'][1], 65535)
         self.assertEqual(hsv['hue'][9], 39321)
 
-    def test_hue_array_2(self):
+    def test_hue_array_2(self, opt_passes):
         hsv = self.run_test(hue_array_2, opt_passes=opt_passes)
         
         for a in hsv['hue']:
             self.assertEqual(a, 32768)
 
-    def test_hue_array_add(self):
+    def test_hue_array_add(self, opt_passes):
         hsv = self.run_test(hue_array_add, opt_passes=opt_passes)
         
         for a in hsv['hue']:
             self.assertEqual(a, 6553)
 
-    def test_hue_array_add_2(self):
+    def test_hue_array_add_2(self, opt_passes):
         hsv = self.run_test(hue_array_add_2, opt_passes=opt_passes)
         
         for a in hsv['hue']:
             self.assertEqual(a, 6552)
 
-    def test_hue_array_sub(self):
+    def test_hue_array_sub(self, opt_passes):
         hsv = self.run_test(hue_array_sub, opt_passes=opt_passes)
         
         for a in hsv['hue']:
             self.assertEqual(a, 58983)
 
-    def test_hue_array_mul(self):
+    def test_hue_array_mul(self, opt_passes):
         hsv = self.run_test(hue_array_mul, opt_passes=opt_passes)
         
         for a in hsv['hue']:
             self.assertEqual(a, 16384)
 
-    def test_hue_array_mul_f16(self):
+    def test_hue_array_mul_f16(self, opt_passes):
         hsv = self.run_test(hue_array_mul_f16, opt_passes=opt_passes)
         
         for a in hsv['hue']:
             self.assertEqual(a, 32767)
 
-    def test_hue_array_div(self):
+    def test_hue_array_div(self, opt_passes):
         hsv = self.run_test(hue_array_div, opt_passes=opt_passes)
         
         for a in hsv['hue']:
             self.assertEqual(a, 16384)
 
-    def test_hue_array_div_f16(self):
+    def test_hue_array_div_f16(self, opt_passes):
         hsv = self.run_test(hue_array_div_f16, opt_passes=opt_passes)
         
         for a in hsv['hue']:
             self.assertEqual(a, 26214)
 
-    def test_hue_array_mod(self):
+    def test_hue_array_mod(self, opt_passes):
         hsv = self.run_test(hue_array_mod, opt_passes=opt_passes)
         
         for a in hsv['hue']:
             self.assertEqual(a, 13108)
 
-    def test_sat_array_1(self):
+    def test_sat_array_1(self, opt_passes):
         hsv = self.run_test(sat_array_1, opt_passes=opt_passes)
         
         self.assertEqual(hsv['sat'][1], 65535)
         self.assertEqual(hsv['sat'][9], 32768)
 
-    def test_sat_array_2(self):
+    def test_sat_array_2(self, opt_passes):
         hsv = self.run_test(sat_array_2, opt_passes=opt_passes)
         
         for a in hsv['sat']:
             self.assertEqual(a, 32768)
 
-    def test_sat_array_add(self):
+    def test_sat_array_add(self, opt_passes):
         hsv = self.run_test(sat_array_add, opt_passes=opt_passes)
         
         for a in hsv['sat']:
             self.assertEqual(a, 6553)
 
-    def test_sat_array_sub(self):
+    def test_sat_array_sub(self, opt_passes):
         hsv = self.run_test(sat_array_sub, opt_passes=opt_passes)
         
         for a in hsv['sat']:
             self.assertEqual(a, 0)
 
-    def test_sat_array_mul(self):
+    def test_sat_array_mul(self, opt_passes):
         hsv = self.run_test(sat_array_mul, opt_passes=opt_passes)
         
         for a in hsv['sat']:
             self.assertEqual(a, 8192)
 
-    def test_sat_array_div(self):
+    def test_sat_array_div(self, opt_passes):
         hsv = self.run_test(sat_array_div, opt_passes=opt_passes)
         
         for a in hsv['sat']:
             self.assertEqual(a, 16384)
 
-    def test_sat_array_mod(self):
+    def test_sat_array_mod(self, opt_passes):
         hsv = self.run_test(sat_array_mod, opt_passes=opt_passes)
         
         for a in hsv['sat']:
             self.assertEqual(a, 13108)
 
-    def test_val_array_1(self):
+    def test_val_array_1(self, opt_passes):
         hsv = self.run_test(val_array_1, opt_passes=opt_passes)
         
         self.assertEqual(hsv['val'][1], 65535)
         self.assertEqual(hsv['val'][9], 32768)
 
-    def test_val_array_2(self):
+    def test_val_array_2(self, opt_passes):
         hsv = self.run_test(val_array_2, opt_passes=opt_passes)
         
         for a in hsv['val']:
             self.assertEqual(a, 32768)
 
-    def test_val_array_add(self):
+    def test_val_array_add(self, opt_passes):
         hsv = self.run_test(val_array_add, opt_passes=opt_passes)
         
         for a in hsv['val']:
             self.assertEqual(a, 6553)
 
-    def test_val_array_sub(self):
+    def test_val_array_sub(self, opt_passes):
         hsv = self.run_test(val_array_sub, opt_passes=opt_passes)
         
         for a in hsv['val']:
             self.assertEqual(a, 0)
 
-    def test_val_array_mul(self):
+    def test_val_array_mul(self, opt_passes):
         hsv = self.run_test(val_array_mul, opt_passes=opt_passes)
         
         for a in hsv['val']:
             self.assertEqual(a, 16384)
 
-    def test_val_array_div(self):
+    def test_val_array_div(self, opt_passes):
         hsv = self.run_test(val_array_div, opt_passes=opt_passes)
         
         for a in hsv['val']:
             self.assertEqual(a, 16384)
 
-    def test_val_array_mod(self):
+    def test_val_array_mod(self, opt_passes):
         hsv = self.run_test(val_array_mod, opt_passes=opt_passes)
         
         for a in hsv['val']:
             self.assertEqual(a, 13108)
 
-    def test_hs_fade_array_1(self):
+    def test_hs_fade_array_1(self, opt_passes):
         hsv = self.run_test(hs_fade_array_1, opt_passes=opt_passes)
         
         self.assertEqual(hsv['hs_fade'][1], 0)
         self.assertEqual(hsv['hs_fade'][9], 500)
 
-    def test_hs_fade_array_2(self):
+    def test_hs_fade_array_2(self, opt_passes):
         hsv = self.run_test(hs_fade_array_2, opt_passes=opt_passes)
         
         for a in hsv['hs_fade']:
             self.assertEqual(a, 200)
 
-    def test_hs_fade_array_add(self):
+    def test_hs_fade_array_add(self, opt_passes):
         hsv = self.run_test(hs_fade_array_add, opt_passes=opt_passes)
         
         for a in hsv['hs_fade']:
             self.assertEqual(a, 100)
 
-    def test_hs_fade_array_sub(self):
+    def test_hs_fade_array_sub(self, opt_passes):
         hsv = self.run_test(hs_fade_array_sub, opt_passes=opt_passes)
         
         for a in hsv['hs_fade']:
             self.assertEqual(a, 100)
 
-    def test_hs_fade_array_mul(self):
+    def test_hs_fade_array_mul(self, opt_passes):
         hsv = self.run_test(hs_fade_array_mul, opt_passes=opt_passes)
        
         for a in hsv['hs_fade']:
             self.assertEqual(a, 1000)
 
-    def test_hs_fade_array_div(self):
+    def test_hs_fade_array_div(self, opt_passes):
         hsv = self.run_test(hs_fade_array_div, opt_passes=opt_passes)
         
         for a in hsv['hs_fade']:
             self.assertEqual(a, 50)
 
-    def test_hs_fade_array_mod(self):
+    def test_hs_fade_array_mod(self, opt_passes):
         hsv = self.run_test(hs_fade_array_mod, opt_passes=opt_passes)
         
         for a in hsv['hs_fade']:
             self.assertEqual(a, 2)
 
-    def test_v_fade_array_1(self):
+    def test_v_fade_array_1(self, opt_passes):
         hsv = self.run_test(v_fade_array_1, opt_passes=opt_passes)
         
         self.assertEqual(hsv['v_fade'][1], 19)
         self.assertEqual(hsv['v_fade'][9], 250)
 
-    def test_v_fade_array_2(self):
+    def test_v_fade_array_2(self, opt_passes):
         hsv = self.run_test(v_fade_array_2, opt_passes=opt_passes)
         
         for a in hsv['v_fade']:
             self.assertEqual(a, 500)
 
-    def test_v_fade_array_add(self):
+    def test_v_fade_array_add(self, opt_passes):
         hsv = self.run_test(v_fade_array_add, opt_passes=opt_passes)
         
         for a in hsv['v_fade']:
             self.assertEqual(a, 100)
 
-    def test_v_fade_array_sub(self):
+    def test_v_fade_array_sub(self, opt_passes):
         hsv = self.run_test(v_fade_array_sub, opt_passes=opt_passes)
         
         for a in hsv['v_fade']:
             self.assertEqual(a, 100)
 
-    def test_v_fade_array_mul(self):
+    def test_v_fade_array_mul(self, opt_passes):
         hsv = self.run_test(v_fade_array_mul, opt_passes=opt_passes)
         
         for a in hsv['v_fade']:
             self.assertEqual(a, 1000)
 
-    def test_v_fade_array_div(self):
+    def test_v_fade_array_div(self, opt_passes):
         hsv = self.run_test(v_fade_array_div, opt_passes=opt_passes)
         
         for a in hsv['v_fade']:
             self.assertEqual(a, 250)
 
-    def test_v_fade_array_mod(self):
+    def test_v_fade_array_mod(self, opt_passes):
         hsv = self.run_test(v_fade_array_mod, opt_passes=opt_passes)
         
         for a in hsv['v_fade']:
             self.assertEqual(a, 2)
 
-    def test_gfx_array_indexing(self):
+    def test_gfx_array_indexing(self, opt_passes):
         hsv = self.run_test(gfx_array_indexing, opt_passes=opt_passes)
         
         self.assertEqual(hsv['val'][0], 6553)
@@ -3621,7 +3621,7 @@ class TestHSVArray(object):
         self.assertEqual(hsv['val'][2], 0)
         self.assertEqual(hsv['val'][3], 26214)
 
-    def test_gfx_array_load(self):
+    def test_gfx_array_load(self, opt_passes):
         hsv = self.run_test(gfx_array_load, opt_passes=opt_passes)
 
         self.assertEqual(regs['a'], 0.0999908447265625)
