@@ -2,7 +2,8 @@
 import pytest
 
 from chromatron import code_gen
-from chromatron.ir2 import OptPasses, TEST_OPT_PASSES
+
+from conftest import *
 
 def run_code(source, *args, opt_passes=OptPasses.SSA):
     prog = code_gen.compile_text(source, opt_passes=opt_passes)
@@ -138,6 +139,7 @@ def init():
 
 
 # @pytest.mark.skip
+@pytest.mark.local
 @pytest.mark.parametrize("opt_passes", [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP, OptPasses.LS_SCHED])
 def test_load_store_scheduler(opt_passes):
     regs = run_code(load_store_1, 0, opt_passes=opt_passes)
@@ -266,6 +268,7 @@ def init():
 
 """
 
+@pytest.mark.local
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 def test_loop_invariant_code_motion(opt_passes):
     run_code(loop_invariant_code_motion_basic, opt_passes=opt_passes)

@@ -23,8 +23,9 @@
 import pytest
 
 from chromatron import code_gen
-from chromatron.ir2 import OptPasses, TEST_OPT_PASSES
+from conftest import *
 
+@pytest.mark.local
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 def test_basic(opt_passes):
     code_gen.run_script('chromatron/basic_tests.fx', opt_passes=opt_passes)

@@ -59,16 +59,6 @@ SHOW_LIVENESS = False
 LIVENESS_MODE = 'mem'
 
 
-TEST_OPT_PASSES = [
-    OptPasses.SSA, 
-    # OptPasses.GVN, 
-    # OptPasses.LOOP, 
-    # OptPasses.LS_SCHED,
-    # [OptPasses.GVN, OptPasses.LOOP],
-    # [OptPasses.GVN, OptPasses.LS_SCHED],
-    # [OptPasses.LOOP, OptPasses.LS_SCHED],
-    # [OptPasses.GVN, OptPasses.LS_SCHED, OptPasses.LOOP],
-]
 
 """
 
