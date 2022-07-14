@@ -140,7 +140,7 @@ def init():
 
 # @pytest.mark.skip
 @pytest.mark.local
-@pytest.mark.parametrize("opt_passes", [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP, OptPasses.LS_SCHED])
+@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 def test_load_store_scheduler(opt_passes):
     regs = run_code(load_store_1, 0, opt_passes=opt_passes)
     assert regs['a'] == 2
