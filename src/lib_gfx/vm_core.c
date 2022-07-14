@@ -2518,13 +2518,20 @@ opcode_pdiv_hue:
 
     value = gfx_u16_get_hue_1d( index );
 
-    if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
+    if( registers[opcode_1i2rs->reg2] == 0 ){
 
-        value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
+        value = 0;
     }
     else{
 
-        value /= registers[opcode_1i2rs->reg2];    
+        if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
+
+            value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
+        }
+        else{
+
+            value /= registers[opcode_1i2rs->reg2];    
+        }
     }
 
     gfx_v_set_hue_1d( value, index );
@@ -2538,13 +2545,20 @@ opcode_pdiv_sat:
 
     value = gfx_u16_get_sat_1d( index );
 
-    if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
+    if( registers[opcode_1i2rs->reg2] == 0 ){
 
-        value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
+        value = 0;
     }
     else{
 
-        value /= registers[opcode_1i2rs->reg2];    
+        if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
+
+            value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
+        }
+        else{
+
+            value /= registers[opcode_1i2rs->reg2];    
+        }
     }
 
     gfx_v_set_sat_1d( value, index );
@@ -2558,13 +2572,20 @@ opcode_pdiv_val:
 
     value = gfx_u16_get_val_1d( index );
 
-    if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
+    if( registers[opcode_1i2rs->reg2] == 0 ){
 
-        value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
+        value = 0;
     }
     else{
 
-        value /= registers[opcode_1i2rs->reg2];    
+        if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
+
+            value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
+        }
+        else{
+
+            value /= registers[opcode_1i2rs->reg2];    
+        }
     }
 
     gfx_v_set_val_1d( value, index );
@@ -2578,7 +2599,15 @@ opcode_pdiv_hs_fade:
 
     value = gfx_u16_get_hs_fade_1d( index );
 
-    value /= registers[opcode_1i2rs->reg2];
+    if( registers[opcode_1i2rs->reg2] == 0 ){
+
+        value = 0;
+    }
+    else{
+        
+        value /= registers[opcode_1i2rs->reg2];    
+    }
+    
 
     gfx_v_set_hs_fade_1d( value, index );
 
@@ -2591,7 +2620,15 @@ opcode_pdiv_v_fade:
 
     value = gfx_u16_get_v_fade_1d( index );
 
-    value /= registers[opcode_1i2rs->reg2];
+    if( registers[opcode_1i2rs->reg2] == 0 ){
+
+        value = 0;
+    }
+    else{
+        
+        value /= registers[opcode_1i2rs->reg2];    
+    }
+    
 
     gfx_v_set_v_fade_1d( value, index );
 

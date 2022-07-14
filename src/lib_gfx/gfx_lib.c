@@ -1552,6 +1552,14 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
         return;
     }
 
+    // check for divide by zero
+    if( src == 0 ){
+
+        gfx_v_array_move( obj, attr, 0 );
+
+        return;
+    }
+
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
 
 
@@ -1748,6 +1756,14 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
 void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
 
     if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    // check for divide by zero
+    if( src == 0 ){
+        
+        gfx_v_array_move( obj, attr, 0 );
 
         return;
     }

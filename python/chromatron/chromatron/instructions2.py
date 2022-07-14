@@ -2658,17 +2658,22 @@ class insPixelDiv(BaseInstruction):
 
         array = vm.gfx_data[self.attr]
 
-        if self.data_type == 'f16':
-            array[index] = (array[index] * 65536) // value
-
-        else:
-            array[index] = (array[index] // value)
-
-        if array[index] < 0:
+        if value == 0:
             array[index] = 0
 
-        elif array[index] > 65535:
-            array[index] = 65535
+        else:
+
+            if self.data_type == 'f16':
+                array[index] = (array[index] * 65536) // value
+
+            else:
+                array[index] = (array[index] // value)
+
+            if array[index] < 0:
+                array[index] = 0
+
+            elif array[index] > 65535:
+                array[index] = 65535
 
     def assemble(self):
         return OpcodeFormat1ImmShort2Reg(self.mnemonic, get_type_id(self.data_type), self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
@@ -2681,13 +2686,18 @@ class insPixelDivHue(insPixelDiv):
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
-        if self.data_type == 'f16':
-            array[index] = (array[index] * 65536) // value
+
+        if value == 0:
+            array[index] = 0
 
         else:
-            array[index] = (array[index] // value)
+            if self.data_type == 'f16':
+                array[index] = (array[index] * 65536) // value
 
-        array[index] %= 65536
+            else:
+                array[index] = (array[index] // value)
+
+            array[index] %= 65536
 
 class insPixelDivSat(insPixelDiv):
     mnemonic = 'PDIV_SAT'
@@ -2720,7 +2730,12 @@ class insPixelMod(BaseInstruction):
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
-        array[index] %= value
+        
+        if value == 0:
+            array[index] = 0
+        
+        else:    
+            array[index] %= value
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
@@ -3016,7 +3031,7 @@ class insVPixelDiv(BaseInstruction):
 
         array_func = self.array_func
         if value == 0:
-            array_func = array_func_zero
+            array_func = self.array_func_zero
 
         for i in range(pixel_array['count']):
             idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
@@ -3146,7 +3161,7 @@ class insVPixelMod(BaseInstruction):
 
         array_func = self.array_func
         if value == 0:
-            array_func = array_func_zero
+            array_func = self.array_func_zero
 
         for i in range(pixel_array['count']):
             idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)

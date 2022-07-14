@@ -3306,6 +3306,51 @@ def init():
 
 """
 
+
+test_vector_zero_div = """
+
+def init():
+    pixels.hue /= 0
+    pixels.sat /= 0
+    pixels.val /= 0
+    pixels.hs_fade /= 0
+    pixels.v_fade /= 0
+
+"""
+
+test_vector_zero_mod = """
+
+def init():
+    pixels.hue %= 0
+    pixels.sat %= 0
+    pixels.val %= 0
+    pixels.hs_fade %= 0
+    pixels.v_fade %= 0
+
+"""
+
+test_point_zero_div = """
+
+def init():
+    pixels[1].hue /= 0
+    pixels[1].sat /= 0
+    pixels[1].val /= 0
+    pixels[1].hs_fade /= 0
+    pixels[1].v_fade /= 0
+
+"""
+
+test_point_zero_mod = """
+
+def init():
+    pixels[1].hue /= 0
+    pixels[1].sat /= 0
+    pixels[1].val /= 0
+    pixels[1].hs_fade /= 0
+    pixels[1].v_fade /= 0
+
+"""
+
 test_hue_p_mov = """
 
 def init():
@@ -3748,6 +3793,34 @@ class HSVArrayTests(object):
         self.assertEqual(hsv['val'][1], 19660)
         self.assertEqual(hsv['val'][2], 0)
         self.assertEqual(hsv['val'][3], 26214)
+
+    def test_vector_zero_div(self, opt_passes):
+        hsv = self.run_test(test_vector_zero_div, opt_passes=opt_passes)
+        
+        for v in hsv.values():
+            for a in v:
+                self.assertEqual(a, 0)
+
+    def test_vector_zero_mod(self, opt_passes):
+        hsv = self.run_test(test_vector_zero_mod, opt_passes=opt_passes)
+        
+        for v in hsv.values():
+            for a in v:
+                self.assertEqual(a, 0)
+
+    def test_point_zero_div(self, opt_passes):
+        hsv = self.run_test(test_point_zero_div, opt_passes=opt_passes)
+        
+        for v in hsv.values():
+            for a in v:
+                self.assertEqual(a, 0)
+
+    def test_point_zero_mod(self, opt_passes):
+        hsv = self.run_test(test_point_zero_mod, opt_passes=opt_passes)
+        
+        for v in hsv.values():
+            for a in v:
+                self.assertEqual(a, 0)
 
     def test_hue_p_mov(self, opt_passes):
         hsv = self.run_test(test_hue_p_mov, opt_passes=opt_passes)
