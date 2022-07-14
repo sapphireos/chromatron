@@ -3412,6 +3412,221 @@ def init():
 
 """
 
+test_sat_p_mov = """
+
+def init():
+    pixels[1].sat = 0.1
+
+"""
+
+test_sat_p_add = """
+
+def init():
+    pixels[1].sat += 0.1
+
+"""
+
+test_sat_p_sub = """
+
+def init():
+    pixels[1].sat = 0.2
+    pixels[1].sat -= 0.1
+
+"""
+
+test_sat_p_mul = """
+
+def init():
+    pixels[1].sat = 20
+    pixels[1].sat *= 2
+
+"""
+
+test_sat_p_mul_f16 = """
+
+def init():
+    pixels[1].sat = 0.5
+    pixels[1].sat *= 0.5
+
+"""
+
+test_sat_p_div = """
+
+def init():
+    pixels[1].sat = 20
+    pixels[1].sat /= 2
+
+"""
+
+test_sat_p_div_f16 = """
+
+def init():
+    pixels[1].sat = 0.5
+    pixels[1].sat /= 2.0
+
+"""
+
+test_sat_p_mod = """
+
+def init():
+    pixels[1].sat = 0.5
+    pixels[1].sat %= 0.3
+
+"""
+
+test_val_p_mov = """
+
+def init():
+    pixels[1].val = 0.1
+
+"""
+
+test_val_p_add = """
+
+def init():
+    pixels[1].val += 0.1
+
+"""
+
+test_val_p_sub = """
+
+def init():
+    pixels[1].val = 0.2
+    pixels[1].val -= 0.1
+
+"""
+
+test_val_p_mul = """
+
+def init():
+    pixels[1].val = 20
+    pixels[1].val *= 2
+
+"""
+
+test_val_p_mul_f16 = """
+
+def init():
+    pixels[1].val = 0.5
+    pixels[1].val *= 0.5
+
+"""
+
+test_val_p_div = """
+
+def init():
+    pixels[1].val = 20
+    pixels[1].val /= 2
+
+"""
+
+test_val_p_div_f16 = """
+
+def init():
+    pixels[1].val = 0.5
+    pixels[1].val /= 2.0
+
+"""
+
+test_val_p_mod = """
+
+def init():
+    pixels[1].val = 0.5
+    pixels[1].val %= 0.3
+
+"""
+
+test_hs_fade_p_mov = """
+
+def init():
+    pixels[1].hs_fade = 10
+
+"""
+
+test_hs_fade_p_add = """
+
+def init():
+    pixels[1].hs_fade += 10
+
+"""
+
+test_hs_fade_p_sub = """
+
+def init():
+    pixels[1].hs_fade = 20
+    pixels[1].hs_fade -= 10
+
+"""
+
+test_hs_fade_p_mul = """
+
+def init():
+    pixels[1].hs_fade = 20
+    pixels[1].hs_fade *= 2
+
+"""
+
+test_hs_fade_p_div = """
+
+def init():
+    pixels[1].hs_fade = 20
+    pixels[1].hs_fade /= 2
+
+"""
+
+test_hs_fade_p_mod = """
+
+def init():
+    pixels[1].hs_fade = 20
+    pixels[1].hs_fade %= 6
+
+"""
+
+test_v_fade_p_mov = """
+
+def init():
+    pixels[1].v_fade = 10
+
+"""
+
+test_v_fade_p_add = """
+
+def init():
+    pixels[1].v_fade += 10
+
+"""
+
+test_v_fade_p_sub = """
+
+def init():
+    pixels[1].v_fade = 20
+    pixels[1].v_fade -= 10
+
+"""
+
+test_v_fade_p_mul = """
+
+def init():
+    pixels[1].v_fade = 20
+    pixels[1].v_fade *= 2
+
+"""
+
+test_v_fade_p_div = """
+
+def init():
+    pixels[1].v_fade = 20
+    pixels[1].v_fade /= 2
+
+"""
+
+test_v_fade_p_mod = """
+
+def init():
+    pixels[1].v_fade = 20
+    pixels[1].v_fade %= 6
+
+"""
 
 class HSVArrayTests(object):
     def assertEqual(self, actual, expected):
@@ -3862,6 +4077,145 @@ class HSVArrayTests(object):
             
         self.assertEqual(hsv['hue'][1], 13108)
 
+    def test_sat_p_mov(self, opt_passes):
+        hsv = self.run_test(test_sat_p_mov, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['sat'][1], 6553)
+
+    def test_sat_p_add(self, opt_passes):
+        hsv = self.run_test(test_sat_p_add, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['sat'][1], 6553)
+
+    def test_sat_p_sub(self, opt_passes):
+        hsv = self.run_test(test_sat_p_sub, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['sat'][1], 6554)
+
+    def test_sat_p_mul(self, opt_passes):
+        hsv = self.run_test(test_sat_p_mul, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['sat'][1], 40)
+
+    def test_sat_p_mul_f16(self, opt_passes):
+        hsv = self.run_test(test_sat_p_mul_f16, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['sat'][1], 16384)
+
+    def test_sat_p_div(self, opt_passes):
+        hsv = self.run_test(test_sat_p_div, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['sat'][1], 10)
+
+    def test_sat_p_div_f16(self, opt_passes):
+        hsv = self.run_test(test_sat_p_div_f16, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['sat'][1], 16384)
+
+    def test_sat_p_mod(self, opt_passes):
+        hsv = self.run_test(test_sat_p_mod, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['sat'][1], 13108)
+
+    def test_val_p_mov(self, opt_passes):
+        hsv = self.run_test(test_val_p_mov, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['val'][1], 6553)
+
+    def test_val_p_add(self, opt_passes):
+        hsv = self.run_test(test_val_p_add, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['val'][1], 6553)
+
+    def test_val_p_sub(self, opt_passes):
+        hsv = self.run_test(test_val_p_sub, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['val'][1], 6554)
+
+    def test_val_p_mul(self, opt_passes):
+        hsv = self.run_test(test_val_p_mul, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['val'][1], 40)
+
+    def test_val_p_mul_f16(self, opt_passes):
+        hsv = self.run_test(test_val_p_mul_f16, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['val'][1], 16384)
+
+    def test_val_p_div(self, opt_passes):
+        hsv = self.run_test(test_val_p_div, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['val'][1], 10)
+
+    def test_val_p_div_f16(self, opt_passes):
+        hsv = self.run_test(test_val_p_div_f16, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['val'][1], 16384)
+
+    def test_val_p_mod(self, opt_passes):
+        hsv = self.run_test(test_val_p_mod, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['val'][1], 13108)
+
+    def test_hs_fade_p_mov(self, opt_passes):
+        hsv = self.run_test(test_hs_fade_p_mov, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hs_fade'][1], 10)
+
+    def test_hs_fade_p_add(self, opt_passes):
+        hsv = self.run_test(test_hs_fade_p_add, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hs_fade'][1], 10)
+
+    def test_hs_fade_p_sub(self, opt_passes):
+        hsv = self.run_test(test_hs_fade_p_sub, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hs_fade'][1], 10)
+
+    def test_hs_fade_p_mul(self, opt_passes):
+        hsv = self.run_test(test_hs_fade_p_mul, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hs_fade'][1], 40)
+    
+    def test_hs_fade_p_div(self, opt_passes):
+        hsv = self.run_test(test_hs_fade_p_div, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hs_fade'][1], 10)
+
+    def test_hs_fade_p_mod(self, opt_passes):
+        hsv = self.run_test(test_hs_fade_p_mod, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hs_fade'][1], 2)
+
+    def test_v_fade_p_mov(self, opt_passes):
+        hsv = self.run_test(test_v_fade_p_mov, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['v_fade'][1], 10)
+
+    def test_v_fade_p_add(self, opt_passes):
+        hsv = self.run_test(test_v_fade_p_add, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['v_fade'][1], 10)
+
+    def test_v_fade_p_sub(self, opt_passes):
+        hsv = self.run_test(test_v_fade_p_sub, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['v_fade'][1], 10)
+
+    def test_v_fade_p_mul(self, opt_passes):
+        hsv = self.run_test(test_v_fade_p_mul, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['v_fade'][1], 40)
+    
+    def test_v_fade_p_div(self, opt_passes):
+        hsv = self.run_test(test_v_fade_p_div, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['v_fade'][1], 10)
+
+    def test_v_fade_p_mod(self, opt_passes):
+        hsv = self.run_test(test_v_fade_p_mod, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['v_fade'][1], 2)
 
 # @pytest.mark.skip
 @pytest.mark.local

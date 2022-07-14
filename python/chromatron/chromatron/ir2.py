@@ -7609,14 +7609,21 @@ class irBinop(IR):
                 val //= 65536
 
         elif op == 'div':
-            if left.data_type == 'f16':
+            if right_value == 0:
+                val = 0
+
+            elif left.data_type == 'f16':
                 val = (left_value * 65536) // right_value
 
             else:
                 val = left_value // right_value
 
         elif op == 'mod':
-            val = left_value % right_value
+            if right_value == 0:
+                val = 0
+
+            else:
+                val = left_value % right_value
 
         else:
             assert False
