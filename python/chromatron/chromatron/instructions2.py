@@ -2644,7 +2644,7 @@ class insPixelMod(BaseInstruction):
         self.value = value
 
     def __str__(self):
-        return "%s %s.%s %= %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
+        return "%s %s.%s %%= %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
 
     def execute(self, vm):
         index = vm.registers[self.pixel_index.reg]
@@ -3008,7 +3008,7 @@ class insVPixelMod(BaseInstruction):
         self.value = value
 
     def __str__(self):
-        return "%s %s.%s %= %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
+        return "%s %s.%s %%= %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
 
     def array_func(self, array, i, value):
         array[i] %= value

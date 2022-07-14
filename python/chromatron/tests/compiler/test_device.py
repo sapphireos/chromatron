@@ -92,7 +92,7 @@ class TestCompilerOnDevice(CompilerTests):
 
 
 
-@pytest.mark.local
+@pytest.mark.device
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestHSVArrayLocal(HSVArrayTests):
     def run_test(self, program, opt_passes=[OptPasses.SSA]):
