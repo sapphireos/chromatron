@@ -1841,14 +1841,28 @@ opcode_mul:
 opcode_div:
     DECODE_3AC;    
 
-    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] / registers[opcode_3ac->op2];
+    if( registers[opcode_3ac->op2] == 0 ){
+
+        registers[opcode_3ac->dest] = 0;
+    }
+    else{
+
+        registers[opcode_3ac->dest] = registers[opcode_3ac->op1] / registers[opcode_3ac->op2];
+    }
 
     DISPATCH;
 
 opcode_mod:
     DECODE_3AC;    
 
-    registers[opcode_3ac->dest] = registers[opcode_3ac->op1] % registers[opcode_3ac->op2];
+    if( registers[opcode_3ac->op2] == 0 ){
+
+        registers[opcode_3ac->dest] = 0;
+    }
+    else{
+
+        registers[opcode_3ac->dest] = registers[opcode_3ac->op1] % registers[opcode_3ac->op2];
+    }
 
     DISPATCH;
 
@@ -1862,8 +1876,15 @@ opcode_mul_f16:
 opcode_div_f16:
     DECODE_3AC;    
 
-    registers[opcode_3ac->dest] = ( (int64_t)registers[opcode_3ac->op1] * 65536 ) / registers[opcode_3ac->op2];
+    if( registers[opcode_3ac->op2] == 0 ){
 
+        registers[opcode_3ac->dest] = 0;
+    }
+    else{
+
+        registers[opcode_3ac->dest] = ( (int64_t)registers[opcode_3ac->op1] * 65536 ) / registers[opcode_3ac->op2];    
+    }
+    
     DISPATCH;
 
 opcode_conv_i32_to_f16:
