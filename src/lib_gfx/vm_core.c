@@ -538,54 +538,57 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 158
         &&opcode_trap,              // 159
 
-        &&opcode_trap,              // 160
-        &&opcode_trap,              // 161
-        &&opcode_trap,              // 162
-        &&opcode_trap,              // 163
-        &&opcode_trap,              // 164
+        &&opcode_pmul_hue,          // 160
+        &&opcode_pmul_sat,          // 161
+        &&opcode_pmul_val,          // 162
+        &&opcode_pmul_hs_fade,      // 163
+        &&opcode_pmul_v_fade,       // 164
         &&opcode_trap,              // 165
         &&opcode_trap,              // 166
         &&opcode_trap,              // 167
-        &&opcode_trap,              // 168
-        &&opcode_trap,              // 169
-        &&opcode_trap,              // 170
-        &&opcode_trap,              // 171
-        &&opcode_trap,              // 172
+        &&opcode_vmul_hue,          // 168
+        &&opcode_vmul_sat,          // 169
+        &&opcode_vmul_val,          // 170
+        &&opcode_vmul_hs_fade,      // 171
+        &&opcode_vmul_v_fade,       // 172
         &&opcode_trap,              // 173
         &&opcode_trap,              // 174
         &&opcode_trap,              // 175
-        &&opcode_trap,              // 176
-        &&opcode_trap,              // 177
-        &&opcode_trap,              // 178
-        &&opcode_trap,              // 179
-        &&opcode_trap,              // 180
+        
+        &&opcode_pdiv_hue,          // 176
+        &&opcode_pdiv_sat,          // 177
+        &&opcode_pdiv_val,          // 178
+        &&opcode_pdiv_hs_fade,      // 179
+        &&opcode_pdiv_v_fade,       // 180
         &&opcode_trap,              // 181
         &&opcode_trap,              // 182
         &&opcode_trap,              // 183
-        &&opcode_trap,              // 184
-        &&opcode_trap,              // 185
-        &&opcode_trap,              // 186
-        &&opcode_trap,              // 187
-        &&opcode_trap,              // 188
+        &&opcode_vdiv_hue,          // 184
+        &&opcode_vdiv_sat,          // 185
+        &&opcode_vdiv_val,          // 186
+        &&opcode_vdiv_hs_fade,      // 187
+        &&opcode_vdiv_v_fade,       // 188
         &&opcode_trap,              // 189
         &&opcode_trap,              // 190
         &&opcode_trap,              // 191
-        &&opcode_trap,              // 192
-        &&opcode_trap,              // 193
-        &&opcode_trap,              // 194
-        &&opcode_trap,              // 195
-        &&opcode_trap,              // 196
+        
+        &&opcode_pmod_hue,          // 192
+        &&opcode_pmod_sat,          // 193
+        &&opcode_pmod_val,          // 194
+        &&opcode_pmod_hs_fade,      // 195
+        &&opcode_pmod_v_fade,       // 196
         &&opcode_trap,              // 197
         &&opcode_trap,              // 198
         &&opcode_trap,              // 199
-        &&opcode_trap,              // 200
-        &&opcode_trap,              // 201
-        &&opcode_trap,              // 202
-        &&opcode_trap,              // 203
-        &&opcode_trap,              // 204
+        &&opcode_vmod_hue,          // 200
+        &&opcode_vmod_sat,          // 201
+        &&opcode_vmod_val,          // 202
+        &&opcode_vmod_hs_fade,      // 203
+        &&opcode_vmod_v_fade,       // 204
         &&opcode_trap,              // 205
         &&opcode_trap,              // 206
         &&opcode_trap,              // 207
+
         &&opcode_trap,              // 208
         &&opcode_trap,              // 209
         &&opcode_trap,              // 210
@@ -2184,9 +2187,6 @@ opcode_vadd_v_fade:
 
     DISPATCH;
 
-
-
-
 opcode_psub_hue:
     DECODE_2AC;
 
@@ -2306,6 +2306,367 @@ opcode_vsub_v_fade:
     gfx_v_array_sub( ref.ref.addr, PIX_ATTR_V_FADE, value );    
 
     DISPATCH;
+
+opcode_pmul_hue:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_hue_1d( index );
+
+    value *= registers[opcode_2ac->op1];
+
+    gfx_v_set_hue_1d( value, index );
+
+    DISPATCH;
+
+opcode_pmul_sat:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_sat_1d( index );
+
+    value *= registers[opcode_2ac->op1];
+
+    gfx_v_set_sat_1d( value, index );
+
+    DISPATCH;
+
+opcode_pmul_val:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_val_1d( index );
+
+    value *= registers[opcode_2ac->op1];
+
+    gfx_v_set_val_1d( value, index );
+
+    DISPATCH;
+
+opcode_pmul_hs_fade:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_hs_fade_1d( index );
+
+    value *= registers[opcode_2ac->op1];
+
+    gfx_v_set_hs_fade_1d( value, index );
+
+    DISPATCH;
+
+opcode_pmul_v_fade:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_v_fade_1d( index );
+
+    value *= registers[opcode_2ac->op1];
+
+    gfx_v_set_v_fade_1d( value, index );
+
+    DISPATCH;
+
+opcode_vmul_hue:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_HUE, value );    
+
+    DISPATCH;
+
+opcode_vmul_sat:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_SAT, value );    
+
+    DISPATCH;
+
+opcode_vmul_val:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_VAL, value );    
+
+    DISPATCH;
+
+opcode_vmul_hs_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
+
+    DISPATCH;
+
+opcode_vmul_v_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_V_FADE, value );    
+
+    DISPATCH;
+
+opcode_pdiv_hue:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_hue_1d( index );
+
+    value /= registers[opcode_2ac->op1];
+
+    gfx_v_set_hue_1d( value, index );
+
+    DISPATCH;
+
+opcode_pdiv_sat:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_sat_1d( index );
+
+    value /= registers[opcode_2ac->op1];
+
+    gfx_v_set_sat_1d( value, index );
+
+    DISPATCH;
+
+opcode_pdiv_val:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_val_1d( index );
+
+    value /= registers[opcode_2ac->op1];
+
+    gfx_v_set_val_1d( value, index );
+
+    DISPATCH;
+
+opcode_pdiv_hs_fade:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_hs_fade_1d( index );
+
+    value /= registers[opcode_2ac->op1];
+
+    gfx_v_set_hs_fade_1d( value, index );
+
+    DISPATCH;
+
+opcode_pdiv_v_fade:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_v_fade_1d( index );
+
+    value /= registers[opcode_2ac->op1];
+
+    gfx_v_set_v_fade_1d( value, index );
+
+    DISPATCH;
+
+opcode_vdiv_hue:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_div( ref.ref.addr, PIX_ATTR_HUE, value );    
+
+    DISPATCH;
+
+opcode_vdiv_sat:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_div( ref.ref.addr, PIX_ATTR_SAT, value );    
+
+    DISPATCH;
+
+opcode_vdiv_val:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_div( ref.ref.addr, PIX_ATTR_VAL, value );    
+
+    DISPATCH;
+
+opcode_vdiv_hs_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_div( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
+
+    DISPATCH;
+
+opcode_vdiv_v_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_div( ref.ref.addr, PIX_ATTR_V_FADE, value );    
+
+    DISPATCH;
+
+opcode_pmod_hue:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_hue_1d( index );
+
+    value %= registers[opcode_2ac->op1];
+
+    gfx_v_set_hue_1d( value, index );
+
+    DISPATCH;
+
+opcode_pmod_sat:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_sat_1d( index );
+
+    value %= registers[opcode_2ac->op1];
+
+    gfx_v_set_sat_1d( value, index );
+
+    DISPATCH;
+
+opcode_pmod_val:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_val_1d( index );
+
+    value %= registers[opcode_2ac->op1];
+
+    gfx_v_set_val_1d( value, index );
+
+    DISPATCH;
+
+opcode_pmod_hs_fade:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_hs_fade_1d( index );
+
+    value %= registers[opcode_2ac->op1];
+
+    gfx_v_set_hs_fade_1d( value, index );
+
+    DISPATCH;
+
+opcode_pmod_v_fade:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_v_fade_1d( index );
+
+    value %= registers[opcode_2ac->op1];
+
+    gfx_v_set_v_fade_1d( value, index );
+
+    DISPATCH;
+
+opcode_vmod_hue:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_mod( ref.ref.addr, PIX_ATTR_HUE, value );    
+
+    DISPATCH;
+
+opcode_vmod_sat:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_mod( ref.ref.addr, PIX_ATTR_SAT, value );    
+
+    DISPATCH;
+
+opcode_vmod_val:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_mod( ref.ref.addr, PIX_ATTR_VAL, value );    
+
+    DISPATCH;
+
+opcode_vmod_hs_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_mod( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
+
+    DISPATCH;
+
+opcode_vmod_v_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_mod( ref.ref.addr, PIX_ATTR_V_FADE, value );    
+
+    DISPATCH;
+
 
 
 
