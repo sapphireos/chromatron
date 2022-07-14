@@ -1565,7 +1565,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
 
                 index %= pix_count;
 
-                int32_t a = *( ptr + index );
+                int64_t a = *( ptr + index );
 
                 a = ( a * 65536 ) / src;
 
@@ -1602,7 +1602,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
 
                 index %= pix_count;
 
-                int32_t a = *( ptr + index );
+                int64_t a = *( ptr + index );
 
                 a = ( a * 65536 ) / src;
 
@@ -1701,7 +1701,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
 
                 index %= pix_count;
 
-                int32_t a = *( ptr + index );
+                int64_t a = *( ptr + index );
 
                 a = ( a * 65536 ) / src;
 

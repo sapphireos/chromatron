@@ -1,7 +1,7 @@
 
 def init():
-    pixels.hue = 10
-    pixels.hue *= 2
+    pixels.hue = 0.5
+    pixels.hue /= 2.0
     
 # current_hue = Fixed16()
 # delay = Number()
