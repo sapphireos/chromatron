@@ -1,5 +1,5 @@
 
-from .test_code_gen import CompilerTests
+from .test_code_gen import CompilerTests, HSVArrayTests
 
 from conftest import *
 
@@ -10,7 +10,8 @@ import time
 
 ct = chromatron.Chromatron(host=NETWORK_ADDR)
 
-# @pytest.mark.skip
+@pytest.mark.skip
+@pytest.mark.device
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerOnDevice(CompilerTests):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
@@ -90,3 +91,59 @@ class TestCompilerOnDevice(CompilerTests):
         ct.stop_vm()
 
 
+
+@pytest.mark.local
+@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
+class TestHSVArrayLocal(HSVArrayTests):
+    def run_test(self, program, opt_passes=[OptPasses.SSA]):
+        global ct
+        # ct = chromatron.Chromatron(host='usb', force_network=True)
+        # ct = chromatron.Chromatron(host='10.0.0.108')
+
+        tries = 3
+
+        while tries > 0:
+            try:
+                # ct.load_vm(bin_data=program)
+                with open('test.fx', 'w') as f:
+                    f.write(program) # write out the program source for debug if it fails
+
+                program = code_gen.compile_text(program, debug_print=False, opt_passes=opt_passes)
+                image = program.assemble()
+                stream = image.render('test.fxb')
+
+                ct.stop_vm()
+
+                # reset test key
+                ct.set_key('kv_test_key', 0)
+                
+                # change vm program
+                ct.set_key('vm_prog', 'test.fxb')
+                ct.put_file('test.fxb', stream)
+                ct.start_vm()
+
+                for i in range(100):
+                    time.sleep(0.1)
+
+                    vm_status = ct.get_key('vm_status')
+
+                    if vm_status != 4 and vm_status != -127:
+                        # vm reports READY (4), we need to wait until it changes 
+                        # (READY means it is waiting for the internal VM to start)
+                        # -127 means the VM is not initialized
+                        break
+
+                assert vm_status == 0
+
+                ct.init_scan()
+
+                return ct.dump_hsv()
+                
+            except ProtocolErrorException:
+                print("Protocol error, trying again.")
+                tries -= 1
+
+                if tries < 0:
+                    raise
+
+        ct.stop_vm()

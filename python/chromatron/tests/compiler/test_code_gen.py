@@ -3362,19 +3362,12 @@ def init():
 """
 
 
-@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
-class TestHSVArray(object):
+class HSVArrayTests(object):
     def assertEqual(self, actual, expected):
         assert actual == expected
 
     def run_test(self, program, opt_passes=[OptPasses.SSA]):
-        prog = code_gen.compile_text(program, opt_passes=opt_passes)
-        func = prog.init_func
-
-        ret_val = func.run()
-
-        return func.program.dump_hsv()
-
+        pass
 
     def test_pix_load_from_pix_2(self, opt_passes):
         hsv = self.run_test(test_pix_load_from_pix_2, opt_passes=opt_passes)
@@ -3665,4 +3658,16 @@ class TestCompilerLocal(CompilerTests):
                 print('Var: %s Expected: %s Actual: %s' % (reg, expected_value, regs[reg]))
                 print('-------------------------------\n')
                 raise
+
+@pytest.mark.local
+@pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
+class TestHSVArrayLocal(HSVArrayTests):
+    def run_test(self, program, opt_passes=[OptPasses.SSA]):
+        prog = code_gen.compile_text(program, opt_passes=opt_passes)
+        func = prog.init_func
+
+        ret_val = func.run()
+
+        return func.program.dump_hsv()
+
 

@@ -475,6 +475,9 @@ class Chromatron(object):
         else:
             return self._device.get_all_kv()
 
+    def dump_hsv(self):
+        return {}
+
     def set_wifi(self, ssid, password):
         self.set_key('wifi_ssid', ssid)
         self.set_key('wifi_password', password)
