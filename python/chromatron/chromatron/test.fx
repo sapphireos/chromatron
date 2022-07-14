@@ -1,16 +1,7 @@
 
-ary = Number()[4]
-
-a = Number(publish=True)
-
 def init():
-    for i in len(ary):
-        ary[len(ary) - 1 - i] = i + 1
-
-    a = min(ary)
-
-    return min(ary)
-
+    pixels.hue -= 0.1
+    
 # current_hue = Fixed16()
 # delay = Number()
 # cursor = Number()

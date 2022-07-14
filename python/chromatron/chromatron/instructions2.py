@@ -2718,6 +2718,18 @@ class insVPixelSub(BaseInstruction):
     def __str__(self):
         return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
 
+    def array_func(self, array, i, value):
+        array[i] -= value
+
+        if array[i] < 0:
+            array[i] = 0
+
+        elif array[i] > 65535:
+            array[i] = 65535
+
+        # coerce to int
+        array[i] = int(array[i])
+
     def execute(self, vm):
         ref = vm.registers[self.pixel_ref.reg]
         pixel_array = vm.get_pixel_array(ref)
@@ -2726,13 +2738,21 @@ class insVPixelSub(BaseInstruction):
 
         for i in range(pixel_array['count']):
             idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
-            array[idx] -= value
+            self.array_func(array, idx, value)
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 class insVPixelSubHue(insVPixelSub):
     mnemonic = 'VSUB_HUE'
+
+    def array_func(self, array, i, value):
+        array[i] -= value
+
+        array[i] %= 65536
+
+        # coerce to int
+        array[i] = int(array[i])
 
 class insVPixelSubSat(insVPixelSub):
     mnemonic = 'VSUB_SAT'
@@ -2760,6 +2780,9 @@ class insVPixelMul(BaseInstruction):
     def __str__(self):
         return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
 
+    def array_func(self, array, i, value):
+        pass
+
     def execute(self, vm):
         ref = vm.registers[self.pixel_ref.reg]
         pixel_array = vm.get_pixel_array(ref)
@@ -2768,7 +2791,7 @@ class insVPixelMul(BaseInstruction):
 
         for i in range(pixel_array['count']):
             idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
-            array[idx] *= value
+            self.array_func(array, idx, value)
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
@@ -2776,18 +2799,65 @@ class insVPixelMul(BaseInstruction):
 class insVPixelMulHue(insVPixelMul):
     mnemonic = 'VMUL_HUE'
 
+    def array_func(self, array, i, value):
+        array[i] = (array[i] * value) / 65536
+
+        array[i] %= 65536
+
+        # coerce to int
+        array[i] = int(array[i])
+
 class insVPixelMulSat(insVPixelMul):
     mnemonic = 'VMUL_SAT'
+
+    def array_func(self, array, i, value):
+        array[i] = (array[i] * value) / 65536
+
+        if array[i] < 0:
+            array[i] = 0
+
+        elif array[i] > 65535:
+            array[i] = 65535
+
+        # coerce to int
+        array[i] = int(array[i])
 
 class insVPixelMulVal(insVPixelMul):
     mnemonic = 'VMUL_VAL'
 
+    def array_func(self, array, i, value):
+        array[i] = (array[i] * value) / 65536
+
+        if array[i] < 0:
+            array[i] = 0
+
+        elif array[i] > 65535:
+            array[i] = 65535
+
+        # coerce to int
+        array[i] = int(array[i])
+
 class insVPixelMulHSFade(insVPixelMul):
     mnemonic = 'VMUL_HS_FADE'
+
+    def array_func(self, array, i, value):
+        array[i] = array[i] * value
+
+        array[i] %= 65536
+
+        # coerce to int
+        array[i] = int(array[i])
 
 class insVPixelMulVFade(insVPixelMul):
     mnemonic = 'VMUL_V_FADE'
 
+    def array_func(self, array, i, value):
+        array[i] = array[i] * value
+
+        array[i] %= 65536
+
+        # coerce to int
+        array[i] = int(array[i])
 
 class insVPixelDiv(BaseInstruction):
     mnemonic = 'VDIV'
@@ -2802,15 +2872,26 @@ class insVPixelDiv(BaseInstruction):
     def __str__(self):
         return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
 
+    def array_func(self, array, i, value):
+        pass
+
+    def array_func_zero(self, array, i, value):
+        array[i] = 0
+
     def execute(self, vm):
         ref = vm.registers[self.pixel_ref.reg]
         pixel_array = vm.get_pixel_array(ref)
         value = vm.registers[self.value.reg]
         array = vm.gfx_data[self.attr]
 
+
+        array_func = self.array_func
+        if value == 0:
+            array_func = array_func_zero
+
         for i in range(pixel_array['count']):
             idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
-            array[idx] //= value
+            array_func(array, idx, value)
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
@@ -2818,18 +2899,65 @@ class insVPixelDiv(BaseInstruction):
 class insVPixelDivHue(insVPixelDiv):
     mnemonic = 'VDIV_HUE'
 
+    def array_func(self, array, i, value):
+        array[i] = (array[i] * 65536) / value
+
+        array[i] %= 65536
+
+        # coerce to int
+        array[i] = int(array[i])
+
 class insVPixelDivSat(insVPixelDiv):
     mnemonic = 'VDIV_SAT'
+
+    def array_func(self, array, i, value):
+        array[i] = (array[i] * 65536) / value
+
+        if array[i] < 0:
+            array[i] = 0
+
+        elif array[i] > 65535:
+            array[i] = 65535
+
+        # coerce to int
+        array[i] = int(array[i])
 
 class insVPixelDivVal(insVPixelDiv):
     mnemonic = 'VDIV_VAL'
 
+    def array_func(self, array, i, value):
+        array[i] = (array[i] * 65536) / value
+
+        if array[i] < 0:
+            array[i] = 0
+
+        elif array[i] > 65535:
+            array[i] = 65535
+
+        # coerce to int
+        array[i] = int(array[i])
+
 class insVPixelDivHSFade(insVPixelDiv):
     mnemonic = 'VDIV_HS_FADE'
+
+    def array_func(self, array, i, value):
+        array[i] = array[i] / value
+
+        array[i] %= 65536
+
+        # coerce to int
+        array[i] = int(array[i])
 
 class insVPixelDivVFade(insVPixelDiv):
     mnemonic = 'VDIV_V_FADE'
 
+    def array_func(self, array, i, value):
+        array[i] = array[i] / value
+
+        array[i] %= 65536
+
+        # coerce to int
+        array[i] = int(array[i])
 
 class insVPixelMod(BaseInstruction):
     mnemonic = 'VMOD'
@@ -2844,21 +2972,49 @@ class insVPixelMod(BaseInstruction):
     def __str__(self):
         return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
 
+    def array_func(self, array, i, value):
+        array[i] %= value
+
+        if array[i] < 0:
+            array[i] = 0
+
+        elif array[i] > 65535:
+            array[i] = 65535
+
+        # coerce to int
+        array[i] = int(array[i])
+
+    def array_func_zero(self, array, i, value):
+        array[i] = 0
+
     def execute(self, vm):
         ref = vm.registers[self.pixel_ref.reg]
         pixel_array = vm.get_pixel_array(ref)
         value = vm.registers[self.value.reg]
         array = vm.gfx_data[self.attr]
 
+
+        array_func = self.array_func
+        if value == 0:
+            array_func = array_func_zero
+
         for i in range(pixel_array['count']):
             idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
-            array[idx] += value
+            array_func(array, idx, value)
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 class insVPixelModHue(insVPixelMod):
     mnemonic = 'VMOD_HUE'
+
+    def array_func(self, array, i, value):
+        array[i] %= value
+
+        array[i] %= 65536
+
+        # coerce to int
+        array[i] = int(array[i])
 
 class insVPixelModSat(insVPixelMod):
     mnemonic = 'VMOD_SAT'

@@ -1972,6 +1972,32 @@ def init():
     e = d
 """
 
+test_gfx_array_load = """
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+i = Number(publish=True)
+
+def init():
+    pixels[0].val = 0.1
+    pixels[1].val = 0.2
+    pixels[2].val = 0.3
+    pixels[3].val = 0.4
+
+    a = pixels[0].val
+    b = pixels[1].val
+    i = 2
+    c = pixels[2].val
+    d = pixels[i + 1].val
+
+def loop():
+    pass
+
+"""
+
+
 
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
@@ -2849,6 +2875,16 @@ class CompilerTests(object):
                 'd': 0,
             })
 
+    def test_gfx_array_load(self, opt_passes):
+        hsv = self.run_test(test_gfx_array_load, 
+            opt_passes=opt_passes,
+            expected={
+                'a': 0.0999908447265625,
+                'b': 0.1999969482421875,
+                'c': 0.29998779296875,
+                'd': 0.399993896484375,
+            })
+
 
 hue_array_1 = """
 
@@ -3281,31 +3317,6 @@ def loop():
 
 """
 
-gfx_array_load = """
-
-a = Fixed16(publish=True)
-b = Fixed16(publish=True)
-c = Fixed16(publish=True)
-d = Fixed16(publish=True)
-i = Number(publish=True)
-
-def init():
-    pixels[0].val = 0.1
-    pixels[1].val = 0.2
-    pixels[2].val = 0.3
-    pixels[3].val = 0.4
-
-    a = pixels[0].val
-    b = pixels[1].val
-    i = 2
-    c = pixels[2].val
-    d = pixels[i + 1].val
-
-def loop():
-    pass
-
-"""
-
 
 test_pix_mov_from_array = """
 
@@ -3620,16 +3631,6 @@ class TestHSVArray(object):
         self.assertEqual(hsv['val'][1], 19660)
         self.assertEqual(hsv['val'][2], 0)
         self.assertEqual(hsv['val'][3], 26214)
-
-    def test_gfx_array_load(self, opt_passes):
-        hsv = self.run_test(gfx_array_load, opt_passes=opt_passes)
-
-        self.assertEqual(regs['a'], 0.0999908447265625)
-        self.assertEqual(regs['b'], 0.1999969482421875)
-        self.assertEqual(regs['c'], 0.29998779296875)
-        self.assertEqual(regs['d'], 0.399993896484375)
-
-
 
 
 # @pytest.mark.skip
