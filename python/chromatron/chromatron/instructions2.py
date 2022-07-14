@@ -159,11 +159,11 @@ class insProgram(object):
             'test_lib_call': self.test_lib_call,
             'test_gfx_lib_call': self.test_gfx_lib_call,
             'rand': self.rand,
-            'len': self.array_len,
-            'avg': self.array_avg,
-            'sum': self.array_sum,
-            'min': self.array_min,
-            'max': self.array_max,
+            # 'len': self.array_len,
+            # 'avg': self.array_avg,
+            # 'sum': self.array_sum,
+            # 'min': self.array_min,
+            # 'max': self.array_max,
         }
 
         self.objects = objects
@@ -298,46 +298,46 @@ class insProgram(object):
     def rand(self, vm, param0=0, param1=65535):
         return random.randint(param0, param1)
 
-    def array_len(self, vm, param0, length):
-        return length
+    # def array_len(self, vm, param0, length):
+    #     return length
 
-    def array_avg(self, vm, param0, length):
-        s = 0
+    # def array_avg(self, vm, param0, length):
+    #     s = 0
 
-        for i in range(length):
-            s += param0.pool[param0.addr + i]
+    #     for i in range(length):
+    #         s += param0.pool[param0.addr + i]
 
-        return s // length
+    #     return s // length
 
-    def array_sum(self, vm, param0, length):
-        s = 0
+    # def array_sum(self, vm, param0, length):
+    #     s = 0
 
-        for i in range(length):
-            s += param0.pool[param0.addr + i]
+    #     for i in range(length):
+    #         s += param0.pool[param0.addr + i]
 
-        return s
+    #     return s
 
-    def array_min(self, vm, param0, length):
-        s = param0.pool[param0.addr]
+    # def array_min(self, vm, param0, length):
+    #     s = param0.pool[param0.addr]
 
-        for i in range(length):
-            s1 = param0.pool[param0.addr + i]
+    #     for i in range(length):
+    #         s1 = param0.pool[param0.addr + i]
 
-            if s1 < s:
-                s = s1
+    #         if s1 < s:
+    #             s = s1
 
-        return s
+    #     return s
 
-    def array_max(self, vm, param0, length):
-        s = param0.pool[param0.addr]
+    # def array_max(self, vm, param0, length):
+    #     s = param0.pool[param0.addr]
 
-        for i in range(length):
-            s1 = param0.pool[param0.addr + i]
+    #     for i in range(length):
+    #         s1 = param0.pool[param0.addr + i]
 
-            if s1 > s:
-                s = s1
+    #         if s1 > s:
+    #             s = s1
 
-        return s
+    #     return s
 
     def dump_globals(self):
         d = {}
@@ -2536,11 +2536,26 @@ class insPixelSub(BaseInstruction):
         array = vm.gfx_data[self.attr]
         array[index] -= value
 
+        if array[index] < 0:
+            array[index] = 0
+
+        elif array[index] > 65535:
+            array[index] = 65535
+
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
 
 class insPixelSubHue(insPixelSub):
     mnemonic = 'PSUB_HUE'
+
+    def execute(self, vm):
+        index = vm.registers[self.pixel_index.reg]
+        value = vm.registers[self.value.reg]
+
+        array = vm.gfx_data[self.attr]
+        array[index] -= value
+
+        array[index] %= 65536
 
 class insPixelSubSat(insPixelSub):
     mnemonic = 'PSUB_SAT'
@@ -2575,11 +2590,26 @@ class insPixelMul(BaseInstruction):
         array = vm.gfx_data[self.attr]
         array[index] *= value
 
+        if array[index] < 0:
+            array[index] = 0
+
+        elif array[index] > 65535:
+            array[index] = 65535
+
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
 
 class insPixelMulHue(insPixelMul):
     mnemonic = 'PMUL_HUE'
+
+    def execute(self, vm):
+        index = vm.registers[self.pixel_index.reg]
+        value = vm.registers[self.value.reg]
+
+        array = vm.gfx_data[self.attr]
+        array[index] *= value
+
+        array[index] %= 65536
 
 class insPixelMulSat(insPixelMul):
     mnemonic = 'PMUL_SAT'
@@ -2614,11 +2644,26 @@ class insPixelDiv(BaseInstruction):
         array = vm.gfx_data[self.attr]
         array[index] //= value
 
+        if array[index] < 0:
+            array[index] = 0
+
+        elif array[index] > 65535:
+            array[index] = 65535
+
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
 
 class insPixelDivHue(insPixelDiv):
     mnemonic = 'PDIV_HUE'
+
+    def execute(self, vm):
+        index = vm.registers[self.pixel_index.reg]
+        value = vm.registers[self.value.reg]
+
+        array = vm.gfx_data[self.attr]
+        array[index] //= value
+
+        array[index] %= 65536
 
 class insPixelDivSat(insPixelDiv):
     mnemonic = 'PDIV_SAT'

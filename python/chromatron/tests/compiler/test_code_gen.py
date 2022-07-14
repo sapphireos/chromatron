@@ -1892,11 +1892,36 @@ def init():
 
 """
 
+test_div_by_zero = """
+
+a = Fixed16(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+
+def init():
+    zero = Number()
+    zero = 0
+
+    a = 123.0 / zero
+    b = 123 / zero
+    c = 123 % zero
+
+"""
+
 
 
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_div_by_zero(self, opt_passes):
+        self.run_test(test_div_by_zero,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0.0,
+                'b': 0,
+                'c': 0
+            })
 
     @pytest.mark.skip
     def test_basic_string(self, opt_passes):
@@ -2905,6 +2930,13 @@ def init():
 
 """
 
+hue_array_mod_2 = """
+
+def init():
+    pixels.hue = 20
+    pixels.hue %= 6
+
+"""
 
 
 sat_array_1 = """
@@ -2922,6 +2954,13 @@ def init():
 
 """
 
+sat_array_3 = """
+
+def init():
+    pixels.sat = 15
+
+"""
+
 sat_array_add = """
 
 def init():
@@ -2929,10 +2968,25 @@ def init():
 
 """
 
+sat_array_add_2 = """
+
+def init():
+    pixels.sat += 1
+
+"""
+
 sat_array_sub = """
 
 def init():
     pixels.sat -= 0.1
+
+"""
+
+sat_array_sub_2 = """
+
+def init():
+    pixels.sat = 10
+    pixels.sat -= 1
 
 """
 
@@ -2944,6 +2998,14 @@ def init():
 
 """
 
+sat_array_mul_2 = """
+
+def init():
+    pixels.sat = 10
+    pixels.sat *= 2
+
+"""
+
 sat_array_div = """
 
 def init():
@@ -2952,11 +3014,27 @@ def init():
 
 """
 
+sat_array_div_2 = """
+
+def init():
+    pixels.sat = 10
+    pixels.sat /= 2
+
+"""
+
 sat_array_mod = """
 
 def init():
     pixels.sat = 0.5
     pixels.sat %= 0.3
+
+"""
+
+sat_array_mod_2 = """
+
+def init():
+    pixels.sat = 20
+    pixels.sat %= 6
 
 """
 
@@ -2975,6 +3053,13 @@ def init():
 
 """
 
+val_array_3 = """
+
+def init():
+    pixels.val = 25
+
+"""
+
 val_array_add = """
 
 def init():
@@ -2982,10 +3067,25 @@ def init():
 
 """
 
+val_array_add_2 = """
+
+def init():
+    pixels.val += 1
+
+"""
+
 val_array_sub = """
 
 def init():
     pixels.val -= 0.1
+
+"""
+
+val_array_sub_2 = """
+
+def init():
+    pixels.val = 20
+    pixels.val -= 2
 
 """
 
@@ -2997,11 +3097,27 @@ def init():
 
 """
 
+val_array_mul_2 = """
+
+def init():
+    pixels.val = 20
+    pixels.val *= 3
+
+"""
+
 val_array_div = """
 
 def init():
     pixels.val = 0.5
     pixels.val /= 2.0
+
+"""
+
+val_array_div_2 = """
+
+def init():
+    pixels.val = 50
+    pixels.val /= 2
 
 """
 
@@ -3013,6 +3129,13 @@ def init():
 
 """
 
+val_array_mod_2 = """
+
+def init():
+    pixels.val = 20
+    pixels.val %= 6
+
+"""
 
 hs_fade_array_1 = """
 
@@ -3183,6 +3306,67 @@ def init():
 
 """
 
+test_hue_p_mov = """
+
+def init():
+    pixels[1].hue = 0.1
+
+"""
+
+test_hue_p_add = """
+
+def init():
+    pixels[1].hue += 0.1
+
+"""
+
+test_hue_p_sub = """
+
+def init():
+    pixels[1].hue -= 0.1
+
+"""
+
+test_hue_p_mul = """
+
+def init():
+    pixels[1].hue = 20
+    pixels[1].hue *= 2
+
+"""
+
+test_hue_p_mul_f16 = """
+
+def init():
+    pixels[1].hue = 0.5
+    pixels[1].hue *= 0.5
+
+"""
+
+test_hue_p_div = """
+
+def init():
+    pixels[1].hue = 20
+    pixels[1].hue /= 2
+
+"""
+
+test_hue_p_div_f16 = """
+
+def init():
+    pixels[1].hue = 0.5
+    pixels[1].hue /= 2.0
+
+"""
+
+test_hue_p_mod = """
+
+def init():
+    pixels[1].hue = 0.5
+    pixels[1].hue %= 0.3
+
+"""
+
 
 class HSVArrayTests(object):
     def assertEqual(self, actual, expected):
@@ -3309,6 +3493,12 @@ class HSVArrayTests(object):
         for a in hsv['hue']:
             self.assertEqual(a, 13108)
 
+    def test_hue_array_mod_2(self, opt_passes):
+        hsv = self.run_test(hue_array_mod_2, opt_passes=opt_passes)
+        
+        for a in hsv['hue']:
+            self.assertEqual(a, 2)
+
     def test_sat_array_1(self, opt_passes):
         hsv = self.run_test(sat_array_1, opt_passes=opt_passes)
         
@@ -3321,11 +3511,23 @@ class HSVArrayTests(object):
         for a in hsv['sat']:
             self.assertEqual(a, 32768)
 
+    def test_sat_array_3(self, opt_passes):
+        hsv = self.run_test(sat_array_3, opt_passes=opt_passes)
+        
+        for a in hsv['sat']:
+            self.assertEqual(a, 15)
+
     def test_sat_array_add(self, opt_passes):
         hsv = self.run_test(sat_array_add, opt_passes=opt_passes)
         
         for a in hsv['sat']:
             self.assertEqual(a, 6553)
+
+    def test_sat_array_add_2(self, opt_passes):
+        hsv = self.run_test(sat_array_add_2, opt_passes=opt_passes)
+        
+        for a in hsv['sat']:
+            self.assertEqual(a, 1)
 
     def test_sat_array_sub(self, opt_passes):
         hsv = self.run_test(sat_array_sub, opt_passes=opt_passes)
@@ -3333,11 +3535,23 @@ class HSVArrayTests(object):
         for a in hsv['sat']:
             self.assertEqual(a, 0)
 
+    def test_sat_array_sub_2(self, opt_passes):
+        hsv = self.run_test(sat_array_sub_2, opt_passes=opt_passes)
+        
+        for a in hsv['sat']:
+            self.assertEqual(a, 9)
+
     def test_sat_array_mul(self, opt_passes):
         hsv = self.run_test(sat_array_mul, opt_passes=opt_passes)
         
         for a in hsv['sat']:
             self.assertEqual(a, 8192)
+
+    def test_sat_array_mul_2(self, opt_passes):
+        hsv = self.run_test(sat_array_mul_2, opt_passes=opt_passes)
+        
+        for a in hsv['sat']:
+            self.assertEqual(a, 20)
 
     def test_sat_array_div(self, opt_passes):
         hsv = self.run_test(sat_array_div, opt_passes=opt_passes)
@@ -3345,11 +3559,23 @@ class HSVArrayTests(object):
         for a in hsv['sat']:
             self.assertEqual(a, 16384)
 
+    def test_sat_array_div_2(self, opt_passes):
+        hsv = self.run_test(sat_array_div_2, opt_passes=opt_passes)
+        
+        for a in hsv['sat']:
+            self.assertEqual(a, 5)
+
     def test_sat_array_mod(self, opt_passes):
         hsv = self.run_test(sat_array_mod, opt_passes=opt_passes)
         
         for a in hsv['sat']:
             self.assertEqual(a, 13108)
+
+    def test_sat_array_mod_2(self, opt_passes):
+        hsv = self.run_test(sat_array_mod_2, opt_passes=opt_passes)
+        
+        for a in hsv['sat']:
+            self.assertEqual(a, 2)
 
     def test_val_array_1(self, opt_passes):
         hsv = self.run_test(val_array_1, opt_passes=opt_passes)
@@ -3363,11 +3589,23 @@ class HSVArrayTests(object):
         for a in hsv['val']:
             self.assertEqual(a, 32768)
 
+    def test_val_array_3(self, opt_passes):
+        hsv = self.run_test(val_array_3, opt_passes=opt_passes)
+        
+        for a in hsv['val']:
+            self.assertEqual(a, 25)
+
     def test_val_array_add(self, opt_passes):
         hsv = self.run_test(val_array_add, opt_passes=opt_passes)
         
         for a in hsv['val']:
             self.assertEqual(a, 6553)
+
+    def test_val_array_add_2(self, opt_passes):
+        hsv = self.run_test(val_array_add_2, opt_passes=opt_passes)
+        
+        for a in hsv['val']:
+            self.assertEqual(a, 1)
 
     def test_val_array_sub(self, opt_passes):
         hsv = self.run_test(val_array_sub, opt_passes=opt_passes)
@@ -3375,11 +3613,23 @@ class HSVArrayTests(object):
         for a in hsv['val']:
             self.assertEqual(a, 0)
 
+    def test_val_array_sub_2(self, opt_passes):
+        hsv = self.run_test(val_array_sub_2, opt_passes=opt_passes)
+        
+        for a in hsv['val']:
+            self.assertEqual(a, 18)
+
     def test_val_array_mul(self, opt_passes):
         hsv = self.run_test(val_array_mul, opt_passes=opt_passes)
         
         for a in hsv['val']:
             self.assertEqual(a, 16384)
+
+    def test_val_array_mul_2(self, opt_passes):
+        hsv = self.run_test(val_array_mul_2, opt_passes=opt_passes)
+        
+        for a in hsv['val']:
+            self.assertEqual(a, 60)
 
     def test_val_array_div(self, opt_passes):
         hsv = self.run_test(val_array_div, opt_passes=opt_passes)
@@ -3387,11 +3637,23 @@ class HSVArrayTests(object):
         for a in hsv['val']:
             self.assertEqual(a, 16384)
 
+    def test_val_array_div_2(self, opt_passes):
+        hsv = self.run_test(val_array_div_2, opt_passes=opt_passes)
+        
+        for a in hsv['val']:
+            self.assertEqual(a, 25)
+
     def test_val_array_mod(self, opt_passes):
         hsv = self.run_test(val_array_mod, opt_passes=opt_passes)
         
         for a in hsv['val']:
             self.assertEqual(a, 13108)
+
+    def test_val_array_mod_2(self, opt_passes):
+        hsv = self.run_test(val_array_mod_2, opt_passes=opt_passes)
+        
+        for a in hsv['val']:
+            self.assertEqual(a, 2)
 
     def test_hs_fade_array_1(self, opt_passes):
         hsv = self.run_test(hs_fade_array_1, opt_passes=opt_passes)
@@ -3487,8 +3749,48 @@ class HSVArrayTests(object):
         self.assertEqual(hsv['val'][2], 0)
         self.assertEqual(hsv['val'][3], 26214)
 
+    def test_hue_p_mov(self, opt_passes):
+        hsv = self.run_test(test_hue_p_mov, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hue'][1], 6553)
 
-@pytest.mark.skip
+    def test_hue_p_add(self, opt_passes):
+        hsv = self.run_test(test_hue_p_add, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hue'][1], 6553)
+
+    def test_hue_p_sub(self, opt_passes):
+        hsv = self.run_test(test_hue_p_sub, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hue'][1], 58983)
+
+    def test_hue_p_mul(self, opt_passes):
+        hsv = self.run_test(test_hue_p_mul, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hue'][1], 40)
+
+    def test_hue_p_mul_f16(self, opt_passes):
+        hsv = self.run_test(test_hue_p_mul_f16, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hue'][1], 16384)
+
+    def test_hue_p_div(self, opt_passes):
+        hsv = self.run_test(test_hue_p_div, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hue'][1], 10)
+
+    def test_hue_p_div_f16(self, opt_passes):
+        hsv = self.run_test(test_hue_p_div_f16, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hue'][1], 16384)
+
+    def test_hue_p_mod(self, opt_passes):
+        hsv = self.run_test(test_hue_p_mod, opt_passes=opt_passes)
+            
+        self.assertEqual(hsv['hue'][1], 13108)
+
+
+# @pytest.mark.skip
 @pytest.mark.local
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerLocal(CompilerTests):
