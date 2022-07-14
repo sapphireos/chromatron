@@ -7676,6 +7676,7 @@ class irBinop(IR):
 
 
 type_conversions = {
+# result  |  value
     ('i32', 'f16'): insConvF16toI32,
     ('f16', 'i32'): insConvI32toF16,
     ('f16', 'gfx16'): insConvGFX16toF16,
@@ -7703,6 +7704,13 @@ class irConvertType(IR):
             ir = irAssign(self.result, self.value, lineno=self.lineno)
 
             return ir
+
+        elif self.result.data_type == 'gfx16':
+            # result is gfx16, there is no conversion, just a move
+            
+            ir = irAssign(self.result, self.value, lineno=self.lineno)
+
+            return ir            
 
         if self.value.value is None:
             return None
