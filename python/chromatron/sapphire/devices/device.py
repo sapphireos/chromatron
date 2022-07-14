@@ -47,6 +47,7 @@ import json
 import base64
 import traceback
 import crcmod
+from pprint import pprint
 
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
@@ -709,6 +710,17 @@ class Device(object):
 
         return info
 
+    def dump_hsv(self):
+        pix_count = self.get_key('pix_count')
+
+        hsv = {}
+        
+        for k in ['hue', 'sat', 'val', 'hs_fade', 'v_fade']:
+            data = self.get_file(f'gfx_{k}')
+            hsv[k] = struct.unpack(f'{pix_count}H', data)
+
+        return hsv
+
 
     ##########################
     # Command Line Interface
@@ -723,6 +735,13 @@ class Device(object):
         self.scan()
 
         return "Done"
+
+    def cli_dump_hsv(self, line):
+        print('')
+        
+        hsv = self.dump_hsv()
+
+        pprint(hsv)
 
     def cli_echo(self, line):
         start = time.time()

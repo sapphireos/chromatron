@@ -116,6 +116,8 @@ class TestHSVArrayLocal(HSVArrayTests):
 
                 # reset test key
                 ct.set_key('kv_test_key', 0)
+                
+                ct.set_key('gfx_debug', True)
 
                 ct.set_key('gfx_hsfade', 0)
                 ct.set_key('gfx_vfade', 0)

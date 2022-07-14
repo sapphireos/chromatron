@@ -477,15 +477,7 @@ class Chromatron(object):
             return self._device.get_all_kv()
 
     def dump_hsv(self):
-        pix_count = self.get_key('pix_count')
-
-        hsv = {}
-        
-        for k in ['hue', 'sat', 'val', 'hs_fade', 'v_fade']:
-            data = self.get_file(f'gfx_{k}')
-            hsv[k] = struct.unpack(f'{pix_count}H', data)
-
-        return hsv
+        return self._device.dump_hsv()
 
     def set_wifi(self, ssid, password):
         self.set_key('wifi_ssid', ssid)
