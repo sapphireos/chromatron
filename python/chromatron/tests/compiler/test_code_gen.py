@@ -28,9 +28,6 @@ from conftest import *
 empty_program = """
 def init():
     pass
-
-def loop():
-    pass
 """
 
 basic_vars = """
@@ -39,9 +36,6 @@ b = Number(publish=True)
 c = Number(publish=True)
 
 def init():
-    pass
-
-def loop():
     pass
 
 """
@@ -57,9 +51,6 @@ def init():
     b = 2
     c = 3
     d = 4
-
-def loop():
-    pass
 
 """
 
@@ -81,9 +72,6 @@ def init():
     f = 6 / 3
     g = 7 % 3
 
-def loop():
-    pass
-
 """
 
 
@@ -94,9 +82,6 @@ b = Number(publish=True)
 def init():
     a = 1 + 2 + 3 + 4
     b = 1 + 2 + a + 3 + 4
-
-def loop():
-    pass
 
 """
 
@@ -110,9 +95,6 @@ def init():
     b = 1 > 1
     c = 2 > 1
 
-def loop():
-    pass
-
 """
 
 basic_compare_gte = """
@@ -124,9 +106,6 @@ def init():
     a = 0 >= 1
     b = 1 >= 1
     c = 2 >= 1
-
-def loop():
-    pass
 
 """
 
@@ -140,9 +119,6 @@ def init():
     b = 1 < 1
     c = 2 < 1
 
-def loop():
-    pass
-
 """
 
 basic_compare_lte = """
@@ -155,9 +131,6 @@ def init():
     b = 1 <= 1
     c = 2 <= 1
 
-def loop():
-    pass
-
 """
 
 
@@ -169,9 +142,6 @@ def init():
     a = 0 == 1
     b = 1 == 1
 
-def loop():
-    pass
-
 """
 
 basic_compare_neq = """
@@ -181,9 +151,6 @@ b = Number(publish=True)
 def init():
     a = 0 != 1
     b = 1 != 1
-
-def loop():
-    pass
 
 """
 
@@ -202,9 +169,6 @@ def init():
     else:
         b = 1
 
-def loop():
-    pass
-
 """
 
 basic_for = """
@@ -213,9 +177,6 @@ a = Number(publish=True)
 def init():
     for i in 10:
         a += 1
-
-def loop():
-    pass
 
 """
 
@@ -229,9 +190,6 @@ def init():
         a += 1
         i += 1
 
-def loop():
-    pass
-
 """
 
 
@@ -244,9 +202,6 @@ def test():
 def init():
     test()
 
-def loop():
-    pass
-
 """
 
 
@@ -258,9 +213,6 @@ def test():
 
 def init():
     a = test()
-
-def loop():
-    pass
 
 """
 
@@ -280,9 +232,6 @@ def init():
     e = 0 or 1
     f = 1 or 1
 
-def loop():
-    pass
-
 """
 
 call_with_params = """
@@ -296,9 +245,6 @@ def test(_a, _b):
 
 def init():
     test(1, 2)
-
-def loop():
-    pass
 
 """
 
@@ -330,9 +276,6 @@ def init():
     if test(1, 2) + 3 != 3:
         c = 2
 
-def loop():
-    pass
-
 """
 
 
@@ -350,9 +293,6 @@ def init():
     a = test(1 + 2, t)
     b = test(a + 2, t + 3)
 
-def loop():
-    pass
-
 """
 
 call_register_reuse = """
@@ -368,9 +308,6 @@ def test(_a, _b):
 
 def init():
     a = test(1, 1)
-
-def loop():
-    pass
 
 """
 
@@ -388,9 +325,6 @@ def init():
     for i in test(1, t) + 5:
         a += 1
 
-def loop():
-    pass
-
 """
 
 while_expr = """
@@ -407,9 +341,6 @@ def init():
     while i < test(1, t):
         a += 1
         i += 1
-
-def loop():
-    pass
 
 """
 
@@ -435,9 +366,6 @@ def init():
     e = 10
     e %= 4
 
-def loop():
-    pass
-
 """
 
 
@@ -459,9 +387,6 @@ def init():
     d += test(1, 2) + 5
     e += test(1, 2) + test(3, 4)
 
-def loop():
-    pass
-
 """
 
 
@@ -477,9 +402,6 @@ def init():
             break
 
         i += 1
-
-def loop():
-    pass
 
 """
 
@@ -499,9 +421,6 @@ def init():
 
         a += 1
 
-def loop():
-    pass
-
 """
 
 
@@ -515,9 +434,6 @@ def init():
             break
 
     global_i = i
-
-def loop():
-    pass
 
 """
 
@@ -535,9 +451,6 @@ def init():
         a += 1
 
     global_i = i
-
-def loop():
-    pass
 
 """
 
@@ -557,9 +470,6 @@ def init():
             i += 1
 
     global_a = a
-
-def loop():
-    pass
 
 """
 
@@ -581,9 +491,6 @@ def init():
             break
 
     global_a = a
-
-def loop():
-    pass
 
 """
 
@@ -609,9 +516,6 @@ def init():
     
     global_x = x
 
-def loop():
-    pass
-
 """
 
 
@@ -631,9 +535,6 @@ def init():
 
         global_i = i
     global_a = a
-
-def loop():
-    pass
 
 """
 
@@ -655,9 +556,6 @@ def init():
         global_i = i
         
     global_x = x
-
-def loop():
-    pass
 
 """
 
@@ -1992,9 +1890,6 @@ def init():
     c = pixels[2].val
     d = pixels[i + 1].val
 
-def loop():
-    pass
-
 """
 
 
@@ -2893,9 +2788,6 @@ def init():
     pixels[1][2].hue = 0.5
     pixels[1][2].hue += 0.1
 
-def loop():
-    pass
-
 """
 
 hue_array_2 = """
@@ -2903,18 +2795,12 @@ hue_array_2 = """
 def init():
     pixels.hue = 0.5
 
-def loop():
-    pass
-
 """
 
 hue_array_add = """
 
 def init():
     pixels.hue += 0.1
-
-def loop():
-    pass
 
 """
 
@@ -2924,9 +2810,6 @@ def init():
     pixels.hue = 1.0
     pixels.hue += 0.1
 
-def loop():
-    pass
-
 """
 
 
@@ -2935,9 +2818,6 @@ hue_array_sub = """
 def init():
     pixels.hue -= 0.1
 
-def loop():
-    pass
-
 """
 
 hue_array_mul = """
@@ -2945,9 +2825,6 @@ hue_array_mul = """
 def init():
     pixels.hue = 0.5
     pixels.hue *= 0.5
-
-def loop():
-    pass
 
 """
 
@@ -2958,9 +2835,6 @@ def init():
     pixels.hue = 1.0
     pixels.hue *= 0.5
 
-def loop():
-    pass
-
 """
 
 hue_array_div = """
@@ -2968,9 +2842,6 @@ hue_array_div = """
 def init():
     pixels.hue = 0.5
     pixels.hue /= 2.0
-
-def loop():
-    pass
 
 """
 
@@ -2980,9 +2851,6 @@ def init():
     pixels.hue = 0.8
     pixels.hue /= 2.0
 
-def loop():
-    pass
-
 """
 
 hue_array_mod = """
@@ -2990,9 +2858,6 @@ hue_array_mod = """
 def init():
     pixels.hue = 0.5
     pixels.hue %= 0.3
-
-def loop():
-    pass
 
 """
 
@@ -3004,18 +2869,12 @@ def init():
     pixels[1].sat = 1.0
     pixels[1][2].sat = 0.5
 
-def loop():
-    pass
-
 """
 
 sat_array_2 = """
 
 def init():
     pixels.sat = 0.5
-
-def loop():
-    pass
 
 """
 
@@ -3024,18 +2883,12 @@ sat_array_add = """
 def init():
     pixels.sat += 0.1
 
-def loop():
-    pass
-
 """
 
 sat_array_sub = """
 
 def init():
     pixels.sat -= 0.1
-
-def loop():
-    pass
 
 """
 
@@ -3045,9 +2898,6 @@ def init():
     pixels.sat = 0.5
     pixels.sat *= 0.25
 
-def loop():
-    pass
-
 """
 
 sat_array_div = """
@@ -3055,9 +2905,6 @@ sat_array_div = """
 def init():
     pixels.sat = 0.5
     pixels.sat /= 2.0
-
-def loop():
-    pass
 
 """
 
@@ -3067,9 +2914,6 @@ def init():
     pixels.sat = 0.5
     pixels.sat %= 0.3
 
-def loop():
-    pass
-
 """
 
 val_array_1 = """
@@ -3078,18 +2922,12 @@ def init():
     pixels[1].val = 1.0
     pixels[1][2].val = 0.5
 
-def loop():
-    pass
-
 """
 
 val_array_2 = """
 
 def init():
     pixels.val = 0.5
-
-def loop():
-    pass
 
 """
 
@@ -3098,18 +2936,12 @@ val_array_add = """
 def init():
     pixels.val += 0.1
 
-def loop():
-    pass
-
 """
 
 val_array_sub = """
 
 def init():
     pixels.val -= 0.1
-
-def loop():
-    pass
 
 """
 
@@ -3119,9 +2951,6 @@ def init():
     pixels.val = 0.5
     pixels.val *= 0.5
 
-def loop():
-    pass
-
 """
 
 val_array_div = """
@@ -3130,9 +2959,6 @@ def init():
     pixels.val = 0.5
     pixels.val /= 2.0
 
-def loop():
-    pass
-
 """
 
 val_array_mod = """
@@ -3140,9 +2966,6 @@ val_array_mod = """
 def init():
     pixels.val = 0.5
     pixels.val %= 0.3
-
-def loop():
-    pass
 
 """
 
@@ -3154,9 +2977,6 @@ def init():
     pixels[2].hs_fade = 19
     pixels[1][2].hs_fade = 500
 
-def loop():
-    pass
-
 """
 
 hs_fade_array_2 = """
@@ -3164,18 +2984,12 @@ hs_fade_array_2 = """
 def init():
     pixels.hs_fade = 200
 
-def loop():
-    pass
-
 """
 
 hs_fade_array_add = """
 
 def init():
     pixels.hs_fade += 100
-
-def loop():
-    pass
 
 """
 
@@ -3185,9 +2999,6 @@ def init():
     pixels.hs_fade = 200
     pixels.hs_fade -= 100
 
-def loop():
-    pass
-
 """
 
 hs_fade_array_mul = """
@@ -3195,9 +3006,6 @@ hs_fade_array_mul = """
 def init():
     pixels.hs_fade = 500
     pixels.hs_fade *= 2
-
-def loop():
-    pass
 
 """
 
@@ -3207,9 +3015,6 @@ def init():
     pixels.hs_fade = 100
     pixels.hs_fade /= 2
 
-def loop():
-    pass
-
 """
 
 hs_fade_array_mod = """
@@ -3217,9 +3022,6 @@ hs_fade_array_mod = """
 def init():
     pixels.hs_fade = 500
     pixels.hs_fade %= 3
-
-def loop():
-    pass
 
 """
 
@@ -3231,9 +3033,6 @@ def init():
     pixels[2].v_fade = 19
     pixels[1][2].v_fade = 250
 
-def loop():
-    pass
-
 """
 
 v_fade_array_2 = """
@@ -3241,18 +3040,12 @@ v_fade_array_2 = """
 def init():
     pixels.v_fade = 500
 
-def loop():
-    pass
-
 """
 
 v_fade_array_add = """
 
 def init():
     pixels.v_fade += 100
-
-def loop():
-    pass
 
 """
 
@@ -3262,9 +3055,6 @@ def init():
     pixels.v_fade = 200
     pixels.v_fade -= 100
 
-def loop():
-    pass
-
 """
 
 v_fade_array_mul = """
@@ -3272,9 +3062,6 @@ v_fade_array_mul = """
 def init():
     pixels.v_fade = 500
     pixels.v_fade *= 2
-
-def loop():
-    pass
 
 """
 
@@ -3284,9 +3071,6 @@ def init():
     pixels.v_fade = 500
     pixels.v_fade /= 2
 
-def loop():
-    pass
-
 """
 
 v_fade_array_mod = """
@@ -3294,9 +3078,6 @@ v_fade_array_mod = """
 def init():
     pixels.v_fade = 500
     pixels.v_fade %= 3
-
-def loop():
-    pass
 
 """
 
@@ -3313,9 +3094,6 @@ def init():
     pixels[a].val = 0.3
     pixels[3].val = 0.4
 
-
-def loop():
-    pass
 
 """
 
