@@ -2806,6 +2806,7 @@ class insVPixelMul(BaseInstruction):
         self.pixel_ref = pixel_ref
         self.attr = attr
         self.value = value
+        self.data_type = value.var.data_type
 
     def __str__(self):
         return "%s %s.%s *= %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
@@ -2824,13 +2825,17 @@ class insVPixelMul(BaseInstruction):
             self.array_func(array, idx, value)
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat1ImmShort2Reg(self.mnemonic, get_type_id(self.data_type), self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 class insVPixelMulHue(insVPixelMul):
     mnemonic = 'VMUL_HUE'
 
     def array_func(self, array, i, value):
-        array[i] = (array[i] * value) / 65536
+        if self.data_type == 'f16':
+            array[i] = (array[i] * value) / 65536
+
+        else:
+            array[i] = (array[i] * value)
 
         array[i] %= 65536
 
@@ -2841,7 +2846,11 @@ class insVPixelMulSat(insVPixelMul):
     mnemonic = 'VMUL_SAT'
 
     def array_func(self, array, i, value):
-        array[i] = (array[i] * value) / 65536
+        if self.data_type == 'f16':
+            array[i] = (array[i] * value) / 65536
+
+        else:
+            array[i] = (array[i] * value)
 
         if array[i] < 0:
             array[i] = 0
@@ -2856,7 +2865,11 @@ class insVPixelMulVal(insVPixelMul):
     mnemonic = 'VMUL_VAL'
 
     def array_func(self, array, i, value):
-        array[i] = (array[i] * value) / 65536
+        if self.data_type == 'f16':
+            array[i] = (array[i] * value) / 65536
+
+        else:
+            array[i] = (array[i] * value)
 
         if array[i] < 0:
             array[i] = 0
@@ -2871,7 +2884,11 @@ class insVPixelMulHSFade(insVPixelMul):
     mnemonic = 'VMUL_HS_FADE'
 
     def array_func(self, array, i, value):
-        array[i] = array[i] * value
+        if self.data_type == 'f16':
+            raise CompilerFatal
+
+        else:
+            array[i] = (array[i] * value)
 
         if array[i] < 0:
             array[i] = 0
@@ -2886,7 +2903,11 @@ class insVPixelMulVFade(insVPixelMul):
     mnemonic = 'VMUL_V_FADE'
 
     def array_func(self, array, i, value):
-        array[i] = array[i] * value
+        if self.data_type == 'f16':
+            raise CompilerFatal
+
+        else:
+            array[i] = (array[i] * value)
 
         if array[i] < 0:
             array[i] = 0
@@ -2906,6 +2927,7 @@ class insVPixelDiv(BaseInstruction):
         self.pixel_ref = pixel_ref
         self.attr = attr
         self.value = value
+        self.data_type = value.var.data_type
 
     def __str__(self):
         return "%s %s.%s /= %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
@@ -2932,13 +2954,17 @@ class insVPixelDiv(BaseInstruction):
             array_func(array, idx, value)
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat1ImmShort2Reg(self.mnemonic, get_type_id(self.data_type), self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 class insVPixelDivHue(insVPixelDiv):
     mnemonic = 'VDIV_HUE'
 
     def array_func(self, array, i, value):
-        array[i] = (array[i] * 65536) / value
+        if self.data_type == 'f16':
+            array[i] = (array[i] * 65536) / value
+
+        else:
+            array[i] = (array[i] / value)
 
         array[i] %= 65536
 
@@ -2949,7 +2975,11 @@ class insVPixelDivSat(insVPixelDiv):
     mnemonic = 'VDIV_SAT'
 
     def array_func(self, array, i, value):
-        array[i] = (array[i] * 65536) / value
+        if self.data_type == 'f16':
+            array[i] = (array[i] * 65536) / value
+
+        else:
+            array[i] = (array[i] / value)
 
         if array[i] < 0:
             array[i] = 0
@@ -2964,7 +2994,11 @@ class insVPixelDivVal(insVPixelDiv):
     mnemonic = 'VDIV_VAL'
 
     def array_func(self, array, i, value):
-        array[i] = (array[i] * 65536) / value
+        if self.data_type == 'f16':
+            array[i] = (array[i] * 65536) / value
+
+        else:
+            array[i] = (array[i] / value)
 
         if array[i] < 0:
             array[i] = 0
@@ -2979,7 +3013,11 @@ class insVPixelDivHSFade(insVPixelDiv):
     mnemonic = 'VDIV_HS_FADE'
 
     def array_func(self, array, i, value):
-        array[i] = array[i] / value
+        if self.data_type == 'f16':
+            raise CompilerFatal
+
+        else:
+            array[i] = (array[i] / value)
 
         array[i] %= 65536
 
@@ -2990,7 +3028,12 @@ class insVPixelDivVFade(insVPixelDiv):
     mnemonic = 'VDIV_V_FADE'
 
     def array_func(self, array, i, value):
-        array[i] = array[i] / value
+        if self.data_type == 'f16':
+            raise CompilerFatal
+
+        else:
+            array[i] = (array[i] / value)
+
 
         array[i] %= 65536
 

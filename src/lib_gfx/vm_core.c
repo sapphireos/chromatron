@@ -2420,52 +2420,52 @@ opcode_pmul_v_fade:
     DISPATCH;
 
 opcode_vmul_hue:
-    DECODE_2AC;
+    DECODE_1I2RS;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_1i2rs->reg2];
+    ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_HUE, value );    
+    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_HUE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
 opcode_vmul_sat:
-    DECODE_2AC;
+    DECODE_1I2RS;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_1i2rs->reg2];
+    ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_SAT, value );    
+    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_SAT, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
 opcode_vmul_val:
-    DECODE_2AC;
+    DECODE_1I2RS;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_1i2rs->reg2];
+    ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_VAL, value );    
+    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_VAL, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
 opcode_vmul_hs_fade:
-    DECODE_2AC;
+    DECODE_1I2RS;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_1i2rs->reg2];
+    ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
+    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_HS_FADE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
 opcode_vmul_v_fade:
-    DECODE_2AC;
+    DECODE_1I2RS;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_1i2rs->reg2];
+    ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_V_FADE, value );    
+    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_V_FADE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2535,52 +2535,52 @@ opcode_pdiv_v_fade:
     DISPATCH;
 
 opcode_vdiv_hue:
-    DECODE_2AC;
+    DECODE_1I2RS;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_1i2rs->reg2];
+    ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_div( ref.ref.addr, PIX_ATTR_HUE, value );    
+    gfx_v_array_div( ref.ref.addr, PIX_ATTR_HUE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
 opcode_vdiv_sat:
-    DECODE_2AC;
+    DECODE_1I2RS;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_1i2rs->reg2];
+    ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_div( ref.ref.addr, PIX_ATTR_SAT, value );    
+    gfx_v_array_div( ref.ref.addr, PIX_ATTR_SAT, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
 opcode_vdiv_val:
-    DECODE_2AC;
+    DECODE_1I2RS;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_1i2rs->reg2];
+    ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_div( ref.ref.addr, PIX_ATTR_VAL, value );    
+    gfx_v_array_div( ref.ref.addr, PIX_ATTR_VAL, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
 opcode_vdiv_hs_fade:
-    DECODE_2AC;
+    DECODE_1I2RS;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_1i2rs->reg2];
+    ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_div( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
+    gfx_v_array_div( ref.ref.addr, PIX_ATTR_HS_FADE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
 opcode_vdiv_v_fade:
-    DECODE_2AC;
+    DECODE_1I2RS;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_1i2rs->reg2];
+    ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_div( ref.ref.addr, PIX_ATTR_V_FADE, value );    
+    gfx_v_array_div( ref.ref.addr, PIX_ATTR_V_FADE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 

@@ -122,8 +122,8 @@ uint16_t gfx_u16_get_v_fade_1d( uint16_t index );
 void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src );
 void gfx_v_array_add( uint8_t obj, uint8_t attr, int32_t src );
 void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src );
-void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src );
-void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src );
+void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 type );
+void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 type );
 void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src );
 
 uint16_t gfx_u16_get_dimmed_val( uint16_t _val );

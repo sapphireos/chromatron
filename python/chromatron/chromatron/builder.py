@@ -721,7 +721,7 @@ class Builder(object):
         elif (isinstance(value, VarContainer) and isinstance(target, VarContainer) and \
               isinstance(value.var, varScalar) and isinstance(target.var, varRef)):
 
-            if target.attr.data_type is not None:
+            if target.attr.data_type is not None and target.attr.data_type != 'gfx16':
                 temp = self.add_temp(lineno=lineno, data_type=target.attr.data_type)
                 ir = irConvertType(temp, value, lineno=lineno)
                 self.append_node(ir)
