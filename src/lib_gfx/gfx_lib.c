@@ -1491,7 +1491,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src ){
 
             int32_t a = *( ptr + index );
 
-            a = ( src * 65536 ) / a;
+            a = ( a * 65536 ) / src;
 
             a %= 65536;
 
@@ -1508,7 +1508,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src ){
 
             int32_t a = *( ptr + index );
 
-            a = ( src * 65536 ) / a;
+            a = ( a * 65536 ) / src;
 
             if( a > 65535 ){
 
@@ -1532,7 +1532,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src ){
 
             int32_t a = *( ptr + index );
 
-            a = ( src / a );
+            a = ( a / src  );
 
             if( a > 65535 ){
 
@@ -1556,7 +1556,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src ){
 
             int32_t a = *( ptr + index );
 
-            a = ( src / a );
+            a = ( a / src  );
 
             if( a > 65535 ){
 
@@ -1580,7 +1580,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src ){
 
             int32_t a = *( ptr + index );
 
-            a = ( src * 65536 ) / a;
+            a = ( a * 65536 ) / src;
 
             if( a > 65535 ){
 
