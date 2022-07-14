@@ -116,7 +116,15 @@ class TestHSVArrayLocal(HSVArrayTests):
 
                 # reset test key
                 ct.set_key('kv_test_key', 0)
-                
+
+                ct.set_key('gfx_clear', True)
+
+                ct.set_key('pix_count', 16)
+                ct.set_key('pix_size_x', 4)                
+                ct.set_key('pix_size_y', 4)                
+
+                time.sleep(0.3)
+
                 # change vm program
                 ct.set_key('vm_prog', 'test.fxb')
                 ct.put_file('test.fxb', stream)
