@@ -472,8 +472,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_pstore_hue,        // 96
         &&opcode_pstore_sat,        // 97
         &&opcode_pstore_val,        // 98
-        &&opcode_trap,              // 99
-        &&opcode_trap,              // 100
+        &&opcode_pstore_hs_fade,    // 99
+        &&opcode_pstore_v_fade,     // 100
         &&opcode_trap,              // 101
         &&opcode_trap,              // 102
         &&opcode_trap,              // 103
@@ -481,8 +481,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_vstore_hue,        // 104
         &&opcode_vstore_sat,        // 105
         &&opcode_vstore_val,        // 106
-        &&opcode_trap,              // 107
-        &&opcode_trap,              // 108
+        &&opcode_vstore_hs_fade,    // 107
+        &&opcode_vstore_v_fade,     // 108
         &&opcode_trap,              // 109
         &&opcode_trap,              // 110
         &&opcode_trap,              // 111
@@ -2006,6 +2006,46 @@ opcode_pstore_val:
 
     DISPATCH;
 
+opcode_pstore_hs_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    index = registers[opcode_2ac->dest];
+
+    // clamp value
+    if( value < 0 ){
+
+        value = 0;
+    }
+    else if( value > 65535 ){
+
+        value = 65535;
+    }
+
+    gfx_v_set_hs_fade_1d( value, index );
+
+    DISPATCH;
+
+opcode_pstore_v_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    index = registers[opcode_2ac->dest];
+
+    // clamp value
+    if( value < 0 ){
+
+        value = 0;
+    }
+    else if( value > 65535 ){
+
+        value = 65535;
+    }
+
+    gfx_v_set_v_fade_1d( value, index );
+
+    DISPATCH;
+
 opcode_vstore_hue:
     DECODE_2AC;
 
@@ -2043,6 +2083,28 @@ opcode_vstore_val:
 
     // this badly needs to be optimized
     gfx_v_array_move( ref.ref.addr, PIX_ATTR_VAL, value );
+
+    DISPATCH;
+
+opcode_vstore_hs_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_move( ref.ref.addr, PIX_ATTR_HS_FADE, value );
+
+    DISPATCH;
+
+opcode_vstore_v_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_move( ref.ref.addr, PIX_ATTR_V_FADE, value );
 
     DISPATCH;
 
