@@ -7707,7 +7707,7 @@ class irConvertType(IR):
 
         elif self.result.data_type == 'gfx16':
             # result is gfx16, there is no conversion, just a move
-            
+
             ir = irAssign(self.result, self.value, lineno=self.lineno)
 
             return ir            
@@ -7716,11 +7716,9 @@ class irConvertType(IR):
             return None
 
         if self.result.data_type == 'f16':
-            # val = convert_to_f16(self.value.value)
             val = float(self.value.value)
 
         elif self.result.data_type == 'i32':
-            # val = convert_to_i32(self.value.value)
             val = int(self.value.value)
 
         else:
