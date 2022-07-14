@@ -36,6 +36,9 @@ PIXEL_ARRAY_FIELDS = {
     'palette': 'i32',
 }
 
+OBJECT_FIELDS = {
+    'PixelArray': PIXEL_ARRAY_FIELDS
+}
 
 
 class OptPasses(Enum):
@@ -7913,12 +7916,16 @@ class irLookup(IR):
 
 
 class irAttribute(IR):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, data_type=None, **kwargs):
         super().__init__(**kwargs)    
         self.name = name
+        self.data_type = data_type
 
     def __str__(self):    
-        return "Attr(%s)" % (self.name)
+        if self.data_type is not None:
+            return f'Attr({self.name}:{self.data_type})'
+
+        return f'Attr({self.name})'
 
 
 class irPrint(IR):

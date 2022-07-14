@@ -282,6 +282,8 @@ class Builder(object):
         if not isinstance(name, str):
             name = str(name)
 
+        # do not handle KeyError here!
+        # it is used in other code paths.
         var = self.current_symbol_table.lookup(name)
 
         if var.is_container:
@@ -706,7 +708,7 @@ class Builder(object):
         # elif target.get_base_type() == 'db':
             # pass
 
-        # check if target is a reference and value is scalar:
+        # check if target is a offset and value is scalar:
         elif (isinstance(value, VarContainer) and isinstance(target, VarContainer) and \
               isinstance(value.var, varScalar) and isinstance(target.var, varOffset)):
 
@@ -714,6 +716,16 @@ class Builder(object):
             ir = irConvertType(temp, value, lineno=lineno)
             self.append_node(ir)
             value = temp
+
+        # # check if target is a reference and value is scalar:
+        elif (isinstance(value, VarContainer) and isinstance(target, VarContainer) and \
+              isinstance(value.var, varScalar) and isinstance(target.var, varRef)):
+
+            if target.attr.data_type is not None:
+                temp = self.add_temp(lineno=lineno, data_type=target.attr.data_type)
+                ir = irConvertType(temp, value, lineno=lineno)
+                self.append_node(ir)
+                value = temp
 
 
         # check if target or value is a reference
@@ -1327,10 +1339,30 @@ class Builder(object):
     def start_attr(self, lineno=None):
         self.current_attr.insert(0, [])
 
-    def add_attr(self, index, lineno=None):
-        index = irAttribute(index, lineno=lineno)
+    def add_attr(self, attr, target=None, lineno=None):
+        target_type = None
+        if isinstance(target, varObject):
+            target_type = target.data_type
 
-        self.current_attr[0].append(index)
+        elif isinstance(target, VarContainer) and isinstance(target.var, varObjectRef) and target.target is not None:
+            target_type = target.target.data_type
+
+        elif isinstance(target, VarContainer) and isinstance(target.var, varObjectRef) and target.target is None:
+            if target.data_type == 'pixref':
+                target_type = 'PixelArray'
+
+        elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
+            if target.target.data_type == 'pixref':
+                target_type = 'PixelArray'
+
+        if target_type in OBJECT_FIELDS:
+            attr_type = OBJECT_FIELDS[target_type][attr]
+            attr = irAttribute(attr, data_type=attr_type, lineno=lineno)
+
+        else:
+            attr = irAttribute(attr, lineno=lineno)
+
+        self.current_attr[0].append(attr)
 
     def finish_attr(self, target, lineno=None):
         if isinstance(target, VarContainer) and isinstance(target.var, varObjectRef):

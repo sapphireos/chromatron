@@ -188,7 +188,11 @@ class cg1Var(cg1Node):
         self.dimensions = dimensions
 
     def build(self, builder, lookup_depth=None, attr_depth=None, target_type=None):
-        return builder.get_var(self.name, self.lineno)
+        try:
+            return builder.get_var(self.name, self.lineno)
+
+        except KeyError:
+            raise SyntaxError(f'Variable {self.name} not declared', lineno=self.lineno)
     
     def __str__(self):
         return "cg1Var:%s=%s" % (self.name, self.type)
@@ -568,7 +572,7 @@ class cg1Attribute(cg1CodeNode):
             builder.start_attr(lineno=self.lineno)
 
         target = self.obj.build(builder, lookup_depth=lookup_depth, attr_depth=attr_depth + 1)
-        builder.add_attr(self.attr, lineno=self.lineno)      
+        builder.add_attr(self.attr, target=target, lineno=self.lineno)      
 
         if attr_depth == 0:
             return builder.finish_attr(target, lineno=self.lineno)
