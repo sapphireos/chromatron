@@ -2873,7 +2873,11 @@ class insVPixelMulHSFade(insVPixelMul):
     def array_func(self, array, i, value):
         array[i] = array[i] * value
 
-        array[i] %= 65536
+        if array[i] < 0:
+            array[i] = 0
+
+        elif array[i] > 65535:
+            array[i] = 65535
 
         # coerce to int
         array[i] = int(array[i])
@@ -2884,7 +2888,11 @@ class insVPixelMulVFade(insVPixelMul):
     def array_func(self, array, i, value):
         array[i] = array[i] * value
 
-        array[i] %= 65536
+        if array[i] < 0:
+            array[i] = 0
+
+        elif array[i] > 65535:
+            array[i] = 65535
 
         # coerce to int
         array[i] = int(array[i])
