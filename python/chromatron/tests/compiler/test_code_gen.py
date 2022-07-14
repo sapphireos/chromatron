@@ -3151,6 +3151,7 @@ hs_fade_array_1 = """
 
 def init():
     pixels[1].hs_fade = 0.123
+    pixels[2].hs_fade = 19
     pixels[1][2].hs_fade = 500
 
 def loop():
@@ -3226,7 +3227,8 @@ def loop():
 v_fade_array_1 = """
 
 def init():
-    pixels[1].v_fade = 19
+    pixels[1].v_fade = 0.123
+    pixels[2].v_fade = 19
     pixels[1][2].v_fade = 250
 
 def loop():
@@ -3544,6 +3546,7 @@ class TestHSVArray(object):
         hsv = self.run_test(hs_fade_array_1, opt_passes=opt_passes)
         
         self.assertEqual(hsv['hs_fade'][1], 0)
+        self.assertEqual(hsv['hs_fade'][2], 19)
         self.assertEqual(hsv['hs_fade'][9], 500)
 
     def test_hs_fade_array_2(self, opt_passes):
@@ -3584,8 +3587,9 @@ class TestHSVArray(object):
 
     def test_v_fade_array_1(self, opt_passes):
         hsv = self.run_test(v_fade_array_1, opt_passes=opt_passes)
-        
-        self.assertEqual(hsv['v_fade'][1], 19)
+            
+        self.assertEqual(hsv['v_fade'][1], 0)
+        self.assertEqual(hsv['v_fade'][2], 19)
         self.assertEqual(hsv['v_fade'][9], 250)
 
     def test_v_fade_array_2(self, opt_passes):

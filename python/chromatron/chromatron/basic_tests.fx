@@ -782,17 +782,17 @@ def pix_hue_store():
     pixels.hue = 0.0
 
     pixels[0].hue = 0.5
-    pixels[1].hue = 1.0
+    pixels[1].hue = 1.0 # hue will shortcut to 65535, instead of wrapping 1.0 to 0.0.  Anything above 1.0 will wrap.
     pixels[2].hue = 1.5
 
     assert pixels[0].hue == 0.5
-    assert pixels[1].hue == 0.0
+    assert pixels[1].hue == 1.0
     assert pixels[2].hue == 0.5
     assert pixels[3].hue == 0.0
 
 def pix_hue_store2():
-    pixels.hue = 1.0
-    assert pixels[0].hue == 0.0
+    pixels.hue = 1.0 # see note above about hue shortcut
+    assert pixels[0].hue == 1.0
 
     pixels.hue = 1.5
     assert pixels[0].hue == 0.5

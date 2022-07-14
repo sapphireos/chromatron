@@ -2294,6 +2294,11 @@ class insPixelStoreHue(insPixelStore):
 
         assert isinstance(ref, int)
 
+        if value == 65536:
+            # this is a shortcut to allow assignment 1.0 to be maximum, instead
+            # of rolling over to 0.0.
+            value = 65535
+
         # if we got an index, this is an indexed access
         array[ref] = value
 
@@ -2372,6 +2377,11 @@ class insVPixelStoreHue(insVPixelStore):
         value = vm.registers[self.value.reg]
 
         pixel_array = vm.get_pixel_array(ref)
+
+        if value == 65536:
+            # this is a shortcut to allow assignment 1.0 to be maximum, instead
+            # of rolling over to 0.0.
+            value = 65535
 
         # hue will wrap around
         value %= 65536
@@ -2676,6 +2686,18 @@ class insVPixelAdd(BaseInstruction):
     def __str__(self):
         return "%s %s.%s += %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)
 
+    def array_func(self, array, i, value):
+        array[i] += value
+
+        if array[i] < 0:
+            array[i] = 0
+
+        elif array[i] > 65535:
+            array[i] = 65535
+
+        # coerce to int
+        array[i] = int(array[i])
+
     def execute(self, vm):
         ref = vm.registers[self.pixel_ref.reg]
         pixel_array = vm.get_pixel_array(ref)
@@ -2684,13 +2706,21 @@ class insVPixelAdd(BaseInstruction):
 
         for i in range(pixel_array['count']):
             idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
-            array[idx] += value
+            self.array_func(array, idx, value)
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 class insVPixelAddHue(insVPixelAdd):
     mnemonic = 'VADD_HUE'
+
+    def array_func(self, array, i, value):
+        array[i] += value
+
+        array[i] %= 65536
+
+        # coerce to int
+        array[i] = int(array[i])
 
 class insVPixelAddSat(insVPixelAdd):
     mnemonic = 'VADD_SAT'

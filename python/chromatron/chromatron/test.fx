@@ -1,7 +1,9 @@
 
 def init():
-    pixels.hue -= 0.1
-    
+    pixels[1].hs_fade = 0.123
+    pixels[1][2].hs_fade = 500
+
+
 # current_hue = Fixed16()
 # delay = Number()
 # cursor = Number()
