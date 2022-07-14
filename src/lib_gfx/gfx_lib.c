@@ -946,9 +946,23 @@ void gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index ){
     _gfx_v_set_hs_fade_1d( a, index );
 }
 
+uint16_t gfx_u16_get_hs_fade_1d( uint16_t index ){
+
+    index %= pix_count;
+
+    return hs_fade[index];
+}
+
 void gfx_v_set_v_fade_1d( uint16_t a, uint16_t index ){
 
     _gfx_v_set_v_fade_1d( a, index );
+}
+
+uint16_t gfx_u16_get_v_fade_1d( uint16_t index ){
+
+    index %= pix_count;
+
+    return v_fade[index];
 }
 
 

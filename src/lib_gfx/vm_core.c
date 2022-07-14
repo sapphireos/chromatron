@@ -505,19 +505,19 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 127
 
         &&opcode_padd_hue,          // 128
-        &&opcode_trap,              // 129
-        &&opcode_trap,              // 130
-        &&opcode_trap,              // 131
-        &&opcode_trap,              // 132
+        &&opcode_padd_sat,          // 129
+        &&opcode_padd_val,          // 130
+        &&opcode_padd_hs_fade,      // 131
+        &&opcode_padd_v_fade,       // 132
         &&opcode_trap,              // 133
         &&opcode_trap,              // 134
         &&opcode_trap,              // 135
 
         &&opcode_vadd_hue,          // 136
-        &&opcode_trap,              // 137
-        &&opcode_trap,              // 138
-        &&opcode_trap,              // 139
-        &&opcode_trap,              // 140
+        &&opcode_vadd_sat,          // 137
+        &&opcode_vadd_val,          // 138
+        &&opcode_vadd_hs_fade,      // 139
+        &&opcode_vadd_v_fade,       // 140
         &&opcode_trap,              // 141
         &&opcode_trap,              // 142
         &&opcode_trap,              // 143
@@ -2076,6 +2076,57 @@ opcode_padd_hue:
 
     DISPATCH;
 
+opcode_padd_sat:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_sat_1d( index );
+
+    value += registers[opcode_2ac->op1];
+
+    gfx_v_set_sat_1d( value, index );
+
+    DISPATCH;
+
+opcode_padd_val:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_val_1d( index );
+
+    value += registers[opcode_2ac->op1];
+
+    gfx_v_set_val_1d( value, index );
+
+    DISPATCH;
+
+opcode_padd_hs_fade:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_hs_fade_1d( index );
+
+    value += registers[opcode_2ac->op1];
+
+    gfx_v_set_hs_fade_1d( value, index );
+
+    DISPATCH;
+
+opcode_padd_v_fade:
+    DECODE_2AC;
+
+    index = registers[opcode_2ac->dest];
+
+    value = gfx_u16_get_v_fade_1d( index );
+
+    value += registers[opcode_2ac->op1];
+
+    gfx_v_set_v_fade_1d( value, index );
+
+    DISPATCH;
 
 opcode_vadd_hue:
     DECODE_2AC;
@@ -2088,6 +2139,49 @@ opcode_vadd_hue:
 
     DISPATCH;
 
+opcode_vadd_sat:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_add( ref.ref.addr, PIX_ATTR_SAT, value );    
+
+    DISPATCH;
+
+opcode_vadd_val:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_add( ref.ref.addr, PIX_ATTR_VAL, value );    
+
+    DISPATCH;
+
+opcode_vadd_hs_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_add( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
+
+    DISPATCH;
+
+opcode_vadd_v_fade:
+    DECODE_2AC;
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    // this badly needs to be optimized
+    gfx_v_array_add( ref.ref.addr, PIX_ATTR_V_FADE, value );    
+
+    DISPATCH;
 
 opcode_vmov:
     DECODE_VECTOR;
