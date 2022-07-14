@@ -1947,6 +1947,13 @@ opcode_pstore_hue:
     value = registers[opcode_2ac->op1];
     index = registers[opcode_2ac->dest];
 
+    if( value == 65536 ){
+
+        // this is a shortcut to allow assignment 1.0 to be maximum, instead
+        // of rolling over to 0.0.
+        value = 65535;
+    }
+
     // wrap hue
     value %= 65536;
 
@@ -2000,6 +2007,13 @@ opcode_vstore_hue:
 
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
+
+    if( value == 65536 ){
+        
+        // this is a shortcut to allow assignment 1.0 to be maximum, instead
+        // of rolling over to 0.0.
+        value = 65535;
+    }
 
     // this badly needs to be optimized
     gfx_v_array_move( ref.ref.addr, PIX_ATTR_HUE, value );
