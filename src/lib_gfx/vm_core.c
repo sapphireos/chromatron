@@ -2059,7 +2059,6 @@ opcode_vstore_hue:
         value = 65535;
     }
 
-    // this badly needs to be optimized
     gfx_v_array_move( ref.ref.addr, PIX_ATTR_HUE, value );
 
     DISPATCH;
@@ -2070,7 +2069,6 @@ opcode_vstore_sat:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_move( ref.ref.addr, PIX_ATTR_SAT, value );
 
     DISPATCH;
@@ -2081,7 +2079,6 @@ opcode_vstore_val:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_move( ref.ref.addr, PIX_ATTR_VAL, value );
 
     DISPATCH;
@@ -2092,7 +2089,6 @@ opcode_vstore_hs_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_move( ref.ref.addr, PIX_ATTR_HS_FADE, value );
 
     DISPATCH;
@@ -2103,7 +2099,6 @@ opcode_vstore_v_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_move( ref.ref.addr, PIX_ATTR_V_FADE, value );
 
     DISPATCH;
@@ -2200,7 +2195,6 @@ opcode_vadd_hue:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_add( ref.ref.addr, PIX_ATTR_HUE, value );    
 
     DISPATCH;
@@ -2211,7 +2205,6 @@ opcode_vadd_sat:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_add( ref.ref.addr, PIX_ATTR_SAT, value );    
 
     DISPATCH;
@@ -2222,7 +2215,6 @@ opcode_vadd_val:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_add( ref.ref.addr, PIX_ATTR_VAL, value );    
 
     DISPATCH;
@@ -2233,7 +2225,6 @@ opcode_vadd_hs_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_add( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
 
     DISPATCH;
@@ -2244,7 +2235,6 @@ opcode_vadd_v_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_add( ref.ref.addr, PIX_ATTR_V_FADE, value );    
 
     DISPATCH;
@@ -2320,7 +2310,6 @@ opcode_vsub_hue:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_sub( ref.ref.addr, PIX_ATTR_HUE, value );    
 
     DISPATCH;
@@ -2331,7 +2320,6 @@ opcode_vsub_sat:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_sub( ref.ref.addr, PIX_ATTR_SAT, value );    
 
     DISPATCH;
@@ -2342,7 +2330,6 @@ opcode_vsub_val:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_sub( ref.ref.addr, PIX_ATTR_VAL, value );    
 
     DISPATCH;
@@ -2353,7 +2340,6 @@ opcode_vsub_hs_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_sub( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
 
     DISPATCH;
@@ -2364,7 +2350,6 @@ opcode_vsub_v_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_sub( ref.ref.addr, PIX_ATTR_V_FADE, value );    
 
     DISPATCH;
@@ -2440,7 +2425,6 @@ opcode_vmul_hue:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_mul( ref.ref.addr, PIX_ATTR_HUE, value );    
 
     DISPATCH;
@@ -2451,7 +2435,6 @@ opcode_vmul_sat:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_mul( ref.ref.addr, PIX_ATTR_SAT, value );    
 
     DISPATCH;
@@ -2462,7 +2445,6 @@ opcode_vmul_val:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_mul( ref.ref.addr, PIX_ATTR_VAL, value );    
 
     DISPATCH;
@@ -2473,7 +2455,6 @@ opcode_vmul_hs_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_mul( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
 
     DISPATCH;
@@ -2484,7 +2465,6 @@ opcode_vmul_v_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_mul( ref.ref.addr, PIX_ATTR_V_FADE, value );    
 
     DISPATCH;
@@ -2560,7 +2540,6 @@ opcode_vdiv_hue:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_div( ref.ref.addr, PIX_ATTR_HUE, value );    
 
     DISPATCH;
@@ -2571,7 +2550,6 @@ opcode_vdiv_sat:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_div( ref.ref.addr, PIX_ATTR_SAT, value );    
 
     DISPATCH;
@@ -2582,7 +2560,6 @@ opcode_vdiv_val:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_div( ref.ref.addr, PIX_ATTR_VAL, value );    
 
     DISPATCH;
@@ -2593,7 +2570,6 @@ opcode_vdiv_hs_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_div( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
 
     DISPATCH;
@@ -2604,7 +2580,6 @@ opcode_vdiv_v_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_div( ref.ref.addr, PIX_ATTR_V_FADE, value );    
 
     DISPATCH;
@@ -2680,7 +2655,6 @@ opcode_vmod_hue:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_mod( ref.ref.addr, PIX_ATTR_HUE, value );    
 
     DISPATCH;
@@ -2691,7 +2665,6 @@ opcode_vmod_sat:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_mod( ref.ref.addr, PIX_ATTR_SAT, value );    
 
     DISPATCH;
@@ -2702,7 +2675,6 @@ opcode_vmod_val:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_mod( ref.ref.addr, PIX_ATTR_VAL, value );    
 
     DISPATCH;
@@ -2713,7 +2685,6 @@ opcode_vmod_hs_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_mod( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
 
     DISPATCH;
@@ -2724,7 +2695,6 @@ opcode_vmod_v_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    // this badly needs to be optimized
     gfx_v_array_mod( ref.ref.addr, PIX_ATTR_V_FADE, value );    
 
     DISPATCH;
