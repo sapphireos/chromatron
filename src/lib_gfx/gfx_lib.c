@@ -75,6 +75,7 @@ static int16_t sat_step[MAX_PIXELS];
 static int16_t val_step[MAX_PIXELS];
 
 static bool gfx_enable = TRUE;
+static bool gfx_debug = FALSE;
 static bool sys_enable = TRUE; // internal system control
 static uint16_t pix_max_dimmer = 65535;
 static uint16_t pix_master_dimmer = 0;
@@ -363,9 +364,25 @@ int8_t gfx_i8_kv_handler(
 
             compute_sat_lookup();
         }
-        else if( hash == __KV__gfx_clear ){
+        else if( hash == __KV__gfx_debug_reset ){
 
-            gfx_v_clear();
+            for( uint16_t i = 0; i < MAX_PIXELS; i++ ){
+
+                hue[i] = 0;
+                sat[i] = 0;
+                val[i] = 0;
+
+                target_hue[i] = 0;
+                target_sat[i] = 0;
+                target_val[i] = 0;
+
+                hue_step[i] = 0;
+                sat_step[i] = 0;
+                val_step[i] = 0;
+
+                hs_fade[i] = 0;
+                v_fade[i]  = 0;
+            }
         }
     }
 
@@ -374,7 +391,8 @@ int8_t gfx_i8_kv_handler(
 
 KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
-    { CATBUS_TYPE_BOOL,       0, 0,                0,                            gfx_i8_kv_handler,   "gfx_clear" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_debug,                   0,                   "gfx_debug" },
+    { CATBUS_TYPE_BOOL,       0, 0,                0,                            gfx_i8_kv_handler,   "gfx_debug_reset" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_max_dimmer,              0,                   "gfx_max_dimmer" },
@@ -402,55 +420,168 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
 };
 
 
-static uint32_t gfx_debug_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+static uint32_t gfx_debug_hue_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     /*
     
-    gfx debug data set renders arrays to pix_count:
-    
-    hue
-    sat
-    val
-    hs_fade
-    v_fade
+    gfx debug data set renders arrays to pix_count
     
     */
 
     uint32_t array_len = sizeof(uint16_t) * pix_count;
-    uint8_t array = 0;
     void *src = target_hue;
 
     // the pos and len values are already bounds checked by the FS driver
     switch( op ){
         case FS_VFILE_OP_READ:
-            // select array
-            array = pos / array_len;
-            pos %= array_len;
-
-            if( array == 0 ){
-                src = target_hue;
-            }
-            else if( array == 1 ){
-                src = target_sat;
-            }
-            else if( array == 2 ){
-                src = target_val;
-            }
-            else if( array == 3 ){
-                src = hs_fade;
-            }
-            else if( array == 4 ){
-                src = v_fade;
-            }
-
-            src += pos;
 
             memcpy( ptr, src, len );
-                
+
             break;
 
         case FS_VFILE_OP_SIZE:
-            len = array_len * 5;
+            len = array_len;
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+static uint32_t gfx_debug_sat_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    /*
+    
+    gfx debug data set renders arrays to pix_count
+    
+    */
+
+    uint32_t array_len = sizeof(uint16_t) * pix_count;
+    void *src = target_sat;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+
+            memcpy( ptr, src, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = array_len;
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+static uint32_t gfx_debug_val_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    /*
+    
+    gfx debug data set renders arrays to pix_count
+    
+    */
+
+    uint32_t array_len = sizeof(uint16_t) * pix_count;
+    void *src = target_val;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+
+            memcpy( ptr, src, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = array_len;
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+static uint32_t gfx_debug_hs_fade_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    /*
+    
+    gfx debug data set renders arrays to pix_count
+    
+    */
+
+    uint32_t array_len = sizeof(uint16_t) * pix_count;
+    void *src = hs_fade;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+
+            memcpy( ptr, src, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = array_len;
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+
+static uint32_t gfx_debug_v_fade_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    /*
+    
+    gfx debug data set renders arrays to pix_count
+    
+    */
+
+    uint32_t array_len = sizeof(uint16_t) * pix_count;
+    void *src = v_fade;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+
+            memcpy( ptr, src, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = array_len;
             break;
 
         case FS_VFILE_OP_DELETE:
@@ -2056,7 +2187,15 @@ void gfx_v_process_faders( void ){
 
 void gfxlib_v_init( void ){
 
-    fs_f_create_virtual( PSTR("hsv"), gfx_debug_vfile_handler );
+    if( gfx_debug ){
+
+        fs_f_create_virtual( PSTR("gfx_hue"), gfx_debug_hue_vfile_handler );
+        fs_f_create_virtual( PSTR("gfx_sat"), gfx_debug_sat_vfile_handler );
+        fs_f_create_virtual( PSTR("gfx_val"), gfx_debug_val_vfile_handler );
+        fs_f_create_virtual( PSTR("gfx_hs_fade"), gfx_debug_hs_fade_vfile_handler );
+        fs_f_create_virtual( PSTR("gfx_v_fade"), gfx_debug_v_fade_vfile_handler );
+    }
+    
 
     #ifdef PIXEL_USE_MALLOC
 

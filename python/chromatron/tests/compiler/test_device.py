@@ -117,7 +117,10 @@ class TestHSVArrayLocal(HSVArrayTests):
                 # reset test key
                 ct.set_key('kv_test_key', 0)
 
-                ct.set_key('gfx_clear', True)
+                ct.set_key('gfx_hsfade', 0)
+                ct.set_key('gfx_vfade', 0)
+
+                ct.set_key('gfx_debug_reset', True)
 
                 ct.set_key('pix_count', 16)
                 ct.set_key('pix_size_x', 4)                
@@ -145,7 +148,12 @@ class TestHSVArrayLocal(HSVArrayTests):
 
                 ct.init_scan()
 
-                return ct.dump_hsv()
+                hsv = ct.dump_hsv()
+                
+                from pprint import pprint
+                pprint(hsv)
+
+                return hsv
                 
             except ProtocolErrorException:
                 print("Protocol error, trying again.")

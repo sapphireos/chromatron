@@ -477,21 +477,13 @@ class Chromatron(object):
             return self._device.get_all_kv()
 
     def dump_hsv(self):
-        data = self.get_file('hsv')
-
         pix_count = self.get_key('pix_count')
-
-        assert len(data) == (pix_count * 2 * 5)
 
         hsv = {}
         
         for k in ['hue', 'sat', 'val', 'hs_fade', 'v_fade']:
-            chunk = data[:pix_count * 2]
-            data = data[pix_count * 2:]
-            hsv[k] = struct.unpack(f'{pix_count}H', chunk)
-
-        from pprint import pprint
-        pprint(hsv)
+            data = self.get_file(f'gfx_{k}')
+            hsv[k] = struct.unpack(f'{pix_count}H', data)
 
         return hsv
 
