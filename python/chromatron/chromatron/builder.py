@@ -446,10 +446,16 @@ class Builder(object):
         self.append_node(label)
 
     def call(self, func_name, params, lineno=None):
-        params = [self.load_value(p, lineno=lineno) for p in params]
-
         indirect = False
         lib_call = False
+        db_call = False
+
+        if isinstance(params[0].var, varObjectRef):
+            if params[0].var.target.name == 'db' and func_namein ARRAY_FUNCS:
+                db_call = True
+
+        if not db_call:
+            params = [self.load_value(p, lineno=lineno) for p in params]
 
         if func_name == 'print':
             ir = irPrint(params[0], lineno=lineno)
@@ -479,6 +485,13 @@ class Builder(object):
 
         if lib_call:
             ret_type = 'gfx16'
+
+        elif db_call:
+            if func_name == 'len':
+                ret_type = 'i32'
+
+            else:
+                ret_type = 'gfx16'
         
         else:
             ret_type = func.ret_type
@@ -504,7 +517,6 @@ class Builder(object):
     
         if lib_call:
             hashed_func = string_hash_func(func)
-
             const = self.add_const(hashed_func, lineno=lineno)
 
             if func in ARRAY_FUNCS:
@@ -523,6 +535,14 @@ class Builder(object):
 
             else:
                 ir = irLibCall(const, params, func, lineno=lineno)
+            
+            self.append_node(ir)
+
+        elif db_call:
+            hashed_func = string_hash_func(func)
+            const = self.add_const(hashed_func, lineno=lineno)
+
+            ir = irLibCall(const, params, func, lineno=lineno)
             
             self.append_node(ir)
 
