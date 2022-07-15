@@ -450,9 +450,9 @@ class Builder(object):
         lib_call = False
         db_call = False
 
-        if isinstance(params[0].var, varObjectRef):
-            if params[0].var.target.name == 'db' and func_namein ARRAY_FUNCS:
-                db_call = True
+        # if isinstance(params[0].var, varObjectRef):
+        #     if params[0].var.target.name == 'db':
+        #         db_call = True
 
         if not db_call:
             params = [self.load_value(p, lineno=lineno) for p in params]
@@ -464,7 +464,10 @@ class Builder(object):
             return
 
         elif func_name in self.funcs:
-            func = self.funcs[func_name]
+            func = self.funcs[func_name]    
+
+        elif db_call:
+            func = func_name
 
         # check for indirect call or libcall:
         else:
@@ -485,13 +488,6 @@ class Builder(object):
 
         if lib_call:
             ret_type = 'gfx16'
-
-        elif db_call:
-            if func_name == 'len':
-                ret_type = 'i32'
-
-            else:
-                ret_type = 'gfx16'
         
         else:
             ret_type = func.ret_type
@@ -503,9 +499,9 @@ class Builder(object):
 
         result = self.add_temp(data_type=ret_type, lineno=lineno)
 
-        # if func_name in ARRAY_FUNCS:
-        #     if len(params) != 1:
-        #         raise SyntaxError("Array functions take one argument", lineno=lineno)
+        if func_name in ARRAY_FUNCS:
+            if len(params) != 1:
+                raise SyntaxError("Array functions take one argument", lineno=lineno)
 
         #     if func_name == 'len':
         #         # since arrays are fixed length, we don't need a libcall, we 
@@ -517,6 +513,7 @@ class Builder(object):
     
         if lib_call:
             hashed_func = string_hash_func(func)
+
             const = self.add_const(hashed_func, lineno=lineno)
 
             if func in ARRAY_FUNCS:
@@ -535,14 +532,6 @@ class Builder(object):
 
             else:
                 ir = irLibCall(const, params, func, lineno=lineno)
-            
-            self.append_node(ir)
-
-        elif db_call:
-            hashed_func = string_hash_func(func)
-            const = self.add_const(hashed_func, lineno=lineno)
-
-            ir = irLibCall(const, params, func, lineno=lineno)
             
             self.append_node(ir)
 
