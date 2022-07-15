@@ -43,6 +43,7 @@ opcodes = {
     'LDDB':                 0x0D,
     'STDB':                 0x0E,
     'LDDBI':                0x0F,
+    'STDBI':                0x10,
     
     'RET':                  0x13,
     'JMP':                  0x14,
@@ -397,13 +398,6 @@ class OpcodeFormat1Imm1Reg(Opcode32):
 
         self.items = [imm1, reg1]
         self.format = 'HB'
-
-class OpcodeFormat1ImmShort2Reg(Opcode32):
-    def __init__(self, opcode, imm1, reg1, reg2, **kwargs):
-        super().__init__(opcode, **kwargs)
-
-        self.items = [imm1, reg1, reg2]
-        self.format = 'BBB'
 
 class OpcodeFormat2Imm1Reg(Opcode64):
     def __init__(self, opcode, imm1, imm2, reg1, **kwargs):

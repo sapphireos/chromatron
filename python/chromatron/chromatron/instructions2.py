@@ -168,7 +168,10 @@ class insProgram(object):
 
         self.objects = objects
 
-        self.db = {}
+        self.db = {
+            catbus_string_hash('kv_test_key'): 0,
+            catbus_string_hash('kv_test_array'): [0] * 4
+        }
 
         self.strings = strings
 
@@ -1138,26 +1141,30 @@ class insLoadDB(BaseInstruction):
 class insLoadDBIndexed(BaseInstruction):
     mnemonic = 'LDDBI'
 
-    def __init__(self, dest, src, **kwargs):
+    def __init__(self, dest, src, lookup, **kwargs):
         super().__init__(**kwargs)
         self.dest = dest
         self.src = src
 
-        self.lookups = self.src.var.lookups
-        assert len(self.lookups) == 1
+        self.lookup = lookup
 
         assert self.src is not None
 
     def __str__(self):
-        return "%s %s <-DB %s[%s]" % (self.mnemonic, self.dest, self.src, self.lookups[0])
+        return "%s %s <-DB %s[%s]" % (self.mnemonic, self.dest, self.src, self.lookup)
 
     def execute(self, vm):
         db = vm.program.db
 
         key = vm.registers[self.src.reg]
+        lookup = vm.registers[self.lookup.ref]
 
-        try:
-            value = db[key]
+        try:    
+            try:
+                value = db[key][lookup]
+
+            except IndexError:
+                value = db[key]
 
             if isinstance(db[key], int):
                 src_type = 'i32'
@@ -1183,7 +1190,7 @@ class insLoadDBIndexed(BaseInstruction):
             vm.registers[self.dest.reg] = 0
 
     def assemble(self):
-        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.dest.var.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm3Reg(self.mnemonic, get_type_id(self.dest.var.data_type), self.dest.assemble(), self.src.assemble(), self.lookup.assemble(), lineno=self.lineno)
 
 class insStoreDB(BaseInstruction):
     mnemonic = 'STDB'
@@ -1231,6 +1238,67 @@ class insStoreDB(BaseInstruction):
 
     def assemble(self):
         return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.src.var.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+
+
+class insStoreDBIndexed(BaseInstruction):
+    mnemonic = 'STDBI'
+
+    def __init__(self, dest, src, lookup, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+        self.lookup = lookup
+
+        assert self.src is not None
+    
+    def __str__(self):
+        return "%s %s[%s] <-DB %s" % (self.mnemonic, self.dest, self.lookup, self.src)
+
+    def execute(self, vm):
+        db = vm.program.db
+
+        key = vm.registers[self.dest.reg]
+        value = vm.registers[self.src.reg]
+        lookup = vm.registers[self.lookup.reg]
+
+        if key not in db:
+            db[key] = value
+            raise Exception
+
+        else:
+            try:
+                value = db[key][lookup]
+
+            except IndexError:
+                value = db[key]
+
+            if isinstance(value, int):
+                dest_type = 'i32'
+
+            elif isinstance(value, float):
+                dest_type = 'f16'
+
+            else:
+                raise CompilerFatal(f'Other DB types not supported')
+
+            src_type = self.src.var.data_type
+
+            if src_type == 'i32' and dest_type == 'f16':
+                value = convert_to_f16(value)
+
+            elif src_type == 'f16' and dest_type == 'i32':
+                value = convert_to_i32(value)
+
+            try:
+                db[key][lookup] = value
+
+            except IndexError:
+                db[key] = value
+
+    def assemble(self):
+        return OpcodeFormat1Imm3Reg(self.mnemonic, get_type_id(self.src.var.data_type), self.dest.assemble(), self.src.assemble(), self.lookup.assemble(), lineno=self.lineno)
+
 
 
 class insLookup(BaseInstruction):
@@ -2658,7 +2726,7 @@ class insPixelMul(BaseInstruction):
             array[index] = 65535
 
     def assemble(self):
-        return OpcodeFormat1ImmShort2Reg(self.mnemonic, get_type_id(self.data_type), self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.data_type), self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
 
 class insPixelMulHue(insPixelMul):
     mnemonic = 'PMUL_HUE'
@@ -2730,7 +2798,7 @@ class insPixelDiv(BaseInstruction):
                 array[index] = 65535
 
     def assemble(self):
-        return OpcodeFormat1ImmShort2Reg(self.mnemonic, get_type_id(self.data_type), self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.data_type), self.pixel_index.reg, self.value.assemble(), lineno=self.lineno)
 
 class insPixelDivHue(insPixelDiv):
     mnemonic = 'PDIV_HUE'
@@ -2784,7 +2852,7 @@ class insPixelMod(BaseInstruction):
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
-        
+
         if value == 0:
             array[index] = 0
         
@@ -2963,7 +3031,7 @@ class insVPixelMul(BaseInstruction):
             self.array_func(array, idx, value)
 
     def assemble(self):
-        return OpcodeFormat1ImmShort2Reg(self.mnemonic, get_type_id(self.data_type), self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.data_type), self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 class insVPixelMulHue(insVPixelMul):
     mnemonic = 'VMUL_HUE'
@@ -3094,7 +3162,7 @@ class insVPixelDiv(BaseInstruction):
             array_func(array, idx, value)
 
     def assemble(self):
-        return OpcodeFormat1ImmShort2Reg(self.mnemonic, get_type_id(self.data_type), self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.data_type), self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 class insVPixelDivHue(insVPixelDiv):
     mnemonic = 'VDIV_HUE'

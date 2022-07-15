@@ -7006,7 +7006,9 @@ class irObjectStore(IR):
         return f'{self.target}.{self.attr.name} =(object) {self.value}'
 
     def get_input_vars(self):
-        return [self.value, self.target]
+        inputs = [self.value, self.target]
+        inputs.extend(self.target.lookups)
+        return inputs
 
     def get_output_vars(self):
         return []
@@ -7052,7 +7054,16 @@ class irObjectStore(IR):
 
         # DB reference
         elif target.var.data_type == 'objref' and target.var.target.name == 'db':
-            return insStoreDB(target, value, lineno=self.lineno)
+            if len(target.var.lookups) > 0:
+                if len(target.var.lookups) > 1:
+                    raise SyntaxError(f'DB access only supports 1-D array lookups', lineno=self.lineno)
+
+                lookup = target.var.lookups[0].generate()
+
+                return insStoreDBIndexed(target, value, lookup, lineno=self.lineno)
+
+            else:
+                return insStoreDB(target, value, lineno=self.lineno)
 
         raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
 
@@ -7108,7 +7119,11 @@ class irObjectLoad(IR):
         # DB reference
         elif value.var.data_type == 'objref' and value.var.target.name == 'db':
             if len(value.var.lookups) > 0:
-                return insLoadDBIndexed(target, value, lineno=self.lineno)
+                if len(value.var.lookups) > 1:
+                    raise SyntaxError(f'DB access only supports 1-D array lookups', lineno=self.lineno)
+
+                lookup = value.var.lookups[0].generate()
+                return insLoadDBIndexed(target, value, lookup, lineno=self.lineno)
 
             else:
                 return insLoadDB(target, value, lineno=self.lineno)

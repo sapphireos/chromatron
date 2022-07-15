@@ -2457,7 +2457,7 @@ class CompilerTests(object):
                 # 'kv_test_key': 126,
             })
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_db_array_access(self, opt_passes):
         self.run_test(test_db_array_access,
             opt_passes=opt_passes,
