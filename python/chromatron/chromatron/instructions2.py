@@ -1094,10 +1094,62 @@ class insLoadDB(BaseInstruction):
         self.dest = dest
         self.src = src
 
+        assert len(src.var.lookups) == 0
+
         assert self.src is not None
 
     def __str__(self):
         return "%s %s <-DB %s" % (self.mnemonic, self.dest, self.src)
+
+    def execute(self, vm):
+        db = vm.program.db
+
+        key = vm.registers[self.src.reg]
+
+        try:
+            value = db[key]
+
+            if isinstance(db[key], int):
+                src_type = 'i32'
+
+            elif isinstance(db[key], float):
+                src_type = 'f16'
+
+            else:
+                raise CompilerFatal(f'Other DB types not supported')
+
+            dest_type = self.dest.var.data_type
+
+            if src_type == 'i32' and dest_type == 'f16':
+                value = convert_to_f16(value)
+
+            elif src_type == 'f16' and dest_type == 'i32':
+                value = convert_to_i32(value)
+
+            vm.registers[self.dest.reg] = value
+
+        except KeyError: 
+            # failed DB lookups return 0
+            vm.registers[self.dest.reg] = 0
+
+    def assemble(self):
+        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.dest.var.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+
+class insLoadDBIndexed(BaseInstruction):
+    mnemonic = 'LDDBI'
+
+    def __init__(self, dest, src, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.src = src
+
+        self.lookups = self.src.var.lookups
+        assert len(self.lookups) == 1
+
+        assert self.src is not None
+
+    def __str__(self):
+        return "%s %s <-DB %s[%s]" % (self.mnemonic, self.dest, self.src, self.lookups[0])
 
     def execute(self, vm):
         db = vm.program.db
@@ -1140,6 +1192,8 @@ class insStoreDB(BaseInstruction):
         super().__init__(**kwargs)
         self.dest = dest
         self.src = src
+
+        assert len(dest.var.lookups) == 0
 
         assert self.src is not None
     

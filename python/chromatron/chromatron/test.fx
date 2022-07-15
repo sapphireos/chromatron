@@ -1,11 +1,45 @@
 
+# max_temp = Number()
+# min_temp = Number()
+
 def init():
-    pixels.hue /= 0
-    # pixels.sat /= 0
-    # pixels.val /= 0
-    # pixels.hs_fade /= 0
-    # pixels.v_fade /= 0
-    
+    a = Number()
+    a = db.kv_test_array[1]
+    # a = db.kv_test_array
+    # a = pixels[1].hue
+
+    return a
+
+    # x = Number()
+    # y = Number()
+
+    # hue = Number()
+
+    # hue = ( ( db.amg_pixel_delta[x * 8 + (8 - y)] - min_temp ) * 65536 )
+
+    # return hue
+
+    # pixels[x * 2][y * 2].hue = hue
+    # pixels[x * 2 + 1][y * 2].hue = hue
+    # pixels[x * 2][y * 2 + 1].hue = hue
+    # pixels[x * 2 + 1][y * 2 + 1].hue = hue
+
+
+    # val = Fixed16()
+
+    # if db.amg_pixel_delta[x * 8 + (8 - y)] <= 1:
+    #     val = 0.0
+
+    # else:
+    #     val = 1.0
+
+    # pixels[x * 2][y * 2].val = val
+    # pixels[x * 2 + 1][y * 2].val = val
+    # pixels[x * 2][y * 2 + 1].val = val
+    # pixels[x * 2 + 1][y * 2 + 1].val = val
+
+
+
 # current_hue = Fixed16()
 # delay = Number()
 # cursor = Number()

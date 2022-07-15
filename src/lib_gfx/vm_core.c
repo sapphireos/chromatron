@@ -370,12 +370,11 @@ static int8_t _vm_i8_run_stream(
 
         &&opcode_lddb,              // 13
         &&opcode_stdb,              // 14
-
         &&opcode_trap,              // 15
-
-        &&opcode_halt,              // 16
-        &&opcode_assert,            // 17
-        &&opcode_print,             // 18
+        &&opcode_trap,              // 16
+        
+        &&opcode_trap,              // 17
+        &&opcode_trap,              // 18
 
         &&opcode_ret,               // 19
         &&opcode_jmp,               // 20
@@ -633,9 +632,10 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 245
         &&opcode_trap,              // 246
         &&opcode_trap,              // 247
-        &&opcode_trap,              // 248
-        &&opcode_trap,              // 249
-        &&opcode_trap,              // 250
+
+        &&opcode_halt,              // 248
+        &&opcode_assert,            // 249
+        &&opcode_print,             // 250
         &&opcode_trap,              // 251
         &&opcode_trap,              // 252
         &&opcode_trap,              // 253
@@ -2604,7 +2604,7 @@ opcode_pdiv_hs_fade:
         value = 0;
     }
     else{
-        
+
         value /= registers[opcode_1i2rs->reg2];    
     }
     
@@ -2625,7 +2625,7 @@ opcode_pdiv_v_fade:
         value = 0;
     }
     else{
-        
+
         value /= registers[opcode_1i2rs->reg2];    
     }
     

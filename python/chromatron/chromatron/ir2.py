@@ -7068,7 +7068,9 @@ class irObjectLoad(IR):
         return f'{self.target} =(object) {self.value}.{self.attr.name}'
 
     def get_input_vars(self):
-        return [self.value]
+        inputs = [self.value]
+        inputs.extend(self.value.lookups)
+        return inputs
 
     def get_output_vars(self):
         return [self.target]
@@ -7105,7 +7107,11 @@ class irObjectLoad(IR):
         
         # DB reference
         elif value.var.data_type == 'objref' and value.var.target.name == 'db':
-            return insLoadDB(target, value, lineno=self.lineno)
+            if len(value.var.lookups) > 0:
+                return insLoadDBIndexed(target, value, lineno=self.lineno)
+
+            else:
+                return insLoadDB(target, value, lineno=self.lineno)
 
         raise SyntaxError(f'Unknown type for object load: {self.target}', lineno=self.lineno)
 

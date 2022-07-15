@@ -42,11 +42,8 @@ opcodes = {
     
     'LDDB':                 0x0D,
     'STDB':                 0x0E,
+    'LDDBI':                0x0F,
     
-    'HALT':                 0x10,
-    'ASSERT':               0x11,
-    'PRINT':                0x12,
-
     'RET':                  0x13,
     'JMP':                  0x14,
     'JMPZ':                 0x15,
@@ -193,6 +190,10 @@ opcodes = {
     'VMAX':                 0xE7,
     'VAVG':                 0xE8,
     'VSUM':                 0xE9,
+
+    'HALT':                 0xF8,
+    'ASSERT':               0xF9,
+    'PRINT':                0xFA,
 }
 
 class Opcode(object):

@@ -609,6 +609,7 @@ class Builder(object):
             return var
 
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
+            is_db = False
             if value.target is not None and value.target.data_type == 'PixelArray':
                 try:
                     data_type = PIXEL_ARRAY_FIELDS[value.attr.name]
@@ -619,6 +620,7 @@ class Builder(object):
                 var = self.add_temp(data_type=data_type, lineno=lineno)
 
             elif value.target is not None and value.target.data_type == 'obj' and value.target.name == 'db':
+                is_db = True
                 if target_type is not None:
                     var = self.add_temp(data_type=target_type, lineno=lineno)
 
@@ -628,7 +630,7 @@ class Builder(object):
             else:
                 var = self.add_temp(data_type='var', lineno=lineno)
 
-            if len(value.lookups) > 0:
+            if len(value.lookups) > 0 and not is_db:
                 result = self.add_temp(data_type='objref', lineno=lineno)
                     
                 if value.target:
@@ -639,7 +641,7 @@ class Builder(object):
                 
                 ir = irObjectLookup(result, value, lookups=value.lookups, lineno=lineno)
                 self.append_node(ir)
-
+                
                 value.lookups = []
                 ir = irObjectLoad(var, result, value.attr, lineno=lineno)
 
