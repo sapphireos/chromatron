@@ -450,9 +450,12 @@ class Builder(object):
         lib_call = False
         db_call = False
 
-        # if isinstance(params[0].var, varObjectRef):
-        #     if params[0].var.target.name == 'db':
-        #         db_call = True
+        if len(params) > 0 and \
+           isinstance(params[0], VarContainer) and \
+           isinstance(params[0].var, varObjectRef):
+           
+            if params[0].var.target.name == 'db':
+                db_call = True
 
         if not db_call:
             params = [self.load_value(p, lineno=lineno) for p in params]
