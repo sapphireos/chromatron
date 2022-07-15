@@ -453,7 +453,7 @@ class Builder(object):
         if len(params) > 0 and \
            isinstance(params[0], VarContainer) and \
            isinstance(params[0].var, varObjectRef):
-           
+
             if params[0].var.target.name == 'db':
                 db_call = True
 
@@ -491,6 +491,13 @@ class Builder(object):
 
         if lib_call:
             ret_type = 'gfx16'
+
+        elif db_call:
+            if func_name == 'len':
+                ret_type = 'i32'
+
+            else:
+                ret_type = 'gfx16'
         
         else:
             ret_type = func.ret_type
@@ -535,6 +542,15 @@ class Builder(object):
 
             else:
                 ir = irLibCall(const, params, func, lineno=lineno)
+            
+            self.append_node(ir)
+
+        elif db_call:
+            hashed_func = string_hash_func(func)
+            const = self.add_const(hashed_func, lineno=lineno)
+
+            # placeholder!
+            ir = irLibCall(const, params, func, lineno=lineno)
             
             self.append_node(ir)
 
