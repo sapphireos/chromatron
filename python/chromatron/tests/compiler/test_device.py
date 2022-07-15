@@ -10,7 +10,7 @@ import time
 
 ct = chromatron.Chromatron(host=NETWORK_ADDR)
 
-@pytest.mark.skip
+# @pytest.mark.skip
 @pytest.mark.device
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerOnDevice(CompilerTests):

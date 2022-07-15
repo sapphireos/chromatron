@@ -397,7 +397,7 @@ class Builder(object):
 
         # this is used to load constants to variables that have init values.
         # if unused the optimizer will remove it.
-        func._init_var = self.declare_var(INIT_TEMP_VAR, data_type='var', lineno=kwargs['lineno'])
+        func._init_var = self.declare_var(INIT_TEMP_VAR, data_type='i32', lineno=kwargs['lineno'])
 
         # pre-emptively create a 0 constant, this gets used everywhere
         self.add_const(0, lineno=func.lineno)

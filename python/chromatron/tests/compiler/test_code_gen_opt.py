@@ -7,6 +7,12 @@ from conftest import *
 
 def run_code(source, *args, opt_passes=OptPasses.SSA):
     prog = code_gen.compile_text(source, opt_passes=opt_passes)
+
+    # we don't use the image or stream, but this
+    # makes sure they compile to bytecode.
+    image = prog.assemble()
+    stream = image.render()
+
     func = prog.init_func
     func.run(*args)
 

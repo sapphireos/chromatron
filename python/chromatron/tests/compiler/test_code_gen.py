@@ -4225,6 +4225,11 @@ class TestCompilerLocal(CompilerTests):
         prog = code_gen.compile_text(program, opt_passes=opt_passes)
         func = prog.init_func
 
+        # we don't use the image or stream, but this
+        # makes sure they compile to bytecode.
+        image = prog.assemble()
+        stream = image.render()
+
         ret_val = func.run()
 
         regs = func.program.dump_globals()
@@ -4252,6 +4257,11 @@ class TestHSVArrayLocal(HSVArrayTests):
     def run_test(self, program, opt_passes=[OptPasses.SSA]):
         prog = code_gen.compile_text(program, opt_passes=opt_passes)
         func = prog.init_func
+
+        # we don't use the image or stream, but this
+        # makes sure they compile to bytecode.
+        image = prog.assemble()
+        stream = image.render()
 
         ret_val = func.run()
 
