@@ -538,6 +538,9 @@ class cg1Assign(cg1CodeNode):
         target = self.target.build(builder)
         value = self.value.build(builder, target_type=target.data_type)
 
+        if value == 'print':
+            raise SyntaxError('print() does not return a value', lineno=self.lineno)
+
         return builder.assign(target, value, lineno=self.lineno)
 
 
@@ -554,6 +557,9 @@ class cg1AugAssign(cg1CodeNode):
         target = self.target.build(builder)
 
         value = self.value.build(builder, target_type=target.data_type)
+
+        if value == 'print':
+            raise SyntaxError('print() does not return a value', lineno=self.lineno)
     
         builder.augassign(self.op, target, value, lineno=self.lineno)
 

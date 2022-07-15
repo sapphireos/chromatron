@@ -461,10 +461,13 @@ class Builder(object):
             params = [self.load_value(p, lineno=lineno) for p in params]
 
         if func_name == 'print':
+            if db_call:
+                params[0] = self.load_value(params[0], target_type='i32', lineno=lineno)
+
             ir = irPrint(params[0], lineno=lineno)
             self.append_node(ir)
 
-            return
+            return 'print'
 
         elif func_name in self.funcs:
             func = self.funcs[func_name]    

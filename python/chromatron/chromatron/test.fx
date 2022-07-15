@@ -9,7 +9,7 @@ d = Number(publish=True)
 
 
 def init():
-    len(db.kv_test_key)
+    a = len(db.kv_test_key)
     # db_len = len(db.kv_test_array)
     # db_len2 = len(db.kv_test_key)
 
