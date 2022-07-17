@@ -220,11 +220,16 @@ class Builder(object):
                 raise SyntaxError(f'Function reference must be specified with a signature function.', lineno=lineno)
 
             # look up function signature from init value:
-            sig_func = self.funcs[keywords['init_val']]
+            try:
+                sig_func = self.funcs[keywords['init_val']]
+
+            except KeyError:
+                raise SyntaxError(f'Signature function {keywords["init_val"]} not declared', lineno=lineno)
 
             if isinstance(var.var, varArray):
                 var.element.params = sig_func.params
                 var.element.ret_type = sig_func.ret_type
+                var.init_val = None
 
             else:
                 var.params = sig_func.params
@@ -1067,9 +1072,6 @@ class Builder(object):
             if var.init_val is None:
                 continue
 
-            if not isinstance(var, varScalar) and not isinstance(var, varString):
-                raise SyntaxError(f'Init values only implemented for scalar types and strings', var.lineno)
-
             if isinstance(var, varString):
                 # init_var = init_var.copy()
                 # ir = irLoadConst(var.copy(), var.init_val, lineno=var.lineno)
@@ -1077,11 +1079,20 @@ class Builder(object):
                 pass
                 
             else:
-                init_var = init_var.copy()
-                ir = irLoadConst(init_var, var.init_val, lineno=var.lineno)
-                init_func.body.insert(1, ir)
-                ir = irStore(init_var, var, lineno=var.lineno)
-                init_func.body.insert(2, ir)
+                if isinstance(var.init_val, Iterable):
+                    raise SyntaxError(f'Init values only implemented for scalar types and strings', var.lineno)
+
+                    # for v in var.init_val:
+                    #     init_var = init_var.copy()
+                    #     ir = irLoadConst(init_var, v, lineno=var.lineno)
+                    #     init_func.body.insert(1, ir)
+
+                else:
+                    init_var = init_var.copy()
+                    ir = irLoadConst(init_var, var.init_val, lineno=var.lineno)
+                    init_func.body.insert(1, ir)
+                    ir = irStore(init_var, var, lineno=var.lineno)
+                    init_func.body.insert(2, ir)
 
         return irProgram(self.script_name, self.funcs, self.global_symbols, self.strings, lineno=0)
 

@@ -1,20 +1,33 @@
 
-a = Number(5, publish=True)
-b = Fixed16(1.23, publish=True)
 
-ary = Number(1, 2)[2]
-ary2 = Fixed16(1.1, 2.1)[2]
 
-ary1_0 = Number(publish=True)
-ary1_1 = Number(publish=True)
-ary2_0 = Fixed16(publish=True)
-ary2_1 = Fixed16(publish=True)
+def sub(a: Number, b: Number) -> Number:
+    return a - b
+
+def add(a: Number, b: Number) -> Number:
+    return a + b
+    
+
+# p1 = PixelArray(2, 12, size_x=3, size_y=4)
+
+# a = Number(publish=True)
+# b = Number(publish=True)
+# c = Number(publish=True)
+# d = Number(publish=True)
 
 def init():
-    ary1_0 = ary[0]
-    ary1_1 = ary[1]
-    ary2_0 = ary2[0]
-    ary2_1 = ary2[1]
+    # a = p1.index
+    # b = p1.count
+    # c = p1.size_x
+    # d = p1.size_y
+
+    f = Function(sub)[2]
+    # f[0] = sub
+    # f[1] = add
+
+    # assert f[0](1, 2) == -1
+    # assert f[1](1, 2) == 3
+
 
 # current_hue = Fixed16()
 # delay = Number()

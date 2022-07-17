@@ -697,7 +697,10 @@ class CodeGenPass1(ast.NodeVisitor):
             keywords[kw.arg] = kw.value.value
 
         if len(node.args) > 0:
-            keywords['init_val'] = node.args[0].n
+            if len(node.args) > 1:
+                keywords['init_val'] = [node.args[i].n for i in range(len(node.args))]
+            else:
+                keywords['init_val'] = node.args[0].n
 
         return cg1DeclareVar(type="i32", keywords=keywords, lineno=node.lineno)
 
@@ -707,7 +710,10 @@ class CodeGenPass1(ast.NodeVisitor):
             keywords[kw.arg] = kw.value.value
 
         if len(node.args) > 0:
-            keywords['init_val'] = int(node.args[0].n * 65536) # convert to fixed16
+            if len(node.args) > 1:
+                keywords['init_val'] = [int(node.args[i].n * 65536) for i in range(len(node.args))]
+            else:
+                keywords['init_val'] = int(node.args[0].n * 65536) # convert to fixed16
 
         return cg1DeclareVar(type="f16", keywords=keywords, lineno=node.lineno)
 

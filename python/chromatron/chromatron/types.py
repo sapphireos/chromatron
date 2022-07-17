@@ -345,6 +345,8 @@ class varArray(varComposite):
         self.length = length
         self.element = element
 
+        self.init_val = element.init_val
+
     @property
     def is_global(self):
         return self._is_global
