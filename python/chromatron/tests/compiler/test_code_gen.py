@@ -1512,6 +1512,17 @@ def init():
 
 """
 
+test_db_augassign_indexed = """
+
+a = Number(publish=True)
+
+def init():
+    db.kv_test_array[1] = 123
+    db.kv_test_array[1] += 1
+    
+    a = db.kv_test_array[1]
+
+"""
 
 test_array_expr_db = """
 
@@ -2104,6 +2115,13 @@ class CompilerTests(object):
 
     def test_db_augassign(self, opt_passes):
         self.run_test(test_db_augassign,
+            opt_passes=opt_passes,
+            expected={
+                'a': 124,
+            })
+
+    def test_db_augassign_indexed(self, opt_passes):
+        self.run_test(test_db_augassign_indexed,
             opt_passes=opt_passes,
             expected={
                 'a': 124,

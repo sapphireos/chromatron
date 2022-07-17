@@ -837,7 +837,11 @@ class Builder(object):
              isinstance(target.var, varObjectRef):
             
             if target.attr is not None:
-                if len(target.lookups) > 0:
+                is_db = False
+                if target.target is not None and target.target.data_type == 'obj' and target.target.name == 'db':
+                    is_db = True
+
+                if len(target.lookups) > 0 and not is_db:
                     result = self.add_temp(data_type='objref', lineno=lineno)
                     
                     if target.target:
@@ -998,7 +1002,11 @@ class Builder(object):
             self.append_node(ir)
 
         elif target.data_type == 'objref':
-            if len(target.lookups) > 0:
+            is_db = False
+            if target.target is not None and target.target.data_type == 'obj' and target.target.name == 'db':
+                is_db = True
+
+            if len(target.lookups) > 0 and not is_db:
                 result = self.add_temp(data_type='objref', lineno=lineno)
                 
                 if target.target:
