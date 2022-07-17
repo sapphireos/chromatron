@@ -370,8 +370,8 @@ static int8_t _vm_i8_run_stream(
 
         &&opcode_lddb,              // 13
         &&opcode_stdb,              // 14
-        &&opcode_trap,              // 15
-        &&opcode_trap,              // 16
+        &&opcode_lddbi,             // 15
+        &&opcode_stdbi,             // 16
         
         &&opcode_trap,              // 17
         &&opcode_trap,              // 18
@@ -1352,6 +1352,22 @@ opcode_lddb:
 
     //     registers[opcode_1i2rs->reg1] = 0;        
     // }
+    #endif
+#endif
+
+    DISPATCH;
+
+opcode_lddbi:
+    DECODE_1I3R;    
+    
+#ifdef VM_ENABLE_KV
+    #ifdef VM_ENABLE_CATBUS
+    if( catbus_i8_array_get( registers[opcode_1i3r->reg2], opcode_1i3r->imm1, 0, 1, &registers[opcode_1i3r->reg1] ) < 0 ){
+
+        registers[opcode_1i3r->reg1] = 0;        
+    }
+    #else
+    
     #endif
 #endif
 
