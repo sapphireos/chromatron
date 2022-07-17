@@ -1097,6 +1097,10 @@ class insLoadDB(BaseInstruction):
         self.dest = dest
         self.src = src
 
+        self.data_type = self.dest.var.data_type
+
+        assert self.data_type != 'gfx16'
+
         assert len(src.var.lookups) == 0
 
         assert self.src is not None
@@ -1136,7 +1140,7 @@ class insLoadDB(BaseInstruction):
             vm.registers[self.dest.reg] = 0
 
     def assemble(self):
-        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.dest.var.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 class insLoadDBIndexed(BaseInstruction):
     mnemonic = 'LDDBI'
@@ -1145,6 +1149,10 @@ class insLoadDBIndexed(BaseInstruction):
         super().__init__(**kwargs)
         self.dest = dest
         self.src = src
+
+        self.data_type = self.dest.var.data_type
+
+        assert self.data_type != 'gfx16'
 
         self.lookup = lookup
 
@@ -1192,7 +1200,7 @@ class insLoadDBIndexed(BaseInstruction):
             vm.registers[self.dest.reg] = 0
 
     def assemble(self):
-        return OpcodeFormat1Imm3Reg(self.mnemonic, get_type_id(self.dest.var.data_type), self.dest.assemble(), self.src.assemble(), self.lookup.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm3Reg(self.mnemonic, get_type_id(self.data_type), self.dest.assemble(), self.src.assemble(), self.lookup.assemble(), lineno=self.lineno)
 
 class insStoreDB(BaseInstruction):
     mnemonic = 'STDB'
@@ -1201,6 +1209,10 @@ class insStoreDB(BaseInstruction):
         super().__init__(**kwargs)
         self.dest = dest
         self.src = src
+
+        self.data_type = self.src.var.data_type
+
+        assert self.data_type != 'gfx16'
 
         assert len(dest.var.lookups) == 0
 
@@ -1239,7 +1251,7 @@ class insStoreDB(BaseInstruction):
             db[key] = value
 
     def assemble(self):
-        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.src.var.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
 
 
 class insStoreDBIndexed(BaseInstruction):
@@ -1249,6 +1261,10 @@ class insStoreDBIndexed(BaseInstruction):
         super().__init__(**kwargs)
         self.dest = dest
         self.src = src
+
+        self.data_type = self.src.var.data_type
+
+        assert self.data_type != 'gfx16'
 
         self.lookup = lookup
 
@@ -1301,7 +1317,7 @@ class insStoreDBIndexed(BaseInstruction):
                 db[key] = value
 
     def assemble(self):
-        return OpcodeFormat1Imm3Reg(self.mnemonic, get_type_id(self.src.var.data_type), self.dest.assemble(), self.src.assemble(), self.lookup.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm3Reg(self.mnemonic, get_type_id(self.data_type), self.dest.assemble(), self.src.assemble(), self.lookup.assemble(), lineno=self.lineno)
 
 
 

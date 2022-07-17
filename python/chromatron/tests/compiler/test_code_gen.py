@@ -660,6 +660,7 @@ a = Number(publish=True)
 b = Number(publish=True)
 c = Number(publish=True)
 d = Number(publish=True)
+e = Number(publish=True)
 
 
 def init():
@@ -675,6 +676,8 @@ def init():
     b = db.kv_test_array[8]
     c = db.kv_test_array[5]
     d = db.kv_test_array[2]
+
+    e = db.kv_test_array[5] + db.kv_test_array[2]
 
 """
 
@@ -2483,6 +2486,7 @@ class CompilerTests(object):
                 'b': 2,
                 'c': 3,
                 'd': 4,
+                'e': 7,
             })
 
     def test_empty(self, opt_passes):

@@ -1,17 +1,53 @@
 
-# index, count
-p1 = PixelArray(2, 12, size_x=3, size_y=4)
-
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
+max_temp = Number()
+min_temp = Number()
 
 def init():
-    a = p1.index
-    b = p1.count
-    c = p1.size_x
-    d = p1.size_y
+    # set pixels to full colors (maximum saturation)
+    pixels.sat = 1.0
+
+    # set pixels default hue to red
+    pixels.hue = 0.0
+
+    pixels.val = 1.0
+
+    pixels.v_fade = 1000
+    pixels.hs_fade = 1000
+
+    min_temp = 90
+    max_temp = 120
+
+
+def loop():
+    
+    # for y in pixels.size_y:
+    #     for x in pixels.size_x:
+    for y in 8:
+        for x in 8:
+            hue = Number()
+
+            hue = ( ( db.amg_pixel_delta[x * 8 + (8 - y)] - min_temp ) * 65536 ) / ( max_temp - min_temp )
+
+            pixels[x * 2][y * 2].hue = hue
+            pixels[x * 2 + 1][y * 2].hue = hue
+            pixels[x * 2][y * 2 + 1].hue = hue
+            pixels[x * 2 + 1][y * 2 + 1].hue = hue
+
+
+            val = Fixed16()
+
+            if db.amg_pixel_delta[x * 8 + (8 - y)] <= 1:
+                val = 0.0
+
+            else:
+                val = 1.0
+
+            pixels[x * 2][y * 2].val = val
+            pixels[x * 2 + 1][y * 2].val = val
+            pixels[x * 2][y * 2 + 1].val = val
+            pixels[x * 2 + 1][y * 2 + 1].val = val
+
+
 
 
 # current_hue = Fixed16()

@@ -411,8 +411,8 @@ class cg1BinOpNode(cg1CodeNode):
         self.right = right
 
     def build(self, builder, target_type=None):
-        left = self.left.build(builder)
-        right = self.right.build(builder)
+        left = self.left.build(builder, target_type=target_type)
+        right = self.right.build(builder, target_type=target_type)
 
         return builder.binop(self.op, left, right, target_type=target_type, lineno=self.lineno)
 
