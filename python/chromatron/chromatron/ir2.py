@@ -54,8 +54,8 @@ class OptPasses(Enum):
 
 
 
-DEBUG = False
-DEBUG_PRINT = False
+DEBUG = True
+DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
 SHOW_LIVENESS = False
 # LIVENESS_MODE = 'register'
@@ -2002,7 +2002,7 @@ class irBlock(IR):
 
                         continue
 
-                    else:
+                    elif not expr.var1.is_phi_merge and not expr.var2.is_phi_merge:
                         values[ir.target] = ir.target
                         values[expr] = ir.target
 
@@ -2075,10 +2075,11 @@ class irBlock(IR):
                         changed = True
 
                 for i in range(len(ir.lookups)):
-                    if ir.lookups[i] in values:
-                        replacement = values[ir.lookups[i]]
+                    lookup = ir.lookups[i]
+                    if lookup in values:
+                        replacement = values[lookup]
 
-                        if ir.lookups[i] != replacement:
+                        if lookup != replacement:
 
                             self.debug_print(f"replace object lookup {ir.lookups[i]} with {replacement}")
 

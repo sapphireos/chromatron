@@ -1002,6 +1002,40 @@ def init():
 
 """
 
+
+test_array_index_expr2 = """
+
+a = Number()
+ary = Number()[4]
+
+def init():
+
+
+    for x in 2:
+        ary[x + 2] = 1
+        ary[x + 2 + 1] = 2
+
+    a = ary[0]
+
+"""
+
+
+test_array_index_expr3 = """
+
+a = Number()
+ary = Number()[4]
+
+def init():
+    for x in 2:
+        for y in 2:
+            ary[x + 2] = 1
+            ary[x + 2] = 2
+
+    a = ary[0]
+    
+"""
+
+
 test_base_record_assign = """
 
 rec = Record(a=Number(), b=Number(), c=Number())
@@ -1450,6 +1484,21 @@ def init():
 
 """
 
+
+test_compare_db = """
+
+a = Number(publish=True)
+
+def init():
+    db.kv_test_key = 123
+    
+    if db.kv_test_key == 123:
+        a = 1
+
+    else:
+        a = 2
+
+"""
 
 test_expr_db = """
 
@@ -2084,6 +2133,13 @@ class CompilerTests(object):
                 'c': 0,
                 'd': 0,
             })
+    
+    def test_compare_db(self, opt_passes):
+        self.run_test(test_compare_db,
+            opt_passes=opt_passes,
+            expected={
+                'a': 1,
+            })
 
     def test_expr_db(self, opt_passes):
         self.run_test(test_expr_db,
@@ -2334,6 +2390,20 @@ class CompilerTests(object):
             opt_passes=opt_passes,
             expected={
                 'a': 3,
+            })
+
+    def test_array_index_expr2(self, opt_passes):
+        self.run_test(test_array_index_expr2,
+            opt_passes=opt_passes,
+            expected={
+                'a': 2,
+            })
+
+    def test_array_index_expr3(self, opt_passes):
+        self.run_test(test_array_index_expr3,
+            opt_passes=opt_passes,
+            expected={
+                'a': 2,
             })
 
     def test_array_avg(self, opt_passes):

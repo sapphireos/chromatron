@@ -382,7 +382,7 @@ class cg1If(cg1CodeNode):
         self.orelse = orelse
 
     def build(self, builder, target_type=None):
-        test = self.test.build(builder)
+        test = self.test.build(builder, target_type='i32')
 
         body_label, else_label, end_label = builder.ifelse(test, lineno=self.lineno)
 
