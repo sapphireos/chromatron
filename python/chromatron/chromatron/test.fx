@@ -1,27 +1,20 @@
 
-db_len = Number(publish=True)
-db_len2 = Number(publish=True)
+a = Number(5, publish=True)
+b = Fixed16(1.23, publish=True)
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
+ary = Number(1, 2)[2]
+ary2 = Fixed16(1.1, 2.1)[2]
 
+ary1_0 = Number(publish=True)
+ary1_1 = Number(publish=True)
+ary2_0 = Fixed16(publish=True)
+ary2_1 = Fixed16(publish=True)
 
 def init():
-    # db_len = len(db.kv_test_array)
-    # db_len2 = len(db.kv_test_key)
-
-    db.kv_test_array[0] = 1
-    db.kv_test_array[8] = 2
-    db.kv_test_array[5] = 3
-    db.kv_test_array[2] = 4
-    
-    a = db.kv_test_array[0]
-    b = db.kv_test_array[8]
-    c = db.kv_test_array[5]
-    d = db.kv_test_array[2]
-
+    ary1_0 = ary[0]
+    ary1_1 = ary[1]
+    ary2_0 = ary2[0]
+    ary2_1 = ary2[1]
 
 # current_hue = Fixed16()
 # delay = Number()
