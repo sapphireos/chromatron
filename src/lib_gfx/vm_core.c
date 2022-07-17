@@ -1300,7 +1300,27 @@ opcode_lookup3:
     DISPATCH;
 
 opcode_dbcall:
-    
+    DECODE_2AC;    
+
+    if( registers[opcode_2ac->dest] == __KV__len ){
+
+        #ifdef VM_ENABLE_KV
+        catbus_meta_t meta;
+        
+        if( kv_i8_get_catbus_meta( registers[opcode_2ac->op1], &meta ) < 0 ){
+
+            state->return_val = 0;
+        }
+        else{
+
+            state->return_val = meta.count + 1;
+        }
+        #endif
+    }
+    else{
+
+        state->return_val = 0;
+    }
 
     DISPATCH;
 

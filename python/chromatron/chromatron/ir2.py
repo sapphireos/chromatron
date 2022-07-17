@@ -54,7 +54,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = True
+DEBUG = False
 DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
 SHOW_LIVENESS = False
