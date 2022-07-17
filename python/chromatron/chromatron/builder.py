@@ -520,7 +520,7 @@ class Builder(object):
         if lib_call:
             hashed_func = string_hash_func(func)
 
-            const = self.add_const(hashed_func, lineno=lineno)
+            func_const = self.add_const(hashed_func, lineno=lineno)
 
             if func in ARRAY_FUNCS:
                 ref = params[0].target
@@ -537,16 +537,20 @@ class Builder(object):
                     ir = irVectorCalc(func, result, loaded_ref, lineno=lineno)
 
             else:
-                ir = irLibCall(const, params, func, lineno=lineno)
+                ir = irLibCall(func_const, params, func, lineno=lineno)
             
             self.append_node(ir)
 
         elif db_call:
             hashed_func = string_hash_func(func)
-            const = self.add_const(hashed_func, lineno=lineno)
+            func_const = self.add_const(hashed_func, lineno=lineno)
 
-            # placeholder!
-            ir = irLibCall(const, params, func, lineno=lineno)
+            db_accessor = params.pop(0)
+            db_key = db_accessor.var.attr.name
+            hashed_key = string_hash_func(db_key)
+            key_const = self.add_const(hashed_key, lineno=lineno)
+
+            ir = irDBCall(func_const, key_const, params, func, lineno=lineno)
             
             self.append_node(ir)
 

@@ -1157,19 +1157,21 @@ class insLoadDBIndexed(BaseInstruction):
         db = vm.program.db
 
         key = vm.registers[self.src.reg]
-        lookup = vm.registers[self.lookup.ref]
+        lookup = vm.registers[self.lookup.reg]
 
         try:    
             try:
+                lookup %= len(db[key])
+
                 value = db[key][lookup]
 
             except IndexError:
                 value = db[key]
 
-            if isinstance(db[key], int):
+            if isinstance(value, int):
                 src_type = 'i32'
 
-            elif isinstance(db[key], float):
+            elif isinstance(value, float):
                 src_type = 'f16'
 
             else:
@@ -1263,20 +1265,22 @@ class insStoreDBIndexed(BaseInstruction):
         lookup = vm.registers[self.lookup.reg]
 
         if key not in db:
-            db[key] = value
-            raise Exception
+            db[key] = [0] * (lookup + 1)
+            db[key][lookup] = value
 
         else:
             try:
-                value = db[key][lookup]
+                lookup %= len(db[key])
 
-            except IndexError:
-                value = db[key]
+                db_value = db[key][lookup]
 
-            if isinstance(value, int):
+            except (IndexError, TypeError):
+                db_value = db[key]
+
+            if isinstance(db_value, int):
                 dest_type = 'i32'
 
-            elif isinstance(value, float):
+            elif isinstance(db_value, float):
                 dest_type = 'f16'
 
             else:
@@ -1293,7 +1297,7 @@ class insStoreDBIndexed(BaseInstruction):
             try:
                 db[key][lookup] = value
 
-            except IndexError:
+            except (IndexError, TypeError):
                 db[key] = value
 
     def assemble(self):
@@ -2317,6 +2321,45 @@ class insLibCall4(insLibCall):
             self.params[2].assemble(), 
             self.params[3].assemble(), 
             lineno=self.lineno)
+
+class insDBCall(BaseInstruction):
+    mnemonic = 'DBCALL'
+
+    def __init__(self, target, key, params=[], func_name=None, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.key = key
+        self.params = params
+        self.func_name = func_name
+
+    def __str__(self):
+        params = ''
+        for param in self.params:
+            params += '%s, ' % (param)
+        params = params[:len(params) - 2]
+
+        return "%s %s {%s}.%s (%s)" % (self.mnemonic, self.target, self.func_name, self.key, params)
+
+    def execute(self, vm):
+        db = vm.program.db
+
+        key = vm.registers[self.key.reg]
+
+        vm.ret_val = 0
+
+        if key in db:
+            if self.func_name == 'len':
+                value = db[key]
+
+                try:
+                    vm.ret_val = len(value)
+
+                except TypeError:
+                    vm.ret_val = 1
+            
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.target.assemble(), self.key.assemble(), lineno=self.lineno)
 
 class insPixelLookup(BaseInstruction):
     mnemonic = 'PLOOKUP'

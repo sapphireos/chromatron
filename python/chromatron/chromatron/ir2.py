@@ -2115,6 +2115,18 @@ class irBlock(IR):
 
                         changed = True
 
+                for i in range(len(ir.lookups)):
+                    if ir.lookups[i] in values:
+                        replacement = values[ir.lookups[i]]
+
+                        if ir.lookups[i] != replacement:
+
+                            self.debug_print(f"replace lookup {ir.lookups[i]} with {replacement}")
+
+                            ir.lookups[i] = replacement
+
+                            changed = True
+
                 if ir.value in values:
                     replacement = values[ir.value]
 
@@ -2136,6 +2148,18 @@ class irBlock(IR):
                         ir.target = replacement
 
                         changed = True
+
+                for i in range(len(ir.lookups)):
+                    if ir.lookups[i] in values:
+                        replacement = values[ir.lookups[i]]
+
+                        if ir.lookups[i] != replacement:
+
+                            self.debug_print(f"replace lookup {ir.lookups[i]} with {replacement}")
+
+                            ir.lookups[i] = replacement
+
+                            changed = True
 
                 if ir.value in values:
                     replacement = values[ir.value]
@@ -2351,6 +2375,46 @@ class irBlock(IR):
 
             elif isinstance(ir, irLibCall):
                 # replace inputs:
+                if ir.target in values:
+                    replacement = values[ir.target]    
+
+                    if ir.target != replacement:
+                        self.debug_print(f"replace print {ir.target} to {replacement}")
+
+                        ir.target = replacement
+                        changed = True
+
+                for i in range(len(ir.params)):
+                    if ir.params[i] in values:
+                        replacement = values[ir.params[i]]
+
+                        if ir.params[i] != replacement:
+                            self.debug_print(f"replace call param {ir.params[i]} with {replacement}")
+
+                            ir.params[i] = replacement
+
+                            changed = True
+
+            elif isinstance(ir, irDBCall):
+                # replace inputs:
+                if ir.target in values:
+                    replacement = values[ir.target]    
+
+                    if ir.target != replacement:
+                        self.debug_print(f"replace print {ir.target} to {replacement}")
+
+                        ir.target = replacement
+                        changed = True
+
+                if ir.key in values:
+                    replacement = values[ir.key]    
+
+                    if ir.key != replacement:
+                        self.debug_print(f"replace print {ir.key} to {replacement}")
+
+                        ir.key = replacement
+                        changed = True
+
                 for i in range(len(ir.params)):
                     if ir.params[i] in values:
                         replacement = values[ir.params[i]]
@@ -6999,6 +7063,7 @@ class irObjectStore(IR):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
+        self.lookups = target.var.lookups
 
         self.attr = attr
 
@@ -7007,7 +7072,7 @@ class irObjectStore(IR):
 
     def get_input_vars(self):
         inputs = [self.value, self.target]
-        inputs.extend(self.target.lookups)
+        inputs.extend(self.lookups)
         return inputs
 
     def get_output_vars(self):
@@ -7054,11 +7119,11 @@ class irObjectStore(IR):
 
         # DB reference
         elif target.var.data_type == 'objref' and target.var.target.name == 'db':
-            if len(target.var.lookups) > 0:
-                if len(target.var.lookups) > 1:
+            if len(self.lookups) > 0:
+                if len(self.lookups) > 1:
                     raise SyntaxError(f'DB access only supports 1-D array lookups', lineno=self.lineno)
 
-                lookup = target.var.lookups[0].generate()
+                lookup = self.lookups[0].generate()
 
                 return insStoreDBIndexed(target, value, lookup, lineno=self.lineno)
 
@@ -7072,6 +7137,7 @@ class irObjectLoad(IR):
         super().__init__(**kwargs)
         self.target = target
         self.value = value
+        self.lookups = value.var.lookups
     
         self.attr = attr
 
@@ -7080,7 +7146,7 @@ class irObjectLoad(IR):
 
     def get_input_vars(self):
         inputs = [self.value]
-        inputs.extend(self.value.lookups)
+        inputs.extend(self.lookups)
         return inputs
 
     def get_output_vars(self):
@@ -7118,11 +7184,11 @@ class irObjectLoad(IR):
         
         # DB reference
         elif value.var.data_type == 'objref' and value.var.target.name == 'db':
-            if len(value.var.lookups) > 0:
-                if len(value.var.lookups) > 1:
+            if len(self.lookups) > 0:
+                if len(self.lookups) > 1:
                     raise SyntaxError(f'DB access only supports 1-D array lookups', lineno=self.lineno)
 
-                lookup = value.var.lookups[0].generate()
+                lookup = self.lookups[0].generate()
                 return insLoadDBIndexed(target, value, lookup, lineno=self.lineno)
 
             else:
@@ -8144,3 +8210,30 @@ class irLibCall(irCallType):
                 raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')
 
             return call_ins
+
+class irDBCall(irCallType):
+    def __init__(self, target, key, params, func_name, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.key = key
+        self.params = params
+        self.func_name = func_name
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = f'DBCALL {self.func_name}:{self.target}.{self.key}({params})'
+
+        return s
+
+    def get_input_vars(self):
+        inputs = [self.target, self.key]
+        inputs.extend(self.params)
+        return inputs
+
+    def generate(self):    
+        if len(self.params) > 0:
+            raise CompilerFatal
+
+        call_ins = insDBCall(self.target.generate(), self.key.generate(), [], self.func_name, lineno=self.lineno)
+
+        return call_ins

@@ -9,20 +9,20 @@ d = Number(publish=True)
 
 
 def init():
-    a = len(db.kv_test_key)
     # db_len = len(db.kv_test_array)
     # db_len2 = len(db.kv_test_key)
 
-    # db.kv_test_array[0] = 1
+    db.kv_test_array[0] = 1
     # db.kv_test_array[8] = 2
     # db.kv_test_array[5] = 3
     # db.kv_test_array[2] = 4
     
-    # a = db.kv_test_array[0]
+    a = db.kv_test_array[0]
     # b = db.kv_test_array[8]
     # c = db.kv_test_array[5]
     # d = db.kv_test_array[2]
 
+    
 # current_hue = Fixed16()
 # delay = Number()
 # cursor = Number()

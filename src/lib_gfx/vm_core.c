@@ -435,7 +435,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_lookup2,           // 66
         &&opcode_lookup3,           // 67
 
-        &&opcode_trap,              // 68
+        &&opcode_dbcall,            // 68
         &&opcode_trap,              // 69
         &&opcode_trap,              // 70
         &&opcode_trap,              // 71
@@ -1296,6 +1296,11 @@ opcode_lookup3:
     ref.ref.addr += index;
 
     registers[opcode_lkp3->dest] = ref.n;
+
+    DISPATCH;
+
+opcode_dbcall:
+    
 
     DISPATCH;
 
