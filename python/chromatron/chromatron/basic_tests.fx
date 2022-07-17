@@ -646,7 +646,7 @@ def type_conversions_binop():
 
 
 
-p1 = PixelArray(2, 3) # 2 pixels starting at index 3 (4th pixel in array)
+p1 = PixelArray(3, 2) # 2 pixels starting at index 3 (4th pixel in array)
 
 def obj_store_direct():
     pixels.hue = 0.0

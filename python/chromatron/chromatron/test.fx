@@ -1,32 +1,17 @@
 
+# index, count
+p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-
-def sub(a: Number, b: Number) -> Number:
-    return a - b
-
-def add(a: Number, b: Number) -> Number:
-    return a + b
-    
-
-# p1 = PixelArray(2, 12, size_x=3, size_y=4)
-
-# a = Number(publish=True)
-# b = Number(publish=True)
-# c = Number(publish=True)
-# d = Number(publish=True)
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
 
 def init():
-    # a = p1.index
-    # b = p1.count
-    # c = p1.size_x
-    # d = p1.size_y
-
-    f = Function(sub)[2]
-    # f[0] = sub
-    # f[1] = add
-
-    # assert f[0](1, 2) == -1
-    # assert f[1](1, 2) == 3
+    a = p1.index
+    b = p1.count
+    c = p1.size_x
+    d = p1.size_y
 
 
 # current_hue = Fixed16()

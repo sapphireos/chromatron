@@ -2780,7 +2780,6 @@ class CompilerTests(object):
             expected={
             })
 
-    @pytest.mark.skip
     def test_pixel_array(self, opt_passes):
         self.run_test(pixel_array,
             opt_passes=opt_passes,

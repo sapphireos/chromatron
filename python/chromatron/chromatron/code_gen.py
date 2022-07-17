@@ -827,10 +827,10 @@ class CodeGenPass1(ast.NodeVisitor):
                 kwargs[field_name] = field_type
 
             if len(node.args) >= 1:
-                kwargs['count'] = args[0]
+                kwargs['index'] = args[0]
 
             if len(node.args) >= 2:
-                kwargs['index'] = args[1]
+                kwargs['count'] = args[1]
 
             return cg1GenericObject(node.func.id, kwargs, lineno=node.lineno)
 
