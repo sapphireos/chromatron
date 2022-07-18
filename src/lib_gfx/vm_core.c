@@ -1362,7 +1362,7 @@ opcode_lddbi:
     
 #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
-    if( catbus_i8_array_get( registers[opcode_1i3r->reg2], opcode_1i3r->imm1, 0, 1, &registers[opcode_1i3r->reg1] ) < 0 ){
+    if( catbus_i8_array_get( registers[opcode_1i3r->reg2], opcode_1i3r->imm1, registers[opcode_1i3r->reg3], 1, &registers[opcode_1i3r->reg1] ) < 0 ){
 
         registers[opcode_1i3r->reg1] = 0;        
     }
@@ -1387,6 +1387,22 @@ opcode_stdb:
 
     //     registers[opcode_1i2rs->reg1] = 0;        
     // }
+    #endif
+#endif
+
+    DISPATCH;
+
+opcode_stdbi:
+    DECODE_1I3R;    
+    
+#ifdef VM_ENABLE_KV
+    #ifdef VM_ENABLE_CATBUS
+    if( catbus_i8_array_set( registers[opcode_1i3r->reg2], opcode_1i3r->imm1, registers[opcode_1i3r->reg3], 1, &registers[opcode_1i3r->reg1], sizeof(registers[opcode_1i3r->reg1]) ) < 0 ){
+
+        registers[opcode_1i3r->reg1] = 0;        
+    }
+    #else
+    
     #endif
 #endif
 
