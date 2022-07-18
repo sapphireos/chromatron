@@ -1604,253 +1604,492 @@ class irBlock(IR):
 
             original_ir = ir # record original, just for debug printing
 
-            if isinstance(ir, irLoadConst):
-                # there is no replacement step for a load const
+            try:
+                if isinstance(ir, irLoadConst):
+                    # there is no replacement step for a load const
 
-                # assign value to target
-                ir.target.value = ir.value
+                    # assign value to target
+                    ir.target.value = ir.value
 
-                # since this is a constant load, we can assert that the target
-                # is now marked as const
-                assert ir.target.const
+                    # since this is a constant load, we can assert that the target
+                    # is now marked as const
+                    assert ir.target.const
 
-                expr = ir.expr
+                    expr = ir.expr
 
-                # simplify?
-                # not on load const
+                    # simplify?
+                    # not on load const
 
-                # is expr in hash table?
-                if expr in values:
-                    # pass
-                    v = values[expr]
+                    # is expr in hash table?
+                    if expr in values:
+                        # pass
+                        v = values[expr]
 
-                    values[ir.target] = v
-                    
-                    # # remove instruction
-                    # print(f"remove load const {ir.target} = {ir.value}")
+                        values[ir.target] = v
+                        
+                        # # remove instruction
+                        # print(f"remove load const {ir.target} = {ir.value}")
 
-                    # changed = True
+                        # changed = True
 
-                    # continue
+                        # continue
 
-                else:
-                    values[ir.target] = ir.target
-                    values[expr] = ir.target
+                    else:
+                        values[ir.target] = ir.target
+                        values[expr] = ir.target
 
-            elif isinstance(ir, irAssign):
-                # replace inputs:
-                if ir.value in values:
-                    replacement = values[ir.value]
+                elif isinstance(ir, irAssign):
+                    # replace inputs:
+                    if ir.value in values:
+                        replacement = values[ir.value]
 
-                    if ir.value != replacement:
-                        self.debug_print(f"replace assign {ir.target} = {ir.value} with {replacement}")
+                        if ir.value != replacement:
+                            self.debug_print(f"replace assign {ir.target} = {ir.value} with {replacement}")
 
-                        ir.value = replacement
+                            ir.value = replacement
 
-                        changed = True
+                            changed = True
 
-                expr = ir.value
+                    expr = ir.value
 
-                # simplify?
-                # not on assign
+                    # simplify?
+                    # not on assign
 
-                # is expr in hash table?
-                if expr in values:
-                    v = values[expr]
-
-                    values[ir.target] = v
-
-                    self.debug_print(f"remove assign {ir.target} = {ir.value}")
-
-                    changed = True
-
-                    # remove assignment
-
-                    continue
-
-                else:
-                    values[ir.target] = ir.value
-
-                    # values[ir.target] = ir.target
-                    # values[ir.value] = ir.target
-
-            elif isinstance(ir, irLoad):
-                if ir.ref in values:
-                    replacement = values[ir.ref]
-
-                    if ir.ref != replacement:
-                        self.debug_print(f"replace load {ir} with {replacement}")
-
-                        ir.ref = replacement
-
-                        changed = True
-
-                if ir.register in values:
-                    replacement = values[ir.register]
-                    
-                    if ir.register != replacement:
-                        self.debug_print(f"replace load {ir} (reg) with {replacement}")
-
-                        ir.register = replacement
-
-                        changed = True
-
-                # expr = ir.expr
-
-                # if expr in values:
-                #     v = values[expr]
-
-                #     values[ir.register] = v
-
-                #     # remove assignment
-                #     self.debug_print(f"remove load {ir.register} = {ir.ref}")
-
-                #     changed = True
-
-                #     continue
-
-                # else:
-                #     values[ir.register] = ir.register
-                #     values[expr] = ir.register
-                    
-
-            elif isinstance(ir, irStore):
-                # replace inputs:
-                if ir.ref in values:
-                    # this is mainly used for offsets
-                    replacement = values[ir.ref]
-
-                    if ir.ref != replacement:
-                        self.debug_print(f"replace store {ir} with {replacement}")
-
-                        ir.ref = replacement
-
-                        changed = True
-
-                if ir.register in values:
-                    replacement = values[ir.register]
-
-                    if ir.register != replacement:
-                        self.debug_print(f"replace store {ir} with {replacement}")
-
-                        ir.register = replacement
-
-                        changed = True
-
-                # expr = ir.expr
-
-                # if expr in values:
-                #     pass
-                #     # v = values[expr]
-
-                #     # values[ir.register] = v
-
-                #     # # remove assignment
-                #     # print(f"remove store {ir.register} = {ir.ref}")
-
-                #     # changed = True
-
-                #     # continue
-
-                # else:
-                #     values[ir.register] = ir.register
-                #     values[expr] = ir.register
-
-                    # values[ir.register] = expr
-                    
-
-            elif isinstance(ir, irLoadRetVal):
-                # replace inputs:
-                if ir.target in values:
-                    replacement = values[ir.target]
-
-                    if ir.target != replacement:
-                        self.debug_print(f"replace load retval {ir.target} with {replacement}")
-
-                        ir.target = replacement
-
-                        changed = True
-
-            elif isinstance(ir, irUnaryNot):
-                # replace inputs:
-                if ir.value in values:
-                    replacement = values[ir.value]
-
-                    if ir.value != replacement:
-                        self.debug_print(f"replace not {ir} with {replacement}")
-
-                        ir.value = replacement
-
-                        changed = True
-
-                expr = ir.expr
-
-                # simplify?
-                fold = ir.fold()
-
-                if fold is not None:
-                    self.debug_print(f'Fold not: {fold}')
-
-                    assert isinstance(fold, irLoadConst)
-
-                    # replace the binop with the folded assignment
-                    ir = fold
-                    ir.block = self
-
-                    values[ir.target] = ir.target
-
-                    changed = True
-
-                else:
                     # is expr in hash table?
                     if expr in values:
                         v = values[expr]
 
                         values[ir.target] = v
 
-                        # remove assignment
-
-                        self.debug_print(f"remove not {ir}")
+                        self.debug_print(f"remove assign {ir.target} = {ir.value}")
 
                         changed = True
+
+                        # remove assignment
 
                         continue
 
                     else:
+                        values[ir.target] = ir.value
+
+                        # values[ir.target] = ir.target
+                        # values[ir.value] = ir.target
+
+                elif isinstance(ir, irLoad):
+                    if ir.ref in values:
+                        replacement = values[ir.ref]
+
+                        if ir.ref != replacement:
+                            self.debug_print(f"replace load {ir} with {replacement}")
+
+                            ir.ref = replacement
+
+                            changed = True
+
+                    if ir.register in values:
+                        replacement = values[ir.register]
+                        
+                        if ir.register != replacement:
+                            self.debug_print(f"replace load {ir} (reg) with {replacement}")
+
+                            ir.register = replacement
+
+                            changed = True
+
+                    # expr = ir.expr
+
+                    # if expr in values:
+                    #     v = values[expr]
+
+                    #     values[ir.register] = v
+
+                    #     # remove assignment
+                    #     self.debug_print(f"remove load {ir.register} = {ir.ref}")
+
+                    #     changed = True
+
+                    #     continue
+
+                    # else:
+                    #     values[ir.register] = ir.register
+                    #     values[expr] = ir.register
+                        
+
+                elif isinstance(ir, irStore):
+                    # replace inputs:
+                    if ir.ref in values:
+                        # this is mainly used for offsets
+                        replacement = values[ir.ref]
+
+                        if ir.ref != replacement:
+                            self.debug_print(f"replace store {ir} with {replacement}")
+
+                            ir.ref = replacement
+
+                            changed = True
+
+                    if ir.register in values:
+                        replacement = values[ir.register]
+
+                        if ir.register != replacement:
+                            self.debug_print(f"replace store {ir} with {replacement}")
+
+                            ir.register = replacement
+
+                            changed = True
+
+                    # expr = ir.expr
+
+                    # if expr in values:
+                    #     pass
+                    #     # v = values[expr]
+
+                    #     # values[ir.register] = v
+
+                    #     # # remove assignment
+                    #     # print(f"remove store {ir.register} = {ir.ref}")
+
+                    #     # changed = True
+
+                    #     # continue
+
+                    # else:
+                    #     values[ir.register] = ir.register
+                    #     values[expr] = ir.register
+
+                        # values[ir.register] = expr
+                        
+
+                elif isinstance(ir, irLoadRetVal):
+                    # replace inputs:
+                    if ir.target in values:
+                        replacement = values[ir.target]
+
+                        if ir.target != replacement:
+                            self.debug_print(f"replace load retval {ir.target} with {replacement}")
+
+                            ir.target = replacement
+
+                            changed = True
+
+                elif isinstance(ir, irUnaryNot):
+                    # replace inputs:
+                    if ir.value in values:
+                        replacement = values[ir.value]
+
+                        if ir.value != replacement:
+                            self.debug_print(f"replace not {ir} with {replacement}")
+
+                            ir.value = replacement
+
+                            changed = True
+
+                    expr = ir.expr
+
+                    # simplify?
+                    fold = ir.fold()
+
+                    if fold is not None:
+                        self.debug_print(f'Fold not: {fold}')
+
+                        assert isinstance(fold, irLoadConst)
+
+                        # replace the binop with the folded assignment
+                        ir = fold
+                        ir.block = self
+
                         values[ir.target] = ir.target
-                        values[expr] = ir.target
-
-            elif isinstance(ir, irConvertType):
-                # replace inputs:
-                if ir.value in values:
-                    replacement = values[ir.value]
-
-                    if ir.value != replacement:
-                        self.debug_print(f"replace conversion {ir.result} = {ir.value} with {replacement}")
-
-                        ir.value = replacement
 
                         changed = True
 
-                expr = ir.expr
+                    else:
+                        # is expr in hash table?
+                        if expr in values:
+                            v = values[expr]
 
-                # simplify?
-                fold = ir.fold()
+                            values[ir.target] = v
 
-                if fold is not None:
-                    self.debug_print(f'Fold conversion: {fold}')
+                            # remove assignment
 
-                    assert isinstance(fold, irLoadConst) or isinstance(fold, irAssign)
+                            self.debug_print(f"remove not {ir}")
 
-                    # replace the instruction with the folded assignment
-                    ir = fold
-                    ir.block = self
+                            changed = True
 
-                    values[ir.target] = ir.target
+                            continue
 
-                    changed = True
+                        else:
+                            values[ir.target] = ir.target
+                            values[expr] = ir.target
 
-                else:
+                elif isinstance(ir, irConvertType):
+                    # replace inputs:
+                    if ir.value in values:
+                        replacement = values[ir.value]
+
+                        if ir.value != replacement:
+                            self.debug_print(f"replace conversion {ir.result} = {ir.value} with {replacement}")
+
+                            ir.value = replacement
+
+                            changed = True
+
+                    expr = ir.expr
+
+                    # simplify?
+                    fold = ir.fold()
+
+                    if fold is not None:
+                        self.debug_print(f'Fold conversion: {fold}')
+
+                        assert isinstance(fold, irLoadConst) or isinstance(fold, irAssign)
+
+                        # replace the instruction with the folded assignment
+                        ir = fold
+                        ir.block = self
+
+                        values[ir.target] = ir.target
+
+                        changed = True
+
+                    else:
+                        # is expr in hash table?
+                        if expr in values:
+                            v = values[expr]
+
+                            values[ir.result] = v
+
+                            # remove assignment
+                            self.debug_print(f"remove conversion {ir.result} = {ir.value}")
+
+                            changed = True
+
+                            continue
+
+                        else:
+                            values[ir.result] = ir.result
+                            values[expr] = ir.result
+
+                elif isinstance(ir, irLookup):
+                    # replace inputs:
+                    if ir.ref in values:
+                        replacement = values[ir.ref]
+
+                        if ir.ref != replacement:
+                            self.debug_print(f"replace lookup ref {ir.result} = {ir.ref} with {replacement}")
+
+                            ir.ref = replacement
+
+                            changed = True
+
+
+                    for i in range(len(ir.lookups)):
+                        if ir.lookups[i] in values:
+                            replacement = values[ir.lookups[i]]
+
+                            if ir.lookups[i] != replacement:
+
+                                self.debug_print(f"replace lookup {ir.lookups[i]} with {replacement}")
+
+                                ir.lookups[i] = replacement
+
+                                changed = True
+
+                    # for i in range(len(ir.counts)):
+                    #     if ir.counts[i] in values:
+                    #         replacement = values[ir.counts[i]]
+
+                    #         if ir.counts[i] != replacement:
+
+                    #             print(f"replace count {ir.counts[i]} with {replacement}")
+
+                    #             ir.counts[i] = replacement
+
+                    #             changed = True
+
+                    # for i in range(len(ir.strides)):
+                    #     if ir.strides[i] in values:
+                    #         replacement = values[ir.strides[i]]
+
+                    #         if ir.strides[i] != replacement:
+
+                    #             print(f"replace stride {ir.strides[i]} with {replacement}")
+
+                    #             ir.strides[i] = replacement
+
+                    #             changed = True
+
+                    # simplify?
+                    # this instruction could be folded on constant inputs similiar to binop
+
+
+                    expr = ir.expr
+
+                    if expr in values:
+                        v = values[expr]
+
+                        values[ir.result] = v
+
+                        # remove
+                        self.debug_print(f"remove lookup {ir}")
+
+                        changed = True
+
+                        continue
+                    else:
+                        values[ir.result] = ir.result
+                        values[expr] = ir.result
+
+                elif isinstance(ir, irReturn):
+                    # replace inputs:
+                    if ir.ret_var in values:
+                        replacement = values[ir.ret_var]
+
+                        if ir.ret_var != replacement:
+                            self.debug_print(f"replace return {ir.ret_var} with {replacement}")
+
+                            ir.ret_var = replacement
+                            changed = True
+
+                elif isinstance(ir, irBinop):
+                    # replace inputs:
+                    if ir.left in values:
+                        replacement = values[ir.left]
+
+                        if ir.left != replacement:
+                            self.debug_print(f"replace left {ir.left} with {replacement}")
+
+                            ir.left = replacement
+
+                            changed = True
+
+                    if ir.right in values:
+                        replacement = values[ir.right]
+
+                        if ir.right != replacement:
+                            self.debug_print(f"replace right {ir.right} with {replacement}")
+
+                            ir.right = replacement
+
+                            changed = True
+
+                    expr = ir.expr
+
+                    # simplify?
+                    fold = ir.fold()
+
+                    if fold is not None:
+                        self.debug_print(f'Fold binop: {fold}')
+
+                        assert isinstance(fold, irLoadConst)
+
+                        # replace the binop with the folded assignment
+                        ir = fold
+                        ir.block = self
+
+                        values[ir.target] = ir.target
+
+                        changed = True
+
+                    else:
+                        # is expr in hash table?
+                        if expr in values:                
+                            values[ir.target] = expr
+
+                            # remove this instruction   
+
+                            self.debug_print(f"remove binop {original_ir.target} = {original_ir.left} {original_ir.op} {original_ir.right}")
+
+                            changed = True
+
+                            continue
+
+                        elif not expr.var1.is_phi_merge and not expr.var2.is_phi_merge:
+                            values[ir.target] = ir.target
+                            values[expr] = ir.target
+
+                elif isinstance(ir, irVectorAssign):
+                    # replace inputs:
+                    if ir.target in values:
+                        replacement = values[ir.target]
+
+                        if ir.target != replacement:
+                            self.debug_print(f"replace vector assign target {ir.target} = {ir.target} with {replacement}")
+
+                            ir.target = replacement
+
+                            changed = True
+
+                    if ir.value in values:
+                        replacement = values[ir.value]
+
+                        if ir.value != replacement:
+                            self.debug_print(f"replace vector assign value {ir.target} = {ir.value} with {replacement}")
+
+                            ir.value = replacement
+
+                            changed = True
+
+                elif isinstance(ir, irVectorOp):
+                    # replace inputs:
+                    if ir.target in values:
+                        replacement = values[ir.target]
+
+                        if ir.target != replacement:
+                            self.debug_print(f"replace vector op target {ir.target} = {ir.target} with {replacement}")
+
+                            ir.target = replacement
+
+                            changed = True
+
+                    if ir.value in values:
+                        replacement = values[ir.value]
+
+                        if ir.value != replacement:
+                            self.debug_print(f"replace vector op value {ir.target} = {ir.value} with {replacement}")
+
+                            ir.value = replacement
+
+                            changed = True
+
+                elif isinstance(ir, irVectorCalc):
+                    # replace inputs:
+                    if ir.ref in values:
+                        replacement = values[ir.ref]
+
+                        if ir.ref != replacement:
+                            self.debug_print(f"replace vector op ref {ir.ref} = {ir.ref} with {replacement}")
+
+                            ir.ref = replacement
+
+                            changed = True
+
+                elif isinstance(ir, irObjectLookup):
+                    # replace inputs:
+                    if ir.target in values:
+                        replacement = values[ir.target]
+
+                        if ir.target != replacement:
+                            self.debug_print(f"replace object lookup {ir} with {replacement}")
+
+                            ir.target = replacement
+
+                            changed = True
+
+                    for i in range(len(ir.lookups)):
+                        lookup = ir.lookups[i]
+                        if lookup in values:
+                            replacement = values[lookup]
+
+                            if lookup != replacement:
+
+                                self.debug_print(f"replace object lookup {ir.lookups[i]} with {replacement}")
+
+                                ir.lookups[i] = replacement
+
+                                changed = True
+
+                    expr = ir.expr
+
                     # is expr in hash table?
                     if expr in values:
                         v = values[expr]
@@ -1858,7 +2097,8 @@ class irBlock(IR):
                         values[ir.result] = v
 
                         # remove assignment
-                        self.debug_print(f"remove conversion {ir.result} = {ir.value}")
+
+                        self.debug_print(f"remove object lookup {ir}")
 
                         changed = True
 
@@ -1867,594 +2107,379 @@ class irBlock(IR):
                     else:
                         values[ir.result] = ir.result
                         values[expr] = ir.result
+                
+                elif isinstance(ir, irObjectStore):
+                    # replace inputs:
+                    if ir.target in values:
+                        replacement = values[ir.target]
 
-            elif isinstance(ir, irLookup):
-                # replace inputs:
-                if ir.ref in values:
-                    replacement = values[ir.ref]
+                        if ir.target != replacement:
+                            self.debug_print(f"replace object store {ir} with {replacement}")
 
-                    if ir.ref != replacement:
-                        self.debug_print(f"replace lookup ref {ir.result} = {ir.ref} with {replacement}")
-
-                        ir.ref = replacement
-
-                        changed = True
-
-
-                for i in range(len(ir.lookups)):
-                    if ir.lookups[i] in values:
-                        replacement = values[ir.lookups[i]]
-
-                        if ir.lookups[i] != replacement:
-
-                            self.debug_print(f"replace lookup {ir.lookups[i]} with {replacement}")
-
-                            ir.lookups[i] = replacement
+                            ir.target = replacement
 
                             changed = True
 
-                # for i in range(len(ir.counts)):
-                #     if ir.counts[i] in values:
-                #         replacement = values[ir.counts[i]]
+                    for i in range(len(ir.lookups)):
+                        if ir.lookups[i] in values:
+                            replacement = values[ir.lookups[i]]
 
-                #         if ir.counts[i] != replacement:
+                            if ir.lookups[i] != replacement:
 
-                #             print(f"replace count {ir.counts[i]} with {replacement}")
+                                self.debug_print(f"replace lookup {ir.lookups[i]} with {replacement}")
 
-                #             ir.counts[i] = replacement
+                                ir.lookups[i] = replacement
 
-                #             changed = True
+                                changed = True
 
-                # for i in range(len(ir.strides)):
-                #     if ir.strides[i] in values:
-                #         replacement = values[ir.strides[i]]
+                    if ir.value in values:
+                        replacement = values[ir.value]
 
-                #         if ir.strides[i] != replacement:
+                        if ir.value != replacement:
+                            self.debug_print(f"replace object store {ir} with {replacement}")
 
-                #             print(f"replace stride {ir.strides[i]} with {replacement}")
+                            ir.value = replacement
 
-                #             ir.strides[i] = replacement
+                            changed = True
 
-                #             changed = True
+                elif isinstance(ir, irObjectLoad):
+                    # replace inputs:
+                    if ir.target in values:
+                        replacement = values[ir.target]
 
-                # simplify?
-                # this instruction could be folded on constant inputs similiar to binop
+                        if ir.target != replacement:
+                            self.debug_print(f"replace object load {ir} with {replacement}")
+
+                            ir.target = replacement
+
+                            changed = True
+
+                    for i in range(len(ir.lookups)):
+                        if ir.lookups[i] in values:
+                            replacement = values[ir.lookups[i]]
+
+                            if ir.lookups[i] != replacement:
+
+                                self.debug_print(f"replace lookup {ir.lookups[i]} with {replacement}")
+
+                                ir.lookups[i] = replacement
+
+                                changed = True
+
+                    if ir.value in values:
+                        replacement = values[ir.value]
+
+                        if ir.value != replacement:
+                            self.debug_print(f"replace object load {ir} with {replacement}")
+
+                            ir.value = replacement
+
+                            changed = True
+
+                elif isinstance(ir, irObjectOp):
+                    # replace inputs:
+                    if ir.target in values:
+                        replacement = values[ir.target]
+
+                        if ir.target != replacement:
+                            self.debug_print(f"replace object op {ir} with {replacement}")
+
+                            ir.target = replacement
+
+                            changed = True
+
+                    if ir.value in values:
+                        replacement = values[ir.value]
+
+                        if ir.value != replacement:
+                            self.debug_print(f"replace object op {ir} with {replacement}")
+
+                            ir.value = replacement
+
+                            changed = True
 
 
-                expr = ir.expr
+                elif isinstance(ir, irLoadRef):
+                    # replace inputs:
+                    if ir.ref in values:
+                        replacement = values[ir.ref]
 
-                if expr in values:
-                    v = values[expr]
+                        if ir.ref != replacement:
+                            self.debug_print(f"replace loadref {ir} with {replacement}")
 
-                    values[ir.result] = v
+                            ir.ref = replacement
 
-                    # remove
-                    self.debug_print(f"remove lookup {ir}")
+                            changed = True
 
-                    changed = True
+                    # if ir.target.var.target is None:
+                    #     ir.target.var.target = ir.ref
 
-                    continue
-                else:
-                    values[ir.result] = ir.result
-                    values[expr] = ir.result
+                    expr = ir.expr
+                    
+                    # simplify?
+                    # not on load ref
 
-            elif isinstance(ir, irReturn):
-                # replace inputs:
-                if ir.ret_var in values:
-                    replacement = values[ir.ret_var]
-
-                    if ir.ret_var != replacement:
-                        self.debug_print(f"replace return {ir.ret_var} with {replacement}")
-
-                        ir.ret_var = replacement
-                        changed = True
-
-            elif isinstance(ir, irBinop):
-                # replace inputs:
-                if ir.left in values:
-                    replacement = values[ir.left]
-
-                    if ir.left != replacement:
-                        self.debug_print(f"replace left {ir.left} with {replacement}")
-
-                        ir.left = replacement
-
-                        changed = True
-
-                if ir.right in values:
-                    replacement = values[ir.right]
-
-                    if ir.right != replacement:
-                        self.debug_print(f"replace right {ir.right} with {replacement}")
-
-                        ir.right = replacement
-
-                        changed = True
-
-                expr = ir.expr
-
-                # simplify?
-                fold = ir.fold()
-
-                if fold is not None:
-                    self.debug_print(f'Fold binop: {fold}')
-
-                    assert isinstance(fold, irLoadConst)
-
-                    # replace the binop with the folded assignment
-                    ir = fold
-                    ir.block = self
-
-                    values[ir.target] = ir.target
-
-                    changed = True
-
-                else:
                     # is expr in hash table?
-                    if expr in values:                
-                        values[ir.target] = expr
+                    if expr in values:
+                        v = values[expr]
 
-                        # remove this instruction   
+                        values[ir.target] = v
 
-                        self.debug_print(f"remove binop {original_ir.target} = {original_ir.left} {original_ir.op} {original_ir.right}")
+                        # remove assignment
+                        self.debug_print(f"remove loadref {ir}")
 
                         changed = True
 
                         continue
 
-                    elif not expr.var1.is_phi_merge and not expr.var2.is_phi_merge:
+                    else:
                         values[ir.target] = ir.target
                         values[expr] = ir.target
 
-            elif isinstance(ir, irVectorAssign):
-                # replace inputs:
-                if ir.target in values:
-                    replacement = values[ir.target]
+                elif isinstance(ir, irLoop):
+                    # if ir.iterator_in in values:
+                    #     replacement = values[ir.iterator_in]
 
-                    if ir.target != replacement:
-                        self.debug_print(f"replace vector assign target {ir.target} = {ir.target} with {replacement}")
+                    #     if ir.iterator_in != replacement:
+                    #         print(f"replace loop iterator_in {ir} with {replacement}")
 
-                        ir.target = replacement
+                    #         ir.iterator_in = replacement
 
-                        changed = True
+                    #         changed = True
 
-                if ir.value in values:
-                    replacement = values[ir.value]
+                    if ir.stop in values:
+                        replacement = values[ir.stop]
 
-                    if ir.value != replacement:
-                        self.debug_print(f"replace vector assign value {ir.target} = {ir.value} with {replacement}")
+                        if ir.stop != replacement:
+                            self.debug_print(f"replace loop stop {ir} with {replacement}")
 
-                        ir.value = replacement
-
-                        changed = True
-
-            elif isinstance(ir, irVectorOp):
-                # replace inputs:
-                if ir.target in values:
-                    replacement = values[ir.target]
-
-                    if ir.target != replacement:
-                        self.debug_print(f"replace vector op target {ir.target} = {ir.target} with {replacement}")
-
-                        ir.target = replacement
-
-                        changed = True
-
-                if ir.value in values:
-                    replacement = values[ir.value]
-
-                    if ir.value != replacement:
-                        self.debug_print(f"replace vector op value {ir.target} = {ir.value} with {replacement}")
-
-                        ir.value = replacement
-
-                        changed = True
-
-            elif isinstance(ir, irVectorCalc):
-                # replace inputs:
-                if ir.ref in values:
-                    replacement = values[ir.ref]
-
-                    if ir.ref != replacement:
-                        self.debug_print(f"replace vector op ref {ir.ref} = {ir.ref} with {replacement}")
-
-                        ir.ref = replacement
-
-                        changed = True
-
-            elif isinstance(ir, irObjectLookup):
-                # replace inputs:
-                if ir.target in values:
-                    replacement = values[ir.target]
-
-                    if ir.target != replacement:
-                        self.debug_print(f"replace object lookup {ir} with {replacement}")
-
-                        ir.target = replacement
-
-                        changed = True
-
-                for i in range(len(ir.lookups)):
-                    lookup = ir.lookups[i]
-                    if lookup in values:
-                        replacement = values[lookup]
-
-                        if lookup != replacement:
-
-                            self.debug_print(f"replace object lookup {ir.lookups[i]} with {replacement}")
-
-                            ir.lookups[i] = replacement
+                            ir.stop = replacement
 
                             changed = True
 
-                expr = ir.expr
 
-                # is expr in hash table?
-                if expr in values:
-                    v = values[expr]
+                elif isinstance(ir, irBranch):
+                    # the paper doesn't cover branch instructions
+                    # but it is pretty easy to extrapolate to the 2-way branch
 
-                    values[ir.result] = v
+                    # replace inputs:
+                    if ir.value in values:
+                        replacement = values[ir.value]    
 
-                    # remove assignment
+                        if ir.value != replacement:
+                            self.debug_print(f"replace branch value {ir.value} to {replacement}")
 
-                    self.debug_print(f"remove object lookup {ir}")
+                            ir.value = replacement
+                            changed = True
 
-                    changed = True
 
-                    continue
+                    # simplify!
+                    # if ir.value.const:
+                    #     changed = True
+
+                    #     # replace branch with jump
+                    #     if ir.value.value == 0:
+                    #         print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
+                    #         ir = irJump(ir.false_label, lineno=ir.lineno)
+                    #         ir.block = self
+
+                    #     else:
+                    #         print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
+                    #         ir = irJump(ir.true_label, lineno=ir.lineno)
+                    #         ir.block = self
+
+
+                    # we skip the expression/table update portion, because the branch
+                    # doesn't modify data, only control flow.
+
+
+
+
+
+                    # value = ir.value
+
+                    # if value in values:
+                    #     replacement = registers[str(values[value])]
+
+                    #     if ir.value != replacement:
+                    #         ir.value = replacement
+                    #         changed = True
+
+                    # if ir.value.const:
+                    #     changed = True
+
+                    #     # replace branch with jump
+                    #     if ir.value.value == 0:
+                    #         print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
+                    #         ir = irJump(ir.false_label, lineno=ir.lineno)
+                    #         ir.block = self
+
+                    #     else:
+                    #         print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
+                    #         ir = irJump(ir.true_label, lineno=ir.lineno)
+                    #         ir.block = self
+
+                elif isinstance(ir, irJump):
+                    # unconditional jump: nothing to optimize here
+                    pass
+
+                elif isinstance(ir, irLoopMarker):
+                    # pseudoinstruction
+                    pass
+
+                elif isinstance(ir, irLoopHeader):
+                    # pseudoinstruction
+                    pass
+
+                elif isinstance(ir, irLoopFooter):
+                    # pseudoinstruction
+                    pass
+
+                elif isinstance(ir, irLabel):
+                    # pseudoinstruction
+                    pass
+
+                elif isinstance(ir, irAssert):
+                    # replace inputs:
+                    if ir.value in values:
+                        replacement = values[ir.value]    
+
+                        if ir.value != replacement:
+                            self.debug_print(f"replace assert {ir.value} to {replacement}")
+
+                            ir.value = replacement
+                            changed = True
+
+                elif isinstance(ir, irPrint):
+                    # replace inputs:
+                    if ir.value in values:
+                        replacement = values[ir.value]    
+
+                        if ir.value != replacement:
+                            self.debug_print(f"replace print {ir.value} to {replacement}")
+
+                            ir.value = replacement
+                            changed = True
+
+                elif isinstance(ir, irPhi):
+                    pass
+
+                elif isinstance(ir, irCall):
+                    # replace inputs:
+                    for i in range(len(ir.params)):
+                        if ir.params[i] in values:
+                            replacement = values[ir.params[i]]
+
+                            if ir.params[i] != replacement:
+
+                                self.debug_print(f"replace call param {ir.params[i]} with {replacement}")
+
+                                ir.params[i] = replacement
+
+                                changed = True
+
+                elif isinstance(ir, irLibCall):
+                    # replace inputs:
+                    if ir.target in values:
+                        replacement = values[ir.target]    
+
+                        if ir.target != replacement:
+                            self.debug_print(f"replace print {ir.target} to {replacement}")
+
+                            ir.target = replacement
+                            changed = True
+
+                    for i in range(len(ir.params)):
+                        if ir.params[i] in values:
+                            replacement = values[ir.params[i]]
+
+                            if ir.params[i] != replacement:
+                                self.debug_print(f"replace call param {ir.params[i]} with {replacement}")
+
+                                ir.params[i] = replacement
+
+                                changed = True
+
+                elif isinstance(ir, irDBCall):
+                    # replace inputs:
+                    if ir.target in values:
+                        replacement = values[ir.target]    
+
+                        if ir.target != replacement:
+                            self.debug_print(f"replace print {ir.target} to {replacement}")
+
+                            ir.target = replacement
+                            changed = True
+
+                    if ir.key in values:
+                        replacement = values[ir.key]    
+
+                        if ir.key != replacement:
+                            self.debug_print(f"replace print {ir.key} to {replacement}")
+
+                            ir.key = replacement
+                            changed = True
+
+                    for i in range(len(ir.params)):
+                        if ir.params[i] in values:
+                            replacement = values[ir.params[i]]
+
+                            if ir.params[i] != replacement:
+                                self.debug_print(f"replace call param {ir.params[i]} with {replacement}")
+
+                                ir.params[i] = replacement
+
+                                changed = True
+
+                elif isinstance(ir, irIndirectCall):
+                    # replace inputs:
+                    for i in range(len(ir.params)):
+                        if ir.params[i] in values:
+                            replacement = values[ir.params[i]]
+
+                            if ir.params[i] != replacement:
+                                self.debug_print(f"replace icall param {ir.params[i]} with {replacement}")
+
+                                ir.params[i] = replacement
+
+                                changed = True
+
+                    if ir.ref in values:
+                        replacement = values[ir.ref]
+
+                        if ir.ref != replacement:
+                            self.debug_print(f"replace icall {ir} with {replacement}")
+
+                            ir.ref = replacement
+
+                            changed = True
 
                 else:
-                    values[ir.result] = ir.result
-                    values[expr] = ir.result
-            
-            elif isinstance(ir, irObjectStore):
-                # replace inputs:
-                if ir.target in values:
-                    replacement = values[ir.target]
+                    raise CompilerFatal(f"Unanalyzed instruction: {ir}")
 
-                    if ir.target != replacement:
-                        self.debug_print(f"replace object store {ir} with {replacement}")
+            except Exception as e:
+                logging.exception(e)
+                raise
 
-                        ir.target = replacement
-
-                        changed = True
-
-                for i in range(len(ir.lookups)):
-                    if ir.lookups[i] in values:
-                        replacement = values[ir.lookups[i]]
-
-                        if ir.lookups[i] != replacement:
-
-                            self.debug_print(f"replace lookup {ir.lookups[i]} with {replacement}")
-
-                            ir.lookups[i] = replacement
-
-                            changed = True
-
-                if ir.value in values:
-                    replacement = values[ir.value]
-
-                    if ir.value != replacement:
-                        self.debug_print(f"replace object store {ir} with {replacement}")
-
-                        ir.value = replacement
-
-                        changed = True
-
-            elif isinstance(ir, irObjectLoad):
-                # replace inputs:
-                if ir.target in values:
-                    replacement = values[ir.target]
-
-                    if ir.target != replacement:
-                        self.debug_print(f"replace object load {ir} with {replacement}")
-
-                        ir.target = replacement
-
-                        changed = True
-
-                for i in range(len(ir.lookups)):
-                    if ir.lookups[i] in values:
-                        replacement = values[ir.lookups[i]]
-
-                        if ir.lookups[i] != replacement:
-
-                            self.debug_print(f"replace lookup {ir.lookups[i]} with {replacement}")
-
-                            ir.lookups[i] = replacement
-
-                            changed = True
-
-                if ir.value in values:
-                    replacement = values[ir.value]
-
-                    if ir.value != replacement:
-                        self.debug_print(f"replace object load {ir} with {replacement}")
-
-                        ir.value = replacement
-
-                        changed = True
-
-            elif isinstance(ir, irObjectOp):
-                # replace inputs:
-                if ir.target in values:
-                    replacement = values[ir.target]
-
-                    if ir.target != replacement:
-                        self.debug_print(f"replace object op {ir} with {replacement}")
-
-                        ir.target = replacement
-
-                        changed = True
-
-                if ir.value in values:
-                    replacement = values[ir.value]
-
-                    if ir.value != replacement:
-                        self.debug_print(f"replace object op {ir} with {replacement}")
-
-                        ir.value = replacement
-
-                        changed = True
-
-
-            elif isinstance(ir, irLoadRef):
-                # replace inputs:
-                if ir.ref in values:
-                    replacement = values[ir.ref]
-
-                    if ir.ref != replacement:
-                        self.debug_print(f"replace loadref {ir} with {replacement}")
-
-                        ir.ref = replacement
-
-                        changed = True
-
-                # if ir.target.var.target is None:
-                #     ir.target.var.target = ir.ref
-
-                expr = ir.expr
+            finally:
                 
-                # simplify?
-                # not on load ref
+                self.debug_print(f"\n----------------------\nGVN Summary: {self.name}")
+                self.debug_print("\nVALUES:")
 
-                # is expr in hash table?
-                if expr in values:
-                    v = values[expr]
+                for k, v in values.items():
+                    self.debug_print(f'{str(k):32} = {v}')
 
-                    values[ir.target] = v
+                self.debug_print('\n')
 
-                    # remove assignment
-                    self.debug_print(f"remove loadref {ir}")
-
-                    changed = True
-
-                    continue
+                if changed:
+                    self.debug_print("changes marked in this pass")
 
                 else:
-                    values[ir.target] = ir.target
-                    values[expr] = ir.target
+                    self.debug_print("no changes in this pass")
 
-            elif isinstance(ir, irLoop):
-                # if ir.iterator_in in values:
-                #     replacement = values[ir.iterator_in]
+                self.debug_print('\n')
 
-                #     if ir.iterator_in != replacement:
-                #         print(f"replace loop iterator_in {ir} with {replacement}")
 
-                #         ir.iterator_in = replacement
-
-                #         changed = True
-
-                if ir.stop in values:
-                    replacement = values[ir.stop]
-
-                    if ir.stop != replacement:
-                        self.debug_print(f"replace loop stop {ir} with {replacement}")
-
-                        ir.stop = replacement
-
-                        changed = True
-
-
-            elif isinstance(ir, irBranch):
-                # the paper doesn't cover branch instructions
-                # but it is pretty easy to extrapolate to the 2-way branch
-
-                # replace inputs:
-                if ir.value in values:
-                    replacement = values[ir.value]    
-
-                    if ir.value != replacement:
-                        self.debug_print(f"replace branch value {ir.value} to {replacement}")
-
-                        ir.value = replacement
-                        changed = True
-
-
-                # simplify!
-                # if ir.value.const:
-                #     changed = True
-
-                #     # replace branch with jump
-                #     if ir.value.value == 0:
-                #         print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
-                #         ir = irJump(ir.false_label, lineno=ir.lineno)
-                #         ir.block = self
-
-                #     else:
-                #         print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
-                #         ir = irJump(ir.true_label, lineno=ir.lineno)
-                #         ir.block = self
-
-
-                # we skip the expression/table update portion, because the branch
-                # doesn't modify data, only control flow.
-
-
-
-
-
-                # value = ir.value
-
-                # if value in values:
-                #     replacement = registers[str(values[value])]
-
-                #     if ir.value != replacement:
-                #         ir.value = replacement
-                #         changed = True
-
-                # if ir.value.const:
-                #     changed = True
-
-                #     # replace branch with jump
-                #     if ir.value.value == 0:
-                #         print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
-                #         ir = irJump(ir.false_label, lineno=ir.lineno)
-                #         ir.block = self
-
-                #     else:
-                #         print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
-                #         ir = irJump(ir.true_label, lineno=ir.lineno)
-                #         ir.block = self
-
-            elif isinstance(ir, irJump):
-                # unconditional jump: nothing to optimize here
-                pass
-
-            elif isinstance(ir, irLoopMarker):
-                # pseudoinstruction
-                pass
-
-            elif isinstance(ir, irLoopHeader):
-                # pseudoinstruction
-                pass
-
-            elif isinstance(ir, irLoopFooter):
-                # pseudoinstruction
-                pass
-
-            elif isinstance(ir, irLabel):
-                # pseudoinstruction
-                pass
-
-            elif isinstance(ir, irAssert):
-                # replace inputs:
-                if ir.value in values:
-                    replacement = values[ir.value]    
-
-                    if ir.value != replacement:
-                        self.debug_print(f"replace assert {ir.value} to {replacement}")
-
-                        ir.value = replacement
-                        changed = True
-
-            elif isinstance(ir, irPrint):
-                # replace inputs:
-                if ir.value in values:
-                    replacement = values[ir.value]    
-
-                    if ir.value != replacement:
-                        self.debug_print(f"replace print {ir.value} to {replacement}")
-
-                        ir.value = replacement
-                        changed = True
-
-            elif isinstance(ir, irPhi):
-                pass
-
-            elif isinstance(ir, irCall):
-                # replace inputs:
-                for i in range(len(ir.params)):
-                    if ir.params[i] in values:
-                        replacement = values[ir.params[i]]
-
-                        if ir.params[i] != replacement:
-
-                            self.debug_print(f"replace call param {ir.params[i]} with {replacement}")
-
-                            ir.params[i] = replacement
-
-                            changed = True
-
-            elif isinstance(ir, irLibCall):
-                # replace inputs:
-                if ir.target in values:
-                    replacement = values[ir.target]    
-
-                    if ir.target != replacement:
-                        self.debug_print(f"replace print {ir.target} to {replacement}")
-
-                        ir.target = replacement
-                        changed = True
-
-                for i in range(len(ir.params)):
-                    if ir.params[i] in values:
-                        replacement = values[ir.params[i]]
-
-                        if ir.params[i] != replacement:
-                            self.debug_print(f"replace call param {ir.params[i]} with {replacement}")
-
-                            ir.params[i] = replacement
-
-                            changed = True
-
-            elif isinstance(ir, irDBCall):
-                # replace inputs:
-                if ir.target in values:
-                    replacement = values[ir.target]    
-
-                    if ir.target != replacement:
-                        self.debug_print(f"replace print {ir.target} to {replacement}")
-
-                        ir.target = replacement
-                        changed = True
-
-                if ir.key in values:
-                    replacement = values[ir.key]    
-
-                    if ir.key != replacement:
-                        self.debug_print(f"replace print {ir.key} to {replacement}")
-
-                        ir.key = replacement
-                        changed = True
-
-                for i in range(len(ir.params)):
-                    if ir.params[i] in values:
-                        replacement = values[ir.params[i]]
-
-                        if ir.params[i] != replacement:
-                            self.debug_print(f"replace call param {ir.params[i]} with {replacement}")
-
-                            ir.params[i] = replacement
-
-                            changed = True
-
-            elif isinstance(ir, irIndirectCall):
-                # replace inputs:
-                for i in range(len(ir.params)):
-                    if ir.params[i] in values:
-                        replacement = values[ir.params[i]]
-
-                        if ir.params[i] != replacement:
-                            self.debug_print(f"replace icall param {ir.params[i]} with {replacement}")
-
-                            ir.params[i] = replacement
-
-                            changed = True
-
-                if ir.ref in values:
-                    replacement = values[ir.ref]
-
-                    if ir.ref != replacement:
-                        self.debug_print(f"replace icall {ir} with {replacement}")
-
-                        ir.ref = replacement
-
-                        changed = True
-
-            else:
-                raise CompilerFatal(f"Unanalyzed instruction: {ir}")
 
             # check value table for pollution from primitive types
             for k, v in values.items():
@@ -2486,25 +2511,6 @@ class irBlock(IR):
                             phi.merges[i] = (replacement, b)
 
                             changed = True
-
-
-        
-        self.debug_print(f"\n----------------------\nGVN Summary: {self.name}")
-        self.debug_print("\nVALUES:")
-
-        for k, v in values.items():
-            self.debug_print(f'{str(k):32} = {v}')
-
-        self.debug_print('\n')
-
-        if changed:
-            self.debug_print("changes marked in this pass")
-
-        else:
-            self.debug_print("no changes in this pass")
-
-        self.debug_print('\n')
-
 
 
         if self not in self.func.dominator_tree:
