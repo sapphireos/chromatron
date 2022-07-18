@@ -54,7 +54,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = False
+DEBUG = True
 DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
 SHOW_LIVENESS = False
@@ -5372,7 +5372,11 @@ class irFunc(IR):
             info['header'].loops.append(info)
 
             info['footer'] = self.leader_block._loops_find_footer(loop)
-            assert info['footer'] is not None
+            try:
+                assert info['footer'] is not None
+
+            except AssertionError:
+                raise CompilerFatal(f'Loop {loop} failed to find footer block.  Possible infinite loop.')
 
             info['footer'].loops.append(info)
 
