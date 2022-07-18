@@ -1598,13 +1598,14 @@ class irBlock(IR):
         self.code = new_code
         new_code = []
 
-        # analyze all other instructions
-        for ir in self.code:
-            self.debug_print(f'IR: {ir}')
+        try:
+            # analyze all other instructions
+            for ir in self.code:
+                self.debug_print(f'IR: {ir}')
 
-            original_ir = ir # record original, just for debug printing
+                original_ir = ir # record original, just for debug printing
 
-            try:
+            
                 if isinstance(ir, irLoadConst):
                     # there is no replacement step for a load const
 
@@ -2457,36 +2458,35 @@ class irBlock(IR):
                 else:
                     raise CompilerFatal(f"Unanalyzed instruction: {ir}")
 
-            except Exception as e:
-                logging.exception(e)
-                raise
-
-            finally:
-                
-                self.debug_print(f"\n----------------------\nGVN Summary: {self.name}")
-                self.debug_print("\nVALUES:")
-
+                # check value table for pollution from primitive types
                 for k, v in values.items():
-                    self.debug_print(f'{str(k):32} = {v}')
+                    assert not isinstance(k, int)
+                    assert not isinstance(k, float)
 
-                self.debug_print('\n')
+                new_code.append(ir)
 
-                if changed:
-                    self.debug_print("changes marked in this pass")
+        except Exception as e:
+            logging.exception(e)
+            raise
 
-                else:
-                    self.debug_print("no changes in this pass")
+        finally:
+            
+            self.debug_print(f"\n----------------------\nGVN Summary: {self.name}")
+            self.debug_print("\nVALUES:")
 
-                self.debug_print('\n')
-
-
-
-            # check value table for pollution from primitive types
             for k, v in values.items():
-                assert not isinstance(k, int)
-                assert not isinstance(k, float)
+                self.debug_print(f'{str(k):32} = {v}')
 
-            new_code.append(ir)
+            self.debug_print('\n')
+
+            if changed:
+                self.debug_print("changes marked in this pass")
+
+            else:
+                self.debug_print("no changes in this pass")
+
+            self.debug_print('\n')
+
 
         self.code = new_code
 
