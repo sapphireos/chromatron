@@ -54,7 +54,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = True
+DEBUG = False
 DEBUG_FILTER_LOAD_STORE = True
 DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
@@ -5104,8 +5104,8 @@ class irFunc(IR):
                 opt_passes.append(OptPasses.SSA)
                 break
 
-        if len(opt_passes) == 0:
-            opt_passes.append(OptPasses.SSA)
+        # if len(opt_passes) == 0:
+            # opt_passes.append(OptPasses.SSA)
 
         self.ssa_next_val = {}
         

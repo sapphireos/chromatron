@@ -822,6 +822,34 @@ class Builder(object):
         return value
 
     def assign(self, target, value, lineno=None):
+        prev_ir = self.current_func.body[-1]
+
+        # check if previous IR is a binop, this assign is from the binop result,
+        # and the target value is a scalar:
+        if isinstance(prev_ir, irBinop) and prev_ir.target == value and target.is_scalar:
+            # we can skip the assign in this case and replace the binop temporary target
+            # with the actual assign target.
+            # to avoid complications, this is only done on scalar values.
+            # technically, this is a premature optimization, and the redundancy created
+            # by the binop + assign (which results from how the CFG is processed) would
+            # be removed by the optimizer.
+            # however, the GVN optimizer will take the target name from the binop, which 
+            # is a temp name, instead of the redundant assign, which is the target name
+            # from the program source itself.  this makes the resulting optimized IR code
+            # much more difficult to read and debug.
+            # thus, this little optimization here reduces noise in the corresponding IR, but
+            # could otherwise be removed if problematic.
+
+            prev_ir.target = target
+
+            if target.is_global:
+                # don't forget to store globals!
+                ir = irStore(target, target.var, lineno=lineno)
+                self.append_node(ir)
+
+            return
+
+
         value = self.load_value(value, target_type=target.data_type, lineno=lineno)
         value = self.convert_type(target, value, lineno=lineno)
 

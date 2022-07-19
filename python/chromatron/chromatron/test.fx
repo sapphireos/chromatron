@@ -1,36 +1,42 @@
+a = Number(publish=True)
 
-
-# basic GVN test:
 def init():
-    a = Number(1)
-    b = Number(2)
-    c = Number(4)
-    d = Number(8)
-    e = Number(16)
-    f = Number(32)
+    db.kv_test_key = 123
+    db.kv_test_key += 1
+    
+    a = db.kv_test_key
 
-    u = Number()
-    v = Number()
-    w = Number()
-    x = Number()
-    y = Number()
-    z = Number()
+# # basic GVN test:
+# def init():
+#     a = Number(1)
+#     b = Number(2)
+#     c = Number(4)
+#     d = Number(8)
+#     e = Number(16)
+#     f = Number(32)
 
-    u = a + b
-    v = c + d
-    w = e + f
+#     u = Number()
+#     v = Number()
+#     w = Number()
+#     x = Number()
+#     y = Number()
+#     z = Number()
 
-    if u:
-        x = c + d
-        y = c + d
+#     u = a + b
+#     v = c + d
+#     w = e + f
 
-    else:
-        u = a + b
-        x = e + f
-        y = e + f
+#     if u:
+#         x = c + d
+#         y = c + d
 
-    z = u + y
-    u = a + b
+#     else:
+#         u = a + b
+#         x = e + f
+#         y = e + f
+
+#     z = u + y
+#     u = a + b
 
     # return z + u
 
