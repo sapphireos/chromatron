@@ -1,6 +1,9 @@
 
 
-a = Number()
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
 ary = Number()[4]
 
 def init():
@@ -10,6 +13,9 @@ def init():
             ary[x + 2] = 2
 
     a = ary[0]
+    b = ary[1]
+    c = ary[2]
+    d = ary[3]
 
 # def init():
 #     # x = Number()
