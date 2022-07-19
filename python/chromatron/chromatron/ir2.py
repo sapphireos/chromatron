@@ -54,7 +54,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = False
+DEBUG = True
 DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
 SHOW_LIVENESS = False
@@ -330,6 +330,8 @@ class IR(object):
     @property
     def loop_depth(self):
         return len(self.loops)
+
+
 
 class irAddr(IR):
     def __init__(self, var, addr, storage: StorageType):
@@ -650,16 +652,6 @@ class irBlock(IR):
     def is_terminator(self):
         return len(self.successors) == 0    
 
-    @property
-    def is_departure(self):
-        return len([ir for ir in self.code if isinstance(ir, irCallType)]) > 0
-
-    def get_loads(self):
-        return {ir.ref: ir for ir in self.code if isinstance(ir, irLoad)}
-
-    def get_stores(self):
-        return {ir.ref: ir for ir in self.code if isinstance(ir, irStore)}
-
     def get_input_vars(self):
         v = []
         for node in self.code:
@@ -973,6 +965,35 @@ class irBlock(IR):
     #     for s in remove:
     #         s.relink_blocks()
 
+    def gvn_process_phi(self, VN):
+        pass
+
+    def gvn_adjust_successor_phi(self, VN):
+        return
+
+        # check successors and adjust phi function inputs in each
+        for s in self.successors:
+            phis = [p for p in s.code if isinstance(p, irPhi)]
+
+            for phi in phis:
+                for i in range(len(phi.merges)):
+                    m = phi.merges[i][0]
+                    b = phi.merges[i][1]
+
+                    # check if this input is in the value number table:
+                    if m in values:
+                        replacement = values[m]
+
+                        if m != replacement:
+                            # replace phi input with the value number
+
+                            self.debug_print(f"Replace phi input {m} with {replacement}")
+
+                            phi.merges[i] = (replacement, b)
+
+                            changed = True
+
+
     def replace_labels(self, label, replace):
         for ir in self.code:
             ir.replace_labels(label, replace)
@@ -1027,8 +1048,28 @@ class irBlock(IR):
         if DEBUG or DEBUG_PRINT:
             print(s)
 
-    def gvn_analyze2(self, values=None, visited=None, pass_number=1):
-        pass
+    def gvn_analyze2(self, VN=None):
+        self.gvn_process_phi(VN)
+
+        new_code = []
+        for ir in self.code:
+
+
+            new_code.append(ir)
+
+        self.code = new_code
+
+
+        self.gvn_adjust_successor_phi(VN)
+
+        
+
+        if self not in self.func.dominator_tree:
+            return
+
+        for c in self.func.dominator_tree[self]:
+            c.gvn_analyze2(copy(VN))
+
 
     def gvn_analyze(self, values=None, visited=None, pass_number=1):
         # global value numbering
@@ -4752,6 +4793,12 @@ class irFunc(IR):
         original_count = len(self.get_code_from_blocks())
 
         self.analyze_loops()
+
+        self.leader_block.gvn_analyze2(VN={})
+
+
+        return
+
         
         MAX_GVN_ITERATIONS = 100
 
@@ -5584,6 +5631,17 @@ class irFunc(IR):
     @property
     def prev_node(self):
         return self.body[-1]
+
+
+
+
+
+# ***************************************************************
+# Instructions:
+# ***************************************************************
+
+
+
 
 
 # class irMemoryPhi(IR):
@@ -6572,21 +6630,6 @@ class irBinop(IR):
     def expr(self):    
         return irExpr(self.left, self.op, self.right, lineno=self.lineno)
 
-    # @property
-    # def value_number(self):
-    #     return self.target
-
-    # @property
-    # def value_expr(self):
-    #     return f'{self.left.ssa_name}{self.op}{self.right.ssa_name}'
-
-    # def apply_value_numbers(self, VN):
-    #     if self.left in VN:
-    #         self.left = VN[self.left]
-
-    #     if self.right in VN:
-    #         self.right = VN[self.right]
-
     @property
     def data_type(self):
         return self.target.data_type
@@ -6830,34 +6873,6 @@ class irConvertType(IR):
         except KeyError:
             ins = insConvMov(self.result.generate(), self.value.generate(), lineno=self.lineno)
             return ins
-
-# class irConvertTypeInPlace(IR):
-#     def __init__(self, target, dest_type, **kwargs):
-#         super().__init__(**kwargs)
-#         self.target = target
-#         self.dest_type = dest_type
-
-#         # check if either type is gfx16
-#         if self.target.data_type == 'gfx16' or self.dest_type == 'gfx16':
-#             raise CompilerFatal("gfx16 should be not converted. '%s' to '%s' on line: %d" % (self.target, self.dest_type, self.lineno))
-    
-#     def __str__(self):
-#         s = '%s = %s(%s)' % (self.target, self.target.data_type, self.target)
-
-#         return s
-
-#     def get_input_vars(self):
-#         return [self.target]
-
-#     def get_output_vars(self):
-#         return [self.target]
-
-#     def generate(self):
-#         try:
-#             return type_conversions[(self.dest_type, self.target.data_type)](self.target.generate(), self.target.generate(), lineno=self.lineno)
-
-#         except KeyError:
-#             raise CompilerFatal("Invalid conversion: '%s' to '%s' on line: %d" % (self.target.data_type, self.dest_type, self.lineno))
 
 # this is mostly used for optimizations:
 class irExpr(IR):

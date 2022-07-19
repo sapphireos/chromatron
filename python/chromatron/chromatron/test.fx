@@ -1,21 +1,35 @@
 
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
-ary = Number()[4]
+a = Number()
+b = Number()
+c = Number()
+d = Number()
+e = Number()
+f = Number()
+u = Number()
+v = Number()
+w = Number()
+x = Number()
+y = Number()
+z = Number()
 
+# basic GVN test:
 def init():
-    for x in 2:
-        for y in 2:
-            ary[x + 2] = 1
-            ary[x + 2] = 2
+    u = a + b
+    v = c + d
+    w = e + f
 
-    a = ary[0]
-    b = ary[1]
-    c = ary[2]
-    d = ary[3]
+    if 1:
+        x = c + d
+        y = c + d
+
+    else:
+        u = a + b
+        x = e + f
+        y = e + f
+
+    z = u + y
+    u = a + b
 
 # def init():
 #     # x = Number()
