@@ -1,20 +1,20 @@
 
 
-a = Number()
-b = Number()
-c = Number()
-d = Number()
-e = Number()
-f = Number()
-u = Number()
-v = Number()
-w = Number()
-x = Number()
-y = Number()
-z = Number()
-
 # basic GVN test:
 def init():
+    a = Number()
+    b = Number()
+    c = Number()
+    d = Number()
+    e = Number()
+    f = Number()
+    u = Number()
+    v = Number()
+    w = Number()
+    x = Number()
+    y = Number()
+    z = Number()
+
     u = a + b
     v = c + d
     w = e + f

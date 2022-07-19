@@ -63,6 +63,11 @@ SHOW_LIVENESS = False
 LIVENESS_MODE = 'mem'
 
 
+def debug_print(s):
+    if DEBUG or DEBUG_PRINT:
+        print(s)
+
+
 
 """
 
@@ -332,6 +337,12 @@ class IR(object):
     def loop_depth(self):
         return len(self.loops)
 
+    @property
+    def gvn_expr(self):
+        return None
+
+    def gvn_process(self, VN):
+        return None
 
 
 class irAddr(IR):
@@ -1043,18 +1054,67 @@ class irBlock(IR):
             # prune predecessors that are not reachable
             block.predecessors = [p for p in block.predecessors if p in blocks]
 
-
-
-    def debug_print(self, s):
-        if DEBUG or DEBUG_PRINT:
-            print(s)
-
     def gvn_analyze2(self, VN=None):
+        # global value numbering
+        # from Briggs, Cooper, and Simpson 1995
+
+        """
+        Figure 4:
+
+        procedure DVNT(Block B )
+            Mark the beginning of a new scope
+            for each φ -function p of the form “ n ← φ(. . .) ” in B
+                if p is meaningless or redundant
+                    Put the value number for p into VN [n]
+                    Remove p
+                else
+                    VN [n] ← n
+                    Add p to the hash table
+
+            for each assignment a of the form “ x ← y op z ” in B
+                Overwrite y with VN [y] and z with VN [z]
+                expr ← {y op z}
+
+                if expr can be simplified to expr'
+                    Replace a with “ x ← expr' ”
+                    expr ← expr'
+
+                if expr is found in the hash table with value number v
+                    VN [x] ← v
+                    Remove a
+                else
+                    VN [x] ← x
+                    Add expr to the hash table with value number x
+
+            for each successor s of B
+                Adjust the φ -function inputs in s
+
+            for each child c of B in the dominator tree
+                DVNT( c )
+
+            Clean up the hash table after leaving this scope
+
+
+        1. When procedure DVNT (see Figure 4) is called recursively for the children of block b in
+            the dominator tree, the children must be processed in reverse postorder. This ensures that
+            all of a block’s predecessors are processed before the block itself, unless the predecessor
+            is connected by a back edge relative to the DFS tree.
+
+        2. The block must have no incoming back edges.
+
+        """
+
+        logging.debug(f'GVN Analyze: {self.name}')
+
         self.gvn_process_phi(VN)
 
         new_code = []
         for ir in self.code:
+            op = ir.gvn_process(VN)
 
+            if op == 'remove':
+                debug_print(f'Remove: {ir}')
+                continue
 
             new_code.append(ir)
 
@@ -1063,11 +1123,27 @@ class irBlock(IR):
 
         self.gvn_adjust_successor_phi(VN)
 
+        debug_print(f"\n----------------------\nGVN Summary: {self.name}")
+        debug_print("\nVALUES:")
+
+        for k, v in VN.items():
+            debug_print(f'{str(k):32} = {v}')
+
+        debug_print('\n')
+
+        # if changed:
+        #     debug_print("changes marked in this pass")
+
+        # else:
+        #     debug_print("no changes in this pass")
+
+        debug_print('\n')
         
 
         if self not in self.func.dominator_tree:
             return
 
+        # TODO! this needs to be in reverse post order:
         for c in self.func.dominator_tree[self]:
             c.gvn_analyze2(copy(VN))
 
@@ -5979,6 +6055,33 @@ class irAssign(IR):
 
         return f'{target} = {value}'
 
+    @property
+    def gvn_expr(self):
+        return self.value
+
+    def gvn_process(self, VN):
+        if self.value in VN and self.value != VN[self.value]:
+            replacement = VN[self.value]
+            debug_print(f'replace value {self.value} with {replacement}')
+            self.value = replacement
+
+
+        expr = self.gvn_expr
+
+        # simplify
+
+
+
+        if expr in VN:
+            VN[self.target] = expr
+            
+            return 'remove'
+
+        else:
+            VN[self.target] = self.target
+            VN[expr] = self.target
+
+
     def get_input_vars(self):
         return [self.value]
 
@@ -6639,6 +6742,41 @@ class irBinop(IR):
     @property
     def expr(self):    
         return irExpr(self.left, self.op, self.right, lineno=self.lineno)
+
+
+    @property
+    def gvn_expr(self):
+        return f'{self.left} {self.op} {self.right}'
+
+    def gvn_process(self, VN):
+        if self.left in VN and self.left != VN[self.left]:
+            replacement = VN[self.left]
+            debug_print(f'replace left {self.left} with {replacement}')
+            self.left = replacement
+
+        if self.right in VN and self.right != VN[self.right]:
+            replacement = VN[self.right]
+            debug_print(f'replace right {self.right} with {replacement}')
+            self.right = replacement
+
+
+        expr = self.gvn_expr
+
+        # simplify
+
+
+
+
+
+        if expr in VN:
+            VN[self.target] = expr
+            
+            return 'remove'
+
+        else:
+            VN[self.target] = self.target
+            VN[expr] = self.target
+
 
     @property
     def data_type(self):
