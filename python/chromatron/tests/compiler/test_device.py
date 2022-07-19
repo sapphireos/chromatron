@@ -8,14 +8,13 @@ from chromatron import code_gen
 from catbus import ProtocolErrorException
 import time
 
-ct = chromatron.Chromatron(host=NETWORK_ADDR)
-
 # @pytest.mark.skip
 @pytest.mark.device
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerOnDevice(CompilerTests):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
-        global ct
+        ct = chromatron.Chromatron(host=NETWORK_ADDR)
+
         # ct = chromatron.Chromatron(host='usb', force_network=True)
         # ct = chromatron.Chromatron(host='10.0.0.108')
 
@@ -96,7 +95,8 @@ class TestCompilerOnDevice(CompilerTests):
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestHSVArrayLocal(HSVArrayTests):
     def run_test(self, program, opt_passes=[OptPasses.SSA]):
-        global ct
+        ct = chromatron.Chromatron(host=NETWORK_ADDR)
+        
         # ct = chromatron.Chromatron(host='usb', force_network=True)
         # ct = chromatron.Chromatron(host='10.0.0.108')
 

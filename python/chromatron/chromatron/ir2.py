@@ -54,7 +54,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = True
+DEBUG = False
 DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
 SHOW_LIVENESS = False
@@ -326,14 +326,6 @@ class IR(object):
 
     def replace_labels(self, label, replace):
         return
-
-    @property
-    def value_number(self):
-        return None
-
-    @property
-    def value_expr(self):
-        return None
 
     @property
     def loop_depth(self):
@@ -719,45 +711,6 @@ class irBlock(IR):
     ##############################################
     # Analysis Passes
     ##############################################
-
-    # def value_numbering(self, values=None, visited=None):
-    #     if visited is None:
-    #         visited = []
-    #         values = {}
-
-    #     if self in visited:
-    #         return False
-
-    #     visited.append(self)
-
-    #     for ir in self.code:
-    #         # inputs = ir.get_input_vars()
-    #         # for i in inputs:
-
-    #         outputs = ir.get_output_vars()
-    #         for o in outputs:
-    #             assert o not in values
-
-    #             value_number = ir.value_number
-
-    #             if value_number is None:
-    #                 continue
-
-    #             value_number = str(value_number)
-
-    #             if value_number in values:
-    #                 # print("MEOW!", value_number, values[value_number])
-
-    #                 # not sure this will work, the value
-    #                 # needs to be available on this code path....
-    #                 value_number = values[value_number]
-                
-    #             values[o] = value_number
-
-    #     for suc in self.successors:
-    #         suc.value_numbering(values, visited)
-
-    #     return values
 
     # depth first reachability check
     def reachable(self, target, visited=None):
@@ -2185,69 +2138,69 @@ class irBlock(IR):
 
     #     return values
 
-    @property
-    def global_values(self):
-        values = {}
+    # @property
+    # def global_values(self):
+    #     values = {}
 
-        for ir in self.code:
-            if isinstance(ir, irLoad):
-                values[ir.ref] = (ir.register, 'load')
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoad):
+    #             values[ir.ref] = (ir.register, 'load')
 
-            elif isinstance(ir, irStore):
-                values[ir.ref] = (ir.register, 'store')
+    #         elif isinstance(ir, irStore):
+    #             values[ir.ref] = (ir.register, 'store')
 
-        return values
+    #     return values
 
-    def get_emitted_globals(self, visited=None):
-        if visited is None:
-            visited = []
+    # def get_emitted_globals(self, visited=None):
+    #     if visited is None:
+    #         visited = []
 
-        if self in visited:
-            return {}
+    #     if self in visited:
+    #         return {}
 
-        visited.append(self)
+    #     visited.append(self)
 
-        values = {}
+    #     values = {}
 
-        for p in self.predecessors:
-            e = p.get_emitted_globals(visited=visited)
+    #     for p in self.predecessors:
+    #         e = p.get_emitted_globals(visited=visited)
 
-            for k, v in e.items():
-                if k not in values:
-                    values[k] = []
+    #         for k, v in e.items():
+    #             if k not in values:
+    #                 values[k] = []
 
-                for val in v:
-                    values[k].append(val)
+    #             for val in v:
+    #                 values[k].append(val)
 
-        for k, v in self.global_values.items():
-            values[k] = [(v[0], v[1], self)]
+    #     for k, v in self.global_values.items():
+    #         values[k] = [(v[0], v[1], self)]
 
-        return values
+    #     return values
 
-    def get_incoming_globals(self):
-        values = {}
+    # def get_incoming_globals(self):
+    #     values = {}
 
-        for p in self.predecessors:
-            e = p.get_emitted_globals(visited=[])
+    #     for p in self.predecessors:
+    #         e = p.get_emitted_globals(visited=[])
 
-            for k, v in e.items():
-                if k not in values:
-                    values[k] = []
+    #         for k, v in e.items():
+    #             if k not in values:
+    #                 values[k] = []
 
-                for val in v:
-                    # values[k].append((val[0], val[1], p))
-                    values[k].append(val)
+    #             for val in v:
+    #                 # values[k].append((val[0], val[1], p))
+    #                 values[k].append(val)
 
-        # for k, v in values.items():
-        #     sources = [val[1] for val in v]
+    #     # for k, v in values.items():
+    #     #     sources = [val[1] for val in v]
 
-        #     for p in self.predecessors:
-        #         if p not in sources:
-        #             values[k].append((None, p))
+    #     #     for p in self.predecessors:
+    #     #         if p not in sources:
+    #     #             values[k].append((None, p))
 
-            # assert len(values[k]) == len(self.predecessors)
+    #         # assert len(values[k]) == len(self.predecessors)
 
-        return values
+    #     return values
 
     # def assign_load_store_versions(self, visited=None, versions=None):
     #     assert visited[0] == self
@@ -2279,1022 +2232,792 @@ class irBlock(IR):
     #     except IndexError:
     #         pass
 
-    def assign_load_store_versions(self, visited=None, versions=None, values=None):
-        if versions is None:
-            versions = {}
-            visited = []
-            values = {}
+    # def assign_load_store_versions(self, visited=None, versions=None, values=None):
+    #     if versions is None:
+    #         versions = {}
+    #         visited = []
+    #         values = {}
 
-        if self in visited:
-            return
+    #     if self in visited:
+    #         return
 
-        visited.append(self)
+    #     visited.append(self)
         
-        for ir in self.code:
-            if isinstance(ir, irLoad):
-                if ir.ref not in versions:
-                    versions[ir.ref] = 0
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoad):
+    #             if ir.ref not in versions:
+    #                 versions[ir.ref] = 0
 
-                ir.ref_version = versions[ir.ref]
+    #             ir.ref_version = versions[ir.ref]
 
-            elif isinstance(ir, irStore):
-                if ir.ref not in versions:
-                    versions[ir.ref] = 0
+    #         elif isinstance(ir, irStore):
+    #             if ir.ref not in versions:
+    #                 versions[ir.ref] = 0
 
-                versions[ir.ref] += 1
+    #             versions[ir.ref] += 1
 
-                ir.ref_version = versions[ir.ref]
+    #             ir.ref_version = versions[ir.ref]
 
-        for s in self.successors:
-            s.assign_load_store_versions(visited, versions)
+    #     for s in self.successors:
+    #         s.assign_load_store_versions(visited, versions)
 
 
-    # def get_global_versions(self):
+    # # def get_global_versions(self):
+    # #     values = {}
+
+    # #     for ir in self.code:
+    # #         if isinstance(ir, irLoad):
+    # #             values[ir.ref] = ir.ref_version
+
+    # #         elif isinstance(ir, irStore):
+    # #             values[ir.ref] = ir.ref_version
+
+    # #     return values
+
+    # @property
+    # def global_values(self):
     #     values = {}
 
     #     for ir in self.code:
-    #         if isinstance(ir, irLoad):
-    #             values[ir.ref] = ir.ref_version
-
-    #         elif isinstance(ir, irStore):
+    #         if isinstance(ir, irLoad) or isinstance(ir, irStore):
     #             values[ir.ref] = ir.ref_version
 
     #     return values
 
-    @property
-    def global_values(self):
-        values = {}
+    # def analyze_load_stores(self, visited=None, versions=None, values=None):
+    #     assert visited[0] == self
+    #     visited.pop(0)
 
-        for ir in self.code:
-            if isinstance(ir, irLoad) or isinstance(ir, irStore):
-                values[ir.ref] = ir.ref_version
+    #     if versions is None:
+    #         versions = {}
 
-        return values
-
-    def analyze_load_stores(self, visited=None, versions=None, values=None):
-        assert visited[0] == self
-        visited.pop(0)
-
-        if versions is None:
-            versions = {}
-
-            for ref, value in values.items():
-                versions[ref] = value[1]
+    #         for ref, value in values.items():
+    #             versions[ref] = value[1]
 
 
-        incoming_values = {}
-        for p in self.predecessors:
-            for ref, version in p.global_values.items():
-                if ref not in incoming_values:
-                    incoming_values[ref] = []
+    #     incoming_values = {}
+    #     for p in self.predecessors:
+    #         for ref, version in p.global_values.items():
+    #             if ref not in incoming_values:
+    #                 incoming_values[ref] = []
 
-                incoming_values[ref].append(version)
+    #             incoming_values[ref].append(version)
 
 
-        for ref, ref_versions in incoming_values.items():
-            if len(ref_versions) > 1:
-                versions[ref] += 1
-                values[ref][1] = versions[ref]
+    #     for ref, ref_versions in incoming_values.items():
+    #         if len(ref_versions) > 1:
+    #             versions[ref] += 1
+    #             values[ref][1] = versions[ref]
 
-                ir = irGlobalPhi(ref, ('unknown', versions[ref]), ref_versions, lineno=-1)
-                ir.block = self
+    #             ir = irGlobalPhi(ref, ('unknown', versions[ref]), ref_versions, lineno=-1)
+    #             ir.block = self
 
-                self.code.insert(1, ir)
+    #             self.code.insert(1, ir)
 
         
-        for ir in self.code:
-            if isinstance(ir, irLoad):
-                ir.ref_version = tuple(values[ir.ref])
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoad):
+    #             ir.ref_version = tuple(values[ir.ref])
 
-            elif isinstance(ir, irStore):
-                versions[ir.ref] += 1
-                values[ir.ref][1] = versions[ir.ref]
+    #         elif isinstance(ir, irStore):
+    #             versions[ir.ref] += 1
+    #             values[ir.ref][1] = versions[ir.ref]
 
-                ir.ref_version = tuple(values[ir.ref])
-
-
-        print(self.name, values)
+    #             ir.ref_version = tuple(values[ir.ref])
 
 
-        try:
-            while visited[0] in self.successors:
-                s = visited[0]
-                s.analyze_load_stores(visited=visited, versions=versions, values=deepcopy(values))
+    #     print(self.name, values)
 
-        except IndexError:
-            pass
+
+    #     try:
+    #         while visited[0] in self.successors:
+    #             s = visited[0]
+    #             s.analyze_load_stores(visited=visited, versions=versions, values=deepcopy(values))
+
+    #     except IndexError:
+    #         pass
 
         
 
 
-    def analyze_load_stores3(self, visited=None, versions_in=None, versions_out=None):
-        assert visited[0] == self
-        visited.pop(0)
+    # def analyze_load_stores3(self, visited=None, versions_in=None, versions_out=None):
+    #     assert visited[0] == self
+    #     visited.pop(0)
 
-        if versions_out is None:
-            versions_out = {}
-            versions_in = {}
+    #     if versions_out is None:
+    #         versions_out = {}
+    #         versions_in = {}
         
-        versions_in[self] = {}
-        versions_out[self] = {}
+    #     versions_in[self] = {}
+    #     versions_out[self] = {}
         
-        for p in self.predecessors:
-            if p not in versions_out:
-                continue
+    #     for p in self.predecessors:
+    #         if p not in versions_out:
+    #             continue
 
-            for ref, versions in versions_out[p].items():
-                for version in versions:
-                    if ref not in versions_in[self]:
-                        versions_in[self][ref] = []
+    #         for ref, versions in versions_out[p].items():
+    #             for version in versions:
+    #                 if ref not in versions_in[self]:
+    #                     versions_in[self][ref] = []
 
-                    if version not in versions_in[self][ref]:
-                        versions_in[self][ref].append(version)
+    #                 if version not in versions_in[self][ref]:
+    #                     versions_in[self][ref].append(version)
         
-        versions_out[self] = copy(versions_in[self])
+    #     versions_out[self] = copy(versions_in[self])
 
-        self_versions = {}
+    #     self_versions = {}
 
-        for ir in self.code:
-            if isinstance(ir, irLoad) or isinstance(ir, irStore):
-                self_versions[ir.ref] = (ir.ref_version, ir.register)
-                # self_versions[ir.ref] = ir.ref_version
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoad) or isinstance(ir, irStore):
+    #             self_versions[ir.ref] = (ir.ref_version, ir.register)
+    #             # self_versions[ir.ref] = ir.ref_version
 
 
-            # if isinstance(ir, irLoad):
-            #     self_versions[ir.ref] = (ir.ref_version, ir.register)
+    #         # if isinstance(ir, irLoad):
+    #         #     self_versions[ir.ref] = (ir.ref_version, ir.register)
 
-            #     # registers[ir.register] = ir.ref_version
+    #         #     # registers[ir.register] = ir.ref_version
 
-            # elif isinstance(ir, irStore):
-            #     self_versions[ir.ref] = (ir.ref_version, ir.register)
+    #         # elif isinstance(ir, irStore):
+    #         #     self_versions[ir.ref] = (ir.ref_version, ir.register)
 
-            #     # registers[ir.register] = ir.ref_version
+    #         #     # registers[ir.register] = ir.ref_version
 
             
-        for ref, version in self_versions.items():
-            if ref not in versions_out[self]:
-                versions_out[self][ref] = []
+    #     for ref, version in self_versions.items():
+    #         if ref not in versions_out[self]:
+    #             versions_out[self][ref] = []
 
-            if version not in versions_out[self][ref]:
-                versions_out[self][ref].append(version)
+    #         if version not in versions_out[self][ref]:
+    #             versions_out[self][ref].append(version)
 
 
-        try:
-            while visited[0] in self.successors:
-                s = visited[0]
-                s.analyze_load_stores(visited=visited, versions_in=versions_in, versions_out=versions_out)
+    #     try:
+    #         while visited[0] in self.successors:
+    #             s = visited[0]
+    #             s.analyze_load_stores(visited=visited, versions_in=versions_in, versions_out=versions_out)
 
-        except IndexError:
-            pass
+    #     except IndexError:
+    #         pass
 
-        return versions_in, versions_out
+    #     return versions_in, versions_out
 
-    def analyze_load_stores2(self, visited=None, values=None):
-        assert visited[0] == self
-        visited.pop(0)
+    # def analyze_load_stores2(self, visited=None, values=None):
+    #     assert visited[0] == self
+    #     visited.pop(0)
         
-        logging.debug(f'Load/store analysis for: {self.name}')
+    #     logging.debug(f'Load/store analysis for: {self.name}')
 
-        incoming = self.get_incoming_globals()
+    #     incoming = self.get_incoming_globals()
 
-        # print('Incoming:')
-        # for k, v in incoming.items():
-        #     print(f'\t{k}')
+    #     # print('Incoming:')
+    #     # for k, v in incoming.items():
+    #     #     print(f'\t{k}')
             
-        #     for val in v:
-        #         print(f'\t\t{val[0]}:{val[1]} -> {val[2].name}')
+    #     #     for val in v:
+    #     #         print(f'\t\t{val[0]}:{val[1]} -> {val[2].name}')
 
-        # print('Emitting:')
-        # for k, v in self.global_values.items():
-        #     print(f'\t{k} -> {v[0]}: {v[1]}')
+    #     # print('Emitting:')
+    #     # for k, v in self.global_values.items():
+    #     #     print(f'\t{k} -> {v[0]}: {v[1]}')
 
 
-        values = incoming
+    #     values = incoming
 
-        analysis = {}
-        analysis[self] = copy(values)
+    #     analysis = {}
+    #     analysis[self] = copy(values)
         
-        try:
-            while visited[0] in self.successors:
-                s = visited[0]
-                s_analysis = s.analyze_load_stores(visited=visited, values=copy(values))
+    #     try:
+    #         while visited[0] in self.successors:
+    #             s = visited[0]
+    #             s_analysis = s.analyze_load_stores(visited=visited, values=copy(values))
 
-                analysis.update(s_analysis)
+    #             analysis.update(s_analysis)
 
-        except IndexError:
-            pass
+    #     except IndexError:
+    #         pass
 
-        return analysis
+    #     return analysis
 
 
-    @property
-    def emitted_globals(self):
-        values = {}
+    # @property
+    # def emitted_globals(self):
+    #     values = {}
 
-        for ir in self.code:
-            if isinstance(ir, irLoad):
-                values[ir.ref] = ir.register
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoad):
+    #             values[ir.ref] = ir.register
 
-            elif isinstance(ir, irStore):
-                values[ir.ref] = ir.register
+    #         elif isinstance(ir, irStore):
+    #             values[ir.ref] = ir.register
 
-            elif isinstance(ir, irMemoryPhi):
-                values[ir.ref] = ir.register
+    #     return values
 
-        return values
 
+    # def lookup_mem(self, ref, visited=None):
+    #     if visited is None:
+    #         visited = []
 
-    def lookup_mem(self, ref, visited=None):
-        if visited is None:
-            visited = []
+    #     if self in visited:
+    #         return []
 
-        if self in visited:
-            return []
+    #     visited.append(self)
 
-        visited.append(self)
+    #     if ref in self.emitted_globals:
+    #         return [(self.emitted_globals[ref], self)]
 
-        if ref in self.emitted_globals:
-            return [(self.emitted_globals[ref], self)]
+    #     values = []
+    #     for p in self.predecessors:
+    #         pv = p.lookup_mem(ref, visited=visited)
 
-        values = []
-        for p in self.predecessors:
-            pv = p.lookup_mem(ref, visited=visited)
+    #         for v in pv:
+    #             values.append(v)
 
-            for v in pv:
-                values.append(v)
+    #     if len(values) == 0:
+    #         raise KeyError(ref.name)
 
-        if len(values) == 0:
-            raise KeyError(ref.name)
+    #     return values
 
-        return values
+    # def eliminate_loads(self, visited=None):
+    #     assert visited[0] == self
+    #     visited.pop(0)
 
-    def resolve_memory_phis(self):
-        new_code = []
+    #     new_code = []
 
-        for ir in self.code:
-            if isinstance(ir, irMemoryPhi):
-                ir = irPhi(ir.register, ir.merges, lineno=ir.lineno)
-                ir.block = self
+    #     local_values = {}
 
-            new_code.append(ir)
+    #     for ir in self.code:
+    #         if isinstance(ir, irStore):
+    #             local_values[ir.ref] = ir.register
 
-        self.code = new_code
+    #         elif isinstance(ir, irLoad):
+    #             if ir.ref in local_values:
+    #                 logging.debug(f'LoadElim: Replace load with assign: {ir}')
 
-    def eliminate_loads(self, visited=None):
-        assert visited[0] == self
-        visited.pop(0)
+    #                 assign = irAssign(ir.register, local_values[ir.ref], lineno=-1)
+    #                 assign.block = self
 
-        new_code = []
+    #                 ir = assign
 
-        local_values = {}
+    #             else:
+    #                 incoming_values = []
+    #                 predecessors = {}
 
-        for ir in self.code:
-            if isinstance(ir, irStore):
-                local_values[ir.ref] = ir.register
+    #                 for p in self.predecessors:
+    #                     try:
+    #                         # pv = p.lookup_mem(ir.ref, visited=[self]) # make sure we don't scan this block
+    #                         pv = p.lookup_mem(ir.ref)
 
-            elif isinstance(ir, irLoad):
-                if ir.ref in local_values:
-                    logging.debug(f'LoadElim: Replace load with assign: {ir}')
+    #                     except KeyError:
+    #                         continue
 
-                    assign = irAssign(ir.register, local_values[ir.ref], lineno=-1)
-                    assign.block = self
+    #                     # filter out self-references
+    #                     pv = [v for v in pv if v[0] != ir.register]
 
-                    ir = assign
+    #                     # record direct predecessors
+    #                     for v in pv:
+    #                         predecessors[v[0]] = p
 
-                else:
-                    incoming_values = []
-                    predecessors = {}
+    #                     assert len(pv) > 0
 
-                    for p in self.predecessors:
-                        try:
-                            # pv = p.lookup_mem(ir.ref, visited=[self]) # make sure we don't scan this block
-                            pv = p.lookup_mem(ir.ref)
+    #                     if len(pv) == 1:
+    #                         # possible merge on this block
+    #                         incoming_values.extend(pv)
 
-                        except KeyError:
-                            continue
+    #                     else:
 
-                        # filter out self-references
-                        pv = [v for v in pv if v[0] != ir.register]
+    #                         # multiple values coming in from single predecessor
+    #                         # best to do the merge there.
 
-                        # record direct predecessors
-                        for v in pv:
-                            predecessors[v[0]] = p
+    #                         # the scanned predecessor might not be the actual merge block,
+    #                         # there could be a sequence of intervening blocks.
+    #                         # phi resolution requires the merges to be placed on the actual edges
+    #                         # coming in to the merge block, or else it will fail.
 
-                        assert len(pv) > 0
+    #                         # to handle this, we will search blocks to find the actual merge location.
 
-                        if len(pv) == 1:
-                            # possible merge on this block
-                            incoming_values.extend(pv)
+    #                         merge_edges = [m[1] for m in pv]
+    #                         common_successors = merge_edges[0].successors
+    #                         merge_edges.pop(0)
+    #                         for m in merge_edges:
+    #                             remove = []
+    #                             for s in common_successors:
+    #                                 if s not in m.successors:
+    #                                     remove.append(s)
 
-                        else:
+    #                             common_successors = [s for s in common_successors if s not in remove]
 
-                            # multiple values coming in from single predecessor
-                            # best to do the merge there.
+    #                         if len(common_successors) > 0:
+    #                             assert len(common_successors) == 1
+    #                             merge_block = common_successors[0]
 
-                            # the scanned predecessor might not be the actual merge block,
-                            # there could be a sequence of intervening blocks.
-                            # phi resolution requires the merges to be placed on the actual edges
-                            # coming in to the merge block, or else it will fail.
+    #                             logging.debug(f'LoadElim: Replace load with MemPHI: {ir}')
 
-                            # to handle this, we will search blocks to find the actual merge location.
+    #                             phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
+    #                             phi.block = merge_block
 
-                            merge_edges = [m[1] for m in pv]
-                            common_successors = merge_edges[0].successors
-                            merge_edges.pop(0)
-                            for m in merge_edges:
-                                remove = []
-                                for s in common_successors:
-                                    if s not in m.successors:
-                                        remove.append(s)
+    #                             local_values[ir.ref] = ir.register
 
-                                common_successors = [s for s in common_successors if s not in remove]
+    #                             merge_block.code.insert(-1, phi)
 
-                            if len(common_successors) > 0:
-                                assert len(common_successors) == 1
-                                merge_block = common_successors[0]
+    #                             incoming_values.append((ir.register, merge_block))
 
-                                logging.debug(f'LoadElim: Replace load with MemPHI: {ir}')
 
-                                phi = irMemoryPhi(ir.ref, ir.register, pv, lineno=-1)
-                                phi.block = merge_block
+    #                         # else:
+    #                             # possible merge on this block
+    #                             # incoming_values.extend(pv)
 
-                                local_values[ir.ref] = ir.register
+    #                 temp_merges = []
+    #                 for v in incoming_values:
+    #                     if v not in temp_merges and v[0] != ir.register:
+    #                         temp_merges.append(v)
 
-                                merge_block.code.insert(-1, phi)
+    #                 incoming_values = temp_merges
 
-                                incoming_values.append((ir.register, merge_block))
+    #                 if len(incoming_values) == 1:
+    #                     target = ir.register
+    #                     value = incoming_values[0][0]
 
+    #                     if target == value:
+    #                         logging.debug(f'LoadElim: Remove load: {ir}')
+    #                         continue
 
-                            # else:
-                                # possible merge on this block
-                                # incoming_values.extend(pv)
+    #                     else:
+    #                         logging.debug(f'LoadElim: Replace load with assign: {ir}')
+    #                         assign = irAssign(target, value, lineno=-1)
+    #                         assign.block = self
 
-                    temp_merges = []
-                    for v in incoming_values:
-                        if v not in temp_merges and v[0] != ir.register:
-                            temp_merges.append(v)
+    #                         local_values[ir.ref] = ir.register
 
-                    incoming_values = temp_merges
+    #                         ir = assign
 
-                    if len(incoming_values) == 1:
-                        target = ir.register
-                        value = incoming_values[0][0]
+    #                 elif len(incoming_values) > 1:
+    #                     logging.debug(f'LoadElim: Replace load with MemPHI: {ir}')
 
-                        if target == value:
-                            logging.debug(f'LoadElim: Remove load: {ir}')
-                            continue
+    #                     incoming_values = [(v[0], predecessors[v[0]]) for v in incoming_values]
 
-                        else:
-                            logging.debug(f'LoadElim: Replace load with assign: {ir}')
-                            assign = irAssign(target, value, lineno=-1)
-                            assign.block = self
+    #                     phi = irMemoryPhi(ir.ref, ir.register, incoming_values, lineno=-1)
+    #                     phi.block = self
 
-                            local_values[ir.ref] = ir.register
+    #                     local_values[ir.ref] = ir.register
 
-                            ir = assign
+    #                     ir = phi
 
-                    elif len(incoming_values) > 1:
-                        logging.debug(f'LoadElim: Replace load with MemPHI: {ir}')
 
-                        incoming_values = [(v[0], predecessors[v[0]]) for v in incoming_values]
+    #         new_code.append(ir)
 
-                        phi = irMemoryPhi(ir.ref, ir.register, incoming_values, lineno=-1)
-                        phi.block = self
+    #     self.code = new_code
 
-                        local_values[ir.ref] = ir.register
 
-                        ir = phi
+    #     try:
+    #         while visited[0] in self.successors:
+    #             s = visited[0]
+    #             s.eliminate_loads(visited=visited)
 
-
-            new_code.append(ir)
-
-        self.code = new_code
-
-        # merges = {}
-
-        # for p in self.predecessors:
-        #     for ref, value in p.emitted_globals.items():
-        #         if isinstance(value, irMemoryPhi):
-        #             continue
-
-        #         if ref not in merges:
-        #             merges[ref] = []
-
-        #         merges[ref].append((value, p))
-
-
-        # for ref, merge in merges.items():
-        #     phi = irMemoryPhi(ref, merge, lineno=-1)
-        #     phi.block = self
-
-        #     self.code.insert(1, phi)
-
-
-        # for ir in self.code:
-        #     if isinstance(ir, irLoad):
-        #         if ir.ref in values:
-        #             new_ir = irAssign(ir.register, values[ir.ref], lineno=ir.lineno)
-        #             new_ir.block = self
-        #             print(f'    assign: {new_ir}')
-
-        #         values[ir.ref] = ir.register
-
-
-        #     elif isinstance(ir, irStore):
-        #         values[ir.ref] = ir.register
-
-        # emitted[self] = copy(values)
-        
-        # for k, v in values.items():
-        #     print(f'  {k}: {v}')
-
-        try:
-            while visited[0] in self.successors:
-                s = visited[0]
-                s.eliminate_loads(visited=visited)
-
-        except IndexError:
-            pass
+    #     except IndexError:
+    #         pass
 
 
     # def schedule_load_stores(self, visited=None, loads=None, stores=None):
-    def schedule_load_stores(self, visited=None, analysis=None):
-        # if values is None:
-        #     visited = []
+    # def schedule_load_stores(self, visited=None, analysis=None):
+    #     # if values is None:
+    #     #     visited = []
 
-        #     values = {}
+    #     #     values = {}
 
-        assert visited[0] == self
-        visited.pop(0)
+    #     assert visited[0] == self
+    #     visited.pop(0)
         
-        logging.debug(f'Load/store scheduling for: {self.name}')
+    #     logging.debug(f'Load/store scheduling for: {self.name}')
 
-        incoming = analysis[self]
+    #     incoming = analysis[self]
 
 
-        return
+    #     return
 
-        new_code = []
-
-        for ir in self.code:
-            if isinstance(ir, irLoad):
-                if ir.ref in incoming:
-                    # filter out self references
-                    values = [v for v in incoming[ir.ref] if v[0] != ir.register]
-
-                    assert len(values) > 0
-
-                    if len(values) == 1:
-                        logging.debug(f'Replace load {ir} with assign')
-
-                        ir = irAssign(ir.register, values[0][0], lineno=ir.lineno)
-                        ir.block = self
-
-                    else:
-                        logging.debug(f'Replace load {ir} with phi')
-
-                        merges = sorted([(v[0], v[2]) for v in values], key=lambda a: a[0].name)
-
-                        phi = irPhi(ir.register, merges, lineno=ir.lineno)
-                        phi.block = self
-
-                        ir = phi
-
-                # else:
-                    # incoming[ir.ref] = [(ir.register, 'load', self)]
-
-            # elif isinstance(ir, irStore):    
-            #     incoming[ir.ref] = [(ir.register, 'store', self)]
-
-            new_code.append(ir)
-
-        self.code = new_code
-
-
-        
-        # stores = []            
-
-        # new_code = []
-        # for ir in self.code:
-        #     if isinstance(ir, irLoad):
-        #         if ir.ref in incoming:
-        #             values = incoming[ir.ref]
-
-        #             assert len(values) > 0
-
-        #             # if a single value, can be replaced with trivial assign
-        #             if len(values) == 1:
-        #                 logging.debug(f'Replace load {ir} with assign')
-
-        #                 ir = irAssign(ir.register, values[0][0], lineno=ir.lineno)
-        #                 ir.block = self
-
-        #             # if multiple incoming values, use a phi
-        #             else:
-        #                 logging.debug(f'Replace load {ir} with phi')
-
-        #                 merges = [(v[0], v[2]) for v in values]
-        #                 phi = irPhi(ir.register, merges, lineno=ir.lineno)
-        #                 phi.block = self
-
-        #                 ir = phi
-
-        #     elif isinstance(ir, irStore):
-        #         stores.append(ir)
-
-
-        #     new_code.append(ir)
-
-        # self.code = new_code
-
-
-
-        while True:
-            try:
-                s = visited[0]
-
-            except IndexError:
-                break
-
-            if s not in self.successors:
-                break
-
-            s.schedule_load_stores(visited=visited, analysis=analysis)
-
-        # while visited[0] in self.successors:
-        #     s = visited[0]
-        #     s.schedule_load_stores(visited=visited, analysis=analysis)
-
-        
-        return
-
-
-
-
-
-        """
-        Split basic blocks on call sites.  This can be done
-        in the block construction and they can be merged back
-        together before SSA construction.  This makes the
-        pre-ssa optimizations a bit easier to analyze.
-        
-
-        Collect usages of a global by tracking loads by block after
-        block call slicing.
-        Strip stores during this first pass.
-        
-        
-        Load scheduling:
-        Scan through blocks, breadth-first.  If current block
-        requires a load, insert it at top of block.  This covers
-        leader blocks
-
-        Then scan the successor blocks.  If all of them use the same load,
-        place that load in the current block and strip from the successors.  
-        If only some of them do, do nothing for that load in this block.
-
-        Iterate into successors breadth-first.  Ensure that all predecessors
-        are analyzed before processing a block.
-
-        Record liveness of loaded items in all successors.
-        Terminate liveness of loaded items on terminator blocks
-        and blocks that end with calls.
-
-        Let's refer to these blocks (terminators and callers) as
-        "departure" blocks.
-
-
-    
-        Store scheduling:
-        Scan through blocks, breadth-first.
-        If any items are marked live in that block, check if it
-        needs to be flushed.  If block is a departure, flush the 
-        live items with stores.
-
-        Loads should already be accounted for in this step.
-
-        The load/store scheduling passes can probably be done
-        in a single pass, but the first analysis pass probably
-        needs to be separate.
-            
-        
-        """
-
-        
-        """
-    
-        More thoughts:
-
-        We can do this on SSA form, which is better overall:
-
-        Analysis: record loaded globals and their register available in each block.
-
-        Loads can be fused by replacing with an assign.  GVN will handle the rest.
-
-        Then scan for stores.  Replace inputs with the singular loaded register for that region.
-        Redundant stores can then be removed.  Could accomplish scanning backwards?  Look for 
-        successive stores that don't have loads in between?
-
-        Fences: a global should be fenced (flushed and then reloaded) on function calls 
-        (and analyze the call chains for usage, only flush used globals).  Also fence on direct
-        memory ops such as vector ops.
-
-
-        Let's get that right before we try any hoisting, which is less useful anyway.
-    
-
-        """
-
-
-
-        # return
-
-
-
-        if visited is None:
-            logging.debug(f'Load/store scheduling')
-
-            visited = []
-            loads = {}
-            stores = {}
-            
-        if self in visited:
-            return False
-
-        # for p in self.predecessors:
-        #     if p not in visited:
-        #         return False
-
-        visited.append(self)
-
-        logging.debug(f'Load/store scheduling for: {self.name}')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return
-
-
-
-
-
-
-
-
-
-
-
-        #self.recalc_defines()
-
-        new_code = []
-
-        for ir in self.code:
-            if isinstance(ir, irLoad) or isinstance(ir, irStore):
-                if isinstance(ir, varOffset):
-                    target = ir.ref.target.name
-
-                else:
-                    target = ir.ref.name
-
-
-            if isinstance(ir, irLoad):
-                if target not in loads:
-                    loads[target] = ir.register
-
-                else:
-
-                    logging.debug(f'Removing load: {ir}')
-
-                    values = []
-                    
-                    for p in self.predecessors:
-                        try:
-                            pv = p.ssa_lookup_var(ir.register)
-                            print(p.name, pv)
-
-                            v = VarContainer(pv)
-
-                            values.append((v, p))
-
-                        except KeyError:
-                            pass
-
-                    print(ir.register)
-
-                    if len(values) == 0:
-                        pv = self.ssa_lookup_var(ir.register)
-                        v = VarContainer(pv)
-                        values.append((v, self))
-
-
-
-                    # v = self.ssa_lookup_var(ir.register, skip_local=False)
-                    # register = VarContainer(v)
-                    # print(register)
-
-                    assert len(values) > 0
-
-                    # if register == ir.register:
-                    if len(values) == 1:
-                        ir = irAssign(ir.register.copy(), loads[target].copy(), lineno=ir.lineno)
-                        ir.block = self    
-
-                    else:
-                        phi = irPhi(ir.register.copy(), values, lineno=ir.lineno)
-                        phi.block = self
-
-                        # print(phi)
-
-                        ir = phi
-
-
-                    print(ir)                   
-
-                    # else:
-                        # pass
-
-                        # reg1 = loads[target].copy()
-                        # values = [
-                        #     (reg1, reg1.block),
-                        #     (register, register.block)
-                        # ]
-
-                        # phi = irPhi(ir.register.copy(), values, lineno=ir.lineno)
-                        # phi.block = self
-
-                        # print(phi)
-
-
-                    # ir = irAssign(register, loads[target].copy(), lineno=ir.lineno)
-
-                    # ir = irAssign(ir.register.copy(), loads[target].copy(), lineno=ir.lineno)
-                    # ir.block = self
-
-                    # continue
-
-            elif isinstance(ir, irStore):
-                # replace with stored register
-                if target in loads:
-                    loads[target] = ir.register.copy()
-
-                stores[target] = ir
-
-                continue
-
-            elif isinstance(ir, irReturn):
-                for store in stores.values():
-                    store = copy(store)
-
-                    # perform SSA merge for this store
-                    v = self.ssa_lookup_var(store.register, skip_local=False)
-                    store.register = VarContainer(v)
-
-                    new_code.append(store)
-                    store.block = self
-
-                    logging.debug(f'Moving store: {store}')
-
-
-
-
-            elif isinstance(ir, irCallType):
-                for store in stores.values():
-                    store = copy(store)
-
-                    new_code.append(store)
-                    store.block = self
-
-                    logging.debug(f'Flush store: {store}')
-
-                stores = {}
-                loads = {}
-
-            # elif isinstance(ir, irLoadRetVal):
-                # for load in loads.values():
-                    # print(load)
-
-
-            new_code.append(ir)
-
-        self.code = new_code
-
-        self.apply_temp_phis()
-        self.clean_up_phis()
-
-
-        # print(self.name, loads)
-
-
-        for s in self.successors:
-            s.schedule_load_stores(visited, copy(loads), copy(stores))
-
-
-
-        return True
-
-
-
-
-        # values = {}
-        # stores = {}
-        # remove = []
-
-        # new_code = []
-        # for ir in self.code:
-        #     if isinstance(ir, irLoad):
-        #         if isinstance(ir, varOffset):
-        #             target = ir.ref.target.name
-
-        #         else:
-        #             target = ir.ref.name
-
-        #         if target not in values:
-        #             values[target] = ir.register
-
-        #         elif values[target] is not None:
-        #             logging.debug(f'Remove redundant load: {ir}')
-
-        #             ir = irAssign(ir.register, values[target], lineno=ir.lineno)
-        #             ir.block = self
-
-                    
-        #     elif isinstance(ir, irStore):
-        #         if isinstance(ir, varOffset):
-        #             target = ir.ref.target.name
-
-        #         else:
-        #             target = ir.ref.name
-
-        #         if target in values and target in stores:
-        #             if stores[target] not in remove:
-        #                 remove.append(stores[target])
-
-        #                 logging.debug(f'Remove redundant store: {stores[target]}')
-
-        #         values[target] = ir.register
-        #         stores[target] = ir
-
-        #     elif isinstance(ir, irVectorOp) or isinstance(ir, irVectorAssign):
-        #         target = ir.target.target.name
-        #         # if isinstance(ir, varOffset):
-        #         #     target = ir.target.target.name
-
-        #         # else:
-        #         #     target = ir.target.name
-
-        #         if target in values:
-        #             del values[target]
-
-        #         if target in stores:
-        #             del stores[target]
-
-
-        #     new_code.append(ir)
-
-        # self.code = [ir for ir in new_code if ir not in remove]
-
-
-        # for s in self.successors:
-        #     s.schedule_load_stores(visited)
-
-
-        # return
-
-
-
-        # loads = {}
-        # stores = {}
-
-        # new_code = []
-
-        # for ir in self.code:
-        #     if isinstance(ir, irLoad):
-        #         # if this load is already in this block, we can skip it.
-        #         if ir.ref in loads:
-        #             continue
-
-        #         loads[ir.ref] = ir
-
-        #     new_code.append(ir)
-
-        # self.code = new_code
-
-        # # STORES:
-        # new_code = []
-        # for ir in reversed(self.code):
-        #     if isinstance(ir, irStore):
-        #         # if this load is already in this block, we can skip it.
-        #         if ir.ref in stores:
-        #             continue
-
-        #         stores[ir.ref] = ir
-
-        #     new_code.append(ir)
-
-        # self.code = list(reversed(new_code))
-
-
-        # for s in self.successors:
-        #     s.schedule_load_stores(visited)
-
-
-
-    # def fold_constants(self):
-    #     changes = 0
-    #     new_code = []
-       
-    #     for ir in self.code:
-    #         if isinstance(ir, irBinop):
-                
-    #             # attempt to fold
-    #             val = ir.fold()
-
-    #             if val is not None:
-    #                 # replace with assign
-    #                 ir = irLoadConst(ir.target, val, lineno=ir.lineno)
-    #                 ir.block = self
-    #                 changes += 1
-
-    #         new_code.append(ir)
-
-    #     self.code = new_code     
-
-    #     return changes
-
-    # def reduce_strength(self):
     #     new_code = []
 
     #     for ir in self.code:
-    #         if isinstance(ir, irBinop):
-    #             new_ir = ir.reduce_strength()
+    #         if isinstance(ir, irLoad):
+    #             if ir.ref in incoming:
+    #                 # filter out self references
+    #                 values = [v for v in incoming[ir.ref] if v[0] != ir.register]
 
-    #             if new_ir is not None:
-    #                 new_ir.block = self
-    #                 # replace instruction
-    #                 ir = new_ir
+    #                 assert len(values) > 0
+
+    #                 if len(values) == 1:
+    #                     logging.debug(f'Replace load {ir} with assign')
+
+    #                     ir = irAssign(ir.register, values[0][0], lineno=ir.lineno)
+    #                     ir.block = self
+
+    #                 else:
+    #                     logging.debug(f'Replace load {ir} with phi')
+
+    #                     merges = sorted([(v[0], v[2]) for v in values], key=lambda a: a[0].name)
+
+    #                     phi = irPhi(ir.register, merges, lineno=ir.lineno)
+    #                     phi.block = self
+
+    #                     ir = phi
+
+    #             # else:
+    #                 # incoming[ir.ref] = [(ir.register, 'load', self)]
+
+    #         # elif isinstance(ir, irStore):    
+    #         #     incoming[ir.ref] = [(ir.register, 'store', self)]
 
     #         new_code.append(ir)
 
-        # self.code = new_code       
+    #     self.code = new_code
 
 
-    # def remove_redundant_binop_assigns(self):
+        
+    #     # stores = []            
+
+    #     # new_code = []
+    #     # for ir in self.code:
+    #     #     if isinstance(ir, irLoad):
+    #     #         if ir.ref in incoming:
+    #     #             values = incoming[ir.ref]
+
+    #     #             assert len(values) > 0
+
+    #     #             # if a single value, can be replaced with trivial assign
+    #     #             if len(values) == 1:
+    #     #                 logging.debug(f'Replace load {ir} with assign')
+
+    #     #                 ir = irAssign(ir.register, values[0][0], lineno=ir.lineno)
+    #     #                 ir.block = self
+
+    #     #             # if multiple incoming values, use a phi
+    #     #             else:
+    #     #                 logging.debug(f'Replace load {ir} with phi')
+
+    #     #                 merges = [(v[0], v[2]) for v in values]
+    #     #                 phi = irPhi(ir.register, merges, lineno=ir.lineno)
+    #     #                 phi.block = self
+
+    #     #                 ir = phi
+
+    #     #     elif isinstance(ir, irStore):
+    #     #         stores.append(ir)
+
+
+    #     #     new_code.append(ir)
+
+    #     # self.code = new_code
+
+
+
+    #     while True:
+    #         try:
+    #             s = visited[0]
+
+    #         except IndexError:
+    #             break
+
+    #         if s not in self.successors:
+    #             break
+
+    #         s.schedule_load_stores(visited=visited, analysis=analysis)
+
+    #     # while visited[0] in self.successors:
+    #     #     s = visited[0]
+    #     #     s.schedule_load_stores(visited=visited, analysis=analysis)
+
+        
+    #     return
+
+
+
+
+
+    #     """
+    #     Split basic blocks on call sites.  This can be done
+    #     in the block construction and they can be merged back
+    #     together before SSA construction.  This makes the
+    #     pre-ssa optimizations a bit easier to analyze.
+        
+
+    #     Collect usages of a global by tracking loads by block after
+    #     block call slicing.
+    #     Strip stores during this first pass.
+        
+        
+    #     Load scheduling:
+    #     Scan through blocks, breadth-first.  If current block
+    #     requires a load, insert it at top of block.  This covers
+    #     leader blocks
+
+    #     Then scan the successor blocks.  If all of them use the same load,
+    #     place that load in the current block and strip from the successors.  
+    #     If only some of them do, do nothing for that load in this block.
+
+    #     Iterate into successors breadth-first.  Ensure that all predecessors
+    #     are analyzed before processing a block.
+
+    #     Record liveness of loaded items in all successors.
+    #     Terminate liveness of loaded items on terminator blocks
+    #     and blocks that end with calls.
+
+    #     Let's refer to these blocks (terminators and callers) as
+    #     "departure" blocks.
+
+
+    
+    #     Store scheduling:
+    #     Scan through blocks, breadth-first.
+    #     If any items are marked live in that block, check if it
+    #     needs to be flushed.  If block is a departure, flush the 
+    #     live items with stores.
+
+    #     Loads should already be accounted for in this step.
+
+    #     The load/store scheduling passes can probably be done
+    #     in a single pass, but the first analysis pass probably
+    #     needs to be separate.
+            
+        
+    #     """
+
+        
+    #     """
+    
+    #     More thoughts:
+
+    #     We can do this on SSA form, which is better overall:
+
+    #     Analysis: record loaded globals and their register available in each block.
+
+    #     Loads can be fused by replacing with an assign.  GVN will handle the rest.
+
+    #     Then scan for stores.  Replace inputs with the singular loaded register for that region.
+    #     Redundant stores can then be removed.  Could accomplish scanning backwards?  Look for 
+    #     successive stores that don't have loads in between?
+
+    #     Fences: a global should be fenced (flushed and then reloaded) on function calls 
+    #     (and analyze the call chains for usage, only flush used globals).  Also fence on direct
+    #     memory ops such as vector ops.
+
+
+    #     Let's get that right before we try any hoisting, which is less useful anyway.
+    
+
+    #     """
+
+
+
+    #     # return
+
+
+
+    #     if visited is None:
+    #         logging.debug(f'Load/store scheduling')
+
+    #         visited = []
+    #         loads = {}
+    #         stores = {}
+            
+    #     if self in visited:
+    #         return False
+
+    #     # for p in self.predecessors:
+    #     #     if p not in visited:
+    #     #         return False
+
+    #     visited.append(self)
+
+    #     logging.debug(f'Load/store scheduling for: {self.name}')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #     return
+
+
+
+
+
+
+
+
+
+
+
+    #     #self.recalc_defines()
+
     #     new_code = []
-    #     nops = []
 
-    #     # this is a peephole optimization
-    #     for index in range(len(self.code) - 1):
-    #         ir = self.code[index]
-    #         next_ir = self.code[index + 1]
-
-    #         # if a binop is followed by an assign:
-    #         if isinstance(ir, irBinop) and isinstance(next_ir, irAssign):
-    #             # and the binop's result is the input value for the assign:
-    #             if ir.result.name == next_ir.value.name:
-    #                 # just replace the binop result
-    #                 ir.result = next_ir.target
-    #                 new_code.append(ir)
-    #                 nop = irNop(lineno=ir.lineno)
-    #                 nop.block = self
-    #                 self.code[index + 1] = nop
-    #                 nops.append(nop)
+    #     for ir in self.code:
+    #         if isinstance(ir, irLoad) or isinstance(ir, irStore):
+    #             if isinstance(ir, varOffset):
+    #                 target = ir.ref.target.name
 
     #             else:
-    #                 new_code.append(ir)
+    #                 target = ir.ref.name
 
-    #         else:
-    #             new_code.append(ir)
 
-    #     # append last instruction (since loop will miss it)
-    #     new_code.append(self.code[-1])
+    #         if isinstance(ir, irLoad):
+    #             if target not in loads:
+    #                 loads[target] = ir.register
 
-    #     # remove the nops we added:
-    #     self.code = [n for n in new_code if n not in nops]
+    #             else:
+
+    #                 logging.debug(f'Removing load: {ir}')
+
+    #                 values = []
+                    
+    #                 for p in self.predecessors:
+    #                     try:
+    #                         pv = p.ssa_lookup_var(ir.register)
+    #                         print(p.name, pv)
+
+    #                         v = VarContainer(pv)
+
+    #                         values.append((v, p))
+
+    #                     except KeyError:
+    #                         pass
+
+    #                 print(ir.register)
+
+    #                 if len(values) == 0:
+    #                     pv = self.ssa_lookup_var(ir.register)
+    #                     v = VarContainer(pv)
+    #                     values.append((v, self))
+
+
+
+    #                 # v = self.ssa_lookup_var(ir.register, skip_local=False)
+    #                 # register = VarContainer(v)
+    #                 # print(register)
+
+    #                 assert len(values) > 0
+
+    #                 # if register == ir.register:
+    #                 if len(values) == 1:
+    #                     ir = irAssign(ir.register.copy(), loads[target].copy(), lineno=ir.lineno)
+    #                     ir.block = self    
+
+    #                 else:
+    #                     phi = irPhi(ir.register.copy(), values, lineno=ir.lineno)
+    #                     phi.block = self
+
+    #                     # print(phi)
+
+    #                     ir = phi
+
+
+    #                 print(ir)                   
+
+    #                 # else:
+    #                     # pass
+
+    #                     # reg1 = loads[target].copy()
+    #                     # values = [
+    #                     #     (reg1, reg1.block),
+    #                     #     (register, register.block)
+    #                     # ]
+
+    #                     # phi = irPhi(ir.register.copy(), values, lineno=ir.lineno)
+    #                     # phi.block = self
+
+    #                     # print(phi)
+
+
+    #                 # ir = irAssign(register, loads[target].copy(), lineno=ir.lineno)
+
+    #                 # ir = irAssign(ir.register.copy(), loads[target].copy(), lineno=ir.lineno)
+    #                 # ir.block = self
+
+    #                 # continue
+
+    #         elif isinstance(ir, irStore):
+    #             # replace with stored register
+    #             if target in loads:
+    #                 loads[target] = ir.register.copy()
+
+    #             stores[target] = ir
+
+    #             continue
+
+    #         elif isinstance(ir, irReturn):
+    #             for store in stores.values():
+    #                 store = copy(store)
+
+    #                 # perform SSA merge for this store
+    #                 v = self.ssa_lookup_var(store.register, skip_local=False)
+    #                 store.register = VarContainer(v)
+
+    #                 new_code.append(store)
+    #                 store.block = self
+
+    #                 logging.debug(f'Moving store: {store}')
+
+
+
+
+    #         elif isinstance(ir, irCallType):
+    #             for store in stores.values():
+    #                 store = copy(store)
+
+    #                 new_code.append(store)
+    #                 store.block = self
+
+    #                 logging.debug(f'Flush store: {store}')
+
+    #             stores = {}
+    #             loads = {}
+
+    #         # elif isinstance(ir, irLoadRetVal):
+    #             # for load in loads.values():
+    #                 # print(load)
+
+
+    #         new_code.append(ir)
+
+    #     self.code = new_code
+
+    #     self.apply_temp_phis()
+    #     self.clean_up_phis()
+
+
+    #     # print(self.name, loads)
+
+
+    #     for s in self.successors:
+    #         s.schedule_load_stores(visited, copy(loads), copy(stores))
+
+
+
+    #     return True
+
 
     def local_load_store_elim(self):
         loads = {}
@@ -3387,208 +3110,10 @@ class irBlock(IR):
 
         return old_code != new_code
 
-    # def remove_redundant_assigns(self):
-    #     # remove redundant assigns in SSA form.
-    #     remove = []
-
-    #     for i in range(len(self.code)):
-    #         ir = self.code[i]
-
-    #         if isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
-    #             j = i + 1
-
-    #             while j < len(self.code):
-    #                 ir2 = self.code[j]
-
-    #                 # check for assign target
-    #                 if isinstance(ir2, irAssign) or isinstance(ir2, irLoadConst):
-    #                     if ir2.target.name == ir.target.name:
-    #                         # remove ir as it is redundant
-    #                         remove.append(ir)
-    #                         break
-
-    #                     # if the assignment is used, then we are done here
-    #                     elif ir.target in ir2.get_input_vars():
-    #                         break
-
-    #                 j += 1
-
-    #     # remove instructions:
-    #     self.code = [ir for ir in self.code if ir not in remove]
-
     ##############################################
     # Transformation Passes
     ##############################################
 
-
-    """
-    
-    Var init changes:
-
-    Walk dominator tree and collect defintions.
-    Definitions are path specific (copy on recurse into next node)
-    
-    Add LOAD instructions for:
-    globals
-    consts
-    objects (from references)
-
-    At top of block where they are used.
-    If the item is already loaded to a register, it will appear in defines
-    and we can replace uses with that register.
-
-
-    For any globals and objects which are written to:
-    Record "stores" and pass down tree same as defines.
-
-    At function exit points (return and call), add STORE instruction
-    just before function exit instruction for all modified globals/objects.
-
-
-
-    References:
-
-    Access to globals through references.
-    Global means anything in memory, and may include lookups.
-    
-    On reference input, load to register if we haven't already.
-    Registers for incoming references prefix with &.
-    Actual references prefix with *.
-    
-    Replace in/out references with register.
-    This should be similar logic to const.
-    
-    LOAD/STORE instructions should handle lookup.
-    Let's not do a separate lookup instruction (for now).
-    
-    """
-
-    # def init_vars(self, scanned, defines=None):
-    #     if defines is None:
-    #         defines = {}
-
-    #     new_code = []
-    #     for ir in self.code:
-    #         if ir in scanned:
-    #             new_code.append(ir)
-    #             continue
-
-    #         scanned.append(ir)
-
-    #         if isinstance(ir, irDefine):
-    #             ir.var.block = self
-    #             if ir.var.name in self.globals:
-    #                 raise SyntaxError(f'Variable {ir.var.name} is already defined (variable shadowing is not allowed).', lineno=ir.lineno)
-
-    #             target = copy(ir.var)
-
-    #             # init variable to 0
-    #             assign = irLoadConst(target, self.func.get_zero(ir.lineno), lineno=ir.lineno)
-    #             assign.block = self
-
-    #             defines[ir.var.name] = target
-                
-    #             new_code.append(ir)                
-    #             new_code.append(assign)
-    #             continue
-
-
-    #         for i in ir.get_input_vars():
-    #             i.block = self
-
-    #             if i.const:
-    #                 if i.name not in defines:
-    #                     target = add_const_temp(i.name, datatype=i.type, lineno=ir.lineno)
-    #                     target.block = self
-
-    #                     load = irLoadConst(target, i, lineno=ir.lineno)
-    #                     load.block = self
-
-    #                     defines[target.name] = target
-    #                     self.defines[target.name] = target
-
-    #                     new_code.append(load)
-
-    #                 i.clone(defines[i.name])
-
-    #             # elif i.is_ref:
-    #             #     assert i.var_name in self.globals
-    #             #     i.type = self.globals[i.var_name].type
-                    
-    #             #     # need to replace reference with an actual register
-    #             #     # since this is an input, we need to load from that ref
-    #             #     # to a register and then replace with that.
-                    
-    #             #     ref_addr_name = f'&{i.basename}'
-
-    #             #     ref_addr = self.add_temp(ref_addr_name, lineno=ir.lineno)
-    #             #     ref_addr.is_temp = True
-                    
-    #             #     lookup = irLookup(ref_addr, copy(i), lineno=ir.lineno)
-    #             #     lookup.block = self
-    #             #     new_code.append(lookup)
-
-    #             #     target = self.add_temp(i.basename, lineno=ir.lineno)
-    #             #     target.block = self
-
-    #             #     load = irLoad(target, ref_addr, lineno=ir.lineno)
-    #             #     load.block = self
-
-    #             #     new_code.append(load)
-
-    #             #     i.clone(target)
-
-    #             if i.name in defines:
-    #                 i.type = defines[i.name].type
-
-            
-    #         new_code.append(ir)
-
-    #         for o in ir.get_output_vars():
-    #             o.block = self
-                
-    #             assert not o.is_const
-
-    #             if o.is_ref:
-    #                 # assert o.var_name in self.globals
-    #                 if o.var_name in self.globals:
-    #                     o.type = self.globals[o.var_name].type
-                    
-    #                 ref_addr_name = f'&{o.basename}'
-                
-    #                 ref_addr = self.add_temp(ref_addr_name, lineno=ir.lineno)
-    #                 ref_addr.is_temp = True
-
-    #                 lookup = irLookup(ref_addr, copy(o), lineno=ir.lineno)
-    #                 lookup.block = self
-    #                 new_code.append(lookup)
-
-    #                 store = irStore(o, ref_addr, lineno=ir.lineno)
-    #                 store.block = self
-    #                 new_code.append(store)
-
-    #                 target = add_reg(o.basename, datatype=o.type, lineno=ir.lineno)
-    #                 target.block = self
-
-    #                 defines[target.basename] = target
-    #                 self.defines[target.basename] = target
-    #                 o.clone(target)
-
-    #             if o.basename in defines:
-    #                 o.type = defines[o.basename].type
-
-    #     changed = self.code != new_code
-
-    #     self.code = new_code
-
-    #     if self not in self.func.dominator_tree:
-    #         return changed
-
-    #     for c in self.func.dominator_tree[self]:
-    #         if c.init_vars(scanned, copy(defines)):
-    #             changed = True
-
-    #     return changed
 
     def lookup_var(self, var, visited=None):
         if visited is None:
@@ -5340,112 +4865,6 @@ class irFunc(IR):
 
         for block in self.reverse_postorder:
             block.local_load_store_elim()
-
-        return
-
-        # self.liveness_analysis_memory()
-        # self.compute_live_ranges_memory()
-
-        self.hoist_loads()
-        self.leader_block.eliminate_loads(visited=self.reverse_postorder)
-
-        self.render_graph('mem_phi')
-
-        for block in self.reverse_postorder:
-            block.resolve_memory_phis()
-
-        return
-
-
-        # values = {}
-        # for ir in self.get_code_from_blocks():
-        #     if isinstance(ir, irLoad) or isinstance(ir, irStore):
-        #         values[ir.ref] = ['unknown', 0]
-
-        # self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values=values)
-
-
-
-        # # self.leader_block.assign_load_store_versions(visited=self.reverse_postorder)
-
-        # return
-
-        # analysis = self.leader_block.analyze_load_stores(visited=self.reverse_postorder, values={})
-
-        # versions_in = None
-        # versions_out = None
-        # v_in = {}
-        # v_out = {}
-
-        # iterations = 0
-
-        # while v_in != versions_in or v_out != versions_out:
-        #     versions_in = v_in
-        #     versions_out = v_out
-
-        #     v_in, v_out = self.leader_block.analyze_load_stores(visited=self.reverse_postorder)
-
-        #     iterations += 1
-
-        # print(f'iterations {iterations}')
-
-        # # pprint(analysis)
-
-        # print('\nAnalysis:')
-
-        # for block, incoming in versions_in.items():
-        #     print(f'  {block.name}:')
-
-        #     print(f'    IN:')
-        #     for ref, values in incoming.items():
-        #         # print(f'      {ref}: {values}')
-
-        #         print(f'      {ref}:')
-        #         for val in values:
-        #             print(f'        {val[0]}: {val[1]}')                    
-
-
-        #     outgoing = versions_out[block]
-
-        #     print(f'    OUT:')
-        #     for ref, values in outgoing.items():
-        #         # print(f'      {ref}: {values}')
-
-        #         print(f'      {ref}:')
-        #         for val in values:
-        #             print(f'        {val[0]}: {val[1]}')                    
-
-
-
-
-
-        #         for val in values:
-        #             print(f'      {val[1]} {val[0]} from {val[2].name}')
-
-        # print('\nAnalysis OUT:')
-
-        # for block, incoming in versions_out.items():
-        #     print(f'  {block.name}:')
-
-        #     for ref, values in incoming.items():
-        #         print(f'    {ref}: {values}')
-
-        #         for val in values:
-        #             print(f'      {val[1]} {val[0]} from {val[2].name}')
-
-
-
-        # self.leader_block.schedule_load_stores(visited=self.reverse_postorder, analysis=analysis)
-
-        # self.leader_block.schedule_load_stores(visited=self.reverse_postorder, values={})
-        
-        # for block in self.reverse_postorder:
-        #     logging.debug(f'Load/store scheduling for: {block.name}')
-            
-        #     block.schedule_load_stores()
-
-
-        # return self.leader_block.schedule_load_stores(*args, **kwargs)
     
     def recalc_dominators(self):
         self.dominators = self.calc_dominance()
@@ -6167,78 +5586,78 @@ class irFunc(IR):
         return self.body[-1]
 
 
-class irMemoryPhi(IR):
-    def __init__(self, ref, register, merges=[], **kwargs):
-        super().__init__(**kwargs)
+# class irMemoryPhi(IR):
+#     def __init__(self, ref, register, merges=[], **kwargs):
+#         super().__init__(**kwargs)
 
-        self.ref = ref
-        self.register = register
-        self.merges = merges
+#         self.ref = ref
+#         self.register = register
+#         self.merges = merges
         
-        for d in merges:
-            assert isinstance(d[0], VarContainer)
-            assert isinstance(d[1], irBlock)
+#         for d in merges:
+#             assert isinstance(d[0], VarContainer)
+#             assert isinstance(d[1], irBlock)
 
-        assert self.register not in [a[0] for a in merges]
+#         assert self.register not in [a[0] for a in merges]
 
-    def __str__(self):
-        s = ''
-        for d in sorted(self.merges, key=lambda a: a[0].name):
-            s += f'{d[0]}:{d[1].name}, '
+#     def __str__(self):
+#         s = ''
+#         for d in sorted(self.merges, key=lambda a: a[0].name):
+#             s += f'{d[0]}:{d[1].name}, '
 
-        s = s[:-2]
+#         s = s[:-2]
 
-        s = f'{self.register} = MemPHI({s})'
+#         s = f'{self.register} = MemPHI({s})'
 
-        return s
+#         return s
 
-    def get_input_vars(self):
-        return [a[0] for a in self.merges]
+#     def get_input_vars(self):
+#         return [a[0] for a in self.merges]
 
-    def get_output_vars(self):
-        return [self.register]
+#     def get_output_vars(self):
+#         return [self.register]
 
-    def generate(self):
-        return None
+#     def generate(self):
+#         return None
 
-class irGlobalPhi(IR):
-    def __init__(self, ref, ref_version, merges=[], **kwargs):
-        super().__init__(**kwargs)
+# class irGlobalPhi(IR):
+#     def __init__(self, ref, ref_version, merges=[], **kwargs):
+#         super().__init__(**kwargs)
 
-        self.ref = ref
-        self.ref_version = ref_version
-        self.merges = merges
+#         self.ref = ref
+#         self.ref_version = ref_version
+#         self.merges = merges
 
-        # for d in merges:
-        #     assert isinstance(d[0], VarContainer)
-        #     assert isinstance(d[1], irBlock)
+#         # for d in merges:
+#         #     assert isinstance(d[0], VarContainer)
+#         #     assert isinstance(d[1], irBlock)
 
-        # assert self.ref not in [a[0] for a in merges]
+#         # assert self.ref not in [a[0] for a in merges]
 
-    def __str__(self):
-        s = ''
-        for d in sorted(self.merges):
-            s += f'{d}, '
+#     def __str__(self):
+#         s = ''
+#         for d in sorted(self.merges):
+#             s += f'{d}, '
 
-        s = s[:-2]
+#         s = s[:-2]
 
-        s = f'{self.ref}.{self.ref_version} = GPHI({s})'
+#         s = f'{self.ref}.{self.ref_version} = GPHI({s})'
 
-        return s
+#         return s
 
-    # @property
-    # def expr(self):
-    #     s = 'phi '
-    #     for m in sorted(self.merges, key=lambda x: x.ssa_name):
-    #         s += f'{m.ssa_name} '
+#     # @property
+#     # def expr(self):
+#     #     s = 'phi '
+#     #     for m in sorted(self.merges, key=lambda x: x.ssa_name):
+#     #         s += f'{m.ssa_name} '
 
-    #     return s
+#     #     return s
 
-    # def get_input_vars(self):
-    #     return [a[0] for a in self.merges]
+#     # def get_input_vars(self):
+#     #     return [a[0] for a in self.merges]
 
-    # def get_output_vars(self):
-    #     return [self.target]
+#     # def get_output_vars(self):
+#     #     return [self.target]
 
 class irPhi(IR):
     def __init__(self, target, merges=[], **kwargs):
@@ -6471,18 +5890,6 @@ class irReturn(irControlFlow):
     def __str__(self):
         return "RET %s" % (self.ret_var)
 
-    # @property
-    # def value_number(self):
-    #     return self.ret_var
-
-    # @property
-    # def value_expr(self):
-    #     return f'RET{self.value_number.ssa_name}'
-
-    # def apply_value_numbers(self, VN):
-    #     if self.ret_var in VN:
-    #         self.ret_var = VN[self.ret_var]
-
     def generate(self):
         return insReturn(self.ret_var.generate(), lineno=self.lineno)
 
@@ -6503,18 +5910,6 @@ class irAssign(IR):
         value = f'{self.value}'
 
         return f'{target} = {value}'
-
-    # @property
-    # def value_number(self):
-    #     return self.target
-
-    # @property
-    # def value_expr(self):
-    #     return f'={self.value.ssa_name}'
-
-    # def apply_value_numbers(self, VN):
-    #     if self.value in VN:
-    #         self.value = VN[self.value]
 
     def get_input_vars(self):
         return [self.value]
@@ -7547,61 +6942,6 @@ class irLookup(IR):
         
         else:
             raise CompilerFatal(f'VM does not have an instruction coded for {len(indexes)} indexes')
-
-        
-
-# class irLookup(IR):
-#     def __init__(self, result, target, lookups=[], counts=[], strides=[], **kwargs):
-#         super().__init__(**kwargs)        
-#         self.result = result
-#         self.target = target
-#         assert target.data_type != 'offset'
-#         self.lookups = lookups
-#         self.counts = counts
-#         self.strides = strides
-
-#     def __str__(self):
-#         lookups = ''
-#         for a in self.lookups:
-#             lookups += f'[{a}]'
-
-#         return f'{self.result} = LOOKUP {self.target} {lookups}'
-
-#     def get_input_vars(self):
-#         inputs = []
-#         inputs.extend(self.lookups)
-#         inputs.extend(self.counts)
-#         inputs.extend(self.strides)
-#         return inputs
-        
-#     def get_output_vars(self):
-#         return [self.result]
-
-#     def generate(self):
-#         indexes = [i.generate() for i in self.lookups]
-#         counts = [i.generate() for i in self.counts]
-#         strides = [i.generate() for i in self.strides]
-
-#         if len(indexes) == 0:
-#             return insLookup0(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
-
-#         elif len(indexes) == 1:
-#             return insLookup1(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
-
-#         elif len(indexes) == 2:
-#             return insLookup2(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
-
-#         elif len(indexes) == 3:
-#             return insLookup3(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
-        
-#         else:
-#             raise CompilerFatal(f'VM does not have an instruction coded for {len(indexes)} indexes')
-
-#         # if self.target.is_global:    
-#         #     return insLookupGlobal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
-
-#         # else:
-#         #     return insLookupLocal(self.result.generate(), self.target.generate(), indexes, counts, strides, lineno=self.lineno)
 
 
 class irAttribute(IR):
