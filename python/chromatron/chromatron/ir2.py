@@ -4936,6 +4936,8 @@ class irFunc(IR):
                 opt_passes.append(OptPasses.SSA)
                 break
 
+        if len(opt_passes) == 0:
+            opt_passes.append(OptPasses.SSA)
 
         self.ssa_next_val = {}
         
