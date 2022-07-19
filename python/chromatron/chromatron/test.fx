@@ -19,7 +19,7 @@ def init():
     v = c + d
     w = e + f
 
-    if 1:
+    if u:
         x = c + d
         y = c + d
 

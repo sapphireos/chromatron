@@ -55,6 +55,7 @@ class OptPasses(Enum):
 
 
 DEBUG = True
+DEBUG_FILTER_LOAD_STORE = True
 DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
 SHOW_LIVENESS = False
@@ -3914,6 +3915,9 @@ class irFunc(IR):
         if not DEBUG:
             return
 
+        if self.name != 'init':
+            return
+
         if graph_name is None:
             graph_name = self.name
 
@@ -3926,7 +3930,11 @@ class irFunc(IR):
 
             label = name
             label += '\n--------------------\n'
-            label += '\n'.join([str(a) for a in block.code if not isinstance(a, irLabel)])
+            if DEBUG_FILTER_LOAD_STORE:
+                label += '\n'.join([str(a) for a in block.code if not isinstance(a, irLabel) and not isinstance(a, irLoad) and not isinstance(a, irStore)])
+
+            else:
+                label += '\n'.join([str(a) for a in block.code if not isinstance(a, irLabel)])
 
             dot.node(name, label=label)
 
