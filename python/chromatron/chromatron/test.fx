@@ -2,12 +2,13 @@
 
 # basic GVN test:
 def init():
-    a = Number()
-    b = Number()
-    c = Number()
-    d = Number()
-    e = Number()
-    f = Number()
+    a = Number(1)
+    b = Number(2)
+    c = Number(4)
+    d = Number(8)
+    e = Number(16)
+    f = Number(32)
+
     u = Number()
     v = Number()
     w = Number()
@@ -30,6 +31,8 @@ def init():
 
     z = u + y
     u = a + b
+
+    # return z + u
 
 # def init():
 #     # x = Number()

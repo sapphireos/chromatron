@@ -978,10 +978,67 @@ class irBlock(IR):
     #         s.relink_blocks()
 
     def gvn_process_phi(self, VN):
-        pass
+        new_code = []
+
+        # analyze phi nodes
+        for ir in self.code:
+            if not isinstance(ir, irPhi):
+                new_code.append(ir)
+                continue
+
+            phi = ir
+            # check if phi is meaningless or redundant
+
+            # meaningless: all inputs have the same value number
+            # redundant: computes same value as another phi in the same block
+
+
+            # first, check if there are value numbers for all of the inputs
+            input_values = [p[0] for p in phi.merges if p[0] in VN]
+
+            if len(input_values) != len(phi.merges):
+                new_code.append(ir)
+
+                continue
+
+            # check if meaningless
+            first_value = VN[input_values[0]]
+
+            meaningless = True
+            for i in input_values:
+                if VN[i] != first_value:
+                    meaningless = False
+                    break
+
+            if meaningless:
+                debug_print(f"removing meaningless phi: {phi}")
+
+                VN[phi.target] = first_value
+
+                # remove the phi
+
+                changed = True
+
+            else:
+                # append the phi as-is
+                new_code.append(ir)
+
+                VN[phi.target] = phi.target
+
+        self.code = new_code
 
     def gvn_adjust_successor_phi(self, VN):
-        return
+        """
+
+        After value numbering the φ -functions and instructions in a block, the algorithm visits each
+        successor block and updates any φ -function inputs that come from the current block. This
+        involves determining which φ -function parameter corresponds to input from the current block
+        and overwriting the parameter with its value number. Notice the resemblance between this step
+        and the corresponding step in the SSA construction algorithm. This step must be performed
+        before value numbering any of the block’s children in the dominator tree, if the compiler is
+        going to analyze φ -functions.
+        
+        """
 
         # check successors and adjust phi function inputs in each
         for s in self.successors:
@@ -993,13 +1050,13 @@ class irBlock(IR):
                     b = phi.merges[i][1]
 
                     # check if this input is in the value number table:
-                    if m in values:
-                        replacement = values[m]
+                    if m in VN:
+                        replacement = VN[m]
 
                         if m != replacement:
                             # replace phi input with the value number
 
-                            self.debug_print(f"Replace phi input {m} with {replacement}")
+                            debug_print(f"Replace phi input {m} with {replacement}")
 
                             phi.merges[i] = (replacement, b)
 
@@ -1094,6 +1151,16 @@ class irBlock(IR):
 
             Clean up the hash table after leaving this scope
 
+    
+        Phi rules:
+        The φ -functions require special treatment. Before the compiler can analyze the φ -functions
+        in a block, it must previously have assigned value numbers to all of the inputs. This is not
+        possible in all cases; specifically, any φ -function input whose value flows along a back edge
+        (with respect to the dominator tree) cannot have a value number. If any of the parameters
+        of a φ -function have not been assigned a value number, then the compiler cannot analyze
+        the φ -function, and it must assign a unique, new value number to the result. The following
+        two conditions guarantee that all φ -function parameters in a block have been assigned value
+        numbers:
 
         1. When procedure DVNT (see Figure 4) is called recursively for the children of block b in
             the dominator tree, the children must be processed in reverse postorder. This ensures that
@@ -1101,6 +1168,18 @@ class irBlock(IR):
             is connected by a back edge relative to the DFS tree.
 
         2. The block must have no incoming back edges.
+
+    
+        Replacement rules:
+
+        1. The value number can replace a redundant computation in any block dominated by the
+            first occurrence.
+
+        2. The value number can replace a redundant evaluation that is a parameter to a φ -node
+            corresponding to control flow from a block dominated by the first occurrence. To find
+            these φ -node parameters, we compute the dominance frontier of the block containing
+            the first occurrence of the expression. The dominance frontier of node X is the set of
+            nodes Y such that X dominates a predecessor of Y , but X does not strictly dominate Y.
 
         """
 
@@ -4006,11 +4085,24 @@ class irFunc(IR):
 
             label = name
             label += '\n--------------------\n'
-            if DEBUG_FILTER_LOAD_STORE:
-                label += '\n'.join([str(a) for a in block.code if not isinstance(a, irLabel) and not isinstance(a, irLoad) and not isinstance(a, irStore)])
 
-            else:
-                label += '\n'.join([str(a) for a in block.code if not isinstance(a, irLabel)])
+            for ir in block.code:
+                if isinstance(ir, irLabel):
+                    continue
+
+                if DEBUG_FILTER_LOAD_STORE:
+                    if isinstance(ir, irLoad):
+                        continue
+
+                    if isinstance(ir, irStore):
+                        continue
+
+                if ir.lineno >= 0:
+                    source_line = self.source_code[ir.lineno - 1]
+                    label += f'{source_line} -->\t{ir}\n'
+
+                else:
+                    label += f'{ir}\n'
 
             dot.node(name, label=label)
 
@@ -5949,6 +6041,14 @@ class irBranch(irControlFlow):
 
         return s    
 
+    def gvn_process(self, VN):
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if replacement != self.value:
+                debug_print(f'replace value {self.value} with {replacement}')
+                self.value = replacement
+
     def get_input_vars(self):
         return [self.value]
 
@@ -6060,10 +6160,12 @@ class irAssign(IR):
         return self.value
 
     def gvn_process(self, VN):
-        if self.value in VN and self.value != VN[self.value]:
-            replacement = VN[self.value]
-            debug_print(f'replace value {self.value} with {replacement}')
-            self.value = replacement
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if replacement != self.value:
+                debug_print(f'replace value {self.value} with {replacement}')
+                self.value = replacement
 
 
         expr = self.gvn_expr
