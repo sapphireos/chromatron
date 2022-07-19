@@ -512,6 +512,7 @@ class irBlock(IR):
         self.code = []
         self.func = func
         self.defines = {}
+        self.incoming_back_edges = []
 
         self.is_ssa = False
         self.filled = False
@@ -1068,429 +1069,13 @@ class irBlock(IR):
             block.predecessors = [p for p in block.predecessors if p in blocks]
 
 
-    # def gvn_optimize(self, values=None, visited=None):
-    #     if values is None:
-    #         values = {}
-
-    #     new_code = []
-    #     for ir in self.code:
-
-    #         # run optimizers on this instruction with currently available values:
-
-
-    #         # attempt to replace inputs with existing values:
-
-    #         # THIS IS PROBLEMATIC???
-    #         for i in ir.get_input_vars():
-    #             if i.is_const or i.holds_const:
-    #                 continue
-
-    #             if i in values:
-    #                 v = values[i]
-    #                 # replace this operand with the looked up value
-    #                 i.__dict__ = copy(values[i].__dict__)
-
-
-    #         # attempt to reduce strength and fold:
-    #         if isinstance(ir, irBinop):
-    #             new_ir = ir.reduce_strength()
-    #             if new_ir is not None:
-    #                 ir = new_ir
-
-    #             val = ir.fold()
-
-    #             if val is None:
-    #                 left = ir.left
-    #                 right = ir.right
-
-    #                 # check existing value numbers and see if we can replace any operands with consts:
-    #                 if ir.left in values and (values[ir.left].is_const or values[ir.left].holds_const):
-    #                     left = values[ir.left]
-
-    #                 if ir.right in values and (values[ir.right].is_const or values[ir.right].holds_const):
-    #                     right = values[ir.right]                
-
-    #                 if (left.is_const or left.holds_const) and (right.is_const or right.holds_const):
-    #                     ir.left = left
-    #                     ir.right = right
-
-    #                     val = ir.fold()
-
-    #             if val is not None:
-    #                 # replace with assign
-    #                 ir = irLoadConst(ir.target, val, lineno=ir.lineno)
-
-    #         # run optimizers with values available at this instruction:
-    #         if isinstance(ir, irAssign):
-    #             # replace intermediate copy with actual value
-    #             if ir.value in values:
-    #                 v = values[ir.value]
-
-    #                 # check if const:
-    #                 if v.is_const or v.holds_const:
-    #                     # replace assignment with load const
-    #                     ir = irLoadConst(ir.target, v, lineno=ir.lineno)
-
-    #                 else:
-    #                     # replace assignment value
-    #                     ir.value = v
-
-    #         elif isinstance(ir, irBinop):
-    #             if ir.expr in values:
-    #                 # replace instruction with assign
-    #                 ir = irAssign(ir.target, values[ir.expr], lineno=ir.lineno)
-          
-    #         # assign value numbers for this instruction:
-    #         for o in ir.get_output_vars():
-    #             assert o not in values
-
-    #             value_number = ir.value_number
-
-    #             # if no value number or if value is a const (which we can't reuse since it isn't a register):
-    #             # skip!
-    #             if value_number is None or value_number.is_const:
-    #                 continue
-
-    #             if isinstance(value_number, irExpr):
-    #                 if value_number not in values:
-    #                     values[value_number] = o
-
-    #             else:
-    #                 # if this value already exists, we can just reuse it directly
-    #                 if value_number in values:
-    #                     value_number = values[value_number]
-                    
-    #                 values[o] = value_number
-
-
-
-    #         ir.block = self
-    #         new_code.append(ir)
-
-    #     self.code = new_code
-
-    #     if self not in self.func.dominator_tree:
-    #         return
-
-    #     for c in self.func.dominator_tree[self]:
-    #         c.gvn_optimize(copy(values))
-
-
-    # def gvn_analyze(self, VN=None, table=None, visited=None):
-    #     # return 
-    #     if VN is None or table is None:
-    #         logging.debug('GVN: Starting optimizer pass')
-
-    #         VN = {}
-    #         table = {}
-        
-    #     # from Briggs, Cooper, and Stratton
-
-    #     new_code = []
-
-    #     for ir in self.code:
-    #         if ir.value_number is None or ir.value_expr is None:
-    #             new_code.append(ir)
-    #             continue
-
-    #         old_ir = deepcopy(ir) # DEBUG!!!
-    #         ir.apply_value_numbers(VN)
-
-    #         # print(ir, ir.value_expr)
-
-    #         x = ir.value_number
-    #         expr = ir.value_expr # y op z for a binop
-
-    #         # if expr can be simplified:
-    #         # TBD
-
-    #         if expr in table:
-    #             v = table[expr]
-    #             VN[x] = v
-
-    #             logging.debug(f'GVN: Removing {ir} at line: {ir.lineno}')
-
-    #         elif isinstance(ir, irAssign):
-    #             table[expr] = x
-    #             VN[x] = ir.value
-
-    #             new_code.append(ir)
-
-    #         else:
-    #             VN[x] = x
-    #             table[expr] = x
-
-    #             new_code.append(ir)
-
-
-    #     self.code = new_code
-
-        
-    #     if self not in self.func.dominator_tree:
-    #         return
-
-    #     for c in self.func.dominator_tree[self]:
-    #         c.gvn_analyze(VN, table)
-
-
-    # def old_gvn_analyze(self, values=None, registers=None, visited=None, pass_number=1):
-    #     if values is None:
-    #         logging.debug(f'GVN: Starting optimizer pass: {pass_number}')
-
-    #         values = {}
-    #         registers = {}
-    #         visited = []
-
-    #     if self in visited:
-    #         return False
-
-    #     changed = False
-
-    #     visited.append(self)
-
-    #     new_code = []
-
-    #     for ir in self.code:
-    #         print(f'IR: {ir}')
-
-    #         if isinstance(ir, irLoadConst):
-    #             target = ir.target
-    #             value = ir.value
-
-    #             # assign value to target
-    #             target.value = value
-
-    #             # since this is a constant load, we can assert that the target
-    #             # is now marked as const
-    #             assert target.const
-
-    #             assert target not in values
-    #             values[target] = value
-
-    #             if value not in registers:
-    #                 registers[str(value)] = target
-
-    #         elif isinstance(ir, irAssign):
-    #             target = ir.target
-    #             value = ir.value
-
-    #             # ir.apply_value_numbers(values)
-
-    #             if value in values:
-    #                 replacement = registers[str(values[value])]
-    #                 if ir.value != replacement:
-    #                     ir.value = replacement
-    #                     print(f"replace assign {target} = {value} with {values[value]}")
-    #                     value = values[value]
-
-    #                     changed = True
-
-    #             if value not in registers:
-    #                 registers[str(value)] = target
-                    
-    #             assert target not in values
-    #             values[target] = value
-
-    #             # check if value is const
-    #             if ir.value.const:
-    #                 # assign value to target
-    #                 ir.target.value = ir.value.value
-
-    #         elif isinstance(ir, irLoad):
-    #             target = ir.register
-    #             value = ir.ref
-
-    #             assert target not in values
-    #             values[target] = value
-
-    #             if value not in registers:
-    #                 registers[str(value)] = target
-
-    #         # elif isinstance(ir, irStore):
-    #         #     target = ir.ref
-    #         #     value = ir.register
-
-    #         #     ir.apply_value_numbers(values)
-
-    #         elif isinstance(ir, irReturn):
-    #             value = ir.ret_var
-    #             # ir.apply_value_numbers(values)
-
-    #             if value in values:
-    #                 replacement = registers[str(values[value])]
-
-    #                 if ir.ret_var != replacement:
-    #                     print(f"replace return {ir.ret_var} with {replacement}")
-    #                     ir.ret_var = replacement
-
-    #                     changed = True
-
-
-    #         elif isinstance(ir, irBinop):
-    #             target = ir.target
-    #             left = ir.left
-    #             right = ir.right
-
-    #             if left in values and left != registers[str(values[left])]:
-    #                 print(f"replace left {left} with {registers[str(values[left])]}")
-
-    #                 # if ir.expr.is_commutative and values[left].is_commutative:
-    #                 #     print('meow')
-    #                 ir.left = registers[str(values[left])]
-
-    #                 changed = True
-
-    #             if right in values and right != registers[str(values[right])]:
-    #                 print(f"replace right {right} with {registers[str(values[right])]}")
-
-    #                 # if ir.expr.is_commutative and values[right].is_commutative:
-    #                 #     print('meow')
-    #                 ir.right = registers[str(values[right])]
-
-    #                 changed = True
-
-
-    #             fold = ir.fold()
-
-    #             if fold is not None:
-    #                 changed = True
-
-    #                 print(f'Fold: {fold}')
-
-    #                 assert isinstance(fold, irLoadConst)
-
-    #                 ir = fold
-    #                 ir.block = self
-
-    #                 value = ir.value
-    #                 values[target] = value
-
-    #                 if value not in registers:
-    #                     registers[str(value)] = target
-
-    #             else:
-    #             #     if left in values:
-    #             #         print(f"replace left {left} with {registers[values[left]]}")
-
-    #             #         # if ir.expr.is_commutative and values[left].is_commutative:
-    #             #         #     print('meow')
-
-
-    #             #     if right in values:
-    #             #         print(f"replace right {right} with {registers[values[right]]}")
-
-    #             #         # if ir.expr.is_commutative and values[right].is_commutative:
-    #             #         #     print('meow')
-
-
-    #                 # print(f'expr {ir.expr} -> {target}')
-    #                 value = ir.expr
-    #                 values[target] = value
-
-    #             if value not in registers:
-    #                 registers[str(value)] = target
-
-    #         elif isinstance(ir, irBranch):
-    #             value = ir.value
-
-    #             if value in values:
-    #                 replacement = registers[str(values[value])]
-
-    #                 if ir.value != replacement:
-    #                     ir.value = replacement
-    #                     changed = True
-
-    #             if ir.value.const:
-    #                 changed = True
-
-    #                 # replace branch with jump
-    #                 if ir.value.value == 0:
-    #                     print(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
-    #                     ir = irJump(ir.false_label, lineno=ir.lineno)
-    #                     ir.block = self
-
-    #                 else:
-    #                     print(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
-    #                     ir = irJump(ir.true_label, lineno=ir.lineno)
-    #                     ir.block = self
-
-    #         elif isinstance(ir, irPhi):
-    #             # search predecessors for incoming merges on all edges
-    #             found = []
-    #             for d in ir.merges:
-    #                 for p in self.predecessors:
-    #                     v = p.lookup_var(d)            
-    #                     if v.ssa_name == d.ssa_name:    
-    #                         found.append(v)
-
-    #             # remove merges that were not found in the predecessor search
-    #             # these would be merges coming from blocks whose paths we have
-    #             # optimized out.
-    #             filtered_merges = [d for d in ir.merges if d in found]
-
-    #             if filtered_merges != ir.merges:
-    #                 changed = True
-
-    #             ir.merges = filtered_merges
-
-    #             target = ir.target
-
-    #             if len(ir.merges) == 0:
-    #                 changed = True
-
-    #                 print('removing useless phi node')
-    #                 continue
-                
-    #             elif len(ir.merges) == 1:
-    #                 changed = True
-
-    #                 value = ir.merges[0]
-    #                 print(f'replace phi with assign {target} = {value}')
-    #                 ir = irAssign(target, value, lineno=ir.lineno)
-    #                 ir.block = self
-
-    #                 # further optimizations may be made on this assign in a secondary pass
-
-    #             else:
-    #                 # update values/registers for phi node
-    #                 value = ir.expr
-                    
-    #                 values[target] = value
-
-    #                 if value not in registers:
-    #                     registers[str(value)] = target
-
-        
-    #         new_code.append(ir)
-
-    #     self.code = new_code
-
-    #     print(f"\nGVN Summary: {self.name}")
-
-    #     print("\nVALUES:")
-
-    #     for k, v in values.items():
-    #         print(f'{str(k):32} = {v}')
-
-    #     print("\nREGISTERS:")
-
-    #     for k, v in registers.items():
-    #         print(f'{str(k):32} = {v}')
-
-    #     print('\n')
-
-    #     if self not in self.func.dominator_tree:
-    #         return changed
-
-    #     for c in self.func.dominator_tree[self]:
-    #         if c.gvn_analyze(copy(values), copy(registers), visited=visited):
-    #             changed = True
-
-    #     return changed
 
     def debug_print(self, s):
         if DEBUG or DEBUG_PRINT:
             print(s)
+
+    def gvn_analyze2(self, values=None, visited=None, pass_number=1):
+        pass
 
     def gvn_analyze(self, values=None, visited=None, pass_number=1):
         # global value numbering
@@ -4455,6 +4040,7 @@ class irFunc(IR):
         self.leader_block = None
         self.live_vars = None
         self.loops = {}
+        self.back_edges = []
         self.dominators = {}
         self.dominator_tree = {}
 
@@ -5305,6 +4891,7 @@ class irFunc(IR):
         # reset loop membership
         for block in self.blocks.values():
             block.loops = []
+            block.incoming_back_edges = []
 
         # dominator based algorithm
         # get back edges:
@@ -5315,8 +4902,12 @@ class irFunc(IR):
                     # n dominated by h
                     back_edges.append((n, h))
 
+                    if n not in h.incoming_back_edges:
+                        h.incoming_back_edges.append(n)
+
                     # loop body is all nodes starting at h that reach n
 
+        self.back_edges = back_edges
 
         loop_bodies = []
 
@@ -5385,18 +4976,12 @@ class irFunc(IR):
                 block.loops.append(loop)
                 info['body_vars'].extend(block.get_output_vars())
 
-        # attach loop information to IR code
-        # for block in self.blocks.values():
-        #     for ir in block.code:
-        #         ir.loops = loops.keys()
-
         self.loops = loops
 
     @property
     def sorted_blocks(self):
         return self.leader_block.get_blocks_optimized()
         # return self.leader_block.get_blocks_breadth_first()
-
 
     def compute_live_ranges(self):
         ranges = {}

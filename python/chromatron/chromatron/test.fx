@@ -1,11 +1,13 @@
 
 def init():
-    x = Number()
-    while x < 2:
-    # for x in 2:
-        # for y in 2:
-        pixels[x + 2].hue = 1
-        pixels[x + 2].hue = 2
+    # x = Number()
+    # y = Number()
+    # while x < 2:
+    #     while y < 2:
+    for x in 2:
+        for y in 2:
+            pixels[x + 2].hue = 1
+            pixels[x + 2].hue = 2
 
         # x += 1
 
