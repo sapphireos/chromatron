@@ -54,7 +54,7 @@ class OptPasses(Enum):
 
 
 
-DEBUG = False
+DEBUG = True
 DEBUG_FILTER_LOAD_STORE = True
 DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
@@ -1051,7 +1051,7 @@ class irBlock(IR):
 
                     # check if this input is in the value number table:
                     if m in VN:
-                        replacement = VN[m]
+                        replacement = VN[VN[m]]
 
                         if m != replacement:
                             # replace phi input with the value number
@@ -6134,6 +6134,14 @@ class irReturn(irControlFlow):
     def __str__(self):
         return "RET %s" % (self.ret_var)
 
+    def gvn_process(self, VN):
+        if self.ret_var in VN:
+            replacement = VN[VN[self.ret_var]]
+
+            if replacement != self.ret_var:
+                debug_print(f'replace return value {self.ret_var} with {replacement}')
+                self.ret_var = replacement
+
     def generate(self):
         return insReturn(self.ret_var.generate(), lineno=self.lineno)
 
@@ -6851,15 +6859,20 @@ class irBinop(IR):
         return f'{self.left} {self.op} {self.right}'
 
     def gvn_process(self, VN):
-        if self.left in VN and self.left != VN[self.left]:
-            replacement = VN[self.left]
-            debug_print(f'replace left {self.left} with {replacement}')
-            self.left = replacement
+        if self.left in VN:
+            replacement = VN[VN[self.left]]
 
-        if self.right in VN and self.right != VN[self.right]:
-            replacement = VN[self.right]
-            debug_print(f'replace right {self.right} with {replacement}')
-            self.right = replacement
+            if self.left != replacement:
+                debug_print(f'replace left {self.left} with {replacement}')
+                self.left = replacement
+
+        if self.right in VN:
+            replacement = VN[VN[self.right]]
+
+            if self.right != replacement:
+                debug_print(f'replace right {self.right} with {replacement}')
+                self.right = replacement
+
 
 
         expr = self.gvn_expr
