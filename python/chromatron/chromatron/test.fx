@@ -20,14 +20,15 @@ def init():
     v = c + d
     w = e + f
 
-    if u:
-        x = c + d
-        y = c + d
+    for i in 4:
+        if u:
+            x = c + d
+            y = c + d
 
-    else:
-        u = a + b
-        x = e + f
-        y = e + f
+        else:
+            u = a + b
+            x = e + f
+            y = e + f
 
     z = u + y
     u = a + b

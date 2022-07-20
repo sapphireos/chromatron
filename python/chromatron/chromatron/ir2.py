@@ -54,8 +54,8 @@ class OptPasses(Enum):
 
 
 
-DEBUG = True
-DEBUG_FILTER_LOAD_STORE = True
+DEBUG = False
+DEBUG_FILTER_LOAD_STORE = False
 DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
 SHOW_LIVENESS = False
@@ -6103,6 +6103,21 @@ class irLoop(irControlFlow):
         s = f'LOOP {self.iterator_out} <- ++{self.iterator_in} < {self.stop} -> T: {self.true_label.name} | F: {self.false_label.name}'
 
         return s    
+
+    def gvn_process(self, VN):
+        if self.iterator_in in VN:
+            replacement = VN[VN[self.iterator_in]]
+
+            if replacement != self.iterator_in:
+                debug_print(f'replace iterator_in {self.iterator_in} with {replacement}')
+                self.iterator_in = replacement
+
+        if self.stop in VN:
+            replacement = VN[VN[self.stop]]
+
+            if replacement != self.stop:
+                debug_print(f'replace stop {self.stop} with {replacement}')
+                self.stop = replacement
 
     def get_input_vars(self):
         return [self.iterator_in, self.stop]
