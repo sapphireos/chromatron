@@ -1056,7 +1056,7 @@ class irBlock(IR):
                         if m != replacement:
                             # replace phi input with the value number
 
-                            debug_print(f"Replace phi input {m} with {replacement}")
+                            debug_print(f"Replace phi {phi.target} input {m} with {replacement}")
 
                             phi.merges[i] = (replacement, b)
 
@@ -1222,8 +1222,11 @@ class irBlock(IR):
         if self not in self.func.dominator_tree:
             return
 
-        # TODO! this needs to be in reverse post order:
-        for c in self.func.dominator_tree[self]:
+        # process children in RPO:
+        children = self.func.dominator_tree[self]
+        rpo = [c for c in self.func.reverse_postorder if c in children]
+        
+        for c in rpo:
             c.gvn_analyze2(copy(VN))
 
 
@@ -5926,6 +5929,52 @@ class irPhi(IR):
             s += f'{m.ssa_name} '
 
         return s
+
+    @property
+    def gvn_expr(self):
+        s = 'phi '
+        for m in sorted(self.merges, key=lambda x: x[0].ssa_name):
+            s += f'{m[0].ssa_name} '
+
+        return s
+
+    def gvn_process(self, VN):
+        available_values = []
+
+        for m in self.merges:
+            try:
+                available_values.append(VN[m[0]])
+
+            except KeyError:
+                pass
+
+        new_merges = []
+        if len(available_values) == len(self.merges):
+            for merge in self.merges:
+                m = merge[0]
+                b = merge[1]
+
+                replacement = VN[VN[m]]
+
+                if replacement != m:
+                    debug_print(f'replace phi input {m} with {replacement}')
+
+                    m = replacement
+                
+                new_merges.append((m, b))
+
+            self.merges = new_merges
+
+        expr = self.gvn_expr
+
+        if expr in VN:
+            VN[self.target] = expr
+            
+            return 'remove'
+
+        else:
+            VN[self.target] = self.target
+            VN[expr] = self.target
 
     def get_input_vars(self):
         return [a[0] for a in self.merges]
