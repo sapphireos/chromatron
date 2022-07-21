@@ -6229,6 +6229,24 @@ class irVectorAssign(IR):
     def expr(self):
         return f'{self.target} vector assign {self.value}'
 
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace vector asasign target {self.target} with {replacement}")
+
+                self.target = replacement
+
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace vector asasign value {self.value} with {replacement}")
+
+                self.value = replacement
+
     def get_input_vars(self):
         return [self.target, self.value]
 
@@ -6249,6 +6267,24 @@ class irVectorOp(IR):
         s = '*%s %s=(vector) %s' % (self.target, self.op, self.value)
 
         return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace vector op target {self.target} with {replacement}")
+
+                self.target = replacement
+
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace vector op value {self.value} with {replacement}")
+
+                self.value = replacement
 
     def get_input_vars(self):
         return [self.target, self.value]
@@ -6278,6 +6314,16 @@ class irVectorCalc(IR):
         s = f'{self.result} = {self.op}({self.ref})'
 
         return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if self.ref != replacement:
+                debug_print(f"replace vector calc {self.ref} with {replacement}")
+
+                self.ref = replacement
 
     def get_input_vars(self):
         return [self.ref]
@@ -6321,6 +6367,49 @@ class irObjectLookup(IR):
 
         return s
 
+    @property
+    def gvn_expr(self):
+        s = f'object lookup: {self.target} '
+        for m in self.lookups:
+            s += f'{m.ssa_name} '
+
+        return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace object lookup {self.target} with {replacement}")
+
+                self.target = replacement
+
+        for i in range(len(self.lookups)):
+            lookup = self.lookups[i]
+            if lookup in VN:
+                replacement = VN[VN[lookup]]
+
+                if lookup != replacement:
+
+                    debug_print(f"replace object lookup {self.lookups[i]} with {replacement}")
+
+                    self.lookups[i] = replacement
+
+        expr = self.gvn_expr
+
+        # is expr in hash table?
+        if expr in VN:
+            v = VN[expr]
+
+            VN[self.result] = v
+
+            return 'remove'
+
+        else:
+            VN[self.result] = self.result
+            VN[expr] = self.result
+
     def get_input_vars(self):
         inputs = [self.target]
         inputs.extend(self.lookups)
@@ -6359,6 +6448,35 @@ class irObjectStore(IR):
 
     def __str__(self):
         return f'{self.target}.{self.attr.name} =(object) {self.value}'
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace object store {self.target} with {replacement}")
+
+                self.target = replacement
+
+        for i in range(len(self.lookups)):
+            if self.lookups[i] in VN:
+                replacement = VN[VN[self.lookups[i]]]
+
+                if self.lookups[i] != replacement:
+
+                    debug_print(f"replace object store lookup {self.lookups[i]} with {replacement}")
+
+                    self.lookups[i] = replacement
+
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace object store {self.value} with {replacement}")
+
+                self.value = replacement
+
 
     def get_input_vars(self):
         inputs = [self.value, self.target]
@@ -6434,6 +6552,26 @@ class irObjectLoad(IR):
     def __str__(self):
         return f'{self.target} =(object) {self.value}.{self.attr.name}'
 
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.lookups)):
+            if self.lookups[i] in VN:
+                replacement = VN[VN[self.lookups[i]]]
+
+                if self.lookups[i] != replacement:
+
+                    debug_print(f"replace load {self.lookups[i]} with {replacement}")
+
+                    self.lookups[i] = replacement
+
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace object load {self.value} with {replacement}")
+
+                self.value = replacement
+
     def get_input_vars(self):
         inputs = [self.value]
         inputs.extend(self.lookups)
@@ -6497,6 +6635,23 @@ class irObjectOp(IR):
 
     def __str__(self):
         return f'{self.target}.{self.attr.name} {self.op}=(object) {self.value}'
+
+    def gvn_process(self, VN):
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace object op {self.target} with {replacement}")
+
+                self.target = replacement
+        
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace object op {self.value} with {replacement}")
+
+                self.value = replacement
 
     def get_input_vars(self):
         return [self.value, self.target]
@@ -6665,6 +6820,29 @@ class irLoadRef(IR):
     def expr(self):
         return f'loadref {self.ref}'
 
+    @property
+    def gvn_expr(self):
+        return f'loadref {self.ref}'
+
+    def gvn_process(self, VN):
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if ir.ref != replacement:
+                debug_print(f'replace ref {self.ref} with {replacement}')
+
+                ir.ref = replacement
+
+        expr = self.gvn_expr
+
+        if expr in VN:
+            VN[self.target] = expr
+
+            return 'remove'
+        else:
+            VN[self.target] = self.target
+            VN[expr] = self.target
+
     def get_input_vars(self):
         return []
 
@@ -6681,13 +6859,22 @@ class irLoad(IR):
         self.register = register
         self.ref = ref
 
-        
     def __str__(self):
         return f'LOAD {self.register} <-- {self.ref}'
 
     @property
     def expr(self):
         return f'mem {self.ref}'
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if self.ref != replacement:
+                debug_print(f"replace load ref {self.ref} with {replacement}")
+
+                self.ref = replacement
 
     def get_input_vars(self):
         if self.ref.data_type == 'offset':
@@ -6727,6 +6914,24 @@ class irStore(IR):
     @property
     def expr(self):
         return f'mem {self.ref}'
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if self.ref != replacement:
+                debug_print(f"replace store ref {self.ref} with {replacement}")
+
+                self.ref = replacement
+
+        if self.register in VN:
+            replacement = VN[VN[self.register]]
+
+            if self.register != replacement:
+                debug_print(f"replace store register {self.register} with {replacement}")
+
+                self.register = replacement
 
     def get_input_vars(self):
         i = [self.register]
@@ -6799,6 +7004,15 @@ class irUnaryNot(IR):
     @property
     def expr(self):    
         return f'not {self.value}'
+
+    def gvn_process(self, VN):
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace unary not value {self.value} with {replacement}")
+
+                self.value = replacement
 
     def fold(self):
         if self.value.value is None:
@@ -7106,6 +7320,15 @@ class irConvertType(IR):
     def expr(self):
         return f'conv {self.result.data_type} {self.value}'
 
+    def gvn_process(self, VN):
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace convert type {self.value} with {replacement}")
+
+                self.value = replacement
+
     def fold(self):
         if self.result.data_type == self.value.data_type:
             # data type is converting to same type.
@@ -7205,6 +7428,43 @@ class irLookup(IR):
 
         return s
 
+    def gvn_process(self, VN):
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace lookup {self.value} with {replacement}")
+
+                self.value = replacement
+
+        for i in range(len(self.lookups)):
+            if self.lookups[i] in VN:
+                replacement = VN[VN[self.lookups[i]]]
+
+                if self.lookups[i] != replacement:
+                    debug_print(f"replace lookup {self.lookups[i]} with {replacement}")
+
+                    self.lookups[i] = replacement
+
+        for i in range(len(self.counts)):
+            if self.counts[i] in VN:
+                replacement = VN[VN[self.counts[i]]]
+
+                if self.counts[i] != replacement:
+                    debug_print(f"replace count {self.counts[i]} with {replacement}")
+
+                    self.counts[i] = replacement
+        
+        for i in range(len(self.strides)):
+            if self.strides[i] in VN:
+                replacement = VN[VN[self.strides[i]]]
+
+                if self.strides[i] != replacement:
+                    debug_print(f"replace stride {self.strides[i]} with {replacement}")
+
+                    self.strides[i] = replacement
+        
+
     def get_input_vars(self):
         inputs = [self.ref]
         inputs.extend(self.lookups)
@@ -7255,6 +7515,16 @@ class irPrint(IR):
         super().__init__(**kwargs)        
         self.value = value
 
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace print {self.value} with {replacement}")
+
+                self.value = replacement
+
     def get_input_vars(self):
         return [self.value]
 
@@ -7270,6 +7540,16 @@ class irAssert(IR):
     def __init__(self, value, **kwargs):
         super().__init__(**kwargs)        
         self.value = value
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace assert {self.value} with {replacement}")
+
+                self.value = replacement
 
     def get_input_vars(self):
         return [self.value]
@@ -7292,6 +7572,16 @@ class irLoadRetVal(IR):
 
         return s   
 
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace load ret val {self.target} with {replacement}")
+
+                self.target = replacement
+
     def get_output_vars(self):
         return [self.target]
 
@@ -7313,6 +7603,17 @@ class irCall(irCallType):
         s = f'CALL {self.target.name}({params})'
 
         return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.params)):
+            if self.params[i] in VN:
+                replacement = VN[VN[self.params[i]]]
+
+                if self.params[i] != replacement:
+                    debug_print(f"replace call param {self.params[i]} with {replacement}")
+
+                    self.params[i] = replacement
 
     def get_input_vars(self):
         return self.params
@@ -7366,6 +7667,25 @@ class irIndirectCall(irCallType):
 
         return s
 
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.params)):
+            if self.params[i] in VN:
+                replacement = VN[VN[self.params[i]]]
+
+                if self.params[i] != replacement:
+                    debug_print(f"replace icall param {self.params[i]} with {replacement}")
+
+                    self.params[i] = replacement
+
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if self.ref != replacement:
+                debug_print(f"replace icall ref {self.ref} with {replacement}")
+
+                self.ref = replacement
+
     def get_input_vars(self):
         inputs = [self.ref]
         inputs.extend(self.params)
@@ -7409,6 +7729,25 @@ class irLibCall(irCallType):
         s = f'LCALL {self.func_name}:{self.target}({params})'
 
         return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.params)):
+            if self.params[i] in VN:
+                replacement = VN[VN[self.params[i]]]
+
+                if self.params[i] != replacement:
+                    debug_print(f"replace lcall param {self.params[i]} with {replacement}")
+
+                    self.params[i] = replacement
+
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace lcall target {self.target} with {replacement}")
+
+                self.target = replacement
 
     def get_input_vars(self):
         inputs = [self.target]
@@ -7456,6 +7795,33 @@ class irDBCall(irCallType):
         s = f'DBCALL {self.func_name}:{self.target}.{self.key}({params})'
 
         return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.params)):
+            if self.params[i] in VN:
+                replacement = VN[VN[self.params[i]]]
+
+                if self.params[i] != replacement:
+                    debug_print(f"replace dbcall param {self.params[i]} with {replacement}")
+
+                    self.params[i] = replacement
+
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace dbcall target {self.target} with {replacement}")
+
+                self.target = replacement
+
+        if self.key in VN:
+            replacement = VN[VN[self.key]]
+
+            if self.key != replacement:
+                debug_print(f"replace dbcall key {self.key} with {replacement}")
+
+                self.key = replacement
 
     def get_input_vars(self):
         inputs = [self.target, self.key]

@@ -1,54 +1,53 @@
 
 
-# basic GVN test:
-def init():
-    a = Number(1)
-    b = Number(2)
-    c = Number(4)
-    d = Number(8)
-    e = Number(16)
-    f = Number(32)
-
-    u = Number()
-    v = Number()
-    w = Number()
-    x = Number()
-    y = Number()
-    z = Number()
-
-    u = a + b
-    v = c + d
-    w = e + f
-
-    for i in 4:
-        if u:
-            x = c + d
-            y = c + d
-
-        else:
-            u = a + b
-            x = e + f
-            y = e + f
-
-    z = u + y
-    u = a + b
-
-    return z + u
-
-
+# # basic GVN test:
 # def init():
-#     # x = Number()
-#     # y = Number()
-#     # while x < 2:
-#     #     while y < 2:
-#     for x in 2:
-#         for y in 2:
-#             pixels[x + 2].hue = 1
-#             pixels[x + 2].hue = 2
+#     a = Number(1)
+#     b = Number(2)
+#     c = Number(4)
+#     d = Number(8)
+#     e = Number(16)
+#     f = Number(32)
 
-#         # x += 1
+#     u = Number()
+#     v = Number()
+#     w = Number()
+#     x = Number()
+#     y = Number()
+#     z = Number()
 
-#     # a = ary[0]
+#     u = a + b
+#     v = c + d
+#     w = e + f
+
+#     if u:
+#         x = c + d
+#         y = c + d
+
+#     else:
+#         u = a + b
+#         x = e + f
+#         y = e + f
+
+#     z = u + y
+#     u = a + b
+
+#     return z + u
+
+
+def init():
+    # x = Number()
+    # y = Number()
+    # while x < 2:
+    #     while y < 2:
+    for x in 2:
+        # for y in 2:
+        pixels[x + 2].hue = 1
+        pixels[x + 2].hue = 2
+
+        # x += 1
+
+    # a = ary[0]
 
 # current_hue = Fixed16()
 # delay = Number()
