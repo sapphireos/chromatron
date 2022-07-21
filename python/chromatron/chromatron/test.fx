@@ -1,49 +1,37 @@
 
 # basic GVN test:
-# def init():
-#     a = Number(1)
-#     b = Number(2)
-#     c = Number(4)
-#     d = Number(8)
-#     e = Number(16)
-#     f = Number(32)
-
-#     u = Number()
-#     v = Number()
-#     w = Number()
-#     x = Number()
-#     y = Number()
-#     z = Number()
-
-#     u = a + b
-#     v = c + d
-#     w = e + f
-
-#     if u:
-#         x = c + d
-#         y = c + d
-
-#     else:
-#         u = a + b
-#         x = e + f
-#         y = e + f
-
-#     z = u + y
-#     u = a + b
-
-#     return z + u
-
-
-ary = Number()[4]
-
-a = Number(publish=True)
-
 def init():
-    for i in len(ary):
-        ary[i] = i * 4
+    a = Number(1)
+    b = Number(2)
+    c = Number(4)
+    d = Number(8)
+    e = Number(16)
+    f = Number(32)
 
-    a = sum(ary)
+    u = Number()
+    v = Number()
+    w = Number()
+    x = Number()
+    y = Number()
+    z = Number()
 
+    u = a + b
+    v = c + d
+    w = e + f
+
+    if u:
+        x = c + d
+        y = c + d
+
+    else:
+        u = a + b
+        x = e + f
+        y = e + f
+
+    z = u + y
+    u = a + b
+
+    return z + u
 
 
 # a = Number(publish=True)

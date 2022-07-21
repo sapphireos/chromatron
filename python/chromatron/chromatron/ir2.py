@@ -979,6 +979,7 @@ class irBlock(IR):
 
     def gvn_process_phi(self, VN):
         new_code = []
+        changed = False
 
         # analyze phi nodes
         for ir in self.code:
@@ -1026,6 +1027,8 @@ class irBlock(IR):
                 VN[phi.target] = phi.target
 
         self.code = new_code
+
+        return changed
 
     def gvn_adjust_successor_phi(self, VN):
         """
@@ -1185,19 +1188,26 @@ class irBlock(IR):
 
         logging.debug(f'GVN Analyze: {self.name}')
 
+        changed = False
+
         self.gvn_process_phi(VN)
 
         new_code = []
         for ir in self.code:
             op = ir.gvn_process(VN)
 
-            # if isinstance(op, IR):
-            #     debug_print(f'Replace: {ir} with {op}')
-            #     ir = op
-            #     ir.block = self
+            if isinstance(op, IR):
+                debug_print(f'Replace: {ir} with {op}')
+                ir = op
+                ir.block = self
 
-            if op == 'remove':
+                changed = True
+
+            elif op == 'remove':
                 debug_print(f'Remove: {ir}')
+
+                changed = True
+                
                 continue
 
             new_code.append(ir)
@@ -1225,14 +1235,17 @@ class irBlock(IR):
         
 
         if self not in self.func.dominator_tree:
-            return
+            return changed
 
         # process children in RPO:
         children = self.func.dominator_tree[self]
         rpo = [c for c in self.func.reverse_postorder if c in children]
         
         for c in rpo:
-            c.gvn_analyze2(copy(VN))
+            if c.gvn_analyze2(copy(VN)):
+                changed = True
+
+        return changed
 
 
     def gvn_analyze(self, values=None, visited=None, pass_number=1):
@@ -4989,10 +5002,20 @@ class irFunc(IR):
     def gvn_optimizer(self, *args, **kwargs):
         original_count = len(self.get_code_from_blocks())
 
-        self.recalc_dominators()
-        self.analyze_loops()
+        MAX_GVN_ITERATIONS = 100
 
-        self.leader_block.gvn_analyze2(VN={})
+        changed = True
+        i = 0
+
+        while changed and i <= MAX_GVN_ITERATIONS:
+            i += 1
+
+            logging.debug(f'GVN pass: {i}')
+
+            self.recalc_dominators()
+            self.analyze_loops()
+
+            changed = self.leader_block.gvn_analyze2(VN={})
 
 
         return
@@ -7202,8 +7225,7 @@ class irBinop(IR):
         expr = self.gvn_expr
 
         # simplify
-        # fold = self.fold()
-        fold = None
+        fold = self.fold()
 
         if fold is not None:
             debug_print(f'Fold binop: {fold}')
