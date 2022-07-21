@@ -56,8 +56,8 @@ class OptPasses(Enum):
 
 DEBUG = False
 DEBUG_FILTER_LOAD_STORE = False
-DEBUG_PRINT = True
-EXCEPTION_ON_LIVENESS_ERROR = False
+DEBUG_PRINT = False
+EXCEPTION_ON_LIVENESS_ERROR = True
 SHOW_LIVENESS = False
 # LIVENESS_MODE = 'register'
 LIVENESS_MODE = 'mem'
@@ -5053,7 +5053,11 @@ class irFunc(IR):
         self.recalc_defines()
         self.recalc_dominators()
         self.analyze_loops()
-        
+
+        new_count = len(self.get_code_from_blocks())
+
+        logging.info(f'GVN completed in {i} passes.  Removed {original_count - new_count} instructions.')
+
         return
 
         
