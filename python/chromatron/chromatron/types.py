@@ -565,6 +565,8 @@ class varStringLiteral(varString):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='strlit', **kwargs)    
 
+        self.length = 1
+
 
 _BASE_TYPES = {
     'var': varScalar(), 

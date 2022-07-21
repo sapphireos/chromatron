@@ -4708,13 +4708,14 @@ class irFunc(IR):
             info['header'].loops.append(info)
 
             info['footer'] = self.leader_block._loops_find_footer(loop)
-            try:
-                assert info['footer'] is not None
+            # try:
+            #     assert info['footer'] is not None
 
-            except AssertionError:
-                raise CompilerFatal(f'Loop {loop} failed to find footer block.  Possible infinite loop.')
+            # except AssertionError:
+            #     raise CompilerFatal(f'Loop {loop} failed to find footer block.  Possible infinite loop.')
 
-            info['footer'].loops.append(info)
+            if info['footer'] is not None:
+                info['footer'].loops.append(info)
 
             # add loop to blocks in body
             for block in info['body']:
@@ -4793,8 +4794,6 @@ class irFunc(IR):
             addr += l.size
 
     def allocate_registers(self, max_registers=256):        
-        # self.register_count = self.leader_block.allocate_registers(max_registers) 
-
         """
         Assign registers greedily variable by variable in the live range.
         A given variable always receives the same register, even if there is a 
@@ -4847,6 +4846,11 @@ class irFunc(IR):
 
             intervals[var] = list(range(live_at[0], live_at[-1] + 1))
 
+        # assign zero register to register 0
+        # 0 is live always
+        zero = self.symbol_table.lookup('__zero__').var
+        registers[zero] = address_pool.pop(0)
+
         # allocate first set of registers directly to params.
         # even if the param is unused, it still requires a register
         # so the caller can pass a value to it.
@@ -4855,6 +4859,11 @@ class irFunc(IR):
 
         for i in range(len(self.code)):
             for var in sorted(intervals.keys(), key=lambda a: a.name):
+                # check if const 0: 
+                if var.const and var.value == 0:
+                    registers[var] = registers[zero]
+                    continue
+
                 interval = intervals[var]
                 if i == (interval[-1] + 1):
                     # are we terminating liveness?
@@ -4910,8 +4919,10 @@ class irFunc(IR):
         # (and is necessary to prevent executing instructions with 
         # invalid register assignments)
         self.code = [ir for ir in self.code if ir not in unassigned_ir]
-
+        
         self.register_count = max(registers.values()) + 1
+        assert self.register_count > 0
+
         self.registers = registers          
 
         logging.debug(f'Allocated {len(registers)} virtual registers and {max_registers - min_address_pool} machine registers')  

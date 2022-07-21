@@ -1,38 +1,54 @@
-
+p1 = PixelArray(3, 2) # 2 pixels starting at index 3 (4th pixel in array)
 
 # basic GVN test:
 def init():
-    a = Number(1)
-    b = Number(2)
-    c = Number(4)
-    d = Number(8)
-    e = Number(16)
-    f = Number(32)
+    # a = Number(1)
+    # b = Number(2)
+    # c = Number(4)
+    # d = Number(8)
+    # e = Number(16)
+    # f = Number(32)
 
-    u = Number()
-    v = Number()
-    w = Number()
-    x = Number()
-    y = Number()
-    z = Number()
+    # u = Number()
+    # v = Number()
+    # w = Number()
+    # x = Number()
+    # y = Number()
+    # z = Number()
 
-    u = a + b
-    v = c + d
-    w = e + f
+    # u = a + b
+    # v = c + d
+    # w = e + f
 
-    if u:
-        x = c + d
-        y = c + d
+    # if u:
+    #     x = c + d
+    #     y = c + d
 
-    else:
-        u = a + b
-        x = e + f
-        y = e + f
+    # else:
+    #     u = a + b
+    #     x = e + f
+    #     y = e + f
 
-    z = u + y
-    u = a + b
+    # z = u + y
+    # u = a + b
 
-    return z + u
+    # return z + u
+
+    # a = Number()
+    # a = 0
+
+    # while True:
+    #     # a += 1
+    #     pass
+
+    pixels.hue = 0.0
+
+    a = Fixed16()
+
+    a = p1[0].hue
+
+    return a
+
 
 # a = Number(publish=True)
 # b = Number(publish=True)

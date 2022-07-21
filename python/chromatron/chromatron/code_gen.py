@@ -32,6 +32,7 @@ colored_traceback.add_hook()
 
 # from .ir import *
 from .ir2 import CompilerFatal, SyntaxError, OptPasses
+from .instructions2 import CycleLimitExceeded
 from .builder import Builder
 from sapphire.common.util import setup_basic_logging
 
@@ -1225,8 +1226,12 @@ def run_script(path, debug_print=False, opt_passes=OptPasses.SSA):
 
     # for func in ins_program.funcs:
     func = ins_program.init_func
-    ret_val = func.run()
-    print(f'VM returned: {ret_val}')
+    try:
+        ret_val = func.run()
+        print(f'VM returned: {ret_val}')
+
+    except CycleLimitExceeded:
+        print(f'!!! Cycle limit exceeded !!!')
 
     pprint.pprint(ins_program.gfx_data)
     pprint.pprint(ins_program.dump_globals())
