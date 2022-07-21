@@ -988,6 +988,20 @@ class irBlock(IR):
                 continue
 
             phi = ir
+
+
+            # check if phi input blocks still exist
+            # they can be removed by GVN for constant branches
+            remove = []
+            for merge in phi.merges:
+                # if merge[1] not in self.func.blocks.values():
+                if merge[1] not in self.predecessors:
+                    debug_print(f'removing unused phi input {merge[0]} from missing predecessor: {merge[1].name}')
+
+                    remove.append(merge)
+
+            phi.merges = [m for m in phi.merges if m not in remove]
+
             # check if phi is meaningless or redundant
 
             # meaningless: all inputs have the same value number
@@ -5012,6 +5026,13 @@ class irFunc(IR):
 
             logging.debug(f'GVN pass: {i}')
 
+            # we may have eliminated instructions, or entire blocks:
+            # relink blocks, prune, verify, recalc dominance, and re-analyze loops
+            self.leader_block.relink_blocks()
+            self.leader_block.prune_unreachable_blocks()
+            self.verify_block_assignments()
+            self.verify_block_links()
+            self.recalc_defines()
             self.recalc_dominators()
             self.analyze_loops()
 
@@ -5023,6 +5044,16 @@ class irFunc(IR):
             with open(f"GVN.fxir", 'w') as f:
                 f.write(str(self))
 
+        # we may have eliminated instructions, or entire blocks:
+        # relink blocks, prune, verify, recalc dominance, and re-analyze loops
+        self.leader_block.relink_blocks()
+        self.leader_block.prune_unreachable_blocks()
+        self.verify_block_assignments()
+        self.verify_block_links()
+        self.recalc_defines()
+        self.recalc_dominators()
+        self.analyze_loops()
+        
         return
 
         
@@ -6144,6 +6175,17 @@ class irBranch(irControlFlow):
             if replacement != self.value:
                 debug_print(f'replace value {self.value} with {replacement}')
                 self.value = replacement
+
+        # simplify this branch if input is a const
+        if self.value.const:
+            # replace branch with jump
+            if self.value.value == 0:
+                debug_print(f'replace 2-way branch with jump to FALSE: {self.false_label}')
+                return irJump(self.false_label, lineno=self.lineno)
+            
+            else:
+                debug_print(f'replace 2-way branch with jump to TRUE: {self.true_label}')
+                return irJump(self.true_label, lineno=self.lineno)
 
     def get_input_vars(self):
         return [self.value]

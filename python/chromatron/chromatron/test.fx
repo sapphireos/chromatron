@@ -1,37 +1,48 @@
 
-# basic GVN test:
+# # basic GVN test:
+# def init():
+#     a = Number(1)
+#     b = Number(2)
+#     c = Number(4)
+#     d = Number(8)
+#     e = Number(16)
+#     f = Number(32)
+
+#     u = Number()
+#     v = Number()
+#     w = Number()
+#     x = Number()
+#     y = Number()
+#     z = Number()
+
+#     u = a + b
+#     v = c + d
+#     w = e + f
+
+#     if u:
+#         x = c + d
+#         y = c + d
+
+#     else:
+#         u = a + b
+#         x = e + f
+#         y = e + f
+
+#     z = u + y
+#     u = a + b
+
+#     return z + u
+
+
+global_i = Number(publish=True)
+
 def init():
-    a = Number(1)
-    b = Number(2)
-    c = Number(4)
-    d = Number(8)
-    e = Number(16)
-    f = Number(32)
+    for i in 10:
+        if i > 5:
+            break
 
-    u = Number()
-    v = Number()
-    w = Number()
-    x = Number()
-    y = Number()
-    z = Number()
+    global_i = i
 
-    u = a + b
-    v = c + d
-    w = e + f
-
-    if u:
-        x = c + d
-        y = c + d
-
-    else:
-        u = a + b
-        x = e + f
-        y = e + f
-
-    z = u + y
-    u = a + b
-
-    return z + u
 
 # a = Number(publish=True)
 # b = Number(publish=True)
