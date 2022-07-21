@@ -3,6 +3,9 @@ import os
 from subprocess import STDOUT, check_output, TimeoutExpired
 import math
 
+
+from multiprocessing import Pool
+
 from datetime import datetime
 from .ir2 import DivByZero, OptPasses
 from .instructions2 import MAX_INT32, MIN_INT32
@@ -543,7 +546,7 @@ def generate_valid_program(skip_exc=False):
 
     return f, output
 
-def generate_programs(total=None, target_dir='fuzzer'):
+def generate_programs(total=None, parallel=False, target_dir='fuzzer'):
     count = 0
 
     cwd = os.getcwd()
@@ -555,18 +558,26 @@ def generate_programs(total=None, target_dir='fuzzer'):
 
     os.chdir(target_dir)
 
-    while total is None or count < total:
-        f, output = generate_valid_program(skip_exc=True)
+    if parallel:
 
-        if f is None:
-            continue
+        # this needs work....
+        args = [True] * total
+        with Pool() as p:
+            p.map(generate_valid_program, args)
 
-        with open(f'fuzzer_{datetime.utcnow().isoformat()}_{count}_{os.getpid()}.fx', 'w') as file:
-            file.write(f'# OUTPUT: {output}\n\n')
-            file.write(f.render())
-            
-        count += 1
-        print(count)
+    else:
+        while total is None or count < total:
+            f, output = generate_valid_program(skip_exc=True)
+
+            if f is None:
+                continue
+
+            with open(f'fuzzer_{datetime.utcnow().isoformat()}_{count}_{os.getpid()}.fx', 'w') as file:
+                file.write(f'# OUTPUT: {output}\n\n')
+                file.write(f.render())
+                
+            count += 1
+            print(count)
 
     os.chdir(cwd)
 
@@ -607,9 +618,6 @@ def test_program(fx_file, opt_passes=None):
             print(f'Py:{py_output}, FX:{fx_output}')
             print(fx_file)
             raise
-
-
-from multiprocessing import Pool
 
 def test_programs(target_dir='fuzzer', parallel=True, opt_passes=[]):
     global selected_opt_passes
@@ -656,7 +664,14 @@ def main():
 
         test_programs(opt_passes=opt_passes)
 
+
+
+
     return
+
+
+
+
 
     i = 0
     while i < 1000:
