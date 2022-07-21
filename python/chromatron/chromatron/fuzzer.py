@@ -4,7 +4,7 @@ from subprocess import STDOUT, check_output, TimeoutExpired
 import math
 
 from datetime import datetime
-from .ir2 import DivByZero
+from .ir2 import DivByZero, OptPasses
 from .instructions2 import MAX_INT32, MIN_INT32
 from .code_gen import parse, compile_text
 from random import randint
@@ -118,6 +118,12 @@ class Block(Element):
 				e.generate(max_length - self.count, max_depth)
 
 				self.add_element(e)
+
+				# reduce occurence of code sequences appearing after a return or
+				# other control flow that performs a jump.
+				if isinstance(e, Return) or isinstance(e, Break) or isinstance(e, Continue):
+					if randint(0, 100) > 5:
+						break
 
 		if len(self.elements) == 0:
 			p = Pass()
@@ -577,7 +583,7 @@ def test_program(fx_file):
 
 		try:
 			try:
-				prog = compile_text(code)
+				prog = compile_text(code, opt_passes=OptPasses.SSA)
 
 			except DivByZero:
 				return # Div by 0 is a syntax error in FX, this is ok
@@ -619,8 +625,14 @@ def main():
 	# with Pool(48) as p:
 	# 	p.map(generate_programs, [10000]*25)
 
-	# generate_programs(100)
-	test_programs()
+	op = sys.argv[1]
+	if op == 'generate':
+		count = int(sys.argv[2])
+		generate_programs(count)
+
+	elif op == 'test':
+		test_programs()
+
 	return
 
 	i = 0

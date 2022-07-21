@@ -1,49 +1,49 @@
 
 
-# # basic GVN test:
-# def init():
-#     a = Number(1)
-#     b = Number(2)
-#     c = Number(4)
-#     d = Number(8)
-#     e = Number(16)
-#     f = Number(32)
-
-#     u = Number()
-#     v = Number()
-#     w = Number()
-#     x = Number()
-#     y = Number()
-#     z = Number()
-
-#     u = a + b
-#     v = c + d
-#     w = e + f
-
-#     if u:
-#         x = c + d
-#         y = c + d
-
-#     else:
-#         u = a + b
-#         x = e + f
-#         y = e + f
-
-#     z = u + y
-#     u = a + b
-
-#     return z + u
-
-a = Number(publish=True)
-b = Number(publish=True)
-
+# basic GVN test:
 def init():
-    a = pixels.count
+    a = Number(1)
+    b = Number(2)
+    c = Number(4)
+    d = Number(8)
+    e = Number(16)
+    f = Number(32)
 
-    i = Number()
-    # while i < pixels.count:
-    for i in pixels.count:
-        b += i
+    u = Number()
+    v = Number()
+    w = Number()
+    x = Number()
+    y = Number()
+    z = Number()
+
+    u = a + b
+    v = c + d
+    w = e + f
+
+    if u:
+        x = c + d
+        y = c + d
+
+    else:
+        u = a + b
+        x = e + f
+        y = e + f
+
+    z = u + y
+    u = a + b
+
+    return z + u
+
+# a = Number(publish=True)
+# b = Number(publish=True)
+
+# def init():
+#     a = pixels.count
+
+#     i = Number()
+#     # while i < pixels.count:
+#     for i in pixels.count:
+#         b += i
 
         # i += 1
 
