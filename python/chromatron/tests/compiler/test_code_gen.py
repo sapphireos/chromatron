@@ -1977,11 +1977,31 @@ def init():
 
 """
 
+test_pixels_count = """
+    
+a = Number(publish=True)
+b = Number(publish=True)
+
+def init():
+    a = pixels.count
+
+    for i in pixels.count:
+        b += i
+
+"""
 
 
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_pixels_count(self, opt_passes):
+        self.run_test(test_pixels_count,
+            opt_passes=opt_passes,
+            expected={
+                'a': 16,
+                'b': 120,
+            })
 
     def test_div_by_zero(self, opt_passes):
         self.run_test(test_div_by_zero,

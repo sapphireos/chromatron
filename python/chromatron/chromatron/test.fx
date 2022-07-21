@@ -34,20 +34,33 @@
 
 #     return z + u
 
+a = Number(publish=True)
+b = Number(publish=True)
 
 def init():
-    # x = Number()
-    # y = Number()
-    # while x < 2:
-    #     while y < 2:
-    for x in 2:
-        # for y in 2:
-        pixels[x + 2].hue = 1
-        pixels[x + 2].hue = 2
+    a = pixels.count
 
-        # x += 1
+    i = Number()
+    # while i < pixels.count:
+    for i in pixels.count:
+        b += i
 
-    # a = ary[0]
+        # i += 1
+
+
+# def init():
+#     # x = Number()
+#     # y = Number()
+#     # while x < 2:
+#     #     while y < 2:
+#     for x in 2:
+#         # for y in 2:
+#         pixels[x + 2].hue = 1
+#         pixels[x + 2].hue = 2
+
+#         # x += 1
+
+#     # a = ary[0]
 
 # current_hue = Fixed16()
 # delay = Number()

@@ -1576,13 +1576,20 @@ class insLoop(BaseJmp):
         return "%s, %s <- ++%s < %s -> %s" % (self.mnemonic, self.iterator_out, self.iterator_in, self.stop, self.label)
 
     def execute(self, vm):
+        ret_val = None
+
         # increment op1
-        vm.registers[self.iterator_out.reg] = vm.registers[self.iterator_in.reg] + 1
+        value = vm.registers[self.iterator_in.reg] + 1
 
         # compare to op2
-        if vm.registers[self.iterator_out.reg] < vm.registers[self.stop.reg]:
+        if value < vm.registers[self.stop.reg]:
+            
             # return jump target
-            return self.label
+            ret_val = self.label
+
+        vm.registers[self.iterator_out.reg] = value
+
+        return ret_val
 
     def assemble(self):
         return OpcodeFormat1Imm3Reg(self.mnemonic, self.label.assemble(), self.iterator_in.assemble(), self.iterator_out.assemble(), self.stop.assemble(), lineno=self.lineno)
