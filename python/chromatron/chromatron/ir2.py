@@ -5017,6 +5017,11 @@ class irFunc(IR):
 
             changed = self.leader_block.gvn_analyze2(VN={})
 
+            changed = False
+
+        if self.name == 'init':
+            with open(f"GVN.fxir", 'w') as f:
+                f.write(str(self))
 
         return
 
@@ -7234,6 +7239,7 @@ class irBinop(IR):
 
             VN[fold.target] = fold.target
             VN[fold.gvn_expr] = fold.target
+            VN[expr] = fold.gvn_expr
 
             return fold
 
