@@ -5017,7 +5017,7 @@ class irFunc(IR):
 
             changed = self.leader_block.gvn_analyze2(VN={})
 
-            changed = False
+            # changed = False
 
         if self.name == 'init':
             with open(f"GVN.fxir", 'w') as f:
@@ -7205,10 +7205,9 @@ class irBinop(IR):
     def expr(self):    
         return irExpr(self.left, self.op, self.right, lineno=self.lineno)
 
-
     @property
     def gvn_expr(self):
-        return f'{self.left} {self.op} {self.right}'
+        return f'{self.left.ssa_name} {self.op} {self.right.ssa_name}'
 
     def gvn_process(self, VN):
         if self.left in VN:
@@ -7225,21 +7224,19 @@ class irBinop(IR):
                 debug_print(f'replace right {self.right} with {replacement}')
                 self.right = replacement
 
-
-
         expr = self.gvn_expr
 
         # simplify
         fold = self.fold()
 
         if fold is not None:
-            debug_print(f'Fold binop: {fold}')
+            debug_print(f'Fold binop: {self} to {fold}')
 
             assert isinstance(fold, irLoadConst)
 
             VN[fold.target] = fold.target
             VN[fold.gvn_expr] = fold.target
-            VN[expr] = fold.gvn_expr
+            VN[expr] = fold.target
 
             return fold
 
