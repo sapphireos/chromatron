@@ -7429,13 +7429,13 @@ class irLookup(IR):
         return s
 
     def gvn_process(self, VN):
-        if self.value in VN:
-            replacement = VN[VN[self.value]]
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
 
-            if self.value != replacement:
-                debug_print(f"replace lookup {self.value} with {replacement}")
+            if self.ref != replacement:
+                debug_print(f"replace lookup {self.ref} with {replacement}")
 
-                self.value = replacement
+                self.ref = replacement
 
         for i in range(len(self.lookups)):
             if self.lookups[i] in VN:
