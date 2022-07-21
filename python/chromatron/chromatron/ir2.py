@@ -1191,6 +1191,11 @@ class irBlock(IR):
         for ir in self.code:
             op = ir.gvn_process(VN)
 
+            # if isinstance(op, IR):
+            #     debug_print(f'Replace: {ir} with {op}')
+            #     ir = op
+            #     ir.block = self
+
             if op == 'remove':
                 debug_print(f'Remove: {ir}')
                 continue
@@ -3807,6 +3812,8 @@ class irFunc(IR):
 
         walk(self.leader_block)
 
+        assert len(order) == len(self.blocks)
+
         return order
 
     @property    
@@ -4982,6 +4989,7 @@ class irFunc(IR):
     def gvn_optimizer(self, *args, **kwargs):
         original_count = len(self.get_code_from_blocks())
 
+        self.recalc_dominators()
         self.analyze_loops()
 
         self.leader_block.gvn_analyze2(VN={})
@@ -6832,6 +6840,33 @@ class irLoadConst(IR):
     def __str__(self):
         return f'LOAD CONST {self.target} <-- {self.value}'
 
+    @property
+    def gvn_expr(self):
+        return f'const {self.value}'
+
+    def gvn_process(self, VN):
+        # there is no replacement step for a load const
+
+        # assign value to target
+        self.target.value = self.value
+
+        # since this is a constant load, we can assert that the target
+        # is now marked as const
+        assert self.target.const
+
+        expr = self.gvn_expr
+
+
+        # is expr in hash table?
+        if expr in VN:
+            VN[self.target] = expr
+            
+            return 'remove'
+            
+        else:
+            VN[self.target] = self.target
+            VN[expr] = self.target
+
     def get_input_vars(self):
         return []
 
@@ -7167,10 +7202,18 @@ class irBinop(IR):
         expr = self.gvn_expr
 
         # simplify
+        # fold = self.fold()
+        fold = None
 
+        if fold is not None:
+            debug_print(f'Fold binop: {fold}')
 
+            assert isinstance(fold, irLoadConst)
 
+            VN[fold.target] = fold.target
+            VN[fold.gvn_expr] = fold.target
 
+            return fold
 
         if expr in VN:
             VN[self.target] = expr

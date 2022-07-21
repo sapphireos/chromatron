@@ -497,15 +497,14 @@ class Builder(object):
 
                 indirect = True
 
-        if lib_call:
+        if func_name == 'len':
+            ret_type = 'i32'
+
+        elif lib_call:
             ret_type = 'gfx16'
 
         elif db_call:
-            if func_name == 'len':
-                ret_type = 'i32'
-
-            else:
-                ret_type = 'gfx16'
+            ret_type = 'gfx16'
         
         else:
             ret_type = func.ret_type
