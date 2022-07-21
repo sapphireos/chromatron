@@ -209,6 +209,9 @@ class Builder(object):
         # if data_type not in PRIMITIVE_TYPES and data_type not in self.structs and data_type != 'str':
         #     raise SyntaxError(f'Type {data_type} is unknown', lineno=lineno)
 
+        if name in ARRAY_FUNCS or name in THREAD_FUNCS:
+            raise SyntaxError(f'{name} is already used as a library function and cannot be declared as variable.', lineno=lineno)
+
         for dim in dimensions:
             if not isinstance(dim, int):
                 raise SyntaxError(f'Dimension {dim} is invalid for {name}, requires constant integer.', lineno=lineno)

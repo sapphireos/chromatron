@@ -19,6 +19,7 @@ from pprint import pprint
 COMMUTATIVE_OPS = ['add', 'mul']
 PRIMITIVE_TYPES = ['i32', 'f16']
 ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
+THREAD_FUNCS = ['start_thread', 'stop_thread', 'thread_running', 'delay', 'yield']
 COMPARE_BINOPS = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte']
 
 PIXEL_ARRAY_FIELDS = {

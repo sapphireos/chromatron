@@ -1,306 +1,37 @@
 
+# basic GVN test:
 def init():
-    e = Number()
-    d = Number()
-    c = Number()
-    b = Number()
-    a = Number()
-    c = a + c
-    while b:
-        if d:
-            return a
-        else:
-            a = c + b
-            while c:
-                c = 88 == b
-                b = b == -36
-                c = -36 * c
-                b = -56 - d
-                if e:
-                    pass
-                continue
-            b = b + b
-            if a:
-                return e
-            else:
-                e %= c
-                c *= b
-                d -= b
-                d = d // -71
-                while b < 63:
-                    pass
-                return a - a
-            a = a > b
-            d = c * c
-            e = c // d
-            d = 89 % -71
-            return b
-        a = c == c
-        c += d
-        d = c >= d
-        e *= d
-        d = -11 % c
-        if b:
-            b = -11 + e
-            d += a
-            e = -11 > e
-            b *= c
-            e -= e
-            c //= d
-            c = 89 < c
-            a //= b
-            c = -20 < a
-            d = -56 >= d
-            b //= e
-            c = a > d
-            a -= d
-            return e
-        elif c:
-            c += e
-            a = -71 // e
-            d %= e
-            while -36 >= 88:
-                e = 88 + -56
-                b = -71 < d
-                c %= a
-                c -= b
-                c %= e
-                while e:
-                    pass
-                e = -36 - b
-                break
-                d -= c
-                a = 89 % b
-                d %= e
-                d //= a
-                d = e < -56
-                return d
-                c = d == -20
-                d = c - d
-                b *= c
-                continue
-            return a % -83
-        else:
-            if e:
-                pass
-            e -= a
-            d = 88 > 88
-            b = a <= -36
-            if d == d:
-                a += d
-                b += d
-                while e:
-                    pass
-                c = d <= 89
-                while 89 >= 88:
-                    pass
-            b += c
-            while a > d:
-                pass
-            e += b
-            e = e < -83
-            b *= b
-            a = e - 88
-            d += e
-            c = e // b
-            d += e
-            b += e
-            if d:
-                c = a // -20
-                b += c
-                b = -36 * -11
-                b = b == d
-                d = -56 % -83
-                c = a > -71
-            else:
-                pass
-            e = 89 < a
-            while b:
-                pass
-            c = -11 // 63
-            c //= b
-        return e
-    if b == -56:
-        return e * -36
-        c -= a
-        a = c >= a
-        if a == 89:
-            e = e == b
-            return b + -56
-        elif 88 > -11:
-            e = c - c
-            if e:
-                pass
-            return b
-        elif e > -71:
-            e = -56 >= e
-            d %= b
-            a = -36 // 88
-            e = -11 + 89
-            return -20 * -56
-        else:
-            pass
-        b -= e
-        c = -20 - -83
-        a = e - d
-        c *= e
-        c = -71 < e
-        b = b == d
-        a = b == b
-        b = 89 == -11
-        if 89 > 88:
-            pass
-        c = -11 + -36
-        e = b > e
-        c = d // -36
-        while -11 < d:
-            break
-        d = -71 * e
-        b = 63 - a
-        return c
+    a = Number(1)
+    b = Number(2)
+    c = Number(4)
+    d = Number(8)
+    e = Number(16)
+    f = Number(32)
+
+    u = Number()
+    v = Number()
+    w = Number()
+    x = Number()
+    y = Number()
+    z = Number()
+
+    u = a + b
+    v = c + d
+    w = e + f
+
+    if u:
+        x = c + d
+        y = c + d
+
     else:
-        return 88 + -11
-    while c:
-        while a:
-            continue
-        d //= c
-        a = 89 * c
-        b = 88 // e
-        d = -83 % -83
-        break
-    b = c - e
-    b = c <= -36
-    while b > e:
-        while c:
-            b //= a
-            a //= e
-            if c < 88:
-                pass
-            while -11 >= a:
-                pass
-            d = b <= -56
-            return 88 + d
-        d -= e
-        e = 63 <= d
-        b = d < -36
-        break
-    while a <= d:
-        pass
-    c = -83 + b
-    if c:
-        c //= a
-        b %= e
-        e = -36 - 89
-        if a:
-            while a:
-                pass
-            c += e
-            a = a - 89
-            c *= b
-            if e >= -20:
-                pass
-            elif b:
-                if b > b:
-                    pass
-                elif a:
-                    pass
-                elif d:
-                    pass
-                elif 63 >= 89:
-                    pass
-                c -= b
-                a //= a
-            elif e:
-                pass
-            b = -83 + a
-            if e:
-                if -83 < -83:
-                    pass
-                else:
-                    pass
-                e %= e
-                while -11 < -56:
-                    pass
-                while -71 > c:
-                    pass
-                d -= c
-                a -= c
-                d = -71 % -83
-                d *= a
-                b = c % 88
-                if -11 > 88:
-                    pass
-            else:
-                pass
-        e -= b
-        c = -83 > -20
-        b = 89 >= a
-        a = a - e
-        c //= d
-    d = d <= -11
-    if b >= a:
-        c = e + a
-        a -= b
-        if c:
-            if c:
-                if a:
-                    pass
-                b = d <= c
-                b = 88 < c
-            else:
-                d = d < d
-                a += e
-                a //= d
-                d %= c
-                d *= b
-    else:
-        while d >= d:
-            d //= a
-            a = d // e
-            d = a // -11
-        a //= b
-        c -= a
-        while -56 > d:
-            pass
-        a *= c
-        b += e
-        d = a >= -20
-        e = -71 - 88
+        u = a + b
+        x = e + f
+        y = e + f
 
+    z = u + y
+    u = a + b
 
-# # basic GVN test:
-# def init():
-#     a = Number(1)
-#     b = Number(2)
-#     c = Number(4)
-#     d = Number(8)
-#     e = Number(16)
-#     f = Number(32)
-
-#     u = Number()
-#     v = Number()
-#     w = Number()
-#     x = Number()
-#     y = Number()
-#     z = Number()
-
-#     u = a + b
-#     v = c + d
-#     w = e + f
-
-#     if u:
-#         x = c + d
-#         y = c + d
-
-#     else:
-#         u = a + b
-#         x = e + f
-#         y = e + f
-
-#     z = u + y
-#     u = a + b
-
-#     return z + u
+    return z + u
 
 
 # a = Number(publish=True)
