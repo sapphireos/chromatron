@@ -177,6 +177,19 @@ class cg1GenericObject(cg1Node):
         assert False
         # builder.generic_object(self.name, args, self.kw, lineno=self.lineno)
 
+class cg1ForwardVar(cg1Node):
+    _fields = ["name", "type"]
+
+    def __init__(self, var, **kwargs):
+        super(cg1ForwardVar, self).__init__(**kwargs)
+
+        self.var = var
+        
+    def build(self, builder, lookup_depth=None, attr_depth=None, target_type=None):
+        pass
+
+    def __str__(self):
+        return "cg1ForwardVar:%s=%s" % (self.var.name, self.var.type)
 
 class cg1Var(cg1Node):
     _fields = ["name", "type"]
@@ -194,7 +207,9 @@ class cg1Var(cg1Node):
 
         except KeyError:
             raise SyntaxError(f'Variable {self.name} not declared', lineno=self.lineno)
-    
+            
+            # return cg1ForwardVar(self, lineno=self.lineno)
+
     def __str__(self):
         return "cg1Var:%s=%s" % (self.name, self.type)
 
@@ -1126,48 +1141,42 @@ def compile_text(source, debug_print=False, summarize=False, script_name='', opt
         print(pformat_ast(cg1_data))
 
 
-    for opt_level in [opt_passes]:
-    # for opt_level in [OptLevels.SSA, OptLevels.GVN]:
-    # for opt_level in [OptLevels.GVN]:
-    # for opt_level in [OptLevels.SSA]:
-    # for opt_level in [OptLevels.NONE]:
+    ir_program = cg1_data.build(script_name=script_name, source=source)
 
-        ir_program = cg1_data.build(script_name=script_name, source=source)
+    e = None
+    try:
+        ir_program.analyze(opt_passes=opt_passes)
 
-        e = None
+    except Exception as exc:
+        e = exc
+        # raise
+
+    # generate instructions
+    ins_program = None
+    try:
+        if not e:
+            ins_program = ir_program.generate()
+
+    except Exception as exc:
+        e = exc    
+
+    if isinstance(e, CompilerFatal):
+        raise e
+
+    # save IR to file
+    debug_filename = f'{script_name}_{opt_passes}.fxir'
+    with open(debug_filename, 'w') as f:
         try:
-            ir_program.analyze(opt_passes=opt_level)
+            f.write(str(ir_program))
 
-        except Exception as exc:
-            e = exc
-            # raise
+            if ins_program:
+                f.write(str(ins_program))
 
-        # generate instructions
-        ins_program = None
-        try:
-            if not e:
-                ins_program = ir_program.generate()
+        except AttributeError:
+            if e:
+                raise e
 
-        except Exception as exc:
-            e = exc    
-
-        if isinstance(e, CompilerFatal):
-            raise e
-
-        # save IR to file
-        debug_filename = f'{script_name}_{opt_level}.fxir'
-        with open(debug_filename, 'w') as f:
-            try:
-                f.write(str(ir_program))
-
-                if ins_program:
-                    f.write(str(ins_program))
-
-            except AttributeError:
-                if e:
-                    raise e
-
-                raise
+            raise
 
     # return
 

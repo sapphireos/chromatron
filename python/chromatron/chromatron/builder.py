@@ -525,6 +525,11 @@ class Builder(object):
 
     
         if lib_call:
+            if func in THREAD_FUNCS:
+                # check arguments to thread functions
+                if params[0].var.scalar_type == 'strlit':
+                    raise SyntaxError(f'Thread function: {func_name} requires function reference, not string: "{params[0].target.init_val}".  Try removing quotes.', lineno=lineno)
+
             hashed_func = string_hash_func(func)
 
             func_const = self.add_const(hashed_func, lineno=lineno)

@@ -159,6 +159,7 @@ class insProgram(object):
             'test_lib_call': self.test_lib_call,
             'test_gfx_lib_call': self.test_gfx_lib_call,
             'rand': self.rand,
+            'start_thread': self.start_thread,
             # 'len': self.array_len,
             # 'avg': self.array_avg,
             # 'sum': self.array_sum,
@@ -314,6 +315,9 @@ class insProgram(object):
 
     def rand(self, vm, param0=0, param1=65535):
         return random.randint(param0, param1)
+
+    def start_thread(self, vm, param0=0):
+        print(param0)
 
     # def array_len(self, vm, param0, length):
     #     return length
