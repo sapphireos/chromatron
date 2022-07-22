@@ -1,8 +1,16 @@
 
+b = Number(publish=True)
+
+
+def test(_a, _b):
+    return _a + _b
+
 def init():
-    db.kv_test_string = "meow"
+    if test(1, 2) == 3:
+        b = 1
 
-
+    else:
+        b = 2
 
 # def init():
 #     return pixels.is_v_fading

@@ -122,6 +122,10 @@ typedef union{
 #define POOL_LOCAL              4
 
 
+#define REG_ZERO                0
+#define REG_CALL_PARAMS         1
+
+
 // opcode decoders:
 
 #define DECODE_NOP pc += 4;
@@ -1529,7 +1533,7 @@ opcode_call1:
     CALL_SWITCH_CONTEXT;
 
     // store params
-    registers[0] = params[0];
+    registers[REG_CALL_PARAMS + 0] = params[0];
 
     CALL_FINISH;
 
@@ -1549,8 +1553,8 @@ opcode_call2:
     CALL_SWITCH_CONTEXT;
 
     // store params
-    registers[0] = params[0];
-    registers[1] = params[1];
+    registers[REG_CALL_PARAMS + 0] = params[0];
+    registers[REG_CALL_PARAMS + 1] = params[1];
 
     CALL_FINISH;
 
@@ -1571,9 +1575,9 @@ opcode_call3:
     CALL_SWITCH_CONTEXT;
 
     // store params
-    registers[0] = params[0];
-    registers[1] = params[1];
-    registers[2] = params[2];
+    registers[REG_CALL_PARAMS + 0] = params[0];
+    registers[REG_CALL_PARAMS + 1] = params[1];
+    registers[REG_CALL_PARAMS + 2] = params[2];
 
     CALL_FINISH;
 
@@ -1595,10 +1599,10 @@ opcode_call4:
     CALL_SWITCH_CONTEXT;
     
     // store params
-    registers[0] = params[0];
-    registers[1] = params[1];
-    registers[2] = params[2];
-    registers[3] = params[3];
+    registers[REG_CALL_PARAMS + 0] = params[0];
+    registers[REG_CALL_PARAMS + 1] = params[1];
+    registers[REG_CALL_PARAMS + 2] = params[2];
+    registers[REG_CALL_PARAMS + 3] = params[3];
 
     CALL_FINISH;
 
@@ -1643,7 +1647,7 @@ opcode_icall1:
     CALL_SWITCH_CONTEXT;
 
     // store params
-    registers[0] = params[0];
+    registers[REG_CALL_PARAMS + 0] = params[0];
 
     CALL_FINISH;
 
@@ -1669,8 +1673,8 @@ opcode_icall2:
     CALL_SWITCH_CONTEXT;
 
     // store params
-    registers[0] = params[0];
-    registers[1] = params[1];    
+    registers[REG_CALL_PARAMS + 0] = params[0];
+    registers[REG_CALL_PARAMS + 1] = params[1];    
 
     CALL_FINISH;
 
@@ -1697,9 +1701,9 @@ opcode_icall3:
     CALL_SWITCH_CONTEXT;
     
     // store params
-    registers[0] = params[0];
-    registers[1] = params[1];
-    registers[2] = params[2];
+    registers[REG_CALL_PARAMS + 0] = params[0];
+    registers[REG_CALL_PARAMS + 1] = params[1];
+    registers[REG_CALL_PARAMS + 2] = params[2];
 
     CALL_FINISH;
 
@@ -1727,10 +1731,10 @@ opcode_icall4:
     CALL_SWITCH_CONTEXT;
 
     // store params
-    registers[0] = params[0];
-    registers[1] = params[1];
-    registers[2] = params[2];
-    registers[3] = params[3];
+    registers[REG_CALL_PARAMS + 0] = params[0];
+    registers[REG_CALL_PARAMS + 1] = params[1];
+    registers[REG_CALL_PARAMS + 2] = params[2];
+    registers[REG_CALL_PARAMS + 3] = params[3];
 
     CALL_FINISH;
 
