@@ -630,9 +630,12 @@ class cg1StrLiteral(cg1CodeNode):
         super(cg1StrLiteral, self).__init__(**kwargs)
         self.s = s
 
+    @property
+    def name(self):
+        return self.s
+
     def build(self, builder, target_type=None):
         return builder.add_string(self.s, lineno=self.lineno)
-        # return self.s
 
 
 class CodeGenPass1(ast.NodeVisitor):

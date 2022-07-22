@@ -2063,7 +2063,6 @@ class CompilerTests(object):
                 'c': 0.0999908447265625,
             })
 
-    @pytest.mark.skip
     def test_pixel_mirror_compile(self, opt_passes):
         self.run_test(test_pixel_mirror_compile,
             opt_passes=opt_passes,

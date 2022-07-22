@@ -221,8 +221,8 @@ class FXImage(object):
             bytecode += bc
 
         # set up pixel arrays
-        for array in self.program.pixel_arrays:
-            pix_array = PixelArray(**array.keywords)
+        for array in self.program.pixel_array_pool:
+            pix_array = PixelArray(**array)
 
             pixel_arrays.append(pix_array)
 

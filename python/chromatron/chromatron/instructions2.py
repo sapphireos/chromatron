@@ -183,7 +183,12 @@ class insProgram(object):
 
         # self.pixel_arrays = {p.name: p for p in self.objects if p.data_type == 'PixelArray'}
         self.pixel_arrays = {}
-        for p in [p for p in self.objects if p.data_type == 'PixelArray']:
+        pixel_objects = sorted([p for p in self.objects if p.data_type == 'PixelArray'], key=lambda x: x.addr.addr)
+
+        pixel_names_addrs = {p.name: p.addr.addr for p in pixel_objects}
+        pixel_arrays = []
+
+        for p in pixel_objects:
             if 'count' in p.keywords:
                 pix_count = p.keywords['count']
 
@@ -208,16 +213,25 @@ class insProgram(object):
             else:
                 pix_size_y = self.pix_size_y
 
+            if 'mirror' in p.keywords:
+                pix_mirror = pixel_names_addrs[p.keywords['mirror']]
+
+            else:
+                pix_mirror = -1
+
             array = {
                 'count': pix_count,
                 'index': pix_index,
                 'size_x': pix_size_x,
                 'size_y': pix_size_y,
+                'mirror': pix_mirror,
             }
+
+            pixel_arrays.append(array)
 
             self.pixel_arrays[p] = array
 
-        self.pixel_array_pool = StoragePool('_pixels', list(self.pixel_arrays.values()))
+        self.pixel_array_pool = StoragePool('_pixels', pixel_arrays)
 
         self.hue        = [0 for i in range(self.pix_count)]
         self.sat        = [0 for i in range(self.pix_count)]
