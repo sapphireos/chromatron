@@ -1118,8 +1118,6 @@ class insLoadDB(BaseInstruction):
 
         self.data_type = self.dest.var.data_type
 
-        assert self.data_type != 'gfx16'
-
         assert len(src.var.lookups) == 0
 
         assert self.src is not None

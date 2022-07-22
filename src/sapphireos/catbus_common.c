@@ -72,6 +72,10 @@ int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
         case CATBUS_TYPE_FIXED16:
             i64_data = *(int32_t *)data;
             break;
+
+        case CATBUS_TYPE_GFX16:
+            i64_data = *(int32_t *)data;
+            break;
             
         case CATBUS_TYPE_UINT32:
             i64_data = *(uint32_t *)data;
@@ -169,6 +173,19 @@ void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data ){
             break;
 
         case CATBUS_TYPE_FIXED16:
+            if( source_data > INT32_MAX ){
+
+                source_data = INT32_MAX;
+            }
+            else if( source_data < INT32_MIN ){
+
+                source_data = INT32_MIN;
+            }
+
+            *(int32_t *)data = source_data;
+            break;
+
+        case CATBUS_TYPE_GFX16:
             if( source_data > INT32_MAX ){
 
                 source_data = INT32_MAX;
