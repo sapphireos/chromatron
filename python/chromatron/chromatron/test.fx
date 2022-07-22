@@ -4,7 +4,7 @@
 # hue = Fixed16()
 # cursor = Number()
 
-def init():
+# def init():
     # pixels.val = 0.0
     # pixels.sat = 1.0
     
@@ -16,11 +16,23 @@ def init():
 
     # db.gfx_frame_rate = 30
 
-    start_thread(warp)
+    # start_thread(warp)
 
-def warp():
-    while True:
-        delay(40)
+
+ary = Number()[4]
+
+a = Number(publish=True)
+
+def init():
+    for i in len(ary):
+        ary[len(ary) - 1 - i] = i + 1
+
+    a = min(ary)
+
+# i = Number()
+# def init():
+#     while True:
+#         delay(40)
 
         # pixels[cursor].v_fade = 3000
         # pixels[cursor].val = 0.0

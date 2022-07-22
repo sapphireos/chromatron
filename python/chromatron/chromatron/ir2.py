@@ -5649,8 +5649,6 @@ class irFunc(IR):
             for loop, info in self.loops.items():
                 header_code = []
 
-                entry_dominators = self.dominators[info['marker']]
-                
                 for block in info['body']:
                     block_code = []
 
@@ -5658,14 +5656,12 @@ class irFunc(IR):
                         ir = block.code[index]
                         block_code.append(ir)
 
-                        # check if the instruction's block dominates the loop entry node
-                        if ir.block not in entry_dominators:
-                            continue
-
                         if isinstance(ir, irLabel) or \
                            ir.is_nop or \
                            isinstance(ir, irPhi) or \
                            isinstance(ir, irControlFlow) or \
+                           isinstance(ir, irCallType) or \
+                           isinstance(ir, irLoadRetVal) or \
                            isinstance(ir, irLoad) or \
                            isinstance(ir, irStore):
 
@@ -5738,16 +5734,8 @@ class irFunc(IR):
 
                 if len(header_code) > 0:
                     header = info['header']
-                    insert_index = None
+                    insert_index = len(header.code) - 1
                     
-                    # search for header:
-                    for index in range(len(header.code)):
-                        ir = header.code[index]
-
-                        if isinstance(ir, irLoopHeader):
-                            insert_index = index + 1
-                            break
-
                     # add code to loop header
                     for ir in header_code:
                         logging.debug(f'LICM: Moving: {ir} from {ir.block.name}')
