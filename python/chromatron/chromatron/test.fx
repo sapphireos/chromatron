@@ -1,36 +1,24 @@
 
+
+def disable():
+    pass
+
+
 def init():
-    # pixels.count = pixels.count + 1
-    db.kv_test_key = db.kv_test_key - 1
-    # db.kv_test_key -= 1
+    enable()
+    disable()
+
+def enable():
+    pass
 
 
 
-# i = Number()
+
+
+
+
 # def init():
-#     while True:
-#         delay(40)
-
-        # pixels[cursor].v_fade = 3000
-        # pixels[cursor].val = 0.0
-
-        # cursor += 1
-
-        # if cursor >= top.count:
-        #     cursor = 0
-        #     hue = rand()
-
-        # if cursor == pixels.size_x:
-        #     delay(90)
-
-        # pixels[cursor].v_fade = 10
-        # pixels[cursor].val = 1.0
-        # pixels[cursor].hue = hue
-
-# def loop():
-#     pass
-
-
+#     return pixels.is_v_fading
 
 # basic GVN test:
 # def init():

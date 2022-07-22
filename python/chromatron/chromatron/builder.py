@@ -389,14 +389,21 @@ class Builder(object):
     def nop(self, lineno=None):
         pass
 
-    def declare_func(self, func_name, lineno=None):
-        self.declare_var(func_name, data_type='func', is_global=True, lineno=lineno)
+    def declare_func(self, func_name, **kwargs):
+        self.declare_var(func_name, data_type='func', is_global=True, lineno=kwargs['lineno'])
+        func = irFunc(func_name, type_manager=self.type_manager, source_code=self.source, **kwargs)
+        self.funcs[func.name] = func
 
-    def func(self, *args, returns=None, **kwargs):
+        return func
+
+    def func(self, func_name, returns=None, **kwargs):
         sym = self.push_symbol_table()
 
-        func = irFunc(*args, symbol_table=sym, type_manager=self.type_manager, source_code=self.source, **kwargs)
-        self.funcs[func.name] = func
+        # func = irFunc(*args, symbol_table=sym, type_manager=self.type_manager, source_code=self.source, **kwargs)
+        # self.funcs[func.name] = func
+        func = self.funcs[func_name]
+        func.symbol_table = sym
+
         self.current_func = func
         self.next_temp = 0
         self.scope_depth = 0
