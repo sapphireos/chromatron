@@ -104,6 +104,7 @@ type_id_registry = {
     'string64': CATBUS_TYPE_STRING64,
     'string512': CATBUS_TYPE_STRING512,
     'str': CATBUS_TYPE_STRING64,
+    'strlit': CATBUS_TYPE_STRING64,
     'mac48': CATBUS_TYPE_MAC48,
     'mac64': CATBUS_TYPE_MAC64,
     'key128': CATBUS_TYPE_KEY128,

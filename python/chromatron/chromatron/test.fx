@@ -1,19 +1,6 @@
 
-
-def disable():
-    pass
-
-
 def init():
-    enable()
-    disable()
-
-def enable():
-    pass
-
-
-
-
+    db.kv_test_string = "meow"
 
 
 

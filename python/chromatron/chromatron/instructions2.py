@@ -171,7 +171,8 @@ class insProgram(object):
 
         self.db = {
             catbus_string_hash('kv_test_key'): 0,
-            catbus_string_hash('kv_test_array'): [0] * 4
+            catbus_string_hash('kv_test_array'): [0] * 4,
+            catbus_string_hash('kv_test_string'): "",
         }
 
         self.strings = strings
@@ -1229,6 +1230,12 @@ class insStoreDB(BaseInstruction):
 
         self.data_type = self.src.var.data_type
 
+        if self.data_type == 'ref':
+            self.data_type = self.src.var.var.target.data_type
+
+        if self.data_type == 'strlit':
+            self.data_type = 'str'
+
         assert self.data_type != 'gfx16'
 
         assert len(dest.var.lookups) == 0
@@ -1254,16 +1261,22 @@ class insStoreDB(BaseInstruction):
             elif isinstance(db[key], float):
                 dest_type = 'f16'
 
+            elif isinstance(db[key], str):
+                dest_type = 'str'
+
             else:
                 raise CompilerFatal(f'Other DB types not supported')
 
-            src_type = self.src.var.data_type
+            src_type = self.data_type
 
             if src_type == 'i32' and dest_type == 'f16':
                 value = convert_to_f16(value)
 
             elif src_type == 'f16' and dest_type == 'i32':
                 value = convert_to_i32(value)
+
+            elif src_type == 'str':
+                value = value.pool[value.addr]
 
             db[key] = value
 
