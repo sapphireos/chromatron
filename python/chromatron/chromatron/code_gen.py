@@ -303,8 +303,13 @@ class cg1Module(cg1Node):
         # collect funcs
         funcs = [a for a in self.body if isinstance(a, cg1Func)]
 
-        for code in funcs:
-            code.build(builder)
+        # declare funcs:
+        for func in funcs:
+            builder.declare_func(func.name, lineno=func.lineno)
+
+        # build funcs:
+        for func in funcs:
+            func.build(builder)
 
         return builder.finish_module()
 

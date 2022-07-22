@@ -389,6 +389,9 @@ class Builder(object):
     def nop(self, lineno=None):
         pass
 
+    def declare_func(self, func_name, lineno=None):
+        self.declare_var(func_name, data_type='func', is_global=True, lineno=lineno)
+
     def func(self, *args, returns=None, **kwargs):
         sym = self.push_symbol_table()
 
@@ -401,7 +404,15 @@ class Builder(object):
         func_label = self.label(f'func:{func.name}', lineno=kwargs['lineno'])
         self.position_label(func_label)
 
-        self.declare_var(func.name, data_type='func', is_global=True, lineno=kwargs['lineno'])
+        # self.declare_var(func.name, data_type='func', is_global=True, lineno=kwargs['lineno'])
+        try:
+            func_var = self.get_var(func.name, lineno=kwargs['lineno'])
+
+        except KeyError:
+            raise CompilerFatal('function declaration not found')
+
+        if func_var.data_type != 'func':
+            raise CompilerFatal('incorrect function type')
 
         # this is used to load constants to variables that have init values.
         # if unused the optimizer will remove it.
@@ -1087,6 +1098,9 @@ class Builder(object):
     def finish_module(self):
         # check if there is no init function
         if 'init' not in self.funcs:
+            logging.warning(f'No init function specified!')
+
+            self.declare_func('init', lineno=-1)
             func = self.func('init', lineno=-1)
             zero = self.get_var(0, lineno=-1)
             self.ret(zero, lineno=-1)
@@ -1094,6 +1108,7 @@ class Builder(object):
 
         # check if there is no loop function
         if 'loop' not in self.funcs:
+            self.declare_func('loop', lineno=-1)
             func = self.func('loop', lineno=-1)
             zero = self.get_var(0, lineno=-1)
             self.ret(zero, lineno=-1)

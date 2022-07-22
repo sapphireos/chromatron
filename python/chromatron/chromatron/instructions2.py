@@ -317,7 +317,8 @@ class insProgram(object):
         return random.randint(param0, param1)
 
     def start_thread(self, vm, param0=0):
-        print(param0)
+        func = self.func_pool[param0.addr]
+        print(f'start thread: {func.name}')
 
     # def array_len(self, vm, param0, length):
     #     return length
