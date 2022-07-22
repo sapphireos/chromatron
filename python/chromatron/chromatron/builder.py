@@ -663,7 +663,7 @@ class Builder(object):
             is_db = False
             if value.target is not None and value.target.data_type == 'PixelArray':
                 try:
-                    data_type = PIXEL_ARRAY_FIELDS[value.attr.name]
+                    data_type = PIXEL_FIELDS[value.attr.name]
 
                 except KeyError:
                     raise SyntaxError(f'Unknown attribute for PixelArray: {value.target.name} -> {value.attr.name}', lineno=lineno)
@@ -989,6 +989,10 @@ class Builder(object):
             if right.data_type == 'f16':
                 target_data_type = right.data_type
 
+        # check target type
+        if not isinstance(self.type_manager.lookup(target_data_type), varScalar):
+            raise CompilerFatal(f'Invalid type for binop: {target_data_type} Line: {lineno}')
+
         left_result = left
         right_result = right
 
@@ -1085,9 +1089,19 @@ class Builder(object):
                 self.assign(copy(target), result, lineno=lineno)
 
             else:
+                if target.target is not None and \
+                   target.target.name == 'pixels' and \
+                   target.attr.name in PIXEL_SCALARS:
 
-                ir = irObjectOp(op, target, value, target.attr, lineno=lineno)
-                self.append_node(ir)
+                    result = self.binop(op, target, value, lineno=lineno)
+
+                    # must copy target, so SSA conversion will work
+                    self.assign(copy(target), result, lineno=lineno)
+                    
+                else:
+                    ir = irObjectOp(op, target, value, target.attr, lineno=lineno)
+                
+                    self.append_node(ir)
 
         else:
             result = self.binop(op, target, value, lineno=lineno)

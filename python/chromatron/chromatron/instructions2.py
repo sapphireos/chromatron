@@ -2532,10 +2532,11 @@ class insPixelStoreAttr(insPixelStore):
 
         pixel_array = vm.get_pixel_array(ref)
 
-        pixel_array[self.attr] = vm.registers[self.target.reg]
+        pixel_array[self.attr] = vm.registers[self.value.reg]
 
     def assemble(self):
-        return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+
 
 class insVPixelStore(BaseInstruction):
     mnemonic = 'VSTORE'

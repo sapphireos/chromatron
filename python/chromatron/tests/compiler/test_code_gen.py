@@ -2003,9 +2003,37 @@ def init():
 """
 
 
+test_pixels_count_assign = """
+    
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+
+def init():
+    pixels.count = 1
+    a = pixels.count
+
+    pixels.count = pixels.count + 1
+    b = pixels.count
+
+    pixels.count += 1
+    c = pixels.count
+
+"""
+
+
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_pixels_count_assign(self, opt_passes):
+        self.run_test(test_pixels_count_assign,
+            opt_passes=opt_passes,
+            expected={
+                'a': 1,
+                'b': 2,
+                'c': 3,
+            })
 
     def test_pixels_count(self, opt_passes):
         self.run_test(test_pixels_count,

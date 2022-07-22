@@ -1,7 +1,10 @@
 
 def init():
+    # pixels.count = pixels.count + 1
 
-    db.kv_test_key = db.kv_test_key - 1
+    pixels.count += 1
+    
+    # db.kv_test_key = db.kv_test_key - 1
     # db.kv_test_key -= 1
 
 

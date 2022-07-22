@@ -603,6 +603,9 @@ class TypeManager(object):
 
         return s
 
+    def lookup(self, name):
+        return self.types[name]
+
     def create_type(self, name, base):
         self.types[name] = deepcopy(base)
 

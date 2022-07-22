@@ -22,12 +22,13 @@ ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
 THREAD_FUNCS = ['start_thread', 'stop_thread', 'thread_running', 'delay', 'yield']
 COMPARE_BINOPS = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte']
 
-PIXEL_ARRAY_FIELDS = {
+PIXEL_FIELDS = {
     'hue': 'gfx16',
     'sat': 'gfx16',
     'val': 'gfx16',
     'hs_fade': 'i32',
     'v_fade': 'i32',
+    
     'is_v_fading': 'i32',
     'is_hs_fading': 'i32',
     'index': 'i32',
@@ -40,8 +41,21 @@ PIXEL_ARRAY_FIELDS = {
     'palette': 'i32',
 }
 
+PIXEL_SCALARS = [
+    'is_v_fading', 
+    'is_hs_fading',
+    'index',
+    'count',
+    'size_x',
+    'size_y',
+    'reverse',
+    'mirror',
+    'offset',
+    'palette',
+]
+
 OBJECT_FIELDS = {
-    'PixelArray': PIXEL_ARRAY_FIELDS
+    'PixelArray': PIXEL_FIELDS
 }
 
 
@@ -6650,6 +6664,11 @@ class irObjectStore(IR):
                     'v_fade': insPixelStoreVFade,
                 }
 
+            # add attrs to instruction map:
+            for k, v in PIXEL_FIELDS.items():
+                if k not in ins:
+                    ins[k] = insPixelStoreAttr
+
             try:
                 return ins[attr](target.var, attr, value, lineno=self.lineno)
 
@@ -6731,7 +6750,7 @@ class irObjectLoad(IR):
             }
 
             # add attrs to instruction map:
-            for k, v in PIXEL_ARRAY_FIELDS.items():
+            for k, v in PIXEL_FIELDS.items():
                 if k not in ins:
                     ins[k] = insPixelLoadAttr
             
