@@ -19,15 +19,20 @@
     # start_thread(warp)
 
 
-ary = Number()[4]
-
-a = Number(publish=True)
-
 def init():
-    for i in len(ary):
-        ary[len(ary) - 1 - i] = i + 1
+    i = Number()
+    i = 4
 
-    a = min(ary)
+    a = Number()
+
+    while i > 0:
+        i -= 1
+
+        a = 2 + 3
+        a += i
+
+    # assert a == 5
+    return a
 
 # i = Number()
 # def init():

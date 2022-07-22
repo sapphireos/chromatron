@@ -209,6 +209,24 @@ def init():
 
 """
 
+loop_invariant_code_motion_basic2 = """
+
+def init():
+    i = Number()
+    i = 4
+
+    a = Number()
+
+    while i > 0:
+        i -= 1
+
+        a = 2 + 3
+        a += i
+
+    assert a == 5
+
+"""
+
 loop_invariant_code_motion_ifelse = """
 
 def init():
@@ -278,5 +296,7 @@ def init():
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 def test_loop_invariant_code_motion(opt_passes):
     run_code(loop_invariant_code_motion_basic, opt_passes=opt_passes)
+    run_code(loop_invariant_code_motion_basic2, opt_passes=opt_passes)
     run_code(loop_invariant_code_motion_ifelse, opt_passes=opt_passes)
     run_code(loop_invariant_code_motion_ifbreak, opt_passes=opt_passes)
+
