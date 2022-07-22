@@ -1,38 +1,10 @@
-# top = PixelArray(0, 48)
-# bottom = PixelArray(48, 48, reverse=True, mirror=top)
-
-# hue = Fixed16()
-# cursor = Number()
-
-# def init():
-    # pixels.val = 0.0
-    # pixels.sat = 1.0
-    
-    # hue = 0.667
-    # pixels.hue = hue
-
-    # pixels.v_fade = 10
-    # pixels.hs_fade = 100
-
-    # db.gfx_frame_rate = 30
-
-    # start_thread(warp)
-
 
 def init():
-    i = Number()
-    i = 4
 
-    a = Number()
+    db.kv_test_key = db.kv_test_key - 1
+    # db.kv_test_key -= 1
 
-    while i > 0:
-        i -= 1
 
-        a = 2 + 3
-        a += i
-
-    # assert a == 5
-    return a
 
 # i = Number()
 # def init():
