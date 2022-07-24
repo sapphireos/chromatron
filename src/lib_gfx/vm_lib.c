@@ -42,7 +42,7 @@ int8_t vm_lib_i8_libcall_built_in(
     // result is assumed to have been initialized to a default value
     // by the caller.
 
-	int32_t temp0, temp1, array_len;
+	int32_t temp0, temp1;
 
     #ifdef ENABLE_PIXEL_MAPPER
     int32_t x, y, z, index, h, s, v, size;

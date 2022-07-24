@@ -1,6 +1,7 @@
 
 
 def init():
+    db.kv_test_key = 1024
     db.kv_test_string = 'meow'
 
 # def init():

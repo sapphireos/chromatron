@@ -337,10 +337,6 @@ typedef struct __attribute__((packed)){
         } \
     }
 
-
-reference_t ref;
-int32_t params[8];
-
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
     uint16_t func_addr,
@@ -1008,8 +1004,11 @@ static int8_t _vm_i8_run_stream(
     uint16_t index;
     uint16_t count;
     uint16_t stride;
-    // int32_t params[8];
-    // reference_t ref;
+    int32_t params[8];
+    reference_t ref;
+
+    void *ptr_void;
+    uint16_t len;
 
     int32_t *ptr_i32;
     gfx_pixel_array_t *pix_array;
@@ -1392,13 +1391,26 @@ opcode_stdb:
     
     #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
+
+    if( type_b_is_string( opcode_1i2rs->imm1 ) ){
+
+        ref.n = registers[opcode_1i2rs->reg2];
+        ptr_void = pools[ref.ref.pool] + ref.ref.addr;   
+        len = strlen(ptr_void);
+    }
+    else{
+
+        ptr_void = &registers[opcode_1i2rs->reg2];
+        len = sizeof(registers[opcode_1i2rs->reg2]);
+    }
+
     if( catbus_i8_array_set( 
         registers[opcode_1i2rs->reg1], 
         opcode_1i2rs->imm1, 
         0, 
         1, 
-        &registers[opcode_1i2rs->reg2], 
-        sizeof(registers[opcode_1i2rs->reg2]) ) < 0 ){
+        ptr_void, 
+        len ) < 0 ){
 
         registers[opcode_1i2rs->reg2] = 0;        
     }
