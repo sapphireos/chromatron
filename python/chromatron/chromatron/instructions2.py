@@ -3257,7 +3257,7 @@ class insVPixelDiv(BaseInstruction):
         self.value = value
         self.data_type = value.var.data_type
 
-        assert self.data_type is not 'var'
+        assert self.data_type != 'var'
 
     def __str__(self):
         return "%s %s.%s /= %s" % (self.mnemonic, self.pixel_ref, self.attr, self.value)

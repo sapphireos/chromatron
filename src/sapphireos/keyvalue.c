@@ -50,6 +50,7 @@ static kv_hash_index_t *ram_index;
 static uint32_t kv_persist_writes;
 static int32_t kv_test_key;
 static int32_t kv_test_array[4];
+static char kv_test_string[CATBUS_STRING_LEN];
 
 static uint64_t kv_cache_hits;
 static uint64_t kv_cache_misses;
@@ -108,6 +109,7 @@ KV_SECTION_META kv_meta_t kv_cfg[] = {
     { CATBUS_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
     { CATBUS_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
     { CATBUS_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
+    { CATBUS_TYPE_STRING32,0, 0,                   &kv_test_string,     0,           "kv_test_string" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
     { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_hits,      0,           "kv_cache_hits" },
