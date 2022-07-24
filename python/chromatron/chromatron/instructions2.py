@@ -1158,7 +1158,12 @@ class insLoadDB(BaseInstruction):
             vm.registers[self.dest.reg] = 0
 
     def assemble(self):
-        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(
+            self.mnemonic, 
+            get_type_id(self.data_type), 
+            self.dest.assemble(), 
+            self.src.assemble(), 
+            lineno=self.lineno)
 
 class insLoadDBIndexed(BaseInstruction):
     mnemonic = 'LDDBI'
@@ -1218,7 +1223,13 @@ class insLoadDBIndexed(BaseInstruction):
             vm.registers[self.dest.reg] = 0
 
     def assemble(self):
-        return OpcodeFormat1Imm3Reg(self.mnemonic, get_type_id(self.data_type), self.dest.assemble(), self.src.assemble(), self.lookup.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm3Reg(
+            self.mnemonic, 
+            get_type_id(self.data_type), 
+            self.dest.assemble(), 
+            self.src.assemble(), 
+            self.lookup.assemble(), 
+            lineno=self.lineno)
 
 class insStoreDB(BaseInstruction):
     mnemonic = 'STDB'
@@ -1281,7 +1292,12 @@ class insStoreDB(BaseInstruction):
             db[key] = value
 
     def assemble(self):
-        return OpcodeFormat1Imm2RegS(self.mnemonic, get_type_id(self.data_type), self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(
+                self.mnemonic, 
+                get_type_id(self.data_type), 
+                self.dest.assemble(), 
+                self.src.assemble(), 
+                lineno=self.lineno)
 
 
 class insStoreDBIndexed(BaseInstruction):
@@ -1347,8 +1363,13 @@ class insStoreDBIndexed(BaseInstruction):
                 db[key] = value
 
     def assemble(self):
-        return OpcodeFormat1Imm3Reg(self.mnemonic, get_type_id(self.data_type), self.dest.assemble(), self.src.assemble(), self.lookup.assemble(), lineno=self.lineno)
-
+        return OpcodeFormat1Imm3Reg(
+                self.mnemonic, 
+                get_type_id(self.data_type), 
+                self.dest.assemble(), 
+                self.src.assemble(), 
+                self.lookup.assemble(), 
+                lineno=self.lineno)
 
 
 class insLookup(BaseInstruction):
@@ -2412,7 +2433,11 @@ class insDBCall(BaseInstruction):
             
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.target.assemble(), self.key.assemble(), lineno=self.lineno)
+        return OpcodeFormat2AC(
+                self.mnemonic, 
+                self.target.assemble(), 
+                self.key.assemble(), 
+                lineno=self.lineno)
 
 class insPixelLookup(BaseInstruction):
     mnemonic = 'PLOOKUP'

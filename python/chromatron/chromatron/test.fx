@@ -1,16 +1,31 @@
 
+db_len = Number(publish=True)
+db_len2 = Number(publish=True)
+
+a = Number(publish=True)
 b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
 
-
-def test(_a, _b):
-    return _a + _b
 
 def init():
-    if test(1, 2) == 3:
-        b = 1
+    db_len = len(db.kv_test_array)
+    db_len2 = len(db.kv_test_key)
 
-    else:
-        b = 2
+    db.kv_test_array[0] = 1
+    db.kv_test_array[8] = 2
+    db.kv_test_array[5] = 3
+    db.kv_test_array[2] = 4
+    
+    a = db.kv_test_array[0]
+    b = db.kv_test_array[8]
+    c = db.kv_test_array[5]
+    d = db.kv_test_array[2]
+
+    e = db.kv_test_array[5] + db.kv_test_array[2]
+
+
 
 # def init():
 #     return pixels.is_v_fading

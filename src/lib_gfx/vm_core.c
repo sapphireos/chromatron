@@ -439,10 +439,10 @@ static int8_t _vm_i8_run_stream(
         &&opcode_lookup2,           // 66
         &&opcode_lookup3,           // 67
 
-        &&opcode_dbcall,            // 68
+        &&opcode_trap,              // 68
         &&opcode_trap,              // 69
         &&opcode_trap,              // 70
-        &&opcode_trap,              // 71
+        &&opcode_dbcall,            // 71
 
         &&opcode_call0,             // 72
         &&opcode_call1,             // 73
@@ -1347,7 +1347,12 @@ opcode_lddb:
     
 #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
-    if( catbus_i8_array_get( registers[opcode_1i2rs->reg2], opcode_1i2rs->imm1, 0, 1, &registers[opcode_1i2rs->reg1] ) < 0 ){
+    if( catbus_i8_array_get( 
+        registers[opcode_1i2rs->reg2], 
+        opcode_1i2rs->imm1, 
+        0, 
+        1, 
+        &registers[opcode_1i2rs->reg1] ) < 0 ){
 
         registers[opcode_1i2rs->reg1] = 0;        
     }
@@ -1366,7 +1371,12 @@ opcode_lddbi:
     
 #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
-    if( catbus_i8_array_get( registers[opcode_1i3r->reg2], opcode_1i3r->imm1, registers[opcode_1i3r->reg3], 1, &registers[opcode_1i3r->reg1] ) < 0 ){
+    if( catbus_i8_array_get( 
+        registers[opcode_1i3r->reg2], 
+        opcode_1i3r->imm1, 
+        registers[opcode_1i3r->reg3], 
+        1, 
+        &registers[opcode_1i3r->reg1] ) < 0 ){
 
         registers[opcode_1i3r->reg1] = 0;        
     }
@@ -1382,7 +1392,13 @@ opcode_stdb:
     
     #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
-    if( catbus_i8_array_set( registers[opcode_1i2rs->reg1], opcode_1i2rs->imm1, 0, 1, &registers[opcode_1i2rs->reg2], sizeof(registers[opcode_1i2rs->reg2]) ) < 0 ){
+    if( catbus_i8_array_set( 
+        registers[opcode_1i2rs->reg1], 
+        opcode_1i2rs->imm1, 
+        0, 
+        1, 
+        &registers[opcode_1i2rs->reg2], 
+        sizeof(registers[opcode_1i2rs->reg2]) ) < 0 ){
 
         registers[opcode_1i2rs->reg2] = 0;        
     }
@@ -1401,9 +1417,15 @@ opcode_stdbi:
     
 #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
-    if( catbus_i8_array_set( registers[opcode_1i3r->reg2], opcode_1i3r->imm1, registers[opcode_1i3r->reg3], 1, &registers[opcode_1i3r->reg1], sizeof(registers[opcode_1i3r->reg1]) ) < 0 ){
+    if( catbus_i8_array_set( 
+        registers[opcode_1i3r->reg1], 
+        opcode_1i3r->imm1, 
+        registers[opcode_1i3r->reg3], 
+        1, 
+        &registers[opcode_1i3r->reg2], 
+        sizeof(registers[opcode_1i3r->reg2]) ) < 0 ){
 
-        registers[opcode_1i3r->reg1] = 0;        
+        registers[opcode_1i3r->reg2] = 0;        
     }
     #else
     
