@@ -536,6 +536,10 @@ class varString(varComposite):
     def size(self):
         return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
 
+    @property
+    def length(self):
+        return self.size
+
     # def assemble(self):
         # return OpcodeString(self, lineno=self.lineno)
 
@@ -565,7 +569,7 @@ class varStringLiteral(varString):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='strlit', **kwargs)    
 
-        self.length = 1
+        # self.length = 1
 
 
 _BASE_TYPES = {

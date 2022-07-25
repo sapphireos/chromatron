@@ -1,8 +1,14 @@
 
 
+s = String()
+
+
 def init():
-    db.kv_test_key = 1024
-    db.kv_test_string = 'meow'
+    pass        
+    # s = 'meow'
+
+    # db.kv_test_key = 2048
+    # db.kv_test_string = 'meow'
 
 # def init():
 #     return pixels.is_v_fading
