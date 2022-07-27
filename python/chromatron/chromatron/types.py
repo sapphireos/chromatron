@@ -553,8 +553,8 @@ class varStruct(varComposite):
 #         return a
 
 class varStringBuf(varComposite):
-    def __init__(self, *args, strlen=1, **kwargs):
-        super().__init__(*args, data_type='strbuf', **kwargs)
+    def __init__(self, *args, strlen=1, data_type='strbuf', **kwargs):
+        super().__init__(*args, data_type=data_type, **kwargs)
 
         self.strlen = strlen
         self._init_val = None
@@ -585,33 +585,33 @@ class varStringRef(varRef):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='strref', **kwargs)
 
-# class varStringLiteral(varString):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, data_type='strlit', **kwargs)    
+class varStringLiteral(varStringBuf):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, data_type='strlit', **kwargs)    
 
-#     @property
-#     def init_val(self):
-#         return super().init_val
+    # @property
+    # def init_val(self):
+    #     return super().init_val
 
-#     @init_val.setter
-#     def init_val(self, value):
-#         if value is None:
-#             self._init_val = None
+    # @init_val.setter
+    # def init_val(self, value):
+    #     if value is None:
+    #         self._init_val = None
 
-#             return
+    #         return
 
-#         # ensure string literal ends with at least one null byte.
-#         # since we will eventually be processing strings in a C library, we want
-#         # to ensure we have null termination.
-#         if not value.endswith('\0'):
-#             value += '\0'
+    #     # ensure string literal ends with at least one null byte.
+    #     # since we will eventually be processing strings in a C library, we want
+    #     # to ensure we have null termination.
+    #     if not value.endswith('\0'):
+    #         value += '\0'
 
-#         # pad to 32 bits:
-#         self.padding = 4 - len(value) % 4
-#         if self.padding == 4:
-#             self.padding = 0
+    #     # pad to 32 bits:
+    #     self.padding = 4 - len(value) % 4
+    #     if self.padding == 4:
+    #         self.padding = 0
 
-#         self._init_val = value + '\0' * self.padding
+    #     self._init_val = value + '\0' * self.padding
 
 
 
@@ -624,7 +624,7 @@ _BASE_TYPES = {
     'gfx16': varGfx16(),
     'Fixed16': varFixed16(),
     # 'str': varString(),
-    # 'strlit': varStringLiteral(),
+    'strlit': varStringLiteral(),
     'strbuf': varStringBuf(),
     'strref': varStringRef(),
     'obj': varObject(),

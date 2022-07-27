@@ -6990,6 +6990,9 @@ class irLoadRef(IR):
         self.target = target
         self.ref = ref
 
+        if isinstance(ref, VarContainer):
+            raise CompilerFatal
+
     def __str__(self):
         return f'LOAD REF {self.target} <-- {self.ref}'
 
@@ -7716,7 +7719,11 @@ class irPrint(IR):
         return s   
 
     def generate(self):
-        return insPrint(self.value.generate(), lineno=self.lineno)
+        if isinstance(self.value.var, varRef):
+            return insPrintRef(self.value.generate(), lineno=self.lineno)
+
+        else:
+            return insPrint(self.value.generate(), lineno=self.lineno)
 
 class irAssert(IR):
     def __init__(self, value, **kwargs):

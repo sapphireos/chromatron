@@ -197,6 +197,7 @@ opcodes = {
     'HALT':                 0xF8,
     'ASSERT':               0xF9,
     'PRINT':                0xFA,
+    'PRINTREF':             0xFB,
 }
 
 class Opcode(object):

@@ -2,12 +2,23 @@
 
 s1 = String(32)
 s2 = String('meow')
-s3 = String()
+# s3 = String()
+s = String()
 
+ary = Number()[4]
 
 def init():
-    pass        
+    # pass        
+
+    print(s)
     # s = 'meow'
+
+    # print(db.kv_test_key)
+    # print(123)
+    # print(s)
+    # print('meow')
+    
+    # print(ary)
 
     # db.kv_test_key = 2048
     # db.kv_test_string = 'meow'

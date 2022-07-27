@@ -489,7 +489,7 @@ class Builder(object):
         if func_name == 'print':
             if db_call:
                 params[0] = self.load_value(params[0], target_type='i32', lineno=lineno)
-
+            
             ir = irPrint(params[0], lineno=lineno)
             self.append_node(ir)
 
@@ -652,6 +652,8 @@ class Builder(object):
 
         ir = irLoop(true, false, iter_in, iter_out, stop, lineno=lineno)
         self.append_node(ir)
+
+    # def load_ref(self, value, target_type=None, lineno=None):
 
     def load_value(self, value, target_type=None, lineno=None):
         if value.data_type == 'offset':

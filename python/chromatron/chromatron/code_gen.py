@@ -626,19 +626,19 @@ class cg1Subscript(cg1CodeNode):
         return target
 
 
-# class cg1StrLiteral(cg1CodeNode):
-#     _fields = ["s"]
+class cg1StrLiteral(cg1CodeNode):
+    _fields = ["s"]
 
-#     def __init__(self, s, **kwargs):
-#         super(cg1StrLiteral, self).__init__(**kwargs)
-#         self.s = s
+    def __init__(self, s, **kwargs):
+        super(cg1StrLiteral, self).__init__(**kwargs)
+        self.s = s
 
-#     @property
-#     def name(self):
-#         return self.s
+    @property
+    def name(self):
+        return self.s
 
-#     def build(self, builder, target_type=None):
-#         return builder.add_string(self.s, lineno=self.lineno)
+    def build(self, builder, target_type=None):
+        return builder.add_string(self.s, lineno=self.lineno)
 
 
 class CodeGenPass1(ast.NodeVisitor):

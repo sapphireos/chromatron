@@ -2126,6 +2126,30 @@ class insPrint(BaseInstruction):
     def execute(self, vm):
         value = vm.registers[self.op1.reg]
 
+        print(value)    
+            
+    def assemble(self):
+        return OpcodeFormat1AC(self.mnemonic, self.op1.assemble(), lineno=self.lineno)
+
+class insPrintRef(BaseInstruction):
+    mnemonic = 'PRINTREF'
+
+    def __init__(self, op1, **kwargs):
+        super().__init__(**kwargs)
+        self.op1 = op1
+
+    def __str__(self):
+        return "%s %s" % (self.mnemonic, self.op1)
+
+    def execute(self, vm):
+        ref = vm.registers[self.op1.reg]
+
+        if ref == 0:
+            print(0)
+
+            return
+
+        value = ref.pool[ref.addr]
         print(value)
             
     def assemble(self):
