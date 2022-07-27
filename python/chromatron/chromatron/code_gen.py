@@ -129,10 +129,31 @@ class cg1DeclareStrBuf(cg1DeclarationBase):
         super(cg1DeclareStrBuf, self).__init__(**kwargs)
 
     def build(self, builder, is_global=False):
-        if 'init_val' in self.keywords:
-            self.keywords['init_val'] = self.keywords['init_val'].build(builder)
+        try:
+            self.init_val = self.init_val.build(builder)
+
+            if 'init_val' in self.keywords:
+                self.keywords['init_val'] = self.init_val
+
+        except AttributeError:
+            pass
 
         return super().build(builder, is_global=is_global)
+
+class cg1StrLiteral(cg1CodeNode):
+    _fields = ["s"]
+
+    def __init__(self, s, **kwargs):
+        super(cg1StrLiteral, self).__init__(**kwargs)
+        self.s = s
+
+    @property
+    def name(self):
+        return self.s
+
+    def build(self, builder, target_type=None):
+        return builder.add_string(self.s, lineno=self.lineno)
+
 
 class cg1DeclareStruct(cg1DeclarationBase):
     def __init__(self, struct=None, **kwargs):
@@ -634,22 +655,6 @@ class cg1Subscript(cg1CodeNode):
             return builder.finish_lookup(target, lineno=self.lineno)
 
         return target
-
-
-class cg1StrLiteral(cg1CodeNode):
-    _fields = ["s"]
-
-    def __init__(self, s, **kwargs):
-        super(cg1StrLiteral, self).__init__(**kwargs)
-        self.s = s
-
-    @property
-    def name(self):
-        return self.s
-
-    def build(self, builder, target_type=None):
-        return builder.add_string(self.s, lineno=self.lineno)
-
 
 class CodeGenPass1(ast.NodeVisitor):
     def __init__(self):

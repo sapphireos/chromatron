@@ -650,8 +650,6 @@ class Builder(object):
         ir = irLoop(true, false, iter_in, iter_out, stop, lineno=lineno)
         self.append_node(ir)
 
-    # def load_ref(self, value, target_type=None, lineno=None):
-
     def load_value(self, value, target_type=None, lineno=None):
         if value.data_type == 'offset':
             var = self.add_temp(data_type=value.target.scalar_type, lineno=lineno)
@@ -1142,15 +1140,24 @@ class Builder(object):
             if var.init_val is None:
                 continue
 
-            if isinstance(var, varStringBuf):
-                # init_var = init_var.copy()
+            if var.data_type == 'strbuf':
+                print(var)
+                init_var = init_var.copy()
+
+                ir = irLoadRef(init_var, var.init_val, lineno=var.lineno)
+                init_func.body.insert(1, ir)
+                ir = irStore(init_var, var, lineno=var.lineno)
+                init_func.body.insert(2, ir)
+
                 # ir = irLoadConst(var.copy(), var.init_val, lineno=var.lineno)
                 # init_func.body.insert(1, ir)
-                pass
+                # pass
                 
             else:
                 if isinstance(var.init_val, Iterable):
-                    raise SyntaxError(f'Init values only implemented for scalar types and strings', var.lineno)
+                    # raise SyntaxError(f'Init values only implemented for scalar types and strings', var.lineno)
+
+                    pass
 
                     # for v in var.init_val:
                     #     init_var = init_var.copy()

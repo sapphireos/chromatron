@@ -664,10 +664,18 @@ class TypeManager(object):
         if not keywords:
             keywords = {}
 
+        # remember init val so we can restore after the deepcopy
+        # this preserves references properly
+        if 'init_val' in keywords:
+            old_init_val = keywords['init_val']
+
         keywords = deepcopy(keywords)
 
         if 'init_val' not in keywords:
             keywords['init_val'] = None
+
+        else:
+            keywords['init_val'] = old_init_val
 
         assert data_type is not None
 

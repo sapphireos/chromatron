@@ -7,9 +7,13 @@ s = String()
 
 # ary = Number()[4]
 
+# n = Number(123)
+
 def init():
     # pass        
+    # n = Number(123)
 
+    # print(n)
     print(s2)
     # s = 'meow'
 
