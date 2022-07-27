@@ -2,15 +2,15 @@
 
 s1 = String(32)
 s2 = String('meow')
-# s3 = String()
+# # s3 = String()
 s = String()
 
-ary = Number()[4]
+# ary = Number()[4]
 
 def init():
     # pass        
 
-    print(s)
+    print(s2)
     # s = 'meow'
 
     # print(db.kv_test_key)

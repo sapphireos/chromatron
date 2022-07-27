@@ -185,7 +185,7 @@ class Builder(object):
         # return ir
     
     def _build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
-       return self.type_manager.create_var_from_type(name, data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
+        return self.type_manager.create_var_from_type(name, data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
 
 
         # if data_type in PRIMITIVE_TYPES:
@@ -206,9 +206,6 @@ class Builder(object):
         # raise CompilerFatal(f'Unknown type {data_type}')
 
     def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
-        # if data_type not in PRIMITIVE_TYPES and data_type not in self.structs and data_type != 'str':
-        #     raise SyntaxError(f'Type {data_type} is unknown', lineno=lineno)
-
         if name in ARRAY_FUNCS or name in THREAD_FUNCS:
             raise SyntaxError(f'{name} is already used as a library function and cannot be declared as variable.', lineno=lineno)
 
@@ -489,7 +486,7 @@ class Builder(object):
         if func_name == 'print':
             if db_call:
                 params[0] = self.load_value(params[0], target_type='i32', lineno=lineno)
-            
+
             ir = irPrint(params[0], lineno=lineno)
             self.append_node(ir)
 

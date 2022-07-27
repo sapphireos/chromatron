@@ -570,6 +570,9 @@ class varStringBuf(varComposite):
         if value is None:
             self.strlen = 0
 
+        elif isinstance(value, varStringLiteral):
+            self.strlen = value.strlen
+
         else:
             self.strlen = len(self._init_val)
 

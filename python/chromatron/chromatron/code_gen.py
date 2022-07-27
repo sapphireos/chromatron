@@ -124,6 +124,16 @@ class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
         super(cg1DeclareVar, self).__init__(**kwargs)
 
+class cg1DeclareStrBuf(cg1DeclarationBase):
+    def __init__(self, **kwargs):
+        super(cg1DeclareStrBuf, self).__init__(**kwargs)
+
+    def build(self, builder, is_global=False):
+        if 'init_val' in self.keywords:
+            self.keywords['init_val'] = self.keywords['init_val'].build(builder)
+
+        return super().build(builder, is_global=is_global)
+
 class cg1DeclareStruct(cg1DeclarationBase):
     def __init__(self, struct=None, **kwargs):
         super(cg1DeclareStruct, self).__init__(**kwargs)
@@ -749,13 +759,13 @@ class CodeGenPass1(ast.NodeVisitor):
         else:
             if isinstance(node.args[0], ast.Str):
                 init_val = node.args[0].s
-                keywords['init_val'] = init_val
+                keywords['init_val'] = cg1StrLiteral(init_val, lineno=node.lineno)
 
             else:
                 length = node.args[0].n
                 keywords['strlen'] = length
 
-            return cg1DeclareVar(type='strbuf', keywords=keywords, lineno=node.lineno)
+            return cg1DeclareStrBuf(type='strbuf', keywords=keywords, lineno=node.lineno)
 
 
         # if len(node.args) > 0 or len(node.keywords) > 0:
