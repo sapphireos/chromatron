@@ -124,23 +124,6 @@ class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
         super(cg1DeclareVar, self).__init__(**kwargs)
 
-class cg1DeclareStr(cg1DeclarationBase):
-    def __init__(self, **kwargs):
-        super(cg1DeclareStr, self).__init__(**kwargs)
-
-    def build(self, builder, **kwargs):
-        if 'init_val' in self.keywords:
-            self.keywords['init_val'] = self.keywords['init_val'].build(builder)
-
-        super(cg1DeclareStr, self).build(builder, **kwargs) 
-
-# class cg1DeclareArray(cg1DeclarationBase):
-#     def __init__(self, dimensions=[1], **kwargs):
-#         super(cg1DeclareArray, self).__init__(**kwargs)
-
-#         self.dimensions = dimensions
-
-
 class cg1DeclareStruct(cg1DeclarationBase):
     def __init__(self, struct=None, **kwargs):
         super(cg1DeclareStruct, self).__init__(**kwargs)
@@ -643,19 +626,19 @@ class cg1Subscript(cg1CodeNode):
         return target
 
 
-class cg1StrLiteral(cg1CodeNode):
-    _fields = ["s"]
+# class cg1StrLiteral(cg1CodeNode):
+#     _fields = ["s"]
 
-    def __init__(self, s, **kwargs):
-        super(cg1StrLiteral, self).__init__(**kwargs)
-        self.s = s
+#     def __init__(self, s, **kwargs):
+#         super(cg1StrLiteral, self).__init__(**kwargs)
+#         self.s = s
 
-    @property
-    def name(self):
-        return self.s
+#     @property
+#     def name(self):
+#         return self.s
 
-    def build(self, builder, target_type=None):
-        return builder.add_string(self.s, lineno=self.lineno)
+#     def build(self, builder, target_type=None):
+#         return builder.add_string(self.s, lineno=self.lineno)
 
 
 class CodeGenPass1(ast.NodeVisitor):
@@ -752,28 +735,47 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1DeclareVar(type="funcref", keywords=keywords, lineno=node.lineno)
 
     def _handle_String(self, node):
-        # check if initialized string
-        if len(node.args) > 0 or len(node.keywords) > 0:
-            keywords = {}
-            for kw in node.keywords:
-                keywords[kw.arg] = kw.value.value
+        keywords = {}
+        for kw in node.keywords:
+            if kw.arg == 'length':
+                kw.arg = 'strlen'
+            keywords[kw.arg] = kw.value.value
 
-            if len(node.args) == 0:
-                init_val = '\0'
-
-            else:
-                if isinstance(node.args[0], ast.Str):
-                    init_val = node.args[0].s
-                    keywords['init_val'] = cg1StrLiteral(init_val, lineno=node.lineno)
-
-                else:
-                    length = node.args[0].n
-                    keywords['length'] = length
-
-            return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
+        if len(node.args) == 0:
+            # uninitialized
+            # this is a basic string reference
+            return cg1DeclareVar(type='strref', keywords=keywords, lineno=node.lineno)
 
         else:
-            return cg1DeclareStr(type="str", lineno=node.lineno)
+            if isinstance(node.args[0], ast.Str):
+                init_val = node.args[0].s
+                keywords['init_val'] = init_val
+
+            else:
+                length = node.args[0].n
+                keywords['strlen'] = length
+
+            return cg1DeclareVar(type='strbuf', keywords=keywords, lineno=node.lineno)
+
+
+        # if len(node.args) > 0 or len(node.keywords) > 0:
+        #     keywords = {}
+        #     for kw in node.keywords:
+        #         keywords[kw.arg] = kw.value.value
+
+        #     if len(node.args) > 0:
+        #         if isinstance(node.args[0], ast.Str):
+        #             init_val = node.args[0].s
+        #             keywords['init_val'] = cg1StrLiteral(init_val, lineno=node.lineno)
+
+        #         else:
+        #             length = node.args[0].n
+        #             keywords['length'] = length
+
+        #     return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
+
+        # else:
+        #     return cg1DeclareStr(type="str", lineno=node.lineno)
 
     # def _handle_Array(self, node):
     #     dims = [a.n for a in node.args]

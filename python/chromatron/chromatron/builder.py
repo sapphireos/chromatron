@@ -1143,7 +1143,7 @@ class Builder(object):
             if var.init_val is None:
                 continue
 
-            if isinstance(var, varString):
+            if isinstance(var, varStringBuf):
                 # init_var = init_var.copy()
                 # ir = irLoadConst(var.copy(), var.init_val, lineno=var.lineno)
                 # init_func.body.insert(1, ir)

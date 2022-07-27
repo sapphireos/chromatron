@@ -291,6 +291,10 @@ class varRef(varRegister):
     def scalar_type(self):
         return self.target.scalar_type
 
+    @property
+    def length(self):
+        return 1
+
 class varObjectRef(varRef):
     def __init__(self, *args, lookups=None, attr=None, **kwargs):
         super().__init__(*args, data_type=None, **kwargs)
@@ -458,7 +462,7 @@ class varString(varComposite):
         super().__init__(*args, data_type=data_type, **kwargs)
 
         self._init_val = None
-        self._buffer_length = None
+        self._buffer_length = 0
         self.padding = None
 
     @property
@@ -548,9 +552,38 @@ class varString(varComposite):
 
         return a
 
-# class varStringRef(varRef):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, data_type='strref', **kwargs)
+class varStringBuf(varComposite):
+    def __init__(self, *args, strlen=1, **kwargs):
+        super().__init__(*args, data_type='strbuf', **kwargs)
+
+        self.strlen = strlen
+        self._init_val = None
+
+    @property
+    def init_val(self):
+        return self._init_val
+
+    @init_val.setter
+    def init_val(self, value):
+        self._init_val = value
+
+        if value is None:
+            self.strlen = 0
+
+        else:
+            self.strlen = len(self._init_val)
+
+    @property
+    def length(self):
+        return int(self.strlen / 4) + 1
+
+    @property
+    def size(self):
+        return self.length
+
+class varStringRef(varRef):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, data_type='strref', **kwargs)
 
 class varStringLiteral(varString):
     def __init__(self, *args, **kwargs):
@@ -590,9 +623,10 @@ _BASE_TYPES = {
     'f16': varFixed16(),
     'gfx16': varGfx16(),
     'Fixed16': varFixed16(),
-    'str': varString(),
-    'strlit': varStringLiteral(),
-    # 'strref': varStringRef(),
+    # 'str': varString(),
+    # 'strlit': varStringLiteral(),
+    'strbuf': varStringBuf(),
+    'strref': varStringRef(),
     'obj': varObject(),
     'objref': varObjectRef(),
     'pixref': varObjectRef(),
@@ -638,9 +672,9 @@ class TypeManager(object):
         var.init_val = keywords['init_val']
         del keywords['init_val']
 
-        if 'length' in keywords:
-            var.length = keywords['length']
-            del keywords['length']
+        if 'strlen' in keywords:
+            var.strlen = keywords['strlen']
+            del keywords['strlen']
 
         var.keywords = keywords
 

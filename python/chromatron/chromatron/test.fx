@@ -1,7 +1,8 @@
 
 
-# s = String(32)
-s = String('meow')
+s1 = String(32)
+s2 = String('meow')
+s3 = String()
 
 
 def init():
