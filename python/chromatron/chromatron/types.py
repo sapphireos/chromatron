@@ -234,9 +234,6 @@ class varInt32(varScalar):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='i32', **kwargs)
 
-    def build(self, *args, **kwargs):
-        return super().build(*args, **kwargs)
-
 class varFixed16(varScalar):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='f16', **kwargs)
@@ -457,21 +454,11 @@ class varStruct(varComposite):
         return 0, self
 
 class varString(varComposite):
-    def __init__(self, *args, string='', max_length=None, data_type='str', **kwargs):
+    def __init__(self, *args, data_type='str', **kwargs):
         super().__init__(*args, data_type=data_type, **kwargs)
 
-        # if string is not None:
-        #     self.value = string
-        #     self.max_length = len(string)
-
-        # else:
-        #     assert max_length is not None
-        #     self.value = '\0' * max_length
-        #     self.max_length = max_length
-
-        # self._size = int(((self.max_length - 1) / 4) + 2) # space for characters + 32 bit length
-
         self._init_val = None
+        self._buffer_length = None
         self.padding = None
 
     @property
@@ -481,16 +468,102 @@ class varString(varComposite):
     @init_val.setter
     def init_val(self, value):
         if value is None:
-            value = '\0'
+            self._init_val = None
 
-        if isinstance(value, VarContainer) and value.data_type == 'strlit':
+        elif isinstance(value, VarContainer) and value.data_type == 'strlit':
             # value = value.init_val
             self._init_val = value.var
 
-            return
+            # return
 
         elif isinstance(value, varString):
             self._init_val = value
+
+            # return
+
+        else:
+            raise CompilerFatal
+
+    def __str__(self):
+        init_val = self.init_val
+
+        if isinstance(init_val, varStringLiteral):
+            init_val = init_val.init_val
+
+
+        if init_val is None:
+            s_val = f'<{self._buffer_length} chars>'
+
+        elif init_val[0] == '\0':
+            s_val = f'<{len(init_val)} chars>'
+
+        else:
+            s_val = init_val
+
+        if self.addr is None:
+            return f'{self.ssa_name}("{s_val}")'
+
+        else:
+            return f'{self.ssa_name}("{s_val}")@0x{self.addr}'
+
+    @property
+    def strlen(self):
+        if self.init_val is None:
+            return self._buffer_length
+
+        if isinstance(self.init_val, varStringLiteral):
+            return self.init_val.strlen
+
+        return len(self.init_val)
+
+    @property
+    def size(self):
+        return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
+
+    @property
+    def length(self):
+        return self.size
+
+    @length.setter
+    def length(self, value):
+        if self.init_val is not None:
+            raise CompilerFatal
+
+        self._buffer_length = value
+
+    # def assemble(self):
+    #     return [0] * self.size
+
+    def assemble(self):
+        a = [self.strlen]
+
+        i = 0
+        while i < self.strlen:
+            s = self.init_val[i:i + 4].encode()
+                
+            v = struct.pack('4s', s)
+            a.append(v)
+
+            i += 4
+
+        return a
+
+# class varStringRef(varRef):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, data_type='strref', **kwargs)
+
+class varStringLiteral(varString):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, data_type='strlit', **kwargs)    
+
+    @property
+    def init_val(self):
+        return super().init_val
+
+    @init_val.setter
+    def init_val(self, value):
+        if value is None:
+            self._init_val = None
 
             return
 
@@ -507,69 +580,6 @@ class varString(varComposite):
 
         self._init_val = value + '\0' * self.padding
 
-    def __str__(self):
-        init_val = self.init_val
-
-        if isinstance(init_val, varStringLiteral):
-            init_val = init_val.init_val
-
-        if init_val[0] == '\0':
-            s_val = f'<{len(init_val)} chars>'
-
-        else:
-            s_val = init_val
-
-        if self.addr is None:
-            return f'{self.ssa_name}("{s_val}")'
-
-        else:
-            return f'{self.ssa_name}("{s_val}")@0x{self.addr}'
-
-    @property
-    def strlen(self):
-        if isinstance(self.init_val, varStringLiteral):
-            return self.init_val.strlen
-
-        return len(self.init_val)
-
-    @property
-    def size(self):
-        return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
-
-    @property
-    def length(self):
-        return self.size
-
-    # def assemble(self):
-        # return OpcodeString(self, lineno=self.lineno)
-
-    def assemble(self):
-        return [0] * self.size
-
-    # def assemble(self):
-    #     a = [self.strlen]
-
-    #     i = 0
-    #     while i < self.strlen:
-    #         s = self.init_val[i:i + 4].encode()
-                
-    #         v = struct.pack('4s', s)
-    #         a.append(v)
-
-    #         i += 4
-
-
-    #     return a
-
-# class varStringRef(varRef):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, data_type='strref', **kwargs)
-
-class varStringLiteral(varString):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, data_type='strlit', **kwargs)    
-
-        # self.length = 1
 
 
 _BASE_TYPES = {
@@ -627,6 +637,10 @@ class TypeManager(object):
         var = self.types[data_type].build(name, **kwargs)
         var.init_val = keywords['init_val']
         del keywords['init_val']
+
+        if 'length' in keywords:
+            var.length = keywords['length']
+            del keywords['length']
 
         var.keywords = keywords
 

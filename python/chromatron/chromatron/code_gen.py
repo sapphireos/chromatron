@@ -759,19 +759,16 @@ class CodeGenPass1(ast.NodeVisitor):
                 keywords[kw.arg] = kw.value.value
 
             if len(node.args) == 0:
-                length = 1
                 init_val = '\0'
 
             else:
                 if isinstance(node.args[0], ast.Str):
-                    length = len(node.args[0].s)
                     init_val = node.args[0].s
+                    keywords['init_val'] = cg1StrLiteral(init_val, lineno=node.lineno)
 
                 else:
                     length = node.args[0].n
-                    init_val = '\0' * length
-
-            keywords['init_val'] = cg1StrLiteral(init_val, lineno=node.lineno)
+                    keywords['length'] = length
 
             return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
 
