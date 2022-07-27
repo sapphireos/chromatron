@@ -2150,6 +2150,7 @@ class insPrintRef(BaseInstruction):
             return
 
         value = ref.pool[ref.addr]
+
         print(value)
             
     def assemble(self):

@@ -3,7 +3,7 @@
 # s = StringBuf('meow')
 s = String('meow')
 
-
+sref = String()
 # s2 = String('meow')
 # # s3 = String()
 # s = String()
@@ -14,6 +14,16 @@ s = String('meow')
 
 def init():
     print(s)
+
+    s2 = String()
+    s2 = 'meow'
+    print(s2)
+
+    print(sref)
+    sref = 'meow'
+    print(sref)
+    sref = s2
+    print(sref)
 
     # pass        
     # n = Number(123)
