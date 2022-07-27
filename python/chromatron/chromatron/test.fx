@@ -1,9 +1,11 @@
 
 
 # s = StringBuf('meow')
-s = String('meow')
+# s = StringBuf(32)
 
-sref = String()
+# s = String('meow')
+
+# sref = String()
 # s2 = String('meow')
 # # s3 = String()
 # s = String()
@@ -12,18 +14,38 @@ sref = String()
 
 # n = Number(123)
 
+ary = String()[4]
+
 def init():
+    # print(s)
+
+    ary[0] = 'meow'
+    # ary[3] = 'woof'
+
+    s = String()
+    s = ary[0]
+
     print(s)
+    print(ary[0])
+    # print(ary[3])
 
-    s2 = String()
-    s2 = 'meow'
-    print(s2)
+    # print(ary[0])
 
-    print(sref)
-    sref = 'meow'
-    print(sref)
-    sref = s2
-    print(sref)
+    # for i in len(ary):
+    #     # print(ary[i])
+    #     pass
+
+    # s = 'meow'
+
+    # s2 = String()
+    # s2 = 'meow'
+    # print(s2)
+
+    # print(sref)
+    # sref = 'meow'
+    # print(sref)
+    # sref = s2
+    # print(sref)
 
     # pass        
     # n = Number(123)

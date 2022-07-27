@@ -1143,6 +1143,13 @@ class Builder(object):
             init_var = init_var.copy()
 
             if var.data_type == 'strbuf':
+                ir = irLoadRef(init_var, var.init_val, lineno=var.lineno)
+                init_func.body.insert(1, ir)
+                
+                ir = irLoadString(var, init_var, lineno=var.lineno)                
+                init_func.body.insert(2, ir)
+
+
                 # print(var)
                 # init_var = init_var.copy()
 
@@ -1170,7 +1177,6 @@ class Builder(object):
                     pass
 
                     # for v in var.init_val:
-                    #     init_var = init_var.copy()
                     #     ir = irLoadConst(init_var, v, lineno=var.lineno)
                     #     init_func.body.insert(1, ir)
 

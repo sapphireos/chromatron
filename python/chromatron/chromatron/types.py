@@ -588,6 +588,10 @@ class varStringRef(varRef):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='strref', **kwargs)
 
+    @property
+    def scalar_type(self):
+        return 'strbuf'
+
 class varStringLiteral(varStringBuf):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='strlit', **kwargs)    
