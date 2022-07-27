@@ -1,20 +1,25 @@
 
 
-s1 = String(32)
-s2 = String('meow')
+# s = StringBuf('meow')
+s = String('meow')
+
+
+# s2 = String('meow')
 # # s3 = String()
-s = String()
+# s = String()
 
 # ary = Number()[4]
 
 # n = Number(123)
 
 def init():
+    print(s)
+
     # pass        
     # n = Number(123)
 
     # print(n)
-    print(s2)
+    # print(s2)
     # s = 'meow'
 
     # print(db.kv_test_key)

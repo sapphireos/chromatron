@@ -124,9 +124,9 @@ class cg1DeclareVar(cg1DeclarationBase):
     def __init__(self, **kwargs):
         super(cg1DeclareVar, self).__init__(**kwargs)
 
-class cg1DeclareStrBuf(cg1DeclarationBase):
+class cg1DeclareStr(cg1DeclarationBase):
     def __init__(self, **kwargs):
-        super(cg1DeclareStrBuf, self).__init__(**kwargs)
+        super(cg1DeclareStr, self).__init__(**kwargs)
 
     def build(self, builder, is_global=False):
         try:
@@ -662,6 +662,7 @@ class CodeGenPass1(ast.NodeVisitor):
             'Number': self._handle_Number,
             'Fixed16': self._handle_Fixed16,
             'String': self._handle_String,
+            'StringBuf': self._handle_StringBuf,
             'Function': self._handle_Function,
             # 'Array': self._handle_Array,
             'Struct': self._handle_Struct,
@@ -759,7 +760,29 @@ class CodeGenPass1(ast.NodeVisitor):
         if len(node.args) == 0:
             # uninitialized
             # this is a basic string reference
-            return cg1DeclareVar(type='strref', keywords=keywords, lineno=node.lineno)
+            return cg1DeclareStr(type='strref', keywords=keywords, lineno=node.lineno)
+
+        else:
+            if isinstance(node.args[0], ast.Str):
+                init_val = node.args[0].s
+                keywords['init_val'] = cg1StrLiteral(init_val, lineno=node.lineno)
+                return cg1DeclareStr(type='strref', keywords=keywords, lineno=node.lineno)
+
+            else:
+                length = node.args[0].n
+                keywords['strlen'] = length
+
+                raise SyntaxError(f'String reference cannot be declared with buffer size.  Did you mean StringBuf({length})?', lineno=node.lineno)
+
+    def _handle_StringBuf(self, node):
+        keywords = {}
+        for kw in node.keywords:
+            if kw.arg == 'length':
+                kw.arg = 'strlen'
+            keywords[kw.arg] = kw.value.value
+
+        if len(node.args) == 0:
+            raise SyntaxError(f'StringBuf must be declared with buffer size or initializer', lineno=node.lineno)
 
         else:
             if isinstance(node.args[0], ast.Str):
@@ -770,7 +793,7 @@ class CodeGenPass1(ast.NodeVisitor):
                 length = node.args[0].n
                 keywords['strlen'] = length
 
-            return cg1DeclareStrBuf(type='strbuf', keywords=keywords, lineno=node.lineno)
+            return cg1DeclareStr(type='strbuf', keywords=keywords, lineno=node.lineno)
 
 
         # if len(node.args) > 0 or len(node.keywords) > 0:

@@ -1141,17 +1141,22 @@ class Builder(object):
                 continue
 
             if var.data_type == 'strbuf':
-                print(var)
-                init_var = init_var.copy()
+                # print(var)
+                # init_var = init_var.copy()
 
-                ir = irLoadRef(init_var, var.init_val, lineno=var.lineno)
-                init_func.body.insert(1, ir)
-                ir = irStore(init_var, var, lineno=var.lineno)
-                init_func.body.insert(2, ir)
+                # ir = irLoadRef(init_var, var, lineno=var.lineno)
+
+                # ir = irLoadString(init_var, var.init_val, lineno=var.lineno)
+                # init_func.body.insert(1, ir)
+                # ir = irStore(init_var, var, lineno=var.lineno)
+                # init_func.body.insert(2, ir)
 
                 # ir = irLoadConst(var.copy(), var.init_val, lineno=var.lineno)
                 # init_func.body.insert(1, ir)
-                # pass
+                pass
+
+            elif var.data_type == 'strref':
+                pass
                 
             else:
                 if isinstance(var.init_val, Iterable):
