@@ -457,100 +457,100 @@ class varStruct(varComposite):
 
         return 0, self
 
-class varString(varComposite):
-    def __init__(self, *args, data_type='str', **kwargs):
-        super().__init__(*args, data_type=data_type, **kwargs)
+# class varString(varComposite):
+#     def __init__(self, *args, data_type='str', **kwargs):
+#         super().__init__(*args, data_type=data_type, **kwargs)
 
-        self._init_val = None
-        self._buffer_length = 0
-        self.padding = None
+#         self._init_val = None
+#         self._buffer_length = 0
+#         self.padding = None
 
-    @property
-    def init_val(self):
-        return self._init_val
+#     @property
+#     def init_val(self):
+#         return self._init_val
 
-    @init_val.setter
-    def init_val(self, value):
-        if value is None:
-            self._init_val = None
+#     @init_val.setter
+#     def init_val(self, value):
+#         if value is None:
+#             self._init_val = None
 
-        elif isinstance(value, VarContainer) and value.data_type == 'strlit':
-            # value = value.init_val
-            self._init_val = value.var
+#         elif isinstance(value, VarContainer) and value.data_type == 'strlit':
+#             # value = value.init_val
+#             self._init_val = value.var
 
-            # return
+#             # return
 
-        elif isinstance(value, varString):
-            self._init_val = value
+#         elif isinstance(value, varString):
+#             self._init_val = value
 
-            # return
+#             # return
 
-        else:
-            raise CompilerFatal
+#         else:
+#             raise CompilerFatal
 
-    def __str__(self):
-        init_val = self.init_val
+#     def __str__(self):
+#         init_val = self.init_val
 
-        if isinstance(init_val, varStringLiteral):
-            init_val = init_val.init_val
+#         if isinstance(init_val, varStringLiteral):
+#             init_val = init_val.init_val
 
 
-        if init_val is None:
-            s_val = f'<{self._buffer_length} chars>'
+#         if init_val is None:
+#             s_val = f'<{self._buffer_length} chars>'
 
-        elif init_val[0] == '\0':
-            s_val = f'<{len(init_val)} chars>'
+#         elif init_val[0] == '\0':
+#             s_val = f'<{len(init_val)} chars>'
 
-        else:
-            s_val = init_val
+#         else:
+#             s_val = init_val
 
-        if self.addr is None:
-            return f'{self.ssa_name}("{s_val}")'
+#         if self.addr is None:
+#             return f'{self.ssa_name}("{s_val}")'
 
-        else:
-            return f'{self.ssa_name}("{s_val}")@0x{self.addr}'
+#         else:
+#             return f'{self.ssa_name}("{s_val}")@0x{self.addr}'
 
-    @property
-    def strlen(self):
-        if self.init_val is None:
-            return self._buffer_length
+#     @property
+#     def strlen(self):
+#         if self.init_val is None:
+#             return self._buffer_length
 
-        if isinstance(self.init_val, varStringLiteral):
-            return self.init_val.strlen
+#         if isinstance(self.init_val, varStringLiteral):
+#             return self.init_val.strlen
 
-        return len(self.init_val)
+#         return len(self.init_val)
 
-    @property
-    def size(self):
-        return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
+#     @property
+#     def size(self):
+#         return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
 
-    @property
-    def length(self):
-        return self.size
+#     @property
+#     def length(self):
+#         return self.size
 
-    @length.setter
-    def length(self, value):
-        if self.init_val is not None:
-            raise CompilerFatal
+#     @length.setter
+#     def length(self, value):
+#         if self.init_val is not None:
+#             raise CompilerFatal
 
-        self._buffer_length = value
+#         self._buffer_length = value
 
-    # def assemble(self):
-    #     return [0] * self.size
+#     # def assemble(self):
+#     #     return [0] * self.size
 
-    def assemble(self):
-        a = [self.strlen]
+#     def assemble(self):
+#         a = [self.strlen]
 
-        i = 0
-        while i < self.strlen:
-            s = self.init_val[i:i + 4].encode()
+#         i = 0
+#         while i < self.strlen:
+#             s = self.init_val[i:i + 4].encode()
                 
-            v = struct.pack('4s', s)
-            a.append(v)
+#             v = struct.pack('4s', s)
+#             a.append(v)
 
-            i += 4
+#             i += 4
 
-        return a
+#         return a
 
 class varStringBuf(varComposite):
     def __init__(self, *args, strlen=1, **kwargs):
@@ -585,33 +585,33 @@ class varStringRef(varRef):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='strref', **kwargs)
 
-class varStringLiteral(varString):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, data_type='strlit', **kwargs)    
+# class varStringLiteral(varString):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, data_type='strlit', **kwargs)    
 
-    @property
-    def init_val(self):
-        return super().init_val
+#     @property
+#     def init_val(self):
+#         return super().init_val
 
-    @init_val.setter
-    def init_val(self, value):
-        if value is None:
-            self._init_val = None
+#     @init_val.setter
+#     def init_val(self, value):
+#         if value is None:
+#             self._init_val = None
 
-            return
+#             return
 
-        # ensure string literal ends with at least one null byte.
-        # since we will eventually be processing strings in a C library, we want
-        # to ensure we have null termination.
-        if not value.endswith('\0'):
-            value += '\0'
+#         # ensure string literal ends with at least one null byte.
+#         # since we will eventually be processing strings in a C library, we want
+#         # to ensure we have null termination.
+#         if not value.endswith('\0'):
+#             value += '\0'
 
-        # pad to 32 bits:
-        self.padding = 4 - len(value) % 4
-        if self.padding == 4:
-            self.padding = 0
+#         # pad to 32 bits:
+#         self.padding = 4 - len(value) % 4
+#         if self.padding == 4:
+#             self.padding = 0
 
-        self._init_val = value + '\0' * self.padding
+#         self._init_val = value + '\0' * self.padding
 
 
 

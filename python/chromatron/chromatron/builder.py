@@ -759,8 +759,8 @@ class Builder(object):
         if value.value == 0:
             pass
 
-        elif isinstance(value, varStringLiteral):
-            pass
+        # elif isinstance(value, varStringLiteral):
+        #     pass
 
         # check for special case of a database target.
         # we don't know the type of the database target, the 
@@ -946,10 +946,10 @@ class Builder(object):
                 self.append_node(ir)
                 ir = irStore(target, target.var, lineno=lineno)
 
-        elif isinstance(target, varString):
-            target = self.load_value(target, lineno=lineno)
+        # elif isinstance(target, varString):
+        #     target = self.load_value(target, lineno=lineno)
 
-            ir = irLoadString(target, value, lineno=lineno)
+        #     ir = irLoadString(target, value, lineno=lineno)
 
             # # load address to register:
             # var = self.add_temp(data_type='offset', lineno=lineno)

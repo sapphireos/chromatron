@@ -466,11 +466,11 @@ class irProgram(IR):
         for g in self.global_vars:
             assert g.addr is None
 
-            if isinstance(g, varStringLiteral):
-                # check for null string literals, 
-                # we do not need to store those.
-                if g.init_val[0] == '\0':
-                    continue
+            # if isinstance(g, varStringLiteral):
+            #     # check for null string literals, 
+            #     # we do not need to store those.
+            #     if g.init_val[0] == '\0':
+            #         continue
 
             g.addr = irAddr(g, addr, StorageType.GLOBAL)
 
