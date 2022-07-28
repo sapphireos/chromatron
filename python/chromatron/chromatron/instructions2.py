@@ -107,8 +107,7 @@ class insProgram(object):
 
         self.global_memory = StoragePool('_global', [0] * self.global_memory_size)
 
-        for v in [g for g in self.globals if g.data_type == 'strlit']:
-            self.global_memory[v.addr.addr] = v.init_val
+        self.string_pool = StoragePool('_strings', strings.values())
 
         for func in funcs.values():
             func.program = self
@@ -285,6 +284,9 @@ class insProgram(object):
 
         elif pool_type == StorageType.PIXEL_ARRAY:
             pool = self.pixel_array_pool
+
+        elif pool_type == StorageType.STRING_LITERALS:
+            pool = self.string_pool
 
         else:
             raise InvalidStoragePool(pool_type)
@@ -1080,16 +1082,8 @@ class insLoadString(BaseInstruction):
         dest = vm.registers[self.dest.reg]
         src = vm.registers[self.src.reg]
 
-        print(dest, dest.pool, dest.addr)
-        print(src, src.pool, src.addr)
-
         value = src.pool[src.addr]
-        dest.pool[dest.addr] = value
-
-        print(dest, dest.pool, dest.addr)
-        print(src, src.pool, src.addr)
-
-        
+        dest.pool[dest.addr] = value        
 
     def assemble(self):
         dest_global = self.dest.var.is_global

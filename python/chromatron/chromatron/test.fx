@@ -3,7 +3,7 @@
 # sbuf = StringBuf('meow')
 s = StringBuf(32)
 
-# s = String('meow')
+meow = String('meow')
 
 # sref = String()
 # s2 = String('meow')
@@ -17,8 +17,8 @@ s = StringBuf(32)
 # ary = String()[4]
 
 def init():
-    s = 'meow'
-    print(s)
+    s = 'jeremy rocks'
+    # print(s)
 
     # ary[0] = 'meow'
     # ary[3] = 'woof'

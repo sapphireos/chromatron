@@ -465,13 +465,6 @@ class irProgram(IR):
 
         for g in self.global_vars:
             assert g.addr is None
-
-            # if isinstance(g, varStringLiteral):
-            #     # check for null string literals, 
-            #     # we do not need to store those.
-            #     if g.init_val[0] == '\0':
-            #         continue
-
             g.addr = irAddr(g, addr, StorageType.GLOBAL)
 
             addr += g.size
@@ -488,6 +481,11 @@ class irProgram(IR):
         for f in [g for g in self.global_symbols.symbols.values() if isinstance(g, varFunction)]:
             f.addr = irAddr(f, func_addr, StorageType.FUNCTIONS)
             func_addr += 1
+
+        str_addr = 0
+        for s in [g for g in self.global_symbols.symbols.values() if isinstance(g, varStringLiteral)]:
+            s.addr = irAddr(s, str_addr, StorageType.STRING_LITERALS)
+            str_addr += 1
 
     def generate(self):
         self.analyze_call_graph()
