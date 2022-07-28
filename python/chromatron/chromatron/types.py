@@ -590,7 +590,7 @@ class varStringRef(varRef):
 
     @property
     def scalar_type(self):
-        return 'strbuf'
+        return 'strref'
 
 class varStringLiteral(varStringBuf):
     def __init__(self, *args, **kwargs):

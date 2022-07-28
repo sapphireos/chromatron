@@ -1,12 +1,12 @@
 
 
-# s = StringBuf('meow')
+# sbuf = StringBuf('meow')
 # s = StringBuf(32)
 
 # s = String('meow')
 
 # sref = String()
-# s2 = String('meow')
+s2 = String('meow')
 # # s3 = String()
 # s = String()
 
@@ -25,8 +25,14 @@ def init():
     s = String()
     s = ary[0]
 
-    print(s)
-    print(ary[0])
+    # print(s)
+    # print(ary[0])
+    # print(s2)
+
+    db.kv_test_string = s
+
+    print(db.kv_test_string)
+
     # print(ary[3])
 
     # print(ary[0])

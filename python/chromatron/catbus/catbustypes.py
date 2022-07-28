@@ -52,6 +52,9 @@ CATBUS_TYPE_STRING512        = 45
 CATBUS_TYPE_STRING32         = 46
 CATBUS_TYPE_STRING64         = 47
 
+CATBUS_TYPE_REF              = 80
+CATBUS_TYPE_STRREF           = 81
+
 CATBUS_TYPE_MISMATCH         = -6
 
 type_registry = {
@@ -112,6 +115,7 @@ type_id_registry = {
 
     'funcref': CATBUS_TYPE_NONE,
     'pixref': CATBUS_TYPE_NONE,
+    'strref': CATBUS_TYPE_STRREF,
 }
 
 def get_type_id(type_name):

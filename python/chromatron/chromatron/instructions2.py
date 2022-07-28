@@ -1140,6 +1140,12 @@ class insLoadDB(BaseInstruction):
             elif isinstance(db[key], float):
                 src_type = 'f16'
 
+            elif isinstance(db[key], str):
+                # string works in the simulator, but is actually
+                # loading a complete string into the register.
+                # this will not work on hardware.
+                src_type = 'str'
+
             else:
                 raise CompilerFatal(f'Other DB types not supported')
 
@@ -1286,7 +1292,7 @@ class insStoreDB(BaseInstruction):
             elif src_type == 'f16' and dest_type == 'i32':
                 value = convert_to_i32(value)
 
-            elif src_type == 'str':
+            elif src_type == 'strref':
                 value = value.pool[value.addr]
 
             db[key] = value
