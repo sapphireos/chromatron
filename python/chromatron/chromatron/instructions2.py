@@ -107,7 +107,7 @@ class insProgram(object):
 
         self.global_memory = StoragePool('_global', [0] * self.global_memory_size)
 
-        self.string_pool = StoragePool('_strings', strings.values())
+        self.string_pool = StoragePool('_strings', [s.init_val for s in strings.values()])
 
         for func in funcs.values():
             func.program = self

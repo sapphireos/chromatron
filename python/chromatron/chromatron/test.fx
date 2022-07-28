@@ -17,8 +17,13 @@ meow = String('meow')
 # ary = String()[4]
 
 def init():
-    s = 'jeremy rocks'
+    # s = 'jeremy rocks'
     # print(s)
+
+    # s = meow
+    # print(s)
+
+    return s == meow
 
     # ary[0] = 'meow'
     # ary[3] = 'woof'
