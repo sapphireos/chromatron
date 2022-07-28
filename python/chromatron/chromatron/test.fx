@@ -23,7 +23,8 @@ def init():
     # s = meow
     # print(s)
 
-    return s == meow
+    # return s == meow
+    return len(meow)
 
     # ary[0] = 'meow'
     # ary[3] = 'woof'
