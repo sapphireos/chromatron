@@ -961,6 +961,12 @@ class Builder(object):
             # else:
             #     raise SyntaxError(f'Invalid string assignment', lineno=lineno)
 
+        elif isinstance(target, varStringBuf):
+            target = self.load_value(target, lineno=lineno)
+            ir = irLoadString(target, value, lineno=lineno)
+
+            print(ir)
+
         else:
             raise SyntaxError(f'Invalid assign: {target} = {value}', lineno=lineno)
     

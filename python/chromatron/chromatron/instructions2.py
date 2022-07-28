@@ -1080,24 +1080,20 @@ class insLoadString(BaseInstruction):
         dest = vm.registers[self.dest.reg]
         src = vm.registers[self.src.reg]
 
-        dest_global = self.dest.var.ref.is_global
-        src_global = self.src.var.ref.is_global
+        print(dest, dest.pool, dest.addr)
+        print(src, src.pool, src.addr)
 
-        if src_global:
-            src_str = vm.memory[src]
+        value = src.pool[src.addr]
+        dest.pool[dest.addr] = value
 
-        else:
-            src_str = vm.locals[src]
+        print(dest, dest.pool, dest.addr)
+        print(src, src.pool, src.addr)
 
-        if dest_global:
-            vm.memory[dest] = src_str
-
-        else:
-            vm.locals[dest] = src_str    
+        
 
     def assemble(self):
-        dest_global = self.dest.var.ref.is_global
-        src_global = self.src.var.ref.is_global
+        dest_global = self.dest.var.is_global
+        src_global = self.src.var.is_global
 
         flags = 0
 
