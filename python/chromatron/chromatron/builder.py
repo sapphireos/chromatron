@@ -736,12 +736,14 @@ class Builder(object):
             
             return var
 
-        # elif isinstance(value, varString):
-        #     var = self.add_temp(data_type='strref', lineno=lineno)
-        #     ir = irLoadRef(var, value, lineno=lineno)
-        #     self.append_node(ir)
+        elif isinstance(value, varStringBuf):
+            var = self.add_temp(data_type='strref', lineno=lineno)
+            var.target = value
+
+            ir = irLoadRef(var, value, lineno=lineno)
+            self.append_node(ir)
             
-        #     return var
+            return var
 
         elif isinstance(value, varComposite):
             var = self.add_temp(data_type='ref', lineno=lineno)
@@ -751,14 +753,6 @@ class Builder(object):
             self.append_node(ir)
             
             return var
-
-            # var = self.add_temp(data_type='offset', lineno=lineno)
-            # var.ref = value.lookup()
-
-            # ir = irLookup(var, value, lineno=lineno)
-            # self.append_node(ir)
-            
-            # return var
 
         return value
 
@@ -1001,9 +995,30 @@ class Builder(object):
 
         return target
 
+    def binop_string(self, op, left, right, target_type='i32', lineno=None):
+        # target = self.add_temp(data_type=target_type, lineno=lineno)
+
+        if left.data_type != 'strref':
+            raise SyntaxError(f'Invalid operand for string operation: {left.name}', lineno=lineno)
+
+        if right.data_type != 'strref':
+            raise SyntaxError(f'Invalid operand for string operation: {right.name}', lineno=lineno)
+
+        if op == 'eq':
+            return self.call('strcmp', [left, right], lineno=lineno)
+
+        else:
+            raise SyntaxError(f'Invalid binary operation for strings: {op}', lineno=lineno)
+
+        return target
+
     def binop(self, op, left, right, target_type=None, lineno=None):
         left = self.load_value(left, target_type=target_type, lineno=lineno)
         right = self.load_value(right, target_type=target_type, lineno=lineno)
+
+        # check if a string is input and offload to a another routine (this one has enough going on as-is):
+        if left.data_type == 'strref' or right.data_type == 'strref':
+            return self.binop_string(op, left, right, target_type=target_type, lineno=lineno)
 
         # if both types are gfx16, use i32
         if left.data_type == 'gfx16' and right.data_type == 'gfx16':
@@ -1020,7 +1035,8 @@ class Builder(object):
                 target_data_type = right.data_type
 
         # check target type
-        if not isinstance(self.type_manager.lookup(target_data_type), varScalar):
+        lookup = self.type_manager.lookup(target_data_type)
+        if not isinstance(lookup, varScalar):
             raise CompilerFatal(f'Invalid type for binop: {target_data_type} Line: {lineno}')
 
         left_result = left
