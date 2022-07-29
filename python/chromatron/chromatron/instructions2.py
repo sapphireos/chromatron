@@ -159,6 +159,7 @@ class insProgram(object):
             'test_gfx_lib_call': self.test_gfx_lib_call,
             'rand': self.rand,
             'start_thread': self.start_thread,
+            'strlen': self.strlen,
             # 'len': self.array_len,
             # 'avg': self.array_avg,
             # 'sum': self.array_sum,
@@ -322,6 +323,16 @@ class insProgram(object):
     def start_thread(self, vm, param0=0):
         func = self.func_pool[param0.addr]
         print(f'start thread: {func.name}')
+
+    def strlen(self, vm, param0=0):
+        ref = param0
+
+        s = ref.pool[ref.addr]
+
+        return len(s)
+
+
+
 
     # def array_len(self, vm, param0, length):
     #     return length

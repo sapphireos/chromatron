@@ -548,20 +548,40 @@ class Builder(object):
             hashed_func = string_hash_func(func)
 
             func_const = self.add_const(hashed_func, lineno=lineno)
+    
+            is_str_target = len(params) > 0 and isinstance(params[0].var, varStringRef)
 
             if func in ARRAY_FUNCS:
-                ref = params[0].target
-                loaded_ref = self.load_value(ref, lineno=lineno)
-                length = self.add_const(ref.length, lineno=lineno)
-                #params.append(length)
-                # print(func, params, ref)
+                if not is_str_target:
+                    ref = params[0].target
 
-                if func == 'len':
-                    # we already know the array length, so this is just an assign
-                    ir = irAssign(result, length, lineno=lineno)
+                    loaded_ref = self.load_value(ref, lineno=lineno)
+                    length = self.add_const(ref.length, lineno=lineno)
+                    #params.append(length)
+                    # print(func, params, ref)
 
-                elif func in ['min', 'max', 'avg', 'sum']:
-                    ir = irVectorCalc(func, result, loaded_ref, lineno=lineno)
+                    if func == 'len':
+                        # we already know the array length, so this is just an assign
+                        ir = irAssign(result, length, lineno=lineno)
+
+                    elif func in ['min', 'max', 'avg', 'sum']:
+                        ir = irVectorCalc(func, result, loaded_ref, lineno=lineno)
+
+                    else:
+                        raise CompilerFatal(f'unknown function: {func}')
+
+                else: 
+                    # string targets
+                    if func == 'len':
+                        # this is a libcall to compute the actual string length in characters
+
+                        # we rename to strlen to differentiate internally.
+                        func = 'strlen'
+
+                        ir = irLibCall(func_const, params, func, lineno=lineno)
+
+                    else:
+                        raise SyntaxError(f'Array function {func} not supported for string target.', lineno=lineno)
 
             else:
                 ir = irLibCall(func_const, params, func, lineno=lineno)
