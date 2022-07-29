@@ -160,6 +160,7 @@ class insProgram(object):
             'rand': self.rand,
             'start_thread': self.start_thread,
             'strlen': self.strlen,
+            'strcmp': self.strcmp,
             # 'len': self.array_len,
             # 'avg': self.array_avg,
             # 'sum': self.array_sum,
@@ -331,7 +332,16 @@ class insProgram(object):
 
         return len(s)
 
+    def strcmp(self, vm, param0=0, param1=0):
+        ref1 = param0
+        ref2 = param1
+        s1 = ref1.pool[ref1.addr]
+        s2 = ref2.pool[ref2.addr]
 
+        if s1 == s2:
+            return 1
+
+        return 0
 
 
     # def array_len(self, vm, param0, length):
