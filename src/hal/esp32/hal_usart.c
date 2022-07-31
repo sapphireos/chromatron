@@ -29,7 +29,8 @@
 #include "driver/uart.h"
 
 // Setup UART buffered IO with event queue
-#define UART_BUFFER_SIZE 512
+#define UART_RX_BUFFER_SIZE 2048
+#define UART_TX_BUFFER_SIZE 0
 
 
 void usart_v_init( uint8_t channel ){
@@ -51,8 +52,8 @@ void usart_v_init( uint8_t channel ){
     // Install UART driver using an event queue here
     ESP_ERROR_CHECK( uart_driver_install(
                         channel, 
-                        UART_BUFFER_SIZE,
-                        UART_BUFFER_SIZE, 
+                        UART_RX_BUFFER_SIZE,
+                        UART_TX_BUFFER_SIZE, 
                         0, 
                         0, 
                         0 ) );
