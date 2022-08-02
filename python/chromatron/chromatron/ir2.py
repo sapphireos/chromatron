@@ -6973,6 +6973,23 @@ class irLoadString(IR):
     def __str__(self):
         return f'LOAD STR {self.target} <-- {self.value}'
 
+    def gvn_process(self, VN):
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f'replace loadstr target {self.target} with {replacement}')
+
+                self.target = replacement
+
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f'replace loadstr value {self.value} with {replacement}')
+
+                self.value = replacement
+
     def get_input_vars(self):
         return [self.target, self.value]
 
@@ -7006,10 +7023,10 @@ class irLoadRef(IR):
         if self.ref in VN:
             replacement = VN[VN[self.ref]]
 
-            if ir.ref != replacement:
+            if self.ref != replacement:
                 debug_print(f'replace ref {self.ref} with {replacement}')
 
-                ir.ref = replacement
+                self.ref = replacement
 
         expr = self.gvn_expr
 
