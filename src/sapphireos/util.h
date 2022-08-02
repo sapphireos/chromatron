@@ -51,5 +51,12 @@ uint8_t util_u8_average( uint8_t data[], uint8_t len );
 int16_t util_i16_average( int16_t data[], uint16_t len );
 uint16_t util_u16_average( uint16_t data[], uint16_t len );
 
+float util_f_degrees_to_radians( float degrees );
+float util_f_radians_to_degrees( float radians );
+float util_f_distance( float x0, float y0, float x1, float y1 );
+void util_v_cart2pol( float x, float y, float *rho, float *phi );
+void util_v_pol2cart( float rho, float phi, float *x, float *y );
+float util_f_ewma( float new, float old, float ratio );
+
 #endif
 
