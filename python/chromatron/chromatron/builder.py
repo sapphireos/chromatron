@@ -264,6 +264,15 @@ class Builder(object):
                     const_var = self.add_const(const, lineno=lineno)
                     self.assign(var.var, const_var, lineno=lineno)
 
+                elif isinstance(var.var, varStringBuf):
+                    # set up init value:
+                    if var.init_val is not None:
+                        src_ref = self.load_value(var.init_val, lineno=lineno)
+                        dest_ref = self.load_value(var.var, lineno=lineno)
+
+                        ir = irLoadString(dest_ref, src_ref, lineno=lineno)
+                        self.append_node(ir)
+
                 self.add_var_to_symbol_table(var.var)
 
             elif isinstance(var.var, varScalar):
@@ -1182,24 +1191,15 @@ class Builder(object):
             if var.data_type == 'strbuf':
                 ir = irLoadRef(init_var, var.init_val, lineno=var.lineno)
                 init_func.body.insert(1, ir)
-                
-                ir = irLoadString(var, init_var, lineno=var.lineno)                
+
+                ref = self.add_temp(data_type='ref', lineno=var.lineno)
+                ref.target = var
+
+                ir = irLoadRef(ref, var, lineno=var.lineno)
                 init_func.body.insert(2, ir)
-
-
-                # print(var)
-                # init_var = init_var.copy()
-
-                # ir = irLoadRef(init_var, var, lineno=var.lineno)
-
-                # ir = irLoadString(init_var, var.init_val, lineno=var.lineno)
-                # init_func.body.insert(1, ir)
-                # ir = irStore(init_var, var, lineno=var.lineno)
-                # init_func.body.insert(2, ir)
-
-                # ir = irLoadConst(var.copy(), var.init_val, lineno=var.lineno)
-                # init_func.body.insert(1, ir)
-                pass
+                
+                ir = irLoadString(ref, init_var, lineno=var.lineno)                
+                init_func.body.insert(3, ir)
 
             elif var.data_type == 'strref':
                 ir = irLoadRef(init_var, var.init_val, lineno=var.lineno)

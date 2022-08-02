@@ -584,6 +584,9 @@ class varStringBuf(varComposite):
     def size(self):
         return self.length
 
+    def assemble(self):
+        return [0] * self.size
+
 class varStringRef(varRef):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='strref', **kwargs)
