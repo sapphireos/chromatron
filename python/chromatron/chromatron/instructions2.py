@@ -394,8 +394,11 @@ class insProgram(object):
 
                 if isinstance(value, insRef):
                     value = value.dereference()
-                    
+
                 d[g.name] = value
+
+            elif g.data_type == 'strbuf':
+                d[g.name] = self.global_memory[g.addr.addr]
 
             else:
                 d[g.name] = []

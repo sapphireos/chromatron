@@ -1951,6 +1951,18 @@ def init():
     e = d
 """
 
+test_basic_stringbuf = """
+a = StringBuf(32, publish=True)
+b = StringBuf('test2', publish=True)
+c = StringBuf(32, publish=True)
+
+def init():
+    a = 'test3'
+    c = a
+    a = 'test'
+
+"""
+
 test_gfx_array_load = """
 
 a = Fixed16(publish=True)
@@ -2062,6 +2074,15 @@ class CompilerTests(object):
                 'd': 'test3',
                 'e': 'test3',
             })
+
+    def test_basic_stringbuf(self, opt_passes):
+        self.run_test(test_basic_stringbuf,
+            opt_passes=opt_passes,
+            expected={
+                'a': 'test',
+                'b': 'test2',
+                'c': 'test3',
+            })    
 
     # skip - DB needs to be able to understand gfx16 types to properly handle conversions
     # def test_complex_assignments(self, opt_passes):

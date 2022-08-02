@@ -116,6 +116,7 @@ type_id_registry = {
     'funcref': CATBUS_TYPE_NONE,
     'pixref': CATBUS_TYPE_NONE,
     'strref': CATBUS_TYPE_STRREF,
+    'strbuf': CATBUS_TYPE_STRING64,
 }
 
 def get_type_id(type_name):

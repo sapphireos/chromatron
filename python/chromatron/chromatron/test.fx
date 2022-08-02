@@ -1,22 +1,11 @@
-# a = String(publish=True)
-# b = String(publish=True)
-# c = String(publish=True)
-# d = String("test3", publish=True)
-# e = String(publish=True)
-
-s1 = StringBuf('test')
+a = StringBuf(32, publish=True)
+b = StringBuf('test2', publish=True)
+c = StringBuf(32, publish=True)
 
 def init():
-    print(s1)
-    # a = "test"
-    s = StringBuf('test2')
-    print(s)
-
-    s1 = s
-    print(s1)
-    # b = s
-    # c = a
-    # e = d
+    a = 'test3'
+    c = a
+    a = 'test'
 
 # # sbuf = StringBuf('meow')
 # s = StringBuf(32)
