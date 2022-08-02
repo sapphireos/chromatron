@@ -278,6 +278,18 @@ class Builder(object):
 
                 self.add_var_to_symbol_table(var)
 
+            elif isinstance(var.var, varStringRef):
+                self.add_var_to_symbol_table(var)
+
+                # set up init value:
+                if var.init_val is None:
+                    const = 0
+                    ir = irLoadConst(var, const, lineno=lineno)
+                    self.append_node(ir)
+
+                else:
+                    self.assign(var, var.init_val, lineno=lineno)
+
             else:
                 self.add_var_to_symbol_table(var)
 
@@ -336,6 +348,9 @@ class Builder(object):
         self.structs[name] = ir
 
     def add_string(self, string, lineno=None):
+        if not isinstance(string, str):
+            raise CompilerFatal
+
         try:
             return self.strings[string]
 
@@ -957,29 +972,9 @@ class Builder(object):
                 self.append_node(ir)
                 ir = irStore(target, target.var, lineno=lineno)
 
-        # elif isinstance(target, varString):
-        #     target = self.load_value(target, lineno=lineno)
-
-        #     ir = irLoadString(target, value, lineno=lineno)
-
-            # # load address to register:
-            # var = self.add_temp(data_type='offset', lineno=lineno)
-            # var.ref = target.lookup()
-
-            # ir = irLookup(var, target, lineno=lineno)
-            # self.append_node(ir)
-
-            # if isinstance(value.ref, varString):
-            #     ir = irLoadString(var, value, lineno=lineno)
-
-            # else:
-            #     raise SyntaxError(f'Invalid string assignment', lineno=lineno)
-
         elif isinstance(target, varStringBuf):
             target = self.load_value(target, lineno=lineno)
             ir = irLoadString(target, value, lineno=lineno)
-
-            print(ir)
 
         else:
             raise SyntaxError(f'Invalid assign: {target} = {value}', lineno=lineno)

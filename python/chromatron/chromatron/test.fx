@@ -1,29 +1,43 @@
-
-
-# sbuf = StringBuf('meow')
-s = StringBuf(32)
-
-meow = String('meow')
-
-# sref = String()
-# s2 = String('meow')
-# # s3 = String()
-# s = String()
-
-# ary = Number()[4]
-
-# n = Number(123)
-
-# ary = String()[4]
+a = String(publish=True)
+b = String(publish=True)
+c = String(publish=True)
+d = String("test3", publish=True)
+e = String(publish=True)
 
 def init():
-    # s = 'jeremy rocks'
-    # print(s)
+    a = "test"
+    s = String('test2')
+    b = s
+    c = a
+    e = d
+
+# # sbuf = StringBuf('meow')
+# s = StringBuf(32)
+
+# meow = String('meow')
+
+# # sref = String()
+# # s2 = String('meow')
+# # # s3 = String()
+# # s = String()
+
+# # ary = Number()[4]
+
+# # n = Number(123)
+
+# # ary = String()[4]
+
+# def init():
+#     s = 'jeremy rocks'
+#     print(s)
+
+#     meow = s
+#     print(meow)
 
     # s = meow
     # print(s)
 
-    return meow == 'meow'
+    # return meow == 'meow'
     # return len(meow)
 
     # ary[0] = 'meow'

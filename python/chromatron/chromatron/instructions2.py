@@ -390,7 +390,12 @@ class insProgram(object):
 
         for g in self.globals:
             if g.is_scalar or g.length == 1:
-                d[g.name] = self.global_memory[g.addr.addr]
+                value = self.global_memory[g.addr.addr]
+
+                if isinstance(value, insRef):
+                    value = value.dereference()
+                    
+                d[g.name] = value
 
             else:
                 d[g.name] = []
@@ -490,6 +495,10 @@ class insFunc(object):
             size += l.size
  
         return size
+
+    @property
+    def globals(self):
+        return self.program.globals
 
     @property
     def funcs(self):
@@ -814,6 +823,9 @@ class insRef(BaseInstruction):
 
     def __str__(self):
         return f"Ref({self.addr}@{self.pool.name})"
+
+    def dereference(self):
+        return self.pool[self.addr]
     
     def assemble(self):
         return Reference(self.addr, self.pool).pack()
