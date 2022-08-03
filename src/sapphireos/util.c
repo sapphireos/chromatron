@@ -24,6 +24,7 @@
 
 #include "bool.h"
 #include "util.h"
+#include <math.h>
 
 // yes, we're writing our own fabs because for some reason avr-libc doesn't actually have it
 float f_abs( float x ){
