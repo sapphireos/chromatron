@@ -376,12 +376,12 @@ float util_f_distance( float x0, float y0, float x1, float y1 ){
 void util_v_cart2pol( float x, float y, float *rho, float *phi ){
     
     *rho = sqrt( x * x + y * y );
-    *phi = degrees( atan2( y, x ) ) + 180.0;
+    *phi = util_f_radians_to_degrees( atan2( y, x ) ) + 180.0;
 }
 
 void util_v_pol2cart( float rho, float phi, float *x, float *y ){
 
-    float rad = radians( phi + 180.0 );
+    float rad = util_f_degrees_to_radians( phi + 180.0 );
 
     *x = rho * cos( rad );
     *y = rho * sin( rad );
