@@ -37,6 +37,16 @@ float f_abs( float x ){
     return x;
 }
 
+uint8_t abs8( int8_t a ){
+
+    if( a < 0 ){
+
+        return a * -1;
+    }
+
+    return a;
+}
+
 uint16_t abs16( int16_t a ){
 
     if( a < 0 ){

@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 float f_abs( float x );
+uint8_t abs8( int8_t a );
 uint16_t abs16( int16_t a );
 uint32_t abs32( int32_t a );
 uint64_t abs64( int64_t a );
