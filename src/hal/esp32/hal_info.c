@@ -51,6 +51,14 @@ static int8_t hal_info_kv_handler(
 
             STORE32(data, cpu_u32_get_clock_speed());
     	}
+        else if( hash == __KV__cpu_cores ){
+
+            #ifdef CONFIG_FREERTOS_UNICORE
+            STORE32(data, 1);
+            #else
+            STORE32(data, 2);
+            #endif
+        }
         else if( hash == __KV__esp_heap_free ){
 
             STORE32(data, esp_get_free_heap_size());
@@ -105,6 +113,7 @@ KV_SECTION_META kv_meta_t hal_info_kv[] = {
     { CATBUS_TYPE_STRING32,     0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "hw_type" },
     { CATBUS_TYPE_UINT8,        0, 0,                   0, hal_info_kv_handler,  "hw_board_type" },
     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "cpu_clock" },
+    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "cpu_cores" },
     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "esp_heap_free" },
     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "esp_heap_min_free" },
     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "vm_max_image_size" },
