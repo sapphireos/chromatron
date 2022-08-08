@@ -62,6 +62,21 @@ int8_t vm_lib_i8_libcall_built_in(
             else if( param_len == 1 ){
 
                 temp0 = params[0];
+                
+                *result = rnd_u32_range_with_seed( &state->rng_seed, temp0 );
+            }
+            else{
+
+                temp0 = params[1] - params[0];
+                temp1 = params[0];
+
+                *result = temp1 + rnd_u32_range_with_seed( &state->rng_seed, temp0 );
+            }
+
+            /*
+            else if( param_len == 1 ){
+
+                temp0 = params[0];
                 temp1 = 0;
             }
             else{
@@ -81,6 +96,7 @@ int8_t vm_lib_i8_libcall_built_in(
             
                 *result = temp1 + ( rnd_u16_get_int_with_seed( &state->rng_seed ) % temp0 );
             }
+            */
 
             break;
 
