@@ -223,3 +223,13 @@ uint32_t rnd_u32_range( uint32_t range ){
 
     return x;
 }
+
+uint16_t rnd_u16_range_with_seed( uint64_t *seed, uint16_t range ){
+
+    return rnd_u32_range_with_seed( seed, range ) & 0xffff;
+}
+
+uint16_t rnd_u16_range( uint16_t range ){
+
+    return rnd_u16_range( range ) & 0xffff;
+}
