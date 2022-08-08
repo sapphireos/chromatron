@@ -190,6 +190,10 @@ int8_t gfx_i8_get_pixel_array( uint8_t obj, gfx_pixel_array_t **array_ptr );
 void gfx_v_init_noise( void );
 uint16_t gfx_u16_noise( uint16_t x );
 
+void gfx_v_init_shuffle( void );
+uint16_t gfx_u16_shuffle_count( void );
+uint16_t gfx_u16_shuffle( void );
+
 uint32_t gfx_u32_get_pixel_r( void );
 uint32_t gfx_u32_get_pixel_g( void );
 uint32_t gfx_u32_get_pixel_b( void );

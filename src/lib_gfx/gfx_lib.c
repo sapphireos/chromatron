@@ -757,6 +757,20 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
             return gfx_u16_noise( params[0] % 65536 );
             break;
 
+        case __KV__shuffle:
+            return gfx_u16_shuffle();
+            break;
+
+        case __KV__shuffle_count:
+            return gfx_u16_shuffle_count();
+            break;
+
+        case __KV__reset_shuffle:
+            gfx_v_init_shuffle();
+
+            return 0;
+            break;
+
         case __KV__sine:
             if( param_len != 1 ){
 
@@ -2924,10 +2938,109 @@ uint16_t gfx_u16_noise( uint16_t x ){
 
 /*
 
+Basic Fisher-Yates Shuffle:
 
+1. Write down the numbers from 1 through N.
+
+2. Pick a random number k between one and the number of 
+   unstruck numbers remaining (inclusive).
+
+3. Counting from the low end, strike out the kth number 
+   not yet struck out, and write it down at the end of a separate list.
+
+4. Repeat from step 2 until all the numbers have been struck out.
+
+5. The sequence of numbers written down in step 3 is now 
+   a random permutation of the original numbers.
+
+
+Our modified algorithm:
+
+The original is about shuffling an array.  We just want the index of the
+current item and to track which items have already been pulled from the
+"deck".
+
+We track the deck as a bit array, with one bit for each pixel in our
+main pixel array (it is assumed this algorithm is being used for
+pixel selection).
+
+We select a random number from 0 to N - 1.  N is the number of items remaining
+in the deck.  This is our selection of the *remaining* items.
+We search the bit array (deck): bits that are 0 have not been removed from the
+deck, so we count these and skip over the 1s.  Once we get to our 0, we mark it
+as a 1 and return that overall bit position (covering 1s and 0s).
+
+Once the deck is depleted, we automatically re-initialize it.
 
 */
 
+static uint16_t shuffle_count; // count of items still in the deck
+
+// "deck" with space for maximum possible pixel count:
+static uint8_t shuffle_state[( MAX_PIXELS / 8 ) + 1];
+
+void gfx_v_init_shuffle( void ){
+
+    shuffle_count = pix_count;
+    memset( shuffle_state, 0, sizeof(shuffle_state) );
+}
+
+// return count of remaining items
+uint16_t gfx_u16_shuffle_count( void ){
+
+    return shuffle_count;
+}
+
+uint16_t gfx_u16_shuffle( void ){
+
+    if( shuffle_count == 0 ){
+
+        return 0;
+    }
+
+    // get a random number k between 0 and N - 1, N being the number of
+    // items in the deck:
+    uint16_t k = rnd_u16_range( shuffle_count - 1 );
+    uint16_t b = 0; // b tracks the overall bit position
+
+    // count zeros in bitmask until we get to k
+    for( uint16_t i = 0; i < cnt_of_array(shuffle_state); i++ ){
+
+        for( uint8_t j = 0; j < 8; j++ ){
+
+            if( ( ( shuffle_state[i] >> j ) & 1 ) == 0 ){
+
+                k--;
+            }
+
+            if( k == 0 ){
+
+                // mark this bit as a 1.
+                // this removes it from the deck.
+                shuffle_state[i] |= ( 1 << j );
+
+                goto done;
+            }
+
+            b++;
+        }
+    }
+
+
+done:   
+    
+    // decrement count of items in the deck:
+    shuffle_count--;
+
+    if( shuffle_count == 0 ){
+
+        // deck is empty, automatically re-shuffle it:
+
+        gfx_v_init_shuffle();
+    }
+
+    return b;
+}
 
 
 
