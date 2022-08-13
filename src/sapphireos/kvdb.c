@@ -248,6 +248,9 @@ int8_t kvdb_i8_add(
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
     }
 
+    // reset cache!
+    kv_v_reset_cache();
+
     db_entry_t *entry = list_vp_get_data( ln );
 
     entry->hash      = hash;

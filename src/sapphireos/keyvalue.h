@@ -113,12 +113,6 @@ typedef struct  __attribute__((packed, aligned(4))){
     uint8_t padding;
 } kv_meta_t;
 
-typedef struct  __attribute__((packed)){
-    catbus_hash_t32 hash;
-    uint16_t index;
-} kv_hash_index_t;
-
-
 
 
 // prototypes:

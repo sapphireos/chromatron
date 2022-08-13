@@ -41,6 +41,13 @@
 #include "keyvalue.h"
 
 
+
+
+typedef struct  __attribute__((packed)){
+    catbus_hash_t32 hash;
+    uint16_t index;
+} kv_hash_index_t;
+
 #ifdef ESP32
 #include "esp_spi_flash.h"
 
@@ -61,6 +68,7 @@ static int32_t kv_test_array[4];
 
 static uint64_t kv_cache_hits;
 static uint64_t kv_cache_misses;
+
 
 static uint8_t kv_cache_index;
 static kv_hash_index_t kv_cache[KV_CACHE_SIZE];
@@ -89,6 +97,23 @@ KV_SECTION_META_END kv_meta_t kv_end[] = {
 };
 
 
+static uint16_t _kv_u16_optional_count( void ){
+
+    uint16_t count = 0;
+
+    list_node_t ln = kv_opt_list.head;
+
+    while( ln >= 0 ){
+
+        kv_opt_info_t *info = list_vp_get_data( ln );
+        count += info->count;
+
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
+
 static int8_t _kv_i8_dynamic_count_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -105,6 +130,10 @@ static int8_t _kv_i8_dynamic_count_handler(
             
             STORE16(data, kvdb_u16_db_size());
         }
+        else if( hash == __KV__kv_optional_count ){
+            
+            STORE16(data, _kv_u16_optional_count());
+        }
 
         return 0;
     }
@@ -116,6 +145,7 @@ KV_SECTION_META kv_meta_t kv_cfg[] = {
     { CATBUS_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
     { CATBUS_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
     { CATBUS_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_optional_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
     { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_hits,      0,           "kv_cache_hits" },
@@ -177,6 +207,8 @@ uint16_t kv_u16_count( void ){
 
     uint16_t count = _kv_u16_fixed_count();
     
+    count += _kv_u16_optional_count();
+
     count += kv_u8_get_dynamic_count();
 
     return count;
@@ -280,18 +312,44 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
         middle = ( first + last ) / 2;
     }
 
-    // try lookup by hash    
-    int16_t index = kvdb_i16_get_index_for_hash( hash );
+    // linear search through optional database
+    int16_t index = 0;
+    list_node_t ln = kv_opt_list.head;
 
-    if( index >= 0 ){
+    while( ln >= 0 ){
+
+        kv_opt_info_t *info = list_vp_get_data( ln );
+        
+        kv_meta_t *meta = info->meta;
+
+        if( meta->hash == hash ){
+
+            index += _kv_u16_fixed_count();
+
+            // update cache
+            _kv_v_add_to_cache( hash, index );
+
+            return index;
+        }
+
+        index++;
+
+        ln = list_ln_next( ln );
+    }    
+
+
+    // try lookup by hash in dynamic database
+    int16_t kvdb_index = kvdb_i16_get_index_for_hash( hash );
+
+    if( kvdb_index >= 0 ){
 
         // offset into dynamic
-        index += _kv_u16_fixed_count();
+        kvdb_index += ( _kv_u16_fixed_count() + _kv_u16_optional_count() );
 
         // update cache
-        _kv_v_add_to_cache( hash, index );
+        _kv_v_add_to_cache( hash, kvdb_index );
 
-        return index;
+        return kvdb_index;
     }
 
     return KV_ERR_STATUS_NOT_FOUND;
@@ -316,10 +374,39 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
         // load meta data
         memcpy_P( meta, ptr, sizeof(kv_meta_t) );
     }
+    else if( ( index >= _kv_u16_fixed_count() ) &&
+             ( ( index + _kv_u16_fixed_count() ) < _kv_u16_optional_count() ) ){
+
+        list_node_t ln = kv_opt_list.head;
+
+        uint16_t sub_index = _kv_u16_fixed_count();
+
+        while( ln >= 0 ){
+
+            kv_opt_info_t *info = list_vp_get_data( ln );
+            kv_meta_t *opt_meta = info->meta;    
+
+            for( uint16_t i = 0; i < info->count; i++ ){
+
+                if( sub_index == index ){
+
+                    memcpy_P( meta, info->meta, sizeof(kv_meta_t) );
+
+                    goto done;
+                }
+                    
+                opt_meta++;
+
+                sub_index++;
+            }
+
+            ln = list_ln_next( ln );
+        }
+    }
     else if( index < kv_u16_count() ){
 
         // compute dynamic index
-        index -= _kv_u16_fixed_count();
+        index -= ( _kv_u16_fixed_count() + _kv_u16_optional_count() );
 
         memset( meta, 0, sizeof(kv_meta_t) );
 
@@ -349,6 +436,8 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
         return KV_ERR_STATUS_NOT_FOUND;
     }
 
+
+done:
     return 0;
 }
 
@@ -574,6 +663,13 @@ void kv_v_init( void ){
 
 void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        log_v_error_P( PSTR("Optional KV entries not available in safe mode") );
+
+        return;
+    }
+
     uint16_t count = len / sizeof(kv_meta_t);
     uint16_t check = len % sizeof(kv_meta_t);
 
@@ -598,6 +694,8 @@ void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
     }
 
     list_v_insert_tail( &kv_opt_list, ln );
+
+    kv_v_reset_cache();
 }
 
 
