@@ -41,6 +41,10 @@ skip_files = [
 
 skip_folders = [
     'esp-idf',
+    'lwip',
+    'STM32H7xx_HAL_Driver',
+    'CMSIS',
+    'VL53L0X_1.0.2',
 ]
 
 ext_comments = {
@@ -81,7 +85,7 @@ if __name__ == "__main__":
                 break
 
         if skip_dir:
-            print(f'Skipping dir {root}')
+            # print(f'Skipping dir {root}')
             continue
 
 
