@@ -36,6 +36,7 @@
 
 #include "bq25895.h"
 #include "pca9536.h"
+#include "mcp73831.h"
 
 #include "hal_pixel.h"
 
