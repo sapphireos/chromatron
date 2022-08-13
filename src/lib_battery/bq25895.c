@@ -87,7 +87,7 @@ static int16_t ambient_temp_state;
 
 static int8_t batt_temp_raw;
 
-KV_SECTION_META kv_meta_t bat_info_kv[] = {
+KV_SECTION_OPT kv_meta_t bat_info_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                   0,  "batt_soc" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp,                  0,  "batt_temp" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp_raw,              0,  "batt_temp_raw" },
@@ -212,6 +212,8 @@ int8_t bq25895_i8_init( void ){
 
         return -1;
     }
+
+    kv_v_add_db_info( bat_info_kv, sizeof(bat_info_kv) );
 
     bq25895_v_read_all();
 

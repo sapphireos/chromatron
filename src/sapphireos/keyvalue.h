@@ -49,6 +49,12 @@
 #endif
 
 #if defined(__SIM__) || defined(BOOTLOADER)
+    #define KV_SECTION_OPT
+#else
+    #define KV_SECTION_OPT               __attribute__ ((section (".kv_opt"), used))
+#endif
+
+#if defined(__SIM__) || defined(BOOTLOADER)
     #define SERVICE_SECTION
 #else
     #define SERVICE_SECTION              __attribute__ ((section (".service"), used))
@@ -118,6 +124,8 @@ typedef struct  __attribute__((packed)){
 // prototypes:
 
 void kv_v_init( void );
+
+void kv_v_add_db_info( kv_meta_t *meta, uint16_t len );
 
 int16_t kv_i16_len( catbus_hash_t32 hash );
 catbus_type_t8 kv_i8_type( catbus_hash_t32 hash );

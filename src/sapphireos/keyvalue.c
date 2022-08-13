@@ -33,6 +33,7 @@
 #include "crc.h"
 #include "kvdb.h"
 #include "catbus_common.h"
+#include "list.h"
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -46,6 +47,13 @@
 static kv_hash_index_t *ram_index;
 
 #endif
+
+typedef struct{
+    kv_meta_t *meta;
+    uint16_t count;
+} kv_opt_info_t;
+
+static list_t kv_opt_list;
 
 static uint32_t kv_persist_writes;
 static int32_t kv_test_key;
@@ -521,6 +529,8 @@ retry:;
 
 void kv_v_init( void ){
 
+    list_v_init( &kv_opt_list );
+
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
@@ -561,6 +571,34 @@ void kv_v_init( void ){
     }
 }
 
+
+void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
+
+    uint16_t count = len / sizeof(kv_meta_t);
+    uint16_t check = len % sizeof(kv_meta_t);
+
+    // ensure the metadata length is correct
+    if( check != 0 ){
+
+        log_v_critical_P( PSTR("fatal KV error") );
+        return;
+    }
+
+    kv_opt_info_t info = {
+        meta,  
+        count,
+    };
+
+    list_node_t ln = list_ln_create_node2( &info, sizeof(info), MEM_TYPE_KV_OPT );
+
+    if( ln < 0 ){
+
+        log_v_critical_P( PSTR("fatal KV error") );
+        return;
+    }
+
+    list_v_insert_tail( &kv_opt_list, ln );
+}
 
 
 static int8_t _kv_i8_persist_set_internal(
