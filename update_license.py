@@ -45,6 +45,11 @@ skip_folders = [
     'STM32H7xx_HAL_Driver',
     'CMSIS',
     'VL53L0X_1.0.2',
+    'lib_asf_usb',
+    'esp8266/sdk',
+    'tools',
+    'docs',
+    'temp',
 ]
 
 ext_comments = {
