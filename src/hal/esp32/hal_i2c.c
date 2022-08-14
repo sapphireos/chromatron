@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -36,11 +36,18 @@ static gpio_num_t gpio_scl = GPIO_NUM_22;
 
 static i2c_baud_t8 i2c_baud;
 
+// static i2c_cmd_handle_t handle;
+
 #define CHECK_ACK   TRUE
 #define NO_ACK      FALSE
 
 void i2c_v_init( i2c_baud_t8 baud ){
 
+    // if( handle == 0 ){
+
+    //     handle = i2c_cmd_link_create();    
+    // }
+    
     i2c_baud = baud;
 
     i2c_config_t conf = {0};
@@ -90,92 +97,91 @@ void i2c_v_set_pins( uint8_t clock, uint8_t data ){
 
 void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){
 
-    i2c_cmd_handle_t handle = i2c_cmd_link_create();
+    i2c_master_write_to_device( I2C_MASTER_PORT, dev_addr, (uint8_t *)src, len, 50 / portTICK_RATE_MS );
 
-    i2c_master_start( handle );
+    // i2c_master_start( handle );
 
-    // send address
-    i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_WRITE, CHECK_ACK );
+    // // send address
+    // i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_WRITE, CHECK_ACK );
     
-    // send data
-    i2c_master_write( handle, (uint8_t *)src, len, CHECK_ACK );
+    // // send data
+    // i2c_master_write( handle, (uint8_t *)src, len, CHECK_ACK );
 
-    i2c_master_stop( handle );
+    // i2c_master_stop( handle );
 
-    // run the command sequence
-    i2c_master_cmd_begin( I2C_MASTER_PORT, handle, 50 / portTICK_RATE_MS );
-
-    i2c_cmd_link_delete( handle );
+    // // run the command sequence
+    // i2c_master_cmd_begin( I2C_MASTER_PORT, handle, 50 / portTICK_RATE_MS );
 }
 
 void i2c_v_read( uint8_t dev_addr, uint8_t *dst, uint8_t len ){
 
-    i2c_cmd_handle_t handle = i2c_cmd_link_create();
+    i2c_master_read_from_device( I2C_MASTER_PORT, dev_addr, dst, len, 50 / portTICK_RATE_MS );
 
-    i2c_master_start( handle );
+    // i2c_master_start( handle );
 
-    // send address
-    i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_READ, CHECK_ACK );
+    // // send address
+    // i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_READ, CHECK_ACK );
     
-    // read data
-    i2c_master_read( handle, dst, len, I2C_MASTER_ACK );
+    // // read data
+    // i2c_master_read( handle, dst, len, I2C_MASTER_ACK );
 
-    i2c_master_stop( handle );
+    // i2c_master_stop( handle );
 
-    // run the command sequence
-    i2c_master_cmd_begin( I2C_MASTER_PORT, handle, 50 / portTICK_RATE_MS );
-
-    i2c_cmd_link_delete( handle );
+    // // run the command sequence
+    // i2c_master_cmd_begin( I2C_MASTER_PORT, handle, 50 / portTICK_RATE_MS );
 }
 
 void i2c_v_mem_write( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, const uint8_t *src, uint8_t len, uint16_t delay_ms ){
 
-    i2c_cmd_handle_t handle = i2c_cmd_link_create();
+    uint8_t buf[255];
 
-    i2c_master_start( handle );
+    ASSERT( len + addr_size < sizeof(buf) );
 
-    // send address
-    i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_WRITE, CHECK_ACK );
+    memcpy( buf, &mem_addr, addr_size );
+    memcpy( &buf[addr_size], src, len );
+
+    i2c_master_write_to_device( I2C_MASTER_PORT, dev_addr, buf, len + addr_size, 50 / portTICK_RATE_MS );
+
+    // i2c_master_start( handle );
+
+    // // send address
+    // i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_WRITE, CHECK_ACK );
     
-    // send reg addr
-    i2c_master_write( handle, (uint8_t *)&mem_addr, addr_size, CHECK_ACK );
+    // // send reg addr
+    // i2c_master_write( handle, (uint8_t *)&mem_addr, addr_size, CHECK_ACK );
 
-    // send data
-    i2c_master_write( handle, (uint8_t *)src, len, CHECK_ACK );
+    // // send data
+    // i2c_master_write( handle, (uint8_t *)src, len, CHECK_ACK );
 
-    i2c_master_stop( handle );
+    // i2c_master_stop( handle );
 
-    // run the command sequence
-    i2c_master_cmd_begin( I2C_MASTER_PORT, handle, 50 / portTICK_RATE_MS );
-
-    i2c_cmd_link_delete( handle );
+    // // run the command sequence
+    // i2c_master_cmd_begin( I2C_MASTER_PORT, handle, 50 / portTICK_RATE_MS );
 }
 
 void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uint8_t *dst, uint8_t len, uint16_t delay_ms ){
 
-    i2c_cmd_handle_t handle = i2c_cmd_link_create();
+    i2c_master_write_read_device( I2C_MASTER_PORT, dev_addr, (uint8_t *)&mem_addr, addr_size, dst, len, 50 / portTICK_RATE_MS );
 
-    i2c_master_start( handle );
+    // i2c_master_start( handle );
 
-    // send address
-    i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_WRITE, CHECK_ACK );
+    // // send address
+    // i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_WRITE, CHECK_ACK );
     
-    // send reg addr
-    i2c_master_write( handle, (uint8_t *)&mem_addr, addr_size, CHECK_ACK );
+    // // send reg addr
+    // i2c_master_write( handle, (uint8_t *)&mem_addr, addr_size, CHECK_ACK );
 
-    i2c_master_start( handle );
+    // i2c_master_start( handle );
 
-    // send address
-    i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_READ, CHECK_ACK );
+    // // send address
+    // i2c_master_write_byte( handle, ( dev_addr << 1 ) | I2C_MASTER_READ, CHECK_ACK );
 
-    // read data
-    i2c_master_read( handle, dst, len, I2C_MASTER_ACK );
+    // // read data
+    // i2c_master_read( handle, dst, len, I2C_MASTER_ACK );
 
-    i2c_master_stop( handle );
+    // i2c_master_stop( handle );
 
-    // run the command sequence
-    i2c_master_cmd_begin( I2C_MASTER_PORT, handle, 50 / portTICK_RATE_MS );
-
-    i2c_cmd_link_delete( handle );
+    // // run the command sequence
+    // i2c_master_cmd_begin( I2C_MASTER_PORT, handle, 50 / portTICK_RATE_MS );
 }
 

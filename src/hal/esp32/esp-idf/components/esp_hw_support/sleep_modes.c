@@ -28,6 +28,7 @@
 #include "soc/cpu.h"
 #include "soc/rtc.h"
 #include "soc/soc_caps.h"
+#include "regi2c_ctrl.h"
 
 #include "hal/wdt_hal.h"
 #include "hal/rtc_hal.h"
@@ -140,7 +141,7 @@ typedef struct {
     uint64_t sleep_duration;
     uint32_t wakeup_triggers : 15;
     uint32_t ext1_trigger_mode : 1;
-    uint32_t ext1_rtc_gpio_mask : 18;
+    uint32_t ext1_rtc_gpio_mask : 22; //22 is the maximum RTCIO number in all chips
     uint32_t ext0_trigger_level : 1;
     uint32_t ext0_rtc_gpio_num : 5;
     uint32_t gpio_wakeup_mask : 6;
@@ -151,6 +152,9 @@ typedef struct {
     uint32_t rtc_clk_cal_period;
     uint64_t rtc_ticks_at_sleep_start;
 } sleep_config_t;
+
+
+_Static_assert(22 >= SOC_RTCIO_PIN_COUNT, "Chip has more RTCIOs than 22, should increase ext1_rtc_gpio_mask field size");
 
 static sleep_config_t s_config = {
     .pd_options = {
@@ -313,6 +317,9 @@ static void IRAM_ATTR resume_uarts(void)
     }
 }
 
+/**
+ * These save-restore workaround should be moved to lower layer
+ */
 inline static void IRAM_ATTR misc_modules_sleep_prepare(void)
 {
 #if CONFIG_MAC_BB_PD
@@ -324,8 +331,14 @@ inline static void IRAM_ATTR misc_modules_sleep_prepare(void)
 #if SOC_PM_SUPPORT_CPU_PD || SOC_PM_SUPPORT_TAGMEM_PD
     sleep_enable_memory_retention();
 #endif
+#if REGI2C_ANA_CALI_PD_WORKAROUND
+    regi2c_analog_cali_reg_read();
+#endif
 }
 
+/**
+ * These save-restore workaround should be moved to lower layer
+ */
 inline static void IRAM_ATTR misc_modules_wake_prepare(void)
 {
 #if SOC_PM_SUPPORT_CPU_PD || SOC_PM_SUPPORT_TAGMEM_PD
@@ -337,12 +350,24 @@ inline static void IRAM_ATTR misc_modules_wake_prepare(void)
 #if CONFIG_MAC_BB_PD
     mac_bb_power_up_cb_execute();
 #endif
+#if REGI2C_ANA_CALI_PD_WORKAROUND
+    regi2c_analog_cali_reg_write();
+#endif
 }
 
 inline static uint32_t IRAM_ATTR call_rtc_sleep_start(uint32_t reject_triggers, uint32_t lslp_mem_inf_fpu);
 
+//TODO: IDF-4813
+bool esp_no_sleep = false;
+
 static uint32_t IRAM_ATTR esp_sleep_start(uint32_t pd_flags)
 {
+#if CONFIG_IDF_TARGET_ESP32S3
+    if (esp_no_sleep) {
+        ESP_EARLY_LOGE(TAG, "Sleep cannot be used with Touch/ULP for now.");
+        abort();
+    }
+#endif //CONFIG_IDF_TARGET_ESP32S3
     // Stop UART output so that output is not lost due to APB frequency change.
     // For light sleep, suspend UART output — it will resume after wakeup.
     // For deep sleep, wait for the contents of UART FIFO to be sent.

@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 
 #include "bool.h"
 #include "util.h"
+#include <math.h>
 
 // yes, we're writing our own fabs because for some reason avr-libc doesn't actually have it
 float f_abs( float x ){
@@ -34,6 +35,16 @@ float f_abs( float x ){
     }
 
     return x;
+}
+
+uint8_t abs8( int8_t a ){
+
+    if( a < 0 ){
+
+        return a * -1;
+    }
+
+    return a;
 }
 
 uint16_t abs16( int16_t a ){
@@ -199,6 +210,53 @@ void util_v_bubble_sort_reversed_u32( uint32_t *array, uint8_t len ){
     } while( swapped );
 }
 
+// do not use the 8 bit ewma filters!
+// they lack sufficient precision for stability!
+
+// uint8_t util_u8_ewma( uint8_t new, uint8_t old, uint8_t ratio ){
+
+//     uint8_t temp = ( ( (uint16_t)ratio * new ) / 256 ) +  
+//                    ( ( (uint16_t)( 256 - ratio ) * old ) / 256 );
+
+//     // check if filter is unchanging
+//     if( temp == old ){
+
+//         // adjust by minimum
+//         if( new > old ){
+
+//             temp++;
+//         }
+//         else if( new < old ){
+
+//             temp--;
+//         }
+//     }   
+
+//     return temp;
+// }
+
+// int8_t util_i8_ewma( int8_t new, int8_t old, uint8_t ratio ){
+
+//     int8_t temp = ( ( (int16_t)ratio * new ) / 256 ) +  
+//                   ( ( (int16_t)( 256 - ratio ) * old ) / 256 );
+
+//     // check if filter is unchanging
+//     if( temp == old ){
+
+//         // adjust by minimum
+//         if( new > old ){
+
+//             temp++;
+//         }
+//         else if( new < old ){
+
+//             temp--;
+//         }
+//     }   
+
+//     return temp;
+// }
+
 int16_t util_i16_ewma( int16_t new, int16_t old, uint8_t ratio ){
 
     int16_t temp = ( ( (int32_t)ratio * new ) / 256 ) +  
@@ -309,4 +367,39 @@ uint16_t util_u16_average( uint16_t data[], uint16_t len ){
     return sum / len;
 }
 
+
+
+float util_f_degrees_to_radians( float degrees ){
+
+    return degrees * M_PI / 180.0;
+}
+
+float util_f_radians_to_degrees( float radians ){
+
+    return radians * 180.0 / M_PI;
+}
+
+float util_f_distance( float x0, float y0, float x1, float y1 ){
+
+    return sqrt( ( x0 - x1 ) * ( x0 - x1 ) + ( y0 - y1 ) * ( y0 - y1 ) );
+}
+
+void util_v_cart2pol( float x, float y, float *rho, float *phi ){
+    
+    *rho = sqrt( x * x + y * y );
+    *phi = util_f_radians_to_degrees( atan2( y, x ) ) + 180.0;
+}
+
+void util_v_pol2cart( float rho, float phi, float *x, float *y ){
+
+    float rad = util_f_degrees_to_radians( phi + 180.0 );
+
+    *x = rho * cos( rad );
+    *y = rho * sin( rad );
+}
+
+float util_f_ewma( float new, float old, float ratio ){
+
+    return ratio * new + ( 1.0 - ratio ) * old;
+}
 

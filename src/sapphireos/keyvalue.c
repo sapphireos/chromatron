@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -42,6 +42,9 @@
 
 #ifdef ESP32
 #include "esp_spi_flash.h"
+
+static kv_hash_index_t *ram_index;
+
 #endif
 
 static uint32_t kv_persist_writes;
@@ -55,6 +58,7 @@ static uint8_t kv_cache_index;
 static kv_hash_index_t kv_cache[KV_CACHE_SIZE];
 
 static const PROGMEM char kv_data_fname[] = "kv_data";
+static file_t kv_data_file_handle = -1;
 
 #if defined(__SIM__) || defined(BOOTLOADER)
     #define KV_SECTION_META_START
@@ -152,6 +156,15 @@ static uint16_t _kv_u16_fixed_count( void ){
     return ( kv_end - kv_start ) - 1;
 }
 
+static uint32_t _kv_u32_get_index_addr( void ){
+
+    #ifdef ESP32
+    return sys_u32_get_kv_index_addr() + FW_SPI_START_OFFSET;
+    #else
+    return sys_u32_get_kv_index_addr() + FLASH_START;
+    #endif
+}
+
 uint16_t kv_u16_count( void ){
 
     uint16_t count = _kv_u16_fixed_count();
@@ -209,14 +222,8 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     }
 
     // get address of hash index
-    #ifdef ESP32
-    uint32_t kv_index_start = FW_SPI_START_OFFSET + sys_u32_get_fw_length() -
-                               ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
-    #else
-    uint32_t kv_index_start = FLASH_START +
-                              ( ffs_fw_u32_read_internal_length() - sizeof(uint16_t) ) -
-                              ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
-    #endif
+    uint32_t kv_index_start = _kv_u32_get_index_addr();
+
     int16_t first = 0;
     int16_t last = _kv_u16_fixed_count() - 1;
     int16_t middle = ( first + last ) / 2;
@@ -229,9 +236,20 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
         #ifdef AVR
         memcpy_PF( &index_entry, addr, sizeof(index_entry) );
+
         #elif defined(ESP32)
-        spi_flash_read( addr, &index_entry, sizeof(index_entry) );
+
+        // use RAM index if available
+        if( ram_index != 0 ){
+
+            index_entry = ram_index[middle];
+        }
+        else{
+
+            spi_flash_read( addr, &index_entry, sizeof(index_entry) ); 
+        }
         #else
+
         memcpy_PF( &index_entry, (void *)addr, sizeof(index_entry) );
         #endif
 
@@ -505,6 +523,24 @@ void kv_v_init( void ){
 
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        #ifdef ESP32
+        uint16_t len = _kv_u16_fixed_count() * sizeof(kv_hash_index_t);
+
+        ram_index = malloc( len );
+
+        if( ram_index != 0 ){
+
+            uint32_t kv_index_start = FW_SPI_START_OFFSET + sys_u32_get_fw_length() -
+                                   ( (uint32_t)_kv_u16_fixed_count() * sizeof(kv_hash_index_t) );
+
+
+            spi_flash_read( kv_index_start, ram_index, len );
+        }
+        #endif
+
+        // open file to KV persist data
+        kv_data_file_handle = fs_f_open_P( kv_data_fname, FS_MODE_READ_ONLY );
 
         // initialize all persisted KV items
         int8_t status = _kv_i8_init_persist();
@@ -799,9 +835,18 @@ static int8_t _kv_i8_persist_get(
     catbus_hash_t32 hash,
     void *data,
     uint16_t len )
-{
-    file_t f = fs_f_open_P( kv_data_fname, FS_MODE_READ_ONLY );
+{    
+    file_t f = -1;
 
+    if( kv_data_file_handle > 0 ){
+
+        f = kv_data_file_handle;
+    }
+    else{
+
+        f = fs_f_open_P( kv_data_fname, FS_MODE_READ_ONLY );
+    }
+    
     if( f < 0 ){
 
         return -1;
@@ -832,7 +877,11 @@ static int8_t _kv_i8_persist_get(
         data_read = fs_i16_read( f, data, len );
     }
 
-    fs_f_close( f );
+    // only close file if we opened it ourselves
+    if( kv_data_file_handle < 0 ){
+        
+        fs_f_close( f );
+    }
 
     // check if correct amount of data was read.
     // data_read will be 0 if the item was not found in the file.

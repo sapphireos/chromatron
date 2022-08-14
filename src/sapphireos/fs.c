@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -888,9 +888,11 @@ static int16_t write_to_media( file_id_t8 file_id, uint32_t pos, const void *ptr
 static int16_t read_from_media( file_id_t8 file_id, uint32_t pos, void *ptr, uint16_t len ){
 
 	// bounds check file
-	if( (int32_t)( pos + len ) >= fs_i32_get_size_id( file_id ) ){
+    int32_t file_size = fs_i32_get_size_id( file_id );
 
-		len = fs_i32_get_size_id( file_id ) - pos;
+	if( (int32_t)( pos + len ) >= file_size ){
+
+		len = file_size - pos;
 	}
 
     return ffs_i32_read( file_id, pos, ptr, len );

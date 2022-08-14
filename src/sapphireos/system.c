@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -82,7 +82,7 @@ extern boot_data_t BOOTDATA boot_data;
 static uint8_t startup_boot_mode;
 
 // local functions:
-void reboot( void ) __attribute__((noreturn));
+void reboot( bool commit ) __attribute__((noreturn));
 
 int8_t sys_kv_reboot_handler(
     kv_op_t8 op,
@@ -344,6 +344,11 @@ boot_mode_t8 sys_m_get_boot_mode( void ){
 	return boot_data.boot_mode;
 }
 
+boot_mode_t8 sys_m_get_startup_boot_mode( void ){
+
+    return startup_boot_mode;
+}
+
 #ifdef ALLOW_ASSERT_DISABLE
 void sys_v_enable_assertion_trap( void ){
 
@@ -466,13 +471,22 @@ uint32_t sys_u32_get_fw_length( void ){
     return length;
 }
 
+uint32_t sys_u32_get_kv_index_addr( void ){
+
+    uint32_t addr;
+
+    memcpy_P( &addr, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, kv_index_addr), sizeof(addr) );
+
+    return addr;
+}
+
 // causes a watchdog timeout, which will cause a reset into the bootloader.
 // this will request an immediate reboot from the loader.
 void sys_reboot( void ){
 
     boot_data.boot_mode = BOOT_MODE_REBOOT;
 
-	reboot();
+	reboot( TRUE );
 }
 
 // immediate reset into bootloader
@@ -481,7 +495,7 @@ void sys_reboot_to_loader( void ){
     boot_data.loader_command = LDR_CMD_SERIAL_BOOT;
     boot_data.boot_mode = BOOT_MODE_REBOOT;
 
-	reboot();
+	reboot( TRUE );
 }
 
 // reboot with a load firmware command to the bootloader
@@ -523,6 +537,7 @@ void set_reboot_mode( sys_mode_t8 mode ){
     }
 }
 
+
 // start reboot delay thread
 void sys_v_reboot_delay( sys_mode_t8 mode ){
 
@@ -545,11 +560,11 @@ void sys_v_reboot_delay( sys_mode_t8 mode ){
                          0 ) < 0 ){
 
         // if the thread failed to create, just reboot right away so we don't get stuck.
-        reboot();
+        reboot( TRUE );
     }
 }
 
-void reboot( void ){
+void reboot( bool commit ){
 
     trace_printf("Rebooting...\r\n");
 
@@ -563,7 +578,10 @@ void reboot( void ){
 
     ffs_page_v_flush();
 
-    ee_v_commit();
+    if( commit ){
+
+        ee_v_commit();    
+    }
     
     cpu_reboot();
 
@@ -591,7 +609,7 @@ void sys_v_initiate_shutdown( uint8_t delay_seconds ){
 
         log_v_critical_P( PSTR("shutdown thread failed") );
 
-        reboot();
+        reboot( TRUE);
     }
 }
 
@@ -726,7 +744,7 @@ void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
 
     // dump threadinfo
     // dangerous, see above.
-    // thread_v_dump();
+    thread_v_dump();
 
     #ifdef HALT_ON_ASSERT
     trace_printf("HALT\r\n");
@@ -737,7 +755,7 @@ void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
     }
     #endif
     // reboot
-    reboot();
+    reboot( FALSE );
 #endif
 }
 #endif
@@ -788,7 +806,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
-        reboot();
+        reboot( FALSE );
     }
 
     shutting_down = TRUE;
@@ -828,7 +846,7 @@ PT_BEGIN( pt );
 
     if( shut_down_state <= 0 ){
 
-        reboot();    
+        reboot( TRUE );    
     }
     else{
 
@@ -839,7 +857,7 @@ PT_BEGIN( pt );
         // in case that does not happen, we will delay and then force a reboot.
         TMR_WAIT( pt, 20000 );
 
-        reboot();
+        reboot( TRUE );
     }
 	
 PT_END( pt );

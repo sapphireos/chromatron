@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/console/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/console/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles 0
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/console/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/console/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/console/clean
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/console/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,22 +143,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/console/preinstall
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/console/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/console/preinstall
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/console/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/console/CMakeFiles/__idf_console.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/console/CMakeFiles/__idf_console.dir/rule
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/console/CMakeFiles/__idf_console.dir/rule
 .PHONY : esp-idf/console/CMakeFiles/__idf_console.dir/rule
 
 # Convenience name for target.
@@ -168,7 +168,7 @@ __idf_console: esp-idf/console/CMakeFiles/__idf_console.dir/rule
 
 # fast build rule for target.
 __idf_console/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/build
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/build
 .PHONY : __idf_console/fast
 
 argtable3/argtable3.obj: argtable3/argtable3.c.obj
@@ -177,7 +177,7 @@ argtable3/argtable3.obj: argtable3/argtable3.c.obj
 
 # target to build an object file
 argtable3/argtable3.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/argtable3/argtable3.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/argtable3/argtable3.c.obj
 .PHONY : argtable3/argtable3.c.obj
 
 argtable3/argtable3.i: argtable3/argtable3.c.i
@@ -186,7 +186,7 @@ argtable3/argtable3.i: argtable3/argtable3.c.i
 
 # target to preprocess a source file
 argtable3/argtable3.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/argtable3/argtable3.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/argtable3/argtable3.c.i
 .PHONY : argtable3/argtable3.c.i
 
 argtable3/argtable3.s: argtable3/argtable3.c.s
@@ -195,7 +195,7 @@ argtable3/argtable3.s: argtable3/argtable3.c.s
 
 # target to generate assembly for a file
 argtable3/argtable3.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/argtable3/argtable3.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/argtable3/argtable3.c.s
 .PHONY : argtable3/argtable3.c.s
 
 commands.obj: commands.c.obj
@@ -204,7 +204,7 @@ commands.obj: commands.c.obj
 
 # target to build an object file
 commands.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/commands.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/commands.c.obj
 .PHONY : commands.c.obj
 
 commands.i: commands.c.i
@@ -213,7 +213,7 @@ commands.i: commands.c.i
 
 # target to preprocess a source file
 commands.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/commands.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/commands.c.i
 .PHONY : commands.c.i
 
 commands.s: commands.c.s
@@ -222,7 +222,7 @@ commands.s: commands.c.s
 
 # target to generate assembly for a file
 commands.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/commands.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/commands.c.s
 .PHONY : commands.c.s
 
 esp_console_repl.obj: esp_console_repl.c.obj
@@ -231,7 +231,7 @@ esp_console_repl.obj: esp_console_repl.c.obj
 
 # target to build an object file
 esp_console_repl.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/esp_console_repl.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/esp_console_repl.c.obj
 .PHONY : esp_console_repl.c.obj
 
 esp_console_repl.i: esp_console_repl.c.i
@@ -240,7 +240,7 @@ esp_console_repl.i: esp_console_repl.c.i
 
 # target to preprocess a source file
 esp_console_repl.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/esp_console_repl.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/esp_console_repl.c.i
 .PHONY : esp_console_repl.c.i
 
 esp_console_repl.s: esp_console_repl.c.s
@@ -249,7 +249,7 @@ esp_console_repl.s: esp_console_repl.c.s
 
 # target to generate assembly for a file
 esp_console_repl.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/esp_console_repl.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/esp_console_repl.c.s
 .PHONY : esp_console_repl.c.s
 
 linenoise/linenoise.obj: linenoise/linenoise.c.obj
@@ -258,7 +258,7 @@ linenoise/linenoise.obj: linenoise/linenoise.c.obj
 
 # target to build an object file
 linenoise/linenoise.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/linenoise/linenoise.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/linenoise/linenoise.c.obj
 .PHONY : linenoise/linenoise.c.obj
 
 linenoise/linenoise.i: linenoise/linenoise.c.i
@@ -267,7 +267,7 @@ linenoise/linenoise.i: linenoise/linenoise.c.i
 
 # target to preprocess a source file
 linenoise/linenoise.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/linenoise/linenoise.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/linenoise/linenoise.c.i
 .PHONY : linenoise/linenoise.c.i
 
 linenoise/linenoise.s: linenoise/linenoise.c.s
@@ -276,7 +276,7 @@ linenoise/linenoise.s: linenoise/linenoise.c.s
 
 # target to generate assembly for a file
 linenoise/linenoise.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/linenoise/linenoise.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/linenoise/linenoise.c.s
 .PHONY : linenoise/linenoise.c.s
 
 split_argv.obj: split_argv.c.obj
@@ -285,7 +285,7 @@ split_argv.obj: split_argv.c.obj
 
 # target to build an object file
 split_argv.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/split_argv.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/split_argv.c.obj
 .PHONY : split_argv.c.obj
 
 split_argv.i: split_argv.c.i
@@ -294,7 +294,7 @@ split_argv.i: split_argv.c.i
 
 # target to preprocess a source file
 split_argv.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/split_argv.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/split_argv.c.i
 .PHONY : split_argv.c.i
 
 split_argv.s: split_argv.c.s
@@ -303,7 +303,7 @@ split_argv.s: split_argv.c.s
 
 # target to generate assembly for a file
 split_argv.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/split_argv.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/console/CMakeFiles/__idf_console.dir/build.make esp-idf/console/CMakeFiles/__idf_console.dir/split_argv.c.s
 .PHONY : split_argv.c.s
 
 # Help Target
@@ -345,6 +345,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

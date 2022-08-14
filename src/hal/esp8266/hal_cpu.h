@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -92,9 +92,6 @@ static inline void store16( uint8_t *ptr, uint16_t val ){
 }
 #define STORE16(ptr, val) store16((uint8_t *)ptr, val)
 
-
-void hal_cpu_v_load_bootdata( void );
-void hal_cpu_v_store_bootdata( void );
 
 void hal_cpu_v_delay_us( uint16_t us );
 void hal_cpu_v_delay_ms( uint16_t ms );

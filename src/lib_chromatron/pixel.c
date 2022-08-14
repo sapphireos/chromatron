@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,8 @@
 #include "logging.h"
 #include "hal_pixel.h"
 
+#ifdef ENABLE_GFX
+
 bool pix_dither;
 uint8_t pix_mode;
 uint32_t pix_clock;
@@ -58,10 +60,9 @@ int8_t pix_i8_kv_handler(
         if( ( pix_mode == PIX_MODE_WS2811 ) ||
             ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
-            pix_clock = 2400000;
+            pix_clock = 800000; // indicate effective bit rate, not actual for 1 wire
         }
 
-        gfx_v_set_pix_mode( pix_mode );
         hal_pixel_v_configure();
     }
 
@@ -81,10 +82,8 @@ void pixel_v_init( void ){
     if( ( pix_mode == PIX_MODE_WS2811 ) ||
         ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
-        pix_clock = 2400000;
+        pix_clock = 800000; // indicate effective bit rate, not actual for 1 wire
     }
-
-    gfx_v_set_pix_mode( pix_mode );
 
     hal_pixel_v_init();
 }
@@ -112,3 +111,4 @@ uint8_t pixel_u8_bytes_per_pixel( uint8_t mode ){
     return 3; // WS2801 and others
 }
 
+#endif

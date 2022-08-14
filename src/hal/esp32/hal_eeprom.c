@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -58,7 +58,7 @@ static bool commit;
 static uint8_t ee_data[EE_ARRAY_SIZE] __attribute__((aligned(4)));
 
 
-#define STATUS_ERASED 			0xff
+#define STATUS_ERASED 			0xffffffff
 #define STATUS_PARTIAL_WRITE 	0xef
 #define STATUS_VALID 			0x0f
 #define STATUS_DIRTY 			0x00

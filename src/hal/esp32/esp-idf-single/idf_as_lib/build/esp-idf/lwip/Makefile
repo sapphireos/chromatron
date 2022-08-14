@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ install/local/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/lwip/CMakeFiles/progress.marks
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/lwip/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles 0
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/lwip/CMakeFiles/progress.marks
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/lwip/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/lwip/clean
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/lwip/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,22 +143,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/lwip/preinstall
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/lwip/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/lwip/preinstall
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/lwip/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 esp-idf/lwip/CMakeFiles/__idf_lwip.dir/rule:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/lwip/CMakeFiles/__idf_lwip.dir/rule
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f CMakeFiles/Makefile2 esp-idf/lwip/CMakeFiles/__idf_lwip.dir/rule
 .PHONY : esp-idf/lwip/CMakeFiles/__idf_lwip.dir/rule
 
 # Convenience name for target.
@@ -168,7 +168,7 @@ __idf_lwip: esp-idf/lwip/CMakeFiles/__idf_lwip.dir/rule
 
 # fast build rule for target.
 __idf_lwip/fast:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build
 .PHONY : __idf_lwip/fast
 
 apps/dhcpserver/dhcpserver.obj: apps/dhcpserver/dhcpserver.c.obj
@@ -177,7 +177,7 @@ apps/dhcpserver/dhcpserver.obj: apps/dhcpserver/dhcpserver.c.obj
 
 # target to build an object file
 apps/dhcpserver/dhcpserver.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/dhcpserver/dhcpserver.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/dhcpserver/dhcpserver.c.obj
 .PHONY : apps/dhcpserver/dhcpserver.c.obj
 
 apps/dhcpserver/dhcpserver.i: apps/dhcpserver/dhcpserver.c.i
@@ -186,7 +186,7 @@ apps/dhcpserver/dhcpserver.i: apps/dhcpserver/dhcpserver.c.i
 
 # target to preprocess a source file
 apps/dhcpserver/dhcpserver.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/dhcpserver/dhcpserver.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/dhcpserver/dhcpserver.c.i
 .PHONY : apps/dhcpserver/dhcpserver.c.i
 
 apps/dhcpserver/dhcpserver.s: apps/dhcpserver/dhcpserver.c.s
@@ -195,7 +195,7 @@ apps/dhcpserver/dhcpserver.s: apps/dhcpserver/dhcpserver.c.s
 
 # target to generate assembly for a file
 apps/dhcpserver/dhcpserver.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/dhcpserver/dhcpserver.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/dhcpserver/dhcpserver.c.s
 .PHONY : apps/dhcpserver/dhcpserver.c.s
 
 apps/ping/esp_ping.obj: apps/ping/esp_ping.c.obj
@@ -204,7 +204,7 @@ apps/ping/esp_ping.obj: apps/ping/esp_ping.c.obj
 
 # target to build an object file
 apps/ping/esp_ping.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/esp_ping.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/esp_ping.c.obj
 .PHONY : apps/ping/esp_ping.c.obj
 
 apps/ping/esp_ping.i: apps/ping/esp_ping.c.i
@@ -213,7 +213,7 @@ apps/ping/esp_ping.i: apps/ping/esp_ping.c.i
 
 # target to preprocess a source file
 apps/ping/esp_ping.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/esp_ping.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/esp_ping.c.i
 .PHONY : apps/ping/esp_ping.c.i
 
 apps/ping/esp_ping.s: apps/ping/esp_ping.c.s
@@ -222,7 +222,7 @@ apps/ping/esp_ping.s: apps/ping/esp_ping.c.s
 
 # target to generate assembly for a file
 apps/ping/esp_ping.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/esp_ping.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/esp_ping.c.s
 .PHONY : apps/ping/esp_ping.c.s
 
 apps/ping/ping.obj: apps/ping/ping.c.obj
@@ -231,7 +231,7 @@ apps/ping/ping.obj: apps/ping/ping.c.obj
 
 # target to build an object file
 apps/ping/ping.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping.c.obj
 .PHONY : apps/ping/ping.c.obj
 
 apps/ping/ping.i: apps/ping/ping.c.i
@@ -240,7 +240,7 @@ apps/ping/ping.i: apps/ping/ping.c.i
 
 # target to preprocess a source file
 apps/ping/ping.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping.c.i
 .PHONY : apps/ping/ping.c.i
 
 apps/ping/ping.s: apps/ping/ping.c.s
@@ -249,7 +249,7 @@ apps/ping/ping.s: apps/ping/ping.c.s
 
 # target to generate assembly for a file
 apps/ping/ping.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping.c.s
 .PHONY : apps/ping/ping.c.s
 
 apps/ping/ping_sock.obj: apps/ping/ping_sock.c.obj
@@ -258,7 +258,7 @@ apps/ping/ping_sock.obj: apps/ping/ping_sock.c.obj
 
 # target to build an object file
 apps/ping/ping_sock.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping_sock.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping_sock.c.obj
 .PHONY : apps/ping/ping_sock.c.obj
 
 apps/ping/ping_sock.i: apps/ping/ping_sock.c.i
@@ -267,7 +267,7 @@ apps/ping/ping_sock.i: apps/ping/ping_sock.c.i
 
 # target to preprocess a source file
 apps/ping/ping_sock.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping_sock.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping_sock.c.i
 .PHONY : apps/ping/ping_sock.c.i
 
 apps/ping/ping_sock.s: apps/ping/ping_sock.c.s
@@ -276,7 +276,7 @@ apps/ping/ping_sock.s: apps/ping/ping_sock.c.s
 
 # target to generate assembly for a file
 apps/ping/ping_sock.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping_sock.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/ping/ping_sock.c.s
 .PHONY : apps/ping/ping_sock.c.s
 
 apps/sntp/sntp.obj: apps/sntp/sntp.c.obj
@@ -285,7 +285,7 @@ apps/sntp/sntp.obj: apps/sntp/sntp.c.obj
 
 # target to build an object file
 apps/sntp/sntp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/sntp/sntp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/sntp/sntp.c.obj
 .PHONY : apps/sntp/sntp.c.obj
 
 apps/sntp/sntp.i: apps/sntp/sntp.c.i
@@ -294,7 +294,7 @@ apps/sntp/sntp.i: apps/sntp/sntp.c.i
 
 # target to preprocess a source file
 apps/sntp/sntp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/sntp/sntp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/sntp/sntp.c.i
 .PHONY : apps/sntp/sntp.c.i
 
 apps/sntp/sntp.s: apps/sntp/sntp.c.s
@@ -303,7 +303,7 @@ apps/sntp/sntp.s: apps/sntp/sntp.c.s
 
 # target to generate assembly for a file
 apps/sntp/sntp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/sntp/sntp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/apps/sntp/sntp.c.s
 .PHONY : apps/sntp/sntp.c.s
 
 lwip/src/api/api_lib.obj: lwip/src/api/api_lib.c.obj
@@ -312,7 +312,7 @@ lwip/src/api/api_lib.obj: lwip/src/api/api_lib.c.obj
 
 # target to build an object file
 lwip/src/api/api_lib.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_lib.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_lib.c.obj
 .PHONY : lwip/src/api/api_lib.c.obj
 
 lwip/src/api/api_lib.i: lwip/src/api/api_lib.c.i
@@ -321,7 +321,7 @@ lwip/src/api/api_lib.i: lwip/src/api/api_lib.c.i
 
 # target to preprocess a source file
 lwip/src/api/api_lib.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_lib.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_lib.c.i
 .PHONY : lwip/src/api/api_lib.c.i
 
 lwip/src/api/api_lib.s: lwip/src/api/api_lib.c.s
@@ -330,7 +330,7 @@ lwip/src/api/api_lib.s: lwip/src/api/api_lib.c.s
 
 # target to generate assembly for a file
 lwip/src/api/api_lib.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_lib.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_lib.c.s
 .PHONY : lwip/src/api/api_lib.c.s
 
 lwip/src/api/api_msg.obj: lwip/src/api/api_msg.c.obj
@@ -339,7 +339,7 @@ lwip/src/api/api_msg.obj: lwip/src/api/api_msg.c.obj
 
 # target to build an object file
 lwip/src/api/api_msg.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_msg.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_msg.c.obj
 .PHONY : lwip/src/api/api_msg.c.obj
 
 lwip/src/api/api_msg.i: lwip/src/api/api_msg.c.i
@@ -348,7 +348,7 @@ lwip/src/api/api_msg.i: lwip/src/api/api_msg.c.i
 
 # target to preprocess a source file
 lwip/src/api/api_msg.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_msg.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_msg.c.i
 .PHONY : lwip/src/api/api_msg.c.i
 
 lwip/src/api/api_msg.s: lwip/src/api/api_msg.c.s
@@ -357,7 +357,7 @@ lwip/src/api/api_msg.s: lwip/src/api/api_msg.c.s
 
 # target to generate assembly for a file
 lwip/src/api/api_msg.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_msg.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_msg.c.s
 .PHONY : lwip/src/api/api_msg.c.s
 
 lwip/src/api/err.obj: lwip/src/api/err.c.obj
@@ -366,7 +366,7 @@ lwip/src/api/err.obj: lwip/src/api/err.c.obj
 
 # target to build an object file
 lwip/src/api/err.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/err.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/err.c.obj
 .PHONY : lwip/src/api/err.c.obj
 
 lwip/src/api/err.i: lwip/src/api/err.c.i
@@ -375,7 +375,7 @@ lwip/src/api/err.i: lwip/src/api/err.c.i
 
 # target to preprocess a source file
 lwip/src/api/err.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/err.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/err.c.i
 .PHONY : lwip/src/api/err.c.i
 
 lwip/src/api/err.s: lwip/src/api/err.c.s
@@ -384,7 +384,7 @@ lwip/src/api/err.s: lwip/src/api/err.c.s
 
 # target to generate assembly for a file
 lwip/src/api/err.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/err.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/err.c.s
 .PHONY : lwip/src/api/err.c.s
 
 lwip/src/api/if_api.obj: lwip/src/api/if_api.c.obj
@@ -393,7 +393,7 @@ lwip/src/api/if_api.obj: lwip/src/api/if_api.c.obj
 
 # target to build an object file
 lwip/src/api/if_api.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/if_api.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/if_api.c.obj
 .PHONY : lwip/src/api/if_api.c.obj
 
 lwip/src/api/if_api.i: lwip/src/api/if_api.c.i
@@ -402,7 +402,7 @@ lwip/src/api/if_api.i: lwip/src/api/if_api.c.i
 
 # target to preprocess a source file
 lwip/src/api/if_api.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/if_api.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/if_api.c.i
 .PHONY : lwip/src/api/if_api.c.i
 
 lwip/src/api/if_api.s: lwip/src/api/if_api.c.s
@@ -411,7 +411,7 @@ lwip/src/api/if_api.s: lwip/src/api/if_api.c.s
 
 # target to generate assembly for a file
 lwip/src/api/if_api.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/if_api.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/if_api.c.s
 .PHONY : lwip/src/api/if_api.c.s
 
 lwip/src/api/netbuf.obj: lwip/src/api/netbuf.c.obj
@@ -420,7 +420,7 @@ lwip/src/api/netbuf.obj: lwip/src/api/netbuf.c.obj
 
 # target to build an object file
 lwip/src/api/netbuf.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netbuf.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netbuf.c.obj
 .PHONY : lwip/src/api/netbuf.c.obj
 
 lwip/src/api/netbuf.i: lwip/src/api/netbuf.c.i
@@ -429,7 +429,7 @@ lwip/src/api/netbuf.i: lwip/src/api/netbuf.c.i
 
 # target to preprocess a source file
 lwip/src/api/netbuf.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netbuf.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netbuf.c.i
 .PHONY : lwip/src/api/netbuf.c.i
 
 lwip/src/api/netbuf.s: lwip/src/api/netbuf.c.s
@@ -438,7 +438,7 @@ lwip/src/api/netbuf.s: lwip/src/api/netbuf.c.s
 
 # target to generate assembly for a file
 lwip/src/api/netbuf.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netbuf.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netbuf.c.s
 .PHONY : lwip/src/api/netbuf.c.s
 
 lwip/src/api/netdb.obj: lwip/src/api/netdb.c.obj
@@ -447,7 +447,7 @@ lwip/src/api/netdb.obj: lwip/src/api/netdb.c.obj
 
 # target to build an object file
 lwip/src/api/netdb.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netdb.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netdb.c.obj
 .PHONY : lwip/src/api/netdb.c.obj
 
 lwip/src/api/netdb.i: lwip/src/api/netdb.c.i
@@ -456,7 +456,7 @@ lwip/src/api/netdb.i: lwip/src/api/netdb.c.i
 
 # target to preprocess a source file
 lwip/src/api/netdb.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netdb.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netdb.c.i
 .PHONY : lwip/src/api/netdb.c.i
 
 lwip/src/api/netdb.s: lwip/src/api/netdb.c.s
@@ -465,7 +465,7 @@ lwip/src/api/netdb.s: lwip/src/api/netdb.c.s
 
 # target to generate assembly for a file
 lwip/src/api/netdb.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netdb.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netdb.c.s
 .PHONY : lwip/src/api/netdb.c.s
 
 lwip/src/api/netifapi.obj: lwip/src/api/netifapi.c.obj
@@ -474,7 +474,7 @@ lwip/src/api/netifapi.obj: lwip/src/api/netifapi.c.obj
 
 # target to build an object file
 lwip/src/api/netifapi.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netifapi.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netifapi.c.obj
 .PHONY : lwip/src/api/netifapi.c.obj
 
 lwip/src/api/netifapi.i: lwip/src/api/netifapi.c.i
@@ -483,7 +483,7 @@ lwip/src/api/netifapi.i: lwip/src/api/netifapi.c.i
 
 # target to preprocess a source file
 lwip/src/api/netifapi.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netifapi.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netifapi.c.i
 .PHONY : lwip/src/api/netifapi.c.i
 
 lwip/src/api/netifapi.s: lwip/src/api/netifapi.c.s
@@ -492,7 +492,7 @@ lwip/src/api/netifapi.s: lwip/src/api/netifapi.c.s
 
 # target to generate assembly for a file
 lwip/src/api/netifapi.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netifapi.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/netifapi.c.s
 .PHONY : lwip/src/api/netifapi.c.s
 
 lwip/src/api/sockets.obj: lwip/src/api/sockets.c.obj
@@ -501,7 +501,7 @@ lwip/src/api/sockets.obj: lwip/src/api/sockets.c.obj
 
 # target to build an object file
 lwip/src/api/sockets.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/sockets.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/sockets.c.obj
 .PHONY : lwip/src/api/sockets.c.obj
 
 lwip/src/api/sockets.i: lwip/src/api/sockets.c.i
@@ -510,7 +510,7 @@ lwip/src/api/sockets.i: lwip/src/api/sockets.c.i
 
 # target to preprocess a source file
 lwip/src/api/sockets.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/sockets.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/sockets.c.i
 .PHONY : lwip/src/api/sockets.c.i
 
 lwip/src/api/sockets.s: lwip/src/api/sockets.c.s
@@ -519,7 +519,7 @@ lwip/src/api/sockets.s: lwip/src/api/sockets.c.s
 
 # target to generate assembly for a file
 lwip/src/api/sockets.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/sockets.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/sockets.c.s
 .PHONY : lwip/src/api/sockets.c.s
 
 lwip/src/api/tcpip.obj: lwip/src/api/tcpip.c.obj
@@ -528,7 +528,7 @@ lwip/src/api/tcpip.obj: lwip/src/api/tcpip.c.obj
 
 # target to build an object file
 lwip/src/api/tcpip.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/tcpip.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/tcpip.c.obj
 .PHONY : lwip/src/api/tcpip.c.obj
 
 lwip/src/api/tcpip.i: lwip/src/api/tcpip.c.i
@@ -537,7 +537,7 @@ lwip/src/api/tcpip.i: lwip/src/api/tcpip.c.i
 
 # target to preprocess a source file
 lwip/src/api/tcpip.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/tcpip.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/tcpip.c.i
 .PHONY : lwip/src/api/tcpip.c.i
 
 lwip/src/api/tcpip.s: lwip/src/api/tcpip.c.s
@@ -546,7 +546,7 @@ lwip/src/api/tcpip.s: lwip/src/api/tcpip.c.s
 
 # target to generate assembly for a file
 lwip/src/api/tcpip.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/tcpip.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/tcpip.c.s
 .PHONY : lwip/src/api/tcpip.c.s
 
 lwip/src/apps/netbiosns/netbiosns.obj: lwip/src/apps/netbiosns/netbiosns.c.obj
@@ -555,7 +555,7 @@ lwip/src/apps/netbiosns/netbiosns.obj: lwip/src/apps/netbiosns/netbiosns.c.obj
 
 # target to build an object file
 lwip/src/apps/netbiosns/netbiosns.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/netbiosns/netbiosns.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/netbiosns/netbiosns.c.obj
 .PHONY : lwip/src/apps/netbiosns/netbiosns.c.obj
 
 lwip/src/apps/netbiosns/netbiosns.i: lwip/src/apps/netbiosns/netbiosns.c.i
@@ -564,7 +564,7 @@ lwip/src/apps/netbiosns/netbiosns.i: lwip/src/apps/netbiosns/netbiosns.c.i
 
 # target to preprocess a source file
 lwip/src/apps/netbiosns/netbiosns.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/netbiosns/netbiosns.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/netbiosns/netbiosns.c.i
 .PHONY : lwip/src/apps/netbiosns/netbiosns.c.i
 
 lwip/src/apps/netbiosns/netbiosns.s: lwip/src/apps/netbiosns/netbiosns.c.s
@@ -573,7 +573,7 @@ lwip/src/apps/netbiosns/netbiosns.s: lwip/src/apps/netbiosns/netbiosns.c.s
 
 # target to generate assembly for a file
 lwip/src/apps/netbiosns/netbiosns.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/netbiosns/netbiosns.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/netbiosns/netbiosns.c.s
 .PHONY : lwip/src/apps/netbiosns/netbiosns.c.s
 
 lwip/src/apps/sntp/sntp.obj: lwip/src/apps/sntp/sntp.c.obj
@@ -582,7 +582,7 @@ lwip/src/apps/sntp/sntp.obj: lwip/src/apps/sntp/sntp.c.obj
 
 # target to build an object file
 lwip/src/apps/sntp/sntp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/sntp/sntp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/sntp/sntp.c.obj
 .PHONY : lwip/src/apps/sntp/sntp.c.obj
 
 lwip/src/apps/sntp/sntp.i: lwip/src/apps/sntp/sntp.c.i
@@ -591,7 +591,7 @@ lwip/src/apps/sntp/sntp.i: lwip/src/apps/sntp/sntp.c.i
 
 # target to preprocess a source file
 lwip/src/apps/sntp/sntp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/sntp/sntp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/sntp/sntp.c.i
 .PHONY : lwip/src/apps/sntp/sntp.c.i
 
 lwip/src/apps/sntp/sntp.s: lwip/src/apps/sntp/sntp.c.s
@@ -600,7 +600,7 @@ lwip/src/apps/sntp/sntp.s: lwip/src/apps/sntp/sntp.c.s
 
 # target to generate assembly for a file
 lwip/src/apps/sntp/sntp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/sntp/sntp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/apps/sntp/sntp.c.s
 .PHONY : lwip/src/apps/sntp/sntp.c.s
 
 lwip/src/core/def.obj: lwip/src/core/def.c.obj
@@ -609,7 +609,7 @@ lwip/src/core/def.obj: lwip/src/core/def.c.obj
 
 # target to build an object file
 lwip/src/core/def.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/def.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/def.c.obj
 .PHONY : lwip/src/core/def.c.obj
 
 lwip/src/core/def.i: lwip/src/core/def.c.i
@@ -618,7 +618,7 @@ lwip/src/core/def.i: lwip/src/core/def.c.i
 
 # target to preprocess a source file
 lwip/src/core/def.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/def.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/def.c.i
 .PHONY : lwip/src/core/def.c.i
 
 lwip/src/core/def.s: lwip/src/core/def.c.s
@@ -627,7 +627,7 @@ lwip/src/core/def.s: lwip/src/core/def.c.s
 
 # target to generate assembly for a file
 lwip/src/core/def.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/def.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/def.c.s
 .PHONY : lwip/src/core/def.c.s
 
 lwip/src/core/dns.obj: lwip/src/core/dns.c.obj
@@ -636,7 +636,7 @@ lwip/src/core/dns.obj: lwip/src/core/dns.c.obj
 
 # target to build an object file
 lwip/src/core/dns.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/dns.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/dns.c.obj
 .PHONY : lwip/src/core/dns.c.obj
 
 lwip/src/core/dns.i: lwip/src/core/dns.c.i
@@ -645,7 +645,7 @@ lwip/src/core/dns.i: lwip/src/core/dns.c.i
 
 # target to preprocess a source file
 lwip/src/core/dns.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/dns.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/dns.c.i
 .PHONY : lwip/src/core/dns.c.i
 
 lwip/src/core/dns.s: lwip/src/core/dns.c.s
@@ -654,7 +654,7 @@ lwip/src/core/dns.s: lwip/src/core/dns.c.s
 
 # target to generate assembly for a file
 lwip/src/core/dns.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/dns.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/dns.c.s
 .PHONY : lwip/src/core/dns.c.s
 
 lwip/src/core/inet_chksum.obj: lwip/src/core/inet_chksum.c.obj
@@ -663,7 +663,7 @@ lwip/src/core/inet_chksum.obj: lwip/src/core/inet_chksum.c.obj
 
 # target to build an object file
 lwip/src/core/inet_chksum.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/inet_chksum.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/inet_chksum.c.obj
 .PHONY : lwip/src/core/inet_chksum.c.obj
 
 lwip/src/core/inet_chksum.i: lwip/src/core/inet_chksum.c.i
@@ -672,7 +672,7 @@ lwip/src/core/inet_chksum.i: lwip/src/core/inet_chksum.c.i
 
 # target to preprocess a source file
 lwip/src/core/inet_chksum.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/inet_chksum.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/inet_chksum.c.i
 .PHONY : lwip/src/core/inet_chksum.c.i
 
 lwip/src/core/inet_chksum.s: lwip/src/core/inet_chksum.c.s
@@ -681,7 +681,7 @@ lwip/src/core/inet_chksum.s: lwip/src/core/inet_chksum.c.s
 
 # target to generate assembly for a file
 lwip/src/core/inet_chksum.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/inet_chksum.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/inet_chksum.c.s
 .PHONY : lwip/src/core/inet_chksum.c.s
 
 lwip/src/core/init.obj: lwip/src/core/init.c.obj
@@ -690,7 +690,7 @@ lwip/src/core/init.obj: lwip/src/core/init.c.obj
 
 # target to build an object file
 lwip/src/core/init.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/init.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/init.c.obj
 .PHONY : lwip/src/core/init.c.obj
 
 lwip/src/core/init.i: lwip/src/core/init.c.i
@@ -699,7 +699,7 @@ lwip/src/core/init.i: lwip/src/core/init.c.i
 
 # target to preprocess a source file
 lwip/src/core/init.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/init.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/init.c.i
 .PHONY : lwip/src/core/init.c.i
 
 lwip/src/core/init.s: lwip/src/core/init.c.s
@@ -708,7 +708,7 @@ lwip/src/core/init.s: lwip/src/core/init.c.s
 
 # target to generate assembly for a file
 lwip/src/core/init.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/init.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/init.c.s
 .PHONY : lwip/src/core/init.c.s
 
 lwip/src/core/ip.obj: lwip/src/core/ip.c.obj
@@ -717,7 +717,7 @@ lwip/src/core/ip.obj: lwip/src/core/ip.c.obj
 
 # target to build an object file
 lwip/src/core/ip.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ip.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ip.c.obj
 .PHONY : lwip/src/core/ip.c.obj
 
 lwip/src/core/ip.i: lwip/src/core/ip.c.i
@@ -726,7 +726,7 @@ lwip/src/core/ip.i: lwip/src/core/ip.c.i
 
 # target to preprocess a source file
 lwip/src/core/ip.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ip.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ip.c.i
 .PHONY : lwip/src/core/ip.c.i
 
 lwip/src/core/ip.s: lwip/src/core/ip.c.s
@@ -735,7 +735,7 @@ lwip/src/core/ip.s: lwip/src/core/ip.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ip.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ip.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ip.c.s
 .PHONY : lwip/src/core/ip.c.s
 
 lwip/src/core/ipv4/autoip.obj: lwip/src/core/ipv4/autoip.c.obj
@@ -744,7 +744,7 @@ lwip/src/core/ipv4/autoip.obj: lwip/src/core/ipv4/autoip.c.obj
 
 # target to build an object file
 lwip/src/core/ipv4/autoip.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/autoip.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/autoip.c.obj
 .PHONY : lwip/src/core/ipv4/autoip.c.obj
 
 lwip/src/core/ipv4/autoip.i: lwip/src/core/ipv4/autoip.c.i
@@ -753,7 +753,7 @@ lwip/src/core/ipv4/autoip.i: lwip/src/core/ipv4/autoip.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv4/autoip.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/autoip.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/autoip.c.i
 .PHONY : lwip/src/core/ipv4/autoip.c.i
 
 lwip/src/core/ipv4/autoip.s: lwip/src/core/ipv4/autoip.c.s
@@ -762,7 +762,7 @@ lwip/src/core/ipv4/autoip.s: lwip/src/core/ipv4/autoip.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv4/autoip.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/autoip.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/autoip.c.s
 .PHONY : lwip/src/core/ipv4/autoip.c.s
 
 lwip/src/core/ipv4/dhcp.obj: lwip/src/core/ipv4/dhcp.c.obj
@@ -771,7 +771,7 @@ lwip/src/core/ipv4/dhcp.obj: lwip/src/core/ipv4/dhcp.c.obj
 
 # target to build an object file
 lwip/src/core/ipv4/dhcp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/dhcp.c.obj
 .PHONY : lwip/src/core/ipv4/dhcp.c.obj
 
 lwip/src/core/ipv4/dhcp.i: lwip/src/core/ipv4/dhcp.c.i
@@ -780,7 +780,7 @@ lwip/src/core/ipv4/dhcp.i: lwip/src/core/ipv4/dhcp.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv4/dhcp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/dhcp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/dhcp.c.i
 .PHONY : lwip/src/core/ipv4/dhcp.c.i
 
 lwip/src/core/ipv4/dhcp.s: lwip/src/core/ipv4/dhcp.c.s
@@ -789,7 +789,7 @@ lwip/src/core/ipv4/dhcp.s: lwip/src/core/ipv4/dhcp.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv4/dhcp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/dhcp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/dhcp.c.s
 .PHONY : lwip/src/core/ipv4/dhcp.c.s
 
 lwip/src/core/ipv4/etharp.obj: lwip/src/core/ipv4/etharp.c.obj
@@ -798,7 +798,7 @@ lwip/src/core/ipv4/etharp.obj: lwip/src/core/ipv4/etharp.c.obj
 
 # target to build an object file
 lwip/src/core/ipv4/etharp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/etharp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/etharp.c.obj
 .PHONY : lwip/src/core/ipv4/etharp.c.obj
 
 lwip/src/core/ipv4/etharp.i: lwip/src/core/ipv4/etharp.c.i
@@ -807,7 +807,7 @@ lwip/src/core/ipv4/etharp.i: lwip/src/core/ipv4/etharp.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv4/etharp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/etharp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/etharp.c.i
 .PHONY : lwip/src/core/ipv4/etharp.c.i
 
 lwip/src/core/ipv4/etharp.s: lwip/src/core/ipv4/etharp.c.s
@@ -816,7 +816,7 @@ lwip/src/core/ipv4/etharp.s: lwip/src/core/ipv4/etharp.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv4/etharp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/etharp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/etharp.c.s
 .PHONY : lwip/src/core/ipv4/etharp.c.s
 
 lwip/src/core/ipv4/icmp.obj: lwip/src/core/ipv4/icmp.c.obj
@@ -825,7 +825,7 @@ lwip/src/core/ipv4/icmp.obj: lwip/src/core/ipv4/icmp.c.obj
 
 # target to build an object file
 lwip/src/core/ipv4/icmp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/icmp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/icmp.c.obj
 .PHONY : lwip/src/core/ipv4/icmp.c.obj
 
 lwip/src/core/ipv4/icmp.i: lwip/src/core/ipv4/icmp.c.i
@@ -834,7 +834,7 @@ lwip/src/core/ipv4/icmp.i: lwip/src/core/ipv4/icmp.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv4/icmp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/icmp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/icmp.c.i
 .PHONY : lwip/src/core/ipv4/icmp.c.i
 
 lwip/src/core/ipv4/icmp.s: lwip/src/core/ipv4/icmp.c.s
@@ -843,7 +843,7 @@ lwip/src/core/ipv4/icmp.s: lwip/src/core/ipv4/icmp.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv4/icmp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/icmp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/icmp.c.s
 .PHONY : lwip/src/core/ipv4/icmp.c.s
 
 lwip/src/core/ipv4/igmp.obj: lwip/src/core/ipv4/igmp.c.obj
@@ -852,7 +852,7 @@ lwip/src/core/ipv4/igmp.obj: lwip/src/core/ipv4/igmp.c.obj
 
 # target to build an object file
 lwip/src/core/ipv4/igmp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/igmp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/igmp.c.obj
 .PHONY : lwip/src/core/ipv4/igmp.c.obj
 
 lwip/src/core/ipv4/igmp.i: lwip/src/core/ipv4/igmp.c.i
@@ -861,7 +861,7 @@ lwip/src/core/ipv4/igmp.i: lwip/src/core/ipv4/igmp.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv4/igmp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/igmp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/igmp.c.i
 .PHONY : lwip/src/core/ipv4/igmp.c.i
 
 lwip/src/core/ipv4/igmp.s: lwip/src/core/ipv4/igmp.c.s
@@ -870,7 +870,7 @@ lwip/src/core/ipv4/igmp.s: lwip/src/core/ipv4/igmp.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv4/igmp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/igmp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/igmp.c.s
 .PHONY : lwip/src/core/ipv4/igmp.c.s
 
 lwip/src/core/ipv4/ip4.obj: lwip/src/core/ipv4/ip4.c.obj
@@ -879,7 +879,7 @@ lwip/src/core/ipv4/ip4.obj: lwip/src/core/ipv4/ip4.c.obj
 
 # target to build an object file
 lwip/src/core/ipv4/ip4.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4.c.obj
 .PHONY : lwip/src/core/ipv4/ip4.c.obj
 
 lwip/src/core/ipv4/ip4.i: lwip/src/core/ipv4/ip4.c.i
@@ -888,7 +888,7 @@ lwip/src/core/ipv4/ip4.i: lwip/src/core/ipv4/ip4.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv4/ip4.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4.c.i
 .PHONY : lwip/src/core/ipv4/ip4.c.i
 
 lwip/src/core/ipv4/ip4.s: lwip/src/core/ipv4/ip4.c.s
@@ -897,7 +897,7 @@ lwip/src/core/ipv4/ip4.s: lwip/src/core/ipv4/ip4.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv4/ip4.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4.c.s
 .PHONY : lwip/src/core/ipv4/ip4.c.s
 
 lwip/src/core/ipv4/ip4_addr.obj: lwip/src/core/ipv4/ip4_addr.c.obj
@@ -906,7 +906,7 @@ lwip/src/core/ipv4/ip4_addr.obj: lwip/src/core/ipv4/ip4_addr.c.obj
 
 # target to build an object file
 lwip/src/core/ipv4/ip4_addr.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.obj
 .PHONY : lwip/src/core/ipv4/ip4_addr.c.obj
 
 lwip/src/core/ipv4/ip4_addr.i: lwip/src/core/ipv4/ip4_addr.c.i
@@ -915,7 +915,7 @@ lwip/src/core/ipv4/ip4_addr.i: lwip/src/core/ipv4/ip4_addr.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv4/ip4_addr.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.i
 .PHONY : lwip/src/core/ipv4/ip4_addr.c.i
 
 lwip/src/core/ipv4/ip4_addr.s: lwip/src/core/ipv4/ip4_addr.c.s
@@ -924,7 +924,7 @@ lwip/src/core/ipv4/ip4_addr.s: lwip/src/core/ipv4/ip4_addr.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv4/ip4_addr.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_addr.c.s
 .PHONY : lwip/src/core/ipv4/ip4_addr.c.s
 
 lwip/src/core/ipv4/ip4_frag.obj: lwip/src/core/ipv4/ip4_frag.c.obj
@@ -933,7 +933,7 @@ lwip/src/core/ipv4/ip4_frag.obj: lwip/src/core/ipv4/ip4_frag.c.obj
 
 # target to build an object file
 lwip/src/core/ipv4/ip4_frag.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.obj
 .PHONY : lwip/src/core/ipv4/ip4_frag.c.obj
 
 lwip/src/core/ipv4/ip4_frag.i: lwip/src/core/ipv4/ip4_frag.c.i
@@ -942,7 +942,7 @@ lwip/src/core/ipv4/ip4_frag.i: lwip/src/core/ipv4/ip4_frag.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv4/ip4_frag.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.i
 .PHONY : lwip/src/core/ipv4/ip4_frag.c.i
 
 lwip/src/core/ipv4/ip4_frag.s: lwip/src/core/ipv4/ip4_frag.c.s
@@ -951,7 +951,7 @@ lwip/src/core/ipv4/ip4_frag.s: lwip/src/core/ipv4/ip4_frag.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv4/ip4_frag.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_frag.c.s
 .PHONY : lwip/src/core/ipv4/ip4_frag.c.s
 
 lwip/src/core/ipv4/ip4_napt.obj: lwip/src/core/ipv4/ip4_napt.c.obj
@@ -960,7 +960,7 @@ lwip/src/core/ipv4/ip4_napt.obj: lwip/src/core/ipv4/ip4_napt.c.obj
 
 # target to build an object file
 lwip/src/core/ipv4/ip4_napt.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_napt.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_napt.c.obj
 .PHONY : lwip/src/core/ipv4/ip4_napt.c.obj
 
 lwip/src/core/ipv4/ip4_napt.i: lwip/src/core/ipv4/ip4_napt.c.i
@@ -969,7 +969,7 @@ lwip/src/core/ipv4/ip4_napt.i: lwip/src/core/ipv4/ip4_napt.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv4/ip4_napt.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_napt.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_napt.c.i
 .PHONY : lwip/src/core/ipv4/ip4_napt.c.i
 
 lwip/src/core/ipv4/ip4_napt.s: lwip/src/core/ipv4/ip4_napt.c.s
@@ -978,7 +978,7 @@ lwip/src/core/ipv4/ip4_napt.s: lwip/src/core/ipv4/ip4_napt.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv4/ip4_napt.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_napt.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv4/ip4_napt.c.s
 .PHONY : lwip/src/core/ipv4/ip4_napt.c.s
 
 lwip/src/core/ipv6/dhcp6.obj: lwip/src/core/ipv6/dhcp6.c.obj
@@ -987,7 +987,7 @@ lwip/src/core/ipv6/dhcp6.obj: lwip/src/core/ipv6/dhcp6.c.obj
 
 # target to build an object file
 lwip/src/core/ipv6/dhcp6.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/dhcp6.c.obj
 .PHONY : lwip/src/core/ipv6/dhcp6.c.obj
 
 lwip/src/core/ipv6/dhcp6.i: lwip/src/core/ipv6/dhcp6.c.i
@@ -996,7 +996,7 @@ lwip/src/core/ipv6/dhcp6.i: lwip/src/core/ipv6/dhcp6.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv6/dhcp6.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/dhcp6.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/dhcp6.c.i
 .PHONY : lwip/src/core/ipv6/dhcp6.c.i
 
 lwip/src/core/ipv6/dhcp6.s: lwip/src/core/ipv6/dhcp6.c.s
@@ -1005,7 +1005,7 @@ lwip/src/core/ipv6/dhcp6.s: lwip/src/core/ipv6/dhcp6.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv6/dhcp6.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/dhcp6.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/dhcp6.c.s
 .PHONY : lwip/src/core/ipv6/dhcp6.c.s
 
 lwip/src/core/ipv6/ethip6.obj: lwip/src/core/ipv6/ethip6.c.obj
@@ -1014,7 +1014,7 @@ lwip/src/core/ipv6/ethip6.obj: lwip/src/core/ipv6/ethip6.c.obj
 
 # target to build an object file
 lwip/src/core/ipv6/ethip6.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ethip6.c.obj
 .PHONY : lwip/src/core/ipv6/ethip6.c.obj
 
 lwip/src/core/ipv6/ethip6.i: lwip/src/core/ipv6/ethip6.c.i
@@ -1023,7 +1023,7 @@ lwip/src/core/ipv6/ethip6.i: lwip/src/core/ipv6/ethip6.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv6/ethip6.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ethip6.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ethip6.c.i
 .PHONY : lwip/src/core/ipv6/ethip6.c.i
 
 lwip/src/core/ipv6/ethip6.s: lwip/src/core/ipv6/ethip6.c.s
@@ -1032,7 +1032,7 @@ lwip/src/core/ipv6/ethip6.s: lwip/src/core/ipv6/ethip6.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv6/ethip6.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ethip6.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ethip6.c.s
 .PHONY : lwip/src/core/ipv6/ethip6.c.s
 
 lwip/src/core/ipv6/icmp6.obj: lwip/src/core/ipv6/icmp6.c.obj
@@ -1041,7 +1041,7 @@ lwip/src/core/ipv6/icmp6.obj: lwip/src/core/ipv6/icmp6.c.obj
 
 # target to build an object file
 lwip/src/core/ipv6/icmp6.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/icmp6.c.obj
 .PHONY : lwip/src/core/ipv6/icmp6.c.obj
 
 lwip/src/core/ipv6/icmp6.i: lwip/src/core/ipv6/icmp6.c.i
@@ -1050,7 +1050,7 @@ lwip/src/core/ipv6/icmp6.i: lwip/src/core/ipv6/icmp6.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv6/icmp6.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/icmp6.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/icmp6.c.i
 .PHONY : lwip/src/core/ipv6/icmp6.c.i
 
 lwip/src/core/ipv6/icmp6.s: lwip/src/core/ipv6/icmp6.c.s
@@ -1059,7 +1059,7 @@ lwip/src/core/ipv6/icmp6.s: lwip/src/core/ipv6/icmp6.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv6/icmp6.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/icmp6.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/icmp6.c.s
 .PHONY : lwip/src/core/ipv6/icmp6.c.s
 
 lwip/src/core/ipv6/inet6.obj: lwip/src/core/ipv6/inet6.c.obj
@@ -1068,7 +1068,7 @@ lwip/src/core/ipv6/inet6.obj: lwip/src/core/ipv6/inet6.c.obj
 
 # target to build an object file
 lwip/src/core/ipv6/inet6.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/inet6.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/inet6.c.obj
 .PHONY : lwip/src/core/ipv6/inet6.c.obj
 
 lwip/src/core/ipv6/inet6.i: lwip/src/core/ipv6/inet6.c.i
@@ -1077,7 +1077,7 @@ lwip/src/core/ipv6/inet6.i: lwip/src/core/ipv6/inet6.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv6/inet6.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/inet6.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/inet6.c.i
 .PHONY : lwip/src/core/ipv6/inet6.c.i
 
 lwip/src/core/ipv6/inet6.s: lwip/src/core/ipv6/inet6.c.s
@@ -1086,7 +1086,7 @@ lwip/src/core/ipv6/inet6.s: lwip/src/core/ipv6/inet6.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv6/inet6.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/inet6.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/inet6.c.s
 .PHONY : lwip/src/core/ipv6/inet6.c.s
 
 lwip/src/core/ipv6/ip6.obj: lwip/src/core/ipv6/ip6.c.obj
@@ -1095,7 +1095,7 @@ lwip/src/core/ipv6/ip6.obj: lwip/src/core/ipv6/ip6.c.obj
 
 # target to build an object file
 lwip/src/core/ipv6/ip6.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6.c.obj
 .PHONY : lwip/src/core/ipv6/ip6.c.obj
 
 lwip/src/core/ipv6/ip6.i: lwip/src/core/ipv6/ip6.c.i
@@ -1104,7 +1104,7 @@ lwip/src/core/ipv6/ip6.i: lwip/src/core/ipv6/ip6.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv6/ip6.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6.c.i
 .PHONY : lwip/src/core/ipv6/ip6.c.i
 
 lwip/src/core/ipv6/ip6.s: lwip/src/core/ipv6/ip6.c.s
@@ -1113,7 +1113,7 @@ lwip/src/core/ipv6/ip6.s: lwip/src/core/ipv6/ip6.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv6/ip6.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6.c.s
 .PHONY : lwip/src/core/ipv6/ip6.c.s
 
 lwip/src/core/ipv6/ip6_addr.obj: lwip/src/core/ipv6/ip6_addr.c.obj
@@ -1122,7 +1122,7 @@ lwip/src/core/ipv6/ip6_addr.obj: lwip/src/core/ipv6/ip6_addr.c.obj
 
 # target to build an object file
 lwip/src/core/ipv6/ip6_addr.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.obj
 .PHONY : lwip/src/core/ipv6/ip6_addr.c.obj
 
 lwip/src/core/ipv6/ip6_addr.i: lwip/src/core/ipv6/ip6_addr.c.i
@@ -1131,7 +1131,7 @@ lwip/src/core/ipv6/ip6_addr.i: lwip/src/core/ipv6/ip6_addr.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv6/ip6_addr.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.i
 .PHONY : lwip/src/core/ipv6/ip6_addr.c.i
 
 lwip/src/core/ipv6/ip6_addr.s: lwip/src/core/ipv6/ip6_addr.c.s
@@ -1140,7 +1140,7 @@ lwip/src/core/ipv6/ip6_addr.s: lwip/src/core/ipv6/ip6_addr.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv6/ip6_addr.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_addr.c.s
 .PHONY : lwip/src/core/ipv6/ip6_addr.c.s
 
 lwip/src/core/ipv6/ip6_frag.obj: lwip/src/core/ipv6/ip6_frag.c.obj
@@ -1149,7 +1149,7 @@ lwip/src/core/ipv6/ip6_frag.obj: lwip/src/core/ipv6/ip6_frag.c.obj
 
 # target to build an object file
 lwip/src/core/ipv6/ip6_frag.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.obj
 .PHONY : lwip/src/core/ipv6/ip6_frag.c.obj
 
 lwip/src/core/ipv6/ip6_frag.i: lwip/src/core/ipv6/ip6_frag.c.i
@@ -1158,7 +1158,7 @@ lwip/src/core/ipv6/ip6_frag.i: lwip/src/core/ipv6/ip6_frag.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv6/ip6_frag.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.i
 .PHONY : lwip/src/core/ipv6/ip6_frag.c.i
 
 lwip/src/core/ipv6/ip6_frag.s: lwip/src/core/ipv6/ip6_frag.c.s
@@ -1167,7 +1167,7 @@ lwip/src/core/ipv6/ip6_frag.s: lwip/src/core/ipv6/ip6_frag.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv6/ip6_frag.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6_frag.c.s
 .PHONY : lwip/src/core/ipv6/ip6_frag.c.s
 
 lwip/src/core/ipv6/mld6.obj: lwip/src/core/ipv6/mld6.c.obj
@@ -1176,7 +1176,7 @@ lwip/src/core/ipv6/mld6.obj: lwip/src/core/ipv6/mld6.c.obj
 
 # target to build an object file
 lwip/src/core/ipv6/mld6.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/mld6.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/mld6.c.obj
 .PHONY : lwip/src/core/ipv6/mld6.c.obj
 
 lwip/src/core/ipv6/mld6.i: lwip/src/core/ipv6/mld6.c.i
@@ -1185,7 +1185,7 @@ lwip/src/core/ipv6/mld6.i: lwip/src/core/ipv6/mld6.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv6/mld6.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/mld6.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/mld6.c.i
 .PHONY : lwip/src/core/ipv6/mld6.c.i
 
 lwip/src/core/ipv6/mld6.s: lwip/src/core/ipv6/mld6.c.s
@@ -1194,7 +1194,7 @@ lwip/src/core/ipv6/mld6.s: lwip/src/core/ipv6/mld6.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv6/mld6.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/mld6.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/mld6.c.s
 .PHONY : lwip/src/core/ipv6/mld6.c.s
 
 lwip/src/core/ipv6/nd6.obj: lwip/src/core/ipv6/nd6.c.obj
@@ -1203,7 +1203,7 @@ lwip/src/core/ipv6/nd6.obj: lwip/src/core/ipv6/nd6.c.obj
 
 # target to build an object file
 lwip/src/core/ipv6/nd6.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/nd6.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/nd6.c.obj
 .PHONY : lwip/src/core/ipv6/nd6.c.obj
 
 lwip/src/core/ipv6/nd6.i: lwip/src/core/ipv6/nd6.c.i
@@ -1212,7 +1212,7 @@ lwip/src/core/ipv6/nd6.i: lwip/src/core/ipv6/nd6.c.i
 
 # target to preprocess a source file
 lwip/src/core/ipv6/nd6.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/nd6.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/nd6.c.i
 .PHONY : lwip/src/core/ipv6/nd6.c.i
 
 lwip/src/core/ipv6/nd6.s: lwip/src/core/ipv6/nd6.c.s
@@ -1221,7 +1221,7 @@ lwip/src/core/ipv6/nd6.s: lwip/src/core/ipv6/nd6.c.s
 
 # target to generate assembly for a file
 lwip/src/core/ipv6/nd6.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/nd6.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/nd6.c.s
 .PHONY : lwip/src/core/ipv6/nd6.c.s
 
 lwip/src/core/mem.obj: lwip/src/core/mem.c.obj
@@ -1230,7 +1230,7 @@ lwip/src/core/mem.obj: lwip/src/core/mem.c.obj
 
 # target to build an object file
 lwip/src/core/mem.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/mem.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/mem.c.obj
 .PHONY : lwip/src/core/mem.c.obj
 
 lwip/src/core/mem.i: lwip/src/core/mem.c.i
@@ -1239,7 +1239,7 @@ lwip/src/core/mem.i: lwip/src/core/mem.c.i
 
 # target to preprocess a source file
 lwip/src/core/mem.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/mem.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/mem.c.i
 .PHONY : lwip/src/core/mem.c.i
 
 lwip/src/core/mem.s: lwip/src/core/mem.c.s
@@ -1248,7 +1248,7 @@ lwip/src/core/mem.s: lwip/src/core/mem.c.s
 
 # target to generate assembly for a file
 lwip/src/core/mem.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/mem.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/mem.c.s
 .PHONY : lwip/src/core/mem.c.s
 
 lwip/src/core/memp.obj: lwip/src/core/memp.c.obj
@@ -1257,7 +1257,7 @@ lwip/src/core/memp.obj: lwip/src/core/memp.c.obj
 
 # target to build an object file
 lwip/src/core/memp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/memp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/memp.c.obj
 .PHONY : lwip/src/core/memp.c.obj
 
 lwip/src/core/memp.i: lwip/src/core/memp.c.i
@@ -1266,7 +1266,7 @@ lwip/src/core/memp.i: lwip/src/core/memp.c.i
 
 # target to preprocess a source file
 lwip/src/core/memp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/memp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/memp.c.i
 .PHONY : lwip/src/core/memp.c.i
 
 lwip/src/core/memp.s: lwip/src/core/memp.c.s
@@ -1275,7 +1275,7 @@ lwip/src/core/memp.s: lwip/src/core/memp.c.s
 
 # target to generate assembly for a file
 lwip/src/core/memp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/memp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/memp.c.s
 .PHONY : lwip/src/core/memp.c.s
 
 lwip/src/core/netif.obj: lwip/src/core/netif.c.obj
@@ -1284,7 +1284,7 @@ lwip/src/core/netif.obj: lwip/src/core/netif.c.obj
 
 # target to build an object file
 lwip/src/core/netif.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/netif.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/netif.c.obj
 .PHONY : lwip/src/core/netif.c.obj
 
 lwip/src/core/netif.i: lwip/src/core/netif.c.i
@@ -1293,7 +1293,7 @@ lwip/src/core/netif.i: lwip/src/core/netif.c.i
 
 # target to preprocess a source file
 lwip/src/core/netif.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/netif.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/netif.c.i
 .PHONY : lwip/src/core/netif.c.i
 
 lwip/src/core/netif.s: lwip/src/core/netif.c.s
@@ -1302,7 +1302,7 @@ lwip/src/core/netif.s: lwip/src/core/netif.c.s
 
 # target to generate assembly for a file
 lwip/src/core/netif.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/netif.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/netif.c.s
 .PHONY : lwip/src/core/netif.c.s
 
 lwip/src/core/pbuf.obj: lwip/src/core/pbuf.c.obj
@@ -1311,7 +1311,7 @@ lwip/src/core/pbuf.obj: lwip/src/core/pbuf.c.obj
 
 # target to build an object file
 lwip/src/core/pbuf.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/pbuf.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/pbuf.c.obj
 .PHONY : lwip/src/core/pbuf.c.obj
 
 lwip/src/core/pbuf.i: lwip/src/core/pbuf.c.i
@@ -1320,7 +1320,7 @@ lwip/src/core/pbuf.i: lwip/src/core/pbuf.c.i
 
 # target to preprocess a source file
 lwip/src/core/pbuf.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/pbuf.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/pbuf.c.i
 .PHONY : lwip/src/core/pbuf.c.i
 
 lwip/src/core/pbuf.s: lwip/src/core/pbuf.c.s
@@ -1329,7 +1329,7 @@ lwip/src/core/pbuf.s: lwip/src/core/pbuf.c.s
 
 # target to generate assembly for a file
 lwip/src/core/pbuf.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/pbuf.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/pbuf.c.s
 .PHONY : lwip/src/core/pbuf.c.s
 
 lwip/src/core/raw.obj: lwip/src/core/raw.c.obj
@@ -1338,7 +1338,7 @@ lwip/src/core/raw.obj: lwip/src/core/raw.c.obj
 
 # target to build an object file
 lwip/src/core/raw.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/raw.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/raw.c.obj
 .PHONY : lwip/src/core/raw.c.obj
 
 lwip/src/core/raw.i: lwip/src/core/raw.c.i
@@ -1347,7 +1347,7 @@ lwip/src/core/raw.i: lwip/src/core/raw.c.i
 
 # target to preprocess a source file
 lwip/src/core/raw.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/raw.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/raw.c.i
 .PHONY : lwip/src/core/raw.c.i
 
 lwip/src/core/raw.s: lwip/src/core/raw.c.s
@@ -1356,7 +1356,7 @@ lwip/src/core/raw.s: lwip/src/core/raw.c.s
 
 # target to generate assembly for a file
 lwip/src/core/raw.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/raw.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/raw.c.s
 .PHONY : lwip/src/core/raw.c.s
 
 lwip/src/core/stats.obj: lwip/src/core/stats.c.obj
@@ -1365,7 +1365,7 @@ lwip/src/core/stats.obj: lwip/src/core/stats.c.obj
 
 # target to build an object file
 lwip/src/core/stats.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/stats.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/stats.c.obj
 .PHONY : lwip/src/core/stats.c.obj
 
 lwip/src/core/stats.i: lwip/src/core/stats.c.i
@@ -1374,7 +1374,7 @@ lwip/src/core/stats.i: lwip/src/core/stats.c.i
 
 # target to preprocess a source file
 lwip/src/core/stats.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/stats.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/stats.c.i
 .PHONY : lwip/src/core/stats.c.i
 
 lwip/src/core/stats.s: lwip/src/core/stats.c.s
@@ -1383,7 +1383,7 @@ lwip/src/core/stats.s: lwip/src/core/stats.c.s
 
 # target to generate assembly for a file
 lwip/src/core/stats.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/stats.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/stats.c.s
 .PHONY : lwip/src/core/stats.c.s
 
 lwip/src/core/sys.obj: lwip/src/core/sys.c.obj
@@ -1392,7 +1392,7 @@ lwip/src/core/sys.obj: lwip/src/core/sys.c.obj
 
 # target to build an object file
 lwip/src/core/sys.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/sys.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/sys.c.obj
 .PHONY : lwip/src/core/sys.c.obj
 
 lwip/src/core/sys.i: lwip/src/core/sys.c.i
@@ -1401,7 +1401,7 @@ lwip/src/core/sys.i: lwip/src/core/sys.c.i
 
 # target to preprocess a source file
 lwip/src/core/sys.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/sys.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/sys.c.i
 .PHONY : lwip/src/core/sys.c.i
 
 lwip/src/core/sys.s: lwip/src/core/sys.c.s
@@ -1410,7 +1410,7 @@ lwip/src/core/sys.s: lwip/src/core/sys.c.s
 
 # target to generate assembly for a file
 lwip/src/core/sys.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/sys.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/sys.c.s
 .PHONY : lwip/src/core/sys.c.s
 
 lwip/src/core/tcp.obj: lwip/src/core/tcp.c.obj
@@ -1419,7 +1419,7 @@ lwip/src/core/tcp.obj: lwip/src/core/tcp.c.obj
 
 # target to build an object file
 lwip/src/core/tcp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp.c.obj
 .PHONY : lwip/src/core/tcp.c.obj
 
 lwip/src/core/tcp.i: lwip/src/core/tcp.c.i
@@ -1428,7 +1428,7 @@ lwip/src/core/tcp.i: lwip/src/core/tcp.c.i
 
 # target to preprocess a source file
 lwip/src/core/tcp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp.c.i
 .PHONY : lwip/src/core/tcp.c.i
 
 lwip/src/core/tcp.s: lwip/src/core/tcp.c.s
@@ -1437,7 +1437,7 @@ lwip/src/core/tcp.s: lwip/src/core/tcp.c.s
 
 # target to generate assembly for a file
 lwip/src/core/tcp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp.c.s
 .PHONY : lwip/src/core/tcp.c.s
 
 lwip/src/core/tcp_in.obj: lwip/src/core/tcp_in.c.obj
@@ -1446,7 +1446,7 @@ lwip/src/core/tcp_in.obj: lwip/src/core/tcp_in.c.obj
 
 # target to build an object file
 lwip/src/core/tcp_in.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_in.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_in.c.obj
 .PHONY : lwip/src/core/tcp_in.c.obj
 
 lwip/src/core/tcp_in.i: lwip/src/core/tcp_in.c.i
@@ -1455,7 +1455,7 @@ lwip/src/core/tcp_in.i: lwip/src/core/tcp_in.c.i
 
 # target to preprocess a source file
 lwip/src/core/tcp_in.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_in.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_in.c.i
 .PHONY : lwip/src/core/tcp_in.c.i
 
 lwip/src/core/tcp_in.s: lwip/src/core/tcp_in.c.s
@@ -1464,7 +1464,7 @@ lwip/src/core/tcp_in.s: lwip/src/core/tcp_in.c.s
 
 # target to generate assembly for a file
 lwip/src/core/tcp_in.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_in.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_in.c.s
 .PHONY : lwip/src/core/tcp_in.c.s
 
 lwip/src/core/tcp_out.obj: lwip/src/core/tcp_out.c.obj
@@ -1473,7 +1473,7 @@ lwip/src/core/tcp_out.obj: lwip/src/core/tcp_out.c.obj
 
 # target to build an object file
 lwip/src/core/tcp_out.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_out.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_out.c.obj
 .PHONY : lwip/src/core/tcp_out.c.obj
 
 lwip/src/core/tcp_out.i: lwip/src/core/tcp_out.c.i
@@ -1482,7 +1482,7 @@ lwip/src/core/tcp_out.i: lwip/src/core/tcp_out.c.i
 
 # target to preprocess a source file
 lwip/src/core/tcp_out.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_out.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_out.c.i
 .PHONY : lwip/src/core/tcp_out.c.i
 
 lwip/src/core/tcp_out.s: lwip/src/core/tcp_out.c.s
@@ -1491,7 +1491,7 @@ lwip/src/core/tcp_out.s: lwip/src/core/tcp_out.c.s
 
 # target to generate assembly for a file
 lwip/src/core/tcp_out.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_out.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/tcp_out.c.s
 .PHONY : lwip/src/core/tcp_out.c.s
 
 lwip/src/core/timeouts.obj: lwip/src/core/timeouts.c.obj
@@ -1500,7 +1500,7 @@ lwip/src/core/timeouts.obj: lwip/src/core/timeouts.c.obj
 
 # target to build an object file
 lwip/src/core/timeouts.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/timeouts.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/timeouts.c.obj
 .PHONY : lwip/src/core/timeouts.c.obj
 
 lwip/src/core/timeouts.i: lwip/src/core/timeouts.c.i
@@ -1509,7 +1509,7 @@ lwip/src/core/timeouts.i: lwip/src/core/timeouts.c.i
 
 # target to preprocess a source file
 lwip/src/core/timeouts.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/timeouts.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/timeouts.c.i
 .PHONY : lwip/src/core/timeouts.c.i
 
 lwip/src/core/timeouts.s: lwip/src/core/timeouts.c.s
@@ -1518,7 +1518,7 @@ lwip/src/core/timeouts.s: lwip/src/core/timeouts.c.s
 
 # target to generate assembly for a file
 lwip/src/core/timeouts.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/timeouts.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/timeouts.c.s
 .PHONY : lwip/src/core/timeouts.c.s
 
 lwip/src/core/udp.obj: lwip/src/core/udp.c.obj
@@ -1527,7 +1527,7 @@ lwip/src/core/udp.obj: lwip/src/core/udp.c.obj
 
 # target to build an object file
 lwip/src/core/udp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/udp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/udp.c.obj
 .PHONY : lwip/src/core/udp.c.obj
 
 lwip/src/core/udp.i: lwip/src/core/udp.c.i
@@ -1536,7 +1536,7 @@ lwip/src/core/udp.i: lwip/src/core/udp.c.i
 
 # target to preprocess a source file
 lwip/src/core/udp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/udp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/udp.c.i
 .PHONY : lwip/src/core/udp.c.i
 
 lwip/src/core/udp.s: lwip/src/core/udp.c.s
@@ -1545,7 +1545,7 @@ lwip/src/core/udp.s: lwip/src/core/udp.c.s
 
 # target to generate assembly for a file
 lwip/src/core/udp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/udp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/udp.c.s
 .PHONY : lwip/src/core/udp.c.s
 
 lwip/src/netif/ethernet.obj: lwip/src/netif/ethernet.c.obj
@@ -1554,7 +1554,7 @@ lwip/src/netif/ethernet.obj: lwip/src/netif/ethernet.c.obj
 
 # target to build an object file
 lwip/src/netif/ethernet.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ethernet.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ethernet.c.obj
 .PHONY : lwip/src/netif/ethernet.c.obj
 
 lwip/src/netif/ethernet.i: lwip/src/netif/ethernet.c.i
@@ -1563,7 +1563,7 @@ lwip/src/netif/ethernet.i: lwip/src/netif/ethernet.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ethernet.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ethernet.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ethernet.c.i
 .PHONY : lwip/src/netif/ethernet.c.i
 
 lwip/src/netif/ethernet.s: lwip/src/netif/ethernet.c.s
@@ -1572,7 +1572,7 @@ lwip/src/netif/ethernet.s: lwip/src/netif/ethernet.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ethernet.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ethernet.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ethernet.c.s
 .PHONY : lwip/src/netif/ethernet.c.s
 
 lwip/src/netif/lowpan6.obj: lwip/src/netif/lowpan6.c.obj
@@ -1581,7 +1581,7 @@ lwip/src/netif/lowpan6.obj: lwip/src/netif/lowpan6.c.obj
 
 # target to build an object file
 lwip/src/netif/lowpan6.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/lowpan6.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/lowpan6.c.obj
 .PHONY : lwip/src/netif/lowpan6.c.obj
 
 lwip/src/netif/lowpan6.i: lwip/src/netif/lowpan6.c.i
@@ -1590,7 +1590,7 @@ lwip/src/netif/lowpan6.i: lwip/src/netif/lowpan6.c.i
 
 # target to preprocess a source file
 lwip/src/netif/lowpan6.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/lowpan6.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/lowpan6.c.i
 .PHONY : lwip/src/netif/lowpan6.c.i
 
 lwip/src/netif/lowpan6.s: lwip/src/netif/lowpan6.c.s
@@ -1599,7 +1599,7 @@ lwip/src/netif/lowpan6.s: lwip/src/netif/lowpan6.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/lowpan6.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/lowpan6.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/lowpan6.c.s
 .PHONY : lwip/src/netif/lowpan6.c.s
 
 lwip/src/netif/ppp/auth.obj: lwip/src/netif/ppp/auth.c.obj
@@ -1608,7 +1608,7 @@ lwip/src/netif/ppp/auth.obj: lwip/src/netif/ppp/auth.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/auth.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/auth.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/auth.c.obj
 .PHONY : lwip/src/netif/ppp/auth.c.obj
 
 lwip/src/netif/ppp/auth.i: lwip/src/netif/ppp/auth.c.i
@@ -1617,7 +1617,7 @@ lwip/src/netif/ppp/auth.i: lwip/src/netif/ppp/auth.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/auth.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/auth.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/auth.c.i
 .PHONY : lwip/src/netif/ppp/auth.c.i
 
 lwip/src/netif/ppp/auth.s: lwip/src/netif/ppp/auth.c.s
@@ -1626,7 +1626,7 @@ lwip/src/netif/ppp/auth.s: lwip/src/netif/ppp/auth.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/auth.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/auth.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/auth.c.s
 .PHONY : lwip/src/netif/ppp/auth.c.s
 
 lwip/src/netif/ppp/ccp.obj: lwip/src/netif/ppp/ccp.c.obj
@@ -1635,7 +1635,7 @@ lwip/src/netif/ppp/ccp.obj: lwip/src/netif/ppp/ccp.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/ccp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ccp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ccp.c.obj
 .PHONY : lwip/src/netif/ppp/ccp.c.obj
 
 lwip/src/netif/ppp/ccp.i: lwip/src/netif/ppp/ccp.c.i
@@ -1644,7 +1644,7 @@ lwip/src/netif/ppp/ccp.i: lwip/src/netif/ppp/ccp.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/ccp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ccp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ccp.c.i
 .PHONY : lwip/src/netif/ppp/ccp.c.i
 
 lwip/src/netif/ppp/ccp.s: lwip/src/netif/ppp/ccp.c.s
@@ -1653,7 +1653,7 @@ lwip/src/netif/ppp/ccp.s: lwip/src/netif/ppp/ccp.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/ccp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ccp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ccp.c.s
 .PHONY : lwip/src/netif/ppp/ccp.c.s
 
 lwip/src/netif/ppp/chap-md5.obj: lwip/src/netif/ppp/chap-md5.c.obj
@@ -1662,7 +1662,7 @@ lwip/src/netif/ppp/chap-md5.obj: lwip/src/netif/ppp/chap-md5.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/chap-md5.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-md5.c.obj
 .PHONY : lwip/src/netif/ppp/chap-md5.c.obj
 
 lwip/src/netif/ppp/chap-md5.i: lwip/src/netif/ppp/chap-md5.c.i
@@ -1671,7 +1671,7 @@ lwip/src/netif/ppp/chap-md5.i: lwip/src/netif/ppp/chap-md5.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/chap-md5.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-md5.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-md5.c.i
 .PHONY : lwip/src/netif/ppp/chap-md5.c.i
 
 lwip/src/netif/ppp/chap-md5.s: lwip/src/netif/ppp/chap-md5.c.s
@@ -1680,7 +1680,7 @@ lwip/src/netif/ppp/chap-md5.s: lwip/src/netif/ppp/chap-md5.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/chap-md5.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-md5.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-md5.c.s
 .PHONY : lwip/src/netif/ppp/chap-md5.c.s
 
 lwip/src/netif/ppp/chap-new.obj: lwip/src/netif/ppp/chap-new.c.obj
@@ -1689,7 +1689,7 @@ lwip/src/netif/ppp/chap-new.obj: lwip/src/netif/ppp/chap-new.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/chap-new.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-new.c.obj
 .PHONY : lwip/src/netif/ppp/chap-new.c.obj
 
 lwip/src/netif/ppp/chap-new.i: lwip/src/netif/ppp/chap-new.c.i
@@ -1698,7 +1698,7 @@ lwip/src/netif/ppp/chap-new.i: lwip/src/netif/ppp/chap-new.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/chap-new.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-new.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-new.c.i
 .PHONY : lwip/src/netif/ppp/chap-new.c.i
 
 lwip/src/netif/ppp/chap-new.s: lwip/src/netif/ppp/chap-new.c.s
@@ -1707,7 +1707,7 @@ lwip/src/netif/ppp/chap-new.s: lwip/src/netif/ppp/chap-new.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/chap-new.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-new.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap-new.c.s
 .PHONY : lwip/src/netif/ppp/chap-new.c.s
 
 lwip/src/netif/ppp/chap_ms.obj: lwip/src/netif/ppp/chap_ms.c.obj
@@ -1716,7 +1716,7 @@ lwip/src/netif/ppp/chap_ms.obj: lwip/src/netif/ppp/chap_ms.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/chap_ms.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap_ms.c.obj
 .PHONY : lwip/src/netif/ppp/chap_ms.c.obj
 
 lwip/src/netif/ppp/chap_ms.i: lwip/src/netif/ppp/chap_ms.c.i
@@ -1725,7 +1725,7 @@ lwip/src/netif/ppp/chap_ms.i: lwip/src/netif/ppp/chap_ms.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/chap_ms.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap_ms.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap_ms.c.i
 .PHONY : lwip/src/netif/ppp/chap_ms.c.i
 
 lwip/src/netif/ppp/chap_ms.s: lwip/src/netif/ppp/chap_ms.c.s
@@ -1734,7 +1734,7 @@ lwip/src/netif/ppp/chap_ms.s: lwip/src/netif/ppp/chap_ms.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/chap_ms.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap_ms.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/chap_ms.c.s
 .PHONY : lwip/src/netif/ppp/chap_ms.c.s
 
 lwip/src/netif/ppp/demand.obj: lwip/src/netif/ppp/demand.c.obj
@@ -1743,7 +1743,7 @@ lwip/src/netif/ppp/demand.obj: lwip/src/netif/ppp/demand.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/demand.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/demand.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/demand.c.obj
 .PHONY : lwip/src/netif/ppp/demand.c.obj
 
 lwip/src/netif/ppp/demand.i: lwip/src/netif/ppp/demand.c.i
@@ -1752,7 +1752,7 @@ lwip/src/netif/ppp/demand.i: lwip/src/netif/ppp/demand.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/demand.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/demand.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/demand.c.i
 .PHONY : lwip/src/netif/ppp/demand.c.i
 
 lwip/src/netif/ppp/demand.s: lwip/src/netif/ppp/demand.c.s
@@ -1761,7 +1761,7 @@ lwip/src/netif/ppp/demand.s: lwip/src/netif/ppp/demand.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/demand.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/demand.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/demand.c.s
 .PHONY : lwip/src/netif/ppp/demand.c.s
 
 lwip/src/netif/ppp/eap.obj: lwip/src/netif/ppp/eap.c.obj
@@ -1770,7 +1770,7 @@ lwip/src/netif/ppp/eap.obj: lwip/src/netif/ppp/eap.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/eap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eap.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eap.c.obj
 .PHONY : lwip/src/netif/ppp/eap.c.obj
 
 lwip/src/netif/ppp/eap.i: lwip/src/netif/ppp/eap.c.i
@@ -1779,7 +1779,7 @@ lwip/src/netif/ppp/eap.i: lwip/src/netif/ppp/eap.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/eap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eap.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eap.c.i
 .PHONY : lwip/src/netif/ppp/eap.c.i
 
 lwip/src/netif/ppp/eap.s: lwip/src/netif/ppp/eap.c.s
@@ -1788,7 +1788,7 @@ lwip/src/netif/ppp/eap.s: lwip/src/netif/ppp/eap.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/eap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eap.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eap.c.s
 .PHONY : lwip/src/netif/ppp/eap.c.s
 
 lwip/src/netif/ppp/ecp.obj: lwip/src/netif/ppp/ecp.c.obj
@@ -1797,7 +1797,7 @@ lwip/src/netif/ppp/ecp.obj: lwip/src/netif/ppp/ecp.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/ecp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ecp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ecp.c.obj
 .PHONY : lwip/src/netif/ppp/ecp.c.obj
 
 lwip/src/netif/ppp/ecp.i: lwip/src/netif/ppp/ecp.c.i
@@ -1806,7 +1806,7 @@ lwip/src/netif/ppp/ecp.i: lwip/src/netif/ppp/ecp.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/ecp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ecp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ecp.c.i
 .PHONY : lwip/src/netif/ppp/ecp.c.i
 
 lwip/src/netif/ppp/ecp.s: lwip/src/netif/ppp/ecp.c.s
@@ -1815,7 +1815,7 @@ lwip/src/netif/ppp/ecp.s: lwip/src/netif/ppp/ecp.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/ecp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ecp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ecp.c.s
 .PHONY : lwip/src/netif/ppp/ecp.c.s
 
 lwip/src/netif/ppp/eui64.obj: lwip/src/netif/ppp/eui64.c.obj
@@ -1824,7 +1824,7 @@ lwip/src/netif/ppp/eui64.obj: lwip/src/netif/ppp/eui64.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/eui64.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eui64.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eui64.c.obj
 .PHONY : lwip/src/netif/ppp/eui64.c.obj
 
 lwip/src/netif/ppp/eui64.i: lwip/src/netif/ppp/eui64.c.i
@@ -1833,7 +1833,7 @@ lwip/src/netif/ppp/eui64.i: lwip/src/netif/ppp/eui64.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/eui64.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eui64.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eui64.c.i
 .PHONY : lwip/src/netif/ppp/eui64.c.i
 
 lwip/src/netif/ppp/eui64.s: lwip/src/netif/ppp/eui64.c.s
@@ -1842,7 +1842,7 @@ lwip/src/netif/ppp/eui64.s: lwip/src/netif/ppp/eui64.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/eui64.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eui64.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/eui64.c.s
 .PHONY : lwip/src/netif/ppp/eui64.c.s
 
 lwip/src/netif/ppp/fsm.obj: lwip/src/netif/ppp/fsm.c.obj
@@ -1851,7 +1851,7 @@ lwip/src/netif/ppp/fsm.obj: lwip/src/netif/ppp/fsm.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/fsm.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/fsm.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/fsm.c.obj
 .PHONY : lwip/src/netif/ppp/fsm.c.obj
 
 lwip/src/netif/ppp/fsm.i: lwip/src/netif/ppp/fsm.c.i
@@ -1860,7 +1860,7 @@ lwip/src/netif/ppp/fsm.i: lwip/src/netif/ppp/fsm.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/fsm.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/fsm.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/fsm.c.i
 .PHONY : lwip/src/netif/ppp/fsm.c.i
 
 lwip/src/netif/ppp/fsm.s: lwip/src/netif/ppp/fsm.c.s
@@ -1869,7 +1869,7 @@ lwip/src/netif/ppp/fsm.s: lwip/src/netif/ppp/fsm.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/fsm.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/fsm.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/fsm.c.s
 .PHONY : lwip/src/netif/ppp/fsm.c.s
 
 lwip/src/netif/ppp/ipcp.obj: lwip/src/netif/ppp/ipcp.c.obj
@@ -1878,7 +1878,7 @@ lwip/src/netif/ppp/ipcp.obj: lwip/src/netif/ppp/ipcp.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/ipcp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipcp.c.obj
 .PHONY : lwip/src/netif/ppp/ipcp.c.obj
 
 lwip/src/netif/ppp/ipcp.i: lwip/src/netif/ppp/ipcp.c.i
@@ -1887,7 +1887,7 @@ lwip/src/netif/ppp/ipcp.i: lwip/src/netif/ppp/ipcp.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/ipcp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipcp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipcp.c.i
 .PHONY : lwip/src/netif/ppp/ipcp.c.i
 
 lwip/src/netif/ppp/ipcp.s: lwip/src/netif/ppp/ipcp.c.s
@@ -1896,7 +1896,7 @@ lwip/src/netif/ppp/ipcp.s: lwip/src/netif/ppp/ipcp.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/ipcp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipcp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipcp.c.s
 .PHONY : lwip/src/netif/ppp/ipcp.c.s
 
 lwip/src/netif/ppp/ipv6cp.obj: lwip/src/netif/ppp/ipv6cp.c.obj
@@ -1905,7 +1905,7 @@ lwip/src/netif/ppp/ipv6cp.obj: lwip/src/netif/ppp/ipv6cp.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/ipv6cp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj
 .PHONY : lwip/src/netif/ppp/ipv6cp.c.obj
 
 lwip/src/netif/ppp/ipv6cp.i: lwip/src/netif/ppp/ipv6cp.c.i
@@ -1914,7 +1914,7 @@ lwip/src/netif/ppp/ipv6cp.i: lwip/src/netif/ppp/ipv6cp.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/ipv6cp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.i
 .PHONY : lwip/src/netif/ppp/ipv6cp.c.i
 
 lwip/src/netif/ppp/ipv6cp.s: lwip/src/netif/ppp/ipv6cp.c.s
@@ -1923,7 +1923,7 @@ lwip/src/netif/ppp/ipv6cp.s: lwip/src/netif/ppp/ipv6cp.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/ipv6cp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.s
 .PHONY : lwip/src/netif/ppp/ipv6cp.c.s
 
 lwip/src/netif/ppp/lcp.obj: lwip/src/netif/ppp/lcp.c.obj
@@ -1932,7 +1932,7 @@ lwip/src/netif/ppp/lcp.obj: lwip/src/netif/ppp/lcp.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/lcp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/lcp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/lcp.c.obj
 .PHONY : lwip/src/netif/ppp/lcp.c.obj
 
 lwip/src/netif/ppp/lcp.i: lwip/src/netif/ppp/lcp.c.i
@@ -1941,7 +1941,7 @@ lwip/src/netif/ppp/lcp.i: lwip/src/netif/ppp/lcp.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/lcp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/lcp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/lcp.c.i
 .PHONY : lwip/src/netif/ppp/lcp.c.i
 
 lwip/src/netif/ppp/lcp.s: lwip/src/netif/ppp/lcp.c.s
@@ -1950,7 +1950,7 @@ lwip/src/netif/ppp/lcp.s: lwip/src/netif/ppp/lcp.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/lcp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/lcp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/lcp.c.s
 .PHONY : lwip/src/netif/ppp/lcp.c.s
 
 lwip/src/netif/ppp/magic.obj: lwip/src/netif/ppp/magic.c.obj
@@ -1959,7 +1959,7 @@ lwip/src/netif/ppp/magic.obj: lwip/src/netif/ppp/magic.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/magic.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/magic.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/magic.c.obj
 .PHONY : lwip/src/netif/ppp/magic.c.obj
 
 lwip/src/netif/ppp/magic.i: lwip/src/netif/ppp/magic.c.i
@@ -1968,7 +1968,7 @@ lwip/src/netif/ppp/magic.i: lwip/src/netif/ppp/magic.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/magic.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/magic.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/magic.c.i
 .PHONY : lwip/src/netif/ppp/magic.c.i
 
 lwip/src/netif/ppp/magic.s: lwip/src/netif/ppp/magic.c.s
@@ -1977,7 +1977,7 @@ lwip/src/netif/ppp/magic.s: lwip/src/netif/ppp/magic.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/magic.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/magic.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/magic.c.s
 .PHONY : lwip/src/netif/ppp/magic.c.s
 
 lwip/src/netif/ppp/mppe.obj: lwip/src/netif/ppp/mppe.c.obj
@@ -1986,7 +1986,7 @@ lwip/src/netif/ppp/mppe.obj: lwip/src/netif/ppp/mppe.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/mppe.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/mppe.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/mppe.c.obj
 .PHONY : lwip/src/netif/ppp/mppe.c.obj
 
 lwip/src/netif/ppp/mppe.i: lwip/src/netif/ppp/mppe.c.i
@@ -1995,7 +1995,7 @@ lwip/src/netif/ppp/mppe.i: lwip/src/netif/ppp/mppe.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/mppe.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/mppe.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/mppe.c.i
 .PHONY : lwip/src/netif/ppp/mppe.c.i
 
 lwip/src/netif/ppp/mppe.s: lwip/src/netif/ppp/mppe.c.s
@@ -2004,7 +2004,7 @@ lwip/src/netif/ppp/mppe.s: lwip/src/netif/ppp/mppe.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/mppe.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/mppe.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/mppe.c.s
 .PHONY : lwip/src/netif/ppp/mppe.c.s
 
 lwip/src/netif/ppp/multilink.obj: lwip/src/netif/ppp/multilink.c.obj
@@ -2013,7 +2013,7 @@ lwip/src/netif/ppp/multilink.obj: lwip/src/netif/ppp/multilink.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/multilink.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/multilink.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/multilink.c.obj
 .PHONY : lwip/src/netif/ppp/multilink.c.obj
 
 lwip/src/netif/ppp/multilink.i: lwip/src/netif/ppp/multilink.c.i
@@ -2022,7 +2022,7 @@ lwip/src/netif/ppp/multilink.i: lwip/src/netif/ppp/multilink.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/multilink.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/multilink.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/multilink.c.i
 .PHONY : lwip/src/netif/ppp/multilink.c.i
 
 lwip/src/netif/ppp/multilink.s: lwip/src/netif/ppp/multilink.c.s
@@ -2031,7 +2031,7 @@ lwip/src/netif/ppp/multilink.s: lwip/src/netif/ppp/multilink.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/multilink.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/multilink.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/multilink.c.s
 .PHONY : lwip/src/netif/ppp/multilink.c.s
 
 lwip/src/netif/ppp/ppp.obj: lwip/src/netif/ppp/ppp.c.obj
@@ -2040,7 +2040,7 @@ lwip/src/netif/ppp/ppp.obj: lwip/src/netif/ppp/ppp.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/ppp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ppp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ppp.c.obj
 .PHONY : lwip/src/netif/ppp/ppp.c.obj
 
 lwip/src/netif/ppp/ppp.i: lwip/src/netif/ppp/ppp.c.i
@@ -2049,7 +2049,7 @@ lwip/src/netif/ppp/ppp.i: lwip/src/netif/ppp/ppp.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/ppp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ppp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ppp.c.i
 .PHONY : lwip/src/netif/ppp/ppp.c.i
 
 lwip/src/netif/ppp/ppp.s: lwip/src/netif/ppp/ppp.c.s
@@ -2058,7 +2058,7 @@ lwip/src/netif/ppp/ppp.s: lwip/src/netif/ppp/ppp.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/ppp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ppp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ppp.c.s
 .PHONY : lwip/src/netif/ppp/ppp.c.s
 
 lwip/src/netif/ppp/pppapi.obj: lwip/src/netif/ppp/pppapi.c.obj
@@ -2067,7 +2067,7 @@ lwip/src/netif/ppp/pppapi.obj: lwip/src/netif/ppp/pppapi.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/pppapi.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppapi.c.obj
 .PHONY : lwip/src/netif/ppp/pppapi.c.obj
 
 lwip/src/netif/ppp/pppapi.i: lwip/src/netif/ppp/pppapi.c.i
@@ -2076,7 +2076,7 @@ lwip/src/netif/ppp/pppapi.i: lwip/src/netif/ppp/pppapi.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/pppapi.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppapi.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppapi.c.i
 .PHONY : lwip/src/netif/ppp/pppapi.c.i
 
 lwip/src/netif/ppp/pppapi.s: lwip/src/netif/ppp/pppapi.c.s
@@ -2085,7 +2085,7 @@ lwip/src/netif/ppp/pppapi.s: lwip/src/netif/ppp/pppapi.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/pppapi.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppapi.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppapi.c.s
 .PHONY : lwip/src/netif/ppp/pppapi.c.s
 
 lwip/src/netif/ppp/pppcrypt.obj: lwip/src/netif/ppp/pppcrypt.c.obj
@@ -2094,7 +2094,7 @@ lwip/src/netif/ppp/pppcrypt.obj: lwip/src/netif/ppp/pppcrypt.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/pppcrypt.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.obj
 .PHONY : lwip/src/netif/ppp/pppcrypt.c.obj
 
 lwip/src/netif/ppp/pppcrypt.i: lwip/src/netif/ppp/pppcrypt.c.i
@@ -2103,7 +2103,7 @@ lwip/src/netif/ppp/pppcrypt.i: lwip/src/netif/ppp/pppcrypt.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/pppcrypt.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.i
 .PHONY : lwip/src/netif/ppp/pppcrypt.c.i
 
 lwip/src/netif/ppp/pppcrypt.s: lwip/src/netif/ppp/pppcrypt.c.s
@@ -2112,7 +2112,7 @@ lwip/src/netif/ppp/pppcrypt.s: lwip/src/netif/ppp/pppcrypt.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/pppcrypt.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppcrypt.c.s
 .PHONY : lwip/src/netif/ppp/pppcrypt.c.s
 
 lwip/src/netif/ppp/pppoe.obj: lwip/src/netif/ppp/pppoe.c.obj
@@ -2121,7 +2121,7 @@ lwip/src/netif/ppp/pppoe.obj: lwip/src/netif/ppp/pppoe.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/pppoe.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppoe.c.obj
 .PHONY : lwip/src/netif/ppp/pppoe.c.obj
 
 lwip/src/netif/ppp/pppoe.i: lwip/src/netif/ppp/pppoe.c.i
@@ -2130,7 +2130,7 @@ lwip/src/netif/ppp/pppoe.i: lwip/src/netif/ppp/pppoe.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/pppoe.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppoe.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppoe.c.i
 .PHONY : lwip/src/netif/ppp/pppoe.c.i
 
 lwip/src/netif/ppp/pppoe.s: lwip/src/netif/ppp/pppoe.c.s
@@ -2139,7 +2139,7 @@ lwip/src/netif/ppp/pppoe.s: lwip/src/netif/ppp/pppoe.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/pppoe.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppoe.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppoe.c.s
 .PHONY : lwip/src/netif/ppp/pppoe.c.s
 
 lwip/src/netif/ppp/pppol2tp.obj: lwip/src/netif/ppp/pppol2tp.c.obj
@@ -2148,7 +2148,7 @@ lwip/src/netif/ppp/pppol2tp.obj: lwip/src/netif/ppp/pppol2tp.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/pppol2tp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.obj
 .PHONY : lwip/src/netif/ppp/pppol2tp.c.obj
 
 lwip/src/netif/ppp/pppol2tp.i: lwip/src/netif/ppp/pppol2tp.c.i
@@ -2157,7 +2157,7 @@ lwip/src/netif/ppp/pppol2tp.i: lwip/src/netif/ppp/pppol2tp.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/pppol2tp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.i
 .PHONY : lwip/src/netif/ppp/pppol2tp.c.i
 
 lwip/src/netif/ppp/pppol2tp.s: lwip/src/netif/ppp/pppol2tp.c.s
@@ -2166,7 +2166,7 @@ lwip/src/netif/ppp/pppol2tp.s: lwip/src/netif/ppp/pppol2tp.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/pppol2tp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppol2tp.c.s
 .PHONY : lwip/src/netif/ppp/pppol2tp.c.s
 
 lwip/src/netif/ppp/pppos.obj: lwip/src/netif/ppp/pppos.c.obj
@@ -2175,7 +2175,7 @@ lwip/src/netif/ppp/pppos.obj: lwip/src/netif/ppp/pppos.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/pppos.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppos.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppos.c.obj
 .PHONY : lwip/src/netif/ppp/pppos.c.obj
 
 lwip/src/netif/ppp/pppos.i: lwip/src/netif/ppp/pppos.c.i
@@ -2184,7 +2184,7 @@ lwip/src/netif/ppp/pppos.i: lwip/src/netif/ppp/pppos.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/pppos.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppos.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppos.c.i
 .PHONY : lwip/src/netif/ppp/pppos.c.i
 
 lwip/src/netif/ppp/pppos.s: lwip/src/netif/ppp/pppos.c.s
@@ -2193,7 +2193,7 @@ lwip/src/netif/ppp/pppos.s: lwip/src/netif/ppp/pppos.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/pppos.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppos.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/pppos.c.s
 .PHONY : lwip/src/netif/ppp/pppos.c.s
 
 lwip/src/netif/ppp/upap.obj: lwip/src/netif/ppp/upap.c.obj
@@ -2202,7 +2202,7 @@ lwip/src/netif/ppp/upap.obj: lwip/src/netif/ppp/upap.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/upap.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/upap.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/upap.c.obj
 .PHONY : lwip/src/netif/ppp/upap.c.obj
 
 lwip/src/netif/ppp/upap.i: lwip/src/netif/ppp/upap.c.i
@@ -2211,7 +2211,7 @@ lwip/src/netif/ppp/upap.i: lwip/src/netif/ppp/upap.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/upap.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/upap.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/upap.c.i
 .PHONY : lwip/src/netif/ppp/upap.c.i
 
 lwip/src/netif/ppp/upap.s: lwip/src/netif/ppp/upap.c.s
@@ -2220,7 +2220,7 @@ lwip/src/netif/ppp/upap.s: lwip/src/netif/ppp/upap.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/upap.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/upap.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/upap.c.s
 .PHONY : lwip/src/netif/ppp/upap.c.s
 
 lwip/src/netif/ppp/utils.obj: lwip/src/netif/ppp/utils.c.obj
@@ -2229,7 +2229,7 @@ lwip/src/netif/ppp/utils.obj: lwip/src/netif/ppp/utils.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/utils.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/utils.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/utils.c.obj
 .PHONY : lwip/src/netif/ppp/utils.c.obj
 
 lwip/src/netif/ppp/utils.i: lwip/src/netif/ppp/utils.c.i
@@ -2238,7 +2238,7 @@ lwip/src/netif/ppp/utils.i: lwip/src/netif/ppp/utils.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/utils.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/utils.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/utils.c.i
 .PHONY : lwip/src/netif/ppp/utils.c.i
 
 lwip/src/netif/ppp/utils.s: lwip/src/netif/ppp/utils.c.s
@@ -2247,7 +2247,7 @@ lwip/src/netif/ppp/utils.s: lwip/src/netif/ppp/utils.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/utils.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/utils.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/utils.c.s
 .PHONY : lwip/src/netif/ppp/utils.c.s
 
 lwip/src/netif/ppp/vj.obj: lwip/src/netif/ppp/vj.c.obj
@@ -2256,7 +2256,7 @@ lwip/src/netif/ppp/vj.obj: lwip/src/netif/ppp/vj.c.obj
 
 # target to build an object file
 lwip/src/netif/ppp/vj.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/vj.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/vj.c.obj
 .PHONY : lwip/src/netif/ppp/vj.c.obj
 
 lwip/src/netif/ppp/vj.i: lwip/src/netif/ppp/vj.c.i
@@ -2265,7 +2265,7 @@ lwip/src/netif/ppp/vj.i: lwip/src/netif/ppp/vj.c.i
 
 # target to preprocess a source file
 lwip/src/netif/ppp/vj.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/vj.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/vj.c.i
 .PHONY : lwip/src/netif/ppp/vj.c.i
 
 lwip/src/netif/ppp/vj.s: lwip/src/netif/ppp/vj.c.s
@@ -2274,7 +2274,7 @@ lwip/src/netif/ppp/vj.s: lwip/src/netif/ppp/vj.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/ppp/vj.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/vj.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/vj.c.s
 .PHONY : lwip/src/netif/ppp/vj.c.s
 
 lwip/src/netif/slipif.obj: lwip/src/netif/slipif.c.obj
@@ -2283,7 +2283,7 @@ lwip/src/netif/slipif.obj: lwip/src/netif/slipif.c.obj
 
 # target to build an object file
 lwip/src/netif/slipif.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/slipif.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/slipif.c.obj
 .PHONY : lwip/src/netif/slipif.c.obj
 
 lwip/src/netif/slipif.i: lwip/src/netif/slipif.c.i
@@ -2292,7 +2292,7 @@ lwip/src/netif/slipif.i: lwip/src/netif/slipif.c.i
 
 # target to preprocess a source file
 lwip/src/netif/slipif.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/slipif.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/slipif.c.i
 .PHONY : lwip/src/netif/slipif.c.i
 
 lwip/src/netif/slipif.s: lwip/src/netif/slipif.c.s
@@ -2301,7 +2301,7 @@ lwip/src/netif/slipif.s: lwip/src/netif/slipif.c.s
 
 # target to generate assembly for a file
 lwip/src/netif/slipif.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/slipif.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/slipif.c.s
 .PHONY : lwip/src/netif/slipif.c.s
 
 port/esp32/debug/lwip_debug.obj: port/esp32/debug/lwip_debug.c.obj
@@ -2310,7 +2310,7 @@ port/esp32/debug/lwip_debug.obj: port/esp32/debug/lwip_debug.c.obj
 
 # target to build an object file
 port/esp32/debug/lwip_debug.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/debug/lwip_debug.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/debug/lwip_debug.c.obj
 .PHONY : port/esp32/debug/lwip_debug.c.obj
 
 port/esp32/debug/lwip_debug.i: port/esp32/debug/lwip_debug.c.i
@@ -2319,7 +2319,7 @@ port/esp32/debug/lwip_debug.i: port/esp32/debug/lwip_debug.c.i
 
 # target to preprocess a source file
 port/esp32/debug/lwip_debug.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/debug/lwip_debug.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/debug/lwip_debug.c.i
 .PHONY : port/esp32/debug/lwip_debug.c.i
 
 port/esp32/debug/lwip_debug.s: port/esp32/debug/lwip_debug.c.s
@@ -2328,7 +2328,7 @@ port/esp32/debug/lwip_debug.s: port/esp32/debug/lwip_debug.c.s
 
 # target to generate assembly for a file
 port/esp32/debug/lwip_debug.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/debug/lwip_debug.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/debug/lwip_debug.c.s
 .PHONY : port/esp32/debug/lwip_debug.c.s
 
 port/esp32/freertos/sys_arch.obj: port/esp32/freertos/sys_arch.c.obj
@@ -2337,7 +2337,7 @@ port/esp32/freertos/sys_arch.obj: port/esp32/freertos/sys_arch.c.obj
 
 # target to build an object file
 port/esp32/freertos/sys_arch.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/freertos/sys_arch.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/freertos/sys_arch.c.obj
 .PHONY : port/esp32/freertos/sys_arch.c.obj
 
 port/esp32/freertos/sys_arch.i: port/esp32/freertos/sys_arch.c.i
@@ -2346,7 +2346,7 @@ port/esp32/freertos/sys_arch.i: port/esp32/freertos/sys_arch.c.i
 
 # target to preprocess a source file
 port/esp32/freertos/sys_arch.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/freertos/sys_arch.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/freertos/sys_arch.c.i
 .PHONY : port/esp32/freertos/sys_arch.c.i
 
 port/esp32/freertos/sys_arch.s: port/esp32/freertos/sys_arch.c.s
@@ -2355,7 +2355,7 @@ port/esp32/freertos/sys_arch.s: port/esp32/freertos/sys_arch.c.s
 
 # target to generate assembly for a file
 port/esp32/freertos/sys_arch.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/freertos/sys_arch.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/freertos/sys_arch.c.s
 .PHONY : port/esp32/freertos/sys_arch.c.s
 
 port/esp32/hooks/lwip_default_hooks.obj: port/esp32/hooks/lwip_default_hooks.c.obj
@@ -2364,7 +2364,7 @@ port/esp32/hooks/lwip_default_hooks.obj: port/esp32/hooks/lwip_default_hooks.c.o
 
 # target to build an object file
 port/esp32/hooks/lwip_default_hooks.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/lwip_default_hooks.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/lwip_default_hooks.c.obj
 .PHONY : port/esp32/hooks/lwip_default_hooks.c.obj
 
 port/esp32/hooks/lwip_default_hooks.i: port/esp32/hooks/lwip_default_hooks.c.i
@@ -2373,7 +2373,7 @@ port/esp32/hooks/lwip_default_hooks.i: port/esp32/hooks/lwip_default_hooks.c.i
 
 # target to preprocess a source file
 port/esp32/hooks/lwip_default_hooks.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/lwip_default_hooks.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/lwip_default_hooks.c.i
 .PHONY : port/esp32/hooks/lwip_default_hooks.c.i
 
 port/esp32/hooks/lwip_default_hooks.s: port/esp32/hooks/lwip_default_hooks.c.s
@@ -2382,7 +2382,7 @@ port/esp32/hooks/lwip_default_hooks.s: port/esp32/hooks/lwip_default_hooks.c.s
 
 # target to generate assembly for a file
 port/esp32/hooks/lwip_default_hooks.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/lwip_default_hooks.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/lwip_default_hooks.c.s
 .PHONY : port/esp32/hooks/lwip_default_hooks.c.s
 
 port/esp32/hooks/tcp_isn_default.obj: port/esp32/hooks/tcp_isn_default.c.obj
@@ -2391,7 +2391,7 @@ port/esp32/hooks/tcp_isn_default.obj: port/esp32/hooks/tcp_isn_default.c.obj
 
 # target to build an object file
 port/esp32/hooks/tcp_isn_default.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/tcp_isn_default.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/tcp_isn_default.c.obj
 .PHONY : port/esp32/hooks/tcp_isn_default.c.obj
 
 port/esp32/hooks/tcp_isn_default.i: port/esp32/hooks/tcp_isn_default.c.i
@@ -2400,7 +2400,7 @@ port/esp32/hooks/tcp_isn_default.i: port/esp32/hooks/tcp_isn_default.c.i
 
 # target to preprocess a source file
 port/esp32/hooks/tcp_isn_default.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/tcp_isn_default.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/tcp_isn_default.c.i
 .PHONY : port/esp32/hooks/tcp_isn_default.c.i
 
 port/esp32/hooks/tcp_isn_default.s: port/esp32/hooks/tcp_isn_default.c.s
@@ -2409,7 +2409,7 @@ port/esp32/hooks/tcp_isn_default.s: port/esp32/hooks/tcp_isn_default.c.s
 
 # target to generate assembly for a file
 port/esp32/hooks/tcp_isn_default.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/tcp_isn_default.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/hooks/tcp_isn_default.c.s
 .PHONY : port/esp32/hooks/tcp_isn_default.c.s
 
 port/esp32/netif/dhcp_state.obj: port/esp32/netif/dhcp_state.c.obj
@@ -2418,7 +2418,7 @@ port/esp32/netif/dhcp_state.obj: port/esp32/netif/dhcp_state.c.obj
 
 # target to build an object file
 port/esp32/netif/dhcp_state.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/dhcp_state.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/dhcp_state.c.obj
 .PHONY : port/esp32/netif/dhcp_state.c.obj
 
 port/esp32/netif/dhcp_state.i: port/esp32/netif/dhcp_state.c.i
@@ -2427,7 +2427,7 @@ port/esp32/netif/dhcp_state.i: port/esp32/netif/dhcp_state.c.i
 
 # target to preprocess a source file
 port/esp32/netif/dhcp_state.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/dhcp_state.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/dhcp_state.c.i
 .PHONY : port/esp32/netif/dhcp_state.c.i
 
 port/esp32/netif/dhcp_state.s: port/esp32/netif/dhcp_state.c.s
@@ -2436,7 +2436,7 @@ port/esp32/netif/dhcp_state.s: port/esp32/netif/dhcp_state.c.s
 
 # target to generate assembly for a file
 port/esp32/netif/dhcp_state.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/dhcp_state.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/dhcp_state.c.s
 .PHONY : port/esp32/netif/dhcp_state.c.s
 
 port/esp32/netif/wlanif.obj: port/esp32/netif/wlanif.c.obj
@@ -2445,7 +2445,7 @@ port/esp32/netif/wlanif.obj: port/esp32/netif/wlanif.c.obj
 
 # target to build an object file
 port/esp32/netif/wlanif.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/wlanif.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/wlanif.c.obj
 .PHONY : port/esp32/netif/wlanif.c.obj
 
 port/esp32/netif/wlanif.i: port/esp32/netif/wlanif.c.i
@@ -2454,7 +2454,7 @@ port/esp32/netif/wlanif.i: port/esp32/netif/wlanif.c.i
 
 # target to preprocess a source file
 port/esp32/netif/wlanif.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/wlanif.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/wlanif.c.i
 .PHONY : port/esp32/netif/wlanif.c.i
 
 port/esp32/netif/wlanif.s: port/esp32/netif/wlanif.c.s
@@ -2463,7 +2463,7 @@ port/esp32/netif/wlanif.s: port/esp32/netif/wlanif.c.s
 
 # target to generate assembly for a file
 port/esp32/netif/wlanif.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/wlanif.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/netif/wlanif.c.s
 .PHONY : port/esp32/netif/wlanif.c.s
 
 port/esp32/vfs_lwip.obj: port/esp32/vfs_lwip.c.obj
@@ -2472,7 +2472,7 @@ port/esp32/vfs_lwip.obj: port/esp32/vfs_lwip.c.obj
 
 # target to build an object file
 port/esp32/vfs_lwip.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/vfs_lwip.c.obj
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/vfs_lwip.c.obj
 .PHONY : port/esp32/vfs_lwip.c.obj
 
 port/esp32/vfs_lwip.i: port/esp32/vfs_lwip.c.i
@@ -2481,7 +2481,7 @@ port/esp32/vfs_lwip.i: port/esp32/vfs_lwip.c.i
 
 # target to preprocess a source file
 port/esp32/vfs_lwip.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/vfs_lwip.c.i
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/vfs_lwip.c.i
 .PHONY : port/esp32/vfs_lwip.c.i
 
 port/esp32/vfs_lwip.s: port/esp32/vfs_lwip.c.s
@@ -2490,7 +2490,7 @@ port/esp32/vfs_lwip.s: port/esp32/vfs_lwip.c.s
 
 # target to generate assembly for a file
 port/esp32/vfs_lwip.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/vfs_lwip.c.s
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/lwip/CMakeFiles/__idf_lwip.dir/build.make esp-idf/lwip/CMakeFiles/__idf_lwip.dir/port/esp32/vfs_lwip.c.s
 .PHONY : port/esp32/vfs_lwip.c.s
 
 # Help Target
@@ -2775,6 +2775,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

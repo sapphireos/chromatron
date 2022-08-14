@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -125,7 +125,7 @@ void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uin
 	};
     
     coproc_i32_callv( OPCODE_IO_I2C_SETUP, (const uint8_t *)&setup, sizeof(setup) );
-    coproc_i32_callv( OPCODE_IO_I2C_MEM_READ, dst, len );
+    coproc_i32_callp( OPCODE_IO_I2C_MEM_READ, dst, len );
     
     #else
 

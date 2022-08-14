@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -27,6 +27,8 @@
 #include "flash25.h"
 #include "system.h"
 #include "keyvalue.h"
+
+#include "graphics.h"
 
 #include "esp_image_format.h"
 
@@ -194,6 +196,19 @@ void cpu_v_remap_isrs( void ){
 
 void cpu_v_sleep( void ){
 
+    // only yield the RTOS task (so auto light sleep can operate)
+    // if we are not in safe mode and pixels are not enabled.
+
+    if( gfx_b_pixels_enabled() ){
+
+        return;
+    }
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
     uint32_t delta = thread_u32_get_next_alarm_delta();
 
     // if next thread alarm is more than SLEEP_THRESHOLD ms away, we can sleep for at least SLEEP_THRESHOLD ms.
@@ -233,7 +248,7 @@ void cpu_v_set_clock_speed_low( void ){
     pm_config.min_freq_mhz = 80;
     #endif
 
-    pm_config.light_sleep_enable = FALSE;
+    pm_config.light_sleep_enable = TRUE;
 
     esp_pm_configure( &pm_config );    
 
@@ -245,13 +260,13 @@ void cpu_v_set_clock_speed_high( void ){
     esp_pm_config_esp32_t pm_config = { 0 };
     #ifdef ESP32_MAX_CPU_160M
     pm_config.max_freq_mhz = 160;
-    pm_config.min_freq_mhz = 160;
+    pm_config.min_freq_mhz = 80;
     #else
     pm_config.max_freq_mhz = 240;
-    pm_config.min_freq_mhz = 240;
+    pm_config.min_freq_mhz = 80;
     #endif
 
-    pm_config.light_sleep_enable = FALSE;
+    pm_config.light_sleep_enable = TRUE;
 
     esp_pm_configure( &pm_config );    
 
@@ -287,7 +302,7 @@ void hal_cpu_v_delay_ms( uint16_t ms ){
 // replace with actual values!
 #define CPU_POWER_HIGH  ( 30000 * 3.3 )
 #define CPU_POWER_MED   ( 20000 * 3.3 )
-#define CPU_POWER_LOW   ( 10000 * 3.3 )
+#define CPU_POWER_LOW   ( 16000 * 3.3 )
 
 uint32_t cpu_u32_get_power( void ){
 

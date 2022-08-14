@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -115,6 +115,7 @@ typedef struct __attribute__((packed)){
 // DATABASE
 
 #define CATBUS_MAX_HASH_LOOKUPS                 16
+#define CATBUS_MAX_KEY_ITEM_COUNT               32
 #define CATBUS_MAX_KEY_META                     64
 
 typedef struct __attribute__((packed)){

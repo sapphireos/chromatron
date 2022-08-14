@@ -6,6 +6,18 @@
 
 #IncludeRegexTransform: 
 
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/main.c
+stdio.h
+-
+freertos/FreeRTOS.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/freertos/FreeRTOS.h
+freertos/task.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/freertos/task.h
+esp_system.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/esp_system.h
+esp_spi_flash.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/esp_spi_flash.h
+
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_common/include/esp_assert.h
 assert.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_common/include/assert.h
@@ -675,18 +687,6 @@ xtensa/config/specreg.h
 -
 xtensa/xtruntime-core-state.h
 -
-
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/main.c
-stdio.h
--
-freertos/FreeRTOS.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/freertos/FreeRTOS.h
-freertos/task.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/freertos/task.h
-esp_system.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/esp_system.h
-esp_spi_flash.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/esp_spi_flash.h
 
 config/sdkconfig.h
 

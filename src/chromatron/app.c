@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -31,10 +31,10 @@
 #include "energy.h"
 #include "battery.h"
 #include "flash_fs.h"
-#include "hal_boards.h"
+
+#include "veml7700.h"
 
 #ifdef ESP32
-#include "veml7700.h"
 #include "telemetry.h"
 #endif
 
@@ -51,11 +51,14 @@ void app_v_init( void ){
 
     vm_v_init();
 
+    #ifdef ENABLE_BATTERY
     batt_v_init();
+    #endif
+
+    #ifdef ESP32
 
     pwm_v_init();
 
-    #ifdef ESP32
     veml7700_v_init();
 
     telemetry_v_init();

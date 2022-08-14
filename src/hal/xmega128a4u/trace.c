@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -25,6 +25,7 @@
 
 #include "system.h"
 #include "hal_usb.h"
+#include "hal_esp8266.h"
 
 #include <stdarg.h>
 
@@ -44,7 +45,8 @@ int _trace_printf(PGM_P format, ...){
   if (ret > 0)
     {
       // Transfer the buffer to the device
-      usb_v_send_data( (uint8_t *)buf, ret );
+      // usb_v_send_data( (uint8_t *)buf, ret );
+      hal_wifi_v_usart_send_data( (uint8_t *)buf, ret );
     }
 
   va_end (ap);

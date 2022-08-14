@@ -1,2 +1,2 @@
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc libcxx.a  CMakeFiles/__idf_cxx.dir/cxx_exception_stubs.cpp.obj CMakeFiles/__idf_cxx.dir/cxx_guards.cpp.obj
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib libcxx.a
+/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc libcxx.a  CMakeFiles/__idf_cxx.dir/cxx_exception_stubs.cpp.obj CMakeFiles/__idf_cxx.dir/cxx_guards.cpp.obj
+/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib libcxx.a

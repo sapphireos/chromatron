@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -36,6 +36,7 @@
 #define ESP_CESANTA_BAUD                2000000
 #define ESP_CESANTA_BAUD_USART_SETTING  BAUD_2000000
 
+#define ESP_FW_INFO_ADDRESS     0x00012000
 
 #define SLIP_END        0xC0
 #define SLIP_ESC        0xDB
@@ -105,7 +106,7 @@ int8_t esp_i8_md5( uint32_t len, uint8_t digest[MD5_LEN] );
 void esp_v_flash_end( void );
 
 
-void wifi_v_start_loader( void );
+void wifi_v_start_loader( bool request_load );
 int8_t wifi_i8_loader_status( void );
 
 #define ESP_LOADER_STATUS_BUSY      1

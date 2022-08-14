@@ -3,7 +3,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2021  Jeremy Billheimer
+#     Copyright (C) 2013-2022  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -127,9 +127,6 @@ class MQTTChromatron(MQTTClient):
 
         effect = self.ct.get_key('vm_prog')[:-4]
 
-        # NOTE:
-        # after we add gfx on/off support, we can switch from the sub dimmer to master.
-
         self.publish(self.state_topic, power_state)
         self.publish(self.brightness_state_topic, int(self.ct.sub_dimmer * 65535))
         self.publish(self.effect_state_topic, effect)
@@ -152,11 +149,9 @@ class MQTTChromatron(MQTTClient):
 
         if topic == self.command_topic:
             if payload == 'OFF':
-                # self.ct.dimmer = 0.0
                 self.ct.set_key('gfx_enable', False)
 
             else:
-                # self.ct.dimmer = 1.0
                 self.ct.set_key('gfx_enable', True)
 
         elif topic == self.brightness_command_topic:
@@ -230,9 +225,6 @@ class MQTTBridge(Ribbon):
                 self.devices[device_id] = mqtt
 
                 logging.info(f'Added device: {info["name"]}')
-
-        # for device_id, device in self.devices.items():
-            # device.update_state()
 
         # prune devices
         self.devices = {k: v for k, v in self.devices.items() if k in [d['device_id'] for d in self.directory.values()]}

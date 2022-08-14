@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -37,8 +37,10 @@
 #define ENABLE_POWER
 #define ENABLE_USB_UDP_TRANSPORT
 // #define ENABLE_USB
+#define ENABLE_GFX
 #define ENABLE_MSGFLOW
 #define ENABLE_SERVICES
+#define ENABLE_BATTERY
 
 #define ENABLE_TRACE
 
@@ -52,6 +54,8 @@
 #define N_PIXEL_OUTPUTS         1
 #define PIXEL_SPI_CHANNEL		0
 #define USER_SPI_CHANNEL        1
+
+#define ENABLE_PIXEL_MAPPER
 
 // if defined, places pixel buffers in malloc region
 #define PIXEL_USE_MALLOC

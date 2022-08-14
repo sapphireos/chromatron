@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -45,7 +45,7 @@
 #define WIFI_THREAD_TIMEOUT 	500
 #endif
 
-void hal_wifi_v_init( void );
+void hal_esp8266_v_init( void );
 
 void hal_wifi_v_reset( void );
 

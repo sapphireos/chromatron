@@ -46,7 +46,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader
 
 # Utility rule file for monitor.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 include CMakeFiles/monitor.dir/progress.make
 
 CMakeFiles/monitor:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esptool_py && /usr/bin/cmake -D IDF_PATH="/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf" -D SERIAL_TOOL="python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/idf_monitor.py" -D SERIAL_TOOL_ARGS="--target esp32 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/bootloader.elf" -D WORKING_DIRECTORY="/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader" -P run_serial_tool.cmake
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esptool_py && /usr/bin/cmake -D IDF_PATH="/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf" -D SERIAL_TOOL="python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/idf_monitor.py" -D SERIAL_TOOL_ARGS="--target esp32 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/bootloader.elf" -D WORKING_DIRECTORY="/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader" -P run_serial_tool.cmake
 
 monitor: CMakeFiles/monitor
 monitor: CMakeFiles/monitor.dir/build.make
@@ -71,6 +71,6 @@ CMakeFiles/monitor.dir/clean:
 .PHONY : CMakeFiles/monitor.dir/clean
 
 CMakeFiles/monitor.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/CMakeFiles/monitor.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/CMakeFiles/monitor.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/monitor.dir/depend
 

@@ -46,7 +46,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader
 
 # Utility rule file for show-efuse-table.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 include esp-idf/efuse/CMakeFiles/show-efuse-table.dir/progress.make
 
 esp-idf/efuse/CMakeFiles/show-efuse-table:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse && python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/efuse_table_gen.py /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/esp32/esp_efuse_table.csv -t esp32 --max_blk_len 192 --info
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/esp-idf/efuse && python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/efuse_table_gen.py /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse/esp32/esp_efuse_table.csv -t esp32 --max_blk_len 192 --info
 
 show-efuse-table: esp-idf/efuse/CMakeFiles/show-efuse-table
 show-efuse-table: esp-idf/efuse/CMakeFiles/show-efuse-table.dir/build.make
@@ -67,10 +67,10 @@ esp-idf/efuse/CMakeFiles/show-efuse-table.dir/build: show-efuse-table
 .PHONY : esp-idf/efuse/CMakeFiles/show-efuse-table.dir/build
 
 esp-idf/efuse/CMakeFiles/show-efuse-table.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse && $(CMAKE_COMMAND) -P CMakeFiles/show-efuse-table.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/esp-idf/efuse && $(CMAKE_COMMAND) -P CMakeFiles/show-efuse-table.dir/cmake_clean.cmake
 .PHONY : esp-idf/efuse/CMakeFiles/show-efuse-table.dir/clean
 
 esp-idf/efuse/CMakeFiles/show-efuse-table.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/bootloader/esp-idf/efuse/CMakeFiles/show-efuse-table.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader/subproject /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/efuse /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/esp-idf/efuse /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/bootloader/esp-idf/efuse/CMakeFiles/show-efuse-table.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/efuse/CMakeFiles/show-efuse-table.dir/depend
 

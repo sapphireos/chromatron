@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -23,8 +23,6 @@
 #include "sapphire.h"
 
 #include "veml7700.h"
-
-#ifndef ESP8266
 
 /*
 Luminance Example                                                                  
@@ -76,13 +74,13 @@ KV_SECTION_META kv_meta_t veml7700_kv[] = {
 
 static void _write_reg16( uint8_t reg, uint16_t val ){
 
-    i2c_v_mem_write( VEML7700_I2C_ADDR, reg, 1, (uint8_t *)&val, sizeof(val), 5 );
+    i2c_v_mem_write( VEML7700_I2C_ADDR, reg, 1, (uint8_t *)&val, sizeof(val), 0 );
 }
 
 static uint16_t _read_reg16( uint8_t reg ){
 
     uint16_t val = 0;
-    i2c_v_mem_read( VEML7700_I2C_ADDR, reg, 1, (uint8_t *)&val, sizeof(val), 5 );
+    i2c_v_mem_read( VEML7700_I2C_ADDR, reg, 1, (uint8_t *)&val, sizeof(val), 0 );
 
     return val;
 }	
@@ -308,5 +306,3 @@ void veml7700_v_init( void ){
                      0,
                      0 );
 }
-
-#endif

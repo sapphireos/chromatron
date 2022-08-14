@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -296,6 +296,8 @@ uint8_t flash25_u8_read_byte( uint32_t address ){
 void flash25_v_write_enable( void ){
 
     #ifndef __SIM__
+    BUSY_WAIT( flash25_b_busy() );
+
 	CHIP_ENABLE();
 
 	flash_spi_u8_send( FLASH_CMD_WRITE_ENABLE );
@@ -309,6 +311,8 @@ void flash25_v_write_enable( void ){
 void flash25_v_write_disable( void ){
 
     #ifndef __SIM__
+    BUSY_WAIT( flash25_b_busy() );
+    
 	CHIP_ENABLE();
 
 	flash_spi_u8_send( FLASH_CMD_WRITE_DISABLE );
@@ -316,6 +320,33 @@ void flash25_v_write_disable( void ){
 	CHIP_DISABLE();
 
 	WRITE_PROTECT();
+    #endif
+}
+
+static void _write_byte( uint32_t address, uint8_t byte ){
+
+    #ifdef __SIM__
+    array[address] = byte;
+    #else
+    // wait on busy bit in status register
+    // note that if the flash chip malfunctions and never completes
+    // an operation, this will cause the entire system to hang
+    // until the watchdog kicks it.  this is acceptable,
+    // since at that point we have a hardware failure anyway.
+    BUSY_WAIT( flash25_b_busy() );
+
+    flash25_v_write_enable();
+
+    CHIP_ENABLE();
+
+    flash_spi_u8_send( FLASH_CMD_WRITE_BYTE );
+    flash_spi_u8_send( address >> 16 );
+    flash_spi_u8_send( address >> 8 );
+    flash_spi_u8_send( address );
+
+    flash_spi_u8_send( byte );
+
+    CHIP_DISABLE();
     #endif
 }
 
@@ -336,29 +367,7 @@ void flash25_v_write_byte( uint32_t address, uint8_t byte ){
         block0_unlock = 0;
 	}
 
-    #ifdef __SIM__
-    array[address] = byte;
-    #else
-	// wait on busy bit in status register
-	// note that if the flash chip malfunctions and never completes
-	// an operation, this will cause the entire system to hang
-	// until the watchdog kicks it.  this is acceptable,
-	// since at that point we have a hardware failure anyway.
-	BUSY_WAIT( flash25_b_busy() );
-
-	flash25_v_write_enable();
-
-	CHIP_ENABLE();
-
-	flash_spi_u8_send( FLASH_CMD_WRITE_BYTE );
-	flash_spi_u8_send( address >> 16 );
-	flash_spi_u8_send( address >> 8 );
-	flash_spi_u8_send( address );
-
-	flash_spi_u8_send( byte );
-
-	CHIP_DISABLE();
-    #endif
+    _write_byte( address, byte );
 }
 
 // write an array of data
@@ -398,7 +407,7 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         // check if odd address
         if( ( address & 1 ) != 0 ){
 
-            flash25_v_write_byte( address, *(uint8_t *)ptr );
+            _write_byte( address, *(uint8_t *)ptr );
 
             address++;
             ptr++;
@@ -479,11 +488,14 @@ void flash25_v_write( uint32_t address, const void *ptr, uint32_t len ){
         // this also handles the case where there is only one byte to be written
         if( len == 1 ){
 
-            flash25_v_write_byte( address, *(uint8_t *)ptr );
+            _write_byte( address, *(uint8_t *)ptr );
         }
     }
     // non-AAI write
     else{
+
+        // busy wait
+        BUSY_WAIT( flash25_b_busy() );
 
         while( len > 0 ){
 

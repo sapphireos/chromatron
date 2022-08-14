@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -511,7 +511,7 @@ int *__errno( void ){
 
 void _Error_Handler( char *file, int line ){
   
-    assert( 0, file, line );
+    sos_assert( 0, file, line );
 }
     
 #pragma GCC push_options

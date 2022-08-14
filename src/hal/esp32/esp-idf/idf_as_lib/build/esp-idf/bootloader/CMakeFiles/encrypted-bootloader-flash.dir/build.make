@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build
 
 # Utility rule file for encrypted-bootloader-flash.
 
@@ -54,9 +54,9 @@ CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examp
 include esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/progress.make
 
 esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/bootloader && /usr/bin/cmake -E echo "Error: The target encrypted-bootloader-flash requires"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/bootloader && /usr/bin/cmake -E echo "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_DEVELOPMENT to be enabled."
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/bootloader && /usr/bin/cmake -E env "FAIL_MESSAGE=Failed executing target (see errors on lines above)" /usr/bin/cmake -P /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/cmake/scripts/fail.cmake
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/bootloader && /usr/bin/cmake -E echo "Error: The target encrypted-bootloader-flash requires"
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/bootloader && /usr/bin/cmake -E echo "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_DEVELOPMENT to be enabled."
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/bootloader && /usr/bin/cmake -E env "FAIL_MESSAGE=Failed executing target (see errors on lines above)" /usr/bin/cmake -P /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/cmake/scripts/fail.cmake
 
 encrypted-bootloader-flash: esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash
 encrypted-bootloader-flash: esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/build.make
@@ -69,10 +69,10 @@ esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/build: encrypted-bo
 .PHONY : esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/build
 
 esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/bootloader && $(CMAKE_COMMAND) -P CMakeFiles/encrypted-bootloader-flash.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/bootloader && $(CMAKE_COMMAND) -P CMakeFiles/encrypted-bootloader-flash.dir/cmake_clean.cmake
 .PHONY : esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/clean
 
 esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/bootloader /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/bootloader/CMakeFiles/encrypted-bootloader-flash.dir/depend
 

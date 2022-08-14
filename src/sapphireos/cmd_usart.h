@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@
 #define CMD_USART_UDP_NAK           0x14
 
 // must be 8 bytes to fit in endpoint size!
-typedef struct{
+typedef struct __attribute__((packed)){
     uint16_t lport;
     uint16_t rport;
     uint16_t data_len;

@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -65,11 +65,11 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
         port = HAL_PIXEL_PORT;
 
-        io_v_set_mode( HAL_PIXEL_MISO, IO_MODE_INPUT );
+        // io_v_set_mode( HAL_PIXEL_MISO, IO_MODE_INPUT );
         io_v_set_mode( HAL_PIXEL_MOSI, IO_MODE_OUTPUT );
         io_v_set_mode( HAL_PIXEL_SCK, IO_MODE_OUTPUT );
 
-        buscfg.miso_io_num = hal_io_i32_get_gpio_num( HAL_PIXEL_MISO );
+        buscfg.miso_io_num = -1; // MISO is not used on the pixel bus
         buscfg.mosi_io_num = hal_io_i32_get_gpio_num( HAL_PIXEL_MOSI );
         buscfg.sclk_io_num = hal_io_i32_get_gpio_num( HAL_PIXEL_SCK );
         buscfg.max_transfer_sz = PIXEL_BUF_SIZE; // increase max transfer size to pixel bufs
@@ -116,7 +116,7 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 void spi_v_release( void ){
 
 	// tristate all IO
-	io_v_set_mode( HAL_PIXEL_MISO, IO_MODE_INPUT );
+	// io_v_set_mode( HAL_PIXEL_MISO, IO_MODE_INPUT );
     io_v_set_mode( HAL_PIXEL_MOSI, IO_MODE_INPUT );
     io_v_set_mode( HAL_PIXEL_SCK, IO_MODE_INPUT );
 }

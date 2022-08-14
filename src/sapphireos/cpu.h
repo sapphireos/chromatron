@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -38,6 +38,8 @@
 #define RESET_SOURCE_JTAG       0x02
 #define RESET_SOURCE_EXTERNAL   0x04
 #define RESET_SOURCE_BROWNOUT   0x08
+#define RESET_SOURCE_WATCHDOG   0x10
+#define RESET_SOURCE_INTERNAL   0x20
 
 
 #define _TOKENPASTE(x, y) x ## y

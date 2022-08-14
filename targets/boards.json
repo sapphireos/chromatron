@@ -4,21 +4,29 @@
 		"target": "esp8266",
 		"defines":
 		[
-			"ENABLE_COPROCESSOR",
 			"NO_STRERROR"
 		]
 	},
-	"chromatron_classic_upgrade":
+	"chromatron_classic_upgrade_1mb":
 	{
 		"target": "esp8266",
 		"defines":
 		[
-			"ENABLE_COPROCESSOR",
-			"ESP8266_UPGRADE"
+			"ESP8266_UPGRADE",
+			"ESP8266_UPGRADE_1MB"
 		],
 		"extra_files":
 		[
 			"wifi_firmware.bin"
+		]
+	},
+	"chromatron_classic_upgrade_4mb":
+	{
+		"target": "esp8266",
+		"defines":
+		[
+			"ESP8266_UPGRADE",
+			"ESP8266_UPGRADE_4MB"
 		]
 	},
 	"coprocessor":
@@ -26,8 +34,10 @@
 		"target": "xmega128a4u",
 		"defines":
 		[
-			"ENABLE_COPROCESSOR",
-			"ENABLE_ESP_UPGRADE_LOADER"
+			"ENABLE_NETWORK",
+			"ENABLE_USB_UDP_TRANSPORT",
+			"SKIP_CMD_USART_INIT",
+			"ENABLE_COPROCESSOR"
 		]
 	},
 	"chromatron_legacy":
@@ -77,5 +87,9 @@
 	"stm32h7":
 	{
 		"target": "stm32h7"
+	},
+	"sapphire":
+	{
+		"target": "atmega128rfa1"
 	}
 }

@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -97,6 +97,13 @@ typedef struct __attribute__((packed)){
 #define THREAD_FLAGS_SIGNAL 		0b00001000
 #define THREAD_FLAGS_ALARM          0b00010000
 
+typedef struct{
+    uint8_t signal;
+    int32_t rate; // microseconds
+    int32_t ticks;
+} thread_timed_signal_t;
+
+#define THREAD_MAX_TIMED_SIGNALS    4
 
 #define THREAD_CAST( thread ) (PT_THREAD((*)(pt_t *pt, void *state )))thread
 
@@ -140,6 +147,8 @@ bool thread_b_signalled( uint8_t signum );
 void thread_v_set_signal_flag( void );
 void thread_v_clear_signal_flag( void );
 uint16_t thread_u16_get_signals( void );
+void thread_v_create_timed_signal( uint8_t signum, uint8_t rate );
+
 uint8_t thread_u8_get_run_cause( void );
 
 void thread_v_set_alarm( uint32_t alarm );

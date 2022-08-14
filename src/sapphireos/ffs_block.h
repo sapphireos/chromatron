@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -141,7 +141,11 @@ static inline uint16_t ffs_block_u16_dirty_blocks( void ){
 
 static inline uint16_t ffs_block_u16_total_blocks( void ){
 
+    #ifdef ENABLE_FFS
     return _total_blocks;
+    #else
+    return 0;
+    #endif
 }
 
 

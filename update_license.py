@@ -8,7 +8,7 @@ import sys
 license_text = """
     This file is part of the Sapphire Operating System.
 
-    Copyright (C) 2013-2021  Jeremy Billheimer
+    Copyright (C) 2013-2022  Jeremy Billheimer
 
 
     This program is free software: you can redistribute it and/or modify
@@ -37,6 +37,19 @@ skip_files = [
     'CuTest.h',
     'OSC.py',
     'update_license.py',
+]
+
+skip_folders = [
+    'esp-idf',
+    'lwip',
+    'STM32H7xx_HAL_Driver',
+    'CMSIS',
+    'VL53L0X_1.0.2',
+    'lib_asf_usb',
+    'esp8266/sdk',
+    'tools',
+    'docs',
+    'temp',
 ]
 
 ext_comments = {
@@ -69,6 +82,17 @@ if __name__ == "__main__":
 
     for root, dirs, files in os.walk(target_path):
         # print root, dirs, files
+
+        skip_dir = False
+        for skip in skip_folders:
+            if skip in root:
+                skip_dir = True
+                break
+
+        if skip_dir:
+            # print(f'Skipping dir {root}')
+            continue
+
 
         for filename in files:
             if filename in skip_files:

@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -125,6 +125,14 @@ uint8_t cpu_u8_get_reset_source( void ){
 
         return RESET_SOURCE_BROWNOUT;
     }
+    else if( temp & RST_WDRF_bm ){
+
+        return RESET_SOURCE_WATCHDOG;
+    }
+    else if( temp & RST_SWRST_bm ){
+
+        return RESET_SOURCE_INTERNAL;
+    }
 
     return 0;
 }
@@ -167,7 +175,32 @@ uint32_t cpu_u32_get_clock_speed( void ){
     return 32000000;
 }
 
+static __inline__ __attribute__((always_inline,noreturn))
+void force_reset (void)
+{
+    __asm volatile ("cli"                 "\n\t" 
+                    "out __CCP__, %[ccp]" "\n\t" 
+                    "st  %a[rst], %[swrst]"
+        :
+        : [ccp]   "r" ((uint8_t) CCP_IOREG_gc),
+          [swrst] "r" ((uint8_t) RST_SWRST_bm),
+          [rst]   "e" (&RST.CTRL)
+        : "memory");
+    __builtin_unreachable();
+}
+
 void cpu_reboot( void ){
+
+    force_reset();
+    
+    // ATOMIC;
+    // ENABLE_CONFIG_CHANGE;
+
+    // RST.CTRL |= RST_SWRST_bm;
+    // END_ATOMIC;
+
+
+    // backup wdt in case the reset doesn't work:
 
     // enable watchdog timer:
     wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    

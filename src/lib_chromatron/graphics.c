@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -34,6 +34,8 @@
 #include "vm_sync.h"
 #include "superconductor.h"
 
+#ifdef ENABLE_GFX
+
 
 // pixel calibrations for a single pixel at full power
 #define MICROAMPS_RED_PIX       10000
@@ -51,9 +53,14 @@ static uint16_t vm_fader_time;
 static uint32_t pixel_power;
 static uint16_t pix_max_power; // in milliwatts
 
+static uint32_t max_timing_lag;
+static uint32_t avg_timing_lag;
+
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    &pix_max_power,        0,                  "pix_max_power" },
+    { CATBUS_TYPE_UINT32,   0, 0,                   &max_timing_lag,       0,                  "gfx_timing_lag_max" },
+    { CATBUS_TYPE_UINT32,   0, 0,                   &avg_timing_lag,       0,                  "gfx_timing_lag_avg" },
 };
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
@@ -86,25 +93,31 @@ static uint32_t fx_rainbow_vfile_handler( vfile_op_t8 op, uint32_t pos, void *pt
     return ret_val;
 }
 
+bool gfx_b_pixels_enabled( void ){
 
-void gfx_v_init( void ){
+    // pixels are enabled, UNLESS:
 
-    gfxlib_v_init();
+    // all pixels read zero
+    if( gfx_b_is_output_zero() ){
 
-    pixel_v_init();
+        return FALSE;
+    }
 
-    #ifdef ENABLE_TIME_SYNC
-    vm_sync_v_init();
+    #ifdef ENABLE_BATTERY
+    // battery manager indicates power is off
+    if( !batt_b_pixels_enabled() ){
+
+        return FALSE;
+    }
     #endif
 
-    sc_v_init();
+    // there are no pixels
+    if( gfx_u16_get_pix_count() == 0 ){
 
-    fs_f_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );
+        return FALSE;
+    }
 
-    thread_t_create( gfx_control_thread,
-                PSTR("gfx_control"),
-                0,
-                0 );
+    return TRUE;
 }
 
 uint32_t gfx_u32_get_pixel_power( void ){
@@ -117,7 +130,7 @@ static void calc_pixel_power( void ){
     uint64_t power_temp;
 
     // update pixel power
-    if( batt_b_pixels_enabled() ){
+    if( gfx_b_pixels_enabled() ){
 
         power_temp = gfx_u16_get_pix_count() * MICROAMPS_IDLE_PIX;
         power_temp += ( gfx_u32_get_pixel_r() * MICROAMPS_RED_PIX ) / 256;
@@ -172,9 +185,6 @@ PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    // init alarm
-    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
-
     // gfx_v_log_value_curve();
     // THREAD_EXIT( pt );
 
@@ -184,12 +194,31 @@ PT_BEGIN( pt );
     calc_pixel_power();
     pixel_v_signal();
 
-    while(1){
+    thread_v_create_timed_signal( GFX_SIGNAL_0, 20 );
 
-        thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+    static uint32_t start;
+    start = tmr_u32_get_system_time_us();
 
-        uint32_t start = tmr_u32_get_system_time_us();
+    while(1){        
+
+        THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
+
+        uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
+        start = tmr_u32_get_system_time_us();
+
+        if( lag < 1000000000 ){
+
+            if( lag > max_timing_lag ){
+
+                // only record max after a delay to avoid recording startup lag.
+                if( tmr_u64_get_system_time_us() > 10000000 ){
+
+                    max_timing_lag = lag;    
+                }
+            }
+
+            avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
+        }
 
         if( sys_b_is_shutting_down() ){
 
@@ -202,16 +231,14 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
 
-        if( vm_b_running() ){
+        
+        gfx_v_process_faders();
+        calc_pixel_power();
+        apply_power_limit();
 
-            gfx_v_process_faders();
-            calc_pixel_power();
-            apply_power_limit();
+        gfx_v_sync_array();
 
-            gfx_v_sync_array();
-
-            pixel_v_signal();
-        }
+        pixel_v_signal();
 
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
@@ -219,4 +246,30 @@ PT_BEGIN( pt );
     }
 
 PT_END( pt );
+}
+
+#endif
+
+
+void gfx_v_init( void ){
+	
+    #ifdef ENABLE_GFX
+
+    gfxlib_v_init();
+
+    pixel_v_init();
+
+    #ifdef ENABLE_TIME_SYNC
+    vm_sync_v_init();
+    #endif
+
+    sc_v_init();
+
+    fs_f_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );
+
+    thread_t_create( gfx_control_thread,
+                PSTR("gfx_control"),
+                0,
+                0 );
+    #endif
 }

@@ -1,4 +1,4 @@
-/* * Data converted from /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 .section .rodata.embedded

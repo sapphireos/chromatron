@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -104,12 +104,14 @@ void ffs_block_v_init( void ){
     uint32_t flash_size = flash25_u32_capacity();
     uint16_t n_blocks = flash_size / FLASH_FS_ERASE_BLOCK_SIZE;
 
-    _total_blocks = n_blocks - FLASH_FS_FILE_SYSTEM_START_BLOCK;
+    n_blocks -= FLASH_FS_FILE_SYSTEM_START_BLOCK;
 
-    if( _total_blocks > FFS_BLOCK_MAX_BLOCKS ){
+    if( n_blocks > FFS_BLOCK_MAX_BLOCKS ){
 
-        _total_blocks = FFS_BLOCK_MAX_BLOCKS;
+        n_blocks = FFS_BLOCK_MAX_BLOCKS;
     }
+
+    _total_blocks = n_blocks;
 
     // allocate memory
     blocks_h = mem2_h_alloc2( _total_blocks * sizeof(block_info_t), MEM_TYPE_FS_BLOCKS );

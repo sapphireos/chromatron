@@ -112,20 +112,61 @@ For initial low rate telemetry, using a single receiver channel:
 500 KHz BW, SF12, 4/8 CR = 732 bps @ -130 dBm
 64 bytes = approx 0.7 seconds.
 
+ISM frequency range is 902 to 928 MHz
+
+
+LoraWAN frequencies:
+
+Uplink:
+
+    903.9 - SF7BW125 to SF10BW125
+    904.1 - SF7BW125 to SF10BW125
+    904.3 - SF7BW125 to SF10BW125
+    904.5 - SF7BW125 to SF10BW125
+    904.7 - SF7BW125 to SF10BW125
+    904.9 - SF7BW125 to SF10BW125
+    905.1 - SF7BW125 to SF10BW125
+    905.3 - SF7BW125 to SF10BW125
+    904.6 - SF8BW500
+
+Downlink:
+
+    923.3 - SF7BW500 to SF12BW500 (RX1)
+    923.9 - SF7BW500 to SF12BW500 (RX1)
+    924.5 - SF7BW500 to SF12BW500 (RX1)
+    925.1 - SF7BW500 to SF12BW500 (RX1)
+    925.7 - SF7BW500 to SF12BW500 (RX1)
+    926.3 - SF7BW500 to SF12BW500 (RX1)
+    926.9 - SF7BW500 to SF12BW500 (RX1)
+    927.5 - SF7BW500 to SF12BW500 (RX1)
+    923.3 - SF12BW500 (RX2)
 
 
 */
 
+static uint8_t telemetry_channel;
+static uint8_t telemetry_code;
+
+KV_SECTION_META kv_meta_t rf_mac_kv[] = {
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_channel,  0, "telemetry_channel" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_code,     0, "telemetry_code" },
+};
+
 static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
-    905000000,
-    910000000,
-    915000000,
+    903000000,
+    906000000,
+    909000000,
     920000000,
 };
 
 static const rf_mac_coding_t codebook[] = {
     // beacon coding
-    { RF_MAC_MOD_LORA, RFM95W_CODING_4_8, 12, RFM95W_BW_500000 }, // 732 bps
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 12, RFM95W_BW_500000 }, // 732 bps
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 12, RFM95W_BW_500000 }, // 
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 11, RFM95W_BW_500000 }, // 
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 11, RFM95W_BW_500000 }, // 
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 10, RFM95W_BW_500000 }, // 
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_500000 }, // 
 };
 
 static uint8_t current_code;
@@ -161,6 +202,7 @@ int8_t rf_mac_i8_init( void ){
         return -1;
     }
 
+    current_code = telemetry_code;
 
     thread_t_create( rf_thread,
                      PSTR("rf_mac"),
@@ -237,6 +279,11 @@ int8_t rf_mac_i8_get_rx( rf_mac_rx_pkt_t *pkt, uint8_t *ptr, uint8_t max_len ){
     return count - 1;
 }
 
+bool rf_mac_b_rx_available( void ){
+
+    return !list_b_is_empty( &rx_q );
+}
+
 static uint16_t calc_symbol_duration( uint8_t bw, uint8_t sf ){
 
     uint32_t bandwidth = 0;
@@ -271,7 +318,7 @@ static void configure_code( void ){
 
     // assumes radio is in standby!
 
-    if( codebook[current_code].modulation == RF_MAC_MOD_LORA ){
+    if( codebook[current_code].modulation == RF_MAC_MODE_LORA ){
 
         rfm95w_v_set_reg_bits( RFM95W_RegOpMode, RFM95W_BIT_LORA_MODE );
     }
@@ -331,9 +378,10 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 10 );
 
+        // set up for receive
         rfm95w_v_set_mode( RFM95W_OP_MODE_STANDBY );
         configure_code();
-        rfm95w_v_set_frequency( beacon_channels[0] );
+        rfm95w_v_set_frequency( beacon_channels[telemetry_channel] );
 
         rfm95w_v_clear_irq_flags();
 
@@ -341,6 +389,12 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() && list_b_is_empty( &tx_q ) );
 
+        // check if receiving, but not complete:
+        if( rfm95w_b_is_rx_busy() ){
+
+            // wait until done
+            THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() );
+        }
 
         // check if receive or tx path
         if( rfm95w_b_is_rx_done() ){
@@ -390,11 +444,10 @@ PT_BEGIN( pt );
                 continue;
             }
 
-            int16_t pkt_rssi = rfm95w_i16_get_packet_rssi();
-
             rf_mac_rx_pkt_t rx_pkt;
 
-            rx_pkt.rssi = pkt_rssi;
+            rx_pkt.rssi = rfm95w_i16_get_packet_rssi();
+            rx_pkt.snr = rfm95w_i16_get_packet_snr();
             rx_pkt.len = rx_len;
 
             list_node_t ln = list_ln_create_node( 0, rx_len + sizeof(rf_mac_rx_pkt_t) );
@@ -420,7 +473,6 @@ PT_BEGIN( pt );
             reset_fifo();
 
             list_node_t ln = list_ln_remove_tail( &tx_q );
-            list_v_release_node( ln );
 
             rf_mac_tx_pkt_t *pkt = (rf_mac_tx_pkt_t *)list_vp_get_data( ln );
             uint8_t *data = (uint8_t *)( pkt + 1 );
@@ -432,8 +484,11 @@ PT_BEGIN( pt );
             };
 
             rfm95w_v_write_fifo( (uint8_t *)&header, sizeof(header) );
+            rfm95w_v_write_fifo( data, pkt->len );
 
             rfm95w_v_write_reg( RFM95W_RegPayloadLength, sizeof(header) + pkt->len );
+
+            list_v_release_node( ln );
 
             if( pkt->dest_addr == 0 ){
 
@@ -441,7 +496,7 @@ PT_BEGIN( pt );
 
 
                 // need to select a channel
-                rfm95w_v_set_frequency( beacon_channels[0] );
+                rfm95w_v_set_frequency( beacon_channels[telemetry_channel] );
 
                 // set up coding
                 configure_code();

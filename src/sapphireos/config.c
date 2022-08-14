@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -524,7 +524,7 @@ static int8_t read_param( catbus_hash_t32 parameter, void *value ){
         }
 
         // parameter not found
-        return -1;
+        return -2;
     }
 
     // get number of blocks for this parameter
@@ -886,6 +886,8 @@ void cfg_v_reset_on_next_boot( void ){
 
 // write default values to all config items
 void cfg_v_default_all( void ){
+
+    trace_printf("Config setting defaults...\r\n");
 
     // erase all the things!
     ee_v_erase_block( 0, EE_ARRAY_SIZE );

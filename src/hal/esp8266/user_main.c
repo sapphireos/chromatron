@@ -10,7 +10,7 @@
 #ifdef ENABLE_COPROCESSOR
 #include "coprocessor.h"
 
-#ifndef ESP8266_UPGRADE
+#ifndef ESP8266_UPGRADE_1MB
 // manual place in irom0 section.
 // if just in .irom0.text, will create a section type conflict. no idea why.
 // static const __attribute__((section(".irom0.text.coproc"), aligned(4))) uint8_t coproc_fw[] = {
@@ -84,13 +84,11 @@ void ICACHE_FLASH_ATTR user_init(void)
     // delay before sending first message
     _delay_ms( 10 );
 
-    #ifdef ESP8266_UPGRADE
-    coproc_i32_call0(  OPCODE_LOAD_DISABLE );
-    #else
-    io_v_set_esp_led( 1 );
-    coproc_v_fw_load( coproc_fw, sizeof(coproc_fw) );
-    io_v_set_esp_led( 0 );
-    #endif    
+        #ifndef ESP8266_UPGRADE_1MB        
+        io_v_set_esp_led( 1 );
+        coproc_v_fw_load( coproc_fw, sizeof(coproc_fw) );
+        io_v_set_esp_led( 0 );
+        #endif    
     #endif    
 
     // sapphireos init

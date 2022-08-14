@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 #define _TRACE_H
 
 #ifndef BOOTLOADER
-#define TRACE_BUF_SIZE 256
+#define TRACE_BUF_SIZE 192
 int trace_printf(const char* format, ...);
 #else
 #define trace_printf ets_printf

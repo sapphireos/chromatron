@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -146,6 +146,12 @@ PT_BEGIN( pt );
         if( sys_b_is_shutting_down() ){
             
             THREAD_EXIT( pt );
+        }
+
+        // wait while pixels are zero output
+        while( gfx_b_is_output_zero() ){
+
+            THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
         }
     }
 

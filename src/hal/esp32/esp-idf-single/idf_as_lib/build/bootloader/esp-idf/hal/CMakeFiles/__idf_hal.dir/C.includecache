@@ -6,19 +6,19 @@
 
 #IncludeRegexTransform: 
 
-../../../../../../components/esp_common/include/esp_assert.h
+../../../components/esp_common/include/esp_assert.h
 assert.h
-../../../../../../components/esp_common/include/assert.h
+../../../components/esp_common/include/assert.h
 
-../../../../../../components/esp_common/include/esp_attr.h
+../../../components/esp_common/include/esp_attr.h
 sdkconfig.h
-../../../../../../components/esp_common/include/sdkconfig.h
+../../../components/esp_common/include/sdkconfig.h
 
-../../../../../../components/esp_common/include/esp_bit_defs.h
+../../../components/esp_common/include/esp_bit_defs.h
 
-../../../../../../components/esp_common/include/esp_compiler.h
+../../../components/esp_common/include/esp_compiler.h
 
-../../../../../../components/esp_common/include/esp_err.h
+../../../components/esp_common/include/esp_err.h
 stdint.h
 -
 stdio.h
@@ -26,111 +26,111 @@ stdio.h
 assert.h
 -
 esp_compiler.h
-../../../../../../components/esp_common/include/esp_compiler.h
+../../../components/esp_common/include/esp_compiler.h
 
-../../../../../../components/hal/esp32/include/hal/cpu_ll.h
+../../../components/hal/esp32/include/hal/cpu_ll.h
 stdint.h
 -
 esp_attr.h
-../../../../../../components/hal/esp32/include/hal/esp_attr.h
+../../../components/hal/esp32/include/hal/esp_attr.h
 soc/soc_caps.h
-../../../../../../components/hal/esp32/include/hal/soc/soc_caps.h
+../../../components/hal/esp32/include/hal/soc/soc_caps.h
 xt_instr_macros.h
-../../../../../../components/hal/esp32/include/hal/xt_instr_macros.h
+../../../components/hal/esp32/include/hal/xt_instr_macros.h
 xtensa/config/specreg.h
-../../../../../../components/hal/esp32/include/hal/xtensa/config/specreg.h
+../../../components/hal/esp32/include/hal/xtensa/config/specreg.h
 xtensa/config/extreg.h
-../../../../../../components/hal/esp32/include/hal/xtensa/config/extreg.h
+../../../components/hal/esp32/include/hal/xtensa/config/extreg.h
 esp_bit_defs.h
-../../../../../../components/hal/esp32/include/hal/esp_bit_defs.h
+../../../components/hal/esp32/include/hal/esp_bit_defs.h
 xtensa/config/core.h
-../../../../../../components/hal/esp32/include/hal/xtensa/config/core.h
+../../../components/hal/esp32/include/hal/xtensa/config/core.h
 
-../../../../../../components/hal/esp32/include/hal/mpu_ll.h
+../../../components/hal/esp32/include/hal/mpu_ll.h
 stdint.h
 -
 soc/soc_caps.h
-../../../../../../components/hal/esp32/include/hal/soc/soc_caps.h
+../../../components/hal/esp32/include/hal/soc/soc_caps.h
 xt_instr_macros.h
-../../../../../../components/hal/esp32/include/hal/xt_instr_macros.h
+../../../components/hal/esp32/include/hal/xt_instr_macros.h
 
-../../../../../../components/hal/esp32/include/hal/mwdt_ll.h
+../../../components/hal/esp32/include/hal/mwdt_ll.h
 stdint.h
 -
 stdbool.h
 -
 hal/misc.h
-../../../../../../components/hal/esp32/include/hal/hal/misc.h
+../../../components/hal/esp32/include/hal/hal/misc.h
 soc/timer_periph.h
-../../../../../../components/hal/esp32/include/hal/soc/timer_periph.h
+../../../components/hal/esp32/include/hal/soc/timer_periph.h
 soc/timer_group_struct.h
-../../../../../../components/hal/esp32/include/hal/soc/timer_group_struct.h
+../../../components/hal/esp32/include/hal/soc/timer_group_struct.h
 hal/wdt_types.h
-../../../../../../components/hal/esp32/include/hal/hal/wdt_types.h
+../../../components/hal/esp32/include/hal/hal/wdt_types.h
 esp_attr.h
-../../../../../../components/hal/esp32/include/hal/esp_attr.h
+../../../components/hal/esp32/include/hal/esp_attr.h
 
-../../../../../../components/hal/esp32/include/hal/rwdt_ll.h
+../../../components/hal/esp32/include/hal/rwdt_ll.h
 stdlib.h
 -
 stdbool.h
 -
 hal/wdt_types.h
-../../../../../../components/hal/esp32/include/hal/hal/wdt_types.h
+../../../components/hal/esp32/include/hal/hal/wdt_types.h
 soc/rtc_cntl_periph.h
-../../../../../../components/hal/esp32/include/hal/soc/rtc_cntl_periph.h
+../../../components/hal/esp32/include/hal/soc/rtc_cntl_periph.h
 soc/rtc_cntl_struct.h
-../../../../../../components/hal/esp32/include/hal/soc/rtc_cntl_struct.h
+../../../components/hal/esp32/include/hal/soc/rtc_cntl_struct.h
 esp_attr.h
-../../../../../../components/hal/esp32/include/hal/esp_attr.h
+../../../components/hal/esp32/include/hal/esp_attr.h
 
-../../../../../../components/hal/include/hal/cpu_hal.h
+../../../components/hal/include/hal/cpu_hal.h
 stdint.h
 -
 stdbool.h
 -
 esp_err.h
-../../../../../../components/hal/include/hal/esp_err.h
+../../../components/hal/include/hal/esp_err.h
 soc/soc_caps.h
-../../../../../../components/hal/include/hal/soc/soc_caps.h
+../../../components/hal/include/hal/soc/soc_caps.h
 hal/cpu_types.h
-../../../../../../components/hal/include/hal/hal/cpu_types.h
+../../../components/hal/include/hal/hal/cpu_types.h
 hal/cpu_ll.h
-../../../../../../components/hal/include/hal/hal/cpu_ll.h
+../../../components/hal/include/hal/hal/cpu_ll.h
 
-../../../../../../components/hal/include/hal/cpu_types.h
+../../../components/hal/include/hal/cpu_types.h
 
-../../../../../../components/hal/include/hal/mpu_hal.h
+../../../components/hal/include/hal/mpu_hal.h
 stdint.h
 -
 esp_err.h
-../../../../../../components/hal/include/hal/esp_err.h
+../../../components/hal/include/hal/esp_err.h
 hal/mpu_types.h
-../../../../../../components/hal/include/hal/hal/mpu_types.h
+../../../components/hal/include/hal/hal/mpu_types.h
 
-../../../../../../components/hal/include/hal/mpu_types.h
+../../../components/hal/include/hal/mpu_types.h
 stdint.h
 -
 soc/soc_caps.h
-../../../../../../components/hal/include/hal/soc/soc_caps.h
+../../../components/hal/include/hal/soc/soc_caps.h
 
-../../../../../../components/hal/include/hal/wdt_hal.h
+../../../components/hal/include/hal/wdt_hal.h
 stdbool.h
 -
 soc/soc_caps.h
-../../../../../../components/hal/include/hal/soc/soc_caps.h
+../../../components/hal/include/hal/soc/soc_caps.h
 hal/wdt_types.h
-../../../../../../components/hal/include/hal/hal/wdt_types.h
+../../../components/hal/include/hal/hal/wdt_types.h
 hal/mwdt_ll.h
-../../../../../../components/hal/include/hal/hal/mwdt_ll.h
+../../../components/hal/include/hal/hal/mwdt_ll.h
 hal/rwdt_ll.h
-../../../../../../components/hal/include/hal/hal/rwdt_ll.h
+../../../components/hal/include/hal/hal/rwdt_ll.h
 
-../../../../../../components/hal/include/hal/wdt_types.h
+../../../components/hal/include/hal/wdt_types.h
 
-../../../../../../components/hal/platform_port/include/hal/misc.h
+../../../components/hal/platform_port/include/hal/misc.h
 
-../../../../../../components/newlib/platform_include/assert.h
+../../../components/newlib/platform_include/assert.h
 sdkconfig.h
 -
 stdlib.h
@@ -138,67 +138,67 @@ stdlib.h
 stdint.h
 -
 
-../../../../../../components/soc/esp32/include/soc/periph_defs.h
+../../../components/soc/esp32/include/soc/periph_defs.h
 
-../../../../../../components/soc/esp32/include/soc/rtc_cntl_reg.h
+../../../components/soc/esp32/include/soc/rtc_cntl_reg.h
 soc.h
-../../../../../../components/soc/esp32/include/soc/soc.h
+../../../components/soc/esp32/include/soc/soc.h
 
-../../../../../../components/soc/esp32/include/soc/rtc_cntl_struct.h
+../../../components/soc/esp32/include/soc/rtc_cntl_struct.h
 stdint.h
 -
 
-../../../../../../components/soc/esp32/include/soc/soc.h
+../../../components/soc/esp32/include/soc/soc.h
 stdint.h
 -
 esp_assert.h
-../../../../../../components/soc/esp32/include/soc/esp_assert.h
+../../../components/soc/esp32/include/soc/esp_assert.h
 esp_bit_defs.h
 -
 
-../../../../../../components/soc/esp32/include/soc/soc_caps.h
+../../../components/soc/esp32/include/soc/soc_caps.h
 sdkconfig.h
-../../../../../../components/soc/esp32/include/soc/sdkconfig.h
+../../../components/soc/esp32/include/soc/sdkconfig.h
 
-../../../../../../components/soc/esp32/include/soc/timer_group_reg.h
+../../../components/soc/esp32/include/soc/timer_group_reg.h
 soc.h
-../../../../../../components/soc/esp32/include/soc/soc.h
+../../../components/soc/esp32/include/soc/soc.h
 
-../../../../../../components/soc/esp32/include/soc/timer_group_struct.h
+../../../components/soc/esp32/include/soc/timer_group_struct.h
 stdint.h
 -
 
-../../../../../../components/soc/include/soc/rtc_cntl_periph.h
+../../../components/soc/include/soc/rtc_cntl_periph.h
 soc/rtc_cntl_reg.h
-../../../../../../components/soc/include/soc/soc/rtc_cntl_reg.h
+../../../components/soc/include/soc/soc/rtc_cntl_reg.h
 soc/rtc_cntl_struct.h
-../../../../../../components/soc/include/soc/soc/rtc_cntl_struct.h
+../../../components/soc/include/soc/soc/rtc_cntl_struct.h
 
-../../../../../../components/soc/include/soc/timer_periph.h
+../../../components/soc/include/soc/timer_periph.h
 stdint.h
 -
 soc/timer_group_reg.h
-../../../../../../components/soc/include/soc/soc/timer_group_reg.h
+../../../components/soc/include/soc/soc/timer_group_reg.h
 soc/timer_group_struct.h
-../../../../../../components/soc/include/soc/soc/timer_group_struct.h
+../../../components/soc/include/soc/soc/timer_group_struct.h
 soc/soc_caps.h
-../../../../../../components/soc/include/soc/soc/soc_caps.h
+../../../components/soc/include/soc/soc/soc_caps.h
 soc/periph_defs.h
-../../../../../../components/soc/include/soc/soc/periph_defs.h
+../../../components/soc/include/soc/soc/periph_defs.h
 
-../../../../../../components/xtensa/esp32/include/xtensa/config/core-isa.h
+../../../components/xtensa/esp32/include/xtensa/config/core-isa.h
 
-../../../../../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
+../../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
 
-../../../../../../components/xtensa/esp32/include/xtensa/config/core.h
+../../../components/xtensa/esp32/include/xtensa/config/core.h
 xtensa/hal.h
 -
 xtensa/xtensa-versions.h
 -
 xtensa/hal.h
-../../../../../../components/xtensa/esp32/include/xtensa/config/xtensa/hal.h
+../../../components/xtensa/esp32/include/xtensa/config/xtensa/hal.h
 xtensa/xtensa-versions.h
-../../../../../../components/xtensa/esp32/include/xtensa/config/xtensa/xtensa-versions.h
+../../../components/xtensa/esp32/include/xtensa/config/xtensa/xtensa-versions.h
 xtensa/config/core-isa.h
 -
 xtensa/config/core-matmap.h
@@ -206,37 +206,37 @@ xtensa/config/core-matmap.h
 xtensa/config/tie.h
 -
 core-isa.h
-../../../../../../components/xtensa/esp32/include/xtensa/config/core-isa.h
+../../../components/xtensa/esp32/include/xtensa/config/core-isa.h
 core-matmap.h
-../../../../../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
+../../../components/xtensa/esp32/include/xtensa/config/core-matmap.h
 tie.h
-../../../../../../components/xtensa/esp32/include/xtensa/config/tie.h
+../../../components/xtensa/esp32/include/xtensa/config/tie.h
 xtensa/config/tie-asm.h
 -
 tie-asm.h
-../../../../../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
+../../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
 
-../../../../../../components/xtensa/esp32/include/xtensa/config/extreg.h
+../../../components/xtensa/esp32/include/xtensa/config/extreg.h
 
-../../../../../../components/xtensa/esp32/include/xtensa/config/specreg.h
+../../../components/xtensa/esp32/include/xtensa/config/specreg.h
 xtensa/corebits.h
 -
 
-../../../../../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
+../../../components/xtensa/esp32/include/xtensa/config/tie-asm.h
 
-../../../../../../components/xtensa/esp32/include/xtensa/config/tie.h
+../../../components/xtensa/esp32/include/xtensa/config/tie.h
 
-../../../../../../components/xtensa/include/xt_instr_macros.h
+../../../components/xtensa/include/xt_instr_macros.h
 
-../../../../../../components/xtensa/include/xtensa/corebits.h
+../../../components/xtensa/include/xtensa/corebits.h
 
-../../../../../../components/xtensa/include/xtensa/hal.h
+../../../components/xtensa/include/xtensa/hal.h
 stdint.h
 -
 stddef.h
 -
 
-../../../../../../components/xtensa/include/xtensa/xtensa-versions.h
+../../../components/xtensa/include/xtensa/xtensa-versions.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/cpu_hal.c
 stdint.h

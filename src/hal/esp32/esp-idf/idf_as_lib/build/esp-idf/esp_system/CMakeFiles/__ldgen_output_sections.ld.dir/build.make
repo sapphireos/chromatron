@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib
+CMAKE_SOURCE_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build
+CMAKE_BINARY_DIR = /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build
 
 # Utility rule file for __ldgen_output_sections.ld.
 
@@ -56,31 +56,31 @@ include esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld.dir/progress.ma
 esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld: esp-idf/esp_system/ld/sections.ld
 
 
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_system/ld/esp32/sections.ld.in
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_ringbuf/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/driver/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_pm/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/spi_flash/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_gdbstub/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/espcoredump/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_phy/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_system/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_system/app.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_common/common.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_common/soc.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/hal/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_event/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_wifi/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/lwip/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/log/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/heap/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/soc/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/esp_hw_support/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/app_trace/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/freertos/linker.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/newlib/newlib.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/newlib/system_libs.lf
-esp-idf/esp_system/ld/sections.ld: ../../../../../components/xtensa/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_system/ld/esp32/sections.ld.in
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_ringbuf/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/driver/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_pm/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/spi_flash/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_gdbstub/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/espcoredump/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_phy/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_system/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_system/app.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_common/common.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_common/soc.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/hal/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_event/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_wifi/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/lwip/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/log/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/heap/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/soc/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/esp_hw_support/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/app_trace/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/freertos/linker.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/newlib/newlib.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/newlib/system_libs.lf
+esp-idf/esp_system/ld/sections.ld: ../../components/xtensa/linker.lf
 esp-idf/esp_system/ld/sections.ld: esp-idf/esp_ringbuf/libesp_ringbuf.a
 esp-idf/esp_system/ld/sections.ld: esp-idf/efuse/libefuse.a
 esp-idf/esp_system/ld/sections.ld: esp-idf/esp_timer/libesp_timer.a
@@ -118,8 +118,8 @@ esp-idf/esp_system/ld/sections.ld: esp-idf/newlib/libnewlib.a
 esp-idf/esp_system/ld/sections.ld: esp-idf/cxx/libcxx.a
 esp-idf/esp_system/ld/sections.ld: esp-idf/xtensa/libxtensa.a
 esp-idf/esp_system/ld/sections.ld: ../sdkconfig
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating ld/sections.ld"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_system && python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/ldgen/ldgen.py --config /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/sdkconfig --fragments /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ringbuf/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_pm/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/spi_flash/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_gdbstub/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/espcoredump/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_phy/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system/app.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_common/common.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_common/soc.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_event/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_wifi/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/log/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/heap/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/soc/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_hw_support/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/app_trace/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/freertos/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/newlib.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/system_libs.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa/linker.lf --input /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system/ld/esp32/sections.ld.in --output /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_system/ld/sections.ld --kconfig /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/Kconfig --env-file /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/config.env --libraries-file /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/ldgen_libraries --objdump /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objdump
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating ld/sections.ld"
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_system && python /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/tools/ldgen/ldgen.py --config /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/sdkconfig --fragments /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ringbuf/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_pm/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/spi_flash/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_gdbstub/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/espcoredump/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_phy/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system/app.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_common/common.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_common/soc.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/hal/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_event/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_wifi/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/lwip/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/log/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/heap/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/soc/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_hw_support/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/app_trace/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/freertos/linker.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/newlib.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/newlib/system_libs.lf	/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/xtensa/linker.lf --input /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system/ld/esp32/sections.ld.in --output /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_system/ld/sections.ld --kconfig /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/Kconfig --env-file /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/config.env --libraries-file /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/ldgen_libraries --objdump /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-objdump
 
 __ldgen_output_sections.ld: esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld
 __ldgen_output_sections.ld: esp-idf/esp_system/ld/sections.ld
@@ -133,10 +133,10 @@ esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld.dir/build: __ldgen_outp
 .PHONY : esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld.dir/build
 
 esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld.dir/clean:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_system && $(CMAKE_COMMAND) -P CMakeFiles/__ldgen_output_sections.ld.dir/cmake_clean.cmake
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_system && $(CMAKE_COMMAND) -P CMakeFiles/__ldgen_output_sections.ld.dir/cmake_clean.cmake
 .PHONY : esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld.dir/clean
 
 esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld.dir/depend:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_system /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/examples/build_system/cmake/idf_as_lib/build/esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_system /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_system /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : esp-idf/esp_system/CMakeFiles/__ldgen_output_sections.ld.dir/depend
 

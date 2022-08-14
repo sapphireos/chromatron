@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@
 #include "wifi_cmd.h"
 
 #include "logging.h"
-#include "esp8266.h"
+#include "hal_wifi.h"
 
 
 static uint32_t current_tx_bytes;
@@ -45,7 +45,7 @@ PT_THREAD( hal_wifi_thread( pt_t *pt, void *state ) );
 
 
 
-void hal_wifi_v_init( void ){
+void hal_esp8266_v_init( void ){
 
     // enable clocks
     #ifdef BOARD_CHROMATRONX

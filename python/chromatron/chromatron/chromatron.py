@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2021  Jeremy Billheimer
+#     Copyright (C) 2013-2022  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@ import pkg_resources
 from .filewatcher import Watcher
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
-from sapphire.buildtools.core import CHROMATRON_ESP_UPGRADE_FWID
+from sapphire.buildtools.core import CHROMATRON_ESP_UPGRADE_FWID, CHROMATRON_ESP_UPGRADE_1MB_FWID, CHROMATRON_ESP_UPGRADE_4MB_FWID
 import json
 from datetime import datetime, timedelta
 from queue import Queue
@@ -2474,8 +2474,9 @@ def upgrade(ctx, release, change_firmware, yes, skip_verify, parallel):
             try:
                 # adjustments to make for upgrade firmwares
                 if fw.FWID == CHROMATRON_ESP_UPGRADE_FWID:
-                    if fw_info.board == 'chromatron_legacy':
-                        fw_info.board = 'chromatron_classic_upgrade'
+                    # if fw_info.board == 'chromatron_legacy':
+                    #     fw_info.board = 'chromatron_classic_upgrade'
+                    raise NotImplementedError('Old upgrade FWID no longer supported')
 
                 elif fw_info.board == 'chromatron_classic_upgrade':
                     fw_info.board = 'chromatron_classic'
@@ -2497,6 +2498,8 @@ def upgrade(ctx, release, change_firmware, yes, skip_verify, parallel):
         updates[device_id]['fw'] = fw
 
         if fw.FWID == CHROMATRON_ESP_UPGRADE_FWID:
+            raise NotImplementedError('Old upgrade FWID no longer supported')
+            
             click.echo(click.style("ESP8266 UPGRADE", fg='red'))
 
             if parallel:

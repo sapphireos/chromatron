@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -59,6 +59,8 @@ typedef struct __attribute__((packed)){
     char firmware_name[FW_NAME_LEN];
     char firmware_version[FW_VER_LEN];
     char board[HW_NAME_LEN];
+    uint32_t kv_index_addr;
+    uint32_t kv_index_len;
 } fw_info_t;
 
 
@@ -170,6 +172,7 @@ void sys_v_get_os_version( char ver[OS_VER_LEN] );
 void sys_v_get_fw_version( char ver[FW_VER_LEN] );
 void sys_v_get_fw_info( fw_info_t *fw_info );
 uint32_t sys_u32_get_fw_length( void );
+uint32_t sys_u32_get_kv_index_addr( void );
 
 void sys_reboot( void ) __attribute__((noreturn));
 void sys_v_load_fw( void );
@@ -186,6 +189,7 @@ void sys_v_disable_watchdog( void );
 
 void sys_v_get_boot_data( boot_data_t *data );
 boot_mode_t8 sys_m_get_boot_mode( void );
+boot_mode_t8 sys_m_get_startup_boot_mode( void );
 
 #ifdef ALLOW_ASSERT_DISABLE
 void sys_v_enable_assertion_trap( void );

@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -41,10 +41,9 @@
 // #define ENABLE_IP
 // #define ENABLE_POWER
 // #define ENABLE_WIFI_USB_LOADER
-// #define ENABLE_ESP_UPGRADE_LOADER
 // #define ENABLE_COPROCESSOR
 
-
+#define ENABLE_ESP8266_LOADER
 #define ENABLE_USB
 
 // #define DISABLE_SAFE_MODE
@@ -75,7 +74,6 @@
 #define VM_MIN_DELAY				10
 
 // wifi
-#define WIFI_MAX_NETMSGS		4
 // software max power limiter - per platform power limit in dbm
 #define WIFI_MAX_SW_TX_POWER    17
 
@@ -92,16 +90,16 @@
 // flash fs
 
 // maximum number of blocks the FS can handle
-#define FFS_BLOCK_MAX_BLOCKS 254
+#define FFS_BLOCK_MAX_BLOCKS 64
 
-#define FLASH_FS_MAX_USER_FILES 24
+#define FLASH_FS_MAX_USER_FILES 8
 
 // virtual fs
-#define FS_MAX_VIRTUAL_FILES 16
+#define FS_MAX_VIRTUAL_FILES 8
 
 #define FLASH_FS_FIRMWARE_0_SIZE_KB     128
-#define FLASH_FS_FIRMWARE_1_SIZE_KB     128
-#define FLASH_FS_FIRMWARE_2_SIZE_KB     384
+#define FLASH_FS_FIRMWARE_1_SIZE_KB     0
+#define FLASH_FS_FIRMWARE_2_SIZE_KB     768
 #define FLASH_FS_EEPROM_SIZE_KB     	0 // MUST be 0 on the Xmega target!
 
 // logging
@@ -140,5 +138,8 @@
 #define SPI_MOSI_PIN 3
 #define SPI_IO_PORT PORTD
 #define SPI_PORT USARTD0
+
+
+#define DISABLE_SAFE_MODE
 
 #endif

@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -26,8 +26,6 @@
 #define _TARGET_H
 
 // modules
-#define ENABLE_CATBUS_LINK
-#define ENABLE_TIME_SYNC
 #define ENABLE_USB_UDP_TRANSPORT
 #define ENABLE_WIFI
 #define ENABLE_FFS
@@ -36,11 +34,21 @@
 // #define ENABLE_POWER
 // #define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
-// #define ENABLE_COPROCESSOR // this will be defined in target settings.json
-// #define ESP8266_UPGRADE  // this will be defined in target settings.json
 // #define ENABLE_EVENT_LOG
+
+#define ENABLE_COPROCESSOR 
+
+#if !defined(ESP8266_UPGRADE) && !defined(BOOTLOADER)
+#define ENABLE_GFX
+#define ENABLE_BATTERY
+#define ENABLE_CATBUS_LINK
+#define ENABLE_TIME_SYNC
 #define ENABLE_MSGFLOW
 #define ENABLE_SERVICES
+#endif
+
+
+
 
 
 #ifdef BOOTLOADER
@@ -75,6 +83,8 @@
 #define VM_MAX_VMS                  4
 #define VM_MAX_CALL_DEPTH           8
 #define VM_MAX_THREADS              8
+
+#define ENABLE_PIXEL_MAPPER
 
 // KV
 #define KV_CACHE_SIZE 16
@@ -122,7 +132,7 @@
 #define FW_START_OFFSET 0x00002000
 #define FLASH_START 	( 0x40200000 + FW_START_OFFSET )
 #define FW_INFO_ADDRESS 0x00010000
-#define FW_LENGTH_ADDRESS FW_INFO_ADDRESS
+#define FW_LENGTH_ADDRESS ( FW_INFO_ADDRESS + FW_START_OFFSET )
 
 // asserts
 // comment this out to turn off compiler asserts

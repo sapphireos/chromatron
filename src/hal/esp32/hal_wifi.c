@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -71,6 +71,8 @@ static uint8_t current_scan_backoff;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
+static uint8_t wifi_power_mode;
+
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
@@ -103,6 +105,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_hits,                    0,   "wifi_arp_hits" },
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
+
+    { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_power_mode,                  0,  "wifi_power_mode" },
 };
 
 // this lives in the wifi driver because it is the easiest place to get to hardware specific code
@@ -951,15 +955,17 @@ static bool is_low_power_mode( void ){
         return FALSE;
     }
 
-    bool batt_enabled = kv_b_get_boolean( __KV__batt_enable );
+    return TRUE;
 
-    if( batt_enabled ){
+    // bool batt_enabled = kv_b_get_boolean( __KV__batt_enable );
 
-        return TRUE;
-    }
+    // if( batt_enabled ){
+
+    //     return TRUE;
+    // }
 
 
-    return FALSE;
+    // return FALSE;
 }
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
@@ -1026,12 +1032,14 @@ station_mode:
             // set power state
             if( is_low_power_mode() ){
 
-                esp_wifi_set_ps( WIFI_PS_MIN_MODEM );
+                wifi_power_mode = WIFI_PS_MIN_MODEM;
             }
             else{
 
-                esp_wifi_set_ps( WIFI_PS_NONE ); // disable 
+                wifi_power_mode = WIFI_PS_NONE;
             }
+
+            esp_wifi_set_ps( wifi_power_mode );
             
             // check if we can try a fast connect with the last connected router
             if( wifi_router >= 0 ){

@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -90,7 +90,7 @@ void main( void ){
     trace_printf("Welcome to Sapphire\n");
     trace_printf("ESP8266 Bootloader\n");
 
-    hal_cpu_v_load_bootdata();
+    // hal_cpu_v_load_bootdata();
 
     // init CRC
     crc_v_init();
@@ -120,106 +120,108 @@ void main( void ){
         SPIWrite( INIT_DATA_ADDR, esp_init_data, sizeof(esp_init_data) );   
     }
 
-    // check integrity of internal firmware
-    uint16_t internal_crc = ldr_u16_get_internal_crc();
-    trace_printf("Internal crc: 0x%04x\n", internal_crc);
+    
 
-    // check if internal partition is damaged
-    if( internal_crc != 0 ){
+    // // check integrity of internal firmware
+    // uint16_t internal_crc = ldr_u16_get_internal_crc();
+    // trace_printf("Internal crc: 0x%04x\n", internal_crc);
 
-        // check partition
-        uint16_t partition_crc = ldr_u16_get_partition_crc();
-        trace_printf("Partition crc: 0x%04x\n", partition_crc);
+    // // check if internal partition is damaged
+    // if( internal_crc != 0 ){
 
-        if( partition_crc != 0 ){
+    //     // check partition
+    //     uint16_t partition_crc = ldr_u16_get_partition_crc();
+    //     trace_printf("Partition crc: 0x%04x\n", partition_crc);
 
-            // internal and partition are bad.
+    //     if( partition_crc != 0 ){
 
-            goto fatal_error;
-        }
+    //         // internal and partition are bad.
 
-        trace_printf("Recovering internal FW...\n");
+    //         goto fatal_error;
+    //     }
 
-        // try to recover several times - we really don't want to
-        // fail here if we can avoid it
-        for( uint8_t i = 0; i < 5; i++ ){
+    //     trace_printf("Recovering internal FW...\n");
 
-            // copy partition to the internal flash
-            ldr_v_copy_partition_to_internal();
+    //     // try to recover several times - we really don't want to
+    //     // fail here if we can avoid it
+    //     for( uint8_t i = 0; i < 5; i++ ){
 
-            // set loader status
-            boot_data.loader_status = LDR_STATUS_RECOVERED_FW;
+    //         // copy partition to the internal flash
+    //         ldr_v_copy_partition_to_internal();
 
-            // recompute internal crc
-            internal_crc = ldr_u16_get_internal_crc();
+    //         // set loader status
+    //         boot_data.loader_status = LDR_STATUS_RECOVERED_FW;
 
-            if( internal_crc == 0 ){
+    //         // recompute internal crc
+    //         internal_crc = ldr_u16_get_internal_crc();
 
-                break;
-            }
-        }
-    }
+    //         if( internal_crc == 0 ){
 
-    // check firmware status
-    if( internal_crc != 0 ){
+    //             break;
+    //         }
+    //     }
+    // }
 
-        // internal code is damaged (and could not be recovered)
-        // we cannot recover from this
-        goto fatal_error;
-    }
+    // // check firmware status
+    // if( internal_crc != 0 ){
 
-    trace_printf("Loader cmd: %04x\n", boot_data.loader_command);
+    //     // internal code is damaged (and could not be recovered)
+    //     // we cannot recover from this
+    //     goto fatal_error;
+    // }
 
-    // check loader command
-    if( boot_data.loader_command == LDR_CMD_LOAD_FW ){
+    // trace_printf("Loader cmd: %04x\n", boot_data.loader_command);
 
-        trace_printf("Load new FW requested\n");
+    // // check loader command
+    // if( boot_data.loader_command == LDR_CMD_LOAD_FW ){
 
-        // check partition
-        uint16_t partition_crc = ldr_u16_get_partition_crc();
-        trace_printf("Partition crc: 0x%04x\n", partition_crc);
+    //     trace_printf("Load new FW requested\n");
 
-        // check that partition CRC is ok
-        if( partition_crc == 0 ){
+    //     // check partition
+    //     uint16_t partition_crc = ldr_u16_get_partition_crc();
+    //     trace_printf("Partition crc: 0x%04x\n", partition_crc);
 
-            trace_printf("Copying FW...\n");
+    //     // check that partition CRC is ok
+    //     if( partition_crc == 0 ){
 
-            // partition CRC is ok
-            // copy partition to the internal flash
-            ldr_v_copy_partition_to_internal();
+    //         trace_printf("Copying FW...\n");
 
-            // recompute internal CRC
-            internal_crc = ldr_u16_get_internal_crc();
+    //         // partition CRC is ok
+    //         // copy partition to the internal flash
+    //         ldr_v_copy_partition_to_internal();
 
-            trace_printf("Internal crc: 0x%04x\n", internal_crc);
+    //         // recompute internal CRC
+    //         internal_crc = ldr_u16_get_internal_crc();
 
-            // set loader status
-            boot_data.loader_status = LDR_STATUS_NEW_FW;
-            boot_data.boot_mode = BOOT_MODE_REBOOT;
+    //         trace_printf("Internal crc: 0x%04x\n", internal_crc);
 
-            // check internal CRC
-            if( internal_crc != 0 ){
+    //         // set loader status
+    //         boot_data.loader_status = LDR_STATUS_NEW_FW;
+    //         boot_data.boot_mode = BOOT_MODE_REBOOT;
 
-                goto fatal_error;
-            }
-        }
-        // partition CRC is bad
-        else{
+    //         // check internal CRC
+    //         if( internal_crc != 0 ){
+
+    //             goto fatal_error;
+    //         }
+    //     }
+    //     // partition CRC is bad
+    //     else{
             
-            trace_printf("Bad FW CRC\n");
+    //         trace_printf("Bad FW CRC\n");
 
-            boot_data.loader_status = LDR_STATUS_PARTITION_CRC_BAD;
-        }
-    }
+    //         boot_data.loader_status = LDR_STATUS_PARTITION_CRC_BAD;
+    //     }
+    // }
 
-    if( flash25_u8_read_byte( BOOTLOADER_INFO_BLOCK ) != 0xff ){
+    // if( flash25_u8_read_byte( BOOTLOADER_INFO_BLOCK ) != 0xff ){
 
-        // erase stored bootdata
-        flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );
-    }
+    //     // erase stored bootdata
+    //     flash25_v_erase_4k( BOOTLOADER_INFO_BLOCK );
+    // }
 
-    // clear loader command
-    boot_data.loader_command = LDR_CMD_NONE;
+    // // clear loader command
+    // boot_data.loader_command = LDR_CMD_NONE;
 
     // run application
     ldr_v_clear_yellow_led();
@@ -227,13 +229,13 @@ void main( void ){
     ldr_run_app();
 
 
-fatal_error:
+// fatal_error:
 
-    trace_printf("FATAL ERROR\n");
+//     trace_printf("FATAL ERROR\n");
 
-    ldr_v_clear_yellow_led();
-    ldr_v_set_red_led();
+//     ldr_v_clear_yellow_led();
+//     ldr_v_set_red_led();
 
-    while(1);
+//     while(1);
 }
 

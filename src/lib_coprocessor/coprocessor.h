@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -46,12 +46,19 @@ typedef struct __attribute__((packed)){
 } coproc_hdr_t;
 
 #define COPROC_BUF_SIZE				255
+#define COPROC_FLASH_XFER_LEN		252
 
 #define OPCODE_TEST					0x01
 #define OPCODE_REBOOT				0x02
 #define OPCODE_LOAD_DISABLE			0x03
 #define OPCODE_GET_RESET_SOURCE		0x04
 #define OPCODE_GET_WIFI				0x05
+#define OPCODE_DEBUG_PRINT  		0x06
+#define OPCODE_GET_BOOT_MODE		0x07
+#define OPCODE_LOADFW_1				0x08
+#define OPCODE_LOADFW_2				0x09
+#define OPCODE_SAFE_MODE     		0x0A
+
 #define OPCODE_IO_SET_MODE			0x10
 #define OPCODE_IO_GET_MODE			0x11
 #define OPCODE_IO_DIGITAL_WRITE		0x12
@@ -99,6 +106,16 @@ typedef struct __attribute__((packed)){
 #define OPCODE_IO_I2C_WRITE_REG8	0x67
 #define OPCODE_IO_I2C_READ_REG8		0x68
 
+// Flash25
+#define OPCODE_IO_FLASH25_SIZE		0x70
+#define OPCODE_IO_FLASH25_ADDR		0x71
+#define OPCODE_IO_FLASH25_LEN		0x72
+#define OPCODE_IO_FLASH25_ERASE		0x73
+#define OPCODE_IO_FLASH25_READ		0x74
+#define OPCODE_IO_FLASH25_WRITE		0x75
+#define OPCODE_IO_FLASH25_READ2 	0x76
+
+
 typedef struct __attribute__((packed, aligned(4))){
 	uint32_t dev_addr;
 	uint32_t len;
@@ -112,11 +129,11 @@ typedef struct __attribute__((packed, aligned(4))){
 #define COPROC_FW_INFO_ADDRESS 0x1FC // this must match the offset in the xmega makefile!
 
 void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] );
-void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN] );
+void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header );
 
 void coproc_v_init( void );
 void coproc_v_sync( void );
-
+int32_t coproc_i32_debug_print( char *s );
 
 void coproc_v_dispatch( 
 	coproc_hdr_t *hdr, 
@@ -146,6 +163,8 @@ int32_t coproc_i32_call2( uint8_t opcode, int32_t param0, int32_t param1 );
 int32_t coproc_i32_call3( uint8_t opcode, int32_t param0, int32_t param1, int32_t param2 );
 
 int32_t coproc_i32_callv( uint8_t opcode, const uint8_t *data, uint16_t len );
+
 int32_t coproc_i32_callp( uint8_t opcode, uint8_t *data, uint16_t len );
+int32_t coproc_i32_callp2( uint8_t opcode, int32_t param0, int32_t param1, uint8_t *data, uint16_t len );
 
 #endif

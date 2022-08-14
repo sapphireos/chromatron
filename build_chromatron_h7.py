@@ -8,9 +8,12 @@ projects = [
     'hal_arm',
     'sapphire',
     'hal_stm32h7',
-    'lib_chromatron2',
+    'lib_chromatron',
+    'lib_battery',
+    'lib_veml7700',
+    'lib_rfm95w',
     'lib_gfx',
-    'chromatron2',
+    'chromatron',
 ]
 
 def clean():

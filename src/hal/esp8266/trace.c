@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,13 @@
 // </license>
 
 
+#include "system.h"
+#include "target.h"
 #include "trace.h"
+
+#ifdef ENABLE_COPROCESSOR
+#include "coprocessor.h"
+#endif
 
 #include "osapi.h"
 
@@ -36,15 +42,33 @@ int trace_printf(const char* format, ...){
 
   va_start (ap, format);
 
-  static char buf[TRACE_BUF_SIZE];
+  char buf[TRACE_BUF_SIZE];
+  memset( buf, 0, sizeof(buf) );
 
   // Print to the local buffer
   ret = vsnprintf (buf, sizeof(buf), format, ap);
   if (ret > 0)
     {
       
+      #ifdef ENABLE_COPROCESSOR
+      int len = strnlen( buf, sizeof(buf) );
+
+      // strip EOL characters
+      for( int i = 0; i < len; i++ ){
+
+        if( ( buf[i] == '\r' ) ||
+            ( buf[i] == '\n' ) ){
+
+          buf[i] = 0;
+        }   
+      }
+
+      ret = coproc_i32_debug_print( buf );
+      #else
       // Transfer the buffer to the device
       ret = os_printf("%s", buf);
+      #endif
+
     }
 
   va_end (ap);

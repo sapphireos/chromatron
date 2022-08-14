@@ -110,7 +110,7 @@
 #define RFM95W_BIT_SignalSync           ( 1 << 1 )
 #define RFM95W_BIT_SignalDetected       ( 1 << 0 )
 
-#define RFM95W_RegPktSntValue       0x19
+#define RFM95W_RegPktSnrValue       0x19
 #define RFM95W_RegPktRssiValue      0x1A
 #define RFM95W_RegRssiValue         0x1B
 
@@ -189,6 +189,7 @@ void rfm95w_v_set_power( int8_t data );
 void rfm95w_v_set_frequency( uint32_t freq );
 int16_t rfm95w_i16_get_rssi( void );
 int16_t rfm95w_i16_get_packet_rssi( void );
+int16_t rfm95w_i16_get_packet_snr( void );
 void rfm95w_v_set_preamble_length( uint16_t data );
 void rfm95w_v_set_sync_word( uint8_t data );
 

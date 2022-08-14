@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -26,8 +26,11 @@
 #define _BQ25895_H_
 
 
-#define BQ25895_FLOAT_VOLTAGE		4100
+#define BQ25895_MAX_FLOAT_VOLTAGE	4100
 #define BQ25895_CUTOFF_VOLTAGE		3100
+
+#define BQ25895_LION_MAX_VOLTAGE    4200
+#define BQ25895_LION_MIN_VOLTAGE    2900
 
 #define BQ25895_MIN_BOOST_VOLTAGE   4550
 #define BQ25895_MAX_BOOST_VOLTAGE   5510
@@ -39,6 +42,7 @@
 
 #define BQ25895_DEVICE_ID 0x39
 
+#define BQ25895_N_REGS  21
 
 #define BQ25895_REG_INPUT_CURRENT           0x00
 #define BQ25895_BIT_ENABLE_ILIM_PIN         ( 1 << 6 )
@@ -195,6 +199,7 @@
 
 int8_t bq25895_i8_init( void );
 
+void bq25895_v_read_all( void );
 uint8_t bq25895_u8_read_reg( uint8_t addr );
 void bq25895_v_write_reg( uint8_t addr, uint8_t data );
 void bq25895_v_set_reg_bits( uint8_t addr, uint8_t mask );
@@ -224,6 +229,7 @@ void bq25895_v_set_boost_voltage( uint16_t volts );
 uint8_t bq25895_u8_get_vbus_status( void );
 bool bq25895_b_get_vbus_good( void );
 uint8_t bq25895_u8_get_charge_status( void );
+bool bq25895_b_is_charging( void );
 bool bq25895_b_power_good( void );
 uint8_t bq25895_u8_get_faults( void );
 uint16_t bq25895_u16_get_batt_voltage( void );

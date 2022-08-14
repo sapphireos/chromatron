@@ -3,7 +3,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2021  Jeremy Billheimer
+#     Copyright (C) 2013-2022  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -788,7 +788,7 @@ class Device(object):
     def cli_cat(self, line):
         data = self.get_file(line)
 
-        s = "\n" + data.decode('utf-8')
+        s = "\n" + data.decode('utf-8', errors='ignore')
 
         return s
 
@@ -906,7 +906,11 @@ class Device(object):
         else:
             info = self.get_thread_info()
 
-        s = "\nAddr      Line  Flags  Data         Time     Runs  Avg      Alarm     Name\n"
+        s = "\nAddr      Line  Flags  Data         Time     Runs   Avg  CPU Name\n"
+
+        total_run_time = 0
+        for n in info:
+            total_run_time += n.run_time
 
         for n in info:
 
@@ -943,7 +947,9 @@ class Device(object):
             except ZeroDivisionError:
                 avg_time = 0
 
-            s += "%8x  %4d   %5s %4d %12d %8d %5d %12d %s\n" % \
+            cpu_usage = (n.run_time / float(total_run_time)) * 100.0
+
+            s += "%8x  %4d   %5s %4d %12d %8d %5d %4.1f %s\n" % \
                 (n.addr,
                  n.line,
                  flags,
@@ -951,7 +957,7 @@ class Device(object):
                  n.run_time,
                  n.runs,
                  avg_time,
-                 n.alarm,
+                 cpu_usage,
                  n.name)
 
         return s

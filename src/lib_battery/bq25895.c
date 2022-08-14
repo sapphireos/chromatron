@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -33,23 +33,28 @@
 #include "flash_fs.h"
 #include "hal_boards.h"
 
-static uint8_t batt_soc; // state of charge in percent
-static uint8_t batt_soc_startup; // state of charge at power on
+#ifdef ENABLE_BATTERY
+
+static uint8_t regs[BQ25895_N_REGS];
+
+static uint8_t batt_soc = 50; // state of charge in percent
+// static uint8_t batt_soc_startup; // state of charge at power on
 static uint16_t batt_volts;
 static uint16_t vbus_volts;
 static uint16_t sys_volts;
 static uint16_t batt_charge_current;
 static uint16_t batt_charge_power;
 static uint16_t batt_max_charge_current;
+static uint16_t batt_max_charge_voltage = BQ25895_MAX_FLOAT_VOLTAGE;
+static uint16_t batt_min_discharge_voltage = BQ25895_CUTOFF_VOLTAGE;
 static bool batt_charging;
 static bool vbus_connected;
 static uint8_t batt_fault;
 static uint8_t vbus_status;
 static uint8_t charge_status;
 static bool dump_regs;
-static uint32_t capacity;
-static int32_t remaining;
-static int8_t therm;
+// static uint32_t capacity;
+// static int32_t remaining;
 static uint8_t batt_cells; // number of cells in system
 static uint16_t cell_capacity; // mAh capacity of each cell
 static uint32_t total_nameplate_capacity;
@@ -57,6 +62,9 @@ static uint16_t boost_voltage;
 static uint16_t vindpm;
 static uint16_t solar_vindpm = 5800;
 static uint16_t iindpm;
+
+static uint16_t charge_cycle_start_volts;
+static uint32_t total_charge_cycles_percent; // in 0.01% SoC increments
 
 // true if MCU system power is sourced from the boost converter
 static bool mcu_source_pmid;
@@ -67,85 +75,128 @@ static uint16_t adc_time_max;
 static uint32_t adc_good;
 static uint32_t adc_fail;
 
+static int8_t batt_temp = -127;
+static int16_t batt_temp_state;
+
 #ifdef ESP32
-static int8_t case_temp;
-static int8_t ambient_temp;
+static int8_t case_temp = -127;
+static int8_t ambient_temp = -127;
+static int16_t case_temp_state;
+static int16_t ambient_temp_state;
 #endif
 
+static int8_t batt_temp_raw;
+
 KV_SECTION_META kv_meta_t bat_info_kv[] = {
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                 0,  "batt_soc" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &therm,                    0,  "batt_temp" },
-    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,            0,  "batt_charging" },
-    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,           0,  "batt_external_power" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,               0,  "batt_volts" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,               0,  "batt_vbus_volts" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                0,  "batt_sys_volts" },
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,            0,  "batt_charge_status" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,      0,  "batt_charge_current" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_power,        0,  "batt_charge_power" },
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,               0,  "batt_fault" },
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,              0,  "batt_vbus_status" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                 0,  "batt_capacity" },
-    { CATBUS_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                0,  "batt_remaining" },
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,               0,  "batt_cells" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &cell_capacity,            0,  "batt_cell_capacity" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity, 0,  "batt_nameplate_capacity" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,  0,  "batt_max_charge_current" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,            0,  "batt_boost_voltage" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                   0,  "batt_vindpm" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,             0,  "batt_solar_vindpm" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                   0,  "batt_iindpm" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_soc,                   0,  "batt_soc" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp,                  0,  "batt_temp" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp_raw,              0,  "batt_temp_raw" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,              0,  "batt_charging" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,             0,  "batt_external_power" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,                 0,  "batt_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,                 0,  "batt_vbus_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                  0,  "batt_sys_volts" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,              0,  "batt_charge_status" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,        0,  "batt_charge_current" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_power,          0,  "batt_charge_power" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,                 0,  "batt_fault" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,                0,  "batt_vbus_status" },
+    // { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                   0,  "batt_capacity" },
+    // { CATBUS_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                  0,  "batt_remaining" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,                 0,  "batt_cells" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &cell_capacity,              0,  "batt_cell_capacity" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity,   0,  "batt_nameplate_capacity" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,    0,  "batt_max_charge_current" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,    0,  "batt_max_charge_voltage" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_min_discharge_voltage, 0,  "batt_min_discharge_voltage" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,              0,  "batt_boost_voltage" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,               0,  "batt_solar_vindpm" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                     0,  "batt_iindpm" },
 
-    { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                0,  "batt_dump_regs" },
+    { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                  0,  "batt_dump_regs" },
 
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_min,             0,  "batt_adc_time_min" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_max,             0,  "batt_adc_time_max" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_min,               0,  "batt_adc_time_min" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &adc_time_max,               0,  "batt_adc_time_max" },
 
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_good,                 0,  "batt_adc_reads" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_fail,                 0,  "batt_adc_fails" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_good,                   0,  "batt_adc_reads" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_fail,                   0,  "batt_adc_fails" },
 
     #ifdef ESP32
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                0,  "batt_case_temp" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,             0,  "batt_ambient_temp" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                  0,  "batt_case_temp" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,               0,  "batt_ambient_temp" },
     #endif
+
+
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST | KV_FLAGS_READ_ONLY,    &total_charge_cycles_percent, 0,  "batt_charge_cycles_percent" },
 };
 
 static uint16_t soc_state;
 
-#define SOC_MAX_VOLTS   ( BQ25895_FLOAT_VOLTAGE - 200 )
-#define SOC_MIN_VOLTS   BQ25895_CUTOFF_VOLTAGE
-#define SOC_FILTER      16
+#define SOC_MAX_VOLTS   ( batt_max_charge_voltage - 100 )
+#define SOC_MIN_VOLTS   ( batt_min_discharge_voltage )
+#define SOC_FILTER      64
+
+#define VOLTS_FILTER    32
 
 #define VINDPM_WALL     0
 #define VINDPM_SOLAR    solar_vindpm
 
 
+#define BQ25895_THERM_FILTER 32
+
 
 PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
+// PT_THREAD( bat_runtime_tracker_thread( pt_t *pt, void *state ) );
 
 
-static uint16_t _calc_batt_soc( uint16_t volts ){
+static uint16_t calc_raw_soc( uint16_t volts ){
 
-    if( volts < SOC_MIN_VOLTS ){
+    uint16_t temp_soc = 0;
 
-        return 0;
+    if( volts < BQ25895_LION_MIN_VOLTAGE ){
+
+        temp_soc = 0;
+    }
+    else if( volts > BQ25895_LION_MAX_VOLTAGE ){
+
+        temp_soc = 10000;
+    }
+    else{
+
+        temp_soc = util_u16_linear_interp( volts, BQ25895_LION_MIN_VOLTAGE, 0, BQ25895_LION_MAX_VOLTAGE, 10000 );
     }
 
-    if( volts > SOC_MAX_VOLTS ){
-
-        return 10000;
-    }
-
-    return util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
+    return temp_soc;    
 }
 
 static uint8_t calc_batt_soc( uint16_t volts ){
 
-    uint16_t temp_soc = _calc_batt_soc( volts );
+    uint16_t temp_soc = 0;
 
-    soc_state = util_u16_ewma( temp_soc, soc_state, SOC_FILTER );
+    if( volts < SOC_MIN_VOLTS ){
+
+        temp_soc = 0;
+    }
+    else if( volts > SOC_MAX_VOLTS ){
+
+        temp_soc = 10000;
+    }
+    else{
+
+        temp_soc = util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
+    }
+
+    if( soc_state == 0 ){
+
+        soc_state = temp_soc;
+    }
+    else{
+
+        soc_state = util_u16_ewma( temp_soc, soc_state, SOC_FILTER );
+    }
 
     return soc_state / 100;
 }
@@ -162,6 +213,8 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
+    bq25895_v_read_all();
+
     thread_t_create( bat_mon_thread,
                      PSTR("bat_mon"),
                      0,
@@ -170,13 +223,24 @@ int8_t bq25895_i8_init( void ){
     return 0;
 }
 
-uint8_t bq25895_u8_read_reg( uint8_t addr ){
+void bq25895_v_read_all( void ){
 
-    i2c_v_write( BQ25895_I2C_ADDR, &addr, sizeof(addr) );
+    i2c_v_mem_read( BQ25895_I2C_ADDR, 0, 1, regs, sizeof(regs), 0 );
+}
+
+static uint8_t read_cached_reg( uint8_t addr ){
+
+    return regs[addr];
+}
+
+uint8_t bq25895_u8_read_reg( uint8_t addr ){
 
     uint8_t data = 0;
     
-    i2c_v_read( BQ25895_I2C_ADDR, &data, sizeof(data) );
+    i2c_v_mem_read( BQ25895_I2C_ADDR, addr, 1, &data, sizeof(data), 0 );
+
+    // update cache
+    regs[addr] = data;
 
     return data;
 }
@@ -188,6 +252,9 @@ void bq25895_v_write_reg( uint8_t addr, uint8_t data ){
     cmd[1] = data;
 
     i2c_v_write( BQ25895_I2C_ADDR, cmd, sizeof(cmd) );
+
+    // update cache
+    regs[addr] = data;
 }
 
 void bq25895_v_set_reg_bits( uint8_t addr, uint8_t mask ){
@@ -258,7 +325,7 @@ void bq25895_v_set_inlim( uint16_t current ){
 
 uint16_t bq25895_u16_get_inlim( void ){
 
-    uint32_t data = bq25895_u8_read_reg( BQ25895_REG_INPUT_CURRENT ) & BQ25895_MASK_INPUT_CURRENT_LIM;
+    uint32_t data = read_cached_reg( BQ25895_REG_INPUT_CURRENT ) & BQ25895_MASK_INPUT_CURRENT_LIM;
 
     return ( ( data * 3150 ) / 63 ) + 100;
 }
@@ -287,6 +354,11 @@ void bq25895_v_start_adc_oneshot( void ){
 bool bq25895_b_adc_ready( void ){
 
     return ( bq25895_u8_read_reg( BQ25895_REG_ADC ) & BQ25895_BIT_ADC_CONV_START ) == 0;
+}
+
+static bool bq25895_b_adc_ready_cached( void ){
+
+    return ( read_cached_reg( BQ25895_REG_ADC ) & BQ25895_BIT_ADC_CONV_START ) == 0;
 }
 
 void bq25895_v_set_boost_1500khz( void ){
@@ -468,7 +540,7 @@ void bq25895_v_set_boost_voltage( uint16_t volts ){
 
 uint8_t bq25895_u8_get_vbus_status( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_VBUS_STATUS ) & BQ25895_MASK_VBUS_STATUS;
+    uint8_t data = read_cached_reg( BQ25895_REG_VBUS_STATUS ) & BQ25895_MASK_VBUS_STATUS;
     data >>= BQ25895_SHIFT_VBUS_STATUS;
 
     return data;
@@ -483,10 +555,31 @@ bool bq25895_b_get_vbus_good( void ){
 
 uint8_t bq25895_u8_get_charge_status( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_CHARGE_STATUS ) & BQ25895_MASK_CHARGE_STATUS;
+    uint8_t data = read_cached_reg( BQ25895_REG_CHARGE_STATUS ) & BQ25895_MASK_CHARGE_STATUS;
     data >>= BQ25895_SHIFT_CHARGE_STATUS;
 
     return data;
+}
+
+bool bq25895_b_is_charging( void ){
+
+    uint8_t status = bq25895_u8_get_charge_status();
+
+    if( ( status == BQ25895_CHARGE_STATUS_NOT_CHARGING ) ||
+        ( status == BQ25895_CHARGE_STATUS_CHARGE_DONE ) ){
+
+        return FALSE;
+    }
+
+    // if the batt controller still thinks it is charging, but it is down to 0 current,
+    // we can just call it done.  sometimes it never quite gets to full.
+    if( ( batt_volts > ( batt_max_charge_voltage - 100 ) ) &&
+        ( batt_charge_current == 0 ) ){
+
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 bool bq25895_b_power_good( void ){
@@ -498,7 +591,7 @@ bool bq25895_b_power_good( void ){
 
 uint8_t bq25895_u8_get_faults( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_FAULT );
+    uint8_t data = read_cached_reg( BQ25895_REG_FAULT );
 
     return data;
 }
@@ -510,7 +603,7 @@ uint16_t bq25895_u16_get_batt_voltage( void ){
 
 static uint16_t _bq25895_u16_get_batt_voltage( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_BATT_VOLTAGE ) & BQ25895_MASK_BATT_VOLTAGE;
+    uint8_t data = read_cached_reg( BQ25895_REG_BATT_VOLTAGE ) & BQ25895_MASK_BATT_VOLTAGE;
 
     // check if battery is not connected (the min voltage is way below min. safe on a Li-ion,
     // so we assume there is no battery in this case).
@@ -527,7 +620,7 @@ static uint16_t _bq25895_u16_get_batt_voltage( void ){
 
 uint16_t bq25895_u16_get_vbus_voltage( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_VBUS_VOLTAGE ) & BQ25895_MASK_VBUS_VOLTAGE;
+    uint8_t data = read_cached_reg( BQ25895_REG_VBUS_VOLTAGE ) & BQ25895_MASK_VBUS_VOLTAGE;
 
     // check if 0, if so, VBUS is most likely not connected, so we'll return a 0
     if( data == 0 ){
@@ -542,7 +635,7 @@ uint16_t bq25895_u16_get_vbus_voltage( void ){
 
 uint16_t bq25895_u16_get_sys_voltage( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_SYS_VOLTAGE ) & BQ25895_MASK_SYS_VOLTAGE;
+    uint8_t data = read_cached_reg( BQ25895_REG_SYS_VOLTAGE ) & BQ25895_MASK_SYS_VOLTAGE;
 
     uint16_t mv = ( ( (uint32_t)data * ( 4848 - 2304 ) ) / 127 ) + 2304;
 
@@ -551,7 +644,7 @@ uint16_t bq25895_u16_get_sys_voltage( void ){
 
 uint16_t bq25895_u16_get_charge_current( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_CHARGE_CURRENT ) & BQ25895_MASK_CHARGE_CURRENT;
+    uint8_t data = read_cached_reg( BQ25895_REG_CHARGE_CURRENT ) & BQ25895_MASK_CHARGE_CURRENT;
 
     uint16_t mv = ( ( (uint32_t)data * 6350 ) / 127 );
 
@@ -832,14 +925,14 @@ int8_t bq25895_i8_calc_temp2( uint16_t percent ){
 
 int8_t bq25895_i8_get_therm( void ){
 
-    uint8_t data = bq25895_u8_read_reg( BQ25895_REG_THERM );
+    uint8_t data = read_cached_reg( BQ25895_REG_THERM );
 
     return bq25895_i8_calc_temp( data );
 }
 
 int8_t bq25895_i8_get_temp( void ){
 
-    return therm;
+    return batt_temp;
 }
 
 int8_t bq25895_i8_get_case_temp( void ){
@@ -1088,21 +1181,21 @@ void bq25895_v_set_vindpm( int16_t mv ){
 
 uint16_t bq25895_u16_get_iindpm( void ){
 
-    uint16_t data = bq25895_u8_read_reg( BQ25895_REG_IINDPM ) & BQ25895_MASK_IINDPM;
+    uint16_t data = read_cached_reg( BQ25895_REG_IINDPM ) & BQ25895_MASK_IINDPM;
 
     return 50 * data + 100;
 }
 
 bool bq25895_b_get_vindpm( void ){
     
-    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+    uint8_t reg = read_cached_reg( BQ25895_REG_IINDPM );
 
     return ( reg & BQ25895_BIT_VINDPM ) != 0;
 }
 
 bool bq25895_b_get_iindpm( void ){
     
-    uint8_t reg = bq25895_u8_read_reg( BQ25895_REG_IINDPM );
+    uint8_t reg = read_cached_reg( BQ25895_REG_IINDPM );
 
     return ( reg & BQ25895_BIT_IINDPM ) != 0;
 }
@@ -1135,8 +1228,8 @@ static void init_boost_converter( void ){
 
 static void init_charger( void ){
 
-    // enable charger and set HIZ
-    bq25895_v_set_hiz( TRUE );
+    // enable charger and make sure HIZ is disabled
+    bq25895_v_set_hiz( FALSE );
     bq25895_v_set_charger( TRUE );
 
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
@@ -1187,7 +1280,14 @@ static void init_charger( void ){
     bq25895_v_set_fast_charge_current( fast_charge_current );
 
     bq25895_v_set_termination_current( 65 );
-    bq25895_v_set_charge_voltage( BQ25895_FLOAT_VOLTAGE );
+
+    // clamp charge voltage
+    if( batt_max_charge_voltage > BQ25895_MAX_FLOAT_VOLTAGE ){
+
+        batt_max_charge_voltage = BQ25895_MAX_FLOAT_VOLTAGE;
+    }
+
+    bq25895_v_set_charge_voltage( batt_max_charge_voltage );
 
     // disable ILIM pin
     bq25895_v_set_inlim_pin( FALSE );
@@ -1216,7 +1316,6 @@ static bool read_adc( void ){
 
     batt_fault = bq25895_u8_get_faults();
     vbus_status = bq25895_u8_get_vbus_status();
-    charge_status = bq25895_u8_get_charge_status();
     vbus_volts = bq25895_u16_get_vbus_voltage();
 
     uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
@@ -1226,12 +1325,85 @@ static bool read_adc( void ){
         return FALSE;
     }
 
-    batt_volts = temp_batt_volts;
+    if( batt_volts == 0 ){
+
+        batt_volts = temp_batt_volts;
+    }
+
+    batt_charge_current = bq25895_u16_get_charge_current();
+    uint8_t temp_charge_status = bq25895_u8_get_charge_status();
+
+    // check if switching into a charge cycle:
+    if( bq25895_b_is_charging() && ( charge_cycle_start_volts == 0 ) ){
+
+        // record previous voltage, which will not be affected
+        // by charge current
+        charge_cycle_start_volts = batt_volts;
+
+        // !!! charge cycle stuff still needs some work.
+
+        // log_v_debug_P( PSTR("Charge cycle start: %u mV %u mA"), charge_cycle_start_volts, batt_charge_current );
+    }
+
+    if( batt_volts != 0 ){
+
+        batt_volts = util_u16_ewma( temp_batt_volts, batt_volts, VOLTS_FILTER );
+    }
+    
+    // check if switching into a discharge cycle:
+    if( !bq25895_b_is_charging() && ( charge_cycle_start_volts != 0 ) ){
+
+        // cycle end voltage is current batt_volts
+
+        // verify that a start voltage was recorded.
+        // also sanity check that the end voltage is higher than the start:
+        if( charge_cycle_start_volts < batt_volts ){
+
+            // calculate start and end SoC
+            // these values are in 0.01% increments (0 to 10000)
+            uint16_t start_soc = calc_raw_soc( charge_cycle_start_volts );
+            uint16_t end_soc = calc_raw_soc( temp_batt_volts );
+
+            uint16_t recovered_soc = end_soc - start_soc;
+
+            // if we have recovered at least 2% SoC, we can record the cycle:
+            if( recovered_soc >= 200 ){
+
+                log_v_debug_P( PSTR("Charge cycle complete: %u mv %u%% recovered"), temp_batt_volts, recovered_soc / 100 );
+
+                // update cycle totalizer
+                total_charge_cycles_percent += recovered_soc;
+
+                // kv_i8_persist( __KV__batt_charge_cycles_percent );
+            }
+        }
+
+        // reset cycle
+        charge_cycle_start_volts = 0;
+    }   
+
+    // apply updated charge status AFTER the check for a switch into dischage
+    charge_status = temp_charge_status;
+    
 
     sys_volts = bq25895_u16_get_sys_voltage();
-    batt_charge_current = bq25895_u16_get_charge_current();
-    therm = bq25895_i8_get_therm();
     iindpm = bq25895_u16_get_iindpm();
+
+    int8_t temp = bq25895_i8_get_therm();
+
+    batt_temp_raw = temp;
+
+    if( batt_temp != -127 ){
+
+        batt_temp_state = util_i16_ewma( temp * 256, batt_temp_state, BQ25895_THERM_FILTER );
+        batt_temp = batt_temp_state / 256;
+    }
+    else{
+
+        batt_temp_state = temp * 256;
+        batt_temp = temp;
+    }
+    
 
     batt_charge_power = ( (uint32_t)batt_charge_current * (uint32_t)batt_volts ) / 1000;
 
@@ -1241,12 +1413,12 @@ static bool read_adc( void ){
 
 static bool is_recharge_threshold( void ){
 
-    return batt_volts <= ( BQ25895_FLOAT_VOLTAGE - 25 );
+    return batt_volts <= ( batt_max_charge_voltage - 50 );
 }
 
 static bool is_vbus_volts_ok( void ){
 
-    if( vbus_volts < 4800 ){
+    if( vbus_volts < 4200 ){
 
         return FALSE;
     }
@@ -1346,8 +1518,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        // disable HIZ and check VBUS good
-        bq25895_v_set_hiz( FALSE );
+        // check VBUS good
 
         TMR_WAIT( pt, 100 );
 
@@ -1439,9 +1610,6 @@ PT_BEGIN( pt );
 
         // charger isn't working?
 
-        // disconnect vbus
-        bq25895_v_set_hiz( TRUE );
-
         log_v_debug_P( PSTR("Not charging - reset control loop") );
 
         TMR_WAIT( pt, 10000 );
@@ -1473,8 +1641,31 @@ PT_BEGIN( pt );
         uint32_t case_adc = adc_u16_read_mv( ELITE_CASE_ADC_IO );
         uint32_t ambient_adc = adc_u16_read_mv( ELITE_AMBIENT_ADC_IO );
 
-        case_temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
-        ambient_temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
+        int8_t temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
+
+        if( case_temp != -127 ){
+
+            case_temp_state = util_i16_ewma( temp * 256, case_temp_state, BQ25895_THERM_FILTER );    
+            case_temp = case_temp_state / 256;
+        }
+        else{
+
+            case_temp_state = temp * 256;
+            case_temp = temp;
+        }
+        
+        temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
+
+        if( ambient_temp != -127 ){
+
+            ambient_temp_state = util_i16_ewma( temp * 256, ambient_temp_state, BQ25895_THERM_FILTER );    
+            ambient_temp = ambient_temp_state / 256;
+        }
+        else{
+
+            ambient_temp_state = temp * 256;
+            ambient_temp = temp;
+        }
 
         TMR_WAIT( pt, 1000 );
     }
@@ -1488,9 +1679,6 @@ PT_END( pt );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    static bool adc_fault;
-    adc_fault = FALSE;
 
     if( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ){
 
@@ -1506,17 +1694,22 @@ PT_BEGIN( pt );
         init_boost_converter();
     }
 
-    if( capacity != 0 ){
+    // if( capacity != 0 ){
 
-        // set baseline energy remaining based on SOC
-        remaining = ( capacity * batt_soc ) / 100;
-    }
+    //     // set baseline energy remaining based on SOC
+    //     remaining = ( capacity * batt_soc ) / 100;
+    // }
         
 
     thread_t_create( bat_control_thread,
                      PSTR("bat_control"),
                      0,
                      0 );
+
+    // thread_t_create( bat_runtime_tracker_thread,
+    //                  PSTR("bat_runtime"),
+    //                  0,
+    //                  0 );
 
     #if defined(ESP32)
 
@@ -1538,7 +1731,11 @@ PT_BEGIN( pt );
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
 
-        if( bq25895_b_adc_ready() && read_adc() ){
+        // read all registers
+        bq25895_v_read_all();
+
+
+        if( bq25895_b_adc_ready_cached() && read_adc() ){
 
             // ADC success
 
@@ -1554,71 +1751,72 @@ PT_BEGIN( pt );
                 adc_time_max = elapsed;
             }
 
-            soc_state = _calc_batt_soc( batt_volts );
-            batt_soc = calc_batt_soc( batt_volts );
-            batt_soc_startup = batt_soc;
-
             adc_good++;   
         }
         else{
 
             adc_fail++;
 
-            log_v_warn_P( PSTR("ADC fail. VBUS: %d"), vbus_volts );
+            TMR_WAIT( pt, 200 );
 
-            // try hiz mode
-            bq25895_v_set_hiz( TRUE );
             continue;
         }
 
-
         // update state of charge
-        // this is a simple linear fit
-        uint8_t new_batt_soc = calc_batt_soc( batt_volts );
+        // uint8_t new_batt_soc = calc_batt_soc( batt_volts );
+
+        batt_soc = calc_batt_soc( batt_volts );
+
+        // if( batt_soc_startup == 0 ){
+
+        //     batt_soc_startup = batt_soc;    
+        // }
+
 
         // check if battery just ran down to 0,
         // AND we've started from a full charge
         // this will auto-calibrate the battery capacity.
-        if( ( batt_soc > 0 ) && 
-            ( new_batt_soc == 0 ) &&
-            ( batt_soc_startup >= 95 ) ){ // above 95% is close enough to full charge
+        // if( ( batt_soc > 0 ) && 
+        //     ( new_batt_soc == 0 ) &&
+        //     ( batt_soc_startup >= 95 ) ){ // above 95% is close enough to full charge
 
-            // save energy usage as capacity
-            capacity = energy_u32_get_total();
+        //     // save energy usage as capacity
+        //     capacity = energy_u32_get_total();
 
-            kv_i8_persist( __KV__batt_capacity );
+        //     kv_i8_persist( __KV__batt_capacity );
 
-            log_v_info_P( PSTR("Battery capacity calibrated to %u"), capacity );
+        //     log_v_info_P( PSTR("Battery capacity calibrated to %u"), capacity );
 
-            batt_soc_startup = 0; // this prevents this from running again until the device has been restarted with a full charge
-        }
+        //     batt_soc_startup = 0; // this prevents this from running again until the device has been restarted with a full charge
+        // }
 
-        batt_soc = new_batt_soc;
+        // batt_soc = new_batt_soc;
 
-        if( capacity != 0 ){
+        // if( capacity != 0 ){
 
-            remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
-        }
+        //     remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
+        // }
 
+        batt_charging =  bq25895_b_is_charging();
 
-        if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-            ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
+        // if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
+        //     ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
 
-            batt_charging = TRUE;
-        }
-        else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
+        //     batt_charging = TRUE;
+        // }
+        // else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
 
-            if( batt_charging ){
+        //     if( batt_charging ){
 
-                log_v_info_P( PSTR("Charging done") );
-            }
+        //         log_v_info_P( PSTR("Charging done") );
+        //     }
 
-            batt_charging = FALSE;
-        }
-        else{ // DISCHARGE
+        //     batt_charging = FALSE;
+        // }
+        // else{ // DISCHARGE
 
-            batt_charging = FALSE;
-        }
+        //     batt_charging = FALSE;
+        // }
 
         if( dump_regs ){
 
@@ -1632,3 +1830,31 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+
+
+// PT_THREAD( bat_runtime_tracker_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
+    
+//     THREAD_WAIT_WHILE( pt, batt_volts == 0 );
+
+//     while( 1 ){
+
+//         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 60000 );
+//         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
+
+//         // if shutting down, flush and terminate thread
+//         if( sys_b_is_shutting_down() ){
+
+//             THREAD_EXIT( pt );
+//         }   
+
+
+
+//     }    
+
+// PT_END( pt );
+// }
+
+#endif

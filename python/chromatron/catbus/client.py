@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2021  Jeremy Billheimer
+#     Copyright (C) 2013-2022  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -664,7 +664,7 @@ class Client(BaseClient):
         msg = FileCheckMsg(
                 filename=filename)
 
-        response, host = self._exchange(msg, timeout=4.0)
+        response, host = self._exchange(msg, timeout=8.0)
 
         if not isinstance(response, FileCheckResponseMsg):
             raise ProtocolErrorException

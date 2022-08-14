@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include "hsv_to_rgb.h"
 #include "keyvalue.h"
+
+#ifdef ENABLE_GFX
 
 // #define HSV_DEBUG
 
@@ -276,6 +278,7 @@ void gfx_v_hsv_to_rgbw(
 //     *w = ( (uint32_t)temp_s * v ) / 65536;
 // }
 
+#endif
 
 #ifdef GEN_HUE_CURVE
 

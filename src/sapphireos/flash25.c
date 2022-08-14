@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -58,6 +58,8 @@ uint32_t flash25_u32_read_capacity_from_info( void ){
 	flash25_device_info_t info;
 
 	flash25_v_read_device_info( &info );
+
+    trace_printf("Flash ID: Mfg: 0x%02x ID1: 0x%02x ID2: 0x%02x\r\n", info.mfg_id, info.dev_id_1, info.dev_id_2);
 
 	uint32_t capacity = 0;
 
