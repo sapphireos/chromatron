@@ -213,6 +213,9 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
+
+    log_v_info_P( PSTR("BQ25895 detected") );
+
     bq25895_v_read_all();
 
     thread_t_create( bat_mon_thread,

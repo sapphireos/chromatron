@@ -25,8 +25,21 @@
 #ifndef _MCP73831_H_
 #define _MCP73831_H_
 
+#include "target.h"
+#include "hal_io.h"
+
+#ifdef ESP32
+    #define MCP73831_IO_PIXEL   IO_PIN_16_RX
+#else
+
+#endif
+
 
 void mcp73831_v_init( void );
+
+void mcp73831_v_enable_pixels( void );
+void mcp73831_v_disable_pixels( void );
+
 
 #endif
 
