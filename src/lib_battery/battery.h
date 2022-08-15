@@ -27,6 +27,10 @@
 
 #include "sapphire.h"
 
+#define BATT_MAX_FLOAT_VOLTAGE		4100
+#define BATT_CUTOFF_VOLTAGE			3100
+
+
 #define BATT_PIX_COUNT_LOW_POWER_THRESHOLD		100
 
 // PCA9536 connections on Charger2
@@ -37,6 +41,10 @@
 
 
 void batt_v_init( void );
+
+
+uint16_t batt_u16_get_charge_voltage( void );
+uint16_t batt_u16_get_discharge_voltage( void );
 
 // APIs to control pixel strip power switch
 void batt_v_enable_pixels( void );

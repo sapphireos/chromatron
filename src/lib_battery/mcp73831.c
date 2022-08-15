@@ -25,6 +25,8 @@
 
 #include "sapphire.h"
 
+#ifndef ESP8266
+
 #include "mcp73831.h"
 
 
@@ -41,11 +43,9 @@ batt volts -> supply vmon
 pixel enable -> IO16
 
 optional:
-thermistor -> IO17 (solder bridge closed on IO34!)
-We shouldn't really need the thermistor.
-
 No current control or charger enable control.
 
+No thermistor.
 No photocell.
 
 No input voltage monitoring...
@@ -55,8 +55,6 @@ Since IO17 isn't actually an ADC input, connect VBUSMON directly to
 IO_PIN_34_A2 instead.
 
 Button?  Default is IO 17.
-
-
 
 
 Sapphire:
@@ -79,11 +77,14 @@ button ->
 
 */
 
+static uint16_t batt_volts;
+static uint16_t batt_vbus_volts;
 
 
 KV_SECTION_META kv_meta_t mcp73831_info_kv[] = {
     // { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_mcp73831_enable_solar,           0,   "batt_enable_solar" },
-    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,                 0,  "batt_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,                 0,  "batt2_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_vbus_volts,            0,  "batt2_vbus_volts" },
 };
 
 
@@ -92,18 +93,18 @@ PT_THREAD( mcp73831_thread( pt_t *pt, void *state ) );
 
 uint16_t read_temp( void ){
 
-
     return 0;
 }
 
 uint16_t read_photo( void ){
-
 
     return 0;
 }
 
 
 void mcp73831_v_init( void ){
+
+    io_v_set_mode( MCP73831_IO_VBUS_MON, IO_MODE_INPUT );      
 
     thread_t_create( mcp73831_thread,
                      PSTR("mcp73831_controller"),
@@ -124,6 +125,31 @@ void mcp73831_v_disable_pixels( void ){
     io_v_digital_write( MCP73831_IO_PIXEL, 0 );
 }
 
+uint16_t mcp73831_u16_get_batt_volts( void ){
+
+    return batt_volts;
+}
+
+uint16_t mcp73831_u16_get_vbus_volts( void ){
+
+    return batt_vbus_volts;
+}
+
+bool mcp73831_b_is_charging( void ){
+
+    if( batt_volts >= 4150 ){
+
+        return FALSE;
+    }
+
+    if( batt_vbus_volts > 4000 ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 
 PT_THREAD( mcp73831_thread( pt_t *pt, void *state ) )
 {
@@ -133,11 +159,13 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
-        // adc_u16_read_supply_voltage();
-
+        batt_volts = adc_u16_read_supply_voltage() * 2;
+        batt_vbus_volts = adc_u16_read_mv( MCP73831_IO_VBUS_MON ) * 2;
 
         
     }
 
 PT_END( pt );
 }
+
+#endif

@@ -29,7 +29,8 @@
 #include "hal_io.h"
 
 #ifdef ESP32
-    #define MCP73831_IO_PIXEL   IO_PIN_16_RX
+    #define MCP73831_IO_PIXEL       IO_PIN_16_RX
+    #define MCP73831_IO_VBUS_MON    IO_PIN_34_A2
 #else
 
 #endif
@@ -39,6 +40,10 @@ void mcp73831_v_init( void );
 
 void mcp73831_v_enable_pixels( void );
 void mcp73831_v_disable_pixels( void );
+
+uint16_t mcp73831_u16_get_batt_volts( void );
+uint16_t mcp73831_u16_get_vbus_volts( void );;
+bool mcp73831_b_is_charging( void );
 
 
 #endif
