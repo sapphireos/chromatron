@@ -57,5 +57,6 @@ uint16_t batt_u16_get_vbus_volts( void );
 uint16_t batt_u16_get_batt_volts( void );
 bool batt_b_is_charging( void );
 bool batt_b_is_batt_fault( void );
+uint16_t batt_u16_get_nameplate_capacity( void );
 
 #endif

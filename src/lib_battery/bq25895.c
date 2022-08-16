@@ -39,7 +39,6 @@
 
 static uint8_t regs[BQ25895_N_REGS];
 
-// static uint8_t batt_soc_startup; // state of charge at power on
 static uint16_t batt_volts;
 static uint16_t vbus_volts;
 static uint16_t sys_volts;
@@ -52,11 +51,7 @@ static uint8_t batt_fault;
 static uint8_t vbus_status;
 static uint8_t charge_status;
 static bool dump_regs;
-// static uint32_t capacity;
-// static int32_t remaining;
-static uint8_t batt_cells; // number of cells in system
-static uint16_t cell_capacity; // mAh capacity of each cell
-static uint32_t total_nameplate_capacity;
+
 static uint16_t boost_voltage;
 static uint16_t vindpm;
 static uint16_t solar_vindpm = 5800;
@@ -83,7 +78,7 @@ static int16_t ambient_temp_state;
 
 static int8_t batt_temp_raw;
 
-KV_SECTION_META kv_meta_t bat_info_kv[] = {
+KV_SECTION_META kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp,                  0,  "batt_temp" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp_raw,              0,  "batt_temp_raw" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,              0,  "batt_charging" },
@@ -96,11 +91,7 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_power,          0,  "batt_charge_power" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,                 0,  "batt_fault" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,                0,  "batt_vbus_status" },
-    // { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST,    &capacity,                   0,  "batt_capacity" },
-    // { CATBUS_TYPE_INT32,   0, KV_FLAGS_READ_ONLY,  &remaining,                  0,  "batt_remaining" },
-    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &batt_cells,                 0,  "batt_cells" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &cell_capacity,              0,  "batt_cell_capacity" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity,   0,  "batt_nameplate_capacity" },
+    
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,    0,  "batt_max_charge_current" },
     
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,              0,  "batt_boost_voltage" },
@@ -134,7 +125,6 @@ KV_SECTION_META kv_meta_t bat_info_kv[] = {
 PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
-// PT_THREAD( bat_runtime_tracker_thread( pt_t *pt, void *state ) );
 
 int8_t bq25895_i8_init( void ){
 
@@ -1178,21 +1168,8 @@ static void init_charger( void ){
     bq25895_v_set_inlim( 3250 );
     bq25895_v_set_pre_charge_current( 160 );
     
-    uint8_t n_cells = batt_cells;
-
-    if( n_cells < 1 ){
-
-        n_cells = 1;
-    }
-
-    if( cell_capacity == 0 ){
-
-        cell_capacity = 3400; // default to NCR18650B
-    }
-
-    total_nameplate_capacity = n_cells * cell_capacity;
-
-    uint32_t fast_charge_current = 1625 * n_cells;
+    // default to 0.5C rate:
+    uint32_t fast_charge_current = batt_u16_get_nameplate_capacity() / 2;
 
     if( fast_charge_current > 5000 ){
 
@@ -1573,22 +1550,10 @@ PT_BEGIN( pt );
         init_boost_converter();
     }
 
-    // if( capacity != 0 ){
-
-    //     // set baseline energy remaining based on SOC
-    //     remaining = ( capacity * batt_soc ) / 100;
-    // }
-        
-
     thread_t_create( bat_control_thread,
                      PSTR("bat_control"),
                      0,
                      0 );
-
-    // thread_t_create( bat_runtime_tracker_thread,
-    //                  PSTR("bat_runtime"),
-    //                  0,
-    //                  0 );
 
     #if defined(ESP32)
 
@@ -1641,59 +1606,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        // update state of charge
-        // uint8_t new_batt_soc = calc_batt_soc( batt_volts );
-
-        // if( batt_soc_startup == 0 ){
-
-        //     batt_soc_startup = batt_soc;    
-        // }
-
-
-        // check if battery just ran down to 0,
-        // AND we've started from a full charge
-        // this will auto-calibrate the battery capacity.
-        // if( ( batt_soc > 0 ) && 
-        //     ( new_batt_soc == 0 ) &&
-        //     ( batt_soc_startup >= 95 ) ){ // above 95% is close enough to full charge
-
-        //     // save energy usage as capacity
-        //     capacity = energy_u32_get_total();
-
-        //     kv_i8_persist( __KV__batt_capacity );
-
-        //     log_v_info_P( PSTR("Battery capacity calibrated to %u"), capacity );
-
-        //     batt_soc_startup = 0; // this prevents this from running again until the device has been restarted with a full charge
-        // }
-
-        // batt_soc = new_batt_soc;
-
-        // if( capacity != 0 ){
-
-        //     remaining = (int32_t)capacity - (int32_t)energy_u32_get_total();    
-        // }
-
         batt_charging =  bq25895_b_is_charging();
-
-        // if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-        //     ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ){
-
-        //     batt_charging = TRUE;
-        // }
-        // else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
-
-        //     if( batt_charging ){
-
-        //         log_v_info_P( PSTR("Charging done") );
-        //     }
-
-        //     batt_charging = FALSE;
-        // }
-        // else{ // DISCHARGE
-
-        //     batt_charging = FALSE;
-        // }
 
         if( dump_regs ){
 
@@ -1707,31 +1620,5 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
-
-
-
-// PT_THREAD( bat_runtime_tracker_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-    
-//     THREAD_WAIT_WHILE( pt, batt_volts == 0 );
-
-//     while( 1 ){
-
-//         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 60000 );
-//         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
-
-//         // if shutting down, flush and terminate thread
-//         if( sys_b_is_shutting_down() ){
-
-//             THREAD_EXIT( pt );
-//         }   
-
-
-
-//     }    
-
-// PT_END( pt );
-// }
 
 #endif

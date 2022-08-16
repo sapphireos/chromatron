@@ -58,6 +58,30 @@ static bool fan_on;
 static uint16_t batt_max_charge_voltage = BATT_MAX_FLOAT_VOLTAGE;
 static uint16_t batt_min_discharge_voltage = BATT_CUTOFF_VOLTAGE;
 
+static uint8_t batt_cells; // number of cells in system
+static uint16_t cell_capacity; // mAh capacity of each cell
+static uint32_t total_nameplate_capacity;
+
+
+
+static void set_batt_capacity( void ){
+
+    uint8_t n_cells = batt_cells;
+
+    if( n_cells < 1 ){
+
+        n_cells = 1;
+    }
+
+    if( cell_capacity == 0 ){
+
+        cell_capacity = 3400; // default to NCR18650B
+    }
+
+    total_nameplate_capacity = n_cells * cell_capacity;
+}
+
+
 int8_t batt_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -85,6 +109,12 @@ int8_t batt_kv_handler(
                 batt_min_discharge_voltage = BATT_CUTOFF_VOLTAGE;
             }
         }   
+        else if( ( hash == __KV__batt_cells ) ||
+                 ( hash == __KV__batt_cell_capacity ) ||
+                 ( hash == __KV__batt_nameplate_capacity ) ){
+
+            set_batt_capacity();
+        }
     }
     else{
 
@@ -106,7 +136,7 @@ static uint8_t batt_request_shutdown;
 #define EMERGENCY_CUTOFF_VOLTAGE ( BATT_CUTOFF_VOLTAGE - 100 ) // set 100 mv below the main cutoff, to give a little headroom
 
 
-KV_SECTION_META kv_meta_t ui_info_kv[] = {
+KV_SECTION_META kv_meta_t battery_info_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable,                 0,  "batt_enable" },
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable_mcp73831,        0,  "batt_enable_mcp73831" },
     { CATBUS_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,               0,  "batt_ui_state" },
@@ -116,8 +146,12 @@ KV_SECTION_META kv_meta_t ui_info_kv[] = {
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                      0,  "batt_fan_on" },
     
-    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,                         &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
-    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,                         &batt_min_discharge_voltage,  batt_kv_handler,  "batt_min_discharge_voltage" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_min_discharge_voltage,  batt_kv_handler,  "batt_min_discharge_voltage" },
+
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_PERSIST,    &batt_cells,                  batt_kv_handler,  "batt_cells" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &cell_capacity,               batt_kv_handler,  "batt_cell_capacity" },
+    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity,    batt_kv_handler,  "batt_nameplate_capacity" },
 };
 
 
@@ -219,7 +253,6 @@ static bool pca9536_enabled;
 
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
 
-
 void batt_v_init( void ){
 
     #if defined(ESP8266)
@@ -273,7 +306,7 @@ void batt_v_init( void ){
         io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
     }
 
-
+    set_batt_capacity();
     fuel_v_init();
 
     trace_printf("Battery controller enabled\n");
@@ -436,6 +469,10 @@ bool batt_b_is_batt_fault( void ){
     return bq25895_u8_get_faults() != 0;
 }
 
+uint16_t batt_u16_get_nameplate_capacity( void ){
+
+    return total_nameplate_capacity;
+}
 
 
 static int8_t get_case_temp( void ){
@@ -574,7 +611,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
 
-        // check if pixels should be enabled:
+        // check if pixels should be ENabled:
         if( request_pixels_enabled ){
 
             request_pixels_disabled = FALSE;
@@ -611,6 +648,7 @@ PT_BEGIN( pt );
             request_pixels_enabled = FALSE;   
         }
 
+        // check if pixels should be DISabled:
         if( request_pixels_disabled ){
 
             if( pca9536_enabled ){
@@ -637,19 +675,13 @@ PT_BEGIN( pt );
             request_pixels_disabled = FALSE;
         }
 
+
+
         // check charger status
-        // uint8_t charge_status = bq25895_u8_get_charge_status();
 
         if( batt_b_is_charging() ||
             ( batt_u16_get_vbus_volts() > 5500 ) ||
             ( batt_b_is_batt_fault() != 0 ) ){
-
-        // if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-        //     ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
-        //     ( bq25895_u16_read_vbus() > 5500 ) ||
-        //     ( bq25895_u8_get_faults() != 0 ) ){
-
-            
 
             // disable pixels if:
             // charging
@@ -660,19 +692,7 @@ PT_BEGIN( pt );
             batt_state = BATT_STATE_OK;
 
             gfx_v_set_system_enable( FALSE );
-            
-            // vm_v_resume( 0 );
-            // vm_v_stop( VM_LAST_VM );
         }
-        // else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
-
-        //     batt_state = BATT_STATE_OK;
-
-        //     gfx_v_set_system_enable( TRUE );
-
-        //     vm_v_resume( 0 );
-        //     vm_v_stop( VM_LAST_VM );
-        // }
         else{ // DISCHARGE
 
             gfx_v_set_system_enable( TRUE );
@@ -698,9 +718,6 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("Batt critical: %u"), batt_volts );
                     
                     batt_state = BATT_STATE_CRITICAL;
-
-                    // vm_v_pause( 0 );
-                    // vm_v_run_prog( "crit_batt.fxb", VM_LAST_VM );
                 }
             }
             else if( batt_u16_get_batt_volts() <= 10 ){
@@ -710,9 +727,6 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("Batt low: %u"), batt_volts );
 
                     batt_state = BATT_STATE_LOW;
-
-                    // vm_v_pause( 0 );
-                    // vm_v_run_prog( "low_batt.fxb", VM_LAST_VM );
                 }
             }
 
