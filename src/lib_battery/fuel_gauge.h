@@ -25,6 +25,11 @@
 #ifndef _FUEL_GAUGE_H
 #define _FUEL_GAUGE_H
 
+
+#define LION_MAX_VOLTAGE    4200
+#define LION_MIN_VOLTAGE    2900
+
+
 void fuel_v_init( void );
 
 

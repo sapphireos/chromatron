@@ -58,16 +58,6 @@ static bool fan_on;
 static uint16_t batt_max_charge_voltage = BATT_MAX_FLOAT_VOLTAGE;
 static uint16_t batt_min_discharge_voltage = BATT_CUTOFF_VOLTAGE;
 
-static uint8_t batt_soc = 50; // state of charge in percent
-static uint16_t soc_state;
-#define SOC_MAX_VOLTS   ( batt_max_charge_voltage - 100 )
-#define SOC_MIN_VOLTS   ( batt_min_discharge_voltage )
-#define SOC_FILTER      64
-
-static uint32_t total_charge_cycles_percent; // in 0.01% SoC increments
-static uint16_t charge_cycle_start_volts;
-
-
 int8_t batt_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -125,11 +115,9 @@ KV_SECTION_META kv_meta_t ui_info_kv[] = {
     { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                      0,  "batt_fan_on" },
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_soc,                    0,  "batt_soc" },
-
+    
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,                         &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,                         &batt_min_discharge_voltage,  batt_kv_handler,  "batt_min_discharge_voltage" },
-    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_PERSIST | KV_FLAGS_READ_ONLY,    &total_charge_cycles_percent, 0,                "batt_charge_cycles_percent" },
 };
 
 
@@ -284,6 +272,9 @@ void batt_v_init( void ){
 
         io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
     }
+
+
+    fuel_v_init();
 
     trace_printf("Battery controller enabled\n");
 
@@ -471,7 +462,7 @@ static void shutdown_power( void ){
 
     if( batt_enable_mcp73831 ){
 
-        
+
         return;
     }
 
@@ -561,64 +552,10 @@ PT_END( pt );
 #endif
 
 
-static uint16_t calc_raw_soc( uint16_t volts ){
-
-    uint16_t temp_soc = 0;
-
-    if( volts < BQ25895_LION_MIN_VOLTAGE ){
-
-        temp_soc = 0;
-    }
-    else if( volts > BQ25895_LION_MAX_VOLTAGE ){
-
-        temp_soc = 10000;
-    }
-    else{
-
-        temp_soc = util_u16_linear_interp( volts, BQ25895_LION_MIN_VOLTAGE, 0, BQ25895_LION_MAX_VOLTAGE, 10000 );
-    }
-
-    return temp_soc;    
-}
-
-static uint8_t calc_batt_soc( uint16_t volts ){
-
-    uint16_t temp_soc = 0;
-
-    if( volts < SOC_MIN_VOLTS ){
-
-        temp_soc = 0;
-    }
-    else if( volts > SOC_MAX_VOLTS ){
-
-        temp_soc = 10000;
-    }
-    else{
-
-        temp_soc = util_u16_linear_interp( volts, SOC_MIN_VOLTS, 0, SOC_MAX_VOLTS, 10000 );
-    }
-
-    if( soc_state == 0 ){
-
-        soc_state = temp_soc;
-    }
-    else{
-
-        soc_state = util_u16_ewma( temp_soc, soc_state, SOC_FILTER );
-    }
-
-    return soc_state / 100;
-}
-
-
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
-    static uint8_t soc_counter;
-    soc_counter = 0;
-
-    
+        
     #if defined(ESP32)
 
     if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
@@ -636,62 +573,6 @@ PT_BEGIN( pt );
     while(1){
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
-
-
-        // update battery SOC
-        if( ( soc_counter % ( 1000 / BUTTON_CHECK_TIMING ) == 0 ) ){
-
-            uint16_t temp_batt_volts = batt_u16_get_batt_volts();
-            batt_soc = calc_batt_soc( temp_batt_volts );
-
-            // check if switching into a charge cycle:
-            if( batt_b_is_charging() && ( charge_cycle_start_volts == 0 ) ){
-
-                // record previous voltage, which will not be affected
-                // by charge current
-                charge_cycle_start_volts = temp_batt_volts;
-
-                // !!! charge cycle stuff still needs some work.
-
-                // log_v_debug_P( PSTR("Charge cycle start: %u mV %u mA"), charge_cycle_start_volts, batt_charge_current );
-            }
-
-
-            // check if switching into a discharge cycle:
-            if( !batt_b_is_charging() && ( charge_cycle_start_volts != 0 ) ){
-
-                // cycle end voltage is current batt_volts
-
-                // verify that a start voltage was recorded.
-                // also sanity check that the end voltage is higher than the start:
-                if( charge_cycle_start_volts < temp_batt_volts ){
-
-                    // calculate start and end SoC
-                    // these values are in 0.01% increments (0 to 10000)
-                    uint16_t start_soc = calc_raw_soc( charge_cycle_start_volts );
-                    uint16_t end_soc = calc_raw_soc( temp_batt_volts );
-
-                    uint16_t recovered_soc = end_soc - start_soc;
-
-                    // if we have recovered at least 2% SoC, we can record the cycle:
-                    if( recovered_soc >= 200 ){
-
-                        log_v_debug_P( PSTR("Charge cycle complete: %u mv %u%% recovered"), temp_batt_volts, recovered_soc / 100 );
-
-                        // update cycle totalizer
-                        total_charge_cycles_percent += recovered_soc;
-
-                        // kv_i8_persist( __KV__batt_charge_cycles_percent );
-                    }
-                }
-
-                // reset cycle
-                charge_cycle_start_volts = 0;
-            }   
-        }
-
-        soc_counter++;
-
 
         // check if pixels should be enabled:
         if( request_pixels_enabled ){
