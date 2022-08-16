@@ -27,6 +27,7 @@
 
 #include "battery.h"
 #include "fuel_gauge.h"
+#include "energy.h"
 
 
 

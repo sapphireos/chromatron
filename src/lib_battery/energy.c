@@ -35,16 +35,16 @@
 
 #ifdef ENABLE_GFX
 // power in microwatts
-static uint32_t power_cpu;
+// static uint32_t power_cpu;
 static uint32_t power_pix;
-static uint32_t power_wifi;
-static uint32_t power_total;
+// static uint32_t power_wifi;
+// static uint32_t power_total;
 
 // total energy recorded in microwatts per monitor cycle
-static uint64_t energy_cpu;
-static uint64_t energy_wifi;
+// static uint64_t energy_cpu;
+// static uint64_t energy_wifi;
 static uint64_t energy_pix;
-static uint64_t energy_total;
+// static uint64_t energy_total;
 
 #define ENERGY_MONITOR_RATE FADER_RATE
 
@@ -67,43 +67,41 @@ int8_t energy_kv_handler(
         // energy:
         // convert raw counts to milliwatt-hours
 
-        if( hash == __KV__energy_cpu ){
+        // if( hash == __KV__energy_cpu ){
 
-            STORE64(data, convert_to_mwh( energy_cpu ) );
-        }
-        else if( hash == __KV__energy_wifi ){
+        //     STORE64(data, convert_to_mwh( energy_cpu ) );
+        // }
+        // else if( hash == __KV__energy_wifi ){
 
-            STORE64(data, convert_to_mwh( energy_wifi ) );
-        }
-        else if( hash == __KV__energy_pix ){
+        //     STORE64(data, convert_to_mwh( energy_wifi ) );
+        // }
+        if( hash == __KV__energy_pix ){
 
             STORE64(data, convert_to_mwh( energy_pix ) );
         }
-        else if( hash == __KV__energy_total ){
+        // else if( hash == __KV__energy_total ){
 
-            STORE64(data, convert_to_mwh( energy_total ) );
-        }
+        //     STORE64(data, convert_to_mwh( energy_total ) );
+        // }
 
         // power:
         // convert raw microwatts to millwatts
-        else if( hash == __KV__power_cpu ){
+        // else if( hash == __KV__power_cpu ){
 
-            STORE32(data, power_cpu / 1000 );
-        }
-        else if( hash == __KV__power_wifi ){
+        //     STORE32(data, power_cpu / 1000 );
+        // }
+        // else if( hash == __KV__power_wifi ){
 
-            STORE32(data, power_wifi / 1000 );
-        }
+        //     STORE32(data, power_wifi / 1000 );
+        // }
         else if( hash == __KV__power_pix ){
 
-            uint32_t power_pix = gfx_u32_get_pixel_power();
-
-            STORE32(data, power_pix / 1000 );
+            STORE32(data, gfx_u32_get_pixel_power() / 1000 );
         }
-        else if( hash == __KV__power_total ){
+        // else if( hash == __KV__power_total ){
 
-            STORE32(data, power_total / 1000 );
-        }
+        //     STORE32(data, power_total / 1000 );
+        // }
 
     }
     else if( op == KV_OP_SET ){
@@ -127,19 +125,20 @@ static uint32_t sys_runtime;
 
 
 KV_SECTION_META kv_meta_t energy_info_kv[] = {
-    { CATBUS_TYPE_UINT64,   0, 0,  0,                                       energy_kv_handler, "energy_cpu" },
-    { CATBUS_TYPE_UINT64,   0, 0,  0,                                       energy_kv_handler, "energy_wifi" },
-    { CATBUS_TYPE_UINT64,   0, 0,  0,    	                                energy_kv_handler, "energy_pix" },
-    { CATBUS_TYPE_UINT64,   0, 0,  0,                                       energy_kv_handler, "energy_total" },
+    // { CATBUS_TYPE_UINT64,   0, 0,  0,                    energy_kv_handler, "energy_cpu" },
+    // { CATBUS_TYPE_UINT64,   0, 0,  0,                    energy_kv_handler, "energy_wifi" },
+    { CATBUS_TYPE_UINT64,   0, 0,  0,    	             energy_kv_handler, "pixel_energy" },
+    // { CATBUS_TYPE_UINT64,   0, 0,  0,                    energy_kv_handler, "energy_total" },
 
-    { CATBUS_TYPE_UINT32,   0, 0,  0,                                       energy_kv_handler, "power_cpu" },
-    { CATBUS_TYPE_UINT32,   0, 0,  0,                                       energy_kv_handler, "power_wifi" },
-    { CATBUS_TYPE_UINT32,   0, 0,  0,                                       energy_kv_handler, "power_pix" },
-    { CATBUS_TYPE_UINT32,   0, 0,  0,                                       energy_kv_handler, "power_total" },
+    // { CATBUS_TYPE_UINT32,   0, 0,  0,                    energy_kv_handler, "power_cpu" },
+    // { CATBUS_TYPE_UINT32,   0, 0,  0,                    energy_kv_handler, "power_wifi" },
+    { CATBUS_TYPE_UINT32,   0, 0,  0,                    energy_kv_handler, "pixel_power" },
+    // { CATBUS_TYPE_UINT32,   0, 0,  0,                    energy_kv_handler, "power_total" },
 
-    // { CATBUS_TYPE_UINT64,   0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,  &led_total_energy,   0, "power_led_total_energy" },
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,  &led_runtime,        0, "power_led_runtime" },
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST,  &sys_runtime,        0, "power_sys_runtime" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY | 
+                               KV_FLAGS_PERSIST,    &led_runtime,        0, "pixel_runtime" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY | 
+                               KV_FLAGS_PERSIST,    &sys_runtime,        0, "sys_runtime" },
 };
 
 
@@ -162,16 +161,26 @@ void energy_v_init( void ){
 
 void energy_v_reset( void ){
 
-	energy_cpu = 0;
+	// energy_cpu = 0;
 	energy_pix = 0;
-	energy_wifi = 0;
-	energy_total = 0;
+	// energy_wifi = 0;
+	// energy_total = 0;
 }
 
-uint32_t energy_u32_get_total( void ){
+uint64_t energy_u64_get_pixel_raw( void ){
 
-    return energy_total / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ); // convert to microwatt hours
+    return energy_pix;
 }
+
+uint64_t energy_u64_get_pixel_mwh( void ){
+
+    return convert_to_mwh( energy_pix );
+}
+
+// uint32_t energy_u32_get_total( void ){
+
+//     return energy_total / ( 3600 * ( 1000 / ENERGY_MONITOR_RATE ) ); // convert to microwatt hours
+// }
 
 PT_THREAD( energy_monitor_thread( pt_t *pt, void *state ) )
 {
@@ -181,16 +190,16 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, ENERGY_MONITOR_RATE );
 
-        power_wifi = wifi_u32_get_power();
-        power_cpu = cpu_u32_get_power();
+        // power_wifi = wifi_u32_get_power();
+        // power_cpu = cpu_u32_get_power();
         power_pix = gfx_u32_get_pixel_power();
 
-        energy_cpu += power_cpu;
-        energy_wifi += power_wifi;
+        // energy_cpu += power_cpu;
+        // energy_wifi += power_wifi;
         energy_pix += power_pix;
 
-        power_total = power_pix + power_cpu + power_wifi;
-        energy_total += power_total;
+        // power_total = power_pix + power_cpu + power_wifi;
+        // energy_total += power_total;
     }    
 
 PT_END( pt );
