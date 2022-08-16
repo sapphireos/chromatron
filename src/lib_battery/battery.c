@@ -33,6 +33,7 @@
 
 #include "energy.h"
 #include "battery.h"
+#include "fuel_gauge.h"
 
 #include "bq25895.h"
 #include "pca9536.h"
@@ -394,7 +395,7 @@ bool batt_b_pixels_enabled( void ){
 }
 
 
-static int8_t get_batt_temp( void ){
+int8_t batt_i8_get_batt_temp( void ){
 
     if( batt_enable_mcp73831 ){
 
@@ -403,6 +404,48 @@ static int8_t get_batt_temp( void ){
 
     return bq25895_i8_get_temp();
 }
+
+uint16_t batt_u16_get_vbus_volts( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return mcp73831_u16_get_vbus_volts();
+    }
+
+    return bq25895_u16_read_vbus();
+}
+
+uint16_t batt_u16_get_batt_volts( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return mcp73831_u16_get_batt_volts();
+    }
+
+    return bq25895_u16_get_batt_voltage();
+}
+
+bool batt_b_is_charging( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return mcp73831_b_is_charging();        
+    }
+
+    return bq25895_b_is_charging();
+}
+
+bool batt_b_is_batt_fault( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return 0;
+    }
+
+    return bq25895_u8_get_faults() != 0;
+}
+
+
 
 static int8_t get_case_temp( void ){
 
@@ -424,47 +467,13 @@ static int8_t get_case_temp( void ){
 //     return bq25895_i8_get_ambient_temp();
 // }
 
-static uint16_t get_vbus_volts( void ){
-
-    if( batt_enable_mcp73831 ){
-
-        return mcp73831_u16_get_vbus_volts();
-    }
-
-    return bq25895_u16_read_vbus();
-}
-
-static uint16_t get_batt_volts( void ){
-
-    if( batt_enable_mcp73831 ){
-
-        return mcp73831_u16_get_batt_volts();
-    }
-
-    return bq25895_u16_get_batt_voltage();
-}
-
-static bool is_charging( void ){
-
-    if( batt_enable_mcp73831 ){
-
-        return mcp73831_b_is_charging();        
-    }
-
-    return bq25895_b_is_charging();
-}
-
-static uint8_t get_batt_faults( void ){
-
-    if( batt_enable_mcp73831 ){
-
-        return 0;
-    }
-
-    return bq25895_u8_get_faults();
-}
-
 static void shutdown_power( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        
+        return;
+    }
 
     bq25895_v_enable_ship_mode( FALSE );
     bq25895_v_enable_ship_mode( FALSE );
@@ -522,7 +531,7 @@ PT_BEGIN( pt );
             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 0 );
 
-            if( ( get_batt_temp() >= 38 ) ||
+            if( ( batt_i8_get_batt_temp() >= 38 ) ||
                 // ( get_case_temp() > ( get_ambient_temp() + 2 ) ) ||
                 ( get_case_temp() >= 55 ) ){
 
@@ -537,7 +546,7 @@ PT_BEGIN( pt );
             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 1 );
 
-            if( ( get_batt_temp() <= 37 ) &&
+            if( ( batt_i8_get_batt_temp() <= 37 ) &&
                 // ( get_case_temp() <= ( get_ambient_temp() + 1 ) ) &&
                 ( get_case_temp() <= 52 ) ){
 
@@ -622,7 +631,7 @@ PT_BEGIN( pt );
     #endif
 
     // wait until battery controller has started and is reporting voltage
-    THREAD_WAIT_WHILE( pt, get_batt_volts() == 0 );
+    THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
 
     while(1){
 
@@ -632,11 +641,11 @@ PT_BEGIN( pt );
         // update battery SOC
         if( ( soc_counter % ( 1000 / BUTTON_CHECK_TIMING ) == 0 ) ){
 
-            uint16_t temp_batt_volts = get_batt_volts();
+            uint16_t temp_batt_volts = batt_u16_get_batt_volts();
             batt_soc = calc_batt_soc( temp_batt_volts );
 
             // check if switching into a charge cycle:
-            if( is_charging() && ( charge_cycle_start_volts == 0 ) ){
+            if( batt_b_is_charging() && ( charge_cycle_start_volts == 0 ) ){
 
                 // record previous voltage, which will not be affected
                 // by charge current
@@ -649,7 +658,7 @@ PT_BEGIN( pt );
 
 
             // check if switching into a discharge cycle:
-            if( !is_charging() && ( charge_cycle_start_volts != 0 ) ){
+            if( !batt_b_is_charging() && ( charge_cycle_start_volts != 0 ) ){
 
                 // cycle end voltage is current batt_volts
 
@@ -750,9 +759,9 @@ PT_BEGIN( pt );
         // check charger status
         // uint8_t charge_status = bq25895_u8_get_charge_status();
 
-        if( is_charging() ||
-            ( get_vbus_volts() > 5500 ) ||
-            ( get_batt_faults() != 0 ) ){
+        if( batt_b_is_charging() ||
+            ( batt_u16_get_vbus_volts() > 5500 ) ||
+            ( batt_b_is_batt_fault() != 0 ) ){
 
         // if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
         //     ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
@@ -787,11 +796,11 @@ PT_BEGIN( pt );
 
             gfx_v_set_system_enable( TRUE );
 
-            uint16_t batt_volts = get_batt_volts();
+            uint16_t batt_volts = batt_u16_get_batt_volts();
 
             // the low battery states are latching, so that a temporary increase in SOC due to voltage fluctuations will not
             // toggle between states.  States only flow towards lower SOC, unless the charger is activated.
-            if( ( get_batt_volts() == 0 ) || ( batt_volts < EMERGENCY_CUTOFF_VOLTAGE ) ){
+            if( ( batt_u16_get_batt_volts() == 0 ) || ( batt_volts < EMERGENCY_CUTOFF_VOLTAGE ) ){
                 // for cutoff, we also check voltage as a backup, in case the SOC calculation has a problem.
 
                 if( ( batt_state != BATT_STATE_CUTOFF ) && ( batt_volts != 0 ) ){
@@ -801,7 +810,7 @@ PT_BEGIN( pt );
 
                 batt_state = BATT_STATE_CUTOFF;
             }
-            else if( get_batt_volts() <= 3 ){
+            else if( batt_u16_get_batt_volts() <= 3 ){
 
                 if( batt_state < BATT_STATE_CRITICAL ){
 
@@ -813,7 +822,7 @@ PT_BEGIN( pt );
                     // vm_v_run_prog( "crit_batt.fxb", VM_LAST_VM );
                 }
             }
-            else if( get_batt_volts() <= 10 ){
+            else if( batt_u16_get_batt_volts() <= 10 ){
 
                 if( batt_state < BATT_STATE_LOW ){
 
