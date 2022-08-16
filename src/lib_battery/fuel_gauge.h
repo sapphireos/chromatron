@@ -32,6 +32,7 @@
 
 void fuel_v_init( void );
 
+uint8_t fuel_u8_get_soc( void );
 
 #endif
 

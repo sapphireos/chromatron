@@ -55,6 +55,7 @@ bool batt_b_pixels_enabled( void );
 int8_t batt_i8_get_batt_temp( void );
 uint16_t batt_u16_get_vbus_volts( void );
 uint16_t batt_u16_get_batt_volts( void );
+uint8_t batt_u8_get_soc( void );
 bool batt_b_is_charging( void );
 bool batt_b_is_batt_fault( void );
 uint16_t batt_u16_get_nameplate_capacity( void );

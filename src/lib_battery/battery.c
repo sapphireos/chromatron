@@ -449,6 +449,11 @@ uint16_t batt_u16_get_batt_volts( void ){
     return bq25895_u16_get_batt_voltage();
 }
 
+uint8_t batt_u8_get_soc( void ){
+
+    return fuel_u8_get_soc();    
+}
+
 bool batt_b_is_charging( void ){
 
     if( batt_enable_mcp73831 ){
@@ -701,7 +706,7 @@ PT_BEGIN( pt );
 
             // the low battery states are latching, so that a temporary increase in SOC due to voltage fluctuations will not
             // toggle between states.  States only flow towards lower SOC, unless the charger is activated.
-            if( ( batt_u16_get_batt_volts() == 0 ) || ( batt_volts < EMERGENCY_CUTOFF_VOLTAGE ) ){
+            if( ( batt_u8_get_soc() == 0 ) || ( batt_volts < EMERGENCY_CUTOFF_VOLTAGE ) ){
                 // for cutoff, we also check voltage as a backup, in case the SOC calculation has a problem.
 
                 if( ( batt_state != BATT_STATE_CUTOFF ) && ( batt_volts != 0 ) ){
@@ -711,7 +716,7 @@ PT_BEGIN( pt );
 
                 batt_state = BATT_STATE_CUTOFF;
             }
-            else if( batt_u16_get_batt_volts() <= 3 ){
+            else if( batt_u8_get_soc() <= 3 ){
 
                 if( batt_state < BATT_STATE_CRITICAL ){
 
@@ -720,7 +725,7 @@ PT_BEGIN( pt );
                     batt_state = BATT_STATE_CRITICAL;
                 }
             }
-            else if( batt_u16_get_batt_volts() <= 10 ){
+            else if( batt_u8_get_soc() <= 10 ){
 
                 if( batt_state < BATT_STATE_LOW ){
 

@@ -61,7 +61,10 @@ void fuel_v_init( void ){
 
 }
 
+uint8_t fuel_u8_get_soc( void ){
 
+    return batt_soc;
+}
 
 
 static uint16_t calc_raw_soc( uint16_t volts ){
