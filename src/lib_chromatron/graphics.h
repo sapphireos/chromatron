@@ -30,5 +30,6 @@
 void gfx_v_init( void );
 bool gfx_b_pixels_enabled( void );
 uint32_t gfx_u32_get_pixel_power( void );
+uint16_t gfx_u16_get_pixel_power_mw( void );
 
 #endif
