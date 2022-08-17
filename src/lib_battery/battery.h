@@ -30,6 +30,7 @@
 #define BATT_MAX_FLOAT_VOLTAGE		4100
 #define BATT_CUTOFF_VOLTAGE			3100
 
+#define BATT_WALL_POWER_THRESHOLD	3800 // mv
 
 #define BATT_PIX_COUNT_LOW_POWER_THRESHOLD		100
 
@@ -57,6 +58,7 @@ uint16_t batt_u16_get_vbus_volts( void );
 uint16_t batt_u16_get_batt_volts( void );
 uint8_t batt_u8_get_soc( void );
 bool batt_b_is_charging( void );
+bool batt_b_is_wall_power( void );
 bool batt_b_is_batt_fault( void );
 uint16_t batt_u16_get_nameplate_capacity( void );
 

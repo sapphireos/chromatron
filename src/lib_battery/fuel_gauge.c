@@ -77,6 +77,11 @@ Integrate pixel power to track one-minute pixel energy usage.
 
 
 
+Sources of truth:
+
+Open circuit voltage indicates if fully charged.
+Low voltage cutoff is 0% SoC.
+Discharge rate at a given load.
 
 
 
@@ -100,13 +105,15 @@ static uint16_t charge_cycle_start_volts;
 
 static uint16_t filtered_batt_volts;
 static uint16_t filtered_pix_power;
+static int8_t filtered_batt_temp;
 
 
 KV_SECTION_META kv_meta_t fuel_gauge_info_kv[] = {
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_soc,                    0,  "batt_soc" },
 
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_batt_volts,         0,  "batt_volts_filtered" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_pix_power,          0,  "batt_pix_power_filtered" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_batt_volts,         0,  "batt_filtered_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_pix_power,          0,  "batt_filtered_pix_power" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY, &filtered_batt_temp,          0,  "batt_filtered_temp" },
 
 
     { CATBUS_TYPE_UINT32, 0, KV_FLAGS_PERSIST | KV_FLAGS_READ_ONLY,    &total_charge_cycles_percent, 0,                "batt_charge_cycles_percent" },
@@ -187,24 +194,41 @@ static uint8_t calc_batt_soc( uint16_t volts ){
 // 60 second moving averages
 static uint16_t batt_volts_filter_state[60];
 static uint16_t pix_power_filter_state[60];
+static int8_t batt_temp_filter_state[60];
 static uint8_t filter_index;
 
 static void reset_filters( void ){
 
     uint16_t batt_volts = batt_u16_get_batt_volts();
     uint16_t pix_power = gfx_u16_get_pixel_power_mw();
+    int8_t batt_temp = batt_i8_get_batt_temp();
 
     for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter_state); i++ ){
 
         batt_volts_filter_state[i] = batt_volts;
         pix_power_filter_state[i] = pix_power;
+        batt_temp_filter_state[i] = batt_temp;
     }
 }
+
+
+#define MODE_UNKNOWN        0
+#define MODE_DISCHARGE      1 // discharging on battery power
+#define MODE_CHARGE         2 // charging on wall power
+#define MODE_FLOAT          3 // fully charged and running on VBUS
+static uint8_t mode;
+
+
+static uint64_t discharge_power_pix_accumlator;
 
 
 PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    static uint8_t counter;
+
+    mode = MODE_UNKNOWN;
 
     // wait for battery controller to wake up
     THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
@@ -216,9 +240,12 @@ PT_BEGIN( pt );
 
     while(1){
             
+        // run once per second
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );        
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
 
+
+        // check for shutdown
         if( sys_b_is_shutting_down() ){
 
             // save settings and data
@@ -228,13 +255,45 @@ PT_BEGIN( pt );
         }
 
 
+        // every 10 seconds
+        if( ( counter % 10 ) == 0 ){
+
+            // get charge state
+            bool is_charging = batt_b_is_charging();
+            bool is_wall_power = batt_b_is_wall_power();
+
+            bool prev_mode = mode;
+
+            if( is_charging ){
+
+                mode = MODE_CHARGE;
+            }
+            else if( is_wall_power ){
+
+                mode = MODE_FLOAT;
+            }
+            else{
+
+                mode = MODE_DISCHARGE;
+            }
+
+
+            if( prev_mode != mode ){
+
+                // mode change
+                discharge_power_pix_accumlator = 0;
+            }
+        }
+
         // get sensor parameters
         uint16_t batt_volts = batt_u16_get_batt_volts();
         uint16_t pix_power = gfx_u16_get_pixel_power_mw();
+        int8_t batt_temp = batt_i8_get_batt_temp();
 
         // add to filter state
         batt_volts_filter_state[filter_index] = batt_volts;
         pix_power_filter_state[filter_index] = pix_power;
+        batt_temp_filter_state[filter_index] = batt_temp;
 
         filter_index++;
         if( filter_index >= cnt_of_array(batt_volts_filter_state) ){
@@ -245,21 +304,39 @@ PT_BEGIN( pt );
         // compute moving average
         uint32_t volts_acc = 0;
         uint32_t power_acc = 0;
+        int16_t temp_acc = 0;
 
         for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter_state); i++ ){
 
             volts_acc += batt_volts_filter_state[i];
             power_acc += pix_power_filter_state[i];
+            temp_acc += batt_temp_filter_state[i];
         }
 
         filtered_batt_volts = volts_acc / cnt_of_array(batt_volts_filter_state);
         filtered_pix_power = power_acc / cnt_of_array(pix_power_filter_state);
-
+        filtered_batt_temp = temp_acc / cnt_of_array(batt_temp_filter_state);
 
 
 
         // basic SoC: just from batt volts:
         batt_soc = calc_batt_soc( filtered_batt_volts );
+
+
+        
+        if( mode == MODE_DISCHARGE ){
+
+            discharge_power_pix_accumlator += filtered_pix_power;
+        }
+
+
+
+
+
+
+
+
+        counter++;
     }
 
 

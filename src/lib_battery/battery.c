@@ -464,6 +464,16 @@ bool batt_b_is_charging( void ){
     return bq25895_b_is_charging();
 }
 
+bool batt_b_is_wall_power( void ){
+
+    if( batt_u16_get_vbus_volts() >= BATT_WALL_POWER_THRESHOLD ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 bool batt_b_is_batt_fault( void ){
 
     if( batt_enable_mcp73831 ){
