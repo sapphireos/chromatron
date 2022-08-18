@@ -63,7 +63,7 @@ int8_t pix_i8_kv_handler(
             pix_clock = 800000; // indicate effective bit rate, not actual for 1 wire
         }
 
-        hal_pixel_v_configure();
+        pixel_v_reconfigure();
     }
 
     return 0;
@@ -91,6 +91,11 @@ void pixel_v_init( void ){
 void pixel_v_signal( void ){
 
     thread_v_signal( PIX_SIGNAL_0 );   
+}
+
+void pixel_v_reconfigure( void ){
+
+    hal_pixel_v_configure();   
 }
 
 uint8_t pixel_u8_bytes_per_pixel( uint8_t mode ){

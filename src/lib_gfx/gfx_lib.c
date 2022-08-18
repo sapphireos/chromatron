@@ -36,6 +36,7 @@
 #include "battery.h"
 #include "pixel_mapper.h"
 #include "pixel_vars.h"
+#include "pixel.h"
 
 #ifdef ENABLE_GFX
 
@@ -297,6 +298,8 @@ int8_t pix_i8_count_handler(
     if( op == KV_OP_SET ){
 
         param_error_check();
+
+        pixel_v_reconfigure();
     }
 
     return 0;
