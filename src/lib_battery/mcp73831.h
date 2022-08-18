@@ -45,7 +45,7 @@ void mcp73831_v_enable_pixels( void );
 void mcp73831_v_disable_pixels( void );
 
 uint16_t mcp73831_u16_get_batt_volts( void );
-uint16_t mcp73831_u16_get_vbus_volts( void );;
+uint16_t mcp73831_u16_get_vbus_volts( void );
 bool mcp73831_b_is_charging( void );
 
 
