@@ -29,6 +29,7 @@
 #include "io_intf.h"
 #include "driver/gpio.h"
 
+// pins 34, 35, 36, and 39 are input only on the ESP32!
 
 // Adafruit ESP32 Feather
 #define IO_PIN_13_A12		0

@@ -126,6 +126,7 @@ void mcp73831_v_init( void ){
                      0,
                      0 );
 
+    log_v_info_P( PSTR("MCP73831 enabled") );
 }
 
 void mcp73831_v_shutdown( void ){
@@ -180,13 +181,46 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
-        batt_volts = adc_u16_read_supply_voltage() * 2;
+        batt_volts = adc_u16_read_supply_voltage();
         batt_vbus_volts = adc_u16_read_mv( MCP73831_IO_VBUS_MON ) * 2;
 
         
     }
 
 PT_END( pt );
+}
+
+#else
+
+void mcp73831_v_init( void ){
+
+}
+
+void mcp73831_v_shutdown( void ){
+
+}
+
+void mcp73831_v_enable_pixels( void ){
+
+}
+
+void mcp73831_v_disable_pixels( void ){
+
+}
+
+uint16_t mcp73831_u16_get_batt_volts( void ){
+
+    return 0;
+}
+
+uint16_t mcp73831_u16_get_vbus_volts( void ){
+
+    return 0;
+}
+
+bool mcp73831_b_is_charging( void ){
+
+    return 0;
 }
 
 #endif

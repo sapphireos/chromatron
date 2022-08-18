@@ -138,7 +138,11 @@ static uint8_t batt_request_shutdown;
 
 KV_SECTION_META kv_meta_t battery_info_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable,                 0,  "batt_enable" },
+
+    #ifndef ESP8266
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable_mcp73831,        0,  "batt_enable_mcp73831" },
+    #endif
+    
     { CATBUS_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,               0,  "batt_ui_state" },
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,              0,  "batt_pixel_power" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,                  0,  "batt_state" },
@@ -283,8 +287,6 @@ void batt_v_init( void ){
     if( batt_enable_mcp73831 ){
 
         mcp73831_v_init();
-
-        log_v_info_P( PSTR("MCP73831 enabled") );
     }
     else if( bq25895_i8_init() < 0 ){
 
