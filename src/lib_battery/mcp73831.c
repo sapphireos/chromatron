@@ -56,10 +56,14 @@ IO_PIN_34_A2 instead.
 
 Button?  Default is IO 17.
 
+MCU power enable:  IO25 - connect directly to jumper pad.
+
 
 Sapphire:
 
 TBD
+
+mcu power enable ->
 
 batt volts -> supply vmon
 
@@ -102,7 +106,18 @@ uint16_t read_photo( void ){
 }
 
 
+static void enable_mcu_power( void ){
+
+    // latch on MCU power
+
+    io_v_set_mode( MCP73831_IO_MCU_PWR, IO_MODE_OUTPUT );    
+    io_v_digital_write( MCP73831_IO_MCU_PWR, 1 );
+}
+
+
 void mcp73831_v_init( void ){
+
+    enable_mcu_power();
 
     io_v_set_mode( MCP73831_IO_VBUS_MON, IO_MODE_INPUT );      
 
@@ -111,6 +126,12 @@ void mcp73831_v_init( void ){
                      0,
                      0 );
 
+}
+
+void mcp73831_v_shutdown( void ){
+
+    io_v_set_mode( MCP73831_IO_MCU_PWR, IO_MODE_OUTPUT );    
+    io_v_digital_write( MCP73831_IO_MCU_PWR, 0 );
 }
 
 void mcp73831_v_enable_pixels( void ){

@@ -514,6 +514,7 @@ static void shutdown_power( void ){
 
     if( batt_enable_mcp73831 ){
 
+        mcp73831_v_shutdown();
 
         return;
     }
@@ -745,6 +746,17 @@ PT_BEGIN( pt );
                 }
             }
 
+            if( batt_request_shutdown ){
+
+                // check if on wall power - we cannot shut down when plugged in
+                if( batt_b_is_wall_power() ){
+
+                    log_v_debug_P( PSTR("On wall power, cannot initiate power down") );
+
+                    batt_request_shutdown = FALSE;
+                }
+            }
+
             if( ( batt_state == BATT_STATE_CUTOFF ) || ( batt_request_shutdown ) ){
 
                 if( batt_request_shutdown ){
@@ -768,6 +780,8 @@ PT_BEGIN( pt );
             }
         }
 
+
+        // sample buttons:
         button_state = 0;
 
         for( uint8_t i = 0; i < MAX_BUTTONS; i++ ){
@@ -801,19 +815,20 @@ PT_BEGIN( pt );
 
             if( button_hold_duration[1] < BUTTON_WIFI_TIME ){
 
-                log_v_debug_P( PSTR("Button commanded shutdown") );
+                if( !batt_b_is_wall_power() ){
 
-                batt_ui_state = -1;
+                    log_v_debug_P( PSTR("Button commanded shutdown") );
 
-                sys_v_initiate_shutdown( 5 );
+                    batt_ui_state = -1;
 
-                THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+                    sys_v_initiate_shutdown( 5 );
 
-                shutdown_power();
+                    THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
-                _delay_ms( 1000 );
+                    shutdown_power();
 
-                log_v_debug_P( PSTR("wtf 2") );
+                    _delay_ms( 1000 );
+                }
             }
             else{
 

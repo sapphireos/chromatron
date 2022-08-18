@@ -29,6 +29,7 @@
 #include "hal_io.h"
 
 #ifdef ESP32
+    #define MCP73831_IO_MCU_PWR     IO_PIN_25_A1
     #define MCP73831_IO_PIXEL       IO_PIN_16_RX
     #define MCP73831_IO_VBUS_MON    IO_PIN_34_A2
 #else
@@ -37,6 +38,8 @@
 
 
 void mcp73831_v_init( void );
+
+void mcp73831_v_shutdown( void );
 
 void mcp73831_v_enable_pixels( void );
 void mcp73831_v_disable_pixels( void );
