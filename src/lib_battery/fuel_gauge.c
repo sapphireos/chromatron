@@ -103,17 +103,25 @@ static uint16_t charge_cycle_start_volts;
 
 
 
-static uint16_t filtered_batt_volts;
-static uint16_t filtered_pix_power;
-static int8_t filtered_batt_temp;
+static uint16_t filtered_5sec_batt_volts;
+static uint16_t filtered_5sec_pix_power;
+static int8_t filtered_5sec_batt_temp;
+
+static uint16_t filtered_60sec_batt_volts;
+static uint16_t filtered_60sec_pix_power;
+static int8_t filtered_60sec_batt_temp;
 
 
 KV_SECTION_META kv_meta_t fuel_gauge_info_kv[] = {
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_soc,                    0,  "batt_soc" },
 
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_batt_volts,         0,  "batt_filtered_volts" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_pix_power,          0,  "batt_filtered_pix_power" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY, &filtered_batt_temp,          0,  "batt_filtered_temp" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5sec_batt_volts,         0,  "batt_filtered_5sec_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5sec_pix_power,          0,  "batt_filtered_5sec_pix_power" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY, &filtered_5sec_batt_temp,          0,  "batt_filtered_5sec_temp" },
+
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_60sec_batt_volts,        0,  "batt_filtered_60sec_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_60sec_pix_power,         0,  "batt_filtered_60sec_pix_power" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY, &filtered_60sec_batt_temp,         0,  "batt_filtered_60sec_temp" },
 
 
     { CATBUS_TYPE_UINT32, 0, KV_FLAGS_PERSIST | KV_FLAGS_READ_ONLY,    &total_charge_cycles_percent, 0,                "batt_charge_cycles_percent" },
@@ -190,12 +198,17 @@ static uint8_t calc_batt_soc( uint16_t volts ){
 }
 
 
+// 5 second moving averages
+static uint16_t batt_volts_filter_state_5sec[5];
+static uint16_t pix_power_filter_state_5sec[5];
+static int8_t batt_temp_filter_state_5sec[5];
+static uint8_t filter_index_5sec;
 
 // 60 second moving averages
-static uint16_t batt_volts_filter_state[60];
-static uint16_t pix_power_filter_state[60];
-static int8_t batt_temp_filter_state[60];
-static uint8_t filter_index;
+static uint16_t batt_volts_filter_state_60sec[12];
+static uint16_t pix_power_filter_state_60sec[12];
+static int8_t batt_temp_filter_state_60sec[12];
+static uint8_t filter_index_60sec;
 
 static void reset_filters( void ){
 
@@ -203,11 +216,18 @@ static void reset_filters( void ){
     uint16_t pix_power = gfx_u16_get_pixel_power_mw();
     int8_t batt_temp = batt_i8_get_batt_temp();
 
-    for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter_state); i++ ){
+    for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter_state_5sec); i++ ){
 
-        batt_volts_filter_state[i] = batt_volts;
-        pix_power_filter_state[i] = pix_power;
-        batt_temp_filter_state[i] = batt_temp;
+        batt_volts_filter_state_5sec[i] = batt_volts;
+        pix_power_filter_state_5sec[i] = pix_power;
+        batt_temp_filter_state_5sec[i] = batt_temp;
+    }
+
+    for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter_state_60sec); i++ ){
+
+        batt_volts_filter_state_60sec[i] = batt_volts;
+        pix_power_filter_state_60sec[i] = pix_power;
+        batt_temp_filter_state_60sec[i] = batt_temp;
     }
 }
 
@@ -290,15 +310,19 @@ PT_BEGIN( pt );
         uint16_t pix_power = gfx_u16_get_pixel_power_mw();
         int8_t batt_temp = batt_i8_get_batt_temp();
 
+        /****************************************
+        5 second filter:
+        ****************************************/
+
         // add to filter state
-        batt_volts_filter_state[filter_index] = batt_volts;
-        pix_power_filter_state[filter_index] = pix_power;
-        batt_temp_filter_state[filter_index] = batt_temp;
+        batt_volts_filter_state_5sec[filter_index_5sec] = batt_volts;
+        pix_power_filter_state_5sec[filter_index_5sec] = pix_power;
+        batt_temp_filter_state_5sec[filter_index_5sec] = batt_temp;
 
-        filter_index++;
-        if( filter_index >= cnt_of_array(batt_volts_filter_state) ){
+        filter_index_5sec++;
+        if( filter_index_5sec >= cnt_of_array(batt_volts_filter_state_5sec) ){
 
-            filter_index = 0;
+            filter_index_5sec = 0;
         }
 
         // compute moving average
@@ -306,27 +330,64 @@ PT_BEGIN( pt );
         uint32_t power_acc = 0;
         int16_t temp_acc = 0;
 
-        for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter_state); i++ ){
+        for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter_state_5sec); i++ ){
 
-            volts_acc += batt_volts_filter_state[i];
-            power_acc += pix_power_filter_state[i];
-            temp_acc += batt_temp_filter_state[i];
+            volts_acc += batt_volts_filter_state_5sec[i];
+            power_acc += pix_power_filter_state_5sec[i];
+            temp_acc += batt_temp_filter_state_5sec[i];
         }
 
-        filtered_batt_volts = volts_acc / cnt_of_array(batt_volts_filter_state);
-        filtered_pix_power = power_acc / cnt_of_array(pix_power_filter_state);
-        filtered_batt_temp = temp_acc / cnt_of_array(batt_temp_filter_state);
+        filtered_5sec_batt_volts = volts_acc / cnt_of_array(batt_volts_filter_state_5sec);
+        filtered_5sec_pix_power = power_acc / cnt_of_array(pix_power_filter_state_5sec);
+        filtered_5sec_batt_temp = temp_acc / cnt_of_array(batt_temp_filter_state_5sec);
+
+
+
+        /****************************************
+        60 second filter:
+        ****************************************/
+
+        // integrate the 5sec filter data
+
+        // add to filter state
+        batt_volts_filter_state_60sec[filter_index_60sec] = filtered_5sec_batt_volts;
+        pix_power_filter_state_60sec[filter_index_60sec] = filtered_5sec_pix_power;
+        batt_temp_filter_state_60sec[filter_index_60sec] = filtered_5sec_batt_temp;
+
+        filter_index_60sec++;
+        if( filter_index_60sec >= cnt_of_array(batt_volts_filter_state_60sec) ){
+
+            filter_index_60sec = 0;
+        }
+
+        // compute moving average
+        volts_acc = 0;
+        power_acc = 0;
+        temp_acc = 0;
+
+        for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter_state_60sec); i++ ){
+
+            volts_acc += batt_volts_filter_state_60sec[i];
+            power_acc += pix_power_filter_state_60sec[i];
+            temp_acc += batt_temp_filter_state_60sec[i];
+        }
+
+        filtered_60sec_batt_volts = volts_acc / cnt_of_array(batt_volts_filter_state_60sec);
+        filtered_60sec_pix_power = power_acc / cnt_of_array(pix_power_filter_state_60sec);
+        filtered_60sec_batt_temp = temp_acc / cnt_of_array(batt_temp_filter_state_60sec);
+
+
 
 
 
         // basic SoC: just from batt volts:
-        batt_soc = calc_batt_soc( filtered_batt_volts );
+        batt_soc = calc_batt_soc( filtered_60sec_batt_volts );
 
 
         
         if( mode == MODE_DISCHARGE ){
 
-            discharge_power_pix_accumlator += filtered_pix_power;
+            discharge_power_pix_accumlator += filtered_pix_power_60sec;
         }
 
 
