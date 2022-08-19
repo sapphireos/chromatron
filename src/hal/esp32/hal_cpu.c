@@ -48,6 +48,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include "hal/brownout_hal.h"
+
 static uint8_t esp_reset;
 
 KV_SECTION_META kv_meta_t hal_cpu_kv[] = {
@@ -135,6 +137,39 @@ void cpu_v_init( void ){
 
     trace_printf("Running on core: %d\n", xPortGetCoreID());
     #endif
+
+
+
+    /*
+    
+    Brown out detector config
+
+    This is taken from IDF source and is otherwise undocumented.
+
+    Thresholds:
+    0: 2.43V
+    1: 2.48V
+    2: 2.58V
+    3: 2.62V
+    4: 2.67V
+    5: 2.70V
+    6: 2.77V
+    7: 2.80V
+
+    */
+
+    /*    
+    brownout_hal_config_t cfg = {
+        .threshold = 5,
+        .enabled = true,
+        .reset_enabled = true,
+        .flash_power_down = true,
+        .rf_power_down = true,
+    };
+
+    brownout_hal_config(&cfg);
+
+    */
 
     #ifndef BOOTLOADER
     vTaskDelay(10);
