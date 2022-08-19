@@ -30,6 +30,8 @@
 
 int8_t pca9536_i8_init( void ){
 
+    i2c_v_init( I2C_BAUD_400K );
+
     // write test pattern and then check
     i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0x0f );
     i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0x06 );
