@@ -242,11 +242,74 @@ static uint8_t mode;
 static uint64_t discharge_power_pix_accumlator;
 
 
+static fuel_gauge_data_t discharge_record_buffer[FFS_PAGE_DATA_SIZE / sizeof(fuel_gauge_data_t)];
+static uint8_t discharge_buffer_size;
+
+static void flush_discharge_buffer( void ){
+
+    file_t f = fs_f_open_P( PSTR("batt_discharge"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_APPEND );
+
+    if( f < 0 ){
+
+        goto end;
+    }
+
+    // check file size
+    // for now, we just stop when the file is too large
+    if( fs_i32_get_size( f ) >= FUEL_MAX_DISCHARGE_FILE_SIZE ){
+
+        goto end;
+    }
+
+    fs_i16_write( f, discharge_record_buffer, discharge_buffer_size * sizeof(fuel_gauge_data_t) );
+
+
+    if( fs_i32_get_size( f ) == FUEL_MAX_DISCHARGE_FILE_SIZE ){
+        
+        log_v_debug_P( PSTR("discharge recorder file limit reached") );
+    }
+
+    fs_f_close( f );
+
+end:
+    discharge_buffer_size = 0;
+}
+
+static void record_discharge_data( void ){
+
+    // compress sensor data to 8 bits
+    uint8_t compressed_volts = ( filtered_60sec_batt_volts - 2500 ) / 8;
+    // volts range is 2500 to 4548 mV in 8 mV steps
+
+    uint8_t compressed_power = filtered_60sec_pix_power / 64;
+    // power range is 0 to 16384 mW in 64 mW steps
+
+    int8_t compressed_temp = filtered_60sec_batt_temp;
+    // temp is already 8 bits so it is left as-is
+
+    fuel_gauge_data_t data = {
+        compressed_volts,
+        compressed_power,
+        compressed_temp,
+        0
+    }; 
+
+    discharge_record_buffer[discharge_buffer_size] = data;
+
+    discharge_buffer_size++;
+
+    if( discharge_buffer_size >= cnt_of_array(discharge_record_buffer) ){
+
+        flush_discharge_buffer();        
+    }
+}
+
+
 PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    static uint8_t counter;
+    static uint16_t counter;
 
     mode = MODE_UNKNOWN;
 
@@ -270,39 +333,9 @@ PT_BEGIN( pt );
 
             // save settings and data
 
+            flush_discharge_buffer();
 
             THREAD_EXIT( pt );    
-        }
-
-
-        // every 10 seconds
-        if( ( counter % 10 ) == 0 ){
-
-            // get charge state
-            bool is_charging = batt_b_is_charging();
-            bool is_wall_power = batt_b_is_wall_power();
-
-            bool prev_mode = mode;
-
-            if( is_charging ){
-
-                mode = MODE_CHARGE;
-            }
-            else if( is_wall_power ){
-
-                mode = MODE_FLOAT;
-            }
-            else{
-
-                mode = MODE_DISCHARGE;
-            }
-
-
-            if( prev_mode != mode ){
-
-                // mode change
-                discharge_power_pix_accumlator = 0;
-            }
         }
 
         // get sensor parameters
@@ -384,10 +417,50 @@ PT_BEGIN( pt );
         batt_soc = calc_batt_soc( filtered_60sec_batt_volts );
 
 
-        
+        bool prev_mode = mode;
+
+        // every 10 seconds
+        if( ( counter % 10 ) == 0 ){
+
+            // get charge state
+            bool is_charging = batt_b_is_charging();
+            bool is_wall_power = batt_b_is_wall_power();
+
+            if( is_charging ){
+
+                mode = MODE_CHARGE;
+            }
+            else if( is_wall_power ){
+
+                mode = MODE_FLOAT;
+            }
+            else{
+
+                mode = MODE_DISCHARGE;
+            }
+
+
+            if( prev_mode != mode ){
+
+                // mode change
+                discharge_power_pix_accumlator = 0;
+            }
+        }
+
+        // every 10 minutes
+        if( ( counter % 600 ) == 0 ){
+
+            if( mode == MODE_DISCHARGE ){
+
+                record_discharge_data();
+            }
+        }
+
+
+        // every 1 second:        
         if( mode == MODE_DISCHARGE ){
 
-            discharge_power_pix_accumlator += filtered_pix_power_60sec;
+            discharge_power_pix_accumlator += filtered_60sec_pix_power;
         }
 
 
