@@ -310,6 +310,7 @@ PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
     
     static uint16_t counter;
+    counter = 0;
 
     mode = MODE_UNKNOWN;
 
@@ -444,6 +445,8 @@ PT_BEGIN( pt );
 
                 // mode change
                 discharge_power_pix_accumlator = 0;
+
+                log_v_debug_P( PSTR("mode switch: %d -> %d"), prev_mode, mode );
             }
         }
 
