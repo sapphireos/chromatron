@@ -386,6 +386,21 @@ class DatalogEntryArray(ArrayField):
 
         super().__init__(_field=field, **kwargs)
 
+class BattDischargeData(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint8Field(_name="volts"),
+                  Uint8Field(_name="pix_power"),
+                  Int8Field(_name="temp"),
+                  Uint8Field(_name="reserved")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class BattDischargeDataArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = BattDischargeData
+
+        super().__init__(_field=field, **kwargs)
+
 
 
 raw_events = """

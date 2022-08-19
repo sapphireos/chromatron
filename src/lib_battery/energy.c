@@ -75,7 +75,7 @@ int8_t energy_kv_handler(
 
         //     STORE64(data, convert_to_mwh( energy_wifi ) );
         // }
-        if( hash == __KV__energy_pix ){
+        if( hash == __KV__pixel_energy ){
 
             STORE64(data, convert_to_mwh( energy_pix ) );
         }
@@ -94,7 +94,7 @@ int8_t energy_kv_handler(
 
         //     STORE32(data, power_wifi / 1000 );
         // }
-        else if( hash == __KV__power_pix ){
+        else if( hash == __KV__pixel_power ){
 
             STORE32(data, gfx_u32_get_pixel_power() / 1000 );
         }

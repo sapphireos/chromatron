@@ -659,6 +659,14 @@ class Device(object):
 
         return info
 
+    def get_batt_discharge(self):
+        data = self.get_file("batt_discharge")
+
+        info = sapphiredata.BattDischargeDataArray()
+        info.unpack(data)
+
+        return info
+
 
     # helper for testing mostly
     def wait_service(self, service_id, group, state=None, timeout=30.0):
@@ -1659,6 +1667,25 @@ class Device(object):
             data.append(entry)
 
         self.put_file('datalog_config', data.pack())
+
+    def cli_batt_discharge_info(self, line):
+        try:
+            data = self.get_batt_discharge()
+
+        except OSError:
+            # file not found
+            return
+
+        print('')
+        print('Volts Power   Temp')
+
+        for item in data:
+            volts = 2500 + item.volts * 8
+            power = item.pix_power * 64
+            temp = item.temp
+
+            print(f' {volts:4} {power:5}   {temp:4}')
+
 
 
 def createDevice(**kwargs):

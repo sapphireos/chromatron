@@ -418,7 +418,7 @@ PT_BEGIN( pt );
         batt_soc = calc_batt_soc( filtered_60sec_batt_volts );
 
 
-        bool prev_mode = mode;
+        uint8_t prev_mode = mode;
 
         // every 10 seconds
         if( ( counter % 10 ) == 0 ){
