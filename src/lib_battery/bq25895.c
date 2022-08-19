@@ -1536,7 +1536,8 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    if( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ){
+    if( ( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ) ||
+        ( ffs_u8_read_board_type() == BOARD_TYPE_UNSET ) ){
 
         log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
 
