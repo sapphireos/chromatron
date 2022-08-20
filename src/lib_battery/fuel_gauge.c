@@ -265,7 +265,7 @@ static void init_recorder( void ){
 
         if( start.flags == FUEL_RECORD_TYPE_RECORD_START ){
 
-            log_v_debug_P( PSTR("start record found %d"), start.record_id );
+            // log_v_debug_P( PSTR("start record found %d"), start.record_id );
 
             if( start.record_id > record_id ){
 
@@ -356,7 +356,7 @@ static void record_data( void ){
 
         insert_record( &start );
 
-        log_v_debug_P( PSTR("batt record start: %d"), record_id );
+        // log_v_debug_P( PSTR("batt record start: %d"), record_id );
     }
 
     previous_record_flags = flags;
