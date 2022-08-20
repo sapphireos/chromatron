@@ -1723,6 +1723,8 @@ class Device(object):
 
                 print(f'{record_id:5}  {status:9}   {volts:4}  {power:5} {temp:4}')
 
+            print('')
+
         return ''
 
 def createDevice(**kwargs):
