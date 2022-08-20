@@ -272,6 +272,8 @@ static void init_recorder( void ){
         }
     }
 
+    log_v_debug_P( PSTR("batt recorder ID: %d"), record_id );
+
     // pad file to page size
     while( ( fs_i32_get_size( f ) % FFS_PAGE_DATA_SIZE ) != 0 ){
 
@@ -296,22 +298,13 @@ static void flush_recorder_buffer( void ){
 
         goto end;
     }
-
-    // check file size
-    // if( fs_i32_get_size( f ) >= FUEL_MAX_DISCHARGE_FILE_SIZE ){
-
-    //     goto end;
-    // }
     
     if( fs_i32_get_size( f ) >= FUEL_MAX_DISCHARGE_FILE_SIZE ){
         
-        // log_v_debug_P( PSTR("discharge recorder file limit reached") );
         fs_v_seek( f, 0 );
     }
 
-
     fs_i16_write( f, recorder_buffer, recorder_buffer_size * sizeof(fuel_gauge_data_t) );
-
 
 end:
     if( f > 0 ){
@@ -536,7 +529,7 @@ PT_BEGIN( pt );
 
         // every 5 minutes
         // if( ( counter % 300 ) == 0 ){
-        if( ( counter % 30 ) == 0 ){
+        if( ( counter % 5 ) == 0 ){
 
             record_data();
         }

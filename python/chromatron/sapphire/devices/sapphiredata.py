@@ -386,6 +386,7 @@ class DatalogEntryArray(ArrayField):
 
         super().__init__(_field=field, **kwargs)
 
+
 class BattRecordStart(StructField):
     def __init__(self, **kwargs):
         fields = [Uint8Field(_name="flags"),
@@ -415,7 +416,30 @@ class BattRecordDataArray(ArrayField):
 
         super().__init__(_field=field, **kwargs)
 
-    
+    def unpack(self, buffer):
+        array_len = self._length
+        self._fields = []
+
+        count = 0
+
+        while len(buffer) > 0:
+            if buffer[0] == BATT_RECORD_TYPE_START:
+                field = BattRecordStart()
+
+            else:
+                field = self._field()
+                
+            self._fields.append(field.unpack(buffer))
+
+            buffer = buffer[field.size():]
+            count += 1
+
+            if ( array_len > 0 ) and ( count >= array_len ):
+                break
+
+        return self
+
+
 
 
 raw_events = """

@@ -1676,26 +1676,49 @@ class Device(object):
             # file not found
             return
 
-        print('')
-        print('ID  Status      Volts Power   Temp')
+        data_sets = {}
 
+        record_id = None
         for item in data:
-            record_type = item.flags & sapphiredata.BATT_RECORD_TYPE_MASK
-            record_id = item.flags & sapphiredata.BATT_RECORD_ID_MASK
 
-            volts = 2500 + item.volts * 8
-            power = item.pix_power * 64
-            temp = item.temp
+            if isinstance(item, sapphiredata.BattRecordStart):
+                record_id = item.record_id
 
-            status = 'idle'
+                data_sets[record_id] = []
 
-            if record_type == sapphiredata.BATT_RECORD_TYPE_DISCHARGE:
-                status = 'discharge'
+            elif record_id is not None:
+                data_sets[record_id].append(item)
 
-            elif record_type == sapphiredata.BATT_RECORD_TYPE_CHARGE:
-                status = 'charge'
 
-            print(f'{record_id:2}  {status:9}   {volts:4} {power:5}   {temp:4}')
+        # get remaining data
+        for item in data:
+            if isinstance(item, sapphiredata.BattRecordStart):
+                break
+
+            data_sets[record_id].append(item)
+
+        
+        print('')
+        print('ID     Status      Volts Power   Temp')
+
+        # for item in data:
+        for record_id, data in data_sets.items():
+            for item in data:
+                record_type = item.flags
+
+                volts = 2500 + item.volts * 8
+                power = item.pix_power * 64
+                temp = item.temp
+
+                status = 'idle'
+
+                if record_type == sapphiredata.BATT_RECORD_TYPE_DISCHARGE:
+                    status = 'discharge'
+
+                elif record_type == sapphiredata.BATT_RECORD_TYPE_CHARGE:
+                    status = 'charge'
+
+                print(f'{record_id:5}  {status:9}   {volts:4}  {power:5} {temp:4}')
 
         return ''
 
