@@ -111,7 +111,7 @@ static void enable_mcu_power( void ){
     // latch on MCU power
 
     io_v_set_mode( MCP73831_IO_MCU_PWR, IO_MODE_OUTPUT );    
-    io_v_digital_write( MCP73831_IO_MCU_PWR, 0 );
+    io_v_digital_write( MCP73831_IO_MCU_PWR, 1 );
 }
 
 
@@ -131,8 +131,8 @@ void mcp73831_v_init( void ){
 
 void mcp73831_v_shutdown( void ){
 
-    io_v_set_mode( MCP73831_IO_MCU_PWR, IO_MODE_INPUT );    
-    // io_v_digital_write( MCP73831_IO_MCU_PWR, 1 );
+    io_v_set_mode( MCP73831_IO_MCU_PWR, IO_MODE_OUTPUT );    
+    io_v_digital_write( MCP73831_IO_MCU_PWR, 0 );
 }
 
 void mcp73831_v_enable_pixels( void ){
