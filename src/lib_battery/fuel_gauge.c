@@ -303,11 +303,9 @@ static void record_data( void ){
         }
     }
 
+    previous_record_flags = flags;
 
     flags |= ( record_id & FUEL_GAUGE_RECORD_ID_MASK );
-
-
-    previous_record_flags = flags;
 
     // compress sensor data to 8 bits
     uint8_t compressed_volts = ( filtered_60sec_batt_volts - 2500 ) / 8;

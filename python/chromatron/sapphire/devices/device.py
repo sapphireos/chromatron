@@ -1677,11 +1677,11 @@ class Device(object):
             return
 
         print('')
-        print('ID Status  Volts Power   Temp')
+        print('ID  Status      Volts Power   Temp')
 
         for item in data:
-            record_type = item.flags & BATT_RECORD_TYPE_MASK
-            record_id = item.flags & BATT_RECORD_ID_MASK
+            record_type = item.flags & sapphiredata.BATT_RECORD_TYPE_MASK
+            record_id = item.flags & sapphiredata.BATT_RECORD_ID_MASK
 
             volts = 2500 + item.volts * 8
             power = item.pix_power * 64
@@ -1689,15 +1689,15 @@ class Device(object):
 
             status = 'idle'
 
-            if record_type == BATT_RECORD_TYPE_DISCHARGE:
+            if record_type == sapphiredata.BATT_RECORD_TYPE_DISCHARGE:
                 status = 'discharge'
 
-            elif record_type == BATT_RECORD_TYPE_CHARGE:
+            elif record_type == sapphiredata.BATT_RECORD_TYPE_CHARGE:
                 status = 'charge'
 
-            print(f'{record_id:2} {status:9} {volts:4} {power:5}   {temp:4}')
+            print(f'{record_id:2}  {status:9}   {volts:4} {power:5}   {temp:4}')
 
-
+        return ''
 
 def createDevice(**kwargs):
     return Device(**kwargs)
