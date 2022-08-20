@@ -29,14 +29,23 @@
 #define LION_MAX_VOLTAGE    4200
 #define LION_MIN_VOLTAGE    2900
 
-#define FUEL_MAX_DISCHARGE_FILE_SIZE    65536
+
+#define FUEL_MAX_DISCHARGE_FILE_SIZE        65536
+
+
+#define FUEL_GAUGE_RECORD_FLAGS_MASK        0b11000000
+#define FUEL_GAUGE_RECORD_ID_MASK           0b00111111
 
 typedef struct{
+    uint8_t flags;
     uint8_t batt_volts;
     uint8_t pix_power;
     int8_t batt_temp;
-    uint8_t reserved;
 } fuel_gauge_data_t;
+#define FUEL_RECORD_TYPE_IDLE               0b00000000
+#define FUEL_RECORD_TYPE_DISCHARGE          0b10000000
+#define FUEL_RECORD_TYPE_CHARGE             0b01000000
+
 
 void fuel_v_init( void );
 

@@ -386,18 +386,25 @@ class DatalogEntryArray(ArrayField):
 
         super().__init__(_field=field, **kwargs)
 
-class BattDischargeData(StructField):
+class BattRecordData(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="volts"),
+        fields = [Uint8Field(_name="flags"),
+                  Uint8Field(_name="volts"),
                   Uint8Field(_name="pix_power"),
-                  Int8Field(_name="temp"),
-                  Uint8Field(_name="reserved")]
+                  Int8Field(_name="temp")]
 
         super().__init__(_fields=fields, **kwargs)
 
-class BattDischargeDataArray(ArrayField):
+BATT_RECORD_TYPE_MASK       = 0b11000000
+BATT_RECORD_ID_MASK         = 0b00111111
+
+BATT_RECORD_TYPE_IDLE       = 0b00000000
+BATT_RECORD_TYPE_DISCHARGE  = 0b10000000
+BATT_RECORD_TYPE_CHARGE     = 0b01000000
+
+class BattRecordDataArray(ArrayField):
     def __init__(self, **kwargs):
-        field = BattDischargeData
+        field = BattRecordData
 
         super().__init__(_field=field, **kwargs)
 

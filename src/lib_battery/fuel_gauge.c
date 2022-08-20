@@ -91,6 +91,12 @@ Discharge rate at a given load.
 
 */
 
+#define MODE_UNKNOWN        0
+#define MODE_DISCHARGE      1 // discharging on battery power
+#define MODE_CHARGE         2 // charging on wall power
+#define MODE_FLOAT          3 // fully charged and running on VBUS
+static uint8_t mode;
+
 
 static uint8_t batt_soc = 50; // state of charge in percent
 static uint16_t soc_state;
@@ -99,7 +105,7 @@ static uint16_t soc_state;
 #define SOC_FILTER      64
 
 static uint32_t total_charge_cycles_percent; // in 0.01% SoC increments
-static uint16_t charge_cycle_start_volts;
+// static uint16_t charge_cycle_start_volts;
 
 
 
@@ -148,25 +154,25 @@ uint8_t fuel_u8_get_soc( void ){
 }
 
 
-static uint16_t calc_raw_soc( uint16_t volts ){
+// static uint16_t calc_raw_soc( uint16_t volts ){
 
-    uint16_t temp_soc = 0;
+//     uint16_t temp_soc = 0;
 
-    if( volts < LION_MIN_VOLTAGE ){
+//     if( volts < LION_MIN_VOLTAGE ){
 
-        temp_soc = 0;
-    }
-    else if( volts > LION_MAX_VOLTAGE ){
+//         temp_soc = 0;
+//     }
+//     else if( volts > LION_MAX_VOLTAGE ){
 
-        temp_soc = 10000;
-    }
-    else{
+//         temp_soc = 10000;
+//     }
+//     else{
 
-        temp_soc = util_u16_linear_interp( volts, LION_MIN_VOLTAGE, 0, LION_MAX_VOLTAGE, 10000 );
-    }
+//         temp_soc = util_u16_linear_interp( volts, LION_MIN_VOLTAGE, 0, LION_MAX_VOLTAGE, 10000 );
+//     }
 
-    return temp_soc;    
-}
+//     return temp_soc;    
+// }
 
 static uint8_t calc_batt_soc( uint16_t volts ){
 
@@ -232,22 +238,18 @@ static void reset_filters( void ){
 }
 
 
-#define MODE_UNKNOWN        0
-#define MODE_DISCHARGE      1 // discharging on battery power
-#define MODE_CHARGE         2 // charging on wall power
-#define MODE_FLOAT          3 // fully charged and running on VBUS
-static uint8_t mode;
-
 
 static uint64_t discharge_power_pix_accumlator;
 
 
-static fuel_gauge_data_t discharge_record_buffer[FFS_PAGE_DATA_SIZE / sizeof(fuel_gauge_data_t)];
-static uint8_t discharge_buffer_size;
+static fuel_gauge_data_t recorder_buffer[FFS_PAGE_DATA_SIZE / sizeof(fuel_gauge_data_t)];
+static uint8_t recorder_buffer_size;
+static uint8_t record_id;
+static uint8_t previous_record_flags;
 
-static void flush_discharge_buffer( void ){
+static void flush_recorder_buffer( void ){
 
-    file_t f = fs_f_open_P( PSTR("batt_discharge"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_APPEND );
+    file_t f = fs_f_open_P( PSTR("batt_recorder"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_APPEND );
 
     if( f < 0 ){
 
@@ -256,26 +258,56 @@ static void flush_discharge_buffer( void ){
 
     // check file size
     // for now, we just stop when the file is too large
+    // if( fs_i32_get_size( f ) >= FUEL_MAX_DISCHARGE_FILE_SIZE ){
+
+    //     goto end;
+    // }
+
+    fs_i16_write( f, recorder_buffer, recorder_buffer_size * sizeof(fuel_gauge_data_t) );
+
     if( fs_i32_get_size( f ) >= FUEL_MAX_DISCHARGE_FILE_SIZE ){
-
-        goto end;
-    }
-
-    fs_i16_write( f, discharge_record_buffer, discharge_buffer_size * sizeof(fuel_gauge_data_t) );
-
-
-    if( fs_i32_get_size( f ) == FUEL_MAX_DISCHARGE_FILE_SIZE ){
         
-        log_v_debug_P( PSTR("discharge recorder file limit reached") );
+        // log_v_debug_P( PSTR("discharge recorder file limit reached") );
+        fs_v_seek( f, 0 );
     }
 
-    fs_f_close( f );
 
 end:
-    discharge_buffer_size = 0;
+    fs_f_close( f );
+
+    recorder_buffer_size = 0;
 }
 
-static void record_discharge_data( void ){
+static void record_data( void ){
+
+    uint8_t flags = FUEL_RECORD_TYPE_IDLE;
+
+    if( mode == MODE_DISCHARGE ){
+
+        flags = FUEL_RECORD_TYPE_DISCHARGE;
+    }
+    else if( mode == MODE_CHARGE ){
+
+        flags = FUEL_RECORD_TYPE_CHARGE;
+    }
+
+
+    // on mode change, increment data record ID
+    if( ( previous_record_flags & FUEL_GAUGE_RECORD_ID_MASK ) != flags ){
+
+        record_id++;
+
+        if( record_id >= FUEL_GAUGE_RECORD_ID_MASK ){
+
+            record_id = 0;
+        }
+    }
+
+
+    flags |= ( record_id & FUEL_GAUGE_RECORD_ID_MASK );
+
+
+    previous_record_flags = flags;
 
     // compress sensor data to 8 bits
     uint8_t compressed_volts = ( filtered_60sec_batt_volts - 2500 ) / 8;
@@ -288,19 +320,19 @@ static void record_discharge_data( void ){
     // temp is already 8 bits so it is left as-is
 
     fuel_gauge_data_t data = {
+        flags,
         compressed_volts,
         compressed_power,
         compressed_temp,
-        0
     }; 
 
-    discharge_record_buffer[discharge_buffer_size] = data;
+    recorder_buffer[recorder_buffer_size] = data;
 
-    discharge_buffer_size++;
+    recorder_buffer_size++;
 
-    if( discharge_buffer_size >= cnt_of_array(discharge_record_buffer) ){
+    if( recorder_buffer_size >= cnt_of_array(recorder_buffer) ){
 
-        flush_discharge_buffer();        
+        flush_recorder_buffer();        
     }
 }
 
@@ -334,7 +366,7 @@ PT_BEGIN( pt );
 
             // save settings and data
 
-            flush_discharge_buffer();
+            flush_recorder_buffer();
 
             THREAD_EXIT( pt );    
         }
@@ -450,13 +482,11 @@ PT_BEGIN( pt );
             }
         }
 
-        // every 10 minutes
-        if( ( counter % 600 ) == 0 ){
+        // every 5 minutes
+        // if( ( counter % 300 ) == 0 ){
+        if( ( counter % 30 ) == 0 ){
 
-            if( mode == MODE_DISCHARGE ){
-
-                record_discharge_data();
-            }
+            record_data();
         }
 
 

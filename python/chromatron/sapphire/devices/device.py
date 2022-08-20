@@ -659,10 +659,10 @@ class Device(object):
 
         return info
 
-    def get_batt_discharge(self):
-        data = self.get_file("batt_discharge")
+    def get_batt_records(self):
+        data = self.get_file("batt_recorder")
 
-        info = sapphiredata.BattDischargeDataArray()
+        info = sapphiredata.BattRecordDataArray()
         info.unpack(data)
 
         return info
@@ -1668,23 +1668,34 @@ class Device(object):
 
         self.put_file('datalog_config', data.pack())
 
-    def cli_batt_discharge_info(self, line):
+    def cli_batt_recorder_info(self, line):
         try:
-            data = self.get_batt_discharge()
+            data = self.get_batt_records()
 
         except OSError:
             # file not found
             return
 
         print('')
-        print('Volts Power   Temp')
+        print('ID Status  Volts Power   Temp')
 
         for item in data:
+            record_type = item.flags & BATT_RECORD_TYPE_MASK
+            record_id = item.flags & BATT_RECORD_ID_MASK
+
             volts = 2500 + item.volts * 8
             power = item.pix_power * 64
             temp = item.temp
 
-            print(f' {volts:4} {power:5}   {temp:4}')
+            status = 'idle'
+
+            if record_type == BATT_RECORD_TYPE_DISCHARGE:
+                status = 'discharge'
+
+            elif record_type == BATT_RECORD_TYPE_CHARGE:
+                status = 'charge'
+
+            print(f'{record_id:2} {status:9} {volts:4} {power:5}   {temp:4}')
 
 
 
