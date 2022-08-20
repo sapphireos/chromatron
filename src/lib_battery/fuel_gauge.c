@@ -353,6 +353,8 @@ static void record_data( void ){
         };
 
         insert_record( &start );
+
+        log_v_debug_P( PSTR("batt record start: %d"), record_id );
     }
 
     previous_record_flags = flags;
@@ -531,7 +533,10 @@ PT_BEGIN( pt );
         // if( ( counter % 300 ) == 0 ){
         if( ( counter % 5 ) == 0 ){
 
-            record_data();
+            if( mode != MODE_UNKNOWN ){
+
+                record_data();    
+            }
         }
 
 

@@ -1712,7 +1712,10 @@ class Device(object):
 
                 status = 'idle'
 
-                if record_type == sapphiredata.BATT_RECORD_TYPE_DISCHARGE:
+                if record_type == sapphiredata.BATT_RECORD_TYPE_BLANK:
+                    continue
+
+                elif record_type == sapphiredata.BATT_RECORD_TYPE_DISCHARGE:
                     status = 'discharge'
 
                 elif record_type == sapphiredata.BATT_RECORD_TYPE_CHARGE:

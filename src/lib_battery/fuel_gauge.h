@@ -33,7 +33,7 @@
 #define FUEL_MAX_DISCHARGE_FILE_SIZE        65536
 
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint8_t flags;
     uint8_t batt_volts;
     uint8_t pix_power;
@@ -44,7 +44,7 @@ typedef struct{
 #define FUEL_RECORD_TYPE_DISCHARGE          0b10000000
 #define FUEL_RECORD_TYPE_CHARGE             0b01000000
 
-typedef struct{
+typedef struct __attribute__((packed)){
     uint8_t flags;
     uint16_t record_id;
     uint8_t padding;
