@@ -386,6 +386,14 @@ class DatalogEntryArray(ArrayField):
 
         super().__init__(_field=field, **kwargs)
 
+class BattRecordStart(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint8Field(_name="flags"),
+                  Uint16Field(_name="record_id"),
+                  Uint8Field(_name="padding")]
+
+        super().__init__(_fields=fields, **kwargs)
+
 class BattRecordData(StructField):
     def __init__(self, **kwargs):
         fields = [Uint8Field(_name="flags"),
@@ -395,12 +403,11 @@ class BattRecordData(StructField):
 
         super().__init__(_fields=fields, **kwargs)
 
-BATT_RECORD_TYPE_MASK       = 0b11000000
-BATT_RECORD_ID_MASK         = 0b00111111
-
-BATT_RECORD_TYPE_IDLE       = 0b00000000
+BATT_RECORD_TYPE_BLANK      = 0b00000000
+BATT_RECORD_TYPE_IDLE       = 0b00100000
 BATT_RECORD_TYPE_DISCHARGE  = 0b10000000
 BATT_RECORD_TYPE_CHARGE     = 0b01000000
+BATT_RECORD_TYPE_START      = 0b11000000
 
 class BattRecordDataArray(ArrayField):
     def __init__(self, **kwargs):
@@ -408,6 +415,7 @@ class BattRecordDataArray(ArrayField):
 
         super().__init__(_field=field, **kwargs)
 
+    
 
 
 raw_events = """

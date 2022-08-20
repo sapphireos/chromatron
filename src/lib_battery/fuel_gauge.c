@@ -244,10 +244,11 @@ static uint64_t discharge_power_pix_accumlator;
 
 static fuel_gauge_data_t recorder_buffer[FFS_PAGE_DATA_SIZE / sizeof(fuel_gauge_data_t)];
 static uint8_t recorder_buffer_size;
-static uint8_t record_id;
+
+static uint16_t record_id;
 static uint8_t previous_record_flags;
 
-static void flush_recorder_buffer( void ){
+static void init_recorder( void ){
 
     file_t f = fs_f_open_P( PSTR("batt_recorder"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_APPEND );
 
@@ -256,15 +257,52 @@ static void flush_recorder_buffer( void ){
         goto end;
     }
 
+    // search for record start
+
+    fuel_gauge_record_start_t start;
+
+    while( fs_i16_read( f, &start, sizeof(start) ) == sizeof(start) ){
+
+        if( start.flags == FUEL_RECORD_TYPE_RECORD_START ){
+
+            if( start.record_id > record_id ){
+
+                record_id = start.record_id;
+            }
+        }
+    }
+
+    // pad file to page size
+    while( ( fs_i32_get_size( f ) % FFS_PAGE_DATA_SIZE ) != 0 ){
+
+        fuel_gauge_record_start_t blank;
+        memset( &blank, 0, sizeof(blank) );
+
+        fs_i16_write( f, &blank, sizeof(blank) );
+    }
+
+end:
+    if( f > 0 ){
+
+        fs_f_close( f );   
+    }
+}
+
+static void flush_recorder_buffer( void ){
+
+    file_t f = fs_f_open_P( PSTR("batt_recorder"), FS_MODE_WRITE_APPEND );
+
+    if( f < 0 ){
+
+        goto end;
+    }
+
     // check file size
-    // for now, we just stop when the file is too large
     // if( fs_i32_get_size( f ) >= FUEL_MAX_DISCHARGE_FILE_SIZE ){
 
     //     goto end;
     // }
-
-    fs_i16_write( f, recorder_buffer, recorder_buffer_size * sizeof(fuel_gauge_data_t) );
-
+    
     if( fs_i32_get_size( f ) >= FUEL_MAX_DISCHARGE_FILE_SIZE ){
         
         // log_v_debug_P( PSTR("discharge recorder file limit reached") );
@@ -272,10 +310,28 @@ static void flush_recorder_buffer( void ){
     }
 
 
+    fs_i16_write( f, recorder_buffer, recorder_buffer_size * sizeof(fuel_gauge_data_t) );
+
+
 end:
-    fs_f_close( f );
+    if( f > 0 ){
+
+        fs_f_close( f );   
+    }
 
     recorder_buffer_size = 0;
+}
+
+static void insert_record( void *record ){
+
+    memcpy( &recorder_buffer[recorder_buffer_size], record, sizeof(fuel_gauge_data_t) );
+
+    recorder_buffer_size++;
+
+    if( recorder_buffer_size >= cnt_of_array(recorder_buffer) ){
+
+        flush_recorder_buffer();        
+    }
 }
 
 static void record_data( void ){
@@ -293,19 +349,21 @@ static void record_data( void ){
 
 
     // on mode change, increment data record ID
-    if( ( previous_record_flags & FUEL_GAUGE_RECORD_ID_MASK ) != flags ){
+    if( previous_record_flags != flags ){
 
         record_id++;
 
-        if( record_id >= FUEL_GAUGE_RECORD_ID_MASK ){
+        fuel_gauge_record_start_t start = {
+            FUEL_RECORD_TYPE_RECORD_START,
+            record_id,
+            0
+        };
 
-            record_id = 0;
-        }
+        insert_record( &start );
     }
 
     previous_record_flags = flags;
 
-    flags |= ( record_id & FUEL_GAUGE_RECORD_ID_MASK );
 
     // compress sensor data to 8 bits
     uint8_t compressed_volts = ( filtered_60sec_batt_volts - 2500 ) / 8;
@@ -324,14 +382,7 @@ static void record_data( void ){
         compressed_temp,
     }; 
 
-    recorder_buffer[recorder_buffer_size] = data;
-
-    recorder_buffer_size++;
-
-    if( recorder_buffer_size >= cnt_of_array(recorder_buffer) ){
-
-        flush_recorder_buffer();        
-    }
+    insert_record( &data );
 }
 
 
@@ -349,6 +400,9 @@ PT_BEGIN( pt );
 
     // initialize filters
     reset_filters();
+
+
+    init_recorder();
 
     thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
 

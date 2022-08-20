@@ -33,18 +33,23 @@
 #define FUEL_MAX_DISCHARGE_FILE_SIZE        65536
 
 
-#define FUEL_GAUGE_RECORD_FLAGS_MASK        0b11000000
-#define FUEL_GAUGE_RECORD_ID_MASK           0b00111111
-
 typedef struct{
     uint8_t flags;
     uint8_t batt_volts;
     uint8_t pix_power;
     int8_t batt_temp;
 } fuel_gauge_data_t;
-#define FUEL_RECORD_TYPE_IDLE               0b00000000
+#define FUEL_RECORD_TYPE_BLANK              0b00000000
+#define FUEL_RECORD_TYPE_IDLE               0b00100000
 #define FUEL_RECORD_TYPE_DISCHARGE          0b10000000
 #define FUEL_RECORD_TYPE_CHARGE             0b01000000
+
+typedef struct{
+    uint8_t flags;
+    uint16_t record_id;
+    uint8_t padding;
+} fuel_gauge_record_start_t;
+#define FUEL_RECORD_TYPE_RECORD_START       0b11000000
 
 
 void fuel_v_init( void );
