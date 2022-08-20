@@ -250,7 +250,7 @@ static uint8_t previous_record_flags;
 
 static void init_recorder( void ){
 
-    file_t f = fs_f_open_P( PSTR("batt_recorder"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_APPEND );
+    file_t f = fs_f_open_P( PSTR("batt_recorder"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_OVERWRITE );
 
     if( f < 0 ){
 
@@ -264,6 +264,8 @@ static void init_recorder( void ){
     while( fs_i16_read( f, &start, sizeof(start) ) == sizeof(start) ){
 
         if( start.flags == FUEL_RECORD_TYPE_RECORD_START ){
+
+            log_v_debug_P( PSTR("start record found %d"), start.record_id );
 
             if( start.record_id > record_id ){
 
