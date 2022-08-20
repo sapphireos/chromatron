@@ -32,6 +32,7 @@
 
 #define FUEL_MAX_DISCHARGE_FILE_SIZE        65536
 
+#define BATT_RECORDER_RATE                  300
 
 typedef struct __attribute__((packed)){
     uint8_t flags;
@@ -47,7 +48,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint8_t flags;
     uint16_t record_id;
-    uint8_t padding;
+    uint8_t rate;
 } fuel_gauge_record_start_t;
 #define FUEL_RECORD_TYPE_RECORD_START       0b11000000
 

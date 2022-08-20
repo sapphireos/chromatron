@@ -1677,6 +1677,7 @@ class Device(object):
             return
 
         data_sets = {}
+        rates = {}
 
         record_id = None
         for item in data:
@@ -1685,6 +1686,7 @@ class Device(object):
                 record_id = item.record_id
 
                 data_sets[record_id] = []
+                rates[record_id] = item.rate * 10
 
             elif record_id is not None:
                 data_sets[record_id].append(item)
@@ -1703,6 +1705,8 @@ class Device(object):
 
         # for item in data:
         for record_id, data in data_sets.items():
+            print(f'Record ID: {record_id} Rate: {rates[record_id]}')
+            
             for item in data:
                 record_type = item.flags
 

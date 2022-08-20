@@ -351,7 +351,7 @@ static void record_data( void ){
         fuel_gauge_record_start_t start = {
             FUEL_RECORD_TYPE_RECORD_START,
             record_id,
-            0
+            BATT_RECORDER_RATE / 10, // 10 second increments for rate field
         };
 
         insert_record( &start );
@@ -532,8 +532,7 @@ PT_BEGIN( pt );
         }
 
         // every 5 minutes
-        // if( ( counter % 300 ) == 0 ){
-        if( ( counter % 5 ) == 0 ){
+        if( ( counter % BATT_RECORDER_RATE ) == 0 ){
 
             if( mode != MODE_UNKNOWN ){
 

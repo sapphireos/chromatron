@@ -391,7 +391,7 @@ class BattRecordStart(StructField):
     def __init__(self, **kwargs):
         fields = [Uint8Field(_name="flags"),
                   Uint16Field(_name="record_id"),
-                  Uint8Field(_name="padding")]
+                  Uint8Field(_name="rate")]
 
         super().__init__(_fields=fields, **kwargs)
 
@@ -428,7 +428,7 @@ class BattRecordDataArray(ArrayField):
 
             else:
                 field = self._field()
-                
+
             self._fields.append(field.unpack(buffer))
 
             buffer = buffer[field.size():]
