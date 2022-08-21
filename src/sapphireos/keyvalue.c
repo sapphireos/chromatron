@@ -362,6 +362,7 @@ void kv_v_reset_cache( void ){
 
 int8_t lookup_index( uint16_t index, kv_meta_t *meta )
 {
+    // fixed KV entries:
     if( index < _kv_u16_fixed_count() ){
 
         // GCC is getting a bit *too* smart about looking for array bounds issues.
@@ -374,12 +375,15 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
         // load meta data
         memcpy_P( meta, ptr, sizeof(kv_meta_t) );
     }
+    // optional dynamically linked entries:
     else if( ( index >= _kv_u16_fixed_count() ) &&
-             ( ( index + _kv_u16_fixed_count() ) < _kv_u16_optional_count() ) ){
+             ( index < ( _kv_u16_fixed_count() + _kv_u16_optional_count() ) ) ){
 
         list_node_t ln = kv_opt_list.head;
 
         uint16_t sub_index = _kv_u16_fixed_count();
+
+        trace_printf("lookup idx %u \r\n", index );
 
         while( ln >= 0 ){
 
@@ -390,7 +394,9 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
 
                 if( sub_index == index ){
 
-                    memcpy_P( meta, info->meta, sizeof(kv_meta_t) );
+                    trace_printf("found count %u subidx %u \r\n", info->count, sub_index );
+
+                    memcpy_P( meta, opt_meta, sizeof(kv_meta_t) );
 
                     goto done;
                 }
@@ -403,6 +409,7 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
             ln = list_ln_next( ln );
         }
     }
+    // runtime dynamic DB:
     else if( index < kv_u16_count() ){
 
         // compute dynamic index
@@ -454,9 +461,15 @@ int8_t kv_i8_lookup_index_with_name( uint16_t index, kv_meta_t *meta ){
 
     // static KV already loads the name.
     // check if dynamic
-    if( ( index >= _kv_u16_fixed_count() ) && ( index < kv_u16_count() ) ){
+    if( ( index >= ( _kv_u16_fixed_count() + _kv_u16_optional_count() ) ) && ( index < kv_u16_count() ) ){
 
         status = kvdb_i8_lookup_name( meta->hash, meta->name );    
+    }
+
+    if( status < 0 ){
+
+        trace_printf("idx %d  status %d fixed %u  opt %u  total %u \r\n", index, status, _kv_u16_fixed_count(), _kv_u16_optional_count(), kv_u16_count() );
+
     }
 
     return status;

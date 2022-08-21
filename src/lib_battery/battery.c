@@ -136,9 +136,12 @@ static uint8_t batt_request_shutdown;
 #define EMERGENCY_CUTOFF_VOLTAGE ( BATT_CUTOFF_VOLTAGE - 100 ) // set 100 mv below the main cutoff, to give a little headroom
 
 
-KV_SECTION_META kv_meta_t battery_info_kv[] = {
+KV_SECTION_META kv_meta_t battery_enable_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable,                 0,  "batt_enable" },
 
+};
+
+KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
     #ifndef ESP8266
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable_mcp73831,        0,  "batt_enable_mcp73831" },
     #endif
@@ -259,6 +262,19 @@ PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
 
 void batt_v_init( void ){
 
+    set_batt_capacity();
+
+    energy_v_init();
+
+    if( !batt_enable ){
+
+        pixels_enabled = TRUE;
+
+        return;
+    }
+
+    kv_v_add_db_info( battery_info_kv, sizeof(battery_info_kv) );
+
     #if defined(ESP8266)
     ui_button = IO_PIN_6_DAC0;
     #elif defined(ESP32)
@@ -274,15 +290,6 @@ void batt_v_init( void ){
         ui_button = IO_PIN_17_TX;
     }
     #endif
-
-    energy_v_init();
-
-    if( !batt_enable ){
-
-        pixels_enabled = TRUE;
-
-        return;
-    }
 
     if( batt_enable_mcp73831 ){
 

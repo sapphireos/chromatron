@@ -139,7 +139,7 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
-    kv_v_add_db_info( bat_info_kv, sizeof(bat_info_kv) );
+    kv_v_add_db_info( bq25895_info_kv, sizeof(bq25895_info_kv) );
 
     bq25895_v_read_all();
 
