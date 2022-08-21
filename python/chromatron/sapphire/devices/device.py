@@ -659,6 +659,14 @@ class Device(object):
 
         return info
 
+    def get_batt_records(self):
+        data = self.get_file("batt_recorder")
+
+        info = sapphiredata.BattRecordDataArray()
+        info.unpack(data)
+
+        return info
+
 
     # helper for testing mostly
     def wait_service(self, service_id, group, state=None, timeout=30.0):
@@ -1661,6 +1669,68 @@ class Device(object):
 
         self.put_file('datalog_config', data.pack())
 
+    def cli_batt_recorder_info(self, line):
+        try:
+            data = self.get_batt_records()
+
+        except OSError:
+            # file not found
+            return
+
+        data_sets = {}
+        rates = {}
+
+        record_id = None
+        for item in data:
+
+            if isinstance(item, sapphiredata.BattRecordStart):
+                record_id = item.record_id
+
+                data_sets[record_id] = []
+                rates[record_id] = item.rate * 10
+
+            elif record_id is not None:
+                data_sets[record_id].append(item)
+
+
+        # get remaining data
+        for item in data:
+            if isinstance(item, sapphiredata.BattRecordStart):
+                break
+
+            data_sets[record_id].append(item)
+
+        
+        print('')
+        print('ID     Status      Volts Power   Temp')
+
+        # for item in data:
+        for record_id, data in data_sets.items():
+            print(f'Record ID: {record_id} Rate: {rates[record_id]}')
+            
+            for item in data:
+                record_type = item.flags
+
+                volts = 2500 + item.volts * 8
+                power = item.pix_power * 64
+                temp = item.temp
+
+                status = 'idle'
+
+                if record_type == sapphiredata.BATT_RECORD_TYPE_BLANK:
+                    continue
+
+                elif record_type == sapphiredata.BATT_RECORD_TYPE_DISCHARGE:
+                    status = 'discharge'
+
+                elif record_type == sapphiredata.BATT_RECORD_TYPE_CHARGE:
+                    status = 'charge'
+
+                print(f'{record_id:5}  {status:9}   {volts:4}  {power:5} {temp:4}')
+
+            print('')
+
+        return ''
 
 def createDevice(**kwargs):
     return Device(**kwargs)

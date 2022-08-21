@@ -33,6 +33,7 @@
 
 #include "energy.h"
 #include "battery.h"
+#include "fuel_gauge.h"
 
 #include "bq25895.h"
 #include "pca9536.h"
@@ -43,6 +44,8 @@
 #ifdef ENABLE_BATTERY
 
 static bool batt_enable;
+static bool batt_enable_mcp73831;
+
 static int8_t batt_ui_state;
 static bool request_pixels_enabled = FALSE;
 static bool request_pixels_disabled = FALSE;
@@ -50,6 +53,77 @@ static bool pixels_enabled = FALSE;
 static uint8_t button_state;
 static uint8_t ui_button;
 static bool fan_on;
+
+
+static uint16_t batt_max_charge_voltage = BATT_MAX_FLOAT_VOLTAGE;
+static uint16_t batt_min_discharge_voltage = BATT_CUTOFF_VOLTAGE;
+
+static uint8_t batt_cells; // number of cells in system
+static uint16_t cell_capacity; // mAh capacity of each cell
+static uint32_t total_nameplate_capacity;
+
+
+
+static void set_batt_capacity( void ){
+
+    uint8_t n_cells = batt_cells;
+
+    if( n_cells < 1 ){
+
+        n_cells = 1;
+    }
+
+    if( cell_capacity == 0 ){
+
+        cell_capacity = 3400; // default to NCR18650B
+    }
+
+    total_nameplate_capacity = n_cells * cell_capacity;
+}
+
+
+int8_t batt_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+
+    }
+    else if( op == KV_OP_SET ){
+
+        if( hash == __KV__batt_max_charge_voltage ){
+
+            // clamp charge voltage
+            if( batt_max_charge_voltage > BATT_MAX_FLOAT_VOLTAGE ){
+
+                batt_max_charge_voltage = BATT_MAX_FLOAT_VOLTAGE;
+            }
+        }
+        else if( hash == __KV__batt_min_discharge_voltage ){
+
+            // clamp charge voltage
+            if( batt_min_discharge_voltage < BATT_CUTOFF_VOLTAGE ){
+
+                batt_min_discharge_voltage = BATT_CUTOFF_VOLTAGE;
+            }
+        }   
+        else if( ( hash == __KV__batt_cells ) ||
+                 ( hash == __KV__batt_cell_capacity ) ||
+                 ( hash == __KV__batt_nameplate_capacity ) ){
+
+            set_batt_capacity();
+        }
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    return 0;
+}
+
 
 static uint8_t batt_state;
 #define BATT_STATE_OK           0
@@ -59,17 +133,29 @@ static uint8_t batt_state;
 static uint8_t batt_request_shutdown;
 
 
-#define EMERGENCY_CUTOFF_VOLTAGE ( BQ25895_CUTOFF_VOLTAGE - 100 ) // set 100 mv below the main cutoff, to give a little headroom
+#define EMERGENCY_CUTOFF_VOLTAGE ( BATT_CUTOFF_VOLTAGE - 100 ) // set 100 mv below the main cutoff, to give a little headroom
 
 
-KV_SECTION_META kv_meta_t ui_info_kv[] = {
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable,           0,   "batt_enable" },
-    { CATBUS_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,         0,   "batt_ui_state" },
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,        0,   "batt_pixel_power" },
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,            0,   "batt_state" },
-    { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown, 0,   "batt_request_shutdown" },
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,          0,   "batt_button_state" },
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                0,   "batt_fan_on" },
+KV_SECTION_META kv_meta_t battery_info_kv[] = {
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable,                 0,  "batt_enable" },
+
+    #ifndef ESP8266
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable_mcp73831,        0,  "batt_enable_mcp73831" },
+    #endif
+    
+    { CATBUS_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,               0,  "batt_ui_state" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,              0,  "batt_pixel_power" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,                  0,  "batt_state" },
+    { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                      0,  "batt_fan_on" },
+    
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_min_discharge_voltage,  batt_kv_handler,  "batt_min_discharge_voltage" },
+
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_PERSIST,    &batt_cells,                  batt_kv_handler,  "batt_cells" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &cell_capacity,               batt_kv_handler,  "batt_cell_capacity" },
+    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity,    batt_kv_handler,  "batt_nameplate_capacity" },
 };
 
 
@@ -171,7 +257,6 @@ static bool pca9536_enabled;
 
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
 
-
 void batt_v_init( void ){
 
     #if defined(ESP8266)
@@ -199,12 +284,14 @@ void batt_v_init( void ){
         return;
     }
 
-    if( bq25895_i8_init() < 0 ){
+    if( batt_enable_mcp73831 ){
+
+        mcp73831_v_init();
+    }
+    else if( bq25895_i8_init() < 0 ){
 
         return;
     }
-
-    log_v_info_P( PSTR("BQ25895 detected") );
 
     if( pca9536_i8_init() == 0 ){
 
@@ -220,6 +307,9 @@ void batt_v_init( void ){
 
         io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
     }
+
+    set_batt_capacity();
+    fuel_v_init();
 
     trace_printf("Battery controller enabled\n");
 
@@ -239,6 +329,16 @@ void batt_v_init( void ){
 
     // fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
     // fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
+}
+
+uint16_t batt_u16_get_charge_voltage( void ){
+
+    return batt_max_charge_voltage;
+}
+
+uint16_t batt_u16_get_discharge_voltage( void ){
+
+    return batt_min_discharge_voltage;
 }
 
 static bool _ui_b_button_down( uint8_t ch ){
@@ -320,6 +420,113 @@ bool batt_b_pixels_enabled( void ){
     return pixels_enabled;
 }
 
+
+int8_t batt_i8_get_batt_temp( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return -127;
+    }
+
+    return bq25895_i8_get_temp();
+}
+
+uint16_t batt_u16_get_vbus_volts( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return mcp73831_u16_get_vbus_volts();
+    }
+
+    return bq25895_u16_read_vbus();
+}
+
+uint16_t batt_u16_get_batt_volts( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return mcp73831_u16_get_batt_volts();
+    }
+
+    return bq25895_u16_get_batt_voltage();
+}
+
+uint8_t batt_u8_get_soc( void ){
+
+    return fuel_u8_get_soc();    
+}
+
+bool batt_b_is_charging( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return mcp73831_b_is_charging();        
+    }
+
+    return bq25895_b_is_charging();
+}
+
+bool batt_b_is_wall_power( void ){
+
+    if( batt_u16_get_vbus_volts() >= BATT_WALL_POWER_THRESHOLD ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+bool batt_b_is_batt_fault( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return 0;
+    }
+
+    return bq25895_u8_get_faults() != 0;
+}
+
+uint16_t batt_u16_get_nameplate_capacity( void ){
+
+    return total_nameplate_capacity;
+}
+
+
+static int8_t get_case_temp( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return -127;
+    }
+
+    return bq25895_i8_get_case_temp();
+}
+
+// static int8_t get_ambient_temp( void ){
+
+//     if( batt_enable_mcp73831 ){
+
+//         return -127;
+//     }
+
+//     return bq25895_i8_get_ambient_temp();
+// }
+
+static void shutdown_power( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        mcp73831_v_shutdown();
+
+        return;
+    }
+
+    bq25895_v_enable_ship_mode( FALSE );
+    bq25895_v_enable_ship_mode( FALSE );
+    bq25895_v_enable_ship_mode( FALSE );
+}
+
+
 #if defined(ESP32)
 
 #define FAN_IO IO_PIN_19_MISO
@@ -370,9 +577,9 @@ PT_BEGIN( pt );
             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 0 );
 
-            if( ( bq25895_i8_get_temp() >= 38 ) ||
-                // ( bq25895_i8_get_case_temp() > ( bq25895_i8_get_ambient_temp() + 2 ) ) ||
-                ( bq25895_i8_get_case_temp() >= 55 ) ){
+            if( ( batt_i8_get_batt_temp() >= 38 ) ||
+                // ( get_case_temp() > ( get_ambient_temp() + 2 ) ) ||
+                ( get_case_temp() >= 55 ) ){
 
                 fan_on = TRUE;
             }
@@ -385,9 +592,9 @@ PT_BEGIN( pt );
             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 1 );
 
-            if( ( bq25895_i8_get_temp() <= 37 ) &&
-                // ( bq25895_i8_get_case_temp() <= ( bq25895_i8_get_ambient_temp() + 1 ) ) &&
-                ( bq25895_i8_get_case_temp() <= 52 ) ){
+            if( ( batt_i8_get_batt_temp() <= 37 ) &&
+                // ( get_case_temp() <= ( get_ambient_temp() + 1 ) ) &&
+                ( get_case_temp() <= 52 ) ){
 
                 fan_on = FALSE;
             }
@@ -399,11 +606,11 @@ PT_END( pt );
 
 #endif
 
+
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    
+        
     #if defined(ESP32)
 
     if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
@@ -416,13 +623,13 @@ PT_BEGIN( pt );
     #endif
 
     // wait until battery controller has started and is reporting voltage
-    THREAD_WAIT_WHILE( pt, bq25895_u16_get_batt_voltage() == 0 );
+    THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
 
     while(1){
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
 
-        // check if pixels should be enabled:
+        // check if pixels should be ENabled:
         if( request_pixels_enabled ){
 
             request_pixels_disabled = FALSE;
@@ -435,6 +642,10 @@ PT_BEGIN( pt );
                 TMR_WAIT( pt, 40 );
 
                 pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
+            }
+            else if( batt_enable_mcp73831 ){
+
+                mcp73831_v_enable_pixels();
             }
             #if defined(ESP32)
             else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
@@ -455,6 +666,7 @@ PT_BEGIN( pt );
             request_pixels_enabled = FALSE;   
         }
 
+        // check if pixels should be DISabled:
         if( request_pixels_disabled ){
 
             if( pca9536_enabled ){
@@ -462,10 +674,11 @@ PT_BEGIN( pt );
                 pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
 
                 bq25895_v_set_boost_mode( FALSE );
-
-                pixels_enabled = FALSE;
             }
+            else if( batt_enable_mcp73831 ){
 
+                mcp73831_v_disable_pixels();   
+            }
             #if defined(ESP32)
             else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
@@ -473,27 +686,20 @@ PT_BEGIN( pt );
                 io_v_digital_write( ELITE_BOOST_IO, 0 );
 
                 bq25895_v_set_boost_mode( FALSE );
-
-                pixels_enabled = FALSE;
             }
             #endif
 
+            pixels_enabled = FALSE;
             request_pixels_disabled = FALSE;
         }
 
+
+
         // check charger status
-        // uint8_t charge_status = bq25895_u8_get_charge_status();
 
-        if( bq25895_b_is_charging() ||
-            ( bq25895_u16_read_vbus() > 5500 ) ||
-            ( bq25895_u8_get_faults() != 0 ) ){
-
-        // if( ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE) ||
-        //     ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE) ||
-        //     ( bq25895_u16_read_vbus() > 5500 ) ||
-        //     ( bq25895_u8_get_faults() != 0 ) ){
-
-            
+        if( batt_b_is_charging() ||
+            ( batt_u16_get_vbus_volts() > 5500 ) ||
+            ( batt_b_is_batt_fault() != 0 ) ){
 
             // disable pixels if:
             // charging
@@ -504,28 +710,16 @@ PT_BEGIN( pt );
             batt_state = BATT_STATE_OK;
 
             gfx_v_set_system_enable( FALSE );
-            
-            // vm_v_resume( 0 );
-            // vm_v_stop( VM_LAST_VM );
         }
-        // else if( charge_status == BQ25895_CHARGE_STATUS_CHARGE_DONE ){
-
-        //     batt_state = BATT_STATE_OK;
-
-        //     gfx_v_set_system_enable( TRUE );
-
-        //     vm_v_resume( 0 );
-        //     vm_v_stop( VM_LAST_VM );
-        // }
         else{ // DISCHARGE
 
             gfx_v_set_system_enable( TRUE );
 
-            uint16_t batt_volts = bq25895_u16_get_batt_voltage();
+            uint16_t batt_volts = batt_u16_get_batt_volts();
 
             // the low battery states are latching, so that a temporary increase in SOC due to voltage fluctuations will not
             // toggle between states.  States only flow towards lower SOC, unless the charger is activated.
-            if( ( bq25895_u8_get_soc() == 0 ) || ( batt_volts < EMERGENCY_CUTOFF_VOLTAGE ) ){
+            if( ( batt_u8_get_soc() == 0 ) || ( batt_volts < EMERGENCY_CUTOFF_VOLTAGE ) ){
                 // for cutoff, we also check voltage as a backup, in case the SOC calculation has a problem.
 
                 if( ( batt_state != BATT_STATE_CUTOFF ) && ( batt_volts != 0 ) ){
@@ -535,28 +729,33 @@ PT_BEGIN( pt );
 
                 batt_state = BATT_STATE_CUTOFF;
             }
-            else if( bq25895_u8_get_soc() <= 3 ){
+            else if( batt_u8_get_soc() <= 3 ){
 
                 if( batt_state < BATT_STATE_CRITICAL ){
 
                     log_v_debug_P( PSTR("Batt critical: %u"), batt_volts );
                     
                     batt_state = BATT_STATE_CRITICAL;
-
-                    // vm_v_pause( 0 );
-                    // vm_v_run_prog( "crit_batt.fxb", VM_LAST_VM );
                 }
             }
-            else if( bq25895_u8_get_soc() <= 10 ){
+            else if( batt_u8_get_soc() <= 10 ){
 
                 if( batt_state < BATT_STATE_LOW ){
 
                     log_v_debug_P( PSTR("Batt low: %u"), batt_volts );
 
                     batt_state = BATT_STATE_LOW;
+                }
+            }
 
-                    // vm_v_pause( 0 );
-                    // vm_v_run_prog( "low_batt.fxb", VM_LAST_VM );
+            if( batt_request_shutdown ){
+
+                // check if on wall power - we cannot shut down when plugged in
+                if( batt_b_is_wall_power() ){
+
+                    log_v_debug_P( PSTR("On wall power, cannot initiate power down") );
+
+                    batt_request_shutdown = FALSE;
                 }
             }
 
@@ -577,14 +776,14 @@ PT_BEGIN( pt );
 
                 THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
-                bq25895_v_enable_ship_mode( FALSE );
-                bq25895_v_enable_ship_mode( FALSE );
-                bq25895_v_enable_ship_mode( FALSE );
+                shutdown_power();
 
                 _delay_ms( 1000 );
             }
         }
 
+
+        // sample buttons:
         button_state = 0;
 
         for( uint8_t i = 0; i < MAX_BUTTONS; i++ ){
@@ -618,21 +817,20 @@ PT_BEGIN( pt );
 
             if( button_hold_duration[1] < BUTTON_WIFI_TIME ){
 
-                log_v_debug_P( PSTR("Button commanded shutdown") );
+                if( !batt_b_is_wall_power() ){
 
-                batt_ui_state = -1;
+                    log_v_debug_P( PSTR("Button commanded shutdown") );
 
-                sys_v_initiate_shutdown( 5 );
+                    batt_ui_state = -1;
 
-                THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+                    sys_v_initiate_shutdown( 5 );
 
-                bq25895_v_enable_ship_mode( FALSE );
-                bq25895_v_enable_ship_mode( FALSE );
-                bq25895_v_enable_ship_mode( FALSE );
+                    THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
-                _delay_ms( 1000 );
+                    shutdown_power();
 
-                log_v_debug_P( PSTR("wtf 2") );
+                    _delay_ms( 1000 );
+                }
             }
             else{
 

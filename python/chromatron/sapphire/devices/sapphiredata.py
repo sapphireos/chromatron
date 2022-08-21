@@ -387,6 +387,60 @@ class DatalogEntryArray(ArrayField):
         super().__init__(_field=field, **kwargs)
 
 
+class BattRecordStart(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint8Field(_name="flags"),
+                  Uint16Field(_name="record_id"),
+                  Uint8Field(_name="rate")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class BattRecordData(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint8Field(_name="flags"),
+                  Uint8Field(_name="volts"),
+                  Uint8Field(_name="pix_power"),
+                  Int8Field(_name="temp")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+BATT_RECORD_TYPE_BLANK      = 0b00000000
+BATT_RECORD_TYPE_IDLE       = 0b00100000
+BATT_RECORD_TYPE_DISCHARGE  = 0b10000000
+BATT_RECORD_TYPE_CHARGE     = 0b01000000
+BATT_RECORD_TYPE_START      = 0b11000000
+
+class BattRecordDataArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = BattRecordData
+
+        super().__init__(_field=field, **kwargs)
+
+    def unpack(self, buffer):
+        array_len = self._length
+        self._fields = []
+
+        count = 0
+
+        while len(buffer) > 0:
+            if buffer[0] == BATT_RECORD_TYPE_START:
+                field = BattRecordStart()
+
+            else:
+                field = self._field()
+
+            self._fields.append(field.unpack(buffer))
+
+            buffer = buffer[field.size():]
+            count += 1
+
+            if ( array_len > 0 ) and ( count >= array_len ):
+                break
+
+        return self
+
+
+
 
 raw_events = """
 

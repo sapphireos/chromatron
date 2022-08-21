@@ -22,32 +22,40 @@
 // </license>
  */
 
-#ifndef _MCP73831_H_
-#define _MCP73831_H_
-
-#include "target.h"
-#include "hal_io.h"
-
-#ifdef ESP32
-    #define MCP73831_IO_MCU_PWR     IO_PIN_25_A1
-    #define MCP73831_IO_PIXEL       IO_PIN_16_RX
-    #define MCP73831_IO_VBUS_MON    IO_PIN_34_A2
-#else
-
-#endif
+#ifndef _FUEL_GAUGE_H
+#define _FUEL_GAUGE_H
 
 
-void mcp73831_v_init( void );
+#define LION_MAX_VOLTAGE    4200
+#define LION_MIN_VOLTAGE    2900
 
-void mcp73831_v_shutdown( void );
 
-void mcp73831_v_enable_pixels( void );
-void mcp73831_v_disable_pixels( void );
+#define FUEL_MAX_DISCHARGE_FILE_SIZE        65536
 
-uint16_t mcp73831_u16_get_batt_volts( void );
-uint16_t mcp73831_u16_get_vbus_volts( void );
-bool mcp73831_b_is_charging( void );
+#define BATT_RECORDER_RATE                  300
 
+typedef struct __attribute__((packed)){
+    uint8_t flags;
+    uint8_t batt_volts;
+    uint8_t pix_power;
+    int8_t batt_temp;
+} fuel_gauge_data_t;
+#define FUEL_RECORD_TYPE_BLANK              0b00000000
+#define FUEL_RECORD_TYPE_IDLE               0b00100000
+#define FUEL_RECORD_TYPE_DISCHARGE          0b10000000
+#define FUEL_RECORD_TYPE_CHARGE             0b01000000
+
+typedef struct __attribute__((packed)){
+    uint8_t flags;
+    uint16_t record_id;
+    uint8_t rate;
+} fuel_gauge_record_start_t;
+#define FUEL_RECORD_TYPE_RECORD_START       0b11000000
+
+
+void fuel_v_init( void );
+
+uint8_t fuel_u8_get_soc( void );
 
 #endif
 
