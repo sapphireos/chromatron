@@ -125,20 +125,20 @@ static int8_t filtered_5min_batt_temp;
 KV_SECTION_META kv_meta_t fuel_gauge_info_kv[] = {
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_soc,                    0,  "batt_soc" },
 
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5sec_batt_volts,         0,  "batt_filtered_5sec_volts" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5sec_pix_power,          0,  "batt_filtered_5sec_pix_power" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY, &filtered_5sec_batt_temp,          0,  "batt_filtered_5sec_temp" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5sec_batt_volts,    0,  "batt_filtered_5sec_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5sec_pix_power,     0,  "batt_filtered_5sec_pix_power" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY, &filtered_5sec_batt_temp,     0,  "batt_filtered_5sec_temp" },
 
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_1min_batt_volts,         0,  "batt_filtered_1min_volts" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_1min_pix_power,          0,  "batt_filtered_1min_pix_power" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY, &filtered_1min_batt_temp,          0,  "batt_filtered_1min_temp" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_1min_batt_volts,    0,  "batt_filtered_1min_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_1min_pix_power,     0,  "batt_filtered_1min_pix_power" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY, &filtered_1min_batt_temp,     0,  "batt_filtered_1min_temp" },
 
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5min_batt_volts,         0,  "batt_filtered_5min_volts" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5min_pix_power,          0,  "batt_filtered_5min_pix_power" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY, &filtered_5min_batt_temp,          0,  "batt_filtered_5min_temp" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5min_batt_volts,    0,  "batt_filtered_5min_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5min_pix_power,     0,  "batt_filtered_5min_pix_power" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY, &filtered_5min_batt_temp,     0,  "batt_filtered_5min_temp" },
 
-
-    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_PERSIST | KV_FLAGS_READ_ONLY,    &total_charge_cycles_percent, 0,                "batt_charge_cycles_percent" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_PERSIST | 
+                              KV_FLAGS_READ_ONLY, &total_charge_cycles_percent, 0,  "batt_charge_cycles_percent" },
 };
 
 
