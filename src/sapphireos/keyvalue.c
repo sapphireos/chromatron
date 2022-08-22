@@ -96,6 +96,26 @@ KV_SECTION_META_END kv_meta_t kv_end[] = {
     { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvend" }
 };
 
+#if defined(__SIM__) || defined(BOOTLOADER)
+    #define KV_SECTION_OPT_START
+#else
+    #define KV_SECTION_OPT_START       __attribute__ ((section (".kv_opt_start"), used))
+#endif
+
+#if defined(__SIM__) || defined(BOOTLOADER)
+    #define KV_SECTION_OPT_END
+#else
+    #define KV_SECTION_OPT_END         __attribute__ ((section (".kv_opt_end"), used))
+#endif
+
+KV_SECTION_OPT_START kv_meta_t kv_opt_start[] = {
+    { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvoptstart" }
+};
+
+KV_SECTION_OPT_END kv_meta_t kv_opt_end[] = {
+    { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvoptend" }
+};
+
 
 static uint16_t _kv_u16_optional_count( void ){
 
