@@ -141,11 +141,13 @@ KV_SECTION_META kv_meta_t battery_enable_kv[] = {
 
 };
 
-KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
+KV_SECTION_OPT kv_meta_t battery_enable_mcp73831_kv[] = {
     #ifndef ESP8266
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable_mcp73831,        0,  "batt_enable_mcp73831" },
     #endif
-    
+}
+
+KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
     { CATBUS_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,               0,  "batt_ui_state" },
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,              0,  "batt_pixel_power" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,                  0,  "batt_state" },
@@ -273,7 +275,21 @@ void batt_v_init( void ){
         return;
     }
 
+    kv_v_add_db_info( battery_enable_mcp73831_kv, sizeof(battery_enable_mcp73831_kv) );
+
+    if( batt_enable_mcp73831 ){
+
+        mcp73831_v_init();
+    }
+    else if( bq25895_i8_init() < 0 ){
+
+        return;
+    }
+
+
+    // only add batt info if a battery controller is actually present
     kv_v_add_db_info( battery_info_kv, sizeof(battery_info_kv) );
+
 
     #if defined(ESP8266)
     ui_button = IO_PIN_6_DAC0;
@@ -290,15 +306,6 @@ void batt_v_init( void ){
         ui_button = IO_PIN_17_TX;
     }
     #endif
-
-    if( batt_enable_mcp73831 ){
-
-        mcp73831_v_init();
-    }
-    else if( bq25895_i8_init() < 0 ){
-
-        return;
-    }
 
     if( pca9536_i8_init() == 0 ){
 
