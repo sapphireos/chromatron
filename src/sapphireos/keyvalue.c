@@ -351,13 +351,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
             #elif defined(ESP32)
 
-            // uint32_t addr = kv_index_start + ( middle * sizeof(kv_hash_index_t) );
-
-            // spi_flash_read( addr, &opt_meta, sizeof(opt_meta) ); 
-
             memcpy_PF( &opt_meta, meta_ptr, sizeof(opt_meta) );
-
-            trace_printf("opt: %u ? %u @ 0x%x\r\n", opt_meta.hash, hash, (uint32_t)meta_ptr);
 
             #else
 
@@ -396,8 +390,6 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
         return kvdb_index;
     }
-
-    trace_printf("key not found %u\r\n", hash);
 
     return KV_ERR_STATUS_NOT_FOUND;
 }
