@@ -319,20 +319,45 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     while( ln >= 0 ){
 
         kv_opt_info_t *info = list_vp_get_data( ln );
+
+        kv_meta_t *meta_ptr = info->meta;
+        kv_meta_t opt_meta;
+        memset( &opt_meta, 0x43 ,sizeof(opt_meta));
         
-        kv_meta_t *meta = info->meta;
+        for( uint16_t i = 0; i < info->count; i++ ){
 
-        if( meta->hash == hash ){
+            #ifdef AVR
+            memcpy_PF( &opt_meta, meta_ptr, sizeof(opt_meta) );
 
-            index += _kv_u16_fixed_count();
+            #elif defined(ESP32)
 
-            // update cache
-            _kv_v_add_to_cache( hash, index );
+            // uint32_t addr = kv_index_start + ( middle * sizeof(kv_hash_index_t) );
 
-            return index;
+            // spi_flash_read( addr, &opt_meta, sizeof(opt_meta) ); 
+
+            memcpy_PF( &opt_meta, meta_ptr, sizeof(opt_meta) );
+
+            trace_printf("opt: %u ? %u @ 0x%x\r\n", opt_meta.hash, hash, (uint32_t)meta_ptr);
+
+            #else
+
+            memcpy_PF( &opt_meta, meta_ptr, sizeof(opt_meta) );
+            #endif
+
+            if( opt_meta.hash == hash ){
+
+                index += _kv_u16_fixed_count();
+
+                // update cache
+                _kv_v_add_to_cache( hash, index );
+
+                return index;
+            }
+
+            index++;
+
+            meta_ptr++;
         }
-
-        index++;
 
         ln = list_ln_next( ln );
     }    
@@ -351,6 +376,8 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
         return kvdb_index;
     }
+
+    trace_printf("key not found %u\r\n", hash);
 
     return KV_ERR_STATUS_NOT_FOUND;
 }
@@ -383,8 +410,6 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
 
         uint16_t sub_index = _kv_u16_fixed_count();
 
-        trace_printf("lookup idx %u \r\n", index );
-
         while( ln >= 0 ){
 
             kv_opt_info_t *info = list_vp_get_data( ln );
@@ -393,8 +418,6 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
             for( uint16_t i = 0; i < info->count; i++ ){
 
                 if( sub_index == index ){
-
-                    trace_printf("found count %u subidx %u \r\n", info->count, sub_index );
 
                     memcpy_P( meta, opt_meta, sizeof(kv_meta_t) );
 
