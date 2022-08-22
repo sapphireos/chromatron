@@ -1141,6 +1141,7 @@ class AppBuilder(HexBuilder):
         bindata = ih.tobinstr()
 
         kv_meta_data = []
+        kv_opt_data = []
 
         opt_section = False
         
@@ -1169,7 +1170,9 @@ class AppBuilder(HexBuilder):
             if kv_meta.param_name == "kvstart":
                 continue
 
-            # elif kv_meta.param_name == "kvend"
+            elif kv_meta.param_name == "kvend":
+                continue
+
             elif kv_meta.param_name == "kvoptstart":
                 opt_section = True
 
@@ -1178,6 +1181,9 @@ class AppBuilder(HexBuilder):
 
             elif not opt_section: # skip optional meta data
                 kv_meta_data.append(kv_meta)
+
+            elif opt_section:
+                kv_opt_data.append(kv_meta)
 
         kv_meta_by_hash = {}
 
@@ -1484,6 +1490,7 @@ class AppBuilder(HexBuilder):
         logging.info("kv index count: %d" % (len(sorted_hashes)))
         logging.info("kv index len: %d" % (len(kv_index)))
         logging.info("kv index addr: 0x%0x" % (kv_index_addr))
+        logging.info("kv opt count: %d" % (len(kv_opt_data)))
         logging.info("os name: %s" % (os_project.proj_name))
         logging.info("os version: %s" % (os_project.version))
         logging.info("app name: %s" % (self.settings['PROJ_NAME']))
