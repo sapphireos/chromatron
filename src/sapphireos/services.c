@@ -22,6 +22,22 @@
 // </license>
  */
 
+/*
+
+Possible improvements?
+
+
+- firstly - figure out if this module is behaving correctly,
+Re: weird time desync behavior usually on power outages.
+
+
+Run each service in its own thread?
+Might make state management much simpler, and this
+ptotocol has a ton of state.
+
+
+*/
+
 #include "system.h"
 #include "wifi.h"
 #include "config.h"
