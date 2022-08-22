@@ -1141,6 +1141,8 @@ class AppBuilder(HexBuilder):
         bindata = ih.tobinstr()
 
         kv_meta_data = []
+
+        opt_section = False
         
         while True:
             addr = kv_meta_addr - starting_offset
@@ -1167,10 +1169,14 @@ class AppBuilder(HexBuilder):
             if kv_meta.param_name == "kvstart":
                 continue
 
-            elif kv_meta.param_name == "kvend":
+            # elif kv_meta.param_name == "kvend"
+            elif kv_meta.param_name == "kvoptstart":
+                opt_section = True
+
+            elif kv_meta.param_name == "kvoptend":
                 break
 
-            else:
+            elif not opt_section: # skip optional meta data
                 kv_meta_data.append(kv_meta)
 
         kv_meta_by_hash = {}
