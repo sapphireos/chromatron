@@ -286,9 +286,6 @@ void batt_v_init( void ){
     if( batt_enable_mcp73831 ){
 
         mcp73831_v_init();
-
-        // mcp73831 has a fixed charge voltage:
-        batt_max_charge_voltage = MCP73831_FLOAT_VOLTAGE;
     }
     else if( bq25895_i8_init() < 0 ){
 
@@ -298,6 +295,15 @@ void batt_v_init( void ){
 
     // only add batt info if a battery controller is actually present
     kv_v_add_db_info( battery_info_kv, sizeof(battery_info_kv) );
+
+
+    if( batt_enable_mcp73831 ){
+
+        // mcp73831 has a fixed charge voltage:
+        // need to do this after the KV DB is inited:
+        batt_max_charge_voltage = MCP73831_FLOAT_VOLTAGE;
+    }
+
 
     #if defined(ESP8266)
     ui_button = IO_PIN_6_DAC0;
