@@ -81,6 +81,13 @@ SECTIONS
     *(.kv_meta_end)
     KEEP(*(.kv_meta_end))
 
+    *(.kv_opt_start)
+    KEEP(*(.kv_opt_start))
+    *(.kv_opt)
+    KEEP(*(.kv_opt))
+    *(.kv_opt_end)
+    KEEP(*(.kv_opt_end))
+
     /* Presence service meta data sections */
     *(.service_start)
     KEEP(*(.service_start))

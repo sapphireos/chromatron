@@ -33,12 +33,20 @@
 #include "crc.h"
 #include "kvdb.h"
 #include "catbus_common.h"
+#include "list.h"
 
 // #define NO_LOGGING
 #include "logging.h"
 
 #include "keyvalue.h"
 
+
+
+
+typedef struct  __attribute__((packed)){
+    catbus_hash_t32 hash;
+    uint16_t index;
+} kv_hash_index_t;
 
 #ifdef ESP32
 #include "esp_spi_flash.h"
@@ -47,12 +55,20 @@ static kv_hash_index_t *ram_index;
 
 #endif
 
+typedef struct{
+    kv_meta_t *meta;
+    uint16_t count;
+} kv_opt_info_t;
+
+static list_t kv_opt_list;
+
 static uint32_t kv_persist_writes;
 static int32_t kv_test_key;
 static int32_t kv_test_array[4];
 
 static uint64_t kv_cache_hits;
 static uint64_t kv_cache_misses;
+
 
 static uint8_t kv_cache_index;
 static kv_hash_index_t kv_cache[KV_CACHE_SIZE];
@@ -80,6 +96,43 @@ KV_SECTION_META_END kv_meta_t kv_end[] = {
     { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvend" }
 };
 
+#if defined(__SIM__) || defined(BOOTLOADER)
+    #define KV_SECTION_OPT_START
+#else
+    #define KV_SECTION_OPT_START       __attribute__ ((section (".kv_opt_start"), used))
+#endif
+
+#if defined(__SIM__) || defined(BOOTLOADER)
+    #define KV_SECTION_OPT_END
+#else
+    #define KV_SECTION_OPT_END         __attribute__ ((section (".kv_opt_end"), used))
+#endif
+
+KV_SECTION_OPT_START kv_meta_t kv_opt_start[] = {
+    { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvoptstart" }
+};
+
+KV_SECTION_OPT_END kv_meta_t kv_opt_end[] = {
+    { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvoptend" }
+};
+
+
+static uint16_t _kv_u16_optional_count( void ){
+
+    uint16_t count = 0;
+
+    list_node_t ln = kv_opt_list.head;
+
+    while( ln >= 0 ){
+
+        kv_opt_info_t *info = list_vp_get_data( ln );
+        count += info->count;
+
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
 
 static int8_t _kv_i8_dynamic_count_handler(
     kv_op_t8 op,
@@ -97,6 +150,10 @@ static int8_t _kv_i8_dynamic_count_handler(
             
             STORE16(data, kvdb_u16_db_size());
         }
+        else if( hash == __KV__kv_optional_count ){
+            
+            STORE16(data, _kv_u16_optional_count());
+        }
 
         return 0;
     }
@@ -108,6 +165,7 @@ KV_SECTION_META kv_meta_t kv_cfg[] = {
     { CATBUS_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
     { CATBUS_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
     { CATBUS_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_optional_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
     { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_hits,      0,           "kv_cache_hits" },
@@ -151,6 +209,11 @@ static int8_t _kv_i8_persist_set_internal(
     const void *data,
     uint16_t len );
 
+static int8_t _kv_i8_persist_get(
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len );
+
 static uint16_t _kv_u16_fixed_count( void ){
 
     return ( kv_end - kv_start ) - 1;
@@ -169,6 +232,8 @@ uint16_t kv_u16_count( void ){
 
     uint16_t count = _kv_u16_fixed_count();
     
+    count += _kv_u16_optional_count();
+
     count += kv_u8_get_dynamic_count();
 
     return count;
@@ -272,18 +337,63 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
         middle = ( first + last ) / 2;
     }
 
-    // try lookup by hash    
-    int16_t index = kvdb_i16_get_index_for_hash( hash );
+    // linear search through optional database
+    int16_t index = 0;
+    list_node_t ln = kv_opt_list.head;
 
-    if( index >= 0 ){
+    while( ln >= 0 ){
+
+        kv_opt_info_t *info = list_vp_get_data( ln );
+
+        kv_meta_t *meta_ptr = info->meta;
+        kv_meta_t opt_meta;
+        memset( &opt_meta, 0x43 ,sizeof(opt_meta));
+        
+        for( uint16_t i = 0; i < info->count; i++ ){
+
+            #ifdef AVR
+            memcpy_PF( &opt_meta, meta_ptr, sizeof(opt_meta) );
+
+            #elif defined(ESP32)
+
+            memcpy_PF( &opt_meta, meta_ptr, sizeof(opt_meta) );
+
+            #else
+
+            memcpy_PF( &opt_meta, meta_ptr, sizeof(opt_meta) );
+            #endif
+
+            if( opt_meta.hash == hash ){
+
+                index += _kv_u16_fixed_count();
+
+                // update cache
+                _kv_v_add_to_cache( hash, index );
+
+                return index;
+            }
+
+            index++;
+
+            meta_ptr++;
+        }
+
+        ln = list_ln_next( ln );
+    }    
+
+
+    // try lookup by hash in dynamic database
+    int16_t kvdb_index = kvdb_i16_get_index_for_hash( hash );
+
+    if( kvdb_index >= 0 ){
 
         // offset into dynamic
-        index += _kv_u16_fixed_count();
+        kvdb_index += ( _kv_u16_fixed_count() + _kv_u16_optional_count() );
 
         // update cache
-        _kv_v_add_to_cache( hash, index );
+        _kv_v_add_to_cache( hash, kvdb_index );
 
-        return index;
+        return kvdb_index;
     }
 
     return KV_ERR_STATUS_NOT_FOUND;
@@ -296,6 +406,7 @@ void kv_v_reset_cache( void ){
 
 int8_t lookup_index( uint16_t index, kv_meta_t *meta )
 {
+    // fixed KV entries:
     if( index < _kv_u16_fixed_count() ){
 
         // GCC is getting a bit *too* smart about looking for array bounds issues.
@@ -308,10 +419,41 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
         // load meta data
         memcpy_P( meta, ptr, sizeof(kv_meta_t) );
     }
+    // optional dynamically linked entries:
+    else if( ( index >= _kv_u16_fixed_count() ) &&
+             ( index < ( _kv_u16_fixed_count() + _kv_u16_optional_count() ) ) ){
+
+        list_node_t ln = kv_opt_list.head;
+
+        uint16_t sub_index = _kv_u16_fixed_count();
+
+        while( ln >= 0 ){
+
+            kv_opt_info_t *info = list_vp_get_data( ln );
+            kv_meta_t *opt_meta = info->meta;    
+
+            for( uint16_t i = 0; i < info->count; i++ ){
+
+                if( sub_index == index ){
+
+                    memcpy_P( meta, opt_meta, sizeof(kv_meta_t) );
+
+                    goto done;
+                }
+                    
+                opt_meta++;
+
+                sub_index++;
+            }
+
+            ln = list_ln_next( ln );
+        }
+    }
+    // runtime dynamic DB:
     else if( index < kv_u16_count() ){
 
         // compute dynamic index
-        index -= _kv_u16_fixed_count();
+        index -= ( _kv_u16_fixed_count() + _kv_u16_optional_count() );
 
         memset( meta, 0, sizeof(kv_meta_t) );
 
@@ -341,6 +483,8 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
         return KV_ERR_STATUS_NOT_FOUND;
     }
 
+
+done:
     return 0;
 }
 
@@ -357,9 +501,15 @@ int8_t kv_i8_lookup_index_with_name( uint16_t index, kv_meta_t *meta ){
 
     // static KV already loads the name.
     // check if dynamic
-    if( ( index >= _kv_u16_fixed_count() ) && ( index < kv_u16_count() ) ){
+    if( ( index >= ( _kv_u16_fixed_count() + _kv_u16_optional_count() ) ) && ( index < kv_u16_count() ) ){
 
         status = kvdb_i8_lookup_name( meta->hash, meta->name );    
+    }
+
+    if( status < 0 ){
+
+        trace_printf("idx %d  status %d fixed %u  opt %u  total %u \r\n", index, status, _kv_u16_fixed_count(), _kv_u16_optional_count(), kv_u16_count() );
+
     }
 
     return status;
@@ -521,6 +671,8 @@ retry:;
 
 void kv_v_init( void ){
 
+    list_v_init( &kv_opt_list );
+
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
@@ -561,6 +713,66 @@ void kv_v_init( void ){
     }
 }
 
+
+void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        log_v_error_P( PSTR("Optional KV entries not available in safe mode") );
+
+        return;
+    }
+
+    uint16_t count = len / sizeof(kv_meta_t);
+    uint16_t check = len % sizeof(kv_meta_t);
+
+    // ensure the metadata length is correct
+    if( check != 0 ){
+
+        log_v_critical_P( PSTR("fatal KV error") );
+        return;
+    }
+
+    kv_opt_info_t info = {
+        meta,  
+        count,
+    };
+
+    list_node_t ln = list_ln_create_node2( &info, sizeof(info), MEM_TYPE_KV_OPT );
+
+    if( ln < 0 ){
+
+        log_v_critical_P( PSTR("fatal KV error") );
+        return;
+    }
+
+    list_v_insert_tail( &kv_opt_list, ln );
+
+    kv_v_reset_cache();
+
+    // load items for persist storage, if available
+    for( uint16_t i = 0; i < count; i++ ){
+
+        kv_meta_t opt_meta;
+        memcpy( &opt_meta, meta, sizeof(opt_meta) );
+
+        if( opt_meta.ptr == 0 ){
+
+            continue;
+        }
+
+        uint16_t size = kv_u16_get_size_meta( &opt_meta );
+
+        if( size == CATBUS_TYPE_SIZE_INVALID ){
+
+            continue;
+        }
+
+        _kv_i8_persist_get( opt_meta.hash, opt_meta.ptr, size );
+
+        meta++;
+    }
+}
 
 
 static int8_t _kv_i8_persist_set_internal(
@@ -831,7 +1043,6 @@ int8_t kv_i8_array_set(
 
 
 static int8_t _kv_i8_persist_get(
-    kv_meta_t *meta,
     catbus_hash_t32 hash,
     void *data,
     uint16_t len )
@@ -961,7 +1172,7 @@ int8_t kv_i8_internal_get(
     else if( ( meta->flags & KV_FLAGS_PERSIST ) && ( array_len == 1 ) ){
 
         // check data from file system
-        if( _kv_i8_persist_get( meta, hash, data, max_len ) < 0 ){
+        if( _kv_i8_persist_get( hash, data, max_len ) < 0 ){
 
             // did not return any data, set default
             memset( data, 0, max_len );
@@ -1092,6 +1303,7 @@ PT_THREAD( persist_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     static kv_meta_t *ptr;
+    static kv_meta_t *end_ptr;
     static file_t f;
 
     while(1){
@@ -1109,9 +1321,15 @@ PT_BEGIN( pt );
 
         kv_meta_t meta;
         ptr = (kv_meta_t *)kv_start;
+        end_ptr = (kv_meta_t *)kv_end;
+
+        if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+            end_ptr = (kv_meta_t *)kv_opt_end;
+        }
 
         // iterate through handlers
-        while( ptr < kv_end ){
+        while( ptr < end_ptr ){
 
             // load meta data
             memcpy_P( &meta, ptr, sizeof(kv_meta_t) );

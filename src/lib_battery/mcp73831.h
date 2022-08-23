@@ -28,6 +28,9 @@
 #include "target.h"
 #include "hal_io.h"
 
+
+#define MCP73831_FLOAT_VOLTAGE 4200
+
 #ifdef ESP32
     #define MCP73831_IO_MCU_PWR     IO_PIN_25_A1
     #define MCP73831_IO_PIXEL       IO_PIN_16_RX

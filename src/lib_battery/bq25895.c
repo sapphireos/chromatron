@@ -78,7 +78,7 @@ static int16_t ambient_temp_state;
 
 static int8_t batt_temp_raw;
 
-KV_SECTION_META kv_meta_t bq25895_info_kv[] = {
+KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp,                  0,  "batt_temp" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp_raw,              0,  "batt_temp_raw" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,              0,  "batt_charging" },
@@ -111,6 +111,7 @@ KV_SECTION_META kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                  0,  "batt_case_temp" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,               0,  "batt_ambient_temp" },
     #endif
+
 };
 
 #define VOLTS_FILTER    32
@@ -138,8 +139,7 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
-
-    log_v_info_P( PSTR("BQ25895 detected") );
+    kv_v_add_db_info( bq25895_info_kv, sizeof(bq25895_info_kv) );
 
     bq25895_v_read_all();
 
@@ -1241,6 +1241,7 @@ static bool read_adc( void ){
 
         batt_volts = util_u16_ewma( temp_batt_volts, batt_volts, VOLTS_FILTER );
     }
+    
 
     sys_volts = bq25895_u16_get_sys_voltage();
     iindpm = bq25895_u16_get_iindpm();
@@ -1606,8 +1607,6 @@ PT_BEGIN( pt );
 
             continue;
         }
-
-        batt_charging =  bq25895_b_is_charging();
 
         if( dump_regs ){
 

@@ -85,10 +85,10 @@ static uint16_t batt_volts;
 static uint16_t batt_vbus_volts;
 
 
-KV_SECTION_META kv_meta_t mcp73831_info_kv[] = {
+KV_SECTION_OPT kv_meta_t mcp73831_info_kv[] = {
     // { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_mcp73831_enable_solar,           0,   "batt_enable_solar" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,                 0,  "batt2_volts" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_vbus_volts,            0,  "batt2_vbus_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,                 0,  "batt_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_vbus_volts,            0,  "batt_vbus_volts" },
 };
 
 
@@ -116,6 +116,8 @@ static void enable_mcu_power( void ){
 
 
 void mcp73831_v_init( void ){
+
+    kv_v_add_db_info( mcp73831_info_kv, sizeof(mcp73831_info_kv) );
 
     enable_mcu_power();
 

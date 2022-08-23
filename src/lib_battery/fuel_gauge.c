@@ -122,7 +122,7 @@ static uint16_t filtered_5min_pix_power;
 static int8_t filtered_5min_batt_temp;
 
 
-KV_SECTION_META kv_meta_t fuel_gauge_info_kv[] = {
+KV_SECTION_OPT kv_meta_t fuel_gauge_info_kv[] = {
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_soc,                    0,  "batt_soc" },
 
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY, &filtered_5sec_batt_volts,    0,  "batt_filtered_5sec_volts" },
@@ -148,6 +148,8 @@ PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) );
 
 
 void fuel_v_init( void ){
+
+    kv_v_add_db_info( fuel_gauge_info_kv, sizeof(fuel_gauge_info_kv) );
 
     thread_t_create( fuel_gauge_thread,
                      PSTR("batt_fuel_gauge"),

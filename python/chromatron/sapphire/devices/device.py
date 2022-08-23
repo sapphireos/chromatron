@@ -1002,6 +1002,7 @@ class Device(object):
             27: "link_consumer",
             28: "link_producer",
             29: "link_remote",
+            30: "kv_opt",
         }
 
         total_size = 0
