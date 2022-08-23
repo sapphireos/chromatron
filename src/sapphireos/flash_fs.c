@@ -91,7 +91,7 @@ void ffs_v_init( void ){
 
     ffs_gc_v_init();
 
-    trace_printf("FlashFS files: %d free space: %d ver: %d\r\n", ffs_u32_get_file_count(), ffs_u32_get_free_space(), fs_version );
+    trace_printf("FlashFS files: %u free space: %u ver: %d\r\n", ffs_u32_get_file_count(), ffs_u32_get_free_space(), fs_version );
 
     #else
 

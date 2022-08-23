@@ -209,6 +209,11 @@ static int8_t _kv_i8_persist_set_internal(
     const void *data,
     uint16_t len );
 
+static int8_t _kv_i8_persist_get(
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len );
+
 static uint16_t _kv_u16_fixed_count( void ){
 
     return ( kv_end - kv_start ) - 1;
@@ -744,6 +749,29 @@ void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
     list_v_insert_tail( &kv_opt_list, ln );
 
     kv_v_reset_cache();
+
+    // load items for persist storage, if available
+    for( uint16_t i = 0; i < count; i++ ){
+
+        kv_meta_t opt_meta;
+        memcpy( &opt_meta, meta, sizeof(opt_meta) );
+
+        if( opt_meta.ptr == 0 ){
+
+            continue;
+        }
+
+        uint16_t size = kv_u16_get_size_meta( &opt_meta );
+
+        if( size == CATBUS_TYPE_SIZE_INVALID ){
+
+            continue;
+        }
+
+        _kv_i8_persist_get( opt_meta.hash, opt_meta.ptr, size );
+
+        meta++;
+    }
 }
 
 
@@ -1015,7 +1043,6 @@ int8_t kv_i8_array_set(
 
 
 static int8_t _kv_i8_persist_get(
-    kv_meta_t *meta,
     catbus_hash_t32 hash,
     void *data,
     uint16_t len )
@@ -1145,7 +1172,7 @@ int8_t kv_i8_internal_get(
     else if( ( meta->flags & KV_FLAGS_PERSIST ) && ( array_len == 1 ) ){
 
         // check data from file system
-        if( _kv_i8_persist_get( meta, hash, data, max_len ) < 0 ){
+        if( _kv_i8_persist_get( hash, data, max_len ) < 0 ){
 
             // did not return any data, set default
             memset( data, 0, max_len );
@@ -1276,6 +1303,7 @@ PT_THREAD( persist_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     static kv_meta_t *ptr;
+    static kv_meta_t *end_ptr;
     static file_t f;
 
     while(1){
@@ -1293,9 +1321,15 @@ PT_BEGIN( pt );
 
         kv_meta_t meta;
         ptr = (kv_meta_t *)kv_start;
+        end_ptr = (kv_meta_t *)kv_end;
+
+        if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+            end_ptr = (kv_meta_t *)kv_opt_end;
+        }
 
         // iterate through handlers
-        while( ptr < kv_end ){
+        while( ptr < end_ptr ){
 
             // load meta data
             memcpy_P( &meta, ptr, sizeof(kv_meta_t) );
