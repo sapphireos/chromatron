@@ -145,7 +145,7 @@ KV_SECTION_OPT kv_meta_t battery_enable_mcp73831_kv[] = {
     #ifndef ESP8266
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable_mcp73831,        0,  "batt_enable_mcp73831" },
     #endif
-}
+};
 
 KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
     { CATBUS_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,               0,  "batt_ui_state" },
