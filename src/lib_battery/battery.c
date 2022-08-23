@@ -299,8 +299,6 @@ void batt_v_init( void ){
     // only add batt info if a battery controller is actually present
     kv_v_add_db_info( battery_info_kv, sizeof(battery_info_kv) );
 
-return;
-
     #if defined(ESP8266)
     ui_button = IO_PIN_6_DAC0;
     #elif defined(ESP32)
