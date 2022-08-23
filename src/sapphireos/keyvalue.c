@@ -733,6 +733,13 @@ void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
         return;
     }
 
+    // ensure the metadata length is correct
+    if( count == 0 ){
+
+        log_v_critical_P( PSTR("fatal KV error, invalid count.  len: %u"), len );
+        return;
+    }
+
     kv_opt_info_t info = {
         meta,  
         count,
@@ -745,7 +752,7 @@ void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
         log_v_critical_P( PSTR("fatal KV error") );
         return;
     }
-
+    
     list_v_insert_tail( &kv_opt_list, ln );
 
     kv_v_reset_cache();
