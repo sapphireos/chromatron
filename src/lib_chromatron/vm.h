@@ -35,9 +35,6 @@ void vm_v_start( uint8_t vm_id );
 void vm_v_stop( uint8_t vm_id );
 void vm_v_reset( uint8_t vm_id );
 
-void vm_v_pause( uint8_t vm_id );
-void vm_v_resume( uint8_t vm_id );
-
 void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t slot );
 
 bool vm_b_running( void );

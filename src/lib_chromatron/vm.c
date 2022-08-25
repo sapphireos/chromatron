@@ -51,8 +51,6 @@ static uint16_t vm_run_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
 static uint8_t vm_timing_status;
 
-static uint8_t vm_pause;
-
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
 
@@ -716,8 +714,6 @@ PT_BEGIN( pt );
     // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
 
-        THREAD_WAIT_WHILE( pt, vm_pause & ( 1 << state->vm_id ) );
-
         state->delay_adjust = 0;
         
         #ifdef ENABLE_TIME_SYNC
@@ -1129,7 +1125,6 @@ PT_END( pt );
 }
 
 
-// these are legacy controls from when we only had 1 VM
 void vm_v_start( uint8_t vm_id ){
 
     ASSERT( vm_id < VM_MAX_VMS );
@@ -1149,20 +1144,6 @@ void vm_v_reset( uint8_t vm_id ){
     ASSERT( vm_id < VM_MAX_VMS );
 
     vm_reset[vm_id] = TRUE;
-}
-
-void vm_v_pause( uint8_t vm_id ){
-
-    ASSERT( vm_id < VM_MAX_VMS );
-
-    vm_pause |= ( 1 << vm_id );
-}
-
-void vm_v_resume( uint8_t vm_id ){
-
-    ASSERT( vm_id < VM_MAX_VMS );
-
-    vm_pause &= ~( 1 << vm_id );
 }
 
 void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
