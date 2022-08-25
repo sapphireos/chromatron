@@ -614,9 +614,15 @@ vm_state_t* vm_p_get_state( void ){
 
 static void kill_vm( uint8_t vm_id ){
 
+    vm_run[vm_id] = FALSE;
     vm_reset[vm_id] = FALSE;
-    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
 
+    // retain halt status, otherwise reset
+    if( vm_status[vm_id] != VM_STATUS_HALT ){
+
+        vm_status[vm_id] = VM_STATUS_NOT_RUNNING;    
+    }
+    
     if( vm_threads[vm_id] <= 0 ){
 
         return;
@@ -631,10 +637,7 @@ static void kill_vm( uint8_t vm_id ){
 
     // reset VM data
     reset_published_data( state->vm_id );
-
-    // kill thread
-    thread_v_kill( vm_threads[state->vm_id] );
-
+    
     // clear thread handle
     vm_threads[state->vm_id] = -1;
 }
@@ -936,6 +939,7 @@ PT_BEGIN( pt );
 
             vm_status[state->vm_id] = VM_STATUS_HALT;
             trace_printf( "VM %d halted\r\n", state->vm_id );
+            goto exit;
         }
         else if( state->vm_return < 0 ){
 
@@ -1027,7 +1031,15 @@ static int8_t start_vm( uint8_t vm_id ){
 
 static void stop_vm( uint8_t vm_id ){
 
+    thread_t thread = vm_threads[vm_id];
+    
     kill_vm( vm_id );
+
+    if( thread > 0 ){
+
+        // kill thread
+        thread_v_kill( thread );
+    }
 
     vm_run[vm_id] = FALSE;
 
@@ -1144,6 +1156,13 @@ void vm_v_reset( uint8_t vm_id ){
     ASSERT( vm_id < VM_MAX_VMS );
 
     reset_vm( vm_id );
+}
+
+bool vm_b_halted( uint8_t vm_id ){
+
+    ASSERT( vm_id < VM_MAX_VMS );
+
+    return vm_status[vm_id] == VM_STATUS_HALT;
 }
 
 void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){

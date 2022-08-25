@@ -333,6 +333,26 @@ int8_t vm_lib_i8_libcall_built_in(
 
             break;
 
+        case __KV__vm_halted:
+            if( param_len == 0 ){
+
+                vm_id = 0;
+            }
+            else{
+
+                vm_id = params[0];
+            }
+
+            if( ( vm_id < 0 ) || ( vm_id >= VM_MAX_VMS ) ){
+
+                break;
+            }
+
+            *result = vm_b_halted( vm_id );
+
+            break;
+
+
         #ifdef ENABLE_BATTERY
         case __KV__button_pressed:
             if( param_len == 0 ){
