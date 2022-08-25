@@ -31,6 +31,7 @@
 #define VM_LAST_VM ( VM_MAX_VMS - 1 )
 
 void vm_v_init( void );
+
 void vm_v_start( uint8_t vm_id );
 void vm_v_stop( uint8_t vm_id );
 void vm_v_reset( uint8_t vm_id );

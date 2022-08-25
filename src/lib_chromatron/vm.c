@@ -1136,14 +1136,14 @@ void vm_v_stop( uint8_t vm_id ){
 
     ASSERT( vm_id < VM_MAX_VMS );
 
-    vm_run[vm_id] = FALSE;
+    stop_vm( vm_id );
 }
 
 void vm_v_reset( uint8_t vm_id ){
 
     ASSERT( vm_id < VM_MAX_VMS );
 
-    vm_reset[vm_id] = TRUE;
+    reset_vm( vm_id );
 }
 
 void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){

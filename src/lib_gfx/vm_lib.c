@@ -31,6 +31,7 @@
 #include "io.h"
 #include "gfx_lib.h"
 #include "pixel_mapper.h"
+#include "vm.h"
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
@@ -43,7 +44,7 @@ int8_t vm_lib_i8_libcall_built_in(
     // result is assumed to have been initialized to a default value
     // by the caller.
 
-	int32_t temp0, temp1, array_len;
+	int32_t temp0, temp1, array_len, vm_id;
 
     #ifdef ENABLE_PIXEL_MAPPER
     int32_t x, y, z, index, h, s, v, size;
@@ -271,6 +272,63 @@ int8_t vm_lib_i8_libcall_built_in(
                     break;
                 }
             }
+
+            break;
+
+        case __KV__vm_start:
+            if( param_len == 0 ){
+
+                vm_id = 0;
+            }
+            else{
+
+                vm_id = params[0];
+            }
+
+            if( ( vm_id < 0 ) || ( vm_id >= VM_MAX_VMS ) ){
+
+                break;
+            }
+
+            vm_v_start( vm_id );
+
+            break;
+
+        case __KV__vm_stop:
+            if( param_len == 0 ){
+
+                vm_id = 0;
+            }
+            else{
+
+                vm_id = params[0];
+            }
+
+            if( ( vm_id < 0 ) || ( vm_id >= VM_MAX_VMS ) ){
+
+                break;
+            }
+
+            vm_v_stop( vm_id );
+
+            break;
+
+        case __KV__vm_reset:
+            if( param_len == 0 ){
+
+                vm_id = 0;
+            }
+            else{
+
+                vm_id = params[0];
+            }
+
+            if( ( vm_id < 0 ) || ( vm_id >= VM_MAX_VMS ) ){
+
+                break;
+            }
+
+            vm_v_reset( vm_id );
 
             break;
 
