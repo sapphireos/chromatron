@@ -50,8 +50,43 @@ static int8_t batt_ui_state;
 static bool request_pixels_enabled = FALSE;
 static bool request_pixels_disabled = FALSE;
 static bool pixels_enabled = FALSE;
+
+
+
+#define MAX_BUTTONS 3
+
 static uint8_t button_state;
 static uint8_t ui_button;
+
+// button events:
+static uint8_t button_event_prev[MAX_BUTTONS];
+static uint8_t button_event[MAX_BUTTONS];
+#define BUTTON_EVENT_NONE       0
+#define BUTTON_EVENT_PRESSED    1
+#define BUTTON_EVENT_RELEASED   2
+#define BUTTON_EVENT_HOLD       3
+static uint8_t button_hold_duration[MAX_BUTTONS];
+
+static bool pca9536_enabled;
+
+
+#define BUTTON_IO_CHECKS            4
+
+#define BUTTON_CHECK_TIMING         50
+
+#define BUTTON_TAP_TIME             8
+#define BUTTON_MIN_TIME             1
+
+#define BUTTON_HOLD_TIME            10
+#define BUTTON_SHUTDOWN_TIME        60
+#define BUTTON_WIFI_TIME            20
+
+#define BUTTON_WAIT_FOR_RELEASE     255
+#define DIMMER_RATE                 5000
+#define MIN_DIMMER                  20000
+
+
+
 static bool fan_on;
 
 
@@ -159,6 +194,7 @@ KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,                  0,  "batt_state" },
     { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                      0,  "batt_fan_on" },
     
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
@@ -191,27 +227,6 @@ hold btn 0 for 3 seconds and btn 1 for 6 seconds
 
 */
 
-#define MAX_BUTTONS 3
-
-static uint8_t button_hold_duration[MAX_BUTTONS];
-
-static bool pca9536_enabled;
-
-
-#define BUTTON_IO_CHECKS            4
-
-#define BUTTON_CHECK_TIMING         50
-
-#define BUTTON_TAP_TIME             8
-#define BUTTON_MIN_TIME             1
-
-#define BUTTON_HOLD_TIME            20
-#define BUTTON_SHUTDOWN_TIME        60
-#define BUTTON_WIFI_TIME            20
-
-#define BUTTON_WAIT_FOR_RELEASE     255
-#define DIMMER_RATE                 5000
-#define MIN_DIMMER                  20000
 
 // static uint8_t fx_low_batt[] __attribute__((aligned(4))) = {
 //     #include "low_batt.fx.carray"
@@ -636,6 +651,67 @@ PT_END( pt );
 
 #endif
 
+bool batt_b_is_button_pressed( uint8_t button ){
+
+    if( button >= MAX_BUTTONS ){
+
+        return FALSE;
+    }
+
+    uint8_t event = button_event[button];
+
+    if( event == BUTTON_EVENT_PRESSED ){
+
+        // clear event
+        button_event[button] = BUTTON_EVENT_NONE;
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+
+bool batt_b_is_button_hold( uint8_t button ){
+
+    if( button >= MAX_BUTTONS ){
+
+        return FALSE;
+    }
+
+    uint8_t event = button_event[button];
+
+    if( event == BUTTON_EVENT_HOLD ){
+
+        // clear event
+        button_event[button] = BUTTON_EVENT_NONE;
+
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+
+
+bool batt_b_is_button_released( uint8_t button ){
+
+    if( button >= MAX_BUTTONS ){
+
+        return FALSE;
+    }
+
+    uint8_t event = button_event[button];
+
+    if( event == BUTTON_EVENT_RELEASED ){
+
+        // clear event
+        button_event[button] = BUTTON_EVENT_NONE;
+
+        return TRUE;
+    }
+    
+    return FALSE;
+}
 
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) )
 {
@@ -814,21 +890,48 @@ PT_BEGIN( pt );
 
 
         // sample buttons:
-        button_state = 0;
 
         for( uint8_t i = 0; i < MAX_BUTTONS; i++ ){
 
+            uint8_t button_mask = 1 << i;
+
             if( _ui_b_button_down( i ) ){
 
-                button_state |= 1 << i;
+                if( button_event_prev[i] != BUTTON_EVENT_PRESSED ){
+
+                    button_event[i] = BUTTON_EVENT_PRESSED;
+                    button_event_prev[i] = button_event[i];
+                }
+
+                button_state |= button_mask;
 
                 if( button_hold_duration[i] < 255 ){
 
                     button_hold_duration[i]++;
+
+                    if( button_hold_duration[i] >= BUTTON_HOLD_TIME ){
+
+                        if( button_event_prev[i] != BUTTON_EVENT_HOLD ){
+
+                            button_event[i] = BUTTON_EVENT_HOLD;
+                            button_event_prev[i] = button_event[i];
+                        }
+                    }
                 }
             }
-            else{
+            else{   
 
+                // check if was pressed, now released
+                if( ( button_state & button_mask ) != 0 ){
+
+                    if( button_event_prev[i] != BUTTON_EVENT_RELEASED ){
+
+                        button_event[i] = BUTTON_EVENT_RELEASED;
+                        button_event_prev[i] = button_event[i];
+                    }
+                }
+
+                button_state &= ~button_mask;
                 button_hold_duration[i] = 0;
             }
         }

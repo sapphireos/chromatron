@@ -32,6 +32,7 @@
 #include "gfx_lib.h"
 #include "pixel_mapper.h"
 #include "vm.h"
+#include "battery.h"
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
@@ -331,6 +332,66 @@ int8_t vm_lib_i8_libcall_built_in(
             vm_v_reset( vm_id );
 
             break;
+
+        #ifdef ENABLE_BATTERY
+        case __KV__button_pressed:
+            if( param_len == 0 ){
+
+                temp0 = 0;
+            }
+            else{
+
+                temp0 = params[0];
+            }
+
+            if( temp0 < 0 ){
+
+                break;
+            }
+
+            *result = batt_b_is_button_pressed( temp0 );
+
+            break;
+
+        case __KV__button_held:
+            if( param_len == 0 ){
+
+                temp0 = 0;
+            }
+            else{
+
+                temp0 = params[0];
+            }
+
+            if( temp0 < 0 ){
+
+                break;
+            }
+
+            *result = batt_b_is_button_hold( temp0 );
+
+            break;
+
+        case __KV__button_released:
+            if( param_len == 0 ){
+
+                temp0 = 0;
+            }
+            else{
+
+                temp0 = params[0];
+            }
+
+            if( temp0 < 0 ){
+
+                break;
+            }
+
+            *result = batt_b_is_button_released( temp0 );
+
+            break;
+
+        #endif
 
         // perform a short strobe on the debug pin
         // this should not be used unless debugging the VM.
