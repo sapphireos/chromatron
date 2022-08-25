@@ -77,7 +77,7 @@ static bool pca9536_enabled;
 #define BUTTON_TAP_TIME             8
 #define BUTTON_MIN_TIME             1
 
-#define BUTTON_HOLD_TIME            10
+#define BUTTON_HOLD_TIME            15
 #define BUTTON_SHUTDOWN_TIME        60
 #define BUTTON_WIFI_TIME            20
 
