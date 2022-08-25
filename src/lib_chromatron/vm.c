@@ -614,6 +614,33 @@ vm_state_t* vm_p_get_state( void ){
 }
 
 
+static void kill_vm( uint8_t vm_id ){
+
+    vm_reset[vm_id] = FALSE;
+    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
+
+    if( vm_threads[vm_id] <= 0 ){
+
+        return;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[vm_id] );
+
+    if( state->handle > 0 ){
+
+        mem2_v_free( state->handle );
+    }
+
+    // reset VM data
+    reset_published_data( state->vm_id );
+
+    // kill thread
+    thread_v_kill( vm_threads[state->vm_id] );
+
+    // clear thread handle
+    vm_threads[state->vm_id] = -1;
+}
+
 PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
@@ -925,17 +952,8 @@ PT_BEGIN( pt );
     
 exit:
     trace_printf( "Stopping VM thread: %s\r\n", state->program_fname );
-
-    if( state->handle > 0 ){
-
-        mem2_v_free( state->handle );
-    }
-
-    // reset VM data
-    reset_published_data( state->vm_id );
-
-    // clear thread handle
-    vm_threads[state->vm_id] = -1;
+    
+    kill_vm( state->vm_id );
     
 PT_END( pt );
 }
@@ -955,6 +973,70 @@ static bool vm_loader_wait( void ){
     }
 
     return TRUE;
+}
+
+static void reset_vm( uint8_t vm_id ){
+
+    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
+
+    // verify thread exists
+    if( vm_threads[vm_id] > 0 ){
+
+        thread_v_restart( vm_threads[vm_id] );
+    }   
+}
+
+static int8_t start_vm( uint8_t vm_id ){
+
+    if( vm_threads[vm_id] > 0 ){
+
+        // already running
+        return 0;
+    }
+
+    if( is_vm_running( vm_id ) ){
+
+        return 0;
+    }
+
+    // must set vm_run externally!
+    if( !vm_run[vm_id] ){
+
+        // not set to run state:
+        return -2;
+    }
+
+    vm_thread_state_t thread_state;
+    memset( &thread_state, 0, sizeof(thread_state) );
+    thread_state.vm_id = vm_id;
+
+    vm_threads[vm_id] = thread_t_create( THREAD_CAST(vm_thread),
+                                     vm_names[vm_id],
+                                     &thread_state,
+                                     sizeof(thread_state) );
+
+    if( vm_threads[vm_id] < 0 ){
+
+        vm_run[vm_id] = FALSE;
+
+        log_v_debug_P( PSTR("VM start thread failed: %d"), vm_id );
+
+        return -1;
+    }
+
+    vm_status[vm_id] = VM_STATUS_OK;   
+
+    return 0;
+}
+
+static void stop_vm( uint8_t vm_id ){
+
+    kill_vm( vm_id );
+
+    vm_run[vm_id] = FALSE;
+
+    vm_run_time[vm_id]      = 0;
+    vm_max_cycles[vm_id]    = 0;
 }
 
 
@@ -992,7 +1074,6 @@ PT_BEGIN( pt );
                 ( vm_status[i] != 0 ) ){
 
                 vm_run[i] = FALSE;
-                vm_reset[i] = FALSE;
 
                 if( vm_status[i] == VM_STATUS_HALT ){
 
@@ -1011,62 +1092,37 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("Resetting VM: %d"), i );
 
-                vm_status[i] = VM_STATUS_NOT_RUNNING;
-
-                // verify thread exists
-                if( vm_threads[i] > 0 ){
-
-                    thread_v_restart( vm_threads[i] );
-                }
+                reset_vm( i );
             }
 
             // Did VM that was not running just get told to start?
             // This will also occur if we've triggered a reset
             if( vm_run[i] && !is_vm_running( i ) && ( vm_threads[i] <= 0 ) ){
 
-                vm_thread_state_t thread_state;
-                memset( &thread_state, 0, sizeof(thread_state) );
-                thread_state.vm_id = i;
+                if( start_vm( i ) < 0 ){
 
-                vm_threads[i] = thread_t_create( THREAD_CAST(vm_thread),
-                                                 vm_names[i],
-                                                 &thread_state,
-                                                 sizeof(thread_state) );
+                    // this means a thread creation failed.
 
-                if( vm_threads[i] < 0 ){
-
-                    vm_run[i] = FALSE;
-
-                    log_v_debug_P( PSTR("VM load fail: %d err: %d"), i, vm_status[i] );
-
-                    goto error; 
+                    // generally, the system is pretty screwed if that
+                    // happens.
+                    // rebooting into safe mode is probably the best option:
+                    sys_v_reboot_delay( SYS_MODE_SAFE );
                 }
-
-                vm_status[i] = VM_STATUS_OK;
             }
             // Did VM that was running just get told to stop?
             else if( !vm_run[i] && is_vm_running( i ) ){
 
                 log_v_debug_P( PSTR("Stopping VM: %d"), i );
-                vm_status[i] = VM_STATUS_NOT_RUNNING;
-
-                vm_run_time[i]      = 0;
-                vm_max_cycles[i]    = 0;
+                
+                stop_vm( i );
             }
             
             // always reset the reset
             vm_reset[i] = FALSE;
         }
 
-        TMR_WAIT( pt, 100 );
-        continue;
-
-
-    error:
-
-        // longish delay after error to prevent swamping CPU trying
-        // to reload a bad file.
-        TMR_WAIT( pt, 1000 );
+        // TMR_WAIT( pt, 100 );
+        THREAD_YIELD( pt );
     }
 
 PT_END( pt );

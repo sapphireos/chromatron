@@ -2422,6 +2422,16 @@ static uint8_t _get_next_event( uint8_t *stream, vm_state_t *state, uint64_t *ne
             continue;
         }
 
+        /*
+        TODO:
+
+        Need to fix yields so the thread will delay until all other threads
+        get a chance to run.  As it stands, a yield in a loop will
+        block all other threads as the thread always indicates it is ready to
+        run now.
+
+        */
+
         uint64_t thread_tick = state->threads[i].tick;
 
         // check if thread tick is sooner than last one we checked
