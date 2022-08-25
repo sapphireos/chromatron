@@ -161,7 +161,7 @@ uint16_t mcp73831_u16_get_vbus_volts( void ){
 
 bool mcp73831_b_is_charging( void ){
 
-    if( batt_volts >= 4150 ){
+    if( batt_volts >= 4100 ){
 
         return FALSE;
     }
