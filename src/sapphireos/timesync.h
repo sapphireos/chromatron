@@ -94,15 +94,15 @@ int8_t time_i8_compare_network_time( uint32_t time );
 uint32_t time_u32_get_network_aligned( uint32_t alignment );
 void time_v_set_gps_sync( bool sync );
 
-ntp_ts_t time_t_from_system_time( uint32_t end_time );
-void time_v_set_ntp_master_clock( 
-    ntp_ts_t source_ts, 
-    uint32_t local_system_time,
-    uint8_t source );
+// ntp_ts_t time_t_from_system_time( uint32_t end_time );
+// void time_v_set_ntp_master_clock( 
+//     ntp_ts_t source_ts, 
+//     uint32_t local_system_time,
+//     uint8_t source );
 
 void time_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time );
-ntp_ts_t time_t_now( void );
-ntp_ts_t time_t_local_now( void );
+// ntp_ts_t time_t_now( void );
+// ntp_ts_t time_t_local_now( void );
 
 #endif
 #endif

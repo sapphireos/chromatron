@@ -51,7 +51,7 @@
 #include "keyvalue.h"
 
 #include "sntp.h"
-#include "timesync.h"
+#include "time_ntp.h"
 
 // #define NO_LOGGING
 #include "logging.h"
