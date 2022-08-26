@@ -96,6 +96,14 @@ static void time_v_set_ntp_master_clock_internal(
     // log_v_debug_P( PSTR("dly: %3u diff: %5ld"), delay, master_sync_difference );   
 }
 
+
+void time_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
+
+    *system_time = tmr_u32_get_system_time_ms();
+
+    *ntp_now = time_t_from_system_time( *system_time );   
+}
+
 void time_v_set_ntp_master_clock( 
     ntp_ts_t source_ts, 
     uint32_t local_system_time,

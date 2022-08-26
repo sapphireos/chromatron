@@ -50,7 +50,8 @@ ms net time:
     - no internet needed
     - can tolerate high bandwidth usage
     - relatively high bandwidth tolerance can eliminate need for drift compensation
-    - GPS millisecond sync requirement - interrupt signal on PPS
+    - no need for GPS at all (no PPS!) -  we don't care about NTP time and we have no need of sync
+        signal accurate to atomic clocks, we only need a millisecond clock that every device shares.
     - prefer to avoid hard syncs after initial sync to minimize VM frame skipping
 
 ntp time:
@@ -408,12 +409,12 @@ static bool is_follower( void ){
 //     time_v_set_ntp_master_clock_internal( source_ts, local_system_time, local_system_time, source, 0 );
 // }
 
-void time_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
+// void time_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
 
-    *system_time = tmr_u32_get_system_time_ms();
+//     *system_time = tmr_u32_get_system_time_ms();
 
-    *ntp_now = time_t_from_system_time( *system_time );   
-}
+//     *ntp_now = time_t_from_system_time( *system_time );   
+// }
 
 // ntp_ts_t time_t_now( void ){
 
