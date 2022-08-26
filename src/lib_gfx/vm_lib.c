@@ -411,6 +411,25 @@ int8_t vm_lib_i8_libcall_built_in(
 
             break;
 
+        case __KV__button_hold_released:
+            if( param_len == 0 ){
+
+                temp0 = 0;
+            }
+            else{
+
+                temp0 = params[0];
+            }
+
+            if( temp0 < 0 ){
+
+                break;
+            }
+
+            *result = batt_b_is_button_hold_released( temp0 );
+
+            break;
+
         #endif
 
         // perform a short strobe on the debug pin
