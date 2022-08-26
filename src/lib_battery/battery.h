@@ -65,5 +65,6 @@ uint16_t batt_u16_get_nameplate_capacity( void );
 bool batt_b_is_button_pressed( uint8_t button );
 bool batt_b_is_button_hold( uint8_t button );
 bool batt_b_is_button_released( uint8_t button );
+bool batt_b_is_button_hold_released( uint8_t button );
 
 #endif

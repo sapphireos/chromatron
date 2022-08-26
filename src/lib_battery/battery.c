@@ -61,10 +61,11 @@ static uint8_t ui_button;
 // button events:
 static uint8_t button_event_prev[MAX_BUTTONS];
 static uint8_t button_event[MAX_BUTTONS];
-#define BUTTON_EVENT_NONE       0
-#define BUTTON_EVENT_PRESSED    1
-#define BUTTON_EVENT_RELEASED   2
-#define BUTTON_EVENT_HOLD       3
+#define BUTTON_EVENT_NONE           0
+#define BUTTON_EVENT_PRESSED        1
+#define BUTTON_EVENT_RELEASED       2
+#define BUTTON_EVENT_HOLD           3
+#define BUTTON_EVENT_HOLD_RELEASED  4
 static uint8_t button_hold_duration[MAX_BUTTONS];
 
 static bool pca9536_enabled;
@@ -713,6 +714,28 @@ bool batt_b_is_button_released( uint8_t button ){
     return FALSE;
 }
 
+
+bool batt_b_is_button_hold_released( uint8_t button ){
+
+    if( button >= MAX_BUTTONS ){
+
+        return FALSE;
+    }
+
+    uint8_t event = button_event[button];
+
+    if( event == BUTTON_EVENT_HOLD_RELEASED ){
+
+        // clear event
+        button_event[button] = BUTTON_EVENT_NONE;
+
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+
+
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -924,7 +947,12 @@ PT_BEGIN( pt );
                 // check if was pressed, now released
                 if( ( button_state & button_mask ) != 0 ){
 
-                    if( button_event_prev[i] != BUTTON_EVENT_RELEASED ){
+                    if( button_event_prev[i] == BUTTON_EVENT_HOLD ){
+
+                        button_event[i] = BUTTON_EVENT_HOLD_RELEASED;
+                        button_event_prev[i] = button_event[i];
+                    }
+                    else if( button_event_prev[i] != BUTTON_EVENT_RELEASED ){
 
                         button_event[i] = BUTTON_EVENT_RELEASED;
                         button_event_prev[i] = button_event[i];
