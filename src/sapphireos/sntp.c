@@ -348,7 +348,7 @@ PT_BEGIN( pt );
         pkt.li_vn_mode = SNTP_VERSION_4 | SNTP_MODE_CLIENT | SNTP_LI_ALARM;
 
         // get our current network time with the maximum available precision
-        ntp_ts_t transmit_ts = ntp_t_now();
+        ntp_ts_t transmit_ts = ntp_t_from_system_time( tmr_u32_get_system_time_ms() );
 
         // set transmit timestamp (converting from little endian to big endian)
         pkt.transmit_timestamp.seconds = HTONL(transmit_ts.seconds);
@@ -407,9 +407,9 @@ PT_BEGIN( pt );
         ntp_v_set_master_clock( network_time, sys_time, NTP_SOURCE_SNTP );
 
         // parse current time to ISO so we can read it in the log file
-        char time_str2[ISO8601_STRING_MIN_LEN_MS];
-        ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
-        log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
+        // char time_str2[ISO8601_STRING_MIN_LEN_MS];
+        // ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
+        // log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
             
 
         sntp_syncs++;

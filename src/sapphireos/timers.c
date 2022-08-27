@@ -102,12 +102,6 @@ uint32_t tmr_u32_get_system_time_us( void ){
     return tmr_u64_get_system_time_us();
 }
 
-// returns the current value of the system timer.
-uint32_t tmr_u32_get_system_time( void ){
-	
-	return tmr_u32_get_system_time_ms();
-}
-
 // compute elapsed ticks since start_ticks
 uint32_t tmr_u32_elapsed_time_ms( uint32_t start_time ){
 	

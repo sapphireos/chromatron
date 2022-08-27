@@ -34,6 +34,8 @@
 
 #define NTP_ELECTION_SERVICE           __KV__ntpclock
 
+#define NTP_SYNC_INTERVAL              600 // in seconds
+
 // directly attached GPS source:
 #define NTP_SOURCE_GPS                 32
 // network sync to GPS source:

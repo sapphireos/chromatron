@@ -68,6 +68,11 @@ void ntp_v_init( void ){
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
     sock_v_bind( sock, NTP_SERVER_PORT );
+
+    thread_t_create( ntp_server_thread,
+                    PSTR("ntp_server"),
+                    0,
+                    0 );
     
     thread_t_create( ntp_clock_thread,
                     PSTR("ntp_clock"),
@@ -105,9 +110,14 @@ static bool is_leader( void ){
     return services_b_is_server( NTP_ELECTION_SERVICE, 0 );
 }
 
+static bool is_service_avilable( void ){
+
+    return services_b_is_available( NTP_ELECTION_SERVICE, 0 );
+}
+
 static bool is_follower( void ){
 
-    return !is_leader() && services_b_is_available( NTP_ELECTION_SERVICE, 0 );
+    return !is_leader() && is_service_avilable();
 }
 
 static uint16_t get_priority( void ){
@@ -216,13 +226,27 @@ void ntp_v_set_master_clock(
     // time_v_set_ntp_master_clock_internal( source_ts, local_system_time, local_system_time, source, 0 );
 }
 
-ntp_ts_t ntp_t_from_system_time( uint32_t end_time ){
+// this will compute the current NTP time from the current clock
+// information even if the clock has not be synchronized
+ntp_ts_t ntp_t_from_system_time( uint32_t sys_time ){
 
-    if( clock_source == NTP_SOURCE_NONE ){
+    // handling rollover and various timestamps is a mess
+    // and we shouldn't really need this API at all....
+    // maybe do something specific to initial SNTP clock sync?
+    
 
-        return ntp_ts_from_u64( 0 );    
-    }
+    // int32_t elapsed_ms = 0;
 
+    // // requested timestamp is AFTER the clock base time
+    // if( tmr_i8_compare_times( sys_time, master_sys_time ) >= 0 ){
+
+    //     elapsed_ms = sys_time - master_sys_time;
+    // }
+
+
+    // int32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, sys_time );
+
+    
     // int32_t elapsed_ms = 0;
 
     // if( end_time > base_system_time ){
@@ -261,11 +285,23 @@ ntp_ts_t ntp_t_from_system_time( uint32_t end_time ){
 
 ntp_ts_t ntp_t_now( void ){
 
+    // check if syncrhonized
+    if( clock_source == NTP_SOURCE_NONE ){
+
+        return ntp_ts_from_u64( 0 );    
+    }
+
     return ntp_t_from_system_time( tmr_u32_get_system_time_ms() );
 }
 
 // get NTP time with timezone correction
 ntp_ts_t ntp_t_local_now( void ){
+
+    // check if syncrhonized
+    if( clock_source == NTP_SOURCE_NONE ){
+
+        return ntp_ts_from_u64( 0 );    
+    }
 
     // get NTP time
     ntp_ts_t ntp = ntp_t_now();  
@@ -283,17 +319,31 @@ bool ntp_b_is_sync( void ){
     return clock_source != NTP_SOURCE_NONE;
 }
 
+
 PT_THREAD( ntp_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
-    // wait for network
-    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
-    
-    services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), NTP_SERVER_PORT );
 
-    // wait until we resolve the election
-    THREAD_WAIT_WHILE( pt, !services_b_is_available( NTP_ELECTION_SERVICE, 0 ) );
+    THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() );
+
+    char time_str[ISO8601_STRING_MIN_LEN_MS];
+    ntp_v_to_iso8601( time_str, sizeof(time_str), network_time );
+    log_v_info_P( PSTR("NTP Time is now: %s"), time_str );
+
+    // set alarm to cover remaining time before next second tick
+
+
+    while( ntp_b_is_sync() ){
+
+        thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+        master_sys_time += 1000;
+        master_ntp_time.seconds++;
+    }
+
 
     // last_clock_update = tmr_u32_get_system_time_ms();
     // thread_v_set_alarm( last_clock_update );
@@ -391,9 +441,48 @@ PT_THREAD( ntp_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    while(1){
+    // stop SNTP
+    sntp_v_stop();
 
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+    // wait for network
+    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+    
+    services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), NTP_SERVER_PORT );
+
+    // wait until we resolve the election
+    THREAD_WAIT_WHILE( pt, !services_b_is_available( NTP_ELECTION_SERVICE, 0 ) );
+
+
+    // check if we are the leader
+    if( is_leader() ){
+
+        // later:
+        // check if we have GPS here
+
+        // start SNTP
+        sntp_v_start();
+    }
+
+    THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() && is_service_avilable() );
+
+    if( !is_service_avilable() ){
+
+        THREAD_RESTART( pt );
+    }
+
+    
+    // NTP sync achieved here
+
+
+    // leader loop: run server
+    while( is_leader() ){
+
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_leader() );
+
+        if( !is_leader() ){
+
+            THREAD_RESTART( pt );
+        }
 
         // check if data received
         if( sock_i16_get_bytes_read( sock ) > 0 ){
@@ -551,7 +640,23 @@ PT_BEGIN( pt );
         //     }
         
 
-        }
+        } // /leader
+
+        // follower, this runs a client:
+        while( is_follower() ){
+
+            // send sync request
+
+
+            // wait for reply or timeout
+
+
+            // if timeout, backoff delay and retry
+
+
+
+            TMR_WAIT( pt, NTP_SYNC_INTERVAL * 1000 );
+        } // /follower
     }
 
 
