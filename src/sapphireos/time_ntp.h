@@ -27,14 +27,44 @@
 
 #ifdef ENABLE_TIME_SYNC
 
-void time_v_set_ntp_master_clock( 
+#define NTP_PROTOCOL_MAGIC             0x50544e53 // 'SNTP' in ASCII
+#define NTP_PROTOCOL_VERSION           1
+
+#define NTP_SERVER_PORT                32038
+
+#define NTP_ELECTION_SERVICE           __KV__ntpclock
+
+// directly attached GPS source:
+#define NTP_SOURCE_GPS                 32
+// network sync to GPS source:
+#define NTP_SOURCE_GPS_NET             30
+// direct SNTP sync:
+#define NTP_SOURCE_SNTP                16
+// network sync to SNTP source:
+#define NTP_SOURCE_SNTP_NET            14
+
+// internal clock sync.
+// this is a system that previously had 
+// a reference clock sync (GPS/SNTP/manual setting)
+// and has since lost a direct connection to the
+// reference clock, but still retains the prior
+// clock setting.
+#define NTP_SOURCE_INTERNAL            8
+
+#define NTP_SOURCE_NONE                0
+
+
+void ntp_v_init( void );
+
+void ntp_v_set_master_clock( 
     ntp_ts_t source_ts, 
     uint32_t local_system_time,
     uint8_t source );
-void time_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time );
-ntp_ts_t time_t_from_system_time( uint32_t end_time );
-ntp_ts_t time_t_now( void );
-ntp_ts_t time_t_local_now( void );
+
+void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time );
+ntp_ts_t ntp_t_from_system_time( uint32_t end_time );
+ntp_ts_t ntp_t_now( void );
+ntp_ts_t ntp_t_local_now( void );
 
 
 #endif

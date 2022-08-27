@@ -396,7 +396,7 @@ PT_BEGIN( pt );
                     // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
 
                     // get NTP time
-                    time_v_get_timestamp( &ntp_base, &systime_base );
+                    ntp_v_get_timestamp( &ntp_base, &systime_base );
 
                     buf_meta_ptr->ntp_base = ntp_base;
 

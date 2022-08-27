@@ -64,6 +64,9 @@ static uint16_t last_delay;
 
 static sntp_status_t8 status = SNTP_STATUS_DISABLED;
 
+static uint32_t sntp_syncs;
+static uint32_t sntp_timeouts;
+
 static socket_t sock = -1;
 static thread_t thread = -1;
 
@@ -71,6 +74,9 @@ static thread_t thread = -1;
 KV_SECTION_META kv_meta_t sntp_cfg_kv[] = {
     { CATBUS_TYPE_STRING64,     0, 0,  0,                  cfg_i8_kv_handler,  "sntp_server" },
     { CATBUS_TYPE_INT8,         0, KV_FLAGS_READ_ONLY,  &status, 0,            "sntp_status" },
+
+    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  &sntp_syncs,  0,       "sntp_syncs" },
+    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  &sntp_timeouts,  0,    "sntp_timeouts" },
 
     { CATBUS_TYPE_UINT16,       0, KV_FLAGS_READ_ONLY,  &last_delay,  0,       "sntp_delay" },
     { CATBUS_TYPE_INT16,        0, KV_FLAGS_READ_ONLY,  &last_offset, 0,       "sntp_offset" },
@@ -286,8 +292,6 @@ void process_packet(
 }
 
 
-
-
 PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -344,7 +348,7 @@ PT_BEGIN( pt );
         pkt.li_vn_mode = SNTP_VERSION_4 | SNTP_MODE_CLIENT | SNTP_LI_ALARM;
 
         // get our current network time with the maximum available precision
-        ntp_ts_t transmit_ts = time_t_now();
+        ntp_ts_t transmit_ts = ntp_t_now();
 
         // set transmit timestamp (converting from little endian to big endian)
         pkt.transmit_timestamp.seconds = HTONL(transmit_ts.seconds);
@@ -359,6 +363,8 @@ PT_BEGIN( pt );
         // send packet
         // if packet transmission fails, we'll try again on the next polling cycle
         if( sock_i16_sendto( sock, &pkt, sizeof(pkt), &ntp_server_addr ) < 0 ){
+
+            log_v_warn_P( PSTR("SNTP transmission failed") );
 
             goto retry;
         }
@@ -380,6 +386,8 @@ PT_BEGIN( pt );
 
             // log_v_debug_P( PSTR("SNTP sync timed out") );
 
+            sntp_timeouts++;
+
             continue;
         }
 
@@ -396,13 +404,15 @@ PT_BEGIN( pt );
         process_packet( recv_pkt, &network_time, &sys_time );
 
         // sync master clock
-        time_v_set_ntp_master_clock( network_time, sys_time, TIME_SOURCE_NTP );
+        ntp_v_set_master_clock( network_time, sys_time, NTP_SOURCE_SNTP );
 
         // parse current time to ISO so we can read it in the log file
         char time_str2[ISO8601_STRING_MIN_LEN_MS];
         ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
         log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
-    
+            
+
+        sntp_syncs++;
 
         goto clean_up;
 

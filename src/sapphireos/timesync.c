@@ -157,21 +157,21 @@ static int8_t ntp_kv_handler(
 }
 
 
-KV_SECTION_META kv_meta_t time_info_kv[] = {
-    { CATBUS_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
-    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &master_net_time,  0,                      "net_time" },
-    { CATBUS_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
-    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
-    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &local_source,     0,                      "net_time_local_source" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &filtered_rtt,     0,                      "net_time_filtered_rtt" },
-    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 ntp_kv_handler,         "ntp_seconds" },
-    { CATBUS_TYPE_INT16,      0, KV_FLAGS_PERSIST,   &tz_offset,        0,                      "datetime_tz_offset" },
+// KV_SECTION_META kv_meta_t time_info_kv[] = {
+//     { CATBUS_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
+//     { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &master_net_time,  0,                      "net_time" },
+//     { CATBUS_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
+//     { CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
+//     { CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &local_source,     0,                      "net_time_local_source" },
+//     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &filtered_rtt,     0,                      "net_time_filtered_rtt" },
+//     // { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 ntp_kv_handler,         "ntp_seconds" },
+//     // { CATBUS_TYPE_INT16,      0, KV_FLAGS_PERSIST,   &tz_offset,        0,                      "datetime_tz_offset" },
 
-    { CATBUS_TYPE_INT32,      0, KV_FLAGS_READ_ONLY, &master_sync_difference,          0,       "net_master_sync_diff" },
+//     { CATBUS_TYPE_INT32,      0, KV_FLAGS_READ_ONLY, &master_sync_difference,          0,       "net_master_sync_diff" },
 
-    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &good_syncs,       0,                      "net_time_good_syncs" },
-    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &rejected_syncs,   0,                      "net_time_rejected_syncs" },
-};
+//     { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &good_syncs,       0,                      "net_time_good_syncs" },
+//     { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &rejected_syncs,   0,                      "net_time_rejected_syncs" },
+// };
 
 
 void hal_rtc_v_irq( void ){
@@ -435,30 +435,30 @@ static bool is_follower( void ){
 //     return ntp;
 // }
 
-static uint8_t get_best_local_source( void ){
+// static uint8_t get_best_local_source( void ){
 
-    if( gps_sync ){
+//     if( gps_sync ){
 
-        return TIME_SOURCE_GPS;
-    }
+//         return TIME_SOURCE_GPS;
+//     }
 
-    if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+//     if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
 
-        return TIME_SOURCE_NTP;
-    }
+//         return TIME_SOURCE_NTP;
+//     }
 
-    if( is_sync && ntp_valid ){
+//     if( is_sync && ntp_valid ){
 
-        return TIME_SOURCE_INTERNAL_NTP_SYNC;
-    }
+//         return TIME_SOURCE_INTERNAL_NTP_SYNC;
+//     }
 
-    if( is_sync ){
+//     if( is_sync ){
 
-        return TIME_SOURCE_INTERNAL;
-    }
+//         return TIME_SOURCE_INTERNAL;
+//     }
 
-    return TIME_SOURCE_NONE;
-}
+//     return TIME_SOURCE_NONE;
+// }
 
 
 static void transmit_ping( void ){
