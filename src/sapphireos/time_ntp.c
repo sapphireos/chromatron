@@ -25,6 +25,7 @@
 
 #ifdef ENABLE_TIME_SYNC
 
+#include "config.h"
 #include "time_ntp.h"
 #include "sntp.h"
 
@@ -217,43 +218,45 @@ void ntp_v_set_master_clock(
 
 ntp_ts_t ntp_t_from_system_time( uint32_t end_time ){
 
-    if( !ntp_valid ){
+    if( clock_source == NTP_SOURCE_NONE ){
 
         return ntp_ts_from_u64( 0 );    
     }
 
-    int32_t elapsed_ms = 0;
+    // int32_t elapsed_ms = 0;
 
-    if( end_time > base_system_time ){
+    // if( end_time > base_system_time ){
 
-        elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
-    }
-    else{
+    //     elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
+    // }
+    // else{
 
-        // end_time is BEFORE base_system_time.
-        // this can happen if the base_system_time increments in the clock thread
-        // and we are computing from a timestamp with a negative offset applied (such as an RTT)
-        // in this case, we can allow negative values for elapsed time.
-        uint32_t temp = tmr_u32_elapsed_times( base_system_time, end_time );
+    //     // end_time is BEFORE base_system_time.
+    //     // this can happen if the base_system_time increments in the clock thread
+    //     // and we are computing from a timestamp with a negative offset applied (such as an RTT)
+    //     // in this case, we can allow negative values for elapsed time.
+    //     uint32_t temp = tmr_u32_elapsed_times( base_system_time, end_time );
 
-        // value is, or should be, negative
-        if( temp > ( UINT32_MAX / 2 ) ){
+    //     // value is, or should be, negative
+    //     if( temp > ( UINT32_MAX / 2 ) ){
 
-            elapsed_ms = ( UINT32_MAX - temp ) * -1;
+    //         elapsed_ms = ( UINT32_MAX - temp ) * -1;
 
-            // log_v_debug_P( PSTR("negative elapsed time: %ld"), elapsed_ms ); 
-        }
-    }
+    //         // log_v_debug_P( PSTR("negative elapsed time: %ld"), elapsed_ms ); 
+    //     }
+    // }
 
     
 
-    uint64_t now = ntp_u64_conv_to_u64( master_ntp_time );
+    // uint64_t now = ntp_u64_conv_to_u64( master_ntp_time );
 
-    // log_v_debug_P( PSTR("base: %lu now: %lu elapsed: %lu"), base_system_time, end_time, elapsed_ms );
+    // // log_v_debug_P( PSTR("base: %lu now: %lu elapsed: %lu"), base_system_time, end_time, elapsed_ms );
 
-    now += ( ( (int64_t)elapsed_ms << 32 ) / 1000 ); 
+    // now += ( ( (int64_t)elapsed_ms << 32 ) / 1000 ); 
     
-    return ntp_ts_from_u64( now ); 
+    // return ntp_ts_from_u64( now ); 
+
+    return ntp_ts_from_u64( 0 );
 }
 
 ntp_ts_t ntp_t_now( void ){
@@ -265,7 +268,7 @@ ntp_ts_t ntp_t_now( void ){
 ntp_ts_t ntp_t_local_now( void ){
 
     // get NTP time
-    ntp_ts_t ntp = time_t_now();  
+    ntp_ts_t ntp = ntp_t_now();  
 
     // adjust seconds by timezone offset
     // tz_offset is in minutes, so also convert to seconds
@@ -275,7 +278,10 @@ ntp_ts_t ntp_t_local_now( void ){
     return ntp;
 }
 
+bool ntp_b_is_sync( void ){
 
+    return clock_source != NTP_SOURCE_NONE;
+}
 
 PT_THREAD( ntp_clock_thread( pt_t *pt, void *state ) )
 {
@@ -543,7 +549,9 @@ PT_BEGIN( pt );
         //             }
         //         }
         //     }
-        // }
+        
+
+        }
     }
 
 

@@ -88,73 +88,73 @@ minimize impact to downstream software (which themselves are complex modules).
 #include "util.h"
 #include "services.h"
 
-PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
-PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
-PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
+// PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
+// PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
+// PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
-static socket_t sock;
+// static socket_t sock;
 
-static ip_addr4_t master_ip;
-static uint8_t master_source;
-static uint8_t local_source;
-static bool is_sync;
-static bool ntp_valid;
+// static ip_addr4_t master_ip;
+// static uint8_t master_source;
+// static uint8_t local_source;
+// static bool is_sync;
+// static bool ntp_valid;
 
-// master clock
-static ntp_ts_t master_ntp_time;
-static uint32_t master_net_time;
-static uint32_t last_clock_update;
-static uint32_t base_system_time;
-static int32_t ntp_sync_difference;
-static int32_t master_sync_difference;
+// // master clock
+// static ntp_ts_t master_ntp_time;
+// static uint32_t master_net_time;
+// static uint32_t last_clock_update;
+// static uint32_t base_system_time;
+// static int32_t ntp_sync_difference;
+// static int32_t master_sync_difference;
 
-static bool gps_sync;
-
-
-static uint8_t sync_id;
-static uint32_t rtt_start;
-static uint16_t filtered_rtt;
-#define RTT_FILTER              32
-#define RTT_QUALITY_LIMIT       10
-#define RTT_RELAX               4
-static uint8_t sync_delay;
-
-static uint32_t good_syncs;
-static uint32_t rejected_syncs;
-
-// NOTE!
-// tz_offset is in MINUTES, because not all timezones
-// are aligned on the hour.
-static int16_t tz_offset;
+// static bool gps_sync;
 
 
+// static uint8_t sync_id;
+// static uint32_t rtt_start;
+// static uint16_t filtered_rtt;
+// #define RTT_FILTER              32
+// #define RTT_QUALITY_LIMIT       10
+// #define RTT_RELAX               4
+// static uint8_t sync_delay;
+
+// static uint32_t good_syncs;
+// static uint32_t rejected_syncs;
+
+// // NOTE!
+// // tz_offset is in MINUTES, because not all timezones
+// // are aligned on the hour.
+// static int16_t tz_offset;
 
 
-static int8_t ntp_kv_handler(
-    kv_op_t8 op,
-    catbus_hash_t32 hash,
-    void *data,
-    uint16_t len )
-{
 
-    if( op == KV_OP_GET ){
 
-        uint32_t elapsed = 0;
-        uint32_t seconds = 0;
+// static int8_t ntp_kv_handler(
+//     kv_op_t8 op,
+//     catbus_hash_t32 hash,
+//     void *data,
+//     uint16_t len )
+// {
 
-        if( ntp_valid ){
+//     if( op == KV_OP_GET ){
+
+//         uint32_t elapsed = 0;
+//         uint32_t seconds = 0;
+
+//         if( ntp_valid ){
             
-            elapsed = tmr_u32_elapsed_time_ms( base_system_time );
-            seconds = master_ntp_time.seconds + ( elapsed / 1000 );
-        }
+//             elapsed = tmr_u32_elapsed_time_ms( base_system_time );
+//             seconds = master_ntp_time.seconds + ( elapsed / 1000 );
+//         }
 
-        memcpy( data, &seconds, len );
+//         memcpy( data, &seconds, len );
 
-        return 0;
-    }
+//         return 0;
+//     }
 
-    return -1;
-}
+//     return -1;
+// }
 
 
 // KV_SECTION_META kv_meta_t time_info_kv[] = {
@@ -174,70 +174,74 @@ static int8_t ntp_kv_handler(
 // };
 
 
-void hal_rtc_v_irq( void ){
+// void hal_rtc_v_irq( void ){
 
 
-}
+// }
 
 void time_v_init( void ){
 
-    // January 1, 2018, midnight
-    master_ntp_time.seconds = 1514786400 + 2208988800 - 21600;
+//     // January 1, 2018, midnight
+//     master_ntp_time.seconds = 1514786400 + 2208988800 - 21600;
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+//     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return;
-    }
+//         return;
+//     }
     
-    // check if time sync is enabled
-    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+//     // check if time sync is enabled
+//     if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
 
-        return;
-    }
+//         return;
+//     }
 
-    sock = sock_s_create( SOS_SOCK_DGRAM );
+//     sock = sock_s_create( SOS_SOCK_DGRAM );
 
-    sock_v_bind( sock, TIME_SERVER_PORT );
+//     sock_v_bind( sock, TIME_SERVER_PORT );
 
 
-    thread_t_create( time_server_thread,
-                    PSTR("time_server"),
-                    0,
-                    0 );    
+//     thread_t_create( time_server_thread,
+//                     PSTR("time_server"),
+//                     0,
+//                     0 );    
 
-    thread_t_create( time_master_thread,
-                    PSTR("time_master"),
-                    0,
-                    0 );    
+//     thread_t_create( time_master_thread,
+//                     PSTR("time_master"),
+//                     0,
+//                     0 );    
     
-    thread_t_create( time_clock_thread,
-                    PSTR("time_clock"),
-                    0,
-                    0 );    
+//     thread_t_create( time_clock_thread,
+//                     PSTR("time_clock"),
+//                     0,
+//                     0 );    
 }
 
 bool time_b_is_local_sync( void ){
 
-    return is_sync;
+    // return is_sync;
+    return FALSE;
 }
 
 bool time_b_is_ntp_sync( void ){
 
-    return ntp_valid;
+    // return ntp_valid;
+    return FALSE;
 }
 
 uint32_t time_u32_get_network_time( void ){
     
-    uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, tmr_u32_get_system_time_ms() );
+    // uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, tmr_u32_get_system_time_ms() );
 
-    return master_net_time + elapsed_ms;
+    // return master_net_time + elapsed_ms;
+    return 0;
 }
 
 uint32_t time_u32_get_network_time_from_local( uint32_t local_time ){
     
-    uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, local_time );
+    // uint32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, local_time );
 
-    return master_net_time + elapsed_ms;
+    // return master_net_time + elapsed_ms;
+    return 0;
 }
 
 // returns 1 if time > network_time,
@@ -245,33 +249,36 @@ uint32_t time_u32_get_network_time_from_local( uint32_t local_time ){
 // 0 if equal
 int8_t time_i8_compare_network_time( uint32_t time ){
     
-    int32_t distance = ( int32_t )( time - time_u32_get_network_time() );
+    return 0;
+
+    // int32_t distance = ( int32_t )( time - time_u32_get_network_time() );
     
-    if( distance < 0 ){
+    // if( distance < 0 ){
     
-        return -1;
-    }
-    else if( distance > 0 ){
+    //     return -1;
+    // }
+    // else if( distance > 0 ){
     
-        return 1;
-    }
-    else{
+    //     return 1;
+    // }
+    // else{
     
-        return 0;
-    }
+    //     return 0;
+    // }
 }
 
 uint32_t time_u32_get_network_aligned( uint32_t alignment ){
 
-    uint32_t net_time = time_u32_get_network_time();
+    // uint32_t net_time = time_u32_get_network_time();
 
-    return net_time + ( alignment - net_time % alignment );
+    // return net_time + ( alignment - net_time % alignment );
+    return 0;
 }
 
-void time_v_set_gps_sync( bool sync ){
+// void time_v_set_gps_sync( bool sync ){
 
-    gps_sync = sync;
-}
+//     gps_sync = sync;
+// }
 
 
 // ntp_ts_t time_t_from_system_time( uint32_t end_time ){
@@ -315,15 +322,15 @@ void time_v_set_gps_sync( bool sync ){
 //     return ntp_ts_from_u64( now ); 
 // }
 
-static bool is_leader( void ){
+// static bool is_leader( void ){
 
-    return services_b_is_server( TIME_ELECTION_SERVICE, 0 );
-}
+//     return services_b_is_server( TIME_ELECTION_SERVICE, 0 );
+// }
 
-static bool is_follower( void ){
+// static bool is_follower( void ){
 
-    return !is_leader() && services_b_is_available( TIME_ELECTION_SERVICE, 0 );
-}
+//     return !is_leader() && services_b_is_available( TIME_ELECTION_SERVICE, 0 );
+// }
 
 // static void time_v_set_ntp_master_clock_internal( 
 //     ntp_ts_t source_ts, 
@@ -461,404 +468,404 @@ static bool is_follower( void ){
 // }
 
 
-static void transmit_ping( void ){
+// static void transmit_ping( void ){
 
-    time_msg_ping_t msg;
-    msg.magic           = TIME_PROTOCOL_MAGIC;
-    msg.version         = TIME_PROTOCOL_VERSION;
-    msg.type            = TIME_MSG_PING;
+//     time_msg_ping_t msg;
+//     msg.magic           = TIME_PROTOCOL_MAGIC;
+//     msg.version         = TIME_PROTOCOL_VERSION;
+//     msg.type            = TIME_MSG_PING;
     
-    sock_addr_t raddr;
-    raddr.port = TIME_SERVER_PORT;
-    raddr.ipaddr = master_ip;
+//     sock_addr_t raddr;
+//     raddr.port = TIME_SERVER_PORT;
+//     raddr.ipaddr = master_ip;
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
-}
+//     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+// }
 
-static void transmit_sync_request( void ){
+// static void transmit_sync_request( void ){
 
-    sync_id++;
+//     sync_id++;
 
-    time_msg_request_sync_t msg;
-    msg.magic           = TIME_PROTOCOL_MAGIC;
-    msg.version         = TIME_PROTOCOL_VERSION;
-    msg.type            = TIME_MSG_REQUEST_SYNC;
-    msg.id              = sync_id;
+//     time_msg_request_sync_t msg;
+//     msg.magic           = TIME_PROTOCOL_MAGIC;
+//     msg.version         = TIME_PROTOCOL_VERSION;
+//     msg.type            = TIME_MSG_REQUEST_SYNC;
+//     msg.id              = sync_id;
     
-    sock_addr_t raddr;
-    raddr.port = TIME_SERVER_PORT;
-    raddr.ipaddr = master_ip;
+//     sock_addr_t raddr;
+//     raddr.port = TIME_SERVER_PORT;
+//     raddr.ipaddr = master_ip;
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+//     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
 
-    rtt_start = tmr_u32_get_system_time_ms();
-}
+//     rtt_start = tmr_u32_get_system_time_ms();
+// }
 
-static void request_sync( void ){
+// static void request_sync( void ){
 
-    // transmit a ping first.
-    // this ensures the server will have an ARP entry ready when
-    // when we send the sync request
-    transmit_ping();
-}
+//     // transmit a ping first.
+//     // this ensures the server will have an ARP entry ready when
+//     // when we send the sync request
+//     transmit_ping();
+// }
 
-PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
 
-    while(1){
+//     while(1){
 
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+//         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
-        // check if data received
-        if( sock_i16_get_bytes_read( sock ) > 0 ){
+//         // check if data received
+//         if( sock_i16_get_bytes_read( sock ) > 0 ){
 
-            uint32_t now = tmr_u32_get_system_time_ms();
+//             uint32_t now = tmr_u32_get_system_time_ms();
 
-            uint32_t *magic = sock_vp_get_data( sock );
+//             uint32_t *magic = sock_vp_get_data( sock );
 
-            if( *magic != TIME_PROTOCOL_MAGIC ){
+//             if( *magic != TIME_PROTOCOL_MAGIC ){
 
-                continue;
-            }
+//                 continue;
+//             }
 
-            uint8_t *version = (uint8_t *)(magic + 1);
+//             uint8_t *version = (uint8_t *)(magic + 1);
 
-            if( *version != TIME_PROTOCOL_VERSION ){
+//             if( *version != TIME_PROTOCOL_VERSION ){
 
-                continue;
-            }
+//                 continue;
+//             }
 
-            uint8_t *type = version + 1;
+//             uint8_t *type = version + 1;
 
-            sock_addr_t raddr;
-            sock_v_get_raddr( sock, &raddr );
+//             sock_addr_t raddr;
+//             sock_v_get_raddr( sock, &raddr );
 
-            if( *type == TIME_MSG_REQUEST_SYNC ){
+//             if( *type == TIME_MSG_REQUEST_SYNC ){
 
-                if( !is_leader() ){
+//                 if( !is_leader() ){
 
-                    continue;
-                }
+//                     continue;
+//                 }
 
-                time_msg_request_sync_t *req = (time_msg_request_sync_t *)magic;
+//                 time_msg_request_sync_t *req = (time_msg_request_sync_t *)magic;
 
-                if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_request_sync_t) ){
+//                 if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_request_sync_t) ){
 
-                    log_v_debug_P( PSTR("invalid len") );
-                }
+//                     log_v_debug_P( PSTR("invalid len") );
+//                 }
 
-                time_msg_sync_t msg;
-                msg.magic           = TIME_PROTOCOL_MAGIC;
-                msg.version         = TIME_PROTOCOL_VERSION;
-                msg.type            = TIME_MSG_SYNC;
-                msg.net_time        = time_u32_get_network_time_from_local( now );
-                msg.flags           = 0;
-                msg.ntp_time        = time_t_from_system_time( now );
-                msg.source          = master_source;
-                msg.id              = req->id;
+//                 time_msg_sync_t msg;
+//                 msg.magic           = TIME_PROTOCOL_MAGIC;
+//                 msg.version         = TIME_PROTOCOL_VERSION;
+//                 msg.type            = TIME_MSG_SYNC;
+//                 msg.net_time        = time_u32_get_network_time_from_local( now );
+//                 msg.flags           = 0;
+//                 msg.ntp_time        = time_t_from_system_time( now );
+//                 msg.source          = master_source;
+//                 msg.id              = req->id;
 
-                sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
-            }
-            else if( *type == TIME_MSG_PING ){
+//                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+//             }
+//             else if( *type == TIME_MSG_PING ){
 
-                if( !is_leader() ){
+//                 if( !is_leader() ){
 
-                    continue;
-                }
+//                     continue;
+//                 }
 
-                time_msg_ping_response_t msg;
-                msg.magic           = TIME_PROTOCOL_MAGIC;
-                msg.version         = TIME_PROTOCOL_VERSION;
-                msg.type            = TIME_MSG_PING_RESPONSE;
+//                 time_msg_ping_response_t msg;
+//                 msg.magic           = TIME_PROTOCOL_MAGIC;
+//                 msg.version         = TIME_PROTOCOL_VERSION;
+//                 msg.type            = TIME_MSG_PING_RESPONSE;
                 
-                sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
-            }
-            else if( *type == TIME_MSG_PING_RESPONSE ){
+//                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+//             }
+//             else if( *type == TIME_MSG_PING_RESPONSE ){
 
-                if( is_leader() ){
+//                 if( is_leader() ){
 
-                    continue;
-                }
+//                     continue;
+//                 }
 
-                transmit_sync_request();
-            }
-            else if( *type == TIME_MSG_SYNC ){
+//                 transmit_sync_request();
+//             }
+//             else if( *type == TIME_MSG_SYNC ){
 
-                if( is_leader() ){
+//                 if( is_leader() ){
 
-                    continue;
-                }
+//                     continue;
+//                 }
 
-                time_msg_sync_t *msg = (time_msg_sync_t *)magic;
+//                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
 
-                if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_sync_t) ){
+//                 if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_sync_t) ){
 
-                    log_v_debug_P( PSTR("invalid len") );
-                }
+//                     log_v_debug_P( PSTR("invalid len") );
+//                 }
 
-                // check id
-                if( msg->id != sync_id ){
+//                 // check id
+//                 if( msg->id != sync_id ){
 
-                    // log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
+//                     // log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
 
-                    rejected_syncs++;
-                    continue;
-                }
+//                     rejected_syncs++;
+//                     continue;
+//                 }
 
-                // uint32_t est_net_time = time_u32_get_network_time();
+//                 // uint32_t est_net_time = time_u32_get_network_time();
                 
-                uint32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
+//                 uint32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
 
-                // init filtered RTT if needed
-                if( filtered_rtt == 0 ){
+//                 // init filtered RTT if needed
+//                 if( filtered_rtt == 0 ){
 
-                    filtered_rtt = elapsed_rtt;
-                }
+//                     filtered_rtt = elapsed_rtt;
+//                 }
 
-                if( elapsed_rtt > 500 ){
+//                 if( elapsed_rtt > 500 ){
 
-                    // a 0.5 second RTT is clearly ridiculous.
-                    // log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
+//                     // a 0.5 second RTT is clearly ridiculous.
+//                     // log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
 
-                    rejected_syncs++;
+//                     rejected_syncs++;
 
-                    continue;
-                }
-                // check quality of RTT sample
-                else if( elapsed_rtt > ( filtered_rtt + (uint32_t)RTT_QUALITY_LIMIT ) ){
+//                     continue;
+//                 }
+//                 // check quality of RTT sample
+//                 else if( elapsed_rtt > ( filtered_rtt + (uint32_t)RTT_QUALITY_LIMIT ) ){
 
-                    // log_v_debug_P( PSTR("poor quality: RTT: %u"), elapsed_rtt );
+//                     // log_v_debug_P( PSTR("poor quality: RTT: %u"), elapsed_rtt );
 
-                    // although we are not using this sync message for our clock,
-                    // we will bump the filtered RTT up a bit in case the overall RTT is
-                    // drifting upwards.  this prevents us from losing sync on a busy network.
+//                     // although we are not using this sync message for our clock,
+//                     // we will bump the filtered RTT up a bit in case the overall RTT is
+//                     // drifting upwards.  this prevents us from losing sync on a busy network.
                         
-                    filtered_rtt += RTT_RELAX;
+//                     filtered_rtt += RTT_RELAX;
 
-                    rejected_syncs++;
+//                     rejected_syncs++;
 
-                    continue;
-                }
-                else{
+//                     continue;
+//                 }
+//                 else{
 
-                    // filter rtt
-                    filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
-                }
+//                     // filter rtt
+//                     filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
+//                 }
 
-                good_syncs++;
+//                 good_syncs++;
 
-                // check sync
-                if( msg->source != TIME_SOURCE_NONE ){
+//                 // check sync
+//                 if( msg->source != TIME_SOURCE_NONE ){
                     
-                    // log_v_debug_P( PSTR("%4ld %4u"), elapsed_rtt, filtered_rtt );
+//                     // log_v_debug_P( PSTR("%4ld %4u"), elapsed_rtt, filtered_rtt );
 
-                    uint16_t delay = elapsed_rtt / 2;
+//                     uint16_t delay = elapsed_rtt / 2;
 
-                    time_v_set_ntp_master_clock_internal( msg->ntp_time, msg->net_time, now, msg->source, delay );
+//                     time_v_set_ntp_master_clock_internal( msg->ntp_time, msg->net_time, now, msg->source, delay );
 
-                    // each time we get a valid sync, we bump the sync delay up until the max
-                    if( is_sync && ( sync_delay < TIME_SYNC_RATE_MAX ) ){
+//                     // each time we get a valid sync, we bump the sync delay up until the max
+//                     if( is_sync && ( sync_delay < TIME_SYNC_RATE_MAX ) ){
                 
-                       sync_delay++;
-                    }
-                }
-            }
-        }
-    }
+//                        sync_delay++;
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
 
-PT_END( pt );
-}
+// PT_END( pt );
+// }
 
 
-PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
 
-    while( TRUE ){
+//     while( TRUE ){
 
-        log_v_debug_P( PSTR("master clock RESET") );
-        master_ip = ip_a_addr(0,0,0,0);
+//         log_v_debug_P( PSTR("master clock RESET") );
+//         master_ip = ip_a_addr(0,0,0,0);
 
-        // wait for service to resolve
-        THREAD_WAIT_WHILE( pt, !services_b_is_available( TIME_ELECTION_SERVICE, 0 ) );
+//         // wait for service to resolve
+//         THREAD_WAIT_WHILE( pt, !services_b_is_available( TIME_ELECTION_SERVICE, 0 ) );
 
-        log_v_debug_P( PSTR("master clock found") );
-        master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
+//         log_v_debug_P( PSTR("master clock found") );
+//         master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
 
-        while( is_leader() ){
+//         while( is_leader() ){
 
-            // default sync source to internal clock
-            master_source = TIME_SOURCE_INTERNAL;
+//             // default sync source to internal clock
+//             master_source = TIME_SOURCE_INTERNAL;
 
-            // check sync sources
-            if( gps_sync ){
+//             // check sync sources
+//             if( gps_sync ){
 
-                sntp_v_stop();
-                master_source = TIME_SOURCE_GPS;
-            }
-            else{
+//                 sntp_v_stop();
+//                 master_source = TIME_SOURCE_GPS;
+//             }
+//             else{
 
-                if( sntp_u8_get_status() == SNTP_STATUS_DISABLED ){
+//                 if( sntp_u8_get_status() == SNTP_STATUS_DISABLED ){
 
-                    log_v_debug_P( PSTR("master starting sntp") );
+//                     log_v_debug_P( PSTR("master starting sntp") );
 
-                    // start SNTP (ignored if already running)
-                    sntp_v_start();
-                }
-                // check if synchronized
-                else if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
+//                     // start SNTP (ignored if already running)
+//                     sntp_v_start();
+//                 }
+//                 // check if synchronized
+//                 else if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
 
-                    master_source = TIME_SOURCE_NTP;
-                }
-            }
+//                     master_source = TIME_SOURCE_NTP;
+//                 }
+//             }
 
-            TMR_WAIT( pt, 1000 );
-        }
+//             TMR_WAIT( pt, 1000 );
+//         }
 
-        if( is_follower() ){
+//         if( is_follower() ){
 
-            // reset sync
-            is_sync = FALSE;
+//             // reset sync
+//             is_sync = FALSE;
 
-            sntp_v_stop();
+//             sntp_v_stop();
 
-            log_v_debug_P( PSTR("follower, reset sync") );
+//             log_v_debug_P( PSTR("follower, reset sync") );
 
-            sync_delay = TIME_SYNC_RATE_BASE;
+//             sync_delay = TIME_SYNC_RATE_BASE;
 
-            TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // random delay we don't dogpile the time master
-        }
+//             TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // random delay we don't dogpile the time master
+//         }
 
-        while( is_follower() ){
+//         while( is_follower() ){
 
-            request_sync();
+//             request_sync();
 
-            // random delay + base sync delay
-            uint16_t delay = ( sync_delay * 1000 ) + ( rnd_u16_get_int() >> 5 );
-            TMR_WAIT( pt, delay );
-        }
-    }
+//             // random delay + base sync delay
+//             uint16_t delay = ( sync_delay * 1000 ) + ( rnd_u16_get_int() >> 5 );
+//             TMR_WAIT( pt, delay );
+//         }
+//     }
     
-PT_END( pt );
-}
+// PT_END( pt );
+// }
 
-static uint16_t get_priority( void ){
+// static uint16_t get_priority( void ){
 
-    uint8_t source = get_best_local_source();
+//     uint8_t source = get_best_local_source();
 
-    uint16_t priority = source;
+//     uint16_t priority = source;
 
-    #ifdef ESP32
-    priority += TIME_SOURCE_ESP32_PRIORITY;
-    #endif
+//     #ifdef ESP32
+//     priority += TIME_SOURCE_ESP32_PRIORITY;
+//     #endif
 
-    return priority;
-}
+//     return priority;
+// }
 
 
-PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
     
-    // wait for network
-    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+//     // wait for network
+//     THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
     
-    services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
+//     services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
 
-    // wait until we resolve the election
-    THREAD_WAIT_WHILE( pt, !services_b_is_available( TIME_ELECTION_SERVICE, 0 ) );
+//     // wait until we resolve the election
+//     THREAD_WAIT_WHILE( pt, !services_b_is_available( TIME_ELECTION_SERVICE, 0 ) );
 
-    last_clock_update = tmr_u32_get_system_time_ms();
-    thread_v_set_alarm( last_clock_update );
+//     last_clock_update = tmr_u32_get_system_time_ms();
+//     thread_v_set_alarm( last_clock_update );
 
-    while( 1 ){
+//     while( 1 ){
 
-        master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
-        local_source = get_best_local_source();
+//         master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
+//         local_source = get_best_local_source();
     
-        // update election parameters (in case our source changes)        
-        services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
+//         // update election parameters (in case our source changes)        
+//         services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
 
-        thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+//         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+//         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        uint32_t now = tmr_u32_get_system_time_ms();
-        uint32_t elapsed_ms = tmr_u32_elapsed_times( last_clock_update, now );
+//         uint32_t now = tmr_u32_get_system_time_ms();
+//         uint32_t elapsed_ms = tmr_u32_elapsed_times( last_clock_update, now );
 
-        int16_t master_clock_adjust = 0;
-        int16_t ntp_clock_adjust = 0;
+//         int16_t master_clock_adjust = 0;
+//         int16_t ntp_clock_adjust = 0;
 
-        if( is_sync ){
+//         if( is_sync ){
 
-            if( master_sync_difference > 50 ){
+//             if( master_sync_difference > 50 ){
 
-                // our clock is ahead, so we need to slow down
-                master_clock_adjust = 10;
-            }
-            else if( master_sync_difference > 2 ){
+//                 // our clock is ahead, so we need to slow down
+//                 master_clock_adjust = 10;
+//             }
+//             else if( master_sync_difference > 2 ){
 
-                // our clock is ahead, so we need to slow down
-                master_clock_adjust = 1;
-            }
-            else if( master_sync_difference < -50 ){
+//                 // our clock is ahead, so we need to slow down
+//                 master_clock_adjust = 1;
+//             }
+//             else if( master_sync_difference < -50 ){
 
-                // our clock is behind, so we need to speed up
-                master_clock_adjust = -10;
-            }
-            else if( master_sync_difference < -2 ){
+//                 // our clock is behind, so we need to speed up
+//                 master_clock_adjust = -10;
+//             }
+//             else if( master_sync_difference < -2 ){
 
-                // our clock is behind, so we need to speed up
-                master_clock_adjust = -1;
-            }
+//                 // our clock is behind, so we need to speed up
+//                 master_clock_adjust = -1;
+//             }
 
-            master_sync_difference -= master_clock_adjust;
+//             master_sync_difference -= master_clock_adjust;
 
-            // update master clocks
-            master_net_time += elapsed_ms - master_clock_adjust;
+//             // update master clocks
+//             master_net_time += elapsed_ms - master_clock_adjust;
 
-            // update local reference
-            base_system_time += elapsed_ms;  
-        }
+//             // update local reference
+//             base_system_time += elapsed_ms;  
+//         }
 
-        if( ntp_valid ){
+//         if( ntp_valid ){
 
-            uint64_t temp_ntp_master_u64 = ntp_u64_conv_to_u64( master_ntp_time );
+//             uint64_t temp_ntp_master_u64 = ntp_u64_conv_to_u64( master_ntp_time );
 
-            if( ntp_sync_difference > 50 ){
+//             if( ntp_sync_difference > 50 ){
 
-                // our clock is ahead, so we need to slow down
-                ntp_clock_adjust = 10;
-            }
-            else if( ntp_sync_difference > 2 ){
+//                 // our clock is ahead, so we need to slow down
+//                 ntp_clock_adjust = 10;
+//             }
+//             else if( ntp_sync_difference > 2 ){
 
-                // our clock is ahead, so we need to slow down
-                ntp_clock_adjust = 1;
-            }
-            else if( ntp_sync_difference < -50 ){
+//                 // our clock is ahead, so we need to slow down
+//                 ntp_clock_adjust = 1;
+//             }
+//             else if( ntp_sync_difference < -50 ){
 
-                // our clock is behind, so we need to speed up
-                ntp_clock_adjust = -10;
-            }
-            else if( ntp_sync_difference < -2 ){
+//                 // our clock is behind, so we need to speed up
+//                 ntp_clock_adjust = -10;
+//             }
+//             else if( ntp_sync_difference < -2 ){
 
-                // our clock is behind, so we need to speed up
-                ntp_clock_adjust = -1;
-            }
+//                 // our clock is behind, so we need to speed up
+//                 ntp_clock_adjust = -1;
+//             }
 
-            ntp_sync_difference -= ntp_clock_adjust;            
+//             ntp_sync_difference -= ntp_clock_adjust;            
 
-            // update master clocks
-            temp_ntp_master_u64 += ( ( (uint64_t)( elapsed_ms - ntp_clock_adjust ) << 32 ) / 1000 );
-            master_ntp_time = ntp_ts_from_u64( temp_ntp_master_u64 );
-        }
+//             // update master clocks
+//             temp_ntp_master_u64 += ( ( (uint64_t)( elapsed_ms - ntp_clock_adjust ) << 32 ) / 1000 );
+//             master_ntp_time = ntp_ts_from_u64( temp_ntp_master_u64 );
+//         }
 
-        last_clock_update = now;
-    }
+//         last_clock_update = now;
+//     }
 
-PT_END( pt );
-}
+// PT_END( pt );
+// }
 
 
 

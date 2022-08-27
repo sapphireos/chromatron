@@ -228,7 +228,7 @@ void process_packet(
 
     // get destination timestamp (our local network time when we receive the packet)
     *base_system_time = tmr_u32_get_system_time_ms();
-    ntp_ts_t dest_ts = time_t_from_system_time( *base_system_time );
+    ntp_ts_t dest_ts = ntp_t_from_system_time( *base_system_time );
 
     uint64_t dest_timestamp = ntp_u64_conv_to_u64( dest_ts );
 

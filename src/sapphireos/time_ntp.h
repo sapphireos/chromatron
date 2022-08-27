@@ -65,7 +65,8 @@ void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time );
 ntp_ts_t ntp_t_from_system_time( uint32_t end_time );
 ntp_ts_t ntp_t_now( void );
 ntp_ts_t ntp_t_local_now( void );
-
+bool ntp_b_is_sync( void );
 
 #endif
 
+#endif

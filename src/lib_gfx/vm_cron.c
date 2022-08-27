@@ -27,7 +27,7 @@
 #include "list.h"
 #include "keyvalue.h"
 #include "fs.h"
-#include "timesync.h"
+#include "time_ntp.h"
 #include "datetime.h"
 #include "util.h"
 #include "config.h"
@@ -158,23 +158,23 @@ PT_BEGIN( pt );
         THREAD_YIELD( pt );
 
         // wait for sync and for cron jobs to be loaded
-        THREAD_WAIT_WHILE( pt, !time_b_is_ntp_sync() || list_b_is_empty( &cron_list ) );
+        THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() || list_b_is_empty( &cron_list ) );
 
         // initialize cron clock
-        ntp_ts_t ntp_local_now = time_t_local_now();
+        ntp_ts_t ntp_local_now = ntp_t_local_now();
         datetime_v_seconds_to_datetime( ntp_local_now.seconds, &cron_now );
         cron_seconds = ntp_local_now.seconds;
 
         // init alarm
         thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
-        while( time_b_is_ntp_sync() && !list_b_is_empty( &cron_list ) ){
+        while( ntp_b_is_sync() && !list_b_is_empty( &cron_list ) ){
 
             thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
             // update clock
-            ntp_ts_t ntp_local_now = time_t_local_now();
+            ntp_ts_t ntp_local_now = ntp_t_local_now();
 
             int32_t delta = (int64_t)ntp_local_now.seconds - (int64_t)cron_seconds;
 
@@ -242,17 +242,17 @@ PT_BEGIN( pt );
     }
 
     // wait for time sync
-    THREAD_WAIT_WHILE( pt, !time_b_is_ntp_sync() );
+    THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() );
 
     // init clock to 24 hours ago
-    ntp_ts_t ntp_now = time_t_local_now();
+    ntp_ts_t ntp_now = ntp_t_local_now();
     state->cron_seconds = ntp_now.seconds - ( 24 * 60 * 60 );
     datetime_v_seconds_to_datetime( state->cron_seconds, &state->cron_time );
 
     
     while(1){
 
-        ntp_ts_t ntp_local_now = time_t_local_now();
+        ntp_ts_t ntp_local_now = ntp_t_local_now();
 
         for( uint16_t i = 0; i < 600; i++ ){
 
